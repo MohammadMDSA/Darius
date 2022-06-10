@@ -22,7 +22,7 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
     set(WINDOWS TRUE)
 endif()
 
-if(WINDOWs)
+if(WINDOWS)
     add_definitions(/WX)
     add_definitions(/MP)
     add_definitions(-D_CRT_SECURE_NO_WARNINGS)

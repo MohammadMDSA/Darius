@@ -60,14 +60,11 @@ void Game::Tick()
 }
 
 // Updates the world.
-void Game::Update(DX::StepTimer const& timer)
+void Game::Update(DX::StepTimer const&)
 {
     PIXBeginEvent(PIX_COLOR_DEFAULT, L"Update");
 
-    float elapsedTime = float(timer.GetElapsedSeconds());
-
-    // TODO: Add your game logic here.
-    elapsedTime;
+    // float elapsedTime = float(timer.GetElapsedSeconds());
 
     PIXEndEvent();
 }
