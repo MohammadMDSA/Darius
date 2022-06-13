@@ -70,6 +70,8 @@ namespace DX
         UINT                        GetBackBufferCount() const noexcept    { return m_backBufferCount; }
         DXGI_COLOR_SPACE_TYPE       GetColorSpace() const noexcept         { return m_colorSpace; }
         unsigned int                GetDeviceOptions() const noexcept      { return m_options; }
+        ID3D12DescriptorHeap*       GetImguiDescriptorHeap() const noexcept { return m_imguiDescriptorHeap.Get(); }
+        ID3D12DescriptorHeap* const* GetImguiDescriptorHeapAddr() const noexcept { return m_imguiDescriptorHeap.GetAddressOf(); }
 
         CD3DX12_CPU_DESCRIPTOR_HANDLE GetRenderTargetView() const noexcept
         {
@@ -110,6 +112,7 @@ namespace DX
         // Direct3D rendering objects.
         Microsoft::WRL::ComPtr<ID3D12DescriptorHeap>        m_rtvDescriptorHeap;
         Microsoft::WRL::ComPtr<ID3D12DescriptorHeap>        m_dsvDescriptorHeap;
+        Microsoft::WRL::ComPtr<ID3D12DescriptorHeap>        m_imguiDescriptorHeap;
         UINT                                                m_rtvDescriptorSize;
         D3D12_VIEWPORT                                      m_screenViewport;
         D3D12_RECT                                          m_scissorRect;

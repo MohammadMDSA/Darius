@@ -23,8 +23,6 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 endif()
 
 if(WINDOWS)
-    add_definitions(/WX)
-    add_definitions(/MP)
     add_definitions(-D_CRT_SECURE_NO_WARNINGS)
 endif(WINDOWs)
 
@@ -67,6 +65,8 @@ if ((${CMAKE_VERSION} VERSION_GREATER_EQUAL "3.16") AND (NOT MINGW))
     target_precompile_headers(${PROJECT_NAME} PRIVATE pch.hpp )
 endif()
 
+add_subdirectory("src/Libs/imgui")
+
 target_link_libraries(${PROJECT_NAME} PRIVATE
     d3d12.lib dxgi.lib dxguid.lib uuid.lib
     kernel32.lib user32.lib
@@ -75,12 +75,15 @@ target_link_libraries(${PROJECT_NAME} PRIVATE
     runtimeobject.lib
 )
 
+target_link_libraries(${PROJECT_NAME} PUBLIC IMGUI)
+
 if(MSVC)
     # Use max Warning Level 
     string(REPLACE "/W3 " "/Wall " CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS})
     string(REPLACE "/W3 " "/Wall " CMAKE_CXX_FLAGS_DEBUG ${CMAKE_CXX_FLAGS_DEBUG})
     string(REPLACE "/W3 " "/Wall " CMAKE_CXX_FLAGS_RELEASE ${CMAKE_CXX_FLAGS_RELEASE})
-
+    add_definitions(/WX)
+    add_definitions(/MP)
     target_compile_options(${PROJECT_NAME} PRIVATE /fp:fast "$<$<NOT:$<CONFIG:DEBUG>>:/guard:cf>")
     target_link_options(${PROJECT_NAME} PRIVATE /DYNAMICBASE /NXCOMPAT)
 
@@ -113,7 +116,7 @@ endif()
 
 if ( CMAKE_CXX_COMPILER_ID MATCHES "Clang|IntelLLVM" )
     target_compile_options(${PROJECT_NAME} PRIVATE
-        -Wpedantic -Wextra
+        -Wpedantic -Wextra -Werror
         "-Wno-c++98-compat" "-Wno-c++98-compat-pedantic"
         "-Wno-exit-time-destructors" "-Wno-global-constructors" "-Wno-language-extension-token"
         "-Wno-missing-prototypes" "-Wno-missing-variable-declarations" "-Wno-reserved-id-macro"

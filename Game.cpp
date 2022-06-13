@@ -4,6 +4,9 @@
 
 #include "pch.hpp"
 #include "Game.hpp"
+#include <imgui.h>
+#include <imgui_impl_dx12.h>
+#include <imgui_impl_win32.h>
 
 extern void ExitGame() noexcept;
 
@@ -45,6 +48,9 @@ void Game::Initialize(HWND window, int width, int height)
     m_timer.SetFixedTimeStep(true);
     m_timer.SetTargetElapsedSeconds(1.0 / 60);
     */
+   ImGui::CreateContext();
+   ImGui_ImplWin32_Init(window);
+   ImGui_ImplDX12_Init(m_deviceResources->GetD3DDevice(), m_deviceResources->GetBackBufferCount(), DXGI_FORMAT_B8G8R8A8_UNORM, m_deviceResources->GetImguiDescriptorHeap(), m_deviceResources->GetImguiDescriptorHeap()->GetCPUDescriptorHandleForHeapStart(), m_deviceResources->GetImguiDescriptorHeap()->GetGPUDescriptorHandleForHeapStart());
 }
 
 #pragma region Frame Update
@@ -82,12 +88,65 @@ void Game::Render()
 
     // Prepare the command list to render a new frame.
     m_deviceResources->Prepare();
+
+    ImGui_ImplDX12_NewFrame();
+    ImGui_ImplWin32_NewFrame();
+    ImGui::NewFrame();
+
     Clear();
 
     auto commandList = m_deviceResources->GetCommandList();
     PIXBeginEvent(commandList, PIX_COLOR_DEFAULT, L"Render");
 
     // TODO: Add your rendering code here.
+
+    {
+        static bool show_demo_window = true;
+        static bool show_another_window = true;
+        static float clear_color[] = {1.f, 1.f, 1.f, 0.f};
+        // 1. Show the big demo window (Most of the sample code is in ImGui::ShowDemoWindow()! You can browse its code to learn more about Dear ImGui!).
+        if (show_demo_window)
+            ImGui::ShowDemoWindow(&show_demo_window);
+
+        // 2. Show a simple window that we create ourselves. We use a Begin/End pair to created a named window.
+        {
+            static float f = 0.0f;
+            static int counter = 0;
+
+            ImGui::Begin("Hello, world!");                          // Create a window called "Hello, world!" and append into it.
+
+            ImGui::Text("This is some useful text.");               // Display some text (you can use a format strings too)
+            ImGui::Checkbox("Demo Window", &show_demo_window);      // Edit bools storing our window open/close state
+            ImGui::Checkbox("Another Window", &show_another_window);
+
+            ImGui::SliderFloat("float", &f, 0.0f, 1.0f);            // Edit 1 float using a slider from 0.0f to 1.0f
+            ImGui::ColorEdit3("clear color", (float*)&clear_color); // Edit 3 floats representing a color
+
+            if (ImGui::Button("Button"))                            // Buttons return true when clicked (most widgets return true when edited/activated)
+                counter++;
+            ImGui::SameLine();
+            ImGui::Text("counter = %d", counter);
+
+            ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
+            ImGui::End();
+        }
+
+        // 3. Show another simple window.
+        if (show_another_window)
+        {
+            ImGui::Begin("Another Window", &show_another_window);   // Pass a pointer to our bool variable (the window will have a closing button that will clear the bool when clicked)
+            ImGui::Text("Hello from another window!");
+            if (ImGui::Button("Close Me"))
+                show_another_window = false;
+            ImGui::End();
+        }
+    }
+
+    
+    ImGui::Render();
+
+    commandList->SetDescriptorHeaps(1, m_deviceResources->GetImguiDescriptorHeapAddr());
+    ImGui_ImplDX12_RenderDrawData(ImGui::GetDrawData(), commandList);
 
     PIXEndEvent(commandList);
 
