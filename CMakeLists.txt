@@ -24,7 +24,7 @@ endif()
 
 if(WINDOWS)
     add_definitions(-D_CRT_SECURE_NO_WARNINGS)
-endif(WINDOWs)
+endif(WINDOWS)
 
 message(STATUS "Build type is ${CMAKE_BUILD_TYPE}")
 if(NOT WINDOWS)
@@ -69,6 +69,7 @@ endif()
 ############ LIBS ############
 ##############################
 
+# Adding imgui
 add_subdirectory("src/Libs/imgui")
 
 target_link_libraries(${PROJECT_NAME} PUBLIC IMGUI)
@@ -76,8 +77,13 @@ target_link_libraries(${PROJECT_NAME} PUBLIC IMGUI)
 set(Boost_USE_STATIC_LIBS OFF) 
 set(Boost_USE_MULTITHREADED ON)  
 set(Boost_USE_STATIC_RUNTIME OFF)
-set(BOOST_ROOT $ENV{BOOST_ROOT})
-find_package(BOOST 1.65.0 REQUIRED COMPONENTS Boost::signals2)
+
+# Adding Boost
+if(NOT DEFINED BOOST_ROOT)
+    set(BOOST_ROOT $ENV{BOOST_ROOT})
+endif(NOT DEFINED BOOST_ROOT)
+
+find_package(BOOST 1.65.0 REQUIRED COMPONENTS Boost::signals2 Boost::assert)
 
 if(Boost_FOUND)
     include_directories(SYSTEM ${Boost_INCLUDE_DIRS}) 
@@ -89,6 +95,8 @@ endif()
 ##############################
 ##############################
 ##############################
+
+
 
 target_link_libraries(${PROJECT_NAME} PRIVATE
     d3d12.lib dxgi.lib dxguid.lib uuid.lib
