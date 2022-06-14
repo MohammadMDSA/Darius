@@ -51,21 +51,44 @@ elseif(CMAKE_GENERATOR_PLATFORM MATCHES "^[Aa][Rr][Mm]64$")
 endif()
 
 add_executable(${PROJECT_NAME} WIN32
-    Game.cpp
-    Game.hpp
-    DeviceResources.cpp
-    DeviceResources.hpp
-    Main.cpp
-    StepTimer.hpp
-    pch.hpp
-    d3dx12.h
-)
+    "src/Game.cpp"
+    "src/Game.hpp"
+    "src/DeviceResources.cpp"
+    "src/DeviceResources.hpp"
+    "src/Main.cpp"
+    "src/StepTimer.hpp"
+    "src/pch.hpp"
+    "src/d3dx12.h"
+    "src/Core/Signal.hpp" "src/Utils/Assert.hpp")
 
 if ((${CMAKE_VERSION} VERSION_GREATER_EQUAL "3.16") AND (NOT MINGW))
-    target_precompile_headers(${PROJECT_NAME} PRIVATE pch.hpp )
+    target_precompile_headers(${PROJECT_NAME} PRIVATE src/pch.hpp )
 endif()
 
+##############################
+############ LIBS ############
+##############################
+
 add_subdirectory("src/Libs/imgui")
+
+target_link_libraries(${PROJECT_NAME} PUBLIC IMGUI)
+
+set(Boost_USE_STATIC_LIBS OFF) 
+set(Boost_USE_MULTITHREADED ON)  
+set(Boost_USE_STATIC_RUNTIME OFF)
+set(BOOST_ROOT $ENV{BOOST_ROOT})
+find_package(BOOST 1.65.0 REQUIRED COMPONENTS Boost::signals2)
+
+if(Boost_FOUND)
+    include_directories(SYSTEM ${Boost_INCLUDE_DIRS}) 
+    target_link_libraries(${PROJECT_NAME} PRIVATE ${Boost_LIBRARIES})
+else()
+    message(FATAL_ERROR "Boost not found!")
+endif()
+
+##############################
+##############################
+##############################
 
 target_link_libraries(${PROJECT_NAME} PRIVATE
     d3d12.lib dxgi.lib dxguid.lib uuid.lib
@@ -74,8 +97,6 @@ target_link_libraries(${PROJECT_NAME} PRIVATE
     ole32.lib oleaut32.lib
     runtimeobject.lib
 )
-
-target_link_libraries(${PROJECT_NAME} PUBLIC IMGUI)
 
 if(MSVC)
     # Use max Warning Level 

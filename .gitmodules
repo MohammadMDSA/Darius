@@ -1,3 +1,6 @@
 [submodule "src/Libs/imgui"]
 	path = src/Libs/imgui
 	url = https://github.com/Pesc0/imgui-cmake.git
+[submodule "src/Libs/DirectXTK"]
+	path = src/Libs/DirectXTK
+	url = https://github.com/microsoft/DirectXTK12.git
