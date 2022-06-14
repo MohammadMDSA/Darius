@@ -59,7 +59,8 @@ add_executable(${PROJECT_NAME} WIN32
     "src/StepTimer.hpp"
     "src/pch.hpp"
     "src/d3dx12.h"
-    "src/Core/Signal.hpp" "src/Utils/Assert.hpp")
+    "src/Core/Signal.hpp"
+    "src/Utils/Assert.hpp")
 
 if ((${CMAKE_VERSION} VERSION_GREATER_EQUAL "3.16") AND (NOT MINGW))
     target_precompile_headers(${PROJECT_NAME} PRIVATE src/pch.hpp )
@@ -74,28 +75,35 @@ add_subdirectory("src/Libs/imgui")
 
 target_link_libraries(${PROJECT_NAME} PUBLIC IMGUI)
 
-set(Boost_USE_STATIC_LIBS OFF) 
+# Adding Boost
+set(Boost_USE_STATIC_LIBS ON) 
 set(Boost_USE_MULTITHREADED ON)  
 set(Boost_USE_STATIC_RUNTIME OFF)
+set(Boost_ARCHITECTURE "-x64")
 
-# Adding Boost
 if(NOT DEFINED BOOST_ROOT)
-    set(BOOST_ROOT $ENV{BOOST_ROOT})
+    set(BOOST_ROOT $ENV{Boost_ROOT})
 endif(NOT DEFINED BOOST_ROOT)
 
-find_package(BOOST 1.65.0 REQUIRED COMPONENTS Boost::signals2 Boost::assert)
+find_package(Boost 1.50 COMPONENTS REQUIRED)
 
 if(Boost_FOUND)
-    include_directories(SYSTEM ${Boost_INCLUDE_DIRS}) 
+    include_directories(SYSTEM ${Boost_INCLUDE_DIRS})
     target_link_libraries(${PROJECT_NAME} PRIVATE ${Boost_LIBRARIES})
 else()
     message(FATAL_ERROR "Boost not found!")
 endif()
 
+
 ##############################
-##############################
+############ TEST ############
 ##############################
 
+add_subdirectory("Tests")
+
+##############################
+##############################
+##############################
 
 
 target_link_libraries(${PROJECT_NAME} PRIVATE
