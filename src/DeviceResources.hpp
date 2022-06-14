@@ -2,6 +2,8 @@
 // DeviceResources.h - A wrapper for the Direct3D 12 device and swapchain
 //
 
+#include "Core/Signal.hpp"
+
 #pragma once
 
 namespace DX
@@ -41,7 +43,11 @@ namespace DX
         void SetWindow(HWND window, int width, int height) noexcept;
         bool WindowSizeChanged(int width, int height);
         void HandleDeviceLost();
-        void RegisterDeviceNotify(IDeviceNotify* deviceNotify) noexcept { m_deviceNotify = deviceNotify; }
+        void RegisterDeviceNotify(IDeviceNotify* deviceNotify) noexcept
+        {
+            m_deviceLostSignal.connect(boost::bind(&IDeviceNotify::OnDeviceLost, deviceNotify));
+            m_deviceRestoredSignal.connect(boost::bind(&IDeviceNotify::OnDeviceRestored, deviceNotify));
+        }
         void Prepare(D3D12_RESOURCE_STATES beforeState = D3D12_RESOURCE_STATE_PRESENT,
                      D3D12_RESOURCE_STATES afterState = D3D12_RESOURCE_STATE_RENDER_TARGET);
         void Present(D3D12_RESOURCE_STATES beforeState = D3D12_RESOURCE_STATE_RENDER_TARGET);
@@ -136,6 +142,7 @@ namespace DX
         unsigned int                                        m_options;
 
         // The IDeviceNotify can be held directly as it owns the DeviceResources.
-        IDeviceNotify*                                      m_deviceNotify;
+        Darius::Engine::Core::Signal<void()>                m_deviceLostSignal;
+        Darius::Engine::Core::Signal<void()>                m_deviceRestoredSignal;
     };
 }

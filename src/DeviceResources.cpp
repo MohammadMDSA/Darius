@@ -59,8 +59,7 @@ DeviceResources::DeviceResources(
         m_dxgiFactoryFlags(0),
         m_outputSize{0, 0, 1, 1},
         m_colorSpace(DXGI_COLOR_SPACE_RGB_FULL_G22_NONE_P709),
-        m_options(flags),
-        m_deviceNotify(nullptr)
+        m_options(flags)
 {
     if (backBufferCount < 2 || backBufferCount > MAX_BACK_BUFFER_COUNT)
     {
@@ -476,10 +475,7 @@ bool DeviceResources::WindowSizeChanged(int width, int height)
 // Recreate all device resources and set them back to the current state.
 void DeviceResources::HandleDeviceLost()
 {
-    if (m_deviceNotify)
-    {
-        m_deviceNotify->OnDeviceLost();
-    }
+    m_deviceLostSignal();
 
     for (UINT n = 0; n < m_backBufferCount; n++)
     {
@@ -510,10 +506,7 @@ void DeviceResources::HandleDeviceLost()
     CreateDeviceResources();
     CreateWindowSizeDependentResources();
 
-    if (m_deviceNotify)
-    {
-        m_deviceNotify->OnDeviceRestored();
-    }
+    m_deviceRestoredSignal();
 }
 
 // Prepare the command list and render target for rendering.

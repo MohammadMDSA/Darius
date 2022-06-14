@@ -181,7 +181,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
                 game->OnResuming();
             s_in_suspend = false;
         }
-        else if (!s_in_sizemove && game)
+        else if (game)
         {
             game->OnWindowSizeChanged(LOWORD(lParam), HIWORD(lParam));
         }
