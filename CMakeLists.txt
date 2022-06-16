@@ -71,7 +71,7 @@ endif()
 ##############################
 
 # Adding imgui
-add_subdirectory("src/Libs/imgui")
+add_subdirectory("src/Libs/imgui_wrapper")
 
 target_link_libraries(${PROJECT_NAME} PUBLIC IMGUI)
 
