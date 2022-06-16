@@ -59,15 +59,15 @@ add_executable(${PROJECT_NAME} WIN32
     "src/StepTimer.hpp"
     "src/pch.hpp"
     "src/d3dx12.h"
-    "src/Core/Signal.hpp"
-    "src/Utils/Assert.hpp")
+    "src/Utils/Assert.hpp" "src/Core/Signal.cpp")
 
 if ((${CMAKE_VERSION} VERSION_GREATER_EQUAL "3.16") AND (NOT MINGW))
     target_precompile_headers(${PROJECT_NAME} PRIVATE src/pch.hpp )
 endif()
 
+
 ##############################
-############ LIBS ############
+####### 3rd Party Libs #######
 ##############################
 
 # Adding imgui
@@ -93,6 +93,13 @@ if(Boost_FOUND)
 else()
     message(FATAL_ERROR "Boost not found!")
 endif()
+
+##############################
+############ Libs ############
+##############################
+
+add_subdirectory("src/core")
+target_link_libraries(${PROJECT_NAME} PUBLIC "Core")
 
 
 ##############################
