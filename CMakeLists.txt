@@ -76,8 +76,8 @@ add_subdirectory("src/Libs/imgui_wrapper")
 target_link_libraries(${PROJECT_NAME} PUBLIC IMGUI)
 
 # Adding Boost
-set(Boost_USE_STATIC_LIBS ON) 
-set(Boost_USE_MULTITHREADED ON)  
+set(Boost_USE_STATIC_LIBS ON)
+set(Boost_USE_MULTITHREADED ON)
 set(Boost_USE_STATIC_RUNTIME OFF)
 set(Boost_ARCHITECTURE "-x64")
 
@@ -106,7 +106,17 @@ target_link_libraries(${PROJECT_NAME} PUBLIC "Core")
 ############ TEST ############
 ##############################
 
-add_subdirectory("Tests")
+set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
+
+option(BUILD_TESTS "Build tests" ON)
+
+if(BUILD_TESTS)
+    find_package(Boost COMPONENTS unit_test_framework REQUIRED)
+    enable_testing()
+    include(BoostTestHelper)
+
+    add_subdirectory("Tests")
+endif(BUILD_TESTS)
 
 ##############################
 ##############################
