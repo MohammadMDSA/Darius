@@ -58,7 +58,6 @@ function(add_boost_test)
     foreach(HIT ${FOUND_TESTS})
         string(REGEX REPLACE ".*\\( *([A-Za-z_0-9]+) *\\).*" "\\1" TEST_NAME ${HIT})
 
-        message("SDFSDFDFF "${TEST_EXECUTABLE_NAME}.${TEST_NAME})
         add_test(NAME "${TEST_EXECUTABLE_NAME}.${TEST_NAME}"
                 COMMAND ${TEST_EXECUTABLE_NAME}
                 --run_test=${TEST_NAME} --catch_system_error=yes)
