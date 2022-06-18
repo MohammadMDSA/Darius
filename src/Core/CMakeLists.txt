@@ -37,3 +37,12 @@ PRIVATE
 )
 
 target_link_libraries("Core" PRIVATE ${Boost_LIBRARIES})
+
+if(BUILD_TESTS)
+	set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/../../cmake")
+	include(BoostTestHelper)
+	add_compile_definitions(BOOST_TEST_LOG_LEVEL=all)
+	add_compile_definitions(BOOST_TEST_DETECT_MEMORY_LEAK=1)
+	add_compile_definitions(BOOST_TEST_SHOW_PROGRESS=yes)
+	add_boost_test(SOURCE "Tests/CoreTests.cpp" INCLUDE "." LINK Core PREFIX Core)
+endif(BUILD_TESTS)

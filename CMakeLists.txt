@@ -10,6 +10,9 @@ option(BUILD_TEST_TEMPLATE "Ignore warnings related to TODOs" OFF)
 
 option(ENABLE_CODE_ANALYSIS "Use Static Code Analysis on build" OFF)
 
+option(BUILD_TESTS "Build tests" ON)
+
+
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
@@ -107,8 +110,6 @@ target_link_libraries(${PROJECT_NAME} PUBLIC "Core")
 ##############################
 
 set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
-
-option(BUILD_TESTS "Build tests" ON)
 
 if(BUILD_TESTS)
     find_package(Boost COMPONENTS unit_test_framework REQUIRED)
