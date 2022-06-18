@@ -21,6 +21,8 @@ set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin/CMake")
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin/CMake")
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin/CMake")
 
+set(SOURCE_DIR "${CMAKE_SOURCE_DIR}/src")
+
 if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
     set(WINDOWS TRUE)
 endif()
@@ -61,8 +63,7 @@ add_executable(${PROJECT_NAME} WIN32
     "src/Main.cpp"
     "src/StepTimer.hpp"
     "src/pch.hpp"
-    "src/d3dx12.h"
-    "src/Utils/Assert.hpp" "src/Core/Signal.cpp")
+    "src/d3dx12.h")
 
 if ((${CMAKE_VERSION} VERSION_GREATER_EQUAL "3.16") AND (NOT MINGW))
     target_precompile_headers(${PROJECT_NAME} PRIVATE src/pch.hpp )
@@ -101,9 +102,14 @@ endif()
 ############ Libs ############
 ##############################
 
+add_subdirectory("src/utils")
+target_link_libraries(${PROJECT_NAME} PUBLIC "Utils")
+
 add_subdirectory("src/core")
 target_link_libraries(${PROJECT_NAME} PUBLIC "Core")
 
+# add_subdirectory("src/job")
+# target_link_libraries(${PROJECT_NAME} PUBLIC "Job")
 
 ##############################
 ############ TEST ############
