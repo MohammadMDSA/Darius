@@ -1,3 +1,4 @@
+#pragma once
 #include <boost/align/align.hpp>
 #include <boost/align/is_aligned.hpp>
 #include <boost/align/aligned_alloc.hpp>
