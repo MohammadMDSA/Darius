@@ -6,6 +6,7 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ".")
 list(APPEND CORE_LIBS_INCLUDE
     "Signal.hpp"
 	"Memory.hpp"
+	"Exception.hpp"
 	)
 
 list(APPEND CORE_LIBS_SOURCES
