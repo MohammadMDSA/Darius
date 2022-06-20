@@ -98,6 +98,11 @@ else()
     message(FATAL_ERROR "Boost not found!")
 endif()
 
+# # Adding fjs
+# add_subdirectory("src/Libs/fjs")
+# target_link_libraries(${PROJECT_NAME} PUBLIC "fjs")
+
+
 ##############################
 ############ Libs ############
 ##############################
