@@ -7,6 +7,7 @@ list(APPEND CORE_LIBS_INCLUDE
     "Signal.hpp"
 	"Memory.hpp"
 	"Exception.hpp"
+	"Ref.hpp"
 	)
 
 list(APPEND CORE_LIBS_SOURCES
