@@ -8,7 +8,7 @@
 #define D_VERIFY(cond)			BOOST_VERIFY(cond)
 #define D_VERIFY_M(cond, msg)	BOOST_VERIFY_MSG(cond, msg)
 #define D_STATIC_ASSERT(cond)	BOOST_STATIC_ASSERT(cond)
-#define D_STATIC_ASSERT_MSG(cond, msg) BOOST_STATIC_ASSERT_MSG(cond, msg)
+#define D_STATIC_ASSERT_M(cond, msg) BOOST_STATIC_ASSERT_MSG(cond, msg)
 
 
 #define D_Error(msg, ...)	throw std::runtime_error(msg)
