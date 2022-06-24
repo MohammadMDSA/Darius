@@ -1,0 +1,6 @@
+#define D_LOG(msg, lvl)
+#define D_LOG_TRACE(msg)
+#define D_LOG_DEBUG(msg)
+#define D_LOG_INFO(msg)
+#define D_LOG_WARNING(msg)
+#define D_LOG_ERROR(msg)
