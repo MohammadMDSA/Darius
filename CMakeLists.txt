@@ -98,6 +98,7 @@ else()
     message(FATAL_ERROR "Boost not found!")
 endif()
 
+
 # # Adding fjs
 # add_subdirectory("src/Libs/fjs")
 # target_link_libraries(${PROJECT_NAME} PUBLIC "fjs")
@@ -112,6 +113,9 @@ target_link_libraries(${PROJECT_NAME} PUBLIC "Utils")
 
 add_subdirectory("src/core")
 target_link_libraries(${PROJECT_NAME} PUBLIC "Core")
+
+add_subdirectory("src/math")
+target_link_libraries(${PROJECT_NAME} PUBLIC "Math")
 
 # add_subdirectory("src/job")
 # target_link_libraries(${PROJECT_NAME} PUBLIC "Job")
@@ -175,9 +179,6 @@ if (MINGW OR VCPKG_TOOLCHAIN)
     target_link_libraries(${PROJECT_NAME} PRIVATE Microsoft::DirectX-Headers Microsoft::DirectX-Guids Microsoft::DirectXMath)
     target_compile_definitions(${PROJECT_NAME} PRIVATE USING_DIRECTX_HEADERS)
 
-    # Uncomment if using the DirectX Tool Kit
-    # find_package(directxtk12 CONFIG REQUIRED)
-    # target_link_libraries(${PROJECT_NAME} PRIVATE Microsoft::DirectXTK12)
 endif()
 
 if ( CMAKE_CXX_COMPILER_ID MATCHES "Clang|IntelLLVM" )
