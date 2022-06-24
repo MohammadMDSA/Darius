@@ -99,6 +99,11 @@ else()
 endif()
 
 
+# Adding DirectXTK 12
+
+add_subdirectory("src/Libs/DirectXTK" "src/Libs/DirectXTK/bin/CMake/DirectXTK")
+
+
 # # Adding fjs
 # add_subdirectory("src/Libs/fjs")
 # target_link_libraries(${PROJECT_NAME} PUBLIC "fjs")
@@ -117,8 +122,8 @@ target_link_libraries(${PROJECT_NAME} PUBLIC "Core")
 add_subdirectory("src/math")
 target_link_libraries(${PROJECT_NAME} PUBLIC "Math")
 
-# add_subdirectory("src/job")
-# target_link_libraries(${PROJECT_NAME} PUBLIC "Job")
+add_subdirectory("src/job")
+target_link_libraries(${PROJECT_NAME} PUBLIC "Job")
 
 ##############################
 ############ TEST ############

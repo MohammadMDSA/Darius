@@ -6,6 +6,7 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ".")
 list(APPEND UTILS_LIBS_INCLUDE
     "Assert.hpp"
 	"Common.hpp"
+	"Log.hpp"
 	)
 	
 list(APPEND UTILS_LIBS_SOURCES
@@ -17,7 +18,8 @@ add_library("Utils")
 
 target_sources("Utils"
 	PRIVATE 
-	${UTILS_LIBS_SOURCES})
+	${UTILS_LIBS_SOURCES}
+	${UTILS_LIBS_INCLUDE})
 
 	
 set(Boost_USE_STATIC_LIBS ON) 
@@ -30,7 +32,7 @@ set_target_properties("Utils" PROPERTIES LINKER_LANGUAGE CXX)
 
 target_include_directories("Utils"
 PUBLIC
-	${UTILS_LIBS_INCLUDE}
+	".."
 PRIVATE
 	${Boost_INCLUDE_DIRS}
 )

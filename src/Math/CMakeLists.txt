@@ -25,8 +25,9 @@ list(APPEND MATH_LIBS_SOURCES
 add_library("Math")
 
 target_sources("Math"
-	PRIVATE 
-	${MATH_LIBS_SOURCES})
+	PRIVATE
+	${MATH_LIBS_SOURCES}
+	${MATH_LIBS_INCLUDE})
 
 	
 set(Boost_USE_STATIC_LIBS ON) 
@@ -43,16 +44,9 @@ if ((${CMAKE_VERSION} VERSION_GREATER_EQUAL "3.16") AND (NOT MINGW))
 endif()
 
 
-# Adding DirectXTK 12
-
-add_subdirectory("../Libs/DirectXTK" "src/Libs/DirectXTK/bin/CMake/DirectXTK")
-
-
 target_include_directories("Math"
 PUBLIC
-	${MATH_LIBS_INCLUDE}
-PRIVATE
-	${Boost_INCLUDE_DIRS}
+	".."
 )
 
 target_link_libraries("Math" PRIVATE ${Boost_LIBRARIES})

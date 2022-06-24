@@ -19,8 +19,9 @@ list(APPEND CORE_LIBS_SOURCES
 add_library("Core")
 
 target_sources("Core"
-	PRIVATE 
-	${CORE_LIBS_SOURCES})
+	PRIVATE
+	${CORE_LIBS_SOURCES}
+	${CORE_LIBS_INCLUDE})
 
 	
 set(Boost_USE_STATIC_LIBS ON) 
@@ -33,7 +34,7 @@ set_target_properties("Core" PROPERTIES LINKER_LANGUAGE CXX)
 
 target_include_directories("Core"
 PUBLIC
-	${CORE_LIBS_INCLUDE}
+	".."
 PRIVATE
 	${Boost_INCLUDE_DIRS}
 )
