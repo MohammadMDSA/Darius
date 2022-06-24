@@ -40,7 +40,7 @@ PRIVATE
 )
 
 target_link_libraries("Job" PRIVATE ${Boost_LIBRARIES})
-target_link_libraries("Job" PRIVATE Utils)
+target_link_libraries("Job" PRIVATE Utils Core)
 
 
 if(BUILD_TESTS)
