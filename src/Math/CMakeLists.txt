@@ -4,21 +4,25 @@ set(MATH_LIBS_INCLUDE)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ".")
 
 list(APPEND MATH_LIBS_INCLUDE
-	"Math.hpp"
-	"Matrix.hpp"
-	"Quaternion.hpp"
-	"Vector.hpp"
-	"Plane.hpp"
-	"Rectangle.hpp"
+	"BoundingSphere.hpp"
 	"Color.hpp"
-	"Viewport.hpp"
-	"Transform.hpp"
+	"Common.hpp"
+	"Functions.inl"
+	"Matrix3.hpp"
+	"Matrix4.hpp"
 	"pch.hpp"
+	"Plane.hpp"
+	"Quaternion.hpp"
+	"Rectangle.hpp"
+	"Scalar.hpp"
+	"Transform.hpp"
+	"Vector.hpp"
+	"VectorMath.hpp"
+	"Viewport.hpp"
 	)
 
 list(APPEND MATH_LIBS_SOURCES
-	"Math.cpp"
-	"Transform.cpp"
+	"BoundingSphere.cpp"
 	"pch.cpp"
 	)
 
@@ -51,7 +55,7 @@ PRIVATE
 )
 
 target_link_libraries("Math" PRIVATE ${Boost_LIBRARIES})
-target_link_libraries("Math" PRIVATE DirectXTK12)
+# target_link_libraries("Math" PRIVATE DirectXTK12)
 target_link_libraries("Math" PRIVATE Utils)
 
 

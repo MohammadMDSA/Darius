@@ -1,10 +1,7 @@
 #pragma once
 #include "pch.hpp"
 
-namespace Darius
+namespace Darius::Math
 {
-	namespace Math
-	{
-		using Viewport = DirectX::SimpleMath::Viewport;
-	}
+	using Viewport = DirectX::SimpleMath::Viewport;
 }

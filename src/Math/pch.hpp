@@ -1,1 +1,3 @@
-#include <SimpleMath.h>
+#pragma once
+
+#include <DirectXMath.h>

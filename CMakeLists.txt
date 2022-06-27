@@ -155,6 +155,10 @@ target_link_libraries(${PROJECT_NAME} PRIVATE
     runtimeobject.lib
 )
 
+target_include_directories(${PROJECT_NAME}
+PRIVATE
+    "..")
+
 if(MSVC)
     # Use max Warning Level 
     string(REPLACE "/W3 " "/Wall " CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS})
