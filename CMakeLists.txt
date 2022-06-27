@@ -125,6 +125,9 @@ target_link_libraries(${PROJECT_NAME} PUBLIC "Math")
 add_subdirectory("src/job")
 target_link_libraries(${PROJECT_NAME} PUBLIC "Job")
 
+add_subdirectory("src/renderer")
+target_link_libraries(${PROJECT_NAME} PUBLIC "Renderer")
+
 ##############################
 ############ TEST ############
 ##############################
