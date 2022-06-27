@@ -89,13 +89,10 @@ namespace Darius::Job
 		}
 	}
 
-	ThreadPool::ThreadObject::ThreadObject(ThreadNumber const threadNumber, ThreadPool& parent, size_t maxTaskCount) :
+	ThreadPool::ThreadObject::ThreadObject(ThreadNumber const threadNumber, ThreadPool& parent) :
 		m_parent(parent),
-		m_threadNumber(threadNumber),
-		m_tasks(maxTaskCount),
-		m_taskCount(0)
+		m_threadNumber(threadNumber)
 	{
-		D_ASSERT_M(maxTaskCount & (maxTaskCount - 1) == 0, L"Max task count must be power of two");
 		m_thread = std::make_unique<std::thread>([this]()-> void
 		{
 			MainLoop();
@@ -104,11 +101,7 @@ namespace Darius::Job
 
 	auto ThreadPool::ThreadObject::Assign(Task const& task) -> void
 	{
-		while (!m_tasks.bounded_push(task))
-		{
-			m_condition.notify_one();
-		}
-		m_taskCount++;
+		m_tasks.Push(task);
 	}
 
 	ThreadNumber ThreadPool::GetNumberOfAvailableThreads() const
@@ -119,7 +112,7 @@ namespace Darius::Job
 	// Alive while either has work to do or has dead parent
 	bool ThreadPool::ThreadObject::AwakeCondition()
 	{
-		return !m_tasks.empty() || !m_parent.m_isAlive;
+		return !m_tasks.IsEmpty() || !m_parent.m_isAlive;
 	}
 
 	void ThreadPool::ThreadObject::Join() const
@@ -129,7 +122,7 @@ namespace Darius::Job
 
 	bool ThreadPool::ThreadObject::IsFree()
 	{
-		auto const isFree = m_tasks.empty() && !m_isBusy;
+		auto const isFree = m_tasks.IsEmpty() && !m_isBusy;
 		if (!isFree)
 		{
 			m_condition.notify_one();
@@ -140,7 +133,7 @@ namespace Darius::Job
 
 	size_t ThreadPool::ThreadObject::InQueueTasksCount()
 	{
-		return m_taskCount;
+		return m_tasks.Size();
 	}
 
 	void ThreadPool::ThreadObject::Notify()
@@ -165,10 +158,10 @@ namespace Darius::Job
 			});
 
 			m_isBusy = true;
-			while (!m_tasks.empty() && m_parent.m_isAlive)
+			while (!m_tasks.IsEmpty() && m_parent.m_isAlive)
 			{
 				Task currentTask;
-				while (!m_tasks.pop(currentTask));
+				m_tasks.Pop(currentTask);
 
 				try
 				{
@@ -179,9 +172,8 @@ namespace Darius::Job
 				}
 				catch (const std::exception& ex)
 				{
-					while (!m_parent.m_exceptions.bounded_push(ex.what()));
+					m_parent.m_exceptions.Push(ex);
 				}
-				m_taskCount--;
 			}
 			m_isBusy = false;
 		}
@@ -215,12 +207,12 @@ namespace Darius::Job
 
 		D_ASSERT(AllThreadsAreIdle());
 
-		while (!m_exceptions.empty())
+		while (!m_exceptions.IsEmpty())
 		{
-			std::string ex;
-			while (!m_exceptions.pop(ex));
+			std::exception ex;
+			m_exceptions.Pop(ex);
 
-			D_LOG_ERROR(ex);
+			D_LOG_ERROR(ex.what());
 		}
 	}
 

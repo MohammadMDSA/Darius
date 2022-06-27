@@ -34,8 +34,8 @@ set_target_properties("Job" PROPERTIES LINKER_LANGUAGE CXX)
 
 target_include_directories("Job"
 PUBLIC
-	".."
 PRIVATE
+	".."
 	${Boost_INCLUDE_DIRS}
 )
 

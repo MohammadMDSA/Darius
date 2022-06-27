@@ -37,7 +37,7 @@ namespace Darius::Job
         {
         public:
 
-            explicit ThreadObject(ThreadNumber threadNumber, ThreadPool& parent, size_t maxTaskCount);
+            explicit ThreadObject(ThreadNumber threadNumber, ThreadPool& parent);
 
             ~ThreadObject() = default;
 
@@ -70,7 +70,6 @@ namespace Darius::Job
             std::condition_variable         m_condition;
             std::unique_ptr<std::thread>    m_thread;
             std::atomic<bool>               m_isBusy = false;
-            size_t                          m_taskCount;
         };
 
         bool AllThreadsAreIdle();
@@ -86,7 +85,7 @@ namespace Darius::Job
 
         ThreadNumber                                m_numberOfThreads = 0;
 
-        ThreadSafeQueue<std::string>               m_exceptions{};
+        ThreadSafeQueue<std::exception>             m_exceptions{};
 
         std::thread::id                             m_mainThreadId{};
 

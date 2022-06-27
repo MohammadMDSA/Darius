@@ -1,6 +1,6 @@
 #pragma once
 #include <functional>
-#include <boost/lockfree/queue.hpp>
+#include <Core/Containers/ConcurrentQueue.hpp>
 
 namespace Darius::Job
 {
@@ -9,5 +9,5 @@ namespace Darius::Job
     using OnFinishCallback = std::function<void()>;
 
     template<typename T>
-    using ThreadSafeQueue = boost::lockfree::queue<T>;
+    using ThreadSafeQueue = Darius::Core::Containers::ConcurrentQueue<T>;
 }
