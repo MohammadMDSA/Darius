@@ -19,6 +19,7 @@ list(APPEND MATH_LIBS_INCLUDE
 list(APPEND MATH_LIBS_SOURCES
 	"Math.cpp"
 	"Transform.cpp"
+	"pch.cpp"
 	)
 
 
@@ -45,7 +46,7 @@ endif()
 
 
 target_include_directories("Math"
-PUBLIC
+PRIVATE
 	".."
 )
 

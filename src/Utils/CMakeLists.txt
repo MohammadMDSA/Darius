@@ -32,8 +32,8 @@ set_target_properties("Utils" PROPERTIES LINKER_LANGUAGE CXX)
 
 target_include_directories("Utils"
 PUBLIC
-	".."
 PRIVATE
+	".."
 	${Boost_INCLUDE_DIRS}
 )
 
