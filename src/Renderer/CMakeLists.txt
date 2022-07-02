@@ -5,12 +5,15 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ".")
 
 list(APPEND RENDERER_LIBS_INCLUDE
 	"pch.hpp"
-	"Utils/D3DUtils.hpp"
+	"GraphicsUtils/D3DUtils.hpp"
+	"GraphicsUtils/UploadBuffer.hpp"
+	"Renderer.hpp"
 	)
 
 list(APPEND RENDERER_LIBS_SOURCES
 	"pch.cpp"
-	"Utils/D3DUtils.cpp"
+	"GraphicsUtils/D3DUtils.cpp"
+	"Renderer.cpp"
 	)
 
 
