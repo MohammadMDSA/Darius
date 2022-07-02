@@ -13,12 +13,9 @@
 
 #pragma once
 #include "Matrix3.hpp"
-//#include "BoundingSphere.hpp"
 
 namespace Darius::Math
 {
-	class BoundingSphere;
-
 	// Orthonormal basis (just rotation via quaternion) and translation
 	class OrthogonalTransform;
 
@@ -61,9 +58,6 @@ namespace Darius::Math
 				Vector4(SetWToZero(m_rotation * Vector3((XMVECTOR)vec))) +
 				Vector4(SetWToOne(m_translation)) * vec.GetW();
 		}
-		/*INLINE BoundingSphere operator* (BoundingSphere sphere) const {
-			return BoundingSphere(*this * sphere.GetCenter(), sphere.GetRadius());
-		}*/
 
 		INLINE OrthogonalTransform operator* (const OrthogonalTransform& xform) const {
 			return OrthogonalTransform(m_rotation * xform.m_rotation, m_rotation * xform.m_translation + m_translation);
@@ -106,13 +100,6 @@ namespace Darius::Math
 		INLINE Scalar GetScale() const { return m_repr.GetW(); }
 		INLINE Vector3 GetTranslation() const { return (Vector3)m_repr; }
 
-		/*INLINE BoundingSphere operator*(const BoundingSphere& sphere) const
-		{
-			Vector4 scaledSphere = (Vector4)sphere * GetScale();
-			Vector4 translation = Vector4(SetWToZero(m_repr));
-			return BoundingSphere(scaledSphere + translation);
-		}*/
-
 	private:
 		Vector4 m_repr;
 	};
@@ -148,11 +135,6 @@ namespace Darius::Math
 		{
 			return m_rotation * (vec * m_translationScale.GetScale()) + m_translationScale.GetTranslation();
 		}
-
-		/*INLINE BoundingSphere operator*(BoundingSphere sphere) const
-		{
-			return BoundingSphere(*this * sphere.GetCenter(), GetScale() * sphere.GetRadius());
-		}*/
 
 	private:
 		Quaternion m_rotation;

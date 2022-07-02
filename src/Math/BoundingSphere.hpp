@@ -48,4 +48,22 @@ namespace Darius::Math
         m_repr = Vector4(center);
         m_repr.SetW(radius);
     }
+
+    INLINE BoundingSphere operator*(const OrthogonalTransform& trans, const BoundingSphere& sphere)
+    {
+        return BoundingSphere(trans * sphere.GetCenter(), sphere.GetRadius());
+    }
+
+    INLINE BoundingSphere operator*(const ScaleAndTranslation& trans, const BoundingSphere& sphere)
+    {
+        Vector4 scaleSphere = static_cast<Vector4>(sphere) * trans.GetScale();
+        Vector4 translation = Vector4(trans.GetTranslation(), 0.f);
+        return BoundingSphere(scaleSphere + translation);
+    }
+
+    INLINE BoundingSphere operator*(const UniformTransform& trans, const BoundingSphere& sphere)
+    {
+        return BoundingSphere(trans * sphere.GetCenter(), trans.GetScale() * sphere.GetRadius());
+    }
+
 }
