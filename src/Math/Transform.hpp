@@ -188,6 +188,7 @@ namespace Darius::Math
 		static INLINE AffineTransform MakeScale(float scale) { return AffineTransform(Matrix3::MakeScale(scale)); }
 		static INLINE AffineTransform MakeScale(Vector3 scale) { return AffineTransform(Matrix3::MakeScale(scale)); }
 		static INLINE AffineTransform MakeTranslation(Vector3 translate) { return AffineTransform(translate); }
+		static INLINE AffineTransform MakeIdentity() { return AffineTransform(EIdentityTag::kIdentity); }
 
 		INLINE Vector3 operator* (Vector3 vec) const { return m_basis * vec + m_translation; }
 		INLINE AffineTransform operator* (const AffineTransform& mat) const {
