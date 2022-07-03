@@ -30,7 +30,7 @@ namespace Darius::Renderer::GraphicsUtils
 				&heapProps,
 				D3D12_HEAP_FLAG_NONE,
 				&bufferDesc,
-				D3D12_RESOURCE_STATE_GENERAIC_READ,
+				D3D12_RESOURCE_STATE_GENERIC_READ,
 				nullptr,
 				IID_PPV_ARGS(&mUploadBuffer)
 			));

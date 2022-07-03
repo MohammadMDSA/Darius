@@ -81,6 +81,7 @@ namespace Darius::Math
 
         static INLINE Matrix4 MakeScale(float scale) { return Matrix4(XMMatrixScaling(scale, scale, scale)); }
         static INLINE Matrix4 MakeScale(Vector3 scale) { return Matrix4(XMMatrixScalingFromVector(scale)); }
+        static INLINE Matrix4 Identity() { return Matrix4(EIdentityTag::kIdentity); }
 
     private:
         XMMATRIX m_mat;

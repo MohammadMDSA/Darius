@@ -58,8 +58,6 @@ endif()
 add_executable(${PROJECT_NAME} WIN32
     "src/Game.cpp"
     "src/Game.hpp"
-    "src/DeviceResources.cpp"
-    "src/DeviceResources.hpp"
     "src/Main.cpp"
     "src/StepTimer.hpp"
     "src/pch.hpp"
@@ -76,8 +74,6 @@ endif()
 
 # Adding imgui
 add_subdirectory("src/Libs/imgui_wrapper")
-
-target_link_libraries(${PROJECT_NAME} PUBLIC IMGUI)
 
 # Adding Boost
 set(Boost_USE_STATIC_LIBS ON)

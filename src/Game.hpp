@@ -4,13 +4,13 @@
 
 #pragma once
 
-#include "DeviceResources.hpp"
 #include "StepTimer.hpp"
 
+#include <Renderer/DeviceResources.hpp>
 
 // A basic game implementation that creates a D3D12 device and
 // provides a game loop.
-class Game final : public DX::IDeviceNotify
+class Game final : public D_DEVICE_RESOURCE::IDeviceNotify
 {
 public:
 
@@ -50,13 +50,8 @@ private:
     void Update(DX::StepTimer const& timer);
     void Render();
 
-    void Clear();
-
     void CreateDeviceDependentResources();
     void CreateWindowSizeDependentResources();
-
-    // Device resources.
-    std::unique_ptr<DX::DeviceResources>        m_deviceResources;
 
     // Rendering loop timer.
     DX::StepTimer                               m_timer;

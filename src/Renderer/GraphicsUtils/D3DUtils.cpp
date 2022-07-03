@@ -1,6 +1,8 @@
 #include "./Renderer/pch.hpp"
 #include "D3DUtils.hpp"
 
+#include <Utils/Log.hpp>
+
 using namespace Microsoft::WRL;
 
 namespace Darius::Renderer::GraphicsUtils
@@ -52,7 +54,15 @@ namespace Darius::Renderer::GraphicsUtils
 		);
 		cmdList->ResourceBarrier(1, &transition);
 
-		UpdateSubresources<1>(cmdList, defaultBuffer.Get(), uploadBuffer.Get(), 0, 0, 1, &subResourceData);
+		try
+		{
+			UpdateSubresources<1>(cmdList, defaultBuffer.Get(), uploadBuffer.Get(), 0, 0, 1, &subResourceData);
+
+		}
+		catch (const std::exception&)
+		{
+			int i;
+		}
 
 		transition = CD3DX12_RESOURCE_BARRIER::Transition(
 			defaultBuffer.Get(),
@@ -67,6 +77,34 @@ namespace Darius::Renderer::GraphicsUtils
 		// The caller can Release the uploadBuffer after it knows the copy 
 		// has been executed.
 		return defaultBuffer;
+	}
+
+	ComPtr<ID3DBlob> CompileShader(const std::wstring& filename, const D3D_SHADER_MACRO* defines, const std::string& entrypoint, const std::string& target)
+	{
+		// Use debug flags in debug mode.
+		UINT compileFlags = 0;
+#if defined(DEBUG) || defined(_DEBUG)
+		compileFlags = D3DCOMPILE_DEBUG | D3DCOMPILE_SKIP_OPTIMIZATION;
+#endif
+
+		HRESULT hr = S_OK;
+
+		ComPtr<ID3DBlob> byteCode = nullptr;
+		ComPtr<ID3DBlob> errors;
+
+		hr = D3DCompileFromFile(filename.c_str(), defines, D3D_COMPILE_STANDARD_FILE_INCLUDE, entrypoint.c_str(), target.c_str(), compileFlags, 0, &byteCode, &errors);
+
+		// Output errors to debug window.
+		if (errors != nullptr)
+		{
+			char* msg = (char*)errors->GetBufferPointer();
+			OutputDebugString(msg);
+			D_LOG_FATAL(msg);
+		}
+
+		D_HR_CHECK(hr);
+
+		return byteCode;
 	}
 
 }

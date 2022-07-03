@@ -1,5 +1,7 @@
 #pragma once
 
+using namespace Microsoft::WRL;
+
 namespace Darius::Renderer::GraphicsUtils
 {
 	Microsoft::WRL::ComPtr<ID3D12Resource> CreateDefaultBuffer(
@@ -25,4 +27,11 @@ namespace Darius::Renderer::GraphicsUtils
         // 512
         return (byteSize + 255) & ~255;
     }
+
+    ComPtr<ID3DBlob> CompileShader(
+        const std::wstring& filename,
+        const D3D_SHADER_MACRO* defines,
+        const std::string& entrypoint,
+        const std::string& target
+    );
 }

@@ -8,12 +8,14 @@ list(APPEND RENDERER_LIBS_INCLUDE
 	"GraphicsUtils/D3DUtils.hpp"
 	"GraphicsUtils/UploadBuffer.hpp"
 	"Renderer.hpp"
+	"DeviceResources.hpp"
 	)
 
 list(APPEND RENDERER_LIBS_SOURCES
 	"pch.cpp"
 	"GraphicsUtils/D3DUtils.cpp"
 	"Renderer.cpp"
+	"DeviceResources.cpp"
 	)
 
 
@@ -46,7 +48,7 @@ PRIVATE
 	${Boost_INCLUDE_DIRS}
 )
 
-target_link_libraries("Renderer" PRIVATE ${Boost_LIBRARIES})
+target_link_libraries("Renderer" PRIVATE ${Boost_LIBRARIES} PUBLIC IMGUI)
 
 if(BUILD_TESTS)
 	set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/../../cmake")

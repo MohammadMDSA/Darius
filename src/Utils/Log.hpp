@@ -4,3 +4,4 @@
 #define D_LOG_INFO(msg)
 #define D_LOG_WARNING(msg)
 #define D_LOG_ERROR(msg)
+#define D_LOG_FATAL(msg)

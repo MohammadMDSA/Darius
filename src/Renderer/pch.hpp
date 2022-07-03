@@ -5,7 +5,7 @@
 
 #pragma once
 
-#define D_HR_CHECK(hr) Darius::Renderer::Utils::ThrowIfFailed(hr);
+#define D_HR_CHECK(hr) Darius::Renderer::GraphicsUtils::ThrowIfFailed(hr);
 
 #include <winsdkver.h>
 #ifndef _WIN32_WINNT
@@ -54,6 +54,7 @@
 
 #include <DirectXMath.h>
 #include <DirectXColors.h>
+#include <d3dcompiler.h>
 
 #include <algorithm>
 #include <cmath>
@@ -73,10 +74,12 @@
 #include <dxgidebug.h>
 #endif
 
+#include <Utils/Log.hpp>
+
 // If using the DirectX Tool Kit for DX12, uncomment this line:
 //#include "GraphicsMemory.h"
 
-namespace Darius::Renderer::Utils
+namespace Darius::Renderer::GraphicsUtils
 {
     // Helper class for COM exceptions
     class com_exception : public std::exception
@@ -100,7 +103,9 @@ namespace Darius::Renderer::Utils
     {
         if (FAILED(hr))
         {
-            throw com_exception(hr);
+            auto exp = com_exception(hr);
+            D_LOG_ERROR(exp.what());
+            throw exp;
         }
     }
 }

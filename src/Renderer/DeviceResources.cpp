@@ -6,7 +6,8 @@
 #include "DeviceResources.hpp"
 
 using namespace DirectX;
-using namespace DX;
+using namespace Darius::Renderer::DeviceResource;
+using namespace Darius::Renderer::GraphicsUtils;
 
 using Microsoft::WRL::ComPtr;
 
@@ -233,14 +234,6 @@ void DeviceResources::CreateDeviceResources()
         ThrowIfFailed(m_d3dDevice->CreateDescriptorHeap(&dsvDescriptorHeapDesc, IID_PPV_ARGS(m_dsvDescriptorHeap.ReleaseAndGetAddressOf())));
 
         m_dsvDescriptorHeap->SetName(L"DeviceResources");
-    }
-
-    {
-        D3D12_DESCRIPTOR_HEAP_DESC desc = {};
-        desc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
-        desc.NumDescriptors = 1;
-        desc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
-        ThrowIfFailed(m_d3dDevice->CreateDescriptorHeap(&desc, IID_PPV_ARGS(m_imguiDescriptorHeap.ReleaseAndGetAddressOf())) != S_OK);
     }
 
     // Create a command allocator for each back buffer that will be rendered to.
