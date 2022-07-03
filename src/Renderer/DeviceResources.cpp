@@ -503,11 +503,11 @@ void DeviceResources::HandleDeviceLost()
 }
 
 // Prepare the command list and render target for rendering.
-void DeviceResources::Prepare(D3D12_RESOURCE_STATES beforeState, D3D12_RESOURCE_STATES afterState)
+void DeviceResources::Prepare(ID3D12PipelineState* pso, D3D12_RESOURCE_STATES beforeState, D3D12_RESOURCE_STATES afterState)
 {
     // Reset command list and allocator.
     ThrowIfFailed(m_commandAllocators[m_backBufferIndex]->Reset());
-    ThrowIfFailed(m_commandList->Reset(m_commandAllocators[m_backBufferIndex].Get(), nullptr));
+    ThrowIfFailed(m_commandList->Reset(m_commandAllocators[m_backBufferIndex].Get(), pso));
 
     if (beforeState != afterState)
     {

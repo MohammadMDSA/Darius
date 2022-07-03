@@ -86,14 +86,26 @@ namespace Darius::Renderer
 		D_ASSERT(Resources);
 
 		device = Resources->GetD3DDevice();
+		auto cmdList = Resources->GetCommandList();
+
+		D_HR_CHECK(Resources->GetCommandAllocator()->Reset());
+		D_HR_CHECK(cmdList->Reset(Resources->GetCommandAllocator(), nullptr));
 
 		BuildDescriptorHeaps();
 		BuildConstantBuffers();
 		BuildRootSignature();
 		BuildShadersAndInputLayout();
-		//BuildGeometery();
+		BuildGeometery();
+		BuildPSO();
 		BuildImgui();
 
+		// Execute the initialization commands.
+		D_HR_CHECK(cmdList->Close());
+		ID3D12CommandList* commandLists[] = { cmdList };
+		Resources->GetCommandQueue()->ExecuteCommandLists(_countof(commandLists), commandLists);
+
+		// Wait until gpu executes initial commands
+		Resources->WaitForGpu();
 	}
 
 	void Shutdown()
@@ -106,7 +118,7 @@ namespace Darius::Renderer
 	{
 
 		// Prepare the command list to render a new frame.
-		Resources->Prepare();
+		Resources->Prepare(Pso.Get());
 
 		// Prepare imgui
 		ImGui_ImplDX12_NewFrame();
@@ -118,7 +130,7 @@ namespace Darius::Renderer
 		auto commandList = Resources->GetCommandList();
 		PIXBeginEvent(commandList, PIX_COLOR_DEFAULT, L"Render");
 
-		//DrawCube();
+		DrawCube();
 
 		DrawImgui();
 
@@ -142,13 +154,11 @@ namespace Darius::Renderer
 		ID3D12DescriptorHeap* descriptorHeaps[] = { CbvHeap.Get() };
 		cmdList->SetDescriptorHeaps(_countof(descriptorHeaps), descriptorHeaps);
 
-		// Offset the CBV we want to use for this draw call
-		cmdList->SetGraphicsRootDescriptorTable(0, CbvHeap->GetGPUDescriptorHandleForHeapStart());
-
 		// Setting root signature
 		cmdList->SetGraphicsRootSignature(RootSignature.Get());
 
-
+		// Offset the CBV we want to use for this draw call
+		cmdList->SetGraphicsRootDescriptorTable(0, CbvHeap->GetGPUDescriptorHandleForHeapStart());
 
 		D3D12_VERTEX_BUFFER_VIEW vbv;
 		vbv.BufferLocation = vertexBuffer->GetGPUVirtualAddress();
@@ -166,6 +176,9 @@ namespace Darius::Renderer
 
 		cmdList->IASetIndexBuffer(&ibv);
 		cmdList->IASetPrimitiveTopology(D3D10_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+
+		cmdList->SetPipelineState(Pso.Get());
+
 		cmdList->DrawIndexedInstanced(36, 1, 0, 0, 0);
 	}
 
@@ -225,7 +238,7 @@ namespace Darius::Renderer
 
 	void Update(Transform* transform)
 	{
-
+		//Matrix4::
 	}
 
 	void BuildDescriptorHeaps()
