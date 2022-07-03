@@ -82,6 +82,8 @@ namespace Darius::Math
         static INLINE Matrix4 MakeScale(float scale) { return Matrix4(XMMatrixScaling(scale, scale, scale)); }
         static INLINE Matrix4 MakeScale(Vector3 scale) { return Matrix4(XMMatrixScalingFromVector(scale)); }
         static INLINE Matrix4 Identity() { return Matrix4(EIdentityTag::kIdentity); }
+        static INLINE Matrix4 MakeLookAt(Vector3 eyePos, Vector3 target, Vector3 up) { return Matrix4(XMMatrixLookAtRH(eyePos, target, up)); }
+        static INLINE Matrix4 MakeLookToward(Vector3 eyePos, Vector3 dir, Vector3 up) { return Matrix4(XMMatrixLookToRH(eyePos, dir, up)); }
 
     private:
         XMMATRIX m_mat;
