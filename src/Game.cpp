@@ -7,6 +7,7 @@
 #include "Math/VectorMath.hpp"
 
 #include <Renderer/Renderer.hpp>
+#include <Utils/Debug.hpp>
 
 extern void ExitGame() noexcept;
 
@@ -29,6 +30,8 @@ Game::~Game()
 // Initialize the Direct3D resources required to run.
 void Game::Initialize(HWND window, int width, int height)
 {
+    D_DEBUG::AttachWinPixGpuCapturer();
+
     Darius::Renderer::Device::Initialize(window, width, height);
 
     CreateDeviceDependentResources();
@@ -62,6 +65,8 @@ void Game::Update(DX::StepTimer const&)
     PIXBeginEvent(PIX_COLOR_DEFAULT, L"Update");
 
     // float elapsedTime = float(timer.GetElapsedSeconds());
+
+    D_RENDERER::Update(nullptr, 800.f / 600.f);
 
     PIXEndEvent();
 }
