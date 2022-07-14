@@ -70,6 +70,7 @@
 #include <system_error>
 #include <tuple>
 #include <array>
+#include <unordered_map>
 
 #ifdef _DEBUG
 #include <dxgidebug.h>

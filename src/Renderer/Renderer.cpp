@@ -1,5 +1,6 @@
 #include "pch.hpp"
 #include "Renderer.hpp"
+#include "Mesh.hpp"
 #include "GraphicsUtils/D3DUtils.hpp"
 #include "GraphicsUtils/UploadBuffer.hpp"
 
@@ -29,20 +30,6 @@ namespace Darius::Renderer
 
 	ID3D12Device* _device = nullptr;
 
-	// Vertex and index buffers
-	ComPtr<ID3D12Resource> VertexBuffer = nullptr;
-	ComPtr<ID3D12Resource> IndexBuffer = nullptr;
-
-	// Upload buffers
-	ComPtr<ID3D12Resource> VertexUploadBuffer = nullptr;
-	ComPtr<ID3D12Resource> IndexUploadBuffer = nullptr;
-
-	// Data about the buffers.
-	UINT VertexByteStride = 0;
-	UINT VertexBufferByteSize = 0;
-	DXGI_FORMAT IndexFormat = DXGI_FORMAT_R16_UINT;
-	UINT IndexBufferByteSize = 0;
-
 	// Input layout and root signature
 	std::vector<D3D12_INPUT_ELEMENT_DESC> InputLayout;
 	ComPtr<ID3D12RootSignature> RootSignature = nullptr;
@@ -61,6 +48,9 @@ namespace Darius::Renderer
 
 	// Device resource
 	std::unique_ptr<DeviceResource::DeviceResources> Resources;
+
+	// Mesh
+	std::unique_ptr<D_RENDERER::Mesh> mesh;
 
 	///////////////// REMOVE ASAP //////////////////
 	bool _4xMsaaState = false;
@@ -93,6 +83,8 @@ namespace Darius::Renderer
 		D_HR_CHECK(Resources->GetCommandAllocator()->Reset());
 		D_HR_CHECK(cmdList->Reset(Resources->GetCommandAllocator(), nullptr));
 
+		mesh = std::make_unique<Mesh>();
+
 		BuildDescriptorHeaps();
 		BuildConstantBuffers();
 		BuildRootSignature();
@@ -113,6 +105,8 @@ namespace Darius::Renderer
 	void Shutdown()
 	{
 		D_ASSERT(_device != nullptr);
+		mesh.release();
+		DisposeUploadBuffers();
 
 	}
 
@@ -162,26 +156,22 @@ namespace Darius::Renderer
 		// Offset the CBV we want to use for this draw call
 		cmdList->SetGraphicsRootDescriptorTable(0, CbvHeap->GetGPUDescriptorHandleForHeapStart());
 
-		D3D12_VERTEX_BUFFER_VIEW vbv;
-		vbv.BufferLocation = VertexBuffer->GetGPUVirtualAddress();
-		vbv.StrideInBytes = VertexByteStride;
-		vbv.SizeInBytes = VertexBufferByteSize;
-		D3D12_VERTEX_BUFFER_VIEW vertexBuffers[] = { vbv };
+		auto vbv = mesh->VertexBufferView();
 
-		cmdList->IASetVertexBuffers(0, 1, vertexBuffers);
+		cmdList->IASetVertexBuffers(0, 1, &vbv);
 
 
-		D3D12_INDEX_BUFFER_VIEW ibv;
-		ibv.BufferLocation = IndexBuffer->GetGPUVirtualAddress();
-		ibv.Format = IndexFormat;
-		ibv.SizeInBytes = IndexBufferByteSize;
-
+		auto ibv = mesh->IndexBufferView();
 		cmdList->IASetIndexBuffer(&ibv);
-		cmdList->IASetPrimitiveTopology(D3D10_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+		cmdList->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
 		//cmdList->SetPipelineState(Pso.Get());
 
-		cmdList->DrawIndexedInstanced(36, 1, 0, 0, 0);
+		//cmdList->DrawIndexedInstanced(36, 1, 0, 0, 0);
+		for (auto submesh : mesh->mDraw)
+		{
+			cmdList->DrawIndexedInstanced(submesh.mIndexCount, 1, submesh.mStartIndexLocation, submesh.mBaseVertexLocation, 0);
+		}
 	}
 
 	void DrawImgui()
@@ -386,10 +376,15 @@ namespace Darius::Renderer
 			Vertex({ Vector3(+1.f, -1.f, +1.f), Vector4(Colors::Magenta) })
 		};
 
-		VertexBufferByteSize = (UINT)vertices.size() * sizeof(Vertex);
-		VertexByteStride = (UINT)sizeof(Vertex);
+		mesh->mVertexBufferByteSize = (UINT)vertices.size() * sizeof(Vertex);
+		mesh->mVertexByteStride = (UINT)sizeof(Vertex);
 
-		VertexBuffer = CreateDefaultBuffer(_device, cmdList, vertices.data(), VertexBufferByteSize, VertexUploadBuffer);
+		mesh->name = "Box";
+
+		D_HR_CHECK(D3DCreateBlob(mesh->mVertexBufferByteSize, &mesh->mVertexBufferCPU));
+		CopyMemory(mesh->mVertexBufferCPU->GetBufferPointer(), vertices.data(), mesh->mVertexBufferByteSize);
+
+		mesh->mVertexBufferGPU = CreateDefaultBuffer(_device, cmdList, vertices.data(), mesh->mVertexBufferByteSize, mesh->mVertexBufferUploader);
 
 		std::array<std::uint16_t, 36> indices =
 		{
@@ -418,9 +413,20 @@ namespace Darius::Renderer
 			4, 3, 7,
 		};
 
-		IndexBufferByteSize = (UINT)indices.size() * sizeof(std::uint16_t);
-		IndexBuffer = CreateDefaultBuffer(_device, cmdList, indices.data(), IndexBufferByteSize, IndexUploadBuffer);
+		mesh->mIndexBufferByteSize = (UINT)indices.size() * sizeof(std::uint16_t);
 
+
+		D_HR_CHECK(D3DCreateBlob(mesh->mIndexBufferByteSize, &mesh->mIndexBufferCPU));
+		CopyMemory(mesh->mIndexBufferCPU->GetBufferPointer(), indices.data(), mesh->mIndexBufferByteSize);
+
+		mesh->mIndexBufferGPU = CreateDefaultBuffer(_device, cmdList, indices.data(), mesh->mIndexBufferByteSize, mesh->mIndexBufferUploader);
+
+		Mesh::Draw draw;
+		draw.mBaseVertexLocation = 0;
+		draw.mIndexCount = (UINT)indices.size();
+		draw.mStartIndexLocation = 0;
+
+		mesh->mDraw.push_back(draw);
 	}
 
 	void BuildPSO()
@@ -470,8 +476,7 @@ namespace Darius::Renderer
 
 	void DisposeUploadBuffers()
 	{
-		VertexUploadBuffer = nullptr;
-		IndexUploadBuffer = nullptr;
+		mesh->DisposeUploadBuffers();
 	}
 
 	// Helper method to clear the back buffers.
