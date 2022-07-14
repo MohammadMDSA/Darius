@@ -18,7 +18,7 @@ namespace Darius::Renderer
 	void Shutdown();
 
 	void RenderMeshes();
-	void Update(Transform* trans);
+	void Update(Transform* trans, float ratio);
 
 
 	namespace Device

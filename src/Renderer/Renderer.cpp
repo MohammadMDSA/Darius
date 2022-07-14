@@ -11,6 +11,8 @@
 #include <Utils/Assert.hpp>
 #include <filesystem>
 
+#include <Math/VectorMath.hpp>
+
 using namespace Microsoft::WRL;
 
 using namespace Darius::Math;
@@ -22,18 +24,18 @@ namespace Darius::Renderer
 
 	struct ObjectConstants
 	{
-		Matrix4 WorldViewProj = Matrix4::Identity();
+		XMFLOAT4X4 WorldViewProj;
 	};
 
-	ID3D12Device* device = nullptr;
+	ID3D12Device* _device = nullptr;
 
 	// Vertex and index buffers
-	ComPtr<ID3D12Resource> vertexBuffer = nullptr;
-	ComPtr<ID3D12Resource> indexBuffer = nullptr;
+	ComPtr<ID3D12Resource> VertexBuffer = nullptr;
+	ComPtr<ID3D12Resource> IndexBuffer = nullptr;
 
 	// Upload buffers
-	ComPtr<ID3D12Resource> vertexUploadBuffer = nullptr;
-	ComPtr<ID3D12Resource> indexUploadBuffer = nullptr;
+	ComPtr<ID3D12Resource> VertexUploadBuffer = nullptr;
+	ComPtr<ID3D12Resource> IndexUploadBuffer = nullptr;
 
 	// Data about the buffers.
 	UINT VertexByteStride = 0;
@@ -82,10 +84,10 @@ namespace Darius::Renderer
 
 	void Initialize()
 	{
-		D_ASSERT(device == nullptr);
+		D_ASSERT(_device == nullptr);
 		D_ASSERT(Resources);
 
-		device = Resources->GetD3DDevice();
+		_device = Resources->GetD3DDevice();
 		auto cmdList = Resources->GetCommandList();
 
 		D_HR_CHECK(Resources->GetCommandAllocator()->Reset());
@@ -110,7 +112,7 @@ namespace Darius::Renderer
 
 	void Shutdown()
 	{
-		D_ASSERT(device != nullptr);
+		D_ASSERT(_device != nullptr);
 
 	}
 
@@ -121,9 +123,9 @@ namespace Darius::Renderer
 		Resources->Prepare(Pso.Get());
 
 		// Prepare imgui
-		ImGui_ImplDX12_NewFrame();
+		/*ImGui_ImplDX12_NewFrame();
 		ImGui_ImplWin32_NewFrame();
-		ImGui::NewFrame();
+		ImGui::NewFrame();*/
 
 		Clear();
 
@@ -132,7 +134,7 @@ namespace Darius::Renderer
 
 		DrawCube();
 
-		DrawImgui();
+		//DrawImgui();
 
 		PIXEndEvent(commandList);
 
@@ -161,23 +163,23 @@ namespace Darius::Renderer
 		cmdList->SetGraphicsRootDescriptorTable(0, CbvHeap->GetGPUDescriptorHandleForHeapStart());
 
 		D3D12_VERTEX_BUFFER_VIEW vbv;
-		vbv.BufferLocation = vertexBuffer->GetGPUVirtualAddress();
+		vbv.BufferLocation = VertexBuffer->GetGPUVirtualAddress();
 		vbv.StrideInBytes = VertexByteStride;
-		vbv.SizeInBytes = VertexByteStride;
+		vbv.SizeInBytes = VertexBufferByteSize;
 		D3D12_VERTEX_BUFFER_VIEW vertexBuffers[] = { vbv };
 
 		cmdList->IASetVertexBuffers(0, 1, vertexBuffers);
 
 
 		D3D12_INDEX_BUFFER_VIEW ibv;
-		ibv.BufferLocation = indexBuffer->GetGPUVirtualAddress();
+		ibv.BufferLocation = IndexBuffer->GetGPUVirtualAddress();
 		ibv.Format = IndexFormat;
 		ibv.SizeInBytes = IndexBufferByteSize;
 
 		cmdList->IASetIndexBuffer(&ibv);
 		cmdList->IASetPrimitiveTopology(D3D10_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
-		cmdList->SetPipelineState(Pso.Get());
+		//cmdList->SetPipelineState(Pso.Get());
 
 		cmdList->DrawIndexedInstanced(36, 1, 0, 0, 0);
 	}
@@ -236,9 +238,40 @@ namespace Darius::Renderer
 
 	}
 
-	void Update(Transform* transform)
+	void Update(Transform* transform, float ratio)
 	{
-		//Matrix4::
+		
+		static float red = 0;
+		red += 0.3 / 60;
+
+		// Build the view matrix.
+		XMVECTOR pos = XMVectorSet(0.f, 0.f, 0.f, 1.0f);
+		XMVECTOR target = XMVectorSet(0.f, 0.f, 1.f, 1.0f);
+		XMVECTOR up = XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f);
+
+		XMFLOAT4X4 mView;
+		XMFLOAT4X4 mProj;
+		XMFLOAT4X4 ww = DirectX::XMFLOAT4X4(
+			1.0f, 0.0f, 0.0f, 0.0f,
+			0.0f, 1.0f, 0.0f, 0.0f,
+			0.0f, 0.0f, 1.0f, 0.0f,
+			0.0f, 0.0f, 0.0f, 1.0f);
+		auto something = XMMatrixTranslation(0.f, 0.f, 5.f) * XMMatrixRotationY(red);
+
+		XMMATRIX view = XMMatrixLookAtLH(pos, target, up);
+		XMStoreFloat4x4(&mView, view);
+
+		XMMATRIX P = XMMatrixPerspectiveFovLH(0.25f * XM_PI, ratio, 0.1f, 1000.0f);
+		XMStoreFloat4x4(&mProj, P);
+
+		XMMATRIX world = XMLoadFloat4x4(&ww);
+		XMMATRIX proj = XMLoadFloat4x4(&mProj);
+		XMMATRIX worldViewProj = something * view * proj;
+
+		// Update the constant buffer with the latest worldViewProj matrix.
+		ObjectConstants objConstants;
+		XMStoreFloat4x4(&objConstants.WorldViewProj, XMMatrixTranspose(worldViewProj));
+		ObjectCB->CopyData(0, objConstants);
 	}
 
 	void BuildDescriptorHeaps()
@@ -249,13 +282,13 @@ namespace Darius::Renderer
 		cbvHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
 		cbvHeapDesc.NodeMask = 0;
 
-		device->CreateDescriptorHeap(&cbvHeapDesc, IID_PPV_ARGS(&CbvHeap));
+		_device->CreateDescriptorHeap(&cbvHeapDesc, IID_PPV_ARGS(&CbvHeap));
 	}
 
 	void BuildConstantBuffers()
 	{
 		// Constant buffer to store the constants of n objects.
-		ObjectCB = std::make_unique<UploadBuffer<ObjectConstants>>(device, 1, true);
+		ObjectCB = std::make_unique<UploadBuffer<ObjectConstants>>(_device, 1, true);
 
 		UINT objCBByteSize = CalcConstantBufferByteSize(sizeof(ObjectConstants));
 
@@ -263,45 +296,53 @@ namespace Darius::Renderer
 		D3D12_GPU_VIRTUAL_ADDRESS cbAddress = ObjectCB->Resource()->GetGPUVirtualAddress();
 
 		// Offset to the ith object constant buffer in the buffer.
-		int boxCBufIndex = 0;
-		cbAddress += boxCBufIndex * objCBByteSize;
+		int cBufIndex = 0;
+		cbAddress += cBufIndex * objCBByteSize;
 
 		D3D12_CONSTANT_BUFFER_VIEW_DESC cbvDesc;
 		cbvDesc.BufferLocation = cbAddress;
 		cbvDesc.SizeInBytes = CalcConstantBufferByteSize(sizeof(ObjectConstants));
 
-		device->CreateConstantBufferView(&cbvDesc, CbvHeap->GetCPUDescriptorHandleForHeapStart());
+		_device->CreateConstantBufferView(&cbvDesc, CbvHeap->GetCPUDescriptorHandleForHeapStart());
 	}
 
 	void BuildRootSignature()
 	{
-		// Root parameter can be a table, root descriptor or root constants.
+		// Shader programs typically require resources as input (constant buffers,
+	// textures, samplers).  The root signature defines the resources the shader
+	// programs expect.  If we think of the shader programs as a function, and
+	// the input resources as function parameters, then the root signature can be
+	// thought of as defining the function signature.  
+
+	// Root parameter can be a table, root descriptor or root constants.
 		CD3DX12_ROOT_PARAMETER slotRootParameter[1];
 
-		// Creaate a single descriptor table of CBVs.
-		CD3DX12_DESCRIPTOR_RANGE ccbvTable;
-		ccbvTable.Init(
-			D3D12_DESCRIPTOR_RANGE_TYPE_CBV,
-			1, // Number of descriptors in table
-			0); // Base shader register arguments are bound to for this root parameter
+		// Create a single descriptor table of CBVs.
+		CD3DX12_DESCRIPTOR_RANGE cbvTable;
+		cbvTable.Init(D3D12_DESCRIPTOR_RANGE_TYPE_CBV, 1, 0);
+		slotRootParameter[0].InitAsDescriptorTable(1, &cbvTable);
 
-		slotRootParameter[0].InitAsDescriptorTable(
-			1, // Number of ranges
-			& ccbvTable); // Pointer to array of ranges
+		// A root signature is an array of root parameters.
+		CD3DX12_ROOT_SIGNATURE_DESC rootSigDesc(1, slotRootParameter, 0, nullptr,
+			D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT);
 
-		// Aroot signature is an array of root parameters.
-		CD3DX12_ROOT_SIGNATURE_DESC rootSigDesc(1, slotRootParameter, 0, nullptr, D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT);
-
-		// Create a root signature with a signle slot which points to a
-		// descriptor range consisting of a single constant buffer.
+		// create a root signature with a single slot which points to a descriptor range consisting of a single constant buffer
 		ComPtr<ID3DBlob> serializedRootSig = nullptr;
 		ComPtr<ID3DBlob> errorBlob = nullptr;
-
 		HRESULT hr = D3D12SerializeRootSignature(&rootSigDesc, D3D_ROOT_SIGNATURE_VERSION_1,
-			serializedRootSig.GetAddressOf(),
-			errorBlob.GetAddressOf());
-		
-		D_HR_CHECK(device->CreateRootSignature(0, serializedRootSig->GetBufferPointer(), serializedRootSig->GetBufferSize(), IID_PPV_ARGS(&RootSignature)));
+			serializedRootSig.GetAddressOf(), errorBlob.GetAddressOf());
+
+		if (errorBlob != nullptr)
+		{
+			::OutputDebugStringA((char*)errorBlob->GetBufferPointer());
+		}
+		D_HR_CHECK(hr);
+
+		D_HR_CHECK(_device->CreateRootSignature(
+			0,
+			serializedRootSig->GetBufferPointer(),
+			serializedRootSig->GetBufferSize(),
+			IID_PPV_ARGS(&RootSignature)));
 	}
 
 	void BuildShadersAndInputLayout()
@@ -333,23 +374,24 @@ namespace Darius::Renderer
 			Vector4 color;
 		};
 
-		Vertex vertices[] = {
-			{ Vector3(-1.f, -1.f, -1.f), Vector4(Colors::White) },
-			{ Vector3(-1.f, +1.f, -1.f), Vector4(Colors::Black) },
-			{ Vector3(+1.f, +1.f, -1.f), Vector4(Colors::Red) },
-			{ Vector3(+1.f, -1.f, -1.f), Vector4(Colors::Green) },
-			{ Vector3(-1.f, -1.f, +1.f), Vector4(Colors::Blue) },
-			{ Vector3(-1.f, +1.f, +1.f), Vector4(Colors::Yellow) },
-			{ Vector3(+1.f, +1.f, +1.f), Vector4(Colors::Cyan) },
-			{ Vector3(+1.f, -1.f, +1.f), Vector4(Colors::Magenta) }
+		std::array<Vertex, 8> vertices =
+		{
+			Vertex({ Vector3(-1.f, -1.f, -1.f), Vector4(Colors::White) }),
+			Vertex({ Vector3(-1.f, +1.f, -1.f), Vector4(Colors::Black) }),
+			Vertex({ Vector3(+1.f, +1.f, -1.f), Vector4(Colors::Red) }),
+			Vertex({ Vector3(+1.f, -1.f, -1.f), Vector4(Colors::Green) }),
+			Vertex({ Vector3(-1.f, -1.f, +1.f), Vector4(Colors::Blue) }),
+			Vertex({ Vector3(-1.f, +1.f, +1.f), Vector4(Colors::Yellow) }),
+			Vertex({ Vector3(+1.f, +1.f, +1.f), Vector4(Colors::Cyan) }),
+			Vertex({ Vector3(+1.f, -1.f, +1.f), Vector4(Colors::Magenta) })
 		};
 
-		VertexBufferByteSize = 8 * sizeof(Vertex);
-		VertexByteStride = sizeof(Vertex);
+		VertexBufferByteSize = (UINT)vertices.size() * sizeof(Vertex);
+		VertexByteStride = (UINT)sizeof(Vertex);
 
-		vertexBuffer = CreateDefaultBuffer(device, cmdList, vertices, VertexBufferByteSize, vertexUploadBuffer);
+		VertexBuffer = CreateDefaultBuffer(_device, cmdList, vertices.data(), VertexBufferByteSize, VertexUploadBuffer);
 
-		std::uint16_t indices[] =
+		std::array<std::uint16_t, 36> indices =
 		{
 			// front face
 			0, 1, 2,
@@ -376,8 +418,8 @@ namespace Darius::Renderer
 			4, 3, 7,
 		};
 
-		IndexBufferByteSize = 36 * sizeof(std::uint16_t);
-		indexBuffer = CreateDefaultBuffer(device, cmdList, indices, IndexBufferByteSize, indexUploadBuffer);
+		IndexBufferByteSize = (UINT)indices.size() * sizeof(std::uint16_t);
+		IndexBuffer = CreateDefaultBuffer(_device, cmdList, indices.data(), IndexBufferByteSize, IndexUploadBuffer);
 
 	}
 
@@ -409,7 +451,7 @@ namespace Darius::Renderer
 		psoDesc.SampleDesc.Quality = _4xMsaaState ? (_4xMsaaQuality - 1) : 0;
 		psoDesc.DSVFormat = Resources->GetDepthBufferFormat();
 
-		device->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(&Pso));
+		_device->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(&Pso));
 	}
 
 	void BuildImgui()
@@ -419,17 +461,17 @@ namespace Darius::Renderer
 		desc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
 		desc.NumDescriptors = 1;
 		desc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
-		D_HR_CHECK(device->CreateDescriptorHeap(&desc, IID_PPV_ARGS(&ImguiHeap)));
+		D_HR_CHECK(_device->CreateDescriptorHeap(&desc, IID_PPV_ARGS(&ImguiHeap)));
 
 		ImGui::CreateContext();
 		ImGui_ImplWin32_Init(Resources->GetWindow());
-		ImGui_ImplDX12_Init(device, Resources->GetBackBufferCount(), DXGI_FORMAT_B8G8R8A8_UNORM, ImguiHeap.Get(), ImguiHeap.Get()->GetCPUDescriptorHandleForHeapStart(), ImguiHeap.Get()->GetGPUDescriptorHandleForHeapStart());
+		ImGui_ImplDX12_Init(_device, Resources->GetBackBufferCount(), DXGI_FORMAT_B8G8R8A8_UNORM, ImguiHeap.Get(), ImguiHeap.Get()->GetCPUDescriptorHandleForHeapStart(), ImguiHeap.Get()->GetGPUDescriptorHandleForHeapStart());
 	}
 
 	void DisposeUploadBuffers()
 	{
-		vertexUploadBuffer = nullptr;
-		indexUploadBuffer = nullptr;
+		VertexUploadBuffer = nullptr;
+		IndexUploadBuffer = nullptr;
 	}
 
 	// Helper method to clear the back buffers.

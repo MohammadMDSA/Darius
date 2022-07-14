@@ -9,6 +9,7 @@ list(APPEND RENDERER_LIBS_INCLUDE
 	"GraphicsUtils/UploadBuffer.hpp"
 	"Renderer.hpp"
 	"DeviceResources.hpp"
+	"Mesh.hpp"
 	)
 
 list(APPEND RENDERER_LIBS_SOURCES
@@ -16,6 +17,7 @@ list(APPEND RENDERER_LIBS_SOURCES
 	"GraphicsUtils/D3DUtils.cpp"
 	"Renderer.cpp"
 	"DeviceResources.cpp"
+	"Mesh.cpp"
 	)
 
 

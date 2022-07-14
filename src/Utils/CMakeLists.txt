@@ -7,6 +7,7 @@ list(APPEND UTILS_LIBS_INCLUDE
     "Assert.hpp"
 	"Common.hpp"
 	"Log.hpp"
+	"Debug.hpp"
 	)
 	
 list(APPEND UTILS_LIBS_SOURCES

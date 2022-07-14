@@ -69,6 +69,7 @@
 #include <stdexcept>
 #include <system_error>
 #include <tuple>
+#include <array>
 
 #ifdef _DEBUG
 #include <dxgidebug.h>
