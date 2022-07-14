@@ -69,6 +69,13 @@ namespace Darius::Math
         INLINE friend Vector3 operator* (float   v1, Vector3 v2) { return Scalar(v1) * v2; }
         INLINE friend Vector3 operator/ (float   v1, Vector3 v2) { return Scalar(v1) / v2; }
 
+        static INLINE Vector3 Up() { return Vector3(0.f, 1.f, 0.f); }
+        static INLINE Vector3 Down() { return Vector3(0.f, -1.f, 0.f); }
+        static INLINE Vector3 Left() { return Vector3(-1.f, 0.f, 0.f); }
+        static INLINE Vector3 Right() { return Vector3(1.f, 0.f, 0.f); }
+        static INLINE Vector3 Forward() { return Vector3(0.f, 0.f, -1.f); }
+        static INLINE Vector3 Backward() { return Vector3(0.f, 0.f, 1.f); }
+
     protected:
         XMVECTOR m_vec;
     };
