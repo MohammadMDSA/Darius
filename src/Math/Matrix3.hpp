@@ -46,6 +46,7 @@ namespace Darius::Math
         static INLINE Matrix3 MakeScale(Vector3 scale) { return Matrix3(XMMatrixScalingFromVector(scale)); }
         static INLINE Matrix3 MakeLookAt(Vector3 eyePos, Vector3 target, Vector3 up) { return Matrix3(XMMatrixLookAtRH(eyePos, target, up)); }
         static INLINE Matrix3 MakeLookToward(Vector3 eyePos, Vector3 dir, Vector3 up) { return Matrix3(XMMatrixLookToRH(eyePos, dir, up)); }
+        static INLINE Matrix3 MakeProjection(float fov, float ratio, float nearP, float farP) { return Matrix3(XMMatrixPerspectiveFovRH(fov, ratio, nearP, farP)); }
 
         // Useful for DirectXMath interaction.  WARNING:  Only the 3x3 elements are defined.
         INLINE operator XMMATRIX() const { return XMMATRIX(m_mat[0], m_mat[1], m_mat[2], XMVectorZero()); }

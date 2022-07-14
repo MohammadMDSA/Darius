@@ -84,6 +84,7 @@ namespace Darius::Math
         static INLINE Matrix4 Identity() { return Matrix4(EIdentityTag::kIdentity); }
         static INLINE Matrix4 MakeLookAt(Vector3 eyePos, Vector3 target, Vector3 up) { return Matrix4(XMMatrixLookAtRH(eyePos, target, up)); }
         static INLINE Matrix4 MakeLookToward(Vector3 eyePos, Vector3 dir, Vector3 up) { return Matrix4(XMMatrixLookToRH(eyePos, dir, up)); }
+        static INLINE Matrix4 MakeProjection(float fov, float ratio, float nearP, float farP) { return Matrix4(XMMatrixPerspectiveFovRH(fov, ratio, nearP, farP)); }
 
     private:
         XMMATRIX m_mat;
