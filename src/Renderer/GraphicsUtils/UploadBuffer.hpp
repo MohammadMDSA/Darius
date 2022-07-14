@@ -1,5 +1,7 @@
 #pragma once
 
+#include "D3DUtils.hpp"
+
 using namespace Microsoft::WRL;
 
 namespace Darius::Renderer::GraphicsUtils
