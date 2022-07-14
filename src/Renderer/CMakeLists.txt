@@ -7,6 +7,7 @@ list(APPEND RENDERER_LIBS_INCLUDE
 	"pch.hpp"
 	"GraphicsUtils/D3DUtils.hpp"
 	"GraphicsUtils/UploadBuffer.hpp"
+	"GraphicsUtils/VertexTypes.hpp"
 	"Renderer.hpp"
 	"DeviceResources.hpp"
 	"Mesh.hpp"
@@ -15,6 +16,7 @@ list(APPEND RENDERER_LIBS_INCLUDE
 list(APPEND RENDERER_LIBS_SOURCES
 	"pch.cpp"
 	"GraphicsUtils/D3DUtils.cpp"
+	"GraphicsUtils/VertexTypes.cpp"
 	"Renderer.cpp"
 	"DeviceResources.cpp"
 	"Mesh.cpp"
