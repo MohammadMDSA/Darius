@@ -27,7 +27,7 @@ namespace Darius::Math
     {
     public:
 
-        INLINE Vector3() {}
+        INLINE Vector3() { m_vec = XMVectorSet(0.f, 0.f, 0.f, 0.f); }
         INLINE Vector3(float x, float y, float z) { m_vec = XMVectorSet(x, y, z, z); }
         INLINE Vector3(const XMFLOAT3& v) { m_vec = XMLoadFloat3(&v); }
         INLINE Vector3(const Vector3& v) { m_vec = v; }
@@ -84,7 +84,7 @@ namespace Darius::Math
     class Vector4
     {
     public:
-        INLINE Vector4() {}
+        INLINE Vector4() { m_vec = XMVectorSet(0.f, 0.f, 0.f, 0.f); }
         INLINE Vector4(float x, float y, float z, float w) { m_vec = XMVectorSet(x, y, z, w); }
         INLINE Vector4(const XMFLOAT4& v) { m_vec = XMLoadFloat4(&v); }
         INLINE Vector4(Vector3 xyz, float w) { m_vec = XMVectorSetW(xyz, w); }
