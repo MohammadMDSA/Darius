@@ -37,22 +37,6 @@
 
 #include <wrl/client.h>
 
-#ifdef USING_DIRECTX_HEADERS
-#include <directx/dxgiformat.h>
-#include <directx/d3d12.h>
-#include <directx/d3dx12.h>
-#include <dxguids/dxguids.h>
-#else
-#include <d3d12.h>
-
-#include "d3dx12.h"
-#endif
-
-#include <dxgi1_6.h>
-
-#include <DirectXMath.h>
-#include <DirectXColors.h>
-
 #include <algorithm>
 #include <cmath>
 #include <cstddef>
