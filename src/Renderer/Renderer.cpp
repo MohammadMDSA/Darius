@@ -232,7 +232,7 @@ namespace Darius::Renderer
 	{
 		
 		static float red = 0;
-		red += 0.3 / 60;
+		red += 0.3f / 60;
 
 		// Build the view matrix.
 		XMVECTOR pos = XMVectorSet(0.f, 0.f, 0.f, 1.0f);

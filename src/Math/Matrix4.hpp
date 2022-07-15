@@ -21,7 +21,10 @@ namespace Darius::Math
     __declspec(align(16)) class Matrix4
     {
     public:
-        INLINE Matrix4() {}
+        INLINE Matrix4() {
+            m_mat.r[0] = SetWToZero(Vector3()); m_mat.r[1] = SetWToZero(Vector3());
+            m_mat.r[2] = SetWToZero(Vector3()); m_mat.r[3] = SetWToOne(Vector3());
+        }
         INLINE Matrix4(Vector3 x, Vector3 y, Vector3 z, Vector3 w)
         {
             m_mat.r[0] = SetWToZero(x); m_mat.r[1] = SetWToZero(y);
