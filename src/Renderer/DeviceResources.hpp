@@ -3,6 +3,8 @@
 //
 
 #pragma once
+#include "./pch.hpp"
+#include "FrameResource.hpp"
 
 #include <Core/Signal.hpp>
 
@@ -65,10 +67,10 @@ namespace Darius::Renderer::DeviceResource
         auto                        GetDXGIFactory() const noexcept        { return m_dxgiFactory.Get(); }
         HWND                        GetWindow() const noexcept             { return m_window; }
         D3D_FEATURE_LEVEL           GetDeviceFeatureLevel() const noexcept { return m_d3dFeatureLevel; }
-        ID3D12Resource*             GetRenderTarget() const noexcept       { return m_renderTargets[m_backBufferIndex].Get(); }
+        ID3D12Resource*             GetRenderTarget() const noexcept       { return m_frameResources[m_backBufferIndex]->mRenderTarget.Get(); }
         ID3D12Resource*             GetDepthStencil() const noexcept       { return m_depthStencil.Get(); }
         ID3D12CommandQueue*         GetCommandQueue() const noexcept       { return m_commandQueue.Get(); }
-        ID3D12CommandAllocator*     GetCommandAllocator() const noexcept   { return m_commandAllocators[m_backBufferIndex].Get(); }
+        ID3D12CommandAllocator*     GetCommandAllocator() const noexcept   { return m_frameResources[m_backBufferIndex]->mCmdListAlloc.Get(); }
         auto                        GetCommandList() const noexcept        { return m_commandList.Get(); }
         DXGI_FORMAT                 GetBackBufferFormat() const noexcept   { return m_backBufferFormat; }
         DXGI_FORMAT                 GetDepthBufferFormat() const noexcept  { return m_depthBufferFormat; }
@@ -78,6 +80,7 @@ namespace Darius::Renderer::DeviceResource
         UINT                        GetBackBufferCount() const noexcept    { return m_backBufferCount; }
         DXGI_COLOR_SPACE_TYPE       GetColorSpace() const noexcept         { return m_colorSpace; }
         unsigned int                GetDeviceOptions() const noexcept      { return m_options; }
+        FrameResource*              GetFrameResource() const noexcept      { return m_frameResources[m_backBufferIndex].get(); }
 
         CD3DX12_CPU_DESCRIPTOR_HANDLE GetRenderTargetView() const noexcept
         {
@@ -97,22 +100,21 @@ namespace Darius::Renderer::DeviceResource
         static constexpr size_t MAX_BACK_BUFFER_COUNT = 3;
 
         UINT                                                m_backBufferIndex;
+        std::array<std::unique_ptr<FrameResource>, MAX_BACK_BUFFER_COUNT> m_frameResources;
+
 
         // Direct3D objects.
         Microsoft::WRL::ComPtr<ID3D12Device>                m_d3dDevice;
         Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList>   m_commandList;
         Microsoft::WRL::ComPtr<ID3D12CommandQueue>          m_commandQueue;
-        Microsoft::WRL::ComPtr<ID3D12CommandAllocator>      m_commandAllocators[MAX_BACK_BUFFER_COUNT];
 
         // Swap chain objects.
         Microsoft::WRL::ComPtr<IDXGIFactory4>               m_dxgiFactory;
         Microsoft::WRL::ComPtr<IDXGISwapChain3>             m_swapChain;
-        Microsoft::WRL::ComPtr<ID3D12Resource>              m_renderTargets[MAX_BACK_BUFFER_COUNT];
         Microsoft::WRL::ComPtr<ID3D12Resource>              m_depthStencil;
 
         // Presentation fence objects.
         Microsoft::WRL::ComPtr<ID3D12Fence>                 m_fence;
-        UINT64                                              m_fenceValues[MAX_BACK_BUFFER_COUNT];
         Microsoft::WRL::Wrappers::Event                     m_fenceEvent;
 
         // Direct3D rendering objects.

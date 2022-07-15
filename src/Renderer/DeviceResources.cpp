@@ -47,7 +47,6 @@ DeviceResources::DeviceResources(
     D3D_FEATURE_LEVEL minFeatureLevel,
     unsigned int flags) noexcept(false) :
         m_backBufferIndex(0),
-        m_fenceValues{},
         m_rtvDescriptorSize(0),
         m_screenViewport{},
         m_scissorRect{},
@@ -205,6 +204,13 @@ void DeviceResources::CreateDeviceResources()
         m_d3dFeatureLevel = m_d3dMinFeatureLevel;
     }
 
+    // Initialize frame resources
+    for (int i = 0; i < MAX_BACK_BUFFER_COUNT; i++)
+    {
+        m_frameResources[i].reset();
+        m_frameResources[i] = std::make_unique<FrameResource>(m_d3dDevice.Get(), 1, 1);
+    }
+
     // Create the command queue.
     D3D12_COMMAND_QUEUE_DESC queueDesc = {};
     queueDesc.Flags = D3D12_COMMAND_QUEUE_FLAG_NONE;
@@ -239,22 +245,22 @@ void DeviceResources::CreateDeviceResources()
     // Create a command allocator for each back buffer that will be rendered to.
     for (UINT n = 0; n < m_backBufferCount; n++)
     {
-        ThrowIfFailed(m_d3dDevice->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT, IID_PPV_ARGS(m_commandAllocators[n].ReleaseAndGetAddressOf())));
+        ThrowIfFailed(m_d3dDevice->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT, IID_PPV_ARGS(m_frameResources[n]->mCmdListAlloc.ReleaseAndGetAddressOf())));
 
         wchar_t name[25] = {};
         swprintf_s(name, L"Render target %u", n);
-        m_commandAllocators[n]->SetName(name);
+        m_frameResources[n]->mCmdListAlloc->SetName(name);
     }
 
     // Create a command list for recording graphics commands.
-    ThrowIfFailed(m_d3dDevice->CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_DIRECT, m_commandAllocators[0].Get(), nullptr, IID_PPV_ARGS(m_commandList.ReleaseAndGetAddressOf())));
+    ThrowIfFailed(m_d3dDevice->CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_DIRECT, m_frameResources[0]->mCmdListAlloc.Get(), nullptr, IID_PPV_ARGS(m_commandList.ReleaseAndGetAddressOf())));
     ThrowIfFailed(m_commandList->Close());
 
     m_commandList->SetName(L"DeviceResources");
 
     // Create a fence for tracking GPU execution progress.
-    ThrowIfFailed(m_d3dDevice->CreateFence(m_fenceValues[m_backBufferIndex], D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(m_fence.ReleaseAndGetAddressOf())));
-    m_fenceValues[m_backBufferIndex]++;
+    ThrowIfFailed(m_d3dDevice->CreateFence(m_frameResources[m_backBufferIndex]->mFence, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(m_fence.ReleaseAndGetAddressOf())));
+    m_frameResources[m_backBufferIndex]->mFence++;
 
     m_fence->SetName(L"DeviceResources");
 
@@ -279,8 +285,8 @@ void DeviceResources::CreateWindowSizeDependentResources()
     // Release resources that are tied to the swap chain and update fence values.
     for (UINT n = 0; n < m_backBufferCount; n++)
     {
-        m_renderTargets[n].Reset();
-        m_fenceValues[n] = m_fenceValues[m_backBufferIndex];
+        m_frameResources[n]->mRenderTarget.Reset();
+        m_frameResources[n]->mFence = m_frameResources[m_backBufferIndex]->mFence;
     }
 
     // Determine the render target size in pixels.
@@ -363,11 +369,11 @@ void DeviceResources::CreateWindowSizeDependentResources()
     // and create render target views for each of them.
     for (UINT n = 0; n < m_backBufferCount; n++)
     {
-        ThrowIfFailed(m_swapChain->GetBuffer(n, IID_PPV_ARGS(m_renderTargets[n].GetAddressOf())));
+        ThrowIfFailed(m_swapChain->GetBuffer(n, IID_PPV_ARGS(m_frameResources[n]->mRenderTarget.GetAddressOf())));
 
         wchar_t name[25] = {};
         swprintf_s(name, L"Render target %u", n);
-        m_renderTargets[n]->SetName(name);
+        m_frameResources[n]->mRenderTarget->SetName(name);
 
         D3D12_RENDER_TARGET_VIEW_DESC rtvDesc = {};
         rtvDesc.Format = m_backBufferFormat;
@@ -376,7 +382,7 @@ void DeviceResources::CreateWindowSizeDependentResources()
         const CD3DX12_CPU_DESCRIPTOR_HANDLE rtvDescriptor(
             m_rtvDescriptorHeap->GetCPUDescriptorHandleForHeapStart(),
             static_cast<INT>(n), m_rtvDescriptorSize);
-        m_d3dDevice->CreateRenderTargetView(m_renderTargets[n].Get(), &rtvDesc, rtvDescriptor);
+        m_d3dDevice->CreateRenderTargetView(m_frameResources[n]->mRenderTarget.Get(), &rtvDesc, rtvDescriptor);
     }
 
     // Reset the index to the current back buffer.
@@ -472,8 +478,8 @@ void DeviceResources::HandleDeviceLost()
 
     for (UINT n = 0; n < m_backBufferCount; n++)
     {
-        m_commandAllocators[n].Reset();
-        m_renderTargets[n].Reset();
+        m_frameResources[n]->mCmdListAlloc.Reset();
+        m_frameResources[n]->mRenderTarget.Reset();
     }
 
     m_depthStencil.Reset();
@@ -506,14 +512,14 @@ void DeviceResources::HandleDeviceLost()
 void DeviceResources::Prepare(ID3D12PipelineState* pso, D3D12_RESOURCE_STATES beforeState, D3D12_RESOURCE_STATES afterState)
 {
     // Reset command list and allocator.
-    ThrowIfFailed(m_commandAllocators[m_backBufferIndex]->Reset());
-    ThrowIfFailed(m_commandList->Reset(m_commandAllocators[m_backBufferIndex].Get(), pso));
+    ThrowIfFailed(m_frameResources[m_backBufferIndex]->mCmdListAlloc->Reset());
+    ThrowIfFailed(m_commandList->Reset(m_frameResources[m_backBufferIndex]->mCmdListAlloc.Get(), pso));
 
     if (beforeState != afterState)
     {
         // Transition the render target into the correct state to allow for drawing into it.
         const D3D12_RESOURCE_BARRIER barrier = CD3DX12_RESOURCE_BARRIER::Transition(
-            m_renderTargets[m_backBufferIndex].Get(),
+            m_frameResources[m_backBufferIndex]->mRenderTarget.Get(),
             beforeState, afterState);
         m_commandList->ResourceBarrier(1, &barrier);
     }
@@ -526,7 +532,7 @@ void DeviceResources::Present(D3D12_RESOURCE_STATES beforeState)
     {
         // Transition the render target to the state that allows it to be presented to the display.
         const D3D12_RESOURCE_BARRIER barrier = CD3DX12_RESOURCE_BARRIER::Transition(
-            m_renderTargets[m_backBufferIndex].Get(),
+            m_frameResources[m_backBufferIndex]->mRenderTarget.Get(),
             beforeState, D3D12_RESOURCE_STATE_PRESENT);
         m_commandList->ResourceBarrier(1, &barrier);
     }
@@ -580,7 +586,7 @@ void DeviceResources::WaitForGpu() noexcept
     if (m_commandQueue && m_fence && m_fenceEvent.IsValid())
     {
         // Schedule a Signal command in the GPU queue.
-        const UINT64 fenceValue = m_fenceValues[m_backBufferIndex];
+        const UINT64 fenceValue = m_frameResources[m_backBufferIndex]->mFence;
         if (SUCCEEDED(m_commandQueue->Signal(m_fence.Get(), fenceValue)))
         {
             // Wait until the Signal has been processed.
@@ -589,7 +595,7 @@ void DeviceResources::WaitForGpu() noexcept
                 std::ignore = WaitForSingleObjectEx(m_fenceEvent.Get(), INFINITE, FALSE);
 
                 // Increment the fence value for the current frame.
-                m_fenceValues[m_backBufferIndex]++;
+                m_frameResources[m_backBufferIndex]->mFence++;
             }
         }
     }
@@ -599,21 +605,21 @@ void DeviceResources::WaitForGpu() noexcept
 void DeviceResources::MoveToNextFrame()
 {
     // Schedule a Signal command in the queue.
-    const UINT64 currentFenceValue = m_fenceValues[m_backBufferIndex];
+    const UINT64 currentFenceValue = m_frameResources[m_backBufferIndex]->mFence;
     ThrowIfFailed(m_commandQueue->Signal(m_fence.Get(), currentFenceValue));
 
     // Update the back buffer index.
     m_backBufferIndex = m_swapChain->GetCurrentBackBufferIndex();
 
     // If the next frame is not ready to be rendered yet, wait until it is ready.
-    if (m_fence->GetCompletedValue() < m_fenceValues[m_backBufferIndex])
+    if (m_fence->GetCompletedValue() < m_frameResources[m_backBufferIndex]->mFence)
     {
-        ThrowIfFailed(m_fence->SetEventOnCompletion(m_fenceValues[m_backBufferIndex], m_fenceEvent.Get()));
+        ThrowIfFailed(m_fence->SetEventOnCompletion(m_frameResources[m_backBufferIndex]->mFence, m_fenceEvent.Get()));
         std::ignore = WaitForSingleObjectEx(m_fenceEvent.Get(), INFINITE, FALSE);
     }
 
     // Set the fence value for the next frame.
-    m_fenceValues[m_backBufferIndex] = currentFenceValue + 1;
+    m_frameResources[m_backBufferIndex]->mFence = currentFenceValue + 1;
 }
 
 // This method acquires the first available hardware adapter that supports Direct3D 12.
