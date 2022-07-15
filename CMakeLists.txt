@@ -60,8 +60,7 @@ add_executable(${PROJECT_NAME} WIN32
     "src/Game.hpp"
     "src/Main.cpp"
     "src/StepTimer.hpp"
-    "src/pch.hpp"
-    "src/d3dx12.h")
+    "src/pch.hpp")
 
 if ((${CMAKE_VERSION} VERSION_GREATER_EQUAL "3.16") AND (NOT MINGW))
     target_precompile_headers(${PROJECT_NAME} PRIVATE src/pch.hpp )
@@ -209,7 +208,8 @@ if ( CMAKE_CXX_COMPILER_ID MATCHES "MSVC" )
     target_compile_options(${PROJECT_NAME} PRIVATE
          /sdl /permissive- /Zc:__cplusplus
          "/wd4061" "/wd4365" "/wd4514" "/wd4571" "/wd4668" "/wd4710" "/wd4820" "/wd5039" "/wd5045"
-         "/wd4265" "/wd4625" "/wd4626" "/wd4986" "/wd5204" "/wd5220")
+         "/wd4265" "/wd4625" "/wd4626" "/wd4986" "/wd5204" "/wd5220"
+         "/wd4324")
 
     if(ENABLE_CODE_ANALYSIS)
         target_compile_options(${PROJECT_NAME} PRIVATE /analyze)

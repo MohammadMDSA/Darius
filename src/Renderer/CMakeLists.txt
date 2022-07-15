@@ -5,12 +5,14 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ".")
 
 list(APPEND RENDERER_LIBS_INCLUDE
 	"pch.hpp"
+	"d3dx12.h"
 	"GraphicsUtils/D3DUtils.hpp"
 	"GraphicsUtils/UploadBuffer.hpp"
 	"GraphicsUtils/VertexTypes.hpp"
 	"Renderer.hpp"
 	"DeviceResources.hpp"
 	"Mesh.hpp"
+	"FrameResource.hpp"
 	)
 
 list(APPEND RENDERER_LIBS_SOURCES
@@ -20,6 +22,7 @@ list(APPEND RENDERER_LIBS_SOURCES
 	"Renderer.cpp"
 	"DeviceResources.cpp"
 	"Mesh.cpp"
+	"FrameResource.cpp"
 	)
 
 
