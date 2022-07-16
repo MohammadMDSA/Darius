@@ -61,7 +61,7 @@ DeviceResources::DeviceResources(
         m_colorSpace(DXGI_COLOR_SPACE_RGB_FULL_G22_NONE_P709),
         m_options(flags)
 {
-    if (backBufferCount < 2 || backBufferCount > MAX_BACK_BUFFER_COUNT)
+    if (backBufferCount < 2 || backBufferCount > gNumFrameResources)
     {
         throw std::out_of_range("invalid backBufferCount");
     }
@@ -205,7 +205,7 @@ void DeviceResources::CreateDeviceResources()
     }
 
     // Initialize frame resources
-    for (int i = 0; i < MAX_BACK_BUFFER_COUNT; i++)
+    for (int i = 0; i < gNumFrameResources; i++)
     {
         m_frameResources[i].reset();
         m_frameResources[i] = std::make_unique<FrameResource>(m_d3dDevice.Get(), 1, 1);

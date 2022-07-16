@@ -93,14 +93,14 @@ namespace Darius::Renderer::DeviceResource
             return CD3DX12_CPU_DESCRIPTOR_HANDLE(m_dsvDescriptorHeap->GetCPUDescriptorHandleForHeapStart());
         }
 
+        static constexpr size_t gNumFrameResources = 3;
+
     private:
         void MoveToNextFrame();
         void GetAdapter(IDXGIAdapter1** ppAdapter);
 
-        static constexpr size_t MAX_BACK_BUFFER_COUNT = 3;
-
         UINT                                                m_backBufferIndex;
-        std::array<std::unique_ptr<FrameResource>, MAX_BACK_BUFFER_COUNT> m_frameResources;
+        std::array<std::unique_ptr<FrameResource>, gNumFrameResources> m_frameResources;
 
 
         // Direct3D objects.

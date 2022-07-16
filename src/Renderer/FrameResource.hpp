@@ -1,10 +1,13 @@
 #pragma once
 #include "GraphicsUtils/UploadBuffer.hpp"
+#include "DeviceResources.hpp"
+#include "Mesh.hpp"
 
 #include <Utils/Common.hpp>
 #include <Math/VectorMath.hpp>
 
 using namespace Darius::Renderer::GraphicsUtils;
+using namespace Darius::Renderer::DeviceResource;
 using namespace Darius::Math;
 using namespace Microsoft::WRL;
 
@@ -12,25 +15,61 @@ namespace Darius::Renderer
 {
 	ALIGN_DECL_256 struct GlobalConstants
 	{
-		Matrix4				View = Matrix4::Identity();
-		Matrix4				InvView = Matrix4::Identity();
-		Matrix4				Proj = Matrix4::Identity();
-		Matrix4				InvProj = Matrix4::Identity();
-		Matrix4				ViewProj = Matrix4::Identity();
-		Matrix4				InvViewProj = Matrix4::Identity();
-		Vector3				CameraPos = Vector3(0);
-		float				cbPerObjectPad1 = 0.0f;
-		DirectX::XMFLOAT2	RenderTargetSize = { 0.0f, 0.0f };
-		DirectX::XMFLOAT2	InvRenderTargetSize = { 0.0f, 0.0f };
-		float				NearZ = 0.0f;
-		float				FarZ = 0.0f;
-		float				TotalTime = 0.0f;
-		float				DeltaTime = 0.0f;
+		Matrix4				mView = Matrix4::Identity();
+		Matrix4				mInvView = Matrix4::Identity();
+		Matrix4				mProj = Matrix4::Identity();
+		Matrix4				mInvProj = Matrix4::Identity();
+		Matrix4				mViewProj = Matrix4::Identity();
+		Matrix4				mInvViewProj = Matrix4::Identity();
+		Vector3				mCameraPos = Vector3(0);
+		float				mcbPerObjectPad1 = 0.0f;
+		DirectX::XMFLOAT2	mRenderTargetSize = { 0.0f, 0.0f };
+		DirectX::XMFLOAT2	mInvRenderTargetSize = { 0.0f, 0.0f };
+		float				mNearZ = 0.0f;
+		float				mFarZ = 0.0f;
+		float				mTotalTime = 0.0f;
+		float				mDeltaTime = 0.0f;
 	};
 
 	ALIGN_DECL_256 struct MeshConstants
 	{
-		Matrix4				World;
+		Matrix4				mWorld;
+	};
+
+	// Lightweight structure stores parameters to draw a shape.
+	struct RenderItem
+	{
+		RenderItem() = default;
+
+		// World matrix of the shape that describes the object's local space
+		// relative to the world space, which defines the position,
+		// orientation and scale of the object in the world.
+		Matrix4						mWorld = Matrix4::Identity();
+
+		// Dirty flag indicating the object data has changed and we need
+		// to update thhe constant buffer. Because we have an object
+		// cbuffer for each FrameResource, we have to apply the
+		// uupdate to each FrameResource. Thus, when we modify object data we
+		// should set.
+		// NumFramesDirty = mNumFrameResources so that each frame resource
+		// gets the update.
+		int							mNumFramesDirty = DeviceResources::gNumFrameResources;
+
+		// Index into GPU constant buffer corresponding to the objectCB
+		// for this render item.
+		UINT						mObjCBIndex = -1;
+
+		// Geometry associated with this render-item. Note that multiple
+		// render-items can share the same goemetry.
+		Mesh*						mMesh = nullptr;
+
+		// Primitive topology.
+		D3D12_PRIMITIVE_TOPOLOGY	mPrimitiveType = D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
+
+		// DrawIndexedInstance parameters.
+		UINT						mIndexCount = 0;
+		UINT						mStartIndexLocation = 0;
+		int							mBaseVertexLocation = 0;
 	};
 
 	// Stores the resources needed for the CPU to build the command lists
