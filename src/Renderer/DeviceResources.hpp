@@ -4,11 +4,15 @@
 
 #pragma once
 #include "./pch.hpp"
+
 #include "FrameResource.hpp"
 
 #include <Core/Signal.hpp>
 
 #define D_DEVICE_RESOURCE Darius::Renderer::DeviceResource
+
+using namespace Darius::Renderer;
+using namespace Darius::Renderer::ConstantFrameResource;
 
 namespace Darius::Renderer::DeviceResource
 {
@@ -93,14 +97,12 @@ namespace Darius::Renderer::DeviceResource
             return CD3DX12_CPU_DESCRIPTOR_HANDLE(m_dsvDescriptorHeap->GetCPUDescriptorHandleForHeapStart());
         }
 
-        static constexpr size_t gNumFrameResources = 3;
-
     private:
         void MoveToNextFrame();
         void GetAdapter(IDXGIAdapter1** ppAdapter);
 
         UINT                                                m_backBufferIndex;
-        std::array<std::unique_ptr<FrameResource>, gNumFrameResources> m_frameResources;
+        std::array<std::unique_ptr<FrameResource>, D_CONST_FRAME_RESOUCE::gNumFrameResources> m_frameResources;
 
 
         // Direct3D objects.

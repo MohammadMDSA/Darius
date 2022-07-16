@@ -17,7 +17,7 @@ namespace Darius::Renderer
 	void Initialize();
 	void Shutdown();
 
-	void RenderMeshes();
+	void RenderMeshes(GlobalConstants& global);
 	void Update(Transform* trans, float ratio);
 
 

@@ -242,16 +242,6 @@ void DeviceResources::CreateDeviceResources()
         m_dsvDescriptorHeap->SetName(L"DeviceResources");
     }
 
-    // Create a command allocator for each back buffer that will be rendered to.
-    for (UINT n = 0; n < m_backBufferCount; n++)
-    {
-        ThrowIfFailed(m_d3dDevice->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT, IID_PPV_ARGS(m_frameResources[n]->mCmdListAlloc.ReleaseAndGetAddressOf())));
-
-        wchar_t name[25] = {};
-        swprintf_s(name, L"Render target %u", n);
-        m_frameResources[n]->mCmdListAlloc->SetName(name);
-    }
-
     // Create a command list for recording graphics commands.
     ThrowIfFailed(m_d3dDevice->CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_DIRECT, m_frameResources[0]->mCmdListAlloc.Get(), nullptr, IID_PPV_ARGS(m_commandList.ReleaseAndGetAddressOf())));
     ThrowIfFailed(m_commandList->Close());

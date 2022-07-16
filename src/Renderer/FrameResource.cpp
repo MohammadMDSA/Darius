@@ -1,7 +1,7 @@
 #include "pch.hpp"
 #include "FrameResource.hpp"
 
-namespace Darius::Renderer
+namespace Darius::Renderer::ConstantFrameResource
 {
 	FrameResource::FrameResource(ID3D12Device* device, UINT passCount, UINT objectCount)
 	{

@@ -7,6 +7,7 @@
 #include "Math/VectorMath.hpp"
 
 #include <Renderer/Renderer.hpp>
+#include <Renderer/FrameResource.hpp>
 #include <Utils/Debug.hpp>
 
 extern void ExitGame() noexcept;
@@ -85,7 +86,8 @@ void Game::Render()
 
 
     // TODO: Add your rendering code here.
-    Darius::Renderer::RenderMeshes();
+    auto global = D_CONST_FRAME_RESOUCE::GlobalConstants();
+    Darius::Renderer::RenderMeshes(global);
 
    
 }

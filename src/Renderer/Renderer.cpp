@@ -1,6 +1,7 @@
 #include "pch.hpp"
 #include "Renderer.hpp"
 #include "Mesh.hpp"
+#include "FrameResource.hpp"
 #include "GraphicsUtils/D3DUtils.hpp"
 #include "GraphicsUtils/UploadBuffer.hpp"
 
@@ -110,16 +111,16 @@ namespace Darius::Renderer
 
 	}
 
-	void RenderMeshes()
+	void RenderMeshes(GlobalConstants& global)
 	{
 
 		// Prepare the command list to render a new frame.
 		Resources->Prepare(Pso.Get());
 
 		// Prepare imgui
-		/*ImGui_ImplDX12_NewFrame();
+		ImGui_ImplDX12_NewFrame();
 		ImGui_ImplWin32_NewFrame();
-		ImGui::NewFrame();*/
+		ImGui::NewFrame();
 
 		Clear();
 
@@ -128,7 +129,7 @@ namespace Darius::Renderer
 
 		DrawCube();
 
-		//DrawImgui();
+		DrawImgui();
 
 		PIXEndEvent(commandList);
 

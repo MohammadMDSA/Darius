@@ -1,18 +1,21 @@
 #pragma once
 #include "GraphicsUtils/UploadBuffer.hpp"
-#include "DeviceResources.hpp"
 #include "Mesh.hpp"
+#include "FrameResource.hpp"
 
 #include <Utils/Common.hpp>
 #include <Math/VectorMath.hpp>
 
 using namespace Darius::Renderer::GraphicsUtils;
-using namespace Darius::Renderer::DeviceResource;
 using namespace Darius::Math;
 using namespace Microsoft::WRL;
 
-namespace Darius::Renderer
+#define D_CONST_FRAME_RESOUCE Darius::Renderer::ConstantFrameResource
+
+namespace Darius::Renderer::ConstantFrameResource
 {
+	static constexpr size_t gNumFrameResources = 3;
+
 	ALIGN_DECL_256 struct GlobalConstants
 	{
 		Matrix4				mView = Matrix4::Identity();
@@ -53,11 +56,11 @@ namespace Darius::Renderer
 		// should set.
 		// NumFramesDirty = mNumFrameResources so that each frame resource
 		// gets the update.
-		int							mNumFramesDirty = DeviceResources::gNumFrameResources;
+		int							mNumFramesDirty = gNumFrameResources;
 
 		// Index into GPU constant buffer corresponding to the objectCB
 		// for this render item.
-		UINT						mObjCBIndex = -1;
+		UINT						mObjCBIndex = (UINT)-1;
 
 		// Geometry associated with this render-item. Note that multiple
 		// render-items can share the same goemetry.
