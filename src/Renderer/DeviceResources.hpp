@@ -8,6 +8,7 @@
 #include "FrameResource.hpp"
 
 #include <Core/Signal.hpp>
+#include <Utils/Assert.hpp>
 
 #define D_DEVICE_RESOURCE Darius::Renderer::DeviceResource
 
@@ -71,10 +72,10 @@ namespace Darius::Renderer::DeviceResource
         auto                        GetDXGIFactory() const noexcept        { return m_dxgiFactory.Get(); }
         HWND                        GetWindow() const noexcept             { return m_window; }
         D3D_FEATURE_LEVEL           GetDeviceFeatureLevel() const noexcept { return m_d3dFeatureLevel; }
-        ID3D12Resource*             GetRenderTarget() const noexcept       { return m_frameResources[m_backBufferIndex]->mRenderTarget.Get(); }
+        ID3D12Resource*             GetRenderTarget() const noexcept       { return m_frameResources[m_backBufferIndex]->RenderTarget.Get(); }
         ID3D12Resource*             GetDepthStencil() const noexcept       { return m_depthStencil.Get(); }
         ID3D12CommandQueue*         GetCommandQueue() const noexcept       { return m_commandQueue.Get(); }
-        ID3D12CommandAllocator*     GetCommandAllocator() const noexcept   { return m_frameResources[m_backBufferIndex]->mCmdListAlloc.Get(); }
+        ID3D12CommandAllocator*     GetCommandAllocator() const noexcept   { return m_frameResources[m_backBufferIndex]->CmdListAlloc.Get(); }
         auto                        GetCommandList() const noexcept        { return m_commandList.Get(); }
         DXGI_FORMAT                 GetBackBufferFormat() const noexcept   { return m_backBufferFormat; }
         DXGI_FORMAT                 GetDepthBufferFormat() const noexcept  { return m_depthBufferFormat; }
@@ -82,9 +83,13 @@ namespace Darius::Renderer::DeviceResource
         D3D12_RECT                  GetScissorRect() const noexcept        { return m_scissorRect; }
         UINT                        GetCurrentFrameIndex() const noexcept  { return m_backBufferIndex; }
         UINT                        GetBackBufferCount() const noexcept    { return m_backBufferCount; }
+        UINT                        GetRtvDescriptorSize() const noexcept { return m_rtvDescriptorSize; }
+        UINT                        GetDsvDescriptorSize() const noexcept { return m_dsvDescriptorSize; }
+        UINT                        GetCbvSrvUavDescriptorSize() const noexcept { return m_cbvSrvUavDescriptorSize; }
         DXGI_COLOR_SPACE_TYPE       GetColorSpace() const noexcept         { return m_colorSpace; }
         unsigned int                GetDeviceOptions() const noexcept      { return m_options; }
         FrameResource*              GetFrameResource() const noexcept      { return m_frameResources[m_backBufferIndex].get(); }
+        FrameResource* GetFrameResourceWithIndex(int i) const noexcept { D_ASSERT(i < gNumFrameResources); return m_frameResources[i].get(); }
 
         CD3DX12_CPU_DESCRIPTOR_HANDLE GetRenderTargetView() const noexcept
         {
@@ -124,6 +129,8 @@ namespace Darius::Renderer::DeviceResource
         Microsoft::WRL::ComPtr<ID3D12DescriptorHeap>        m_dsvDescriptorHeap;
 
         UINT                                                m_rtvDescriptorSize;
+        UINT                                                m_dsvDescriptorSize;
+        UINT                                                m_cbvSrvUavDescriptorSize;
         D3D12_VIEWPORT                                      m_screenViewport;
         D3D12_RECT                                          m_scissorRect;
 
