@@ -17,7 +17,7 @@
 #define D_MATH_BOUNDS Darius::Math::Bounds
 #endif
 
-#include "../VectorMath.hpp"
+#include "Math/VectorMath.hpp"
 
 namespace Darius::Math::Bounds
 {

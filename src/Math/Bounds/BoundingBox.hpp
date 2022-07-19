@@ -17,8 +17,8 @@
 #define D_MATH_BOUNDS Darius::Math::Bounds
 #endif
 
-#include "../VectorMath.hpp"
-#include "../Transform.hpp"
+#include "Math/VectorMath.hpp"
+#include "Math/Transform.hpp"
 
 namespace Darius::Math::Bounds
 {
@@ -70,7 +70,8 @@ namespace Darius::Math::Bounds
 
         friend OrientedBox operator* (const AffineTransform& xform, const OrientedBox& obb)
         {
-            return (OrientedBox&)(xform * obb.m_repr);
+            auto trans = xform * obb.m_repr;
+            return *reinterpret_cast<OrientedBox*>(&trans);
         }
 
         Vector3 GetDimensions() const { return m_repr.GetX() + m_repr.GetY() + m_repr.GetZ(); }

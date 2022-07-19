@@ -13,7 +13,7 @@
 
 #pragma once
 
-#include "../VectorMath.hpp"
+#include "Math/VectorMath.hpp"
 #include "Frustum.hpp"
 
 namespace Darius::Math::Camera

@@ -15,9 +15,9 @@
 
 #define D_MATH_CAMERA Darius::Math::Camera
 
-#include "../Bounds/BoundingPlane.hpp"
-#include "../Bounds/BoundingSphere.hpp"
-#include "../Bounds/BoundingBox.hpp"
+#include "Math/Bounds/BoundingPlane.hpp"
+#include "Math/Bounds/BoundingSphere.hpp"
+#include "Math/Bounds/BoundingBox.hpp"
 
 using namespace D_MATH_BOUNDS;
 
