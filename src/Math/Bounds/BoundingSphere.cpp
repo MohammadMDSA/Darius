@@ -15,7 +15,7 @@
 #include "BoundingSphere.hpp"
 
 
-namespace Darius::Math
+namespace Darius::Math::Bounds
 {
     BoundingSphere BoundingSphere::Union(const BoundingSphere& rhs)
     {

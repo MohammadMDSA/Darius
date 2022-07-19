@@ -12,9 +12,14 @@
 //
 
 #pragma once
-#include "VectorMath.hpp"
 
-namespace Darius::Math
+#ifndef D_MATH_BOUNDS
+#define D_MATH_BOUNDS Darius::Math::Bounds
+#endif
+
+#include "../VectorMath.hpp"
+
+namespace Darius::Math::Bounds
 {
     class BoundingSphere
     {
