@@ -24,34 +24,27 @@ using namespace Darius::Renderer::GraphicsUtils;
 namespace Darius::Renderer
 {
 
-	struct ObjectConstants
-	{
-		XMFLOAT4X4 WorldViewProj;
-	};
-
 	ID3D12Device* _device = nullptr;
 
 	// Input layout and root signature
-	std::vector<D3D12_INPUT_ELEMENT_DESC> InputLayout;
-	ComPtr<ID3D12RootSignature> RootSignature = nullptr;
+	//std::vector<D3D12_INPUT_ELEMENT_DESC> InputLayout;
+	//ComPtr<ID3D12RootSignature> RootSignature = nullptr;
 
 	// Shaders
-	ComPtr<ID3DBlob> VsByteCode = nullptr;
-	ComPtr<ID3DBlob> PsByteCode = nullptr;
+	//std::unordered_map<std::string, ComPtr<ID3DBlob>> Shaders;
 
 	// Constant buffer view descriptor heap and object
-	std::unique_ptr<UploadBuffer<ObjectConstants>> ObjectCB = nullptr;
-	ComPtr<ID3D12DescriptorHeap> CbvHeap = nullptr;
-	ComPtr<ID3D12DescriptorHeap> ImguiHeap = nullptr;
+	//std::unique_ptr<UploadBuffer<ObjectConstants>> ObjectCB = nullptr;
+	//ComPtr<ID3D12DescriptorHeap> CbvHeap = nullptr;
+	//ComPtr<ID3D12DescriptorHeap> ImguiHeap = nullptr;
 
 	// PSO
-	ComPtr<ID3D12PipelineState> Pso = nullptr;
+	//std::unordered_map<std::string, ComPtr<ID3D12PipelineState>> Psos;
 
 	// Device resource
 	std::unique_ptr<DeviceResource::DeviceResources> Resources;
 
-	// Mesh
-	std::unique_ptr<D_RENDERER::Mesh> mesh;
+	//UINT PassCbvOffset = 0;
 
 	///////////////// REMOVE ASAP //////////////////
 	bool _4xMsaaState = false;
@@ -59,16 +52,8 @@ namespace Darius::Renderer
 
 	//////////////////////////////////////////////////////
 	// Functions
-	void BuildDescriptorHeaps();
-	void BuildConstantBuffers();
-	void BuildRootSignature();
-	void BuildShadersAndInputLayout();
-	void BuildGeometery();
-	void BuildPSO();
-	void BuildImgui();
-	void DisposeUploadBuffers();
 
-	void DrawCube();
+	void DrawCube(std::vector<RenderItem*> const& renderItems);
 	void DrawImgui();
 
 	void Clear();
@@ -79,55 +64,32 @@ namespace Darius::Renderer
 		D_ASSERT(Resources);
 
 		_device = Resources->GetD3DDevice();
-		auto cmdList = Resources->GetCommandList();
 
-		D_HR_CHECK(Resources->GetCommandAllocator()->Reset());
-		D_HR_CHECK(cmdList->Reset(Resources->GetCommandAllocator(), nullptr));
-
-		mesh = std::make_unique<Mesh>();
-
-		BuildDescriptorHeaps();
-		BuildConstantBuffers();
-		BuildRootSignature();
-		BuildShadersAndInputLayout();
-		BuildGeometery();
-		BuildPSO();
-		BuildImgui();
-
-		// Execute the initialization commands.
-		D_HR_CHECK(cmdList->Close());
-		ID3D12CommandList* commandLists[] = { cmdList };
-		Resources->GetCommandQueue()->ExecuteCommandLists(_countof(commandLists), commandLists);
-
-		// Wait until gpu executes initial commands
-		Resources->WaitForGpu();
 	}
 
 	void Shutdown()
 	{
 		D_ASSERT(_device != nullptr);
-		mesh.release();
-		DisposeUploadBuffers();
+		//DisposeUploadBuffers();
 
 	}
 
-	void RenderMeshes(GlobalConstants& global)
+	void RenderMeshes(std::vector<RenderItem*> const& renderItems)
 	{
-
 		// Prepare the command list to render a new frame.
-		Resources->Prepare(Pso.Get());
+		Resources->Prepare(D_RENDERER_DEVICE::Psos["opaque"].Get());
 
 		// Prepare imgui
-		ImGui_ImplDX12_NewFrame();
+		/*ImGui_ImplDX12_NewFrame();
 		ImGui_ImplWin32_NewFrame();
-		ImGui::NewFrame();
+		ImGui::NewFrame();*/
 
 		Clear();
 
 		auto commandList = Resources->GetCommandList();
 		PIXBeginEvent(commandList, PIX_COLOR_DEFAULT, L"Render");
 
-		DrawCube();
+		DrawCube(renderItems);
 
 		DrawImgui();
 
@@ -143,342 +105,102 @@ namespace Darius::Renderer
 		PIXEndEvent();
 	}
 
-	void DrawCube()
+	void DrawCube(std::vector<RenderItem*> const& renderItems)
 	{
 		auto cmdList = Resources->GetCommandList();
 
 		// Setting descriptor heaps
-		ID3D12DescriptorHeap* descriptorHeaps[] = { CbvHeap.Get() };
+		ID3D12DescriptorHeap* descriptorHeaps[] = { D_RENDERER_DEVICE::CbvHeap.Get() };
 		cmdList->SetDescriptorHeaps(_countof(descriptorHeaps), descriptorHeaps);
 
-		// Setting root signature
-		cmdList->SetGraphicsRootSignature(RootSignature.Get());
+		// Setting Root Signature
+		cmdList->SetGraphicsRootSignature(D_RENDERER_DEVICE::RootSignature.Get());
 
-		// Offset the CBV we want to use for this draw call
-		cmdList->SetGraphicsRootDescriptorTable(0, CbvHeap->GetGPUDescriptorHandleForHeapStart());
+		// Setting global constant
+		int globalCBVIndex = D_RENDERER_DEVICE::PassCbvOffset + Resources->GetCurrentFrameIndex();
+		auto globalCbvHandle = CD3DX12_GPU_DESCRIPTOR_HANDLE(D_RENDERER_DEVICE::CbvHeap->GetGPUDescriptorHandleForHeapStart());
+		globalCbvHandle.Offset(globalCBVIndex, Resources->GetCbvSrvUavDescriptorSize());
+		cmdList->SetGraphicsRootDescriptorTable(1, globalCbvHandle);
 
-		auto vbv = mesh->VertexBufferView();
+		auto objectCB = Resources->GetFrameResource()->MeshCB->Resource();
 
-		cmdList->IASetVertexBuffers(0, 1, &vbv);
-
-
-		auto ibv = mesh->IndexBufferView();
-		cmdList->IASetIndexBuffer(&ibv);
-		cmdList->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-
-		//cmdList->SetPipelineState(Pso.Get());
-
-		//cmdList->DrawIndexedInstanced(36, 1, 0, 0, 0);
-		for (auto submesh : mesh->mDraw)
+		// For each render item
+		for (auto const& ri : renderItems)
 		{
-			cmdList->DrawIndexedInstanced(submesh.mIndexCount, 1, submesh.mStartIndexLocation, submesh.mBaseVertexLocation, 0);
+			auto vbv = ri->Mesh->VertexBufferView();
+			auto ibv = ri->Mesh->IndexBufferView();
+			cmdList->IASetVertexBuffers(0, 1, &vbv);
+			cmdList->IASetIndexBuffer(&ibv);
+			cmdList->IASetPrimitiveTopology(ri->PrimitiveType);
+
+			// Ofset to the CBV in the descripor heap for this object and for this frame resource
+			UINT cbvIndex = Resources->GetCurrentFrameIndex() * (UINT)renderItems.size() + ri->ObjCBIndex;
+			auto cbvHandle = CD3DX12_GPU_DESCRIPTOR_HANDLE(D_RENDERER_DEVICE::CbvHeap->GetGPUDescriptorHandleForHeapStart());
+			cbvHandle.Offset(cbvIndex, _device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV));
+
+			cmdList->SetGraphicsRootDescriptorTable(0, cbvHandle);
+			cmdList->DrawIndexedInstanced(ri->IndexCount, 1, ri->StartIndexLocation, ri->BaseVertexLocation, 0);
 		}
 	}
 
 	void DrawImgui()
 	{
-		auto commandList = Resources->GetCommandList();
+		//auto commandList = Resources->GetCommandList();
 
-		{
-			static bool show_demo_window = true;
-			static bool show_another_window = true;
-			static float clear_color[] = { 1.f, 1.f, 1.f, 0.f };
-			// 1. Show the big demo window (Most of the sample code is in ImGui::ShowDemoWindow()! You can browse its code to learn more about Dear ImGui!).
-			if (show_demo_window)
-				ImGui::ShowDemoWindow(&show_demo_window);
+		//{
+		//	static bool show_demo_window = true;
+		//	static bool show_another_window = true;
+		//	static float clear_color[] = { 1.f, 1.f, 1.f, 0.f };
+		//	// 1. Show the big demo window (Most of the sample code is in ImGui::ShowDemoWindow()! You can browse its code to learn more about Dear ImGui!).
+		//	if (show_demo_window)
+		//		ImGui::ShowDemoWindow(&show_demo_window);
 
-			// 2. Show a simple window that we create ourselves. We use a Begin/End pair to created a named window.
-			{
-				static float f = 0.0f;
-				static int counter = 0;
+		//	// 2. Show a simple window that we create ourselves. We use a Begin/End pair to created a named window.
+		//	{
+		//		static float f = 0.0f;
+		//		static int counter = 0;
 
-				ImGui::Begin("Hello, world!");                          // Create a window called "Hello, world!" and append into it.
+		//		ImGui::Begin("Hello, world!");                          // Create a window called "Hello, world!" and append into it.
 
-				ImGui::Text("This is some useful text.");               // Display some text (you can use a format strings too)
-				ImGui::Checkbox("Demo Window", &show_demo_window);      // Edit bools storing our window open/close state
-				ImGui::Checkbox("Another Window", &show_another_window);
+		//		ImGui::Text("This is some useful text.");               // Display some text (you can use a format strings too)
+		//		ImGui::Checkbox("Demo Window", &show_demo_window);      // Edit bools storing our window open/close state
+		//		ImGui::Checkbox("Another Window", &show_another_window);
 
-				ImGui::SliderFloat("float", &f, 0.0f, 1.0f);            // Edit 1 float using a slider from 0.0f to 1.0f
-				ImGui::ColorEdit3("clear color", (float*)&clear_color); // Edit 3 floats representing a color
+		//		ImGui::SliderFloat("float", &f, 0.0f, 1.0f);            // Edit 1 float using a slider from 0.0f to 1.0f
+		//		ImGui::ColorEdit3("clear color", (float*)&clear_color); // Edit 3 floats representing a color
 
-				if (ImGui::Button("Button"))                            // Buttons return true when clicked (most widgets return true when edited/activated)
-					counter++;
-				ImGui::SameLine();
-				ImGui::Text("counter = %d", counter);
+		//		if (ImGui::Button("Button"))                            // Buttons return true when clicked (most widgets return true when edited/activated)
+		//			counter++;
+		//		ImGui::SameLine();
+		//		ImGui::Text("counter = %d", counter);
 
-				ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
-				ImGui::End();
-			}
+		//		ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
+		//		ImGui::End();
+		//	}
 
-			// 3. Show another simple window.
-			if (show_another_window)
-			{
-				ImGui::Begin("Another Window", &show_another_window);   // Pass a pointer to our bool variable (the window will have a closing button that will clear the bool when clicked)
-				ImGui::Text("Hello from another window!");
-				if (ImGui::Button("Close Me"))
-					show_another_window = false;
-				ImGui::End();
-			}
-		}
+		//	// 3. Show another simple window.
+		//	if (show_another_window)
+		//	{
+		//		ImGui::Begin("Another Window", &show_another_window);   // Pass a pointer to our bool variable (the window will have a closing button that will clear the bool when clicked)
+		//		ImGui::Text("Hello from another window!");
+		//		if (ImGui::Button("Close Me"))
+		//			show_another_window = false;
+		//		ImGui::End();
+		//	}
+		//}
 
 
-		ImGui::Render();
+		//ImGui::Render();
 
-		commandList->SetDescriptorHeaps(1, ImguiHeap.GetAddressOf());
-		ImGui_ImplDX12_RenderDrawData(ImGui::GetDrawData(), commandList);
+		//commandList->SetDescriptorHeaps(1, ImguiHeap.GetAddressOf());
+		//ImGui_ImplDX12_RenderDrawData(ImGui::GetDrawData(), commandList);
 
 	}
 
-	void Update(Transform* transform, float ratio)
-	{
-		
-		static float red = 0;
-		red += 0.3f / 60;
-
-		// Build the view matrix.
-		XMVECTOR pos = XMVectorSet(0.f, 0.f, 0.f, 1.0f);
-		XMVECTOR target = XMVectorSet(0.f, 0.f, 1.f, 1.0f);
-		XMVECTOR up = XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f);
-
-		XMFLOAT4X4 mView;
-		XMFLOAT4X4 mProj;
-		XMFLOAT4X4 ww = DirectX::XMFLOAT4X4(
-			1.0f, 0.0f, 0.0f, 0.0f,
-			0.0f, 1.0f, 0.0f, 0.0f,
-			0.0f, 0.0f, 1.0f, 0.0f,
-			0.0f, 0.0f, 0.0f, 1.0f);
-		auto something = XMMatrixTranslation(0.f, 0.f, 5.f) * XMMatrixRotationY(red);
-
-		XMMATRIX view = XMMatrixLookAtLH(pos, target, up);
-		XMStoreFloat4x4(&mView, view);
-
-		XMMATRIX P = XMMatrixPerspectiveFovLH(0.25f * XM_PI, ratio, 0.1f, 1000.0f);
-		XMStoreFloat4x4(&mProj, P);
-
-		XMMATRIX world = XMLoadFloat4x4(&ww);
-		XMMATRIX proj = XMLoadFloat4x4(&mProj);
-		XMMATRIX worldViewProj = something * view * proj;
-
-		// Update the constant buffer with the latest worldViewProj matrix.
-		ObjectConstants objConstants;
-		XMStoreFloat4x4(&objConstants.WorldViewProj, XMMatrixTranspose(worldViewProj));
-		ObjectCB->CopyData(0, objConstants);
-	}
-
-	void BuildDescriptorHeaps()
-	{
-		D3D12_DESCRIPTOR_HEAP_DESC cbvHeapDesc;
-		cbvHeapDesc.NumDescriptors = 1;
-		cbvHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
-		cbvHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
-		cbvHeapDesc.NodeMask = 0;
-
-		_device->CreateDescriptorHeap(&cbvHeapDesc, IID_PPV_ARGS(&CbvHeap));
-	}
-
-	void BuildConstantBuffers()
-	{
-		// Constant buffer to store the constants of n objects.
-		ObjectCB = std::make_unique<UploadBuffer<ObjectConstants>>(_device, 1, true);
-
-		UINT objCBByteSize = CalcConstantBufferByteSize(sizeof(ObjectConstants));
-
-		// Address to start of the buffer (0th constant buffer).
-		D3D12_GPU_VIRTUAL_ADDRESS cbAddress = ObjectCB->Resource()->GetGPUVirtualAddress();
-
-		// Offset to the ith object constant buffer in the buffer.
-		int cBufIndex = 0;
-		cbAddress += cBufIndex * objCBByteSize;
-
-		D3D12_CONSTANT_BUFFER_VIEW_DESC cbvDesc;
-		cbvDesc.BufferLocation = cbAddress;
-		cbvDesc.SizeInBytes = CalcConstantBufferByteSize(sizeof(ObjectConstants));
-
-		_device->CreateConstantBufferView(&cbvDesc, CbvHeap->GetCPUDescriptorHandleForHeapStart());
-	}
-
-	void BuildRootSignature()
-	{
-		// Shader programs typically require resources as input (constant buffers,
-	// textures, samplers).  The root signature defines the resources the shader
-	// programs expect.  If we think of the shader programs as a function, and
-	// the input resources as function parameters, then the root signature can be
-	// thought of as defining the function signature.  
-
-	// Root parameter can be a table, root descriptor or root constants.
-		CD3DX12_ROOT_PARAMETER slotRootParameter[1];
-
-		// Create a single descriptor table of CBVs.
-		CD3DX12_DESCRIPTOR_RANGE cbvTable;
-		cbvTable.Init(D3D12_DESCRIPTOR_RANGE_TYPE_CBV, 1, 0);
-		slotRootParameter[0].InitAsDescriptorTable(1, &cbvTable);
-
-		// A root signature is an array of root parameters.
-		CD3DX12_ROOT_SIGNATURE_DESC rootSigDesc(1, slotRootParameter, 0, nullptr,
-			D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT);
-
-		// create a root signature with a single slot which points to a descriptor range consisting of a single constant buffer
-		ComPtr<ID3DBlob> serializedRootSig = nullptr;
-		ComPtr<ID3DBlob> errorBlob = nullptr;
-		HRESULT hr = D3D12SerializeRootSignature(&rootSigDesc, D3D_ROOT_SIGNATURE_VERSION_1,
-			serializedRootSig.GetAddressOf(), errorBlob.GetAddressOf());
-
-		if (errorBlob != nullptr)
-		{
-			::OutputDebugStringA((char*)errorBlob->GetBufferPointer());
-		}
-		D_HR_CHECK(hr);
-
-		D_HR_CHECK(_device->CreateRootSignature(
-			0,
-			serializedRootSig->GetBufferPointer(),
-			serializedRootSig->GetBufferSize(),
-			IID_PPV_ARGS(&RootSignature)));
-	}
-
-	void BuildShadersAndInputLayout()
-	{
-
-		for (const auto& entry : std::filesystem::directory_iterator("."))
-
-			std::string ff = entry.path().string();
-
-
-		VsByteCode = CompileShader(L"..\\..\\..\\..\\..\\src\\Shaders\\SimpleColor.hlsl", nullptr, "VS", "vs_5_0");
-		PsByteCode = CompileShader(L"..\\..\\..\\..\\..\\src\\Shaders\\SimpleColor.hlsl", nullptr, "PS", "ps_5_0");
-
-		InputLayout =
-		{
-			{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
-			{ "COLOR", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, 12, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 }
-		};
-	}
-
-	void BuildGeometery()
-	{
-
-		auto cmdList = Resources->GetCommandList();
-
-		struct Vertex
-		{
-			Vector3 pos;
-			Vector4 color;
-		};
-
-		std::array<Vertex, 8> vertices =
-		{
-			Vertex({ Vector3(-1.f, -1.f, -1.f), Vector4(Colors::White) }),
-			Vertex({ Vector3(-1.f, +1.f, -1.f), Vector4(Colors::Black) }),
-			Vertex({ Vector3(+1.f, +1.f, -1.f), Vector4(Colors::Red) }),
-			Vertex({ Vector3(+1.f, -1.f, -1.f), Vector4(Colors::Green) }),
-			Vertex({ Vector3(-1.f, -1.f, +1.f), Vector4(Colors::Blue) }),
-			Vertex({ Vector3(-1.f, +1.f, +1.f), Vector4(Colors::Yellow) }),
-			Vertex({ Vector3(+1.f, +1.f, +1.f), Vector4(Colors::Cyan) }),
-			Vertex({ Vector3(+1.f, -1.f, +1.f), Vector4(Colors::Magenta) })
-		};
-
-		mesh->mVertexBufferByteSize = (UINT)vertices.size() * sizeof(Vertex);
-		mesh->mVertexByteStride = (UINT)sizeof(Vertex);
-
-		mesh->name = "Box";
-
-		D_HR_CHECK(D3DCreateBlob(mesh->mVertexBufferByteSize, &mesh->mVertexBufferCPU));
-		CopyMemory(mesh->mVertexBufferCPU->GetBufferPointer(), vertices.data(), mesh->mVertexBufferByteSize);
-
-		mesh->mVertexBufferGPU = CreateDefaultBuffer(_device, cmdList, vertices.data(), mesh->mVertexBufferByteSize, mesh->mVertexBufferUploader);
-
-		std::array<std::uint16_t, 36> indices =
-		{
-			// front face
-			0, 1, 2,
-			0, 2, 3,
-
-			// back face
-			4, 6, 5,
-			4, 7, 6,
-
-			// left face
-			4, 5, 1,
-			4, 1, 0,
-
-			// right face
-			3, 2, 6,
-			3, 6, 7,
-
-			// top face
-			1, 5, 6,
-			1, 6, 2,
-
-			// bottom face
-			4, 0, 3,
-			4, 3, 7,
-		};
-
-		mesh->mIndexBufferByteSize = (UINT)indices.size() * sizeof(std::uint16_t);
-
-
-		D_HR_CHECK(D3DCreateBlob(mesh->mIndexBufferByteSize, &mesh->mIndexBufferCPU));
-		CopyMemory(mesh->mIndexBufferCPU->GetBufferPointer(), indices.data(), mesh->mIndexBufferByteSize);
-
-		mesh->mIndexBufferGPU = CreateDefaultBuffer(_device, cmdList, indices.data(), mesh->mIndexBufferByteSize, mesh->mIndexBufferUploader);
-
-		Mesh::Draw draw;
-		draw.mBaseVertexLocation = 0;
-		draw.mIndexCount = (UINT)indices.size();
-		draw.mStartIndexLocation = 0;
-
-		mesh->mDraw.push_back(draw);
-	}
-
-	void BuildPSO()
-	{
-		D3D12_GRAPHICS_PIPELINE_STATE_DESC psoDesc;
-		ZeroMemory(&psoDesc, sizeof(D3D12_GRAPHICS_PIPELINE_STATE_DESC));
-
-		psoDesc.InputLayout = { InputLayout.data(), (UINT)InputLayout.size() };
-		psoDesc.pRootSignature = RootSignature.Get();
-		psoDesc.VS =
-		{
-			reinterpret_cast<BYTE*>(VsByteCode->GetBufferPointer()),
-			VsByteCode->GetBufferSize()
-		};
-		psoDesc.PS =
-		{
-			reinterpret_cast<BYTE*>(PsByteCode->GetBufferPointer()),
-			PsByteCode->GetBufferSize()
-		};
-		psoDesc.RasterizerState = CD3DX12_RASTERIZER_DESC(D3D12_DEFAULT);
-		psoDesc.BlendState = CD3DX12_BLEND_DESC(D3D12_DEFAULT);
-		psoDesc.DepthStencilState = CD3DX12_DEPTH_STENCIL_DESC(D3D12_DEFAULT);
-		psoDesc.SampleMask = UINT_MAX;
-		psoDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
-		psoDesc.NumRenderTargets = 1;
-		psoDesc.RTVFormats[0] = Resources->GetBackBufferFormat();
-		psoDesc.SampleDesc.Count = _4xMsaaState ? 4 : 1;
-		psoDesc.SampleDesc.Quality = _4xMsaaState ? (_4xMsaaQuality - 1) : 0;
-		psoDesc.DSVFormat = Resources->GetDepthBufferFormat();
-
-		_device->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(&Pso));
-	}
-
-	void BuildImgui()
-	{
-
-		D3D12_DESCRIPTOR_HEAP_DESC desc = {};
-		desc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
-		desc.NumDescriptors = 1;
-		desc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
-		D_HR_CHECK(_device->CreateDescriptorHeap(&desc, IID_PPV_ARGS(&ImguiHeap)));
-
-		ImGui::CreateContext();
-		ImGui_ImplWin32_Init(Resources->GetWindow());
-		ImGui_ImplDX12_Init(_device, Resources->GetBackBufferCount(), DXGI_FORMAT_B8G8R8A8_UNORM, ImguiHeap.Get(), ImguiHeap.Get()->GetCPUDescriptorHandleForHeapStart(), ImguiHeap.Get()->GetGPUDescriptorHandleForHeapStart());
-	}
-
-	void DisposeUploadBuffers()
-	{
-		mesh->DisposeUploadBuffers();
-	}
+	//void DisposeUploadBuffers()
+	//{
+	//	mesh->DisposeUploadBuffers();
+	//}
 
 	// Helper method to clear the back buffers.
 	void Clear()
@@ -505,6 +227,14 @@ namespace Darius::Renderer
 
 	namespace Device
 	{
+		ComPtr<ID3D12DescriptorHeap> CbvHeap = nullptr;
+		ComPtr<ID3D12RootSignature> RootSignature = nullptr;
+		std::unordered_map<std::string, ComPtr<ID3D12PipelineState>> Psos;
+		UINT PassCbvOffset;
+		std::unordered_map<std::string, ComPtr<ID3DBlob>> Shaders;
+		std::vector<D3D12_INPUT_ELEMENT_DESC> InputLayout;
+
+
 		void Initialize(HWND window, int width, int height)
 		{
 			// TODO: Provide parameters for swapchain format, depth/stencil format, and backbuffer count.
@@ -559,6 +289,51 @@ namespace Darius::Renderer
 #endif
 				throw std::runtime_error("Shader Model 6.0 is not supported!");
 			}
+		}
+
+		FrameResource* GetCurrentFrameResource()
+		{
+			return Resources->GetFrameResource();
+		}
+
+		ID3D12Device* GetDevice()
+		{
+			return _device;
+		}
+
+		ID3D12CommandAllocator* GetCommandAllocator()
+		{
+			return Resources->GetCommandAllocator();
+		}
+
+		ID3D12GraphicsCommandList* GetCommandList()
+		{
+			return Resources->GetCommandList();
+		}
+
+		ID3D12CommandQueue* GetCommandQueue()
+		{
+			return Resources->GetCommandQueue();
+		}
+
+		FrameResource* GetFrameResourceWithIndex(int i)
+		{
+			return Resources->GetFrameResourceWithIndex(i);
+		}
+
+		DXGI_FORMAT GetBackBufferFormat()
+		{
+			return Resources->GetBackBufferFormat();
+		}
+
+		DXGI_FORMAT GetDepthBufferFormat()
+		{
+			return Resources->GetDepthBufferFormat();
+		}
+
+		void WaitForGpu()
+		{
+			Resources->WaitForGpu();
 		}
 	}
 

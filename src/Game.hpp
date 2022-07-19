@@ -7,6 +7,7 @@
 #include "StepTimer.hpp"
 
 #include <Renderer/DeviceResources.hpp>
+#include <Renderer/FrameResource.hpp>
 
 // A basic game implementation that creates a D3D12 device and
 // provides a game loop.
@@ -50,12 +51,36 @@ private:
     void Update(DX::StepTimer const& timer);
     void Render();
 
+    void UpdateRotation();
+
     void CreateDeviceDependentResources();
     void CreateWindowSizeDependentResources();
 
+    void UpdateGlobalConstants();
+
+    ///////////////////////////////////////////
+    void InitMesh();
+    void BuildDescriptorHeaps();
+    void BuildConstantBuffers();
+    void BuildRootSignature();
+    void BuildShadersAndInputLayout();
+    void BuildGeometery();
+    void BuildPSO();
+    void BuildRenderItems();
+    void BuildImgui();
+    void DisposeUploadBuffers();
+
+    ///////////////////////////////////////////
+
     // Rendering loop timer.
-    DX::StepTimer                               m_timer;
+    DX::StepTimer                               mTimer;
 
     // If using the DirectX Tool Kit for DX12, uncomment this line:
     // std::unique_ptr<DirectX::GraphicsMemory> m_graphicsMemory;
+
+    std::vector<std::unique_ptr<D_CONST_FRAME_RESOUCE::RenderItem>> mRenderItems;
+    std::unique_ptr<Mesh>                       mMesh;
+
+    float                                       mWidth;
+    float                                       mHeight;
 };

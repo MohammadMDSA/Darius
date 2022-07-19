@@ -35,6 +35,12 @@
 #include <unknwn.h>
 #endif
 
+#include <d3dcompiler.h>
+
+#ifdef _MSC_VER
+#pragma comment(lib, "d3dcompiler") // Automatically link with d3dcompiler.lib as we are using D3DCompile() below.
+#endif
+
 #include <wrl/client.h>
 
 #include <algorithm>
