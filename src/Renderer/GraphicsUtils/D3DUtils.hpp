@@ -2,6 +2,8 @@
 
 using namespace Microsoft::WRL;
 
+#define D_RENDERER_UTILS Darius::Renderer::GraphicsUtils
+
 namespace Darius::Renderer::GraphicsUtils
 {
 	Microsoft::WRL::ComPtr<ID3D12Resource> CreateDefaultBuffer(
