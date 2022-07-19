@@ -4,7 +4,9 @@ set(MATH_LIBS_INCLUDE)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ".")
 
 list(APPEND MATH_LIBS_INCLUDE
-	"BoundingSphere.hpp"
+	"Bounds/BoundingBox.hpp"
+	"Bounds/BoundingPlane.hpp"
+	"Bounds/BoundingSphere.hpp"
 	"Color.hpp"
 	"Common.hpp"
 	"Functions.inl"
@@ -19,11 +21,15 @@ list(APPEND MATH_LIBS_INCLUDE
 	"Vector.hpp"
 	"VectorMath.hpp"
 	"Viewport.hpp"
+	"Camera/Camera.hpp"
+	"Camera/Frustum.hpp"
 	)
 
 list(APPEND MATH_LIBS_SOURCES
-	"BoundingSphere.cpp"
+	"Bounds/BoundingSphere.cpp"
 	"pch.cpp"
+	"Camera/Camera.cpp"
+	"Camera/Frustum.cpp"
 	)
 
 
