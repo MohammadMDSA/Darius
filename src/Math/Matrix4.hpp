@@ -76,7 +76,12 @@ namespace Darius::Math
         INLINE void SetZ(Vector4 z) { m_mat.r[2] = z; }
         INLINE void SetW(Vector4 w) { m_mat.r[3] = w; }
 
+        INLINE Matrix4 Transpose() { return Matrix4(XMMatrixTranspose(m_mat)); }
+        INLINE Matrix4 Inverse() { auto det = XMMatrixDeterminant(m_mat); return Matrix4(XMMatrixInverse(&det, m_mat));
+        }
+
         INLINE operator XMMATRIX() const { return m_mat; }
+        INLINE operator XMFLOAT4X4() const { XMFLOAT4X4 dest; XMStoreFloat4x4(&dest, m_mat); return dest; }
 
         INLINE Vector4 operator* (Vector3 vec) const { return Vector4(XMVector3Transform(vec, m_mat)); }
         INLINE Vector4 operator* (Vector4 vec) const { return Vector4(XMVector4Transform(vec, m_mat)); }
@@ -88,6 +93,8 @@ namespace Darius::Math
         static INLINE Matrix4 MakeLookAt(Vector3 eyePos, Vector3 target, Vector3 up) { return Matrix4(XMMatrixLookAtRH(eyePos, target, up)); }
         static INLINE Matrix4 MakeLookToward(Vector3 eyePos, Vector3 dir, Vector3 up) { return Matrix4(XMMatrixLookToRH(eyePos, dir, up)); }
         static INLINE Matrix4 MakeProjection(float fov, float ratio, float nearP, float farP) { return Matrix4(XMMatrixPerspectiveFovRH(fov, ratio, nearP, farP)); }
+        static INLINE Matrix4 Inverse(Matrix4 const& mat) { auto det = XMMatrixDeterminant(mat); return Matrix4(XMMatrixInverse(&det, mat)); }
+        static INLINE Matrix4 Transpose(Matrix4 const& mat) { return Matrix4(XMMatrixTranspose(mat.m_mat)); }
 
     private:
         XMMATRIX m_mat;

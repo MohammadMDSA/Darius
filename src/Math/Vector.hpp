@@ -41,6 +41,7 @@ namespace Darius::Math
         INLINE explicit Vector3(EZUnitVector) { m_vec = CreateZUnitVector(); }
 
         INLINE operator XMVECTOR() const { return m_vec; }
+        INLINE operator XMFLOAT3() const { XMFLOAT3 dest; XMStoreFloat3(&dest, m_vec); return dest; }
 
         INLINE Scalar GetX() const { return Scalar(XMVectorSplatX(m_vec)); }
         INLINE Scalar GetY() const { return Scalar(XMVectorSplatY(m_vec)); }
@@ -100,6 +101,7 @@ namespace Darius::Math
         INLINE explicit Vector4(EWUnitVector) { m_vec = CreateWUnitVector(); }
 
         INLINE operator XMVECTOR() const { return m_vec; }
+        INLINE operator XMFLOAT4() const { XMFLOAT4 dest; XMStoreFloat4(&dest, m_vec); return dest; }
 
         INLINE Scalar GetX() const { return Scalar(XMVectorSplatX(m_vec)); }
         INLINE Scalar GetY() const { return Scalar(XMVectorSplatY(m_vec)); }
