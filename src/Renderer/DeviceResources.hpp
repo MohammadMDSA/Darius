@@ -107,7 +107,7 @@ namespace Darius::Renderer::DeviceResource
         void GetAdapter(IDXGIAdapter1** ppAdapter);
 
         UINT                                                m_backBufferIndex;
-        std::array<std::unique_ptr<FrameResource>, D_CONST_FRAME_RESOUCE::gNumFrameResources> m_frameResources;
+        std::array<std::unique_ptr<FrameResource>, D_RENDERER_FRAME_RESOUCE::gNumFrameResources> m_frameResources;
 
 
         // Direct3D objects.

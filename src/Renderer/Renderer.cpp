@@ -1,6 +1,6 @@
 #include "pch.hpp"
 #include "Renderer.hpp"
-#include "Mesh.hpp"
+#include "Geometry/Mesh.hpp"
 #include "FrameResource.hpp"
 #include "GraphicsUtils/D3DUtils.hpp"
 #include "GraphicsUtils/UploadBuffer.hpp"
@@ -20,6 +20,7 @@ using namespace Microsoft::WRL;
 using namespace Darius::Math;
 using namespace Darius::Renderer::DeviceResource;
 using namespace Darius::Renderer::GraphicsUtils;
+using namespace D_RENDERER_GEOMETRY;
 
 namespace Darius::Renderer
 {

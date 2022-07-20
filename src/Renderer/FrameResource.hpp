@@ -1,6 +1,6 @@
 #pragma once
 #include "GraphicsUtils/UploadBuffer.hpp"
-#include "Mesh.hpp"
+#include "Geometry/Mesh.hpp"
 #include "FrameResource.hpp"
 
 #include <Utils/Common.hpp>
@@ -8,9 +8,11 @@
 
 using namespace Darius::Renderer::GraphicsUtils;
 using namespace Darius::Math;
+using namespace D_RENDERER_GEOMETRY;
+
 using namespace Microsoft::WRL;
 
-#define D_CONST_FRAME_RESOUCE Darius::Renderer::ConstantFrameResource
+#define D_RENDERER_FRAME_RESOUCE Darius::Renderer::ConstantFrameResource
 
 namespace Darius::Renderer::ConstantFrameResource
 {

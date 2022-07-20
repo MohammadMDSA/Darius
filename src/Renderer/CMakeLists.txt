@@ -5,15 +5,15 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ".")
 
 list(APPEND RENDERER_LIBS_INCLUDE
 	"pch.hpp"
-	"d3dx12.h"
 	"GraphicsUtils/D3DUtils.hpp"
 	"GraphicsUtils/UploadBuffer.hpp"
 	"GraphicsUtils/VertexTypes.hpp"
 	"Camera/CameraManager.hpp"
+	"Geometry/Mesh.hpp"
 	"Renderer.hpp"
 	"DeviceResources.hpp"
-	"Mesh.hpp"
 	"FrameResource.hpp"
+	"d3dx12.h"
 	)
 
 list(APPEND RENDERER_LIBS_SOURCES
@@ -21,9 +21,9 @@ list(APPEND RENDERER_LIBS_SOURCES
 	"GraphicsUtils/D3DUtils.cpp"
 	"GraphicsUtils/VertexTypes.cpp"
 	"Camera/CameraManager.cpp"
+	"Geometry/Mesh.cpp"
 	"Renderer.cpp"
 	"DeviceResources.cpp"
-	"Mesh.cpp"
 	"FrameResource.cpp"
 	)
 

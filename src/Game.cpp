@@ -16,7 +16,8 @@
 extern void ExitGame() noexcept;
 
 using namespace DirectX;
-using namespace D_CONST_FRAME_RESOUCE;
+using namespace D_RENDERER_FRAME_RESOUCE;
+using namespace D_RENDERER_GEOMETRY;
 
 using Microsoft::WRL::ComPtr;
 
@@ -224,7 +225,7 @@ void Game::CreateWindowSizeDependentResources()
 void Game::UpdateGlobalConstants()
 {
 	PIXBeginEvent(PIX_COLOR_DEFAULT, "Update Globals");
-    D_CONST_FRAME_RESOUCE::GlobalConstants globals;
+	D_RENDERER_FRAME_RESOUCE::GlobalConstants globals;
 
 	auto view = mCamera->GetViewMatrix();
 	auto proj = mCamera->GetProjMatrix();

@@ -1,17 +1,21 @@
 #pragma once
 
-#include "GraphicsUtils/UploadBuffer.hpp"
-#include "GraphicsUtils/D3DUtils.hpp"
+#include "Renderer/GraphicsUtils/UploadBuffer.hpp"
+#include "Renderer/GraphicsUtils/D3DUtils.hpp"
 
 #include <Utils/Common.hpp>
 
 #include <string>
 
+#ifndef D_RENDERER_GEOMETRY
+#define D_RENDERER_GEOMETRY Darius::Renderer::Geometry
+#endif
+
 using namespace Microsoft::WRL;
 
 using namespace Darius::Renderer::GraphicsUtils;
 
-namespace Darius::Renderer
+namespace Darius::Renderer::Geometry
 {
 
 	struct Mesh
