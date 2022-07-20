@@ -8,6 +8,7 @@
 
 #include <Renderer/Renderer.hpp>
 #include <Renderer/FrameResource.hpp>
+#include <Renderer/Camera/CameraManager.hpp>
 #include <Utils/Debug.hpp>
 
 #include <exception>
@@ -34,17 +35,20 @@ Game::~Game()
 // Initialize the Direct3D resources required to run.
 void Game::Initialize(HWND window, int width, int height)
 {
-    D_DEBUG::AttachWinPixGpuCapturer();
+#ifdef _DEBUG
+    //D_DEBUG::AttachWinPixGpuCapturer();
+#endif
 
     mWidth = (float)width;
     mHeight = (float)height;
-    Darius::Renderer::Device::Initialize(window, width, height);
+    D_RENDERER_DEVICE::Initialize(window, width, height);
+	D_CAMERA_MANAGER::Initialize();
+    Darius::Renderer::Initialize();
 
     CreateDeviceDependentResources();
     CreateWindowSizeDependentResources();
 
-    Darius::Renderer::Initialize();
-	InitMesh();
+	D_CAMERA_MANAGER::SetViewportDimansion((float)width, (float)height);
 
     // TODO: Change the timer settings if you want something other than the default variable timestep mode.
     // e.g. for 60 FPS fixed timestep update logic, call:
@@ -52,6 +56,14 @@ void Game::Initialize(HWND window, int width, int height)
     m_timer.SetFixedTimeStep(true);
     m_timer.SetTargetElapsedSeconds(1.0 / 60);
     */
+
+	mCamera = std::make_unique<D_MATH_CAMERA::Camera>();
+	mCamera->SetFOV(XM_PI / 3);
+	mCamera->SetZRange(0.01f, 1000.f);
+	mCamera->SetPosition(Vector3(0.f));
+	mCamera->SetLookDirection(Vector3::Forward(), Vector3::Up());
+
+	D_CAMERA_MANAGER::SetActiveCamera(mCamera.get());
 }
 
 #pragma region Frame Update
@@ -72,7 +84,8 @@ void Game::Update(DX::StepTimer const&)
     PIXBeginEvent(PIX_COLOR_DEFAULT, L"Update");
 
     // float elapsedTime = float(timer.GetElapsedSeconds());
-	UpdateGlobalConstants();
+	mCamera->Update();
+
     UpdateRotation();
 
     PIXEndEvent();
@@ -94,7 +107,8 @@ void Game::Render()
     {
         items.push_back(ri.get());
     }
-            
+
+	UpdateGlobalConstants();
     // TODO: Add your rendering code here.
     Darius::Renderer::RenderMeshes(items);
 
@@ -105,9 +119,12 @@ void Game::UpdateRotation()
     static float red = 0;
     //red += 0.3f / 60;
 
-    auto ww = XMMatrixTranslation(0.f, 0.f, 5.f) * XMMatrixRotationY(red);
-    for (auto& ri : mRenderItems)
-        ri->World = Matrix4(ww);
+    auto ww = XMMatrixTranslation(0.f, 0.f, -5.f) * XMMatrixRotationY(red);
+    /*for (auto& ri : mRenderItems)
+        ri->World = Matrix4(ww);*/
+
+	mRenderItems[0]->World = Matrix4(XMMatrixTranslation(-2.f, 0.f, -5.f));
+	mRenderItems[1]->World = Matrix4(XMMatrixTranslation(2.f, 0.f, -5.f));
 
 
     auto upBuff = D_RENDERER_DEVICE::GetCurrentFrameResource();
@@ -118,7 +135,7 @@ void Game::UpdateRotation()
         if (ri->NumFramesDirty <= 0)
             continue;
         MeshConstants objConstants;
-        XMStoreFloat4x4(&objConstants.mWorld, XMMatrixTranspose(ri->World));
+        XMStoreFloat4x4(&objConstants.mWorld, ri->World);
 
         upBuff->MeshCB->CopyData(ri->ObjCBIndex, objConstants);
 
@@ -167,6 +184,7 @@ void Game::OnWindowSizeChanged(int width, int height)
     mWidth = (float)width;
     mHeight = (float)height;
 
+	D_CAMERA_MANAGER::SetViewportDimansion((float)width, (float)height);
     if (!D_DEVICE::OnWindowsSizeChanged(width, height))
         return;
 
@@ -193,7 +211,8 @@ void Game::CreateDeviceDependentResources()
     // If using the DirectX Tool Kit for DX12, uncomment this line:
     // m_graphicsMemory = std::make_unique<GraphicsMemory>(device);
 
-    // TODO: Initialize device dependent objects here (independent of window size).
+	InitMesh();
+
 }
 
 // Allocate all memory resources that change on a window SizeChanged event.
@@ -207,32 +226,28 @@ void Game::UpdateGlobalConstants()
 	PIXBeginEvent(PIX_COLOR_DEFAULT, "Update Globals");
     D_CONST_FRAME_RESOUCE::GlobalConstants globals;
 
-    // Build the view matrix.
-    Vector3 pos = Vector3(0.f, 0.f, 0.f);
-    Vector3 target = Vector3(0.f, 0.f, 1.f);
-    Vector3 up = Vector3(0.0f, 1.0f, 0.0f);
-    float nearClip = 0.01f;
-    float farClip = 1000.f;
+	auto view = mCamera->GetViewMatrix();
+	auto proj = mCamera->GetProjMatrix();
 
-    auto view = Matrix4(XMMatrixLookAtLH(pos, target, up));
-    auto proj = Matrix4(XMMatrixPerspectiveFovLH(XM_PI * 0.25f, mWidth / mHeight, nearClip, farClip));
-
-    auto viewProj = view * proj;
+	auto viewProj = mCamera->GetViewProjMatrix();
     auto invView = Matrix4::Inverse(view);
     auto invProj = Matrix4::Inverse(proj);
     auto invViewProj = Matrix4::Inverse(viewProj);
 
-    globals.View = view.Transpose();
-    globals.InvView = invView.Transpose();
-    globals.Proj = proj.Transpose();
-    globals.InvProj = invProj.Transpose();
-    globals.ViewProj = viewProj.Transpose();
-    globals.InvViewProj = invViewProj.Transpose();
-    globals.CameraPos = pos;
-    globals.RenderTargetSize = XMFLOAT2(mWidth, mHeight);
-    globals.InvRenderTargetSize = XMFLOAT2(1.f / mWidth, 1.f / mHeight);
-    globals.NearZ = nearClip;
-    globals.FarZ = farClip;
+	float width, height;
+	D_CAMERA_MANAGER::GetViewportDimansion(width, height);
+
+    globals.View = view;
+    globals.InvView = invView;
+    globals.Proj = proj;
+    globals.InvProj = invProj;
+    globals.ViewProj = viewProj;
+    globals.InvViewProj = invViewProj;
+    globals.CameraPos = mCamera->GetPosition();
+    globals.RenderTargetSize = XMFLOAT2(width, height);
+    globals.InvRenderTargetSize = XMFLOAT2(1.f / width, 1.f / height);
+    globals.NearZ = mCamera->GetNearClip();
+    globals.FarZ = mCamera->GetFarClip();
     globals.TotalTime = (float)mTimer.GetTotalSeconds();
     globals.DeltaTime = (float)mTimer.GetElapsedSeconds();
 
@@ -453,28 +468,28 @@ void Game::BuildGeometery()
 	std::array<std::uint16_t, 36> indices =
 	{
 		// front face
-		0, 1, 2,
-		0, 2, 3,
+		0, 2, 1,
+		0, 3, 2,
 
 		// back face
-		4, 6, 5,
-		4, 7, 6,
+		4, 5, 6,
+		4, 6, 7,
 
 		// left face
-		4, 5, 1,
-		4, 1, 0,
+		4, 1, 5,
+		4, 0, 1,
 
 		// right face
-		3, 2, 6,
-		3, 6, 7,
+		3, 6, 2,
+		3, 7, 6,
 
 		// top face
-		1, 5, 6,
-		1, 6, 2,
+		1, 6, 5,
+		1, 2, 6,
 
 		// bottom face
-		4, 0, 3,
-		4, 3, 7,
+		4, 3, 0,
+		4, 7, 3,
 	};
 
 	mMesh->mIndexBufferByteSize = (UINT)indices.size() * sizeof(std::uint16_t);

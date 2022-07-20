@@ -18,4 +18,5 @@ namespace Darius::Renderer::CameraManager
 	// Viewport dimansion functions
 	void SetViewportDimansion(float w, float h);
 	void GetViewportDimansion(float& width, float& height);
+	float GetViewportAspectRatio();
 }

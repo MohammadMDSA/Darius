@@ -38,8 +38,8 @@ PixelIn VS(VertexIn vin)
 	PixelIn vout;
 	
 	// Transform homogeneous to clip space.
-    vout.pos = mul(float4(vin.pos, 1.0f), gWorld);
-    vout.pos = mul(vout.pos, gViewProj);
+    vout.pos = mul(gWorld, float4(vin.pos, 1.0f));
+    vout.pos = mul(gViewProj, vout.pos);
 	
 	// Passing color to ps
 	vout.color = vin.color;

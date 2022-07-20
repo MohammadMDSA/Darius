@@ -8,6 +8,7 @@
 
 #include <Renderer/DeviceResources.hpp>
 #include <Renderer/FrameResource.hpp>
+#include <Math/Camera/Camera.hpp>
 
 // A basic game implementation that creates a D3D12 device and
 // provides a game loop.
@@ -80,6 +81,7 @@ private:
 
     std::vector<std::unique_ptr<D_CONST_FRAME_RESOUCE::RenderItem>> mRenderItems;
     std::unique_ptr<Mesh>                       mMesh;
+    std::unique_ptr<D_MATH_CAMERA::Camera>      mCamera;
 
     float                                       mWidth;
     float                                       mHeight;

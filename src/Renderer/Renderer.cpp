@@ -87,7 +87,7 @@ namespace Darius::Renderer
 		Clear();
 
 		auto commandList = Resources->GetCommandList();
-		PIXBeginEvent(commandList, PIX_COLOR_DEFAULT, L"Render");
+		PIXBeginEvent(commandList, PIX_COLOR_DEFAULT, L"Render opaque");
 
 		DrawCube(renderItems);
 

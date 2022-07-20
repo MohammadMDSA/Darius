@@ -34,7 +34,7 @@ namespace Darius::Renderer::CameraManager
 	{
 		activeCameras[index] = cam;
 		if (cam)
-			cam->SetAspectRatio(Width / Height);
+			cam->SetAspectRatio(Height / Width);
 	}
 
 	D_MATH_CAMERA::Camera* GetActiveCamera(int index)
@@ -49,13 +49,18 @@ namespace Darius::Renderer::CameraManager
 
 		for (auto cam : activeCameras)
 			if (cam)
-				cam->SetAspectRatio(w / h);
+				cam->SetAspectRatio(h / w);
 	}
 
 	void GetViewportDimansion(float& width, float& height)
 	{
 		width = Width;
 		height = Height;
+	}
+
+	float GetViewportAspectRatio()
+	{
+		return Width / Height;
 	}
 
 }
