@@ -4,8 +4,7 @@
 
 #pragma once
 
-#include "StepTimer.hpp"
-
+#include <Core/TimeManager/StepTimer.hpp>
 #include <Renderer/DeviceResources.hpp>
 #include <Renderer/FrameResource.hpp>
 #include <Math/Camera/Camera.hpp>
@@ -49,15 +48,13 @@ public:
 
 private:
 
-    void Update(DX::StepTimer const& timer);
+    void Update(D_TIME::StepTimer const& timer);
     void Render();
 
     void UpdateRotation();
 
     void CreateDeviceDependentResources();
     void CreateWindowSizeDependentResources();
-
-    void UpdateGlobalConstants();
 
     ///////////////////////////////////////////
     void InitMesh();
@@ -73,8 +70,6 @@ private:
 
     ///////////////////////////////////////////
 
-    // Rendering loop timer.
-    DX::StepTimer                               mTimer;
 
     // If using the DirectX Tool Kit for DX12, uncomment this line:
     // std::unique_ptr<DirectX::GraphicsMemory> m_graphicsMemory;

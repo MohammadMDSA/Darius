@@ -3,13 +3,17 @@
 //
 
 #pragma once
+#include "Core/pch.hpp"
 
 #include <cmath>
 #include <cstdint>
 #include <exception>
 
+#ifndef D_TIME
+#define D_TIME Darius::Core::TimeManager
+#endif // !D_TIME
 
-namespace DX
+namespace Darius::Core::TimeManager
 {
     // Helper class for animation and simulation timing.
     class StepTimer

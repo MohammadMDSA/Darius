@@ -4,16 +4,18 @@
 #include "FrameResource.hpp"
 #include "GraphicsUtils/D3DUtils.hpp"
 #include "GraphicsUtils/UploadBuffer.hpp"
+#include "Camera/CameraManager.hpp"
 
 #include <imgui.h>
 #include <imgui_impl_dx12.h>
 #include <imgui_impl_win32.h>
 
+#include <Core/TimeManager/TimeManager.hpp>
 #include <Math/VectorMath.hpp>
 #include <Utils/Assert.hpp>
+
 #include <filesystem>
 
-#include <Math/VectorMath.hpp>
 
 using namespace Microsoft::WRL;
 
@@ -59,6 +61,8 @@ namespace Darius::Renderer
 
 	void Clear();
 
+	void UpdateGlobalConstants();
+
 	void Initialize()
 	{
 		D_ASSERT(_device == nullptr);
@@ -77,6 +81,8 @@ namespace Darius::Renderer
 
 	void RenderMeshes(std::vector<RenderItem*> const& renderItems)
 	{
+		UpdateGlobalConstants();
+
 		// Prepare the command list to render a new frame.
 		Resources->Prepare(D_RENDERER_DEVICE::Psos["opaque"].Get());
 
@@ -224,6 +230,46 @@ namespace Darius::Renderer
 		commandList->RSSetScissorRects(1, &scissorRect);
 
 		PIXEndEvent(commandList);
+	}
+
+	void UpdateGlobalConstants()
+	{
+		PIXBeginEvent(PIX_COLOR_DEFAULT, "Update Globals");
+		D_RENDERER_FRAME_RESOUCE::GlobalConstants globals;
+		
+		auto camera = D_CAMERA_MANAGER::GetActiveCamera();
+
+		auto view = camera->GetViewMatrix();
+		auto proj = camera->GetProjMatrix();
+
+		auto viewProj = camera->GetViewProjMatrix();
+		auto invView = Matrix4::Inverse(view);
+		auto invProj = Matrix4::Inverse(proj);
+		auto invViewProj = Matrix4::Inverse(viewProj);
+
+		float width, height;
+		D_CAMERA_MANAGER::GetViewportDimansion(width, height);
+
+		auto time = *D_TIME::GetStepTimer();
+
+		globals.View = view;
+		globals.InvView = invView;
+		globals.Proj = proj;
+		globals.InvProj = invProj;
+		globals.ViewProj = viewProj;
+		globals.InvViewProj = invViewProj;
+		globals.CameraPos = camera->GetPosition();
+		globals.RenderTargetSize = XMFLOAT2(width, height);
+		globals.InvRenderTargetSize = XMFLOAT2(1.f / width, 1.f / height);
+		globals.NearZ = camera->GetNearClip();
+		globals.FarZ = camera->GetFarClip();
+		globals.TotalTime = (float)time.GetTotalSeconds();
+		globals.DeltaTime = (float)time.GetElapsedSeconds();
+
+		auto currGlobalCb = D_RENDERER_DEVICE::GetCurrentFrameResource()->GlobalCB.get();
+
+		currGlobalCb->CopyData(0, globals);
+		PIXEndEvent();
 	}
 
 	namespace Device

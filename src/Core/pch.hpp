@@ -34,13 +34,6 @@
 #ifdef __MINGW32__
 #include <unknwn.h>
 #endif
-
-#include <d3dcompiler.h>
-
-#ifdef _MSC_VER
-#pragma comment(lib, "d3dcompiler") // Automatically link with d3dcompiler.lib as we are using D3DCompile() below.
-#endif
-
 #include <wrl/client.h>
 
 #include <algorithm>
@@ -63,6 +56,35 @@
 
 // If using the DirectX Tool Kit for DX12, uncomment this line:
 //#include "GraphicsMemory.h"
+
+namespace DX
+{
+    // Helper class for COM exceptions
+    class com_exception : public std::exception
+    {
+    public:
+        com_exception(HRESULT hr) noexcept : result(hr) {}
+
+        const char* what() const noexcept override
+        {
+            static char s_str[64] = {};
+            sprintf_s(s_str, "Failure with HRESULT of %08X", static_cast<unsigned int>(result));
+            return s_str;
+        }
+
+    private:
+        HRESULT result;
+    };
+
+    // Helper utility converts D3D API failures into exceptions.
+    inline void ThrowIfFailed(HRESULT hr)
+    {
+        if (FAILED(hr))
+        {
+            throw com_exception(hr);
+        }
+    }
+}
 
 #ifdef __MINGW32__
 namespace Microsoft
@@ -99,22 +121,3 @@ namespace Microsoft
 #else
 #include <wrl/event.h>
 #endif
-
-#ifdef __MINGW32__
-constexpr UINT PIX_COLOR_DEFAULT = 0;
-
-inline void PIXBeginEvent(UINT64, PCWSTR) {}
-
-template<typename T>
-inline void PIXBeginEvent(T*, UINT64, PCWSTR) {}
-
-inline void PIXEndEvent() {}
-
-template<typename T>
-inline void PIXEndEvent(T*) {}
-#else
-// To use graphics and CPU markup events with the latest version of PIX, change this to include <pix3.h>
-// then add the NuGet package WinPixEventRuntime to the project.
-#include <pix.h>
-#endif
-

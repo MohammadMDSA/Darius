@@ -6,6 +6,7 @@
 #include "Game.hpp"
 #include "Math/VectorMath.hpp"
 
+#include <Core/TimeManager/TimeManager.hpp>
 #include <Renderer/Renderer.hpp>
 #include <Renderer/FrameResource.hpp>
 #include <Renderer/Camera/CameraManager.hpp>
@@ -50,13 +51,8 @@ void Game::Initialize(HWND window, int width, int height)
     CreateWindowSizeDependentResources();
 
 	D_CAMERA_MANAGER::SetViewportDimansion((float)width, (float)height);
-
-    // TODO: Change the timer settings if you want something other than the default variable timestep mode.
-    // e.g. for 60 FPS fixed timestep update logic, call:
-    /*
-    m_timer.SetFixedTimeStep(true);
-    m_timer.SetTargetElapsedSeconds(1.0 / 60);
-    */
+	D_TIME::Initialize();
+	D_TIME::EnableFixedTimeStep(1.0 / 60);
 
 	mCamera = std::make_unique<D_MATH_CAMERA::Camera>();
 	mCamera->SetFOV(XM_PI / 3);
@@ -71,16 +67,17 @@ void Game::Initialize(HWND window, int width, int height)
 // Executes the basic game loop.
 void Game::Tick()
 {
-    mTimer.Tick([&]()
+	auto timer = D_TIME::GetStepTimer();
+    timer->Tick([&]()
     {
-        Update(mTimer);
+        Update(*timer);
     });
 
     Render();
 }
 
 // Updates the world.
-void Game::Update(DX::StepTimer const&)
+void Game::Update(D_TIME::StepTimer const&)
 {
     PIXBeginEvent(PIX_COLOR_DEFAULT, L"Update");
 
@@ -98,7 +95,7 @@ void Game::Update(DX::StepTimer const&)
 void Game::Render()
 {
     // Don't try to render anything before the first Update.
-    if (mTimer.GetFrameCount() == 0)
+    if (D_TIME::GetStepTimer()->GetFrameCount() == 0)
     {
         return;
     }
@@ -109,7 +106,6 @@ void Game::Render()
         items.push_back(ri.get());
     }
 
-	UpdateGlobalConstants();
     // TODO: Add your rendering code here.
     Darius::Renderer::RenderMeshes(items);
 
@@ -165,7 +161,7 @@ void Game::OnSuspending()
 
 void Game::OnResuming()
 {
-    mTimer.ResetElapsedTime();
+    D_TIME::GetStepTimer()->ResetElapsedTime();
 
     // TODO: Game is being power-resumed (or returning from minimize).
 }
@@ -220,43 +216,6 @@ void Game::CreateDeviceDependentResources()
 void Game::CreateWindowSizeDependentResources()
 {
     // TODO: Initialize windows-size dependent objects here.
-}
-
-void Game::UpdateGlobalConstants()
-{
-	PIXBeginEvent(PIX_COLOR_DEFAULT, "Update Globals");
-	D_RENDERER_FRAME_RESOUCE::GlobalConstants globals;
-
-	auto view = mCamera->GetViewMatrix();
-	auto proj = mCamera->GetProjMatrix();
-
-	auto viewProj = mCamera->GetViewProjMatrix();
-    auto invView = Matrix4::Inverse(view);
-    auto invProj = Matrix4::Inverse(proj);
-    auto invViewProj = Matrix4::Inverse(viewProj);
-
-	float width, height;
-	D_CAMERA_MANAGER::GetViewportDimansion(width, height);
-
-    globals.View = view;
-    globals.InvView = invView;
-    globals.Proj = proj;
-    globals.InvProj = invProj;
-    globals.ViewProj = viewProj;
-    globals.InvViewProj = invViewProj;
-    globals.CameraPos = mCamera->GetPosition();
-    globals.RenderTargetSize = XMFLOAT2(width, height);
-    globals.InvRenderTargetSize = XMFLOAT2(1.f / width, 1.f / height);
-    globals.NearZ = mCamera->GetNearClip();
-    globals.FarZ = mCamera->GetFarClip();
-    globals.TotalTime = (float)mTimer.GetTotalSeconds();
-    globals.DeltaTime = (float)mTimer.GetElapsedSeconds();
-
-    auto currGlobalCb = D_RENDERER_DEVICE::GetCurrentFrameResource()->GlobalCB.get();
-
-    currGlobalCb->CopyData(0, globals);
-	PIXEndEvent();
-
 }
 
 void Game::OnDeviceLost()

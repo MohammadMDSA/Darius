@@ -59,7 +59,6 @@ add_executable(${PROJECT_NAME} WIN32
     "src/Game.cpp"
     "src/Game.hpp"
     "src/Main.cpp"
-    "src/StepTimer.hpp"
     "src/pch.hpp")
 
 if ((${CMAKE_VERSION} VERSION_GREATER_EQUAL "3.16") AND (NOT MINGW))
