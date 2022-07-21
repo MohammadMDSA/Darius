@@ -265,6 +265,7 @@ void Game::OnDeviceLost()
 
     // If using the DirectX Tool Kit for DX12, uncomment this line:
     // m_graphicsMemory.reset();
+	mCamera.reset();
 }
 
 void Game::OnDeviceRestored()
