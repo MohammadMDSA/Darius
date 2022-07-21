@@ -38,7 +38,7 @@ Game::~Game()
 void Game::Initialize(HWND window, int width, int height)
 {
 #ifdef _DEBUG
-    //D_DEBUG::AttachWinPixGpuCapturer();
+    D_DEBUG::AttachWinPixGpuCapturer();
 #endif
 
     mWidth = (float)width;
@@ -116,29 +116,14 @@ void Game::UpdateRotation()
     static float red = 0;
     //red += 0.3f / 60;
 
-    auto ww = XMMatrixTranslation(0.f, 0.f, -5.f) * XMMatrixRotationY(red);
-    /*for (auto& ri : mRenderItems)
-        ri->World = Matrix4(ww);*/
-
 	mRenderItems[0]->World = Matrix4(XMMatrixTranslation(-2.f, 0.f, -5.f));
 	mRenderItems[1]->World = Matrix4(XMMatrixTranslation(2.f, 0.f, -5.f));
 
-
-    auto upBuff = D_RENDERER_DEVICE::GetCurrentFrameResource();
-
-    // Update the constant buffer with the latest worldViewProj matrix.
-    for (auto& ri : mRenderItems)
-    {
-        if (ri->NumFramesDirty <= 0)
-            continue;
-        MeshConstants objConstants;
-        XMStoreFloat4x4(&objConstants.mWorld, ri->World);
-
-        upBuff->MeshCB->CopyData(ri->ObjCBIndex, objConstants);
-
-        // Next FrameResource need to be updated too.
-        ri->NumFramesDirty--;
-    }
+	// Update CBs
+	std::vector<RenderItem*> renderItems;
+	for (auto& ri : mRenderItems)
+		renderItems.push_back(ri.get());
+	D_RENDERER::UpdateMeshCBs(renderItems);
 }
 #pragma endregion
 
@@ -249,8 +234,8 @@ void Game::InitMesh()
     BuildShadersAndInputLayout();
     BuildGeometery();
 	BuildRenderItems();
-    BuildDescriptorHeaps();
-    BuildConstantBuffers();
+    //BuildDescriptorHeaps();
+    //BuildConstantBuffers();
     BuildPSO();
     BuildImgui();
 
@@ -339,18 +324,12 @@ void Game::BuildConstantBuffers()
 
 void Game::BuildRootSignature()
 {
-	CD3DX12_DESCRIPTOR_RANGE cbvTable0;
-	cbvTable0.Init(D3D12_DESCRIPTOR_RANGE_TYPE_CBV, 1, 0);
-
-	CD3DX12_DESCRIPTOR_RANGE cbvTable1;
-	cbvTable1.Init(D3D12_DESCRIPTOR_RANGE_TYPE_CBV, 1, 1);
-
 	// Root parameter can be a table, root descriptor or root constants.
 	CD3DX12_ROOT_PARAMETER slotRootParameter[2];
 
 	// Create root CBVs.
-	slotRootParameter[0].InitAsDescriptorTable(1, &cbvTable0);
-	slotRootParameter[1].InitAsDescriptorTable(1, &cbvTable1);
+	slotRootParameter[0].InitAsConstantBufferView(0);
+	slotRootParameter[1].InitAsConstantBufferView(1);
 
 	// A root signature is an array of root parameters.
 	CD3DX12_ROOT_SIGNATURE_DESC rootSigDesc(2, slotRootParameter, 0, nullptr, D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT);

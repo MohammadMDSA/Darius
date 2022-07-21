@@ -1,3 +1,4 @@
+#include "Renderer.hpp"
 #include "pch.hpp"
 #include "Renderer.hpp"
 #include "Geometry/Mesh.hpp"
@@ -112,24 +113,39 @@ namespace Darius::Renderer
 		PIXEndEvent();
 	}
 
+	void UpdateMeshCBs(std::vector<RenderItem*> const& renderItems)
+	{
+		auto frameResource = Resources->GetFrameResource();
+		frameResource->ReinitializeMeshCB(_device, renderItems.size());
+
+		for (auto& ri : renderItems)
+		{
+			if (ri->NumFramesDirty <= 0)
+				continue;
+			MeshConstants objConstants;
+			objConstants.mWorld = ri->World;
+
+			frameResource->MeshCB->CopyData(ri->ObjCBIndex, objConstants);
+
+			// Next FrameResource needs to be updated too.
+			//ri->NumFramesDirty--;
+		}
+	}
+
 	void DrawCube(std::vector<RenderItem*> const& renderItems)
 	{
 		auto cmdList = Resources->GetCommandList();
-
-		// Setting descriptor heaps
-		ID3D12DescriptorHeap* descriptorHeaps[] = { D_RENDERER_DEVICE::CbvHeap.Get() };
-		cmdList->SetDescriptorHeaps(_countof(descriptorHeaps), descriptorHeaps);
 
 		// Setting Root Signature
 		cmdList->SetGraphicsRootSignature(D_RENDERER_DEVICE::RootSignature.Get());
 
 		// Setting global constant
 		int globalCBVIndex = D_RENDERER_DEVICE::PassCbvOffset + Resources->GetCurrentFrameIndex();
-		auto globalCbvHandle = CD3DX12_GPU_DESCRIPTOR_HANDLE(D_RENDERER_DEVICE::CbvHeap->GetGPUDescriptorHandleForHeapStart());
-		globalCbvHandle.Offset(globalCBVIndex, Resources->GetCbvSrvUavDescriptorSize());
-		cmdList->SetGraphicsRootDescriptorTable(1, globalCbvHandle);
+
+		cmdList->SetGraphicsRootConstantBufferView(1, Resources->GetFrameResource()->GlobalCB->Resource()->GetGPUVirtualAddress());
 
 		auto objectCB = Resources->GetFrameResource()->MeshCB->Resource();
+		UINT objCBByteSize = D_RENDERER_UTILS::CalcConstantBufferByteSize(sizeof(MeshConstants));
 
 		// For each render item
 		for (auto const& ri : renderItems)
@@ -140,12 +156,7 @@ namespace Darius::Renderer
 			cmdList->IASetIndexBuffer(&ibv);
 			cmdList->IASetPrimitiveTopology(ri->PrimitiveType);
 
-			// Ofset to the CBV in the descripor heap for this object and for this frame resource
-			UINT cbvIndex = Resources->GetCurrentFrameIndex() * (UINT)renderItems.size() + ri->ObjCBIndex;
-			auto cbvHandle = CD3DX12_GPU_DESCRIPTOR_HANDLE(D_RENDERER_DEVICE::CbvHeap->GetGPUDescriptorHandleForHeapStart());
-			cbvHandle.Offset(cbvIndex, _device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV));
-
-			cmdList->SetGraphicsRootDescriptorTable(0, cbvHandle);
+			cmdList->SetGraphicsRootConstantBufferView(0, objectCB->GetGPUVirtualAddress() + ri->ObjCBIndex * objCBByteSize);
 			cmdList->DrawIndexedInstanced(ri->IndexCount, 1, ri->StartIndexLocation, ri->BaseVertexLocation, 0);
 		}
 	}

@@ -87,6 +87,8 @@ namespace Darius::Renderer::ConstantFrameResource
 		FrameResource(const FrameResource& rhs) = delete;
 		~FrameResource();
 
+		void ReinitializeMeshCB(ID3D12Device* device, UINT objectCount);
+
 		// We cannot reset the allocator until the GPU is done processing the
 		// commands. So each frame needs their own allocator.
 		ComPtr<ID3D12CommandAllocator>					CmdListAlloc;

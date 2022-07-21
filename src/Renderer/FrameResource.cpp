@@ -8,8 +8,13 @@ namespace Darius::Renderer::ConstantFrameResource
 		D_HR_CHECK(device->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT, IID_PPV_ARGS(CmdListAlloc.GetAddressOf())));
 
 		GlobalCB = std::make_unique<UploadBuffer<GlobalConstants>>(device, passCount, true);
-		MeshCB = std::make_unique<UploadBuffer<MeshConstants>>(device, objectCount, true);
+		ReinitializeMeshCB(device, objectCount);
 	}
 
 	FrameResource::~FrameResource() { }
+
+	void FrameResource::ReinitializeMeshCB(ID3D12Device* device, UINT objectCount)
+	{
+		MeshCB = std::make_unique<UploadBuffer<MeshConstants>>(device, objectCount, true);
+	}
 }

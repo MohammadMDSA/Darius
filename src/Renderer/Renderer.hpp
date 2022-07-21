@@ -19,6 +19,7 @@ namespace Darius::Renderer
 	void Shutdown();
 
 	void RenderMeshes(std::vector<RenderItem*> const& renderItems);
+	void UpdateMeshCBs(std::vector<RenderItem*> const& renderItems);
 
 	namespace Device
 	{
