@@ -49,6 +49,7 @@ namespace Darius::Math
         INLINE void SetX(Scalar x) { m_vec = XMVectorPermute<4, 1, 2, 3>(m_vec, x); }
         INLINE void SetY(Scalar y) { m_vec = XMVectorPermute<0, 5, 2, 3>(m_vec, y); }
         INLINE void SetZ(Scalar z) { m_vec = XMVectorPermute<0, 1, 6, 3>(m_vec, z); }
+        INLINE Vector3 Normalize() { return Vector3(XMVector3Normalize(m_vec)); }
 
         INLINE Vector3 operator- () const { return Vector3(XMVectorNegate(m_vec)); }
         INLINE Vector3 operator+ (Vector3 v2) const { return Vector3(XMVectorAdd(m_vec, v2)); }
