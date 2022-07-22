@@ -16,6 +16,11 @@
 #include "Common.hpp"
 #include <Utils/Common.hpp>
 
+#ifndef D_MATH
+#define D_MATH Darius::Math
+#endif // !D_MATH
+
+
 using namespace DirectX;
 
 namespace Darius::Math
