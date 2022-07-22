@@ -30,8 +30,8 @@ namespace D_EDITOR
 		m_VerticalLookSensitivity = 2.0f;
 		m_MoveSpeed = 10.0f;
 		m_StrafeSpeed = 10.0f;
-		m_MouseSensitivityX = 1.0f;
-		m_MouseSensitivityY = 1.0f;
+		m_MouseSensitivityX = 0.03f;
+		m_MouseSensitivityY = 0.03f;
 
 		m_CurrentPitch = Sin(Dot(camera.GetForwardVec(), m_WorldUp));
 
@@ -86,10 +86,10 @@ namespace D_EDITOR
 		}
 
 		// don't apply momentum to mouse inputs
-		//yaw += GameInput::GetAnalogInput(GameInput::kAnalogMouseX) * m_MouseSensitivityX;
-		//pitch += GameInput::GetAnalogInput(GameInput::kAnalogMouseY) * m_MouseSensitivityY;
+		yaw += (float)D_MOUSE::GetMovement(D_MOUSE::Axis::Horizontal) * m_MouseSensitivityX;
+		pitch = (float)D_MOUSE::GetMovement(D_MOUSE::Axis::Vertical) * m_MouseSensitivityY;
 
-		m_CurrentPitch += pitch;
+		m_CurrentPitch -= pitch;
 		m_CurrentPitch = XMMin(XM_PIDIV2, m_CurrentPitch);
 		m_CurrentPitch = XMMax(-XM_PIDIV2, m_CurrentPitch);
 
@@ -99,7 +99,8 @@ namespace D_EDITOR
 		else if (m_CurrentHeading <= -XM_PI)
 			m_CurrentHeading += XM_2PI;
 
-		Matrix3 orientation = Matrix3(m_WorldEast, m_WorldUp, -m_WorldNorth) * Matrix3::MakeYRotation(m_CurrentHeading) * Matrix3::MakeXRotation(m_CurrentPitch);
+		auto orientation = Matrix3(m_WorldEast, m_WorldUp, -m_WorldNorth)* Matrix3::MakeYRotation(m_CurrentHeading) * Matrix3::MakeXRotation(m_CurrentPitch);
+
 		Vector3 position = orientation * Vector3(strafe, ascent, -forward) + m_TargetCamera.GetPosition();
 		m_TargetCamera.SetTransform(AffineTransform(orientation, position));
 		m_TargetCamera.Update();

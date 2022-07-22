@@ -4,7 +4,6 @@
 
 #pragma once
 
-#include "Camera.hpp"
 
 #include <Core/TimeManager/StepTimer.hpp>
 #include <Renderer/DeviceResources.hpp>
@@ -87,7 +86,6 @@ namespace Darius::Editor
         std::vector<std::unique_ptr<D_RENDERER_FRAME_RESOUCE::RenderItem>> mRenderItems;
         std::unique_ptr<Mesh>                       mMesh;
         std::unique_ptr<D_MATH_CAMERA::Camera>      mCamera;
-        std::unique_ptr<FlyingFPSCamera>            mFlying;
 
         float                                       mWidth;
         float                                       mHeight;
