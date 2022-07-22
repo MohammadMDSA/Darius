@@ -16,11 +16,12 @@
 
 namespace Darius::InputManager
 {
-	void Initialize();
+	void Initialize(HWND window);
 	void Shutdown();
 	void Update();
 
-	void _processMessage(UINT message, WPARAM wParam, LPARAM lParam);
+	void _processKeyboardMessage(UINT message, WPARAM wParam, LPARAM lParam);
+	void _processMouseMessage(UINT message, WPARAM wParam, LPARAM lParam);
 
 	namespace Keyboard
 	{
@@ -33,6 +34,26 @@ namespace Darius::InputManager
 
 	namespace Mouse
 	{
+		enum class Keys : unsigned char
+		{
+			Right,
+			Middle,
+			Left
+		};
 
+		enum class Axis : unsigned char
+		{
+			Horizontal,
+			Vertical
+		};
+
+		void GetPosInPix(int& x, int& y);
+		int GetMovement(Axis axis);
+		bool GetButton(Keys key);
+		bool GetButtonUp(Keys key);
+		bool GetButtonDown(Keys key);
+		int GetWheel();
+		void SetVisibility(bool visible);
+		bool IsVisible();
 	}
 }

@@ -215,10 +215,12 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
         break;
 
     case WM_ACTIVATE:
-        D_INPUT::_processMessage(message, wParam, lParam);
+        D_INPUT::_processKeyboardMessage(message, wParam, lParam);
+        D_INPUT::_processMouseMessage(message, wParam, lParam);
         break;
     case WM_ACTIVATEAPP:
-        D_INPUT::_processMessage(message, wParam, lParam);
+        D_INPUT::_processKeyboardMessage(message, wParam, lParam);
+        D_INPUT::_processMouseMessage(message, wParam, lParam);
         if (game)
         {
             if (wParam)
@@ -286,7 +288,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
             s_fullscreen = !s_fullscreen;
         }
-        D_INPUT::_processMessage(message, wParam, lParam);
+        D_INPUT::_processKeyboardMessage(message, wParam, lParam);
         break;
 
     case WM_MENUCHAR:
@@ -297,7 +299,18 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
     case WM_KEYDOWN:
     case WM_KEYUP:
     case WM_SYSKEYUP:
-        D_INPUT::_processMessage(message, wParam, lParam);
+        D_INPUT::_processKeyboardMessage(message, wParam, lParam);
+        break;
+
+    case WM_MOUSEMOVE:
+    case WM_LBUTTONDOWN:
+    case WM_LBUTTONUP:
+    case WM_RBUTTONDOWN:
+    case WM_RBUTTONUP:
+    case WM_MBUTTONDOWN:
+    case WM_MBUTTONUP:
+    case WM_MOUSEWHEEL:
+        D_INPUT::_processMouseMessage(message, wParam, lParam);
         break;
     }
 
