@@ -3,7 +3,7 @@
 //
 
 #include "pch.hpp"
-#include "Game.hpp"
+#include "Editor.hpp"
 #include <imgui_impl_win32.h>
 
 using namespace DirectX;
@@ -26,7 +26,7 @@ extern "C"
 
 namespace
 {
-    std::unique_ptr<Game> g_game;
+    std::unique_ptr<Editor> g_game;
 }
 
 LPCWSTR g_szAppName = L"Darius";
@@ -52,7 +52,7 @@ int WINAPI wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, 
         return 1;
 #endif
 
-    g_game = std::make_unique<Game>();
+    g_game = std::make_unique<Editor>();
 
     // Register class and create window
     {
@@ -132,7 +132,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
     static bool s_fullscreen = false;
     // TODO: Set s_fullscreen to true if defaulting to fullscreen.
 
-    auto game = reinterpret_cast<Game*>(GetWindowLongPtr(hWnd, GWLP_USERDATA));
+    auto game = reinterpret_cast<Editor*>(GetWindowLongPtr(hWnd, GWLP_USERDATA));
 
     switch (message)
     {

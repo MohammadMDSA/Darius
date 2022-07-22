@@ -56,13 +56,13 @@ elseif(CMAKE_GENERATOR_PLATFORM MATCHES "^[Aa][Rr][Mm]64$")
 endif()
 
 add_executable(${PROJECT_NAME} WIN32
-    "src/Game.cpp"
-    "src/Game.hpp"
-    "src/Main.cpp"
-    "src/pch.hpp")
+    "src/Editor/Editor.cpp"
+    "src/Editor/Editor.hpp"
+    "src/Editor/Main.cpp"
+    "src/Editor/pch.hpp")
 
 if ((${CMAKE_VERSION} VERSION_GREATER_EQUAL "3.16") AND (NOT MINGW))
-    target_precompile_headers(${PROJECT_NAME} PRIVATE src/pch.hpp )
+    target_precompile_headers(${PROJECT_NAME} PRIVATE src/Editor/pch.hpp )
 endif()
 
 

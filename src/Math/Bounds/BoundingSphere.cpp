@@ -11,7 +11,7 @@
 // Author:  James Stanard 
 //
 
-#include "pch.hpp"
+#include "Math/pch.hpp"
 #include "BoundingSphere.hpp"
 
 

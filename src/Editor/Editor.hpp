@@ -11,18 +11,18 @@
 
 // A basic game implementation that creates a D3D12 device and
 // provides a game loop.
-class Game final : public D_DEVICE_RESOURCE::IDeviceNotify
+class Editor final : public D_DEVICE_RESOURCE::IDeviceNotify
 {
 public:
 
-    Game() noexcept(false);
-    ~Game();
+    Editor() noexcept(false);
+    ~Editor();
 
-    Game(Game&&) = default;
-    Game& operator= (Game&&) = default;
+    Editor(Editor&&) = default;
+    Editor& operator= (Editor&&) = default;
 
-    Game(Game const&) = delete;
-    Game& operator= (Game const&) = delete;
+    Editor(Editor const&) = delete;
+    Editor& operator= (Editor const&) = delete;
 
     // Initialization and management
     void Initialize(HWND window, int width, int height);

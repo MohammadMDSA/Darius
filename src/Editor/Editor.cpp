@@ -3,7 +3,7 @@
 //
 
 #include "pch.hpp"
-#include "Game.hpp"
+#include "Editor.hpp"
 #include "Math/VectorMath.hpp"
 
 #include <Core/TimeManager/TimeManager.hpp>
@@ -22,11 +22,11 @@ using namespace D_RENDERER_GEOMETRY;
 
 using Microsoft::WRL::ComPtr;
 
-Game::Game() noexcept(false)
+Editor::Editor() noexcept(false)
 {
 }
 
-Game::~Game()
+Editor::~Editor()
 {
 	/*if (m_deviceResources)
 	{
@@ -35,7 +35,7 @@ Game::~Game()
 }
 
 // Initialize the Direct3D resources required to run.
-void Game::Initialize(HWND window, int width, int height)
+void Editor::Initialize(HWND window, int width, int height)
 {
 #ifdef _DEBUG
 	//D_DEBUG::AttachWinPixGpuCapturer();
@@ -65,7 +65,7 @@ void Game::Initialize(HWND window, int width, int height)
 
 #pragma region Frame Update
 // Executes the basic game loop.
-void Game::Tick()
+void Editor::Tick()
 {
 	auto timer = D_TIME::GetStepTimer();
 	timer->Tick([&]()
@@ -77,7 +77,7 @@ void Game::Tick()
 }
 
 // Updates the world.
-void Game::Update(D_TIME::StepTimer const&)
+void Editor::Update(D_TIME::StepTimer const&)
 {
 	D_RENDERER_DEVICE::SyncFrame();
 	PIXBeginEvent(PIX_COLOR_DEFAULT, L"Update");
@@ -93,7 +93,7 @@ void Game::Update(D_TIME::StepTimer const&)
 
 #pragma region Frame Render
 // Draws the scene.
-void Game::Render()
+void Editor::Render()
 {
 	// Don't try to render anything before the first Update.
 	if (D_TIME::GetStepTimer()->GetFrameCount() == 0)
@@ -112,7 +112,7 @@ void Game::Render()
 
 
 }
-void Game::UpdateRotation()
+void Editor::UpdateRotation()
 {
 	static float red = 0;
 	//red += 0.3f / 60;
@@ -130,39 +130,39 @@ void Game::UpdateRotation()
 
 #pragma region Message Handlers
 // Message handlers
-void Game::OnActivated()
+void Editor::OnActivated()
 {
 	// TODO: Game is becoming active window.
 }
 
-void Game::OnDeactivated()
+void Editor::OnDeactivated()
 {
 	// TODO: Game is becoming background window.
 }
 
-void Game::OnSuspending()
+void Editor::OnSuspending()
 {
 	// TODO: Game is being power-suspended (or minimized).
 }
 
-void Game::OnResuming()
+void Editor::OnResuming()
 {
 	D_TIME::GetStepTimer()->ResetElapsedTime();
 
 	// TODO: Game is being power-resumed (or returning from minimize).
 }
 
-void Game::OnWindowMoved()
+void Editor::OnWindowMoved()
 {
 	D_DEVICE::OnWindowMoved();
 }
 
-void Game::OnDisplayChange()
+void Editor::OnDisplayChange()
 {
 	D_DEVICE::OnDisplayChanged();
 }
 
-void Game::OnWindowSizeChanged(int width, int height)
+void Editor::OnWindowSizeChanged(int width, int height)
 {
 	mWidth = (float)width;
 	mHeight = (float)height;
@@ -177,7 +177,7 @@ void Game::OnWindowSizeChanged(int width, int height)
 }
 
 // Properties
-void Game::GetDefaultSize(int& width, int& height) const noexcept
+void Editor::GetDefaultSize(int& width, int& height) const noexcept
 {
 	// TODO: Change to desired default window size (note minimum size is 320x200).
 	width = 800;
@@ -187,7 +187,7 @@ void Game::GetDefaultSize(int& width, int& height) const noexcept
 
 #pragma region Direct3D Resources
 // These are the resources that depend on the device.
-void Game::CreateDeviceDependentResources()
+void Editor::CreateDeviceDependentResources()
 {
 	D_DEVICE::ShaderCompatibilityCheck(D3D_SHADER_MODEL_6_0);
 
@@ -199,12 +199,12 @@ void Game::CreateDeviceDependentResources()
 }
 
 // Allocate all memory resources that change on a window SizeChanged event.
-void Game::CreateWindowSizeDependentResources()
+void Editor::CreateWindowSizeDependentResources()
 {
 	// TODO: Initialize windows-size dependent objects here.
 }
 
-void Game::OnDeviceLost()
+void Editor::OnDeviceLost()
 {
 	// TODO: Add Direct3D resource cleanup here.
 
@@ -213,7 +213,7 @@ void Game::OnDeviceLost()
 	mCamera.reset();
 }
 
-void Game::OnDeviceRestored()
+void Editor::OnDeviceRestored()
 {
 	CreateDeviceDependentResources();
 
@@ -221,7 +221,7 @@ void Game::OnDeviceRestored()
 }
 #pragma endregion
 
-void Game::InitMesh()
+void Editor::InitMesh()
 {
 
 	auto cmdAlloc = D_RENDERER_DEVICE::GetCommandAllocator();
@@ -250,7 +250,7 @@ void Game::InitMesh()
 }
 
 
-void Game::BuildDescriptorHeaps()
+void Editor::BuildDescriptorHeaps()
 {
 	UINT objCount = (UINT)mRenderItems.size();
 
@@ -271,7 +271,7 @@ void Game::BuildDescriptorHeaps()
 	D_RENDERER_DEVICE::CbvHeap = D_RENDERER_DEVICE::CbvHeap;
 }
 
-void Game::BuildConstantBuffers()
+void Editor::BuildConstantBuffers()
 {
 	auto device = D_RENDERER_DEVICE::GetDevice();
 	UINT objCBByteSize = CalcConstantBufferByteSize(sizeof(MeshConstants));
@@ -323,7 +323,7 @@ void Game::BuildConstantBuffers()
 
 }
 
-void Game::BuildRootSignature()
+void Editor::BuildRootSignature()
 {
 	// Root parameter can be a table, root descriptor or root constants.
 	CD3DX12_ROOT_PARAMETER slotRootParameter[2];
@@ -354,7 +354,7 @@ void Game::BuildRootSignature()
 		IID_PPV_ARGS(&D_RENDERER_DEVICE::RootSignature)));
 }
 
-void Game::BuildShadersAndInputLayout()
+void Editor::BuildShadersAndInputLayout()
 {
 
 	for (const auto& entry : std::filesystem::directory_iterator("."))
@@ -372,7 +372,7 @@ void Game::BuildShadersAndInputLayout()
 	};
 }
 
-void Game::BuildGeometery()
+void Editor::BuildGeometery()
 {
 
 	auto cmdList = D_RENDERER_DEVICE::GetCommandList();
@@ -449,7 +449,7 @@ void Game::BuildGeometery()
 	mMesh->mDraw.push_back(draw);
 }
 
-void Game::BuildPSO()
+void Editor::BuildPSO()
 {
 	D3D12_GRAPHICS_PIPELINE_STATE_DESC opaquePsoDesc;
 
@@ -488,7 +488,7 @@ void Game::BuildPSO()
 	D_HR_CHECK(D_RENDERER_DEVICE::GetDevice()->CreateGraphicsPipelineState(&opaqueWireframePsoDesc, IID_PPV_ARGS(&D_RENDERER_DEVICE::Psos["opaque_wireframe"])));
 }
 
-void Game::BuildRenderItems()
+void Editor::BuildRenderItems()
 {
 	auto box = std::make_unique<RenderItem>();
 	box->World = Matrix4::Identity();
@@ -512,7 +512,7 @@ void Game::BuildRenderItems()
 
 }
 
-void Game::BuildImgui()
+void Editor::BuildImgui()
 {
 
 	/*D3D12_DESCRIPTOR_HEAP_DESC desc = {};

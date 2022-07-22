@@ -10,6 +10,7 @@ list(APPEND CORE_LIBS_INCLUDE
 	"Memory.hpp"
 	"Exception.hpp"
 	"Ref.hpp"
+	"pch.hpp"
 	"Containers/ConcurrentQueue.hpp"
 	)
 
@@ -25,14 +26,14 @@ add_library("Core")
 target_sources("Core"
 	PRIVATE
 	${CORE_LIBS_SOURCES}
-	${CORE_LIBS_INCLUDE} "pch.hpp")
+	${CORE_LIBS_INCLUDE})
 
 	
 set(Boost_USE_STATIC_LIBS ON) 
 set(Boost_USE_MULTITHREADED ON)  
 set(Boost_USE_STATIC_RUNTIME OFF)
 set(Boost_ARCHITECTURE "-x64")
-find_package(Boost REQUIRED)
+find_package(Boost 1.75 REQUIRED)
 
 set_target_properties("Core" PROPERTIES LINKER_LANGUAGE CXX)
 
@@ -42,10 +43,12 @@ if ((${CMAKE_VERSION} VERSION_GREATER_EQUAL "3.16") AND (NOT MINGW))
 endif()
 
 
+include_directories(SYSTEM ${Boost_INCLUDE_DIRS})
+
 target_include_directories("Core"
 PUBLIC
-PRIVATE
 	".."
+PRIVATE
 	${Boost_INCLUDE_DIRS}
 )
 
