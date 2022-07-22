@@ -49,6 +49,8 @@ namespace Darius::Renderer::DeviceResource
 		D3D_FEATURE_LEVEL minFeatureLevel,
 		unsigned int flags) noexcept(false) :
 		m_backBufferIndex(0),
+		m_currFenceValue(0),
+		m_currentResourceIndex(0),
 		m_rtvDescriptorSize(0),
 		m_screenViewport{},
 		m_scissorRect{},
@@ -253,8 +255,8 @@ namespace Darius::Renderer::DeviceResource
 		m_commandList->SetName(L"DeviceResources");
 
 		// Create a fence for tracking GPU execution progress.
-		ThrowIfFailed(m_d3dDevice->CreateFence(m_frameResources[m_backBufferIndex]->Fence, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(m_fence.ReleaseAndGetAddressOf())));
-		m_frameResources[m_backBufferIndex]->Fence++;
+		ThrowIfFailed(m_d3dDevice->CreateFence(m_frameResources[m_currentResourceIndex]->Fence, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(m_fence.ReleaseAndGetAddressOf())));
+		m_frameResources[m_currentResourceIndex]->Fence++;
 
 		m_fence->SetName(L"DeviceResources");
 
@@ -279,8 +281,11 @@ namespace Darius::Renderer::DeviceResource
 		// Release resources that are tied to the swap chain and update fence values.
 		for (UINT n = 0; n < m_backBufferCount; n++)
 		{
-			m_frameResources[n]->RenderTarget.Reset();
-			m_frameResources[n]->Fence = m_frameResources[m_backBufferIndex]->Fence;
+			m_swapChainBuffer[n].Reset();
+		}
+		for (UINT i = 0; i < D_RENDERER_FRAME_RESOUCE::gNumFrameResources; i++)
+		{
+			m_frameResources[i]->Fence = 0;
 		}
 
 		// Determine the render target size in pixels.
@@ -363,11 +368,11 @@ namespace Darius::Renderer::DeviceResource
 		// and create render target views for each of them.
 		for (UINT n = 0; n < m_backBufferCount; n++)
 		{
-			ThrowIfFailed(m_swapChain->GetBuffer(n, IID_PPV_ARGS(m_frameResources[n]->RenderTarget.GetAddressOf())));
+			ThrowIfFailed(m_swapChain->GetBuffer(n, IID_PPV_ARGS(m_swapChainBuffer[n].GetAddressOf())));
 
 			wchar_t name[25] = {};
 			swprintf_s(name, L"Render target %u", n);
-			m_frameResources[n]->RenderTarget->SetName(name);
+			m_swapChainBuffer[n]->SetName(name);
 
 			D3D12_RENDER_TARGET_VIEW_DESC rtvDesc = {};
 			rtvDesc.Format = m_backBufferFormat;
@@ -376,7 +381,7 @@ namespace Darius::Renderer::DeviceResource
 			const CD3DX12_CPU_DESCRIPTOR_HANDLE rtvDescriptor(
 				m_rtvDescriptorHeap->GetCPUDescriptorHandleForHeapStart(),
 				static_cast<INT>(n), m_rtvDescriptorSize);
-			m_d3dDevice->CreateRenderTargetView(m_frameResources[n]->RenderTarget.Get(), &rtvDesc, rtvDescriptor);
+			m_d3dDevice->CreateRenderTargetView(m_swapChainBuffer[n].Get(), &rtvDesc, rtvDescriptor);
 		}
 
 		// Reset the index to the current back buffer.
@@ -472,8 +477,11 @@ namespace Darius::Renderer::DeviceResource
 
 		for (UINT n = 0; n < m_backBufferCount; n++)
 		{
-			m_frameResources[n]->CmdListAlloc.Reset();
-			m_frameResources[n]->RenderTarget.Reset();
+			m_swapChainBuffer[n].Reset();
+		}
+		for (UINT i = 0; i < D_RENDERER_FRAME_RESOUCE::gNumFrameResources; i++)
+		{
+			m_frameResources[i]->CmdListAlloc.Reset();
 		}
 
 		m_depthStencil.Reset();
@@ -506,14 +514,14 @@ namespace Darius::Renderer::DeviceResource
 	void DeviceResources::Prepare(ID3D12PipelineState* pso, D3D12_RESOURCE_STATES beforeState, D3D12_RESOURCE_STATES afterState)
 	{
 		// Reset command list and allocator.
-		ThrowIfFailed(m_frameResources[m_backBufferIndex]->CmdListAlloc->Reset());
-		ThrowIfFailed(m_commandList->Reset(m_frameResources[m_backBufferIndex]->CmdListAlloc.Get(), pso));
+		ThrowIfFailed(m_frameResources[m_currentResourceIndex]->CmdListAlloc->Reset());
+		ThrowIfFailed(m_commandList->Reset(m_frameResources[m_currentResourceIndex]->CmdListAlloc.Get(), pso));
 
 		if (beforeState != afterState)
 		{
 			// Transition the render target into the correct state to allow for drawing into it.
 			const D3D12_RESOURCE_BARRIER barrier = CD3DX12_RESOURCE_BARRIER::Transition(
-				m_frameResources[m_backBufferIndex]->RenderTarget.Get(),
+				m_swapChainBuffer[m_backBufferIndex].Get(),
 				beforeState, afterState);
 			m_commandList->ResourceBarrier(1, &barrier);
 		}
@@ -526,7 +534,7 @@ namespace Darius::Renderer::DeviceResource
 		{
 			// Transition the render target to the state that allows it to be presented to the display.
 			const D3D12_RESOURCE_BARRIER barrier = CD3DX12_RESOURCE_BARRIER::Transition(
-				m_frameResources[m_backBufferIndex]->RenderTarget.Get(),
+				m_swapChainBuffer[m_backBufferIndex].Get(),
 				beforeState, D3D12_RESOURCE_STATE_PRESENT);
 			m_commandList->ResourceBarrier(1, &barrier);
 		}
@@ -565,7 +573,7 @@ namespace Darius::Renderer::DeviceResource
 		{
 			ThrowIfFailed(hr);
 
-			MoveToNextFrame();
+			MoveToNextFrame(true);
 
 			if (!m_dxgiFactory->IsCurrent())
 			{
@@ -580,40 +588,60 @@ namespace Darius::Renderer::DeviceResource
 		if (m_commandQueue && m_fence && m_fenceEvent.IsValid())
 		{
 			// Schedule a Signal command in the GPU queue.
-			const UINT64 fenceValue = m_frameResources[m_backBufferIndex]->Fence;
-			if (SUCCEEDED(m_commandQueue->Signal(m_fence.Get(), fenceValue)))
+			m_currFenceValue++;
+			if (SUCCEEDED(m_commandQueue->Signal(m_fence.Get(), m_currFenceValue)))
 			{
 				// Wait until the Signal has been processed.
-				if (SUCCEEDED(m_fence->SetEventOnCompletion(fenceValue, m_fenceEvent.Get())))
+				if (SUCCEEDED(m_fence->SetEventOnCompletion(m_currFenceValue, m_fenceEvent.Get())))
 				{
 					std::ignore = WaitForSingleObjectEx(m_fenceEvent.Get(), INFINITE, FALSE);
-
-					// Increment the fence value for the current frame.
-					m_frameResources[m_backBufferIndex]->Fence++;
 				}
 			}
 		}
 	}
 
-	// Prepare to render the next frame.
-	void DeviceResources::MoveToNextFrame()
+	void DeviceResources::SyncFrameStartGPU()
 	{
-		// Schedule a Signal command in the queue.
-		const UINT64 currentFenceValue = m_frameResources[m_backBufferIndex]->Fence;
-		ThrowIfFailed(m_commandQueue->Signal(m_fence.Get(), currentFenceValue));
+		m_currentResourceIndex = (m_currentResourceIndex + 1) % D_RENDERER_FRAME_RESOUCE::gNumFrameResources;
+		auto frameResource = m_frameResources[m_currentResourceIndex].get();
 
-		// Update the back buffer index.
-		m_backBufferIndex = m_swapChain->GetCurrentBackBufferIndex();
-
-		// If the next frame is not ready to be rendered yet, wait until it is ready.
-		if (m_fence->GetCompletedValue() < m_frameResources[m_backBufferIndex]->Fence)
+		auto foo = m_fence->GetCompletedValue();
+		if (frameResource->Fence != 0 && m_fence->GetCompletedValue() < frameResource->Fence)
 		{
-			ThrowIfFailed(m_fence->SetEventOnCompletion(m_frameResources[m_backBufferIndex]->Fence, m_fenceEvent.Get()));
-			std::ignore = WaitForSingleObjectEx(m_fenceEvent.Get(), INFINITE, FALSE);
+			D_HR_CHECK(m_fence->SetEventOnCompletion(frameResource->Fence, m_fenceEvent.Get()));
+			WaitForSingleObjectEx(m_fenceEvent.Get(), INFINITE, FALSE);
 		}
+	}
 
-		// Set the fence value for the next frame.
-		m_frameResources[m_backBufferIndex]->Fence = currentFenceValue + 1;
+	// Prepare to render the next frame.
+	void DeviceResources::MoveToNextFrame(bool parallelGPU)
+	{
+		if (!parallelGPU)
+		{
+			// Schedule a Signal command in the queue.
+			const UINT64 currentFenceValue = m_frameResources[m_currentResourceIndex]->Fence;
+			ThrowIfFailed(m_commandQueue->Signal(m_fence.Get(), currentFenceValue));
+
+			// Update the back buffer index.
+			m_backBufferIndex = m_swapChain->GetCurrentBackBufferIndex();
+
+			// If the next frame is not ready to be rendered yet, wait until it is ready.
+			if (m_fence->GetCompletedValue() < m_frameResources[m_currentResourceIndex]->Fence)
+			{
+				ThrowIfFailed(m_fence->SetEventOnCompletion(m_frameResources[m_currentResourceIndex]->Fence, m_fenceEvent.Get()));
+				std::ignore = WaitForSingleObjectEx(m_fenceEvent.Get(), INFINITE, FALSE);
+			}
+
+			// Set the fence value for the next frame.
+			m_frameResources[m_currentResourceIndex]->Fence = currentFenceValue + 1;
+		}
+		else
+		{
+			m_backBufferIndex = m_swapChain->GetCurrentBackBufferIndex();
+
+			m_frameResources[m_currentResourceIndex]->Fence = ++m_currFenceValue;
+			D_HR_CHECK(m_commandQueue->Signal(m_fence.Get(), m_currFenceValue));
+		}
 	}
 
 	// This method acquires the first available hardware adapter that supports Direct3D 12.

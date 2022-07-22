@@ -28,27 +28,27 @@ Game::Game() noexcept(false)
 
 Game::~Game()
 {
-    /*if (m_deviceResources)
-    {
-        m_deviceResources->WaitForGpu();
-    }*/
+	/*if (m_deviceResources)
+	{
+		m_deviceResources->WaitForGpu();
+	}*/
 }
 
 // Initialize the Direct3D resources required to run.
 void Game::Initialize(HWND window, int width, int height)
 {
 #ifdef _DEBUG
-    D_DEBUG::AttachWinPixGpuCapturer();
+	D_DEBUG::AttachWinPixGpuCapturer();
 #endif
 
-    mWidth = (float)width;
-    mHeight = (float)height;
-    D_RENDERER_DEVICE::Initialize(window, width, height);
+	mWidth = (float)width;
+	mHeight = (float)height;
+	D_RENDERER_DEVICE::Initialize(window, width, height);
 	D_CAMERA_MANAGER::Initialize();
-    Darius::Renderer::Initialize();
+	Darius::Renderer::Initialize();
 
-    CreateDeviceDependentResources();
-    CreateWindowSizeDependentResources();
+	CreateDeviceDependentResources();
+	CreateWindowSizeDependentResources();
 
 	D_CAMERA_MANAGER::SetViewportDimansion((float)width, (float)height);
 	D_TIME::Initialize();
@@ -68,25 +68,26 @@ void Game::Initialize(HWND window, int width, int height)
 void Game::Tick()
 {
 	auto timer = D_TIME::GetStepTimer();
-    timer->Tick([&]()
-    {
-        Update(*timer);
-    });
+	timer->Tick([&]()
+		{
+			Update(*timer);
+			Render();
+		});
 
-    Render();
 }
 
 // Updates the world.
 void Game::Update(D_TIME::StepTimer const&)
 {
-    PIXBeginEvent(PIX_COLOR_DEFAULT, L"Update");
+	D_RENDERER_DEVICE::SyncFrame();
+	PIXBeginEvent(PIX_COLOR_DEFAULT, L"Update");
 
-    // float elapsedTime = float(timer.GetElapsedSeconds());
+	// float elapsedTime = float(timer.GetElapsedSeconds());
 	mCamera->Update();
 
-    UpdateRotation();
+	UpdateRotation();
 
-    PIXEndEvent();
+	PIXEndEvent();
 }
 #pragma endregion
 
@@ -94,27 +95,27 @@ void Game::Update(D_TIME::StepTimer const&)
 // Draws the scene.
 void Game::Render()
 {
-    // Don't try to render anything before the first Update.
-    if (D_TIME::GetStepTimer()->GetFrameCount() == 0)
-    {
-        return;
-    }
+	// Don't try to render anything before the first Update.
+	if (D_TIME::GetStepTimer()->GetFrameCount() == 0)
+	{
+		return;
+	}
 
-    std::vector<RenderItem*> items;
-    for (auto const& ri : mRenderItems)
-    {
-        items.push_back(ri.get());
-    }
+	std::vector<RenderItem*> items;
+	for (auto const& ri : mRenderItems)
+	{
+		items.push_back(ri.get());
+	}
 
-    // TODO: Add your rendering code here.
-    Darius::Renderer::RenderMeshes(items);
+	// TODO: Add your rendering code here.
+	Darius::Renderer::RenderMeshes(items);
 
-   
+
 }
 void Game::UpdateRotation()
 {
-    static float red = 0;
-    //red += 0.3f / 60;
+	static float red = 0;
+	//red += 0.3f / 60;
 
 	mRenderItems[0]->World = Matrix4(XMMatrixTranslation(-2.f, 0.f, -5.f));
 	mRenderItems[1]->World = Matrix4(XMMatrixTranslation(2.f, 0.f, -5.f));
@@ -131,56 +132,56 @@ void Game::UpdateRotation()
 // Message handlers
 void Game::OnActivated()
 {
-    // TODO: Game is becoming active window.
+	// TODO: Game is becoming active window.
 }
 
 void Game::OnDeactivated()
 {
-    // TODO: Game is becoming background window.
+	// TODO: Game is becoming background window.
 }
 
 void Game::OnSuspending()
 {
-    // TODO: Game is being power-suspended (or minimized).
+	// TODO: Game is being power-suspended (or minimized).
 }
 
 void Game::OnResuming()
 {
-    D_TIME::GetStepTimer()->ResetElapsedTime();
+	D_TIME::GetStepTimer()->ResetElapsedTime();
 
-    // TODO: Game is being power-resumed (or returning from minimize).
+	// TODO: Game is being power-resumed (or returning from minimize).
 }
 
 void Game::OnWindowMoved()
 {
-    D_DEVICE::OnWindowMoved();
+	D_DEVICE::OnWindowMoved();
 }
 
 void Game::OnDisplayChange()
 {
-    D_DEVICE::OnDisplayChanged();
+	D_DEVICE::OnDisplayChanged();
 }
 
 void Game::OnWindowSizeChanged(int width, int height)
 {
-    mWidth = (float)width;
-    mHeight = (float)height;
+	mWidth = (float)width;
+	mHeight = (float)height;
 
 	D_CAMERA_MANAGER::SetViewportDimansion((float)width, (float)height);
-    if (!D_DEVICE::OnWindowsSizeChanged(width, height))
-        return;
+	if (!D_DEVICE::OnWindowsSizeChanged(width, height))
+		return;
 
-    CreateWindowSizeDependentResources();
+	CreateWindowSizeDependentResources();
 
-    // TODO: Game window is being resized.
+	// TODO: Game window is being resized.
 }
 
 // Properties
 void Game::GetDefaultSize(int& width, int& height) const noexcept
 {
-    // TODO: Change to desired default window size (note minimum size is 320x200).
-    width = 800;
-    height = 600;
+	// TODO: Change to desired default window size (note minimum size is 320x200).
+	width = 800;
+	height = 600;
 }
 #pragma endregion
 
@@ -188,10 +189,10 @@ void Game::GetDefaultSize(int& width, int& height) const noexcept
 // These are the resources that depend on the device.
 void Game::CreateDeviceDependentResources()
 {
-    D_DEVICE::ShaderCompatibilityCheck(D3D_SHADER_MODEL_6_0);
+	D_DEVICE::ShaderCompatibilityCheck(D3D_SHADER_MODEL_6_0);
 
-    // If using the DirectX Tool Kit for DX12, uncomment this line:
-    // m_graphicsMemory = std::make_unique<GraphicsMemory>(device);
+	// If using the DirectX Tool Kit for DX12, uncomment this line:
+	// m_graphicsMemory = std::make_unique<GraphicsMemory>(device);
 
 	InitMesh();
 
@@ -200,52 +201,52 @@ void Game::CreateDeviceDependentResources()
 // Allocate all memory resources that change on a window SizeChanged event.
 void Game::CreateWindowSizeDependentResources()
 {
-    // TODO: Initialize windows-size dependent objects here.
+	// TODO: Initialize windows-size dependent objects here.
 }
 
 void Game::OnDeviceLost()
 {
-    // TODO: Add Direct3D resource cleanup here.
+	// TODO: Add Direct3D resource cleanup here.
 
-    // If using the DirectX Tool Kit for DX12, uncomment this line:
-    // m_graphicsMemory.reset();
+	// If using the DirectX Tool Kit for DX12, uncomment this line:
+	// m_graphicsMemory.reset();
 	mCamera.reset();
 }
 
 void Game::OnDeviceRestored()
 {
-    CreateDeviceDependentResources();
+	CreateDeviceDependentResources();
 
-    CreateWindowSizeDependentResources();
+	CreateWindowSizeDependentResources();
 }
 #pragma endregion
 
 void Game::InitMesh()
 {
 
-    auto cmdAlloc = D_RENDERER_DEVICE::GetCommandAllocator();
-    auto cmdList = D_RENDERER_DEVICE::GetCommandList();
-    auto cmdQueue = D_RENDERER_DEVICE::GetCommandQueue();
+	auto cmdAlloc = D_RENDERER_DEVICE::GetCommandAllocator();
+	auto cmdList = D_RENDERER_DEVICE::GetCommandList();
+	auto cmdQueue = D_RENDERER_DEVICE::GetCommandQueue();
 
-    D_HR_CHECK(cmdAlloc->Reset());
-    D_HR_CHECK(cmdList->Reset(cmdAlloc, nullptr));
+	D_HR_CHECK(cmdAlloc->Reset());
+	D_HR_CHECK(cmdList->Reset(cmdAlloc, nullptr));
 
-    BuildRootSignature();
-    BuildShadersAndInputLayout();
-    BuildGeometery();
+	BuildRootSignature();
+	BuildShadersAndInputLayout();
+	BuildGeometery();
 	BuildRenderItems();
-    //BuildDescriptorHeaps();
-    //BuildConstantBuffers();
-    BuildPSO();
-    BuildImgui();
+	//BuildDescriptorHeaps();
+	//BuildConstantBuffers();
+	BuildPSO();
+	BuildImgui();
 
-    // Execute the initialization commands.
-    D_HR_CHECK(cmdList->Close());
-    ID3D12CommandList* commandLists[] = { cmdList };
-    cmdQueue->ExecuteCommandLists(_countof(commandLists), commandLists);
+	// Execute the initialization commands.
+	D_HR_CHECK(cmdList->Close());
+	ID3D12CommandList* commandLists[] = { cmdList };
+	cmdQueue->ExecuteCommandLists(_countof(commandLists), commandLists);
 
-    // Wait until gpu executes initial commands
-    D_RENDERER_DEVICE::WaitForGpu();
+	// Wait until gpu executes initial commands
+	D_RENDERER_DEVICE::WaitForGpu();
 }
 
 

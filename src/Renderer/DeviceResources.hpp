@@ -72,23 +72,23 @@ namespace Darius::Renderer::DeviceResource
         auto                        GetDXGIFactory() const noexcept        { return m_dxgiFactory.Get(); }
         HWND                        GetWindow() const noexcept             { return m_window; }
         D3D_FEATURE_LEVEL           GetDeviceFeatureLevel() const noexcept { return m_d3dFeatureLevel; }
-        ID3D12Resource*             GetRenderTarget() const noexcept       { return m_frameResources[m_backBufferIndex]->RenderTarget.Get(); }
+        ID3D12Resource*             GetRenderTarget() const noexcept       { return m_swapChainBuffer[m_backBufferIndex].Get(); }
         ID3D12Resource*             GetDepthStencil() const noexcept       { return m_depthStencil.Get(); }
         ID3D12CommandQueue*         GetCommandQueue() const noexcept       { return m_commandQueue.Get(); }
-        ID3D12CommandAllocator*     GetCommandAllocator() const noexcept   { return m_frameResources[m_backBufferIndex]->CmdListAlloc.Get(); }
+        ID3D12CommandAllocator*     GetCommandAllocator() const noexcept   { return m_frameResources[m_currentResourceIndex]->CmdListAlloc.Get(); }
         auto                        GetCommandList() const noexcept        { return m_commandList.Get(); }
         DXGI_FORMAT                 GetBackBufferFormat() const noexcept   { return m_backBufferFormat; }
         DXGI_FORMAT                 GetDepthBufferFormat() const noexcept  { return m_depthBufferFormat; }
         D3D12_VIEWPORT              GetScreenViewport() const noexcept     { return m_screenViewport; }
         D3D12_RECT                  GetScissorRect() const noexcept        { return m_scissorRect; }
-        UINT                        GetCurrentFrameIndex() const noexcept  { return m_backBufferIndex; }
+        UINT                        GetCurrentFrameResourceIndex() const noexcept  { return m_currentResourceIndex; }
         UINT                        GetBackBufferCount() const noexcept    { return m_backBufferCount; }
         UINT                        GetRtvDescriptorSize() const noexcept { return m_rtvDescriptorSize; }
         UINT                        GetDsvDescriptorSize() const noexcept { return m_dsvDescriptorSize; }
         UINT                        GetCbvSrvUavDescriptorSize() const noexcept { return m_cbvSrvUavDescriptorSize; }
         DXGI_COLOR_SPACE_TYPE       GetColorSpace() const noexcept         { return m_colorSpace; }
         unsigned int                GetDeviceOptions() const noexcept      { return m_options; }
-        FrameResource*              GetFrameResource() const noexcept      { return m_frameResources[m_backBufferIndex].get(); }
+        FrameResource*              GetFrameResource() const noexcept      { return m_frameResources[m_currentResourceIndex].get(); }
         FrameResource* GetFrameResourceWithIndex(int i) const noexcept { D_ASSERT(i < gNumFrameResources); return m_frameResources[i].get(); }
 
         CD3DX12_CPU_DESCRIPTOR_HANDLE GetRenderTargetView() const noexcept
@@ -102,11 +102,14 @@ namespace Darius::Renderer::DeviceResource
             return CD3DX12_CPU_DESCRIPTOR_HANDLE(m_dsvDescriptorHeap->GetCPUDescriptorHandleForHeapStart());
         }
 
+        void SyncFrameStartGPU();
     private:
-        void MoveToNextFrame();
+
+        void MoveToNextFrame(bool parallelGPU = false);
         void GetAdapter(IDXGIAdapter1** ppAdapter);
 
         UINT                                                m_backBufferIndex;
+        UINT                                                m_currentResourceIndex;
         std::array<std::unique_ptr<FrameResource>, D_RENDERER_FRAME_RESOUCE::gNumFrameResources> m_frameResources;
 
 
@@ -118,10 +121,13 @@ namespace Darius::Renderer::DeviceResource
         // Swap chain objects.
         Microsoft::WRL::ComPtr<IDXGIFactory4>               m_dxgiFactory;
         Microsoft::WRL::ComPtr<IDXGISwapChain3>             m_swapChain;
+        // TODO: Change hardcoded array size and make in based on m_backBufferCount
+        Microsoft::WRL::ComPtr<ID3D12Resource>              m_swapChainBuffer[2];
         Microsoft::WRL::ComPtr<ID3D12Resource>              m_depthStencil;
 
         // Presentation fence objects.
         Microsoft::WRL::ComPtr<ID3D12Fence>                 m_fence;
+        UINT                                                m_currFenceValue;
         Microsoft::WRL::Wrappers::Event                     m_fenceEvent;
 
         // Direct3D rendering objects.

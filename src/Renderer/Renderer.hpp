@@ -49,5 +49,7 @@ namespace Darius::Renderer
 		void OnDisplayChanged();
 		bool OnWindowsSizeChanged(int width, int height);
 		void ShaderCompatibilityCheck(D3D_SHADER_MODEL shaderModel);
+
+		void SyncFrame();
 	}
 }

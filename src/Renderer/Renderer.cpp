@@ -1,4 +1,5 @@
 #include "Renderer.hpp"
+#include "Renderer.hpp"
 #include "pch.hpp"
 #include "Renderer.hpp"
 #include "Geometry/Mesh.hpp"
@@ -115,6 +116,7 @@ namespace Darius::Renderer
 
 	void UpdateMeshCBs(std::vector<RenderItem*> const& renderItems)
 	{
+		PIXBeginEvent(PIX_COLOR_INDEX(10), "Update Mesh CBs");
 		auto frameResource = Resources->GetFrameResource();
 		frameResource->ReinitializeMeshCB(_device, renderItems.size());
 
@@ -130,6 +132,7 @@ namespace Darius::Renderer
 			// Next FrameResource needs to be updated too.
 			//ri->NumFramesDirty--;
 		}
+		PIXEndEvent();
 	}
 
 	void DrawCube(std::vector<RenderItem*> const& renderItems)
@@ -140,7 +143,7 @@ namespace Darius::Renderer
 		cmdList->SetGraphicsRootSignature(D_RENDERER_DEVICE::RootSignature.Get());
 
 		// Setting global constant
-		int globalCBVIndex = D_RENDERER_DEVICE::PassCbvOffset + Resources->GetCurrentFrameIndex();
+		int globalCBVIndex = D_RENDERER_DEVICE::PassCbvOffset + Resources->GetCurrentFrameResourceIndex();
 
 		cmdList->SetGraphicsRootConstantBufferView(1, Resources->GetFrameResource()->GlobalCB->Resource()->GetGPUVirtualAddress());
 
@@ -347,6 +350,13 @@ namespace Darius::Renderer
 #endif
 				throw std::runtime_error("Shader Model 6.0 is not supported!");
 			}
+		}
+
+		void SyncFrame()
+		{
+			PIXBeginEvent(PIX_COLOR(255, 0, 255), "Syncing");
+			Resources->SyncFrameStartGPU();
+			PIXEndEvent();
 		}
 
 		FrameResource* GetCurrentFrameResource()

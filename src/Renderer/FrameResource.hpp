@@ -93,9 +93,6 @@ namespace Darius::Renderer::ConstantFrameResource
 		// commands. So each frame needs their own allocator.
 		ComPtr<ID3D12CommandAllocator>					CmdListAlloc;
 
-		// Buffers to draw scene on
-		ComPtr<ID3D12Resource>							RenderTarget;
-
 		// We cannot update a cbuffer until the GPU is done processing the
 		// commands that reference it. So each frame needs their own cbuffers.
 		std::unique_ptr<UploadBuffer<GlobalConstants>>	GlobalCB = nullptr;
