@@ -61,9 +61,9 @@ namespace Darius::Renderer
 	void DrawCube(std::vector<RenderItem*> const& renderItems);
 	void DrawImgui();
 
-	void Clear();
-
 	void UpdateGlobalConstants();
+
+	void Clear();
 
 	void Initialize()
 	{
@@ -233,9 +233,9 @@ namespace Darius::Renderer
 		auto const rtvDescriptor = Resources->GetRenderTargetView();
 		auto const dsvDescriptor = Resources->GetDepthStencilView();
 
-		commandList->OMSetRenderTargets(1, &rtvDescriptor, FALSE, &dsvDescriptor);
 		commandList->ClearRenderTargetView(rtvDescriptor, Colors::CornflowerBlue, 0, nullptr);
 		commandList->ClearDepthStencilView(dsvDescriptor, D3D12_CLEAR_FLAG_DEPTH, 1.0f, 0, 0, nullptr);
+		commandList->OMSetRenderTargets(1, &rtvDescriptor, true, &dsvDescriptor);
 
 		// Set the viewport and scissor rect.
 		auto const viewport = Resources->GetScreenViewport();
