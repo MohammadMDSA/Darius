@@ -50,7 +50,7 @@
 #include <system_error>
 #include <tuple>
 
-#include "Libs/DirectXTK/Inc/Keyboard.h"
+#include <Libs/DirectXTK12/Inc/Keyboard.h>
 
 #ifdef _DEBUG
 #include <dxgidebug.h>

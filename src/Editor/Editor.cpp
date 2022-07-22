@@ -6,6 +6,7 @@
 #include "Editor.hpp"
 #include "Math/VectorMath.hpp"
 
+#include <Core/Input.hpp>
 #include <Core/TimeManager/TimeManager.hpp>
 #include <Renderer/Renderer.hpp>
 #include <Renderer/FrameResource.hpp>
@@ -52,11 +53,14 @@ namespace Darius::Editor
 		CreateDeviceDependentResources();
 		CreateWindowSizeDependentResources();
 
-		D_CAMERA_MANAGER::SetViewportDimansion((float)width, (float)height);
 		D_TIME::Initialize();
+		D_INPUT::Initialize();
+
+		D_CAMERA_MANAGER::SetViewportDimansion((float)width, (float)height);
 		D_TIME::EnableFixedTimeStep(1.0 / 60);
 
 		mCamera = std::make_unique<D_MATH_CAMERA::Camera>();
+		mFlying = std::make_unique<FlyingFPSCamera>(*mCamera, Vector3::Up());
 		mCamera->SetFOV(XM_PI / 3);
 		mCamera->SetZRange(0.01f, 1000.f);
 		mCamera->SetPosition(Vector3(0.f));
@@ -79,13 +83,16 @@ namespace Darius::Editor
 	}
 
 	// Updates the world.
-	void Editor::Update(D_TIME::StepTimer const&)
+	void Editor::Update(D_TIME::StepTimer const& timer)
 	{
 		D_RENDERER_DEVICE::SyncFrame();
 		PIXBeginEvent(PIX_COLOR_DEFAULT, L"Update");
 
-		// float elapsedTime = float(timer.GetElapsedSeconds());
-		mCamera->Update();
+		 float elapsedTime = float(timer.GetElapsedSeconds());
+
+		D_INPUT::Update();
+
+		mFlying->Update(elapsedTime);
 
 		UpdateRotation();
 

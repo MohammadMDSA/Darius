@@ -59,7 +59,7 @@ add_executable(${PROJECT_NAME} WIN32
     "src/Editor/Editor.cpp"
     "src/Editor/Editor.hpp"
     "src/Editor/Main.cpp"
-    "src/Editor/pch.hpp")
+    "src/Editor/pch.hpp" "src/Editor/Camera.hpp" "src/Editor/Camera.cpp")
 
 if ((${CMAKE_VERSION} VERSION_GREATER_EQUAL "3.16") AND (NOT MINGW))
     target_precompile_headers(${PROJECT_NAME} PRIVATE src/Editor/pch.hpp )
@@ -92,11 +92,8 @@ else()
     message(FATAL_ERROR "Boost not found!")
 endif()
 
-
 # Adding DirectXTK 12
-
-add_subdirectory("src/Libs/DirectXTK" "src/Libs/DirectXTK/bin/CMake/DirectXTK")
-
+add_subdirectory("${SOURCE_DIR}/Libs/DirectXTK12" "${CMAKE_BINARY_DIR}/bin/CMake/DirectXTK12")
 
 # # Adding fjs
 # add_subdirectory("src/Libs/fjs")

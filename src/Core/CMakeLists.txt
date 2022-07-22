@@ -37,10 +37,7 @@ set(Boost_USE_STATIC_RUNTIME OFF)
 set(Boost_ARCHITECTURE "-x64")
 find_package(Boost 1.75 REQUIRED)
 
-target_link_libraries("Core" PRIVATE DirectXTK12)
-
 set_target_properties("Core" PROPERTIES LINKER_LANGUAGE CXX)
-
 
 if ((${CMAKE_VERSION} VERSION_GREATER_EQUAL "3.16") AND (NOT MINGW))
     target_precompile_headers("Core" PRIVATE pch.hpp )
@@ -56,7 +53,7 @@ PRIVATE
 	${Boost_INCLUDE_DIRS}
 )
 
-target_link_libraries("Core" PRIVATE ${Boost_LIBRARIES})
+target_link_libraries("Core" PRIVATE ${Boost_LIBRARIES} DirectXTK12)
 
 if(BUILD_TESTS)
 	set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/../../cmake")

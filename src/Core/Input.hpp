@@ -1,17 +1,18 @@
 #pragma once
 
+#include "Libs/DirectXTK12/Inc/Keyboard.h"
+
 #ifndef D_INPUT
 #define D_INPUT Darius::InputManager
 #endif // !D_INPUT
 
 #ifndef D_MOUSE
-#define D_INPUT Darius::InputManager::Mouse
+#define D_MOUSE Darius::InputManager::Mouse
 #endif // !D_INPUT
 
 #ifndef D_KEYBOARD
-#define D_INPUT Darius::InputManager::Keyboard
+#define D_KEYBOARD Darius::InputManager::Keyboard
 #endif // !D_INPUT
-
 
 namespace Darius::InputManager
 {
