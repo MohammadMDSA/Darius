@@ -9,75 +9,84 @@
 #include <Renderer/FrameResource.hpp>
 #include <Math/Camera/Camera.hpp>
 
-// A basic game implementation that creates a D3D12 device and
-// provides a game loop.
-class Editor final : public D_DEVICE_RESOURCE::IDeviceNotify
+#ifndef D_EDITOR
+#define D_EDITOR Darius::Editor
+#endif // !D_EDITOR
+
+
+namespace Darius::Editor
 {
-public:
 
-    Editor() noexcept(false);
-    ~Editor();
+    // A basic game implementation that creates a D3D12 device and
+    // provides a game loop.
+    class Editor final : public D_DEVICE_RESOURCE::IDeviceNotify
+    {
+    public:
 
-    Editor(Editor&&) = default;
-    Editor& operator= (Editor&&) = default;
+        Editor() noexcept(false);
+        ~Editor();
 
-    Editor(Editor const&) = delete;
-    Editor& operator= (Editor const&) = delete;
+        Editor(Editor&&) = default;
+        Editor& operator= (Editor&&) = default;
 
-    // Initialization and management
-    void Initialize(HWND window, int width, int height);
+        Editor(Editor const&) = delete;
+        Editor& operator= (Editor const&) = delete;
 
-    // Basic game loop
-    void Tick();
+        // Initialization and management
+        void Initialize(HWND window, int width, int height);
 
-    // IDeviceNotify
-    void OnDeviceLost() override;
-    void OnDeviceRestored() override;
+        // Basic game loop
+        void Tick();
 
-    // Messages
-    void OnActivated();
-    void OnDeactivated();
-    void OnSuspending();
-    void OnResuming();
-    void OnWindowMoved();
-    void OnDisplayChange();
-    void OnWindowSizeChanged(int width, int height);
+        // IDeviceNotify
+        void OnDeviceLost() override;
+        void OnDeviceRestored() override;
 
-    // Properties
-    void GetDefaultSize( int& width, int& height ) const noexcept;
+        // Messages
+        void OnActivated();
+        void OnDeactivated();
+        void OnSuspending();
+        void OnResuming();
+        void OnWindowMoved();
+        void OnDisplayChange();
+        void OnWindowSizeChanged(int width, int height);
 
-private:
+        // Properties
+        void GetDefaultSize(int& width, int& height) const noexcept;
 
-    void Update(D_TIME::StepTimer const& timer);
-    void Render();
+    private:
 
-    void UpdateRotation();
+        void Update(D_TIME::StepTimer const& timer);
+        void Render();
 
-    void CreateDeviceDependentResources();
-    void CreateWindowSizeDependentResources();
+        void UpdateRotation();
 
-    ///////////////////////////////////////////
-    void InitMesh();
-    void BuildDescriptorHeaps();
-    void BuildConstantBuffers();
-    void BuildRootSignature();
-    void BuildShadersAndInputLayout();
-    void BuildGeometery();
-    void BuildPSO();
-    void BuildRenderItems();
-    void BuildImgui();
-    void DisposeUploadBuffers();
+        void CreateDeviceDependentResources();
+        void CreateWindowSizeDependentResources();
 
-    ///////////////////////////////////////////
+        ///////////////////////////////////////////
+        void InitMesh();
+        void BuildDescriptorHeaps();
+        void BuildConstantBuffers();
+        void BuildRootSignature();
+        void BuildShadersAndInputLayout();
+        void BuildGeometery();
+        void BuildPSO();
+        void BuildRenderItems();
+        void BuildImgui();
+        void DisposeUploadBuffers();
+
+        ///////////////////////////////////////////
 
 
-    // If using the DirectX Tool Kit for DX12, uncomment this line:
-    // std::unique_ptr<DirectX::GraphicsMemory> m_graphicsMemory;
+        // If using the DirectX Tool Kit for DX12, uncomment this line:
+        // std::unique_ptr<DirectX::GraphicsMemory> m_graphicsMemory;
 
-    std::vector<std::unique_ptr<D_RENDERER_FRAME_RESOUCE::RenderItem>> mRenderItems;
-    std::unique_ptr<Mesh>                       mMesh;
-    std::unique_ptr<D_MATH_CAMERA::Camera>      mCamera;
+        std::vector<std::unique_ptr<D_RENDERER_FRAME_RESOUCE::RenderItem>> mRenderItems;
+        std::unique_ptr<Mesh>                       mMesh;
+        std::unique_ptr<D_MATH_CAMERA::Camera>      mCamera;
 
-    float                                       mWidth;
-    float                                       mHeight;
-};
+        float                                       mWidth;
+        float                                       mHeight;
+    };
+}

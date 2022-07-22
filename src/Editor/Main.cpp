@@ -7,6 +7,7 @@
 #include <imgui_impl_win32.h>
 
 using namespace DirectX;
+using namespace D_EDITOR;
 
 #ifdef __clang__
 #pragma clang diagnostic ignored "-Wcovered-switch-default"
