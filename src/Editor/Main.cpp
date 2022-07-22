@@ -4,6 +4,8 @@
 
 #include "pch.hpp"
 #include "Editor.hpp"
+
+#include <Core/Input.hpp>
 #include <imgui_impl_win32.h>
 
 using namespace DirectX;
@@ -212,7 +214,11 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
         }
         break;
 
+    case WM_ACTIVATE:
+        D_INPUT::_processMessage(message, wParam, lParam);
+        break;
     case WM_ACTIVATEAPP:
+        D_INPUT::_processMessage(message, wParam, lParam);
         if (game)
         {
             if (wParam)
@@ -280,12 +286,19 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
             s_fullscreen = !s_fullscreen;
         }
+        D_INPUT::_processMessage(message, wParam, lParam);
         break;
 
     case WM_MENUCHAR:
         // A menu is active and the user presses a key that does not correspond
         // to any mnemonic or accelerator key. Ignore so we don't produce an error beep.
         return MAKELRESULT(0, MNC_CLOSE);
+
+    case WM_KEYDOWN:
+    case WM_KEYUP:
+    case WM_SYSKEYUP:
+        D_INPUT::_processMessage(message, wParam, lParam);
+        break;
     }
 
     return DefWindowProc(hWnd, message, wParam, lParam);

@@ -9,6 +9,7 @@ list(APPEND CORE_LIBS_INCLUDE
     "Signal.hpp"
 	"Memory.hpp"
 	"Exception.hpp"
+	"Input.hpp"
 	"Ref.hpp"
 	"pch.hpp"
 	"Containers/ConcurrentQueue.hpp"
@@ -18,6 +19,7 @@ list(APPEND CORE_LIBS_SOURCES
 	"TimeManager/TimeManager.cpp"
 	"Signal.cpp"
 	"Memory.cpp"
+	"Input.cpp"
 	)
 
 
@@ -34,6 +36,8 @@ set(Boost_USE_MULTITHREADED ON)
 set(Boost_USE_STATIC_RUNTIME OFF)
 set(Boost_ARCHITECTURE "-x64")
 find_package(Boost 1.75 REQUIRED)
+
+target_link_libraries("Core" PRIVATE DirectXTK12)
 
 set_target_properties("Core" PROPERTIES LINKER_LANGUAGE CXX)
 

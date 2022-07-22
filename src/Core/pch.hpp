@@ -50,6 +50,8 @@
 #include <system_error>
 #include <tuple>
 
+#include "Libs/DirectXTK/Inc/Keyboard.h"
+
 #ifdef _DEBUG
 #include <dxgidebug.h>
 #endif
