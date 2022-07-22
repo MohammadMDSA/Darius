@@ -38,7 +38,7 @@ Game::~Game()
 void Game::Initialize(HWND window, int width, int height)
 {
 #ifdef _DEBUG
-	D_DEBUG::AttachWinPixGpuCapturer();
+	//D_DEBUG::AttachWinPixGpuCapturer();
 #endif
 
 	mWidth = (float)width;
@@ -69,11 +69,11 @@ void Game::Tick()
 {
 	auto timer = D_TIME::GetStepTimer();
 	timer->Tick([&]()
-		{
-			Update(*timer);
-			Render();
-		});
+	{
+		Update(*timer);
+	});
 
+	Render();
 }
 
 // Updates the world.

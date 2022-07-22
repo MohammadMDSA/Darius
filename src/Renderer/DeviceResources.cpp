@@ -605,7 +605,6 @@ namespace Darius::Renderer::DeviceResource
 		m_currentResourceIndex = (m_currentResourceIndex + 1) % D_RENDERER_FRAME_RESOUCE::gNumFrameResources;
 		auto frameResource = m_frameResources[m_currentResourceIndex].get();
 
-		auto foo = m_fence->GetCompletedValue();
 		if (frameResource->Fence != 0 && m_fence->GetCompletedValue() < frameResource->Fence)
 		{
 			D_HR_CHECK(m_fence->SetEventOnCompletion(frameResource->Fence, m_fenceEvent.Get()));
