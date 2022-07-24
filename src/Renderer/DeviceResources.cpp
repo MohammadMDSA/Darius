@@ -248,8 +248,14 @@ namespace Darius::Renderer::DeviceResource
 			m_dsvDescriptorHeap->SetName(L"DeviceResources");
 		}
 
+		// Create a direct command allocator
+		D_HR_CHECK(m_d3dDevice->CreateCommandAllocator(
+			D3D12_COMMAND_LIST_TYPE_DIRECT,
+			IID_PPV_ARGS(m_directCommandAlloc.GetAddressOf())));
+
 		// Create a command list for recording graphics commands.
-		ThrowIfFailed(m_d3dDevice->CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_DIRECT, m_frameResources[0]->CmdListAlloc.Get(), nullptr, IID_PPV_ARGS(m_commandList.ReleaseAndGetAddressOf())));
+		ThrowIfFailed(m_d3dDevice->CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_DIRECT, m_directCommandAlloc.Get(), nullptr, IID_PPV_ARGS(m_commandList.ReleaseAndGetAddressOf())));
+
 		ThrowIfFailed(m_commandList->Close());
 
 		m_commandList->SetName(L"DeviceResources");
@@ -277,6 +283,11 @@ namespace Darius::Renderer::DeviceResource
 
 		// Wait until all previous GPU work is complete.
 		WaitForGpu();
+
+		bool resize = m_swapChain ? true : false;
+
+		if (m_swapChain)
+			D_HR_CHECK(m_commandList->Reset(m_directCommandAlloc.Get(), nullptr));
 
 		// Release resources that are tied to the swap chain and update fence values.
 		for (UINT n = 0; n < m_backBufferCount; n++)
@@ -425,6 +436,9 @@ namespace Darius::Renderer::DeviceResource
 			m_d3dDevice->CreateDepthStencilView(m_depthStencil.Get(), &dsvDesc, m_dsvDescriptorHeap->GetCPUDescriptorHandleForHeapStart());
 		}
 
+		if (resize)
+			m_commandList->Close();
+
 		// Set the 3D rendering viewport and scissor rectangle to target the entire window.
 		m_screenViewport.TopLeftX = m_screenViewport.TopLeftY = 0.f;
 		m_screenViewport.Width = static_cast<float>(backBufferWidth);
@@ -483,6 +497,7 @@ namespace Darius::Renderer::DeviceResource
 		{
 			m_frameResources[i]->CmdListAlloc.Reset();
 		}
+		m_directCommandAlloc.Reset();
 
 		m_depthStencil.Reset();
 		m_commandQueue.Reset();
@@ -513,9 +528,11 @@ namespace Darius::Renderer::DeviceResource
 	// Prepare the command list and render target for rendering.
 	void DeviceResources::Prepare(ID3D12PipelineState* pso, D3D12_RESOURCE_STATES beforeState, D3D12_RESOURCE_STATES afterState)
 	{
+
+		auto cmdListAlloc = m_frameResources[m_currentResourceIndex]->CmdListAlloc;
 		// Reset command list and allocator.
-		ThrowIfFailed(m_frameResources[m_currentResourceIndex]->CmdListAlloc->Reset());
-		ThrowIfFailed(m_commandList->Reset(m_frameResources[m_currentResourceIndex]->CmdListAlloc.Get(), pso));
+		ThrowIfFailed(cmdListAlloc->Reset());
+		ThrowIfFailed(m_commandList->Reset(cmdListAlloc.Get(), pso));
 
 		if (beforeState != afterState)
 		{

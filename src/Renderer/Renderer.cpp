@@ -360,7 +360,7 @@ namespace Darius::Renderer
 
 		ID3D12CommandAllocator* GetCommandAllocator()
 		{
-			return Resources->GetCommandAllocator();
+			return Resources->GetDirectCommandAllocator();
 		}
 
 		ID3D12GraphicsCommandList* GetCommandList()

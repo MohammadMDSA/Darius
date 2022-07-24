@@ -32,13 +32,13 @@ namespace Darius::Renderer::DeviceResource
     {
     public:
         static constexpr unsigned int c_AllowTearing = 0x1;
-        static constexpr unsigned int c_EnableHDR    = 0x2;
+        static constexpr unsigned int c_EnableHDR = 0x2;
 
         DeviceResources(DXGI_FORMAT backBufferFormat = DXGI_FORMAT_B8G8R8A8_UNORM,
-                        DXGI_FORMAT depthBufferFormat = DXGI_FORMAT_D32_FLOAT,
-                        UINT backBufferCount = 2,
-                        D3D_FEATURE_LEVEL minFeatureLevel = D3D_FEATURE_LEVEL_11_0,
-                        unsigned int flags = 0) noexcept(false);
+            DXGI_FORMAT depthBufferFormat = DXGI_FORMAT_D32_FLOAT,
+            UINT backBufferCount = 2,
+            D3D_FEATURE_LEVEL minFeatureLevel = D3D_FEATURE_LEVEL_11_0,
+            unsigned int flags = 0) noexcept(false);
         ~DeviceResources();
 
         DeviceResources(DeviceResources&&) = default;
@@ -57,8 +57,8 @@ namespace Darius::Renderer::DeviceResource
             m_deviceLostSignal.connect(boost::bind(&IDeviceNotify::OnDeviceLost, deviceNotify));
             m_deviceRestoredSignal.connect(boost::bind(&IDeviceNotify::OnDeviceRestored, deviceNotify));
         }
-        void Prepare(ID3D12PipelineState* pso = nullptr,D3D12_RESOURCE_STATES beforeState = D3D12_RESOURCE_STATE_PRESENT,
-                     D3D12_RESOURCE_STATES afterState = D3D12_RESOURCE_STATE_RENDER_TARGET);
+        void Prepare(ID3D12PipelineState* pso = nullptr, D3D12_RESOURCE_STATES beforeState = D3D12_RESOURCE_STATE_PRESENT,
+            D3D12_RESOURCE_STATES afterState = D3D12_RESOURCE_STATE_RENDER_TARGET);
         void Present(D3D12_RESOURCE_STATES beforeState = D3D12_RESOURCE_STATE_RENDER_TARGET);
         void WaitForGpu() noexcept;
         void UpdateColorSpace();
@@ -67,15 +67,16 @@ namespace Darius::Renderer::DeviceResource
         RECT GetOutputSize() const noexcept { return m_outputSize; }
 
         // Direct3D Accessors.
-        auto                        GetD3DDevice() const noexcept          { return m_d3dDevice.Get(); }
-        auto                        GetSwapChain() const noexcept          { return m_swapChain.Get(); }
-        auto                        GetDXGIFactory() const noexcept        { return m_dxgiFactory.Get(); }
-        HWND                        GetWindow() const noexcept             { return m_window; }
+        auto                        GetD3DDevice() const noexcept { return m_d3dDevice.Get(); }
+        auto                        GetSwapChain() const noexcept { return m_swapChain.Get(); }
+        auto                        GetDXGIFactory() const noexcept { return m_dxgiFactory.Get(); }
+        HWND                        GetWindow() const noexcept { return m_window; }
         D3D_FEATURE_LEVEL           GetDeviceFeatureLevel() const noexcept { return m_d3dFeatureLevel; }
-        ID3D12Resource*             GetRenderTarget() const noexcept       { return m_swapChainBuffer[m_backBufferIndex].Get(); }
-        ID3D12Resource*             GetDepthStencil() const noexcept       { return m_depthStencil.Get(); }
-        ID3D12CommandQueue*         GetCommandQueue() const noexcept       { return m_commandQueue.Get(); }
-        ID3D12CommandAllocator*     GetCommandAllocator() const noexcept   { return m_frameResources[m_currentResourceIndex]->CmdListAlloc.Get(); }
+        ID3D12Resource* GetRenderTarget() const noexcept { return m_swapChainBuffer[m_backBufferIndex].Get(); }
+        ID3D12Resource* GetDepthStencil() const noexcept { return m_depthStencil.Get(); }
+        ID3D12CommandQueue* GetCommandQueue() const noexcept { return m_commandQueue.Get(); }
+        ID3D12CommandAllocator* GetCommandAllocator() const noexcept { return m_frameResources[m_currentResourceIndex]->CmdListAlloc.Get(); }
+        ID3D12CommandAllocator* GetDirectCommandAllocator() const noexcept { return m_directCommandAlloc.Get(); }
         auto                        GetCommandList() const noexcept        { return m_commandList.Get(); }
         DXGI_FORMAT                 GetBackBufferFormat() const noexcept   { return m_backBufferFormat; }
         DXGI_FORMAT                 GetDepthBufferFormat() const noexcept  { return m_depthBufferFormat; }
@@ -117,6 +118,7 @@ namespace Darius::Renderer::DeviceResource
         Microsoft::WRL::ComPtr<ID3D12Device>                m_d3dDevice;
         Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList>   m_commandList;
         Microsoft::WRL::ComPtr<ID3D12CommandQueue>          m_commandQueue;
+        Microsoft::WRL::ComPtr<ID3D12CommandAllocator>      m_directCommandAlloc;
 
         // Swap chain objects.
         Microsoft::WRL::ComPtr<IDXGIFactory4>               m_dxgiFactory;

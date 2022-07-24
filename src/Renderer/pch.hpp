@@ -106,7 +106,9 @@ namespace Darius::Renderer::GraphicsUtils
         if (FAILED(hr))
         {
             auto exp = com_exception(hr);
-            D_LOG_ERROR(exp.what());
+            auto message = exp.what();
+            (message);
+            D_LOG_ERROR(message);
             throw exp;
         }
     }
