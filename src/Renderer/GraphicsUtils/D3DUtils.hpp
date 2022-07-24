@@ -2,7 +2,9 @@
 
 using namespace Microsoft::WRL;
 
+#ifndef D_RENDERER_UTILS
 #define D_RENDERER_UTILS Darius::Renderer::GraphicsUtils
+#endif
 
 namespace Darius::Renderer::GraphicsUtils
 {

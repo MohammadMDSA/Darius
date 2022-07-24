@@ -2,6 +2,10 @@
 
 #include "D3DUtils.hpp"
 
+#ifndef D_RENDERER_UTILS
+#define D_RENDERER_UTILS Darius::Renderer::GraphicsUtils
+#endif
+
 using namespace Microsoft::WRL;
 
 namespace Darius::Renderer::GraphicsUtils
