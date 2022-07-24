@@ -7,6 +7,9 @@
 
 #define D_HR_CHECK(hr) Darius::Renderer::GraphicsUtils::ThrowIfFailed(hr);
 
+#define D3D12_GPU_VIRTUAL_ADDRESS_NULL      ((D3D12_GPU_VIRTUAL_ADDRESS)0)
+#define D3D12_GPU_VIRTUAL_ADDRESS_UNKNOWN   ((D3D12_GPU_VIRTUAL_ADDRESS)-1)
+
 #include <winsdkver.h>
 #ifndef _WIN32_WINNT
 #define _WIN32_WINNT 0x0A00
