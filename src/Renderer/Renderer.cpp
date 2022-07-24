@@ -41,7 +41,7 @@ namespace Darius::Renderer
 
 #ifdef _D_EDITOR
 	std::function<void(void)>		GuiDrawer = nullptr;
-	ComPtr<ID3D12DescriptorHeap>	ImguiHeap = nullptr;
+	DescriptorHeap					ImguiHeap;
 #endif
 
 	// PSO
@@ -126,7 +126,9 @@ namespace Darius::Renderer
 		{
 			GuiDrawer();
 
-			commandList->SetDescriptorHeaps(1, ImguiHeap.GetAddressOf());
+			ID3D12DescriptorHeap* desHeaps[] = { ImguiHeap.GetHeapPointer() };
+
+			commandList->SetDescriptorHeaps(1, desHeaps);
 			ImGui_ImplDX12_RenderDrawData(ImGui::GetDrawData(), commandList);
 		}
 		PIXEndEvent(commandList);
@@ -262,15 +264,17 @@ namespace Darius::Renderer
 #ifdef _D_EDITOR
 	void InitializeGUI()
 	{
-		D3D12_DESCRIPTOR_HEAP_DESC desc = {};
+		/*D3D12_DESCRIPTOR_HEAP_DESC desc = {};
 		desc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
 		desc.NumDescriptors = 1;
 		desc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
-		D_HR_CHECK(_device->CreateDescriptorHeap(&desc, IID_PPV_ARGS(&ImguiHeap)));
+		D_HR_CHECK(_device->CreateDescriptorHeap(&desc, IID_PPV_ARGS(&ImguiHeap)));*/
+
+		ImguiHeap.Create(L"Imgui Heap", D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, 1);
 
 		ImGui::CreateContext();
 		ImGui_ImplWin32_Init(Resources->GetWindow());
-		ImGui_ImplDX12_Init(_device, Resources->GetBackBufferCount(), DXGI_FORMAT_B8G8R8A8_UNORM, ImguiHeap.Get(), ImguiHeap.Get()->GetCPUDescriptorHandleForHeapStart(), ImguiHeap.Get()->GetGPUDescriptorHandleForHeapStart());
+		ImGui_ImplDX12_Init(_device, Resources->GetBackBufferCount(), DXGI_FORMAT_B8G8R8A8_UNORM, ImguiHeap.GetHeapPointer(), ImguiHeap.GetHeapPointer()->GetCPUDescriptorHandleForHeapStart(), ImguiHeap.GetHeapPointer()->GetGPUDescriptorHandleForHeapStart());
 	}
 #endif
 
