@@ -6,6 +6,9 @@
 #include "Editor.hpp"
 #include "Camera.hpp"
 
+#include "imgui_impl_dx12.h"
+#include "imgui_impl_win32.h"
+
 #include <Math/VectorMath.hpp>
 #include <Core/Input.hpp>
 #include <Core/TimeManager/TimeManager.hpp>
@@ -64,7 +67,7 @@ namespace Darius::Editor
 		mCamera->SetFOV(XM_PI / 3);
 		mCamera->SetZRange(0.01f, 1000.f);
 		mCamera->SetPosition(Vector3(-5.f, 0.f, 0));
-		mCamera->SetLookDirection(Vector3::Right() , Vector3::Up());
+		mCamera->SetLookDirection(Vector3::Right(), Vector3::Up());
 		mCamera->ReverseZ(false);
 
 		D_CAMERA_MANAGER::SetActiveCamera(mCamera.get());
@@ -94,8 +97,11 @@ namespace Darius::Editor
 		D_INPUT::Update();
 
 		static auto fc = FlyingFPSCamera(*mCamera, Vector3::Up());
-		fc.Update(elapsedTime);
-		mCamera->Update();
+		if (D_KEYBOARD::GetKey(D_KEYBOARD::Keys::LeftAlt) &&
+			D_MOUSE::GetButton(D_MOUSE::Keys::Right))
+			fc.Update(elapsedTime);
+		else
+			mCamera->Update();
 
 		UpdateRotation();
 
@@ -250,7 +256,6 @@ namespace Darius::Editor
 		//BuildDescriptorHeaps();
 		//BuildConstantBuffers();
 		BuildPSO();
-		BuildImgui();
 
 		// Execute the initialization commands.
 		D_HR_CHECK(cmdList->Close());
@@ -524,17 +529,4 @@ namespace Darius::Editor
 
 	}
 
-	void Editor::BuildImgui()
-	{
-
-		/*D3D12_DESCRIPTOR_HEAP_DESC desc = {};
-		desc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
-		desc.NumDescriptors = 1;
-		desc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
-		D_HR_CHECK(D_RENDERER_DEVICE::GetDevice()->CreateDescriptorHeap(&desc, IID_PPV_ARGS(&ImguiHeap)));
-
-		ImGui::CreateContext();
-		ImGui_ImplWin32_Init(Resources->GetWindow());
-		ImGui_ImplDX12_Init(D_RENDERER_DEVICE::GetDevice(), Resources->GetBackBufferCount(), DXGI_FORMAT_B8G8R8A8_UNORM, ImguiHeap.Get(), ImguiHeap.Get()->GetCPUDescriptorHandleForHeapStart(), ImguiHeap.Get()->GetGPUDescriptorHandleForHeapStart());*/
-	}
 }

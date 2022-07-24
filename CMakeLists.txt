@@ -4,14 +4,17 @@ project ("DariusEngine"
   DESCRIPTION "DirectX 12 3D Game engine and editor"
   LANGUAGES CXX C)
 
-set(PROJECT_NAME "DariusEngine")
-
 option(BUILD_TEST_TEMPLATE "Ignore warnings related to TODOs" OFF)
 
 option(ENABLE_CODE_ANALYSIS "Use Static Code Analysis on build" OFF)
 
 option(BUILD_TESTS "Build tests" ON)
 
+option(BUILD_EDITOR "Build target editor" ON)
+
+if(BUILD_EDITOR)
+set(PROJECT_NAME "DariusEngine")
+endif(BUILD_EDITOR)
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -55,15 +58,21 @@ elseif(CMAKE_GENERATOR_PLATFORM MATCHES "^[Aa][Rr][Mm]64$")
     set(DIRECTX_ARCH arm64)
 endif()
 
-add_executable(${PROJECT_NAME} WIN32
-    "src/Editor/Editor.cpp"
-    "src/Editor/Editor.hpp"
-    "src/Editor/Main.cpp"
-    "src/Editor/pch.hpp" "src/Editor/Camera.hpp" "src/Editor/Camera.cpp")
+if(BUILD_EDITOR)
+    add_executable(${PROJECT_NAME} WIN32
+        "src/Editor/Editor.cpp"
+        "src/Editor/Editor.hpp"
+        "src/Editor/Main.cpp"
+        "src/Editor/pch.hpp"
+        "src/Editor/Camera.hpp"
+        "src/Editor/Camera.cpp")
 
-if ((${CMAKE_VERSION} VERSION_GREATER_EQUAL "3.16") AND (NOT MINGW))
-    target_precompile_headers(${PROJECT_NAME} PRIVATE src/Editor/pch.hpp )
-endif()
+        add_definitions(-D_D_EDITOR)
+
+    if ((${CMAKE_VERSION} VERSION_GREATER_EQUAL "3.16") AND (NOT MINGW))
+        target_precompile_headers(${PROJECT_NAME} PRIVATE src/Editor/pch.hpp )
+    endif()
+endif(BUILD_EDITOR)
 
 
 ##############################

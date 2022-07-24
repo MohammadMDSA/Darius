@@ -41,7 +41,9 @@ namespace Darius::Renderer
 	// Constant buffer view descriptor heap and object
 	//std::unique_ptr<UploadBuffer<ObjectConstants>> ObjectCB = nullptr;
 	//ComPtr<ID3D12DescriptorHeap> CbvHeap = nullptr;
-	//ComPtr<ID3D12DescriptorHeap> ImguiHeap = nullptr;
+#ifdef _D_EDITOR
+	ComPtr<ID3D12DescriptorHeap> ImguiHeap = nullptr;
+#endif
 
 	// PSO
 	//std::unordered_map<std::string, ComPtr<ID3D12PipelineState>> Psos;
@@ -57,6 +59,9 @@ namespace Darius::Renderer
 
 	//////////////////////////////////////////////////////
 	// Functions
+#ifdef _D_EDITOR
+	void InitializeGUI();
+#endif
 
 	void DrawCube(std::vector<RenderItem*> const& renderItems);
 	void DrawImgui();
@@ -71,6 +76,10 @@ namespace Darius::Renderer
 		D_ASSERT(Resources);
 
 		_device = Resources->GetD3DDevice();
+
+#ifdef _D_EDITOR
+		InitializeGUI();
+#endif // _D_EDITOR
 
 	}
 
@@ -88,10 +97,12 @@ namespace Darius::Renderer
 		// Prepare the command list to render a new frame.
 		Resources->Prepare(D_RENDERER_DEVICE::Psos["opaque"].Get());
 
+#ifdef _D_EDITOR
 		// Prepare imgui
-		/*ImGui_ImplDX12_NewFrame();
+		ImGui_ImplDX12_NewFrame();
 		ImGui_ImplWin32_NewFrame();
-		ImGui::NewFrame();*/
+		ImGui::NewFrame();
+#endif
 
 		Clear();
 
@@ -164,59 +175,60 @@ namespace Darius::Renderer
 		}
 	}
 
+#ifdef _D_EDITOR
 	void DrawImgui()
 	{
-		//auto commandList = Resources->GetCommandList();
+		auto commandList = Resources->GetCommandList();
 
-		//{
-		//	static bool show_demo_window = true;
-		//	static bool show_another_window = true;
-		//	static float clear_color[] = { 1.f, 1.f, 1.f, 0.f };
-		//	// 1. Show the big demo window (Most of the sample code is in ImGui::ShowDemoWindow()! You can browse its code to learn more about Dear ImGui!).
-		//	if (show_demo_window)
-		//		ImGui::ShowDemoWindow(&show_demo_window);
+		{
+			static bool show_demo_window = true;
+			static bool show_another_window = true;
+			static float clear_color[] = { 1.f, 1.f, 1.f, 0.f };
+			// 1. Show the big demo window (Most of the sample code is in ImGui::ShowDemoWindow()! You can browse its code to learn more about Dear ImGui!).
+			if (show_demo_window)
+				ImGui::ShowDemoWindow(&show_demo_window);
 
-		//	// 2. Show a simple window that we create ourselves. We use a Begin/End pair to created a named window.
-		//	{
-		//		static float f = 0.0f;
-		//		static int counter = 0;
+			// 2. Show a simple window that we create ourselves. We use a Begin/End pair to created a named window.
+			{
+				static float f = 0.0f;
+				static int counter = 0;
 
-		//		ImGui::Begin("Hello, world!");                          // Create a window called "Hello, world!" and append into it.
+				ImGui::Begin("Hello, world!");                          // Create a window called "Hello, world!" and append into it.
 
-		//		ImGui::Text("This is some useful text.");               // Display some text (you can use a format strings too)
-		//		ImGui::Checkbox("Demo Window", &show_demo_window);      // Edit bools storing our window open/close state
-		//		ImGui::Checkbox("Another Window", &show_another_window);
+				ImGui::Text("This is some useful text.");               // Display some text (you can use a format strings too)
+				ImGui::Checkbox("Demo Window", &show_demo_window);      // Edit bools storing our window open/close state
+				ImGui::Checkbox("Another Window", &show_another_window);
 
-		//		ImGui::SliderFloat("float", &f, 0.0f, 1.0f);            // Edit 1 float using a slider from 0.0f to 1.0f
-		//		ImGui::ColorEdit3("clear color", (float*)&clear_color); // Edit 3 floats representing a color
+				ImGui::SliderFloat("float", &f, 0.0f, 1.0f);            // Edit 1 float using a slider from 0.0f to 1.0f
+				ImGui::ColorEdit3("clear color", (float*)&clear_color); // Edit 3 floats representing a color
 
-		//		if (ImGui::Button("Button"))                            // Buttons return true when clicked (most widgets return true when edited/activated)
-		//			counter++;
-		//		ImGui::SameLine();
-		//		ImGui::Text("counter = %d", counter);
+				if (ImGui::Button("Button"))                            // Buttons return true when clicked (most widgets return true when edited/activated)
+					counter++;
+				ImGui::SameLine();
+				ImGui::Text("counter = %d", counter);
 
-		//		ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
-		//		ImGui::End();
-		//	}
+				ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
+				ImGui::End();
+			}
 
-		//	// 3. Show another simple window.
-		//	if (show_another_window)
-		//	{
-		//		ImGui::Begin("Another Window", &show_another_window);   // Pass a pointer to our bool variable (the window will have a closing button that will clear the bool when clicked)
-		//		ImGui::Text("Hello from another window!");
-		//		if (ImGui::Button("Close Me"))
-		//			show_another_window = false;
-		//		ImGui::End();
-		//	}
-		//}
+			// 3. Show another simple window.
+			if (show_another_window)
+			{
+				ImGui::Begin("Another Window", &show_another_window);   // Pass a pointer to our bool variable (the window will have a closing button that will clear the bool when clicked)
+				ImGui::Text("Hello from another window!");
+				if (ImGui::Button("Close Me"))
+					show_another_window = false;
+				ImGui::End();
+			}
+		}
 
 
-		//ImGui::Render();
+		ImGui::Render();
 
-		//commandList->SetDescriptorHeaps(1, ImguiHeap.GetAddressOf());
-		//ImGui_ImplDX12_RenderDrawData(ImGui::GetDrawData(), commandList);
-
+		commandList->SetDescriptorHeaps(1, ImguiHeap.GetAddressOf());
+		ImGui_ImplDX12_RenderDrawData(ImGui::GetDrawData(), commandList);
 	}
+#endif
 
 	//void DisposeUploadBuffers()
 	//{
@@ -250,7 +262,7 @@ namespace Darius::Renderer
 	{
 		PIXBeginEvent(PIX_COLOR_DEFAULT, "Update Globals");
 		D_RENDERER_FRAME_RESOUCE::GlobalConstants globals;
-		
+
 		auto camera = D_CAMERA_MANAGER::GetActiveCamera();
 
 		auto view = camera->GetViewMatrix();
@@ -285,6 +297,21 @@ namespace Darius::Renderer
 		currGlobalCb->CopyData(0, globals);
 		PIXEndEvent();
 	}
+
+#ifdef _D_EDITOR
+	void InitializeGUI()
+	{
+		D3D12_DESCRIPTOR_HEAP_DESC desc = {};
+		desc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
+		desc.NumDescriptors = 1;
+		desc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
+		D_HR_CHECK(_device->CreateDescriptorHeap(&desc, IID_PPV_ARGS(&ImguiHeap)));
+
+		ImGui::CreateContext();
+		ImGui_ImplWin32_Init(Resources->GetWindow());
+		ImGui_ImplDX12_Init(D_RENDERER_DEVICE::GetDevice(), Resources->GetBackBufferCount(), DXGI_FORMAT_B8G8R8A8_UNORM, ImguiHeap.Get(), ImguiHeap.Get()->GetCPUDescriptorHandleForHeapStart(), ImguiHeap.Get()->GetGPUDescriptorHandleForHeapStart());
+	}
+#endif
 
 	namespace Device
 	{

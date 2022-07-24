@@ -74,7 +74,6 @@ namespace Darius::Editor
         void BuildGeometery();
         void BuildPSO();
         void BuildRenderItems();
-        void BuildImgui();
         void DisposeUploadBuffers();
 
         ///////////////////////////////////////////
