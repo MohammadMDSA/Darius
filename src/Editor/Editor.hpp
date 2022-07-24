@@ -85,9 +85,5 @@ namespace Darius::Editor
 		std::vector<std::unique_ptr<D_RENDERER_FRAME_RESOUCE::RenderItem>> mRenderItems;
 		std::unique_ptr<Mesh>                       mMesh;
 		std::unique_ptr<D_MATH_CAMERA::Camera>      mCamera;
-
-		float                                       mWidth;
-		float                                       mHeight;
 	};
-	void DrawImgui();
 }
