@@ -30,8 +30,8 @@ namespace D_EDITOR
 		m_VerticalLookSensitivity = 2.0f;
 		m_MoveSpeed = 10.0f;
 		m_StrafeSpeed = 10.0f;
-		m_MouseSensitivityX = 0.03f;
-		m_MouseSensitivityY = 0.03f;
+		m_MouseSensitivityX = 0.005f;
+		m_MouseSensitivityY = 0.005f;
 
 		m_CurrentPitch = Sin(Dot(camera.GetForwardVec(), m_WorldUp));
 

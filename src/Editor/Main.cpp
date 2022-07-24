@@ -140,7 +140,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
     switch (message)
     {
     case WM_PAINT:
-        if (s_in_sizemove && game)
+        if (s_in_sizemove && !s_in_suspend && game)
         {
             game->Tick();
         }
@@ -215,12 +215,9 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
         break;
 
     case WM_ACTIVATE:
-        D_INPUT::_processKeyboardMessage(message, wParam, lParam);
         D_INPUT::_processMouseMessage(message, wParam, lParam);
         break;
     case WM_ACTIVATEAPP:
-        D_INPUT::_processKeyboardMessage(message, wParam, lParam);
-        D_INPUT::_processMouseMessage(message, wParam, lParam);
         if (game)
         {
             if (wParam)
@@ -232,6 +229,8 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
                 game->OnDeactivated();
             }
         }
+        D_INPUT::_processKeyboardMessage(message, wParam, lParam);
+        D_INPUT::_processMouseMessage(message, wParam, lParam);
         break;
 
     case WM_POWERBROADCAST:
@@ -259,6 +258,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
         break;
 
     case WM_SYSKEYDOWN:
+        D_INPUT::_processKeyboardMessage(message, wParam, lParam);
         if (wParam == VK_RETURN && (lParam & 0x60000000) == 0x20000000)
         {
             // Implements the classic ALT+ENTER fullscreen toggle
@@ -288,7 +288,6 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
             s_fullscreen = !s_fullscreen;
         }
-        D_INPUT::_processKeyboardMessage(message, wParam, lParam);
         break;
 
     case WM_MENUCHAR:
@@ -303,12 +302,15 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
         break;
 
     case WM_MOUSEMOVE:
+    case WM_MOUSEHOVER:
     case WM_LBUTTONDOWN:
     case WM_LBUTTONUP:
     case WM_RBUTTONDOWN:
     case WM_RBUTTONUP:
     case WM_MBUTTONDOWN:
     case WM_MBUTTONUP:
+    case WM_XBUTTONUP:
+    case WM_XBUTTONDOWN:
     case WM_MOUSEWHEEL:
         D_INPUT::_processMouseMessage(message, wParam, lParam);
         break;
