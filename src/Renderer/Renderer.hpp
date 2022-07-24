@@ -13,9 +13,6 @@ using namespace Microsoft::WRL;
 
 namespace Darius::Renderer
 {
-
-
-	extern ComPtr<ID3D12DescriptorHeap> CbvHeap;
 	extern ComPtr<ID3D12RootSignature> RootSignature;
 	extern std::unordered_map<std::string, ComPtr<ID3D12PipelineState>> Psos;
 	extern UINT PassCbvOffset;

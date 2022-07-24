@@ -252,8 +252,6 @@ namespace Darius::Editor
 		BuildShadersAndInputLayout();
 		BuildGeometery();
 		BuildRenderItems();
-		//BuildDescriptorHeaps();
-		//BuildConstantBuffers();
 		BuildPSO();
 
 		// Execute the initialization commands.
@@ -263,80 +261,6 @@ namespace Darius::Editor
 
 		// Wait until gpu executes initial commands
 		D_RENDERER_DEVICE::WaitForGpu();
-	}
-
-
-	void Editor::BuildDescriptorHeaps()
-	{
-		UINT objCount = (UINT)mRenderItems.size();
-
-		// Need a CBV descriptor for each object for each frame resource,
-		// +1 for the perPass CBV for each frame resource.
-		UINT numDescriptors = (objCount + 1) * gNumFrameResources;
-
-		// Save an offset to the start of the pass CBVs.  These are the last 3 descriptors.
-		D_RENDERER::PassCbvOffset = objCount * gNumFrameResources;
-
-		D3D12_DESCRIPTOR_HEAP_DESC cbvHeapDesc;
-		cbvHeapDesc.NumDescriptors = numDescriptors;
-		cbvHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
-		cbvHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
-		cbvHeapDesc.NodeMask = 0;
-
-		D_HR_CHECK(D_RENDERER_DEVICE::GetDevice()->CreateDescriptorHeap(&cbvHeapDesc, IID_PPV_ARGS(&D_RENDERER::CbvHeap)));
-		D_RENDERER::CbvHeap = D_RENDERER::CbvHeap;
-	}
-
-	void Editor::BuildConstantBuffers()
-	{
-		auto device = D_RENDERER_DEVICE::GetDevice();
-		UINT objCBByteSize = CalcConstantBufferByteSize(sizeof(MeshConstants));
-		UINT objCount = (UINT)mRenderItems.size();
-
-		// Need a CBV descriptor for each object for each frame resource.
-		for (int frameIndex = 0; frameIndex < gNumFrameResources; frameIndex++)
-		{
-			auto objectCB = D_RENDERER_DEVICE::GetFrameResourceWithIndex(frameIndex)->MeshCB->Resource();
-			for (UINT i = 0; i < objCount; i++)
-			{
-				D3D12_GPU_VIRTUAL_ADDRESS cbAddress = objectCB->GetGPUVirtualAddress();
-
-				// Offset to the ith object constant buffer in the buffer.
-				cbAddress += i * objCBByteSize;
-
-				// Offset to the object cbv in the descriptor heap.
-				int heapIndex = frameIndex * objCount + i;
-				auto handle = CD3DX12_CPU_DESCRIPTOR_HANDLE(D_RENDERER::CbvHeap->GetCPUDescriptorHandleForHeapStart());
-				handle.Offset(heapIndex, device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV));
-
-				D3D12_CONSTANT_BUFFER_VIEW_DESC cbvDesc;
-				cbvDesc.BufferLocation = cbAddress;
-				cbvDesc.SizeInBytes = objCBByteSize;
-
-				device->CreateConstantBufferView(&cbvDesc, handle);
-			}
-		}
-
-		UINT passCBByteSize = D_RENDERER_UTILS::CalcConstantBufferByteSize(sizeof(GlobalConstants));
-
-		// Last three descriptors are the global CBVs for each frame resource.
-		for (int frameIndex = 0; frameIndex < gNumFrameResources; frameIndex++)
-		{
-			auto globalCB = D_RENDERER_DEVICE::GetFrameResourceWithIndex(frameIndex)->GlobalCB->Resource();
-			D3D12_GPU_VIRTUAL_ADDRESS cbAddress = globalCB->GetGPUVirtualAddress();
-
-			// Offset to the pass cbv in the descriptor heap.
-			int heapIndex = D_RENDERER::PassCbvOffset + frameIndex;
-			auto handle = CD3DX12_CPU_DESCRIPTOR_HANDLE(D_RENDERER::CbvHeap->GetCPUDescriptorHandleForHeapStart());
-			handle.Offset(heapIndex, device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV));
-
-			D3D12_CONSTANT_BUFFER_VIEW_DESC cbvDesc;
-			cbvDesc.BufferLocation = cbAddress;
-			cbvDesc.SizeInBytes = passCBByteSize;
-
-			device->CreateConstantBufferView(&cbvDesc, handle);
-		}
-
 	}
 
 	void Editor::BuildRootSignature()

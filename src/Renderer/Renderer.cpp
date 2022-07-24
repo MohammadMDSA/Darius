@@ -6,6 +6,7 @@
 #include "FrameResource.hpp"
 #include "GraphicsUtils/D3DUtils.hpp"
 #include "GraphicsUtils/UploadBuffer.hpp"
+#include "GraphicsUtils/DescriptorHeap.hpp"
 #include "Camera/CameraManager.hpp"
 
 #include <imgui.h>
@@ -37,9 +38,6 @@ namespace Darius::Renderer
 
 	// Shaders
 	std::unordered_map<std::string, ComPtr<ID3DBlob>> Shaders;
-
-	// Constant buffer view descriptor heap and object
-	ComPtr<ID3D12DescriptorHeap> CbvHeap = nullptr;
 
 #ifdef _D_EDITOR
 	std::function<void(void)>		GuiDrawer = nullptr;

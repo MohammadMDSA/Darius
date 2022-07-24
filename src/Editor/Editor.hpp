@@ -67,8 +67,6 @@ namespace Darius::Editor
 
 		///////////////////////////////////////////
 		void InitMesh();
-		void BuildDescriptorHeaps();
-		void BuildConstantBuffers();
 		void BuildRootSignature();
 		void BuildShadersAndInputLayout();
 		void BuildGeometery();
