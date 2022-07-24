@@ -32,27 +32,28 @@ namespace Darius::Renderer
 	ID3D12Device* _device = nullptr;
 
 	// Input layout and root signature
-	//std::vector<D3D12_INPUT_ELEMENT_DESC> InputLayout;
-	//ComPtr<ID3D12RootSignature> RootSignature = nullptr;
+	std::vector<D3D12_INPUT_ELEMENT_DESC> InputLayout;
+	ComPtr<ID3D12RootSignature> RootSignature = nullptr;
 
 	// Shaders
-	//std::unordered_map<std::string, ComPtr<ID3DBlob>> Shaders;
+	std::unordered_map<std::string, ComPtr<ID3DBlob>> Shaders;
 
 	// Constant buffer view descriptor heap and object
-	//std::unique_ptr<UploadBuffer<ObjectConstants>> ObjectCB = nullptr;
-	//ComPtr<ID3D12DescriptorHeap> CbvHeap = nullptr;
+	ComPtr<ID3D12DescriptorHeap> CbvHeap = nullptr;
+
 #ifdef _D_EDITOR
 	std::function<void(void)>		GuiDrawer = nullptr;
 	ComPtr<ID3D12DescriptorHeap>	ImguiHeap = nullptr;
 #endif
 
 	// PSO
-	//std::unordered_map<std::string, ComPtr<ID3D12PipelineState>> Psos;
+	std::unordered_map<std::string, ComPtr<ID3D12PipelineState>> Psos;
 
 	// Device resource
 	std::unique_ptr<DeviceResource::DeviceResources> Resources;
 
-	//UINT PassCbvOffset = 0;
+	UINT PassCbvOffset = 0;
+
 
 	///////////////// REMOVE ASAP //////////////////
 	bool _4xMsaaState = false;
@@ -102,7 +103,7 @@ namespace Darius::Renderer
 		UpdateGlobalConstants();
 
 		// Prepare the command list to render a new frame.
-		Resources->Prepare(D_RENDERER_DEVICE::Psos["opaque"].Get());
+		Resources->Prepare(Psos["opaque"].Get());
 
 #ifdef _D_EDITOR
 		if (GuiDrawer)
@@ -168,10 +169,10 @@ namespace Darius::Renderer
 		auto cmdList = Resources->GetCommandList();
 
 		// Setting Root Signature
-		cmdList->SetGraphicsRootSignature(D_RENDERER_DEVICE::RootSignature.Get());
+		cmdList->SetGraphicsRootSignature(RootSignature.Get());
 
 		// Setting global constant
-		int globalCBVIndex = D_RENDERER_DEVICE::PassCbvOffset + Resources->GetCurrentFrameResourceIndex();
+		int globalCBVIndex = PassCbvOffset + Resources->GetCurrentFrameResourceIndex();
 
 		cmdList->SetGraphicsRootConstantBufferView(1, Resources->GetFrameResource()->GlobalCB->Resource()->GetGPUVirtualAddress());
 
@@ -254,7 +255,7 @@ namespace Darius::Renderer
 		globals.TotalTime = (float)time.GetTotalSeconds();
 		globals.DeltaTime = (float)time.GetElapsedSeconds();
 
-		auto currGlobalCb = D_RENDERER_DEVICE::GetCurrentFrameResource()->GlobalCB.get();
+		auto currGlobalCb = Resources->GetFrameResource()->GlobalCB.get();
 
 		currGlobalCb->CopyData(0, globals);
 		PIXEndEvent();
@@ -271,20 +272,12 @@ namespace Darius::Renderer
 
 		ImGui::CreateContext();
 		ImGui_ImplWin32_Init(Resources->GetWindow());
-		ImGui_ImplDX12_Init(D_RENDERER_DEVICE::GetDevice(), Resources->GetBackBufferCount(), DXGI_FORMAT_B8G8R8A8_UNORM, ImguiHeap.Get(), ImguiHeap.Get()->GetCPUDescriptorHandleForHeapStart(), ImguiHeap.Get()->GetGPUDescriptorHandleForHeapStart());
+		ImGui_ImplDX12_Init(_device, Resources->GetBackBufferCount(), DXGI_FORMAT_B8G8R8A8_UNORM, ImguiHeap.Get(), ImguiHeap.Get()->GetCPUDescriptorHandleForHeapStart(), ImguiHeap.Get()->GetGPUDescriptorHandleForHeapStart());
 	}
 #endif
 
 	namespace Device
 	{
-		ComPtr<ID3D12DescriptorHeap> CbvHeap = nullptr;
-		ComPtr<ID3D12RootSignature> RootSignature = nullptr;
-		std::unordered_map<std::string, ComPtr<ID3D12PipelineState>> Psos;
-		UINT PassCbvOffset;
-		std::unordered_map<std::string, ComPtr<ID3DBlob>> Shaders;
-		std::vector<D3D12_INPUT_ELEMENT_DESC> InputLayout;
-
-
 		void Initialize(HWND window, int width, int height)
 		{
 			// TODO: Provide parameters for swapchain format, depth/stencil format, and backbuffer count.

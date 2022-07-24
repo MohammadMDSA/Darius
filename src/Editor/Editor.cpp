@@ -275,7 +275,7 @@ namespace Darius::Editor
 		UINT numDescriptors = (objCount + 1) * gNumFrameResources;
 
 		// Save an offset to the start of the pass CBVs.  These are the last 3 descriptors.
-		D_RENDERER_DEVICE::PassCbvOffset = objCount * gNumFrameResources;
+		D_RENDERER::PassCbvOffset = objCount * gNumFrameResources;
 
 		D3D12_DESCRIPTOR_HEAP_DESC cbvHeapDesc;
 		cbvHeapDesc.NumDescriptors = numDescriptors;
@@ -283,8 +283,8 @@ namespace Darius::Editor
 		cbvHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
 		cbvHeapDesc.NodeMask = 0;
 
-		D_HR_CHECK(D_RENDERER_DEVICE::GetDevice()->CreateDescriptorHeap(&cbvHeapDesc, IID_PPV_ARGS(&D_RENDERER_DEVICE::CbvHeap)));
-		D_RENDERER_DEVICE::CbvHeap = D_RENDERER_DEVICE::CbvHeap;
+		D_HR_CHECK(D_RENDERER_DEVICE::GetDevice()->CreateDescriptorHeap(&cbvHeapDesc, IID_PPV_ARGS(&D_RENDERER::CbvHeap)));
+		D_RENDERER::CbvHeap = D_RENDERER::CbvHeap;
 	}
 
 	void Editor::BuildConstantBuffers()
@@ -306,7 +306,7 @@ namespace Darius::Editor
 
 				// Offset to the object cbv in the descriptor heap.
 				int heapIndex = frameIndex * objCount + i;
-				auto handle = CD3DX12_CPU_DESCRIPTOR_HANDLE(D_RENDERER_DEVICE::CbvHeap->GetCPUDescriptorHandleForHeapStart());
+				auto handle = CD3DX12_CPU_DESCRIPTOR_HANDLE(D_RENDERER::CbvHeap->GetCPUDescriptorHandleForHeapStart());
 				handle.Offset(heapIndex, device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV));
 
 				D3D12_CONSTANT_BUFFER_VIEW_DESC cbvDesc;
@@ -326,8 +326,8 @@ namespace Darius::Editor
 			D3D12_GPU_VIRTUAL_ADDRESS cbAddress = globalCB->GetGPUVirtualAddress();
 
 			// Offset to the pass cbv in the descriptor heap.
-			int heapIndex = D_RENDERER_DEVICE::PassCbvOffset + frameIndex;
-			auto handle = CD3DX12_CPU_DESCRIPTOR_HANDLE(D_RENDERER_DEVICE::CbvHeap->GetCPUDescriptorHandleForHeapStart());
+			int heapIndex = D_RENDERER::PassCbvOffset + frameIndex;
+			auto handle = CD3DX12_CPU_DESCRIPTOR_HANDLE(D_RENDERER::CbvHeap->GetCPUDescriptorHandleForHeapStart());
 			handle.Offset(heapIndex, device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV));
 
 			D3D12_CONSTANT_BUFFER_VIEW_DESC cbvDesc;
@@ -367,7 +367,7 @@ namespace Darius::Editor
 			0,
 			serializedRootSig->GetBufferPointer(),
 			serializedRootSig->GetBufferSize(),
-			IID_PPV_ARGS(&D_RENDERER_DEVICE::RootSignature)));
+			IID_PPV_ARGS(&D_RENDERER::RootSignature)));
 	}
 
 	void Editor::BuildShadersAndInputLayout()
@@ -378,10 +378,10 @@ namespace Darius::Editor
 			std::string ff = entry.path().string();
 
 
-		D_RENDERER_DEVICE::Shaders["standardVS"] = CompileShader(L"..\\..\\..\\..\\..\\src\\Shaders\\SimpleColor.hlsl", nullptr, "VS", "vs_5_1");
-		D_RENDERER_DEVICE::Shaders["opaquePS"] = CompileShader(L"..\\..\\..\\..\\..\\src\\Shaders\\SimpleColor.hlsl", nullptr, "PS", "ps_5_1");
+		D_RENDERER::Shaders["standardVS"] = CompileShader(L"..\\..\\..\\..\\..\\src\\Shaders\\SimpleColor.hlsl", nullptr, "VS", "vs_5_1");
+		D_RENDERER::Shaders["opaquePS"] = CompileShader(L"..\\..\\..\\..\\..\\src\\Shaders\\SimpleColor.hlsl", nullptr, "PS", "ps_5_1");
 
-		D_RENDERER_DEVICE::InputLayout =
+		D_RENDERER::InputLayout =
 		{
 			{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
 			{ "COLOR", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, 12, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 }
@@ -472,17 +472,17 @@ namespace Darius::Editor
 		// For Opaque objects
 		ZeroMemory(&opaquePsoDesc, sizeof(D3D12_GRAPHICS_PIPELINE_STATE_DESC));
 
-		opaquePsoDesc.InputLayout = { D_RENDERER_DEVICE::InputLayout.data(), (UINT)D_RENDERER_DEVICE::InputLayout.size() };
-		opaquePsoDesc.pRootSignature = D_RENDERER_DEVICE::RootSignature.Get();
+		opaquePsoDesc.InputLayout = { D_RENDERER::InputLayout.data(), (UINT)D_RENDERER::InputLayout.size() };
+		opaquePsoDesc.pRootSignature = D_RENDERER::RootSignature.Get();
 		opaquePsoDesc.VS =
 		{
-			reinterpret_cast<BYTE*>(D_RENDERER_DEVICE::Shaders["standardVS"]->GetBufferPointer()),
-			D_RENDERER_DEVICE::Shaders["standardVS"]->GetBufferSize()
+			reinterpret_cast<BYTE*>(D_RENDERER::Shaders["standardVS"]->GetBufferPointer()),
+			D_RENDERER::Shaders["standardVS"]->GetBufferSize()
 		};
 		opaquePsoDesc.PS =
 		{
-			reinterpret_cast<BYTE*>(D_RENDERER_DEVICE::Shaders["opaquePS"]->GetBufferPointer()),
-			D_RENDERER_DEVICE::Shaders["opaquePS"]->GetBufferSize()
+			reinterpret_cast<BYTE*>(D_RENDERER::Shaders["opaquePS"]->GetBufferPointer()),
+			D_RENDERER::Shaders["opaquePS"]->GetBufferSize()
 		};
 		opaquePsoDesc.RasterizerState = CD3DX12_RASTERIZER_DESC(D3D12_DEFAULT);
 		opaquePsoDesc.RasterizerState.FillMode = D3D12_FILL_MODE_SOLID;
@@ -496,12 +496,12 @@ namespace Darius::Editor
 		opaquePsoDesc.SampleDesc.Quality = 0;
 		opaquePsoDesc.DSVFormat = D_RENDERER_DEVICE::GetDepthBufferFormat();
 
-		D_HR_CHECK(D_RENDERER_DEVICE::GetDevice()->CreateGraphicsPipelineState(&opaquePsoDesc, IID_PPV_ARGS(&D_RENDERER_DEVICE::Psos["opaque"])));
+		D_HR_CHECK(D_RENDERER_DEVICE::GetDevice()->CreateGraphicsPipelineState(&opaquePsoDesc, IID_PPV_ARGS(&D_RENDERER::Psos["opaque"])));
 
 		// For opaque wireframe objecs
 		auto opaqueWireframePsoDesc = opaquePsoDesc;
 		opaqueWireframePsoDesc.RasterizerState.FillMode = D3D12_FILL_MODE_WIREFRAME;
-		D_HR_CHECK(D_RENDERER_DEVICE::GetDevice()->CreateGraphicsPipelineState(&opaqueWireframePsoDesc, IID_PPV_ARGS(&D_RENDERER_DEVICE::Psos["opaque_wireframe"])));
+		D_HR_CHECK(D_RENDERER_DEVICE::GetDevice()->CreateGraphicsPipelineState(&opaqueWireframePsoDesc, IID_PPV_ARGS(&D_RENDERER::Psos["opaque_wireframe"])));
 	}
 
 	void Editor::BuildRenderItems()
