@@ -18,75 +18,76 @@
 namespace Darius::Editor
 {
 
-    // A basic game implementation that creates a D3D12 device and
-    // provides a game loop.
-    class Editor final : public D_DEVICE_RESOURCE::IDeviceNotify
-    {
-    public:
+	// A basic game implementation that creates a D3D12 device and
+	// provides a game loop.
+	class Editor final : public D_DEVICE_RESOURCE::IDeviceNotify
+	{
+	public:
 
-        Editor() noexcept(false);
-        ~Editor();
+		Editor() noexcept(false);
+		~Editor();
 
-        Editor(Editor&&) = default;
-        Editor& operator= (Editor&&) = default;
+		Editor(Editor&&) = default;
+		Editor& operator= (Editor&&) = default;
 
-        Editor(Editor const&) = delete;
-        Editor& operator= (Editor const&) = delete;
+		Editor(Editor const&) = delete;
+		Editor& operator= (Editor const&) = delete;
 
-        // Initialization and management
-        void Initialize(HWND window, int width, int height);
+		// Initialization and management
+		void Initialize(HWND window, int width, int height);
 
-        // Basic game loop
-        void Tick();
+		// Basic game loop
+		void Tick();
 
-        // IDeviceNotify
-        void OnDeviceLost() override;
-        void OnDeviceRestored() override;
+		// IDeviceNotify
+		void OnDeviceLost() override;
+		void OnDeviceRestored() override;
 
-        // Messages
-        void OnActivated();
-        void OnDeactivated();
-        void OnSuspending();
-        void OnResuming();
-        void OnWindowMoved();
-        void OnDisplayChange();
-        void OnWindowSizeChanged(int width, int height);
+		// Messages
+		void OnActivated();
+		void OnDeactivated();
+		void OnSuspending();
+		void OnResuming();
+		void OnWindowMoved();
+		void OnDisplayChange();
+		void OnWindowSizeChanged(int width, int height);
 
-        // Properties
-        void GetDefaultSize(int& width, int& height) const noexcept;
+		// Properties
+		void GetDefaultSize(int& width, int& height) const noexcept;
 
-    private:
+	private:
 
-        void Update(D_TIME::StepTimer const& timer);
-        void Render();
+		void Update(D_TIME::StepTimer const& timer);
+		void Render();
 
-        void UpdateRotation();
+		void UpdateRotation();
 
-        void CreateDeviceDependentResources();
-        void CreateWindowSizeDependentResources();
+		void CreateDeviceDependentResources();
+		void CreateWindowSizeDependentResources();
 
-        ///////////////////////////////////////////
-        void InitMesh();
-        void BuildDescriptorHeaps();
-        void BuildConstantBuffers();
-        void BuildRootSignature();
-        void BuildShadersAndInputLayout();
-        void BuildGeometery();
-        void BuildPSO();
-        void BuildRenderItems();
-        void DisposeUploadBuffers();
+		///////////////////////////////////////////
+		void InitMesh();
+		void BuildDescriptorHeaps();
+		void BuildConstantBuffers();
+		void BuildRootSignature();
+		void BuildShadersAndInputLayout();
+		void BuildGeometery();
+		void BuildPSO();
+		void BuildRenderItems();
+		void DisposeUploadBuffers();
+		///////////////////////////////////////////
 
-        ///////////////////////////////////////////
 
 
-        // If using the DirectX Tool Kit for DX12, uncomment this line:
-        // std::unique_ptr<DirectX::GraphicsMemory> m_graphicsMemory;
+		// If using the DirectX Tool Kit for DX12, uncomment this line:
+		// std::unique_ptr<DirectX::GraphicsMemory> m_graphicsMemory;
 
-        std::vector<std::unique_ptr<D_RENDERER_FRAME_RESOUCE::RenderItem>> mRenderItems;
-        std::unique_ptr<Mesh>                       mMesh;
-        std::unique_ptr<D_MATH_CAMERA::Camera>      mCamera;
+		std::vector<std::unique_ptr<D_RENDERER_FRAME_RESOUCE::RenderItem>> mRenderItems;
+		std::unique_ptr<Mesh>                       mMesh;
+		std::unique_ptr<D_MATH_CAMERA::Camera>      mCamera;
 
-        float                                       mWidth;
-        float                                       mHeight;
-    };
+		float                                       mWidth;
+		float                                       mHeight;
+	};
+	void DrawImgui();
 }

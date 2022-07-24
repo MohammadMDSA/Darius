@@ -42,7 +42,8 @@ namespace Darius::Renderer
 	//std::unique_ptr<UploadBuffer<ObjectConstants>> ObjectCB = nullptr;
 	//ComPtr<ID3D12DescriptorHeap> CbvHeap = nullptr;
 #ifdef _D_EDITOR
-	ComPtr<ID3D12DescriptorHeap> ImguiHeap = nullptr;
+	std::function<void(void)>		GuiDrawer = nullptr;
+	ComPtr<ID3D12DescriptorHeap>	ImguiHeap = nullptr;
 #endif
 
 	// PSO
@@ -64,7 +65,6 @@ namespace Darius::Renderer
 #endif
 
 	void DrawCube(std::vector<RenderItem*> const& renderItems);
-	void DrawImgui();
 
 	void UpdateGlobalConstants();
 
@@ -90,6 +90,13 @@ namespace Darius::Renderer
 
 	}
 
+#ifdef _D_EDITOR
+	void RegisterGuiDrawer(std::function<void(void)> drawer)
+	{
+		GuiDrawer = drawer;
+	}
+#endif
+
 	void RenderMeshes(std::vector<RenderItem*> const& renderItems)
 	{
 		UpdateGlobalConstants();
@@ -98,10 +105,13 @@ namespace Darius::Renderer
 		Resources->Prepare(D_RENDERER_DEVICE::Psos["opaque"].Get());
 
 #ifdef _D_EDITOR
-		// Prepare imgui
-		ImGui_ImplDX12_NewFrame();
-		ImGui_ImplWin32_NewFrame();
-		ImGui::NewFrame();
+		if (GuiDrawer)
+		{
+			// Prepare imgui
+			ImGui_ImplDX12_NewFrame();
+			ImGui_ImplWin32_NewFrame();
+			ImGui::NewFrame();
+		}
 #endif
 
 		Clear();
@@ -110,9 +120,16 @@ namespace Darius::Renderer
 		PIXBeginEvent(commandList, PIX_COLOR_DEFAULT, L"Render opaque");
 
 		DrawCube(renderItems);
+		PIXEndEvent(commandList);
 
-		DrawImgui();
+		PIXBeginEvent(commandList, PIX_COLOR_DEFAULT, L"Render gui");
+		if (GuiDrawer)
+		{
+			GuiDrawer();
 
+			commandList->SetDescriptorHeaps(1, ImguiHeap.GetAddressOf());
+			ImGui_ImplDX12_RenderDrawData(ImGui::GetDrawData(), commandList);
+		}
 		PIXEndEvent(commandList);
 
 		// Show the new frame.
@@ -174,61 +191,6 @@ namespace Darius::Renderer
 			cmdList->DrawIndexedInstanced(ri->IndexCount, 1, ri->StartIndexLocation, ri->BaseVertexLocation, 0);
 		}
 	}
-
-#ifdef _D_EDITOR
-	void DrawImgui()
-	{
-		auto commandList = Resources->GetCommandList();
-
-		{
-			static bool show_demo_window = true;
-			static bool show_another_window = true;
-			static float clear_color[] = { 1.f, 1.f, 1.f, 0.f };
-			// 1. Show the big demo window (Most of the sample code is in ImGui::ShowDemoWindow()! You can browse its code to learn more about Dear ImGui!).
-			if (show_demo_window)
-				ImGui::ShowDemoWindow(&show_demo_window);
-
-			// 2. Show a simple window that we create ourselves. We use a Begin/End pair to created a named window.
-			{
-				static float f = 0.0f;
-				static int counter = 0;
-
-				ImGui::Begin("Hello, world!");                          // Create a window called "Hello, world!" and append into it.
-
-				ImGui::Text("This is some useful text.");               // Display some text (you can use a format strings too)
-				ImGui::Checkbox("Demo Window", &show_demo_window);      // Edit bools storing our window open/close state
-				ImGui::Checkbox("Another Window", &show_another_window);
-
-				ImGui::SliderFloat("float", &f, 0.0f, 1.0f);            // Edit 1 float using a slider from 0.0f to 1.0f
-				ImGui::ColorEdit3("clear color", (float*)&clear_color); // Edit 3 floats representing a color
-
-				if (ImGui::Button("Button"))                            // Buttons return true when clicked (most widgets return true when edited/activated)
-					counter++;
-				ImGui::SameLine();
-				ImGui::Text("counter = %d", counter);
-
-				ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
-				ImGui::End();
-			}
-
-			// 3. Show another simple window.
-			if (show_another_window)
-			{
-				ImGui::Begin("Another Window", &show_another_window);   // Pass a pointer to our bool variable (the window will have a closing button that will clear the bool when clicked)
-				ImGui::Text("Hello from another window!");
-				if (ImGui::Button("Close Me"))
-					show_another_window = false;
-				ImGui::End();
-			}
-		}
-
-
-		ImGui::Render();
-
-		commandList->SetDescriptorHeaps(1, ImguiHeap.GetAddressOf());
-		ImGui_ImplDX12_RenderDrawData(ImGui::GetDrawData(), commandList);
-	}
-#endif
 
 	//void DisposeUploadBuffers()
 	//{

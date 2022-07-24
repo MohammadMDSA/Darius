@@ -18,6 +18,9 @@ namespace Darius::Renderer
 	void Initialize();
 	void Shutdown();
 
+#ifdef _D_EDITOR
+	void RegisterGuiDrawer(std::function<void(void)> drawer);
+#endif
 	void RenderMeshes(std::vector<RenderItem*> const& renderItems);
 	void UpdateMeshCBs(std::vector<RenderItem*> const& renderItems);
 
