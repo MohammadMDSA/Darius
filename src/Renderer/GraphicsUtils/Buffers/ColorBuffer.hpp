@@ -22,10 +22,18 @@
 #define D_GRAPHICS_BUFFERS Darius::Graphics::Utils::Buffers
 #endif
 
+namespace Darius::Graphics
+{
+	class CommandContext;
+}
+
+using namespace Darius::Graphics;
+
 namespace Darius::Graphics::Utils::Buffers
 {
 	class ColorBuffer : public PixelBuffer
 	{
+	public:
 		ColorBuffer(D_MATH::Color clearColor = D_MATH::Color(0.f, 0.f, 0.f, 0.f)) :
 			mClearColor(clearColor),
 			mNumMipMaps(0),
@@ -69,7 +77,7 @@ namespace Darius::Graphics::Utils::Buffers
 		// This will work for all texture sizes, but it's recommended for speed and quality
 		// That you use dimensions with powers of two (but no necessarily square.) Pass
 		// 0 for ArrayCount to reserve space for mips at creation time.
-		void GenerateMipMaps();
+		void GenerateMipMaps(CommandContext& BaseContext);
 
 	protected:
 

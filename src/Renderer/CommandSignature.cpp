@@ -20,7 +20,7 @@
 namespace Darius::Graphics
 {
 
-    void CommandSignature::Finalize(const RootSignature* RootSignature)
+    void CommandSignature::Finalize(const D_GRAPHICS_UTILS::RootSignature* RootSignature)
     {
         if (mFinalized)
             return;

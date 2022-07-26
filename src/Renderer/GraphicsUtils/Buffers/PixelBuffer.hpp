@@ -13,7 +13,7 @@
 
 #pragma once
 
-#include "../GpuResource.hpp"
+#include "Renderer/GraphicsUtils/GpuResource.hpp"
 
 #ifndef D_GRAPHICS_BUFFERS
 #define D_GRAPHICS_BUFFERS Darius::Graphics::Utils::Buffers

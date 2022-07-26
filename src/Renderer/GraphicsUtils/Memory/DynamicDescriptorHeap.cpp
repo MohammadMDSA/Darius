@@ -21,6 +21,10 @@
 
 #include <Utils/Assert.hpp>
 
+using namespace D_GRAPHICS_UTILS;
+using namespace Darius::Graphics;
+
+
 namespace Darius::Graphics::Utils::Memory
 {
     //

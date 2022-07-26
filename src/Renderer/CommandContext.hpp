@@ -18,6 +18,8 @@
 #include "GraphicsUtils/Buffers/PixelBuffer.hpp"
 #include "GraphicsUtils/Buffers/GpuBuffer.hpp"
 #include "GraphicsUtils/Buffers/UploadBuffer.hpp"
+#include "GraphicsUtils/Buffers/DepthBuffer.hpp"
+#include "GraphicsUtils/Buffers/ReadbackBuffer.hpp"
 #include "GraphicsUtils/CommandListManager.hpp"
 #include "GraphicsUtils/Memory/LinearAllocator.hpp"
 #include "GraphicsUtils/Memory/DynamicDescriptorHeap.hpp"
@@ -125,7 +127,7 @@ namespace Darius::Graphics
         void Initialize(void);
 
         GraphicsContext& GetGraphicsContext() {
-            D_ASSERT(m_Type != D3D12_COMMAND_LIST_TYPE_COMPUTE, "Cannot convert async compute context to graphics");
+            D_ASSERT_M(m_Type != D3D12_COMMAND_LIST_TYPE_COMPUTE, "Cannot convert async compute context to graphics");
             return reinterpret_cast<GraphicsContext&>(*this);
         }
 
@@ -146,7 +148,7 @@ namespace Darius::Graphics
 
         // Creates a readback buffer of sufficient size, copies the texture into it,
         // and returns row pitch in bytes.
-        uint32_t ReadbackTexture(ReadbackBuffer& DstBuffer, PixelBuffer& SrcBuffer);
+        uint32_t ReadbackTexture(D_GRAPHICS_BUFFERS::ReadbackBuffer& DstBuffer, PixelBuffer& SrcBuffer);
 
         D_GRAPHICS_MEMORY::DynAlloc ReserveUploadMemory(size_t SizeInBytes)
         {
@@ -221,9 +223,9 @@ namespace Darius::Graphics
         void ClearUAV(D_GRAPHICS_BUFFERS::ColorBuffer& Target);
         void ClearColor(D_GRAPHICS_BUFFERS::ColorBuffer& Target, D3D12_RECT* Rect = nullptr);
         void ClearColor(D_GRAPHICS_BUFFERS::ColorBuffer& Target, float Colour[4], D3D12_RECT* Rect = nullptr);
-        void ClearDepth(DepthBuffer& Target);
-        void ClearStencil(DepthBuffer& Target);
-        void ClearDepthAndStencil(DepthBuffer& Target);
+        void ClearDepth(D_GRAPHICS_BUFFERS::DepthBuffer& Target);
+        void ClearStencil(D_GRAPHICS_BUFFERS::DepthBuffer& Target);
+        void ClearDepthAndStencil(D_GRAPHICS_BUFFERS::DepthBuffer& Target);
 
         void BeginQuery(ID3D12QueryHeap* QueryHeap, D3D12_QUERY_TYPE Type, UINT HeapIndex);
         void EndQuery(ID3D12QueryHeap* QueryHeap, D3D12_QUERY_TYPE Type, UINT HeapIndex);
@@ -278,7 +280,7 @@ namespace Darius::Graphics
         void DrawIndexedInstanced(UINT IndexCountPerInstance, UINT InstanceCount, UINT StartIndexLocation,
             INT BaseVertexLocation, UINT StartInstanceLocation);
         void DrawIndirect(GpuBuffer& ArgumentBuffer, uint64_t ArgumentBufferOffset = 0);
-        void ExecuteIndirect(CommandSignature const& CommandSig, GpuBuffer& ArgumentBuffer, uint64_t ArgumentStartOffset = 0,
+        void ExecuteIndirect(CommandSignature& CommandSig, GpuBuffer& ArgumentBuffer, uint64_t ArgumentStartOffset = 0,
             uint32_t MaxCommands = 1, GpuBuffer* CommandCounterBuffer = nullptr, uint64_t CounterOffset = 0);
 
     private:
@@ -318,7 +320,7 @@ namespace Darius::Graphics
         void Dispatch2D(size_t ThreadCountX, size_t ThreadCountY, size_t GroupSizeX = 8, size_t GroupSizeY = 8);
         void Dispatch3D(size_t ThreadCountX, size_t ThreadCountY, size_t ThreadCountZ, size_t GroupSizeX, size_t GroupSizeY, size_t GroupSizeZ);
         void DispatchIndirect(GpuBuffer& ArgumentBuffer, uint64_t ArgumentBufferOffset = 0);
-        void ExecuteIndirect(CommandSignature const& CommandSig, GpuBuffer& ArgumentBuffer, uint64_t ArgumentStartOffset = 0,
+        void ExecuteIndirect(CommandSignature& CommandSig, GpuBuffer& ArgumentBuffer, uint64_t ArgumentStartOffset = 0,
             uint32_t MaxCommands = 1, GpuBuffer* CommandCounterBuffer = nullptr, uint64_t CounterOffset = 0);
 
     private:
@@ -717,7 +719,7 @@ namespace Darius::Graphics
         m_CommandList->DrawIndexedInstanced(IndexCountPerInstance, InstanceCount, StartIndexLocation, BaseVertexLocation, StartInstanceLocation);
     }
 
-    inline void GraphicsContext::ExecuteIndirect(CommandSignature const& CommandSig,
+    inline void GraphicsContext::ExecuteIndirect(CommandSignature& CommandSig,
         GpuBuffer& ArgumentBuffer, uint64_t ArgumentStartOffset,
         uint32_t MaxCommands, GpuBuffer* CommandCounterBuffer, uint64_t CounterOffset)
     {
@@ -731,10 +733,10 @@ namespace Darius::Graphics
 
     inline void GraphicsContext::DrawIndirect(GpuBuffer& ArgumentBuffer, uint64_t ArgumentBufferOffset)
     {
-        ExecuteIndirect(D_GRAPHICS::GetDrawIndirectCommandSignature(), ArgumentBuffer, ArgumentBufferOffset);
+        ExecuteIndirect(D_GRAPHICS::DrawIndirectCommandSignature, ArgumentBuffer, ArgumentBufferOffset);
     }
 
-    inline void ComputeContext::ExecuteIndirect(CommandSignature const& CommandSig,
+    inline void ComputeContext::ExecuteIndirect(CommandSignature& CommandSig,
         GpuBuffer& ArgumentBuffer, uint64_t ArgumentStartOffset,
         uint32_t MaxCommands, GpuBuffer* CommandCounterBuffer, uint64_t CounterOffset)
     {
@@ -748,7 +750,7 @@ namespace Darius::Graphics
 
     inline void ComputeContext::DispatchIndirect(GpuBuffer& ArgumentBuffer, uint64_t ArgumentBufferOffset)
     {
-        ExecuteIndirect(D_GRAPHICS::GetDispatchIndirectCommandSignature(), ArgumentBuffer, ArgumentBufferOffset);
+        ExecuteIndirect(D_GRAPHICS::DispatchIndirectCommandSignature, ArgumentBuffer, ArgumentBufferOffset);
     }
 
     inline void CommandContext::CopyBuffer(GpuResource& Dest, GpuResource& Src)

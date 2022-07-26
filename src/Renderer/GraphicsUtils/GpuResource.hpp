@@ -22,6 +22,7 @@ namespace Darius::Graphics
 {
 	class GraphicsContext;
 	class ComputeContext;
+	class CommandContext;
 }
 
 namespace Darius::Graphics::Utils
@@ -31,19 +32,20 @@ namespace Darius::Graphics::Utils
 	public:
 		friend class Darius::Graphics::GraphicsContext;
 		friend class Darius::Graphics::ComputeContext;
+		friend class Darius::Graphics::CommandContext;
 
 		GpuResource() :
-			mGpuVirtualAddress(D3D12_GPU_VIRTUAL_ADDRESS_NULL),
 			mUsageState(D3D12_RESOURCE_STATE_COMMON),
-			mTransitioningState((D3D12_RESOURCE_STATES)-1)
+			mTransitioningState((D3D12_RESOURCE_STATES)-1),
+			mGpuVirtualAddress(D3D12_GPU_VIRTUAL_ADDRESS_NULL)
 		{
 		}
 
 		GpuResource(ID3D12Resource* resource, D3D12_RESOURCE_STATES currentState) :
-			mGpuVirtualAddress(D3D12_GPU_VIRTUAL_ADDRESS_NULL),
 			mResource(resource),
 			mUsageState(currentState),
-			mTransitioningState((D3D12_RESOURCE_STATES)-1)
+			mTransitioningState((D3D12_RESOURCE_STATES)-1),
+			mGpuVirtualAddress(D3D12_GPU_VIRTUAL_ADDRESS_NULL)
 		{
 		}
 
