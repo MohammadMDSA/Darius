@@ -9,22 +9,22 @@ using namespace Darius::Core::Memory;
 inline void test(std::size_t alignment)
 {
     {
-        void* p = Darius::Core::Memory::aligned_alloc(alignment, alignment + 1);
+        void* p = Darius::Core::Memory::AlignedAlloc(alignment, alignment + 1);
         BOOST_TEST(p);
-        BOOST_TEST(Darius::Core::Memory::is_aligned(p, alignment));
+        BOOST_TEST(Darius::Core::Memory::IsAligned(p, alignment));
         std::memset(p, 0, alignment);
-        Darius::Core::Memory::aligned_free(p);
+        Darius::Core::Memory::AlignedFree(p);
     }
     {
-        void* p = Darius::Core::Memory::aligned_alloc(alignment, 1);
+        void* p = Darius::Core::Memory::AlignedAlloc(alignment, 1);
         BOOST_TEST(p);
-        BOOST_TEST(Darius::Core::Memory::is_aligned(p, alignment));
+        BOOST_TEST(Darius::Core::Memory::IsAligned(p, alignment));
         std::memset(p, 0, 1);
-        Darius::Core::Memory::aligned_free(p);
+        Darius::Core::Memory::AlignedFree(p);
     }
     {
-        void* p = Darius::Core::Memory::aligned_alloc(alignment, 0);
-        Darius::Core::Memory::aligned_free(p);
+        void* p = Darius::Core::Memory::AlignedAlloc(alignment, 0);
+        Darius::Core::Memory::AlignedFree(p);
     }
 }
 

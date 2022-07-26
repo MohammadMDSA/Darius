@@ -9,6 +9,8 @@ list(APPEND RENDERER_LIBS_INCLUDE
 	"GraphicsUtils/UploadBuffer.hpp"
 	"GraphicsUtils/VertexTypes.hpp"
 	"GraphicsUtils/DescriptorHeap.hpp"
+	"GraphicsUtils/GpuResource.hpp"
+	"GraphicsUtils/Buffers/PixelBuffer.hpp"
 	"Camera/CameraManager.hpp"
 	"Geometry/Mesh.hpp"
 	"Geometry/MeshData.hpp"
@@ -25,6 +27,8 @@ list(APPEND RENDERER_LIBS_SOURCES
 	"GraphicsUtils/D3DUtils.cpp"
 	"GraphicsUtils/VertexTypes.cpp"
 	"GraphicsUtils/DescriptorHeap.cpp"
+	"GraphicsUtils/GpuResource.cpp"
+	"GraphicsUtils/Buffers/PixelBuffer.cpp"
 	"Camera/CameraManager.cpp"
 	"Geometry/Mesh.cpp"
 	"Geometry/GeometryGenerator.cpp"
@@ -40,7 +44,7 @@ add_library("Renderer")
 target_sources("Renderer"
 	PRIVATE
 	${RENDERER_LIBS_SOURCES}
-	${RENDERER_LIBS_INCLUDE} "GraphicsCore.hpp")
+	${RENDERER_LIBS_INCLUDE})
 
 	
 set(Boost_USE_STATIC_LIBS ON) 

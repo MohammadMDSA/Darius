@@ -11,6 +11,7 @@ list(APPEND CORE_LIBS_INCLUDE
 	"Exception.hpp"
 	"Input.hpp"
 	"Ref.hpp"
+	"Hash.hpp"
 	"pch.hpp"
 	"Containers/ConcurrentQueue.hpp"
 	)
