@@ -68,7 +68,7 @@ namespace Darius::Graphics::Utils::Buffers
 #endif
 	}
 
-	void PixelBuffer::CreateTextureResource(ID3D12Device* device, const std::wstring& name, const D3D12_RESOURCE_DESC& resouceDesc, D3D12_CLEAR_VALUE clearValue, D3D12_GPU_VIRTUAL_ADDRESS vidMemPtr)
+	void PixelBuffer::CreateTextureResource(ID3D12Device* device, const std::wstring& name, const D3D12_RESOURCE_DESC& resouceDesc, D3D12_CLEAR_VALUE clearValue, D3D12_GPU_VIRTUAL_ADDRESS vidMemPtr, D3D12_RESOURCE_STATES startState)
 	{
 		Destroy();
 
@@ -76,10 +76,10 @@ namespace Darius::Graphics::Utils::Buffers
 
 		{
 			CD3DX12_HEAP_PROPERTIES heapProps(D3D12_HEAP_TYPE_DEFAULT);
-			D_HR_CHECK(device->CreateCommittedResource(&heapProps, D3D12_HEAP_FLAG_NONE, &resouceDesc, D3D12_RESOURCE_STATE_COMMON, &clearValue, IID_PPV_ARGS(&mResource)));
+			D_HR_CHECK(device->CreateCommittedResource(&heapProps, D3D12_HEAP_FLAG_NONE, &resouceDesc, startState, &clearValue, IID_PPV_ARGS(&mResource)));
 		}
 
-		mUsageState = D3D12_RESOURCE_STATE_COMMON;
+		mUsageState = startState;
 		mGpuVirtualAddress = D3D12_GPU_VIRTUAL_ADDRESS_NULL;
 
 #ifdef _DEBUG

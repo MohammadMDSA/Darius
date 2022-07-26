@@ -31,7 +31,9 @@ namespace Darius::Graphics::Utils::Buffers
 
         D3D12_CLEAR_VALUE ClearValue = {};
         ClearValue.Format = Format;
-        CreateTextureResource(D_RENDERER_DEVICE::GetDevice(), Name, ResourceDesc, ClearValue, VidMemPtr);
+        ClearValue.DepthStencil.Depth = mClearDepth;
+        ClearValue.DepthStencil.Stencil = mClearStencil;
+        CreateTextureResource(D_RENDERER_DEVICE::GetDevice(), Name, ResourceDesc, ClearValue, VidMemPtr, D3D12_RESOURCE_STATE_DEPTH_WRITE);
         CreateDerivedViews(D_RENDERER_DEVICE::GetDevice(), Format);
     }
 
