@@ -230,11 +230,6 @@ namespace Darius::Renderer::DeviceResource
 		m_dsvDescriptorSize = m_d3dDevice->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_DSV);
 		m_cbvSrvUavDescriptorSize = m_d3dDevice->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 
-		if (m_depthBufferFormat != DXGI_FORMAT_UNKNOWN)
-		{
-			m_dsvDescriptorHeapHandle = D_GRAPHICS::AllocateDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE_DSV, 1);
-		}
-
 		// Create a direct command allocator
 		D_HR_CHECK(m_d3dDevice->CreateCommandAllocator(
 			D3D12_COMMAND_LIST_TYPE_DIRECT,
@@ -378,38 +373,7 @@ namespace Darius::Renderer::DeviceResource
 		{
 			// Allocate a 2-D surface as the depth/stencil buffer and create a depth/stencil view
 			// on this surface.
-			const CD3DX12_HEAP_PROPERTIES depthHeapProperties(D3D12_HEAP_TYPE_DEFAULT);
-
-			D3D12_RESOURCE_DESC depthStencilDesc = CD3DX12_RESOURCE_DESC::Tex2D(
-				m_depthBufferFormat,
-				backBufferWidth,
-				backBufferHeight,
-				1, // This depth stencil view has only one texture.
-				1  // Use a single mipmap level.
-			);
-			depthStencilDesc.Flags |= D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL;
-
-			D3D12_CLEAR_VALUE depthOptimizedClearValue = {};
-			depthOptimizedClearValue.Format = m_depthBufferFormat;
-			depthOptimizedClearValue.DepthStencil.Depth = 1.0f;
-			depthOptimizedClearValue.DepthStencil.Stencil = 0;
-
-			ThrowIfFailed(m_d3dDevice->CreateCommittedResource(
-				&depthHeapProperties,
-				D3D12_HEAP_FLAG_NONE,
-				&depthStencilDesc,
-				D3D12_RESOURCE_STATE_DEPTH_WRITE,
-				&depthOptimizedClearValue,
-				IID_PPV_ARGS(m_depthStencil.ReleaseAndGetAddressOf())
-			));
-
-			m_depthStencil->SetName(L"Depth stencil");
-
-			D3D12_DEPTH_STENCIL_VIEW_DESC dsvDesc = {};
-			dsvDesc.Format = m_depthBufferFormat;
-			dsvDesc.ViewDimension = D3D12_DSV_DIMENSION_TEXTURE2D;
-
-			m_d3dDevice->CreateDepthStencilView(m_depthStencil.Get(), &dsvDesc, m_dsvDescriptorHeapHandle);
+			m_depthStencil.Create(L"Depth stencil", backBufferWidth, backBufferHeight, m_depthBufferFormat);
 		}
 
 		if (resize)
@@ -475,7 +439,7 @@ namespace Darius::Renderer::DeviceResource
 		}
 		m_directCommandAlloc.Reset();
 
-		m_depthStencil.Reset();
+		m_depthStencil.Destroy();
 		m_commandQueue.Reset();
 		m_commandList.Reset();
 		m_fence.Reset();

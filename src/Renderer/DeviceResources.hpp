@@ -8,6 +8,7 @@
 #include "FrameResource.hpp"
 #include "GraphicsUtils/Memory/DescriptorHeap.hpp"
 #include "GraphicsUtils/Buffers/ColorBuffer.hpp"
+#include "GraphicsUtils/Buffers/DepthBuffer.hpp"
 
 #include <Core/Signal.hpp>
 #include <Utils/Assert.hpp>
@@ -17,6 +18,7 @@
 using namespace Darius::Graphics;
 using namespace Darius::Renderer;
 using namespace Darius::Renderer::ConstantFrameResource;
+using namespace D_GRAPHICS_BUFFERS;
 
 namespace Darius::Renderer::DeviceResource
 {
@@ -76,7 +78,7 @@ namespace Darius::Renderer::DeviceResource
         HWND                        GetWindow() const noexcept { return m_window; }
         D3D_FEATURE_LEVEL           GetDeviceFeatureLevel() const noexcept { return m_d3dFeatureLevel; }
         const ID3D12Resource* GetRenderTarget() const noexcept { return m_swapChainBuffer[m_backBufferIndex].GetResource(); }
-        const ID3D12Resource* GetDepthStencil() const noexcept { return m_depthStencil.Get(); }
+        const ID3D12Resource* GetDepthStencil() const noexcept { return m_depthStencil.GetResource(); }
         ID3D12CommandQueue* GetCommandQueue() const noexcept { return m_commandQueue.Get(); }
         ID3D12CommandAllocator* GetCommandAllocator() const noexcept { return m_frameResources[m_currentResourceIndex]->CmdListAlloc.Get(); }
         ID3D12CommandAllocator* GetDirectCommandAllocator() const noexcept { return m_directCommandAlloc.Get(); }
@@ -102,7 +104,7 @@ namespace Darius::Renderer::DeviceResource
 
         D3D12_CPU_DESCRIPTOR_HANDLE GetDepthStencilView() const noexcept
         {
-            return m_dsvDescriptorHeapHandle;
+            return m_depthStencil.GetDSV();
         }
 
         void SyncFrameStartGPU();
@@ -127,15 +129,12 @@ namespace Darius::Renderer::DeviceResource
         Microsoft::WRL::ComPtr<IDXGISwapChain3>             m_swapChain;
         // TODO: Change hardcoded array size and make in based on m_backBufferCount
         std::vector<D_GRAPHICS_BUFFERS::ColorBuffer>        m_swapChainBuffer;
-        Microsoft::WRL::ComPtr<ID3D12Resource>              m_depthStencil;
+        D_GRAPHICS_BUFFERS::DepthBuffer                     m_depthStencil;
 
         // Presentation fence objects.
         Microsoft::WRL::ComPtr<ID3D12Fence>                 m_fence;
         UINT                                                m_currFenceValue;
         Microsoft::WRL::Wrappers::Event                     m_fenceEvent;
-
-        // Direct3D rendering objects.
-        D3D12_CPU_DESCRIPTOR_HANDLE                         m_dsvDescriptorHeapHandle;
 
         UINT                                                m_rtvDescriptorSize;
         UINT                                                m_dsvDescriptorSize;
