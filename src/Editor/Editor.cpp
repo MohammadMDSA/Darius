@@ -49,10 +49,10 @@ namespace Darius::Editor
 #ifdef _DEBUG
 		//D_DEBUG::AttachWinPixGpuCapturer();
 #endif
-		D_GRAPHICS::Initialize();
 		D_RENDERER_DEVICE::Initialize(window, width, height);
+		D_GRAPHICS::Initialize();
 		D_CAMERA_MANAGER::Initialize();
-		Darius::Renderer::Initialize();
+		D_RENDERER::Initialize();
 
 		CreateDeviceDependentResources();
 		CreateWindowSizeDependentResources();
@@ -186,6 +186,8 @@ namespace Darius::Editor
 
 	void Editor::OnWindowSizeChanged(int width, int height)
 	{
+		(width);
+		(height);
 		D_CAMERA_MANAGER::SetViewportDimansion((float)width, (float)height);
 		if (!D_DEVICE::OnWindowsSizeChanged(width, height))
 			return;

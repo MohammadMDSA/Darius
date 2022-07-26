@@ -7,6 +7,7 @@
 
 #include "FrameResource.hpp"
 #include "GraphicsUtils/Memory/DescriptorHeap.hpp"
+#include "GraphicsUtils/Buffers/ColorBuffer.hpp"
 
 #include <Core/Signal.hpp>
 #include <Utils/Assert.hpp>
@@ -74,8 +75,8 @@ namespace Darius::Renderer::DeviceResource
         auto                        GetDXGIFactory() const noexcept { return m_dxgiFactory.Get(); }
         HWND                        GetWindow() const noexcept { return m_window; }
         D3D_FEATURE_LEVEL           GetDeviceFeatureLevel() const noexcept { return m_d3dFeatureLevel; }
-        ID3D12Resource* GetRenderTarget() const noexcept { return m_swapChainBuffer[m_backBufferIndex].Get(); }
-        ID3D12Resource* GetDepthStencil() const noexcept { return m_depthStencil.Get(); }
+        const ID3D12Resource* GetRenderTarget() const noexcept { return m_swapChainBuffer[m_backBufferIndex].GetResource(); }
+        const ID3D12Resource* GetDepthStencil() const noexcept { return m_depthStencil.Get(); }
         ID3D12CommandQueue* GetCommandQueue() const noexcept { return m_commandQueue.Get(); }
         ID3D12CommandAllocator* GetCommandAllocator() const noexcept { return m_frameResources[m_currentResourceIndex]->CmdListAlloc.Get(); }
         ID3D12CommandAllocator* GetDirectCommandAllocator() const noexcept { return m_directCommandAlloc.Get(); }
@@ -96,17 +97,12 @@ namespace Darius::Renderer::DeviceResource
 
         D3D12_CPU_DESCRIPTOR_HANDLE GetRenderTargetView() const noexcept
         {
-            return CD3DX12_CPU_DESCRIPTOR_HANDLE(m_rtvDescriptorHeapHandle, m_backBufferIndex * m_rtvDescriptorSize);
+            return m_swapChainBuffer[m_backBufferIndex].GetRTV();
         }
 
         D3D12_CPU_DESCRIPTOR_HANDLE GetDepthStencilView() const noexcept
         {
             return m_dsvDescriptorHeapHandle;
-        }
-
-        D3D12_CPU_DESCRIPTOR_HANDLE GetRenderTargetShaderResourceHandle() const noexcept
-        {
-            return CD3DX12_CPU_DESCRIPTOR_HANDLE(m_rtShaderResourceHandle, m_backBufferIndex * m_cbvSrvUavDescriptorSize);
         }
 
         void SyncFrameStartGPU();
@@ -130,7 +126,7 @@ namespace Darius::Renderer::DeviceResource
         Microsoft::WRL::ComPtr<IDXGIFactory4>               m_dxgiFactory;
         Microsoft::WRL::ComPtr<IDXGISwapChain3>             m_swapChain;
         // TODO: Change hardcoded array size and make in based on m_backBufferCount
-        Microsoft::WRL::ComPtr<ID3D12Resource>              m_swapChainBuffer[2];
+        std::vector<D_GRAPHICS_BUFFERS::ColorBuffer>        m_swapChainBuffer;
         Microsoft::WRL::ComPtr<ID3D12Resource>              m_depthStencil;
 
         // Presentation fence objects.
@@ -139,9 +135,7 @@ namespace Darius::Renderer::DeviceResource
         Microsoft::WRL::Wrappers::Event                     m_fenceEvent;
 
         // Direct3D rendering objects.
-        D3D12_CPU_DESCRIPTOR_HANDLE                         m_rtvDescriptorHeapHandle;
         D3D12_CPU_DESCRIPTOR_HANDLE                         m_dsvDescriptorHeapHandle;
-        D3D12_CPU_DESCRIPTOR_HANDLE                         m_rtShaderResourceHandle;
 
         UINT                                                m_rtvDescriptorSize;
         UINT                                                m_dsvDescriptorSize;

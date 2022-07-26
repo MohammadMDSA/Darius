@@ -75,6 +75,7 @@ namespace Darius::Renderer::DeviceResource
 		{
 			throw std::out_of_range("minFeatureLevel too low");
 		}
+		m_swapChainBuffer.resize(backBufferCount);
 	}
 
 	// Destructor for DeviceResources.
@@ -225,10 +226,6 @@ namespace Darius::Renderer::DeviceResource
 
 		m_commandQueue->SetName(L"DeviceResources");
 
-		// Create descriptor heaps for render target views and depth stencil views.
-		m_rtvDescriptorHeapHandle = D_GRAPHICS::AllocateDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE_RTV, m_backBufferCount);
-		m_rtShaderResourceHandle = D_GRAPHICS::AllocateDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, m_backBufferCount);
-
 		m_rtvDescriptorSize = m_d3dDevice->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
 		m_dsvDescriptorSize = m_d3dDevice->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_DSV);
 		m_cbvSrvUavDescriptorSize = m_d3dDevice->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
@@ -282,7 +279,7 @@ namespace Darius::Renderer::DeviceResource
 		// Release resources that are tied to the swap chain and update fence values.
 		for (UINT n = 0; n < m_backBufferCount; n++)
 		{
-			m_swapChainBuffer[n].Reset();
+			m_swapChainBuffer[n].Destroy();
 		}
 		for (UINT i = 0; i < D_RENDERER_FRAME_RESOUCE::gNumFrameResources; i++)
 		{
@@ -369,27 +366,9 @@ namespace Darius::Renderer::DeviceResource
 		// and create render target views for each of them.
 		for (UINT n = 0; n < m_backBufferCount; n++)
 		{
-			ThrowIfFailed(m_swapChain->GetBuffer(n, IID_PPV_ARGS(m_swapChainBuffer[n].GetAddressOf())));
-
-			wchar_t name[25] = {};
-			swprintf_s(name, L"Render target %u", n);
-			m_swapChainBuffer[n]->SetName(name);
-
-			D3D12_RENDER_TARGET_VIEW_DESC rtvDesc = {};
-			rtvDesc.Format = m_backBufferFormat;
-			rtvDesc.ViewDimension = D3D12_RTV_DIMENSION_TEXTURE2D;
-
-			const CD3DX12_CPU_DESCRIPTOR_HANDLE rtvDescriptor = CD3DX12_CPU_DESCRIPTOR_HANDLE(m_rtvDescriptorHeapHandle, n * m_rtvDescriptorSize);
-			m_d3dDevice->CreateRenderTargetView(m_swapChainBuffer[n].Get(), &rtvDesc, rtvDescriptor);
-
-			const CD3DX12_CPU_DESCRIPTOR_HANDLE srvDescriptor(m_rtShaderResourceHandle, n * m_cbvSrvUavDescriptorSize);
-			D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
-			srvDesc.Format = m_backBufferFormat;
-			srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
-			srvDesc.Texture2D.MipLevels = 1;
-			srvDesc.Texture2D.MostDetailedMip = 0;
-			srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
-			m_d3dDevice->CreateShaderResourceView(m_swapChainBuffer[n].Get(), &srvDesc, srvDescriptor);
+			ComPtr<ID3D12Resource> swapChainBuffer;
+			ThrowIfFailed(m_swapChain->GetBuffer(n, IID_PPV_ARGS(&swapChainBuffer)));
+			m_swapChainBuffer[n].CreateFromSwapChain(L"Primary SwapChain Buffer", swapChainBuffer.Detach());
 		}
 
 		// Reset the index to the current back buffer.
@@ -488,7 +467,7 @@ namespace Darius::Renderer::DeviceResource
 
 		for (UINT n = 0; n < m_backBufferCount; n++)
 		{
-			m_swapChainBuffer[n].Reset();
+			m_swapChainBuffer[n].Destroy();
 		}
 		for (UINT i = 0; i < D_RENDERER_FRAME_RESOUCE::gNumFrameResources; i++)
 		{
@@ -534,7 +513,7 @@ namespace Darius::Renderer::DeviceResource
 		{
 			// Transition the render target into the correct state to allow for drawing into it.
 			const D3D12_RESOURCE_BARRIER barrier = CD3DX12_RESOURCE_BARRIER::Transition(
-				m_swapChainBuffer[m_backBufferIndex].Get(),
+				m_swapChainBuffer[m_backBufferIndex].GetResource(),
 				beforeState, afterState);
 			m_commandList->ResourceBarrier(1, &barrier);
 		}
@@ -547,7 +526,7 @@ namespace Darius::Renderer::DeviceResource
 		{
 			// Transition the render target to the state that allows it to be presented to the display.
 			const D3D12_RESOURCE_BARRIER barrier = CD3DX12_RESOURCE_BARRIER::Transition(
-				m_swapChainBuffer[m_backBufferIndex].Get(),
+				m_swapChainBuffer[m_backBufferIndex].GetResource(),
 				beforeState, D3D12_RESOURCE_STATE_PRESENT);
 			m_commandList->ResourceBarrier(1, &barrier);
 		}

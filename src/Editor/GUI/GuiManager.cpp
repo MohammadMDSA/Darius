@@ -1,6 +1,8 @@
 #include "Editor/pch.hpp"
 #include "GuiManager.hpp"
 
+#include <Renderer/Renderer.hpp>
+#include <Renderer/Camera/CameraManager.hpp>
 #include <Utils/Assert.hpp>
 
 #include "imgui/imgui.h"
@@ -72,7 +74,11 @@ namespace Darius::Editor::GuiManager
 
 
 		ImGui::Begin("Scene");
-
+		//float x, y;
+		//D_CAMERA_MANAGER::GetViewportDimansion(x, y);
+		//auto id = (ImTextureID)D_RENDERER::GetSceneTextureHandle();
+		//(id);
+		////ImGui::Image(id, ImVec2(x, y));
 
 		ImGui::End();
 		ImGui::Render();

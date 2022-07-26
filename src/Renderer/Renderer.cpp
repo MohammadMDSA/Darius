@@ -270,11 +270,11 @@ namespace Darius::Renderer
 	}
 #endif
 
-	size_t GetSceneTextureHandle()
-	{
-		auto handle = Resources->GetRenderTargetShaderResourceHandle();
-		return handle.ptr;
-	}
+	//size_t GetSceneTextureHandle()
+	//{
+	//	//auto handle = Resources->GetRenderTargetShaderResourceHandle();
+	//	return 0;
+	//}
 
 	namespace Device
 	{

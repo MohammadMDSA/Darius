@@ -30,5 +30,5 @@ namespace Darius::Renderer
 	void RenderMeshes(std::vector<RenderItem*> const& renderItems);
 	void UpdateMeshCBs(std::vector<RenderItem*> const& renderItems);
 
-	size_t GetSceneTextureHandle();
+	//size_t GetSceneTextureHandle();
 }
