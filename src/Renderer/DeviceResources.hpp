@@ -6,12 +6,14 @@
 #include "./pch.hpp"
 
 #include "FrameResource.hpp"
+#include "GraphicsUtils/DescriptorHeap.hpp"
 
 #include <Core/Signal.hpp>
 #include <Utils/Assert.hpp>
 
 #define D_DEVICE_RESOURCE Darius::Renderer::DeviceResource
 
+using namespace Darius::Graphics;
 using namespace Darius::Renderer;
 using namespace Darius::Renderer::ConstantFrameResource;
 
@@ -92,15 +94,19 @@ namespace Darius::Renderer::DeviceResource
         FrameResource*              GetFrameResource() const noexcept      { return m_frameResources[m_currentResourceIndex].get(); }
         FrameResource* GetFrameResourceWithIndex(int i) const noexcept { D_ASSERT(i < gNumFrameResources); return m_frameResources[i].get(); }
 
-        CD3DX12_CPU_DESCRIPTOR_HANDLE GetRenderTargetView() const noexcept
+        D3D12_CPU_DESCRIPTOR_HANDLE GetRenderTargetView() const noexcept
         {
-            return CD3DX12_CPU_DESCRIPTOR_HANDLE(
-                m_rtvDescriptorHeap->GetCPUDescriptorHandleForHeapStart(),
-                static_cast<INT>(m_backBufferIndex), m_rtvDescriptorSize);
+            return CD3DX12_CPU_DESCRIPTOR_HANDLE(m_rtvDescriptorHeapHandle, m_backBufferIndex * m_rtvDescriptorSize);
         }
-        CD3DX12_CPU_DESCRIPTOR_HANDLE GetDepthStencilView() const noexcept
+
+        D3D12_CPU_DESCRIPTOR_HANDLE GetDepthStencilView() const noexcept
         {
-            return CD3DX12_CPU_DESCRIPTOR_HANDLE(m_dsvDescriptorHeap->GetCPUDescriptorHandleForHeapStart());
+            return m_dsvDescriptorHeapHandle;
+        }
+
+        CD3DX12_CPU_DESCRIPTOR_HANDLE GetRenderTargetShaderResourceView() const noexcept
+        {
+            
         }
 
         void SyncFrameStartGPU();
@@ -133,8 +139,8 @@ namespace Darius::Renderer::DeviceResource
         Microsoft::WRL::Wrappers::Event                     m_fenceEvent;
 
         // Direct3D rendering objects.
-        Microsoft::WRL::ComPtr<ID3D12DescriptorHeap>        m_rtvDescriptorHeap;
-        Microsoft::WRL::ComPtr<ID3D12DescriptorHeap>        m_dsvDescriptorHeap;
+        D3D12_CPU_DESCRIPTOR_HANDLE                         m_rtvDescriptorHeapHandle;
+        D3D12_CPU_DESCRIPTOR_HANDLE                         m_dsvDescriptorHeapHandle;
 
         UINT                                                m_rtvDescriptorSize;
         UINT                                                m_dsvDescriptorSize;

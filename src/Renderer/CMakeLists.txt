@@ -14,6 +14,7 @@ list(APPEND RENDERER_LIBS_INCLUDE
 	"Geometry/MeshData.hpp"
 	"Geometry/GeometryGenerator.hpp"
 	"Renderer.hpp"
+	"GraphicsCore.hpp"
 	"DeviceResources.hpp"
 	"FrameResource.hpp"
 	"d3dx12.h"
@@ -28,6 +29,7 @@ list(APPEND RENDERER_LIBS_SOURCES
 	"Geometry/Mesh.cpp"
 	"Geometry/GeometryGenerator.cpp"
 	"Renderer.cpp"
+	"GraphicsCore.cpp"
 	"DeviceResources.cpp"
 	"FrameResource.cpp"
 	)
@@ -38,7 +40,7 @@ add_library("Renderer")
 target_sources("Renderer"
 	PRIVATE
 	${RENDERER_LIBS_SOURCES}
-	${RENDERER_LIBS_INCLUDE})
+	${RENDERER_LIBS_INCLUDE} "GraphicsCore.hpp")
 
 	
 set(Boost_USE_STATIC_LIBS ON) 

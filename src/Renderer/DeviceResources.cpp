@@ -4,6 +4,7 @@
 
 #include "pch.hpp"
 #include "DeviceResources.hpp"
+#include "GraphicsCore.hpp"
 
 using namespace DirectX;
 using namespace Darius::Renderer::DeviceResource;
@@ -225,13 +226,7 @@ namespace Darius::Renderer::DeviceResource
 		m_commandQueue->SetName(L"DeviceResources");
 
 		// Create descriptor heaps for render target views and depth stencil views.
-		D3D12_DESCRIPTOR_HEAP_DESC rtvDescriptorHeapDesc = {};
-		rtvDescriptorHeapDesc.NumDescriptors = m_backBufferCount;
-		rtvDescriptorHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_RTV;
-
-		ThrowIfFailed(m_d3dDevice->CreateDescriptorHeap(&rtvDescriptorHeapDesc, IID_PPV_ARGS(m_rtvDescriptorHeap.ReleaseAndGetAddressOf())));
-
-		m_rtvDescriptorHeap->SetName(L"DeviceResources");
+		m_rtvDescriptorHeapHandle = D_GRAPHICS::AllocateDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE_RTV, m_backBufferCount);
 
 		m_rtvDescriptorSize = m_d3dDevice->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
 		m_dsvDescriptorSize = m_d3dDevice->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_DSV);
@@ -239,13 +234,7 @@ namespace Darius::Renderer::DeviceResource
 
 		if (m_depthBufferFormat != DXGI_FORMAT_UNKNOWN)
 		{
-			D3D12_DESCRIPTOR_HEAP_DESC dsvDescriptorHeapDesc = {};
-			dsvDescriptorHeapDesc.NumDescriptors = 1;
-			dsvDescriptorHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_DSV;
-
-			ThrowIfFailed(m_d3dDevice->CreateDescriptorHeap(&dsvDescriptorHeapDesc, IID_PPV_ARGS(m_dsvDescriptorHeap.ReleaseAndGetAddressOf())));
-
-			m_dsvDescriptorHeap->SetName(L"DeviceResources");
+			m_dsvDescriptorHeapHandle = D_GRAPHICS::AllocateDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE_DSV, 1);
 		}
 
 		// Create a direct command allocator
@@ -389,9 +378,7 @@ namespace Darius::Renderer::DeviceResource
 			rtvDesc.Format = m_backBufferFormat;
 			rtvDesc.ViewDimension = D3D12_RTV_DIMENSION_TEXTURE2D;
 
-			const CD3DX12_CPU_DESCRIPTOR_HANDLE rtvDescriptor(
-				m_rtvDescriptorHeap->GetCPUDescriptorHandleForHeapStart(),
-				static_cast<INT>(n), m_rtvDescriptorSize);
+			const CD3DX12_CPU_DESCRIPTOR_HANDLE rtvDescriptor = CD3DX12_CPU_DESCRIPTOR_HANDLE(m_rtvDescriptorHeapHandle, n * m_rtvDescriptorSize);
 			m_d3dDevice->CreateRenderTargetView(m_swapChainBuffer[n].Get(), &rtvDesc, rtvDescriptor);
 		}
 
@@ -433,7 +420,7 @@ namespace Darius::Renderer::DeviceResource
 			dsvDesc.Format = m_depthBufferFormat;
 			dsvDesc.ViewDimension = D3D12_DSV_DIMENSION_TEXTURE2D;
 
-			m_d3dDevice->CreateDepthStencilView(m_depthStencil.Get(), &dsvDesc, m_dsvDescriptorHeap->GetCPUDescriptorHandleForHeapStart());
+			m_d3dDevice->CreateDepthStencilView(m_depthStencil.Get(), &dsvDesc, m_dsvDescriptorHeapHandle);
 		}
 
 		if (resize)
@@ -503,11 +490,10 @@ namespace Darius::Renderer::DeviceResource
 		m_commandQueue.Reset();
 		m_commandList.Reset();
 		m_fence.Reset();
-		m_rtvDescriptorHeap.Reset();
-		m_dsvDescriptorHeap.Reset();
 		m_swapChain.Reset();
 		m_d3dDevice.Reset();
 		m_dxgiFactory.Reset();
+		D_GRAPHICS_UTILS::DescriptorAllocator::DestroyAll();
 
 #ifdef _DEBUG
 		{

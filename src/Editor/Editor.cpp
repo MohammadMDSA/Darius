@@ -16,6 +16,7 @@
 #include <Renderer/Renderer.hpp>
 #include <Renderer/FrameResource.hpp>
 #include <Renderer/Camera/CameraManager.hpp>
+#include <Renderer/GraphicsCore.hpp>
 #include <Utils/Debug.hpp>
 
 #include <exception>
@@ -48,6 +49,7 @@ namespace Darius::Editor
 #ifdef _DEBUG
 		//D_DEBUG::AttachWinPixGpuCapturer();
 #endif
+		D_GRAPHICS::Initialize();
 		D_RENDERER_DEVICE::Initialize(window, width, height);
 		D_CAMERA_MANAGER::Initialize();
 		Darius::Renderer::Initialize();

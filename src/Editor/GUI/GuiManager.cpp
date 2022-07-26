@@ -9,6 +9,11 @@ namespace Darius::Editor::GuiManager
 {
 	bool initialzied = false;
 
+	void RenderSceneToTexture()
+	{
+
+	}
+
 	void Initialize()
 	{
 		D_ASSERT(!initialzied);

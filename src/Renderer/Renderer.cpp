@@ -26,6 +26,7 @@ using namespace Darius::Math;
 using namespace Darius::Renderer::DeviceResource;
 using namespace Darius::Renderer::GraphicsUtils;
 using namespace D_RENDERER_GEOMETRY;
+using namespace D_GRAPHICS_UTILS;
 
 namespace Darius::Renderer
 {
@@ -51,6 +52,9 @@ namespace Darius::Renderer
 	std::unique_ptr<DeviceResource::DeviceResources> Resources;
 
 	UINT PassCbvOffset = 0;
+
+	///////////////// Heaps ///////////////////////
+	DescriptorHeap					SceneTexturesHeap;
 
 
 	///////////////// REMOVE ASAP //////////////////
@@ -79,7 +83,8 @@ namespace Darius::Renderer
 #ifdef _D_EDITOR
 		InitializeGUI();
 #endif // _D_EDITOR
-
+		
+		SceneTexturesHeap.Create(L"Scene Textures", D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, 2);
 	}
 
 	void Shutdown()
@@ -193,11 +198,6 @@ namespace Darius::Renderer
 		}
 	}
 
-	//void DisposeUploadBuffers()
-	//{
-	//	mesh->DisposeUploadBuffers();
-	//}
-
 	// Helper method to clear the back buffers.
 	void Clear()
 	{
@@ -278,6 +278,19 @@ namespace Darius::Renderer
 	}
 #endif
 
+	ID3D12Resource** GetSceneTexture()
+	{
+		D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc;
+		ZeroMemory(&srvDesc, sizeof(D3D12_SHADER_RESOURCE_VIEW_DESC));
+		srvDesc.Format = Resources->GetBackBufferFormat();
+		srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
+		srvDesc.Texture2D.MipLevels = 1;
+		srvDesc.Texture2D.MostDetailedMip = 0;
+		srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
+		//D_RENDERER_DEVICE::GetDevice()->CreateShaderResourceView()
+		return nullptr;
+	}
+
 	namespace Device
 	{
 		void Initialize(HWND window, int width, int height)
@@ -350,7 +363,7 @@ namespace Darius::Renderer
 
 		ID3D12Device* GetDevice()
 		{
-			return _device;
+			return Resources->GetD3DDevice();
 		}
 
 		ID3D12CommandAllocator* GetCommandAllocator()
