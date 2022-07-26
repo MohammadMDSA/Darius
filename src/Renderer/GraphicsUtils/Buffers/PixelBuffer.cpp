@@ -16,7 +16,7 @@
 
 #include <Utils/Assert.hpp>
 
-namespace Darius::Graphics::Utils
+namespace Darius::Graphics::Utils::Buffers
 {
 	void PixelBuffer::ExportToFile(const std::wstring& filePath)
 	{

@@ -17,7 +17,7 @@
 
 #include <Utils/Assert.hpp>
 
-namespace Darius::Graphics::Utils
+namespace Darius::Graphics::Utils::Memory
 {
 	//
 	// DescriptorAllocator implementation

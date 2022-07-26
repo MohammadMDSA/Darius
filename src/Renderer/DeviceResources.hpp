@@ -6,7 +6,7 @@
 #include "./pch.hpp"
 
 #include "FrameResource.hpp"
-#include "GraphicsUtils/DescriptorHeap.hpp"
+#include "GraphicsUtils/Memory/DescriptorHeap.hpp"
 
 #include <Core/Signal.hpp>
 #include <Utils/Assert.hpp>

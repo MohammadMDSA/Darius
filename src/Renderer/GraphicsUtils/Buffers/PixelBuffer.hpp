@@ -15,11 +15,11 @@
 
 #include "../GpuResource.hpp"
 
-#ifndef D_GRAPHICS_UTILS
-#define D_GRAPHICS_UTILS Darius::Graphics::Utils
+#ifndef D_GRAPHICS_BUFFERS
+#define D_GRAPHICS_BUFFERS Darius::Graphics::Utils::Buffers
 #endif
 
-namespace Darius::Graphics::Utils
+namespace Darius::Graphics::Utils::Buffers
 {
 	class PixelBuffer : public GpuResource
 	{
@@ -53,7 +53,7 @@ namespace Darius::Graphics::Utils
 
 		void AssociateWithResource(ID3D12Device* device, const std::wstring& name, ID3D12Resource* resource, D3D12_RESOURCE_STATES currentsState);
 
-		void CreateTextureResource(ID3D12Device* device, const std::wstring& name, const D3D12_RESOURCE_DESC& resouceDesc, D3D12_CLEAR_VALUE clearValue, D3D12_GPU_VIRTUAL_ADDRESS vidMemPtr = D3D12_GPU_VIRTUAL_ADDRESS_NULL);
+		void CreateTextureResource(ID3D12Device* device, const std::wstring& name, const D3D12_RESOURCE_DESC& resouceDesc, D3D12_CLEAR_VALUE clearValue, D3D12_GPU_VIRTUAL_ADDRESS vidMemPtr = D3D12_GPU_VIRTUAL_ADDRESS_UNKNOWN);
 
 		static DXGI_FORMAT GetBaseFormat(DXGI_FORMAT format);
 		static DXGI_FORMAT GetUAVFormat(DXGI_FORMAT format);

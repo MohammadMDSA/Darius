@@ -79,7 +79,7 @@ namespace Darius::Renderer::ConstantFrameResource
 
 	// Stores the resources needed for the CPU to build the command lists
 	// for a frame
-	struct FrameResource : NonCopyable
+	struct FrameResource : ::NonCopyable
 	{
 	public:
 		FrameResource() = delete;
@@ -95,8 +95,8 @@ namespace Darius::Renderer::ConstantFrameResource
 
 		// We cannot update a cbuffer until the GPU is done processing the
 		// commands that reference it. So each frame needs their own cbuffers.
-		std::unique_ptr<UploadBuffer<GlobalConstants>>	GlobalCB = nullptr;
-		std::unique_ptr<UploadBuffer<MeshConstants>>	MeshCB = nullptr;
+		std::unique_ptr<D_RENDERER_UTILS::UploadBuffer<GlobalConstants>>	GlobalCB = nullptr;
+		std::unique_ptr<D_RENDERER_UTILS::UploadBuffer<MeshConstants>>	MeshCB = nullptr;
 
 		// Fence value to mark commands up to this fence point. This lets us
 		// check if these frame resources are still in use by the GPU.

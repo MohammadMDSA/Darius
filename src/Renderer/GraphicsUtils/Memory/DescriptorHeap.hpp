@@ -18,11 +18,11 @@
 #include <queue>
 #include <string>
 
-#ifndef D_GRAPHICS_UTILS
-#define D_GRAPHICS_UTILS Darius::Graphics::Utils
+#ifndef D_GRAPHICS_MEMORY
+#define D_GRAPHICS_MEMORY Darius::Graphics::Utils::Memory
 #endif
 
-namespace Darius::Graphics::Utils
+namespace Darius::Graphics::Utils::Memory
 {
     // This is an unbounded resource descriptor allocator.  It is intended to provide space for CPU-visible
     // resource descriptors as resources are created.  For those that need to be made shader-visible, they

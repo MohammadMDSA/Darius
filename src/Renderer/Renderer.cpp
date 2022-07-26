@@ -6,7 +6,7 @@
 #include "FrameResource.hpp"
 #include "GraphicsUtils/D3DUtils.hpp"
 #include "GraphicsUtils/UploadBuffer.hpp"
-#include "GraphicsUtils/DescriptorHeap.hpp"
+#include "GraphicsUtils/Memory/DescriptorHeap.hpp"
 #include "Camera/CameraManager.hpp"
 
 #include <imgui.h>
@@ -26,7 +26,7 @@ using namespace Darius::Math;
 using namespace Darius::Renderer::DeviceResource;
 using namespace Darius::Renderer::GraphicsUtils;
 using namespace D_RENDERER_GEOMETRY;
-using namespace D_GRAPHICS_UTILS;
+using namespace D_GRAPHICS_MEMORY;
 
 namespace Darius::Renderer
 {

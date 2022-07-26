@@ -18,11 +18,20 @@
 #define D_GRAPHICS_UTILS Darius::Graphics::Utils
 #endif
 
+namespace Darius::Graphics
+{
+	class GraphicsContext;
+	class ComputeContext;
+}
+
 namespace Darius::Graphics::Utils
 {
 	class GpuResource
 	{
 	public:
+		friend class Darius::Graphics::GraphicsContext;
+		friend class Darius::Graphics::ComputeContext;
+
 		GpuResource() :
 			mGpuVirtualAddress(D3D12_GPU_VIRTUAL_ADDRESS_NULL),
 			mUsageState(D3D12_RESOURCE_STATE_COMMON),

@@ -503,7 +503,7 @@ namespace Darius::Renderer::DeviceResource
 		m_swapChain.Reset();
 		m_d3dDevice.Reset();
 		m_dxgiFactory.Reset();
-		D_GRAPHICS_UTILS::DescriptorAllocator::DestroyAll();
+		D_GRAPHICS_MEMORY::DescriptorAllocator::DestroyAll();
 
 #ifdef _DEBUG
 		{
