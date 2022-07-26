@@ -83,7 +83,7 @@ namespace Darius::Renderer
 #ifdef _D_EDITOR
 		InitializeGUI();
 #endif // _D_EDITOR
-		
+
 		SceneTexturesHeap.Create(L"Scene Textures", D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, 2);
 	}
 
@@ -108,16 +108,6 @@ namespace Darius::Renderer
 		// Prepare the command list to render a new frame.
 		Resources->Prepare(Psos["opaque"].Get());
 
-#ifdef _D_EDITOR
-		if (GuiDrawer)
-		{
-			// Prepare imgui
-			ImGui_ImplDX12_NewFrame();
-			ImGui_ImplWin32_NewFrame();
-			ImGui::NewFrame();
-		}
-#endif
-
 		Clear();
 
 		auto commandList = Resources->GetCommandList();
@@ -126,9 +116,16 @@ namespace Darius::Renderer
 		DrawCube(renderItems);
 		PIXEndEvent(commandList);
 
+#ifdef _D_EDITOR
 		PIXBeginEvent(commandList, PIX_COLOR_DEFAULT, L"Render gui");
 		if (GuiDrawer)
 		{
+
+			// Prepare imgui
+			ImGui_ImplDX12_NewFrame();
+			ImGui_ImplWin32_NewFrame();
+			ImGui::NewFrame();
+
 			GuiDrawer();
 
 			ID3D12DescriptorHeap* desHeaps[] = { ImguiHeap.GetHeapPointer() };
@@ -137,6 +134,7 @@ namespace Darius::Renderer
 			ImGui_ImplDX12_RenderDrawData(ImGui::GetDrawData(), commandList);
 		}
 		PIXEndEvent(commandList);
+#endif
 
 		// Show the new frame.
 		PIXBeginEvent(PIX_COLOR_DEFAULT, L"Present");
@@ -264,12 +262,6 @@ namespace Darius::Renderer
 #ifdef _D_EDITOR
 	void InitializeGUI()
 	{
-		/*D3D12_DESCRIPTOR_HEAP_DESC desc = {};
-		desc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
-		desc.NumDescriptors = 1;
-		desc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
-		D_HR_CHECK(_device->CreateDescriptorHeap(&desc, IID_PPV_ARGS(&ImguiHeap)));*/
-
 		ImguiHeap.Create(L"Imgui Heap", D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, 1);
 
 		ImGui::CreateContext();
@@ -278,17 +270,10 @@ namespace Darius::Renderer
 	}
 #endif
 
-	ID3D12Resource** GetSceneTexture()
+	size_t GetSceneTextureHandle()
 	{
-		D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc;
-		ZeroMemory(&srvDesc, sizeof(D3D12_SHADER_RESOURCE_VIEW_DESC));
-		srvDesc.Format = Resources->GetBackBufferFormat();
-		srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
-		srvDesc.Texture2D.MipLevels = 1;
-		srvDesc.Texture2D.MostDetailedMip = 0;
-		srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
-		//D_RENDERER_DEVICE::GetDevice()->CreateShaderResourceView()
-		return nullptr;
+		auto handle = Resources->GetRenderTargetShaderResourceHandle();
+		return handle.ptr;
 	}
 
 	namespace Device
