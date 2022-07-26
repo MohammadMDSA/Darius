@@ -104,9 +104,9 @@ namespace Darius::Renderer::DeviceResource
             return m_dsvDescriptorHeapHandle;
         }
 
-        CD3DX12_CPU_DESCRIPTOR_HANDLE GetRenderTargetShaderResourceView() const noexcept
+        D3D12_CPU_DESCRIPTOR_HANDLE GetRenderTargetShaderResourceHandle() const noexcept
         {
-            
+            return CD3DX12_CPU_DESCRIPTOR_HANDLE(m_rtShaderResourceHandle, m_backBufferIndex * m_cbvSrvUavDescriptorSize);
         }
 
         void SyncFrameStartGPU();
@@ -141,6 +141,7 @@ namespace Darius::Renderer::DeviceResource
         // Direct3D rendering objects.
         D3D12_CPU_DESCRIPTOR_HANDLE                         m_rtvDescriptorHeapHandle;
         D3D12_CPU_DESCRIPTOR_HANDLE                         m_dsvDescriptorHeapHandle;
+        D3D12_CPU_DESCRIPTOR_HANDLE                         m_rtShaderResourceHandle;
 
         UINT                                                m_rtvDescriptorSize;
         UINT                                                m_dsvDescriptorSize;

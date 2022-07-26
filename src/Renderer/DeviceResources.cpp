@@ -227,6 +227,7 @@ namespace Darius::Renderer::DeviceResource
 
 		// Create descriptor heaps for render target views and depth stencil views.
 		m_rtvDescriptorHeapHandle = D_GRAPHICS::AllocateDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE_RTV, m_backBufferCount);
+		m_rtShaderResourceHandle = D_GRAPHICS::AllocateDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, m_backBufferCount);
 
 		m_rtvDescriptorSize = m_d3dDevice->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
 		m_dsvDescriptorSize = m_d3dDevice->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_DSV);
@@ -380,6 +381,15 @@ namespace Darius::Renderer::DeviceResource
 
 			const CD3DX12_CPU_DESCRIPTOR_HANDLE rtvDescriptor = CD3DX12_CPU_DESCRIPTOR_HANDLE(m_rtvDescriptorHeapHandle, n * m_rtvDescriptorSize);
 			m_d3dDevice->CreateRenderTargetView(m_swapChainBuffer[n].Get(), &rtvDesc, rtvDescriptor);
+
+			const CD3DX12_CPU_DESCRIPTOR_HANDLE srvDescriptor(m_rtShaderResourceHandle, n * m_cbvSrvUavDescriptorSize);
+			D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
+			srvDesc.Format = m_backBufferFormat;
+			srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
+			srvDesc.Texture2D.MipLevels = 1;
+			srvDesc.Texture2D.MostDetailedMip = 0;
+			srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
+			m_d3dDevice->CreateShaderResourceView(m_swapChainBuffer[n].Get(), &srvDesc, srvDescriptor);
 		}
 
 		// Reset the index to the current back buffer.
