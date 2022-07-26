@@ -17,7 +17,7 @@
 
 #include <Utils/Assert.hpp>
 
-namespace Darius::Renderer::GraphicsUtils
+namespace Darius::Graphics::Utils
 {
 	//
 	// DescriptorAllocator implementation
@@ -73,8 +73,8 @@ namespace Darius::Renderer::GraphicsUtils
 		m_HeapDesc.Type = Type;
 		m_HeapDesc.NumDescriptors = MaxCount;
 		m_HeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
-		m_HeapDesc.NodeMask = 1;
-
+		//m_HeapDesc.NodeMask = 1;
+		auto dev = D_RENDERER_DEVICE::GetDevice();
 		D_HR_CHECK(D_RENDERER_DEVICE::GetDevice()->CreateDescriptorHeap(&m_HeapDesc, IID_PPV_ARGS(m_Heap.ReleaseAndGetAddressOf())));
 
 #ifdef RELEASE
