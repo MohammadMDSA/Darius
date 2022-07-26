@@ -28,6 +28,7 @@ list(APPEND MATH_LIBS_INCLUDE
 list(APPEND MATH_LIBS_SOURCES
 	"Bounds/BoundingSphere.cpp"
 	"pch.cpp"
+	"Color.cpp"
 	"Camera/Camera.cpp"
 	"Camera/Frustum.cpp"
 	)
