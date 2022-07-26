@@ -9,7 +9,7 @@
 #include <boost/align/align_down.hpp>
 #include <boost/align/align_up.hpp>
 #include <boost/align/aligned_allocator.hpp>
-#include <new>
+//#include <new>
 
 #define D_malloc(T) reinterpret_cast<T*>(Darius::Core::Memory::AlignedAlloc(alignof(T), sizeof(T)))
 
@@ -98,25 +98,25 @@ namespace Darius::Core::Memory
 using namespace Darius::Core::Memory;
 
 // Overridden 'normal' new/delete
-void* operator new (size_t size)
-{
-	return malloc(size);
-}
-
-void* operator new[](size_t size)
-{
-	return malloc(size);
-}
-
-void operator delete(void* mem)
-{
-	free(mem);
-}
-
-void operator delete[](void* mem)
-{
-	free(mem);
-}
+//void* operator new (size_t size)
+//{
+//	return malloc(size);
+//}
+//
+//void* operator new[](size_t size)
+//{
+//	return malloc(size);
+//}
+//
+//void operator delete(void* mem)
+//{
+//	free(mem);
+//}
+//
+//void operator delete[](void* mem)
+//{
+//	free(mem);
+//}
 
 //template<typename T>
 //void* operator new(size_t size, T data)

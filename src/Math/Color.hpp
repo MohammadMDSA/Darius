@@ -92,7 +92,7 @@ namespace Darius::Math
 
 	inline Color::Color(uint16_t r, uint16_t g, uint16_t b, uint16_t a, uint16_t bitDepth)
 	{
-		m_value.v = XMVectorScale(XMVectorSet(r, g, b, a), 1.0f / ((1 << bitDepth) - 1));
+		m_value.v = XMVectorScale(XMVectorSet((float)r, (float)g, (float)b, (float)a), 1.0f / (float)((1 << bitDepth) - 1));
 	}
 
 	inline Color::Color(uint32_t u32)
