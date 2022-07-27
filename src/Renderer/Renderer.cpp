@@ -7,6 +7,7 @@
 #include "GraphicsUtils/D3DUtils.hpp"
 #include "GraphicsUtils/UploadBuffer.hpp"
 #include "GraphicsUtils/Memory/DescriptorHeap.hpp"
+#include "GraphicsUtils/Buffers/ColorBuffer.hpp"
 #include "Camera/CameraManager.hpp"
 
 #include <imgui.h>
@@ -61,6 +62,9 @@ namespace Darius::Renderer
 	bool _4xMsaaState = false;
 	short _4xMsaaQuality = 0;
 
+	///////////////// Render Textures //////////////
+	D_GRAPHICS_BUFFERS::ColorBuffer	SceneTexture;
+
 	//////////////////////////////////////////////////////
 	// Functions
 #ifdef _D_EDITOR
@@ -71,7 +75,7 @@ namespace Darius::Renderer
 
 	void UpdateGlobalConstants();
 
-	void Clear();
+	void Clear(D_GRAPHICS_BUFFERS::ColorBuffer const& rt, std::wstring const& processName = L"Clear");
 
 	void Initialize()
 	{
@@ -108,7 +112,7 @@ namespace Darius::Renderer
 		// Prepare the command list to render a new frame.
 		Resources->Prepare(Psos["opaque"].Get());
 
-		Clear();
+		Clear(Resources->GetRTBuffer());
 
 		auto commandList = Resources->GetCommandList();
 		PIXBeginEvent(commandList, PIX_COLOR_DEFAULT, L"Render opaque");
@@ -197,16 +201,16 @@ namespace Darius::Renderer
 	}
 
 	// Helper method to clear the back buffers.
-	void Clear()
+	void Clear(D_GRAPHICS_BUFFERS::ColorBuffer const& rt, std::wstring const& processName)
 	{
 		auto commandList = Resources->GetCommandList();
-		PIXBeginEvent(commandList, PIX_COLOR_DEFAULT, L"Clear");
+		PIXBeginEvent(commandList, PIX_COLOR_DEFAULT, processName.c_str());
 
 		// Clear the views.
-		auto const rtvDescriptor = Resources->GetRenderTargetView();
+		auto const rtvDescriptor = rt.GetRTV();
 		auto const dsvDescriptor = Resources->GetDepthStencilView();
 
-		commandList->ClearRenderTargetView(rtvDescriptor, Colors::CornflowerBlue, 0, nullptr);
+		commandList->ClearRenderTargetView(rtvDescriptor, XMVECTOR(rt.GetClearColor()).m128_f32, 0, nullptr);
 		commandList->ClearDepthStencilView(dsvDescriptor, D3D12_CLEAR_FLAG_DEPTH, 1.0f, 0, 0, nullptr);
 		commandList->OMSetRenderTargets(1, &rtvDescriptor, true, &dsvDescriptor);
 

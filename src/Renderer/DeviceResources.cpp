@@ -75,7 +75,10 @@ namespace Darius::Renderer::DeviceResource
 		{
 			throw std::out_of_range("minFeatureLevel too low");
 		}
-		m_swapChainBuffer.resize(backBufferCount);
+		for (size_t i = 0; i < backBufferCount; i++)
+		{
+			m_swapChainBuffer.push_back({ DirectX::Colors::CornflowerBlue });
+		}
 	}
 
 	// Destructor for DeviceResources.

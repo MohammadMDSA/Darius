@@ -65,6 +65,7 @@ namespace Darius::Math
 		uint32_t R9G9B9E5() const;
 
 		operator XMVECTOR() const { return m_value; }
+		operator XMFLOAT4() const { return XMFLOAT4(m_value); }
 
 	private:
 		XMVECTORF32 m_value;

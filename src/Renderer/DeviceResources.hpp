@@ -96,6 +96,7 @@ namespace Darius::Renderer::DeviceResource
         unsigned int                GetDeviceOptions() const noexcept      { return m_options; }
         FrameResource*              GetFrameResource() const noexcept      { return m_frameResources[m_currentResourceIndex].get(); }
         FrameResource* GetFrameResourceWithIndex(int i) const noexcept { D_ASSERT(i < gNumFrameResources); return m_frameResources[i].get(); }
+        const D_GRAPHICS_BUFFERS::ColorBuffer& GetRTBuffer() const noexcept { return m_swapChainBuffer[m_backBufferIndex]; }
 
         D3D12_CPU_DESCRIPTOR_HANDLE GetRenderTargetView() const noexcept
         {
