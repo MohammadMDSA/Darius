@@ -72,41 +72,30 @@ namespace Darius::Renderer::DeviceResource
         RECT GetOutputSize() const noexcept { return m_outputSize; }
 
         // Direct3D Accessors.
-        auto                        GetD3DDevice() const noexcept { return m_d3dDevice.Get(); }
-        auto                        GetSwapChain() const noexcept { return m_swapChain.Get(); }
-        auto                        GetDXGIFactory() const noexcept { return m_dxgiFactory.Get(); }
-        HWND                        GetWindow() const noexcept { return m_window; }
-        D3D_FEATURE_LEVEL           GetDeviceFeatureLevel() const noexcept { return m_d3dFeatureLevel; }
-        const ID3D12Resource* GetRenderTarget() const noexcept { return m_swapChainBuffer[m_backBufferIndex].GetResource(); }
-        const ID3D12Resource* GetDepthStencil() const noexcept { return m_depthStencil.GetResource(); }
-        ID3D12CommandQueue* GetCommandQueue() const noexcept { return m_commandQueue.Get(); }
-        ID3D12CommandAllocator* GetCommandAllocator() const noexcept { return m_frameResources[m_currentResourceIndex]->CmdListAlloc.Get(); }
-        ID3D12CommandAllocator* GetDirectCommandAllocator() const noexcept { return m_directCommandAlloc.Get(); }
-        auto                        GetCommandList() const noexcept        { return m_commandList.Get(); }
-        DXGI_FORMAT                 GetBackBufferFormat() const noexcept   { return m_backBufferFormat; }
-        DXGI_FORMAT                 GetDepthBufferFormat() const noexcept  { return m_depthBufferFormat; }
-        D3D12_VIEWPORT              GetScreenViewport() const noexcept     { return m_screenViewport; }
-        D3D12_RECT                  GetScissorRect() const noexcept        { return m_scissorRect; }
+        auto                        GetD3DDevice() const noexcept               { return m_d3dDevice.Get(); }
+        auto                        GetSwapChain() const noexcept               { return m_swapChain.Get(); }
+        auto                        GetDXGIFactory() const noexcept             { return m_dxgiFactory.Get(); }
+        HWND                        GetWindow() const noexcept                  { return m_window; }
+        D3D_FEATURE_LEVEL           GetDeviceFeatureLevel() const noexcept      { return m_d3dFeatureLevel; }
+        ID3D12CommandQueue* GetCommandQueue() const noexcept                    { return m_commandQueue.Get(); }
+        ID3D12CommandAllocator* GetCommandAllocator() const noexcept            { return m_frameResources[m_currentResourceIndex]->CmdListAlloc.Get(); }
+        ID3D12CommandAllocator* GetDirectCommandAllocator() const noexcept      { return m_directCommandAlloc.Get(); }
+        auto                        GetCommandList() const noexcept             { return m_commandList.Get(); }
+        DXGI_FORMAT                 GetBackBufferFormat() const noexcept        { return m_backBufferFormat; }
+        DXGI_FORMAT                 GetDepthBufferFormat() const noexcept       { return m_depthBufferFormat; }
+        D3D12_VIEWPORT              GetScreenViewport() const noexcept          { return m_screenViewport; }
+        D3D12_RECT                  GetScissorRect() const noexcept             { return m_scissorRect; }
         UINT                        GetCurrentFrameResourceIndex() const noexcept  { return m_currentResourceIndex; }
-        UINT                        GetBackBufferCount() const noexcept    { return m_backBufferCount; }
-        UINT                        GetRtvDescriptorSize() const noexcept { return m_rtvDescriptorSize; }
-        UINT                        GetDsvDescriptorSize() const noexcept { return m_dsvDescriptorSize; }
+        UINT                        GetBackBufferCount() const noexcept         { return m_backBufferCount; }
+        UINT                        GetRtvDescriptorSize() const noexcept       { return m_rtvDescriptorSize; }
+        UINT                        GetDsvDescriptorSize() const noexcept       { return m_dsvDescriptorSize; }
         UINT                        GetCbvSrvUavDescriptorSize() const noexcept { return m_cbvSrvUavDescriptorSize; }
-        DXGI_COLOR_SPACE_TYPE       GetColorSpace() const noexcept         { return m_colorSpace; }
-        unsigned int                GetDeviceOptions() const noexcept      { return m_options; }
-        FrameResource*              GetFrameResource() const noexcept      { return m_frameResources[m_currentResourceIndex].get(); }
-        FrameResource* GetFrameResourceWithIndex(int i) const noexcept { D_ASSERT(i < gNumFrameResources); return m_frameResources[i].get(); }
-        const D_GRAPHICS_BUFFERS::ColorBuffer& GetRTBuffer() const noexcept { return m_swapChainBuffer[m_backBufferIndex]; }
-
-        D3D12_CPU_DESCRIPTOR_HANDLE GetRenderTargetView() const noexcept
-        {
-            return m_swapChainBuffer[m_backBufferIndex].GetRTV();
-        }
-
-        D3D12_CPU_DESCRIPTOR_HANDLE GetDepthStencilView() const noexcept
-        {
-            return m_depthStencil.GetDSV();
-        }
+        DXGI_COLOR_SPACE_TYPE       GetColorSpace() const noexcept              { return m_colorSpace; }
+        unsigned int                GetDeviceOptions() const noexcept           { return m_options; }
+        FrameResource*              GetFrameResource() const noexcept           { return m_frameResources[m_currentResourceIndex].get(); }
+        FrameResource*              GetFrameResourceWithIndex(int i) const noexcept { D_ASSERT(i < gNumFrameResources); return m_frameResources[i].get(); }
+        const D_GRAPHICS_BUFFERS::ColorBuffer& GetRTBuffer() const noexcept     { return m_swapChainBuffer[m_backBufferIndex]; }
+        const D_GRAPHICS_BUFFERS::DepthBuffer& GetDepthStencilBuffer() const noexcept { return m_depthStencil; }
 
         void SyncFrameStartGPU();
     private:

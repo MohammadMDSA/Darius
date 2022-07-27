@@ -75,7 +75,7 @@ namespace Darius::Renderer
 
 	void UpdateGlobalConstants();
 
-	void Clear(D_GRAPHICS_BUFFERS::ColorBuffer const& rt, std::wstring const& processName = L"Clear");
+	void Clear(D_GRAPHICS_BUFFERS::ColorBuffer const& rt, D_GRAPHICS_BUFFERS::DepthBuffer const& depthStencil, RECT bounds, std::wstring const& processName = L"Clear");
 
 	void Initialize()
 	{
@@ -112,7 +112,10 @@ namespace Darius::Renderer
 		// Prepare the command list to render a new frame.
 		Resources->Prepare(Psos["opaque"].Get());
 
-		Clear(Resources->GetRTBuffer());
+		float width, height;
+		D_CAMERA_MANAGER::GetViewportDimansion(width, height);
+		RECT bounds = { 0l, 0l, (long)width, (long)height };
+		Clear(Resources->GetRTBuffer(), Resources->GetDepthStencilBuffer(), bounds);
 
 		auto commandList = Resources->GetCommandList();
 		PIXBeginEvent(commandList, PIX_COLOR_DEFAULT, L"Render opaque");
@@ -201,22 +204,24 @@ namespace Darius::Renderer
 	}
 
 	// Helper method to clear the back buffers.
-	void Clear(D_GRAPHICS_BUFFERS::ColorBuffer const& rt, std::wstring const& processName)
+	void Clear(D_GRAPHICS_BUFFERS::ColorBuffer const& rt, D_GRAPHICS_BUFFERS::DepthBuffer const& depthStencil, RECT bounds, std::wstring const& processName)
 	{
 		auto commandList = Resources->GetCommandList();
 		PIXBeginEvent(commandList, PIX_COLOR_DEFAULT, processName.c_str());
 
 		// Clear the views.
 		auto const rtvDescriptor = rt.GetRTV();
-		auto const dsvDescriptor = Resources->GetDepthStencilView();
+		auto const dsvDescriptor = depthStencil.GetDSV();
 
 		commandList->ClearRenderTargetView(rtvDescriptor, XMVECTOR(rt.GetClearColor()).m128_f32, 0, nullptr);
 		commandList->ClearDepthStencilView(dsvDescriptor, D3D12_CLEAR_FLAG_DEPTH, 1.0f, 0, 0, nullptr);
 		commandList->OMSetRenderTargets(1, &rtvDescriptor, true, &dsvDescriptor);
 
 		// Set the viewport and scissor rect.
-		auto const viewport = Resources->GetScreenViewport();
-		auto const scissorRect = Resources->GetScissorRect();
+		long width = bounds.right - bounds.left;
+		long height = bounds.bottom - bounds.top;
+		auto const viewport = CD3DX12_VIEWPORT((float)bounds.left, (float)bounds.top, (long)width, (long)height, D3D12_MIN_DEPTH, D3D12_MAX_DEPTH);
+		auto const scissorRect = CD3DX12_RECT(bounds.left, bounds.top, (long)width, (long)height);
 		commandList->RSSetViewports(1, &viewport);
 		commandList->RSSetScissorRects(1, &scissorRect);
 
