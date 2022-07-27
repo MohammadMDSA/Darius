@@ -54,15 +54,8 @@ namespace Darius::Renderer::GraphicsUtils
 		);
 		cmdList->ResourceBarrier(1, &transition);
 
-		try
-		{
-			UpdateSubresources<1>(cmdList, defaultBuffer.Get(), uploadBuffer.Get(), 0, 0, 1, &subResourceData);
+		UpdateSubresources<1>(cmdList, defaultBuffer.Get(), uploadBuffer.Get(), 0, 0, 1, &subResourceData);
 
-		}
-		catch (const std::exception&)
-		{
-			int i;
-		}
 
 		transition = CD3DX12_RESOURCE_BARRIER::Transition(
 			defaultBuffer.Get(),
