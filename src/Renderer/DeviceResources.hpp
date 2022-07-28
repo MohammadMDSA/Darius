@@ -9,6 +9,7 @@
 #include "GraphicsUtils/Memory/DescriptorHeap.hpp"
 #include "GraphicsUtils/Buffers/ColorBuffer.hpp"
 #include "GraphicsUtils/Buffers/DepthBuffer.hpp"
+#include "CommandContext.hpp"
 
 #include <Core/Signal.hpp>
 #include <Utils/Assert.hpp>
@@ -62,10 +63,9 @@ namespace Darius::Renderer::DeviceResource
             m_deviceLostSignal.connect(boost::bind(&IDeviceNotify::OnDeviceLost, deviceNotify));
             m_deviceRestoredSignal.connect(boost::bind(&IDeviceNotify::OnDeviceRestored, deviceNotify));
         }
-        void Prepare(ID3D12PipelineState* pso = nullptr, D3D12_RESOURCE_STATES beforeState = D3D12_RESOURCE_STATE_PRESENT,
+        void Prepare(D_GRAPHICS_BUFFERS::ColorBuffer* buffer, bool frameStart, ID3D12PipelineState* pso = nullptr, D3D12_RESOURCE_STATES beforeState = D3D12_RESOURCE_STATE_PRESENT,
             D3D12_RESOURCE_STATES afterState = D3D12_RESOURCE_STATE_RENDER_TARGET);
-        void Present(D3D12_RESOURCE_STATES beforeState = D3D12_RESOURCE_STATE_RENDER_TARGET);
-        void WaitForGpu() noexcept;
+        void Present(D_GRAPHICS::GraphicsContext& context, D3D12_RESOURCE_STATES beforeState = D3D12_RESOURCE_STATE_RENDER_TARGET);
         void UpdateColorSpace();
 
         // Device Accessors.
@@ -77,10 +77,7 @@ namespace Darius::Renderer::DeviceResource
         auto                        GetDXGIFactory() const noexcept             { return m_dxgiFactory.Get(); }
         HWND                        GetWindow() const noexcept                  { return m_window; }
         D3D_FEATURE_LEVEL           GetDeviceFeatureLevel() const noexcept      { return m_d3dFeatureLevel; }
-        ID3D12CommandQueue* GetCommandQueue() const noexcept                    { return m_commandQueue.Get(); }
         ID3D12CommandAllocator* GetCommandAllocator() const noexcept            { return m_frameResources[m_currentResourceIndex]->CmdListAlloc.Get(); }
-        ID3D12CommandAllocator* GetDirectCommandAllocator() const noexcept      { return m_directCommandAlloc.Get(); }
-        auto                        GetCommandList() const noexcept             { return m_commandList.Get(); }
         DXGI_FORMAT                 GetBackBufferFormat() const noexcept        { return m_backBufferFormat; }
         DXGI_FORMAT                 GetDepthBufferFormat() const noexcept       { return m_depthBufferFormat; }
         D3D12_VIEWPORT              GetScreenViewport() const noexcept          { return m_screenViewport; }
@@ -94,13 +91,12 @@ namespace Darius::Renderer::DeviceResource
         unsigned int                GetDeviceOptions() const noexcept           { return m_options; }
         FrameResource*              GetFrameResource() const noexcept           { return m_frameResources[m_currentResourceIndex].get(); }
         FrameResource*              GetFrameResourceWithIndex(int i) const noexcept { D_ASSERT(i < gNumFrameResources); return m_frameResources[i].get(); }
-        const D_GRAPHICS_BUFFERS::ColorBuffer& GetRTBuffer() const noexcept     { return m_swapChainBuffer[m_backBufferIndex]; }
-        const D_GRAPHICS_BUFFERS::DepthBuffer& GetDepthStencilBuffer() const noexcept { return m_depthStencil; }
+        D_GRAPHICS_BUFFERS::ColorBuffer& GetRTBuffer() noexcept     { return m_swapChainBuffer[m_backBufferIndex]; }
+        D_GRAPHICS_BUFFERS::DepthBuffer& GetDepthStencilBuffer() noexcept { return m_depthStencil; }
 
-        void SyncFrameStartGPU();
     private:
 
-        void MoveToNextFrame(bool parallelGPU = false);
+        void MoveToNextFrame();
         void GetAdapter(IDXGIAdapter1** ppAdapter);
 
         UINT                                                m_backBufferIndex;
@@ -110,9 +106,6 @@ namespace Darius::Renderer::DeviceResource
 
         // Direct3D objects.
         Microsoft::WRL::ComPtr<ID3D12Device>                m_d3dDevice;
-        Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList>   m_commandList;
-        Microsoft::WRL::ComPtr<ID3D12CommandQueue>          m_commandQueue;
-        Microsoft::WRL::ComPtr<ID3D12CommandAllocator>      m_directCommandAlloc;
 
         // Swap chain objects.
         Microsoft::WRL::ComPtr<IDXGIFactory4>               m_dxgiFactory;

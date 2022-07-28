@@ -1,6 +1,7 @@
 #pragma once
 
 #include "RenderDeviceManager.hpp"
+#include "CommandContext.hpp"
 
 #include <Math/Transform.hpp>
 
@@ -13,8 +14,8 @@ using namespace Microsoft::WRL;
 
 namespace Darius::Renderer
 {
-	extern ComPtr<ID3D12RootSignature> RootSignature;
-	extern std::unordered_map<std::string, ComPtr<ID3D12PipelineState>> Psos;
+	extern D_GRAPHICS_UTILS::RootSignature RootSig;
+	extern std::unordered_map<std::string, D_GRAPHICS_UTILS::GraphicsPSO> Psos;
 	extern UINT PassCbvOffset;
 	extern std::unordered_map<std::string, ComPtr<ID3DBlob>> Shaders;
 	extern std::vector<D3D12_INPUT_ELEMENT_DESC> InputLayout;
@@ -27,8 +28,9 @@ namespace Darius::Renderer
 #ifdef _D_EDITOR
 	void RegisterGuiDrawer(std::function<void(void)> drawer);
 #endif
-	void RenderMeshes(std::vector<RenderItem*> const& renderItems);
+	void SetRendererDimansions(float width, float height);
+	void RenderMeshes(D_GRAPHICS::GraphicsContext& context, std::vector<RenderItem*> const& renderItems);
 	void UpdateMeshCBs(std::vector<RenderItem*> const& renderItems);
 
-	//size_t GetSceneTextureHandle();
+	D3D12_CPU_DESCRIPTOR_HANDLE GetSceneTextureHandle();
 }

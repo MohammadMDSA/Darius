@@ -14,19 +14,13 @@ namespace Darius::Renderer::Device
 
 	FrameResource* GetCurrentFrameResource();
 	ID3D12Device* GetDevice();
-	ID3D12GraphicsCommandList* GetCommandList();
-	ID3D12CommandAllocator* GetCommandAllocator();
-	ID3D12CommandQueue* GetCommandQueue();
 	FrameResource* GetFrameResourceWithIndex(int i);
 	DXGI_FORMAT GetBackBufferFormat();
 	DXGI_FORMAT GetDepthBufferFormat();
-	void WaitForGpu();
 
 	// Window functions
 	void OnWindowMoved();
 	void OnDisplayChanged();
 	bool OnWindowsSizeChanged(int width, int height);
 	void ShaderCompatibilityCheck(D3D_SHADER_MODEL shaderModel);
-
-	void SyncFrame();
 }

@@ -69,10 +69,9 @@ namespace Darius::Editor
 		void InitMesh();
 		void BuildRootSignature();
 		void BuildShadersAndInputLayout();
-		void BuildGeometery();
+		void BuildGeometery(D_GRAPHICS::GraphicsContext& context);
 		void BuildPSO();
 		void BuildRenderItems();
-		void DisposeUploadBuffers();
 		///////////////////////////////////////////
 
 

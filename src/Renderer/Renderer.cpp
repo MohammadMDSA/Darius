@@ -4,8 +4,10 @@
 #include "Renderer.hpp"
 #include "Geometry/Mesh.hpp"
 #include "FrameResource.hpp"
+#include "GraphicsCore.hpp"
 #include "GraphicsUtils/D3DUtils.hpp"
 #include "GraphicsUtils/UploadBuffer.hpp"
+#include "GraphicsUtils/RootSignature.hpp"
 #include "GraphicsUtils/Memory/DescriptorHeap.hpp"
 #include "GraphicsUtils/Buffers/ColorBuffer.hpp"
 #include "Camera/CameraManager.hpp"
@@ -28,6 +30,7 @@ using namespace Darius::Renderer::DeviceResource;
 using namespace Darius::Renderer::GraphicsUtils;
 using namespace D_RENDERER_GEOMETRY;
 using namespace D_GRAPHICS_MEMORY;
+using namespace D_GRAPHICS_UTILS;
 
 namespace Darius::Renderer
 {
@@ -35,27 +38,27 @@ namespace Darius::Renderer
 	ID3D12Device* _device = nullptr;
 
 	// Input layout and root signature
-	std::vector<D3D12_INPUT_ELEMENT_DESC> InputLayout;
-	ComPtr<ID3D12RootSignature> RootSignature = nullptr;
+	std::vector<D3D12_INPUT_ELEMENT_DESC>				InputLayout;
+	D_GRAPHICS_UTILS::RootSignature						RootSig;
 
 	// Shaders
-	std::unordered_map<std::string, ComPtr<ID3DBlob>> Shaders;
+	std::unordered_map<std::string, ComPtr<ID3DBlob>>	Shaders;
 
 #ifdef _D_EDITOR
-	std::function<void(void)>		GuiDrawer = nullptr;
-	DescriptorHeap					ImguiHeap;
+	std::function<void(void)>							GuiDrawer = nullptr;
+	DescriptorHeap										ImguiHeap;
 #endif
 
 	// PSO
-	std::unordered_map<std::string, ComPtr<ID3D12PipelineState>> Psos;
+	std::unordered_map<std::string, D_GRAPHICS_UTILS::GraphicsPSO> Psos;
 
 	// Device resource
-	std::unique_ptr<DeviceResource::DeviceResources> Resources;
+	std::unique_ptr<DeviceResource::DeviceResources>	Resources;
 
 	UINT PassCbvOffset = 0;
 
 	///////////////// Heaps ///////////////////////
-	DescriptorHeap					SceneTexturesHeap;
+	DescriptorHeap										SceneTexturesHeap;
 
 
 	///////////////// REMOVE ASAP //////////////////
@@ -63,19 +66,22 @@ namespace Darius::Renderer
 	short _4xMsaaQuality = 0;
 
 	///////////////// Render Textures //////////////
+	float sceneWidth, sceneHeight;
 	D_GRAPHICS_BUFFERS::ColorBuffer	SceneTexture;
+	D_GRAPHICS_BUFFERS::DepthBuffer SceneDepth;
 
 	//////////////////////////////////////////////////////
 	// Functions
+
 #ifdef _D_EDITOR
 	void InitializeGUI();
 #endif
 
-	void DrawCube(std::vector<RenderItem*> const& renderItems);
+	void DrawCube(D_GRAPHICS::GraphicsContext& context, std::vector<RenderItem*> const& renderItems);
 
 	void UpdateGlobalConstants();
 
-	void Clear(D_GRAPHICS_BUFFERS::ColorBuffer const& rt, D_GRAPHICS_BUFFERS::DepthBuffer const& depthStencil, RECT bounds, std::wstring const& processName = L"Clear");
+	void Clear(D_GRAPHICS::GraphicsContext& context, D_GRAPHICS_BUFFERS::ColorBuffer& rt, D_GRAPHICS_BUFFERS::DepthBuffer& depthStencil, RECT bounds, std::wstring const& processName = L"Clear");
 
 	void Initialize()
 	{
@@ -89,12 +95,20 @@ namespace Darius::Renderer
 #endif // _D_EDITOR
 
 		SceneTexturesHeap.Create(L"Scene Textures", D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, 2);
+		
+		// Create scene rt and ds
+		//D_CAMERA_MANAGER::GetViewportDimansion(sceneWidth, sceneHeight);
+		sceneWidth = sceneHeight = 100L;
+		SceneTexture.Create(L"Scene Texture", sceneWidth, sceneHeight, 1, Resources->GetBackBufferFormat());
+		SceneDepth.Create(L"Scene DepthStencil", sceneWidth, sceneHeight, Resources->GetDepthBufferFormat());
 	}
 
 	void Shutdown()
 	{
 		D_ASSERT(_device != nullptr);
-		//DisposeUploadBuffers();
+		SceneDepth.Destroy();
+		SceneTexture.Destroy();
+		SceneTexturesHeap.Destroy();
 
 	}
 
@@ -105,28 +119,50 @@ namespace Darius::Renderer
 	}
 #endif
 
-	void RenderMeshes(std::vector<RenderItem*> const& renderItems)
+	void SetRendererDimansions(float width, float height)
+	{
+		if (width == sceneWidth && height == sceneHeight)
+			return;
+		sceneWidth = width;
+		sceneHeight = height;
+		SceneTexture.Create(L"Scene Texture", sceneWidth, sceneHeight, 1, Resources->GetBackBufferFormat());
+		SceneDepth.Create(L"Scene DepthStencil", sceneWidth, sceneHeight, Resources->GetDepthBufferFormat());
+	}
+
+	void RenderMeshes(D_GRAPHICS::GraphicsContext& context, std::vector<RenderItem*> const& renderItems)
 	{
 		UpdateGlobalConstants();
 
 		// Prepare the command list to render a new frame.
-		Resources->Prepare(Psos["opaque"].Get());
+		/*Resources->Prepare(&SceneTexture, true, Psos["opaque"].Get(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
 
-		float width, height;
-		D_CAMERA_MANAGER::GetViewportDimansion(width, height);
-		RECT bounds = { 0l, 0l, (long)width, (long)height };
-		Clear(Resources->GetRTBuffer(), Resources->GetDepthStencilBuffer(), bounds);
+		RECT bounds = { 0l, 0l, 100L, 100L };
+		Clear(SceneTexture, SceneDepth, bounds);*/
 
-		auto commandList = Resources->GetCommandList();
-		PIXBeginEvent(commandList, PIX_COLOR_DEFAULT, L"Render opaque");
+		/*PIXBeginEvent(commandList, PIX_COLOR_DEFAULT, L"Render opaque");
 
 		DrawCube(renderItems);
-		PIXEndEvent(commandList);
+
+		D3D12_RESOURCE_BARRIER barrier = CD3DX12_RESOURCE_BARRIER::Transition(SceneTexture.GetResource(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
+		commandList->ResourceBarrier(1, &barrier);
+		PIXEndEvent(commandList);*/
 
 #ifdef _D_EDITOR
-		PIXBeginEvent(commandList, PIX_COLOR_DEFAULT, L"Render gui");
+		//PIXBeginEvent(commandList, PIX_COLOR_DEFAULT, L"Render gui");
 		if (GuiDrawer)
 		{
+			context.SetPipelineState(Psos["opaque"]);
+
+			auto& viewportRt = Resources->GetRTBuffer();
+			context.TransitionResource(viewportRt, D3D12_RESOURCE_STATE_RENDER_TARGET, true);
+
+			// Clear RT
+			float viewportWidth, viewportHeight;
+			D_CAMERA_MANAGER::GetViewportDimansion(viewportWidth, viewportHeight);
+			RECT bounds = { 0l, 0l, (long)viewportWidth, (long)viewportHeight };
+			Clear(context, Resources->GetRTBuffer(), Resources->GetDepthStencilBuffer(), bounds);
+
+			DrawCube(context, renderItems);
 
 			// Prepare imgui
 			ImGui_ImplDX12_NewFrame();
@@ -135,17 +171,15 @@ namespace Darius::Renderer
 
 			GuiDrawer();
 
-			ID3D12DescriptorHeap* desHeaps[] = { ImguiHeap.GetHeapPointer() };
 
-			commandList->SetDescriptorHeaps(1, desHeaps);
-			ImGui_ImplDX12_RenderDrawData(ImGui::GetDrawData(), commandList);
+			context.SetDescriptorHeap(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, ImguiHeap.GetHeapPointer());
+			ImGui_ImplDX12_RenderDrawData(ImGui::GetDrawData(), context.GetCommandList());
 		}
-		PIXEndEvent(commandList);
+		//PIXEndEvent(commandList);
 #endif
-
 		// Show the new frame.
 		PIXBeginEvent(PIX_COLOR_DEFAULT, L"Present");
-		Resources->Present();
+		Resources->Present(context);
 
 		// If using the DirectX Tool Kit for DX12, uncomment this line:
 		// m_graphicsMemory->Commit(m_deviceResources->GetCommandQueue());
@@ -174,17 +208,14 @@ namespace Darius::Renderer
 		PIXEndEvent();
 	}
 
-	void DrawCube(std::vector<RenderItem*> const& renderItems)
+	void DrawCube(D_GRAPHICS::GraphicsContext& context, std::vector<RenderItem*> const& renderItems)
 	{
-		auto cmdList = Resources->GetCommandList();
-
+		
 		// Setting Root Signature
-		cmdList->SetGraphicsRootSignature(RootSignature.Get());
+		context.SetRootSignature(RootSig);
 
 		// Setting global constant
-		int globalCBVIndex = PassCbvOffset + Resources->GetCurrentFrameResourceIndex();
-
-		cmdList->SetGraphicsRootConstantBufferView(1, Resources->GetFrameResource()->GlobalCB->Resource()->GetGPUVirtualAddress());
+		context.SetConstantBuffer(1, Resources->GetFrameResource()->GlobalCB->Resource()->GetGPUVirtualAddress());
 
 		auto objectCB = Resources->GetFrameResource()->MeshCB->Resource();
 		UINT objCBByteSize = D_RENDERER_UTILS::CalcConstantBufferByteSize(sizeof(MeshConstants));
@@ -194,38 +225,38 @@ namespace Darius::Renderer
 		{
 			auto vbv = ri->Mesh->VertexBufferView();
 			auto ibv = ri->Mesh->IndexBufferView();
-			cmdList->IASetVertexBuffers(0, 1, &vbv);
-			cmdList->IASetIndexBuffer(&ibv);
-			cmdList->IASetPrimitiveTopology(ri->PrimitiveType);
+			context.SetVertexBuffer(0, vbv);
+			context.SetIndexBuffer(ibv);
+			context.SetPrimitiveTopology(ri->PrimitiveType);
 
-			cmdList->SetGraphicsRootConstantBufferView(0, objectCB->GetGPUVirtualAddress() + ri->ObjCBIndex * objCBByteSize);
-			cmdList->DrawIndexedInstanced(ri->IndexCount, 1, ri->StartIndexLocation, ri->BaseVertexLocation, 0);
+			context.SetConstantBuffer(0, objectCB->GetGPUVirtualAddress() + ri->ObjCBIndex * objCBByteSize);
+			context.DrawIndexedInstanced(ri->IndexCount, 1, ri->StartIndexLocation, ri->BaseVertexLocation, 0);
 		}
 	}
 
 	// Helper method to clear the back buffers.
-	void Clear(D_GRAPHICS_BUFFERS::ColorBuffer const& rt, D_GRAPHICS_BUFFERS::DepthBuffer const& depthStencil, RECT bounds, std::wstring const& processName)
+	void Clear(D_GRAPHICS::GraphicsContext& context, D_GRAPHICS_BUFFERS::ColorBuffer& rt, D_GRAPHICS_BUFFERS::DepthBuffer& depthStencil, RECT bounds, std::wstring const& processName)
 	{
-		auto commandList = Resources->GetCommandList();
-		PIXBeginEvent(commandList, PIX_COLOR_DEFAULT, processName.c_str());
+
+		PIXBeginEvent(context.GetCommandList(), PIX_COLOR_DEFAULT, processName.c_str());
 
 		// Clear the views.
 		auto const rtvDescriptor = rt.GetRTV();
 		auto const dsvDescriptor = depthStencil.GetDSV();
 
-		commandList->ClearRenderTargetView(rtvDescriptor, XMVECTOR(rt.GetClearColor()).m128_f32, 0, nullptr);
-		commandList->ClearDepthStencilView(dsvDescriptor, D3D12_CLEAR_FLAG_DEPTH, 1.0f, 0, 0, nullptr);
-		commandList->OMSetRenderTargets(1, &rtvDescriptor, true, &dsvDescriptor);
-
 		// Set the viewport and scissor rect.
 		long width = bounds.right - bounds.left;
 		long height = bounds.bottom - bounds.top;
-		auto const viewport = CD3DX12_VIEWPORT((float)bounds.left, (float)bounds.top, (long)width, (long)height, D3D12_MIN_DEPTH, D3D12_MAX_DEPTH);
-		auto const scissorRect = CD3DX12_RECT(bounds.left, bounds.top, (long)width, (long)height);
-		commandList->RSSetViewports(1, &viewport);
-		commandList->RSSetScissorRects(1, &scissorRect);
+		auto viewport = CD3DX12_VIEWPORT((float)bounds.left, (float)bounds.top, (long)width, (long)height, D3D12_MIN_DEPTH, D3D12_MAX_DEPTH);
+		auto scissorRect = CD3DX12_RECT(bounds.left, bounds.top, (long)width, (long)height);
 
-		PIXEndEvent(commandList);
+
+		context.ClearColor(rt, &scissorRect);
+		context.ClearDepth(depthStencil);
+		context.SetRenderTarget(rtvDescriptor, dsvDescriptor);
+		context.SetViewportAndScissor(viewport, scissorRect);
+
+		PIXEndEvent(context.GetCommandList());
 	}
 
 	void UpdateGlobalConstants()
@@ -279,11 +310,10 @@ namespace Darius::Renderer
 	}
 #endif
 
-	//size_t GetSceneTextureHandle()
-	//{
-	//	//auto handle = Resources->GetRenderTargetShaderResourceHandle();
-	//	return 0;
-	//}
+	D3D12_CPU_DESCRIPTOR_HANDLE GetSceneTextureHandle()
+	{
+		return SceneTexture.GetSRV();
+	}
 
 	namespace Device
 	{
@@ -296,7 +326,10 @@ namespace Darius::Renderer
 
 			Resources->SetWindow(window, width, height);
 			Resources->CreateDeviceResources();
+			D_GRAPHICS::Initialize();
 			Resources->CreateWindowSizeDependentResources();
+			D_CAMERA_MANAGER::Initialize();
+			D_CAMERA_MANAGER::SetViewportDimansion((float)width, (float)height);
 		}
 
 		void RegisterDeviceNotify(IDeviceNotify* notify)
@@ -306,9 +339,9 @@ namespace Darius::Renderer
 
 		void Shutdown()
 		{
-			if (Resources)
-				Resources->WaitForGpu();
 			Resources.release();
+			D_GRAPHICS::Shutdown();
+			D_CAMERA_MANAGER::Shutdown();
 		}
 
 		void OnWindowMoved()
@@ -343,13 +376,6 @@ namespace Darius::Renderer
 			}
 		}
 
-		void SyncFrame()
-		{
-			PIXBeginEvent(PIX_COLOR(255, 0, 255), "Syncing");
-			Resources->SyncFrameStartGPU();
-			PIXEndEvent();
-		}
-
 		FrameResource* GetCurrentFrameResource()
 		{
 			return Resources->GetFrameResource();
@@ -358,21 +384,6 @@ namespace Darius::Renderer
 		ID3D12Device* GetDevice()
 		{
 			return Resources->GetD3DDevice();
-		}
-
-		ID3D12CommandAllocator* GetCommandAllocator()
-		{
-			return Resources->GetDirectCommandAllocator();
-		}
-
-		ID3D12GraphicsCommandList* GetCommandList()
-		{
-			return Resources->GetCommandList();
-		}
-
-		ID3D12CommandQueue* GetCommandQueue()
-		{
-			return Resources->GetCommandQueue();
 		}
 
 		FrameResource* GetFrameResourceWithIndex(int i)
@@ -392,7 +403,8 @@ namespace Darius::Renderer
 
 		void WaitForGpu()
 		{
-			Resources->WaitForGpu();
+			auto cmdManager = D_GRAPHICS::GetCommandManager();
+			cmdManager->IdleGPU();
 		}
 	}
 

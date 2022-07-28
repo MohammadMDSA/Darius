@@ -5,6 +5,7 @@
 #include "pch.hpp"
 #include "DeviceResources.hpp"
 #include "GraphicsCore.hpp"
+#include "CommandContext.hpp"
 
 using namespace DirectX;
 using namespace Darius::Renderer::DeviceResource;
@@ -85,7 +86,7 @@ namespace Darius::Renderer::DeviceResource
 	DeviceResources::~DeviceResources()
 	{
 		// Ensure that the GPU is no longer referencing resources that are about to be destroyed.
-		WaitForGpu();
+		D_GRAPHICS::GetCommandManager()->IdleGPU();
 	}
 
 	// Configures the Direct3D device, and stores handles to it and the device context.
@@ -220,30 +221,9 @@ namespace Darius::Renderer::DeviceResource
 			m_frameResources[i] = std::make_unique<FrameResource>(m_d3dDevice.Get(), 1, 2);
 		}
 
-		// Create the command queue.
-		D3D12_COMMAND_QUEUE_DESC queueDesc = {};
-		queueDesc.Flags = D3D12_COMMAND_QUEUE_FLAG_NONE;
-		queueDesc.Type = D3D12_COMMAND_LIST_TYPE_DIRECT;
-
-		ThrowIfFailed(m_d3dDevice->CreateCommandQueue(&queueDesc, IID_PPV_ARGS(m_commandQueue.ReleaseAndGetAddressOf())));
-
-		m_commandQueue->SetName(L"DeviceResources");
-
 		m_rtvDescriptorSize = m_d3dDevice->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
 		m_dsvDescriptorSize = m_d3dDevice->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_DSV);
 		m_cbvSrvUavDescriptorSize = m_d3dDevice->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-
-		// Create a direct command allocator
-		D_HR_CHECK(m_d3dDevice->CreateCommandAllocator(
-			D3D12_COMMAND_LIST_TYPE_DIRECT,
-			IID_PPV_ARGS(m_directCommandAlloc.GetAddressOf())));
-
-		// Create a command list for recording graphics commands.
-		ThrowIfFailed(m_d3dDevice->CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_DIRECT, m_directCommandAlloc.Get(), nullptr, IID_PPV_ARGS(m_commandList.ReleaseAndGetAddressOf())));
-
-		ThrowIfFailed(m_commandList->Close());
-
-		m_commandList->SetName(L"DeviceResources");
 
 		// Create a fence for tracking GPU execution progress.
 		ThrowIfFailed(m_d3dDevice->CreateFence(m_frameResources[m_currentResourceIndex]->Fence, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(m_fence.ReleaseAndGetAddressOf())));
@@ -266,13 +246,13 @@ namespace Darius::Renderer::DeviceResource
 			throw std::logic_error("Call SetWindow with a valid Win32 window handle");
 		}
 
+		auto cmdManager = D_GRAPHICS::GetCommandManager();
+
 		// Wait until all previous GPU work is complete.
-		WaitForGpu();
+		cmdManager->IdleGPU();
+		auto& graphicContext = D_GRAPHICS::GraphicsContext::Begin(L"Window size dependent setup");
 
 		bool resize = m_swapChain ? true : false;
-
-		if (m_swapChain)
-			D_HR_CHECK(m_commandList->Reset(m_directCommandAlloc.Get(), nullptr));
 
 		// Release resources that are tied to the swap chain and update fence values.
 		for (UINT n = 0; n < m_backBufferCount; n++)
@@ -343,7 +323,7 @@ namespace Darius::Renderer::DeviceResource
 			// Create a swap chain for the window.
 			ComPtr<IDXGISwapChain1> swapChain;
 			ThrowIfFailed(m_dxgiFactory->CreateSwapChainForHwnd(
-				m_commandQueue.Get(),
+				cmdManager->GetCommandQueue(),
 				m_window,
 				&swapChainDesc,
 				&fsSwapChainDesc,
@@ -379,9 +359,6 @@ namespace Darius::Renderer::DeviceResource
 			m_depthStencil.Create(L"Depth stencil", backBufferWidth, backBufferHeight, m_depthBufferFormat);
 		}
 
-		if (resize)
-			m_commandList->Close();
-
 		// Set the 3D rendering viewport and scissor rectangle to target the entire window.
 		m_screenViewport.TopLeftX = m_screenViewport.TopLeftY = 0.f;
 		m_screenViewport.Width = static_cast<float>(backBufferWidth);
@@ -392,6 +369,7 @@ namespace Darius::Renderer::DeviceResource
 		m_scissorRect.left = m_scissorRect.top = 0;
 		m_scissorRect.right = static_cast<LONG>(backBufferWidth);
 		m_scissorRect.bottom = static_cast<LONG>(backBufferHeight);
+		graphicContext.Finish(true);
 	}
 
 	// This method is called when the Win32 window is created (or re-created).
@@ -440,11 +418,8 @@ namespace Darius::Renderer::DeviceResource
 		{
 			m_frameResources[i]->CmdListAlloc.Reset();
 		}
-		m_directCommandAlloc.Reset();
 
 		m_depthStencil.Destroy();
-		m_commandQueue.Reset();
-		m_commandList.Reset();
 		m_fence.Reset();
 		m_swapChain.Reset();
 		m_d3dDevice.Reset();
@@ -467,40 +442,17 @@ namespace Darius::Renderer::DeviceResource
 		m_deviceRestoredSignal();
 	}
 
-	// Prepare the command list and render target for rendering.
-	void DeviceResources::Prepare(ID3D12PipelineState* pso, D3D12_RESOURCE_STATES beforeState, D3D12_RESOURCE_STATES afterState)
-	{
-
-		auto cmdListAlloc = m_frameResources[m_currentResourceIndex]->CmdListAlloc;
-		// Reset command list and allocator.
-		ThrowIfFailed(cmdListAlloc->Reset());
-		ThrowIfFailed(m_commandList->Reset(cmdListAlloc.Get(), pso));
-
-		if (beforeState != afterState)
-		{
-			// Transition the render target into the correct state to allow for drawing into it.
-			const D3D12_RESOURCE_BARRIER barrier = CD3DX12_RESOURCE_BARRIER::Transition(
-				m_swapChainBuffer[m_backBufferIndex].GetResource(),
-				beforeState, afterState);
-			m_commandList->ResourceBarrier(1, &barrier);
-		}
-	}
-
 	// Present the contents of the swap chain to the screen.
-	void DeviceResources::Present(D3D12_RESOURCE_STATES beforeState)
+	void DeviceResources::Present(D_GRAPHICS::GraphicsContext& context, D3D12_RESOURCE_STATES beforeState)
 	{
 		if (beforeState != D3D12_RESOURCE_STATE_PRESENT)
 		{
 			// Transition the render target to the state that allows it to be presented to the display.
-			const D3D12_RESOURCE_BARRIER barrier = CD3DX12_RESOURCE_BARRIER::Transition(
-				m_swapChainBuffer[m_backBufferIndex].GetResource(),
-				beforeState, D3D12_RESOURCE_STATE_PRESENT);
-			m_commandList->ResourceBarrier(1, &barrier);
+			context.TransitionResource(m_swapChainBuffer[m_backBufferIndex], D3D12_RESOURCE_STATE_PRESENT, true);
 		}
 
 		// Send the command list off to the GPU for processing.
-		ThrowIfFailed(m_commandList->Close());
-		m_commandQueue->ExecuteCommandLists(1, CommandListCast(m_commandList.GetAddressOf()));
+		context.Finish();
 
 		HRESULT hr;
 		if (m_options & c_AllowTearing)
@@ -532,7 +484,7 @@ namespace Darius::Renderer::DeviceResource
 		{
 			ThrowIfFailed(hr);
 
-			MoveToNextFrame(true);
+			MoveToNextFrame();
 
 			if (!m_dxgiFactory->IsCurrent())
 			{
@@ -541,65 +493,30 @@ namespace Darius::Renderer::DeviceResource
 		}
 	}
 
-	// Wait for pending GPU work to complete.
-	void DeviceResources::WaitForGpu() noexcept
-	{
-		if (m_commandQueue && m_fence && m_fenceEvent.IsValid())
-		{
-			// Schedule a Signal command in the GPU queue.
-			m_currFenceValue++;
-			if (SUCCEEDED(m_commandQueue->Signal(m_fence.Get(), m_currFenceValue)))
-			{
-				// Wait until the Signal has been processed.
-				if (SUCCEEDED(m_fence->SetEventOnCompletion(m_currFenceValue, m_fenceEvent.Get())))
-				{
-					std::ignore = WaitForSingleObjectEx(m_fenceEvent.Get(), INFINITE, FALSE);
-				}
-			}
-		}
-	}
-
-	void DeviceResources::SyncFrameStartGPU()
-	{
-		m_currentResourceIndex = (m_currentResourceIndex + 1) % D_RENDERER_FRAME_RESOUCE::gNumFrameResources;
-		auto frameResource = m_frameResources[m_currentResourceIndex].get();
-
-		if (frameResource->Fence != 0 && m_fence->GetCompletedValue() < frameResource->Fence)
-		{
-			D_HR_CHECK(m_fence->SetEventOnCompletion(frameResource->Fence, m_fenceEvent.Get()));
-			WaitForSingleObjectEx(m_fenceEvent.Get(), INFINITE, FALSE);
-		}
-	}
-
 	// Prepare to render the next frame.
-	void DeviceResources::MoveToNextFrame(bool parallelGPU)
+	void DeviceResources::MoveToNextFrame()
 	{
-		if (!parallelGPU)
+		auto commandManager = D_GRAPHICS::GetCommandManager();
+
+		// Schedule a Signal command in the queue.
+		const UINT64 currentFenceValue = m_frameResources[m_currentResourceIndex]->Fence;
+
+		m_currentResourceIndex = (m_currentResourceIndex + 1) % gNumFrameResources;
+
+		// Update the back buffer index.
+		m_backBufferIndex = m_swapChain->GetCurrentBackBufferIndex();
+
+		// If the next frame is not ready to be rendered yet, wait until it is ready.
+
+		if (!commandManager->IsFenceComplete(m_frameResources[m_currentResourceIndex]->Fence))
 		{
-			// Schedule a Signal command in the queue.
-			const UINT64 currentFenceValue = m_frameResources[m_currentResourceIndex]->Fence;
-			ThrowIfFailed(m_commandQueue->Signal(m_fence.Get(), currentFenceValue));
-
-			// Update the back buffer index.
-			m_backBufferIndex = m_swapChain->GetCurrentBackBufferIndex();
-
-			// If the next frame is not ready to be rendered yet, wait until it is ready.
-			if (m_fence->GetCompletedValue() < m_frameResources[m_currentResourceIndex]->Fence)
-			{
-				ThrowIfFailed(m_fence->SetEventOnCompletion(m_frameResources[m_currentResourceIndex]->Fence, m_fenceEvent.Get()));
-				std::ignore = WaitForSingleObjectEx(m_fenceEvent.Get(), INFINITE, FALSE);
-			}
-
-			// Set the fence value for the next frame.
-			m_frameResources[m_currentResourceIndex]->Fence = currentFenceValue + 1;
+			ThrowIfFailed(m_fence->SetEventOnCompletion(m_frameResources[m_currentResourceIndex]->Fence, m_fenceEvent.Get()));
+			std::ignore = WaitForSingleObjectEx(m_fenceEvent.Get(), INFINITE, FALSE);
 		}
-		else
-		{
-			m_backBufferIndex = m_swapChain->GetCurrentBackBufferIndex();
 
-			m_frameResources[m_currentResourceIndex]->Fence = ++m_currFenceValue;
-			D_HR_CHECK(m_commandQueue->Signal(m_fence.Get(), m_currFenceValue));
-		}
+		// Set the fence value for the next frame.
+		m_frameResources[m_currentResourceIndex]->Fence = currentFenceValue + 1;
+
 	}
 
 	// This method acquires the first available hardware adapter that supports Direct3D 12.

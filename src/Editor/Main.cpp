@@ -6,6 +6,9 @@
 #include "Editor.hpp"
 
 #include <Core/Input.hpp>
+#include <Utils/Debug.hpp>
+
+#include <stdio.h>
 #include <imgui_impl_win32.h>
 
 using namespace DirectX;

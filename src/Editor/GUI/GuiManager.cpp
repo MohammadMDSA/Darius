@@ -74,12 +74,12 @@ namespace Darius::Editor::GuiManager
 
 
 		ImGui::Begin("Scene");
-		//float x, y;
-		//D_CAMERA_MANAGER::GetViewportDimansion(x, y);
-		//auto id = (ImTextureID)D_RENDERER::GetSceneTextureHandle();
-		//(id);
-		////ImGui::Image(id, ImVec2(x, y));
-
+		
+		auto id = D_RENDERER::GetSceneTextureHandle();
+		ImGui::SetWindowSize(ImVec2(200, 200));
+		ImGui::SetWindowPos(ImVec2(0, 0));
+		//ImGui::Image((ImTextureID)id.ptr, ImVec2(100.f, 100.f));
+		(id);
 		ImGui::End();
 		ImGui::Render();
 	}

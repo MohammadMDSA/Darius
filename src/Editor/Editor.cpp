@@ -17,6 +17,7 @@
 #include <Renderer/FrameResource.hpp>
 #include <Renderer/Camera/CameraManager.hpp>
 #include <Renderer/GraphicsCore.hpp>
+#include <Renderer/CommandContext.hpp>
 #include <Utils/Debug.hpp>
 
 #include <exception>
@@ -50,8 +51,6 @@ namespace Darius::Editor
 		//D_DEBUG::AttachWinPixGpuCapturer();
 #endif
 		D_RENDERER_DEVICE::Initialize(window, width, height);
-		D_GRAPHICS::Initialize();
-		D_CAMERA_MANAGER::Initialize();
 		D_RENDERER::Initialize();
 
 		CreateDeviceDependentResources();
@@ -62,7 +61,6 @@ namespace Darius::Editor
 
 		D_GUI_MANAGER::Initialize();
 
-		D_CAMERA_MANAGER::SetViewportDimansion((float)width, (float)height);
 		D_TIME::EnableFixedTimeStep(1.0 / 60);
 
 		mCamera = std::make_unique<D_MATH_CAMERA::Camera>();
@@ -93,7 +91,6 @@ namespace Darius::Editor
 	// Updates the world.
 	void Editor::Update(D_TIME::StepTimer const& timer)
 	{
-		D_RENDERER_DEVICE::SyncFrame();
 		PIXBeginEvent(PIX_COLOR_DEFAULT, L"Update");
 
 		float elapsedTime = float(timer.GetElapsedSeconds());
@@ -117,6 +114,8 @@ namespace Darius::Editor
 	// Draws the scene.
 	void Editor::Render()
 	{
+		auto& context = D_GRAPHICS::GraphicsContext::Begin(L"Render Scene");
+
 		// Don't try to render anything before the first Update.
 		if (D_TIME::GetStepTimer()->GetFrameCount() == 0)
 		{
@@ -130,7 +129,7 @@ namespace Darius::Editor
 		}
 
 		// TODO: Add your rendering code here.
-		Darius::Renderer::RenderMeshes(items);
+		Darius::Renderer::RenderMeshes(context, items);
 
 
 	}
@@ -245,66 +244,34 @@ namespace Darius::Editor
 #pragma region Mesh and Pipeline Setup
 	void Editor::InitMesh()
 	{
-
-		auto cmdAlloc = D_RENDERER_DEVICE::GetCommandAllocator();
-		auto cmdList = D_RENDERER_DEVICE::GetCommandList();
-		auto cmdQueue = D_RENDERER_DEVICE::GetCommandQueue();
-
-		D_HR_CHECK(cmdList->Reset(cmdAlloc, nullptr));
+		auto& context = D_GRAPHICS::GraphicsContext::Begin(L"Mesh Init");
 
 		BuildRootSignature();
 		BuildShadersAndInputLayout();
-		BuildGeometery();
+		BuildGeometery(context);
 		BuildRenderItems();
 		BuildPSO();
 
-		// Execute the initialization commands.
-		D_HR_CHECK(cmdList->Close());
-		ID3D12CommandList* commandLists[] = { cmdList };
-		cmdQueue->ExecuteCommandLists(_countof(commandLists), commandLists);
-
-		// Wait until gpu executes initial commands
-		D_RENDERER_DEVICE::WaitForGpu();
+		context.Finish(true);
 	}
 
 	void Editor::BuildRootSignature()
 	{
 		// Root parameter can be a table, root descriptor or root constants.
-		CD3DX12_ROOT_PARAMETER slotRootParameter[2];
-
-		// Create root CBVs.
-		slotRootParameter[0].InitAsConstantBufferView(0);
-		slotRootParameter[1].InitAsConstantBufferView(1);
+		D_GRAPHICS_UTILS::RootParameter slotRootParameter[2];
 
 		// A root signature is an array of root parameters.
-		CD3DX12_ROOT_SIGNATURE_DESC rootSigDesc(2, slotRootParameter, 0, nullptr, D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT);
+		D_RENDERER::RootSig.Reset(2, 0);
 
-		// create a root signature with a single slot which points to a descriptor range consisting of a single constant buffer
-		ComPtr<ID3DBlob> serializedRootSig = nullptr;
-		ComPtr<ID3DBlob> errorBlob = nullptr;
-		HRESULT hr = D3D12SerializeRootSignature(&rootSigDesc, D3D_ROOT_SIGNATURE_VERSION_1,
-			serializedRootSig.GetAddressOf(), errorBlob.GetAddressOf());
+		// Create root CBVs.
+		D_RENDERER::RootSig[0].InitAsConstantBuffer(0);
+		D_RENDERER::RootSig[1].InitAsConstantBuffer(1);
 
-		if (errorBlob != nullptr)
-		{
-			::OutputDebugStringA((char*)errorBlob->GetBufferPointer());
-		}
-		D_HR_CHECK(hr);
-
-		D_HR_CHECK(D_RENDERER_DEVICE::GetDevice()->CreateRootSignature(
-			0,
-			serializedRootSig->GetBufferPointer(),
-			serializedRootSig->GetBufferSize(),
-			IID_PPV_ARGS(&D_RENDERER::RootSignature)));
+		D_RENDERER::RootSig.Finalize(L"Main Root Sig", D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT);
 	}
 
 	void Editor::BuildShadersAndInputLayout()
 	{
-
-		for (const auto& entry : std::filesystem::directory_iterator("."))
-
-			std::string ff = entry.path().string();
-
 
 		D_RENDERER::Shaders["standardVS"] = CompileShader(L"..\\..\\..\\..\\..\\src\\Shaders\\SimpleColor.hlsl", nullptr, "VS", "vs_5_1");
 		D_RENDERER::Shaders["opaquePS"] = CompileShader(L"..\\..\\..\\..\\..\\src\\Shaders\\SimpleColor.hlsl", nullptr, "PS", "ps_5_1");
@@ -316,10 +283,8 @@ namespace Darius::Editor
 		};
 	}
 
-	void Editor::BuildGeometery()
+	void Editor::BuildGeometery(D_GRAPHICS::GraphicsContext& context)
 	{
-
-		auto cmdList = D_RENDERER_DEVICE::GetCommandList();
 
 		struct Vertex
 		{
@@ -348,7 +313,7 @@ namespace Darius::Editor
 		D_HR_CHECK(D3DCreateBlob(mMesh->mVertexBufferByteSize, &mMesh->mVertexBufferCPU));
 		CopyMemory(mMesh->mVertexBufferCPU->GetBufferPointer(), vertices.data(), mMesh->mVertexBufferByteSize);
 
-		mMesh->mVertexBufferGPU = CreateDefaultBuffer(D_RENDERER_DEVICE::GetDevice(), cmdList, vertices.data(), mMesh->mVertexBufferByteSize, mMesh->mVertexBufferUploader);
+		mMesh->mVertexBufferGPU = CreateDefaultBuffer(D_RENDERER_DEVICE::GetDevice(), context.GetCommandList(), vertices.data(), mMesh->mVertexBufferByteSize, mMesh->mVertexBufferUploader);
 
 		std::array<std::uint16_t, 36> indices =
 		{
@@ -383,7 +348,7 @@ namespace Darius::Editor
 		D_HR_CHECK(D3DCreateBlob(mMesh->mIndexBufferByteSize, &mMesh->mIndexBufferCPU));
 		CopyMemory(mMesh->mIndexBufferCPU->GetBufferPointer(), indices.data(), mMesh->mIndexBufferByteSize);
 
-		mMesh->mIndexBufferGPU = CreateDefaultBuffer(D_RENDERER_DEVICE::GetDevice(), cmdList, indices.data(), mMesh->mIndexBufferByteSize, mMesh->mIndexBufferUploader);
+		mMesh->mIndexBufferGPU = CreateDefaultBuffer(D_RENDERER_DEVICE::GetDevice(), context.GetCommandList(), indices.data(), mMesh->mIndexBufferByteSize, mMesh->mIndexBufferUploader);
 
 		Mesh::Draw draw;
 		draw.mBaseVertexLocation = 0;
@@ -395,41 +360,36 @@ namespace Darius::Editor
 
 	void Editor::BuildPSO()
 	{
-		D3D12_GRAPHICS_PIPELINE_STATE_DESC opaquePsoDesc;
 
 		// For Opaque objects
-		ZeroMemory(&opaquePsoDesc, sizeof(D3D12_GRAPHICS_PIPELINE_STATE_DESC));
+		GraphicsPSO pso(L"Opaque");
 
-		opaquePsoDesc.InputLayout = { D_RENDERER::InputLayout.data(), (UINT)D_RENDERER::InputLayout.size() };
-		opaquePsoDesc.pRootSignature = D_RENDERER::RootSignature.Get();
-		opaquePsoDesc.VS =
-		{
-			reinterpret_cast<BYTE*>(D_RENDERER::Shaders["standardVS"]->GetBufferPointer()),
-			D_RENDERER::Shaders["standardVS"]->GetBufferSize()
-		};
-		opaquePsoDesc.PS =
-		{
-			reinterpret_cast<BYTE*>(D_RENDERER::Shaders["opaquePS"]->GetBufferPointer()),
-			D_RENDERER::Shaders["opaquePS"]->GetBufferSize()
-		};
-		opaquePsoDesc.RasterizerState = CD3DX12_RASTERIZER_DESC(D3D12_DEFAULT);
-		opaquePsoDesc.RasterizerState.FillMode = D3D12_FILL_MODE_SOLID;
-		opaquePsoDesc.BlendState = CD3DX12_BLEND_DESC(D3D12_DEFAULT);
-		opaquePsoDesc.DepthStencilState = CD3DX12_DEPTH_STENCIL_DESC(D3D12_DEFAULT);
-		opaquePsoDesc.SampleMask = UINT_MAX;
-		opaquePsoDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
-		opaquePsoDesc.NumRenderTargets = 1;
-		opaquePsoDesc.RTVFormats[0] = D_RENDERER_DEVICE::GetBackBufferFormat();
-		opaquePsoDesc.SampleDesc.Count = false ? 4 : 1;
-		opaquePsoDesc.SampleDesc.Quality = 0;
-		opaquePsoDesc.DSVFormat = D_RENDERER_DEVICE::GetDepthBufferFormat();
+		pso.SetInputLayout((UINT)D_RENDERER::InputLayout.size(), D_RENDERER::InputLayout.data());
 
-		D_HR_CHECK(D_RENDERER_DEVICE::GetDevice()->CreateGraphicsPipelineState(&opaquePsoDesc, IID_PPV_ARGS(&D_RENDERER::Psos["opaque"])));
+		pso.SetRootSignature(D_RENDERER::RootSig);
+		pso.SetVertexShader(reinterpret_cast<BYTE*>(D_RENDERER::Shaders["standardVS"]->GetBufferPointer()),
+			D_RENDERER::Shaders["standardVS"]->GetBufferSize());
+		pso.SetPixelShader(reinterpret_cast<BYTE*>(D_RENDERER::Shaders["opaquePS"]->GetBufferPointer()),
+			D_RENDERER::Shaders["opaquePS"]->GetBufferSize());
+		auto rasterState = CD3DX12_RASTERIZER_DESC(D3D12_DEFAULT);
+		rasterState.FillMode = D3D12_FILL_MODE_SOLID;
+		pso.SetRasterizerState(rasterState);
+		pso.SetBlendState(CD3DX12_BLEND_DESC(D3D12_DEFAULT));
+		pso.SetDepthStencilState(CD3DX12_DEPTH_STENCIL_DESC(D3D12_DEFAULT));
+		pso.SetSampleMask(UINT_MAX);
+		pso.SetPrimitiveTopologyType(D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE);
+		pso.SetRenderTargetFormat(D_RENDERER_DEVICE::GetBackBufferFormat(), D_RENDERER_DEVICE::GetDepthBufferFormat());
+		pso.Finalize();
+		D_RENDERER::Psos["opaque"] = pso;
+
 
 		// For opaque wireframe objecs
-		auto opaqueWireframePsoDesc = opaquePsoDesc;
-		opaqueWireframePsoDesc.RasterizerState.FillMode = D3D12_FILL_MODE_WIREFRAME;
-		D_HR_CHECK(D_RENDERER_DEVICE::GetDevice()->CreateGraphicsPipelineState(&opaqueWireframePsoDesc, IID_PPV_ARGS(&D_RENDERER::Psos["opaque_wireframe"])));
+		GraphicsPSO wirePso(pso);
+		auto wireRasterState = rasterState;
+		wireRasterState.FillMode = D3D12_FILL_MODE_WIREFRAME;
+		wirePso.SetRasterizerState(wireRasterState);
+		wirePso.Finalize();
+		D_RENDERER::Psos["opaque_wireframe"] = wirePso;
 	}
 
 	void Editor::BuildRenderItems()
