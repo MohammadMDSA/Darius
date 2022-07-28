@@ -12,6 +12,7 @@ list(APPEND UTILS_LIBS_INCLUDE
 	
 list(APPEND UTILS_LIBS_SOURCES
 	"Assert.cpp"
+	"Debug.cpp"
 	)
 
 
