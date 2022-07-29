@@ -78,7 +78,7 @@ namespace Darius::Editor::GuiManager
 		auto id = D_RENDERER::GetSceneTextureHandle();
 		ImGui::SetWindowSize(ImVec2(200, 200));
 		ImGui::SetWindowPos(ImVec2(0, 0));
-		//ImGui::Image((ImTextureID)id.ptr, ImVec2(100.f, 100.f));
+		ImGui::Image((ImTextureID)id.ptr, ImVec2(100.f, 100.f));
 		(id);
 		ImGui::End();
 		ImGui::Render();

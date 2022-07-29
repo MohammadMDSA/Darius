@@ -32,5 +32,5 @@ namespace Darius::Renderer
 	void RenderMeshes(D_GRAPHICS::GraphicsContext& context, std::vector<RenderItem*> const& renderItems);
 	void UpdateMeshCBs(std::vector<RenderItem*> const& renderItems);
 
-	D3D12_CPU_DESCRIPTOR_HANDLE GetSceneTextureHandle();
+	D3D12_GPU_DESCRIPTOR_HANDLE GetSceneTextureHandle();
 }

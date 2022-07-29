@@ -60,15 +60,15 @@ namespace Darius::Renderer
 	///////////////// Heaps ///////////////////////
 	DescriptorHeap										SceneTexturesHeap;
 
-
 	///////////////// REMOVE ASAP //////////////////
 	bool _4xMsaaState = false;
 	short _4xMsaaQuality = 0;
 
 	///////////////// Render Textures //////////////
-	float sceneWidth, sceneHeight;
-	D_GRAPHICS_BUFFERS::ColorBuffer	SceneTexture;
-	D_GRAPHICS_BUFFERS::DepthBuffer SceneDepth;
+	float												sceneWidth;
+	float												sceneHeight;
+	D_GRAPHICS_BUFFERS::ColorBuffer						SceneTexture;
+	D_GRAPHICS_BUFFERS::DepthBuffer						SceneDepth;
 
 	//////////////////////////////////////////////////////
 	// Functions
@@ -95,7 +95,7 @@ namespace Darius::Renderer
 #endif // _D_EDITOR
 
 		SceneTexturesHeap.Create(L"Scene Textures", D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, 2);
-		
+
 		// Create scene rt and ds
 		//D_CAMERA_MANAGER::GetViewportDimansion(sceneWidth, sceneHeight);
 		sceneWidth = sceneHeight = 100L;
@@ -133,25 +133,30 @@ namespace Darius::Renderer
 	{
 		UpdateGlobalConstants();
 
+		context.SetPipelineState(Psos["opaque"]);
 		// Prepare the command list to render a new frame.
-		/*Resources->Prepare(&SceneTexture, true, Psos["opaque"].Get(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
+		context.TransitionResource(SceneTexture, D3D12_RESOURCE_STATE_RENDER_TARGET, true);
 
 		RECT bounds = { 0l, 0l, 100L, 100L };
-		Clear(SceneTexture, SceneDepth, bounds);*/
+		Clear(context, SceneTexture, SceneDepth, bounds, L"Clear Scene");
 
-		/*PIXBeginEvent(commandList, PIX_COLOR_DEFAULT, L"Render opaque");
+		PIXBeginEvent(context.GetCommandList(), PIX_COLOR_DEFAULT, L"Render opaque");
 
-		DrawCube(renderItems);
+		DrawCube(context, renderItems);
 
-		D3D12_RESOURCE_BARRIER barrier = CD3DX12_RESOURCE_BARRIER::Transition(SceneTexture.GetResource(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
-		commandList->ResourceBarrier(1, &barrier);
-		PIXEndEvent(commandList);*/
+#ifdef _D_EDITOR
+		context.TransitionResource(SceneTexture, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
+
+		_device->CopyDescriptorsSimple(1, ImguiHeap[1], SceneTexture.GetSRV(), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+#else
+		context.TransitionResource(SceneTexture, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, true);
+#endif
+		PIXEndEvent(context.GetCommandList());
 
 #ifdef _D_EDITOR
 		//PIXBeginEvent(commandList, PIX_COLOR_DEFAULT, L"Render gui");
 		if (GuiDrawer)
 		{
-			context.SetPipelineState(Psos["opaque"]);
 
 			auto& viewportRt = Resources->GetRTBuffer();
 			context.TransitionResource(viewportRt, D3D12_RESOURCE_STATE_RENDER_TARGET, true);
@@ -162,15 +167,12 @@ namespace Darius::Renderer
 			RECT bounds = { 0l, 0l, (long)viewportWidth, (long)viewportHeight };
 			Clear(context, Resources->GetRTBuffer(), Resources->GetDepthStencilBuffer(), bounds);
 
-			DrawCube(context, renderItems);
-
 			// Prepare imgui
 			ImGui_ImplDX12_NewFrame();
 			ImGui_ImplWin32_NewFrame();
 			ImGui::NewFrame();
 
 			GuiDrawer();
-
 
 			context.SetDescriptorHeap(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, ImguiHeap.GetHeapPointer());
 			ImGui_ImplDX12_RenderDrawData(ImGui::GetDrawData(), context.GetCommandList());
@@ -210,7 +212,7 @@ namespace Darius::Renderer
 
 	void DrawCube(D_GRAPHICS::GraphicsContext& context, std::vector<RenderItem*> const& renderItems)
 	{
-		
+
 		// Setting Root Signature
 		context.SetRootSignature(RootSig);
 
@@ -302,7 +304,7 @@ namespace Darius::Renderer
 #ifdef _D_EDITOR
 	void InitializeGUI()
 	{
-		ImguiHeap.Create(L"Imgui Heap", D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, 1);
+		ImguiHeap.Create(L"Imgui Heap", D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, 2);
 
 		ImGui::CreateContext();
 		ImGui_ImplWin32_Init(Resources->GetWindow());
@@ -310,9 +312,9 @@ namespace Darius::Renderer
 	}
 #endif
 
-	D3D12_CPU_DESCRIPTOR_HANDLE GetSceneTextureHandle()
+	D3D12_GPU_DESCRIPTOR_HANDLE GetSceneTextureHandle()
 	{
-		return SceneTexture.GetSRV();
+		return ImguiHeap[1];
 	}
 
 	namespace Device
@@ -339,7 +341,7 @@ namespace Darius::Renderer
 
 		void Shutdown()
 		{
-			Resources.release();
+			Resources.reset();
 			D_GRAPHICS::Shutdown();
 			D_CAMERA_MANAGER::Shutdown();
 		}
