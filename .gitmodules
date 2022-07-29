@@ -7,3 +7,6 @@
 [submodule "src/Libs/DirectXTK12"]
 	path = src/Libs/DirectXTK12
 	url = https://github.com/microsoft/DirectXTK12.git
+[submodule "src/Libs/imgui_wrapper/ImGuizmo"]
+	path = src/Libs/imgui_wrapper/ImGuizmo
+	url = https://github.com/CedricGuillemet/ImGuizmo
