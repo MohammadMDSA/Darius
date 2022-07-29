@@ -38,17 +38,14 @@ namespace Darius::Editor
 
 	Editor::~Editor()
 	{
-		/*if (m_deviceResources)
-		{
-			m_deviceResources->WaitForGpu();
-		}*/
+		D_RENDERER_DEVICE::Shutdown();
 	}
 
 	// Initialize the Direct3D resources required to run.
 	void Editor::Initialize(HWND window, int width, int height)
 	{
 #ifdef _DEBUG
-		//D_DEBUG::AttachWinPixGpuCapturer();
+		D_DEBUG::AttachWinPixGpuCapturer();
 #endif
 		D_RENDERER_DEVICE::Initialize(window, width, height);
 		D_RENDERER::Initialize();
