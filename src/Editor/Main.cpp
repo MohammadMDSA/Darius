@@ -8,6 +8,7 @@
 #include <Core/Input.hpp>
 #include <Utils/Debug.hpp>
 
+#include <iostream>
 #include <stdio.h>
 #include <imgui_impl_win32.h>
 
@@ -43,6 +44,11 @@ void ExitGame() noexcept;
 // Entry point
 int WINAPI wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _In_ LPWSTR lpCmdLine, _In_ int nCmdShow)
 {
+#ifdef _DEBUG
+    AllocConsole();
+    freopen("CONOUT$", "w", stdout);
+#endif
+
     UNREFERENCED_PARAMETER(hPrevInstance);
     UNREFERENCED_PARAMETER(lpCmdLine);
 
