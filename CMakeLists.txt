@@ -65,7 +65,9 @@ if(BUILD_EDITOR)
         "src/Editor/Main.cpp"
         "src/Editor/pch.hpp"
         "src/Editor/Camera.hpp"
-        "src/Editor/Camera.cpp" "src/Editor/GUI/GuiManager.hpp" "src/Editor/GUI/GuiManager.cpp")
+        "src/Editor/Camera.cpp"
+        "src/Editor/GUI/GuiManager.hpp"
+        "src/Editor/GUI/GuiManager.cpp")
 
         add_definitions(-D_D_EDITOR)
 

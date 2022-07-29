@@ -99,7 +99,7 @@ namespace Darius::InputManager
 			case Axis::Vertical:
 				return currentY - lastY;
 			default:
-				return 0.f;
+				return 0;
 			}
 		}
 
