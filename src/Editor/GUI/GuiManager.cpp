@@ -18,6 +18,7 @@ namespace Darius::Editor::GuiManager
 
 	float										Width, Height;
 	float										posX, posY;
+	bool										IsHovered;
 
 	D_GRAPHICS_BUFFERS::ColorBuffer				SceneTexture;
 	D_GRAPHICS_BUFFERS::DepthBuffer				SceneDepth;
@@ -44,6 +45,10 @@ namespace Darius::Editor::GuiManager
 		D_CAMERA_MANAGER::SetActiveCamera(Camera.get());
 		Width = Height = 1;
 		posX = posY = 0;
+		IsHovered = false;
+
+		ImGuiIO& io = ImGui::GetIO();
+		io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
 	}
 
 	void Shutdown()
@@ -64,7 +69,7 @@ namespace Darius::Editor::GuiManager
 		static auto fc = FlyingFPSCamera(*Camera, Vector3::Up());
 
 		if (D_KEYBOARD::GetKey(D_KEYBOARD::Keys::LeftAlt) &&
-			D_MOUSE::GetButton(D_MOUSE::Keys::Right))
+			D_MOUSE::GetButton(D_MOUSE::Keys::Right) && IsHovered)
 			fc.Update(deltaTime);
 		else
 			Camera->Update();
@@ -104,6 +109,28 @@ namespace Darius::Editor::GuiManager
 	void DrawGUI()
 	{
 		D_ASSERT_M(initialzied, "Gui Manager is not initialized yet!");
+
+		{
+			ImGuiWindowFlags windowFlags = ImGuiWindowFlags_MenuBar | ImGuiWindowFlags_NoDocking;
+			const ImGuiViewport* viewport = ImGui::GetMainViewport();
+			ImGui::SetNextWindowPos(viewport->WorkPos);
+			ImGui::SetNextWindowSize(viewport->WorkSize);
+			ImGui::SetNextWindowViewport(viewport->ID);
+			ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
+			ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
+			windowFlags |= ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove;
+			windowFlags |= ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoNavFocus;
+
+			ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
+			ImGui::Begin("Editor GUI Root", (bool*) 1, windowFlags);
+			ImGui::PopStyleVar(3);
+
+			ImGuiID dockspaceId = ImGui::GetID("EditorDockspace");
+			ImGui::DockSpace(dockspaceId, ImVec2(0.0f, 0.0f), ImGuiDockNodeFlags_None);
+
+			ImGui::End();
+		}
+
 		{
 			static bool show_demo_window = true;
 			static bool show_another_window = true;
@@ -156,6 +183,8 @@ namespace Darius::Editor::GuiManager
 		auto pos = ImGui::GetWindowPos();
 		posX = pos.x;
 		posY = pos.y;
+
+		IsHovered = ImGui::IsWindowHovered();
 
 		ImGui::Image((ImTextureID)TextureHandle.GetGpuPtr(), ImVec2(Width, Height));
 		ImGui::End();
