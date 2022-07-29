@@ -171,7 +171,7 @@ namespace Darius::Graphics::Utils::Buffers
 		case DXGI_FORMAT_X24_TYPELESS_G8_UINT:
 		case DXGI_FORMAT_D16_UNORM:
 
-			D_ASSERT(false, "Requested a UAV Format for a depth stencil Format.");
+		D_ASSERT_M(false, "Requested a UAV Format for a depth stencil Format.");
 #endif
 
 		default:

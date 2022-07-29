@@ -107,7 +107,7 @@ namespace Darius::Graphics::Utils
 
     void CommandListManager::CreateNewCommandList(D3D12_COMMAND_LIST_TYPE Type, ID3D12GraphicsCommandList** List, ID3D12CommandAllocator** Allocator)
     {
-        D_ASSERT(Type != D3D12_COMMAND_LIST_TYPE_BUNDLE, "Bundles are not yet supported");
+        D_ASSERT_M(Type != D3D12_COMMAND_LIST_TYPE_BUNDLE, "Bundles are not yet supported");
         switch (Type)
         {
         case D3D12_COMMAND_LIST_TYPE_DIRECT: *Allocator = mGraphicsQueue.RequestAllocator(); break;

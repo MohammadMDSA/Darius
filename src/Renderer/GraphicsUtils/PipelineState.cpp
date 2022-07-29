@@ -71,7 +71,7 @@ namespace Darius::Graphics::Utils
 
 	void GraphicsPSO::SetPrimitiveTopologyType(D3D12_PRIMITIVE_TOPOLOGY_TYPE TopologyType)
 	{
-		D_ASSERT(TopologyType != D3D12_PRIMITIVE_TOPOLOGY_TYPE_UNDEFINED, "Can't draw with undefined topology");
+		D_ASSERT_M(TopologyType != D3D12_PRIMITIVE_TOPOLOGY_TYPE_UNDEFINED, "Can't draw with undefined topology");
 		mPSODesc.PrimitiveTopologyType = TopologyType;
 	}
 
