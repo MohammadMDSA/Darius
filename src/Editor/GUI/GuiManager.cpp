@@ -4,6 +4,7 @@
 #include "Editor/Camera.hpp"
 
 #include <Core/Input.hpp>
+#include <Core/TimeManager/TimeManager.hpp>
 #include <Renderer/Renderer.hpp>
 #include <Renderer/Camera/CameraManager.hpp>
 #include <Utils/Assert.hpp>
@@ -18,10 +19,20 @@ namespace Darius::Editor::GuiManager
 	float										Width, Height;
 	float										posX, posY;
 
+	D_GRAPHICS_BUFFERS::ColorBuffer				SceneTexture;
+	D_GRAPHICS_BUFFERS::DepthBuffer				SceneDepth;
+	DescriptorHandle							TextureHandle;
+
+	void CreateBuffers();
+	D_RENDERER_FRAME_RESOUCE::GlobalConstants GetGlobalConstants();
+
 	void Initialize()
 	{
 		D_ASSERT(!initialzied);
 		initialzied = true;
+
+		CreateBuffers();
+		TextureHandle = D_RENDERER::GetRenderResourceHandle(1);
 
 		Camera = std::make_unique<D_MATH_CAMERA::Camera>();
 		Camera->SetFOV(XM_PI / 3);
@@ -39,12 +50,16 @@ namespace Darius::Editor::GuiManager
 	{
 		D_ASSERT(initialzied);
 		Camera.reset();
+		SceneDepth.Destroy();
+		SceneTexture.Destroy();
 	}
 
 	void Update(float deltaTime)
 	{
-		D_CAMERA_MANAGER::SetViewportDimansion(Width, Height);
-		D_RENDERER::SetRendererDimansions(Width, Height);
+		if (D_CAMERA_MANAGER::SetViewportDimansion(Width, Height))
+		{
+			CreateBuffers();
+		}
 
 		static auto fc = FlyingFPSCamera(*Camera, Vector3::Up());
 
@@ -55,9 +70,35 @@ namespace Darius::Editor::GuiManager
 			Camera->Update();
 	}
 
-	void Render(D_GRAPHICS::GraphicsContext& context)
+	void Render(D_GRAPHICS::GraphicsContext& context, std::vector<RenderItem*> const& renderItems)
 	{
-		(context);
+		context.SetPipelineState(D_RENDERER::Psos["opaque"]);
+
+		// Prepare the command list to render a new frame.
+		context.TransitionResource(SceneTexture, D3D12_RESOURCE_STATE_RENDER_TARGET, true);
+
+		PIXBeginEvent(PIX_COLOR_DEFAULT, "Clear Scene Buffers");
+
+		// Clear the views.
+		auto const rtvDescriptor = SceneTexture.GetRTV();
+		auto const dsvDescriptor = SceneDepth.GetDSV();
+
+		// Set the viewport and scissor rect.
+		auto viewport = CD3DX12_VIEWPORT(0.f, 0.f, Width, Height, D3D12_MIN_DEPTH, D3D12_MAX_DEPTH);
+		auto scissorRect = CD3DX12_RECT(0l, 0l, (long)(Width), (long)(Height));
+
+		context.ClearColor(SceneTexture, &scissorRect);
+		context.ClearDepth(SceneDepth);
+		context.SetRenderTarget(rtvDescriptor, dsvDescriptor);
+		context.SetViewportAndScissor(viewport, scissorRect);
+
+		PIXEndEvent();
+
+		auto globals = GetGlobalConstants();
+		D_RENDERER::RenderMeshes(context, renderItems, globals);
+
+		context.TransitionResource(SceneTexture, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, true);
+		D_RENDERER_DEVICE::GetDevice()->CopyDescriptorsSimple(1, TextureHandle, SceneTexture.GetSRV(), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 	}
 
 	void DrawGUI()
@@ -107,7 +148,7 @@ namespace Darius::Editor::GuiManager
 
 
 		ImGui::Begin("Scene");
-		
+
 		auto min = ImGui::GetWindowContentRegionMin();
 		auto max = ImGui::GetWindowContentRegionMax();
 		Width = max.x - min.x;
@@ -116,11 +157,49 @@ namespace Darius::Editor::GuiManager
 		posX = pos.x;
 		posY = pos.y;
 
-		auto id = D_RENDERER::GetSceneTextureHandle();
-		ImGui::SetWindowPos(ImVec2(0, 0));
-		ImGui::Image((ImTextureID)id.ptr, ImVec2(Width, Height));
-		(id);
+		ImGui::Image((ImTextureID)TextureHandle.GetGpuPtr(), ImVec2(Width, Height));
 		ImGui::End();
-		ImGui::Render();
+	}
+
+	void CreateBuffers()
+	{
+		SceneTexture.Create(L"Scene Texture", (UINT)Width, (UINT)Height, 1, D_RENDERER_DEVICE::GetBackBufferFormat());
+		SceneDepth.Create(L"Scene DepthStencil", (UINT)Width, (UINT)Height, D_RENDERER_DEVICE::GetDepthBufferFormat());
+	}
+
+	D_RENDERER_FRAME_RESOUCE::GlobalConstants GetGlobalConstants()
+	{
+		D_RENDERER_FRAME_RESOUCE::GlobalConstants globals;
+
+		auto camera = D_CAMERA_MANAGER::GetActiveCamera();
+
+		auto view = camera->GetViewMatrix();
+		auto proj = camera->GetProjMatrix();
+
+		auto viewProj = camera->GetViewProjMatrix();
+		auto invView = Matrix4::Inverse(view);
+		auto invProj = Matrix4::Inverse(proj);
+		auto invViewProj = Matrix4::Inverse(viewProj);
+
+		float width, height;
+		D_CAMERA_MANAGER::GetViewportDimansion(width, height);
+
+		auto time = *D_TIME::GetStepTimer();
+
+		globals.View = view;
+		globals.InvView = invView;
+		globals.Proj = proj;
+		globals.InvProj = invProj;
+		globals.ViewProj = viewProj;
+		globals.InvViewProj = invViewProj;
+		globals.CameraPos = camera->GetPosition();
+		globals.RenderTargetSize = XMFLOAT2(width, height);
+		globals.InvRenderTargetSize = XMFLOAT2(1.f / width, 1.f / height);
+		globals.NearZ = camera->GetNearClip();
+		globals.FarZ = camera->GetFarClip();
+		globals.TotalTime = (float)time.GetTotalSeconds();
+		globals.DeltaTime = (float)time.GetElapsedSeconds();
+
+		return globals;
 	}
 }

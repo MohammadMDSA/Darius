@@ -27,10 +27,12 @@ namespace Darius::Renderer
 
 #ifdef _D_EDITOR
 	void RegisterGuiDrawer(std::function<void(void)> drawer);
+	DescriptorHandle GetRenderResourceHandle(UINT index);
 #endif
-	void SetRendererDimansions(float width, float height);
-	void RenderMeshes(D_GRAPHICS::GraphicsContext& context, std::vector<RenderItem*> const& renderItems);
+	void RenderMeshes(D_GRAPHICS::GraphicsContext& context, std::vector<RenderItem*> const& renderItems, D_RENDERER_FRAME_RESOUCE::GlobalConstants const& globals);
+
 	void UpdateMeshCBs(std::vector<RenderItem*> const& renderItems);
 
-	D3D12_GPU_DESCRIPTOR_HANDLE GetSceneTextureHandle();
+	void Present(D_GRAPHICS::GraphicsContext& context);
+
 }

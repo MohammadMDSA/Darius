@@ -26,6 +26,9 @@ namespace Darius::Graphics::Utils::Buffers
 
     void DepthBuffer::Create(const std::wstring& Name, uint32_t Width, uint32_t Height, uint32_t Samples, DXGI_FORMAT Format, D3D12_GPU_VIRTUAL_ADDRESS VidMemPtr)
     {
+        Width = XMMax(1u, Width);
+        Height = XMMax(1u, Height);
+
         D3D12_RESOURCE_DESC ResourceDesc = DescribeTex2D(Width, Height, 1, 1, Format, D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL);
         ResourceDesc.SampleDesc.Count = Samples;
 

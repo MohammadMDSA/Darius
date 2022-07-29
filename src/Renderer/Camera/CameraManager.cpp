@@ -42,18 +42,20 @@ namespace Darius::Renderer::CameraManager
 		return activeCameras[index];
 	}
 
-	void SetViewportDimansion(float w, float h)
+	bool SetViewportDimansion(float w, float h)
 	{
 		w = XMMax(w, 1.f);
 		h = XMMax(h, 1.f);
 		if (w == Width && h == Height)
-			return;
+			return false;
 		Width = w;
 		Height = h;
 
-			for (auto cam : activeCameras)
-				if (cam)
-					cam->SetAspectRatio(h / w);
+		for (auto cam : activeCameras)
+			if (cam)
+				cam->SetAspectRatio(h / w);
+
+		return true;
 	}
 
 	void GetViewportDimansion(float& width, float& height)

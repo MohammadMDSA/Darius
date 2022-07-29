@@ -113,6 +113,8 @@ namespace Darius::Graphics::Utils::Buffers
     void ColorBuffer::Create(const std::wstring& Name, uint32_t Width, uint32_t Height, uint32_t NumMips,
         DXGI_FORMAT Format, D3D12_GPU_VIRTUAL_ADDRESS VidMem)
     {
+        Width = XMMax(1u, Width);
+        Height = XMMax(1u, Height);
         NumMips = (NumMips == 0 ? ComputeNumMips(Width, Height) : NumMips);
         D3D12_RESOURCE_FLAGS Flags = CombineResourceFlags();
         D3D12_RESOURCE_DESC ResourceDesc = DescribeTex2D(Width, Height, 1, NumMips, Format, Flags);

@@ -111,8 +111,8 @@ namespace Darius::Editor
 			items.push_back(ri.get());
 		}
 
-		// TODO: Add your rendering code here.
-		Darius::Renderer::RenderMeshes(context, items);
+		D_GUI_MANAGER::Render(context, items);
+		Darius::Renderer::Present(context);
 
 
 	}

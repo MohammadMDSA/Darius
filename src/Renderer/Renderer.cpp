@@ -47,6 +47,7 @@ namespace Darius::Renderer
 #ifdef _D_EDITOR
 	std::function<void(void)>							GuiDrawer = nullptr;
 	DescriptorHeap										ImguiHeap;
+	UINT												MaxImguiElements = 2;
 #endif
 
 	// PSO
@@ -55,20 +56,9 @@ namespace Darius::Renderer
 	// Device resource
 	std::unique_ptr<DeviceResource::DeviceResources>	Resources;
 
-	UINT PassCbvOffset = 0;
-
-	///////////////// Heaps ///////////////////////
-	DescriptorHeap										SceneTexturesHeap;
-
 	///////////////// REMOVE ASAP //////////////////
 	bool _4xMsaaState = false;
 	short _4xMsaaQuality = 0;
-
-	///////////////// Render Textures //////////////
-	float												SceneWidth;
-	float												SceneHeight;
-	D_GRAPHICS_BUFFERS::ColorBuffer						SceneTexture;
-	D_GRAPHICS_BUFFERS::DepthBuffer						SceneDepth;
 
 	//////////////////////////////////////////////////////
 	// Functions
@@ -79,7 +69,7 @@ namespace Darius::Renderer
 
 	void DrawCube(D_GRAPHICS::GraphicsContext& context, std::vector<RenderItem*> const& renderItems);
 
-	void UpdateGlobalConstants();
+	void UpdateGlobalConstants(D_RENDERER_FRAME_RESOUCE::GlobalConstants const& globals);
 
 	void Clear(D_GRAPHICS::GraphicsContext& context, D_GRAPHICS_BUFFERS::ColorBuffer& rt, D_GRAPHICS_BUFFERS::DepthBuffer& depthStencil, RECT bounds, std::wstring const& processName = L"Clear");
 
@@ -94,20 +84,11 @@ namespace Darius::Renderer
 		InitializeGUI();
 #endif // _D_EDITOR
 
-		SceneTexturesHeap.Create(L"Scene Textures", D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, 2);
-
-		// Create scene rt and ds
-		D_CAMERA_MANAGER::GetViewportDimansion(SceneWidth, SceneHeight);
-		SceneTexture.Create(L"Scene Texture", (UINT)SceneWidth, (UINT)SceneHeight, 1, Resources->GetBackBufferFormat());
-		SceneDepth.Create(L"Scene DepthStencil", (UINT)SceneWidth, (UINT)SceneHeight, Resources->GetDepthBufferFormat());
 	}
 
 	void Shutdown()
 	{
 		D_ASSERT(_device != nullptr);
-		SceneDepth.Destroy();
-		SceneTexture.Destroy();
-		SceneTexturesHeap.Destroy();
 
 	}
 
@@ -118,47 +99,24 @@ namespace Darius::Renderer
 	}
 #endif
 
-	void SetRendererDimansions(float width, float height)
+	void RenderMeshes(D_GRAPHICS::GraphicsContext& context, std::vector<RenderItem*> const& renderItems, D_RENDERER_FRAME_RESOUCE::GlobalConstants const& globals)
 	{
-		width = XMMax(width, 1.f);
-		height = XMMax(height, 1.f);
-		if (width == SceneWidth && height == SceneHeight)
-			return;
-		SceneWidth = width;
-		SceneHeight = height;
-		SceneTexture.Create(L"Scene Texture", (UINT)SceneWidth, (UINT)SceneHeight, 1, Resources->GetBackBufferFormat());
-		SceneDepth.Create(L"Scene DepthStencil", (UINT)SceneWidth, (UINT)SceneHeight, Resources->GetDepthBufferFormat());
-	}
-
-	void RenderMeshes(D_GRAPHICS::GraphicsContext& context, std::vector<RenderItem*> const& renderItems)
-	{
-		UpdateGlobalConstants();
-
-		context.SetPipelineState(Psos["opaque"]);
-		// Prepare the command list to render a new frame.
-		context.TransitionResource(SceneTexture, D3D12_RESOURCE_STATE_RENDER_TARGET, true);
-
-		RECT bounds = { 0l, 0l, (long)SceneWidth, (long)SceneHeight };
-		Clear(context, SceneTexture, SceneDepth, bounds, L"Clear Scene");
+		UpdateGlobalConstants(globals);
 
 		PIXBeginEvent(context.GetCommandList(), PIX_COLOR_DEFAULT, L"Render opaque");
 
 		DrawCube(context, renderItems);
 
-#ifdef _D_EDITOR
-		context.TransitionResource(SceneTexture, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
-
-		_device->CopyDescriptorsSimple(1, ImguiHeap[1], SceneTexture.GetSRV(), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-#else
-		context.TransitionResource(SceneTexture, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, true);
-#endif
 		PIXEndEvent(context.GetCommandList());
+	}
+
+	void Present(D_GRAPHICS::GraphicsContext& context)
+	{
 
 #ifdef _D_EDITOR
-		//PIXBeginEvent(commandList, PIX_COLOR_DEFAULT, L"Render gui");
+		PIXBeginEvent(context.GetCommandList(), PIX_COLOR_DEFAULT, L"Render gui");
 		if (GuiDrawer)
 		{
-
 			auto& viewportRt = Resources->GetRTBuffer();
 			context.TransitionResource(viewportRt, D3D12_RESOURCE_STATE_RENDER_TARGET, true);
 
@@ -172,10 +130,11 @@ namespace Darius::Renderer
 
 			GuiDrawer();
 
+			ImGui::Render();
 			context.SetDescriptorHeap(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, ImguiHeap.GetHeapPointer());
 			ImGui_ImplDX12_RenderDrawData(ImGui::GetDrawData(), context.GetCommandList());
 		}
-		//PIXEndEvent(commandList);
+		PIXEndEvent(context.GetCommandList());
 #endif
 		// Show the new frame.
 		PIXBeginEvent(PIX_COLOR_DEFAULT, L"Present");
@@ -259,39 +218,9 @@ namespace Darius::Renderer
 		PIXEndEvent(context.GetCommandList());
 	}
 
-	void UpdateGlobalConstants()
+	void UpdateGlobalConstants(D_RENDERER_FRAME_RESOUCE::GlobalConstants const& globals)
 	{
 		PIXBeginEvent(PIX_COLOR_DEFAULT, "Update Globals");
-		D_RENDERER_FRAME_RESOUCE::GlobalConstants globals;
-
-		auto camera = D_CAMERA_MANAGER::GetActiveCamera();
-
-		auto view = camera->GetViewMatrix();
-		auto proj = camera->GetProjMatrix();
-
-		auto viewProj = camera->GetViewProjMatrix();
-		auto invView = Matrix4::Inverse(view);
-		auto invProj = Matrix4::Inverse(proj);
-		auto invViewProj = Matrix4::Inverse(viewProj);
-
-		float width, height;
-		D_CAMERA_MANAGER::GetViewportDimansion(width, height);
-
-		auto time = *D_TIME::GetStepTimer();
-
-		globals.View = view;
-		globals.InvView = invView;
-		globals.Proj = proj;
-		globals.InvProj = invProj;
-		globals.ViewProj = viewProj;
-		globals.InvViewProj = invViewProj;
-		globals.CameraPos = camera->GetPosition();
-		globals.RenderTargetSize = XMFLOAT2(width, height);
-		globals.InvRenderTargetSize = XMFLOAT2(1.f / width, 1.f / height);
-		globals.NearZ = camera->GetNearClip();
-		globals.FarZ = camera->GetFarClip();
-		globals.TotalTime = (float)time.GetTotalSeconds();
-		globals.DeltaTime = (float)time.GetElapsedSeconds();
 
 		auto currGlobalCb = Resources->GetFrameResource()->GlobalCB.get();
 
@@ -299,21 +228,24 @@ namespace Darius::Renderer
 		PIXEndEvent();
 	}
 
+
 #ifdef _D_EDITOR
+	DescriptorHandle	GetRenderResourceHandle(UINT index)
+	{
+		D_ASSERT_M(index != 0, "Access to 0 index of render resouces are not allowed");
+		D_ASSERT_M(index < MaxImguiElements&& index >= 1, "Index out of bound");
+		return ImguiHeap[index];
+	}
+
 	void InitializeGUI()
 	{
-		ImguiHeap.Create(L"Imgui Heap", D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, 2);
+		ImguiHeap.Create(L"Imgui Heap", D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, MaxImguiElements);
 
 		ImGui::CreateContext();
 		ImGui_ImplWin32_Init(Resources->GetWindow());
 		ImGui_ImplDX12_Init(_device, Resources->GetBackBufferCount(), DXGI_FORMAT_B8G8R8A8_UNORM, ImguiHeap.GetHeapPointer(), ImguiHeap.GetHeapPointer()->GetCPUDescriptorHandleForHeapStart(), ImguiHeap.GetHeapPointer()->GetGPUDescriptorHandleForHeapStart());
 	}
 #endif
-
-	D3D12_GPU_DESCRIPTOR_HANDLE GetSceneTextureHandle()
-	{
-		return ImguiHeap[1];
-	}
 
 	namespace Device
 	{
