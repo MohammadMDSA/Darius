@@ -8,7 +8,6 @@
 #include <Core/TimeManager/StepTimer.hpp>
 #include <Renderer/DeviceResources.hpp>
 #include <Renderer/FrameResource.hpp>
-#include <Math/Camera/Camera.hpp>
 
 #ifndef D_EDITOR
 #define D_EDITOR Darius::Editor
@@ -81,6 +80,5 @@ namespace Darius::Editor
 
 		std::vector<std::unique_ptr<D_RENDERER_FRAME_RESOUCE::RenderItem>> mRenderItems;
 		std::unique_ptr<Mesh>                       mMesh;
-		std::unique_ptr<D_MATH_CAMERA::Camera>      mCamera;
 	};
 }

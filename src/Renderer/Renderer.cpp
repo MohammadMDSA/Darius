@@ -65,8 +65,8 @@ namespace Darius::Renderer
 	short _4xMsaaQuality = 0;
 
 	///////////////// Render Textures //////////////
-	float												sceneWidth;
-	float												sceneHeight;
+	float												SceneWidth;
+	float												SceneHeight;
 	D_GRAPHICS_BUFFERS::ColorBuffer						SceneTexture;
 	D_GRAPHICS_BUFFERS::DepthBuffer						SceneDepth;
 
@@ -97,10 +97,9 @@ namespace Darius::Renderer
 		SceneTexturesHeap.Create(L"Scene Textures", D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, 2);
 
 		// Create scene rt and ds
-		//D_CAMERA_MANAGER::GetViewportDimansion(sceneWidth, sceneHeight);
-		sceneWidth = sceneHeight = 100L;
-		SceneTexture.Create(L"Scene Texture", sceneWidth, sceneHeight, 1, Resources->GetBackBufferFormat());
-		SceneDepth.Create(L"Scene DepthStencil", sceneWidth, sceneHeight, Resources->GetDepthBufferFormat());
+		D_CAMERA_MANAGER::GetViewportDimansion(SceneWidth, SceneHeight);
+		SceneTexture.Create(L"Scene Texture", (UINT)SceneWidth, (UINT)SceneHeight, 1, Resources->GetBackBufferFormat());
+		SceneDepth.Create(L"Scene DepthStencil", (UINT)SceneWidth, (UINT)SceneHeight, Resources->GetDepthBufferFormat());
 	}
 
 	void Shutdown()
@@ -121,12 +120,14 @@ namespace Darius::Renderer
 
 	void SetRendererDimansions(float width, float height)
 	{
-		if (width == sceneWidth && height == sceneHeight)
+		width = XMMax(width, 1.f);
+		height = XMMax(height, 1.f);
+		if (width == SceneWidth && height == SceneHeight)
 			return;
-		sceneWidth = width;
-		sceneHeight = height;
-		SceneTexture.Create(L"Scene Texture", sceneWidth, sceneHeight, 1, Resources->GetBackBufferFormat());
-		SceneDepth.Create(L"Scene DepthStencil", sceneWidth, sceneHeight, Resources->GetDepthBufferFormat());
+		SceneWidth = width;
+		SceneHeight = height;
+		SceneTexture.Create(L"Scene Texture", (UINT)SceneWidth, (UINT)SceneHeight, 1, Resources->GetBackBufferFormat());
+		SceneDepth.Create(L"Scene DepthStencil", (UINT)SceneWidth, (UINT)SceneHeight, Resources->GetDepthBufferFormat());
 	}
 
 	void RenderMeshes(D_GRAPHICS::GraphicsContext& context, std::vector<RenderItem*> const& renderItems)
@@ -137,7 +138,7 @@ namespace Darius::Renderer
 		// Prepare the command list to render a new frame.
 		context.TransitionResource(SceneTexture, D3D12_RESOURCE_STATE_RENDER_TARGET, true);
 
-		RECT bounds = { 0l, 0l, 100L, 100L };
+		RECT bounds = { 0l, 0l, (long)SceneWidth, (long)SceneHeight };
 		Clear(context, SceneTexture, SceneDepth, bounds, L"Clear Scene");
 
 		PIXBeginEvent(context.GetCommandList(), PIX_COLOR_DEFAULT, L"Render opaque");
@@ -162,10 +163,7 @@ namespace Darius::Renderer
 			context.TransitionResource(viewportRt, D3D12_RESOURCE_STATE_RENDER_TARGET, true);
 
 			// Clear RT
-			float viewportWidth, viewportHeight;
-			D_CAMERA_MANAGER::GetViewportDimansion(viewportWidth, viewportHeight);
-			RECT bounds = { 0l, 0l, (long)viewportWidth, (long)viewportHeight };
-			Clear(context, Resources->GetRTBuffer(), Resources->GetDepthStencilBuffer(), bounds);
+			Clear(context, Resources->GetRTBuffer(), Resources->GetDepthStencilBuffer(), Resources->GetOutputSize());
 
 			// Prepare imgui
 			ImGui_ImplDX12_NewFrame();

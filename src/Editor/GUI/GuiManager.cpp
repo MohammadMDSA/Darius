@@ -1,6 +1,9 @@
 #include "Editor/pch.hpp"
+#include <Renderer/pch.hpp>
 #include "GuiManager.hpp"
+#include "Editor/Camera.hpp"
 
+#include <Core/Input.hpp>
 #include <Renderer/Renderer.hpp>
 #include <Renderer/Camera/CameraManager.hpp>
 #include <Utils/Assert.hpp>
@@ -9,25 +12,55 @@
 
 namespace Darius::Editor::GuiManager
 {
-	bool initialzied = false;
+	bool										initialzied = false;
+	std::unique_ptr<D_MATH_CAMERA::Camera>      Camera;
 
-	void RenderSceneToTexture()
-	{
-
-	}
+	float										Width, Height;
+	float										posX, posY;
 
 	void Initialize()
 	{
 		D_ASSERT(!initialzied);
 		initialzied = true;
+
+		Camera = std::make_unique<D_MATH_CAMERA::Camera>();
+		Camera->SetFOV(XM_PI / 3);
+		Camera->SetZRange(0.01f, 1000.f);
+		Camera->SetPosition(Vector3(-5.f, 0.f, 0));
+		Camera->SetLookDirection(Vector3::Right(), Vector3::Up());
+		Camera->ReverseZ(false);
+
+		D_CAMERA_MANAGER::SetActiveCamera(Camera.get());
+		Width = Height = 1;
+		posX = posY = 0;
 	}
 
 	void Shutdown()
 	{
 		D_ASSERT(initialzied);
+		Camera.reset();
 	}
 
-	void Render()
+	void Update(float deltaTime)
+	{
+		D_CAMERA_MANAGER::SetViewportDimansion(Width, Height);
+		D_RENDERER::SetRendererDimansions(Width, Height);
+
+		static auto fc = FlyingFPSCamera(*Camera, Vector3::Up());
+
+		if (D_KEYBOARD::GetKey(D_KEYBOARD::Keys::LeftAlt) &&
+			D_MOUSE::GetButton(D_MOUSE::Keys::Right))
+			fc.Update(deltaTime);
+		else
+			Camera->Update();
+	}
+
+	void Render(D_GRAPHICS::GraphicsContext& context)
+	{
+		(context);
+	}
+
+	void DrawGUI()
 	{
 		D_ASSERT_M(initialzied, "Gui Manager is not initialized yet!");
 		{
@@ -75,10 +108,17 @@ namespace Darius::Editor::GuiManager
 
 		ImGui::Begin("Scene");
 		
+		auto min = ImGui::GetWindowContentRegionMin();
+		auto max = ImGui::GetWindowContentRegionMax();
+		Width = max.x - min.x;
+		Height = max.y - min.y;
+		auto pos = ImGui::GetWindowPos();
+		posX = pos.x;
+		posY = pos.y;
+
 		auto id = D_RENDERER::GetSceneTextureHandle();
-		ImGui::SetWindowSize(ImVec2(200, 200));
 		ImGui::SetWindowPos(ImVec2(0, 0));
-		ImGui::Image((ImTextureID)id.ptr, ImVec2(100.f, 100.f));
+		ImGui::Image((ImTextureID)id.ptr, ImVec2(Width, Height));
 		(id);
 		ImGui::End();
 		ImGui::Render();

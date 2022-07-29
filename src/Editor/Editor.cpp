@@ -4,7 +4,6 @@
 
 #include "pch.hpp"
 #include "Editor.hpp"
-#include "Camera.hpp"
 #include "GUI/GuiManager.hpp"
 
 #include "imgui_impl_dx12.h"
@@ -38,6 +37,7 @@ namespace Darius::Editor
 
 	Editor::~Editor()
 	{
+		D_GUI_MANAGER::Shutdown();
 		D_RENDERER_DEVICE::Shutdown();
 	}
 
@@ -60,16 +60,7 @@ namespace Darius::Editor
 
 		D_TIME::EnableFixedTimeStep(1.0 / 60);
 
-		mCamera = std::make_unique<D_MATH_CAMERA::Camera>();
-		mCamera->SetFOV(XM_PI / 3);
-		mCamera->SetZRange(0.01f, 1000.f);
-		mCamera->SetPosition(Vector3(-5.f, 0.f, 0));
-		mCamera->SetLookDirection(Vector3::Right(), Vector3::Up());
-		mCamera->ReverseZ(false);
-
-		D_CAMERA_MANAGER::SetActiveCamera(mCamera.get());
-
-		D_RENDERER::RegisterGuiDrawer(&D_GUI_MANAGER::Render);
+		D_RENDERER::RegisterGuiDrawer(&D_GUI_MANAGER::DrawGUI);
 	}
 
 #pragma region Frame Update
@@ -94,12 +85,7 @@ namespace Darius::Editor
 		(elapsedTime);
 		D_INPUT::Update();
 
-		static auto fc = FlyingFPSCamera(*mCamera, Vector3::Up());
-		if (D_KEYBOARD::GetKey(D_KEYBOARD::Keys::LeftAlt) &&
-			D_MOUSE::GetButton(D_MOUSE::Keys::Right))
-			fc.Update(elapsedTime);
-		else
-			mCamera->Update();
+		D_GUI_MANAGER::Update(elapsedTime);
 
 		UpdateRotation();
 
@@ -227,7 +213,6 @@ namespace Darius::Editor
 
 		// If using the DirectX Tool Kit for DX12, uncomment this line:
 		// m_graphicsMemory.reset();
-		mCamera.reset();
 	}
 
 	void Editor::OnDeviceRestored()
