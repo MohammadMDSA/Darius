@@ -12,6 +12,8 @@ using namespace D_RENDERER_FRAME_RESOUCE;
 
 namespace Darius::Editor::GuiManager
 {
+	extern RenderItem* ri;
+
 	void Initialize();
 	void Shutdown();
 

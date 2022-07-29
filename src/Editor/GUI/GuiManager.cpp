@@ -5,16 +5,18 @@
 
 #include <Core/Input.hpp>
 #include <Core/TimeManager/TimeManager.hpp>
+#include <Math/VectorMath.hpp>
 #include <Renderer/Renderer.hpp>
 #include <Renderer/Camera/CameraManager.hpp>
 #include <Utils/Assert.hpp>
 
 #include "imgui/imgui.h"
+#include "ImGuizmo/ImGuizmo.h"
 
 namespace Darius::Editor::GuiManager
 {
 	bool										initialzied = false;
-	std::unique_ptr<D_MATH_CAMERA::Camera>      Camera;
+	std::unique_ptr<D_MATH_CAMERA::Camera>      Cam;
 
 	float										Width, Height;
 	float										posX, posY;
@@ -23,6 +25,8 @@ namespace Darius::Editor::GuiManager
 	D_GRAPHICS_BUFFERS::ColorBuffer				SceneTexture;
 	D_GRAPHICS_BUFFERS::DepthBuffer				SceneDepth;
 	DescriptorHandle							TextureHandle;
+
+	RenderItem* ri;
 
 	void CreateBuffers();
 	D_RENDERER_FRAME_RESOUCE::GlobalConstants GetGlobalConstants();
@@ -35,14 +39,14 @@ namespace Darius::Editor::GuiManager
 		CreateBuffers();
 		TextureHandle = D_RENDERER::GetRenderResourceHandle(1);
 
-		Camera = std::make_unique<D_MATH_CAMERA::Camera>();
-		Camera->SetFOV(XM_PI / 3);
-		Camera->SetZRange(0.01f, 1000.f);
-		Camera->SetPosition(Vector3(-5.f, 0.f, 0));
-		Camera->SetLookDirection(Vector3::Right(), Vector3::Up());
-		Camera->ReverseZ(false);
+		Cam = std::make_unique<D_MATH_CAMERA::Camera>();
+		Cam->SetFOV(XM_PI / 3);
+		Cam->SetZRange(0.01f, 1000.f);
+		Cam->SetPosition(Vector3(-5.f, 0.f, 0));
+		Cam->SetLookDirection(Vector3::Right(), Vector3::Up());
+		Cam->ReverseZ(false);
 
-		D_CAMERA_MANAGER::SetActiveCamera(Camera.get());
+		D_CAMERA_MANAGER::SetActiveCamera(Cam.get());
 		Width = Height = 1;
 		posX = posY = 0;
 		IsHovered = false;
@@ -54,7 +58,7 @@ namespace Darius::Editor::GuiManager
 	void Shutdown()
 	{
 		D_ASSERT(initialzied);
-		Camera.reset();
+		Cam.reset();
 		SceneDepth.Destroy();
 		SceneTexture.Destroy();
 	}
@@ -66,13 +70,13 @@ namespace Darius::Editor::GuiManager
 			CreateBuffers();
 		}
 
-		static auto fc = FlyingFPSCamera(*Camera, Vector3::Up());
+		static auto fc = FlyingFPSCamera(*Cam, Vector3::Up());
 
 		if (D_KEYBOARD::GetKey(D_KEYBOARD::Keys::LeftAlt) &&
 			D_MOUSE::GetButton(D_MOUSE::Keys::Right) && IsHovered)
 			fc.Update(deltaTime);
 		else
-			Camera->Update();
+			Cam->Update();
 	}
 
 	void Render(D_GRAPHICS::GraphicsContext& context, std::vector<RenderItem*> const& renderItems)
@@ -187,7 +191,18 @@ namespace Darius::Editor::GuiManager
 		IsHovered = ImGui::IsWindowHovered();
 
 		ImGui::Image((ImTextureID)TextureHandle.GetGpuPtr(), ImVec2(Width, Height));
+
+
+		ImGuizmo::SetDrawlist();
+		ImGuizmo::SetRect(0.f, 0.f, Width, Height);
+		auto view = Cam->GetViewMatrix();
+		auto proj = Cam->GetProjMatrix();
+		float* world = (float*)&ri->World;
+		if(ImGuizmo::Manipulate((float*)&view, (float*)&proj, ImGuizmo::OPERATION::TRANSLATE, ImGuizmo::MODE::LOCAL, world))
+			ri->World = D_MATH::Matrix4(world);
+
 		ImGui::End();
+
 	}
 
 	void CreateBuffers()
@@ -200,7 +215,7 @@ namespace Darius::Editor::GuiManager
 	{
 		D_RENDERER_FRAME_RESOUCE::GlobalConstants globals;
 
-		auto camera = D_CAMERA_MANAGER::GetActiveCamera();
+		auto camera = Cam.get();
 
 		auto view = camera->GetViewMatrix();
 		auto proj = camera->GetProjMatrix();

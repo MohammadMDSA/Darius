@@ -121,9 +121,6 @@ namespace Darius::Editor
 		static float red = 0;
 		//red += 0.3f / 60;
 
-		mRenderItems[0]->World = Matrix4(XMMatrixTranslation(-2.f, 1.f, -5.f));
-		mRenderItems[1]->World = Matrix4(XMMatrixTranslation(2.f, -1.f, -5.f));
-
 		// Update CBs
 		std::vector<RenderItem*> renderItems;
 		for (auto& ri : mRenderItems)
@@ -199,6 +196,10 @@ namespace Darius::Editor
 
 		InitMesh();
 
+		mRenderItems[0]->World = Matrix4(XMMatrixTranslation(-2.f, 1.f, -5.f));
+		mRenderItems[1]->World = Matrix4(XMMatrixTranslation(2.f, -1.f, -5.f));
+
+		D_GUI_MANAGER::ri = mRenderItems[0].get();
 	}
 
 	// Allocate all memory resources that change on a window SizeChanged event.
