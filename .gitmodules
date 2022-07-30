@@ -10,3 +10,6 @@
 [submodule "src/Libs/imgui_wrapper/ImGuizmo"]
 	path = src/Libs/imgui_wrapper/ImGuizmo
 	url = https://github.com/CedricGuillemet/ImGuizmo
+[submodule "src/Libs/MemoryAllocators_wrapper/memory-allocators"]
+	path = src/Libs/MemoryAllocators_wrapper/memory-allocators
+	url = https://github.com/mtrebi/memory-allocators
