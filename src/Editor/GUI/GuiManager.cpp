@@ -72,8 +72,7 @@ namespace Darius::Editor::GuiManager
 
 		static auto fc = FlyingFPSCamera(*Cam, Vector3::Up());
 
-		if (D_KEYBOARD::GetKey(D_KEYBOARD::Keys::LeftAlt) &&
-			D_MOUSE::GetButton(D_MOUSE::Keys::Right) && IsHovered)
+		if (D_MOUSE::GetButton(D_MOUSE::Keys::Right) && IsHovered)
 			fc.Update(deltaTime);
 		else
 			Cam->Update();
