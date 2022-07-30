@@ -7,7 +7,7 @@ list(APPEND CORE_LIBS_INCLUDE
 	"TimeManager/StepTimer.hpp"
 	"TimeManager/TimeManager.hpp"
     "Signal.hpp"
-	"Memory.hpp"
+	"Memory/Memory.hpp"
 	"Exception.hpp"
 	"Input.hpp"
 	"Ref.hpp"
@@ -18,8 +18,8 @@ list(APPEND CORE_LIBS_INCLUDE
 
 list(APPEND CORE_LIBS_SOURCES
 	"TimeManager/TimeManager.cpp"
+	"Memory/Memory.cpp"
 	"Signal.cpp"
-	"Memory.cpp"
 	"Input.cpp"
 	)
 
@@ -54,7 +54,7 @@ PRIVATE
 	${Boost_INCLUDE_DIRS}
 )
 
-target_link_libraries("Core" PRIVATE ${Boost_LIBRARIES} DirectXTK12)
+target_link_libraries("Core" PRIVATE ${Boost_LIBRARIES} DirectXTK12 MEMALOC)
 
 if(BUILD_TESTS)
 	set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/../../cmake")

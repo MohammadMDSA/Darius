@@ -181,8 +181,8 @@ namespace Darius::Editor::GuiManager
 
 		auto min = ImGui::GetWindowContentRegionMin();
 		auto max = ImGui::GetWindowContentRegionMax();
-		Width = max.x - min.x;
-		Height = max.y - min.y;
+		Width = XMMax(max.x - min.x, 1.f);
+		Height = XMMax(max.y - min.y, 1.f);
 		auto pos = ImGui::GetWindowPos();
 		posX = pos.x;
 		posY = pos.y;
@@ -190,7 +190,6 @@ namespace Darius::Editor::GuiManager
 		IsHovered = ImGui::IsWindowHovered();
 
 		ImGui::Image((ImTextureID)TextureHandle.GetGpuPtr(), ImVec2(Width, Height));
-
 
 		ImGuizmo::SetDrawlist();
 		ImGuizmo::SetRect(0.f, 0.f, Width, Height);

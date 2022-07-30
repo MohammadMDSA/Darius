@@ -1,7 +1,7 @@
 #include "Job.hpp"
 #include "ThreadPool.hpp"
 #include <Utils/Assert.hpp>
-#include <Core/Memory.hpp>
+#include <Core/Memory/Memory.hpp>
 
 namespace Darius::Job
 {

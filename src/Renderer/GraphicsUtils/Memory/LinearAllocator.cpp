@@ -18,7 +18,7 @@
 #include "Renderer/GraphicsUtils/CommandListManager.hpp"
 #include "Renderer/RenderDeviceManager.hpp"
 
-#include <Core/Memory.hpp>
+#include <Core/Memory/Memory.hpp>
 
 #include <thread>
 

@@ -17,7 +17,7 @@
 #include "Renderer/RenderDeviceManager.hpp"
 
 #include <Core/Hash.hpp>
-#include <Core/Memory.hpp>
+#include <Core/Memory/Memory.hpp>
 
 #include <map>
 #include <thread>

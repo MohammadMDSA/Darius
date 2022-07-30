@@ -9,6 +9,8 @@
 #include <boost/align/align_down.hpp>
 #include <boost/align/align_up.hpp>
 #include <boost/align/aligned_allocator.hpp>
+#include <boost/pool/object_pool.hpp>
+#include <boost/pool/pool_alloc.hpp>
 //#include <new>
 
 #define D_malloc(T) reinterpret_cast<T*>(Darius::Core::Memory::AlignedAlloc(alignof(T), sizeof(T)))
@@ -23,6 +25,8 @@
 
 namespace Darius::Core::Memory
 {
+
+	//using PoolAllocator = 
 
 	template<typename T, std::size_t Alignment = 64>
 	using AlignedAllocator = boost::alignment::aligned_allocator<T, Alignment>;

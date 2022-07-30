@@ -32,7 +32,7 @@
 
 #include <Utils/Assert.hpp>
 #include <Math/Color.hpp>
-#include <Core/Memory.hpp>
+#include <Core/Memory/Memory.hpp>
 
 #include <vector>
 

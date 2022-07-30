@@ -84,6 +84,9 @@ endif(BUILD_EDITOR)
 # Adding imgui
 add_subdirectory("src/Libs/imgui_wrapper")
 
+# Adding Memory Allocators
+add_subdirectory("src/Libs/MemoryAllocators_wrapper")
+
 # Adding Boost
 set(Boost_USE_STATIC_LIBS ON)
 set(Boost_USE_MULTITHREADED ON)
@@ -116,19 +119,24 @@ add_subdirectory("${SOURCE_DIR}/Libs/DirectXTK12" "${CMAKE_BINARY_DIR}/bin/CMake
 ##############################
 
 add_subdirectory("src/utils")
-target_link_libraries(${PROJECT_NAME} PUBLIC "Utils")
-
 add_subdirectory("src/core")
-target_link_libraries(${PROJECT_NAME} PUBLIC "Core")
-
 add_subdirectory("src/math")
-target_link_libraries(${PROJECT_NAME} PUBLIC "Math")
-
 add_subdirectory("src/job")
-target_link_libraries(${PROJECT_NAME} PUBLIC "Job")
-
 add_subdirectory("src/renderer")
-target_link_libraries(${PROJECT_NAME} PUBLIC "Renderer")
+add_subdirectory("src/scene")
+
+SET(DARIUS_LIBS)
+
+list(APPEND DARIUS_LIBS
+	"Utils"
+    "Core"
+    "Math"
+    "Math"
+    "Renderer"
+    "Scene"
+	)
+
+target_link_libraries(${PROJECT_NAME} PUBLIC ${DARIUS_LIBS})
 
 ##############################
 ############ TEST ############

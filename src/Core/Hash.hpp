@@ -13,7 +13,7 @@
 #pragma once
 
 #include "DirectXMath.h"
-#include "Memory.hpp"
+#include "Memory/Memory.hpp"
 
 // This requires SSE4.2 which is present on Intel Nehalem (Nov. 2008)
 // and AMD Bulldozer (Oct. 2011) processors.  I could put a runtime
