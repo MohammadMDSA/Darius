@@ -21,6 +21,8 @@ namespace Darius::Editor::Gui::Windows
 		SceneWindow();
 		~SceneWindow();
 
+		SceneWindow(SceneWindow const& other) = delete;
+
 		virtual inline std::string const GetName() override { return "Scene"; }
 		virtual void Render(D_GRAPHICS::GraphicsContext& context) override;
 		virtual void DrawGUI() override;
