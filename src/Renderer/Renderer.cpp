@@ -67,7 +67,7 @@ namespace Darius::Renderer
 	void InitializeGUI();
 #endif
 
-	void DrawCube(D_GRAPHICS::GraphicsContext& context, std::vector<RenderItem*> const& renderItems);
+	void DrawCube(D_GRAPHICS::GraphicsContext& context, D_CONTAINERS::DVector<RenderItem> const& renderItems);
 
 	void UpdateGlobalConstants(D_RENDERER_FRAME_RESOUCE::GlobalConstants const& globals);
 
@@ -99,7 +99,7 @@ namespace Darius::Renderer
 	}
 #endif
 
-	void RenderMeshes(D_GRAPHICS::GraphicsContext& context, std::vector<RenderItem*> const& renderItems, D_RENDERER_FRAME_RESOUCE::GlobalConstants const& globals)
+	void RenderMeshes(D_GRAPHICS::GraphicsContext& context, D_CONTAINERS::DVector<RenderItem> const& renderItems, D_RENDERER_FRAME_RESOUCE::GlobalConstants const& globals)
 	{
 		UpdateGlobalConstants(globals);
 
@@ -146,28 +146,28 @@ namespace Darius::Renderer
 		PIXEndEvent();
 	}
 
-	void UpdateMeshCBs(std::vector<RenderItem*> const& renderItems)
+	void UpdateMeshCBs(D_CONTAINERS::DVector<RenderItem> const& renderItems)
 	{
 		PIXBeginEvent(PIX_COLOR_INDEX(10), "Update Mesh CBs");
 		auto frameResource = Resources->GetFrameResource();
 		frameResource->ReinitializeMeshCB(_device, renderItems.size());
 
-		for (auto& ri : renderItems)
+		UINT cbIdx = 0;
+		for (auto ri : renderItems)
 		{
-			if (ri->NumFramesDirty <= 0)
+			if (ri.NumFramesDirty <= 0)
 				continue;
 			MeshConstants objConstants;
-			objConstants.mWorld = ri->World;
+			objConstants.mWorld = ri.World;
 
-			frameResource->MeshCB->CopyData(ri->ObjCBIndex, objConstants);
-
-			// Next FrameResource needs to be updated too.
-			//ri->NumFramesDirty--;
+			ri.ObjCBIndex = cbIdx;
+			frameResource->MeshCB->CopyData(ri.ObjCBIndex, objConstants);
+			cbIdx++;
 		}
 		PIXEndEvent();
 	}
 
-	void DrawCube(D_GRAPHICS::GraphicsContext& context, std::vector<RenderItem*> const& renderItems)
+	void DrawCube(D_GRAPHICS::GraphicsContext& context, D_CONTAINERS::DVector<RenderItem> const& renderItems)
 	{
 
 		// Setting Root Signature
@@ -182,14 +182,14 @@ namespace Darius::Renderer
 		// For each render item
 		for (auto const& ri : renderItems)
 		{
-			auto vbv = ri->Mesh->VertexBufferView();
-			auto ibv = ri->Mesh->IndexBufferView();
+			auto vbv = ri.Mesh->VertexBufferView();
+			auto ibv = ri.Mesh->IndexBufferView();
 			context.SetVertexBuffer(0, vbv);
 			context.SetIndexBuffer(ibv);
-			context.SetPrimitiveTopology(ri->PrimitiveType);
+			context.SetPrimitiveTopology(ri.PrimitiveType);
 
-			context.SetConstantBuffer(0, objectCB->GetGPUVirtualAddress() + ri->ObjCBIndex * objCBByteSize);
-			context.DrawIndexedInstanced(ri->IndexCount, 1, ri->StartIndexLocation, ri->BaseVertexLocation, 0);
+			context.SetConstantBuffer(0, objectCB->GetGPUVirtualAddress() + ri.ObjCBIndex * objCBByteSize);
+			context.DrawIndexedInstanced(ri.IndexCount, 1, ri.StartIndexLocation, ri.BaseVertexLocation, 0);
 		}
 	}
 

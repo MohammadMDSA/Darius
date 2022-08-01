@@ -3,6 +3,7 @@
 #include "RenderDeviceManager.hpp"
 #include "CommandContext.hpp"
 
+#include <Core/Containers/Vector.hpp>
 #include <Math/Transform.hpp>
 
 #define D_RENDERER Darius::Renderer
@@ -29,9 +30,9 @@ namespace Darius::Renderer
 	void RegisterGuiDrawer(std::function<void(void)> drawer);
 	DescriptorHandle GetRenderResourceHandle(UINT index);
 #endif
-	void RenderMeshes(D_GRAPHICS::GraphicsContext& context, std::vector<RenderItem*> const& renderItems, D_RENDERER_FRAME_RESOUCE::GlobalConstants const& globals);
+	void RenderMeshes(D_GRAPHICS::GraphicsContext& context, D_CONTAINERS::DVector<RenderItem> const& renderItems, D_RENDERER_FRAME_RESOUCE::GlobalConstants const& globals);
 
-	void UpdateMeshCBs(std::vector<RenderItem*> const& renderItems);
+	void UpdateMeshCBs(D_CONTAINERS::DVector<RenderItem> const& renderItems);
 
 	void Present(D_GRAPHICS::GraphicsContext& context);
 
