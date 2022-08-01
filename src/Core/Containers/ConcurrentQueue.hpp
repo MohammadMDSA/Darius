@@ -5,6 +5,9 @@
 #include <Utils/Assert.hpp>
 #include <Utils/Common.hpp>
 
+#ifndef D_CONTAINERS
+#define D_CONTAINERS Darius::Core::Containers
+#endif // !D_CONTAINERS
 
 namespace Darius::Core::Containers
 {
