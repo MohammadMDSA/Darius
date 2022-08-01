@@ -1,9 +1,14 @@
 #pragma once
 #include <Renderer/Geometry/Mesh.hpp>
+#include <Renderer/FrameResource.hpp>
+#include <Math/VectorMath.hpp>
 
 #ifndef D_SCENE
 #define D_SCENE Darius::Scene
 #endif // !D_SCENE
+
+using namespace D_MATH;
+using namespace D_RENDERER_FRAME_RESOUCE;
 
 namespace Darius::Scene
 {
@@ -12,8 +17,12 @@ namespace Darius::Scene
 	public:
 		GameObject();
 		~GameObject();
+		RenderItem		GetRenderItem();
 
 		void			SetMesh(std::shared_ptr<D_RENDERER_GEOMETRY::Mesh> mesh);
+
+		Transform										mTransform;
+
 	private:
 		bool											mActive;
 		std::string										mName;
