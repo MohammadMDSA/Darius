@@ -1,7 +1,6 @@
 #pragma once
 
 #include <Utils/Common.hpp>
-
 #include <xmmintrin.h>
 #include <boost/align/align.hpp>
 #include <boost/align/is_aligned.hpp>
@@ -21,12 +20,12 @@
 
 #define D_free(ptr) Darius::Core::Memory::AlignedFree(ptr);
 
+#ifndef D_MEMORY
 #define D_MEMORY Darius::Core::Memory
+#endif // !D_MEMORY
 
 namespace Darius::Core::Memory
 {
-
-	//using PoolAllocator = 
 
 	template<typename T, std::size_t Alignment = 64>
 	using AlignedAllocator = boost::alignment::aligned_allocator<T, Alignment>;

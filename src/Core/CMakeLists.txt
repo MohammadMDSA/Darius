@@ -4,20 +4,24 @@ set(CORE_LIBS_INCLUDE)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ".")
 
 list(APPEND CORE_LIBS_INCLUDE
+	"Containers/ConcurrentQueue.hpp"
+	"Containers/Vector.hpp"
+	"Containers/Set.hpp"
 	"TimeManager/StepTimer.hpp"
 	"TimeManager/TimeManager.hpp"
-    "Signal.hpp"
 	"Memory/Memory.hpp"
+	"Memory/Allocator.hpp"
+    "Signal.hpp"
 	"Exception.hpp"
 	"Input.hpp"
 	"Ref.hpp"
 	"Hash.hpp"
 	"pch.hpp"
-	"Containers/ConcurrentQueue.hpp"
 	)
 
 list(APPEND CORE_LIBS_SOURCES
 	"TimeManager/TimeManager.cpp"
+	"Containers/Containers.cpp"
 	"Memory/Memory.cpp"
 	"Signal.cpp"
 	"Input.cpp"
@@ -50,11 +54,12 @@ include_directories(SYSTEM ${Boost_INCLUDE_DIRS})
 target_include_directories("Core"
 PUBLIC
 	".."
+	"../Libs/MemAll/include"
 PRIVATE
 	${Boost_INCLUDE_DIRS}
 )
 
-target_link_libraries("Core" PRIVATE ${Boost_LIBRARIES} DirectXTK12 MEMALOC)
+target_link_libraries("Core" PRIVATE ${Boost_LIBRARIES} DirectXTK12)
 
 if(BUILD_TESTS)
 	set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/../../cmake")
