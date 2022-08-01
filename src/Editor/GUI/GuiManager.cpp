@@ -13,6 +13,7 @@
 #include "imgui/imgui.h"
 #include "ImGuizmo/ImGuizmo.h"
 
+
 namespace Darius::Editor::GuiManager
 {
 	bool										initialzied = false;
@@ -26,7 +27,7 @@ namespace Darius::Editor::GuiManager
 	D_GRAPHICS_BUFFERS::DepthBuffer				SceneDepth;
 	DescriptorHandle							TextureHandle;
 
-	RenderItem* ri;
+	D_SCENE::GameObject* ri;
 
 	void CreateBuffers();
 	D_RENDERER_FRAME_RESOUCE::GlobalConstants GetGlobalConstants();
@@ -78,7 +79,7 @@ namespace Darius::Editor::GuiManager
 			Cam->Update();
 	}
 
-	void Render(D_GRAPHICS::GraphicsContext& context, std::vector<RenderItem*> const& renderItems)
+	void Render(D_GRAPHICS::GraphicsContext& context, D_CONTAINERS::DVector<RenderItem> const& renderItems)
 	{
 		context.SetPipelineState(D_RENDERER::Psos["opaque"]);
 
@@ -114,14 +115,13 @@ namespace Darius::Editor::GuiManager
 		D_ASSERT_M(initialzied, "Gui Manager is not initialized yet!");
 
 		{
-			ImGuiWindowFlags windowFlags = ImGuiWindowFlags_MenuBar | ImGuiWindowFlags_NoDocking;
 			const ImGuiViewport* viewport = ImGui::GetMainViewport();
 			ImGui::SetNextWindowPos(viewport->WorkPos);
 			ImGui::SetNextWindowSize(viewport->WorkSize);
 			ImGui::SetNextWindowViewport(viewport->ID);
 			ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
 			ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
-			windowFlags |= ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove;
+			ImGuiWindowFlags windowFlags = ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove;
 			windowFlags |= ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoNavFocus;
 
 			ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
@@ -190,14 +190,13 @@ namespace Darius::Editor::GuiManager
 		IsHovered = ImGui::IsWindowHovered();
 
 		ImGui::Image((ImTextureID)TextureHandle.GetGpuPtr(), ImVec2(Width, Height));
-
 		ImGuizmo::SetDrawlist();
-		ImGuizmo::SetRect(0.f, 0.f, Width, Height);
+		ImGuizmo::SetRect(pos.x + min.x, pos.y + min.y, Width, Height);
 		auto view = Cam->GetViewMatrix();
 		auto proj = Cam->GetProjMatrix();
-		float* world = (float*)&ri->World;
+		float* world = (float*)&ri->mTransform;
 		if(ImGuizmo::Manipulate((float*)&view, (float*)&proj, ImGuizmo::OPERATION::TRANSLATE, ImGuizmo::MODE::LOCAL, world))
-			ri->World = D_MATH::Matrix4(world);
+			ri->mTransform = D_MATH::Transform(D_MATH::Matrix4(world));
 
 		ImGui::End();
 

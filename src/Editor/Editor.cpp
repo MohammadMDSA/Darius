@@ -11,12 +11,14 @@
 
 #include <Math/VectorMath.hpp>
 #include <Core/Input.hpp>
+#include <Core/Containers/Vector.hpp>
 #include <Core/TimeManager/TimeManager.hpp>
 #include <Renderer/Renderer.hpp>
 #include <Renderer/FrameResource.hpp>
 #include <Renderer/Camera/CameraManager.hpp>
 #include <Renderer/GraphicsCore.hpp>
 #include <Renderer/CommandContext.hpp>
+#include <Scene/Scene.hpp>
 #include <Utils/Debug.hpp>
 
 #include <exception>
@@ -26,6 +28,7 @@ extern void ExitGame() noexcept;
 using namespace DirectX;
 using namespace D_RENDERER_FRAME_RESOUCE;
 using namespace D_RENDERER_GEOMETRY;
+using namespace D_CONTAINERS;
 
 using Microsoft::WRL::ComPtr;
 namespace Darius::Editor
@@ -45,7 +48,7 @@ namespace Darius::Editor
 	void Editor::Initialize(HWND window, int width, int height)
 	{
 #ifdef _DEBUG
-		D_DEBUG::AttachWinPixGpuCapturer();
+		//D_DEBUG::AttachWinPixGpuCapturer();
 #endif
 		D_RENDERER_DEVICE::Initialize(window, width, height);
 		D_RENDERER::Initialize();
@@ -58,9 +61,20 @@ namespace Darius::Editor
 
 		D_GUI_MANAGER::Initialize();
 
+		D_SCENE::Initialize();
+
 		D_TIME::EnableFixedTimeStep(1.0 / 60);
 
 		D_RENDERER::RegisterGuiDrawer(&D_GUI_MANAGER::DrawGUI);
+
+		D_SCENE::Create("Main");
+		auto a1 = D_SCENE::CreateGameObject();
+		auto a2 = D_SCENE::CreateGameObject();
+		a1->SetMesh(mMesh);
+		a2->SetMesh(mMesh);
+		a1->mTransform = Transform(Matrix4(XMMatrixTranslation(-2.f, 1.f, -5.f)));
+		a2->mTransform = Transform(Matrix4(XMMatrixTranslation(2.f, -1.f, -5.f)));
+		D_GUI_MANAGER::ri = a2;
 	}
 
 #pragma region Frame Update
@@ -105,10 +119,16 @@ namespace Darius::Editor
 			return;
 		}
 
-		std::vector<RenderItem*> items;
-		for (auto const& ri : mRenderItems)
+		DVector<RenderItem> items;
+		const auto gos = D_SCENE::GetGameObjects();
+		UINT index = 0;
+		for (auto itr = gos->begin(); itr != gos->end(); itr++)
 		{
-			items.push_back(ri.get());
+
+			auto go = (*itr);
+			auto item = go->GetRenderItem();
+			item.ObjCBIndex = index++;
+			items.push_back(item);
 		}
 
 		D_GUI_MANAGER::Render(context, items);
@@ -122,10 +142,17 @@ namespace Darius::Editor
 		//red += 0.3f / 60;
 
 		// Update CBs
-		std::vector<RenderItem*> renderItems;
-		for (auto& ri : mRenderItems)
-			renderItems.push_back(ri.get());
-		D_RENDERER::UpdateMeshCBs(renderItems);
+		DVector<RenderItem> items;
+		const auto gos = D_SCENE::GetGameObjects();
+		UINT index = 0;
+		for (auto itr = gos->begin(); itr != gos->end(); itr++)
+		{
+			auto go = (*itr);
+			auto item = go->GetRenderItem();
+			item.ObjCBIndex = index++;
+			items.push_back(item);
+		}
+		D_RENDERER::UpdateMeshCBs(items);
 	}
 #pragma endregion
 
@@ -196,10 +223,6 @@ namespace Darius::Editor
 
 		InitMesh();
 
-		mRenderItems[0]->World = Matrix4(XMMatrixTranslation(-2.f, 1.f, -5.f));
-		mRenderItems[1]->World = Matrix4(XMMatrixTranslation(2.f, -1.f, -5.f));
-
-		D_GUI_MANAGER::ri = mRenderItems[0].get();
 	}
 
 	// Allocate all memory resources that change on a window SizeChanged event.
@@ -377,7 +400,7 @@ namespace Darius::Editor
 
 	void Editor::BuildRenderItems()
 	{
-		auto box = std::make_unique<RenderItem>();
+		/*auto box = std::make_unique<RenderItem>();
 		box->World = Matrix4::Identity();
 		box->Mesh = mMesh.get();
 		box->ObjCBIndex = 0;
@@ -395,7 +418,7 @@ namespace Darius::Editor
 		box1->IndexCount = mMesh->mDraw[0].mIndexCount;
 		box1->StartIndexLocation = mMesh->mDraw[0].mStartIndexLocation;
 		box1->BaseVertexLocation = mMesh->mDraw[0].mBaseVertexLocation;
-		mRenderItems.push_back(std::move(box1));
+		mRenderItems.push_back(std::move(box1));*/
 
 	}
 #pragma endregion

@@ -78,7 +78,6 @@ namespace Darius::Editor
 		// If using the DirectX Tool Kit for DX12, uncomment this line:
 		// std::unique_ptr<DirectX::GraphicsMemory> m_graphicsMemory;
 
-		std::vector<std::unique_ptr<D_RENDERER_FRAME_RESOUCE::RenderItem>> mRenderItems;
-		std::unique_ptr<Mesh>                       mMesh;
+		std::shared_ptr<Mesh>                       mMesh;
 	};
 }
