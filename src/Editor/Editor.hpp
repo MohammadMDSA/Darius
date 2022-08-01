@@ -59,8 +59,6 @@ namespace Darius::Editor
 		void Update(D_TIME::StepTimer const& timer);
 		void Render();
 
-		void UpdateRotation();
-
 		void CreateDeviceDependentResources();
 		void CreateWindowSizeDependentResources();
 

@@ -66,8 +66,15 @@ if(BUILD_EDITOR)
         "src/Editor/pch.hpp"
         "src/Editor/Camera.hpp"
         "src/Editor/Camera.cpp"
-        "src/Editor/GUI/GuiManager.hpp"
-        "src/Editor/GUI/GuiManager.cpp")
+        "src/Editor/EditorContext.hpp"
+        "src/Editor/EditorContext.cpp"
+        "src/Editor/Gui/GuiManager.hpp"
+        "src/Editor/Gui/GuiManager.cpp"
+        "src/Editor/Gui/Window.hpp"
+        "src/Editor/Gui/Window.cpp"
+        "src/Editor/Gui/SceneWindow.hpp"
+        "src/Editor/Gui/SceneWindow.cpp"
+    )
 
         add_definitions(-D_D_EDITOR)
 

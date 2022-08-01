@@ -14,12 +14,10 @@ using namespace D_RENDERER_FRAME_RESOUCE;
 
 namespace Darius::Editor::GuiManager
 {
-	extern D_SCENE::GameObject* ri;
-
 	void Initialize();
 	void Shutdown();
 
 	void Update(float deltaTime);
-	void Render(D_GRAPHICS::GraphicsContext& context, D_CONTAINERS::DVector<RenderItem> const& renderItems);
+	void Render(D_GRAPHICS::GraphicsContext& context);
 	void DrawGUI();
 }

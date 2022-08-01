@@ -4,7 +4,8 @@
 
 #include "pch.hpp"
 #include "Editor.hpp"
-#include "GUI/GuiManager.hpp"
+#include "Gui/GuiManager.hpp"
+#include "EditorContext.hpp"
 
 #include "imgui_impl_dx12.h"
 #include "imgui_impl_win32.h"
@@ -40,7 +41,11 @@ namespace Darius::Editor
 
 	Editor::~Editor()
 	{
-		D_GUI_MANAGER::Shutdown();
+		D_SCENE::Shutdown();
+		D_EDITOR_CONTEXT::Shutdown();
+		D_INPUT::Shutdown();
+		D_TIME::Shutdown();
+		D_RENDERER::Shutdown();
 		D_RENDERER_DEVICE::Shutdown();
 	}
 
@@ -59,7 +64,7 @@ namespace Darius::Editor
 		D_TIME::Initialize();
 		D_INPUT::Initialize(window);
 
-		D_GUI_MANAGER::Initialize();
+		D_EDITOR_CONTEXT::Initialize();
 
 		D_SCENE::Initialize();
 
@@ -74,7 +79,7 @@ namespace Darius::Editor
 		a2->SetMesh(mMesh);
 		a1->mTransform = Transform(Matrix4(XMMatrixTranslation(-2.f, 1.f, -5.f)));
 		a2->mTransform = Transform(Matrix4(XMMatrixTranslation(2.f, -1.f, -5.f)));
-		D_GUI_MANAGER::ri = a2;
+		D_EDITOR_CONTEXT::SetSelectedGameObject(a2);
 	}
 
 #pragma region Frame Update
@@ -101,8 +106,6 @@ namespace Darius::Editor
 
 		D_GUI_MANAGER::Update(elapsedTime);
 
-		UpdateRotation();
-
 		PIXEndEvent();
 	}
 #pragma endregion
@@ -119,40 +122,10 @@ namespace Darius::Editor
 			return;
 		}
 
-		DVector<RenderItem> items;
-		const auto gos = D_SCENE::GetGameObjects();
-		UINT index = 0;
-		for (auto itr = gos->begin(); itr != gos->end(); itr++)
-		{
-
-			auto go = (*itr);
-			auto item = go->GetRenderItem();
-			item.ObjCBIndex = index++;
-			items.push_back(item);
-		}
-
-		D_GUI_MANAGER::Render(context, items);
+		D_GUI_MANAGER::Render(context);
 		Darius::Renderer::Present(context);
 
 
-	}
-	void Editor::UpdateRotation()
-	{
-		static float red = 0;
-		//red += 0.3f / 60;
-
-		// Update CBs
-		DVector<RenderItem> items;
-		const auto gos = D_SCENE::GetGameObjects();
-		UINT index = 0;
-		for (auto itr = gos->begin(); itr != gos->end(); itr++)
-		{
-			auto go = (*itr);
-			auto item = go->GetRenderItem();
-			item.ObjCBIndex = index++;
-			items.push_back(item);
-		}
-		D_RENDERER::UpdateMeshCBs(items);
 	}
 #pragma endregion
 
