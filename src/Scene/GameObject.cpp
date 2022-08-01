@@ -7,7 +7,7 @@ namespace Darius::Scene
 
 	GameObject::GameObject() :
 		mActive(false),
-		mName(""),
+		mName("GameObject"),
 		mMesh(nullptr)
 	{
 		mTransform = Transform::MakeIdentity();

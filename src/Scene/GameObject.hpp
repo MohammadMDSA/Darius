@@ -17,9 +17,10 @@ namespace Darius::Scene
 	public:
 		GameObject();
 		~GameObject();
-		RenderItem		GetRenderItem();
+		RenderItem					GetRenderItem();
 
-		void			SetMesh(std::shared_ptr<D_RENDERER_GEOMETRY::Mesh> mesh);
+		inline std::string const	GetName();
+		void						SetMesh(std::shared_ptr<D_RENDERER_GEOMETRY::Mesh> mesh);
 
 		Transform										mTransform;
 
@@ -29,4 +30,8 @@ namespace Darius::Scene
 		std::shared_ptr<D_RENDERER_GEOMETRY::Mesh>		mMesh;
 	};
 
+	inline std::string const GameObject::GetName()
+	{
+		return "mName";
+	}
 }

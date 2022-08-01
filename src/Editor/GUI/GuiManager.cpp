@@ -2,6 +2,7 @@
 #include <Renderer/pch.hpp>
 #include "GuiManager.hpp"
 #include "SceneWindow.hpp"
+#include "SceneGraphiWindow.hpp"
 
 #include <Core/Containers/Map.hpp>
 #include <Core/TimeManager/TimeManager.hpp>
@@ -31,6 +32,9 @@ namespace Darius::Editor::GuiManager
 		// TODO: Use linear allocator to allocate windows
 		auto sceneWindow = new SceneWindow();
 		Windows[sceneWindow->GetName()] = sceneWindow;
+
+		auto sceneGraphWindow = new SceneGraphWindow();
+		Windows[sceneGraphWindow->GetName()] = sceneGraphWindow;
 
 		ImGuiIO& io = ImGui::GetIO();
 		io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;

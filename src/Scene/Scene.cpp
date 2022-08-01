@@ -12,7 +12,7 @@ namespace Darius::Scene
 {
 	bool									_initialized = false;
 
-	std::unique_ptr<D_CONTAINERS::DSet<GameObject*>>		GOs = nullptr;
+	std::unique_ptr<D_CONTAINERS::DVector<GameObject*>>		GOs = nullptr;
 
 	bool Create(std::string const& name)
 	{
@@ -23,11 +23,11 @@ namespace Darius::Scene
 	GameObject* CreateGameObject()
 	{
 		GameObject* go = new GameObject();;
-		GOs->insert(go);
+		GOs->push_back(go);
 		return go;
 	}
 
-	D_CONTAINERS::DSet<GameObject*> const* GetGameObjects()
+	D_CONTAINERS::DVector<GameObject*> const* GetGameObjects()
 	{
 		return GOs.get();
 	}
@@ -36,7 +36,7 @@ namespace Darius::Scene
 	{
 		D_ASSERT(!_initialized);
 		_initialized = true;
-		GOs = std::make_unique<D_CONTAINERS::DSet<GameObject*>>();
+		GOs = std::make_unique<D_CONTAINERS::DVector<GameObject*>>();
 	}
 
 	void Shutdown()

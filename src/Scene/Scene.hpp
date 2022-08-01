@@ -2,7 +2,7 @@
 
 #include "GameObject.hpp"
 
-#include <core/Containers/Set.hpp>
+#include <core/Containers/Vector.hpp>
 
 #ifndef D_SCENE
 #define D_SCENE Darius::Scene
@@ -14,7 +14,7 @@ namespace Darius::Scene
 	void Shutdown();
 
 	GameObject* CreateGameObject();
-	D_CONTAINERS::DSet<GameObject*> const* GetGameObjects();
+	D_CONTAINERS::DVector<GameObject*> const* GetGameObjects();
 
 	bool Create(std::string const& name);
 	void Unload();

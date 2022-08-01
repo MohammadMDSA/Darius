@@ -74,6 +74,8 @@ if(BUILD_EDITOR)
         "src/Editor/Gui/Window.cpp"
         "src/Editor/Gui/SceneWindow.hpp"
         "src/Editor/Gui/SceneWindow.cpp"
+        "src/Editor/Gui/SceneGraphiWindow.hpp"
+        "src/Editor/Gui/SceneGraphiWindow.cpp"
     )
 
         add_definitions(-D_D_EDITOR)
