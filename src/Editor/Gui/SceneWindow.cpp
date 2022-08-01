@@ -103,17 +103,10 @@ namespace Darius::Editor::Gui::Windows
 	{
 		auto min = ImGui::GetWindowContentRegionMin();
 		auto max = ImGui::GetWindowContentRegionMax();
-		mWidth = XMMax(max.x - min.x, 1.f);
-		mHeight = XMMax(max.y - min.y, 1.f);
-		auto pos = ImGui::GetWindowPos();
-		mPosX = pos.x;
-		mPosY = pos.y;
-
-		mHovered = ImGui::IsWindowHovered();
 
 		ImGui::Image((ImTextureID)mTextureHandle.GetGpuPtr(), ImVec2(mWidth, mHeight));
 		ImGuizmo::SetDrawlist();
-		ImGuizmo::SetRect(pos.x + min.x, pos.y + min.y, mWidth, mHeight);
+		ImGuizmo::SetRect(mPosX + min.x, mPosY + min.y, mWidth, mHeight);
 		auto view = mCamera.GetViewMatrix();
 		auto proj = mCamera.GetProjMatrix();
 
