@@ -15,6 +15,9 @@ namespace Darius::Renderer::ConstantFrameResource
 
 	void FrameResource::ReinitializeMeshCB(ID3D12Device* device, UINT objectCount)
 	{
+		if (objectCount == mNumObjs)
+			return;
+		mNumObjs = objectCount;
 		MeshCB = std::make_unique<UploadBuffer<MeshConstants>>(device, objectCount, true);
 	}
 }
