@@ -85,7 +85,7 @@ endif(BUILD_EDITOR)
 add_subdirectory("src/Libs/imgui_wrapper")
 
 # Adding Memory Allocators
-add_subdirectory("src/Libs/MemoryAllocators_wrapper")
+# add_subdirectory("src/Libs/MemAll")
 
 # Adding Boost
 set(Boost_USE_STATIC_LIBS ON)
