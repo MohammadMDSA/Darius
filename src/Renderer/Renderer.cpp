@@ -40,6 +40,7 @@ namespace Darius::Renderer
 	// Input layout and root signature
 	std::vector<D3D12_INPUT_ELEMENT_DESC>				InputLayout;
 	D_GRAPHICS_UTILS::RootSignature						RootSig;
+	DescriptorHeap										DrawHeap;
 
 	// Shaders
 	std::unordered_map<std::string, ComPtr<ID3DBlob>>	Shaders;
@@ -79,6 +80,34 @@ namespace Darius::Renderer
 		D_ASSERT(Resources);
 
 		_device = Resources->GetD3DDevice();
+
+		DrawHeap.Create(L"Draw Heap", D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, 100010 * D_RENDERER_FRAME_RESOUCE::gNumFrameResources);
+
+		// Create Constant Buffer Views
+		UINT objSize = D_RENDERER_UTILS::CalcConstantBufferByteSize(sizeof(MeshConstants));
+
+		UINT objCount = 100010;
+		for (size_t frameResIdx = 0; frameResIdx < D_RENDERER_FRAME_RESOUCE::gNumFrameResources; frameResIdx++)
+		{
+			auto meshCB = Resources->GetFrameResourceByIndex(frameResIdx)->MeshCB->Resource();
+			for (UINT i = 0; i < objCount; i++)
+			{
+				D3D12_GPU_VIRTUAL_ADDRESS cbAddress = meshCB->GetGPUVirtualAddress();
+
+				// Offset to the ith object constant buffer in the buffer.
+				cbAddress += i * objSize;
+				// Offset to the object cbv in the descriptor heap.
+				int heapIndex = frameResIdx * objCount + i;
+				auto handle = DrawHeap.Alloc();
+
+				D3D12_CONSTANT_BUFFER_VIEW_DESC cbvDesc;
+				cbvDesc.BufferLocation = cbAddress;
+				cbvDesc.SizeInBytes = objSize;
+
+				_device->CreateConstantBufferView(&cbvDesc, handle);
+			}
+		}
+
 
 #ifdef _D_EDITOR
 		InitializeGUI();
@@ -176,6 +205,8 @@ namespace Darius::Renderer
 		// Setting global constant
 		context.SetConstantBuffer(1, Resources->GetFrameResource()->GlobalCB->Resource()->GetGPUVirtualAddress());
 
+		context.SetDescriptorHeap(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, DrawHeap.GetHeapPointer());
+
 		auto objectCB = Resources->GetFrameResource()->MeshCB->Resource();
 		UINT objCBByteSize = D_RENDERER_UTILS::CalcConstantBufferByteSize(sizeof(MeshConstants));
 
@@ -188,7 +219,7 @@ namespace Darius::Renderer
 			context.SetIndexBuffer(ibv);
 			context.SetPrimitiveTopology(ri.PrimitiveType);
 
-			context.SetConstantBuffer(0, objectCB->GetGPUVirtualAddress() + ri.ObjCBIndex * objCBByteSize);
+			context.SetDescriptorTable(0, DrawHeap[ri.ObjCBIndex]);
 			context.DrawIndexedInstanced(ri.IndexCount, 1, ri.StartIndexLocation, ri.BaseVertexLocation, 0);
 		}
 	}
@@ -320,7 +351,7 @@ namespace Darius::Renderer
 
 		FrameResource* GetFrameResourceWithIndex(int i)
 		{
-			return Resources->GetFrameResourceWithIndex(i);
+			return Resources->GetFrameResourceByIndex(i);
 		}
 
 		DXGI_FORMAT GetBackBufferFormat()

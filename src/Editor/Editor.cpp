@@ -75,6 +75,19 @@ namespace Darius::Editor
 		D_SCENE::Create("Main");
 		auto a1 = D_SCENE::CreateGameObject();
 		auto a2 = D_SCENE::CreateGameObject();
+		for (size_t i = 0; i < 10000; i++)
+		{
+			auto ob = D_SCENE::CreateGameObject();
+			ob->SetMesh(mMesh);
+			auto x = static_cast<float>(rand()) / static_cast<float>(RAND_MAX);
+			auto y = static_cast<float>(rand()) / static_cast<float>(RAND_MAX);
+			auto z = static_cast<float>(rand()) / static_cast<float>(RAND_MAX);
+
+			x = (x * 2 - 1) * 100.f;
+			y = (y * 2 - 1) * 100.f;
+			z = (z * 2 - 1) * 100.f;
+			ob->mTransform = Transform(Matrix4(XMMatrixTranslation(x, y, z)));
+		}
 		a1->SetMesh(mMesh);
 		a2->SetMesh(mMesh);
 		a1->mTransform = Transform(Matrix4(XMMatrixTranslation(-2.f, 1.f, -5.f)));
@@ -228,7 +241,6 @@ namespace Darius::Editor
 		BuildRootSignature();
 		BuildShadersAndInputLayout();
 		BuildGeometery(context);
-		BuildRenderItems();
 		BuildPSO();
 
 		context.Finish(true);
@@ -243,7 +255,7 @@ namespace Darius::Editor
 		D_RENDERER::RootSig.Reset(2, 0);
 
 		// Create root CBVs.
-		D_RENDERER::RootSig[0].InitAsConstantBuffer(0);
+		D_RENDERER::RootSig[0].InitAsDescriptorRange(D3D12_DESCRIPTOR_RANGE_TYPE_CBV, 0, 1);
 		D_RENDERER::RootSig[1].InitAsConstantBuffer(1);
 
 		D_RENDERER::RootSig.Finalize(L"Main Root Sig", D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT);
@@ -371,29 +383,6 @@ namespace Darius::Editor
 		D_RENDERER::Psos["opaque_wireframe"] = wirePso;
 	}
 
-	void Editor::BuildRenderItems()
-	{
-		/*auto box = std::make_unique<RenderItem>();
-		box->World = Matrix4::Identity();
-		box->Mesh = mMesh.get();
-		box->ObjCBIndex = 0;
-		box->PrimitiveType = D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
-		box->IndexCount = mMesh->mDraw[0].mIndexCount;
-		box->StartIndexLocation = mMesh->mDraw[0].mStartIndexLocation;
-		box->BaseVertexLocation = mMesh->mDraw[0].mBaseVertexLocation;
-		mRenderItems.push_back(std::move(box));
-
-		auto box1 = std::make_unique<RenderItem>();
-		box1->World = Matrix4(XMMatrixTranslation(1.f, 1.f, 0.f));
-		box1->Mesh = mMesh.get();
-		box1->ObjCBIndex = 1;
-		box1->PrimitiveType = D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
-		box1->IndexCount = mMesh->mDraw[0].mIndexCount;
-		box1->StartIndexLocation = mMesh->mDraw[0].mStartIndexLocation;
-		box1->BaseVertexLocation = mMesh->mDraw[0].mBaseVertexLocation;
-		mRenderItems.push_back(std::move(box1));*/
-
-	}
 #pragma endregion
 
 }

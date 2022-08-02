@@ -90,7 +90,7 @@ namespace Darius::Renderer::DeviceResource
         DXGI_COLOR_SPACE_TYPE       GetColorSpace() const noexcept              { return m_colorSpace; }
         unsigned int                GetDeviceOptions() const noexcept           { return m_options; }
         FrameResource*              GetFrameResource() const noexcept           { return m_frameResources[m_currentResourceIndex].get(); }
-        FrameResource*              GetFrameResourceWithIndex(int i) const noexcept { D_ASSERT(i < gNumFrameResources); return m_frameResources[i].get(); }
+        FrameResource*              GetFrameResourceByIndex(int i) const noexcept { D_ASSERT(i < gNumFrameResources); return m_frameResources[i].get(); }
         D_GRAPHICS_BUFFERS::ColorBuffer& GetRTBuffer() noexcept     { return m_swapChainBuffer[m_backBufferIndex]; }
         D_GRAPHICS_BUFFERS::DepthBuffer& GetDepthStencilBuffer() noexcept { return m_depthStencil; }
 

@@ -42,7 +42,7 @@ namespace Darius::Editor::Gui::Windows
 			if (selected)
 				nodeFlag |= ImGuiTreeNodeFlags_Selected;
 
-			auto nodeOpen = ImGui::TreeNodeEx((void*)(intptr_t)idx, nodeFlag, go->GetName().c_str());
+			auto nodeOpen = ImGui::TreeNodeEx((void*)(intptr_t)(idx++), nodeFlag, go->GetName().c_str());
 
 			if (ImGui::IsItemClicked() && !selected)
 				D_EDITOR_CONTEXT::SetSelectedGameObject(go);

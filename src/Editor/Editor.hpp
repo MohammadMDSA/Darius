@@ -68,7 +68,6 @@ namespace Darius::Editor
 		void BuildShadersAndInputLayout();
 		void BuildGeometery(D_GRAPHICS::GraphicsContext& context);
 		void BuildPSO();
-		void BuildRenderItems();
 		///////////////////////////////////////////
 
 

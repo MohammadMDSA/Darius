@@ -15,6 +15,7 @@ namespace Darius::Renderer::ConstantFrameResource
 
 	void FrameResource::ReinitializeMeshCB(ID3D12Device* device, UINT objectCount)
 	{
+		objectCount = 100010 > objectCount ? 100010 : objectCount;
 		if (objectCount == mNumObjs)
 			return;
 		mNumObjs = objectCount;
