@@ -83,7 +83,7 @@ namespace Darius::ResourceManager
 		auto cylinder = D_RENDERER_GEOMETRY_GENERATOR::CreateCylinder(0.5f, 0.5f, 1, 20, 20);
 		auto geosphere = D_RENDERER_GEOMETRY_GENERATOR::CreateGeosphere(0.5f, 20);
 		auto grid = D_RENDERER_GEOMETRY_GENERATOR::CreateGrid(100.f, 100.f, 100, 100);
-		auto quad = D_RENDERER_GEOMETRY_GENERATOR::CreateQuad(1.f, 1.f, 1.f, 1.f, 1.f);
+		auto quad = D_RENDERER_GEOMETRY_GENERATOR::CreateQuad(0.f, 0.f, 1.f, 1.f, 0.f);
 		auto sphere = D_RENDERER_GEOMETRY_GENERATOR::CreateSphere(0.5f, 20, 20);
 
 		// TODO: bad allocation
