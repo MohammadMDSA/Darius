@@ -56,6 +56,8 @@ namespace Darius::ResourceManager
 		mMesh.mDraw.push_back(submesh);
 		context.Finish();
 
+		mMesh.mBoundSp = data.CalcBoundingSphere();
+
 		mLoaded = true;
 	}
 
