@@ -1,96 +1,98 @@
 #pragma once
-#include "Memory.hpp"
+#include "pch.hpp"
+#include "Counted.hpp"
 
-class ReferenceCounter
+#include <Core/Exceptions/Exception.hpp>
+#include <Utils/Assert.hpp>
+#include <Utils/Common.hpp>
+
+#include <optional>
+
+#ifndef D_CORE
+#define D_CORE Darius::Core
+#endif // !D_UTILS
+
+namespace Darius::Core
 {
-public:
-
-	void Increment()
+	template<class T>
+	class Ref
 	{
-		m_refCount++;
-	}
+	public:
 
-	int Decrement()
-	{
-		return --m_refCount;
-	}
+		Ref() : Ref(nullptr) {}
 
-	int GetCount() const
-	{
-		return m_refCount;
-	}
-
-private:
-	m_refCount{ 0 };
-};
-
-template<typename T>
-class Ref
-{
-public:
-	Ref() {}
-	Ref(T* object)
-		: m_object(object)
-		, m_referenceCounter(D_malloc(ReferenceCounter)
-	{
-		m_referenceCounter->Increment();
-	}
-
-	Ref(const Ref<T>& other)
-		: m_object(other.m_object)
-		, m_referenceCounter(other.m_referenceCounter)
-	{
-		m_refereceCounter->Increment();
-	}
-
-	Ref<T>& operator=(const Ref<T>& other)
-	{
-		if (this != &other)
+		Ref(T* data, std::optional<CountedOwner> ownerData = std::nullopt)
 		{
-			if (m_referenceCounter && m_referenceCounter->Decrement() == 0)
+			using conv = std::is_convertible<T*, Counted*>;
+			D_STATIC_ASSERT(conv::value);
+
+			mData = data;
+
+			if (data == nullptr)
 			{
-				delete m_referenceCounter;
-				delete m_object;
+				return;
 			}
-			m_object = other.m_object;
-			m_referenceCounter = other.m_referenceCounter;
-			m_referenceCounter.Increment();
+
+			if (ownerData.has_value())
+			{
+				mOwnerData = ownerData.value();
+			}
+			else
+			{
+				mOwnerData = CountedOwner();
+			}
+
+			data->AddOwner(mOwnerData);
 		}
-		return *this;
-	}
 
-	T& operator*()
-	{
-		return *m_object;
-	}
-
-	T* operator->()
-	{
-		return m_object;
-	}
-
-	virtual ~Ref()
-	{
-		if (m_referenceCounter)
+		Ref(T* data, std::wstring const& ownerName, std::string const& ownerType, void* ownerRef) : Ref(data, CountedOwner{ ownerName, ownerType, ownerRef })
 		{
-			int decrementedCount = m_referenceCounter->Decrement();
-			if (decrementedCount <= 0)
-			{
-				delete m_referenceCounter;
-				delete m_object;
-
-				m_referenceCounter = nullptr;
-				m_object = nullptr;
-			}
 		}
-	}
 
-private:
-	T* m_object{ nullptr };
-	ReferenceCounter* m_referenceCounter{ nullptr };
-};
+		Ref(Ref<T> const& other)
+		{
+			Unref();
+			mData = other.mData;
+			mOwnerData = other.mOwnerData;
+		}
 
-template<typename T>
-inline Ref<T>::Ref(T* object)
-{
+		~Ref()
+		{
+			Unref();
+		}
+
+		void Unref()
+		{
+			if (IsValid())
+			{
+				mData->RemoveOwner(mOwnerData);
+			}
+			mData = nullptr;
+		}
+
+		INLINE T* Get()
+		{
+			return mData;
+		}
+
+		INLINE bool IsValid()
+		{
+			return mData != nullptr;
+		}
+
+		INLINE T* const operator->()
+		{
+			if (!IsValid) throw D_EXCEPTION::NullPointerException();
+			return mData.get();
+		}
+
+		INLINE T& operator*()
+		{
+			return *mData;
+		}
+
+	private:
+		CountedOwner				mOwnerData;
+		T*							mData = nullptr;
+	};
 }

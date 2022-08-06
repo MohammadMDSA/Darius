@@ -7,15 +7,16 @@ list(APPEND CORE_LIBS_INCLUDE
 	"Containers/ConcurrentQueue.hpp"
 	"Containers/Vector.hpp"
 	"Containers/Set.hpp"
+	"Exceptions/Exception.hpp"
 	"TimeManager/StepTimer.hpp"
 	"TimeManager/TimeManager.hpp"
 	"Memory/Memory.hpp"
 	"Memory/Allocator.hpp"
     "Signal.hpp"
-	"Exception.hpp"
 	"Input.hpp"
 	"Ref.hpp"
 	"Hash.hpp"
+	"Counted.hpp"
 	"pch.hpp"
 	)
 
