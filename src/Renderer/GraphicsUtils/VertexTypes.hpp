@@ -54,13 +54,7 @@ namespace Darius::Renderer::GraphicsUtils::VertexTypes
 			mColor(color)
 		{
 		}
-
-		VertexPositionColor(Vector3 position, Vector4 color) noexcept :
-			mPosition(position),
-			mColor(color)
-		{
-		}
-
+		
 		XMFLOAT3								mPosition;
 		XMFLOAT4								mColor;
 

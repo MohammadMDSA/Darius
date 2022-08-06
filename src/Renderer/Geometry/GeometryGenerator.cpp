@@ -39,8 +39,8 @@ namespace Darius::Renderer::Geometry::GeometryGenerator
 		// Save a copy of the input geometry.
 		MeshData<Vertex> inputCopy = meshData;
 
-		meshData.mVertices.resize(0);
-		meshData.mIndices32.resize(0);
+		meshData.Vertices.resize(0);
+		meshData.Indices32.resize(0);
 
 		//       v1
 	//       *
@@ -52,12 +52,12 @@ namespace Darius::Renderer::Geometry::GeometryGenerator
 	// *-----*-----*
 	// v0    m2     v2
 
-		uint32 numTris = (uint32)inputCopy.mIndices32.size() / 3;
+		uint32 numTris = (uint32)inputCopy.Indices32.size() / 3;
 		for (uint32 i = 0; i < numTris; ++i)
 		{
-			Vertex v0 = inputCopy.mVertices[inputCopy.mIndices32[i * 3 + 0]];
-			Vertex v1 = inputCopy.mVertices[inputCopy.mIndices32[i * 3 + 1]];
-			Vertex v2 = inputCopy.mVertices[inputCopy.mIndices32[i * 3 + 2]];
+			Vertex v0 = inputCopy.Vertices[inputCopy.Indices32[i * 3 + 0]];
+			Vertex v1 = inputCopy.Vertices[inputCopy.Indices32[i * 3 + 1]];
+			Vertex v2 = inputCopy.Vertices[inputCopy.Indices32[i * 3 + 2]];
 
 			//
 			// Generate the midpoints.
@@ -71,28 +71,28 @@ namespace Darius::Renderer::Geometry::GeometryGenerator
 			// Add new geometry.
 			//
 
-			meshData.mVertices.push_back(v0); // 0
-			meshData.mVertices.push_back(v1); // 1
-			meshData.mVertices.push_back(v2); // 2
-			meshData.mVertices.push_back(m0); // 3
-			meshData.mVertices.push_back(m1); // 4
-			meshData.mVertices.push_back(m2); // 5
+			meshData.Vertices.push_back(v0); // 0
+			meshData.Vertices.push_back(v1); // 1
+			meshData.Vertices.push_back(v2); // 2
+			meshData.Vertices.push_back(m0); // 3
+			meshData.Vertices.push_back(m1); // 4
+			meshData.Vertices.push_back(m2); // 5
 
-			meshData.mIndices32.push_back(i * 6 + 0);
-			meshData.mIndices32.push_back(i * 6 + 3);
-			meshData.mIndices32.push_back(i * 6 + 5);
+			meshData.Indices32.push_back(i * 6 + 0);
+			meshData.Indices32.push_back(i * 6 + 3);
+			meshData.Indices32.push_back(i * 6 + 5);
 
-			meshData.mIndices32.push_back(i * 6 + 3);
-			meshData.mIndices32.push_back(i * 6 + 4);
-			meshData.mIndices32.push_back(i * 6 + 5);
+			meshData.Indices32.push_back(i * 6 + 3);
+			meshData.Indices32.push_back(i * 6 + 4);
+			meshData.Indices32.push_back(i * 6 + 5);
 
-			meshData.mIndices32.push_back(i * 6 + 5);
-			meshData.mIndices32.push_back(i * 6 + 4);
-			meshData.mIndices32.push_back(i * 6 + 2);
+			meshData.Indices32.push_back(i * 6 + 5);
+			meshData.Indices32.push_back(i * 6 + 4);
+			meshData.Indices32.push_back(i * 6 + 2);
 
-			meshData.mIndices32.push_back(i * 6 + 3);
-			meshData.mIndices32.push_back(i * 6 + 1);
-			meshData.mIndices32.push_back(i * 6 + 4);
+			meshData.Indices32.push_back(i * 6 + 3);
+			meshData.Indices32.push_back(i * 6 + 1);
+			meshData.Indices32.push_back(i * 6 + 4);
 		}
 	}
 
@@ -146,7 +146,7 @@ namespace Darius::Renderer::Geometry::GeometryGenerator
 		v[22] = Vertex(+w2, +h2, +d2, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 1.0f, 0.0f);
 		v[23] = Vertex(+w2, -h2, +d2, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f);
 
-		meshData.mVertices.assign(&v[0], &v[24]);
+		meshData.Vertices.assign(&v[0], &v[24]);
 
 		//
 		// Create the indices.
@@ -178,7 +178,7 @@ namespace Darius::Renderer::Geometry::GeometryGenerator
 		i[30] = 20; i[31] = 21; i[32] = 22;
 		i[33] = 20; i[34] = 22; i[35] = 23;
 
-		meshData.mIndices32.assign(&i[0], &i[36]);
+		meshData.Indices32.assign(&i[0], &i[36]);
 
 		// Put a cap on the number of subdivisions.
 		numSubdivisions = std::min<uint32>(numSubdivisions, 6u);
@@ -203,7 +203,7 @@ namespace Darius::Renderer::Geometry::GeometryGenerator
 		Vertex topVertex(0.0f, +radius, 0.0f, 0.0f, +1.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f);
 		Vertex bottomVertex(0.0f, -radius, 0.0f, 0.0f, -1.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 1.0f);
 
-		meshData.mVertices.push_back(topVertex);
+		meshData.Vertices.push_back(topVertex);
 
 		float phiStep = XM_PI / stackCount;
 		float thetaStep = 2.0f * XM_PI / sliceCount;
@@ -239,11 +239,11 @@ namespace Darius::Renderer::Geometry::GeometryGenerator
 				v.mTexC.x = theta / XM_2PI;
 				v.mTexC.y = phi / XM_PI;
 
-				meshData.mVertices.push_back(v);
+				meshData.Vertices.push_back(v);
 			}
 		}
 
-		meshData.mVertices.push_back(bottomVertex);
+		meshData.Vertices.push_back(bottomVertex);
 
 		//
 		// Compute indices for top stack.  The top stack was written first to the vertex buffer
@@ -252,9 +252,9 @@ namespace Darius::Renderer::Geometry::GeometryGenerator
 
 		for (uint32 i = 1; i <= sliceCount; ++i)
 		{
-			meshData.mIndices32.push_back(0);
-			meshData.mIndices32.push_back(i + 1);
-			meshData.mIndices32.push_back(i);
+			meshData.Indices32.push_back(0);
+			meshData.Indices32.push_back(i + 1);
+			meshData.Indices32.push_back(i);
 		}
 
 		//
@@ -269,13 +269,13 @@ namespace Darius::Renderer::Geometry::GeometryGenerator
 		{
 			for (uint32 j = 0; j < sliceCount; ++j)
 			{
-				meshData.mIndices32.push_back(baseIndex + i * ringVertexCount + j);
-				meshData.mIndices32.push_back(baseIndex + i * ringVertexCount + j + 1);
-				meshData.mIndices32.push_back(baseIndex + (i + 1) * ringVertexCount + j);
+				meshData.Indices32.push_back(baseIndex + i * ringVertexCount + j);
+				meshData.Indices32.push_back(baseIndex + i * ringVertexCount + j + 1);
+				meshData.Indices32.push_back(baseIndex + (i + 1) * ringVertexCount + j);
 
-				meshData.mIndices32.push_back(baseIndex + (i + 1) * ringVertexCount + j);
-				meshData.mIndices32.push_back(baseIndex + i * ringVertexCount + j + 1);
-				meshData.mIndices32.push_back(baseIndex + (i + 1) * ringVertexCount + j + 1);
+				meshData.Indices32.push_back(baseIndex + (i + 1) * ringVertexCount + j);
+				meshData.Indices32.push_back(baseIndex + i * ringVertexCount + j + 1);
+				meshData.Indices32.push_back(baseIndex + (i + 1) * ringVertexCount + j + 1);
 			}
 		}
 
@@ -285,16 +285,16 @@ namespace Darius::Renderer::Geometry::GeometryGenerator
 		//
 
 		// South pole vertex was added last.
-		uint32 southPoleIndex = (uint32)meshData.mVertices.size() - 1;
+		uint32 southPoleIndex = (uint32)meshData.Vertices.size() - 1;
 
 		// Offset the indices to the index of the first vertex in the last ring.
 		baseIndex = southPoleIndex - ringVertexCount;
 
 		for (uint32 i = 0; i < sliceCount; ++i)
 		{
-			meshData.mIndices32.push_back(southPoleIndex);
-			meshData.mIndices32.push_back(baseIndex + i);
-			meshData.mIndices32.push_back(baseIndex + i + 1);
+			meshData.Indices32.push_back(southPoleIndex);
+			meshData.Indices32.push_back(baseIndex + i);
+			meshData.Indices32.push_back(baseIndex + i + 1);
 		}
 
 		return meshData;
@@ -330,46 +330,46 @@ namespace Darius::Renderer::Geometry::GeometryGenerator
 			10,1,6, 11,0,9, 2,11,9, 5,2,9,  11,2,7
 		};
 
-		meshData.mVertices.resize(12);
-		meshData.mIndices32.assign(&k[0], &k[60]);
+		meshData.Vertices.resize(12);
+		meshData.Indices32.assign(&k[0], &k[60]);
 
 		for (uint32 i = 0; i < 12; ++i)
-			meshData.mVertices[i].mPosition = pos[i];
+			meshData.Vertices[i].mPosition = pos[i];
 
 		for (uint32 i = 0; i < numSubdivisions; ++i)
 			Subdivide(meshData);
 
 		// Project vertices onto sphere and scale.
-		for (uint32 i = 0; i < meshData.mVertices.size(); ++i)
+		for (uint32 i = 0; i < meshData.Vertices.size(); ++i)
 		{
 			// Project onto unit sphere.
-			XMVECTOR n = XMVector3Normalize(XMLoadFloat3(&meshData.mVertices[i].mPosition));
+			XMVECTOR n = XMVector3Normalize(XMLoadFloat3(&meshData.Vertices[i].mPosition));
 
 			// Project onto sphere.
 			XMVECTOR p = radius * n;
 
-			XMStoreFloat3(&meshData.mVertices[i].mPosition, p);
-			XMStoreFloat3(&meshData.mVertices[i].mNormal, n);
+			XMStoreFloat3(&meshData.Vertices[i].mPosition, p);
+			XMStoreFloat3(&meshData.Vertices[i].mNormal, n);
 
 			// Derive texture coordinates from spherical coordinates.
-			float theta = atan2f(meshData.mVertices[i].mPosition.z, meshData.mVertices[i].mPosition.x);
+			float theta = atan2f(meshData.Vertices[i].mPosition.z, meshData.Vertices[i].mPosition.x);
 
 			// Put in [0, 2pi].
 			if (theta < 0.0f)
 				theta += XM_2PI;
 
-			float phi = acosf(meshData.mVertices[i].mPosition.y / radius);
+			float phi = acosf(meshData.Vertices[i].mPosition.y / radius);
 
-			meshData.mVertices[i].mTexC.x = theta / XM_2PI;
-			meshData.mVertices[i].mTexC.y = phi / XM_PI;
+			meshData.Vertices[i].mTexC.x = theta / XM_2PI;
+			meshData.Vertices[i].mTexC.y = phi / XM_PI;
 
 			// Partial derivative of P with respect to theta
-			meshData.mVertices[i].mTangent.x = -radius * sinf(phi) * sinf(theta);
-			meshData.mVertices[i].mTangent.y = 0.0f;
-			meshData.mVertices[i].mTangent.z = +radius * sinf(phi) * cosf(theta);
+			meshData.Vertices[i].mTangent.x = -radius * sinf(phi) * sinf(theta);
+			meshData.Vertices[i].mTangent.y = 0.0f;
+			meshData.Vertices[i].mTangent.z = +radius * sinf(phi) * cosf(theta);
 
-			XMVECTOR T = XMLoadFloat3(&meshData.mVertices[i].mTangent);
-			XMStoreFloat3(&meshData.mVertices[i].mTangent, XMVector3Normalize(T));
+			XMVECTOR T = XMLoadFloat3(&meshData.Vertices[i].mTangent);
+			XMStoreFloat3(&meshData.Vertices[i].mTangent, XMVector3Normalize(T));
 		}
 
 		return meshData;
@@ -378,7 +378,7 @@ namespace Darius::Renderer::Geometry::GeometryGenerator
 	void BuildCylinderTopCap(float bottomRadius, float topRadius, float height,
 		uint32 sliceCount, uint32 stackCount, MeshData<Vertex>& meshData)
 	{
-		uint32 baseIndex = (uint32)meshData.mVertices.size();
+		uint32 baseIndex = (uint32)meshData.Vertices.size();
 
 		float y = 0.5f * height;
 		float dTheta = 2.0f * XM_PI / sliceCount;
@@ -394,20 +394,20 @@ namespace Darius::Renderer::Geometry::GeometryGenerator
 			float u = x / height + 0.5f;
 			float v = z / height + 0.5f;
 
-			meshData.mVertices.push_back(Vertex(x, y, z, 0.0f, 1.0f, 0.0f, 1.0f, 0.0f, 0.0f, u, v));
+			meshData.Vertices.push_back(Vertex(x, y, z, 0.0f, 1.0f, 0.0f, 1.0f, 0.0f, 0.0f, u, v));
 		}
 
 		// Cap center vertex.
-		meshData.mVertices.push_back(Vertex(0.0f, y, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.5f, 0.5f));
+		meshData.Vertices.push_back(Vertex(0.0f, y, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.5f, 0.5f));
 
 		// Index of center vertex.
-		uint32 centerIndex = (uint32)meshData.mVertices.size() - 1;
+		uint32 centerIndex = (uint32)meshData.Vertices.size() - 1;
 
 		for (uint32 i = 0; i < sliceCount; ++i)
 		{
-			meshData.mIndices32.push_back(centerIndex);
-			meshData.mIndices32.push_back(baseIndex + i + 1);
-			meshData.mIndices32.push_back(baseIndex + i);
+			meshData.Indices32.push_back(centerIndex);
+			meshData.Indices32.push_back(baseIndex + i + 1);
+			meshData.Indices32.push_back(baseIndex + i);
 		}
 	}
 
@@ -418,7 +418,7 @@ namespace Darius::Renderer::Geometry::GeometryGenerator
 		// Build bottom cap.
 		//
 
-		uint32 baseIndex = (uint32)meshData.mVertices.size();
+		uint32 baseIndex = (uint32)meshData.Vertices.size();
 		float y = -0.5f * height;
 
 		// vertices of ring
@@ -433,20 +433,20 @@ namespace Darius::Renderer::Geometry::GeometryGenerator
 			float u = x / height + 0.5f;
 			float v = z / height + 0.5f;
 
-			meshData.mVertices.push_back(Vertex(x, y, z, 0.0f, -1.0f, 0.0f, 1.0f, 0.0f, 0.0f, u, v));
+			meshData.Vertices.push_back(Vertex(x, y, z, 0.0f, -1.0f, 0.0f, 1.0f, 0.0f, 0.0f, u, v));
 		}
 
 		// Cap center vertex.
-		meshData.mVertices.push_back(Vertex(0.0f, y, 0.0f, 0.0f, -1.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.5f, 0.5f));
+		meshData.Vertices.push_back(Vertex(0.0f, y, 0.0f, 0.0f, -1.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.5f, 0.5f));
 
 		// Cache the index of center vertex.
-		uint32 centerIndex = (uint32)meshData.mVertices.size() - 1;
+		uint32 centerIndex = (uint32)meshData.Vertices.size() - 1;
 
 		for (uint32 i = 0; i < sliceCount; ++i)
 		{
-			meshData.mIndices32.push_back(centerIndex);
-			meshData.mIndices32.push_back(baseIndex + i);
-			meshData.mIndices32.push_back(baseIndex + i + 1);
+			meshData.Indices32.push_back(centerIndex);
+			meshData.Indices32.push_back(baseIndex + i);
+			meshData.Indices32.push_back(baseIndex + i + 1);
 		}
 	}
 
@@ -515,7 +515,7 @@ namespace Darius::Renderer::Geometry::GeometryGenerator
 				XMVECTOR N = XMVector3Normalize(XMVector3Cross(T, B));
 				XMStoreFloat3(&vertex.mNormal, N);
 
-				meshData.mVertices.push_back(vertex);
+				meshData.Vertices.push_back(vertex);
 			}
 		}
 
@@ -528,13 +528,13 @@ namespace Darius::Renderer::Geometry::GeometryGenerator
 		{
 			for (uint32 j = 0; j < sliceCount; ++j)
 			{
-				meshData.mIndices32.push_back(i * ringVertexCount + j);
-				meshData.mIndices32.push_back((i + 1) * ringVertexCount + j);
-				meshData.mIndices32.push_back((i + 1) * ringVertexCount + j + 1);
+				meshData.Indices32.push_back(i * ringVertexCount + j);
+				meshData.Indices32.push_back((i + 1) * ringVertexCount + j);
+				meshData.Indices32.push_back((i + 1) * ringVertexCount + j + 1);
 
-				meshData.mIndices32.push_back(i * ringVertexCount + j);
-				meshData.mIndices32.push_back((i + 1) * ringVertexCount + j + 1);
-				meshData.mIndices32.push_back(i * ringVertexCount + j + 1);
+				meshData.Indices32.push_back(i * ringVertexCount + j);
+				meshData.Indices32.push_back((i + 1) * ringVertexCount + j + 1);
+				meshData.Indices32.push_back(i * ringVertexCount + j + 1);
 			}
 		}
 
@@ -565,7 +565,7 @@ namespace Darius::Renderer::Geometry::GeometryGenerator
 		float du = 1.0f / (n - 1);
 		float dv = 1.0f / (m - 1);
 
-		meshData.mVertices.resize(vertexCount);
+		meshData.Vertices.resize(vertexCount);
 		for (uint32 i = 0; i < m; ++i)
 		{
 			float z = halfDepth - i * dz;
@@ -573,13 +573,13 @@ namespace Darius::Renderer::Geometry::GeometryGenerator
 			{
 				float x = -halfWidth + j * dx;
 
-				meshData.mVertices[i * n + j].mPosition = XMFLOAT3(x, 0.0f, z);
-				meshData.mVertices[i * n + j].mNormal = XMFLOAT3(0.0f, 1.0f, 0.0f);
-				meshData.mVertices[i * n + j].mTangent = XMFLOAT3(1.0f, 0.0f, 0.0f);
+				meshData.Vertices[i * n + j].mPosition = XMFLOAT3(x, 0.0f, z);
+				meshData.Vertices[i * n + j].mNormal = XMFLOAT3(0.0f, 1.0f, 0.0f);
+				meshData.Vertices[i * n + j].mTangent = XMFLOAT3(1.0f, 0.0f, 0.0f);
 
 				// Stretch texture over grid.
-				meshData.mVertices[i * n + j].mTexC.x = j * du;
-				meshData.mVertices[i * n + j].mTexC.y = i * dv;
+				meshData.Vertices[i * n + j].mTexC.x = j * du;
+				meshData.Vertices[i * n + j].mTexC.y = i * dv;
 			}
 		}
 
@@ -587,7 +587,7 @@ namespace Darius::Renderer::Geometry::GeometryGenerator
 		// Create the indices.
 		//
 
-		meshData.mIndices32.resize(faceCount * 3); // 3 indices per face
+		meshData.Indices32.resize(faceCount * 3); // 3 indices per face
 
 		// Iterate over each quad and compute indices.
 		uint32 k = 0;
@@ -595,13 +595,13 @@ namespace Darius::Renderer::Geometry::GeometryGenerator
 		{
 			for (uint32 j = 0; j < n - 1; ++j)
 			{
-				meshData.mIndices32[k] = i * n + j;
-				meshData.mIndices32[k + 1] = i * n + j + 1;
-				meshData.mIndices32[k + 2] = (i + 1) * n + j;
+				meshData.Indices32[k] = i * n + j;
+				meshData.Indices32[k + 1] = i * n + j + 1;
+				meshData.Indices32[k + 2] = (i + 1) * n + j;
 
-				meshData.mIndices32[k + 3] = (i + 1) * n + j;
-				meshData.mIndices32[k + 4] = i * n + j + 1;
-				meshData.mIndices32[k + 5] = (i + 1) * n + j + 1;
+				meshData.Indices32[k + 3] = (i + 1) * n + j;
+				meshData.Indices32[k + 4] = i * n + j + 1;
+				meshData.Indices32[k + 5] = (i + 1) * n + j + 1;
 
 				k += 6; // next quad
 			}
@@ -615,41 +615,41 @@ namespace Darius::Renderer::Geometry::GeometryGenerator
 	{
 		MeshData<Vertex> meshData;
 
-		meshData.mVertices.resize(4);
-		meshData.mIndices32.resize(6);
+		meshData.Vertices.resize(4);
+		meshData.Indices32.resize(6);
 
 		// Position coordinates specified in NDC space.
-		meshData.mVertices[0] = Vertex(
+		meshData.Vertices[0] = Vertex(
 			x, y - h, depth,
 			0.0f, 0.0f, -1.0f,
 			1.0f, 0.0f, 0.0f,
 			0.0f, 1.0f);
 
-		meshData.mVertices[1] = Vertex(
+		meshData.Vertices[1] = Vertex(
 			x, y, depth,
 			0.0f, 0.0f, -1.0f,
 			1.0f, 0.0f, 0.0f,
 			0.0f, 0.0f);
 
-		meshData.mVertices[2] = Vertex(
+		meshData.Vertices[2] = Vertex(
 			x + w, y, depth,
 			0.0f, 0.0f, -1.0f,
 			1.0f, 0.0f, 0.0f,
 			1.0f, 0.0f);
 
-		meshData.mVertices[3] = Vertex(
+		meshData.Vertices[3] = Vertex(
 			x + w, y - h, depth,
 			0.0f, 0.0f, -1.0f,
 			1.0f, 0.0f, 0.0f,
 			1.0f, 1.0f);
 
-		meshData.mIndices32[0] = 0;
-		meshData.mIndices32[1] = 1;
-		meshData.mIndices32[2] = 2;
+		meshData.Indices32[0] = 0;
+		meshData.Indices32[1] = 1;
+		meshData.Indices32[2] = 2;
 
-		meshData.mIndices32[3] = 0;
-		meshData.mIndices32[4] = 2;
-		meshData.mIndices32[5] = 3;
+		meshData.Indices32[3] = 0;
+		meshData.Indices32[4] = 2;
+		meshData.Indices32[5] = 3;
 
 		return meshData;
 	}
