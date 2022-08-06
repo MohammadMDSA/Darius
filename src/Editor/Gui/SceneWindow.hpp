@@ -11,6 +11,8 @@
 #include <Renderer/GraphicsUtils/Buffers/DepthBuffer.hpp>
 #include <Renderer/GraphicsUtils/Memory/DescriptorHeap.hpp>
 
+#include <iostream>
+
 using namespace D_CONTAINERS;
 
 namespace Darius::Editor::Gui::Windows
@@ -66,6 +68,7 @@ namespace Darius::Editor::Gui::Windows
 			item.ObjCBIndex = index++;
 			items.push_back(item);
 		}
+		std::cout << "Number of render items: " << index << std::endl;
 		return items;
 	}
 }
