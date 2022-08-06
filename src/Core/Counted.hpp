@@ -74,7 +74,7 @@ namespace Darius::Core
 				if (mOwners[owner.Ref].Count == 0)
 					return false;
 				mOwners[owner.Ref].Count--;
-				if (mOwners[owner.Ref].Count == 0)
+				if (mOwners[owner.Ref].Count <= 0)
 					mOwners.erase(owner.Ref);
 				return true;
 			}
