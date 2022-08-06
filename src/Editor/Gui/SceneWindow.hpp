@@ -44,13 +44,25 @@ namespace Darius::Editor::Gui::Windows
 
 	inline DVector<D_RENDERER_FRAME_RESOUCE::RenderItem> SceneWindow::GetRenderItems()
 	{
+		// TODO: WRITE IT BETTER
+
 		// Update CBs
 		DVector<RenderItem> items;
 		const auto gos = D_SCENE::GetGameObjects();
 		UINT index = 0;
+		auto cam = D_CAMERA_MANAGER::GetActiveCamera();
+		auto frustum = cam->GetViewSpaceFrustum();
 		for (auto itr = gos->begin(); itr != gos->end(); itr++)
 		{
-			auto item = (*itr)->GetRenderItem();
+			auto go = *itr;
+			if (!go->mMeshResource.IsValid())
+				continue;
+			auto item = go->GetRenderItem();
+			auto bsp = go->mTransform * go->mMeshResource.Get()->Get()->mBoundSp;
+			auto vsp = BoundingSphere(Vector3(cam->GetViewMatrix() * bsp.GetCenter()), bsp.GetRadius());
+			if (!frustum.IntersectSphere(vsp))
+				continue;
+
 			item.ObjCBIndex = index++;
 			items.push_back(item);
 		}

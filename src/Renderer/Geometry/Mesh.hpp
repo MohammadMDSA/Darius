@@ -3,6 +3,7 @@
 #include "Renderer/GraphicsUtils/UploadBuffer.hpp"
 #include "Renderer/GraphicsUtils/D3DUtils.hpp"
 
+#include <Math/Bounds/BoundingSphere.hpp>
 #include <Utils/Common.hpp>
 
 #include <string>
@@ -12,7 +13,7 @@
 #endif
 
 using namespace Microsoft::WRL;
-
+using namespace D_MATH;
 using namespace Darius::Renderer::GraphicsUtils;
 
 namespace Darius::Renderer::Geometry
@@ -23,9 +24,9 @@ namespace Darius::Renderer::Geometry
 
 		struct Draw
 		{
-			UINT	mIndexCount = 0;
-			UINT	mStartIndexLocation = 0;
-			INT		mBaseVertexLocation = 0;
+			UINT	IndexCount = 0;
+			UINT	StartIndexLocation = 0;
+			INT		BaseVertexLocation = 0;
 		};
 
 		INLINE D3D12_VERTEX_BUFFER_VIEW	VertexBufferView() const
@@ -55,7 +56,7 @@ namespace Darius::Renderer::Geometry
 		}
 
 		// Mesh name
-		std::string name;
+		std::wstring name;
 
 		// Main buffers on gpu
 		ComPtr<ID3D12Resource>			mVertexBufferGPU = nullptr;
@@ -77,6 +78,8 @@ namespace Darius::Renderer::Geometry
 
 		// Submesh
 		std::vector<Draw>				mDraw;
+
+		D_MATH_BOUNDS::BoundingSphere	mBoundSp;
 	};
 
 }
