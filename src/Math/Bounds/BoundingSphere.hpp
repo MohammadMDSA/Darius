@@ -71,4 +71,11 @@ namespace Darius::Math::Bounds
         return BoundingSphere(trans * sphere.GetCenter(), trans.GetScale() * sphere.GetRadius());
     }
 
+    INLINE BoundingSphere operator*(const AffineTransform& trans, const BoundingSphere& sphere)
+    {
+        auto scale = trans.GetScale();
+        
+        return BoundingSphere(trans * sphere.GetCenter(), Max(scale.GetX(), Max(scale.GetY(), scale.GetZ())) * sphere.GetRadius());
+    }
+
 }
