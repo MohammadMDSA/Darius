@@ -181,6 +181,7 @@ namespace Darius::Math
 		INLINE Vector3 GetZ() const { return m_basis.GetZ(); }
 		INLINE Vector3 GetTranslation() const { return m_translation; }
 		INLINE const Matrix3& GetBasis() const { return (const Matrix3&)*this; }
+		INLINE Vector3 GetScale() const { XMVECTOR tmp1, tmp2, scale; XMMatrixDecompose(&scale, &tmp1, &tmp2, m_basis); return Vector3(scale); }
 
 		static INLINE AffineTransform MakeXRotation(float angle) { return AffineTransform(Matrix3::MakeXRotation(angle)); }
 		static INLINE AffineTransform MakeYRotation(float angle) { return AffineTransform(Matrix3::MakeYRotation(angle)); }
