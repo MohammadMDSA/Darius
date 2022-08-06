@@ -31,6 +31,7 @@
 //#include "Texture.h"
 
 #include <Utils/Assert.hpp>
+#include <Utils/Common.hpp>
 #include <Math/Color.hpp>
 #include <Core/Memory/Memory.hpp>
 
@@ -91,13 +92,6 @@ namespace Darius::Graphics
         std::vector<std::unique_ptr<CommandContext> > sm_ContextPool[4];
         std::queue<CommandContext*> sm_AvailableContexts[4];
         std::mutex sm_ContextAllocationMutex;
-    };
-
-    struct NonCopyable
-    {
-        NonCopyable() = default;
-        NonCopyable(const NonCopyable&) = delete;
-        NonCopyable& operator=(const NonCopyable&) = delete;
     };
 
     class CommandContext : NonCopyable
