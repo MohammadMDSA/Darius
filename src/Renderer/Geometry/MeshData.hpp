@@ -3,6 +3,7 @@
 #include "Renderer/pch.hpp"
 
 #include <Core/Containers/Vector.hpp>
+#include <Math/Bounds/BoundingSphere.hpp>
 
 
 #ifndef D_RENDERER_GEOMETRY
@@ -10,6 +11,7 @@
 #endif
 
 using namespace D_CONTAINERS;
+using namespace D_MATH_BOUNDS;
 
 namespace
 {
@@ -35,6 +37,17 @@ namespace Darius::Renderer::Geometry
 			}
 
 			return mIndices16;
+		}
+
+		BoundingSphere CalcBoundingSphere()
+		{
+			BoundingSphere res;
+			for (auto vert : Vertices)
+			{
+				BoundingSphere vertBound(vert.mPosition, 0.001);
+				res = res.Union(vertBound);
+			}
+			return res;
 		}
 
 	private:
