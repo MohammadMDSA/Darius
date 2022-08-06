@@ -42,7 +42,7 @@ PRIVATE
 )
 
 target_link_libraries("Scene" PRIVATE ${Boost_LIBRARIES})
-target_link_libraries("Scene" PRIVATE Utils Core)
+target_link_libraries("Scene" PRIVATE Utils Core IMGUI)
 
 
 if(BUILD_TESTS)

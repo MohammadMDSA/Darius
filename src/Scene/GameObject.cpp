@@ -2,13 +2,18 @@
 #include <Renderer/pch.hpp>
 #include "GameObject.hpp"
 
+#include <ResourceManager/ResourceManager.hpp>
+
+#include <imgui.h>
+
+using namespace D_RESOURCE;
+
 namespace Darius::Scene
 {
 
 	GameObject::GameObject() :
 		mActive(false),
-		mName("GameObject"),
-		mMesh(nullptr)
+		mName("GameObject")
 	{
 		mTransform = Transform::MakeIdentity();
 	}
@@ -16,19 +21,49 @@ namespace Darius::Scene
 	GameObject::~GameObject()
 	{
 	}
-	void GameObject::SetMesh(std::shared_ptr<D_RENDERER_GEOMETRY::Mesh> mesh)
-	{
-		mMesh = mesh;
-	}
+
 	RenderItem GameObject::GetRenderItem()
 	{
 		auto result = RenderItem();
-		result.BaseVertexLocation = mMesh->mDraw[0].mBaseVertexLocation;
-		result.IndexCount = mMesh->mDraw[0].mIndexCount;
-		result.StartIndexLocation = mMesh->mDraw[0].mStartIndexLocation;
-		result.Mesh = mMesh.get();
+		Mesh* mesh = *mMeshResource.Get();
+		result.BaseVertexLocation = mesh->mDraw[0].BaseVertexLocation;
+		result.IndexCount = mesh->mDraw[0].IndexCount;
+		result.StartIndexLocation = mesh->mDraw[0].StartIndexLocation;
+		result.Mesh = mesh;
 		result.PrimitiveType = D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
 		result.World = mTransform;
 		return result;
 	}
+
+#ifdef _D_EDITOR
+	void GameObject::DrawInspector()
+	{
+
+
+		MeshResource* currentMesh = mMeshResource.Get();
+
+		if (ImGui::Button("Select"))
+		{
+			ImGui::OpenPopup("Select Res");
+		}
+
+		if (ImGui::BeginPopup("Select Res"))
+		{
+			auto meshes = D_RESOURCE::GetResourcePreviews(D_RESOURCE::ResourceType::Mesh);
+			int idx = 0;
+			for (auto prev : meshes)
+			{
+				bool selected = currentMesh && prev.Handle.Id == currentMesh->GetId() && prev.Handle.Type == currentMesh->GetType();
+
+				if (ImGui::Selectable((STR_WSTR(prev.Name) + std::to_string(idx)).c_str(), &selected))
+					mMeshResource = D_RESOURCE::GetResource<MeshResource>(prev.Handle, *this);
+				idx++;
+			}
+
+			ImGui::EndPopup();
+		}
+
+	}
+#endif // _EDITOR
+
 }

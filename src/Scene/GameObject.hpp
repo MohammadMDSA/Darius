@@ -1,7 +1,11 @@
 #pragma once
+
+#include <Core/Ref.hpp>
 #include <Renderer/Geometry/Mesh.hpp>
 #include <Renderer/FrameResource.hpp>
+#include <Renderer/Geometry/Mesh.hpp>
 #include <Math/VectorMath.hpp>
+#include <ResourceManager/MeshResource.hpp>
 
 #ifndef D_SCENE
 #define D_SCENE Darius::Scene
@@ -9,6 +13,8 @@
 
 using namespace D_MATH;
 using namespace D_RENDERER_FRAME_RESOUCE;
+using namespace D_RESOURCE;
+using namespace D_CORE;
 
 namespace Darius::Scene
 {
@@ -19,19 +25,22 @@ namespace Darius::Scene
 		~GameObject();
 		RenderItem					GetRenderItem();
 
-		inline std::string const	GetName();
-		void						SetMesh(std::shared_ptr<D_RENDERER_GEOMETRY::Mesh> mesh);
+		inline std::string const	GetName() { return mName; }
+
+#ifdef _D_EDITOR
+		void						DrawInspector();
+#endif // _EDITOR
+
 
 		Transform										mTransform;
 
+		Ref<MeshResource>								mMeshResource;
+
+		INLINE operator CountedOwner const() {
+			return CountedOwner { WSTR_STR(mName), "GameObject", this, 0};
+		}
 	private:
 		bool											mActive;
 		std::string										mName;
-		std::shared_ptr<D_RENDERER_GEOMETRY::Mesh>		mMesh;
 	};
-
-	inline std::string const GameObject::GetName()
-	{
-		return "mName";
-	}
 }

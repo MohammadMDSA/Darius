@@ -19,6 +19,7 @@
 #include <Renderer/Camera/CameraManager.hpp>
 #include <Renderer/GraphicsCore.hpp>
 #include <Renderer/CommandContext.hpp>
+#include <ResourceManager/ResourceManager.hpp>
 #include <Scene/Scene.hpp>
 #include <Utils/Debug.hpp>
 
@@ -43,6 +44,7 @@ namespace Darius::Editor
 	{
 		D_SCENE::Shutdown();
 		D_EDITOR_CONTEXT::Shutdown();
+		D_RESOURCE::Shutdown();
 		D_INPUT::Shutdown();
 		D_TIME::Shutdown();
 		D_RENDERER::Shutdown();
@@ -53,7 +55,7 @@ namespace Darius::Editor
 	void Editor::Initialize(HWND window, int width, int height)
 	{
 #ifdef _DEBUG
-		//D_DEBUG::AttachWinPixGpuCapturer();
+		D_DEBUG::AttachWinPixGpuCapturer();
 #endif
 		D_RENDERER_DEVICE::Initialize(window, width, height);
 		D_RENDERER::Initialize();
@@ -63,7 +65,7 @@ namespace Darius::Editor
 
 		D_TIME::Initialize();
 		D_INPUT::Initialize(window);
-
+		D_RESOURCE::Initialize();
 		D_EDITOR_CONTEXT::Initialize();
 
 		D_SCENE::Initialize();
@@ -75,10 +77,10 @@ namespace Darius::Editor
 		D_SCENE::Create("Main");
 		auto a1 = D_SCENE::CreateGameObject();
 		auto a2 = D_SCENE::CreateGameObject();
-		for (size_t i = 0; i < 10000; i++)
+		for (size_t i = 0; i < 1000; i++)
 		{
 			auto ob = D_SCENE::CreateGameObject();
-			ob->SetMesh(mMesh);
+			//ob->SetMesh(mMesh);
 			auto x = static_cast<float>(rand()) / static_cast<float>(RAND_MAX);
 			auto y = static_cast<float>(rand()) / static_cast<float>(RAND_MAX);
 			auto z = static_cast<float>(rand()) / static_cast<float>(RAND_MAX);
@@ -87,9 +89,9 @@ namespace Darius::Editor
 			y = (y * 2 - 1) * 100.f;
 			z = (z * 2 - 1) * 100.f;
 			ob->mTransform = Transform(Matrix4(XMMatrixTranslation(x, y, z)));
-		}
+		}/*
 		a1->SetMesh(mMesh);
-		a2->SetMesh(mMesh);
+		a2->SetMesh(mMesh);*/
 		a1->mTransform = Transform(Matrix4(XMMatrixTranslation(-2.f, 1.f, -5.f)));
 		a2->mTransform = Transform(Matrix4(XMMatrixTranslation(2.f, -1.f, -5.f)));
 		D_EDITOR_CONTEXT::SetSelectedGameObject(a2);
@@ -299,12 +301,14 @@ namespace Darius::Editor
 		mMesh->mVertexBufferByteSize = (UINT)vertices.size() * sizeof(Vertex);
 		mMesh->mVertexByteStride = (UINT)sizeof(Vertex);
 
-		mMesh->name = "Box";
+		mMesh->name = L"Box";
 
 		D_HR_CHECK(D3DCreateBlob(mMesh->mVertexBufferByteSize, &mMesh->mVertexBufferCPU));
 		CopyMemory(mMesh->mVertexBufferCPU->GetBufferPointer(), vertices.data(), mMesh->mVertexBufferByteSize);
 
 		mMesh->mVertexBufferGPU = CreateDefaultBuffer(D_RENDERER_DEVICE::GetDevice(), context.GetCommandList(), vertices.data(), mMesh->mVertexBufferByteSize, mMesh->mVertexBufferUploader);
+
+		mMesh->mBoundSp = D_MATH_BOUNDS::BoundingSphere(0.f, 0.f, 0.f, 1.8f);
 
 		std::array<std::uint16_t, 36> indices =
 		{
@@ -342,9 +346,9 @@ namespace Darius::Editor
 		mMesh->mIndexBufferGPU = CreateDefaultBuffer(D_RENDERER_DEVICE::GetDevice(), context.GetCommandList(), indices.data(), mMesh->mIndexBufferByteSize, mMesh->mIndexBufferUploader);
 
 		Mesh::Draw draw;
-		draw.mBaseVertexLocation = 0;
-		draw.mIndexCount = (UINT)indices.size();
-		draw.mStartIndexLocation = 0;
+		draw.BaseVertexLocation = 0;
+		draw.IndexCount = (UINT)indices.size();
+		draw.StartIndexLocation = 0;
 
 		mMesh->mDraw.push_back(draw);
 	}
