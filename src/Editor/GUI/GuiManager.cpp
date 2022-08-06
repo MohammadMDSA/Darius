@@ -3,6 +3,7 @@
 #include "GuiManager.hpp"
 #include "SceneWindow.hpp"
 #include "SceneGraphiWindow.hpp"
+#include "DetailsWindow.hpp"
 
 #include <Core/Containers/Map.hpp>
 #include <Core/TimeManager/TimeManager.hpp>
@@ -35,6 +36,9 @@ namespace Darius::Editor::GuiManager
 
 		auto sceneGraphWindow = new SceneGraphWindow();
 		Windows[sceneGraphWindow->GetName()] = sceneGraphWindow;
+
+		auto detailsWindow = new DetailsWindow();
+		Windows[detailsWindow->GetName()] = detailsWindow;
 
 		ImGuiIO& io = ImGui::GetIO();
 		io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;

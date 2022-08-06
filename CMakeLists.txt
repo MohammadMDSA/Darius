@@ -76,6 +76,8 @@ if(BUILD_EDITOR)
         "src/Editor/Gui/SceneWindow.cpp"
         "src/Editor/Gui/SceneGraphiWindow.hpp"
         "src/Editor/Gui/SceneGraphiWindow.cpp"
+        "src/Editor/Gui/DetailsWindow.hpp"
+        "src/Editor/Gui/DetailsWindow.cpp"
     )
 
         add_definitions(-D_D_EDITOR)
@@ -133,6 +135,7 @@ add_subdirectory("src/math")
 add_subdirectory("src/job")
 add_subdirectory("src/renderer")
 add_subdirectory("src/scene")
+add_subdirectory("src/resourceManager")
 
 SET(DARIUS_LIBS)
 
@@ -143,6 +146,7 @@ list(APPEND DARIUS_LIBS
     "Math"
     "Renderer"
     "Scene"
+    "ResourceManager"
 	)
 
 target_link_libraries(${PROJECT_NAME} PUBLIC ${DARIUS_LIBS})
@@ -234,7 +238,7 @@ if ( CMAKE_CXX_COMPILER_ID MATCHES "MSVC" )
          "/wd4061" "/wd4365" "/wd4514" "/wd4571" "/wd4668" "/wd4710" "/wd4820" "/wd5039" "/wd5045"
          "/wd4265" "/wd4625" "/wd4626" "/wd4986" "/wd5204" "/wd5220"
          "/wd4324"
-         "/wd5026" "/wd5027" "/wd4623")
+         "/wd5026" "/wd5027" "/wd4623" "/wd5038")
 
     if(ENABLE_CODE_ANALYSIS)
         target_compile_options(${PROJECT_NAME} PRIVATE /analyze)
