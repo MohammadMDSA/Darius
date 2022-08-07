@@ -16,7 +16,7 @@
 
 using namespace Darius::Editor::Gui::Windows;
 
-namespace Darius::Editor::GuiManager
+namespace Darius::Editor::Gui::GuiManager
 {
 	bool										initialzied = false;
 
