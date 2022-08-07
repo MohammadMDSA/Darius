@@ -13,7 +13,7 @@ list(APPEND SCENE_LIBS_SOURCES
 	"GameObject.cpp"
 	"Scene.cpp"
 	"pch.cpp"
-    "Utils/InspectorDrawer.hpp"
+    "Utils/DetailsDrawer.hpp"
     "Utils/Utils.cpp"
 	)
 

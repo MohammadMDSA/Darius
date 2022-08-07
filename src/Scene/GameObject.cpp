@@ -1,7 +1,7 @@
 #include "pch.hpp"
 #include <Renderer/pch.hpp>
 #include "GameObject.hpp"
-#include "Scene/Utils/InspectorDrawer.hpp"
+#include "Scene/Utils/DetailsDrawer.hpp"
 
 #include <ResourceManager/ResourceManager.hpp>
 
@@ -37,12 +37,12 @@ namespace Darius::Scene
 	}
 
 #ifdef _D_EDITOR
-	bool GameObject::DrawInspector(float params[])
+	bool GameObject::DrawDetails(float params[])
 	{
 		bool changeValue = false;
 
 		auto location = mTransform.GetTranslation();
-		if (D_SCENE_INS_DRAW::DrawInspector("Location", location, nullptr))
+		if (D_SCENE_DET_DRAW::DrawDetails("Location", location, nullptr))
 		{
 			mTransform.SetTranslation(location);
 			changeValue = true;

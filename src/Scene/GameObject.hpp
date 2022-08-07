@@ -28,7 +28,7 @@ namespace Darius::Scene
 		inline std::string const	GetName() { return mName; }
 
 #ifdef _D_EDITOR
-		bool						DrawInspector(float params[]);
+		bool						DrawDetails(float params[]);
 #endif // _EDITOR
 
 

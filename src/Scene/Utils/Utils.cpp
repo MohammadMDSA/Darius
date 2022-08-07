@@ -1,2 +1,2 @@
 #include "Scene/pch.hpp"
-#include "InspectorDrawer.hpp"
+#include "DetailsDrawer.hpp"

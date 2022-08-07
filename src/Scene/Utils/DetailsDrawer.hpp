@@ -8,14 +8,14 @@
 #ifdef _D_EDITOR
 
 #ifndef D_SCENE_INS_DRAW
-#define D_SCENE_INS_DRAW Darius::Scene::Utils::InspectorDrawer
+#define D_SCENE_DET_DRAW Darius::Scene::Utils::DetailsDrawer
 #endif // !D_SCENE_INS_DRAW
 
 using namespace D_MATH;
 
-namespace Darius::Scene::Utils::InspectorDrawer
+namespace Darius::Scene::Utils::DetailsDrawer
 {
-	bool DrawInspector(std::string const& label, D_MATH::Vector3& elem, float params[])
+	bool DrawDetails(std::string const& label, D_MATH::Vector3& elem, float params[])
 	{
 		auto valueChanged = false;
 		auto values = reinterpret_cast<float*>(&elem);
@@ -100,10 +100,10 @@ namespace Darius::Scene::Utils::InspectorDrawer
 
 
 	template<typename T>
-	bool DrawInspector(std::string const& label, T elem, float params[])
+	bool DrawDetails(std::string const& label, T& elem, float params[])
 	{
 		ImGui::Text(label.c_str());
-		return elem.DrawInspector();
+		return elem.DrawDetails();
 	}
 
 }
