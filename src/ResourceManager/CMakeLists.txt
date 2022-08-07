@@ -49,7 +49,7 @@ PRIVATE
 	${Boost_INCLUDE_DIRS}
 )
 
-target_link_libraries("ResourceManager" PRIVATE ${Boost_LIBRARIES} PUBLIC IMGUI)
+target_link_libraries("ResourceManager" PRIVATE ${Boost_LIBRARIES} Core Renderer Utils)
 
 if(BUILD_TESTS)
 	set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/../../cmake")
