@@ -6,11 +6,15 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ".")
 list(APPEND SCENE_LIBS_INCLUDE
 	"GameObject.hpp"
 	"Scene.hpp"
+	"pch.hpp"
 	)
 
 list(APPEND SCENE_LIBS_SOURCES
 	"GameObject.cpp"
 	"Scene.cpp"
+	"pch.cpp"
+    "Utils/InspectorDrawer.hpp"
+    "Utils/Utils.cpp"
 	)
 
 
@@ -42,7 +46,7 @@ PRIVATE
 )
 
 target_link_libraries("Scene" PRIVATE ${Boost_LIBRARIES})
-target_link_libraries("Scene" PRIVATE Utils Core IMGUI)
+target_link_libraries("Scene" PRIVATE Utils Core Math Renderer ResourceManager IMGUI)
 
 
 if(BUILD_TESTS)
