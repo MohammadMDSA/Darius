@@ -1,6 +1,7 @@
 #include "pch.hpp"
 #include <Renderer/pch.hpp>
 #include "GameObject.hpp"
+#include "Scene/Utils/InspectorDrawer.hpp"
 
 #include <ResourceManager/ResourceManager.hpp>
 
@@ -36,9 +37,16 @@ namespace Darius::Scene
 	}
 
 #ifdef _D_EDITOR
-	void GameObject::DrawInspector()
+	bool GameObject::DrawInspector(float params[])
 	{
+		bool changeValue = false;
 
+		auto location = mTransform.GetTranslation();
+		if (D_SCENE_INS_DRAW::DrawInspector("Location", location, nullptr))
+		{
+			mTransform.SetTranslation(location);
+			changeValue = true;
+		}
 
 		MeshResource* currentMesh = mMeshResource.Get();
 
@@ -56,13 +64,17 @@ namespace Darius::Scene
 				bool selected = currentMesh && prev.Handle.Id == currentMesh->GetId() && prev.Handle.Type == currentMesh->GetType();
 
 				if (ImGui::Selectable((STR_WSTR(prev.Name) + std::to_string(idx)).c_str(), &selected))
+				{
 					mMeshResource = D_RESOURCE::GetResource<MeshResource>(prev.Handle, *this);
+					changeValue = true;
+				}
+
 				idx++;
 			}
 
 			ImGui::EndPopup();
 		}
-
+		return changeValue;
 	}
 #endif // _EDITOR
 

@@ -17,6 +17,6 @@ namespace Darius::Editor::Gui::Windows
 	{
 		auto obj = D_EDITOR_CONTEXT::GetSelectedGameObject();
 		if (obj)
-			obj->DrawInspector();
+			obj->DrawInspector(nullptr);
 	}
 }
