@@ -66,6 +66,9 @@ namespace Darius::Math
         INLINE Vector3& operator *= (Vector3 v) { *this = *this * v; return *this; }
         INLINE Vector3& operator /= (Vector3 v) { *this = *this / v; return *this; }
 
+        INLINE operator XMVECTOR& () { return m_vec; }
+        INLINE operator XMFLOAT3& () { return *(XMFLOAT3*)&m_vec; }
+
         INLINE friend Vector3 operator* (Scalar  v1, Vector3 v2) { return Vector3(v1) * v2; }
         INLINE friend Vector3 operator/ (Scalar  v1, Vector3 v2) { return Vector3(v1) / v2; }
         INLINE friend Vector3 operator* (float   v1, Vector3 v2) { return Scalar(v1) * v2; }

@@ -35,7 +35,7 @@ namespace Darius::Math
         {
             m_mat = XMLoadFloat4x4((XMFLOAT4X4*)data);
         }
-
+        
         INLINE Matrix4(Vector4 x, Vector4 y, Vector4 z, Vector4 w) { m_mat.r[0] = x; m_mat.r[1] = y; m_mat.r[2] = z; m_mat.r[3] = w; }
         INLINE Matrix4(const Matrix4& mat) { m_mat = mat.m_mat; }
         INLINE Matrix4(const Matrix3& mat)
