@@ -51,6 +51,9 @@ static INLINE std::string const GetTypeName() { return D_NAMEOF(T); }
 /////////////////////////////Helpers
 #define STR_WSTR(str) std::string(str.begin(), str.end())
 #define WSTR_STR(str) std::wstring(str.begin(), str.end())
+#define D_H_CONCAT(A, B) A##B
+#define D_H_UNIQUE_NAME(base) D_H_CONCAT(base, __COUNTER__)
+#define D_H_UNIQUE_ID __COUNTER__
 
 struct NonCopyable
 {
