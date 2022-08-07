@@ -20,12 +20,40 @@ namespace Darius::Math
     public:
         INLINE Quaternion() { m_vec = XMQuaternionIdentity(); }
         INLINE Quaternion(const Vector3& axis, const Scalar& angle) { m_vec = XMQuaternionRotationAxis(axis, angle); }
-        INLINE Quaternion(float pitch, float yaw, float roll) { m_vec = XMQuaternionRotationRollPitchYaw(pitch, yaw, roll); }
+        INLINE Quaternion(float pitch, float yaw, float roll) { m_vec = XMQuaternionRotationMatrix(XMMatrixRotationZ(roll) * XMMatrixRotationX(pitch) * XMMatrixRotationY(yaw)); }
         INLINE explicit Quaternion(const XMMATRIX& matrix) { m_vec = XMQuaternionRotationMatrix(matrix); }
         INLINE explicit Quaternion(FXMVECTOR vec) { m_vec = vec; }
         INLINE explicit Quaternion(EIdentityTag) { m_vec = XMQuaternionIdentity(); }
+        
+        INLINE Vector3 Angles()
+        {
+            Vector3 result;
+            auto mat = XMMatrixRotationQuaternion(m_vec);
+            auto fmat = XMFLOAT4X4((float*)&mat);
 
-        INLINE operator XMVECTOR() const { return m_vec; }
+            if (fmat._32 < 1.f)
+            {
+                if (fmat._32 > -1.f)
+                {
+                    result.SetX(asinf(fmat._32));
+                    result.SetZ(atan2f(-fmat._12, fmat._22));
+                    result.SetY(atan2f(-fmat._31, fmat._33));
+                }
+                else
+                {
+                    result.SetX(-XM_PIDIV2);
+                    result.SetZ(-atan2f(fmat._13, fmat._11));
+                    result.SetY(0.f);
+                }
+            }
+            else
+            {
+                result.SetX(XM_PIDIV2);
+                result.SetZ(atan2f(fmat._13, fmat._11));
+                result.SetY(0.f);
+            }
+            return result;
+        }
 
         INLINE Quaternion operator~ (void) const { return Quaternion(XMQuaternionConjugate(m_vec)); }
         INLINE Quaternion operator- (void) const { return Quaternion(XMVectorNegate(m_vec)); }
@@ -35,6 +63,9 @@ namespace Darius::Math
 
         INLINE Quaternion& operator= (Quaternion rhs) { m_vec = rhs; return *this; }
         INLINE Quaternion& operator*= (Quaternion rhs) { *this = *this * rhs; return *this; }
+
+        INLINE operator XMVECTOR () const { return m_vec; }
+        INLINE operator Vector3& () { return *(Vector3*)&m_vec; }
 
     protected:
         XMVECTOR m_vec;

@@ -14,9 +14,9 @@ namespace Darius::Scene
 
 	GameObject::GameObject() :
 		mActive(false),
-		mName("GameObject")
+		mName("GameObject"),
+		mTransform()
 	{
-		mTransform = Transform::MakeIdentity();
 	}
 
 	GameObject::~GameObject()
@@ -32,7 +32,7 @@ namespace Darius::Scene
 		result.StartIndexLocation = mesh->mDraw[0].StartIndexLocation;
 		result.Mesh = mesh;
 		result.PrimitiveType = D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
-		result.World = mTransform;
+		result.World = Matrix4((XMMATRIX)mTransform);
 		return result;
 	}
 
@@ -41,12 +41,7 @@ namespace Darius::Scene
 	{
 		bool changeValue = false;
 
-		auto location = mTransform.GetTranslation();
-		if (D_SCENE_DET_DRAW::DrawDetails("Location", location, nullptr))
-		{
-			mTransform.SetTranslation(location);
-			changeValue = true;
-		}
+		D_SCENE_DET_DRAW::DrawDetails(mTransform, nullptr);
 
 		MeshResource* currentMesh = mMeshResource.Get();
 

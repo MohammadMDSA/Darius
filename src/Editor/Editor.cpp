@@ -88,12 +88,12 @@ namespace Darius::Editor
 			x = (x * 2 - 1) * 100.f;
 			y = (y * 2 - 1) * 100.f;
 			z = (z * 2 - 1) * 100.f;
-			ob->mTransform = Transform(Matrix4(XMMatrixTranslation(x, y, z)));
+			ob->mTransform = Transform(Vector3(x, y, z));
 		}/*
 		a1->SetMesh(mMesh);
 		a2->SetMesh(mMesh);*/
-		a1->mTransform = Transform(Matrix4(XMMatrixTranslation(-2.f, 1.f, -5.f)));
-		a2->mTransform = Transform(Matrix4(XMMatrixTranslation(2.f, -1.f, -5.f)));
+		a1->mTransform = Transform(Vector3(-2.f, 1.f, -5.f));
+		a2->mTransform = Transform(Vector3(2.f, -1.f, -5.f));
 		D_EDITOR_CONTEXT::SetSelectedGameObject(a2);
 	}
 

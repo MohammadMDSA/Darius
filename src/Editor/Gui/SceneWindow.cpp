@@ -114,8 +114,8 @@ namespace Darius::Editor::Gui::Windows
 
 		if (selectedObj)
 		{
-			float* world = (float*)&selectedObj->mTransform;
-			if (ImGuizmo::Manipulate((float*)&view, (float*)&proj, ImGuizmo::OPERATION::TRANSLATE, ImGuizmo::MODE::LOCAL, world))
+			auto world = selectedObj->mTransform.GetWorld();
+			if (ImGuizmo::Manipulate((float*)&view, (float*)&proj, ImGuizmo::OPERATION::TRANSLATE, ImGuizmo::MODE::LOCAL, (float*)&world))
 				selectedObj->mTransform = D_MATH::Transform(D_MATH::Matrix4(world));
 		}
 	}
