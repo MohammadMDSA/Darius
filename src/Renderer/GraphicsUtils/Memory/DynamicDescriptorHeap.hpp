@@ -67,14 +67,14 @@ namespace Darius::Graphics::Utils::Memory
         D3D12_GPU_DESCRIPTOR_HANDLE UploadDirect(D3D12_CPU_DESCRIPTOR_HANDLE Handles);
 
         // Deduce cache layout needed to support the descriptor tables needed by the root signature.
-        void ParseGraphicsRootSignature(const RootSignature& RootSig)
+        void ParseGraphicsRootSignature(const RootSignature& RootSign)
         {
-            mGraphicsHandleCache.ParseRootSignature(mDescriptorType, RootSig);
+            mGraphicsHandleCache.ParseRootSignature(mDescriptorType, RootSign);
         }
 
-        void ParseComputeRootSignature(const RootSignature& RootSig)
+        void ParseComputeRootSignature(const RootSignature& RootSign)
         {
-            mComputeHandleCache.ParseRootSignature(mDescriptorType, RootSig);
+            mComputeHandleCache.ParseRootSignature(mDescriptorType, RootSign);
         }
 
         // Upload any new descriptors in the cache to the shader-visible heap.
@@ -151,7 +151,7 @@ namespace Darius::Graphics::Utils::Memory
 
             void UnbindAllValid();
             void StageDescriptorHandles(UINT RootIndex, UINT Offset, UINT NumHandles, const D3D12_CPU_DESCRIPTOR_HANDLE Handles[]);
-            void ParseRootSignature(D3D12_DESCRIPTOR_HEAP_TYPE Type, const RootSignature& RootSig);
+            void ParseRootSignature(D3D12_DESCRIPTOR_HEAP_TYPE Type, const RootSignature& RootSign);
         };
 
         DescriptorHandleCache mGraphicsHandleCache;

@@ -15,16 +15,15 @@ using namespace Microsoft::WRL;
 
 namespace Darius::Renderer
 {
-	extern D_GRAPHICS_UTILS::RootSignature RootSig;
-	extern std::unordered_map<std::string, D_GRAPHICS_UTILS::GraphicsPSO> Psos;
 	extern UINT PassCbvOffset;
-	extern std::unordered_map<std::string, ComPtr<ID3DBlob>> Shaders;
-	extern std::vector<D3D12_INPUT_ELEMENT_DESC> InputLayout;
 
 	// For now, just a simple cube draw
 	// Definitely bad input signature but we will get there...
 	void Initialize();
 	void Shutdown();
+
+	extern std::unordered_map<std::string, D_GRAPHICS_UTILS::GraphicsPSO> Psos;
+	extern D_GRAPHICS_UTILS::RootSignature RootSign;
 
 #ifdef _D_EDITOR
 	void RegisterGuiDrawer(std::function<void(void)> drawer);

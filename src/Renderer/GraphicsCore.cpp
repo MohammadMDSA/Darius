@@ -1,6 +1,7 @@
 #include "pch.hpp"
 #include "GraphicsCore.hpp"
 #include "GraphicsUtils/Memory/DescriptorHeap.hpp"
+#include "Renderer.hpp"
 #include "RenderDeviceManager.hpp"
 #include "Renderer/CommandContext.hpp"
 
@@ -21,6 +22,8 @@ namespace Darius::Graphics
 		D3D12_DESCRIPTOR_HEAP_TYPE_RTV,
 		D3D12_DESCRIPTOR_HEAP_TYPE_DSV
 	};
+
+	std::unordered_map<std::string, ComPtr<ID3DBlob>>	Shaders;
 
 	//////////////////////////////////
 	////////// Common States /////////
@@ -98,6 +101,7 @@ namespace Darius::Graphics
 
 	void InitializeCommonStates();
 	void DestroyCommonStates();
+	void BuildShaders();
 
 	void Initialize()
 	{
@@ -112,6 +116,7 @@ namespace Darius::Graphics
 		DrawIndirectCommandSignature.Finalize();
 
 		InitializeCommonStates();
+		BuildShaders();
 	}
 
 	void Shutdown()
@@ -132,7 +137,10 @@ namespace Darius::Graphics
 		DescriptorAllocator::DestroyAll();
 
 		DestroyCommonStates();
-		
+
+		for (auto& kv : Shaders)
+			kv.second.Reset();
+
 	}
 
 	D3D12_CPU_DESCRIPTOR_HANDLE AllocateDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE type, UINT count)
@@ -345,4 +353,13 @@ namespace Darius::Graphics
 		DispatchIndirectCommandSignature.Destroy();
 		DrawIndirectCommandSignature.Destroy();
 	}
+
+	void BuildShaders()
+	{
+
+		Shaders["standardVS"] = CompileShader(L"..\\..\\..\\..\\..\\src\\Shaders\\SimpleColor.hlsl", nullptr, "VS", "vs_5_1");
+		Shaders["opaquePS"] = CompileShader(L"..\\..\\..\\..\\..\\src\\Shaders\\SimpleColor.hlsl", nullptr, "PS", "ps_5_1");
+
+	}
+
 }

@@ -37,13 +37,7 @@ namespace Darius::Renderer
 
 	ID3D12Device* _device = nullptr;
 
-	// Input layout and root signature
-	std::vector<D3D12_INPUT_ELEMENT_DESC>				InputLayout;
-	D_GRAPHICS_UTILS::RootSignature						RootSig;
 	DescriptorHeap										DrawHeap;
-
-	// Shaders
-	std::unordered_map<std::string, ComPtr<ID3DBlob>>	Shaders;
 
 #ifdef _D_EDITOR
 	std::function<void(void)>							GuiDrawer = nullptr;
@@ -51,7 +45,9 @@ namespace Darius::Renderer
 	UINT												MaxImguiElements = 2;
 #endif
 
-	// PSO
+	// Input layout and root signature
+	std::vector<D3D12_INPUT_ELEMENT_DESC>				InputLayout;
+	D_GRAPHICS_UTILS::RootSignature						RootSign;
 	std::unordered_map<std::string, D_GRAPHICS_UTILS::GraphicsPSO> Psos;
 
 	// Device resource
@@ -67,6 +63,8 @@ namespace Darius::Renderer
 #ifdef _D_EDITOR
 	void InitializeGUI();
 #endif
+	void BuildPSO();
+	void BuildRootSignature();
 
 	void DrawCube(D_GRAPHICS::GraphicsContext& context, D_CONTAINERS::DVector<RenderItem> const& renderItems);
 
@@ -80,6 +78,9 @@ namespace Darius::Renderer
 		D_ASSERT(Resources);
 
 		_device = Resources->GetD3DDevice();
+
+		BuildRootSignature();
+		BuildPSO();
 
 		DrawHeap.Create(L"Draw Heap", D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, 100010 * D_RENDERER_FRAME_RESOUCE::gNumFrameResources);
 
@@ -118,7 +119,11 @@ namespace Darius::Renderer
 	void Shutdown()
 	{
 		D_ASSERT(_device != nullptr);
-
+		ImguiHeap.Destroy();
+		DrawHeap.Destroy();
+		RootSign.DestroyAll();
+		for (auto& kv : Psos)
+			kv.second.DestroyAll();
 	}
 
 #ifdef _D_EDITOR
@@ -203,7 +208,7 @@ namespace Darius::Renderer
 	{
 
 		// Setting Root Signature
-		context.SetRootSignature(RootSig);
+		context.SetRootSignature(D_RENDERER::RootSign);
 
 		// Setting global constant
 		context.SetConstantBuffer(1, Resources->GetFrameResource()->GlobalCB->Resource()->GetGPUVirtualAddress());
@@ -262,6 +267,59 @@ namespace Darius::Renderer
 		PIXEndEvent();
 	}
 
+	void BuildPSO()
+	{
+		InputLayout =
+		{
+			{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
+			{ "COLOR", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, 12, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 }
+		};
+
+		// For Opaque objects
+		GraphicsPSO pso(L"Opaque");
+
+		pso.SetInputLayout((UINT)InputLayout.size(), InputLayout.data());
+
+		pso.SetVertexShader(reinterpret_cast<BYTE*>(Shaders["standardVS"]->GetBufferPointer()),
+			Shaders["standardVS"]->GetBufferSize());
+		pso.SetPixelShader(reinterpret_cast<BYTE*>(Shaders["opaquePS"]->GetBufferPointer()),
+			Shaders["opaquePS"]->GetBufferSize());
+		auto rasterState = CD3DX12_RASTERIZER_DESC(D3D12_DEFAULT);
+		rasterState.FillMode = D3D12_FILL_MODE_SOLID;
+		pso.SetRootSignature(RootSign);
+		pso.SetRasterizerState(rasterState);
+		pso.SetBlendState(CD3DX12_BLEND_DESC(D3D12_DEFAULT));
+		pso.SetDepthStencilState(CD3DX12_DEPTH_STENCIL_DESC(D3D12_DEFAULT));
+		pso.SetSampleMask(UINT_MAX);
+		pso.SetPrimitiveTopologyType(D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE);
+		pso.SetRenderTargetFormat(D_RENDERER_DEVICE::GetBackBufferFormat(), D_RENDERER_DEVICE::GetDepthBufferFormat());
+		pso.Finalize();
+		Psos["opaque"] = pso;
+
+
+		// For opaque wireframe objecs
+		GraphicsPSO wirePso(pso);
+		auto wireRasterState = rasterState;
+		wireRasterState.FillMode = D3D12_FILL_MODE_WIREFRAME;
+		wirePso.SetRasterizerState(wireRasterState);
+		wirePso.Finalize();
+		Psos["opaque_wireframe"] = wirePso;
+	}
+
+	void BuildRootSignature()
+	{
+		// Root parameter can be a table, root descriptor or root constants.
+		D_GRAPHICS_UTILS::RootParameter slotRootParameter[2];
+
+		// A root signature is an array of root parameters.
+		RootSign.Reset(2, 0);
+
+		// Create root CBVs.
+		RootSign[0].InitAsDescriptorRange(D3D12_DESCRIPTOR_RANGE_TYPE_CBV, 0, 1);
+		RootSign[1].InitAsConstantBuffer(1);
+
+		RootSign.Finalize(L"Main Root Sig", D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT);
+	}
 
 #ifdef _D_EDITOR
 	DescriptorHandle	GetRenderResourceHandle(UINT index)

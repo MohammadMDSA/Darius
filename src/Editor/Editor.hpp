@@ -64,16 +64,8 @@ namespace Darius::Editor
 
 		///////////////////////////////////////////
 		void InitMesh();
-		void BuildRootSignature();
-		void BuildShadersAndInputLayout();
 		void BuildGeometery(D_GRAPHICS::GraphicsContext& context);
-		void BuildPSO();
 		///////////////////////////////////////////
-
-
-
-		// If using the DirectX Tool Kit for DX12, uncomment this line:
-		// std::unique_ptr<DirectX::GraphicsMemory> m_graphicsMemory;
 
 		std::shared_ptr<Mesh>                       mMesh;
 	};

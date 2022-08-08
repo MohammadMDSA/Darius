@@ -4,10 +4,12 @@
 #include "CommandSignature.hpp"
 #include "GraphicsUtils/SamplerManager.hpp"
 #include "GraphicsUtils/RootSignature.hpp"
+#include "GraphicsUtils/PipelineState.hpp"
 
 #define D_GRAPHICS Darius::Graphics
 
 using namespace D_GRAPHICS_UTILS;
+using namespace Microsoft::WRL;
 
 namespace Darius::Graphics
 {
@@ -23,6 +25,8 @@ namespace Darius::Graphics
 
 	//D3D12_CPU_DESCRIPTOR_HANDLE GetDefaultTexture(eDefaultTexture texID);
 	
+	extern std::unordered_map<std::string, ComPtr<ID3DBlob>>	Shaders;
+
 	extern SamplerDesc SamplerLinearWrapDesc;
 	extern SamplerDesc SamplerAnisoWrapDesc;
 	extern SamplerDesc SamplerShadowDesc;

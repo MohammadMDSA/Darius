@@ -320,15 +320,15 @@ namespace Darius::Graphics::Utils::Memory
         mStaleRootParamsBitMap |= (1 << RootIndex);
     }
 
-    void DynamicDescriptorHeap::DescriptorHandleCache::ParseRootSignature(D3D12_DESCRIPTOR_HEAP_TYPE Type, const RootSignature& RootSig)
+    void DynamicDescriptorHeap::DescriptorHandleCache::ParseRootSignature(D3D12_DESCRIPTOR_HEAP_TYPE Type, const RootSignature& RootSign)
     {
         UINT CurrentOffset = 0;
 
-        D_ASSERT(RootSig.mNumParameters <= 16, "Maybe we need to support something greater");
+        D_ASSERT(RootSign.mNumParameters <= 16, "Maybe we need to support something greater");
 
         mStaleRootParamsBitMap = 0;
         mRootDescriptorTablesBitMap = (Type == D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER ?
-            RootSig.mSamplerTableBitMap : RootSig.mDescriptorTableBitMap);
+            RootSign.mSamplerTableBitMap : RootSign.mDescriptorTableBitMap);
 
         unsigned long TableParams = mRootDescriptorTablesBitMap;
         unsigned long RootIndex;
@@ -336,7 +336,7 @@ namespace Darius::Graphics::Utils::Memory
         {
             TableParams ^= (1 << RootIndex);
 
-            UINT TableSize = RootSig.mDescriptorTableSize[RootIndex];
+            UINT TableSize = RootSign.mDescriptorTableSize[RootIndex];
             D_ASSERT(TableSize > 0);
 
             DescriptorTableCache& RootDescriptorTable = m_RootDescriptorTable[RootIndex];

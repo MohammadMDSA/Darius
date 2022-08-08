@@ -240,40 +240,9 @@ namespace Darius::Editor
 	{
 		auto& context = D_GRAPHICS::GraphicsContext::Begin(L"Mesh Init");
 
-		BuildRootSignature();
-		BuildShadersAndInputLayout();
 		BuildGeometery(context);
-		BuildPSO();
 
 		context.Finish(true);
-	}
-
-	void Editor::BuildRootSignature()
-	{
-		// Root parameter can be a table, root descriptor or root constants.
-		D_GRAPHICS_UTILS::RootParameter slotRootParameter[2];
-
-		// A root signature is an array of root parameters.
-		D_RENDERER::RootSig.Reset(2, 0);
-
-		// Create root CBVs.
-		D_RENDERER::RootSig[0].InitAsDescriptorRange(D3D12_DESCRIPTOR_RANGE_TYPE_CBV, 0, 1);
-		D_RENDERER::RootSig[1].InitAsConstantBuffer(1);
-
-		D_RENDERER::RootSig.Finalize(L"Main Root Sig", D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT);
-	}
-
-	void Editor::BuildShadersAndInputLayout()
-	{
-
-		D_RENDERER::Shaders["standardVS"] = CompileShader(L"..\\..\\..\\..\\..\\src\\Shaders\\SimpleColor.hlsl", nullptr, "VS", "vs_5_1");
-		D_RENDERER::Shaders["opaquePS"] = CompileShader(L"..\\..\\..\\..\\..\\src\\Shaders\\SimpleColor.hlsl", nullptr, "PS", "ps_5_1");
-
-		D_RENDERER::InputLayout =
-		{
-			{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
-			{ "COLOR", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, 12, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 }
-		};
 	}
 
 	void Editor::BuildGeometery(D_GRAPHICS::GraphicsContext& context)
@@ -351,40 +320,6 @@ namespace Darius::Editor
 		draw.StartIndexLocation = 0;
 
 		mMesh->mDraw.push_back(draw);
-	}
-
-	void Editor::BuildPSO()
-	{
-
-		// For Opaque objects
-		GraphicsPSO pso(L"Opaque");
-
-		pso.SetInputLayout((UINT)D_RENDERER::InputLayout.size(), D_RENDERER::InputLayout.data());
-
-		pso.SetRootSignature(D_RENDERER::RootSig);
-		pso.SetVertexShader(reinterpret_cast<BYTE*>(D_RENDERER::Shaders["standardVS"]->GetBufferPointer()),
-			D_RENDERER::Shaders["standardVS"]->GetBufferSize());
-		pso.SetPixelShader(reinterpret_cast<BYTE*>(D_RENDERER::Shaders["opaquePS"]->GetBufferPointer()),
-			D_RENDERER::Shaders["opaquePS"]->GetBufferSize());
-		auto rasterState = CD3DX12_RASTERIZER_DESC(D3D12_DEFAULT);
-		rasterState.FillMode = D3D12_FILL_MODE_SOLID;
-		pso.SetRasterizerState(rasterState);
-		pso.SetBlendState(CD3DX12_BLEND_DESC(D3D12_DEFAULT));
-		pso.SetDepthStencilState(CD3DX12_DEPTH_STENCIL_DESC(D3D12_DEFAULT));
-		pso.SetSampleMask(UINT_MAX);
-		pso.SetPrimitiveTopologyType(D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE);
-		pso.SetRenderTargetFormat(D_RENDERER_DEVICE::GetBackBufferFormat(), D_RENDERER_DEVICE::GetDepthBufferFormat());
-		pso.Finalize();
-		D_RENDERER::Psos["opaque"] = pso;
-
-
-		// For opaque wireframe objecs
-		GraphicsPSO wirePso(pso);
-		auto wireRasterState = rasterState;
-		wireRasterState.FillMode = D3D12_FILL_MODE_WIREFRAME;
-		wirePso.SetRasterizerState(wireRasterState);
-		wirePso.Finalize();
-		D_RENDERER::Psos["opaque_wireframe"] = wirePso;
 	}
 
 #pragma endregion
