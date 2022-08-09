@@ -63,8 +63,6 @@ namespace Darius::Renderer
 	void BuildPSO();
 	void BuildRootSignature();
 
-	void DrawRenderItems(D_GRAPHICS::GraphicsContext& context, D_CONTAINERS::DVector<RenderItem> const& renderItems);
-
 	void Clear(D_GRAPHICS::GraphicsContext& context, D_GRAPHICS_BUFFERS::ColorBuffer& rt, D_GRAPHICS_BUFFERS::DepthBuffer& depthStencil, RECT bounds, std::wstring const& processName = L"Clear");
 
 	void Initialize()
@@ -112,7 +110,18 @@ namespace Darius::Renderer
 
 		PIXBeginEvent(context.GetCommandList(), PIX_COLOR_DEFAULT, L"Render opaque");
 
-		DrawRenderItems(context, renderItems);
+		// Draw each render item
+		for (auto const& ri : renderItems)
+		{
+			auto vbv = ri.Mesh->VertexBufferView();
+			auto ibv = ri.Mesh->IndexBufferView();
+			context.SetVertexBuffer(0, vbv);
+			context.SetIndexBuffer(ibv);
+			context.SetPrimitiveTopology(ri.PrimitiveType);
+
+			context.SetConstantBuffer(kMeshConstants, ri.CBVGpu);
+			context.DrawIndexedInstanced(ri.IndexCount, 1, ri.StartIndexLocation, ri.BaseVertexLocation, 0);
+		}
 
 		PIXEndEvent(context.GetCommandList());
 	}
@@ -154,22 +163,6 @@ namespace Darius::Renderer
 		// m_graphicsMemory->Commit(m_deviceResources->GetCommandQueue());
 
 		PIXEndEvent();
-	}
-
-	void DrawRenderItems(D_GRAPHICS::GraphicsContext& context, D_CONTAINERS::DVector<RenderItem> const& renderItems)
-	{
-		// For each render item
-		for (auto const& ri : renderItems)
-		{
-			auto vbv = ri.Mesh->VertexBufferView();
-			auto ibv = ri.Mesh->IndexBufferView();
-			context.SetVertexBuffer(0, vbv);
-			context.SetIndexBuffer(ibv);
-			context.SetPrimitiveTopology(ri.PrimitiveType);
-
-			context.SetConstantBuffer(kMeshConstants, ri.CBVGpu);
-			context.DrawIndexedInstanced(ri.IndexCount, 1, ri.StartIndexLocation, ri.BaseVertexLocation, 0);
-		}
 	}
 
 	// Helper method to clear the back buffers.
