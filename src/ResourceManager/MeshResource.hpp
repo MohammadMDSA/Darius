@@ -23,6 +23,7 @@ namespace Darius::ResourceManager
 	public:
 		MeshResource(DResourceId id) : Resource(id) {}
 		INLINE Mesh*					Get() { return &mMesh; }
+		INLINE const Mesh*				Get() const { return &mMesh; }
 
 		INLINE virtual ResourceType		GetType() const override { return ResourceType::Mesh; }
 
