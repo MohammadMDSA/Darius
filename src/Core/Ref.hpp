@@ -75,6 +75,11 @@ namespace Darius::Core
 			return mData;
 		}
 
+		INLINE const T* Get() const
+		{
+			return mData;
+		}
+
 		INLINE bool IsValid()
 		{
 			return mData != nullptr;
