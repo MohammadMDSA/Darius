@@ -42,7 +42,7 @@ inline type Get##name() { return m##name; } \
 inline void Set##name(type val) { this->m##name = val; } \
 D_CH_FIELD_ACC(type, name, access)
 
-#define D_CH_RW_FIELD(type, name) D_CH_RW_FIELD_ACC(type, name private)
+#define D_CH_RW_FIELD(type, name) D_CH_RW_FIELD_ACC(type, name, private)
 
 #define D_CH_TYPE_NAME_GETTER(T) \
 public: \
