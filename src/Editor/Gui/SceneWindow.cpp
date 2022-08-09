@@ -134,8 +134,6 @@ namespace Darius::Editor::Gui::Windows
 		else
 			mCamera.Update();
 
-		// Update render items
-		D_RENDERER::UpdateMeshCBs(GetRenderItems());
 	}
 
 	void SceneWindow::CreateBuffers()

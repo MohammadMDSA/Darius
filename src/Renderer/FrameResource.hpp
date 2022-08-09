@@ -60,9 +60,8 @@ namespace Darius::Renderer::ConstantFrameResource
 		// gets the update.
 		int							NumFramesDirty = gNumFrameResources;
 
-		// Index into GPU constant buffer corresponding to the objectCB
-		// for this render item.
-		UINT						ObjCBIndex = (UINT)-1;
+		// Mesh constants GPU Address
+		D3D12_GPU_VIRTUAL_ADDRESS	CBVGpu;
 
 		// Geometry associated with this render-item. Note that multiple
 		// render-items can share the same goemetry.
@@ -85,18 +84,11 @@ namespace Darius::Renderer::ConstantFrameResource
 		FrameResource() = delete;
 		FrameResource(ID3D12Device* device, UINT passCount, UINT objectCount);
 		FrameResource(const FrameResource& rhs) = delete;
-		~FrameResource();
-
-		void ReinitializeMeshCB(ID3D12Device* device, UINT objectCount);
+		~FrameResource() = default;
 
 		// We cannot reset the allocator until the GPU is done processing the
 		// commands. So each frame needs their own allocator.
 		ComPtr<ID3D12CommandAllocator>					CmdListAlloc;
-
-		// We cannot update a cbuffer until the GPU is done processing the
-		// commands that reference it. So each frame needs their own cbuffers.
-		std::unique_ptr<D_RENDERER_UTILS::UploadBuffer<GlobalConstants>>	GlobalCB = nullptr;
-		std::unique_ptr<D_RENDERER_UTILS::UploadBuffer<MeshConstants>>	MeshCB = nullptr;
 
 		// Fence value to mark commands up to this fence point. This lets us
 		// check if these frame resources are still in use by the GPU.

@@ -37,8 +37,6 @@ namespace Darius::Renderer
 
 	ID3D12Device* _device = nullptr;
 
-	DescriptorHeap										DrawHeap;
-
 #ifdef _D_EDITOR
 	std::function<void(void)>							GuiDrawer = nullptr;
 	DescriptorHeap										ImguiHeap;
@@ -59,16 +57,13 @@ namespace Darius::Renderer
 
 	//////////////////////////////////////////////////////
 	// Functions
-
 #ifdef _D_EDITOR
 	void InitializeGUI();
 #endif
 	void BuildPSO();
 	void BuildRootSignature();
 
-	void DrawCube(D_GRAPHICS::GraphicsContext& context, D_CONTAINERS::DVector<RenderItem> const& renderItems);
-
-	void UpdateGlobalConstants(D_RENDERER_FRAME_RESOUCE::GlobalConstants const& globals);
+	void DrawRenderItems(D_GRAPHICS::GraphicsContext& context, D_CONTAINERS::DVector<RenderItem> const& renderItems);
 
 	void Clear(D_GRAPHICS::GraphicsContext& context, D_GRAPHICS_BUFFERS::ColorBuffer& rt, D_GRAPHICS_BUFFERS::DepthBuffer& depthStencil, RECT bounds, std::wstring const& processName = L"Clear");
 
@@ -82,33 +77,8 @@ namespace Darius::Renderer
 		BuildRootSignature();
 		BuildPSO();
 
-		DrawHeap.Create(L"Draw Heap", D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, 100010 * D_RENDERER_FRAME_RESOUCE::gNumFrameResources);
-
 		// Create Constant Buffer Views
 		UINT objSize = D_RENDERER_UTILS::CalcConstantBufferByteSize(sizeof(MeshConstants));
-
-		UINT objCount = 100010;
-		for (size_t frameResIdx = 0; frameResIdx < D_RENDERER_FRAME_RESOUCE::gNumFrameResources; frameResIdx++)
-		{
-			auto meshCB = Resources->GetFrameResourceByIndex(frameResIdx)->MeshCB->Resource();
-			for (UINT i = 0; i < objCount; i++)
-			{
-				D3D12_GPU_VIRTUAL_ADDRESS cbAddress = meshCB->GetGPUVirtualAddress();
-
-				// Offset to the ith object constant buffer in the buffer.
-				cbAddress += i * objSize;
-				// Offset to the object cbv in the descriptor heap.
-				int heapIndex = frameResIdx * objCount + i;
-				auto handle = DrawHeap.Alloc();
-
-				D3D12_CONSTANT_BUFFER_VIEW_DESC cbvDesc;
-				cbvDesc.BufferLocation = cbAddress;
-				cbvDesc.SizeInBytes = objSize;
-
-				_device->CreateConstantBufferView(&cbvDesc, handle);
-			}
-		}
-
 
 #ifdef _D_EDITOR
 		InitializeGUI();
@@ -120,7 +90,6 @@ namespace Darius::Renderer
 	{
 		D_ASSERT(_device != nullptr);
 		ImguiHeap.Destroy();
-		DrawHeap.Destroy();
 		RootSign.DestroyAll();
 		for (auto& kv : Psos)
 			kv.second.DestroyAll();
@@ -135,11 +104,15 @@ namespace Darius::Renderer
 
 	void RenderMeshes(D_GRAPHICS::GraphicsContext& context, D_CONTAINERS::DVector<RenderItem> const& renderItems, D_RENDERER_FRAME_RESOUCE::GlobalConstants const& globals)
 	{
-		UpdateGlobalConstants(globals);
+
+		// Setting Root Signature
+		context.SetRootSignature(D_RENDERER::RootSign);
+
+		context.SetDynamicConstantBufferView(kCommonCBV, sizeof(GlobalConstants), &globals);
 
 		PIXBeginEvent(context.GetCommandList(), PIX_COLOR_DEFAULT, L"Render opaque");
 
-		DrawCube(context, renderItems);
+		DrawRenderItems(context, renderItems);
 
 		PIXEndEvent(context.GetCommandList());
 	}
@@ -183,41 +156,8 @@ namespace Darius::Renderer
 		PIXEndEvent();
 	}
 
-	void UpdateMeshCBs(D_CONTAINERS::DVector<RenderItem> const& renderItems)
+	void DrawRenderItems(D_GRAPHICS::GraphicsContext& context, D_CONTAINERS::DVector<RenderItem> const& renderItems)
 	{
-		PIXBeginEvent(PIX_COLOR_INDEX(10), "Update Mesh CBs");
-		auto frameResource = Resources->GetFrameResource();
-		frameResource->ReinitializeMeshCB(_device, renderItems.size());
-
-		UINT cbIdx = 0;
-		for (auto ri : renderItems)
-		{
-			if (ri.NumFramesDirty <= 0)
-				continue;
-			MeshConstants objConstants;
-			objConstants.mWorld = ri.World;
-
-			ri.ObjCBIndex = cbIdx;
-			frameResource->MeshCB->CopyData(ri.ObjCBIndex, objConstants);
-			cbIdx++;
-		}
-		PIXEndEvent();
-	}
-
-	void DrawCube(D_GRAPHICS::GraphicsContext& context, D_CONTAINERS::DVector<RenderItem> const& renderItems)
-	{
-
-		// Setting Root Signature
-		context.SetRootSignature(D_RENDERER::RootSign);
-
-		// Setting global constant
-		context.SetConstantBuffer(1, Resources->GetFrameResource()->GlobalCB->Resource()->GetGPUVirtualAddress());
-
-		context.SetDescriptorHeap(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, DrawHeap.GetHeapPointer());
-
-		auto objectCB = Resources->GetFrameResource()->MeshCB->Resource();
-		UINT objCBByteSize = D_RENDERER_UTILS::CalcConstantBufferByteSize(sizeof(MeshConstants));
-
 		// For each render item
 		for (auto const& ri : renderItems)
 		{
@@ -227,7 +167,7 @@ namespace Darius::Renderer
 			context.SetIndexBuffer(ibv);
 			context.SetPrimitiveTopology(ri.PrimitiveType);
 
-			context.SetDescriptorTable(0, DrawHeap[ri.ObjCBIndex]);
+			context.SetConstantBuffer(kMeshConstants, ri.CBVGpu);
 			context.DrawIndexedInstanced(ri.IndexCount, 1, ri.StartIndexLocation, ri.BaseVertexLocation, 0);
 		}
 	}
@@ -255,16 +195,6 @@ namespace Darius::Renderer
 		context.SetViewportAndScissor(viewport, scissorRect);
 
 		PIXEndEvent(context.GetCommandList());
-	}
-
-	void UpdateGlobalConstants(D_RENDERER_FRAME_RESOUCE::GlobalConstants const& globals)
-	{
-		PIXBeginEvent(PIX_COLOR_DEFAULT, "Update Globals");
-
-		auto currGlobalCb = Resources->GetFrameResource()->GlobalCB.get();
-
-		currGlobalCb->CopyData(0, globals);
-		PIXEndEvent();
 	}
 
 	void BuildPSO()
@@ -312,11 +242,12 @@ namespace Darius::Renderer
 		D_GRAPHICS_UTILS::RootParameter slotRootParameter[2];
 
 		// A root signature is an array of root parameters.
-		RootSign.Reset(2, 0);
+		RootSign.Reset(kNumRootBindings, 0);
 
 		// Create root CBVs.
-		RootSign[0].InitAsDescriptorRange(D3D12_DESCRIPTOR_RANGE_TYPE_CBV, 0, 1);
-		RootSign[1].InitAsConstantBuffer(1);
+		RootSign[kMeshConstants].InitAsConstantBuffer(0, D3D12_SHADER_VISIBILITY_VERTEX);
+		RootSign[kMaterialConstants].InitAsConstantBuffer(0, D3D12_SHADER_VISIBILITY_PIXEL);
+		RootSign[kCommonCBV].InitAsConstantBuffer(1);
 
 		RootSign.Finalize(L"Main Root Sig", D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT);
 	}
@@ -403,6 +334,11 @@ namespace Darius::Renderer
 		FrameResource* GetCurrentFrameResource()
 		{
 			return Resources->GetFrameResource();
+		}
+
+		UINT GetCurrentResourceIndex()
+		{
+			return Resources->GetCurrentFrameResourceIndex();
 		}
 
 		ID3D12Device* GetDevice()

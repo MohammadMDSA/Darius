@@ -77,10 +77,10 @@ namespace Darius::Editor
 		D_SCENE::Create("Main");
 		auto a1 = D_SCENE::CreateGameObject();
 		auto a2 = D_SCENE::CreateGameObject();
-		for (size_t i = 0; i < 1000; i++)
+		for (size_t i = 0; i < 100; i++)
 		{
 			auto ob = D_SCENE::CreateGameObject();
-			//ob->SetMesh(mMesh);
+			ob->SetMesh({ ResourceType::Mesh, 2 });
 			auto x = static_cast<float>(rand()) / static_cast<float>(RAND_MAX);
 			auto y = static_cast<float>(rand()) / static_cast<float>(RAND_MAX);
 			auto z = static_cast<float>(rand()) / static_cast<float>(RAND_MAX);
@@ -89,9 +89,12 @@ namespace Darius::Editor
 			y = (y * 2 - 1) * 100.f;
 			z = (z * 2 - 1) * 100.f;
 			ob->mTransform = Transform(Vector3(x, y, z));
-		}/*
-		a1->SetMesh(mMesh);
-		a2->SetMesh(mMesh);*/
+
+			if (i % 3)
+				ob->SetType(GameObject::Type::Static);
+		}
+		a1->SetMesh({ ResourceType::Mesh, 2 });
+		a2->SetMesh({ ResourceType::Mesh, 2 });
 		a1->mTransform = Transform(Vector3(-2.f, 1.f, -5.f));
 		a2->mTransform = Transform(Vector3(2.f, -1.f, -5.f));
 		D_EDITOR_CONTEXT::SetSelectedGameObject(a2);
@@ -118,7 +121,7 @@ namespace Darius::Editor
 		float elapsedTime = float(timer.GetElapsedSeconds());
 		(elapsedTime);
 		D_INPUT::Update();
-
+		D_SCENE::Update(elapsedTime);
 		D_GUI_MANAGER::Update(elapsedTime);
 
 		PIXEndEvent();

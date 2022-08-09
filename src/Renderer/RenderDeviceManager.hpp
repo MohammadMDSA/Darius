@@ -23,4 +23,5 @@ namespace Darius::Renderer::Device
 	void OnDisplayChanged();
 	bool OnWindowsSizeChanged(int width, int height);
 	void ShaderCompatibilityCheck(D3D_SHADER_MODEL shaderModel);
+	UINT GetCurrentResourceIndex();
 }

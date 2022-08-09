@@ -17,8 +17,15 @@ namespace Darius::Renderer
 {
 	extern UINT PassCbvOffset;
 
-	// For now, just a simple cube draw
-	// Definitely bad input signature but we will get there...
+	enum RootBindings
+	{
+		kMeshConstants,			// Holds mesh constants only in VS
+		kMaterialConstants,		// Holds material constants only in PS
+		kCommonCBV,				// Holds global constants in all shaders
+
+		kNumRootBindings		// Just to know how many root binings there are
+	};
+
 	void Initialize();
 	void Shutdown();
 
@@ -30,8 +37,6 @@ namespace Darius::Renderer
 	DescriptorHandle GetRenderResourceHandle(UINT index);
 #endif
 	void RenderMeshes(D_GRAPHICS::GraphicsContext& context, D_CONTAINERS::DVector<RenderItem> const& renderItems, D_RENDERER_FRAME_RESOUCE::GlobalConstants const& globals);
-
-	void UpdateMeshCBs(D_CONTAINERS::DVector<RenderItem> const& renderItems);
 
 	void Present(D_GRAPHICS::GraphicsContext& context);
 
