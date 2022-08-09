@@ -20,6 +20,7 @@ namespace Darius::ResourceManager
 
 	enum class ResourceType
 	{
+		None,
 		Mesh
 	};
 
@@ -27,6 +28,7 @@ namespace Darius::ResourceManager
 	{
 		ResourceType			Type;
 		DResourceId				Id;
+
 	};
 
 	struct ResourcePreview

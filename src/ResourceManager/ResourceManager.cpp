@@ -56,6 +56,9 @@ namespace Darius::ResourceManager
 
 	Resource* DResourceManager::GetRawResource(ResourceHandle handle)
 	{
+		if (handle.Type == ResourceType::None)
+			return nullptr;
+
 		if (!mResourceMap.contains(handle.Type))
 			throw D_EXCEPTION::Exception("Type not found");
 		auto typeClass = mResourceMap[handle.Type];
