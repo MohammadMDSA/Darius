@@ -1,6 +1,7 @@
 #pragma once
 
 #include <Math/VectorMath.hpp>
+#include <Renderer/FrameResource.hpp>
 #include <Utils/Common.hpp>
 
 #include <imgui.h>
@@ -14,6 +15,7 @@
 #endif // !D_SCENE_INS_DRAW
 
 using namespace D_MATH;
+using namespace D_RENDERER_FRAME_RESOUCE;
 
 namespace Darius::Scene::Utils::DetailsDrawer
 {
@@ -37,7 +39,8 @@ namespace Darius::Scene::Utils::DetailsDrawer
 		ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4{ 0.9f, 0.2f, 0.2f, 1.0f });
 		ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4{ 0.8f, 0.1f, 0.15f, 1.0f });
 		ImGui::PushFont(boldFont);
-		if (ImGui::Button("X", buttonSize))
+		auto label = params[1] ? "R" : "X";
+		if (ImGui::Button(label, buttonSize))
 		{
 			elem.SetX(params[0]);
 			valueChanged = true;
@@ -46,34 +49,68 @@ namespace Darius::Scene::Utils::DetailsDrawer
 		ImGui::PopStyleColor(3);
 
 		ImGui::SameLine();
-		if (ImGui::DragFloat("##X", &values[0], 0.01f, 0.01f, 0.0f, "%.3f"))
-			valueChanged = true;
+		if (params[1]) // Color
+		{
+			int val = (int)(values[0] * 256);
+			if (ImGui::DragInt("##R", &val, 1, 0, 256))
+			{
+				values[0] = val / 256;
+				valueChanged = true;
+			}
+		}
+		else // Value
+		{
+			if (ImGui::DragFloat("##X", &values[0], 0.01f, 0.01f, 0.0f, "%.3f"))
+				valueChanged = true;
+		}
+
 		ImGui::PopItemWidth();
+		ImGui::PopStyleVar();
+		ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2{ 5, 0 });
 		ImGui::SameLine();
 
 		ImGui::PushStyleColor(ImGuiCol_Button, ImVec4{ 0.2f, 0.7f, 0.2f, 1.0f });
 		ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4{ 0.3f, 0.8f, 0.3f, 1.0f });
 		ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4{ 0.2f, 0.7f, 0.2f, 1.0f });
 		ImGui::PushFont(boldFont);
-		if (ImGui::Button("Y", buttonSize))
+		label = params[1] ? "G" : "Y";
+		if (ImGui::Button(label, buttonSize))
 		{
 			elem.SetY(params[0]);
 			valueChanged = true;
 		}
 		ImGui::PopFont();
 		ImGui::PopStyleColor(3);
+		ImGui::PopStyleVar();
+		ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2{ 0, 0 });
 
 		ImGui::SameLine();
-		if (ImGui::DragFloat("##Y", &values[1], 0.01f, 0.01f, 0.0f, "%.3f"))
-			valueChanged = true;
+		if (params[1]) // Color
+		{
+			int val = (int)(values[1] * 256);
+			if (ImGui::DragInt("##G", &val, 1, 0, 256))
+			{
+				values[1] = val / 256;
+				valueChanged = true;
+			}
+		}
+		else // Value
+		{
+			if (ImGui::DragFloat("##Y", &values[1], 0.01f, 0.01f, 0.0f, "%.3f"))
+				valueChanged = true;
+		}
+
 		ImGui::PopItemWidth();
+		ImGui::PopStyleVar();
+		ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2{ 5, 0 });
 		ImGui::SameLine();
 
 		ImGui::PushStyleColor(ImGuiCol_Button, ImVec4{ 0.1f, 0.25f, 0.8f, 1.0f });
 		ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4{ 0.2f, 0.35f, 0.9f, 1.0f });
 		ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4{ 0.1f, 0.25f, 0.8f, 1.0f });
 		ImGui::PushFont(boldFont);
-		if (ImGui::Button("Z", buttonSize))
+		label = params[1] ? "B" : "Z";
+		if (ImGui::Button(label, buttonSize))
 		{
 			elem.SetZ(params[0]);
 			valueChanged = true;
@@ -81,11 +118,206 @@ namespace Darius::Scene::Utils::DetailsDrawer
 
 		ImGui::PopFont();
 		ImGui::PopStyleColor(3);
+		ImGui::PopStyleVar();
+		ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2{ 0, 0 });
 
 		ImGui::SameLine();
-		if (ImGui::DragFloat("##Z", &values[2], 0.01f, 0.01f, 0.0f, "%.3f"))
-			valueChanged = true;
+		if (params[1]) // Color
+		{
+			int val = (int)(values[2] * 256);
+			if (ImGui::DragInt("##B", &val, 1, 0, 256))
+			{
+				values[2] = val / 256;
+				valueChanged = true;
+			}
+		}
+		else // Value
+		{
+			if (ImGui::DragFloat("##Z", &values[2], 0.01f, 0.01f, 0.0f, "%.3f"))
+				valueChanged = true;
+		}
 		ImGui::PopItemWidth();
+		ImGui::PopStyleVar();
+		ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2{ 5, 0 });
+
+
+		if (params[1])
+		{
+			ImGui::SameLine();
+
+			ImGui::ColorEdit3("MyColor##3", (float*)&values, ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_NoLabel);
+		}
+
+		ImGui::PopStyleVar();
+
+		ImGui::PopID();
+		return valueChanged;
+	}
+
+	bool DrawDetails(D_MATH::Vector4& elem, float params[])
+	{
+		auto valueChanged = false;
+		auto values = reinterpret_cast<float*>(&elem);
+
+		ImGuiIO& io = ImGui::GetIO();
+		auto boldFont = io.Fonts->Fonts[0];
+
+		ImGui::PushID(&elem);
+
+		ImGui::PushMultiItemsWidths(4, ImGui::CalcItemWidth());
+		ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2{ 0, 0 });
+
+		float lineHeight = GImGui->Font->FontSize + GImGui->Style.FramePadding.y * 2.0f;
+		ImVec2 buttonSize = { lineHeight + 3.0f, lineHeight };
+
+		ImGui::PushStyleColor(ImGuiCol_Button, ImVec4{ 0.8f, 0.1f, 0.15f, 1.0f });
+		ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4{ 0.9f, 0.2f, 0.2f, 1.0f });
+		ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4{ 0.8f, 0.1f, 0.15f, 1.0f });
+		ImGui::PushFont(boldFont);
+		auto label = params[1] ? "R" : "X";
+		if (ImGui::Button(label, buttonSize))
+		{
+			elem.SetX(params[0]);
+			valueChanged = true;
+		}
+		ImGui::PopFont();
+		ImGui::PopStyleColor(3);
+		ImGui::PopStyleVar();
+		ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2{ 0, 0 });
+
+		ImGui::SameLine();
+		if (params[1]) // Color
+		{
+			int val = (int)(values[0] * 256);
+			if (ImGui::DragInt("##R", &val, 1, 0, 256))
+			{
+				values[0] = val / 256;
+				valueChanged = true;
+			}
+		}
+		else // Value
+		{
+			if (ImGui::DragFloat("##X", &values[0], 0.01f, 0.01f, 0.0f, "%.3f"))
+				valueChanged = true;
+		}
+
+		ImGui::PopItemWidth();
+		ImGui::PopStyleVar();
+		ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2{ 5, 0 });
+		ImGui::SameLine();
+
+		ImGui::PushStyleColor(ImGuiCol_Button, ImVec4{ 0.2f, 0.7f, 0.2f, 1.0f });
+		ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4{ 0.3f, 0.8f, 0.3f, 1.0f });
+		ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4{ 0.2f, 0.7f, 0.2f, 1.0f });
+		ImGui::PushFont(boldFont);
+		label = params[1] ? "G" : "Y";
+		if (ImGui::Button(label, buttonSize))
+		{
+			elem.SetY(params[0]);
+			valueChanged = true;
+		}
+		ImGui::PopFont();
+		ImGui::PopStyleColor(3);
+		ImGui::PopStyleVar();
+		ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2{ 0, 0 });
+
+		ImGui::SameLine();
+		if (params[1]) // Color
+		{
+			int val = (int)(values[1] * 256);
+			if (ImGui::DragInt("##G", &val, 1, 0, 256))
+			{
+				values[1] = val / 256;
+				valueChanged = true;
+			}
+		}
+		else // Value
+		{
+			if (ImGui::DragFloat("##Y", &values[1], 0.01f, 0.01f, 0.0f, "%.3f"))
+				valueChanged = true;
+		}
+
+		ImGui::PopItemWidth();
+		ImGui::PopStyleVar();
+		ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2{ 5, 0 });
+		ImGui::SameLine();
+
+		ImGui::PushStyleColor(ImGuiCol_Button, ImVec4{ 0.1f, 0.25f, 0.8f, 1.0f });
+		ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4{ 0.2f, 0.35f, 0.9f, 1.0f });
+		ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4{ 0.1f, 0.25f, 0.8f, 1.0f });
+		ImGui::PushFont(boldFont);
+		label = params[1] ? "B" : "Z";
+		if (ImGui::Button(label, buttonSize))
+		{
+			elem.SetZ(params[0]);
+			valueChanged = true;
+		}
+
+		ImGui::PopFont();
+		ImGui::PopStyleColor(3);
+		ImGui::PopStyleVar();
+		ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2{ 0, 0 });
+
+		ImGui::SameLine();
+		if (params[1]) // Color
+		{
+			int val = (int)(values[2] * 256);
+			if (ImGui::DragInt("##B", &val, 1, 0, 256))
+			{
+				values[2] = val / 256;
+				valueChanged = true;
+			}
+		}
+		else // Value
+		{
+			if (ImGui::DragFloat("##Z", &values[2], 0.01f, 0.01f, 0.0f, "%.3f"))
+				valueChanged = true;
+		}
+		ImGui::PopItemWidth();
+		ImGui::PopStyleVar();
+		ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2{ 5, 0 });
+		ImGui::SameLine();
+
+		ImGui::PushStyleColor(ImGuiCol_Button, ImVec4{ 0.8f, 0.8f, 0.15f, 1.0f });
+		ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4{ 0.9f, 0.9f, 0.2f, 1.0f });
+		ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4{ 0.8f, 0.8f, 0.1f, 1.0f });
+		ImGui::PushFont(boldFont);
+		label = params[1] ? "A" : "W";
+		if (ImGui::Button(label, buttonSize))
+		{
+			elem.SetW(params[0]);
+			valueChanged = true;
+		}
+
+		ImGui::PopFont();
+		ImGui::PopStyleColor(3);
+		ImGui::PopStyleVar();
+		ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2{ 0, 0 });
+
+		ImGui::SameLine();
+		if (params[1]) // Color
+		{
+			int val = (int)(values[3] * 256);
+			if (ImGui::DragInt("##A", &val, 1, 0, 256))
+			{
+				values[3] = val / 256;
+				valueChanged = true;
+			}
+		}
+		else // Value
+		{
+			if (ImGui::DragFloat("##W", &values[3], 0.01f, 0.01f, 0.0f, "%.3f"))
+				valueChanged = true;
+		}
+		ImGui::PopItemWidth();
+		ImGui::PopStyleVar();
+		ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2{ 5, 0 });
+
+		if (params[1])
+		{
+			ImGui::SameLine();
+			ImGui::ColorEdit4("MyColor##3", (float*)&values, ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_NoLabel);
+		}
 
 		ImGui::PopStyleVar();
 
@@ -102,7 +334,7 @@ namespace Darius::Scene::Utils::DetailsDrawer
 		deg.SetY(XMConvertToDegrees(radian.GetY()));
 		deg.SetZ(XMConvertToDegrees(radian.GetZ()));
 
-		float def[] = { 0.f };
+		float def[] = { 0.f, 0.f };
 		if (DrawDetails(deg, def))
 		{
 			quat = Quaternion(XMConvertToRadians(deg.GetX()), XMConvertToRadians(deg.GetY()), XMConvertToRadians(deg.GetZ()));
@@ -131,7 +363,7 @@ namespace Darius::Scene::Utils::DetailsDrawer
 			ImGui::Text("Location");
 
 			ImGui::TableSetColumnIndex(1);
-			float defL[] = { 0.f };
+			float defL[] = { 0.f, 0.f };
 			if (DrawDetails(elem.Translation, defL))
 			{
 				valueChanged = true;
@@ -143,7 +375,7 @@ namespace Darius::Scene::Utils::DetailsDrawer
 			ImGui::Text("Rotation");
 
 			ImGui::TableSetColumnIndex(1);
-			float defR[] = { 0.f };
+			float defR[] = { 0.f, 0.f };
 			if (DrawDetails(elem.Rotation, defR))
 			{
 				valueChanged = true;
@@ -155,13 +387,11 @@ namespace Darius::Scene::Utils::DetailsDrawer
 			ImGui::Text("Scale");
 
 			ImGui::TableSetColumnIndex(1);
-			float defS[] = { 1.f };
+			float defS[] = { 1.f, 0.f };
 			if (DrawDetails(elem.Scale, defS))
 			{
 				valueChanged = true;
 			}
-
-
 
 			ImGui::EndTable();
 		}
@@ -169,6 +399,61 @@ namespace Darius::Scene::Utils::DetailsDrawer
 		return valueChanged;
 	}
 
+	bool DrawDetails(D_RENDERER_FRAME_RESOUCE::Material& mat, float params[])
+	{
+		bool valueChanged = false;
+
+		ImGuiIO& io = ImGui::GetIO();
+		auto boldFont = io.Fonts->Fonts[0];
+
+
+		if (ImGui::BeginTable("mat editor", 2, ImGuiTableFlags_BordersInnerV))
+		{
+			ImGui::TableSetupColumn("label", ImGuiTableColumnFlags_WidthFixed, 100.f);
+			ImGui::TableSetupColumn("value", ImGuiTableColumnFlags_WidthStretch);
+
+
+			// Translation
+			ImGui::TableNextRow();
+			ImGui::TableSetColumnIndex(0);
+			ImGui::Text("Diffuse Color");
+
+			ImGui::TableSetColumnIndex(1);
+			float defL[] = { 0.f, 1.f };
+			if (DrawDetails(mat.DifuseAlbedo, defL))
+			{
+				valueChanged = true;
+			}
+
+			// Rotation
+			ImGui::TableNextRow();
+			ImGui::TableSetColumnIndex(0);
+			ImGui::Text("Fresnel");
+
+			ImGui::TableSetColumnIndex(1);
+			float defR[] = { 0.f, 1.f };
+			if (DrawDetails(mat.FresnelR0, defR))
+			{
+				valueChanged = true;
+			}
+
+			// Scale
+			ImGui::TableNextRow();
+			ImGui::TableSetColumnIndex(0);
+			ImGui::Text("Scale");
+
+			ImGui::TableSetColumnIndex(1);
+			float defS[] = { 1.f, 0.f };
+			if (ImGui::DragFloat("##X", &mat.Roughness, 0.01f, 0.f, 1.f, "% .3f"))
+			{
+				valueChanged = true;
+			}
+
+			ImGui::EndTable();
+		}
+
+		return valueChanged;
+	}
 
 	template<typename T>
 	bool DrawDetails(T& elem, float params[])
