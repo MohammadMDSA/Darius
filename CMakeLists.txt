@@ -98,6 +98,9 @@ add_subdirectory("src/Libs/imgui_wrapper")
 # Adding Memory Allocators
 # add_subdirectory("src/Libs/MemAll")
 
+# Adding FBX SDK
+include("cmake/AddFBXSDK.cmake")
+
 # Adding Nlohmann Json
 set(JSON_BuildTests OFF CACHE INTERNAL "")
 add_subdirectory("src/Libs/nlohmann_json")
@@ -273,3 +276,8 @@ if(WIN32)
 endif()
 
 set_property(DIRECTORY PROPERTY VS_STARTUP_PROJECT ${PROJECT_NAME})
+
+add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_directory
+        "${CMAKE_SOURCE_DIR}/DLLs"
+        $<TARGET_FILE_DIR:${PROJECT_NAME}>)
