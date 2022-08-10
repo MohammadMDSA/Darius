@@ -7,12 +7,14 @@ list(APPEND RESOUCE_MANAGER_LIBS_INCLUDE
 	"Resource.hpp"
 	"ResourceManager.hpp"
 	"MeshResource.hpp"
+	"MaterialResource.hpp"
 	)
 
 list(APPEND RESOUCE_MANAGER_LIBS_SOURCES
 	"Resource.cpp"
 	"ResourceManager.cpp"
 	"MeshResource.cpp"
+	"MaterialResource.cpp"
 	)
 
 

@@ -51,6 +51,8 @@
 #include <system_error>
 #include <tuple>
 
+#include <Renderer/pch.hpp>
+
 #ifdef _DEBUG
 #include <dxgidebug.h>
 #endif
