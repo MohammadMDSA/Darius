@@ -17,12 +17,24 @@ using namespace D_CORE;
 namespace Darius::ResourceManager
 {
 
+	enum class DefaultResource
+	{
+		BoxMesh,
+		CylinderMesh,
+		GeosphereMesh,
+		GridMesh,
+		QuadMesh,
+		SphereMesh,
+		DefaultMaterial
+	};
+
 	extern const DMap<std::string, ResourceType>		ResourceTypeMap;
 
 	void					Initialize();
 	void					Shutdown();
 
 	ResourceHandle			LoadResource(std::wstring path);
+	ResourceHandle			CreateResource(std::wstring path, ResourceType type);
 
 	Resource* _GetRawResource(ResourceHandle handle);
 
@@ -51,6 +63,8 @@ namespace Darius::ResourceManager
 	}
 
 	D_CONTAINERS::DVector<ResourcePreview> GetResourcePreviews(ResourceType type);
+	
+	ResourceHandle GetDefaultResource(DefaultResource type);
 
 	class DResourceManager : NonCopyable
 	{
@@ -62,15 +76,36 @@ namespace Darius::ResourceManager
 		ResourceHandle				LoadResource(std::wstring path);
 
 		DVector<ResourcePreview>	GetResourcePreviews(ResourceType type);
+
+		ResourceHandle				CreateMaterial(std::wstring path);
+		ResourceHandle				CreateMesh(std::wstring path);
+
+		ResourceHandle GetDefaultResource(DefaultResource type);
 	private:
+
+		ResourceHandle				CreateMaterial(std::wstring path, bool isDefault);
+		ResourceHandle				CreateMesh(std::wstring path, bool isDefault);
+
 		void LoadDefaultResources();
-		void AddMeshResource(Resource* res);
+		INLINE void AddMeshResource(Resource* res);
+		INLINE void AddMaterialResource(Resource* res);
 		INLINE DResourceId GetNewId() { return ++mLastId; }
 
 		DMap<ResourceType, DMap<DResourceId, Resource*>>	mResourceMap;
 		DMap<std::wstring, ResourceHandle>					mPathMap;
+		DMap<DefaultResource, ResourceHandle>				mDefaultResourceMap;
 
 		DResourceId											mLastId = 0;
 	};
+
+	INLINE void DResourceManager::AddMeshResource(Resource* res)
+	{
+		mResourceMap.at(ResourceType::Mesh).insert({ res->GetId(), res });
+	}
+
+	INLINE void DResourceManager::AddMaterialResource(Resource* res)
+	{
+		mResourceMap.at(ResourceType::Material).insert({ res->GetId(), res });
+	}
 
 }

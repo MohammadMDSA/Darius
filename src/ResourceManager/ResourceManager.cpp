@@ -2,6 +2,7 @@
 #include "ResourceManager.hpp"
 #include "Resource.hpp"
 #include "MeshResource.hpp"
+#include "MaterialResource.hpp"
 
 #include <Core/Containers/Map.hpp>
 #include <Renderer/Geometry/GeometryGenerator.hpp>
@@ -18,7 +19,8 @@ namespace Darius::ResourceManager
 	std::unique_ptr<DResourceManager>				_ResourceManager;
 	const DMap<std::string, ResourceType>			ResourceTypeMap =
 	{
-		{ MeshResource::GetTypeName(), ResourceType::Mesh }
+		{ MeshResource::GetTypeName(), ResourceType::Mesh },
+		{ MaterialResource::GetTypeName(), ResourceType::Material }
 	};
 
 	void Initialize()
@@ -37,6 +39,19 @@ namespace Darius::ResourceManager
 		return _ResourceManager->LoadResource(path);
 	}
 
+	ResourceHandle CreateResource(std::wstring path, ResourceType type)
+	{
+		switch (type)
+		{
+		case Darius::ResourceManager::ResourceType::None:
+		case Darius::ResourceManager::ResourceType::Mesh:
+		default:
+			return { ResourceType::None, 0 };
+		case Darius::ResourceManager::ResourceType::Material:
+			return _ResourceManager->CreateMaterial(path);
+		}
+	}
+
 	Resource* _GetRawResource(ResourceHandle handle)
 	{
 		return _ResourceManager->GetRawResource(handle);
@@ -47,9 +62,15 @@ namespace Darius::ResourceManager
 		return _ResourceManager->GetResourcePreviews(type);
 	}
 
+	ResourceHandle GetDefaultResource(DefaultResource type)
+	{
+		return _ResourceManager->GetDefaultResource(type);
+	}
+
 	DResourceManager::DResourceManager()
 	{
 		mResourceMap.insert({ ResourceType::Mesh, DMap<DResourceId, Resource*>() });
+		mResourceMap.insert({ ResourceType::Material, DMap<DResourceId, Resource*>() });
 
 		LoadDefaultResources();
 	}
@@ -95,60 +116,122 @@ namespace Darius::ResourceManager
 		auto sphere = D_RENDERER_GEOMETRY_GENERATOR::CreateSphere(0.5f, 20, 20);
 
 		// TODO: bad allocation
-		auto res = new MeshResource(GetNewId());
+		auto res = new MeshResource(L"", GetNewId(), true);
 		res->Create(L"Box Mesh", box);
-		mResourceMap.at(ResourceType::Mesh).insert({res->GetId(), res});
+		mResourceMap.at(ResourceType::Mesh).insert({ res->GetId(), res });
+		mDefaultResourceMap.insert({ DefaultResource::BoxMesh, { ResourceType::Mesh, res->GetId() } });
 
-		res = new MeshResource(GetNewId());
+		res = new MeshResource(L"", GetNewId(), true);
 		res->Create(L"Cylinder Mesh", cylinder);
 		mResourceMap.at(ResourceType::Mesh).insert({ res->GetId(), res });
+		mDefaultResourceMap.insert({ DefaultResource::CylinderMesh, { ResourceType::Mesh, res->GetId() } });
 
-		res = new MeshResource(GetNewId());
+		res = new MeshResource(L"", GetNewId(), true);
 		res->Create(L"Geosphere Mesh", geosphere);
 		mResourceMap.at(ResourceType::Mesh).insert({ res->GetId(), res });
+		mDefaultResourceMap.insert({ DefaultResource::GeosphereMesh, { ResourceType::Mesh, res->GetId() } });
 
-		res = new MeshResource(GetNewId());
+		res = new MeshResource(L"", GetNewId(), true);
 		res->Create(L"Grid Mesh", grid);
 		mResourceMap.at(ResourceType::Mesh).insert({ res->GetId(), res });
+		mDefaultResourceMap.insert({ DefaultResource::GridMesh, { ResourceType::Mesh, res->GetId() } });
 
-		res = new MeshResource(GetNewId());
+		res = new MeshResource(L"", GetNewId(), true);
 		res->Create(L"Quad Mesh", quad);
 		mResourceMap.at(ResourceType::Mesh).insert({ res->GetId(), res });
+		mDefaultResourceMap.insert({ DefaultResource::QuadMesh, { ResourceType::Mesh, res->GetId() } });
 
-		res = new MeshResource(GetNewId());
+		res = new MeshResource(L"", GetNewId(), true);
 		res->Create(L"Sphere Mesh", sphere);
 		mResourceMap.at(ResourceType::Mesh).insert({ res->GetId(), res });
-	}
+		mDefaultResourceMap.insert({ DefaultResource::SphereMesh, { ResourceType::Mesh, res->GetId() } });
 
-	void DResourceManager::AddMeshResource(Resource* res)
-	{
-		mResourceMap.at(ResourceType::Mesh).insert({ res->GetId(), res });
+		{
+			auto defaultMeshHandle = CreateMaterial(L"", true);
+			auto materialRes = (MaterialResource*)GetRawResource(defaultMeshHandle);
+			auto mat = materialRes->Get();
+			mat->DifuseAlbedo = Vector4(kOne);
+			mat->FresnelR0 = Vector3(kZero);
+			mat->Roughness = 0.2f;
+			mat->Name = L"Default";
+			mDefaultResourceMap.insert({ DefaultResource::DefaultMaterial, { ResourceType::Material, materialRes->GetId() } });
+		}
 	}
 
 	ResourceHandle DResourceManager::LoadResource(std::wstring path)
 	{
-		// Checking for supported resource
-		if (std::filesystem::path(path).extension() != ".fbx")
-			return { ResourceType::None, 0 };
-
 		// Check if we already have the resource
 		if (mPathMap.contains(path))
-			return mPathMap.at(path);
+		{
+			auto handle = mPathMap.at(path);
+			auto resource = GetRawResource(handle);
+			if (!resource->GetLoaded())
+				resource->Load();
+			return handle;
+		}
 
+		if (std::filesystem::exists(path) && !std::filesystem::is_directory(path))
+		{
+			auto extension = std::filesystem::path(path).extension();
+			// Checking for supported resource
+			if (extension == ".fbx")
+				return CreateMesh(path);
+			if (extension == ".mat")
+				return CreateMaterial(path);
+			else
+				return { ResourceType::None, 0 };
+
+		}
+
+		return { ResourceType::None, 0 };
+	}
+
+	ResourceHandle DResourceManager::CreateMesh(std::wstring path)
+	{
+		return CreateMesh(path, false);
+	}
+
+	ResourceHandle DResourceManager::CreateMesh(std::wstring path, bool isDefault)
+	{
 		// TODO: Better allocation
-		auto meshRes = new MeshResource(GetNewId());
-		meshRes->SetPath(path);
-		
+		auto meshRes = new MeshResource(path, GetNewId(), isDefault);
+
 		// Trying to load mesh
 		if (!meshRes->Load())
 			return { ResourceType::None, 0 };
 
-		// Add the handle to path and resouroce to mapsS
+		// Add the handle to path and resource maps
 		ResourceHandle handle = { ResourceType::Mesh, meshRes->GetId() };
 		mPathMap.insert({ path, handle });
-
 		AddMeshResource(meshRes);
 
 		return handle;
+	}
+
+	ResourceHandle DResourceManager::CreateMaterial(std::wstring path)
+	{
+		return CreateMaterial(path, false);
+	}
+
+	ResourceHandle DResourceManager::CreateMaterial(std::wstring path, bool isDefault)
+	{
+		// TODO: Better allocation
+		auto matRes = new MaterialResource(path, GetNewId(), isDefault);
+
+		// Try to load material
+		if (!matRes->Load())
+			return { ResourceType::None, 0 };
+
+		// Add the handle to path and resource maps
+		ResourceHandle handle = { ResourceType::Material, matRes->GetId() };
+		mPathMap.insert({ path, handle });
+		AddMaterialResource(matRes);
+
+		return handle;
+	}
+
+	ResourceHandle DResourceManager::GetDefaultResource(DefaultResource type)
+	{
+		return mDefaultResourceMap.at(type);
 	}
 }
