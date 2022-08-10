@@ -23,24 +23,25 @@ namespace Darius::ResourceManager
 		D_CH_RESOUCE_BODY(MeshResource, ResourceType::Mesh)
 
 	public:
-		INLINE Mesh*					Get() { return &mMesh; }
+		INLINE Mesh*					Get() { mDirty = true; return &mMesh; }
 		INLINE const Mesh*				Get() const { return &mMesh; }
 
 		INLINE virtual ResourceType		GetType() const override { return ResourceType::Mesh; }
 
 		void							Create(std::wstring name, MeshData<VertexType>& data);
-		void							Create(std::wstring path);
 
-		bool							Save() override;
-		bool							Load() override;
+		virtual bool					Save() override;
+		virtual bool					Load() override;
+		virtual bool					SuppoertsExtension(std::wstring ext) override;
 
-		INLINE operator Mesh* const() { return &mMesh; }
+		INLINE operator const Mesh* const() { return &mMesh; }
+		INLINE operator Mesh* () { return Get(); }
 
+		D_CH_FIELD(Mesh, Mesh);
 	private:
 		friend class DResourceManager;
 		
-		MeshResource(DResourceId id) : Resource(id) {}
-
-		Mesh							mMesh;
+		MeshResource(std::wstring path, DResourceId id, bool isDefault = false) :
+			Resource(path, id, isDefault) {}
 	};
 }

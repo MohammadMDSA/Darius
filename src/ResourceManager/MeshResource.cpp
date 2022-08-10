@@ -14,6 +14,13 @@ using namespace D_CONTAINERS;
 
 namespace Darius::ResourceManager
 {
+	bool MeshResource::SuppoertsExtension(std::wstring ext)
+	{
+		if (ext == L".fbx")
+			return true;
+		return false;
+	}
+
 	void MeshResource::Create(std::wstring name, MeshData<VertexType>& data)
 	{
 		Destroy();
@@ -68,91 +75,17 @@ namespace Darius::ResourceManager
 
 	bool MeshResource::Save()
 	{
-		if (mPath.empty())
+		if (mDefault)
+			return true;
+		if (!SuppoertsExtension(mPath.extension()))
 			return false;
 	}
 
-	FbxString GetAttributeTypeName(FbxNodeAttribute::EType type) {
-		switch (type) {
-		case FbxNodeAttribute::eUnknown: return "unidentified";
-		case FbxNodeAttribute::eNull: return "null";
-		case FbxNodeAttribute::eMarker: return "marker";
-		case FbxNodeAttribute::eSkeleton: return "skeleton";
-		case FbxNodeAttribute::eMesh: return "mesh";
-		case FbxNodeAttribute::eNurbs: return "nurbs";
-		case FbxNodeAttribute::ePatch: return "patch";
-		case FbxNodeAttribute::eCamera: return "camera";
-		case FbxNodeAttribute::eCameraStereo: return "stereo";
-		case FbxNodeAttribute::eCameraSwitcher: return "camera switcher";
-		case FbxNodeAttribute::eLight: return "light";
-		case FbxNodeAttribute::eOpticalReference: return "optical reference";
-		case FbxNodeAttribute::eOpticalMarker: return "marker";
-		case FbxNodeAttribute::eNurbsCurve: return "nurbs curve";
-		case FbxNodeAttribute::eTrimNurbsSurface: return "trim nurbs surface";
-		case FbxNodeAttribute::eBoundary: return "boundary";
-		case FbxNodeAttribute::eNurbsSurface: return "nurbs surface";
-		case FbxNodeAttribute::eShape: return "shape";
-		case FbxNodeAttribute::eLODGroup: return "lodgroup";
-		case FbxNodeAttribute::eSubDiv: return "subdiv";
-		default: return "unknown";
-		}
-	}
-	/* Tab character ("\t") counter */
-	int numTabs = 0;
-
-	void PrintTabs() {
-		for (int i = 0; i < numTabs; i++)
-			printf("\t");
-	}
-	/**
-	 * Print an attribute.
-	 */
-	void PrintAttribute(FbxNodeAttribute* pAttribute) {
-		if (!pAttribute) return;
-
-		FbxString typeName = GetAttributeTypeName(pAttribute->GetAttributeType());
-		FbxString attrName = pAttribute->GetName();
-		PrintTabs();
-		// Note: to retrieve the character array of a FbxString, use its Buffer() method.
-		printf("<attribute type='%s' name='%s'/>\n", typeName.Buffer(), attrName.Buffer());
-	}
-
-	/**
-	 * Print a node, its attributes, and all its children recursively.
-	 */
-	void PrintNode(FbxNode* pNode) {
-		PrintTabs();
-		const char* nodeName = pNode->GetName();
-		FbxDouble3 translation = pNode->LclTranslation.Get();
-		FbxDouble3 rotation = pNode->LclRotation.Get();
-		FbxDouble3 scaling = pNode->LclScaling.Get();
-
-		// Print the contents of the node.
-		printf("<node name='%s' translation='(%f, %f, %f)' rotation='(%f, %f, %f)' scaling='(%f, %f, %f)'>\n",
-			nodeName,
-			translation[0], translation[1], translation[2],
-			rotation[0], rotation[1], rotation[2],
-			scaling[0], scaling[1], scaling[2]
-		);
-		numTabs++;
-
-		// Print the node's attributes.
-		for (int i = 0; i < pNode->GetNodeAttributeCount(); i++)
-			PrintAttribute(pNode->GetNodeAttributeByIndex(i));
-
-		// Recursively print the children.
-		for (int j = 0; j < pNode->GetChildCount(); j++)
-			PrintNode(pNode->GetChild(j));
-
-		numTabs--;
-		PrintTabs();
-		printf("</node>\n");
-	}
-
-
 	bool MeshResource::Load()
 	{
-		if (mPath.empty())
+		if (mDefault)
+			return true;
+		if (!SuppoertsExtension(mPath.extension()))
 			return false;
 
 		// Create the FBX SDK manager
@@ -167,7 +100,8 @@ namespace Darius::ResourceManager
 
 		// Declare the path and filename of the file containing the scene.
 		// In this case, we are assuming the file is in the same directory as the executable.
-		const char* lFilename = "ff.fbx";
+		auto loc = mPath.string();
+		const char* lFilename = loc.c_str();
 
 		// Initialize the importer.
 		bool lImportStatus = lImporter->Initialize(lFilename, -1, lSdkManager->GetIOSettings());
@@ -194,18 +128,16 @@ namespace Darius::ResourceManager
 		// Note that we are not printing the root node because it should
 		// not contain any attributes.
 		FbxNode* lRootNode = lScene->GetRootNode();
-		/*if (lRootNode) {
-			for (int i = 0; i < lRootNode->GetChildCount(); i++)
-				PrintNode(lRootNode->GetChild(i));
-		}*/
 
+		// Only dealing with first child
 		auto node = lRootNode->GetChild(0);
 		auto mesh = node->GetMesh();
 		
 		auto controlPoints = mesh->GetControlPoints();
 
 		D_RENDERER_GEOMETRY::MeshData<VertexType> meshData;
-
+		
+		// Add vertext positions
 		for (size_t i = 0; i < mesh->GetControlPointsCount(); i++)
 		{
 			VertexType vert;
@@ -216,6 +148,7 @@ namespace Darius::ResourceManager
 			meshData.Vertices.push_back(vert);
 		}
 
+		// Add indices
 		auto po = mesh->GetPolygonCount();
 		for (size_t polyIdx = 0; polyIdx < mesh->GetPolygonCount(); polyIdx++)
 		{
@@ -228,6 +161,7 @@ namespace Darius::ResourceManager
 		// Destroy the SDK manager and all the other objects it was handling.
 		lSdkManager->Destroy();
 
+		// Create mesh based on extracted data
 		auto path = std::filesystem::path(mPath);
 		auto filename = path.filename().wstring();
 		Create(filename.substr(0, filename.length() - path.extension().string().length()), meshData);

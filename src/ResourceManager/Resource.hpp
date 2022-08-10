@@ -1,8 +1,9 @@
 #pragma once
 
 #include <Core/Counted.hpp>
-
 #include <Utils/Common.hpp>
+
+#include <filesystem>
 
 #ifndef D_RESOURCE
 #define D_RESOURCE Darius::ResourceManager
@@ -21,7 +22,8 @@ namespace Darius::ResourceManager
 	enum class ResourceType
 	{
 		None,
-		Mesh
+		Mesh,
+		Material
 	};
 
 	struct ResourceHandle
@@ -41,13 +43,6 @@ namespace Darius::ResourceManager
 	class Resource : public D_CORE::Counted
 	{
 	public:
-		Resource(DResourceId id) :
-			mLoaded(false),
-			mPath(L""),
-			mName(L""),
-			mVersion(1),
-			mId(id)
-		{}
 		
 		void Destroy()
 		{
@@ -65,18 +60,32 @@ namespace Darius::ResourceManager
 		INLINE operator ResourceHandle const() { return { GetType(), mId }; };
 		INLINE operator ResourcePreview const() { return GetPreview(); }
 
-		D_CH_RW_FIELD_ACC(std::wstring, Path, protected);
+		D_CH_RW_FIELD_ACC(std::filesystem::path, Path, protected);
 		D_CH_RW_FIELD_ACC(std::wstring, Name, protected);
 		D_CH_R_FIELD_CONST_ACC(DResourceId, Id, protected);
+		D_CH_R_FIELD_CONST_ACC(bool, Default, protected);
 
 		D_CH_R_FIELD_ACC(bool, Loaded, protected);
 		D_CH_R_FIELD_ACC(UINT, Version, protected);
+		D_CH_R_FIELD_ACC(bool, Dirty, protected);
 
 	public:
 		virtual bool				Save() = 0;
 		virtual bool				Load() = 0;
+		virtual bool				SuppoertsExtension(std::wstring ext) = 0;
 
-		friend class Darius::ResourceManager::DResourceManager;
+		friend class DResourceManager;
+
+	protected:
+		Resource(std::wstring path, DResourceId id, bool isDefault) :
+			mLoaded(false),
+			mPath(path),
+			mName(L""),
+			mVersion(1),
+			mId(id),
+			mDefault(isDefault)
+		{}
+
 	};
 
 }
