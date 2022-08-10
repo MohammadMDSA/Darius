@@ -83,11 +83,14 @@ namespace Darius::Scene
 			{
 				bool selected = currentMesh && prev.Handle.Id == currentMesh->GetId() && prev.Handle.Type == currentMesh->GetType();
 
-				if (ImGui::Selectable((STR_WSTR(prev.Name) + std::to_string(idx)).c_str(), &selected))
+				auto name = STR_WSTR(prev.Name);
+				ImGui::PushID((name + std::to_string(idx)).c_str());
+				if (ImGui::Selectable(name.c_str(), &selected))
 				{
 					SetMesh(prev.Handle);
 					changeValue = true;
 				}
+				ImGui::PopID();
 
 				idx++;
 			}
