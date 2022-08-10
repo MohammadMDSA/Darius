@@ -119,7 +119,8 @@ namespace Darius::Renderer
 			context.SetIndexBuffer(ibv);
 			context.SetPrimitiveTopology(ri.PrimitiveType);
 
-			context.SetConstantBuffer(kMeshConstants, ri.CBVGpu);
+			context.SetConstantBuffer(kMeshConstants, ri.MeshCBV);
+			context.SetConstantBuffer(kMaterialConstants, ri.MaterialCBV);
 			context.DrawIndexedInstanced(ri.IndexCount, 1, ri.StartIndexLocation, ri.BaseVertexLocation, 0);
 		}
 

@@ -22,6 +22,20 @@ namespace Darius::Scene
 	{
 		SetMesh({ ResourceType::None, 0 });
 		SetMaterial(D_RESOURCE::GetDefaultResource(DefaultResource::DefaultMaterial));
+
+		// Initializing Mesh Constants buffers
+		for (size_t i = 0; i < D_RENDERER_FRAME_RESOUCE::gNumFrameResources; i++)
+		{
+			mMeshConstantsCPU[i].Create(L"Mesh Constant Upload Buffer", sizeof(MeshConstants));
+		}
+		mMeshConstantsGPU.Create(L"Mesh Constant GPU Buffer", 1, sizeof(MeshConstants));
+
+		// Initializing Material Constants buffers
+		for (size_t i = 0; i < D_RENDERER_FRAME_RESOUCE::gNumFrameResources; i++)
+		{
+			mMaterialConstantsCPU[i].Create(L"Material Constatns Upload Buffer", sizeof(Material));
+		}
+		mMaterialConstantsGPU.Create(L"Material Constants GPU Buffer", 1, sizeof(Material));
 	}
 
 	GameObject::~GameObject()
@@ -38,7 +52,8 @@ namespace Darius::Scene
 		result.Mesh = mesh;
 		result.PrimitiveType = D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
 		result.World = Matrix4(mTransform.GetWorld());
-		result.CBVGpu = mMeshConstantsGPU.GetGpuVirtualAddress();
+		result.MeshCBV = mMeshConstantsGPU.GetGpuVirtualAddress();
+		result.MaterialCBV = mMaterialConstantsGPU.GetGpuVirtualAddress();
 		return result;
 	}
 
@@ -48,6 +63,7 @@ namespace Darius::Scene
 		if (mType == Type::Static)
 			return;
 
+		// Updating mesh constants
 		// Mapping upload buffer
 		auto& currentUploadBuff = mMeshConstantsCPU[D_RENDERER_DEVICE::GetCurrentResourceIndex()];
 		MeshConstants* cb = (MeshConstants*)currentUploadBuff.Map();
@@ -60,6 +76,20 @@ namespace Darius::Scene
 		context.TransitionResource(mMeshConstantsGPU, D3D12_RESOURCE_STATE_COPY_DEST, true);
 		context.GetCommandList()->CopyBufferRegion(mMeshConstantsGPU.GetResource(), 0, mMeshConstantsCPU->GetResource(), 0, mMeshConstantsCPU->GetBufferSize());
 		context.TransitionResource(mMeshConstantsGPU, D3D12_RESOURCE_STATE_GENERIC_READ);
+		
+		
+		// Updating material constnats
+		// Mapping upload buffer
+		auto& currentMatUploadBuff = mMaterialConstantsCPU[D_RENDERER_DEVICE::GetCurrentResourceIndex()];
+		auto matCB = (Material*)currentMatUploadBuff.Map();
+		memcpy(matCB, mMaterialResouce->Get(), sizeof(Material));
+
+		currentMatUploadBuff.Unmap();
+
+		// Uploading
+		context.TransitionResource(mMaterialConstantsGPU, D3D12_RESOURCE_STATE_COPY_DEST, true);
+		context.GetCommandList()->CopyBufferRegion(mMaterialConstantsGPU.GetResource(), 0, mMaterialConstantsCPU->GetResource(), 0, mMaterialConstantsCPU->GetBufferSize());
+		context.TransitionResource(mMaterialConstantsGPU, D3D12_RESOURCE_STATE_GENERIC_READ);
 	}
 
 #ifdef _D_EDITOR
@@ -111,21 +141,11 @@ namespace Darius::Scene
 	{
 		mMeshResource = D_RESOURCE::GetResource<MeshResource>(handle, *this);
 
-		for (size_t i = 0; i < D_RENDERER_FRAME_RESOUCE::gNumFrameResources; i++)
-		{
-			mMeshConstantsCPU[i].Create(L"Mesh Constant Upload Buffer", sizeof(MeshConstants));
-		}
-		mMeshConstantsGPU.Create(L"Mesh Constant GPU Buffer", 1, sizeof(MeshConstants));
 	}
 
 	void GameObject::SetMaterial(ResourceHandle handle)
 	{
 		mMaterialResouce = D_RESOURCE::GetResource<MaterialResource>(handle, *this);
 
-		for (size_t i = 0; i < D_RENDERER_FRAME_RESOUCE::gNumFrameResources; i++)
-		{
-			mMaterialConstantsCPU[i].Create(L"Material Constatns Upload Buffer", sizeof(Material));
-		}
-		mMaterialConstantsGPU.Create(L"Material Constants GPU Buffer", 1, sizeof(Material));
 	}
 }

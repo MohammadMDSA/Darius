@@ -71,7 +71,8 @@ namespace Darius::Renderer::ConstantFrameResource
 		int							NumFramesDirty = gNumFrameResources;
 
 		// Mesh constants GPU Address
-		D3D12_GPU_VIRTUAL_ADDRESS	CBVGpu;
+		D3D12_GPU_VIRTUAL_ADDRESS	MeshCBV;
+		D3D12_GPU_VIRTUAL_ADDRESS	MaterialCBV;
 
 		// Geometry associated with this render-item. Note that multiple
 		// render-items can share the same goemetry.
