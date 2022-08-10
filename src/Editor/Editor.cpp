@@ -212,8 +212,6 @@ namespace Darius::Editor
 		// If using the DirectX Tool Kit for DX12, uncomment this line:
 		// m_graphicsMemory = std::make_unique<GraphicsMemory>(device);
 
-		InitMesh();
-
 	}
 
 	// Allocate all memory resources that change on a window SizeChanged event.
@@ -236,95 +234,6 @@ namespace Darius::Editor
 
 		CreateWindowSizeDependentResources();
 	}
-#pragma endregion
-
-#pragma region Mesh and Pipeline Setup
-	void Editor::InitMesh()
-	{
-		auto& context = D_GRAPHICS::GraphicsContext::Begin(L"Mesh Init");
-
-		BuildGeometery(context);
-
-		context.Finish(true);
-	}
-
-	void Editor::BuildGeometery(D_GRAPHICS::GraphicsContext& context)
-	{
-
-		struct Vertex
-		{
-			Vector3 pos;
-			Vector4 color;
-		};
-
-		std::array<Vertex, 8> vertices =
-		{
-			Vertex({ Vector3(-1.f, -1.f, -1.f), Vector4(Colors::White) }),
-			Vertex({ Vector3(-1.f, +1.f, -1.f), Vector4(Colors::Black) }),
-			Vertex({ Vector3(+1.f, +1.f, -1.f), Vector4(Colors::Red) }),
-			Vertex({ Vector3(+1.f, -1.f, -1.f), Vector4(Colors::Green) }),
-			Vertex({ Vector3(-1.f, -1.f, +1.f), Vector4(Colors::Blue) }),
-			Vertex({ Vector3(-1.f, +1.f, +1.f), Vector4(Colors::Yellow) }),
-			Vertex({ Vector3(+1.f, +1.f, +1.f), Vector4(Colors::Cyan) }),
-			Vertex({ Vector3(+1.f, -1.f, +1.f), Vector4(Colors::Magenta) })
-		};
-
-		mMesh = std::make_unique<Mesh>();
-		mMesh->mVertexBufferByteSize = (UINT)vertices.size() * sizeof(Vertex);
-		mMesh->mVertexByteStride = (UINT)sizeof(Vertex);
-
-		mMesh->name = L"Box";
-
-		D_HR_CHECK(D3DCreateBlob(mMesh->mVertexBufferByteSize, &mMesh->mVertexBufferCPU));
-		CopyMemory(mMesh->mVertexBufferCPU->GetBufferPointer(), vertices.data(), mMesh->mVertexBufferByteSize);
-
-		mMesh->mVertexBufferGPU = CreateDefaultBuffer(D_RENDERER_DEVICE::GetDevice(), context.GetCommandList(), vertices.data(), mMesh->mVertexBufferByteSize, mMesh->mVertexBufferUploader);
-
-		mMesh->mBoundSp = D_MATH_BOUNDS::BoundingSphere(0.f, 0.f, 0.f, 1.8f);
-
-		std::array<std::uint16_t, 36> indices =
-		{
-			// front face
-			0, 2, 1,
-			0, 3, 2,
-
-			// back face
-			4, 5, 6,
-			4, 6, 7,
-
-			// left face
-			4, 1, 5,
-			4, 0, 1,
-
-			// right face
-			3, 6, 2,
-			3, 7, 6,
-
-			// top face
-			1, 6, 5,
-			1, 2, 6,
-
-			// bottom face
-			4, 3, 0,
-			4, 7, 3,
-		};
-
-		mMesh->mIndexBufferByteSize = (UINT)indices.size() * sizeof(std::uint16_t);
-
-
-		D_HR_CHECK(D3DCreateBlob(mMesh->mIndexBufferByteSize, &mMesh->mIndexBufferCPU));
-		CopyMemory(mMesh->mIndexBufferCPU->GetBufferPointer(), indices.data(), mMesh->mIndexBufferByteSize);
-
-		mMesh->mIndexBufferGPU = CreateDefaultBuffer(D_RENDERER_DEVICE::GetDevice(), context.GetCommandList(), indices.data(), mMesh->mIndexBufferByteSize, mMesh->mIndexBufferUploader);
-
-		Mesh::Draw draw;
-		draw.BaseVertexLocation = 0;
-		draw.IndexCount = (UINT)indices.size();
-		draw.StartIndexLocation = 0;
-
-		mMesh->mDraw.push_back(draw);
-	}
-
 #pragma endregion
 
 }

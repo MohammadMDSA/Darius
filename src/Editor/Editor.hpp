@@ -62,11 +62,5 @@ namespace Darius::Editor
 		void CreateDeviceDependentResources();
 		void CreateWindowSizeDependentResources();
 
-		///////////////////////////////////////////
-		void InitMesh();
-		void BuildGeometery(D_GRAPHICS::GraphicsContext& context);
-		///////////////////////////////////////////
-
-		std::shared_ptr<Mesh>                       mMesh;
 	};
 }
