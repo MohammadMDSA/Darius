@@ -209,6 +209,7 @@ namespace Darius::Renderer
 			Shaders["opaquePS"]->GetBufferSize());
 		auto rasterState = CD3DX12_RASTERIZER_DESC(D3D12_DEFAULT);
 		rasterState.FillMode = D3D12_FILL_MODE_SOLID;
+		rasterState.CullMode = D3D12_CULL_MODE_FRONT;
 		pso.SetRootSignature(RootSign);
 		pso.SetRasterizerState(rasterState);
 		pso.SetBlendState(CD3DX12_BLEND_DESC(D3D12_DEFAULT));
