@@ -1,10 +1,31 @@
-#define D_LOG(msg, lvl)
-#define D_LOG_TRACE(msg)
-#define D_LOG_DEBUG(msg)
-#define D_LOG_INFO(msg)
-#define D_LOG_WARN(msg)
-#define D_LOG_ERROR(msg)
-#define D_LOG_FATAL(msg)
+#ifdef _DEBUG
+#include <iostream>
+#define D_LOG_IMPL(msg, lvl)
+#define D_LOG_TRACE_IMPL(msg) std::cout << "TRACE:\t" << msg << std::endl
+#define D_LOG_DEBUG_IMPL(msg) std::cout  << "DEBUG:\t" << msg << std::endl
+#define D_LOG_INFO_IMPL(msg) std::cout  << "INFO\t" << msg << std::endl
+#define D_LOG_WARN_IMPL(msg) std::cerr  << "WARN\t" << msg << std::endl
+#define D_LOG_ERROR_IMPL(msg) std::cerr  << "ERROR\t" << msg << std::endl
+#define D_LOG_FATAL_IMPL(msg) std::cerr  << "FATAL\t" << msg << std::endl
+#elif
+#define D_LOG_IMPL(msg, lvl)
+#define D_LOG_TRACE_IMPL(msg)
+#define D_LOG_DEBUG_IMPL(msg)
+#define D_LOG_INFO_IMPL(msg)
+#define D_LOG_WARN_IMPL(msg)
+#define D_LOG_ERROR_IMPL(msg)
+#define D_LOG_FATAL_IMPL(msg)
+
+#endif // _DEBUG
+
+
+#define D_LOG(msg, lvl) D_LOG_IMPL(msg, lvl)
+#define D_LOG_TRACE(msg) D_LOG_TRACE_IMPL(msg)
+#define D_LOG_DEBUG(msg) D_LOG_DEBUG_IMPL(msg)
+#define D_LOG_INFO(msg) D_LOG_INFO_IMPL(msg)
+#define D_LOG_WARN(msg) D_LOG_WARN_IMPL(msg)
+#define D_LOG_ERROR(msg) D_LOG_ERROR_IMPL(msg)
+#define D_LOG_FATAL(msg) D_LOG_FATAL_IMPL(msg)
 
 #ifndef _DEBUG
 
