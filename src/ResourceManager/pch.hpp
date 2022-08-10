@@ -43,6 +43,7 @@
 #include <cstdio>
 #include <cstring>
 #include <cwchar>
+#include <string>
 #include <exception>
 #include <iterator>
 #include <memory>
