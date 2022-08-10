@@ -1,4 +1,11 @@
+
 # Darius Engine
+
+## First Look
+
+<img src="images/overview.png" width="50%"><p>This is how the editor looks like. You can select game objects from Scene Graph window and change its transform properties and mesh trough Details window. You also can change object position via the gizmo which is located on object position.</p>
+
+<p>You can explore the scene with ghost camera by holding right-click and via W/A/S/D.</p>
 
 ## Installing
 
