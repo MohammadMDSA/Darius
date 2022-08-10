@@ -142,4 +142,43 @@ namespace Darius::Editor::Gui::Windows
 		mSceneDepth.Create(L"Scene DepthStencil", (UINT)mWidth, (UINT)mHeight, D_RENDERER_DEVICE::GetDepthBufferFormat());
 	}
 
+	void SceneWindow::CreateGrid(DVector<D_RENDERER_FRAME_RESOUCE::RenderItem>&)
+	{
+		
+	}
+
+	DVector<D_RENDERER_FRAME_RESOUCE::RenderItem> SceneWindow::GetRenderItems()
+	{
+		// TODO: WRITE IT BETTER - I will when I implement components
+
+		// Update CBs
+		DVector<RenderItem> items;
+		const auto gos = D_SCENE::GetGameObjects();
+		auto cam = D_CAMERA_MANAGER::GetActiveCamera();
+		auto frustum = cam->GetViewSpaceFrustum();
+		for (auto itr = gos->begin(); itr != gos->end(); itr++)
+		{
+			auto go = *itr;
+
+			// Is it active or renderable
+			if (!go->CanRender())
+				continue;
+
+			// Is it in our frustum
+			auto bsp = go->mTransform * go->GetBounds();
+			auto vsp = BoundingSphere(Vector3(cam->GetViewMatrix() * bsp.GetCenter()), bsp.GetRadius());
+			if (!frustum.IntersectSphere(vsp))
+				continue;
+
+			// Add it to render list
+			auto item = go->GetRenderItem();
+			items.push_back(item);
+		}
+
+		D_LOG_INFO("Number of render items: " + std::to_string(items.size()));
+
+		CreateGrid(items);
+
+		return items;
+	}
 }
