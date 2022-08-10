@@ -157,6 +157,11 @@ namespace Darius::Editor::Gui::GuiManager
 				{
 					D_RESOURCE::LoadResource(L"ff.fbx");
 				}
+
+				if (ImGui::MenuItem("Save Mat"))
+					D_RESOURCE::CreateResource(L"me.mat", ResourceType::Material);
+				if (ImGui::MenuItem("Load Mat"))
+					D_RESOURCE::LoadResource(L"me.mat");
 				ImGui::EndMenu();
 			}
 			ImGui::EndMenuBar();
