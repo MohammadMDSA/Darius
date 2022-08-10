@@ -9,6 +9,7 @@
 #include <Renderer/GraphicsUtils/Buffers/GpuBuffer.hpp>
 #include <Math/VectorMath.hpp>
 #include <ResourceManager/MeshResource.hpp>
+#include <ResourceManager/MaterialResource.hpp>
 
 #ifndef D_SCENE
 #define D_SCENE Darius::Scene
@@ -55,6 +56,7 @@ namespace Darius::Scene
 		}
 
 		void						SetMesh(ResourceHandle handle);
+		void						SetMaterial(ResourceHandle handle);
 
 		D_CH_RW_FIELD(bool, Active);
 		D_CH_RW_FIELD(std::string, Name);
@@ -65,8 +67,12 @@ namespace Darius::Scene
 		void						Update(D_GRAPHICS::GraphicsContext& context, float deltaTime);
 
 		Ref<MeshResource>					mMeshResource;
+		Ref<MaterialResource>				mMaterialResouce;
 
 		D_GRAPHICS_BUFFERS::UploadBuffer	mMeshConstantsCPU[D_RENDERER_FRAME_RESOUCE::gNumFrameResources];
 		ByteAddressBuffer					mMeshConstantsGPU;
+		D_GRAPHICS_BUFFERS::UploadBuffer	mMaterialConstantsCPU[D_RENDERER_FRAME_RESOUCE::gNumFrameResources];
+		ByteAddressBuffer					mMaterialConstantsGPU;
+
 	};
 }

@@ -21,6 +21,7 @@ namespace Darius::Scene
 		mTransform()
 	{
 		SetMesh({ ResourceType::None, 0 });
+		SetMaterial(D_RESOURCE::GetDefaultResource(DefaultResource::DefaultMaterial));
 	}
 
 	GameObject::~GameObject()
@@ -68,35 +69,40 @@ namespace Darius::Scene
 
 		D_SCENE_DET_DRAW::DrawDetails(mTransform, nullptr);
 
-		MeshResource* currentMesh = mMeshResource.Get();
-
-		if (ImGui::Button("Select"))
 		{
-			ImGui::OpenPopup("Select Res");
-		}
+			MeshResource* currentMesh = mMeshResource.Get();
 
-		if (ImGui::BeginPopup("Select Res"))
-		{
-			auto meshes = D_RESOURCE::GetResourcePreviews(D_RESOURCE::ResourceType::Mesh);
-			int idx = 0;
-			for (auto prev : meshes)
+			if (ImGui::Button("Select"))
 			{
-				bool selected = currentMesh && prev.Handle.Id == currentMesh->GetId() && prev.Handle.Type == currentMesh->GetType();
-
-				auto name = STR_WSTR(prev.Name);
-				ImGui::PushID((name + std::to_string(idx)).c_str());
-				if (ImGui::Selectable(name.c_str(), &selected))
-				{
-					SetMesh(prev.Handle);
-					changeValue = true;
-				}
-				ImGui::PopID();
-
-				idx++;
+				ImGui::OpenPopup("Select Res");
 			}
 
-			ImGui::EndPopup();
+			if (ImGui::BeginPopup("Select Res"))
+			{
+				auto meshes = D_RESOURCE::GetResourcePreviews(D_RESOURCE::ResourceType::Mesh);
+				int idx = 0;
+				for (auto prev : meshes)
+				{
+					bool selected = currentMesh && prev.Handle.Id == currentMesh->GetId() && prev.Handle.Type == currentMesh->GetType();
+
+					auto name = STR_WSTR(prev.Name);
+					ImGui::PushID((name + std::to_string(idx)).c_str());
+					if (ImGui::Selectable(name.c_str(), &selected))
+					{
+						SetMesh(prev.Handle);
+						changeValue = true;
+					}
+					ImGui::PopID();
+
+					idx++;
+				}
+
+				ImGui::EndPopup();
+			}
 		}
+
+		D_SCENE_DET_DRAW::DrawDetails(*mMaterialResouce->Get(), nullptr);
+
 		return changeValue;
 	}
 #endif // _EDITOR
@@ -107,10 +113,19 @@ namespace Darius::Scene
 
 		for (size_t i = 0; i < D_RENDERER_FRAME_RESOUCE::gNumFrameResources; i++)
 		{
-			mMeshConstantsCPU[i].Destroy();
 			mMeshConstantsCPU[i].Create(L"Mesh Constant Upload Buffer", sizeof(MeshConstants));
 		}
-		mMeshConstantsGPU.Destroy();
 		mMeshConstantsGPU.Create(L"Mesh Constant GPU Buffer", 1, sizeof(MeshConstants));
+	}
+
+	void GameObject::SetMaterial(ResourceHandle handle)
+	{
+		mMaterialResouce = D_RESOURCE::GetResource<MaterialResource>(handle, *this);
+
+		for (size_t i = 0; i < D_RENDERER_FRAME_RESOUCE::gNumFrameResources; i++)
+		{
+			mMaterialConstantsCPU[i].Create(L"Material Constatns Upload Buffer", sizeof(Material));
+		}
+		mMaterialConstantsGPU.Create(L"Material Constants GPU Buffer", 1, sizeof(Material));
 	}
 }
