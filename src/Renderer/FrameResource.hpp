@@ -41,6 +41,16 @@ namespace Darius::Renderer::ConstantFrameResource
 		XMFLOAT4X4				mWorld;
 	};
 
+	struct Material
+	{
+		// Unique material name.
+		std::wstring				Name;
+
+		D_MATH::Vector4				DifuseAlbedo = { 1.f, 1.f, 1.f, 1.f };
+		D_MATH::Vector3				FresnelR0 = { 0.f, 0.f, 0.f };
+		float						Roughness = 0.2;
+	};
+
 	// Lightweight structure stores parameters to draw a shape.
 	struct RenderItem
 	{

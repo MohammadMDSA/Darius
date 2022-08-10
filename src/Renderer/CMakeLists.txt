@@ -29,7 +29,6 @@ list(APPEND RENDERER_LIBS_INCLUDE
 	"Geometry/Mesh.hpp"
 	"Geometry/MeshData.hpp"
 	"Geometry/GeometryGenerator.hpp"
-	"Geometry/Material.hpp"
 	"Renderer.hpp"
 	"GraphicsCore.hpp"
 	"DeviceResources.hpp"
