@@ -41,15 +41,15 @@ if ((${CMAKE_VERSION} VERSION_GREATER_EQUAL "3.16") AND (NOT MINGW))
     target_precompile_headers("ResourceManager" PRIVATE pch.hpp )
 endif()
 
-
 target_include_directories("ResourceManager"
 PUBLIC
 PRIVATE
 	".."
 	${Boost_INCLUDE_DIRS}
+	${FBX_INCLUDE_DIRS}
 )
 
-target_link_libraries("ResourceManager" PRIVATE ${Boost_LIBRARIES} Core Renderer Utils)
+target_link_libraries("ResourceManager" PRIVATE ${Boost_LIBRARIES} Core Renderer Utils nlohmann_json::nlohmann_json ${FBX_LINK_LIBS})
 
 if(BUILD_TESTS)
 	set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/../../cmake")
