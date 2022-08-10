@@ -98,6 +98,10 @@ add_subdirectory("src/Libs/imgui_wrapper")
 # Adding Memory Allocators
 # add_subdirectory("src/Libs/MemAll")
 
+# Adding Nlohmann Json
+set(JSON_BuildTests OFF CACHE INTERNAL "")
+add_subdirectory("src/Libs/nlohmann_json")
+
 # Adding Boost
 set(Boost_USE_STATIC_LIBS ON)
 set(Boost_USE_MULTITHREADED ON)
