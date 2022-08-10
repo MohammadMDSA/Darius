@@ -85,10 +85,16 @@ namespace Darius::Core
 			return mData != nullptr;
 		}
 
-		INLINE T* const operator->()
+		INLINE const T* operator->() const
 		{
-			if (!IsValid) throw D_EXCEPTION::NullPointerException();
-			return mData.get();
+			if (!IsValid()) throw D_EXCEPTION::NullPointerException();
+			return mData;
+		}
+
+		INLINE T* operator->()
+		{
+			if (!IsValid()) throw D_EXCEPTION::NullPointerException();
+			return mData;
 		}
 
 		INLINE T& operator*()
