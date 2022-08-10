@@ -72,6 +72,10 @@ namespace Darius::ResourceManager
 		D_CH_R_FIELD_ACC(bool, Loaded, protected);
 		D_CH_R_FIELD_ACC(UINT, Version, protected);
 
+	public:
+		virtual bool				Save() = 0;
+		virtual bool				Load() = 0;
+
 		friend class Darius::ResourceManager::DResourceManager;
 	};
 

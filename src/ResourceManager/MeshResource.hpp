@@ -14,6 +14,8 @@ using namespace D_RENDERER_GEOMETRY;
 
 namespace Darius::ResourceManager
 {
+	class DResourceManager;
+
 	class MeshResource : public Resource
 	{
 		using VertexType = D_RENDERER_VERTEX::VertexPositionNormalTangentTexture;
@@ -21,7 +23,6 @@ namespace Darius::ResourceManager
 		D_CH_RESOUCE_BODY(MeshResource, ResourceType::Mesh)
 
 	public:
-		MeshResource(DResourceId id) : Resource(id) {}
 		INLINE Mesh*					Get() { return &mMesh; }
 		INLINE const Mesh*				Get() const { return &mMesh; }
 
@@ -30,9 +31,16 @@ namespace Darius::ResourceManager
 		void							Create(std::wstring name, MeshData<VertexType>& data);
 		void							Create(std::wstring path);
 
+		bool							Save() override;
+		bool							Load() override;
+
 		INLINE operator Mesh* const() { return &mMesh; }
 
 	private:
+		friend class DResourceManager;
+		
+		MeshResource(DResourceId id) : Resource(id) {}
+
 		Mesh							mMesh;
 	};
 }

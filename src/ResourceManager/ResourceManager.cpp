@@ -7,6 +7,8 @@
 #include <Renderer/Geometry/GeometryGenerator.hpp>
 #include <Utils/Assert.hpp>
 
+#include <filesystem>
+
 using namespace D_CONTAINERS;
 
 namespace Darius::ResourceManager
@@ -28,6 +30,11 @@ namespace Darius::ResourceManager
 	void Shutdown()
 	{
 		D_ASSERT(_ResourceManager);
+	}
+
+	ResourceHandle LoadResource(std::wstring path)
+	{
+		return _ResourceManager->LoadResource(path);
 	}
 
 	Resource* _GetRawResource(ResourceHandle handle)
@@ -80,8 +87,6 @@ namespace Darius::ResourceManager
 
 	void DResourceManager::LoadDefaultResources()
 	{
-		auto id = GetNewId();
-
 		auto box = D_RENDERER_GEOMETRY_GENERATOR::CreateBox(1.f, 1.f, 1.f, 1);
 		auto cylinder = D_RENDERER_GEOMETRY_GENERATOR::CreateCylinder(0.5f, 0.5f, 1, 20, 20);
 		auto geosphere = D_RENDERER_GEOMETRY_GENERATOR::CreateGeosphere(0.5f, 20);
@@ -115,4 +120,35 @@ namespace Darius::ResourceManager
 		mResourceMap.at(ResourceType::Mesh).insert({ res->GetId(), res });
 	}
 
+	void DResourceManager::AddMeshResource(Resource* res)
+	{
+		mResourceMap.at(ResourceType::Mesh).insert({ res->GetId(), res });
+	}
+
+	ResourceHandle DResourceManager::LoadResource(std::wstring path)
+	{
+		// Checking for supported resource
+		if (std::filesystem::path(path).extension() != ".fbx")
+			return { ResourceType::None, 0 };
+
+		// Check if we already have the resource
+		if (mPathMap.contains(path))
+			return mPathMap.at(path);
+
+		// TODO: Better allocation
+		auto meshRes = new MeshResource(GetNewId());
+		meshRes->SetPath(path);
+		
+		// Trying to load mesh
+		if (!meshRes->Load())
+			return { ResourceType::None, 0 };
+
+		// Add the handle to path and resouroce to mapsS
+		ResourceHandle handle = { ResourceType::Mesh, meshRes->GetId() };
+		mPathMap.insert({ path, handle });
+
+		AddMeshResource(meshRes);
+
+		return handle;
+	}
 }

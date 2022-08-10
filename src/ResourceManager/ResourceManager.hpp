@@ -58,14 +58,17 @@ namespace Darius::ResourceManager
 		DResourceManager();
 		~DResourceManager();
 
-		Resource* GetRawResource(ResourceHandle handle);
+		Resource*					GetRawResource(ResourceHandle handle);
+		ResourceHandle				LoadResource(std::wstring path);
 
-		DVector<ResourcePreview> GetResourcePreviews(ResourceType type);
+		DVector<ResourcePreview>	GetResourcePreviews(ResourceType type);
 	private:
 		void LoadDefaultResources();
+		void AddMeshResource(Resource* res);
 		INLINE DResourceId GetNewId() { return ++mLastId; }
 
 		DMap<ResourceType, DMap<DResourceId, Resource*>>	mResourceMap;
+		DMap<std::wstring, ResourceHandle>					mPathMap;
 
 		DResourceId											mLastId = 0;
 	};
