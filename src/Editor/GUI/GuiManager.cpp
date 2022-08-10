@@ -10,6 +10,7 @@
 #include <Math/VectorMath.hpp>
 #include <Renderer/Renderer.hpp>
 #include <Renderer/Camera/CameraManager.hpp>
+#include <ResourceManager/ResourceManager.hpp>
 #include <Utils/Assert.hpp>
 
 #include <imgui/imgui.h>
@@ -24,6 +25,7 @@ namespace Darius::Editor::Gui::GuiManager
 
 	D_SCENE::GameObject* ri;
 	
+	void DrawToolbar();
 
 	void Initialize()
 	{
@@ -73,7 +75,7 @@ namespace Darius::Editor::Gui::GuiManager
 			ImGui::SetNextWindowViewport(viewport->ID);
 			ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
 			ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
-			ImGuiWindowFlags windowFlags = ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove;
+			ImGuiWindowFlags windowFlags = ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_MenuBar;
 			windowFlags |= ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoNavFocus;
 
 			ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
@@ -82,6 +84,8 @@ namespace Darius::Editor::Gui::GuiManager
 
 			ImGuiID dockspaceId = ImGui::GetID("EditorDockspace");
 			ImGui::DockSpace(dockspaceId, ImVec2(0.0f, 0.0f), ImGuiDockNodeFlags_None);
+
+			DrawToolbar();
 
 			ImGui::End();
 		}
@@ -143,4 +147,19 @@ namespace Darius::Editor::Gui::GuiManager
 		}
 	}
 
+	void DrawToolbar()
+	{
+		if (ImGui::BeginMenuBar())
+		{
+			if (ImGui::BeginMenu("File"))
+			{
+				if (ImGui::MenuItem("Load"))
+				{
+					D_RESOURCE::LoadResource(L"ff.fbx");
+				}
+				ImGui::EndMenu();
+			}
+			ImGui::EndMenuBar();
+		}
+	}
 }
