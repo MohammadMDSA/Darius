@@ -145,7 +145,7 @@ namespace Darius::Scene::Utils::DetailsDrawer
 		{
 			ImGui::SameLine();
 
-			valueChanged |= ImGui::ColorEdit3("MyColor##3", (float*)&values, ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_NoLabel);
+			valueChanged |= ImGui::ColorEdit3("MyColor##3", values, ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_NoLabel | ImGuiColorEditFlags_NoAlpha);
 		}
 
 		ImGui::PopStyleVar();
@@ -314,7 +314,7 @@ namespace Darius::Scene::Utils::DetailsDrawer
 		if (params[1])
 		{
 			ImGui::SameLine();
-			valueChanged |= ImGui::ColorEdit4("MyColor##3", (float*)&values, ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_NoLabel);
+			valueChanged |= ImGui::ColorEdit4("MyColor##4", values, ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_NoLabel);
 		}
 
 		ImGui::PopStyleVar();
@@ -418,7 +418,7 @@ namespace Darius::Scene::Utils::DetailsDrawer
 
 			ImGui::TableSetColumnIndex(1);
 			float defL[] = { 0.f, 1.f };
-			if (DrawDetails(mat.DifuseAlbedo, defL))
+			if (DrawDetails(*(Vector4*)&mat.DifuseAlbedo, defL))
 			{
 				valueChanged = true;
 			}
@@ -430,7 +430,7 @@ namespace Darius::Scene::Utils::DetailsDrawer
 
 			ImGui::TableSetColumnIndex(1);
 			float defR[] = { 0.f, 1.f };
-			if (DrawDetails(mat.FresnelR0, defR))
+			if (DrawDetails(*(Vector3*)&mat.FresnelR0, defR))
 			{
 				valueChanged = true;
 			}
@@ -438,7 +438,7 @@ namespace Darius::Scene::Utils::DetailsDrawer
 			// Scale
 			ImGui::TableNextRow();
 			ImGui::TableSetColumnIndex(0);
-			ImGui::Text("Scale");
+			ImGui::Text("Roughness");
 
 			ImGui::TableSetColumnIndex(1);
 			float defS[] = { 1.f, 0.f };
