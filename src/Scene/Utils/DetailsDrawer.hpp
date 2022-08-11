@@ -51,10 +51,10 @@ namespace Darius::Scene::Utils::DetailsDrawer
 		ImGui::SameLine();
 		if (params[1]) // Color
 		{
-			int val = (int)(values[0] * 256);
-			if (ImGui::DragInt("##R", &val, 1, 0, 256))
+			int val = (int)(values[0] * 255);
+			if (ImGui::DragInt("##R", &val, 1, 0, 255))
 			{
-				values[0] = val / 256;
+				values[0] = val / 255.f;
 				valueChanged = true;
 			}
 		}
@@ -87,10 +87,10 @@ namespace Darius::Scene::Utils::DetailsDrawer
 		ImGui::SameLine();
 		if (params[1]) // Color
 		{
-			int val = (int)(values[1] * 256);
-			if (ImGui::DragInt("##G", &val, 1, 0, 256))
+			int val = (int)(values[1] * 255);
+			if (ImGui::DragInt("##G", &val, 1, 0, 255))
 			{
-				values[1] = val / 256;
+				values[1] = val / 255.f;
 				valueChanged = true;
 			}
 		}
@@ -124,10 +124,10 @@ namespace Darius::Scene::Utils::DetailsDrawer
 		ImGui::SameLine();
 		if (params[1]) // Color
 		{
-			int val = (int)(values[2] * 256);
-			if (ImGui::DragInt("##B", &val, 1, 0, 256))
+			int val = (int)(values[2] * 255);
+			if (ImGui::DragInt("##B", &val, 1, 0, 255))
 			{
-				values[2] = val / 256;
+				values[2] = val / 255.f;
 				valueChanged = true;
 			}
 		}
@@ -145,7 +145,7 @@ namespace Darius::Scene::Utils::DetailsDrawer
 		{
 			ImGui::SameLine();
 
-			ImGui::ColorEdit3("MyColor##3", (float*)&values, ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_NoLabel);
+			valueChanged |= ImGui::ColorEdit3("MyColor##3", (float*)&values, ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_NoLabel);
 		}
 
 		ImGui::PopStyleVar();
@@ -188,10 +188,10 @@ namespace Darius::Scene::Utils::DetailsDrawer
 		ImGui::SameLine();
 		if (params[1]) // Color
 		{
-			int val = (int)(values[0] * 256);
-			if (ImGui::DragInt("##R", &val, 1, 0, 256))
+			int val = (int)(values[0] * 255);
+			if (ImGui::DragInt("##R", &val, 1, 0, 255))
 			{
-				values[0] = val / 256;
+				values[0] = val / 255.f;
 				valueChanged = true;
 			}
 		}
@@ -224,10 +224,10 @@ namespace Darius::Scene::Utils::DetailsDrawer
 		ImGui::SameLine();
 		if (params[1]) // Color
 		{
-			int val = (int)(values[1] * 256);
-			if (ImGui::DragInt("##G", &val, 1, 0, 256))
+			int val = (int)(values[1] * 255);
+			if (ImGui::DragInt("##G", &val, 1, 0, 255))
 			{
-				values[1] = val / 256;
+				values[1] = val / 255.f;
 				valueChanged = true;
 			}
 		}
@@ -261,10 +261,10 @@ namespace Darius::Scene::Utils::DetailsDrawer
 		ImGui::SameLine();
 		if (params[1]) // Color
 		{
-			int val = (int)(values[2] * 256);
-			if (ImGui::DragInt("##B", &val, 1, 0, 256))
+			int val = (int)(values[2] * 255);
+			if (ImGui::DragInt("##B", &val, 1, 0, 255))
 			{
-				values[2] = val / 256;
+				values[2] = val / 255.f;
 				valueChanged = true;
 			}
 		}
@@ -297,10 +297,8 @@ namespace Darius::Scene::Utils::DetailsDrawer
 		ImGui::SameLine();
 		if (params[1]) // Color
 		{
-			int val = (int)(values[3] * 256);
-			if (ImGui::DragInt("##A", &val, 1, 0, 256))
+			if (ImGui::DragFloat("##A", &values[3], 0.01f, 0.f, 1.f))
 			{
-				values[3] = val / 256;
 				valueChanged = true;
 			}
 		}
@@ -316,7 +314,7 @@ namespace Darius::Scene::Utils::DetailsDrawer
 		if (params[1])
 		{
 			ImGui::SameLine();
-			ImGui::ColorEdit4("MyColor##3", (float*)&values, ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_NoLabel);
+			valueChanged |= ImGui::ColorEdit4("MyColor##3", (float*)&values, ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_NoLabel);
 		}
 
 		ImGui::PopStyleVar();
