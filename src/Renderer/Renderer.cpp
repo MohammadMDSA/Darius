@@ -10,6 +10,7 @@
 #include "GraphicsUtils/RootSignature.hpp"
 #include "GraphicsUtils/Memory/DescriptorHeap.hpp"
 #include "GraphicsUtils/Buffers/ColorBuffer.hpp"
+#include "GraphicsUtils/VertexTypes.hpp"
 #include "Camera/CameraManager.hpp"
 
 #include <imgui.h>
@@ -44,7 +45,6 @@ namespace Darius::Renderer
 #endif
 
 	// Input layout and root signature
-	std::vector<D3D12_INPUT_ELEMENT_DESC>				InputLayout;
 	D_GRAPHICS_UTILS::RootSignature						RootSign;
 	std::unordered_map<std::string, D_GRAPHICS_UTILS::GraphicsPSO> Psos;
 
@@ -193,16 +193,11 @@ namespace Darius::Renderer
 
 	void BuildPSO()
 	{
-		InputLayout =
-		{
-			{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
-			{ "COLOR", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, 12, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 }
-		};
-
 		// For Opaque objects
 		GraphicsPSO pso(L"Opaque");
 
-		pso.SetInputLayout((UINT)InputLayout.size(), InputLayout.data());
+		auto il = D_RENDERER_VERTEX::VertexPositionNormal::InputLayout;
+		pso.SetInputLayout(il.NumElements, il.pInputElementDescs);
 
 		pso.SetVertexShader(reinterpret_cast<BYTE*>(Shaders["standardVS"]->GetBufferPointer()),
 			Shaders["standardVS"]->GetBufferSize());
