@@ -33,6 +33,7 @@ list(APPEND RENDERER_LIBS_INCLUDE
 	"GraphicsCore.hpp"
 	"DeviceResources.hpp"
 	"FrameResource.hpp"
+	"LightManager.hpp"
 	"d3dx12.h"
 	)
 
@@ -64,6 +65,7 @@ list(APPEND RENDERER_LIBS_SOURCES
 	"GraphicsCore.cpp"
 	"DeviceResources.cpp"
 	"FrameResource.cpp"
+	"LightManager.cpp"
 	)
 
 
