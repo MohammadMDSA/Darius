@@ -23,6 +23,23 @@ namespace Darius::Renderer::GraphicsUtils::VertexTypes
 	};
 
 	/////////////////////////////////////////////////
+	/////////////// Position Normal //////////////////
+	/////////////////////////////////////////////////
+	const D3D12_INPUT_ELEMENT_DESC VertexPositionNormal::InputElements[] =
+	{
+		{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D12_APPEND_ALIGNED_ELEMENT, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
+		{ "NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D12_APPEND_ALIGNED_ELEMENT, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 }
+	};
+
+	D_STATIC_ASSERT_M(sizeof(VertexPositionNormal) == 24, "Vertex struct/layout mismatch");
+
+	const D3D12_INPUT_LAYOUT_DESC VertexPositionNormal::InputLayout =
+	{
+		VertexPositionNormal::InputElements,
+		VertexPositionNormal::InputElementCount
+	};
+
+	/////////////////////////////////////////////////
 	/////////////// Position Color //////////////////
 	/////////////////////////////////////////////////
 	const D3D12_INPUT_ELEMENT_DESC VertexPositionColor::InputElements[] =

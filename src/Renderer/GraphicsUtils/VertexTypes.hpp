@@ -39,6 +39,32 @@ namespace Darius::Renderer::GraphicsUtils::VertexTypes
 		static const D3D12_INPUT_ELEMENT_DESC	InputElements[InputElementCount];
 	};
 
+	struct VertexPositionNormal : public IVertexType
+	{
+		VertexPositionNormal() = default;
+
+		VertexPositionNormal(const VertexPositionNormal&) = default;
+		VertexPositionNormal& operator=(const VertexPositionNormal&) = default;
+
+		VertexPositionNormal(VertexPositionNormal&&) = default;
+		VertexPositionNormal& operator=(VertexPositionNormal&&) = default;
+
+		VertexPositionNormal(Vector3 const& position, Vector3 const& normal) noexcept :
+			mPosition(position),
+			mNormal(normal)
+		{
+		}
+
+		XMFLOAT3								mPosition;
+		XMFLOAT3								mNormal;
+
+		static const D3D12_INPUT_LAYOUT_DESC	InputLayout;
+
+	private:
+		static constexpr unsigned int			InputElementCount = 2;
+		static const D3D12_INPUT_ELEMENT_DESC	InputElements[InputElementCount];
+	};
+
 	struct VertexPositionColor : public IVertexType
 	{
 		VertexPositionColor() = default;
