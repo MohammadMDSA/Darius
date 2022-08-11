@@ -357,8 +357,8 @@ namespace Darius::Graphics
 	void BuildShaders()
 	{
 
-		Shaders["standardVS"] = CompileShader(L"..\\..\\..\\..\\..\\src\\Shaders\\DefaultVS.hlsl", nullptr, "main", "vs_5_1");
-		Shaders["opaquePS"] = CompileShader(L"..\\..\\..\\..\\..\\src\\Shaders\\DefaultPS.hlsl", nullptr, "main", "ps_5_1");
+		Shaders["standardVS"] = CompileShader(L"Shaders\\DefaultVS.hlsl", nullptr, "main", "vs_5_1");
+		Shaders["opaquePS"] = CompileShader(L"Shaders\\DefaultPS.hlsl", nullptr, "main", "ps_5_1");
 
 	}
 
