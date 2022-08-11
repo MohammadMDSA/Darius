@@ -109,11 +109,11 @@ namespace Darius::ResourceManager
 	void DResourceManager::LoadDefaultResources()
 	{
 		auto box = D_RENDERER_GEOMETRY_GENERATOR::CreateBox(1.f, 1.f, 1.f, 1);
-		auto cylinder = D_RENDERER_GEOMETRY_GENERATOR::CreateCylinder(0.5f, 0.5f, 1, 20, 20);
-		auto geosphere = D_RENDERER_GEOMETRY_GENERATOR::CreateGeosphere(0.5f, 20);
+		auto cylinder = D_RENDERER_GEOMETRY_GENERATOR::CreateCylinder(0.5f, 0.5f, 1, 40, 20);
+		auto geosphere = D_RENDERER_GEOMETRY_GENERATOR::CreateGeosphere(0.5f, 40);
 		auto grid = D_RENDERER_GEOMETRY_GENERATOR::CreateGrid(100.f, 100.f, 100, 100);
 		auto quad = D_RENDERER_GEOMETRY_GENERATOR::CreateQuad(0.f, 0.f, 1.f, 1.f, 0.f);
-		auto sphere = D_RENDERER_GEOMETRY_GENERATOR::CreateSphere(0.5f, 20, 20);
+		auto sphere = D_RENDERER_GEOMETRY_GENERATOR::CreateSphere(0.5f, 40, 40);
 
 		// TODO: bad allocation
 		auto res = new MeshResource(L"", GetNewId(), true);
@@ -150,10 +150,9 @@ namespace Darius::ResourceManager
 			auto defaultMeshHandle = CreateMaterial(L"", true);
 			auto materialRes = (MaterialResource*)GetRawResource(defaultMeshHandle);
 			auto mat = materialRes->Get();
-			mat->DifuseAlbedo = Vector4(kOne);
-			mat->FresnelR0 = Vector3(kZero);
+			mat->DifuseAlbedo = XMFLOAT4(Vector4(kOne));
+			mat->FresnelR0 = XMFLOAT3(Vector3(kZero));
 			mat->Roughness = 0.2f;
-			mat->Name = L"Default";
 			mDefaultResourceMap.insert({ DefaultResource::DefaultMaterial, { ResourceType::Material, materialRes->GetId() } });
 		}
 	}
