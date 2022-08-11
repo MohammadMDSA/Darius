@@ -32,18 +32,18 @@ namespace Darius::ResourceManager
 		submesh.StartIndexLocation = 0;
 		submesh.BaseVertexLocation = 0;
 
-		DVector<D_RENDERER_VERTEX::VertexPositionColor> vertices(data.Vertices.size());
+		DVector<D_RENDERER_VERTEX::VertexPositionNormal> vertices(data.Vertices.size());
 
 		for (size_t i = 0; i < data.Vertices.size(); i++)
 		{
 			auto& ver = data.Vertices[i];
-			vertices[i] = D_RENDERER_VERTEX::VertexPositionColor(ver.mPosition, (XMFLOAT4)DirectX::Colors::DarkGreen);
+			vertices[i] = D_RENDERER_VERTEX::VertexPositionNormal(ver.mPosition, ver.mNormal);
 		}
 
 		DVector<std::uint16_t> indices;
 		indices.insert(indices.end(), std::begin(data.GetIndices16()), std::end(data.GetIndices16()));
 
-		const UINT vbByteSize = (UINT)vertices.size() * sizeof(D_RENDERER_VERTEX::VertexPositionColor);
+		const UINT vbByteSize = (UINT)vertices.size() * sizeof(D_RENDERER_VERTEX::VertexPositionNormal);
 		const UINT ibByteSize = (UINT)indices.size() * sizeof(std::uint16_t);
 
 		mMesh.name = name;
@@ -60,7 +60,7 @@ namespace Darius::ResourceManager
 
 		mMesh.mIndexBufferGPU = D_RENDERER_UTILS::CreateDefaultBuffer(D_RENDERER_DEVICE::GetDevice(), context.GetCommandList(), indices.data(), ibByteSize, mMesh.mIndexBufferUploader);
 
-		mMesh.mVertexByteStride = sizeof(D_RENDERER_VERTEX::VertexPositionColor);
+		mMesh.mVertexByteStride = sizeof(D_RENDERER_VERTEX::VertexPositionNormal);
 		mMesh.mVertexBufferByteSize = vbByteSize;
 		mMesh.mIndexFormat = DXGI_FORMAT_R16_UINT;
 		mMesh.mIndexBufferByteSize = ibByteSize;

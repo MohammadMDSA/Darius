@@ -17,7 +17,6 @@ namespace Darius::ResourceManager
 			return false;
 
 		nlohmann::json js = {
-			{ "Name", STR_WSTR(mMaterial.Name)},
 			{ "DefuseAlbedo", std::vector<float>(4, (float&)mMaterial.DifuseAlbedo)},
 			{ "FresnelR0", std::vector<float>(3, (float&)mMaterial.FresnelR0) },
 			{ "Roughness", mMaterial.Roughness }
@@ -40,9 +39,8 @@ namespace Darius::ResourceManager
 
 		auto data = nlohmann::json::parse(i);
 
-		mMaterial.Name = WSTR_STR(data["Name"]);
-		mMaterial.DifuseAlbedo = D_MATH::Vector4(data["DefuseAlbedo"].get<std::vector<float>>().data());
-		mMaterial.FresnelR0 = D_MATH::Vector3(data["FresnelR0"].get<std::vector<float>>().data());
+		mMaterial.DifuseAlbedo = XMFLOAT4(data["DefuseAlbedo"].get<std::vector<float>>().data());
+		mMaterial.FresnelR0 = XMFLOAT3(data["FresnelR0"].get<std::vector<float>>().data());
 		mMaterial.Roughness = data["Roughness"];
 
 		return true;
