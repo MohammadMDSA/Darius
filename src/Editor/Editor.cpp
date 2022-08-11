@@ -80,7 +80,7 @@ namespace Darius::Editor
 		for (size_t i = 0; i < 100; i++)
 		{
 			auto ob = D_SCENE::CreateGameObject();
-			ob->SetMesh({ ResourceType::Mesh, 2 });
+			ob->SetMesh(D_RESOURCE::GetDefaultResource(D_RESOURCE::DefaultResource::SphereMesh));
 			auto x = static_cast<float>(rand()) / static_cast<float>(RAND_MAX);
 			auto y = static_cast<float>(rand()) / static_cast<float>(RAND_MAX);
 			auto z = static_cast<float>(rand()) / static_cast<float>(RAND_MAX);
@@ -90,11 +90,9 @@ namespace Darius::Editor
 			z = (z * 2 - 1) * 100.f;
 			ob->mTransform = Transform(Vector3(x, y, z));
 
-			if (i % 3)
-				ob->SetType(GameObject::Type::Static);
 		}
-		a1->SetMesh({ ResourceType::Mesh, 2 });
-		a2->SetMesh({ ResourceType::Mesh, 2 });
+		a1->SetMesh(D_RESOURCE::GetDefaultResource(D_RESOURCE::DefaultResource::SphereMesh));
+		a2->SetMesh(D_RESOURCE::GetDefaultResource(D_RESOURCE::DefaultResource::SphereMesh));
 		a1->mTransform = Transform(Vector3(-2.f, 1.f, -5.f));
 		a2->mTransform = Transform(Vector3(2.f, -1.f, -5.f));
 		D_EDITOR_CONTEXT::SetSelectedGameObject(a2);
