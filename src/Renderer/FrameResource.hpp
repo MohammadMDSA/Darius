@@ -2,6 +2,7 @@
 #include "GraphicsUtils/UploadBuffer.hpp"
 #include "Geometry/Mesh.hpp"
 #include "FrameResource.hpp"
+#include "LightManager.hpp"
 
 #include <Utils/Common.hpp>
 #include <Math/VectorMath.hpp>
@@ -34,6 +35,9 @@ namespace Darius::Renderer::ConstantFrameResource
 		float				FarZ = 0.0f;
 		float				TotalTime = 0.0f;
 		float				DeltaTime = 0.0f;
+		XMFLOAT4			AmbientLight;
+
+		D_LIGHT::LightData	Lights[256];
 	};
 
 	ALIGN_DECL_256 struct MeshConstants
@@ -43,11 +47,8 @@ namespace Darius::Renderer::ConstantFrameResource
 
 	struct Material
 	{
-		// Unique material name.
-		std::wstring				Name;
-
-		D_MATH::Vector4				DifuseAlbedo = { 1.f, 1.f, 1.f, 1.f };
-		D_MATH::Vector3				FresnelR0 = { 0.f, 0.f, 0.f };
+		XMFLOAT4					DifuseAlbedo = { 1.f, 1.f, 1.f, 1.f };
+		XMFLOAT3					FresnelR0 = { 0.f, 0.f, 0.f };
 		float						Roughness = 0.2;
 	};
 
