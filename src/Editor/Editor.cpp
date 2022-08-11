@@ -120,6 +120,11 @@ namespace Darius::Editor
 		(elapsedTime);
 		D_INPUT::Update();
 		D_SCENE::Update(elapsedTime);
+
+		auto& context = D_GRAPHICS::GraphicsContext::Begin(L"Update resources");
+		D_RESOURCE::UpdateGPUResources(context);
+		context.Finish();
+
 		D_GUI_MANAGER::Update(elapsedTime);
 
 		PIXEndEvent();

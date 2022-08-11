@@ -1,6 +1,7 @@
 #pragma once
 
 #include <Core/Counted.hpp>
+#include <Renderer/CommandContext.hpp>
 #include <Utils/Common.hpp>
 
 #include <filesystem>
@@ -67,11 +68,13 @@ namespace Darius::ResourceManager
 
 		D_CH_R_FIELD_ACC(bool, Loaded, protected);
 		D_CH_R_FIELD_ACC(UINT, Version, protected);
-		D_CH_R_FIELD_ACC(bool, Dirty, protected);
+		D_CH_R_FIELD_ACC(bool, DirtyDisk, protected);
+		D_CH_R_FIELD_ACC(bool, DirtyGPU, protected);
 
 	public:
 		virtual bool				Save() = 0;
 		virtual bool				Load() = 0;
+		virtual void				UpdateGPU(D_GRAPHICS::GraphicsContext& context) = 0;
 		virtual bool				SuppoertsExtension(std::wstring ext) = 0;
 
 		friend class DResourceManager;
@@ -83,7 +86,9 @@ namespace Darius::ResourceManager
 			mName(L""),
 			mVersion(1),
 			mId(id),
-			mDefault(isDefault)
+			mDefault(isDefault),
+			mDirtyDisk(false),
+			mDirtyGPU(true)
 		{}
 
 	};

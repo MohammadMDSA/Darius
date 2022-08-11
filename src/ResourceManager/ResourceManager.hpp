@@ -33,10 +33,12 @@ namespace Darius::ResourceManager
 	void					Initialize();
 	void					Shutdown();
 
+	void					UpdateGPUResources(D_GRAPHICS::GraphicsContext& context);
+
 	ResourceHandle			LoadResource(std::wstring path);
 	ResourceHandle			CreateResource(std::wstring path, ResourceType type);
 
-	Resource* _GetRawResource(ResourceHandle handle);
+	Resource*				_GetRawResource(ResourceHandle handle);
 
 	template<class T>
 	Ref<T> GetResource(ResourceHandle handle, std::optional<CountedOwner> ownerData = std::nullopt)
@@ -80,7 +82,9 @@ namespace Darius::ResourceManager
 		ResourceHandle				CreateMaterial(std::wstring path);
 		ResourceHandle				CreateMesh(std::wstring path);
 
-		ResourceHandle GetDefaultResource(DefaultResource type);
+		void						UpdateGPUResources(D_GRAPHICS::GraphicsContext& context);
+
+		ResourceHandle				GetDefaultResource(DefaultResource type);
 	private:
 
 		ResourceHandle				CreateMaterial(std::wstring path, bool isDefault);

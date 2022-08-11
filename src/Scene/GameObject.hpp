@@ -41,7 +41,7 @@ namespace Darius::Scene
 		RenderItem					GetRenderItem();
 		INLINE bool					CanRender() { return mActive && mMeshResource.IsValid(); }
 		
-		INLINE const BoundingSphere& GetBounds() const { return mMeshResource.Get()->Get()->mBoundSp; }
+		INLINE const BoundingSphere& GetBounds() const { return mMeshResource.Get()->GetData()->mBoundSp; }
 
 #ifdef _D_EDITOR
 		bool						DrawDetails(float params[]);
@@ -71,8 +71,6 @@ namespace Darius::Scene
 
 		D_GRAPHICS_BUFFERS::UploadBuffer	mMeshConstantsCPU[D_RENDERER_FRAME_RESOUCE::gNumFrameResources];
 		ByteAddressBuffer					mMeshConstantsGPU;
-		D_GRAPHICS_BUFFERS::UploadBuffer	mMaterialConstantsCPU[D_RENDERER_FRAME_RESOUCE::gNumFrameResources];
-		ByteAddressBuffer					mMaterialConstantsGPU;
 
 	};
 }

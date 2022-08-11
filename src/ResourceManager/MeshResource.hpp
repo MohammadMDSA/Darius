@@ -23,8 +23,8 @@ namespace Darius::ResourceManager
 		D_CH_RESOUCE_BODY(MeshResource, ResourceType::Mesh)
 
 	public:
-		INLINE Mesh*					Get() { mDirty = true; return &mMesh; }
-		INLINE const Mesh*				Get() const { return &mMesh; }
+		INLINE Mesh*					GetData() { mDirtyDisk = mDirtyGPU = true; return &mMesh; }
+		INLINE const Mesh*				GetData() const { return &mMesh; }
 
 		INLINE virtual ResourceType		GetType() const override { return ResourceType::Mesh; }
 
@@ -32,10 +32,11 @@ namespace Darius::ResourceManager
 
 		virtual bool					Save() override;
 		virtual bool					Load() override;
+		virtual void					UpdateGPU(D_GRAPHICS::GraphicsContext& context) override;
 		virtual bool					SuppoertsExtension(std::wstring ext) override;
 
-		INLINE operator const Mesh* const() { return &mMesh; }
-		INLINE operator Mesh* () { return Get(); }
+		INLINE operator const Mesh* () const { return &mMesh; }
+		INLINE operator Mesh* () { return GetData(); }
 
 		D_CH_FIELD(Mesh, Mesh);
 	private:

@@ -30,12 +30,6 @@ namespace Darius::Scene
 		}
 		mMeshConstantsGPU.Create(L"Mesh Constant GPU Buffer", 1, sizeof(MeshConstants));
 
-		// Initializing Material Constants buffers
-		for (size_t i = 0; i < D_RENDERER_FRAME_RESOUCE::gNumFrameResources; i++)
-		{
-			mMaterialConstantsCPU[i].Create(L"Material Constatns Upload Buffer", sizeof(Material));
-		}
-		mMaterialConstantsGPU.Create(L"Material Constants GPU Buffer", 1, sizeof(Material));
 	}
 
 	GameObject::~GameObject()
@@ -53,7 +47,8 @@ namespace Darius::Scene
 		result.PrimitiveType = D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
 		result.World = Matrix4(mTransform.GetWorld());
 		result.MeshCBV = mMeshConstantsGPU.GetGpuVirtualAddress();
-		result.MaterialCBV = mMaterialConstantsGPU.GetGpuVirtualAddress();
+		const Material* mat = mMaterialResouce.Get()->GetData();
+		result.MaterialCBV = *mMaterialResouce.Get();
 		return result;
 	}
 
@@ -77,19 +72,6 @@ namespace Darius::Scene
 		context.GetCommandList()->CopyBufferRegion(mMeshConstantsGPU.GetResource(), 0, mMeshConstantsCPU->GetResource(), 0, mMeshConstantsCPU->GetBufferSize());
 		context.TransitionResource(mMeshConstantsGPU, D3D12_RESOURCE_STATE_GENERIC_READ);
 		
-		
-		// Updating material constnats
-		// Mapping upload buffer
-		auto& currentMatUploadBuff = mMaterialConstantsCPU[D_RENDERER_DEVICE::GetCurrentResourceIndex()];
-		auto matCB = (Material*)currentMatUploadBuff.Map();
-		memcpy(matCB, mMaterialResouce->Get(), sizeof(Material));
-
-		currentMatUploadBuff.Unmap();
-
-		// Uploading
-		context.TransitionResource(mMaterialConstantsGPU, D3D12_RESOURCE_STATE_COPY_DEST, true);
-		context.GetCommandList()->CopyBufferRegion(mMaterialConstantsGPU.GetResource(), 0, mMaterialConstantsCPU->GetResource(), 0, mMaterialConstantsCPU->GetBufferSize());
-		context.TransitionResource(mMaterialConstantsGPU, D3D12_RESOURCE_STATE_GENERIC_READ);
 	}
 
 #ifdef _D_EDITOR
@@ -131,7 +113,7 @@ namespace Darius::Scene
 			}
 		}
 
-		D_SCENE_DET_DRAW::DrawDetails(*mMaterialResouce->Get(), nullptr);
+		D_SCENE_DET_DRAW::DrawDetails(*mMaterialResouce->GetData(), nullptr);
 
 		return changeValue;
 	}

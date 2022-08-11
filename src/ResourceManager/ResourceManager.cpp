@@ -67,6 +67,13 @@ namespace Darius::ResourceManager
 		return _ResourceManager->GetDefaultResource(type);
 	}
 
+	void UpdateGPUResources(D_GRAPHICS::GraphicsContext& context)
+	{
+		PIXBeginEvent(context.GetCommandList(), PIX_COLOR_DEFAULT, "Update GPU Resources");
+		_ResourceManager->UpdateGPUResources(context);
+		PIXEndEvent(context.GetCommandList());
+	}
+
 	DResourceManager::DResourceManager()
 	{
 		mResourceMap.insert({ ResourceType::Mesh, DMap<DResourceId, Resource*>() });
@@ -149,10 +156,11 @@ namespace Darius::ResourceManager
 		{
 			auto defaultMeshHandle = CreateMaterial(L"", true);
 			auto materialRes = (MaterialResource*)GetRawResource(defaultMeshHandle);
-			auto mat = materialRes->Get();
+			auto mat = materialRes->GetData();
 			mat->DifuseAlbedo = XMFLOAT4(Vector4(kOne));
 			mat->FresnelR0 = XMFLOAT3(Vector3(kZero));
 			mat->Roughness = 0.2f;
+			materialRes->mDirtyDisk = materialRes->mDirtyGPU = false;
 			mDefaultResourceMap.insert({ DefaultResource::DefaultMaterial, { ResourceType::Material, materialRes->GetId() } });
 		}
 	}
@@ -232,5 +240,18 @@ namespace Darius::ResourceManager
 	ResourceHandle DResourceManager::GetDefaultResource(DefaultResource type)
 	{
 		return mDefaultResourceMap.at(type);
+	}
+
+	void DResourceManager::UpdateGPUResources(D_GRAPHICS::GraphicsContext& context)
+	{
+		for (auto& resType : mResourceMap)
+		{
+			for (auto& res : resType.second)
+			{
+				auto resource = res.second;
+				if (resource->GetDirtyGPU())
+					resource->UpdateGPU(context);
+			}
+		}
 	}
 }

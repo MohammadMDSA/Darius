@@ -26,6 +26,8 @@ namespace Darius::Scene
 	{
 		D_GRAPHICS::GraphicsContext& context = D_GRAPHICS::GraphicsContext::Begin(L"Updateing objects");
 		
+		PIXBeginEvent(context.GetCommandList(), PIX_COLOR_DEFAULT, L"Update Mesh Constant Buffers");
+
 		short index = 0;
 		for (auto& go : *GOs.get())
 		{
@@ -33,6 +35,8 @@ namespace Darius::Scene
 				go->Update(context, deltaTime);
 			index++;
 		}
+
+		PIXEndEvent(context.GetCommandList());
 		context.Finish();
 	}
 

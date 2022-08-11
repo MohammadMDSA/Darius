@@ -21,6 +21,13 @@ namespace Darius::ResourceManager
 		return false;
 	}
 
+	void MeshResource::UpdateGPU(D_GRAPHICS::GraphicsContext& context)
+	{
+		
+		mDirtyGPU = false;
+
+	}
+
 	void MeshResource::Create(std::wstring name, MeshData<VertexType>& data)
 	{
 		Destroy();
@@ -70,13 +77,17 @@ namespace Darius::ResourceManager
 
 		mMesh.mBoundSp = data.CalcBoundingSphere();
 
+		mDirtyGPU = false;
 		mLoaded = true;
 	}
 
 	bool MeshResource::Save()
 	{
 		if (mDefault)
+		{
+			mDirtyDisk = false;
 			return true;
+		}
 		if (!SuppoertsExtension(mPath.extension()))
 			return false;
 	}
@@ -165,6 +176,9 @@ namespace Darius::ResourceManager
 		auto path = std::filesystem::path(mPath);
 		auto filename = path.filename().wstring();
 		Create(filename.substr(0, filename.length() - path.extension().string().length()), meshData);
+
+		mDirtyGPU = true;
+		mDirtyDisk = false;
 
 		return true;
 	}
