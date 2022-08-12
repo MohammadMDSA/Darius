@@ -52,7 +52,7 @@ namespace Darius::Editor
 	}
 
 	// Initialize the Direct3D resources required to run.
-	void Editor::Initialize(HWND window, int width, int height)
+	void Editor::Initialize(HWND window, int width, int height, std::filesystem::path projectPath)
 	{
 #ifdef _DEBUG
 		D_DEBUG::AttachWinPixGpuCapturer();
@@ -66,7 +66,7 @@ namespace Darius::Editor
 		D_TIME::Initialize();
 		D_INPUT::Initialize(window);
 		D_RESOURCE::Initialize();
-		D_EDITOR_CONTEXT::Initialize();
+		D_EDITOR_CONTEXT::Initialize(projectPath);
 
 		D_SCENE::Initialize();
 

@@ -9,12 +9,18 @@ namespace Darius::Editor::ContextManager
 	bool						_initialized = false;
 
 	GameObject*					SelectedGameObject;
+	std::filesystem::path		ProjectPath;
 
-	void Initialize()
+	void Initialize(std::filesystem::path projectPath)
 	{
 		D_ASSERT(!_initialized);
 		_initialized = true;
 		SelectedGameObject = nullptr;
+
+		ProjectPath = projectPath;
+
+		//if(std::filesystem::exists(std::filesystem::path))
+
 		D_GUI_MANAGER::Initialize();
 	}
 

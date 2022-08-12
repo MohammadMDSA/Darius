@@ -9,6 +9,8 @@
 #include <Renderer/DeviceResources.hpp>
 #include <Renderer/FrameResource.hpp>
 
+#include <filesystem>
+
 #ifndef D_EDITOR
 #define D_EDITOR Darius::Editor
 #endif // !D_EDITOR
@@ -33,7 +35,7 @@ namespace Darius::Editor
 		Editor& operator= (Editor const&) = delete;
 
 		// Initialization and management
-		void Initialize(HWND window, int width, int height);
+		void Initialize(HWND window, int width, int height, std::filesystem::path projectPath = L"");
 
 		// Basic game loop
 		void Tick();
