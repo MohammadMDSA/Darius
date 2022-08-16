@@ -1,10 +1,9 @@
 #pragma once
 
+#include <Core/Path.hpp>
 #include <Core/Counted.hpp>
 #include <Renderer/CommandContext.hpp>
 #include <Utils/Common.hpp>
-
-#include <filesystem>
 
 #ifndef D_RESOURCE
 #define D_RESOURCE Darius::ResourceManager
@@ -61,7 +60,7 @@ namespace Darius::ResourceManager
 		INLINE operator ResourceHandle const() { return { GetType(), mId }; };
 		INLINE operator ResourcePreview const() { return GetPreview(); }
 
-		D_CH_RW_FIELD_ACC(std::filesystem::path, Path, protected);
+		D_CH_RW_FIELD_ACC(D_CORE::Path, Path, protected);
 		D_CH_RW_FIELD_ACC(std::wstring, Name, protected);
 		D_CH_R_FIELD_CONST_ACC(DResourceId, Id, protected);
 		D_CH_R_FIELD_CONST_ACC(bool, Default, protected);

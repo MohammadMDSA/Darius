@@ -12,6 +12,7 @@
 
 #include <Math/VectorMath.hpp>
 #include <Core/Input.hpp>
+#include <Core/Path.hpp>
 #include <Core/Containers/Vector.hpp>
 #include <Core/TimeManager/TimeManager.hpp>
 #include <Renderer/Renderer.hpp>
@@ -52,7 +53,7 @@ namespace Darius::Editor
 	}
 
 	// Initialize the Direct3D resources required to run.
-	void Editor::Initialize(HWND window, int width, int height, std::filesystem::path projectPath)
+	void Editor::Initialize(HWND window, int width, int height, D_CORE::Path projectPath)
 	{
 #ifdef _DEBUG
 		D_DEBUG::AttachWinPixGpuCapturer();

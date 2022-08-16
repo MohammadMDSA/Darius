@@ -81,6 +81,7 @@ if(BUILD_EDITOR)
     )
 
         add_definitions(-D_D_EDITOR)
+        add_definitions(-D_PROJ_ROOT="${CMAKE_SOURCE_DIR}")
 
     if ((${CMAKE_VERSION} VERSION_GREATER_EQUAL "3.16") AND (NOT MINGW))
         target_precompile_headers(${PROJECT_NAME} PRIVATE src/Editor/pch.hpp )

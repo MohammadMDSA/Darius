@@ -2,10 +2,10 @@
 #include "MeshResource.hpp"
 #include "ResourceManager.hpp"
 
+#include <Core/Path.hpp>
 #include <Renderer/RenderDeviceManager.hpp>
 #include <Renderer/GraphicsCore.hpp>
 
-#include <filesystem>
 #include <fbxsdk.h>
 #include <fbxsdk/fileio/fbxiosettings.h>
 
@@ -173,7 +173,7 @@ namespace Darius::ResourceManager
 		lSdkManager->Destroy();
 
 		// Create mesh based on extracted data
-		auto path = std::filesystem::path(mPath);
+		auto path = D_CORE::Path(mPath);
 		auto filename = path.filename().wstring();
 		Create(filename.substr(0, filename.length() - path.extension().string().length()), meshData);
 

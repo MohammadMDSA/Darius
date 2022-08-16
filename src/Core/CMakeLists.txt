@@ -17,6 +17,7 @@ list(APPEND CORE_LIBS_INCLUDE
 	"Ref.hpp"
 	"Hash.hpp"
 	"Counted.hpp"
+	"Path.hpp"
 	"pch.hpp"
 	)
 
@@ -34,7 +35,7 @@ add_library("Core")
 target_sources("Core"
 	PRIVATE
 	${CORE_LIBS_SOURCES}
-	${CORE_LIBS_INCLUDE})
+	${CORE_LIBS_INCLUDE} "Path.hpp")
 
 	
 set(Boost_USE_STATIC_LIBS ON) 

@@ -4,11 +4,10 @@
 #include "MeshResource.hpp"
 #include "MaterialResource.hpp"
 
+#include <Core/Path.hpp>
 #include <Core/Containers/Map.hpp>
 #include <Renderer/Geometry/GeometryGenerator.hpp>
 #include <Utils/Assert.hpp>
-
-#include <filesystem>
 
 using namespace D_CONTAINERS;
 
@@ -179,7 +178,7 @@ namespace Darius::ResourceManager
 
 		if (std::filesystem::exists(path) && !std::filesystem::is_directory(path))
 		{
-			auto extension = std::filesystem::path(path).extension();
+			auto extension = D_CORE::Path(path).extension();
 			// Checking for supported resource
 			if (extension == ".fbx")
 				return CreateMesh(path);

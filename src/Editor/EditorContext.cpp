@@ -9,9 +9,9 @@ namespace Darius::Editor::ContextManager
 	bool						_initialized = false;
 
 	GameObject*					SelectedGameObject;
-	std::filesystem::path		ProjectPath;
+	D_CORE::Path				ProjectPath;
 
-	void Initialize(std::filesystem::path projectPath)
+	void Initialize(D_CORE::Path projectPath)
 	{
 		D_ASSERT(!_initialized);
 		_initialized = true;
@@ -19,7 +19,7 @@ namespace Darius::Editor::ContextManager
 
 		ProjectPath = projectPath;
 
-		//if(std::filesystem::exists(std::filesystem::path))
+		D_ASSERT_M(std::filesystem::exists(projectPath) && std::filesystem::is_directory(projectPath), "Project directory is not a valid directory");
 
 		D_GUI_MANAGER::Initialize();
 	}
