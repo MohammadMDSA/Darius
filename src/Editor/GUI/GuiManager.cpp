@@ -169,7 +169,7 @@ namespace Darius::Editor::Gui::GuiManager
 			{
 				if(ImGui::MenuItem("Create Material"))
 				{
-					D_RESOURCE::GetManager()->CreateMaterial(Path(D_EDITOR_CONTEXT::GetAssetsPath()).append("New Mat.mat"));
+					D_RESOURCE::GetManager()->CreateMaterial(D_EDITOR_CONTEXT::GetAssetsPath());
 				}
 
 				ImGui::EndMenu();

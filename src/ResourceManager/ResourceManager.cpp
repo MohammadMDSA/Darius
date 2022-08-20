@@ -204,11 +204,6 @@ namespace Darius::ResourceManager
 		}
 	}
 
-	ResourceHandle DResourceManager::CreateMesh(std::wstring const& path)
-	{
-		return CreateMesh(path, false, false);
-	}
-
 	ResourceHandle DResourceManager::CreateMesh(std::wstring const& path, bool isDefault, bool fromFile)
 	{
 		// TODO: Better allocation
@@ -223,9 +218,26 @@ namespace Darius::ResourceManager
 		return handle;
 	}
 
-	ResourceHandle DResourceManager::CreateMaterial(std::wstring const& path)
+	ResourceHandle DResourceManager::CreateMaterial(std::wstring const& dirpath)
 	{
-		auto handle = CreateMaterial(path, false, false);
+
+		// Create new non-exiting name
+		std::wstring fileName = L"New Material";
+		short newIndex = -1;
+		auto parent = Path(dirpath);
+
+		Path result;
+		do
+		{
+			newIndex++;
+			if (newIndex)
+				result = parent.append(fileName + L"(" + std::to_wstring(newIndex) + L").mat");
+			else
+				result = parent.append(fileName + L".mat");
+		} while (D_H_ENSURE_FILE(result));
+
+		// Create resource
+		auto handle = CreateMaterial(result, false, false);
 		auto res = GetRawResource(handle);
 		D_RESOURCE_LOADER::SaveResource(res);
 		return handle;

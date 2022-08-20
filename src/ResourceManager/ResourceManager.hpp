@@ -93,8 +93,7 @@ namespace Darius::ResourceManager
 
 		DVector<ResourcePreview>	GetResourcePreviews(ResourceType type);
 
-		ResourceHandle				CreateMaterial(std::wstring const& path);
-		ResourceHandle				CreateMesh(std::wstring const& path);
+		ResourceHandle				CreateMaterial(std::wstring const& dirpath);
 
 		void						UpdateGPUResources(D_GRAPHICS::GraphicsContext& context);
 
