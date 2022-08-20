@@ -7,6 +7,7 @@ list(APPEND CORE_LIBS_INCLUDE
 	"Containers/ConcurrentQueue.hpp"
 	"Containers/Vector.hpp"
 	"Containers/Set.hpp"
+	"Serialization/Json.hpp"
 	"Exceptions/Exception.hpp"
 	"TimeManager/StepTimer.hpp"
 	"TimeManager/TimeManager.hpp"
@@ -18,6 +19,7 @@ list(APPEND CORE_LIBS_INCLUDE
 	"Hash.hpp"
 	"Counted.hpp"
 	"Path.hpp"
+	"Uuid.hpp"
 	"pch.hpp"
 	)
 
@@ -61,7 +63,7 @@ PRIVATE
 	${Boost_INCLUDE_DIRS}
 )
 
-target_link_libraries("Core" PRIVATE ${Boost_LIBRARIES} DirectXTK12)
+target_link_libraries("Core" PUBLIC nlohmann_json::nlohmann_json PRIVATE ${Boost_LIBRARIES} DirectXTK12)
 
 if(BUILD_TESTS)
 	set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/../../cmake")
