@@ -13,9 +13,16 @@ namespace Darius::Core::Exception
 {
 		using Exception = std::exception;
 
-		class NullPointerException : NonCopyable, public std::exception
+		class NullPointerException : NonCopyable, public Exception
 		{
 		public:
-			NullPointerException() : std::exception("Nullpointer Exception") {}
+			NullPointerException() : Exception("Null pointer exception!") {}
+		};
+
+		class FileNotFoundException : NonCopyable, public Exception
+		{
+		public:
+			FileNotFoundException() : Exception("File not found!") {}
+			FileNotFoundException(std::string message) : Exception(message.c_str()) {}
 		};
 }
