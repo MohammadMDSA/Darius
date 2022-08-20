@@ -77,7 +77,7 @@ namespace Darius::Renderer::ConstantFrameResource
 
 		// Geometry associated with this render-item. Note that multiple
 		// render-items can share the same goemetry.
-		Mesh*						Mesh = nullptr;
+		const Mesh*					Mesh = nullptr;
 
 		// Primitive topology.
 		D3D12_PRIMITIVE_TOPOLOGY	PrimitiveType = D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
