@@ -8,6 +8,7 @@ list(APPEND RESOUCE_MANAGER_LIBS_INCLUDE
 	"ResourceManager.hpp"
 	"MeshResource.hpp"
 	"MaterialResource.hpp"
+	"ResourceLoader.hpp"
 	)
 
 list(APPEND RESOUCE_MANAGER_LIBS_SOURCES
@@ -15,6 +16,7 @@ list(APPEND RESOUCE_MANAGER_LIBS_SOURCES
 	"ResourceManager.cpp"
 	"MeshResource.cpp"
 	"MaterialResource.cpp"
+	"ResourceLoader.cpp"
 	)
 
 
@@ -23,7 +25,7 @@ add_library("ResourceManager")
 target_sources("ResourceManager"
 	PRIVATE
 	${RESOUCE_MANAGER_LIBS_SOURCES}
-	${RESOUCE_MANAGER_LIBS_INCLUDE} "MeshResource.hpp")
+	${RESOUCE_MANAGER_LIBS_INCLUDE})
 
 	
 set(Boost_USE_STATIC_LIBS ON) 
@@ -33,11 +35,6 @@ set(Boost_ARCHITECTURE "-x64")
 find_package(Boost REQUIRED)
 
 set_target_properties("ResourceManager" PROPERTIES LINKER_LANGUAGE CXX)
-
-if ((${CMAKE_VERSION} VERSION_GREATER_EQUAL "3.16") AND (NOT MINGW))
-    target_precompile_headers("Core" PRIVATE pch.hpp )
-endif()
-
 
 if ((${CMAKE_VERSION} VERSION_GREATER_EQUAL "3.16") AND (NOT MINGW))
     target_precompile_headers("ResourceManager" PRIVATE pch.hpp )
@@ -51,7 +48,7 @@ PRIVATE
 	${FBX_INCLUDE_DIRS}
 )
 
-target_link_libraries("ResourceManager" PRIVATE ${Boost_LIBRARIES} Core Renderer Utils nlohmann_json::nlohmann_json ${FBX_LINK_LIBS})
+target_link_libraries("ResourceManager" PRIVATE ${Boost_LIBRARIES} Core Renderer Utils ${FBX_LINK_LIBS})
 
 if(BUILD_TESTS)
 	set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/../../cmake")

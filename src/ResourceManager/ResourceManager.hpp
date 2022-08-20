@@ -3,8 +3,11 @@
 #include "Resource.hpp"
 
 #include <Core/Ref.hpp>
+#include <Core/Uuid.hpp>
 #include <Core/Containers/Vector.hpp>
 #include <Core/Exceptions/Exception.hpp>
+
+#include <boost/functional/hash.hpp>
 
 #include <optional>
 
@@ -16,6 +19,8 @@ using namespace D_CORE;
 
 namespace Darius::ResourceManager
 {
+	class DResourceManager;
+	class ResourceLoader;
 
 	enum class DefaultResource
 	{
@@ -35,11 +40,18 @@ namespace Darius::ResourceManager
 
 	void					UpdateGPUResources(D_GRAPHICS::GraphicsContext& context);
 
-	ResourceHandle			LoadResource(std::wstring path);
-	ResourceHandle			CreateResource(std::wstring path, ResourceType type);
+	DResourceManager*		GetManager();
+	Resource*				_GetRawResource(ResourceHandle handle, bool load = false);
+	void					SaveAll();
 
-	Resource*				_GetRawResource(ResourceHandle handle);
+	ResourceHandle			GetDefaultResource(DefaultResource type);
 
+#ifdef _D_EDITOR
+	void					GetAllResources(DVector<Resource*>& resources);
+#endif // _D_EDITOR
+
+
+	// Resource retreival stuff
 	template<class T>
 	Ref<T> GetResource(ResourceHandle handle, std::optional<CountedOwner> ownerData = std::nullopt)
 	{
@@ -54,8 +66,8 @@ namespace Darius::ResourceManager
 		// Requested resource type must be compatible with T
 		if (handle.Type != ResourceTypeMap.at(T::GetTypeName()))
 			throw D_EXCEPTION::Exception("Requested type and handle type are not compatible");
-
-		return Ref(dynamic_cast<T*>(_GetRawResource(handle)), ownerData);
+			
+		return Ref(dynamic_cast<T*>(_GetRawResource(handle, true)), ownerData);
 	}
 
 	template<class T>
@@ -66,50 +78,48 @@ namespace Darius::ResourceManager
 
 	D_CONTAINERS::DVector<ResourcePreview> GetResourcePreviews(ResourceType type);
 	
-	ResourceHandle GetDefaultResource(DefaultResource type);
-
 	class DResourceManager : NonCopyable
 	{
 	public:
 		DResourceManager();
 		~DResourceManager();
 
+		// Retreival
 		Resource*					GetRawResource(ResourceHandle handle);
-		ResourceHandle				LoadResource(std::wstring path);
+		Resource*					GetRawResource(Uuid uuid);
+
+		// Save resouce
+		void						SaveAllResources();
 
 		DVector<ResourcePreview>	GetResourcePreviews(ResourceType type);
 
-		ResourceHandle				CreateMaterial(std::wstring path);
-		ResourceHandle				CreateMesh(std::wstring path);
+		ResourceHandle				CreateMaterial(std::wstring const& path);
+		ResourceHandle				CreateMesh(std::wstring const& path);
 
 		void						UpdateGPUResources(D_GRAPHICS::GraphicsContext& context);
 
 		ResourceHandle				GetDefaultResource(DefaultResource type);
-	private:
 
-		ResourceHandle				CreateMaterial(std::wstring path, bool isDefault);
-		ResourceHandle				CreateMesh(std::wstring path, bool isDefault);
+#ifdef _D_EDITOR
+		void						GetAllResources(DVector<Resource*>& resources);
+#endif // _D_EDITOR
+	private:
+		friend class ResourceLoader;
+
+		ResourceHandle				CreateMaterial(std::wstring const& path, bool isDefault, bool fromFile);
+		ResourceHandle				CreateMesh(std::wstring const& path, bool isDefault, bool fromFile);
+
+		void						UpdateMaps(Resource* resuorce);
 
 		void LoadDefaultResources();
-		INLINE void AddMeshResource(Resource* res);
-		INLINE void AddMaterialResource(Resource* res);
 		INLINE DResourceId GetNewId() { return ++mLastId; }
 
 		DMap<ResourceType, DMap<DResourceId, Resource*>>	mResourceMap;
-		DMap<std::wstring, ResourceHandle>					mPathMap;
+		DMap<Uuid, Resource*, boost::hash<Uuid>>			mUuidMap;
+		DMap<std::wstring, Resource*>						mPathMap;
 		DMap<DefaultResource, ResourceHandle>				mDefaultResourceMap;
 
 		DResourceId											mLastId = 0;
 	};
-
-	INLINE void DResourceManager::AddMeshResource(Resource* res)
-	{
-		mResourceMap.at(ResourceType::Mesh).insert({ res->GetId(), res });
-	}
-
-	INLINE void DResourceManager::AddMaterialResource(Resource* res)
-	{
-		mResourceMap.at(ResourceType::Material).insert({ res->GetId(), res });
-	}
 
 }

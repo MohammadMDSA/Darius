@@ -2,6 +2,7 @@
 
 #include <Core/Path.hpp>
 #include <Core/Counted.hpp>
+#include <Core/Uuid.hpp>
 #include <Renderer/CommandContext.hpp>
 #include <Utils/Common.hpp>
 
@@ -13,9 +14,12 @@
 
 #define D_CH_RESOUCE_BODY(T, ResT) D_CH_TYPE_NAME_GETTER(T)
 
+using namespace D_CORE;
+
 namespace Darius::ResourceManager
 {
 	class DResourceManager;
+	class ResourceLoader;
 
 	typedef D_T_RESOURCE_ID DResourceId;
 
@@ -40,6 +44,14 @@ namespace Darius::ResourceManager
 		ResourceHandle			Handle;
 	};
 
+	struct ResourceMeta
+	{
+		Path					Path;
+		std::wstring			Name;
+		ResourceType			Type;
+		Uuid					Uuid;
+	};
+
 	class Resource : public D_CORE::Counted
 	{
 	public:
@@ -57,29 +69,30 @@ namespace Darius::ResourceManager
 
 		virtual ResourceType		GetType() const = 0;
 
-		INLINE operator ResourceHandle const() { return { GetType(), mId }; };
+		INLINE operator ResourceHandle const() { return { GetType(), mId }; }
 		INLINE operator ResourcePreview const() { return GetPreview(); }
+		INLINE operator ResourceMeta const() { return { mPath, mName, GetType(), mUuid }; }
 
-		D_CH_RW_FIELD_ACC(D_CORE::Path, Path, protected);
-		D_CH_RW_FIELD_ACC(std::wstring, Name, protected);
-		D_CH_R_FIELD_CONST_ACC(DResourceId, Id, protected);
-		D_CH_R_FIELD_CONST_ACC(bool, Default, protected);
+		D_CH_RW_FIELD(std::wstring, Name);
+		D_CH_R_FIELD(D_CORE::Path, Path);
+		D_CH_R_FIELD_CONST(DResourceId, Id);
+		D_CH_R_FIELD_CONST(Uuid, Uuid);
+		D_CH_R_FIELD_CONST(bool, Default);
 
-		D_CH_R_FIELD_ACC(bool, Loaded, protected);
-		D_CH_R_FIELD_ACC(UINT, Version, protected);
-		D_CH_R_FIELD_ACC(bool, DirtyDisk, protected);
-		D_CH_R_FIELD_ACC(bool, DirtyGPU, protected);
+		D_CH_R_FIELD(bool, Loaded);
+		D_CH_R_FIELD(UINT, Version);
+		D_CH_R_FIELD(bool, DirtyDisk);
+		D_CH_R_FIELD(bool, DirtyGPU);
 
 	public:
-		virtual bool				Save() = 0;
-		virtual bool				Load() = 0;
-		virtual void				UpdateGPU(D_GRAPHICS::GraphicsContext& context) = 0;
+		void						UpdateGPU(D_GRAPHICS::GraphicsContext& context);
 		virtual bool				SuppoertsExtension(std::wstring ext) = 0;
 
 		friend class DResourceManager;
+		friend class ResourceLoader;
 
 	protected:
-		Resource(std::wstring path, DResourceId id, bool isDefault) :
+		Resource(std::wstring const& path, DResourceId id, bool isDefault) :
 			mLoaded(false),
 			mPath(path),
 			mName(L""),
@@ -87,9 +100,22 @@ namespace Darius::ResourceManager
 			mId(id),
 			mDefault(isDefault),
 			mDirtyDisk(false),
-			mDirtyGPU(true)
-		{}
+			mDirtyGPU(true),
+			mUuid(GenerateUuid())
+		{
+			// Processing name
+			auto ext = mPath.extension().wstring();
+			auto filename = mPath.filename().wstring();
+			mName = filename.substr(0, filename.size() - ext.size());
+		}
 
+		Resource(Uuid uuid, DResourceId id, bool isDefault);
+		INLINE void					MakeDiskDirty() { mDirtyDisk = true; }
+		INLINE void					MakeGpuDirty() { mDirtyGPU = true; }
+
+		virtual void				WriteResourceToFile() const = 0;
+		virtual void				ReadResourceFromFile() = 0;
+		virtual void				UploadToGpu(D_GRAPHICS::GraphicsContext& context) = 0;
 	};
 
 }

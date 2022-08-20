@@ -3,6 +3,7 @@
 #include "Resource.hpp"
 #include "MeshResource.hpp"
 #include "MaterialResource.hpp"
+#include "ResourceLoader.hpp"
 
 #include <Core/Path.hpp>
 #include <Core/Containers/Map.hpp>
@@ -33,11 +34,6 @@ namespace Darius::ResourceManager
 		D_ASSERT(_ResourceManager);
 	}
 
-	ResourceHandle LoadResource(std::wstring path)
-	{
-		return _ResourceManager->LoadResource(path);
-	}
-
 	ResourceHandle CreateResource(std::wstring path, ResourceType type)
 	{
 		switch (type)
@@ -51,9 +47,19 @@ namespace Darius::ResourceManager
 		}
 	}
 
-	Resource* _GetRawResource(ResourceHandle handle)
+	DResourceManager* GetManager()
 	{
-		return _ResourceManager->GetRawResource(handle);
+		return _ResourceManager.get();
+	}
+
+	Resource* _GetRawResource(ResourceHandle handle, bool load)
+	{
+		auto resource = _ResourceManager->GetRawResource(handle);
+
+		// Load resouce if not loaded yet
+		if (load && !resource->GetLoaded())
+			D_RESOURCE_LOADER::LoadResource(resource);
+		return resource;
 	}
 
 	D_CONTAINERS::DVector<ResourcePreview> GetResourcePreviews(ResourceType type)
@@ -72,6 +78,19 @@ namespace Darius::ResourceManager
 		_ResourceManager->UpdateGPUResources(context);
 		PIXEndEvent(context.GetCommandList());
 	}
+
+	void SaveAll()
+	{
+		_ResourceManager->SaveAllResources();
+	}
+
+#ifdef _D_EDITOR
+	void GetAllResources(DVector<Resource*>& resources)
+	{
+		_ResourceManager->GetAllResources(resources);
+	}
+#endif // _D_EDITOR
+
 
 	DResourceManager::DResourceManager()
 	{
@@ -124,114 +143,103 @@ namespace Darius::ResourceManager
 		// TODO: bad allocation
 		auto res = new MeshResource(L"", GetNewId(), true);
 		res->Create(L"Box Mesh", box);
+		auto rRes = dynamic_cast<Resource*>(res);
+		rRes->mDirtyGPU = false;
+		rRes->mDirtyDisk = false;
 		mResourceMap.at(ResourceType::Mesh).insert({ res->GetId(), res });
 		mDefaultResourceMap.insert({ DefaultResource::BoxMesh, { ResourceType::Mesh, res->GetId() } });
 
 		res = new MeshResource(L"", GetNewId(), true);
 		res->Create(L"Cylinder Mesh", cylinder);
+		rRes = dynamic_cast<Resource*>(res);
+		rRes->mDirtyGPU = false;
+		rRes->mDirtyDisk = false;
 		mResourceMap.at(ResourceType::Mesh).insert({ res->GetId(), res });
 		mDefaultResourceMap.insert({ DefaultResource::CylinderMesh, { ResourceType::Mesh, res->GetId() } });
 
 		res = new MeshResource(L"", GetNewId(), true);
 		res->Create(L"Geosphere Mesh", geosphere);
+		rRes = dynamic_cast<Resource*>(res);
+		rRes->mDirtyGPU = false;
+		rRes->mDirtyDisk = false;
 		mResourceMap.at(ResourceType::Mesh).insert({ res->GetId(), res });
 		mDefaultResourceMap.insert({ DefaultResource::GeosphereMesh, { ResourceType::Mesh, res->GetId() } });
 
 		res = new MeshResource(L"", GetNewId(), true);
 		res->Create(L"Grid Mesh", grid);
+		rRes = dynamic_cast<Resource*>(res);
+		rRes->mDirtyGPU = false;
+		rRes->mDirtyDisk = false;
 		mResourceMap.at(ResourceType::Mesh).insert({ res->GetId(), res });
 		mDefaultResourceMap.insert({ DefaultResource::GridMesh, { ResourceType::Mesh, res->GetId() } });
 
 		res = new MeshResource(L"", GetNewId(), true);
 		res->Create(L"Quad Mesh", quad);
+		rRes = dynamic_cast<Resource*>(res);
+		rRes->mDirtyGPU = false;
+		rRes->mDirtyDisk = false;
 		mResourceMap.at(ResourceType::Mesh).insert({ res->GetId(), res });
 		mDefaultResourceMap.insert({ DefaultResource::QuadMesh, { ResourceType::Mesh, res->GetId() } });
 
 		res = new MeshResource(L"", GetNewId(), true);
 		res->Create(L"Sphere Mesh", sphere);
+		rRes = dynamic_cast<Resource*>(res);
+		rRes->mDirtyGPU = false;
+		rRes->mDirtyDisk = false;
 		mResourceMap.at(ResourceType::Mesh).insert({ res->GetId(), res });
 		mDefaultResourceMap.insert({ DefaultResource::SphereMesh, { ResourceType::Mesh, res->GetId() } });
 
 		{
-			auto defaultMeshHandle = CreateMaterial(L"", true);
+			auto defaultMeshHandle = CreateMaterial(L"Default Material", true, false);
 			auto materialRes = (MaterialResource*)GetRawResource(defaultMeshHandle);
-			auto mat = materialRes->GetData();
+			auto mat = materialRes->ModifyData();
 			mat->DifuseAlbedo = XMFLOAT4(Vector4(kOne));
 			mat->FresnelR0 = XMFLOAT3(Vector3(kZero));
 			mat->Roughness = 0.2f;
+			rRes = dynamic_cast<Resource*>(res);
+			rRes->mDirtyGPU = false;
+			rRes->mDirtyDisk = false;
 			materialRes->mDirtyDisk = materialRes->mDirtyGPU = false;
 			mDefaultResourceMap.insert({ DefaultResource::DefaultMaterial, { ResourceType::Material, materialRes->GetId() } });
 		}
 	}
 
-	ResourceHandle DResourceManager::LoadResource(std::wstring path)
+	ResourceHandle DResourceManager::CreateMesh(std::wstring const& path)
 	{
-		// Check if we already have the resource
-		if (mPathMap.contains(path))
-		{
-			auto handle = mPathMap.at(path);
-			auto resource = GetRawResource(handle);
-			if (!resource->GetLoaded())
-				resource->Load();
-			return handle;
-		}
-
-		if (std::filesystem::exists(path) && !std::filesystem::is_directory(path))
-		{
-			auto extension = D_CORE::Path(path).extension();
-			// Checking for supported resource
-			if (extension == ".fbx")
-				return CreateMesh(path);
-			if (extension == ".mat")
-				return CreateMaterial(path);
-			else
-				return { ResourceType::None, 0 };
-
-		}
-
-		return { ResourceType::None, 0 };
+		return CreateMesh(path, false, false);
 	}
 
-	ResourceHandle DResourceManager::CreateMesh(std::wstring path)
-	{
-		return CreateMesh(path, false);
-	}
-
-	ResourceHandle DResourceManager::CreateMesh(std::wstring path, bool isDefault)
+	ResourceHandle DResourceManager::CreateMesh(std::wstring const& path, bool isDefault, bool fromFile)
 	{
 		// TODO: Better allocation
 		auto meshRes = new MeshResource(path, GetNewId(), isDefault);
 
-		// Trying to load mesh
-		if (!meshRes->Load())
-			return { ResourceType::None, 0 };
+		dynamic_cast<Resource*>(meshRes)->mLoaded = !fromFile;
 
 		// Add the handle to path and resource maps
 		ResourceHandle handle = { ResourceType::Mesh, meshRes->GetId() };
-		mPathMap.insert({ path, handle });
-		AddMeshResource(meshRes);
+		UpdateMaps(meshRes);
 
 		return handle;
 	}
 
-	ResourceHandle DResourceManager::CreateMaterial(std::wstring path)
+	ResourceHandle DResourceManager::CreateMaterial(std::wstring const& path)
 	{
-		return CreateMaterial(path, false);
+		auto handle = CreateMaterial(path, false, false);
+		auto res = GetRawResource(handle);
+		D_RESOURCE_LOADER::SaveResource(res);
+		return handle;
 	}
 
-	ResourceHandle DResourceManager::CreateMaterial(std::wstring path, bool isDefault)
+	ResourceHandle DResourceManager::CreateMaterial(std::wstring const& path, bool isDefault, bool fromFile)
 	{
 		// TODO: Better allocation
 		auto matRes = new MaterialResource(path, GetNewId(), isDefault);
-
-		// Try to load material
-		if (!matRes->Load())
-			return { ResourceType::None, 0 };
+		dynamic_cast<Resource*>(matRes)->mLoaded = !fromFile;
 
 		// Add the handle to path and resource maps
 		ResourceHandle handle = { ResourceType::Material, matRes->GetId() };
-		mPathMap.insert({ path, handle });
-		AddMaterialResource(matRes);
+		UpdateMaps(matRes);
 
 		return handle;
 	}
@@ -250,6 +258,43 @@ namespace Darius::ResourceManager
 				auto resource = res.second;
 				if (resource->GetDirtyGPU())
 					resource->UpdateGPU(context);
+			}
+		}
+	}
+
+	void DResourceManager::UpdateMaps(Resource* resource)
+	{
+
+		// Update resource map
+		mResourceMap.at(resource->GetType()).try_emplace(resource->GetId(), resource);
+
+		// Update uuid map
+		//mUuidMap.try_emplace(resource->GetUuid(), resource);
+
+		// Update path map
+		mPathMap.try_emplace(resource->GetPath().wstring(), resource);
+	}
+
+	void DResourceManager::SaveAllResources()
+	{
+		for (auto& resType : mResourceMap)
+		{
+			for (auto& res : resType.second)
+			{
+				auto resource = res.second;
+				if (resource->GetDirtyDisk())
+					D_RESOURCE_LOADER::SaveResource(resource);
+			}
+		}
+	}
+
+	void DResourceManager::GetAllResources(DVector<Resource*>& resources)
+	{
+		for (auto& resType : mResourceMap)
+		{
+			for (auto& res : resType.second)
+			{
+				resources.push_back(res.second);
 			}
 		}
 	}
