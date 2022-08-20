@@ -39,7 +39,7 @@ namespace Darius::Scene
 	RenderItem GameObject::GetRenderItem()
 	{
 		auto result = RenderItem();
-		Mesh* mesh = *mMeshResource.Get();
+		const Mesh* mesh = mMeshResource.Get()->GetData();
 		result.BaseVertexLocation = mesh->mDraw[0].BaseVertexLocation;
 		result.IndexCount = mesh->mDraw[0].IndexCount;
 		result.StartIndexLocation = mesh->mDraw[0].StartIndexLocation;
@@ -113,7 +113,39 @@ namespace Darius::Scene
 			}
 		}
 
-		D_SCENE_DET_DRAW::DrawDetails(*mMaterialResouce->GetData(), nullptr);
+		D_SCENE_DET_DRAW::DrawDetails(*mMaterialResouce->ModifyData(), nullptr);
+
+		{
+			MaterialResource* currentMaterial = mMaterialResouce.Get();
+
+			if (ImGui::Button("Select M"))
+			{
+				ImGui::OpenPopup("Select Mat");
+			}
+
+			if (ImGui::BeginPopup("Select Mat"))
+			{
+				auto meshes = D_RESOURCE::GetResourcePreviews(D_RESOURCE::ResourceType::Material);
+				int idx = 0;
+				for (auto prev : meshes)
+				{
+					bool selected = currentMaterial && prev.Handle.Id == currentMaterial->GetId() && prev.Handle.Type == currentMaterial->GetType();
+
+					auto name = STR_WSTR(prev.Name);
+					ImGui::PushID((name + std::to_string(idx)).c_str());
+					if (ImGui::Selectable(name.c_str(), &selected))
+					{
+						SetMaterial(prev.Handle);
+						changeValue = true;
+					}
+					ImGui::PopID();
+
+					idx++;
+				}
+
+				ImGui::EndPopup();
+			}
+		}
 
 		return changeValue;
 	}
