@@ -4,6 +4,7 @@
 #include "SceneWindow.hpp"
 #include "SceneGraphiWindow.hpp"
 #include "DetailsWindow.hpp"
+#include "Editor/EditorContext.hpp"
 
 #include <Core/Containers/Map.hpp>
 #include <Core/TimeManager/TimeManager.hpp>
@@ -11,6 +12,7 @@
 #include <Renderer/Renderer.hpp>
 #include <Renderer/Camera/CameraManager.hpp>
 #include <ResourceManager/ResourceManager.hpp>
+#include <ResourceManager/ResourceLoader.hpp>
 #include <Utils/Assert.hpp>
 
 #include <imgui/imgui.h>
@@ -155,13 +157,21 @@ namespace Darius::Editor::Gui::GuiManager
 			{
 				if (ImGui::MenuItem("Load"))
 				{
-					D_RESOURCE::LoadResource(L"ff.fbx");
+					D_RESOURCE_LOADER::LoadResource(L"ff.fbx");
 				}
 
-				if (ImGui::MenuItem("Save Mat"))
-					D_RESOURCE::CreateResource(L"me.mat", ResourceType::Material);
-				if (ImGui::MenuItem("Load Mat"))
-					D_RESOURCE::LoadResource(L"me.mat");
+				if (ImGui::MenuItem("Save All"))
+					D_RESOURCE::SaveAll();
+
+				ImGui::EndMenu();
+			}
+			if (ImGui::BeginMenu("Resource"))
+			{
+				if(ImGui::MenuItem("Create Material"))
+				{
+					D_RESOURCE::GetManager()->CreateMaterial(Path(D_EDITOR_CONTEXT::GetAssetsPath()).append("New Mat.mat"));
+				}
+
 				ImGui::EndMenu();
 			}
 			ImGui::EndMenuBar();
