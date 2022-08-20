@@ -21,4 +21,6 @@ namespace Darius::Editor::ContextManager
 
 	// Paths
 	Path							GetProjectPath();
+	Path							GetAssetsPath();
+	Path							GetEditorConfigPath();
 }
