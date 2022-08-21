@@ -3,6 +3,7 @@
 #include <Core/Filesystem/Path.hpp>
 #include <Core/Counted.hpp>
 #include <Core/Uuid.hpp>
+#include <Core/Exceptions/Exception.hpp>
 #include <Renderer/CommandContext.hpp>
 #include <Utils/Common.hpp>
 
@@ -52,6 +53,9 @@ namespace Darius::ResourceManager
 		ResourceType			Type;
 		Uuid					Uuid;
 	};
+
+	std::string ResourceTypeToString(ResourceType type);
+	ResourceType StringToResourceType(std::string type);
 
 	class Resource : public D_CORE::Counted
 	{
