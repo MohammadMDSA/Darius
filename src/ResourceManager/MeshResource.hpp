@@ -47,8 +47,8 @@ namespace Darius::ResourceManager
 	private:
 		friend class DResourceManager;
 		
-		MeshResource(std::wstring const& path, DResourceId id, bool isDefault = false) :
-			Resource(path, id, isDefault) {}
+		MeshResource(Uuid uuid, std::wstring const& path, DResourceId id, bool isDefault = false) :
+			Resource(uuid, path, id, isDefault) {}
 		
 	};
 }

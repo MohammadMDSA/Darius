@@ -47,8 +47,8 @@ namespace Darius::ResourceManager
 	private:
 		friend class DResourceManager;
 
-		MaterialResource(std::wstring const& path, DResourceId id, bool isDefault = false) :
-			Resource(path, id, isDefault) {}
+		MaterialResource(Uuid uuid, std::wstring const& path, DResourceId id, bool isDefault = false) :
+			Resource(uuid, path, id, isDefault) {}
 
 		D_GRAPHICS_BUFFERS::UploadBuffer	mMaterialConstantsCPU[D_RENDERER_FRAME_RESOUCE::gNumFrameResources];
 		ByteAddressBuffer					mMaterialConstantsGPU;

@@ -142,7 +142,7 @@ namespace Darius::ResourceManager
 		auto sphere = D_RENDERER_GEOMETRY_GENERATOR::CreateSphere(0.5f, 40, 40);
 
 		// TODO: bad allocation
-		auto res = new MeshResource(L"", GetNewId(), true);
+		auto res = new MeshResource(GenerateUuidFor("Box Mesh"), L"Box Mesh", GetNewId(), true);
 		res->Create(L"Box Mesh", box);
 		auto rRes = dynamic_cast<Resource*>(res);
 		rRes->mDirtyGPU = false;
@@ -150,7 +150,7 @@ namespace Darius::ResourceManager
 		mResourceMap.at(ResourceType::Mesh).insert({ res->GetId(), res });
 		mDefaultResourceMap.insert({ DefaultResource::BoxMesh, { ResourceType::Mesh, res->GetId() } });
 
-		res = new MeshResource(L"", GetNewId(), true);
+		res = new MeshResource(GenerateUuidFor("Cylinder Mesh"), L"Cylinder Mesh", GetNewId(), true);
 		res->Create(L"Cylinder Mesh", cylinder);
 		rRes = dynamic_cast<Resource*>(res);
 		rRes->mDirtyGPU = false;
@@ -158,7 +158,7 @@ namespace Darius::ResourceManager
 		mResourceMap.at(ResourceType::Mesh).insert({ res->GetId(), res });
 		mDefaultResourceMap.insert({ DefaultResource::CylinderMesh, { ResourceType::Mesh, res->GetId() } });
 
-		res = new MeshResource(L"", GetNewId(), true);
+		res = new MeshResource(GenerateUuidFor("Geosphere Mesh"), L"Geosphere Mesh", GetNewId(), true);
 		res->Create(L"Geosphere Mesh", geosphere);
 		rRes = dynamic_cast<Resource*>(res);
 		rRes->mDirtyGPU = false;
@@ -166,7 +166,7 @@ namespace Darius::ResourceManager
 		mResourceMap.at(ResourceType::Mesh).insert({ res->GetId(), res });
 		mDefaultResourceMap.insert({ DefaultResource::GeosphereMesh, { ResourceType::Mesh, res->GetId() } });
 
-		res = new MeshResource(L"", GetNewId(), true);
+		res = new MeshResource(GenerateUuidFor("Grid Mesh"), L"Grid Mesh", GetNewId(), true);
 		res->Create(L"Grid Mesh", grid);
 		rRes = dynamic_cast<Resource*>(res);
 		rRes->mDirtyGPU = false;
@@ -174,7 +174,7 @@ namespace Darius::ResourceManager
 		mResourceMap.at(ResourceType::Mesh).insert({ res->GetId(), res });
 		mDefaultResourceMap.insert({ DefaultResource::GridMesh, { ResourceType::Mesh, res->GetId() } });
 
-		res = new MeshResource(L"", GetNewId(), true);
+		res = new MeshResource(GenerateUuidFor("Quad Mesh"), L"Quad Mesh", GetNewId(), true);
 		res->Create(L"Quad Mesh", quad);
 		rRes = dynamic_cast<Resource*>(res);
 		rRes->mDirtyGPU = false;
@@ -182,7 +182,7 @@ namespace Darius::ResourceManager
 		mResourceMap.at(ResourceType::Mesh).insert({ res->GetId(), res });
 		mDefaultResourceMap.insert({ DefaultResource::QuadMesh, { ResourceType::Mesh, res->GetId() } });
 
-		res = new MeshResource(L"", GetNewId(), true);
+		res = new MeshResource(GenerateUuidFor("Sphere Mesh"), L"Sphere Mesh", GetNewId(), true);
 		res->Create(L"Sphere Mesh", sphere);
 		rRes = dynamic_cast<Resource*>(res);
 		rRes->mDirtyGPU = false;
@@ -191,7 +191,7 @@ namespace Darius::ResourceManager
 		mDefaultResourceMap.insert({ DefaultResource::SphereMesh, { ResourceType::Mesh, res->GetId() } });
 
 		{
-			auto defaultMeshHandle = CreateMaterial(L"Default Material", true, false);
+			auto defaultMeshHandle = CreateMaterial(GenerateUuidFor("Default Material"), L"Default Material", true, false);
 			auto materialRes = (MaterialResource*)GetRawResource(defaultMeshHandle);
 			auto mat = materialRes->ModifyData();
 			mat->DifuseAlbedo = XMFLOAT4(Vector4(kOne));
@@ -205,10 +205,10 @@ namespace Darius::ResourceManager
 		}
 	}
 
-	ResourceHandle DResourceManager::CreateMesh(std::wstring const& path, bool isDefault, bool fromFile)
+	ResourceHandle DResourceManager::CreateMesh(Uuid uuid, std::wstring const& path, bool isDefault, bool fromFile)
 	{
 		// TODO: Better allocation
-		auto meshRes = new MeshResource(path, GetNewId(), isDefault);
+		auto meshRes = new MeshResource(uuid, path, GetNewId(), isDefault);
 
 		dynamic_cast<Resource*>(meshRes)->mLoaded = !fromFile;
 
@@ -228,16 +228,16 @@ namespace Darius::ResourceManager
 		auto path = parent.append(D_FILE::GetNewFileName(L"New Material", L".mat", parent));
 
 		// Create resource
-		auto handle = CreateMaterial(path, false, false);
+		auto handle = CreateMaterial(GenerateUuid(), path, false, false);
 		auto res = GetRawResource(handle);
 		D_RESOURCE_LOADER::SaveResource(res);
 		return handle;
 	}
 
-	ResourceHandle DResourceManager::CreateMaterial(std::wstring const& path, bool isDefault, bool fromFile)
+	ResourceHandle DResourceManager::CreateMaterial(Uuid uuid, std::wstring const& path, bool isDefault, bool fromFile)
 	{
 		// TODO: Better allocation
-		auto matRes = new MaterialResource(path, GetNewId(), isDefault);
+		auto matRes = new MaterialResource(uuid, path, GetNewId(), isDefault);
 		dynamic_cast<Resource*>(matRes)->mLoaded = !fromFile;
 
 		// Add the handle to path and resource maps

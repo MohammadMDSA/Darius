@@ -105,8 +105,8 @@ namespace Darius::ResourceManager
 	private:
 		friend class ResourceLoader;
 
-		ResourceHandle				CreateMaterial(std::wstring const& path, bool isDefault, bool fromFile);
-		ResourceHandle				CreateMesh(std::wstring const& path, bool isDefault, bool fromFile);
+		ResourceHandle				CreateMaterial(Uuid uuid, std::wstring const& path, bool isDefault, bool fromFile);
+		ResourceHandle				CreateMesh(Uuid uuid, std::wstring const& path, bool isDefault, bool fromFile);
 
 		void						UpdateMaps(Resource* resuorce);
 

@@ -22,9 +22,9 @@ namespace Darius::ResourceManager
 		switch (meta.Type)
 		{
 		case Darius::ResourceManager::ResourceType::Mesh:
-			return manager->CreateMesh(meta.Path, false, true);
+			return manager->CreateMesh(meta.Uuid, meta.Path, false, true);
 		case Darius::ResourceManager::ResourceType::Material:
-			return manager->CreateMaterial(meta.Path, false, true);
+			return manager->CreateMaterial(meta.Uuid, meta.Path, false, true);
 		case Darius::ResourceManager::ResourceType::None:
 		default:
 			return { ResourceType::None, 0 };
@@ -37,9 +37,9 @@ namespace Darius::ResourceManager
 		auto extension = path.extension();
 
 		if (extension == ".mat")
-			return manager->CreateMaterial(path, false, true);
+			return manager->CreateMaterial(GenerateUuid(), path, false, true);
 		if (extension == ".fbx")
-			return manager->CreateMesh(path, false, true);
+			return manager->CreateMesh(GenerateUuid(), path, false, true);
 		return { ResourceType::None, 0 };
 	}
 

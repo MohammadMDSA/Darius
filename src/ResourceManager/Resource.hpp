@@ -93,7 +93,7 @@ namespace Darius::ResourceManager
 		friend class ResourceLoader;
 
 	protected:
-		Resource(std::wstring const& path, DResourceId id, bool isDefault) :
+		Resource(Uuid uuid, std::wstring const& path, DResourceId id, bool isDefault) :
 			mLoaded(false),
 			mPath(path),
 			mName(L""),
@@ -102,15 +102,14 @@ namespace Darius::ResourceManager
 			mDefault(isDefault),
 			mDirtyDisk(false),
 			mDirtyGPU(true),
-			mUuid(GenerateUuid())
+			mUuid(uuid)
 		{
 			// Processing name
 			auto ext = mPath.extension().wstring();
 			auto filename = mPath.filename().wstring();
 			mName = filename.substr(0, filename.size() - ext.size());
 		}
-
-		Resource(Uuid uuid, DResourceId id, bool isDefault);
+		
 		INLINE void					MakeDiskDirty() { mDirtyDisk = true; }
 		INLINE void					MakeGpuDirty() { mDirtyGPU = true; }
 
