@@ -26,18 +26,26 @@ namespace Darius::Renderer
 		kNumRootBindings		// Just to know how many root binings there are
 	};
 
+	enum class PipelineStateTypes
+	{
+		Opaque,
+		Wireframe,
+		Color,
+	};
+
 	void Initialize();
 	void Shutdown();
 
-	extern std::unordered_map<std::string, D_GRAPHICS_UTILS::GraphicsPSO> Psos;
 	extern D_GRAPHICS_UTILS::RootSignature RootSign;
 
 #ifdef _D_EDITOR
-	void RegisterGuiDrawer(std::function<void(void)> drawer);
-	DescriptorHandle GetRenderResourceHandle(UINT index);
+	void					RegisterGuiDrawer(std::function<void(void)> drawer);
+	DescriptorHandle		GetRenderResourceHandle(UINT index);
 #endif
-	void RenderMeshes(D_GRAPHICS::GraphicsContext& context, D_CONTAINERS::DVector<RenderItem> const& renderItems, D_RENDERER_FRAME_RESOUCE::GlobalConstants const& globals);
+	void					RenderMeshes(D_GRAPHICS::GraphicsContext& context, D_CONTAINERS::DVector<RenderItem> const& renderItems, D_RENDERER_FRAME_RESOUCE::GlobalConstants const& globals);
 
-	void Present(D_GRAPHICS::GraphicsContext& context);
+	void					Present(D_GRAPHICS::GraphicsContext& context);
+
+	D_GRAPHICS_UTILS::GraphicsPSO& GetPSO(PipelineStateTypes type);
 
 }

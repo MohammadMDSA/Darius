@@ -46,7 +46,7 @@ namespace Darius::Renderer
 
 	// Input layout and root signature
 	D_GRAPHICS_UTILS::RootSignature						RootSign;
-	std::unordered_map<std::string, D_GRAPHICS_UTILS::GraphicsPSO> Psos;
+	std::unordered_map<PipelineStateTypes, D_GRAPHICS_UTILS::GraphicsPSO> Psos;
 
 	// Device resource
 	std::unique_ptr<DeviceResource::DeviceResources>	Resources;
@@ -99,6 +99,11 @@ namespace Darius::Renderer
 		GuiDrawer = drawer;
 	}
 #endif
+
+	D_GRAPHICS_UTILS::GraphicsPSO& GetPSO(PipelineStateTypes type)
+	{
+		return Psos[type];
+	}
 
 	void RenderMeshes(D_GRAPHICS::GraphicsContext& context, D_CONTAINERS::DVector<RenderItem> const& renderItems, D_RENDERER_FRAME_RESOUCE::GlobalConstants const& globals)
 	{
@@ -214,7 +219,7 @@ namespace Darius::Renderer
 		pso.SetPrimitiveTopologyType(D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE);
 		pso.SetRenderTargetFormat(D_RENDERER_DEVICE::GetBackBufferFormat(), D_RENDERER_DEVICE::GetDepthBufferFormat());
 		pso.Finalize();
-		Psos["opaque"] = pso;
+		Psos[PipelineStateTypes::Opaque] = pso;
 
 
 		// For opaque wireframe objecs
@@ -223,7 +228,9 @@ namespace Darius::Renderer
 		wireRasterState.FillMode = D3D12_FILL_MODE_WIREFRAME;
 		wirePso.SetRasterizerState(wireRasterState);
 		wirePso.Finalize();
-		Psos["opaque_wireframe"] = wirePso;
+		Psos[PipelineStateTypes::Wireframe] = wirePso;
+
+
 	}
 
 	void BuildRootSignature()
