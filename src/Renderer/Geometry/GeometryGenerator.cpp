@@ -544,7 +544,6 @@ namespace Darius::Renderer::Geometry::GeometryGenerator
 		return meshData;
 	}
 
-
 	MeshData<Vertex> CreateGrid(float width, float depth, uint32 m, uint32 n)
 	{
 		MeshData<Vertex> meshData;
@@ -610,7 +609,6 @@ namespace Darius::Renderer::Geometry::GeometryGenerator
 		return meshData;
 	}
 
-
 	MeshData<Vertex> CreateQuad(float x, float y, float w, float h, float depth)
 	{
 		MeshData<Vertex> meshData;
@@ -654,4 +652,29 @@ namespace Darius::Renderer::Geometry::GeometryGenerator
 		return meshData;
 	}
 
+	MeshData<Vertex> CreateLine(float x1, float y1, float z1, float x2, float y2, float z2)
+	{
+		MeshData<Vertex> meshData;
+
+		Vertex v1, v2;
+		v1.mPosition = { x1, y1, z1 };
+		v2.mPosition = { x2, y2, z2 };
+
+		auto p1 = XMLoadFloat3(&v1.mPosition);
+		auto p2 = XMLoadFloat3(&v2.mPosition);
+
+		XMStoreFloat3(&v1.mNormal, XMVector3Normalize(p1 - p2));
+		XMStoreFloat3(&v2.mNormal, XMVector3Normalize(p2 - p1));
+
+		v1.mTexC = { 0.f, 0.f };
+		v2.mTexC = { 1.f, 1.f };
+
+		meshData.Vertices.push_back(v1);
+		meshData.Vertices.push_back(v2);
+
+		meshData.Indices32.push_back(0);
+		meshData.Indices32.push_back(1);
+
+		return meshData;
+	}
 }
