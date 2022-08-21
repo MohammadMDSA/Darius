@@ -26,11 +26,12 @@ namespace Darius::Editor::Gui::Windows
 
 		auto flags = ImGuiTableFlags_ScrollY | ImGuiTableFlags_RowBg | ImGuiTableFlags_BordersOuter | ImGuiTableFlags_BordersV | ImGuiTableFlags_Resizable | ImGuiTableFlags_Reorderable | ImGuiTableFlags_Hideable | ImGuiTableFlags_ScrollY;
 
-		if (ImGui::BeginTable("Resource Table", 9, flags))
+		if (ImGui::BeginTable("Resource Table", 10, flags))
 		{
 			ImGui::TableSetupScrollFreeze(0, 1);
 			ImGui::TableSetupColumn("Id");
 			ImGui::TableSetupColumn("Name");
+			ImGui::TableSetupColumn("Type");
 			ImGui::TableSetupColumn("UUID");
 			ImGui::TableSetupColumn("Default");
 			ImGui::TableSetupColumn("Loaded");
@@ -57,18 +58,20 @@ namespace Darius::Editor::Gui::Windows
 					ImGui::TableSetColumnIndex(1);
 					ImGui::Text(resNameStr.c_str());
 					ImGui::TableSetColumnIndex(2);
-					ImGui::Text(ToString(resource->GetUuid()).c_str());
+					ImGui::Text(ResourceTypeToString(resource->GetType()).c_str());
 					ImGui::TableSetColumnIndex(3);
-					ImGui::Text(std::to_string(resource->GetDefault()).c_str());
+					ImGui::Text(ToString(resource->GetUuid()).c_str());
 					ImGui::TableSetColumnIndex(4);
-					ImGui::Text(std::to_string(resource->GetLoaded()).c_str());
+					ImGui::Text(std::to_string(resource->GetDefault()).c_str());
 					ImGui::TableSetColumnIndex(5);
-					ImGui::Text(std::to_string(resource->GetVersion()).c_str());
+					ImGui::Text(std::to_string(resource->GetLoaded()).c_str());
 					ImGui::TableSetColumnIndex(6);
-					ImGui::Text(std::to_string(resource->GetDirtyDisk()).c_str());
+					ImGui::Text(std::to_string(resource->GetVersion()).c_str());
 					ImGui::TableSetColumnIndex(7);
-					ImGui::Text(std::to_string(resource->GetDirtyGPU()).c_str());
+					ImGui::Text(std::to_string(resource->GetDirtyDisk()).c_str());
 					ImGui::TableSetColumnIndex(8);
+					ImGui::Text(std::to_string(resource->GetDirtyGPU()).c_str());
+					ImGui::TableSetColumnIndex(9);
 					ImGui::Text(resource->GetDefault() ? " - " : resource->GetPath().string().c_str());
 
 				}

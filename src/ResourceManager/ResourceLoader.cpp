@@ -43,35 +43,11 @@ namespace Darius::ResourceManager
 		return { ResourceType::None, 0 };
 	}
 
-	std::string ResourceTypeStr(ResourceType type)
-	{
-		switch (type)
-		{
-		case Darius::ResourceManager::ResourceType::Mesh:
-			return "Mesh";
-		case Darius::ResourceManager::ResourceType::Material:
-			return "Material";
-		default:
-			throw D_CORE::Exception::Exception("Resource type not defined");
-		case Darius::ResourceManager::ResourceType::None:
-			return "";
-		}
-	}
-
-	ResourceType StringToResourceType(std::string type)
-	{
-		if (type == "Mesh")
-			return ResourceType::Mesh;
-		if (type == "Material")
-			return ResourceType::Material;
-		return ResourceType::None;
-	}
-
 	void SerializeMeta(Json& json, ResourceMeta const& meta)
 	{
 		json["Path"] = meta.Path.wstring();
 		json["Name"] = meta.Name;
-		json["Type"] = ResourceTypeStr(meta.Type);
+		json["Type"] = ResourceTypeToString(meta.Type);
 		json["UUID"] = meta.Uuid.data;
 	}
 
