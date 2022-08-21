@@ -30,6 +30,7 @@ namespace Darius::ResourceManager
 		GridMesh,
 		QuadMesh,
 		SphereMesh,
+		LineMesh,
 		DefaultMaterial
 	};
 

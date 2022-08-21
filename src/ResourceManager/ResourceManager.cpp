@@ -8,6 +8,7 @@
 #include <Core/Filesystem/Path.hpp>
 #include <Core/Filesystem/FileUtils.hpp>
 #include <Core/Containers/Map.hpp>
+#include <Core/Exceptions/Exception.hpp>
 #include <Renderer/Geometry/GeometryGenerator.hpp>
 #include <Utils/Assert.hpp>
 
@@ -140,6 +141,7 @@ namespace Darius::ResourceManager
 		auto grid = D_RENDERER_GEOMETRY_GENERATOR::CreateGrid(100.f, 100.f, 100, 100);
 		auto quad = D_RENDERER_GEOMETRY_GENERATOR::CreateQuad(0.f, 0.f, 1.f, 1.f, 0.f);
 		auto sphere = D_RENDERER_GEOMETRY_GENERATOR::CreateSphere(0.5f, 40, 40);
+		auto line = D_RENDERER_GEOMETRY_GENERATOR::CreateLine(0.f, 0.f, 0.f, 0.f, 0.f, -1.f);
 
 		// TODO: bad allocation
 		auto res = new MeshResource(GenerateUuidFor("Box Mesh"), L"Box Mesh", GetNewId(), true);
@@ -190,6 +192,14 @@ namespace Darius::ResourceManager
 		mResourceMap.at(ResourceType::Mesh).insert({ res->GetId(), res });
 		mDefaultResourceMap.insert({ DefaultResource::SphereMesh, { ResourceType::Mesh, res->GetId() } });
 
+		res = new MeshResource(GenerateUuidFor("Line Mesh"), L"Line Mesh", GetNewId(), true);
+		res->Create(L"Line Mesh", line);
+		rRes = dynamic_cast<Resource*>(res);
+		rRes->mDirtyGPU = false;
+		rRes->mDirtyDisk = false;
+		mResourceMap.at(ResourceType::Mesh).insert({ res->GetId(), res });
+		mDefaultResourceMap.insert({ DefaultResource::LineMesh, { ResourceType::Mesh, res->GetId() } });
+
 		{
 			auto defaultMeshHandle = CreateMaterial(GenerateUuidFor("Default Material"), L"Default Material", true, false);
 			auto materialRes = (MaterialResource*)GetRawResource(defaultMeshHandle);
@@ -222,7 +232,8 @@ namespace Darius::ResourceManager
 	ResourceHandle DResourceManager::CreateMaterial(std::wstring const& dirpath)
 	{
 
-		D_H_ENSURE_DIR(dirpath);
+		if (!D_H_ENSURE_DIR(dirpath))
+			throw D_EXCEPTION::FileNotFoundException("Specified directory not found: " + STR_WSTR(dirpath));
 		auto parent = Path(dirpath);
 
 		auto path = parent.append(D_FILE::GetNewFileName(L"New Material", L".mat", parent));
