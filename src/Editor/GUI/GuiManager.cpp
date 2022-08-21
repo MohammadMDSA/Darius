@@ -4,6 +4,7 @@
 #include "SceneWindow.hpp"
 #include "SceneGraphiWindow.hpp"
 #include "DetailsWindow.hpp"
+#include "ResourceMonitorWindow.hpp"
 #include "Editor/EditorContext.hpp"
 
 #include <Core/Containers/Map.hpp>
@@ -43,6 +44,9 @@ namespace Darius::Editor::Gui::GuiManager
 
 		auto detailsWindow = new DetailsWindow();
 		Windows[detailsWindow->GetName()] = detailsWindow;
+
+		auto resourceMonitorWindow = new ResourceMonitorWindow();
+		Windows[resourceMonitorWindow->GetName()] = resourceMonitorWindow;
 
 		ImGuiIO& io = ImGui::GetIO();
 		io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
