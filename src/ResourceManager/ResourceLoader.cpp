@@ -1,8 +1,8 @@
 #include "pch.hpp"
 #include "ResourceLoader.hpp"
 #include "ResourceManager.hpp"
-#include "MeshResource.hpp"
-#include "MaterialResource.hpp"
+#include "ResourceTypes/MeshResource.hpp"
+#include "ResourceTypes/MaterialResource.hpp"
 
 #include <Core/Serialization/Json.hpp>
 #include <Core/Exceptions/Exception.hpp>

@@ -1,4 +1,4 @@
-#include "pch.hpp"
+#include "Renderer/pch.hpp"
 #include "Resource.hpp"
 
 namespace Darius::ResourceManager
