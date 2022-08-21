@@ -5,6 +5,7 @@
 #include <boost/uuid/uuid.hpp>
 #include <boost/uuid/random_generator.hpp>
 #include <boost/uuid/name_generator.hpp>
+#include <boost/uuid/uuid_io.hpp>
 
 #include <string>
 
@@ -33,4 +34,8 @@ namespace Darius::Core
 		boost::uuids::name_generator generator(boost::uuids::ns::oid());
 		return generator(name);
 	}
+
+	INLINE std::string ToString(Uuid uuid) { return boost::uuids::to_string(uuid); }
+
+	INLINE std::wstring ToWString(Uuid uuid) { return boost::uuids::to_wstring(uuid); }
 }
