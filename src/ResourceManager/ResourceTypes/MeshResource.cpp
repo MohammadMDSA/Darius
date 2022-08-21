@@ -1,6 +1,6 @@
-#include "pch.hpp"
+#include "Renderer/pch.hpp"
 #include "MeshResource.hpp"
-#include "ResourceManager.hpp"
+#include "ResourceManager/ResourceManager.hpp"
 
 #include <Core/Filesystem/Path.hpp>
 #include <Renderer/RenderDeviceManager.hpp>

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Resource.hpp"
+#include "ResourceTypes/Resource.hpp"
 
 #include <Core/Ref.hpp>
 #include <Core/Uuid.hpp>

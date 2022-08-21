@@ -1,8 +1,8 @@
 #include "pch.hpp"
 #include "ResourceManager.hpp"
-#include "Resource.hpp"
-#include "MeshResource.hpp"
-#include "MaterialResource.hpp"
+#include "ResourceTypes/Resource.hpp"
+#include "ResourceTypes/MeshResource.hpp"
+#include "ResourceTypes/MaterialResource.hpp"
 #include "ResourceLoader.hpp"
 
 #include <Core/Filesystem/Path.hpp>

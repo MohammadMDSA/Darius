@@ -4,18 +4,18 @@ set(RESOUCE_MANAGER_LIBS_INCLUDE)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ".")
 
 list(APPEND RESOUCE_MANAGER_LIBS_INCLUDE
-	"Resource.hpp"
+	"ResourceTypes/Resource.hpp"
 	"ResourceManager.hpp"
-	"MeshResource.hpp"
-	"MaterialResource.hpp"
+	"ResourceTypes/MeshResource.hpp"
+	"ResourceTypes/MaterialResource.hpp"
 	"ResourceLoader.hpp"
 	)
 
 list(APPEND RESOUCE_MANAGER_LIBS_SOURCES
-	"Resource.cpp"
+	"ResourceTypes/Resource.cpp"
 	"ResourceManager.cpp"
-	"MeshResource.cpp"
-	"MaterialResource.cpp"
+	"ResourceTypes/MeshResource.cpp"
+	"ResourceTypes/MaterialResource.cpp"
 	"ResourceLoader.cpp"
 	)
 

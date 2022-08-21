@@ -8,8 +8,8 @@
 #include <Renderer/GraphicsUtils/Buffers/UploadBuffer.hpp>
 #include <Renderer/GraphicsUtils/Buffers/GpuBuffer.hpp>
 #include <Math/VectorMath.hpp>
-#include <ResourceManager/MeshResource.hpp>
-#include <ResourceManager/MaterialResource.hpp>
+#include <ResourceManager/ResourceTypes/MeshResource.hpp>
+#include <ResourceManager/ResourceTypes/MaterialResource.hpp>
 
 #ifndef D_SCENE
 #define D_SCENE Darius::Scene
