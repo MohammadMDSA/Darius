@@ -57,11 +57,6 @@ namespace Darius::Renderer::ConstantFrameResource
 	{
 		RenderItem() = default;
 
-		// World matrix of the shape that describes the object's local space
-		// relative to the world space, which defines the position,
-		// orientation and scale of the object in the world.
-		Matrix4						World = Matrix4::Identity();
-
 		// Dirty flag indicating the object data has changed and we need
 		// to update thhe constant buffer. Because we have an object
 		// cbuffer for each FrameResource, we have to apply the

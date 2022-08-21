@@ -45,9 +45,7 @@ namespace Darius::Scene
 		result.StartIndexLocation = mesh->mDraw[0].StartIndexLocation;
 		result.Mesh = mesh;
 		result.PrimitiveType = D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
-		result.World = Matrix4(mTransform.GetWorld());
 		result.MeshCBV = mMeshConstantsGPU.GetGpuVirtualAddress();
-		const Material* mat = mMaterialResouce.Get()->GetData();
 		result.MaterialCBV = *mMaterialResouce.Get();
 		return result;
 	}
