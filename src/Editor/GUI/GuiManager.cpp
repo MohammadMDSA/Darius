@@ -24,9 +24,9 @@ namespace Darius::Editor::Gui::GuiManager
 {
 	bool										initialzied = false;
 
-	D_CONTAINERS::DMap<std::string, Window*>		Windows;
+	D_CONTAINERS::DMap<std::string, Window*>	Windows;
 
-	D_SCENE::GameObject* ri;
+	std::string									LayoutPath;
 	
 	void DrawToolbar();
 
@@ -50,6 +50,10 @@ namespace Darius::Editor::Gui::GuiManager
 
 		ImGuiIO& io = ImGui::GetIO();
 		io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
+
+		LayoutPath = Path(D_EDITOR_CONTEXT::GetEditorConfigPath()).append("layout.ini").string();
+
+		io.IniFilename = LayoutPath.c_str();
 	}
 
 	void Shutdown()
