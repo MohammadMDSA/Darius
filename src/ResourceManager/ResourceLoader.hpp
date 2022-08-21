@@ -2,7 +2,7 @@
 
 #include "Resource.hpp"
 
-#include <Core/Path.hpp>
+#include <Core/Filesystem/Path.hpp>
 
 #ifndef D_RESOURCE_LOADER
 #define D_RESOURCE_LOADER Darius::ResourceManager::ResourceLoader
@@ -10,6 +10,7 @@
 
 
 using namespace D_CORE;
+using namespace D_FILE;
 
 namespace Darius::ResourceManager
 {

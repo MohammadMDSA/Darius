@@ -106,7 +106,7 @@ int WINAPI wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, 
 
         GetClientRect(hwnd, &rc);
 
-        g_game->Initialize(hwnd, rc.right - rc.left, rc.bottom - rc.top, D_CORE::Path(_PROJ_ROOT).append("Demo"));
+        g_game->Initialize(hwnd, rc.right - rc.left, rc.bottom - rc.top, D_FILE::Path(_PROJ_ROOT).append("Demo"));
     }
 
     // Main message loop

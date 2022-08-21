@@ -1,13 +1,13 @@
 #pragma once
 
-#include <Core/Path.hpp>
+#include <Core/Filesystem/Path.hpp>
 #include <Scene/GameObject.hpp>
 
 #ifndef D_EDITOR_CONTEXT
 #define D_EDITOR_CONTEXT Darius::Editor::ContextManager
 #endif // !D_EDITOR_CONTEXT
 
-using namespace D_CORE;
+using namespace D_FILE;
 using namespace D_SCENE;
 
 namespace Darius::Editor::ContextManager

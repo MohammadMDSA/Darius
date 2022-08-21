@@ -2,7 +2,7 @@
 #include "MeshResource.hpp"
 #include "ResourceManager.hpp"
 
-#include <Core/Path.hpp>
+#include <Core/Filesystem/Path.hpp>
 #include <Renderer/RenderDeviceManager.hpp>
 #include <Renderer/GraphicsCore.hpp>
 

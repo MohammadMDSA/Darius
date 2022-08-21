@@ -2,19 +2,20 @@
 #include "EditorContext.hpp"
 #include "Gui/GuiManager.hpp"
 
+#include <Core/Filesystem/Path.hpp>
 #include <ResourceManager/ResourceLoader.hpp>
 #include <Utils/Assert.hpp>
 
-using namespace D_CORE;
+using namespace D_FILE;
 
 namespace Darius::Editor::ContextManager
 {
 	bool						_initialized = false;
 
 	GameObject*					SelectedGameObject;
-	D_CORE::Path				ProjectPath;
+	D_FILE::Path				ProjectPath;
 
-	void Initialize(D_CORE::Path projectPath)
+	void Initialize(D_FILE::Path projectPath)
 	{
 		D_ASSERT(!_initialized);
 		_initialized = true;

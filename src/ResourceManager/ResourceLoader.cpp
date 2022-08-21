@@ -108,7 +108,7 @@ namespace Darius::ResourceManager
 		Json jmeta;
 		SerializeMeta(jmeta, meta);
 
-		auto path = D_CORE::Path(resource->mPath.string() + ".tos");
+		auto path = D_FILE::Path(resource->mPath.string() + ".tos");
 
 		std::ofstream os(path);
 		if (!os)
@@ -151,7 +151,7 @@ namespace Darius::ResourceManager
 		ResourceMeta meta;
 
 		// Meta file exists?
-		D_CORE::Path tosPath = D_CORE::Path(path).wstring() + L".tos";
+		D_FILE::Path tosPath = D_FILE::Path(path).wstring() + L".tos";
 		if (!D_H_ENSURE_FILE(tosPath))
 			return { ResourceType::None, 0 };
 

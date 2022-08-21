@@ -1,6 +1,6 @@
 #pragma once
 
-#include <Core/Path.hpp>
+#include <Core/Filesystem/Path.hpp>
 #include <Core/Counted.hpp>
 #include <Core/Uuid.hpp>
 #include <Renderer/CommandContext.hpp>
@@ -15,6 +15,7 @@
 #define D_CH_RESOUCE_BODY(T, ResT) D_CH_TYPE_NAME_GETTER(T)
 
 using namespace D_CORE;
+using namespace D_FILE;
 
 namespace Darius::ResourceManager
 {
@@ -74,7 +75,7 @@ namespace Darius::ResourceManager
 		INLINE operator ResourceMeta const() { return { mPath, mName, GetType(), mUuid }; }
 
 		D_CH_RW_FIELD(std::wstring, Name);
-		D_CH_R_FIELD(D_CORE::Path, Path);
+		D_CH_R_FIELD(D_FILE::Path, Path);
 		D_CH_R_FIELD_CONST(DResourceId, Id);
 		D_CH_R_FIELD_CONST(Uuid, Uuid);
 		D_CH_R_FIELD_CONST(bool, Default);

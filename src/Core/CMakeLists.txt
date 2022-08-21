@@ -13,12 +13,13 @@ list(APPEND CORE_LIBS_INCLUDE
 	"TimeManager/TimeManager.hpp"
 	"Memory/Memory.hpp"
 	"Memory/Allocator.hpp"
+	"Filesystem/FileUtils.hpp"
+	"Filesystem/Path.hpp"
     "Signal.hpp"
 	"Input.hpp"
 	"Ref.hpp"
 	"Hash.hpp"
 	"Counted.hpp"
-	"Path.hpp"
 	"Uuid.hpp"
 	"pch.hpp"
 	)
@@ -37,7 +38,7 @@ add_library("Core")
 target_sources("Core"
 	PRIVATE
 	${CORE_LIBS_SOURCES}
-	${CORE_LIBS_INCLUDE} "Path.hpp")
+	${CORE_LIBS_INCLUDE} "Filesystem/Path.hpp")
 
 	
 set(Boost_USE_STATIC_LIBS ON) 

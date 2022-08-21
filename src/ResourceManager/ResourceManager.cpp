@@ -5,7 +5,8 @@
 #include "MaterialResource.hpp"
 #include "ResourceLoader.hpp"
 
-#include <Core/Path.hpp>
+#include <Core/Filesystem/Path.hpp>
+#include <Core/Filesystem/FileUtils.hpp>
 #include <Core/Containers/Map.hpp>
 #include <Renderer/Geometry/GeometryGenerator.hpp>
 #include <Utils/Assert.hpp>
@@ -221,23 +222,13 @@ namespace Darius::ResourceManager
 	ResourceHandle DResourceManager::CreateMaterial(std::wstring const& dirpath)
 	{
 
-		// Create new non-exiting name
-		std::wstring fileName = L"New Material";
-		short newIndex = -1;
+		D_H_ENSURE_DIR(dirpath);
 		auto parent = Path(dirpath);
 
-		Path result;
-		do
-		{
-			newIndex++;
-			if (newIndex)
-				result = parent.append(fileName + L"(" + std::to_wstring(newIndex) + L").mat");
-			else
-				result = parent.append(fileName + L".mat");
-		} while (D_H_ENSURE_FILE(result));
+		auto path = parent.append(D_FILE::GetNewFileName(L"New Material", L".mat", parent));
 
 		// Create resource
-		auto handle = CreateMaterial(result, false, false);
+		auto handle = CreateMaterial(path, false, false);
 		auto res = GetRawResource(handle);
 		D_RESOURCE_LOADER::SaveResource(res);
 		return handle;
