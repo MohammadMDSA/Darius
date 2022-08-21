@@ -7,6 +7,7 @@
 #include <Core/TimeManager/TimeManager.hpp>
 #include <Core/Input.hpp>
 #include <Renderer/Renderer.hpp>
+#include <ResourceManager/ResourceManager.hpp>
 
 #include <imgui/imgui.h>
 #include <ImGuizmo/ImGuizmo.h>
@@ -26,6 +27,17 @@ namespace Darius::Editor::Gui::Windows
 
 		D_CAMERA_MANAGER::SetActiveCamera(&mCamera);
 
+		// Fetch line mesh resource
+		auto lineHandle = D_RESOURCE::GetDefaultResource(D_RESOURCE::DefaultResource::LineMesh);
+		mLineMeshResource = D_RESOURCE::GetResource<MeshResource>(lineHandle, this, L"Scene Window", "Editor Window");
+		
+		// Fetch material resource
+		auto matHandle = D_RESOURCE::GetDefaultResource(D_RESOURCE::DefaultResource::DefaultMaterial);
+		mLineMeshMaterial = D_RESOURCE::GetResource<MaterialResource>(matHandle, this, L"Scene Window", "Editor Window");
+
+		MeshConstants mc;
+		mc.mWorld = Matrix4::Identity();
+		mLineConstantsGPU.Create(L"Scene Window Grid GPU Buffer", 1, sizeof(MeshConstants), &mc);
 	}
 
 	SceneWindow::~SceneWindow()
@@ -152,9 +164,19 @@ namespace Darius::Editor::Gui::Windows
 		mSceneDepth.Create(L"Scene DepthStencil", (UINT)mWidth, (UINT)mHeight, D_RENDERER_DEVICE::GetDepthBufferFormat());
 	}
 
-	void SceneWindow::CreateGrid(DVector<D_RENDERER_FRAME_RESOUCE::RenderItem>&)
+	void SceneWindow::CreateGrid(DVector<D_RENDERER_FRAME_RESOUCE::RenderItem>& items)
 	{
+		RenderItem item;
+		const Mesh* mesh = mLineMeshResource->GetData();
+		item.BaseVertexLocation = mesh->mDraw[0].BaseVertexLocation;
+		item.IndexCount = mesh->mDraw[0].IndexCount;
+		item.StartIndexLocation = mesh->mDraw[0].StartIndexLocation;
+		item.Mesh = mesh;
+		item.PrimitiveType = D3D_PRIMITIVE_TOPOLOGY_LINELIST;
+		item.MeshCBV = mLineConstantsGPU.GetGpuVirtualAddress();
+		item.MaterialCBV = *mLineMeshMaterial.Get();
 		
+		items.push_back(item);
 	}
 
 	DVector<D_RENDERER_FRAME_RESOUCE::RenderItem> SceneWindow::GetRenderItems()

@@ -44,6 +44,12 @@ namespace Darius::Editor::Gui::Windows
 		D_GRAPHICS_BUFFERS::DepthBuffer				mSceneDepth;
 		D_GRAPHICS_MEMORY::DescriptorHandle			mTextureHandle;
 
+		Ref<MeshResource>							mLineMeshResource;
+		Ref<MaterialResource>						mLineMeshMaterial;
+
+		D_GRAPHICS_BUFFERS::UploadBuffer			mLineConstantsCPU;
+		ByteAddressBuffer							mLineConstantsGPU;
+
 	};
 
 }
