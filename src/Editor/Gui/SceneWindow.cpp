@@ -92,7 +92,7 @@ namespace Darius::Editor::Gui::Windows
 
 	void SceneWindow::Render(D_GRAPHICS::GraphicsContext& context)
 	{
-		context.SetPipelineState(D_RENDERER::Psos["opaque"]);
+		context.SetPipelineState(D_RENDERER::GetPSO(PipelineStateTypes::Opaque));
 
 		// Prepare the command list to render a new frame.
 		context.TransitionResource(mSceneTexture, D3D12_RESOURCE_STATE_RENDER_TARGET, true);
