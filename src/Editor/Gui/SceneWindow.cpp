@@ -31,13 +31,12 @@ namespace Darius::Editor::Gui::Windows
 		auto lineHandle = D_RESOURCE::GetDefaultResource(D_RESOURCE::DefaultResource::LineMesh);
 		mLineMeshResource = D_RESOURCE::GetResource<MeshResource>(lineHandle, this, L"Scene Window", "Editor Window");
 		
-		// Fetch material resource
-		auto matHandle = D_RESOURCE::GetDefaultResource(D_RESOURCE::DefaultResource::DefaultMaterial);
-		mLineMeshMaterial = D_RESOURCE::GetResource<MaterialResource>(matHandle, this, L"Scene Window", "Editor Window");
-
+		// Initializing grid gpu constants
 		MeshConstants mc;
 		mc.mWorld = Matrix4::Identity();
 		mLineConstantsGPU.Create(L"Scene Window Grid GPU Buffer", 1, sizeof(MeshConstants), &mc);
+
+		CreateGrid(mWindowRenderItems);
 	}
 
 	SceneWindow::~SceneWindow()
@@ -46,29 +45,27 @@ namespace Darius::Editor::Gui::Windows
 		mSceneTexture.Destroy();
 	}
 
-	D_RENDERER_FRAME_RESOUCE::GlobalConstants SceneWindow::GetGlobalConstants()
+	void SceneWindow::UpdateGlobalConstants(D_RENDERER_FRAME_RESOUCE::GlobalConstants& globals)
 	{
-		D_RENDERER_FRAME_RESOUCE::GlobalConstants globals;
-
-		auto view = mCamera.GetViewMatrix();
-		auto proj = mCamera.GetProjMatrix();
-
-		auto viewProj = mCamera.GetViewProjMatrix();
-		auto invView = Matrix4::Inverse(view);
-		auto invProj = Matrix4::Inverse(proj);
-		auto invViewProj = Matrix4::Inverse(viewProj);
+		Matrix4 temp;
 
 		float width, height;
 		D_CAMERA_MANAGER::GetViewportDimansion(width, height);
 
 		auto time = *D_TIME::GetStepTimer();
 
-		globals.View = view;
-		globals.InvView = invView;
-		globals.Proj = proj;
-		globals.InvProj = invProj;
-		globals.ViewProj = viewProj;
-		globals.InvViewProj = invViewProj;
+		temp = mCamera.GetViewMatrix(); // View
+		globals.View = temp;
+		globals.InvView = Matrix4::Inverse(temp);
+
+		temp = mCamera.GetProjMatrix(); // Proj
+		globals.Proj = temp;
+		globals.InvProj = Matrix4::Inverse(temp);
+
+		temp = mCamera.GetViewProjMatrix(); // View proj
+		globals.ViewProj = temp;
+		globals.InvViewProj = Matrix4::Inverse(temp);
+
 		globals.CameraPos = mCamera.GetPosition();
 		globals.RenderTargetSize = XMFLOAT2(width, height);
 		globals.InvRenderTargetSize = XMFLOAT2(1.f / width, 1.f / height);
@@ -78,21 +75,20 @@ namespace Darius::Editor::Gui::Windows
 		globals.DeltaTime = (float)time.GetElapsedSeconds();
 		globals.AmbientLight = { 0.5f, 0.5f, 0.5f, 1.0f };
 
-
+		// Lights
+		globals.Lights[0].Position = { 10.f, 10.f, 10.f };
 		globals.Lights[0].Direction = { 0.57735f, -0.57735f, 0.57735f };
-		globals.Lights[0].Color = { 0.6f, 0.6f, 0.6f };
 		globals.Lights[0].Color = { 0.6f, 0.6f, 0.6f };
 		globals.Lights[1].Direction = { -0.57735f, -0.57735f, 0.57735f };
 		globals.Lights[1].Color = { 0.3f, 0.3f, 0.3f };
+		globals.Lights[2].Position = { 10.f, -10.f, 10.f };
 		globals.Lights[2].Direction = { 0.0f, -0.707f, -0.707f };
 		globals.Lights[2].Color = { 0.15f, 0.15f, 0.15f };
 
-		return globals;
 	}
 
 	void SceneWindow::Render(D_GRAPHICS::GraphicsContext& context)
 	{
-		context.SetPipelineState(D_RENDERER::GetPSO(PipelineStateTypes::Opaque));
 
 		// Prepare the command list to render a new frame.
 		context.TransitionResource(mSceneTexture, D3D12_RESOURCE_STATE_RENDER_TARGET, true);
@@ -114,8 +110,18 @@ namespace Darius::Editor::Gui::Windows
 
 		PIXEndEvent();
 
-		auto globals = GetGlobalConstants();
-		D_RENDERER::RenderMeshes(context, GetRenderItems(), globals);
+		UpdateGlobalConstants(mSceneGlobals);
+
+		// Updating render items
+		UpdateSceneRenderItems(mMesheRenderItems);
+
+		// Render scene
+		context.SetPipelineState(D_RENDERER::GetPSO(PipelineStateTypes::Opaque));
+		D_RENDERER::RenderMeshes(context, mMesheRenderItems, mSceneGlobals);
+
+		// Render window batches
+		context.SetPipelineState(D_RENDERER::GetPSO(PipelineStateTypes::Color));
+		D_RENDERER::RenderBatchs(context, mWindowRenderItems, mSceneGlobals);
 
 		context.TransitionResource(mSceneTexture, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, true);
 		D_RENDERER_DEVICE::GetDevice()->CopyDescriptorsSimple(1, mTextureHandle, mSceneTexture.GetSRV(), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
@@ -174,17 +180,18 @@ namespace Darius::Editor::Gui::Windows
 		item.Mesh = mesh;
 		item.PrimitiveType = D3D_PRIMITIVE_TOPOLOGY_LINELIST;
 		item.MeshCBV = mLineConstantsGPU.GetGpuVirtualAddress();
-		item.MaterialCBV = *mLineMeshMaterial.Get();
+		item.Color = { 1.f, 1.f, 1.f, 1.f };
 		
 		items.push_back(item);
 	}
 
-	DVector<D_RENDERER_FRAME_RESOUCE::RenderItem> SceneWindow::GetRenderItems()
+	void SceneWindow::UpdateSceneRenderItems(DVector<RenderItem>& items)
 	{
 		// TODO: WRITE IT BETTER - I will when I implement components
 
+		items.clear();
+
 		// Update CBs
-		DVector<RenderItem> items;
 		const auto gos = D_SCENE::GetGameObjects();
 		auto cam = D_CAMERA_MANAGER::GetActiveCamera();
 		auto frustum = cam->GetViewSpaceFrustum();
@@ -209,8 +216,5 @@ namespace Darius::Editor::Gui::Windows
 
 		D_LOG_INFO("Number of render items: " + std::to_string(items.size()));
 
-		CreateGrid(items);
-
-		return items;
 	}
 }

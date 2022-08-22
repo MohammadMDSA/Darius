@@ -26,26 +26,44 @@ namespace Darius::Renderer
 		kNumRootBindings		// Just to know how many root binings there are
 	};
 
+	enum ColorRootBindings
+	{
+		kColorMeshConstants,
+		kColorConstants,
+		kColorCommonCBV,
+
+		kColorNumRootBindings
+	};
+
 	enum class PipelineStateTypes
 	{
 		Opaque,
 		Wireframe,
+		Color,
+		WireframeColor
+	};
+
+	enum class RootSignatureTypes
+	{
+		Default,
 		Color,
 	};
 
 	void Initialize();
 	void Shutdown();
 
-	extern D_GRAPHICS_UTILS::RootSignature RootSign;
-
 #ifdef _D_EDITOR
 	void					RegisterGuiDrawer(std::function<void(void)> drawer);
 	DescriptorHandle		GetRenderResourceHandle(UINT index);
 #endif
+	// For rendering meshs
 	void					RenderMeshes(D_GRAPHICS::GraphicsContext& context, D_CONTAINERS::DVector<RenderItem> const& renderItems, D_RENDERER_FRAME_RESOUCE::GlobalConstants const& globals);
+
+	// For rendering batches like line and debug stuff
+	void					RenderBatchs(D_GRAPHICS::GraphicsContext& context, D_CONTAINERS::DVector<RenderItem> const& renderItems, D_RENDERER_FRAME_RESOUCE::GlobalConstants const& globals);
 
 	void					Present(D_GRAPHICS::GraphicsContext& context);
 
 	D_GRAPHICS_UTILS::GraphicsPSO& GetPSO(PipelineStateTypes type);
-
+	D_GRAPHICS_UTILS::RootSignature& GetRootSignature(RootSignatureTypes type);
 }
