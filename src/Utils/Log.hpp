@@ -3,10 +3,10 @@
 #define D_LOG_IMPL(msg, lvl)
 #define D_LOG_TRACE_IMPL(msg) std::cout << "TRACE:\t" << msg << std::endl
 #define D_LOG_DEBUG_IMPL(msg) std::cout  << "DEBUG:\t" << msg << std::endl
-#define D_LOG_INFO_IMPL(msg) std::cout  << "INFO\t" << msg << std::endl
-#define D_LOG_WARN_IMPL(msg) std::cerr  << "WARN\t" << msg << std::endl
-#define D_LOG_ERROR_IMPL(msg) std::cerr  << "ERROR\t" << msg << std::endl
-#define D_LOG_FATAL_IMPL(msg) std::cerr  << "FATAL\t" << msg << std::endl
+#define D_LOG_INFO_IMPL(msg) std::cout  << "INFO:\t" << msg << std::endl
+#define D_LOG_WARN_IMPL(msg) std::cerr  << "WARN:\t" << msg << std::endl
+#define D_LOG_ERROR_IMPL(msg) std::cerr  << "ERROR:\t" << msg << std::endl
+#define D_LOG_FATAL_IMPL(msg) std::cerr  << "FATAL:\t" << msg << std::endl
 #elif
 #define D_LOG_IMPL(msg, lvl)
 #define D_LOG_TRACE_IMPL(msg)
