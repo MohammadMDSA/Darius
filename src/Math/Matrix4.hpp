@@ -93,6 +93,8 @@ namespace Darius::Math
         static INLINE Matrix4 MakeLookAt(Vector3 eyePos, Vector3 target, Vector3 up) { return Matrix4(XMMatrixLookAtRH(eyePos, target, up)); }
         static INLINE Matrix4 MakeLookToward(Vector3 eyePos, Vector3 dir, Vector3 up) { return Matrix4(XMMatrixLookToRH(eyePos, dir, up)); }
         static INLINE Matrix4 MakeProjection(float fov, float ratio, float nearP, float farP) { return Matrix4(XMMatrixPerspectiveFovRH(fov, ratio, nearP, farP)); }
+        static INLINE Matrix4 MakeTranslation(Vector3 trans) { return Matrix4(XMMatrixTranslationFromVector(trans)); }
+        static INLINE Matrix4 MakeTranslation(float x, float y, float z) { return Matrix4(XMMatrixTranslation(x, y, z)); }
         static INLINE Matrix4 Inverse(Matrix4 const& mat) { auto det = XMMatrixDeterminant(mat); return Matrix4(XMMatrixInverse(&det, mat)); }
         static INLINE Matrix4 Transpose(Matrix4 const& mat) { return Matrix4(XMMatrixTranspose(mat.m_mat)); }
 
