@@ -3,6 +3,7 @@
 #include "Renderer/GraphicsUtils/Buffers/GpuBuffer.hpp"
 
 #include <Math/Bounds/BoundingSphere.hpp>
+#include <Math/Bounds/BoundingBox.hpp>
 #include <Utils/Common.hpp>
 
 #include <string>
@@ -48,6 +49,7 @@ namespace Darius::Renderer::Geometry
 		std::vector<Draw>				mDraw;
 
 		D_MATH_BOUNDS::BoundingSphere	mBoundSp;
+		D_MATH_BOUNDS::AxisAlignedBox	mBoundBox;
 	};
 
 }

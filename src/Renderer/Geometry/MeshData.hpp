@@ -4,6 +4,7 @@
 
 #include <Core/Containers/Vector.hpp>
 #include <Math/Bounds/BoundingSphere.hpp>
+#include <Math/Bounds/BoundingBox.hpp>
 
 
 #ifndef D_RENDERER_GEOMETRY
@@ -48,6 +49,17 @@ namespace Darius::Renderer::Geometry
 				res = res.Union(vertBound);
 			}
 			return res;
+		}
+
+		AxisAlignedBox CalcBoundingBox()
+		{
+			AxisAlignedBox box;
+			for (auto vert : Vertices)
+			{
+				box.AddBoundingBox(AxisAlignedBox(vert.mPosition, vert.mPosition));
+			}
+
+			return box;
 		}
 
 	private:
