@@ -34,7 +34,8 @@ namespace Darius::Editor::Gui::Windows
 		void CreateBuffers();
 
 		void UpdateSceneRenderItems(DVector<RenderItem>& items);
-		void CreateGrid(DVector<D_RENDERER_FRAME_RESOUCE::RenderItem>& items);
+		void CreateGrid(DVector<D_RENDERER_FRAME_RESOUCE::RenderItem>& items, int count);
+		void CalcGridLineConstants(DVector<MeshConstants>& constants, int count);
 
 		void UpdateGlobalConstants(D_RENDERER_FRAME_RESOUCE::GlobalConstants& globals);
 
