@@ -21,8 +21,8 @@ namespace Darius::Editor::Gui::Windows
 
 		mCamera.SetFOV(XM_PI / 3);
 		mCamera.SetZRange(0.01f, 1000.f);
-		mCamera.SetPosition(Vector3(-5.f, 0.f, 0));
-		mCamera.SetLookDirection(Vector3::Right(), Vector3::Up());
+		mCamera.SetPosition(Vector3(2.f, 2.f, 2.f));
+		mCamera.SetLookDirection(Vector3(-2), Vector3::Up());
 		mCamera.ReverseZ(false);
 
 		D_CAMERA_MANAGER::SetActiveCamera(&mCamera);
