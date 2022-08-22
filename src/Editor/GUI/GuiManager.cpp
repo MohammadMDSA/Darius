@@ -2,7 +2,7 @@
 #include <Renderer/pch.hpp>
 #include "GuiManager.hpp"
 #include "SceneWindow.hpp"
-#include "SceneGraphiWindow.hpp"
+#include "SceneGraphWindow.hpp"
 #include "DetailsWindow.hpp"
 #include "ResourceMonitorWindow.hpp"
 #include "Editor/EditorContext.hpp"

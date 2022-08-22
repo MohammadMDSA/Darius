@@ -1,5 +1,5 @@
 #include "Editor/pch.hpp"
-#include "SceneGraphiWindow.hpp"
+#include "SceneGraphWindow.hpp"
 #include "Editor/EditorContext.hpp"
 
 #include <Scene/Scene.hpp>
