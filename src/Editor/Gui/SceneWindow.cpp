@@ -206,10 +206,16 @@ namespace Darius::Editor::Gui::Windows
 		item.Mesh = mesh;
 		item.PrimitiveType = D3D_PRIMITIVE_TOPOLOGY_LINELIST;
 		item.MeshCBV = mLineConstantsGPU.GetGpuVirtualAddress();
-		item.Color = { 1.f, 1.f, 1.f, 1.f };
 
 		for (int i = 0; i < count; i++)
 		{
+			if (i / 2 == 0)
+				item.Color = { 1.f, 1.f, 1.f, 1.f };
+			else if (((i - 2) / 4) % 10 == 9)
+				item.Color = { 0.501f, 0.501f, 0.501f, 1.f };
+			else
+				item.Color = { 0.3f, 0.3f, 0.3f, 1.f };
+
 			items.push_back(item);
 			item.MeshCBV += sizeof(MeshConstants);
 		}
