@@ -32,11 +32,11 @@ namespace Darius::Editor::Gui::Windows
 
 	private:
 		void CreateBuffers();
+
+		void UpdateSceneRenderItems(DVector<RenderItem>& items);
 		void CreateGrid(DVector<D_RENDERER_FRAME_RESOUCE::RenderItem>& items);
 
-		DVector<D_RENDERER_FRAME_RESOUCE::RenderItem> GetRenderItems();
-
-		D_RENDERER_FRAME_RESOUCE::GlobalConstants GetGlobalConstants();
+		void UpdateGlobalConstants(D_RENDERER_FRAME_RESOUCE::GlobalConstants& globals);
 
 		D_MATH_CAMERA::Camera						mCamera;
 
@@ -45,11 +45,12 @@ namespace Darius::Editor::Gui::Windows
 		D_GRAPHICS_MEMORY::DescriptorHandle			mTextureHandle;
 
 		Ref<MeshResource>							mLineMeshResource;
-		Ref<MaterialResource>						mLineMeshMaterial;
 
-		D_GRAPHICS_BUFFERS::UploadBuffer			mLineConstantsCPU;
 		ByteAddressBuffer							mLineConstantsGPU;
 
+		DVector<RenderItem>							mMesheRenderItems;
+		DVector<RenderItem>							mWindowRenderItems;
+		D_RENDERER_FRAME_RESOUCE::GlobalConstants	mSceneGlobals;
 	};
 
 }

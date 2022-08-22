@@ -45,7 +45,7 @@ namespace Darius::Renderer
 #endif
 
 	// Input layout and root signature
-	D_GRAPHICS_UTILS::RootSignature						RootSign;
+	std::unordered_map<RootSignatureTypes, D_GRAPHICS_UTILS::RootSignature> RootSigns;
 	std::unordered_map<PipelineStateTypes, D_GRAPHICS_UTILS::GraphicsPSO> Psos;
 
 	// Device resource
@@ -88,9 +88,8 @@ namespace Darius::Renderer
 	{
 		D_ASSERT(_device != nullptr);
 		ImguiHeap.Destroy();
-		RootSign.DestroyAll();
-		for (auto& kv : Psos)
-			kv.second.DestroyAll();
+		D_GRAPHICS_UTILS::RootSignature::DestroyAll();
+		D_GRAPHICS_UTILS::GraphicsPSO::DestroyAll();
 	}
 
 #ifdef _D_EDITOR
@@ -105,11 +104,16 @@ namespace Darius::Renderer
 		return Psos[type];
 	}
 
+	D_GRAPHICS_UTILS::RootSignature& GetRootSignature(RootSignatureTypes type)
+	{
+		return RootSigns[type];
+	}
+
 	void RenderMeshes(D_GRAPHICS::GraphicsContext& context, D_CONTAINERS::DVector<RenderItem> const& renderItems, D_RENDERER_FRAME_RESOUCE::GlobalConstants const& globals)
 	{
 
 		// Setting Root Signature
-		context.SetRootSignature(D_RENDERER::RootSign);
+		context.SetRootSignature(RootSigns[RootSignatureTypes::Default]);
 
 		context.SetDynamicConstantBufferView(kCommonCBV, sizeof(GlobalConstants), &globals);
 
@@ -126,6 +130,38 @@ namespace Darius::Renderer
 
 			context.SetConstantBuffer(kMeshConstants, ri.MeshCBV);
 			context.SetConstantBuffer(kMaterialConstants, ri.MaterialCBV);
+			context.DrawIndexedInstanced(ri.IndexCount, 1, ri.StartIndexLocation, ri.BaseVertexLocation, 0);
+		}
+
+		PIXEndEvent(context.GetCommandList());
+	}
+
+	void RenderBatchs(D_GRAPHICS::GraphicsContext& context, D_CONTAINERS::DVector<RenderItem> const& renderItems, D_RENDERER_FRAME_RESOUCE::GlobalConstants const& globals)
+	{
+		// Setting Root Signature
+		context.SetRootSignature(RootSigns[RootSignatureTypes::Color]);
+
+		context.SetDynamicConstantBufferView(kColorCommonCBV, sizeof(GlobalConstants), &globals);
+
+		PIXBeginEvent(context.GetCommandList(), PIX_COLOR_DEFAULT, L"Render batches");
+
+		// Draw each batch render item
+		for (auto const& ri : renderItems)
+		{
+			auto vbv = ri.Mesh->VertexBufferView();
+			auto ibv = ri.Mesh->IndexBufferView();
+			context.SetVertexBuffer(0, vbv);
+			context.SetIndexBuffer(ibv);
+			context.SetPrimitiveTopology(ri.PrimitiveType);
+
+			// Setup mesh constants
+			context.SetConstantBuffer(kColorMeshConstants, ri.MeshCBV);
+
+			// Setup color
+			D_RENDERER_FRAME_RESOUCE::ColorConstants color = { ri.Color };
+			context.SetDynamicConstantBufferView(kColorConstants, sizeof(ColorConstants), &color);
+
+			// Render
 			context.DrawIndexedInstanced(ri.IndexCount, 1, ri.StartIndexLocation, ri.BaseVertexLocation, 0);
 		}
 
@@ -211,7 +247,7 @@ namespace Darius::Renderer
 		auto rasterState = CD3DX12_RASTERIZER_DESC(D3D12_DEFAULT);
 		rasterState.FillMode = D3D12_FILL_MODE_SOLID;
 		rasterState.CullMode = D3D12_CULL_MODE_FRONT;
-		pso.SetRootSignature(RootSign);
+		pso.SetRootSignature(RootSigns[RootSignatureTypes::Default]);
 		pso.SetRasterizerState(rasterState);
 		pso.SetBlendState(CD3DX12_BLEND_DESC(D3D12_DEFAULT));
 		pso.SetDepthStencilState(CD3DX12_DEPTH_STENCIL_DESC(D3D12_DEFAULT));
@@ -230,23 +266,44 @@ namespace Darius::Renderer
 		wirePso.Finalize();
 		Psos[PipelineStateTypes::Wireframe] = wirePso;
 
+		// For colored only objects
+		GraphicsPSO colorPso(pso);
+		il = D_RENDERER_VERTEX::VertexPositionColor::InputLayout;
+		colorPso.SetInputLayout(il.NumElements, il.pInputElementDescs);
+		colorPso.SetVertexShader(reinterpret_cast<BYTE*>(Shaders["colorVS"]->GetBufferPointer()), Shaders["colorVS"]->GetBufferSize());
+		colorPso.SetPixelShader(reinterpret_cast<BYTE*>(Shaders["colorPS"]->GetBufferPointer()), Shaders["colorPS"]->GetBufferSize());
+		colorPso.SetRootSignature(RootSigns[RootSignatureTypes::Color]);
+		colorPso.Finalize();
+		Psos[PipelineStateTypes::Color] = colorPso;
+
+		// For wireframe colored only objects
+		GraphicsPSO wireColorPso(colorPso);
+		wireColorPso.SetRasterizerState(wireRasterState);
+		wireColorPso.Finalize();
+		Psos[PipelineStateTypes::WireframeColor] = wireColorPso;
 
 	}
 
 	void BuildRootSignature()
 	{
-		// Root parameter can be a table, root descriptor or root constants.
-		D_GRAPHICS_UTILS::RootParameter slotRootParameter[2];
-
-		// A root signature is an array of root parameters.
-		RootSign.Reset(kNumRootBindings, 0);
-
+		// Default root signature
+		auto& def = RootSigns[RootSignatureTypes::Default];
+		def.Reset(kNumRootBindings, 0);
 		// Create root CBVs.
-		RootSign[kMeshConstants].InitAsConstantBuffer(0, D3D12_SHADER_VISIBILITY_VERTEX);
-		RootSign[kMaterialConstants].InitAsConstantBuffer(0, D3D12_SHADER_VISIBILITY_PIXEL);
-		RootSign[kCommonCBV].InitAsConstantBuffer(1);
+		def[kMeshConstants].InitAsConstantBuffer(0, D3D12_SHADER_VISIBILITY_VERTEX);
+		def[kMaterialConstants].InitAsConstantBuffer(0, D3D12_SHADER_VISIBILITY_PIXEL);
+		def[kCommonCBV].InitAsConstantBuffer(1);
+		def.Finalize(L"Main Root Sig", D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT);
 
-		RootSign.Finalize(L"Main Root Sig", D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT);
+		//Color root signature
+		auto& col = RootSigns[RootSignatureTypes::Color];
+		col.Reset(kColorNumRootBindings);
+		// Create root CBVs.
+		col[kColorMeshConstants].InitAsConstantBuffer(0, D3D12_SHADER_VISIBILITY_VERTEX);
+		col[kColorConstants].InitAsConstantBuffer(0, D3D12_SHADER_VISIBILITY_PIXEL);
+		col[kColorCommonCBV].InitAsConstantBuffer(1);
+		col.Finalize(L"Color root sig", D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT);
+
 	}
 
 #ifdef _D_EDITOR
