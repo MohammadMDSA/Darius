@@ -397,7 +397,7 @@ namespace Darius::Scene::Utils::DetailsDrawer
 		return valueChanged;
 	}
 
-	bool DrawDetails(D_RENDERER_FRAME_RESOUCE::Material& mat, float params[])
+	bool DrawDetails(D_RENDERER_FRAME_RESOUCE::MaterialConstants& mat, float params[])
 	{
 		bool valueChanged = false;
 

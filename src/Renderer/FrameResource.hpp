@@ -45,7 +45,13 @@ namespace Darius::Renderer::ConstantFrameResource
 		XMFLOAT4X4				mWorld;
 	};
 
-	struct Material
+	// Color structure for color batches
+	ALIGN_DECL_256 struct ColorConstants
+	{
+		XMFLOAT4		Color;
+	};
+
+	ALIGN_DECL_256 struct MaterialConstants
 	{
 		XMFLOAT4					DifuseAlbedo = { 1.f, 1.f, 1.f, 1.f };
 		XMFLOAT3					FresnelR0 = { 0.f, 0.f, 0.f };
@@ -64,15 +70,21 @@ namespace Darius::Renderer::ConstantFrameResource
 		// should set.
 		// NumFramesDirty = mNumFrameResources so that each frame resource
 		// gets the update.
-		int							NumFramesDirty = gNumFrameResources;
+		int								NumFramesDirty = gNumFrameResources;
 
 		// Mesh constants GPU Address
-		D3D12_GPU_VIRTUAL_ADDRESS	MeshCBV;
-		D3D12_GPU_VIRTUAL_ADDRESS	MaterialCBV;
+		D3D12_GPU_VIRTUAL_ADDRESS		MeshCBV;
+
+		// Material or color
+		union
+		{
+			D3D12_GPU_VIRTUAL_ADDRESS	MaterialCBV;
+			XMFLOAT4					Color = { 1.f, 1.f, 1.f, 1.f };
+		};
 
 		// Geometry associated with this render-item. Note that multiple
 		// render-items can share the same goemetry.
-		const Mesh*					Mesh = nullptr;
+		const Mesh* Mesh = nullptr;
 
 		// Primitive topology.
 		D3D12_PRIMITIVE_TOPOLOGY	PrimitiveType = D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST;

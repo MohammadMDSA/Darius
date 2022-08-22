@@ -55,16 +55,16 @@ namespace Darius::ResourceManager
 			// Initializing Material Constants buffers
 			for (size_t i = 0; i < D_RENDERER_FRAME_RESOUCE::gNumFrameResources; i++)
 			{
-				mMaterialConstantsCPU[i].Create(L"Material Constatns Upload Buffer", sizeof(Material));
+				mMaterialConstantsCPU[i].Create(L"Material Constatns Upload Buffer", sizeof(MaterialConstants));
 			}
-			mMaterialConstantsGPU.Create(L"Material Constants GPU Buffer", 1, sizeof(Material));
+			mMaterialConstantsGPU.Create(L"Material Constants GPU Buffer", 1, sizeof(MaterialConstants));
 		}
 
 		// Updating material constnats
 		// Mapping upload buffer
 		auto& currentMatUploadBuff = mMaterialConstantsCPU[D_RENDERER_DEVICE::GetCurrentResourceIndex()];
-		auto matCB = (Material*)currentMatUploadBuff.Map();
-		memcpy(matCB, &mMaterial, sizeof(Material));
+		auto matCB = (MaterialConstants*)currentMatUploadBuff.Map();
+		memcpy(matCB, &mMaterial, sizeof(MaterialConstants));
 
 		currentMatUploadBuff.Unmap();
 
