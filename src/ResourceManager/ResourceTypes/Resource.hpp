@@ -29,6 +29,7 @@ namespace Darius::ResourceManager
 	{
 		None,
 		Mesh,
+		Batch,
 		Material
 	};
 

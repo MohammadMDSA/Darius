@@ -4,17 +4,19 @@ set(RESOUCE_MANAGER_LIBS_INCLUDE)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ".")
 
 list(APPEND RESOUCE_MANAGER_LIBS_INCLUDE
-	"ResourceTypes/Resource.hpp"
 	"ResourceManager.hpp"
+	"ResourceTypes/Resource.hpp"
+	"ResourceTypes/BatchResource.hpp"
 	"ResourceTypes/MeshResource.hpp"
 	"ResourceTypes/MaterialResource.hpp"
 	"ResourceLoader.hpp"
 	)
 
 list(APPEND RESOUCE_MANAGER_LIBS_SOURCES
-	"ResourceTypes/Resource.cpp"
 	"ResourceManager.cpp"
+	"ResourceTypes/Resource.cpp"
 	"ResourceTypes/MeshResource.cpp"
+	"ResourceTypes/BatchResource.cpp"
 	"ResourceTypes/MaterialResource.cpp"
 	"ResourceLoader.cpp"
 	)
@@ -25,7 +27,7 @@ add_library("ResourceManager")
 target_sources("ResourceManager"
 	PRIVATE
 	${RESOUCE_MANAGER_LIBS_SOURCES}
-	${RESOUCE_MANAGER_LIBS_INCLUDE})
+	${RESOUCE_MANAGER_LIBS_INCLUDE} "ResourceTypes/BatchResource.hpp")
 
 	
 set(Boost_USE_STATIC_LIBS ON) 

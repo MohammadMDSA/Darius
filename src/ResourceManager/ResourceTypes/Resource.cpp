@@ -12,6 +12,8 @@ namespace Darius::ResourceManager
 			return "Mesh";
 		case Darius::ResourceManager::ResourceType::Material:
 			return "Material";
+		case Darius::ResourceManager::ResourceType::Batch:
+			return "Batch";
 		default:
 			throw D_CORE::Exception::Exception("Resource type not defined");
 		case Darius::ResourceManager::ResourceType::None:
@@ -25,6 +27,8 @@ namespace Darius::ResourceManager
 			return ResourceType::Mesh;
 		if (type == "Material")
 			return ResourceType::Material;
+		if (type == "Batch")
+			return ResourceType::Batch;
 		return ResourceType::None;
 	}
 
