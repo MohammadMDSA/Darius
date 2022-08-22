@@ -40,7 +40,7 @@ struct PixelIn
 	float4 pos : SV_POSITION;
 };
 
-PixelIn VS(VertexIn vin)
+PixelIn main(VertexIn vin)
 {
 	PixelIn vout;
 	
