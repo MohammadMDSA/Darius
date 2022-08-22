@@ -3,6 +3,7 @@
 #include "ResourceTypes/Resource.hpp"
 #include "ResourceTypes/MeshResource.hpp"
 #include "ResourceTypes/MaterialResource.hpp"
+#include "ResourceTypes/BatchResource.hpp"
 #include "ResourceLoader.hpp"
 
 #include <Core/Filesystem/Path.hpp>
@@ -40,8 +41,6 @@ namespace Darius::ResourceManager
 	{
 		switch (type)
 		{
-		case Darius::ResourceManager::ResourceType::None:
-		case Darius::ResourceManager::ResourceType::Mesh:
 		default:
 			return { ResourceType::None, 0 };
 		case Darius::ResourceManager::ResourceType::Material:
@@ -96,8 +95,9 @@ namespace Darius::ResourceManager
 
 	DResourceManager::DResourceManager()
 	{
-		mResourceMap.insert({ ResourceType::Mesh, DMap<DResourceId, Resource*>() });
-		mResourceMap.insert({ ResourceType::Material, DMap<DResourceId, Resource*>() });
+		mResourceMap[ResourceType::Mesh];
+		mResourceMap[ResourceType::Material];
+		mResourceMap[ResourceType::Batch];
 
 		LoadDefaultResources();
 	}
@@ -192,7 +192,7 @@ namespace Darius::ResourceManager
 		mResourceMap.at(ResourceType::Mesh).insert({ res->GetId(), res });
 		mDefaultResourceMap.insert({ DefaultResource::SphereMesh, { ResourceType::Mesh, res->GetId() } });
 
-		res = new MeshResource(GenerateUuidFor("Line Mesh"), L"Line Mesh", GetNewId(), true);
+		res = new BatchResource(GenerateUuidFor("Line Mesh"), L"Line Mesh", GetNewId(), true);
 		res->Create(L"Line Mesh", line);
 		rRes = dynamic_cast<Resource*>(res);
 		rRes->mDirtyGPU = false;
