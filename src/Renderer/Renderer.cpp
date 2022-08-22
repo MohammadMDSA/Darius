@@ -235,7 +235,8 @@ namespace Darius::Renderer
 	void BuildPSO()
 	{
 		// For Opaque objects
-		GraphicsPSO pso(L"Opaque");
+		Psos[PipelineStateTypes::Opaque] = GraphicsPSO(L"Opaque");
+		auto& pso = Psos[PipelineStateTypes::Opaque];
 
 		auto il = D_RENDERER_VERTEX::VertexPositionNormal::InputLayout;
 		pso.SetInputLayout(il.NumElements, il.pInputElementDescs);
@@ -255,32 +256,32 @@ namespace Darius::Renderer
 		pso.SetPrimitiveTopologyType(D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE);
 		pso.SetRenderTargetFormat(D_RENDERER_DEVICE::GetBackBufferFormat(), D_RENDERER_DEVICE::GetDepthBufferFormat());
 		pso.Finalize();
-		Psos[PipelineStateTypes::Opaque] = pso;
 
 
 		// For opaque wireframe objecs
-		GraphicsPSO wirePso(pso);
+		Psos[PipelineStateTypes::Wireframe] = pso;
+		auto& wirePso = Psos[PipelineStateTypes::Wireframe];
 		auto wireRasterState = rasterState;
 		wireRasterState.FillMode = D3D12_FILL_MODE_WIREFRAME;
 		wirePso.SetRasterizerState(wireRasterState);
-		wirePso.Finalize();
-		Psos[PipelineStateTypes::Wireframe] = wirePso;
+		wirePso.Finalize(L"Wireframe");
 
 		// For colored only objects
-		GraphicsPSO colorPso(pso);
-		il = D_RENDERER_VERTEX::VertexPositionColor::InputLayout;
+		Psos[PipelineStateTypes::Color] = pso;
+		auto& colorPso = Psos[PipelineStateTypes::Color];
+		il = D_RENDERER_VERTEX::VertexPosition::InputLayout;
 		colorPso.SetInputLayout(il.NumElements, il.pInputElementDescs);
 		colorPso.SetVertexShader(reinterpret_cast<BYTE*>(Shaders["colorVS"]->GetBufferPointer()), Shaders["colorVS"]->GetBufferSize());
 		colorPso.SetPixelShader(reinterpret_cast<BYTE*>(Shaders["colorPS"]->GetBufferPointer()), Shaders["colorPS"]->GetBufferSize());
 		colorPso.SetRootSignature(RootSigns[RootSignatureTypes::Color]);
-		colorPso.Finalize();
-		Psos[PipelineStateTypes::Color] = colorPso;
+		colorPso.SetPrimitiveTopologyType(D3D12_PRIMITIVE_TOPOLOGY_TYPE_LINE);
+		colorPso.Finalize(L"Color");
 
 		// For wireframe colored only objects
-		GraphicsPSO wireColorPso(colorPso);
+		Psos[PipelineStateTypes::WireframeColor] = colorPso;
+		auto& wireColorPso = Psos[PipelineStateTypes::WireframeColor];
 		wireColorPso.SetRasterizerState(wireRasterState);
-		wireColorPso.Finalize();
-		Psos[PipelineStateTypes::WireframeColor] = wireColorPso;
+		wireColorPso.Finalize(L"Color Wireframe");
 
 	}
 
@@ -301,8 +302,8 @@ namespace Darius::Renderer
 		// Create root CBVs.
 		col[kColorMeshConstants].InitAsConstantBuffer(0, D3D12_SHADER_VISIBILITY_VERTEX);
 		col[kColorConstants].InitAsConstantBuffer(0, D3D12_SHADER_VISIBILITY_PIXEL);
-		col[kColorCommonCBV].InitAsConstantBuffer(1);
-		col.Finalize(L"Color root sig", D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT);
+		col[kColorCommonCBV].InitAsConstantBuffer(1, D3D12_SHADER_VISIBILITY_VERTEX);
+		col.Finalize(L"Color Root Sig", D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT);
 
 	}
 
