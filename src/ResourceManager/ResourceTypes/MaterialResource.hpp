@@ -21,22 +21,22 @@ namespace Darius::ResourceManager
 
 	class MaterialResource : public Resource
 	{
-		D_CH_RESOUCE_BODY(MaterialResource, ResourceType::Material)
+		D_CH_RESOUCE_BODY(MaterialResource, ResourceType::MaterialConstants)
 		
 	public:
-		INLINE Material* ModifyData() { MakeDiskDirty(); MakeGpuDirty(); return &mMaterial; }
-		INLINE const Material*			GetData() const { return &mMaterial; }
+		INLINE MaterialConstants* ModifyData() { MakeDiskDirty(); MakeGpuDirty(); return &mMaterial; }
+		INLINE const MaterialConstants*			GetData() const { return &mMaterial; }
 
 		INLINE virtual ResourceType		GetType() const override { return ResourceType::Material; }
 		
 		virtual bool					SuppoertsExtension(std::wstring ext) override;
 
-		INLINE operator const Material* () const { return &mMaterial; }
-		INLINE operator Material*() { ModifyData(); }
+		INLINE operator const MaterialConstants* () const { return &mMaterial; }
+		INLINE operator MaterialConstants*() { ModifyData(); }
 
 		INLINE operator D3D12_GPU_VIRTUAL_ADDRESS const() { return mMaterialConstantsGPU.GetGpuVirtualAddress(); }
 			
-		D_CH_FIELD(Material, Material);
+		D_CH_FIELD(MaterialConstants, Material);
 
 	protected:
 
