@@ -3,8 +3,8 @@
 #include "GraphicsUtils/Memory/DescriptorHeap.hpp"
 #include "Renderer.hpp"
 #include "RenderDeviceManager.hpp"
-#include "Renderer/CommandContext.hpp"
-
+#include "CommandContext.hpp"
+#include "GraphicsUtils/D3DUtils.hpp"
 
 #include <Utils/Assert.hpp>
 
