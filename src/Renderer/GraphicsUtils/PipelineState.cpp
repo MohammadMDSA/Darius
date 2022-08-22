@@ -120,8 +120,11 @@ namespace Darius::Graphics::Utils
 			mInputLayouts = nullptr;
 	}
 
-	void GraphicsPSO::Finalize()
+	void GraphicsPSO::Finalize(std::wstring nameOverride)
 	{
+		if (nameOverride != L"")
+			mName = nameOverride.c_str();
+
 		// Make sure the root signature is finalized first
 		mPSODesc.pRootSignature = mRootSignature->GetSignature();
 		D_ASSERT(mPSODesc.pRootSignature != nullptr);
