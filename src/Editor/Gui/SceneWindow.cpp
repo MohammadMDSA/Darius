@@ -30,13 +30,15 @@ namespace Darius::Editor::Gui::Windows
 		// Fetch line mesh resource
 		auto lineHandle = D_RESOURCE::GetDefaultResource(D_RESOURCE::DefaultResource::LineMesh);
 		mLineMeshResource = D_RESOURCE::GetResource<MeshResource>(lineHandle, this, L"Scene Window", "Editor Window");
-		
-		// Initializing grid gpu constants
-		MeshConstants mc;
-		mc.mWorld = Matrix4::Identity();
-		mLineConstantsGPU.Create(L"Scene Window Grid GPU Buffer", 1, sizeof(MeshConstants), &mc);
 
-		CreateGrid(mWindowRenderItems);
+		// Initializing grid gpu constants
+		auto count = 50;
+		auto total = 2 * (2 * count + 1);
+		DVector<MeshConstants> consts;
+		CalcGridLineConstants(consts, count);
+		mLineConstantsGPU.Create(L"Scene Window Grid GPU Buffer", total, sizeof(MeshConstants), consts.data());
+
+		CreateGrid(mWindowRenderItems, total);
 	}
 
 	SceneWindow::~SceneWindow()
@@ -170,7 +172,31 @@ namespace Darius::Editor::Gui::Windows
 		mSceneDepth.Create(L"Scene DepthStencil", (UINT)mWidth, (UINT)mHeight, D_RENDERER_DEVICE::GetDepthBufferFormat());
 	}
 
-	void SceneWindow::CreateGrid(DVector<D_RENDERER_FRAME_RESOUCE::RenderItem>& items)
+	void SceneWindow::CalcGridLineConstants(DVector<MeshConstants>& constants, int count)
+	{
+		auto scale = Matrix4::MakeScale(count * 2);
+		auto rot = Matrix4::MakeLookAt(Vector3(kZero), Vector3(-1.f, 0.f, 0.f), Vector3::Up());
+
+		for (short i = 0; i <= count; i++)
+		{
+			// Along +x
+			constants.push_back({ Matrix4::MakeTranslation(i, 0.f, count) * scale });
+
+			// Along +z
+			constants.push_back({ Matrix4::MakeTranslation(-count, 0.f, (float)i) * rot * scale });
+
+			if (i == 0)
+				continue;
+
+			// Along -x
+			constants.push_back({ Matrix4::MakeTranslation(-i, 0.f, count) * scale });
+
+			// Along -z
+			constants.push_back({ Matrix4::MakeTranslation(-count, 0.f, -i) * rot * scale });
+		}
+	}
+
+	void SceneWindow::CreateGrid(DVector<D_RENDERER_FRAME_RESOUCE::RenderItem>& items, int count)
 	{
 		RenderItem item;
 		const Mesh* mesh = mLineMeshResource->GetData();
@@ -181,8 +207,13 @@ namespace Darius::Editor::Gui::Windows
 		item.PrimitiveType = D3D_PRIMITIVE_TOPOLOGY_LINELIST;
 		item.MeshCBV = mLineConstantsGPU.GetGpuVirtualAddress();
 		item.Color = { 1.f, 1.f, 1.f, 1.f };
-		
-		items.push_back(item);
+
+		for (int i = 0; i < count; i++)
+		{
+			items.push_back(item);
+			item.MeshCBV += sizeof(MeshConstants);
+		}
+
 	}
 
 	void SceneWindow::UpdateSceneRenderItems(DVector<RenderItem>& items)
