@@ -1,5 +1,4 @@
 #pragma once
-#include "GraphicsUtils/UploadBuffer.hpp"
 #include "Geometry/Mesh.hpp"
 #include "FrameResource.hpp"
 #include "LightManager.hpp"

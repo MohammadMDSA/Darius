@@ -47,25 +47,13 @@ namespace Darius::ResourceManager
 
 		mMesh.name = GetName();
 
-		D_HR_CHECK(D3DCreateBlob(vbByteSize, &mMesh.mVertexBufferCPU));
-		CopyMemory(mMesh.mVertexBufferCPU->GetBufferPointer(), vertices.data(), vbByteSize);
+		// Create vertex buffer
+		mMesh.VertexDataGpu.Create(mMesh.name + L" Vertex Buffer", vertices.size(), sizeof(D_RENDERER_VERTEX::VertexPositionNormal), vertices.data());
 
-		D_HR_CHECK(D3DCreateBlob(ibByteSize, &mMesh.mIndexBufferCPU));
-		CopyMemory(mMesh.mIndexBufferCPU->GetBufferPointer(), indices.data(), ibByteSize);
-
-		auto& context = D_GRAPHICS::GraphicsContext::Begin(L"Mesh upload");
-
-		mMesh.mVertexBufferGPU = D_RENDERER_UTILS::CreateDefaultBuffer(D_RENDERER_DEVICE::GetDevice(), context.GetCommandList(), vertices.data(), vbByteSize, mMesh.mVertexBufferUploader);
-
-		mMesh.mIndexBufferGPU = D_RENDERER_UTILS::CreateDefaultBuffer(D_RENDERER_DEVICE::GetDevice(), context.GetCommandList(), indices.data(), ibByteSize, mMesh.mIndexBufferUploader);
-
-		mMesh.mVertexByteStride = sizeof(D_RENDERER_VERTEX::VertexPositionNormal);
-		mMesh.mVertexBufferByteSize = vbByteSize;
-		mMesh.mIndexFormat = DXGI_FORMAT_R16_UINT;
-		mMesh.mIndexBufferByteSize = ibByteSize;
+		// Create index buffer
+		mMesh.IndexDataGpu.Create(mMesh.name + L" Index Buffer", indices.size(), sizeof(std::uint16_t), indices.data());
 
 		mMesh.mDraw.push_back(submesh);
-		context.Finish();
 
 		mMesh.mBoundSp = data.CalcBoundingSphere();
 	}

@@ -6,7 +6,6 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ".")
 list(APPEND RENDERER_LIBS_INCLUDE
 	"pch.hpp"
 	"GraphicsUtils/D3DUtils.hpp"
-	"GraphicsUtils/UploadBuffer.hpp"
 	"GraphicsUtils/VertexTypes.hpp"
 	"GraphicsUtils/GpuResource.hpp"
 	"GraphicsUtils/CommandListManager.hpp"

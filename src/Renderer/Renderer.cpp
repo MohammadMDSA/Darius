@@ -6,7 +6,6 @@
 #include "FrameResource.hpp"
 #include "GraphicsCore.hpp"
 #include "GraphicsUtils/D3DUtils.hpp"
-#include "GraphicsUtils/UploadBuffer.hpp"
 #include "GraphicsUtils/RootSignature.hpp"
 #include "GraphicsUtils/Memory/DescriptorHeap.hpp"
 #include "GraphicsUtils/Buffers/ColorBuffer.hpp"
@@ -74,9 +73,6 @@ namespace Darius::Renderer
 
 		BuildRootSignature();
 		BuildPSO();
-
-		// Create Constant Buffer Views
-		UINT objSize = D_RENDERER_UTILS::CalcConstantBufferByteSize(sizeof(MeshConstants));
 
 #ifdef _D_EDITOR
 		InitializeGUI();
