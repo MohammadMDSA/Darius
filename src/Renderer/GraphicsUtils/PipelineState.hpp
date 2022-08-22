@@ -96,7 +96,7 @@ namespace Darius::Graphics::Utils
         void SetDomainShader(const D3D12_SHADER_BYTECODE& Binary) { mPSODesc.DS = Binary; }
 
         // Perform validation and compute a hash value for fast state block comparisons
-        void Finalize();
+        void Finalize(std::wstring nameOverride = L"");
 
     private:
 
