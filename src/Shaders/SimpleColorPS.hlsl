@@ -10,7 +10,7 @@ struct PixelIn
 	float4 pos : SV_POSITION;
 };
 
-float4 PS(PixelIn pin) : SV_TARGET
+float4 main(PixelIn pin) : SV_TARGET
 {
     return gColor;
 }
