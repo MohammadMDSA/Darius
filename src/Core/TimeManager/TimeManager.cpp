@@ -39,4 +39,19 @@ namespace Darius::Core::TimeManager
 	{
 		return Timer.get();
 	}
+
+	float GetDeltaTime()
+	{
+		return Timer->GetElapsedSeconds();
+	}
+
+	float GetTotalTime()
+	{
+		return Timer->GetTotalSeconds();
+	}
+
+	uint32_t GetFrameCount()
+	{
+		return Timer->GetFrameCount();
+	}
 }

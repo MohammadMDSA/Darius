@@ -15,6 +15,9 @@ namespace Darius::Core::TimeManager
 
 	void EnableFixedTimeStep(double targetElapsedSeconds);
 	void DisableFixedTimeStep();
+	float GetDeltaTime();
+	float GetTotalTime();
+	uint32_t GetFrameCount();
 
 	StepTimer* GetStepTimer();
 }
