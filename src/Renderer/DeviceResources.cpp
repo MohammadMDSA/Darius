@@ -251,7 +251,6 @@ namespace Darius::Renderer::DeviceResource
 
 		// Wait until all previous GPU work is complete.
 		cmdManager->IdleGPU();
-		auto& graphicContext = D_GRAPHICS::GraphicsContext::Begin(L"Window size dependent setup");
 
 		bool resize = m_swapChain ? true : false;
 
@@ -370,7 +369,6 @@ namespace Darius::Renderer::DeviceResource
 		m_scissorRect.left = m_scissorRect.top = 0;
 		m_scissorRect.right = static_cast<LONG>(backBufferWidth);
 		m_scissorRect.bottom = static_cast<LONG>(backBufferHeight);
-		graphicContext.Finish(true);
 	}
 
 	// This method is called when the Win32 window is created (or re-created).
