@@ -1,5 +1,6 @@
 set(IMGUI_DIR ${CMAKE_CURRENT_SOURCE_DIR}/imgui)
 set(IMGUIZMO_DIR ${CMAKE_CURRENT_SOURCE_DIR}/ImGuizmo)
+set(IMPLOT_DIR ${CMAKE_CURRENT_SOURCE_DIR}/implot)
 
 add_library(IMGUI STATIC)
 
@@ -15,6 +16,9 @@ target_sources( IMGUI
                     ${IMGUIZMO_DIR}/ImGradient.cpp
                     ${IMGUIZMO_DIR}/ImGuizmo.cpp
                     ${IMGUIZMO_DIR}/ImSequencer.cpp
+                    ${IMPLOT_DIR}/implot.cpp
+                    ${IMPLOT_DIR}/implot_items.cpp
+                    ${IMPLOT_DIR}/implot_demo.cpp
 
                 PRIVATE
                     ${IMGUI_DIR}/backends/imgui_impl_dx12.cpp
@@ -22,7 +26,9 @@ target_sources( IMGUI
                 )
 
 target_include_directories( IMGUI
-                            PUBLIC ${IMGUI_DIR}
-                            PUBLIC ${IMGUI_DIR}/backends
-                            public ${IMGUIZMO_DIR}
+                            PUBLIC
+                                ${IMGUI_DIR}
+                                ${IMGUI_DIR}/backends
+                                ${IMGUIZMO_DIR}
+                                .
                             )
