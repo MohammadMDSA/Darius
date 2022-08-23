@@ -197,8 +197,7 @@ namespace Darius::Renderer
 		PIXBeginEvent(PIX_COLOR_DEFAULT, L"Present");
 		Resources->Present(context);
 
-		// If using the DirectX Tool Kit for DX12, uncomment this line:
-		// m_graphicsMemory->Commit(m_deviceResources->GetCommandQueue());
+		D_GRAPHICS::Tick();
 
 		PIXEndEvent();
 	}
@@ -245,7 +244,7 @@ namespace Darius::Renderer
 		rasterState.FillMode = D3D12_FILL_MODE_SOLID;
 		rasterState.CullMode = D3D12_CULL_MODE_FRONT;
 		pso.SetRootSignature(RootSigns[RootSignatureTypes::Default]);
-		pso.SetRasterizerState(rasterState);
+		pso.SetRasterizerState(D_GRAPHICS::RasterizerDefault);
 		pso.SetBlendState(CD3DX12_BLEND_DESC(D3D12_DEFAULT));
 		pso.SetDepthStencilState(CD3DX12_DEPTH_STENCIL_DESC(D3D12_DEFAULT));
 		pso.SetSampleMask(UINT_MAX);

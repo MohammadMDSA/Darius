@@ -23,6 +23,8 @@ namespace Darius::Graphics
 		D3D12_DESCRIPTOR_HEAP_TYPE_DSV
 	};
 
+	uint64_t s_FrameIndex = 0;
+
 	std::unordered_map<std::string, ComPtr<ID3DBlob>>	Shaders;
 
 	//////////////////////////////////
@@ -143,6 +145,16 @@ namespace Darius::Graphics
 
 	}
 
+	void Tick()
+	{
+		s_FrameIndex++;
+	}
+
+	uint64_t GetFrameCount()
+	{
+		return s_FrameIndex;
+	}
+
 	D3D12_CPU_DESCRIPTOR_HANDLE AllocateDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE type, UINT count)
 	{
 		return DescriptorAllocators[type].Allocate(count);
@@ -218,7 +230,7 @@ namespace Darius::Graphics
 		RasterizerDefault.SlopeScaledDepthBias = D3D12_DEFAULT_SLOPE_SCALED_DEPTH_BIAS;
 		RasterizerDefault.DepthClipEnable = TRUE;
 		RasterizerDefault.MultisampleEnable = FALSE;
-		RasterizerDefault.AntialiasedLineEnable = FALSE;
+		RasterizerDefault.AntialiasedLineEnable = TRUE;
 		RasterizerDefault.ForcedSampleCount = 0;
 		RasterizerDefault.ConservativeRaster = D3D12_CONSERVATIVE_RASTERIZATION_MODE_OFF;
 
