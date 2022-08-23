@@ -11,6 +11,7 @@ list(APPEND CORE_LIBS_INCLUDE
 	"Exceptions/Exception.hpp"
 	"TimeManager/StepTimer.hpp"
 	"TimeManager/TimeManager.hpp"
+	"TimeManager/SystemTime.hpp"
 	"Memory/Memory.hpp"
 	"Memory/Allocator.hpp"
 	"Filesystem/FileUtils.hpp"
@@ -26,6 +27,7 @@ list(APPEND CORE_LIBS_INCLUDE
 
 list(APPEND CORE_LIBS_SOURCES
 	"TimeManager/TimeManager.cpp"
+	"TimeManager/SystemTime.cpp"
 	"Containers/Containers.cpp"
 	"Memory/Memory.cpp"
 	"Signal.cpp"

@@ -1,6 +1,8 @@
 #include "Core/pch.hpp"
 #include "TimeManager.hpp"
-#include "Utils/Assert.hpp"
+#include "SystemTime.hpp"
+
+#include <Utils/Assert.hpp>
 
 namespace Darius::Core::TimeManager
 {
@@ -11,11 +13,14 @@ namespace Darius::Core::TimeManager
 	{
 		D_ASSERT(Timer == nullptr);
 		Timer = std::make_unique<StepTimer>();
+
+		D_TIME::SystemTime::Initialize();
 	}
 
 	void Shutdown()
 	{
 		D_ASSERT(Timer);
+
 		Timer.release();
 	}
 
