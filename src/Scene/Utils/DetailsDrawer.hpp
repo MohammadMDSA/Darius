@@ -10,9 +10,9 @@
 
 #ifdef _D_EDITOR
 
-#ifndef D_SCENE_INS_DRAW
+#ifndef D_SCENE_DET_DRAW
 #define D_SCENE_DET_DRAW Darius::Scene::Utils::DetailsDrawer
-#endif // !D_SCENE_INS_DRAW
+#endif // !D_SCENE_DET_DRAW
 
 using namespace D_MATH;
 using namespace D_RENDERER_FRAME_RESOUCE;
