@@ -37,9 +37,9 @@ namespace Darius::Graphics::Utils::Profiling
 	//void Display(TextContext& Text, float x, float y, float w, float h);
 	bool IsPaused();
 
-	float GetCpuAvgTime();
-	float GetGpuAvgTime();
-	float GetFrameDeltaAvg();
+	float GetAvgCpuTime();
+	float GetAvgGpuTime();
+	float GetAvgFrameDelta();
 	float GetLastCpuTime();
 	float GetLastGpuTime();
 	float GetLastFrameDelta();

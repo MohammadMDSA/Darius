@@ -198,8 +198,6 @@ namespace Darius::Renderer
 		PIXBeginEvent(PIX_COLOR_DEFAULT, L"Present");
 		Resources->Present(context);
 
-		D_GRAPHICS::Tick();
-
 		PIXEndEvent();
 	}
 
