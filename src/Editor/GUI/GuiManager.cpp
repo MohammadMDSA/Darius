@@ -1,10 +1,12 @@
 #include "Editor/pch.hpp"
 #include <Renderer/pch.hpp>
+
 #include "GuiManager.hpp"
 #include "SceneWindow.hpp"
 #include "SceneGraphWindow.hpp"
 #include "DetailsWindow.hpp"
 #include "ResourceMonitorWindow.hpp"
+#include "ProfilerWindow.hpp"
 #include "Editor/EditorContext.hpp"
 
 #include <Core/Containers/Map.hpp>
@@ -15,8 +17,6 @@
 #include <ResourceManager/ResourceManager.hpp>
 #include <ResourceManager/ResourceLoader.hpp>
 #include <Utils/Assert.hpp>
-
-#include <imgui/imgui.h>
 
 using namespace Darius::Editor::Gui::Windows;
 
@@ -47,6 +47,9 @@ namespace Darius::Editor::Gui::GuiManager
 
 		auto resourceMonitorWindow = new ResourceMonitorWindow();
 		Windows[resourceMonitorWindow->GetName()] = resourceMonitorWindow;
+
+		auto profilerWindow = new ProfilerWindow();
+		Windows[profilerWindow->GetName()] = profilerWindow;
 
 		ImGuiIO& io = ImGui::GetIO();
 		io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
