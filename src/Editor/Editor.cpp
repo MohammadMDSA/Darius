@@ -20,6 +20,7 @@
 #include <Renderer/Camera/CameraManager.hpp>
 #include <Renderer/GraphicsCore.hpp>
 #include <Renderer/CommandContext.hpp>
+#include <Renderer/GraphicsUtils/Profiling/Profiling.hpp>
 #include <ResourceManager/ResourceManager.hpp>
 #include <Scene/Scene.hpp>
 #include <Utils/Debug.hpp>
@@ -67,6 +68,7 @@ namespace Darius::Editor
 		D_TIME::Initialize();
 		D_INPUT::Initialize(window);
 		D_RESOURCE::Initialize();
+
 		D_EDITOR_CONTEXT::Initialize(projectPath);
 
 		D_SCENE::Initialize();
@@ -103,6 +105,7 @@ namespace Darius::Editor
 	// Executes the basic game loop.
 	void Editor::Tick()
 	{
+		D_PROFILING::Update();
 		auto timer = D_TIME::GetStepTimer();
 		timer->Tick([&]()
 			{
