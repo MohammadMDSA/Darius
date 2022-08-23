@@ -5,6 +5,7 @@
 #include "RenderDeviceManager.hpp"
 #include "CommandContext.hpp"
 #include "GraphicsUtils/D3DUtils.hpp"
+#include "GraphicsUtils/Profiling/GpuTimeManager.hpp"
 
 #include <Utils/Assert.hpp>
 
@@ -117,6 +118,8 @@ namespace Darius::Graphics
 		DrawIndirectCommandSignature[0].Draw();
 		DrawIndirectCommandSignature.Finalize();
 
+		D_PROFILING_GPU::Initialize(4096);
+
 		InitializeCommonStates();
 		BuildShaders();
 	}
@@ -125,16 +128,16 @@ namespace Darius::Graphics
 	{
 		D_ASSERT(_initialized);
 
+		D_PROFILING_GPU::Shutdown();
+
 		CommandManager.IdleGPU();
 		CommandContext::DestroyAllContexts();
 		CommandManager.Shutdown();
 
-		for (size_t i = 0; i < D3D12_DESCRIPTOR_HEAP_TYPE_NUM_TYPES; i++)
-		{
-			DescriptorAllocators[i].DestroyAll();
-		}
-		CommandManager.Shutdown();
+		DescriptorAllocator::DestroyAll();
+
 		PSO::DestroyAll();
+
 		D_GRAPHICS_UTILS::RootSignature::DestroyAll();
 		DescriptorAllocator::DestroyAll();
 

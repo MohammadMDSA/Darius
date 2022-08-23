@@ -18,6 +18,7 @@
 #include "GraphicsUtils/Memory/DescriptorHeap.hpp"
 #include "GraphicsCore.hpp"
 #include "RenderDeviceManager.hpp"
+#include "GraphicsUtils/Profiling/Profiling.hpp"
 
 #include <Utils/Assert.hpp>
 
@@ -78,6 +79,8 @@ namespace Darius::Graphics
     {
         CommandContext* NewContext = D_GRAPHICS::GetContextManager()->AllocateContext(D3D12_COMMAND_LIST_TYPE_DIRECT);
         NewContext->SetID(ID);
+        if (ID.length() > 0)
+            D_PROFILING::BeginBlock(ID, NewContext);
         return *NewContext;
     }
 
@@ -86,6 +89,8 @@ namespace Darius::Graphics
         ComputeContext& NewContext = D_GRAPHICS::GetContextManager()->AllocateContext(
             Async ? D3D12_COMMAND_LIST_TYPE_COMPUTE : D3D12_COMMAND_LIST_TYPE_DIRECT)->GetComputeContext();
         NewContext.SetID(ID);
+        if (ID.length() > 0)
+            D_PROFILING::BeginBlock(ID, &NewContext);
         return NewContext;
     }
 
@@ -129,6 +134,9 @@ namespace Darius::Graphics
         D_ASSERT(m_Type == D3D12_COMMAND_LIST_TYPE_DIRECT || m_Type == D3D12_COMMAND_LIST_TYPE_COMPUTE);
 
         FlushResourceBarriers();
+
+        if (m_ID.length() > 0)
+            D_PROFILING::EndBlock(this);
 
         D_ASSERT(m_CurrentAllocator != nullptr);
 
