@@ -37,9 +37,19 @@ namespace Darius::Graphics::Utils::Profiling
 	//void Display(TextContext& Text, float x, float y, float w, float h);
 	bool IsPaused();
 
-	float GetCPUTime();
-	float GetGPUTime();
-	float GetFrameDelta();
+	float GetCpuAvgTime();
+	float GetGpuAvgTime();
+	float GetFrameDeltaAvg();
+	float GetLastCpuTime();
+	float GetLastGpuTime();
+	float GetLastFrameDelta();
+	float GetMinCpuTime();
+	float GetMinGpuTime();
+	float GetMinFrameDelta();
+	float GetMaxCpuTime();
+	float GetMaxGpuTime();
+	float GetMaxFrameDelta();
+
 
 #ifdef RELEASE
 	class ScopedTimer

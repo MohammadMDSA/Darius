@@ -286,9 +286,18 @@ namespace Darius::Graphics::Utils::Profiling
 
 		}
 
-		static float GetTotalCpuTime(void) { return s_TotalCpuTime.GetAvg(); }
-		static float GetTotalGpuTime(void) { return s_TotalGpuTime.GetAvg(); }
-		static float GetFrameDelta(void) { return s_FrameDelta.GetAvg(); }
+		static float GetCpuAvgTime() { return s_TotalCpuTime.GetAvg(); }
+		static float GetGpuAvgTime() { return s_TotalGpuTime.GetAvg(); }
+		static float GetFrameDeltaAvg() { return s_FrameDelta.GetAvg(); }
+		static float GetLastCpuTime() { s_TotalCpuTime.GetLast(); }
+		static float GetLastGpuTime() { s_TotalGpuTime.GetLast(); }
+		static float GetLastFrameDelta() { s_FrameDelta.GetLast(); }
+		static float GetMinCpuTime() { s_TotalCpuTime.GetMin(); }
+		static float GetMinGpuTime() { s_TotalGpuTime.GetMin(); }
+		static float GetMinFrameDelta() { s_FrameDelta.GetMin(); }
+		static float GetMaxCpuTime() { s_TotalCpuTime.GetMax(); }
+		static float GetMaxGpuTime() { s_TotalGpuTime.GetMax(); }
+		static float GetMaxFrameDelta() { s_FrameDelta.GetMax(); }
 
 	private:
 
@@ -328,9 +337,19 @@ namespace Darius::Graphics::Utils::Profiling
 
 	const bool DrawPerfGraph = false;
 
-	float GetCPUTime() { return NestedTimingTree::GetTotalCpuTime(); }
-	float GetGPUTime() { return NestedTimingTree::GetTotalGpuTime(); }
-	float GetFrameDelta() { return NestedTimingTree::GetFrameDelta(); }
+	float GetCpuAvgTime() { return NestedTimingTree::GetCpuAvgTime(); }
+	float GetGpuAvgTime() { return NestedTimingTree::GetGpuAvgTime(); }
+	float GetFrameDeltaAvg() { return NestedTimingTree::GetFrameDeltaAvg(); }
+	float GetLastCpuTime() { return NestedTimingTree::GetLastCpuTime(); }
+	float GetLastGpuTime() { return NestedTimingTree::GetLastGpuTime(); }
+	float GetLastFrameDelta() { return NestedTimingTree::GetLastFrameDelta(); }
+	float GetMinCpuTime() { return NestedTimingTree::GetMinCpuTime(); }
+	float GetMinGpuTime() { return NestedTimingTree::GetMinGpuTime(); }
+	float GetMinFrameDelta() { return NestedTimingTree::GetMinFrameDelta(); }
+	float GetMaxCpuTime() { return NestedTimingTree::GetMaxCpuTime(); }
+	float GetMaxGpuTime() { return NestedTimingTree::GetMaxGpuTime(); }
+	float GetMaxFrameDelta() { return NestedTimingTree::GetMaxFrameDelta(); }
+
 
 	void Update(void)
 	{
