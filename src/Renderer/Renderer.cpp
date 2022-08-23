@@ -13,6 +13,7 @@
 #include "Camera/CameraManager.hpp"
 
 #include <imgui.h>
+#include <implot/implot.h>
 #include <imgui_impl_dx12.h>
 #include <imgui_impl_win32.h>
 
@@ -315,6 +316,7 @@ namespace Darius::Renderer
 		ImguiHeap.Create(L"Imgui Heap", D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, MaxImguiElements);
 
 		ImGui::CreateContext();
+		ImPlot::CreateContext();
 		ImGui_ImplWin32_Init(Resources->GetWindow());
 		ImGui_ImplDX12_Init(_device, Resources->GetBackBufferCount(), DXGI_FORMAT_B8G8R8A8_UNORM, ImguiHeap.GetHeapPointer(), ImguiHeap.GetHeapPointer()->GetCPUDescriptorHandleForHeapStart(), ImguiHeap.GetHeapPointer()->GetGPUDescriptorHandleForHeapStart());
 	}
