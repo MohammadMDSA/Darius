@@ -44,7 +44,7 @@ namespace Darius::Editor
 
 	Editor::~Editor()
 	{
-		D_SCENE::Shutdown();
+		D_WORLD::Shutdown();
 		D_EDITOR_CONTEXT::Shutdown();
 		D_RESOURCE::Shutdown();
 		D_INPUT::Shutdown();
@@ -71,18 +71,18 @@ namespace Darius::Editor
 
 		D_EDITOR_CONTEXT::Initialize(projectPath);
 
-		D_SCENE::Initialize();
+		D_WORLD::Initialize();
 
 		D_TIME::EnableFixedTimeStep(1.0 / 60);
 
 		D_RENDERER::RegisterGuiDrawer(&D_GUI_MANAGER::DrawGUI);
 
-		D_SCENE::Create("Main");
-		auto a1 = D_SCENE::CreateGameObject();
-		auto a2 = D_SCENE::CreateGameObject();
+		D_WORLD::Create("Main");
+		auto a1 = D_WORLD::CreateGameObject();
+		auto a2 = D_WORLD::CreateGameObject();
 		for (size_t i = 0; i < 100; i++)
 		{
-			auto ob = D_SCENE::CreateGameObject();
+			auto ob = D_WORLD::CreateGameObject();
 			ob->SetMesh(D_RESOURCE::GetDefaultResource(D_RESOURCE::DefaultResource::SphereMesh));
 			auto x = static_cast<float>(rand()) / static_cast<float>(RAND_MAX);
 			auto y = static_cast<float>(rand()) / static_cast<float>(RAND_MAX);
@@ -123,7 +123,7 @@ namespace Darius::Editor
 		float elapsedTime = float(timer.GetElapsedSeconds());
 		(elapsedTime);
 		D_INPUT::Update();
-		D_SCENE::Update(elapsedTime);
+		D_WORLD::Update(elapsedTime);
 
 		auto& context = D_GRAPHICS::GraphicsContext::Begin(L"Update resources");
 		D_RESOURCE::UpdateGPUResources(context);

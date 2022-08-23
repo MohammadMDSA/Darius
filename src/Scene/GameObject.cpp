@@ -14,10 +14,11 @@ using namespace D_RESOURCE;
 namespace Darius::Scene
 {
 
-	GameObject::GameObject() :
+	GameObject::GameObject(Uuid uuid) :
 		mActive(true),
 		mType(Type::Movable),
 		mName("GameObject"),
+		mUuid(uuid),
 		mTransform()
 	{
 		SetMesh({ ResourceType::None, 0 });

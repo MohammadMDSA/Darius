@@ -8,22 +8,17 @@
 #include <Utils/Assert.hpp>
 
 using namespace D_MEMORY;
+using namespace D_CORE;
 
 namespace Darius::Scene
 {
 	std::unique_ptr<D_CONTAINERS::DVector<GameObject*>>		GOs = nullptr;
-	std::unique_ptr<SceneManager>			Manager = nullptr;
 
-	void Update(float deltaTime)
+	void SceneManager::Update(float deltaTime)
 	{
 		if (!GOs)
 			return;
 
-		Manager->Update(deltaTime);
-	}
-
-	void SceneManager::Update(float deltaTime)
-	{
 		D_GRAPHICS::GraphicsContext& context = D_GRAPHICS::GraphicsContext::Begin(L"Updateing objects");
 		
 		PIXBeginEvent(context.GetCommandList(), PIX_COLOR_DEFAULT, L"Update Mesh Constant Buffers");
@@ -40,36 +35,34 @@ namespace Darius::Scene
 		context.Finish();
 	}
 
-	bool Create(std::string const& name)
+	bool SceneManager::Create(std::string const& name)
 	{
 		GOs->clear();
 		return true;
 	}
 
-	GameObject* CreateGameObject()
+	GameObject* SceneManager::CreateGameObject()
 	{
-		GameObject* go = new GameObject();;
+		GameObject* go = new GameObject(GenerateUuid());
 		GOs->push_back(go);
 		return go;
 	}
 
-	D_CONTAINERS::DVector<GameObject*> const* GetGameObjects()
+	D_CONTAINERS::DVector<GameObject*> const* SceneManager::GetGameObjects()
 	{
 		return GOs.get();
 	}
 
-	void Initialize()
+	void SceneManager::Initialize()
 	{
-		D_ASSERT(!Manager);
-		Manager = std::make_unique<SceneManager>();
+		D_ASSERT(!GOs);
 		GOs = std::make_unique<D_CONTAINERS::DVector<GameObject*>>();
 	}
 
-	void Shutdown()
+	void SceneManager::Shutdown()
 	{
-		D_ASSERT(Manager);
+		D_ASSERT(GOs);
 		
-		Manager.reset();
 
 		for (auto go : *GOs.get())
 		{

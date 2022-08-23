@@ -229,7 +229,7 @@ namespace Darius::Editor::Gui::Windows
 		items.clear();
 
 		// Update CBs
-		const auto gos = D_SCENE::GetGameObjects();
+		const auto gos = D_WORLD::GetGameObjects();
 		auto cam = D_CAMERA_MANAGER::GetActiveCamera();
 		auto frustum = cam->GetViewSpaceFrustum();
 		for (auto itr = gos->begin(); itr != gos->end(); itr++)

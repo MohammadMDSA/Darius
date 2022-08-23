@@ -1,6 +1,7 @@
 #pragma once
 
 #include <Core/Ref.hpp>
+#include <Core/Uuid.hpp>
 #include <Renderer/Geometry/Mesh.hpp>
 #include <Renderer/FrameResource.hpp>
 #include <Renderer/Geometry/Mesh.hpp>
@@ -35,8 +36,6 @@ namespace Darius::Scene
 		};
 
 	public:
-		GameObject();
-		~GameObject();
 
 		RenderItem					GetRenderItem();
 		INLINE bool					CanRender() { return mActive && mMeshResource.IsValid(); }
@@ -61,8 +60,13 @@ namespace Darius::Scene
 		D_CH_RW_FIELD(bool, Active);
 		D_CH_RW_FIELD(std::string, Name);
 		D_CH_RW_FIELD(Type, Type);
+		D_CH_R_FIELD_CONST(Uuid, Uuid);
+
 	private:
 		friend class D_SCENE::SceneManager;
+
+		GameObject(Uuid uuid);
+		~GameObject();
 
 		void						Update(D_GRAPHICS::GraphicsContext& context, float deltaTime);
 

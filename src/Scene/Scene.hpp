@@ -4,29 +4,28 @@
 
 #include <core/Containers/Vector.hpp>
 
-#ifndef D_SCENE
-#define D_SCENE Darius::Scene
-#endif // !D_SCENE
+#ifndef D_WORLD
+#define D_WORLD Darius::Scene::SceneManager
+#endif // !D_WORLD
 
 namespace Darius::Scene
 {
-	void Initialize();
-	void Shutdown();
-
-	GameObject* CreateGameObject();
-	D_CONTAINERS::DVector<GameObject*> const* GetGameObjects();
-
-	void Update(float deltaTime);
-
-	bool Create(std::string const& name);
-	void Unload();
-	bool Load(std::wstring const& path);
-	bool Save(std::string const& name, std::wstring& path);
 
 	class SceneManager
 	{
 	public:
-		void		Update(float deltaTime);
+		static void				Initialize();
+		static void				Shutdown();
+
+		static GameObject*		CreateGameObject();
+		static D_CONTAINERS::DVector<GameObject*> const* GetGameObjects();
+
+		static void				Update(float deltaTime);
+
+		static bool				Create(std::string const& name);
+		static void				Unload();
+		static bool				Load(std::wstring const& path);
+		static bool				Save(std::string const& name, std::wstring& path);
 	};
 
 }

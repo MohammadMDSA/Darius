@@ -23,7 +23,7 @@ namespace Darius::Editor::Gui::Windows
 
 	void SceneGraphWindow::DrawGUI()
 	{
-		auto gos = D_SCENE::GetGameObjects();
+		auto gos = D_WORLD::GetGameObjects();
 		auto selectedObj = D_EDITOR_CONTEXT::GetSelectedGameObject();
 
 		DrawObjList(*gos, selectedObj);
