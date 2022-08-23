@@ -27,8 +27,6 @@ namespace Darius::Editor::Gui::GuiManager
 	D_CONTAINERS::DMap<std::string, Window*>	Windows;
 
 	std::string									LayoutPath;
-	
-	void DrawToolbar();
 
 	void Initialize()
 	{
@@ -92,13 +90,49 @@ namespace Darius::Editor::Gui::GuiManager
 			windowFlags |= ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoNavFocus;
 
 			ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
-			ImGui::Begin("Editor GUI Root", (bool*) 1, windowFlags);
+			ImGui::Begin("Editor GUI Root", (bool*)1, windowFlags);
 			ImGui::PopStyleVar(3);
 
 			ImGuiID dockspaceId = ImGui::GetID("EditorDockspace");
 			ImGui::DockSpace(dockspaceId, ImVec2(0.0f, 0.0f), ImGuiDockNodeFlags_None);
+#pragma region Toolbar
+			if (ImGui::BeginMenuBar())
+			{
+				if (ImGui::BeginMenu("File"))
+				{
+					if (ImGui::MenuItem("Load"))
+					{
+						D_RESOURCE_LOADER::LoadResource(L"ff.fbx");
+					}
 
-			DrawToolbar();
+					if (ImGui::MenuItem("Save All"))
+						D_RESOURCE::SaveAll();
+
+					ImGui::EndMenu();
+				}
+				if (ImGui::BeginMenu("Resource"))
+				{
+					if (ImGui::MenuItem("Create Material"))
+					{
+						D_RESOURCE::GetManager()->CreateMaterial(D_EDITOR_CONTEXT::GetAssetsPath());
+					}
+
+					ImGui::EndMenu();
+				}
+				if (ImGui::BeginMenu("Window"))
+				{
+					for (auto& kv : Windows)
+					{
+						if (ImGui::MenuItem(kv.second->GetName().c_str()))
+						{
+							kv.second->mOpen = true;
+						}
+					}
+					ImGui::EndMenu();
+				}
+				ImGui::EndMenuBar();
+			}
+#pragma endregion
 
 			ImGui::End();
 		}
@@ -151,41 +185,15 @@ namespace Darius::Editor::Gui::GuiManager
 
 			ImGui::SetNextWindowBgAlpha(1.f);
 
-			ImGui::Begin(wind->GetName().c_str());
-			wind->PrepareGUI();
-
-			wind->DrawGUI();
-
-			ImGui::End();
-		}
-	}
-
-	void DrawToolbar()
-	{
-		if (ImGui::BeginMenuBar())
-		{
-			if (ImGui::BeginMenu("File"))
+			if (wind->mOpen)
 			{
-				if (ImGui::MenuItem("Load"))
-				{
-					D_RESOURCE_LOADER::LoadResource(L"ff.fbx");
-				}
+				ImGui::Begin(wind->GetName().c_str(), &wind->mOpen);
+				wind->PrepareGUI();
 
-				if (ImGui::MenuItem("Save All"))
-					D_RESOURCE::SaveAll();
+				wind->DrawGUI();
 
-				ImGui::EndMenu();
+				ImGui::End();
 			}
-			if (ImGui::BeginMenu("Resource"))
-			{
-				if(ImGui::MenuItem("Create Material"))
-				{
-					D_RESOURCE::GetManager()->CreateMaterial(D_EDITOR_CONTEXT::GetAssetsPath());
-				}
-
-				ImGui::EndMenu();
-			}
-			ImGui::EndMenuBar();
 		}
 	}
 }

@@ -4,6 +4,11 @@
 
 using namespace D_GRAPHICS;
 
+namespace Darius::Editor::Gui::GuiManager
+{
+	void DrawGUI();
+}
+
 namespace Darius::Editor::Gui::Windows
 {
 	class Window
@@ -22,6 +27,11 @@ namespace Darius::Editor::Gui::Windows
 		void						PrepareGUI();
 
 	protected:
+
+		friend void Darius::Editor::Gui::GuiManager::DrawGUI();
+
+		bool						mOpen = true;
+
 		float						mWidth;
 		float						mHeight;
 
