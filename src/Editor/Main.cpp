@@ -47,6 +47,7 @@ int WINAPI wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, 
 #ifdef _DEBUG
     AllocConsole();
     freopen("CONOUT$", "w", stdout);
+    freopen("CONOUT$", "w", stderr);
 #endif
 
     UNREFERENCED_PARAMETER(hPrevInstance);
