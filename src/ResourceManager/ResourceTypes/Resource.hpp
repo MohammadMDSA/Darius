@@ -132,6 +132,4 @@ namespace Darius::ResourceManager
 		virtual void				ReadResourceFromFile() = 0;
 		virtual void				UploadToGpu(D_GRAPHICS::GraphicsContext& context) = 0;
 	};
-	void to_json(D_SERIALIZATION::Json& j, const ResourceHandle& value);
-	void from_json(const D_SERIALIZATION::Json& j, ResourceHandle& value);
 }

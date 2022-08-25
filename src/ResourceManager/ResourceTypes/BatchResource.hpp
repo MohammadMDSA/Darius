@@ -20,7 +20,7 @@ namespace Darius::ResourceManager
 
 	class BatchResource : public MeshResource
 	{
-		D_CH_RESOUCE_BODY(BatchResource, ResourceType::Batch)
+		D_CH_RESOURCE_BODY(BatchResource, ResourceType::Batch)
 
 	public:
 

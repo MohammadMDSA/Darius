@@ -22,7 +22,7 @@ namespace Darius::ResourceManager
 	public:
 		using VertexType = D_RENDERER_VERTEX::VertexPositionNormalTangentTexture;
 
-		D_CH_RESOUCE_BODY(MeshResource, ResourceType::Mesh)
+		D_CH_RESOURCE_BODY(MeshResource, ResourceType::Mesh)
 
 	public:
 		INLINE Mesh* ModifyData() { MakeDiskDirty(); MakeGpuDirty(); return &mMesh; }

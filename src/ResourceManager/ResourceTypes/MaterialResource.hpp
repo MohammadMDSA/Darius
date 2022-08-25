@@ -21,7 +21,7 @@ namespace Darius::ResourceManager
 
 	class MaterialResource : public Resource
 	{
-		D_CH_RESOUCE_BODY(MaterialResource, ResourceType::MaterialConstants)
+		D_CH_RESOURCE_BODY(MaterialResource, ResourceType::Material)
 		
 	public:
 		INLINE MaterialConstants* ModifyData() { MakeDiskDirty(); MakeGpuDirty(); return &mMaterial; }
