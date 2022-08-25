@@ -23,10 +23,11 @@ namespace Darius::Editor::Gui::Windows
 
 	void SceneGraphWindow::DrawGUI()
 	{
-		auto gos = D_WORLD::GetGameObjects();
+		D_CONTAINERS::DVector<GameObject*> gos;
+		D_WORLD::GetGameObjects(gos);
 		auto selectedObj = D_EDITOR_CONTEXT::GetSelectedGameObject();
 
-		DrawObjList(*gos, selectedObj);
+		DrawObjList(gos, selectedObj);
 	}
 
 	void SceneGraphWindow::DrawObjList(DVector<GameObject*> const& gos, GameObject* selectedObj)

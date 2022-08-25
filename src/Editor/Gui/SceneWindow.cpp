@@ -29,7 +29,7 @@ namespace Darius::Editor::Gui::Windows
 
 		// Fetch line mesh resource
 		auto lineHandle = D_RESOURCE::GetDefaultResource(D_RESOURCE::DefaultResource::LineMesh);
-		mLineMeshResource = D_RESOURCE::GetResource<MeshResource>(lineHandle, this, L"Scene Window", "Editor Window");
+		mLineMeshResource = D_RESOURCE::GetResource<BatchResource>(lineHandle, this, L"Scene Window", "Editor Window");
 
 		// Initializing grid gpu constants
 		auto count = 50;
@@ -229,10 +229,12 @@ namespace Darius::Editor::Gui::Windows
 		items.clear();
 
 		// Update CBs
-		const auto gos = D_WORLD::GetGameObjects();
+		D_CONTAINERS::DVector<GameObject*> gos;
+		D_WORLD::GetGameObjects(gos);
+
 		auto cam = D_CAMERA_MANAGER::GetActiveCamera();
 		auto frustum = cam->GetViewSpaceFrustum();
-		for (auto itr = gos->begin(); itr != gos->end(); itr++)
+		for (auto itr = gos.begin(); itr != gos.end(); itr++)
 		{
 			auto go = *itr;
 
@@ -251,7 +253,7 @@ namespace Darius::Editor::Gui::Windows
 			items.push_back(item);
 		}
 
-		D_LOG_INFO("Number of render items: " + std::to_string(items.size()));
+		D_LOG_DEBUG("Number of render items: " + std::to_string(items.size()));
 
 	}
 }

@@ -2,7 +2,8 @@
 
 #include "GameObject.hpp"
 
-#include <core/Containers/Vector.hpp>
+#include <Core/Containers/Vector.hpp>
+#include <Core/Filesystem/Path.hpp>
 
 #ifndef D_WORLD
 #define D_WORLD Darius::Scene::SceneManager
@@ -18,14 +19,17 @@ namespace Darius::Scene
 		static void				Shutdown();
 
 		static GameObject*		CreateGameObject();
-		static D_CONTAINERS::DVector<GameObject*> const* GetGameObjects();
+		static void				GetGameObjects(D_CONTAINERS::DVector<GameObject*>& container);
 
 		static void				Update(float deltaTime);
 
 		static bool				Create(std::string const& name);
 		static void				Unload();
 		static bool				Load(std::wstring const& path);
-		static bool				Save(std::string const& name, std::wstring& path);
+		static bool				Save(std::string const& name, D_FILE::Path const& path);
+		
+	private:
+		static GameObject*		CreateGameObject(Uuid uuid);
 	};
 
 }
