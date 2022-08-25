@@ -11,6 +11,7 @@
 #include <fstream>
 
 using namespace D_CORE;
+using namespace D_SERIALIZATION;
 namespace fs = std::filesystem;
 
 namespace Darius::ResourceManager
@@ -175,6 +176,13 @@ namespace Darius::ResourceManager
 
 		// Create resource object
 		handle = CreateResourceObject(path, manager);
+
+		// Resource not supported
+		if (handle.Type == ResourceType::None)
+		{
+			D_LOG_WARN("Resource " + path.filename().string() + " not supported");
+			return handle;
+		}
 
 		// Fetch pointer to resource
 		auto resource = _GetRawResource(handle);
