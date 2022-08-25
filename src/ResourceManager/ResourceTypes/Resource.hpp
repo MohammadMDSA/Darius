@@ -4,6 +4,7 @@
 #include <Core/Counted.hpp>
 #include <Core/Uuid.hpp>
 #include <Core/Exceptions/Exception.hpp>
+#include <Core/Serialization/Json.hpp>
 #include <Renderer/CommandContext.hpp>
 #include <Utils/Common.hpp>
 
@@ -13,7 +14,9 @@
 
 #define D_T_RESOURCE_ID UINT16
 
-#define D_CH_RESOUCE_BODY(T, ResT) D_CH_TYPE_NAME_GETTER(T)
+#define D_CH_RESOURCE_BODY(T, ResT) D_CH_TYPE_NAME_GETTER(T)\
+public: \
+static INLINE ResourceType GetResourceType() { return ResT; }
 
 using namespace D_CORE;
 using namespace D_FILE;
@@ -32,6 +35,13 @@ namespace Darius::ResourceManager
 		Batch,
 		Material
 	};
+
+	D_H_SERIALIZE_ENUM(ResourceType, {
+		{ ResourceType::None, "None" },
+		{ ResourceType::Mesh, "Mesh" },
+		{ ResourceType::Batch, "Batch" },
+		{ ResourceType::Material, "Material" },
+		})
 
 	struct ResourceHandle
 	{
@@ -122,5 +132,6 @@ namespace Darius::ResourceManager
 		virtual void				ReadResourceFromFile() = 0;
 		virtual void				UploadToGpu(D_GRAPHICS::GraphicsContext& context) = 0;
 	};
-
+	void to_json(D_SERIALIZATION::Json& j, const ResourceHandle& value);
+	void from_json(const D_SERIALIZATION::Json& j, ResourceHandle& value);
 }
