@@ -42,6 +42,8 @@ namespace Darius::ResourceManager
 	void					UpdateGPUResources(D_GRAPHICS::GraphicsContext& context);
 
 	DResourceManager*		GetManager();
+
+	Resource*				_GetRawResource(Uuid uuid, bool load = false);
 	Resource*				_GetRawResource(ResourceHandle handle, bool load = false);
 	void					SaveAll();
 
@@ -54,6 +56,16 @@ namespace Darius::ResourceManager
 
 	// Resource retreival stuff
 	template<class T>
+	Ref<T> GetResource(Uuid uuid, std::optional<CountedOwner> ownerData = std::nullopt)
+	{
+		// Checking if T is a resource type
+		using conv = std::is_convertible<T*, Resource*>;
+		D_STATIC_ASSERT(conv::value);
+
+		return Ref(dynamic_cast<T*>(_GetRawResource(uuid, true)), ownerData);
+	}
+
+	template<class T>
 	Ref<T> GetResource(ResourceHandle handle, std::optional<CountedOwner> ownerData = std::nullopt)
 	{
 		// Checking if T is a resource type
@@ -65,7 +77,7 @@ namespace Darius::ResourceManager
 			return Ref<T>();
 
 		// Requested resource type must be compatible with T
-		if (handle.Type != ResourceTypeMap.at(T::GetTypeName()))
+		if (handle.Type != T::GetResourceType())
 			throw D_EXCEPTION::Exception("Requested type and handle type are not compatible");
 			
 		return Ref(dynamic_cast<T*>(_GetRawResource(handle, true)), ownerData);
@@ -115,7 +127,7 @@ namespace Darius::ResourceManager
 		INLINE DResourceId GetNewId() { return ++mLastId; }
 
 		DMap<ResourceType, DMap<DResourceId, Resource*>>	mResourceMap;
-		DMap<Uuid, Resource*, boost::hash<Uuid>>			mUuidMap;
+		DMap<Uuid, Resource*, UuidHasher>					mUuidMap;
 		DMap<std::wstring, Resource*>						mPathMap;
 		DMap<DefaultResource, ResourceHandle>				mDefaultResourceMap;
 

@@ -23,7 +23,8 @@ namespace Darius::ResourceManager
 	const DMap<std::string, ResourceType>			ResourceTypeMap =
 	{
 		{ MeshResource::GetTypeName(), ResourceType::Mesh },
-		{ MaterialResource::GetTypeName(), ResourceType::Material }
+		{ MaterialResource::GetTypeName(), ResourceType::Material },
+		{ BatchResource::GetTypeName(), ResourceType::Batch }
 	};
 
 	void Initialize()
@@ -53,11 +54,21 @@ namespace Darius::ResourceManager
 		return _ResourceManager.get();
 	}
 
+	Resource* _GetRawResource(Uuid uuid, bool load)
+	{
+		auto resource = _ResourceManager->GetRawResource(uuid);
+
+		// Load resource if not loaded yet
+		if (load && !resource->GetLoaded())
+			D_RESOURCE_LOADER::LoadResource(resource);
+		return resource;
+	}
+
 	Resource* _GetRawResource(ResourceHandle handle, bool load)
 	{
 		auto resource = _ResourceManager->GetRawResource(handle);
 
-		// Load resouce if not loaded yet
+		// Load resource if not loaded yet
 		if (load && !resource->GetLoaded())
 			D_RESOURCE_LOADER::LoadResource(resource);
 		return resource;
@@ -109,6 +120,13 @@ namespace Darius::ResourceManager
 				resourcePair.second->Destroy();
 	}
 
+	Resource* DResourceManager::GetRawResource(Uuid uuid)
+	{
+		if (!mUuidMap.contains(uuid))
+			throw D_EXCEPTION::Exception((std::string("Resource not found: uuid = ") + D_CORE::ToString(uuid)).c_str());
+		return mUuidMap[uuid];
+	}
+
 	Resource* DResourceManager::GetRawResource(ResourceHandle handle)
 	{
 		if (handle.Type == ResourceType::None)
@@ -149,56 +167,56 @@ namespace Darius::ResourceManager
 		auto rRes = dynamic_cast<Resource*>(res);
 		rRes->mDirtyGPU = false;
 		rRes->mDirtyDisk = false;
-		mResourceMap.at(ResourceType::Mesh).insert({ res->GetId(), res });
 		mDefaultResourceMap.insert({ DefaultResource::BoxMesh, { ResourceType::Mesh, res->GetId() } });
+		UpdateMaps(rRes);
 
 		res = new MeshResource(GenerateUuidFor("Cylinder Mesh"), L"Cylinder Mesh", GetNewId(), true);
 		res->Create(L"Cylinder Mesh", cylinder);
 		rRes = dynamic_cast<Resource*>(res);
 		rRes->mDirtyGPU = false;
 		rRes->mDirtyDisk = false;
-		mResourceMap.at(ResourceType::Mesh).insert({ res->GetId(), res });
 		mDefaultResourceMap.insert({ DefaultResource::CylinderMesh, { ResourceType::Mesh, res->GetId() } });
+		UpdateMaps(rRes);
 
 		res = new MeshResource(GenerateUuidFor("Geosphere Mesh"), L"Geosphere Mesh", GetNewId(), true);
 		res->Create(L"Geosphere Mesh", geosphere);
 		rRes = dynamic_cast<Resource*>(res);
 		rRes->mDirtyGPU = false;
 		rRes->mDirtyDisk = false;
-		mResourceMap.at(ResourceType::Mesh).insert({ res->GetId(), res });
 		mDefaultResourceMap.insert({ DefaultResource::GeosphereMesh, { ResourceType::Mesh, res->GetId() } });
+		UpdateMaps(rRes);
 
 		res = new MeshResource(GenerateUuidFor("Grid Mesh"), L"Grid Mesh", GetNewId(), true);
 		res->Create(L"Grid Mesh", grid);
 		rRes = dynamic_cast<Resource*>(res);
 		rRes->mDirtyGPU = false;
 		rRes->mDirtyDisk = false;
-		mResourceMap.at(ResourceType::Mesh).insert({ res->GetId(), res });
 		mDefaultResourceMap.insert({ DefaultResource::GridMesh, { ResourceType::Mesh, res->GetId() } });
+		UpdateMaps(rRes);
 
 		res = new MeshResource(GenerateUuidFor("Quad Mesh"), L"Quad Mesh", GetNewId(), true);
 		res->Create(L"Quad Mesh", quad);
 		rRes = dynamic_cast<Resource*>(res);
 		rRes->mDirtyGPU = false;
 		rRes->mDirtyDisk = false;
-		mResourceMap.at(ResourceType::Mesh).insert({ res->GetId(), res });
 		mDefaultResourceMap.insert({ DefaultResource::QuadMesh, { ResourceType::Mesh, res->GetId() } });
+		UpdateMaps(rRes);
 
 		res = new MeshResource(GenerateUuidFor("Sphere Mesh"), L"Sphere Mesh", GetNewId(), true);
 		res->Create(L"Sphere Mesh", sphere);
 		rRes = dynamic_cast<Resource*>(res);
 		rRes->mDirtyGPU = false;
 		rRes->mDirtyDisk = false;
-		mResourceMap.at(ResourceType::Mesh).insert({ res->GetId(), res });
 		mDefaultResourceMap.insert({ DefaultResource::SphereMesh, { ResourceType::Mesh, res->GetId() } });
+		UpdateMaps(rRes);
 
 		res = new BatchResource(GenerateUuidFor("Line Mesh"), L"Line Mesh", GetNewId(), true);
 		res->Create(L"Line Mesh", line);
 		rRes = dynamic_cast<Resource*>(res);
 		rRes->mDirtyGPU = false;
 		rRes->mDirtyDisk = false;
-		mResourceMap.at(ResourceType::Mesh).insert({ res->GetId(), res });
-		mDefaultResourceMap.insert({ DefaultResource::LineMesh, { ResourceType::Mesh, res->GetId() } });
+		mDefaultResourceMap.insert({ DefaultResource::LineMesh, { ResourceType::Batch, res->GetId() } });
+		UpdateMaps(rRes);
 
 		{
 			auto defaultMeshHandle = CreateMaterial(GenerateUuidFor("Default Material"), L"Default Material", true, false);
@@ -208,9 +226,8 @@ namespace Darius::ResourceManager
 			mat->FresnelR0 = XMFLOAT3(Vector3(kZero));
 			mat->Roughness = 0.2f;
 			rRes = dynamic_cast<Resource*>(res);
-			rRes->mDirtyGPU = false;
+			rRes->mDirtyGPU = true;
 			rRes->mDirtyDisk = false;
-			materialRes->mDirtyDisk = materialRes->mDirtyGPU = false;
 			mDefaultResourceMap.insert({ DefaultResource::DefaultMaterial, { ResourceType::Material, materialRes->GetId() } });
 		}
 	}
@@ -270,7 +287,7 @@ namespace Darius::ResourceManager
 			for (auto& res : resType.second)
 			{
 				auto resource = res.second;
-				if (resource->GetDirtyGPU())
+				if (resource->GetDirtyGPU() && resource->GetLoaded())
 					resource->UpdateGPU(context);
 			}
 		}
@@ -283,7 +300,7 @@ namespace Darius::ResourceManager
 		mResourceMap.at(resource->GetType()).try_emplace(resource->GetId(), resource);
 
 		// Update uuid map
-		//mUuidMap.try_emplace(resource->GetUuid(), resource);
+		mUuidMap.try_emplace(resource->GetUuid(), resource);
 
 		// Update path map
 		mPathMap.try_emplace(resource->GetPath().wstring(), resource);
