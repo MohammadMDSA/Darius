@@ -29,9 +29,11 @@ list(APPEND CORE_LIBS_SOURCES
 	"TimeManager/TimeManager.cpp"
 	"TimeManager/SystemTime.cpp"
 	"Containers/Containers.cpp"
+	"Serialization/Json.cpp"
 	"Memory/Memory.cpp"
 	"Signal.cpp"
 	"Input.cpp"
+	"Uuid.cpp"
 	)
 
 
