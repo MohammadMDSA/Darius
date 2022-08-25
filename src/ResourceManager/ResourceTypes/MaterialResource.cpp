@@ -10,6 +10,7 @@
 #include <fstream>
 
 using namespace D_CORE;
+using namespace D_SERIALIZATION;
 
 namespace Darius::ResourceManager
 {
@@ -55,9 +56,10 @@ namespace Darius::ResourceManager
 			// Initializing Material Constants buffers
 			for (size_t i = 0; i < D_RENDERER_FRAME_RESOUCE::gNumFrameResources; i++)
 			{
-				mMaterialConstantsCPU[i].Create(L"Material Constatns Upload Buffer", sizeof(MaterialConstants));
+				mMaterialConstantsCPU[i].Create(L"Material Constatns Upload Buffer: " + GetName(), sizeof(MaterialConstants));
 			}
-			mMaterialConstantsGPU.Create(L"Material Constants GPU Buffer", 1, sizeof(MaterialConstants));
+			mMaterialConstantsGPU.Create(L"Material Constants GPU Buffer: " + GetName(), 1, sizeof(MaterialConstants), &mMaterial);
+			return;
 		}
 
 		// Updating material constnats
