@@ -6,6 +6,8 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ".")
 list(APPEND SCENE_LIBS_INCLUDE
 	"GameObject.hpp"
 	"Scene.hpp"
+    "Utils/DetailsDrawer.hpp"
+	"Serialization/Serializer.hpp"
 	"pch.hpp"
 	)
 
@@ -13,8 +15,8 @@ list(APPEND SCENE_LIBS_SOURCES
 	"GameObject.cpp"
 	"Scene.cpp"
 	"pch.cpp"
-    "Utils/DetailsDrawer.hpp"
     "Utils/Utils.cpp"
+	"Serialization/Serializer.cpp"
 	)
 
 
