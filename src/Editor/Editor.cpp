@@ -78,7 +78,7 @@ namespace Darius::Editor
 		D_RENDERER::RegisterGuiDrawer(&D_GUI_MANAGER::DrawGUI);
 
 		D_WORLD::Create("Main");
-		auto a1 = D_WORLD::CreateGameObject();
+		/*auto a1 = D_WORLD::CreateGameObject();
 		auto a2 = D_WORLD::CreateGameObject();
 		for (size_t i = 0; i < 100; i++)
 		{
@@ -98,7 +98,7 @@ namespace Darius::Editor
 		a2->SetMesh(D_RESOURCE::GetDefaultResource(D_RESOURCE::DefaultResource::SphereMesh));
 		a1->mTransform = Transform(Vector3(-2.f, 1.f, -5.f));
 		a2->mTransform = Transform(Vector3(2.f, -1.f, -5.f));
-		D_EDITOR_CONTEXT::SetSelectedGameObject(a2);
+		D_EDITOR_CONTEXT::SetSelectedGameObject(a2);*/
 	}
 
 #pragma region Frame Update
@@ -109,10 +109,10 @@ namespace Darius::Editor
 		auto timer = D_TIME::GetStepTimer();
 		timer->Tick([&]()
 			{
-				Update(*timer);
 			});
-
+		Update(*timer);
 		Render();
+
 	}
 
 	// Updates the world.
@@ -121,7 +121,6 @@ namespace Darius::Editor
 		PIXBeginEvent(PIX_COLOR_DEFAULT, L"Update");
 
 		float elapsedTime = float(timer.GetElapsedSeconds());
-		(elapsedTime);
 		D_INPUT::Update();
 		D_WORLD::Update(elapsedTime);
 
