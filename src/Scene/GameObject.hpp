@@ -2,6 +2,7 @@
 
 #include <Core/Ref.hpp>
 #include <Core/Uuid.hpp>
+#include <Core/Serialization/Json.hpp>
 #include <Renderer/Geometry/Mesh.hpp>
 #include <Renderer/FrameResource.hpp>
 #include <Renderer/Geometry/Mesh.hpp>
@@ -25,6 +26,10 @@ using namespace D_CORE;
 namespace Darius::Scene
 {
 	class SceneManager;
+	class GameObject;
+
+	void to_json(D_SERIALIZATION::Json& j, const GameObject& value);
+	void from_json(const D_SERIALIZATION::Json& j, GameObject& value);
 
 	class GameObject
 	{
@@ -36,10 +41,11 @@ namespace Darius::Scene
 		};
 
 	public:
+		~GameObject();
 
 		RenderItem					GetRenderItem();
 		INLINE bool					CanRender() { return mActive && mMeshResource.IsValid(); }
-		
+
 		INLINE const BoundingSphere& GetBounds() const { return mMeshResource.Get()->GetData()->mBoundSp; }
 
 #ifdef _D_EDITOR
@@ -51,7 +57,7 @@ namespace Darius::Scene
 
 
 		INLINE operator CountedOwner const() {
-			return CountedOwner { WSTR_STR(mName), "GameObject", this, 0};
+			return CountedOwner{ WSTR_STR(mName), "GameObject", this, 0 };
 		}
 
 		void						SetMesh(ResourceHandle handle);
@@ -64,9 +70,10 @@ namespace Darius::Scene
 
 	private:
 		friend class D_SCENE::SceneManager;
+		friend void to_json(D_SERIALIZATION::Json& j, const GameObject& value);
+		friend void from_json(const D_SERIALIZATION::Json& j, GameObject& value);
 
 		GameObject(Uuid uuid);
-		~GameObject();
 
 		void						Update(D_GRAPHICS::GraphicsContext& context, float deltaTime);
 
@@ -77,4 +84,13 @@ namespace Darius::Scene
 		ByteAddressBuffer					mMeshConstantsGPU;
 
 	};
+
+	D_H_SERIALIZE_ENUM(GameObject::Type, {
+		{ GameObject::Type::Static, "Static" },
+		{ GameObject::Type::Movable, "Movable" }
+		});
+
+	void to_json(D_SERIALIZATION::Json& j, const GameObject& value);
+
+	void from_json(const D_SERIALIZATION::Json& j, GameObject& value);
 }

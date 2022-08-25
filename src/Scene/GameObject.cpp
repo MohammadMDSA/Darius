@@ -3,7 +3,9 @@
 #include "GameObject.hpp"
 #include "Scene/Utils/DetailsDrawer.hpp"
 #include "Scene.hpp"
+#include "Serialization/Serializer.hpp"
 
+#include <Core/Uuid.hpp>
 #include <ResourceManager/ResourceManager.hpp>
 #include <Renderer/RenderDeviceManager.hpp>
 
@@ -63,14 +65,14 @@ namespace Darius::Scene
 		MeshConstants* cb = (MeshConstants*)currentUploadBuff.Map();
 
 		cb->mWorld = Matrix4(mTransform.GetWorld());
-		
+
 		currentUploadBuff.Unmap();
 
 		// Uploading
 		context.TransitionResource(mMeshConstantsGPU, D3D12_RESOURCE_STATE_COPY_DEST, true);
 		context.GetCommandList()->CopyBufferRegion(mMeshConstantsGPU.GetResource(), 0, mMeshConstantsCPU->GetResource(), 0, mMeshConstantsCPU->GetBufferSize());
 		context.TransitionResource(mMeshConstantsGPU, D3D12_RESOURCE_STATE_GENERIC_READ);
-		
+
 	}
 
 #ifdef _D_EDITOR
@@ -160,5 +162,32 @@ namespace Darius::Scene
 	{
 		mMaterialResouce = D_RESOURCE::GetResource<MaterialResource>(handle, *this);
 
+	}
+
+	void to_json(D_SERIALIZATION::Json& j, const GameObject& value) {
+		D_H_SERIALIZE(Active);
+		D_H_SERIALIZE(Name);
+		D_H_SERIALIZE(Type);
+		D_H_SERIALIZE(Uuid);
+		D_H_SERIALIZE(Transform);
+		j["Material"] = value.mMaterialResouce.Get()->GetUuid();
+		j["Mesh"] = value.mMeshResource.Get()->GetUuid();
+	}
+
+	void from_json(const D_SERIALIZATION::Json& j, GameObject& value) {
+		D_H_DESERIALIZE(Active);
+		D_H_DESERIALIZE(Name);
+		D_H_DESERIALIZE(Type);
+		D_H_DESERIALIZE(Transform);
+
+		// Loading material
+		Uuid materialUuid;
+		D_CORE::from_json(j["Material"], materialUuid);
+		value.mMaterialResouce = D_RESOURCE::GetResource<MaterialResource>(materialUuid, value);
+
+		// Loading mesh
+		Uuid meshUuid;
+		D_CORE::from_json(j["Mesh"], meshUuid);
+		value.mMeshResource = D_RESOURCE::GetResource<MeshResource>(meshUuid, value);
 	}
 }
