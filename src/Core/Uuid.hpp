@@ -1,11 +1,14 @@
 #pragma once
 
+#include "Serialization/Json.hpp"
+
 #include <Utils/Common.hpp>
 
 #include <boost/uuid/uuid.hpp>
 #include <boost/uuid/random_generator.hpp>
 #include <boost/uuid/name_generator.hpp>
 #include <boost/uuid/uuid_io.hpp>
+#include <boost/functional/hash.hpp>
 
 #include <string>
 
@@ -13,9 +16,12 @@
 #define D_CORE Darius::Core
 #endif // !D_UTILS
 
+using namespace D_SERIALIZATION;
+
 namespace Darius::Core
 {
 	using Uuid = boost::uuids::uuid;
+	using UuidHasher = boost::hash<Uuid>;
 
 	INLINE Uuid GenerateUuid()
 	{
@@ -38,4 +44,9 @@ namespace Darius::Core
 	INLINE std::string ToString(Uuid uuid) { return boost::uuids::to_string(uuid); }
 
 	INLINE std::wstring ToWString(Uuid uuid) { return boost::uuids::to_wstring(uuid); }
+
+	void to_json(Json& j, const D_CORE::Uuid& value);
+
+	void from_json(const Json& j, D_CORE::Uuid& value);
+
 }
