@@ -78,9 +78,11 @@ namespace Darius::Editor
 		D_RENDERER::RegisterGuiDrawer(&D_GUI_MANAGER::DrawGUI);
 
 		D_WORLD::Create("Main");
-		/*auto a1 = D_WORLD::CreateGameObject();
+		auto a1 = D_WORLD::CreateGameObject();
 		auto a2 = D_WORLD::CreateGameObject();
-		for (size_t i = 0; i < 100; i++)
+		(a1);
+		(a2);
+		/*for (size_t i = 0; i < 100; i++)
 		{
 			auto ob = D_WORLD::CreateGameObject();
 			ob->SetMesh(D_RESOURCE::GetDefaultResource(D_RESOURCE::DefaultResource::SphereMesh));
@@ -105,12 +107,12 @@ namespace Darius::Editor
 	// Executes the basic game loop.
 	void Editor::Tick()
 	{
-		D_PROFILING::Update();
 		auto timer = D_TIME::GetStepTimer();
 		timer->Tick([&]()
 			{
+				D_PROFILING::Update();
+				Update(*timer);
 			});
-		Update(*timer);
 		Render();
 
 	}
