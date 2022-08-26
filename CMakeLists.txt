@@ -98,6 +98,10 @@ endif(BUILD_EDITOR)
 ####### 3rd Party Libs #######
 ##############################
 
+# Adding Flecs
+add_subdirectory("src/Libs/flecs")
+target_compile_options(flecs_static PRIVATE)
+
 # Adding imgui
 add_subdirectory("src/Libs/imgui_wrapper")
 
@@ -251,7 +255,8 @@ if ( CMAKE_CXX_COMPILER_ID MATCHES "MSVC" )
          "/wd4061" "/wd4365" "/wd4514" "/wd4571" "/wd4668" "/wd4710" "/wd4820" "/wd5039" "/wd5045"
          "/wd4265" "/wd4625" "/wd4626" "/wd4986" "/wd5204" "/wd5220"
          "/wd4324"
-         "/wd5026" "/wd5027" "/wd4623" "/wd5038" "/wd4244")
+         "/wd5026" "/wd5027" "/wd4623" "/wd5038" "/wd4244"
+         "/wd4464" "/wd4127")
 
     if(ENABLE_CODE_ANALYSIS)
         target_compile_options(${PROJECT_NAME} PRIVATE /analyze)

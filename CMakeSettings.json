@@ -15,6 +15,11 @@
           "name": "BUILD_EDITOR",
           "value": "True",
           "type": "BOOL"
+        },
+        {
+          "name": "FLECS_PIC",
+          "value": "False",
+          "type": "BOOL"
         }
       ]
     }
