@@ -4,6 +4,7 @@
 #include "Scene/Utils/DetailsDrawer.hpp"
 #include "Scene.hpp"
 #include "Serialization/Serializer.hpp"
+#include "EntityComponentSystem/Components/TransformComponent.hpp"
 
 #include <Core/Uuid.hpp>
 #include <ResourceManager/ResourceManager.hpp>
@@ -12,16 +13,17 @@
 #include <imgui.h>
 
 using namespace D_RESOURCE;
+using namespace D_ECS_COMP;
 
 namespace Darius::Scene
 {
 
-	GameObject::GameObject(Uuid uuid) :
+	GameObject::GameObject(Uuid uuid, D_ECS::Entity entity) :
 		mActive(true),
 		mType(Type::Movable),
 		mName("GameObject"),
 		mUuid(uuid),
-		mTransform()
+		mEntity(entity)
 	{
 		SetMesh({ ResourceType::None, 0 });
 		SetMaterial(D_RESOURCE::GetDefaultResource(DefaultResource::DefaultMaterial));
@@ -32,7 +34,7 @@ namespace Darius::Scene
 			mMeshConstantsCPU[i].Create(L"Mesh Constant Upload Buffer", sizeof(MeshConstants));
 		}
 		mMeshConstantsGPU.Create(L"Mesh Constant GPU Buffer", 1, sizeof(MeshConstants));
-
+		mEntity.add(D_WORLD::GetRegistry().component(D_ECS_COMP::TransformComponent::GetName().c_str()));
 	}
 
 	GameObject::~GameObject()
@@ -64,7 +66,7 @@ namespace Darius::Scene
 		auto& currentUploadBuff = mMeshConstantsCPU[D_RENDERER_DEVICE::GetCurrentResourceIndex()];
 		MeshConstants* cb = (MeshConstants*)currentUploadBuff.Map();
 
-		cb->mWorld = Matrix4(mTransform.GetWorld());
+		cb->mWorld = Matrix4(GetTransform()->GetWorld());
 
 		currentUploadBuff.Unmap();
 
@@ -80,7 +82,7 @@ namespace Darius::Scene
 	{
 		bool changeValue = false;
 
-		D_SCENE_DET_DRAW::DrawDetails(mTransform, nullptr);
+		D_SCENE_DET_DRAW::DrawDetails(*ModifyTransform(), nullptr);
 
 		{
 			MeshResource* currentMesh = mMeshResource.Get();
@@ -169,7 +171,6 @@ namespace Darius::Scene
 		D_H_SERIALIZE(Name);
 		D_H_SERIALIZE(Type);
 		D_H_SERIALIZE(Uuid);
-		D_H_SERIALIZE(Transform);
 		j["Material"] = value.mMaterialResouce.Get()->GetUuid();
 		j["Mesh"] = value.mMeshResource.Get()->GetUuid();
 	}
@@ -178,7 +179,6 @@ namespace Darius::Scene
 		D_H_DESERIALIZE(Active);
 		D_H_DESERIALIZE(Name);
 		D_H_DESERIALIZE(Type);
-		D_H_DESERIALIZE(Transform);
 
 		// Loading material
 		Uuid materialUuid;
@@ -189,5 +189,15 @@ namespace Darius::Scene
 		Uuid meshUuid;
 		D_CORE::from_json(j["Mesh"], meshUuid);
 		value.mMeshResource = D_RESOURCE::GetResource<MeshResource>(meshUuid, value);
+	}
+
+	Transform* GameObject::ModifyTransform()
+	{
+		return mEntity.get_ref<TransformComponent>().get()->Modify();
+	}
+
+	Transform const* GameObject::GetTransform()
+	{
+		return mEntity.get<TransformComponent>()->GetData();
 	}
 }

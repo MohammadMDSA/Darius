@@ -1,5 +1,7 @@
 #pragma once
 
+#include "EntityComponentSystem/Entity.hpp"
+
 #include <Core/Ref.hpp>
 #include <Core/Uuid.hpp>
 #include <Core/Serialization/Json.hpp>
@@ -43,39 +45,37 @@ namespace Darius::Scene
 	public:
 		~GameObject();
 
-		RenderItem					GetRenderItem();
-		INLINE bool					CanRender() { return mActive && mMeshResource.IsValid(); }
-
-		INLINE const BoundingSphere& GetBounds() const { return mMeshResource.Get()->GetData()->mBoundSp; }
+		RenderItem							GetRenderItem();
+		INLINE bool							CanRender() { return mActive && mMeshResource.IsValid(); }
+		INLINE const BoundingSphere&		GetBounds() const { return mMeshResource.Get()->GetData()->mBoundSp; }
+		Transform*							ModifyTransform();
+		Transform const*					GetTransform();
 
 #ifdef _D_EDITOR
-		bool						DrawDetails(float params[]);
+		bool								DrawDetails(float params[]);
 #endif // _EDITOR
-
-
-		Transform										mTransform;
-
 
 		INLINE operator CountedOwner const() {
 			return CountedOwner{ WSTR_STR(mName), "GameObject", this, 0 };
 		}
 
-		void						SetMesh(ResourceHandle handle);
-		void						SetMaterial(ResourceHandle handle);
+		void								SetMesh(ResourceHandle handle);
+		void								SetMaterial(ResourceHandle handle);
 
 		D_CH_RW_FIELD(bool, Active);
 		D_CH_RW_FIELD(std::string, Name);
 		D_CH_RW_FIELD(Type, Type);
 		D_CH_R_FIELD_CONST(Uuid, Uuid);
+		D_CH_R_FIELD(D_ECS::Entity, Entity);
 
 	private:
 		friend class D_SCENE::SceneManager;
-		friend void to_json(D_SERIALIZATION::Json& j, const GameObject& value);
-		friend void from_json(const D_SERIALIZATION::Json& j, GameObject& value);
+		friend void							to_json(D_SERIALIZATION::Json& j, const GameObject& value);
+		friend void							from_json(const D_SERIALIZATION::Json& j, GameObject& value);
 
-		GameObject(Uuid uuid);
+		GameObject(Uuid uuid, D_ECS::Entity entity);
 
-		void						Update(D_GRAPHICS::GraphicsContext& context, float deltaTime);
+		void								Update(D_GRAPHICS::GraphicsContext& context, float deltaTime);
 
 		Ref<MeshResource>					mMeshResource;
 		Ref<MaterialResource>				mMaterialResouce;
