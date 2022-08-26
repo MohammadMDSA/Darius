@@ -3,11 +3,16 @@
 #include "Scene.hpp"
 #include "GameObject.hpp"
 
+#include "EntityComponentSystem/Components/ComponentBase.hpp"
+#include "EntityComponentSystem/Components/TransformComponent.hpp"
+
 #include <Core/Memory/Memory.hpp>
 #include <Core/Serialization/Json.hpp>
 #include <Core/Uuid.hpp>
 #include <Renderer/CommandContext.hpp>
 #include <Utils/Assert.hpp>
+
+#include <flecs.h>
 
 #include <fstream>
 
@@ -16,13 +21,21 @@ using namespace D_CORE;
 
 namespace Darius::Scene
 {
-	std::unique_ptr<D_CONTAINERS::DVector<GameObject*>>						GOs = nullptr;
-	std::unique_ptr<D_CONTAINERS::DMap<Uuid, GameObject*, UuidHasher>>		UuidMap = nullptr;
+	std::unique_ptr<D_CONTAINERS::DVector<GameObject*>>					GOs = nullptr;
+	std::unique_ptr<D_CONTAINERS::DMap<Uuid, GameObject*, UuidHasher>>	UuidMap = nullptr;
+
+	std::string															SceneName;
+
+	flecs::world														World;
+
+	bool																Loaded = false;
 
 	void SceneManager::Update(float deltaTime)
 	{
-		/*if (!GOs)
-			return;*/
+		if (!GOs)
+			return;
+
+		World.progress(deltaTime);
 
 		D_GRAPHICS::GraphicsContext& context = D_GRAPHICS::GraphicsContext::Begin(L"Updateing objects");
 
@@ -43,7 +56,15 @@ namespace Darius::Scene
 
 	bool SceneManager::Create(std::string const& name)
 	{
-		GOs->clear();
+		if (Loaded)
+			Unload();
+		SceneName = name;
+
+#ifdef _DEBUG
+		World.set<flecs::Rest>({});
+#endif // _DEBUG
+
+		Loaded = true;
 		return true;
 	}
 
@@ -56,18 +77,19 @@ namespace Darius::Scene
 	GameObject* SceneManager::CreateGameObject(Uuid uuid)
 	{
 		// TODO: Better allocation
-		auto go = new GameObject(uuid);
+		auto go = new GameObject(uuid, World.entity(("GameObject:" + ToString(uuid)).c_str()));
 		GOs->push_back(go);
 
 		// Update uuid map
 		UuidMap->emplace(uuid, go);
+
 		return go;
 	}
 
 	// Slow function
 	void SceneManager::GetGameObjects(D_CONTAINERS::DVector<GameObject*>& container)
 	{
-		for (auto& go: *GOs)
+		for (auto& go : *GOs)
 		{
 			container.push_back(go);
 		}
@@ -85,21 +107,25 @@ namespace Darius::Scene
 		D_ASSERT(GOs);
 
 		GOs.reset();
+		UuidMap.reset();
 	}
 
 	bool SceneManager::Load(std::wstring const& path)
 	{
 		D_SERIALIZATION::Json sceneJson;
 		auto ifs = std::ifstream(path);
-		
+
 		if (!ifs)
 			return false;
 
 		ifs >> sceneJson;
 		ifs.close();
 
-		// Unload current scene
-		Unload();
+		auto filePath = Path(path);
+		auto filename = filePath.string();
+		filename = filename.substr(0, filename.size() - filePath.extension().string().size());
+
+		Create(filename);
 
 		for (int i = 0; i < sceneJson["Objects"].size(); i++)
 		{
@@ -140,10 +166,16 @@ namespace Darius::Scene
 	{
 		for (auto& go : *GOs)
 		{
+			World.remove_all(go->GetEntity());
 			delete go;
 		}
 		GOs->clear();
 		UuidMap->clear();
+	}
+
+	D_ECS::ECSRegistry& SceneManager::GetRegistry()
+	{
+		return World;
 	}
 
 }

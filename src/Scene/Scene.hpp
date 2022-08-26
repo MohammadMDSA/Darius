@@ -1,6 +1,7 @@
 #pragma once
 
 #include "GameObject.hpp"
+#include "EntityComponentSystem/Entity.hpp"
 
 #include <Core/Containers/Vector.hpp>
 #include <Core/Filesystem/Path.hpp>
@@ -28,6 +29,9 @@ namespace Darius::Scene
 		static bool				Load(std::wstring const& path);
 		static bool				Save(std::string const& name, D_FILE::Path const& path);
 		
+		
+		static D_ECS::ECSRegistry& GetRegistry();
+
 	private:
 		static GameObject*		CreateGameObject(Uuid uuid);
 	};
