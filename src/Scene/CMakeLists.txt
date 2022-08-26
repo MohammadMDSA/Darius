@@ -8,6 +8,9 @@ list(APPEND SCENE_LIBS_INCLUDE
 	"Scene.hpp"
     "Utils/DetailsDrawer.hpp"
 	"Serialization/Serializer.hpp"
+	"EntityComponentSystem/Entity.hpp"
+	"EntityComponentSystem/Components/ComponentBase.hpp"
+	"EntityComponentSystem/Components/TransformComponent.hpp"
 	"pch.hpp"
 	)
 
@@ -17,6 +20,8 @@ list(APPEND SCENE_LIBS_SOURCES
 	"pch.cpp"
     "Utils/Utils.cpp"
 	"Serialization/Serializer.cpp"
+	"EntityComponentSystem/Components/ComponentBase.cpp"
+	"EntityComponentSystem/Components/TransformComponent.cpp"
 	)
 
 
@@ -48,7 +53,7 @@ PRIVATE
 )
 
 target_link_libraries("Scene" PRIVATE ${Boost_LIBRARIES})
-target_link_libraries("Scene" PRIVATE Utils Core Math Renderer ResourceManager IMGUI)
+target_link_libraries("Scene" PUBLIC flecs_static PRIVATE Utils Core Math Renderer ResourceManager IMGUI)
 
 
 if(BUILD_TESTS)
