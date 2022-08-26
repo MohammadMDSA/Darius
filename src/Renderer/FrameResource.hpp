@@ -54,7 +54,7 @@ namespace Darius::Renderer::ConstantFrameResource
 	{
 		XMFLOAT4					DifuseAlbedo = { 1.f, 1.f, 1.f, 1.f };
 		XMFLOAT3					FresnelR0 = { 0.f, 0.f, 0.f };
-		float						Roughness = 0.2;
+		float						Roughness = 0.2f;
 	};
 
 	// Lightweight structure stores parameters to draw a shape.

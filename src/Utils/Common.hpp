@@ -6,7 +6,7 @@
 #define ALIGN_DECL_256 ALIGN_DECL(256)
 
 #define D_NAMEOF(T) #T
-#define D_NAMEOF_C(T) (#T).c_str()
+#define D_NAMEOF_C(T) #T.c_str()
 
 #define D_CH_FIELD_ACC(type, name, access) \
 access: \
