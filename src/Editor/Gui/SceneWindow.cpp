@@ -144,10 +144,12 @@ namespace Darius::Editor::Gui::Windows
 
 		if (selectedObj)
 		{
-			auto transform = selectedObj->ModifyTransform();
-			auto world = transform->GetWorld();
+			auto transform = *selectedObj->GetTransform();
+			auto world = transform.GetWorld();
 			if (ImGuizmo::Manipulate((float*)&view, (float*)&proj, ImGuizmo::OPERATION::TRANSLATE, ImGuizmo::MODE::LOCAL, (float*)&world))
-				*transform = D_MATH::Transform(D_MATH::Matrix4(world));
+			{
+				selectedObj->SetTransform(D_MATH::Transform(D_MATH::Matrix4(world)));
+			}
 		}
 	}
 
@@ -244,7 +246,7 @@ namespace Darius::Editor::Gui::Windows
 				continue;
 
 			// Is it in our frustum
-			auto bsp = *go->ModifyTransform() * go->GetBounds();
+			auto bsp = *go->GetTransform() * go->GetBounds();
 			auto vsp = BoundingSphere(Vector3(cam->GetViewMatrix() * bsp.GetCenter()), bsp.GetRadius());
 			if (!frustum.IntersectSphere(vsp))
 				continue;

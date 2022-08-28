@@ -82,7 +82,25 @@ namespace Darius::Scene
 	{
 		bool changeValue = false;
 
-		D_SCENE_DET_DRAW::DrawDetails(*ModifyTransform(), nullptr);
+		auto& reg = D_WORLD::GetRegistry();
+		
+
+		mEntity.each([&](flecs::id compId)
+			{
+				if (!reg.is_valid(compId))
+					return;
+				auto compP = mEntity.get_mut(compId);
+				try
+				{
+					auto comp = reinterpret_cast<ComponentBase*>(compP);
+					D_SCENE_DET_DRAW::DrawDetails(*comp, nullptr);
+
+				}
+				catch (const std::exception&)
+				{
+					D_LOG_ERROR("Error drawing component");
+				}
+			});
 
 		{
 			MeshResource* currentMesh = mMeshResource.Get();
@@ -166,6 +184,16 @@ namespace Darius::Scene
 
 	}
 
+	void GameObject::SetTransform(Transform const& trans)
+	{
+		GetComponent<Darius::Scene::ECS::Components::TransformComponent>()->SetTransform(trans);
+	}
+
+	Transform const* GameObject::GetTransform() const
+	{
+		return mEntity.get<Darius::Scene::ECS::Components::TransformComponent>()->GetData();
+	}
+
 	void to_json(D_SERIALIZATION::Json& j, const GameObject& value) {
 		D_H_SERIALIZE(Active);
 		D_H_SERIALIZE(Name);
@@ -191,13 +219,4 @@ namespace Darius::Scene
 		value.mMeshResource = D_RESOURCE::GetResource<MeshResource>(meshUuid, value);
 	}
 
-	Transform* GameObject::ModifyTransform()
-	{
-		return mEntity.get_ref<TransformComponent>().get()->Modify();
-	}
-
-	Transform const* GameObject::GetTransform()
-	{
-		return mEntity.get<TransformComponent>()->GetData();
-	}
 }
