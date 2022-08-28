@@ -18,6 +18,7 @@ namespace Darius::Scene::ECS::Components
 	class MeshRendererComponent : public ComponentBase
 	{
 		D_H_COMP_BODY(MeshRendererComponent, ComponentBase);
+
 	public:
 
 #ifdef _D_EDITOR

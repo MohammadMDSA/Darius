@@ -42,6 +42,7 @@ namespace Darius::Renderer::ConstantFrameResource
 	ALIGN_DECL_256 struct MeshConstants
 	{
 		XMFLOAT4X4				mWorld;
+		XMFLOAT3X3				mWorldIT;
 	};
 
 	// Color structure for color batches

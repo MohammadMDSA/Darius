@@ -98,6 +98,19 @@ namespace Darius::Scene
 
 		Darius::Scene::ECS::Components::ComponentBase* AddComponent(std::string const& name);
 
+		template<class T>
+		void								RemoveComponent()
+		{
+			// Checking if T is a resource type
+			using conv = std::is_convertible<T*, Darius::Scene::ECS::Components::ComponentBase*>;
+			D_STATIC_ASSERT(conv::value);
+
+			mEntity.remove<T>();
+		}
+
+		void								RemoveComponent(Darius::Scene::ECS::Components::ComponentBase*);
+
+
 #ifdef _D_EDITOR
 		bool								DrawDetails(float params[]);
 #endif // _EDITOR

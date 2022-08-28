@@ -1,15 +1,15 @@
 
 #include "Common.hlsli"
-
+#pragma pack 4
 #define MAX_LIGHTS 256
 
 // Defaults for number of lights.
 #ifndef NUM_DIR_LIGHTS
-    #define NUM_DIR_LIGHTS 1
+    #define NUM_DIR_LIGHTS 0
 #endif
 
 #ifndef NUM_POINT_LIGHTS
-    #define NUM_POINT_LIGHTS 0
+    #define NUM_POINT_LIGHTS 1
 #endif
 
 #ifndef NUM_SPOT_LIGHTS
@@ -19,9 +19,9 @@
 
 struct Light
 {
-    float3 Color;
-    float3 Direction;
-    float3 Position;
+    float4 Color;
+    float4 Direction;
+    float4 Position;
     float FalloffStart;
     float FalloffEnd;
     float SpotPower;

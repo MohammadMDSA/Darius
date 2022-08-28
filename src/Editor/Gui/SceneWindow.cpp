@@ -80,14 +80,14 @@ namespace Darius::Editor::Gui::Windows
 		globals.AmbientLight = { 0.5f, 0.5f, 0.5f, 1.0f };
 
 		// Lights
-		globals.Lights[0].Position = { 10.f, 10.f, 10.f };
-		globals.Lights[0].Direction = { 0.57735f, -0.57735f, 0.57735f };
-		globals.Lights[0].Color = { 0.6f, 0.6f, 0.6f };
-		globals.Lights[1].Direction = { -0.57735f, -0.57735f, 0.57735f };
+		globals.Lights[0].Color = { 0.6f, 0.6f, 0.6f, 0.f };
+		globals.Lights[0].Direction = { 0.57735f, -0.57735f, 0.57735f, 0.f };
+		globals.Lights[0].Position = { 10.f, 10.f, 10.f, 0.f };
+		/*globals.Lights[1].Direction = { -0.57735f, -0.57735f, 0.57735f };
 		globals.Lights[1].Color = { 0.3f, 0.3f, 0.3f };
 		globals.Lights[2].Position = { 10.f, -10.f, 10.f };
 		globals.Lights[2].Direction = { 0.0f, -0.707f, -0.707f };
-		globals.Lights[2].Color = { 0.15f, 0.15f, 0.15f };
+		globals.Lights[2].Color = { 0.15f, 0.15f, 0.15f };*/
 
 	}
 

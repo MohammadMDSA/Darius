@@ -56,7 +56,9 @@ namespace Darius::Scene
 		auto& currentUploadBuff = mMeshConstantsCPU[D_RENDERER_DEVICE::GetCurrentResourceIndex()];
 		MeshConstants* cb = (MeshConstants*)currentUploadBuff.Map();
 
-		cb->mWorld = Matrix4(GetTransform()->GetWorld());
+		auto world = GetTransform()->GetWorld();
+		cb->mWorld = Matrix4(world);
+		cb->mWorldIT = InverseTranspose(Matrix3(world));
 
 		currentUploadBuff.Unmap();
 
@@ -71,7 +73,6 @@ namespace Darius::Scene
 	bool GameObject::DrawDetails(float params[])
 	{
 		bool changeValue = false;
-
 		auto& reg = D_WORLD::GetRegistry();
 
 		const ImGuiTreeNodeFlags treeNodeFlags = ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_Framed | ImGuiTreeNodeFlags_SpanAvailWidth | ImGuiTreeNodeFlags_AllowItemOverlap | ImGuiTreeNodeFlags_FramePadding;
@@ -96,11 +97,10 @@ namespace Darius::Scene
 				}
 				ImGui::PopStyleVar();
 
-				bool removeComponent = false;
 				if (ImGui::BeginPopup("ComponentSettings"))
 				{
 					if (ImGui::MenuItem("Remove component"))
-						removeComponent = true;
+						RemoveComponent(comp);
 
 					ImGui::EndPopup();
 				}
@@ -200,6 +200,13 @@ namespace Darius::Scene
 			});
 
 		mStarted = true;
+	}
+
+	void GameObject::RemoveComponent(D_ECS_COMP::ComponentBase* comp)
+	{
+		auto& reg = D_WORLD::GetRegistry();
+		auto compId = reg.component(comp->GetComponentName().c_str());
+		mEntity.remove(compId);
 	}
 
 	void to_json(D_SERIALIZATION::Json& j, const GameObject& value) {

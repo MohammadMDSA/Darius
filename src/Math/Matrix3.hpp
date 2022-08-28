@@ -14,6 +14,8 @@
 #pragma once
 #include "Quaternion.hpp"
 
+#include <string>
+
 namespace Darius::Math
 {
     // Represents a 3x3 matrix while occuping a 3x4 memory footprint.  The unused row and column are undefined but implicitly
@@ -51,6 +53,7 @@ namespace Darius::Math
 
         // Useful for DirectXMath interaction.  WARNING:  Only the 3x3 elements are defined.
         INLINE operator XMMATRIX() const { return XMMATRIX(m_mat[0], m_mat[1], m_mat[2], XMVectorZero()); }
+        INLINE operator XMFLOAT3X3() const { XMFLOAT3X3 result; std::memcpy(&result, &m_mat[0], 3 * sizeof(float)); std::memcpy(&result._21, &m_mat[1], 3 * sizeof(float)); std::memcpy(&result._31, &m_mat[2], 3 * sizeof(float)); return result; }
 
         INLINE Matrix3 operator* (Scalar scl) const { return Matrix3(scl * GetX(), scl * GetY(), scl * GetZ()); }
         INLINE Vector3 operator* (Vector3 vec) const { return Vector3(XMVector3TransformNormal(vec, *this)); }
