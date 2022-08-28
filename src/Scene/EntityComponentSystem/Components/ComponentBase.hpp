@@ -4,6 +4,7 @@
 
 #include <Core/Uuid.hpp>
 #include <Core/Signal.hpp>
+#include <Core/Serialization/Json.hpp>
 #include <Utils/Common.hpp>
 #include <Utils/Log.hpp>
 #include <Utils/StaticConstructor.hpp>
@@ -63,6 +64,10 @@ namespace Darius::Scene::ECS::Components
         virtual INLINE std::string  GetComponentName() { return ""; }
 
         virtual INLINE void         Start() { }
+
+        // Serialization
+        virtual void                Serialize(D_SERIALIZATION::Json&) const {};
+        virtual void                Deserialize(D_SERIALIZATION::Json const&) {};
 
         static INLINE std::string   GetName() { return "ComponentBase"; }
 

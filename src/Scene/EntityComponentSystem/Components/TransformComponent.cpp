@@ -2,6 +2,9 @@
 #include "TransformComponent.hpp"
 
 #include "Scene/Utils/DetailsDrawer.hpp"
+#include "Scene/Serialization/Serializer.hpp"
+
+using namespace D_SERIALIZATION;
 
 namespace Darius::Scene::ECS::Components
 {
@@ -23,4 +26,14 @@ namespace Darius::Scene::ECS::Components
 		return false;
 	}
 #endif
+
+	void TransformComponent::Serialize(Json& j) const
+	{
+		j = mTransform;
+	}
+
+	void TransformComponent::Deserialize(Json const& j)
+	{
+		mTransform = j;
+	}
 }

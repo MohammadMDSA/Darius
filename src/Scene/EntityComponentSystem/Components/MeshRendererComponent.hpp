@@ -24,6 +24,10 @@ namespace Darius::Scene::ECS::Components
 		virtual bool						DrawDetails(float params[]) override;
 #endif
 
+		// Serialization
+		virtual void						Serialize(D_SERIALIZATION::Json& j) const override;
+		virtual void						Deserialize(D_SERIALIZATION::Json const& j) override;
+
 		// States
 		virtual void						Start() override;
 

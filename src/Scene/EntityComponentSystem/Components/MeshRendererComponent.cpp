@@ -6,6 +6,7 @@
 
 #include <imgui.h>
 
+using namespace D_SERIALIZATION;
 using namespace D_RESOURCE;
 using namespace D_RENDERER_FRAME_RESOUCE;
 
@@ -135,6 +136,27 @@ namespace Darius::Scene::ECS::Components
 	{
 		mMaterialResource = D_RESOURCE::GetResource<MaterialResource>(handle, *GetGameObject());
 
+	}
+
+	void MeshRendererComponent::Serialize(Json& j) const
+	{
+		D_CORE::to_json(j["Material"], mMaterialResource.Get()->GetUuid());
+		D_CORE::to_json(j["Mesh"], mMeshResource.Get()->GetUuid());
+	}
+
+	void MeshRendererComponent::Deserialize(Json const& j)
+	{
+		auto go = GetGameObject();
+
+		// Loading material
+		Uuid materialUuid;
+		D_CORE::from_json(j["Material"], materialUuid);
+		mMaterialResource = D_RESOURCE::GetResource<MaterialResource>(materialUuid, *go);
+
+		// Loading mesh
+		Uuid meshUuid;
+		D_CORE::from_json(j["Mesh"], meshUuid);
+		mMeshResource = D_RESOURCE::GetResource<MeshResource>(meshUuid, *go);
 	}
 
 }

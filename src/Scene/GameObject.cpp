@@ -39,6 +39,10 @@ namespace Darius::Scene
 
 	GameObject::~GameObject()
 	{
+		mEntity.each([&](flecs::id compId)
+			{
+				mEntity.remove(compId);
+			});
 	}
 
 	void GameObject::Update(D_GRAPHICS::GraphicsContext& context, float deltaTime)
@@ -128,12 +132,12 @@ namespace Darius::Scene
 
 	Transform const* GameObject::GetTransform() const
 	{
-		return mEntity.get<Darius::Scene::ECS::Components::TransformComponent>()->GetData();
+		auto ff = mEntity.get<Darius::Scene::ECS::Components::TransformComponent>()->GetData();
+		return ff;
 	}
 
 	void GameObject::VisitComponents(std::function<void(ComponentBase*)> callback, std::function<void(D_EXCEPTION::Exception const&)> onException) const
 	{
-
 
 		callback(mEntity.get_mut<TransformComponent>());
 
@@ -202,25 +206,13 @@ namespace Darius::Scene
 		D_H_SERIALIZE(Active);
 		D_H_SERIALIZE(Name);
 		D_H_SERIALIZE(Type);
-		D_H_SERIALIZE(Uuid);
-		//j["Material"] = value.mMaterialResouce.Get()->GetUuid();
-		//j["Mesh"] = value.mMeshResource.Get()->GetUuid();
+		D_CORE::to_json(j["Uuid"], value.mUuid);
 	}
 
 	void from_json(const D_SERIALIZATION::Json& j, GameObject& value) {
 		D_H_DESERIALIZE(Active);
 		D_H_DESERIALIZE(Name);
 		D_H_DESERIALIZE(Type);
-
-		// Loading material
-		Uuid materialUuid;
-		D_CORE::from_json(j["Material"], materialUuid);
-		//value.mMaterialResouce = D_RESOURCE::GetResource<MaterialResource>(materialUuid, value);
-
-		// Loading mesh
-		Uuid meshUuid;
-		D_CORE::from_json(j["Mesh"], meshUuid);
-		//value.mMeshResource = D_RESOURCE::GetResource<MeshResource>(meshUuid, value);
 	}
 
 }

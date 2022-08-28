@@ -254,6 +254,6 @@ namespace Darius::Editor::Gui::Windows
 			});
 
 		//D_LOG_DEBUG("Number of render items: " + std::to_string(items.size()));
-
+		meshQuery.destruct();
 	}
 }

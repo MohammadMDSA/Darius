@@ -16,6 +16,10 @@ namespace Darius::Scene::ECS::Components
 		D_H_COMP_BODY(TransformComponent, ComponentBase);
 	public:
 
+		// Serialization
+		virtual void						Serialize(D_SERIALIZATION::Json& j) const override;
+		virtual void						Deserialize(D_SERIALIZATION::Json const& j) override;
+
 		INLINE D_MATH::Transform const*		GetData() const { return &mTransform; }
 		INLINE D_MATH::Transform			GetData() { return mTransform; }
 		INLINE void							SetTransform(D_MATH::Transform const& trans) { mTransform = trans; mChangeSignal(); }

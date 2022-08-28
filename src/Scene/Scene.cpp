@@ -102,6 +102,8 @@ namespace Darius::Scene
 		// Update uuid map
 		UuidMap->emplace(uuid, go);
 
+		EntityMap->emplace(entity, go);
+
 		go->Start();
 
 		return go;
@@ -133,6 +135,7 @@ namespace Darius::Scene
 
 		Create(filename);
 
+		// Loading Objects
 		for (int i = 0; i < sceneJson["Objects"].size(); i++)
 		{
 			D_SERIALIZATION::Json jObj = sceneJson["Objects"][i];
@@ -144,6 +147,32 @@ namespace Darius::Scene
 			from_json(jObj, *obj);
 		}
 
+		// Loading Components
+		for (auto& [objUuidStr, objCompsJ] : sceneJson["ObjectComponent"].items())
+		{
+			Uuid objUuid = FromString(objUuidStr);
+			auto gameObject = (*UuidMap)[objUuid];
+
+			for (auto& [compName, compJ] : objCompsJ.items())
+			{
+				auto compR = World.component(compName.c_str());
+				auto compId = World.id(compR);
+				
+				// Adding component to entity
+				gameObject->mEntity.add(compR);
+
+				auto compP = gameObject->mEntity.get_mut(compId);
+				
+				// Get component pointer
+				auto comp = reinterpret_cast<D_ECS_COMP::ComponentBase*>(compP);
+
+				D_CORE::from_json(compJ["Uuid"], comp->mUuid);
+				comp->mGameObject = gameObject;
+				
+				comp->Deserialize(compJ);
+			}
+		}
+
 		StartScene();
 	}
 
@@ -151,6 +180,7 @@ namespace Darius::Scene
 	{
 		D_SERIALIZATION::Json sceneJson = D_SERIALIZATION::Json::object();
 
+		// Serializing objects
 		DVector<GameObject> rawGos;
 		for (auto go : *GOs)
 		{
@@ -158,6 +188,20 @@ namespace Darius::Scene
 		}
 
 		sceneJson["Objects"] = rawGos;
+
+		// Serializing components
+		for (auto go : *GOs)
+		{
+			D_SERIALIZATION::Json objectComps;
+			go->VisitComponents([&](auto const comp)
+				{
+					D_SERIALIZATION::Json componentJson;
+					comp->Serialize(componentJson);
+					D_CORE::to_json(componentJson["Uuid"], comp->mUuid);
+					objectComps[comp->GetComponentName()] = componentJson;
+				});
+			sceneJson["ObjectComponent"][ToString(go->GetUuid())] = objectComps;
+		}
 
 		auto pathName = Path(path).append(name).string() + ".dar";
 
