@@ -23,12 +23,29 @@ namespace Darius::Scene
 {
 	std::unique_ptr<D_CONTAINERS::DVector<GameObject*>>					GOs = nullptr;
 	std::unique_ptr<D_CONTAINERS::DMap<Uuid, GameObject*, UuidHasher>>	UuidMap = nullptr;
+	std::unique_ptr<D_CONTAINERS::DMap<D_ECS::EntityId, GameObject*>>	EntityMap = nullptr;
 
 	std::string															SceneName;
 
 	flecs::world														World;
 
 	bool																Loaded = false;
+
+	void SceneManager::Initialize()
+	{
+		D_ASSERT(!GOs);
+		UuidMap = std::make_unique<D_CONTAINERS::DMap<Uuid, GameObject*, UuidHasher>>();
+		GOs = std::make_unique<D_CONTAINERS::DVector<GameObject*>>();
+		EntityMap = std::make_unique<D_CONTAINERS::DMap<D_ECS::EntityId, GameObject*>>();
+	}
+
+	void SceneManager::Shutdown()
+	{
+		D_ASSERT(GOs);
+
+		GOs.reset();
+		UuidMap.reset();
+	}
 
 	void SceneManager::Update(float deltaTime)
 	{
@@ -76,12 +93,16 @@ namespace Darius::Scene
 
 	GameObject* SceneManager::CreateGameObject(Uuid uuid)
 	{
+		auto entity = World.entity(("GameObject:" + ToString(uuid)).c_str());
+
 		// TODO: Better allocation
-		auto go = new GameObject(uuid, World.entity(("GameObject:" + ToString(uuid)).c_str()));
+		auto go = new GameObject(uuid, entity);
 		GOs->push_back(go);
 
 		// Update uuid map
 		UuidMap->emplace(uuid, go);
+
+		go->Start();
 
 		return go;
 	}
@@ -93,21 +114,6 @@ namespace Darius::Scene
 		{
 			container.push_back(go);
 		}
-	}
-
-	void SceneManager::Initialize()
-	{
-		D_ASSERT(!GOs);
-		UuidMap = std::make_unique<D_CONTAINERS::DMap<Uuid, GameObject*, UuidHasher>>();
-		GOs = std::make_unique<D_CONTAINERS::DVector<GameObject*>>();
-	}
-
-	void SceneManager::Shutdown()
-	{
-		D_ASSERT(GOs);
-
-		GOs.reset();
-		UuidMap.reset();
 	}
 
 	bool SceneManager::Load(std::wstring const& path)
@@ -137,6 +143,8 @@ namespace Darius::Scene
 
 			from_json(jObj, *obj);
 		}
+
+		StartScene();
 	}
 
 	bool SceneManager::Save(std::string const& name, const Path& path)
@@ -170,12 +178,28 @@ namespace Darius::Scene
 			delete go;
 		}
 		GOs->clear();
+		EntityMap->clear();
 		UuidMap->clear();
 	}
 
 	D_ECS::ECSRegistry& SceneManager::GetRegistry()
 	{
 		return World;
+	}
+
+	GameObject* SceneManager::GetGameObject(D_ECS::Entity entity)
+	{
+		if (!EntityMap->contains(entity))
+			return nullptr;
+		return EntityMap->at(entity);
+	}
+
+	void SceneManager::StartScene()
+	{
+		for (auto go : *GOs)
+		{
+			go->Start();
+		}
 	}
 
 }

@@ -4,6 +4,7 @@
 #include "Scene/Utils/DetailsDrawer.hpp"
 #include "Scene.hpp"
 #include "Serialization/Serializer.hpp"
+#include "EntityComponentSystem/Components/ComponentBase.hpp"
 #include "EntityComponentSystem/Components/TransformComponent.hpp"
 
 #include <Core/Uuid.hpp>
@@ -23,36 +24,21 @@ namespace Darius::Scene
 		mType(Type::Movable),
 		mName("GameObject"),
 		mUuid(uuid),
-		mEntity(entity)
+		mEntity(entity),
+		mStarted(false)
 	{
-		SetMesh({ ResourceType::None, 0 });
-		SetMaterial(D_RESOURCE::GetDefaultResource(DefaultResource::DefaultMaterial));
-
 		// Initializing Mesh Constants buffers
 		for (size_t i = 0; i < D_RENDERER_FRAME_RESOUCE::gNumFrameResources; i++)
 		{
 			mMeshConstantsCPU[i].Create(L"Mesh Constant Upload Buffer", sizeof(MeshConstants));
 		}
 		mMeshConstantsGPU.Create(L"Mesh Constant GPU Buffer", 1, sizeof(MeshConstants));
-		mEntity.add(D_WORLD::GetRegistry().component(D_ECS_COMP::TransformComponent::GetName().c_str()));
+
+		AddComponent<D_ECS_COMP::TransformComponent>();
 	}
 
 	GameObject::~GameObject()
 	{
-	}
-
-	RenderItem GameObject::GetRenderItem()
-	{
-		auto result = RenderItem();
-		const Mesh* mesh = mMeshResource.Get()->GetData();
-		result.BaseVertexLocation = mesh->mDraw[0].BaseVertexLocation;
-		result.IndexCount = mesh->mDraw[0].IndexCount;
-		result.StartIndexLocation = mesh->mDraw[0].StartIndexLocation;
-		result.Mesh = mesh;
-		result.PrimitiveType = D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
-		result.MeshCBV = mMeshConstantsGPU.GetGpuVirtualAddress();
-		result.MaterialCBV = *mMaterialResouce.Get();
-		return result;
 	}
 
 	void GameObject::Update(D_GRAPHICS::GraphicsContext& context, float deltaTime)
@@ -94,87 +80,11 @@ namespace Darius::Scene
 				D_LOG_ERROR("Error drawing component with error: " << ex.what());
 			});
 
-		{
-			MeshResource* currentMesh = mMeshResource.Get();
-
-			if (ImGui::Button("Select"))
-			{
-				ImGui::OpenPopup("Select Res");
-			}
-
-			if (ImGui::BeginPopup("Select Res"))
-			{
-				auto meshes = D_RESOURCE::GetResourcePreviews(D_RESOURCE::ResourceType::Mesh);
-				int idx = 0;
-				for (auto prev : meshes)
-				{
-					bool selected = currentMesh && prev.Handle.Id == currentMesh->GetId() && prev.Handle.Type == currentMesh->GetType();
-
-					auto name = STR_WSTR(prev.Name);
-					ImGui::PushID((name + std::to_string(idx)).c_str());
-					if (ImGui::Selectable(name.c_str(), &selected))
-					{
-						SetMesh(prev.Handle);
-						changeValue = true;
-					}
-					ImGui::PopID();
-
-					idx++;
-				}
-
-				ImGui::EndPopup();
-			}
-		}
-
-		D_SCENE_DET_DRAW::DrawDetails(*mMaterialResouce->ModifyData(), nullptr);
-
-		{
-			MaterialResource* currentMaterial = mMaterialResouce.Get();
-
-			if (ImGui::Button("Select M"))
-			{
-				ImGui::OpenPopup("Select Mat");
-			}
-
-			if (ImGui::BeginPopup("Select Mat"))
-			{
-				auto meshes = D_RESOURCE::GetResourcePreviews(D_RESOURCE::ResourceType::Material);
-				int idx = 0;
-				for (auto prev : meshes)
-				{
-					bool selected = currentMaterial && prev.Handle.Id == currentMaterial->GetId() && prev.Handle.Type == currentMaterial->GetType();
-
-					auto name = STR_WSTR(prev.Name);
-					ImGui::PushID((name + std::to_string(idx)).c_str());
-					if (ImGui::Selectable(name.c_str(), &selected))
-					{
-						SetMaterial(prev.Handle);
-						changeValue = true;
-					}
-					ImGui::PopID();
-
-					idx++;
-				}
-
-				ImGui::EndPopup();
-			}
-		}
+		
 
 		return changeValue;
 	}
 #endif // _EDITOR
-
-	void GameObject::SetMesh(ResourceHandle handle)
-	{
-		mMeshResource = D_RESOURCE::GetResource<MeshResource>(handle, *this);
-
-	}
-
-	void GameObject::SetMaterial(ResourceHandle handle)
-	{
-		mMaterialResouce = D_RESOURCE::GetResource<MaterialResource>(handle, *this);
-
-	}
 
 	void GameObject::SetTransform(Transform const& trans)
 	{
@@ -188,11 +98,22 @@ namespace Darius::Scene
 
 	void GameObject::VisitComponents(std::function<void(ComponentBase*)> callback, std::function<void(D_EXCEPTION::Exception const&)> onException) const
 	{
+
+
+		callback(mEntity.get_mut<TransformComponent>());
+
 		auto& reg = D_WORLD::GetRegistry();
+
+		auto transId = reg.id<TransformComponent>();
+
 		mEntity.each([&](flecs::id compId)
 			{
 				if (!reg.is_valid(compId))
 					return;
+
+				if (transId == compId)
+					return;
+
 				auto compP = mEntity.get_mut(compId);
 				try
 				{
@@ -208,14 +129,47 @@ namespace Darius::Scene
 			});
 	}
 
+	D_ECS_COMP::ComponentBase* GameObject::AddComponent(std::string const& name)
+	{
+		auto& reg = D_WORLD::GetRegistry();
+
+		auto compT = reg.component(name.c_str());
+
+		auto compEnt = mEntity.add(compT);
+		auto compP = mEntity.get_mut(compEnt);
+
+		auto ref = reinterpret_cast<ComponentBase*>(compP);
+		AddComponentRoutine(ref);
+		return ref;
+	}
+	
+	void GameObject::AddComponentRoutine(Darius::Scene::ECS::Components::ComponentBase* comp)
+	{
+		comp->mGameObject = this;
+		if (mStarted)
+			comp->Start();
+	}
+
+	void GameObject::Start()
+	{
+		if (mStarted)
+			return;
+
+		VisitComponents([](auto comp)
+			{
+				comp->Start();
+			});
+		
+		mStarted = true;
+	}
 
 	void to_json(D_SERIALIZATION::Json& j, const GameObject& value) {
 		D_H_SERIALIZE(Active);
 		D_H_SERIALIZE(Name);
 		D_H_SERIALIZE(Type);
 		D_H_SERIALIZE(Uuid);
-		j["Material"] = value.mMaterialResouce.Get()->GetUuid();
-		j["Mesh"] = value.mMeshResource.Get()->GetUuid();
+		//j["Material"] = value.mMaterialResouce.Get()->GetUuid();
+		//j["Mesh"] = value.mMeshResource.Get()->GetUuid();
 	}
 
 	void from_json(const D_SERIALIZATION::Json& j, GameObject& value) {
@@ -226,12 +180,12 @@ namespace Darius::Scene
 		// Loading material
 		Uuid materialUuid;
 		D_CORE::from_json(j["Material"], materialUuid);
-		value.mMaterialResouce = D_RESOURCE::GetResource<MaterialResource>(materialUuid, value);
+		//value.mMaterialResouce = D_RESOURCE::GetResource<MaterialResource>(materialUuid, value);
 
 		// Loading mesh
 		Uuid meshUuid;
 		D_CORE::from_json(j["Mesh"], meshUuid);
-		value.mMeshResource = D_RESOURCE::GetResource<MeshResource>(meshUuid, value);
+		//value.mMeshResource = D_RESOURCE::GetResource<MeshResource>(meshUuid, value);
 	}
 
 }

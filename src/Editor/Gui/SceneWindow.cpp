@@ -6,6 +6,8 @@
 
 #include <Core/TimeManager/TimeManager.hpp>
 #include <Core/Input.hpp>
+#include <Scene/Scene.hpp>
+#include <Scene/EntityComponentSystem/Components/MeshRendererComponent.hpp>
 #include <Renderer/Renderer.hpp>
 #include <ResourceManager/ResourceManager.hpp>
 
@@ -227,34 +229,29 @@ namespace Darius::Editor::Gui::Windows
 
 	void SceneWindow::UpdateSceneRenderItems(DVector<RenderItem>& items)
 	{
-		// TODO: WRITE IT BETTER - I will when I implement components
-
 		items.clear();
 
-		// Update CBs
-		D_CONTAINERS::DVector<GameObject*> gos;
-		D_WORLD::GetGameObjects(gos);
+		auto& worldReg = D_WORLD::GetRegistry();
+		auto meshQuery = worldReg.query_builder<D_ECS_COMP::MeshRendererComponent>().build();
 
 		auto cam = D_CAMERA_MANAGER::GetActiveCamera();
 		auto frustum = cam->GetViewSpaceFrustum();
-		for (auto itr = gos.begin(); itr != gos.end(); itr++)
-		{
-			auto go = *itr;
 
-			// Is it active or renderable
-			if (!go->CanRender())
-				continue;
+		// Iterating over meshes
+		meshQuery.each([&](D_ECS_COMP::MeshRendererComponent& meshComp)
+			{
+				// Can't render
+				if (!meshComp.CanRender())
+					return;
 
-			// Is it in our frustum
-			auto bsp = *go->GetTransform() * go->GetBounds();
-			auto vsp = BoundingSphere(Vector3(cam->GetViewMatrix() * bsp.GetCenter()), bsp.GetRadius());
-			if (!frustum.IntersectSphere(vsp))
-				continue;
+				// Is it in our frustum
+				auto bsp = *meshComp.GetGameObject()->GetTransform() * meshComp.GetBounds();
+				auto vsp = BoundingSphere(Vector3(cam->GetViewMatrix() * bsp.GetCenter()), bsp.GetRadius());
+				if (!frustum.IntersectSphere(vsp))
+					return;
 
-			// Add it to render list
-			auto item = go->GetRenderItem();
-			items.push_back(item);
-		}
+				items.push_back(meshComp.GetRenderItem());
+			});
 
 		//D_LOG_DEBUG("Number of render items: " + std::to_string(items.size()));
 

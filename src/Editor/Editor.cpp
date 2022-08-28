@@ -15,6 +15,9 @@
 #include <Core/Filesystem/Path.hpp>
 #include <Core/Containers/Vector.hpp>
 #include <Core/TimeManager/TimeManager.hpp>
+
+#include <Scene/EntityComponentSystem/Components/MeshRendererComponent.hpp>
+
 #include <Renderer/Renderer.hpp>
 #include <Renderer/FrameResource.hpp>
 #include <Renderer/Camera/CameraManager.hpp>
@@ -80,8 +83,8 @@ namespace Darius::Editor
 		D_WORLD::Create("Main");
 		auto a1 = D_WORLD::CreateGameObject();
 		auto a2 = D_WORLD::CreateGameObject();
-		(a1);
-		(a2);
+		a1->AddComponent<D_ECS_COMP::MeshRendererComponent>();
+		a2->AddComponent<D_ECS_COMP::MeshRendererComponent>();
 		/*for (size_t i = 0; i < 100; i++)
 		{
 			auto ob = D_WORLD::CreateGameObject();

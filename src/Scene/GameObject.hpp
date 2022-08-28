@@ -53,21 +53,50 @@ namespace Darius::Scene
 	public:
 		~GameObject();
 
-		RenderItem							GetRenderItem();
-		INLINE bool							CanRender() { return mActive && mMeshResource.IsValid(); }
-		INLINE const BoundingSphere&		GetBounds() const { return mMeshResource.Get()->GetData()->mBoundSp; }
-
 		void								SetTransform(Transform const& trans);
 		Transform const*					GetTransform() const;
 
+		// Object states
+		void								Start();
+
+		INLINE D3D12_GPU_VIRTUAL_ADDRESS	GetConstantsAddress() { return mMeshConstantsGPU.GetGpuVirtualAddress(); }
+
 		template<class T>
-		INLINE T*							GetComponent()
+		T*									GetComponent()
 		{
 			// Checking if T is a resource type
 			using conv = std::is_convertible<T*, Darius::Scene::ECS::Components::ComponentBase*>;
 			D_STATIC_ASSERT(conv::value);
 			return mEntity.get_ref<T>().get();
 		}
+
+		template<class T>
+		T*									AddComponent()
+		{
+			// Checking if T is a resource type
+			using conv = std::is_convertible<T*, Darius::Scene::ECS::Components::ComponentBase*>;
+			D_STATIC_ASSERT(conv::value);
+
+			mEntity.add<T>();
+			auto ref = mEntity.get_ref<T>().get();
+			AddComponentRoutine(ref);
+			return ref;
+		}
+
+		template<class T>
+		T*									AddComponent(T const& value)
+		{
+			// Checking if T is a resource type
+			using conv = std::is_convertible<T*, Darius::Scene::ECS::Components::ComponentBase*>;
+			D_STATIC_ASSERT(conv::value);
+
+			mEntity.add<T>(value);
+			auto ref = mEntity.get_ref<T>().get();
+			AddComponentRoutine(ref);
+			return ref;
+		}
+
+		Darius::Scene::ECS::Components::ComponentBase* AddComponent(std::string const& name);
 
 #ifdef _D_EDITOR
 		bool								DrawDetails(float params[]);
@@ -77,14 +106,12 @@ namespace Darius::Scene
 			return CountedOwner{ WSTR_STR(mName), "GameObject", this, 0 };
 		}
 
-		void								SetMesh(ResourceHandle handle);
-		void								SetMaterial(ResourceHandle handle);
-
 		D_CH_RW_FIELD(bool, Active);
 		D_CH_RW_FIELD(std::string, Name);
 		D_CH_RW_FIELD(Type, Type);
 		D_CH_R_FIELD_CONST(Uuid, Uuid);
 		D_CH_R_FIELD(D_ECS::Entity, Entity);
+		D_CH_R_FIELD(bool, Started);
 
 	private:
 		friend class D_SCENE::SceneManager;
@@ -95,9 +122,7 @@ namespace Darius::Scene
 		void								VisitComponents(std::function<void(Darius::Scene::ECS::Components::ComponentBase*)> callback, std::function<void(D_EXCEPTION::Exception const&)> onException = nullptr) const;
 
 		void								Update(D_GRAPHICS::GraphicsContext& context, float deltaTime);
-
-		Ref<MeshResource>					mMeshResource;
-		Ref<MaterialResource>				mMaterialResouce;
+		void								AddComponentRoutine(Darius::Scene::ECS::Components::ComponentBase*);
 
 		D_GRAPHICS_BUFFERS::UploadBuffer	mMeshConstantsCPU[D_RENDERER_FRAME_RESOUCE::gNumFrameResources];
 		ByteAddressBuffer					mMeshConstantsGPU;

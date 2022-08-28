@@ -21,6 +21,8 @@ namespace Darius::Scene
 
 		static GameObject*		CreateGameObject();
 		static void				GetGameObjects(D_CONTAINERS::DVector<GameObject*>& container);
+		
+		static GameObject*		GetGameObject(D_ECS::Entity entity);
 
 		static void				Update(float deltaTime);
 
@@ -29,11 +31,11 @@ namespace Darius::Scene
 		static bool				Load(std::wstring const& path);
 		static bool				Save(std::string const& name, D_FILE::Path const& path);
 		
-		
 		static D_ECS::ECSRegistry& GetRegistry();
 
 	private:
 		static GameObject*		CreateGameObject(Uuid uuid);
+		static void				StartScene();
 	};
 
 }

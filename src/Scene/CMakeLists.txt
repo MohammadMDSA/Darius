@@ -11,6 +11,7 @@ list(APPEND SCENE_LIBS_INCLUDE
 	"EntityComponentSystem/Entity.hpp"
 	"EntityComponentSystem/Components/ComponentBase.hpp"
 	"EntityComponentSystem/Components/TransformComponent.hpp"
+	"EntityComponentSystem/Components/MeshRendererComponent.hpp"
 	"pch.hpp"
 	)
 
@@ -23,6 +24,7 @@ list(APPEND SCENE_LIBS_SOURCES
 	"Serialization/Serializer.cpp"
 	"EntityComponentSystem/Components/ComponentBase.cpp"
 	"EntityComponentSystem/Components/TransformComponent.cpp"
+	"EntityComponentSystem/Components/MeshRendererComponent.cpp"
 	)
 
 
