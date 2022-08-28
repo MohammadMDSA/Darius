@@ -2,14 +2,14 @@
 
 #include <boost/signals2.hpp>
 
-namespace Darius
+#ifndef D_CORE
+#define D_CORE Darius::Core
+#endif // !D_UTILS
+
+namespace Darius::Core
 {
-	namespace Engine
-	{
-		namespace Core
-		{
-			template<typename T>
-			using Signal = boost::signals2::signal<T>;
-		}
-	}
+
+	template<typename T>
+	using Signal = boost::signals2::signal<T>;
+
 }

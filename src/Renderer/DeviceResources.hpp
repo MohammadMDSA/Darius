@@ -144,7 +144,7 @@ namespace Darius::Renderer::DeviceResource
         unsigned int                                        m_options;
 
         // The IDeviceNotify can be held directly as it owns the DeviceResources.
-        Darius::Engine::Core::Signal<void()>                m_deviceLostSignal;
-        Darius::Engine::Core::Signal<void()>                m_deviceRestoredSignal;
+        D_CORE::Signal<void()>                              m_deviceLostSignal;
+        D_CORE::Signal<void()>                              m_deviceRestoredSignal;
     };
 }
