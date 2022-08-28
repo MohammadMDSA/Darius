@@ -9,6 +9,7 @@
 #include <boost/uuid/name_generator.hpp>
 #include <boost/uuid/uuid_io.hpp>
 #include <boost/functional/hash.hpp>
+#include <boost/lexical_cast.hpp>
 
 #include <string>
 
@@ -44,6 +45,10 @@ namespace Darius::Core
 	INLINE std::string ToString(Uuid uuid) { return boost::uuids::to_string(uuid); }
 
 	INLINE std::wstring ToWString(Uuid uuid) { return boost::uuids::to_wstring(uuid); }
+
+	INLINE Uuid FromString(std::string str) { return boost::lexical_cast<boost::uuids::uuid>(str); }
+
+	INLINE Uuid FromWString(std::wstring str) { return boost::lexical_cast<boost::uuids::uuid>(str); }
 
 	void to_json(Json& j, const D_CORE::Uuid& value);
 
