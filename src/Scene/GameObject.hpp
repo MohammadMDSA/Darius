@@ -5,13 +5,13 @@
 #include <Core/Ref.hpp>
 #include <Core/Uuid.hpp>
 #include <Core/Serialization/Json.hpp>
+#include <Math/VectorMath.hpp>
 #include <Renderer/Geometry/Mesh.hpp>
 #include <Renderer/FrameResource.hpp>
 #include <Renderer/Geometry/Mesh.hpp>
 #include <Renderer/CommandContext.hpp>
 #include <Renderer/GraphicsUtils/Buffers/UploadBuffer.hpp>
 #include <Renderer/GraphicsUtils/Buffers/GpuBuffer.hpp>
-#include <Math/VectorMath.hpp>
 #include <ResourceManager/ResourceTypes/MeshResource.hpp>
 #include <ResourceManager/ResourceTypes/MaterialResource.hpp>
 
@@ -24,6 +24,11 @@ using namespace D_RENDERER_FRAME_RESOUCE;
 using namespace D_GRAPHICS_BUFFERS;
 using namespace D_RESOURCE;
 using namespace D_CORE;
+
+namespace Darius::Scene::ECS::Components
+{
+	class ComponentBase;
+}
 
 namespace Darius::Scene
 {
@@ -48,8 +53,18 @@ namespace Darius::Scene
 		RenderItem							GetRenderItem();
 		INLINE bool							CanRender() { return mActive && mMeshResource.IsValid(); }
 		INLINE const BoundingSphere&		GetBounds() const { return mMeshResource.Get()->GetData()->mBoundSp; }
-		Transform*							ModifyTransform();
-		Transform const*					GetTransform();
+
+		void								SetTransform(Transform const& trans);
+		Transform const*					GetTransform() const;
+
+		template<class T>
+		INLINE T*							GetComponent()
+		{
+			// Checking if T is a resource type
+			using conv = std::is_convertible<T*, Darius::Scene::ECS::Components::ComponentBase*>;
+			D_STATIC_ASSERT(conv::value);
+			return mEntity.get_ref<T>().get();
+		}
 
 #ifdef _D_EDITOR
 		bool								DrawDetails(float params[]);
