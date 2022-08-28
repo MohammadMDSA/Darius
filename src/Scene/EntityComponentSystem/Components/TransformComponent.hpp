@@ -2,6 +2,7 @@
 
 #include "Scene/EntityComponentSystem/Components/ComponentBase.hpp"
 
+#include <Core/Signal.hpp>
 #include <Math/Transform.hpp>
 
 #ifndef D_ECS_COMP
@@ -14,7 +15,10 @@ namespace Darius::Scene::ECS::Components
 	{
 	public:
 		INLINE D_MATH::Transform const*		GetData() const { return &mTransform; }
-		INLINE D_MATH::Transform*			Modify() { return &mTransform; }
+		INLINE D_MATH::Transform			GetData() { return mTransform; }
+		INLINE void							SetTransform(D_MATH::Transform const& trans) { mTransform = trans; mChangeSignal(); }
+
+		virtual bool						DrawDetails(float params[]) override;
 
 		INLINE operator D_MATH::Transform const* () const { return &mTransform; }
 
@@ -22,5 +26,6 @@ namespace Darius::Scene::ECS::Components
 
 	private:
 		D_MATH::Transform					mTransform;
+		D_CORE::Signal<void(void)>			mChangeSignal;
 	};
 }

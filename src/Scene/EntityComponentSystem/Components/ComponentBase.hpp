@@ -48,6 +48,8 @@ namespace Darius::Scene::ECS::Components
         ComponentBase();
         ComponentBase(D_CORE::Uuid uuid);
 
+        virtual INLINE bool DrawDetails(float params[]) { return false; }
+
         static INLINE std::string GetName() { return "ComponentBase"; }
 
         static void StaticConstructor()
@@ -64,6 +66,8 @@ namespace Darius::Scene::ECS::Components
 
         D_CH_R_FIELD(D_CORE::Uuid, Uuid);
         D_CH_R_FIELD(D_ECS::Entity, Entity);
+
+        float ff = 53;
 
     private:
         friend class Darius::Scene::GameObject;
