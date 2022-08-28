@@ -19,17 +19,25 @@ type(D_CORE::Uuid uuid); \
 static INLINE std::string GetName() { return D_NAMEOF(type); } \
 static void StaticConstructor() \
 { \
+    if(sInit) \
+        return; \
     D_LOG_INFO("Registering" << D_NAMEOF(type) << " child of " << D_NAMEOF(parent)); \
+    parent::StaticConstructor(); \
     auto& reg = D_WORLD::GetRegistry(); \
     auto comp = reg.component<type>(D_NAMEOF(type)); \
     comp.add<ComponentTag>(); \
     comp.is_a(reg.component(D_NAMEOF(parent)));\
+    sInit = true; \
 }\
 \
 static void StaticDistructor()\
 {} \
+private: \
+static bool sInit;
 
-#define D_H_COMP_DEF(type) INVOKE_STATIC_CONSTRUCTOR(type);
+#define D_H_COMP_DEF(type) \
+bool type::sInit = false; \
+INVOKE_STATIC_CONSTRUCTOR(type);
 
 namespace Darius::Scene
 {
@@ -48,29 +56,39 @@ namespace Darius::Scene::ECS::Components
         ComponentBase();
         ComponentBase(D_CORE::Uuid uuid);
 
-        virtual INLINE bool DrawDetails(float params[]) { return false; }
+#ifdef _D_EDITOR
+        virtual INLINE bool         DrawDetails(float[]) { return false; }
+#endif
 
-        static INLINE std::string GetName() { return "ComponentBase"; }
+        virtual INLINE void         Start() { }
 
-        static void StaticConstructor()
+        static INLINE std::string   GetName() { return "ComponentBase"; }
+
+        static void                 StaticConstructor()
         {
+            if (sInit)
+                return;
+
             auto& reg = D_WORLD::GetRegistry();
 
             auto comp = reg.component<ComponentBase>("ComponentBase");
             comp.add<ComponentTag>();
+            
+            sInit = true;
         }
 
-        static void StaticDestructor()
+        static void                 StaticDestructor()
         {
         }
 
         D_CH_R_FIELD(D_CORE::Uuid, Uuid);
-        D_CH_R_FIELD(D_ECS::Entity, Entity);
-
-        float ff = 53;
+        D_CH_R_FIELD(Darius::Scene::GameObject*, GameObject);
+        D_CH_R_FIELD(bool, Started);
 
     private:
         friend class Darius::Scene::GameObject;
         friend class Darius::Scene::SceneManager;
+
+        static bool                 sInit;
 	};
 }

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Scene/EntityComponentSystem/Components/ComponentBase.hpp"
+#include "ComponentBase.hpp"
 
 #include <Core/Signal.hpp>
 #include <Math/Transform.hpp>
@@ -13,16 +13,18 @@ namespace Darius::Scene::ECS::Components
 {
 	class TransformComponent : public ComponentBase
 	{
+		D_H_COMP_BODY(TransformComponent, ComponentBase);
 	public:
+
 		INLINE D_MATH::Transform const*		GetData() const { return &mTransform; }
 		INLINE D_MATH::Transform			GetData() { return mTransform; }
 		INLINE void							SetTransform(D_MATH::Transform const& trans) { mTransform = trans; mChangeSignal(); }
 
+#ifdef _D_EDITOR
 		virtual bool						DrawDetails(float params[]) override;
+#endif
 
 		INLINE operator D_MATH::Transform const* () const { return &mTransform; }
-
-		D_H_COMP_BODY(TransformComponent, ComponentBase);
 
 	private:
 		D_MATH::Transform					mTransform;

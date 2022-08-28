@@ -11,6 +11,7 @@ namespace Darius::Scene::ECS::Components
 
 	TransformComponent::TransformComponent(D_CORE::Uuid uuid) : ComponentBase(uuid) {}
 
+#ifdef _D_EDITOR
 	bool TransformComponent::DrawDetails(float params[])
 	{
 		auto temp = mTransform;
@@ -21,4 +22,5 @@ namespace Darius::Scene::ECS::Components
 		}
 		return false;
 	}
+#endif
 }
