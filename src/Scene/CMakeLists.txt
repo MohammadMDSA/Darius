@@ -19,6 +19,7 @@ list(APPEND SCENE_LIBS_SOURCES
 	"Scene.cpp"
 	"pch.cpp"
     "Utils/Utils.cpp"
+    "Utils/DetailsDrawer.cpp"
 	"Serialization/Serializer.cpp"
 	"EntityComponentSystem/Components/ComponentBase.cpp"
 	"EntityComponentSystem/Components/TransformComponent.cpp"
