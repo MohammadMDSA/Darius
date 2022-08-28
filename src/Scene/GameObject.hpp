@@ -5,6 +5,7 @@
 #include <Core/Ref.hpp>
 #include <Core/Uuid.hpp>
 #include <Core/Serialization/Json.hpp>
+#include <Core/Exceptions/Exception.hpp>
 #include <Math/VectorMath.hpp>
 #include <Renderer/Geometry/Mesh.hpp>
 #include <Renderer/FrameResource.hpp>
@@ -14,6 +15,8 @@
 #include <Renderer/GraphicsUtils/Buffers/GpuBuffer.hpp>
 #include <ResourceManager/ResourceTypes/MeshResource.hpp>
 #include <ResourceManager/ResourceTypes/MaterialResource.hpp>
+
+#include <functional>
 
 #ifndef D_SCENE
 #define D_SCENE Darius::Scene
@@ -89,6 +92,7 @@ namespace Darius::Scene
 		friend void							from_json(const D_SERIALIZATION::Json& j, GameObject& value);
 
 		GameObject(Uuid uuid, D_ECS::Entity entity);
+		void								VisitComponents(std::function<void(Darius::Scene::ECS::Components::ComponentBase*)> callback, std::function<void(D_EXCEPTION::Exception const&)> onException = nullptr) const;
 
 		void								Update(D_GRAPHICS::GraphicsContext& context, float deltaTime);
 

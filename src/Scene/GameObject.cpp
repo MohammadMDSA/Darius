@@ -83,23 +83,15 @@ namespace Darius::Scene
 		bool changeValue = false;
 
 		auto& reg = D_WORLD::GetRegistry();
-		
 
-		mEntity.each([&](flecs::id compId)
+		// Drawing components
+		VisitComponents([](auto comp)
 			{
-				if (!reg.is_valid(compId))
-					return;
-				auto compP = mEntity.get_mut(compId);
-				try
-				{
-					auto comp = reinterpret_cast<ComponentBase*>(compP);
-					D_SCENE_DET_DRAW::DrawDetails(*comp, nullptr);
-
-				}
-				catch (const std::exception&)
-				{
-					D_LOG_ERROR("Error drawing component");
-				}
+			D_SCENE_DET_DRAW::DrawDetails(*comp, nullptr);
+			},
+			[](auto const& ex)
+			{
+				D_LOG_ERROR("Error drawing component with error: " << ex.what());
 			});
 
 		{
@@ -193,6 +185,29 @@ namespace Darius::Scene
 	{
 		return mEntity.get<Darius::Scene::ECS::Components::TransformComponent>()->GetData();
 	}
+
+	void GameObject::VisitComponents(std::function<void(ComponentBase*)> callback, std::function<void(D_EXCEPTION::Exception const&)> onException) const
+	{
+		auto& reg = D_WORLD::GetRegistry();
+		mEntity.each([&](flecs::id compId)
+			{
+				if (!reg.is_valid(compId))
+					return;
+				auto compP = mEntity.get_mut(compId);
+				try
+				{
+					auto comp = reinterpret_cast<ComponentBase*>(compP);
+					callback(comp);
+
+				}
+				catch (const D_EXCEPTION::Exception& e)
+				{
+					if (onException)
+						onException(e);
+				}
+			});
+	}
+
 
 	void to_json(D_SERIALIZATION::Json& j, const GameObject& value) {
 		D_H_SERIALIZE(Active);
