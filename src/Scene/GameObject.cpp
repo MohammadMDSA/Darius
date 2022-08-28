@@ -1,4 +1,4 @@
-#include "pch.hpp"
+﻿#include "pch.hpp"
 #include <Renderer/pch.hpp>
 #include "GameObject.hpp"
 #include "Scene/Utils/DetailsDrawer.hpp"
@@ -70,17 +70,52 @@ namespace Darius::Scene
 
 		auto& reg = D_WORLD::GetRegistry();
 
+		const ImGuiTreeNodeFlags treeNodeFlags = ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_Framed | ImGuiTreeNodeFlags_SpanAvailWidth | ImGuiTreeNodeFlags_AllowItemOverlap | ImGuiTreeNodeFlags_FramePadding;
+
 		// Drawing components
-		VisitComponents([](auto comp)
+		VisitComponents([&](auto comp)
 			{
-			D_SCENE_DET_DRAW::DrawDetails(*comp, nullptr);
+				// Styling component frame
+
+				ImGui::Separator();
+				ImVec2 contentRegionAvailable = ImGui::GetContentRegionAvail();
+
+				float lineHeight = GImGui->Font->FontSize + GImGui->Style.FramePadding.y * 2.0f;
+				ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 8.f);
+				ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2{ 4, 4 });
+				bool open = ImGui::TreeNodeEx(comp->GetComponentName().c_str(), treeNodeFlags);
+				ImGui::PopStyleVar();
+				ImGui::SameLine(contentRegionAvailable.x - lineHeight * 0.5f);
+				if (ImGui::Button("+", ImVec2{ lineHeight, lineHeight }))
+				{
+					ImGui::OpenPopup("ComponentSettings");
+				}
+				ImGui::PopStyleVar();
+
+				bool removeComponent = false;
+				if (ImGui::BeginPopup("ComponentSettings"))
+				{
+					if (ImGui::MenuItem("Remove component"))
+						removeComponent = true;
+
+					ImGui::EndPopup();
+				}
+
+				if (open)
+				{
+					changeValue |= D_SCENE_DET_DRAW::DrawDetails(*comp, nullptr);
+					ImGui::TreePop();
+				}
+				ImGui::Spacing();
+				ImGui::Spacing();
+
 			},
 			[](auto const& ex)
 			{
 				D_LOG_ERROR("Error drawing component with error: " << ex.what());
 			});
 
-		
+
 
 		return changeValue;
 	}
@@ -142,7 +177,7 @@ namespace Darius::Scene
 		AddComponentRoutine(ref);
 		return ref;
 	}
-	
+
 	void GameObject::AddComponentRoutine(Darius::Scene::ECS::Components::ComponentBase* comp)
 	{
 		comp->mGameObject = this;
@@ -159,7 +194,7 @@ namespace Darius::Scene
 			{
 				comp->Start();
 			});
-		
+
 		mStarted = true;
 	}
 

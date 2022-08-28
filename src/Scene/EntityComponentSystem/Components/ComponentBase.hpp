@@ -17,6 +17,7 @@ public: \
 type(); \
 type(D_CORE::Uuid uuid); \
 static INLINE std::string GetName() { return D_NAMEOF(type); } \
+virtual INLINE std::string GetComponentName() override { return D_NAMEOF(type); } \
 static void StaticConstructor() \
 { \
     if(sInit) \
@@ -59,6 +60,7 @@ namespace Darius::Scene::ECS::Components
 #ifdef _D_EDITOR
         virtual INLINE bool         DrawDetails(float[]) { return false; }
 #endif
+        virtual INLINE std::string  GetComponentName() { return ""; }
 
         virtual INLINE void         Start() { }
 
