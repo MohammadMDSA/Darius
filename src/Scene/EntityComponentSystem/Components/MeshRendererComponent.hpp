@@ -45,8 +45,6 @@ namespace Darius::Scene::ECS::Components
 
 	private:
 
-		void								Initialize();
-
 		Ref<MeshResource>					mMeshResource;
 		Ref<MaterialResource>				mMaterialResource;
 	};
