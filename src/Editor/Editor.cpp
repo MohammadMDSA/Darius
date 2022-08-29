@@ -130,6 +130,7 @@ namespace Darius::Editor
 		D_WORLD::Update(elapsedTime);
 
 		auto& context = D_GRAPHICS::GraphicsContext::Begin(L"Update resources");
+		D_LIGHT::UpdateBuffers(context);
 		D_RESOURCE::UpdateGPUResources(context);
 		context.Finish();
 

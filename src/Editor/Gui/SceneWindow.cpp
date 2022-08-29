@@ -19,7 +19,7 @@ namespace Darius::Editor::Gui::Windows
 	SceneWindow::SceneWindow()
 	{
 		CreateBuffers();
-		mTextureHandle = D_RENDERER::GetRenderResourceHandle(1);
+		mTextureHandle = D_RENDERER::GetUiTextureHandle(1);
 
 		mCamera.SetFOV(XM_PI / 3);
 		mCamera.SetZRange(0.01f, 1000.f);

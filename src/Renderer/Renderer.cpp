@@ -51,9 +51,10 @@ namespace Darius::Renderer
 	// Device resource
 	std::unique_ptr<DeviceResource::DeviceResources>	Resources;
 
-	///////////////// REMOVE ASAP //////////////////
-	bool _4xMsaaState = false;
-	short _4xMsaaQuality = 0;
+	DescriptorHeap										TextureHeap;
+	DescriptorHeap										SamplerHeap;
+
+	DescriptorHandle									CommonTexture;
 
 	//////////////////////////////////////////////////////
 	// Functions
@@ -74,6 +75,11 @@ namespace Darius::Renderer
 
 		BuildRootSignature();
 		BuildPSO();
+
+		TextureHeap.Create(L"Scene Texture Descriptors", D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, 4096);
+		SamplerHeap.Create(L"Scene Smpaler Descriptors", D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER, 2048);
+		
+		CommonTexture = TextureHeap.Alloc(8);
 
 #ifdef _D_EDITOR
 		InitializeGUI();
@@ -113,6 +119,15 @@ namespace Darius::Renderer
 		context.SetRootSignature(RootSigns[RootSignatureTypes::Default]);
 
 		context.SetDynamicConstantBufferView(kCommonCBV, sizeof(GlobalConstants), &globals);
+
+		// Setting up common texture (light for now)
+		UINT destCount = 1;
+		UINT sourceCounts[] = { 1 };
+		auto lightMaskHandle = D_LIGHT::GetLightMaskHandle();
+
+		_device->CopyDescriptors(1, &CommonTexture, &destCount, destCount, &lightMaskHandle, sourceCounts, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+		context.SetDescriptorHeap(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, TextureHeap.GetHeapPointer());
+		context.SetDescriptorTable(kCommonSRVs, CommonTexture);
 
 		PIXBeginEvent(context.GetCommandList(), PIX_COLOR_DEFAULT, L"Render opaque");
 
@@ -288,6 +303,7 @@ namespace Darius::Renderer
 		def[kMeshConstants].InitAsConstantBuffer(0, D3D12_SHADER_VISIBILITY_VERTEX);
 		def[kMaterialConstants].InitAsConstantBuffer(0, D3D12_SHADER_VISIBILITY_PIXEL);
 		def[kCommonCBV].InitAsConstantBuffer(1);
+		def[kCommonSRVs].InitAsDescriptorRange(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 10, 8, D3D12_SHADER_VISIBILITY_PIXEL);
 		def.Finalize(L"Main Root Sig", D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT);
 
 		//Color root signature
@@ -302,7 +318,7 @@ namespace Darius::Renderer
 	}
 
 #ifdef _D_EDITOR
-	DescriptorHandle	GetRenderResourceHandle(UINT index)
+	DescriptorHandle	GetUiTextureHandle(UINT index)
 	{
 		D_ASSERT_M(index != 0, "Access to 0 index of render resouces are not allowed");
 		D_ASSERT_M(index < MaxImguiElements&& index >= 1, "Index out of bound");

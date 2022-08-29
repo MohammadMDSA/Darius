@@ -6,6 +6,7 @@
 #include "CommandContext.hpp"
 #include "GraphicsUtils/D3DUtils.hpp"
 #include "GraphicsUtils/Profiling/GpuTimeManager.hpp"
+#include "LightManager.hpp"
 
 #include <Core/TimeManager/TimeManager.hpp>
 #include <Utils/Assert.hpp>
@@ -81,7 +82,7 @@ namespace Darius::Graphics
 
 	CommandSignature					DispatchIndirectCommandSignature(1);
 	CommandSignature					DrawIndirectCommandSignature(1);
-	
+
 	D_GRAPHICS_UTILS::RootSignature		CommonRS;
 	/*ComputePSO GenerateMipsLinearPSO[4] =
 	{
@@ -121,11 +122,15 @@ namespace Darius::Graphics
 
 		InitializeCommonStates();
 		BuildShaders();
+
+		D_LIGHT::Initialize();
 	}
 
 	void Shutdown()
 	{
 		D_ASSERT(_initialized);
+
+		D_LIGHT::Shutdown();
 
 		D_PROFILING_GPU::Shutdown();
 
