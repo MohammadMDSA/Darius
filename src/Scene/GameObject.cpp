@@ -99,7 +99,8 @@ namespace Darius::Scene
 
 				if (ImGui::BeginPopup("ComponentSettings"))
 				{
-					if (ImGui::MenuItem("Remove component"))
+					auto transComp = dynamic_cast<D_ECS_COMP::TransformComponent*>(comp);
+					if (!transComp && ImGui::MenuItem("Remove component"))
 						RemoveComponent(comp);
 
 					ImGui::EndPopup();
@@ -206,6 +207,11 @@ namespace Darius::Scene
 	{
 		auto& reg = D_WORLD::GetRegistry();
 		auto compId = reg.component(comp->GetComponentName().c_str());
+		
+		// Abort if transform
+		if (reg.id<D_ECS_COMP::TransformComponent>() == compId)
+			return;
+
 		mEntity.remove(compId);
 	}
 

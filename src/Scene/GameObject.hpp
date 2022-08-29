@@ -17,6 +17,7 @@
 #include <ResourceManager/ResourceTypes/MaterialResource.hpp>
 
 #include <functional>
+#include <type_traits>
 
 #ifndef D_SCENE
 #define D_SCENE Darius::Scene
@@ -31,6 +32,7 @@ using namespace D_CORE;
 namespace Darius::Scene::ECS::Components
 {
 	class ComponentBase;
+	class TransformComponent;
 }
 
 namespace Darius::Scene
@@ -104,6 +106,9 @@ namespace Darius::Scene
 			// Checking if T is a resource type
 			using conv = std::is_convertible<T*, Darius::Scene::ECS::Components::ComponentBase*>;
 			D_STATIC_ASSERT(conv::value);
+
+			if (std::is_same<T, Darius::Scene::ECS::Components::TransformComponent>::value)
+				return;
 
 			mEntity.remove<T>();
 		}
