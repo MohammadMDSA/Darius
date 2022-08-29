@@ -18,7 +18,7 @@ public: \
 type(); \
 type(D_CORE::Uuid uuid); \
 static INLINE std::string GetName() { return D_NAMEOF(type); } \
-virtual INLINE std::string GetComponentName() override { return D_NAMEOF(type); } \
+virtual INLINE std::string GetComponentName() const override { return D_NAMEOF(type); } \
 static void StaticConstructor() \
 { \
     if(sInit) \
@@ -63,13 +63,23 @@ namespace Darius::Scene::ECS::Components
 #ifdef _D_EDITOR
         virtual INLINE bool         DrawDetails(float[]) { return false; }
 #endif
-        virtual INLINE std::string  GetComponentName() { return ""; }
+        virtual INLINE std::string  GetComponentName() const { return ""; }
 
         virtual INLINE void         Start() { }
+
+        INLINE bool                 IsActive() { return mGameObject->GetActive() && mEnabled; }
 
         // Serialization
         virtual void                Serialize(D_SERIALIZATION::Json&) const {};
         virtual void                Deserialize(D_SERIALIZATION::Json const&) {};
+
+        bool                        IsTransform() const;
+
+        INLINE void                 SetEnabled(bool value)
+        {
+            if (!IsTransform())
+                mEnabled = value;
+        }
 
         static INLINE std::string   GetName() { return "ComponentBase"; }
 
@@ -93,6 +103,7 @@ namespace Darius::Scene::ECS::Components
         D_CH_R_FIELD(D_CORE::Uuid, Uuid);
         D_CH_R_FIELD(Darius::Scene::GameObject*, GameObject);
         D_CH_R_FIELD(bool, Started);
+        D_CH_R_FIELD(bool, Enabled)
 
     private:
         friend class Darius::Scene::GameObject;

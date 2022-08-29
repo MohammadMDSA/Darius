@@ -72,24 +72,54 @@ namespace Darius::Scene
 	bool GameObject::DrawDetails(float params[])
 	{
 		bool changeValue = false;
-		auto& reg = D_WORLD::GetRegistry();
+
+		ImVec2 contentRegionAvailable = ImGui::GetContentRegionAvail();
+		float lineHeight = GImGui->Font->FontSize + GImGui->Style.FramePadding.y * 2.0f;
+
+		// Drawing game object header
+		char* name = const_cast<char*>(mName.c_str());
+		ImGui::InputText("##ObjectName", name, 30);
+		ImGui::SameLine(contentRegionAvailable.x - lineHeight * 0.5f);
+		if (ImGui::Checkbox("##Active", &mActive))
+			changeValue = true;
+		ImGui::Spacing();
+
+		// Drawing components
 
 		const ImGuiTreeNodeFlags treeNodeFlags = ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_Framed | ImGuiTreeNodeFlags_SpanAvailWidth | ImGuiTreeNodeFlags_AllowItemOverlap | ImGuiTreeNodeFlags_FramePadding;
 
 		// Drawing components
 		VisitComponents([&](auto comp)
 			{
+				bool isTransform = dynamic_cast<D_ECS_COMP::TransformComponent*>(comp);
+
 				// Styling component frame
-
 				ImGui::Separator();
-				ImVec2 contentRegionAvailable = ImGui::GetContentRegionAvail();
 
-				float lineHeight = GImGui->Font->FontSize + GImGui->Style.FramePadding.y * 2.0f;
 				ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 8.f);
+				
 				ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2{ 4, 4 });
 				bool open = ImGui::TreeNodeEx(comp->GetComponentName().c_str(), treeNodeFlags);
 				ImGui::PopStyleVar();
-				ImGui::SameLine(contentRegionAvailable.x - lineHeight * 0.5f);
+
+				if (isTransform)
+				{
+					ImGui::SameLine(contentRegionAvailable.x - lineHeight * 0.5f);
+				}
+				else
+				{
+					ImGui::SameLine(contentRegionAvailable.x - 2 * lineHeight);
+
+					// Component enabled box
+					auto enabled = comp->GetEnabled();
+					if (ImGui::Checkbox("##Enabled", &enabled))
+					{
+						comp->SetEnabled(enabled);
+						changeValue = true;
+					}
+					ImGui::SameLine();
+				}
+
 				if (ImGui::Button("+", ImVec2{ lineHeight, lineHeight }))
 				{
 					ImGui::OpenPopup("ComponentSettings");
@@ -98,8 +128,8 @@ namespace Darius::Scene
 
 				if (ImGui::BeginPopup("ComponentSettings"))
 				{
-					auto transComp = dynamic_cast<D_ECS_COMP::TransformComponent*>(comp);
-					if (!transComp && ImGui::MenuItem("Remove component"))
+					
+					if (!isTransform && ImGui::MenuItem("Remove component"))
 						RemoveComponent(comp);
 
 					ImGui::EndPopup();

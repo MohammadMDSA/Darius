@@ -141,6 +141,7 @@ namespace Darius::Scene
 		void								VisitComponents(std::function<void(Darius::Scene::ECS::Components::ComponentBase*)> callback, std::function<void(D_EXCEPTION::Exception const&)> onException = nullptr) const;
 
 		void								Update(D_GRAPHICS::GraphicsContext& context, float deltaTime);
+
 		void								AddComponentRoutine(Darius::Scene::ECS::Components::ComponentBase*);
 
 		D_GRAPHICS_BUFFERS::UploadBuffer	mMeshConstantsCPU[D_RENDERER_FRAME_RESOUCE::gNumFrameResources];

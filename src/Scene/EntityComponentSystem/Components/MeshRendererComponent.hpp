@@ -38,7 +38,7 @@ namespace Darius::Scene::ECS::Components
 		RenderItem							GetRenderItem();
 
 
-		INLINE bool							CanRender() { return mActive && GetGameObject()->GetActive() && mMeshResource.IsValid(); }
+		INLINE bool							CanRender() { return mActive && GetGameObject()->GetActive() && GetEnabled() && mMeshResource.IsValid(); }
 		INLINE const BoundingSphere&		GetBounds() const { return mMeshResource.Get()->GetData()->mBoundSp; }
 
 		D_CH_RW_FIELD(bool, Active);
