@@ -55,6 +55,7 @@ namespace Darius::Editor::Gui::GuiManager
 		LayoutPath = Path(D_EDITOR_CONTEXT::GetEditorConfigPath()).append("layout.ini").string();
 
 		io.IniFilename = LayoutPath.c_str();
+		ImGui::GetStyle().FrameRounding = 5.f;
 	}
 
 	void Shutdown()
