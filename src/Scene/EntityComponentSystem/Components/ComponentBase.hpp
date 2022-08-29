@@ -28,7 +28,9 @@ static void StaticConstructor() \
     auto& reg = D_WORLD::GetRegistry(); \
     auto comp = reg.component<type>(D_NAMEOF(type)); \
     comp.add<ComponentTag>(); \
-    comp.is_a(reg.component<parent>());\
+    auto parentComp = reg.component<parent>(); \
+    D_ASSERT(reg.is_valid(parentComp)); \
+    comp.is_a(parentComp); \
     sInit = true; \
 }\
 \

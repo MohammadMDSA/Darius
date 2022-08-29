@@ -53,6 +53,7 @@ namespace Darius::Scene
 		};
 
 	public:
+
 		~GameObject();
 
 		void								SetTransform(Transform const& trans);

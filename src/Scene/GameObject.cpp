@@ -18,7 +18,6 @@ using namespace D_ECS_COMP;
 
 namespace Darius::Scene
 {
-
 	GameObject::GameObject(Uuid uuid, D_ECS::Entity entity) :
 		mActive(true),
 		mType(Type::Movable),
@@ -64,7 +63,7 @@ namespace Darius::Scene
 
 		// Uploading
 		context.TransitionResource(mMeshConstantsGPU, D3D12_RESOURCE_STATE_COPY_DEST, true);
-		context.GetCommandList()->CopyBufferRegion(mMeshConstantsGPU.GetResource(), 0, mMeshConstantsCPU->GetResource(), 0, mMeshConstantsCPU->GetBufferSize());
+		context.GetCommandList()->CopyBufferRegion(mMeshConstantsGPU.GetResource(), 0, currentUploadBuff.GetResource(), 0, currentUploadBuff.GetBufferSize());
 		context.TransitionResource(mMeshConstantsGPU, D3D12_RESOURCE_STATE_GENERIC_READ);
 
 	}
