@@ -77,35 +77,40 @@ namespace Darius::Scene::ECS::Components
 				ImGui::TableSetColumnIndex(1);
 				changed |= D_SCENE_DET_DRAW::DrawDetails(*(D_MATH::Vector3*)&mLightData.Color, defC);
 
-				// Spot Power
-				ImGui::TableNextRow();
-				ImGui::TableSetColumnIndex(0);
-				ImGui::Text("Spot Power");
-
-				ImGui::TableSetColumnIndex(1);
-				float powerLog = D_MATH::Log(mLightData.SpotPower);
-				if (ImGui::DragFloat("##SpotPower", &powerLog, 0.01, 0.001, -1, "%.3f"))
+				if (mLightType == LightSourceType::SpotLight)
 				{
-					changed = true;
-					mLightData.SpotPower = D_MATH::Exp(powerLog);
+					// Spot Power
+					ImGui::TableNextRow();
+					ImGui::TableSetColumnIndex(0);
+					ImGui::Text("Spot Power");
+
+					ImGui::TableSetColumnIndex(1);
+					float powerLog = D_MATH::Log(mLightData.SpotPower);
+					if (ImGui::DragFloat("##SpotPower", &powerLog, 0.01, 0.001, -1, "%.3f"))
+					{
+						changed = true;
+						mLightData.SpotPower = D_MATH::Exp(powerLog);
+					}
 				}
 
-				// Falloff Start
-				ImGui::TableNextRow();
-				ImGui::TableSetColumnIndex(0);
-				ImGui::Text("Falloff Start");
+				if (mLightType != LightSourceType::DirectionalLight)
+				{
+					// Falloff Start
+					ImGui::TableNextRow();
+					ImGui::TableSetColumnIndex(0);
+					ImGui::Text("Falloff Start");
 
-				ImGui::TableSetColumnIndex(1);
-				changed |= ImGui::DragFloat("##FalloffStart", &mLightData.FalloffStart, 0.01, 0, mLightData.FalloffStart, "%.3f");
+					ImGui::TableSetColumnIndex(1);
+					changed |= ImGui::DragFloat("##FalloffStart", &mLightData.FalloffStart, 0.01, 0, mLightData.FalloffStart, "%.3f");
 
-				// Falloff End
-				ImGui::TableNextRow();
-				ImGui::TableSetColumnIndex(0);
-				ImGui::Text("Falloff End");
+					// Falloff End
+					ImGui::TableNextRow();
+					ImGui::TableSetColumnIndex(0);
+					ImGui::Text("Falloff End");
 
-				ImGui::TableSetColumnIndex(1);
-				changed |= ImGui::DragFloat("##FalloffEnd", &mLightData.FalloffEnd, 0.01, mLightData.FalloffStart, -1, "%.3f");
-
+					ImGui::TableSetColumnIndex(1);
+					changed |= ImGui::DragFloat("##FalloffEnd", &mLightData.FalloffEnd, 0.01, mLightData.FalloffStart, -1, "%.3f");
+				}
 			}
 			else
 			{

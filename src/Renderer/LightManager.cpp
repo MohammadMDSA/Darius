@@ -35,9 +35,9 @@ namespace Darius::Renderer::LightManager
 	ByteAddressBuffer					ActiveLightsBufferGpu;
 	StructuredBuffer					LightsBufferGpu;
 
-	INLINE DVector<std::pair<bool, bool>>*		GetAssociatedActiveLightWithType(LightSourceType type);
-	INLINE DVector<LightData>*			GetAssociatedLightsWithType(LightSourceType type);
-	INLINE DVector<Transform const*>*		GetAssociatedLightTransformsWithType(LightSourceType type);
+	INLINE DVector<std::pair<bool, bool>>* GetAssociatedActiveLightWithType(LightSourceType type);
+	INLINE DVector<LightData>* GetAssociatedLightsWithType(LightSourceType type);
+	INLINE DVector<Transform const*>* GetAssociatedLightTransformsWithType(LightSourceType type);
 
 	void Initialize()
 	{
@@ -158,9 +158,9 @@ namespace Darius::Renderer::LightManager
 
 					lightUploadData[lightIdx] = lightData;
 				}
-				activeFlags <<= 1;
+				if (bitIdx < 31)
+					activeFlags <<= 1;
 			}
-
 			data[i] = activeFlags;
 		}
 

@@ -171,7 +171,7 @@ float4 ComputeLighting(
     {
         uint masks = LightMask.Load((i / 32) * 4);
         uint idx = i - (i / 32) * 32;
-        if (masks & (1 << (32 - idx)))
+        if (masks & (1 << (31 - idx)))
             result += shadowFactor * ComputeDirectionalLight(LightData[i], mat, normal, toEye);
     }
 #endif
@@ -181,7 +181,7 @@ float4 ComputeLighting(
     {
         uint masks = LightMask.Load((i / 32) * 4);
         uint idx = i - (i / 32) * 32;
-        if (masks & (1 << (32 - idx)))
+        if (masks & (1 << (31 - idx)))
             result += ComputePointLight(LightData[i], mat, pos, normal, toEye);
     }
 #endif
@@ -191,7 +191,7 @@ float4 ComputeLighting(
     {
         uint masks = LightMask.Load((i / 32) * 4);
         uint idx = i - (i / 32) * 32;
-        if (masks & (1 << (32 - idx)))
+        if (masks & (1 << (31 - idx)))
             result += ComputeSpotLight(LightData[i], mat, pos, normal, toEye);
     }
 #endif 
