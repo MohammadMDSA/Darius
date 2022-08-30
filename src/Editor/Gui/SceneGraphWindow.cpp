@@ -44,6 +44,17 @@ namespace Darius::Editor::Gui::Windows
 				nodeFlag |= ImGuiTreeNodeFlags_Selected;
 
 			auto nodeOpen = ImGui::TreeNodeEx((void*)(intptr_t)(idx++), nodeFlag, go->GetName().c_str());
+			if (ImGui::BeginPopupContextItem())
+			{
+				if (ImGui::Selectable("Delete Game Object"))
+				{
+					D_WORLD::DeleteGameObject(go);
+					if (selected)
+						D_EDITOR_CONTEXT::SetSelectedGameObject(nullptr);
+				}
+
+				ImGui::EndPopup();
+			}
 
 			if (ImGui::IsItemClicked() && !selected)
 				D_EDITOR_CONTEXT::SetSelectedGameObject(go);
