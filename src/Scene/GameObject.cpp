@@ -87,6 +87,7 @@ namespace Darius::Scene
 
 		// Drawing game object header
 		char* name = const_cast<char*>(mName.c_str());
+		ImGui::SetNextItemWidth(contentRegionAvailable.x - lineHeight * 0.5f - 10.f);
 		ImGui::InputText("##ObjectName", name, 30);
 		ImGui::SameLine(contentRegionAvailable.x - lineHeight * 0.5f);
 		if (ImGui::Checkbox("##Active", &mActive))
