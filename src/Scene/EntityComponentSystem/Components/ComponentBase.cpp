@@ -22,9 +22,4 @@ namespace Darius::Scene::ECS::Components
 		mGameObject(nullptr)
 	{}
 
-	bool ComponentBase::IsTransform() const
-	{
-		return GetComponentName() == TransformComponent::GetName();
-	}
-
 }

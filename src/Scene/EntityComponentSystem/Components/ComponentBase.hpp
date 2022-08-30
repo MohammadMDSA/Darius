@@ -13,35 +13,37 @@
 #define D_ECS_COMP Darius::Scene::ECS::Components
 #endif // !D_ECS_COMP
 
-#define D_H_COMP_BODY(type, parent) \
+#define D_H_COMP_BODY(type, parent, compName) \
 public: \
 type(); \
 type(D_CORE::Uuid uuid); \
 static INLINE std::string GetName() { return D_NAMEOF(type); } \
+virtual INLINE std::string GetDisplayName() const override { return compName; } \
 virtual INLINE std::string GetComponentName() const override { return D_NAMEOF(type); } \
 static void StaticConstructor() \
 { \
+    /* Registering component*/ \
     if(sInit) \
         return; \
     D_LOG_INFO("Registering" << D_NAMEOF(type) << " child of " << D_NAMEOF(parent)); \
     parent::StaticConstructor(); \
     auto& reg = D_WORLD::GetRegistry(); \
     auto comp = reg.component<type>(D_NAMEOF(type)); \
-    comp.add<ComponentTag>(); \
     auto parentComp = reg.component<parent>(); \
     D_ASSERT(reg.is_valid(parentComp)); \
     comp.is_a(parentComp); \
+    D_SCENE::GameObject::RegisterComponent(D_NAMEOF(type), compName); \
     sInit = true; \
-}\
+} \
 \
-static void StaticDistructor()\
+static void StaticDistructor() \
 {} \
 private: \
 static bool sInit;
 
 #define D_H_COMP_DEF(type) \
 bool type::sInit = false; \
-INVOKE_STATIC_CONSTRUCTOR(type);
+//INVOKE_STATIC_CONSTRUCTOR(type);
 
 namespace Darius::Scene
 {
@@ -51,35 +53,36 @@ namespace Darius::Scene
 
 namespace Darius::Scene::ECS::Components
 {
-    struct ComponentTag {};
-
 	class ComponentBase
 	{
     public:
 
         ComponentBase();
         ComponentBase(D_CORE::Uuid uuid);
+        ~ComponentBase() { OnDestroy(); }
 
 #ifdef _D_EDITOR
         virtual INLINE bool         DrawDetails(float[]) { return false; }
 #endif
         virtual INLINE std::string  GetComponentName() const { return ""; }
+        virtual INLINE std::string  GetDisplayName() const { return ""; }
 
         virtual INLINE void         Start() { }
+        virtual INLINE void         OnDestroy() { }
 
-        INLINE bool                 IsActive() { return mGameObject->GetActive() && mEnabled; }
+        virtual INLINE void         Update(float) { };
+
+        INLINE bool                 IsActive() const { return mGameObject->GetActive() && mEnabled; }
 
         // Serialization
         virtual void                Serialize(D_SERIALIZATION::Json&) const {};
         virtual void                Deserialize(D_SERIALIZATION::Json const&) {};
 
-        bool                        IsTransform() const;
+        virtual INLINE void         SetEnabled(bool value) { mEnabled = value; }
 
-        INLINE void                 SetEnabled(bool value)
-        {
-            if (!IsTransform())
-                mEnabled = value;
-        }
+        INLINE D_MATH::Transform const& GetTransformC() const { return *mGameObject->GetTransform(); }
+        INLINE D_MATH::Transform    GetTransform() { return *mGameObject->GetTransform(); }
+        INLINE void                 SetTransform(D_MATH::Transform const& transform) { return mGameObject->SetTransform(transform); }
 
         static INLINE std::string   GetName() { return "ComponentBase"; }
 
@@ -91,8 +94,6 @@ namespace Darius::Scene::ECS::Components
             auto& reg = D_WORLD::GetRegistry();
 
             auto comp = reg.component<ComponentBase>("ComponentBase");
-            comp.add<ComponentTag>();
-            
             sInit = true;
         }
 
