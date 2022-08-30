@@ -17,6 +17,8 @@
 #include <Core/TimeManager/TimeManager.hpp>
 
 #include <Scene/EntityComponentSystem/Components/MeshRendererComponent.hpp>
+#include <Scene/EntityComponentSystem/Components/LightComponent.hpp>
+#include <Scene/EntityComponentSystem/Components/TransformComponent.hpp>
 
 #include <Renderer/Renderer.hpp>
 #include <Renderer/FrameResource.hpp>
@@ -81,10 +83,6 @@ namespace Darius::Editor
 		D_RENDERER::RegisterGuiDrawer(&D_GUI_MANAGER::DrawGUI);
 
 		D_WORLD::Create("Main");
-		auto a1 = D_WORLD::CreateGameObject();
-		auto a2 = D_WORLD::CreateGameObject();
-		a1->AddComponent<D_ECS_COMP::MeshRendererComponent>();
-		a2->AddComponent<D_ECS_COMP::MeshRendererComponent>();
 		/*for (size_t i = 0; i < 100; i++)
 		{
 			auto ob = D_WORLD::CreateGameObject();
@@ -104,6 +102,9 @@ namespace Darius::Editor
 		a1->mTransform = Transform(Vector3(-2.f, 1.f, -5.f));
 		a2->mTransform = Transform(Vector3(2.f, -1.f, -5.f));
 		D_EDITOR_CONTEXT::SetSelectedGameObject(a2);*/
+		D_ECS_COMP::LightComponent::StaticConstructor();
+		D_ECS_COMP::MeshRendererComponent::StaticConstructor();
+		D_ECS_COMP::TransformComponent::StaticConstructor();
 	}
 
 #pragma region Frame Update

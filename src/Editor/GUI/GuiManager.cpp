@@ -129,6 +129,17 @@ namespace Darius::Editor::Gui::GuiManager
 
 					ImGui::EndMenu();
 				}
+
+				if (ImGui::BeginMenu("Scene"))
+				{
+					if (ImGui::MenuItem("Create Game Object"))
+					{
+						D_WORLD::CreateGameObject();
+					}
+					
+					ImGui::EndMenu();
+				}
+
 				if (ImGui::BeginMenu("Resource"))
 				{
 					if (ImGui::MenuItem("Create Material"))
