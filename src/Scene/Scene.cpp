@@ -7,6 +7,7 @@
 #include "EntityComponentSystem/Components/TransformComponent.hpp"
 
 #include <Core/Memory/Memory.hpp>
+#include <Core/Containers/Set.hpp>
 #include <Core/Serialization/Json.hpp>
 #include <Core/Uuid.hpp>
 #include <Renderer/CommandContext.hpp>
@@ -21,9 +22,11 @@ using namespace D_CORE;
 
 namespace Darius::Scene
 {
-	std::unique_ptr<D_CONTAINERS::DVector<GameObject*>>					GOs = nullptr;
+	std::unique_ptr<D_CONTAINERS::DSet<GameObject*>>					GOs = nullptr;
 	std::unique_ptr<D_CONTAINERS::DMap<Uuid, GameObject*, UuidHasher>>	UuidMap = nullptr;
 	std::unique_ptr<D_CONTAINERS::DMap<D_ECS::EntityId, GameObject*>>	EntityMap = nullptr;
+
+	DVector<GameObject*>												ToBeDeleted;
 
 	std::string															SceneName;
 
@@ -35,7 +38,7 @@ namespace Darius::Scene
 	{
 		D_ASSERT(!GOs);
 		UuidMap = std::make_unique<D_CONTAINERS::DMap<Uuid, GameObject*, UuidHasher>>();
-		GOs = std::make_unique<D_CONTAINERS::DVector<GameObject*>>();
+		GOs = std::make_unique<D_CONTAINERS::DSet<GameObject*>>();
 		EntityMap = std::make_unique<D_CONTAINERS::DMap<D_ECS::EntityId, GameObject*>>();
 	}
 
@@ -56,9 +59,28 @@ namespace Darius::Scene
 
 		D_GRAPHICS::GraphicsContext& context = D_GRAPHICS::GraphicsContext::Begin(L"Updateing objects");
 
+		context.PIXBeginEvent(L"Updating components");
+		
+		for (auto const go : *GOs)
+		{
+			go->VisitComponents([deltaTime](D_ECS_COMP::ComponentBase* comp)
+				{
+					try
+					{
+						comp->Update(deltaTime);
+					}
+					catch (const std::exception& e)
+					{
+						D_LOG_ERROR("Exception during updating component " << comp->GetComponentName() << " : " << e.what());
+					}
+				});
+		}
+
+		context.PIXEndEvent();
+
 		PIXBeginEvent(context.GetCommandList(), PIX_COLOR_DEFAULT, L"Update Mesh Constant Buffers");
 
-		D_CONTAINERS::DVector<GameObject*>::iterator goIterator = GOs->begin();
+		D_CONTAINERS::DSet<GameObject*>::iterator goIterator = GOs->begin();
 
 		while (goIterator != GOs->end())
 		{
@@ -66,6 +88,15 @@ namespace Darius::Scene
 				(*goIterator)->Update(context, deltaTime);
 			goIterator++;
 		}
+
+		// Delete game objects
+		for (auto go : ToBeDeleted)
+		{
+			DeleteGameObjectData(go);
+			GOs->erase(go);
+		}
+
+		ToBeDeleted.clear();
 
 		PIXEndEvent(context.GetCommandList());
 		context.Finish();
@@ -93,11 +124,12 @@ namespace Darius::Scene
 
 	GameObject* SceneManager::CreateGameObject(Uuid uuid)
 	{
-		auto entity = World.entity(("GameObject:" + ToString(uuid)).c_str());
+		auto entity = World.entity();
+		D_LOG_DEBUG("Created entity: " << entity.id());
 
 		// TODO: Better allocation
 		auto go = new GameObject(uuid, entity);
-		GOs->push_back(go);
+		GOs->insert(go);
 
 		// Update uuid map
 		UuidMap->emplace(uuid, go);
@@ -107,6 +139,21 @@ namespace Darius::Scene
 		go->Start();
 
 		return go;
+	}
+
+	void SceneManager::DeleteGameObject(GameObject* go)
+	{
+		go->mDeleted = true;
+		ToBeDeleted.push_back(go);
+	}
+
+	void SceneManager::DeleteGameObjectData(GameObject* go)
+	{
+		go->OnDestroy();
+		UuidMap->erase(go->GetUuid());
+		EntityMap->erase(go->GetEntity());
+		World.remove_all(go->GetEntity());
+		delete go;
 	}
 
 	// Slow function
@@ -182,18 +229,19 @@ namespace Darius::Scene
 
 		// Serializing objects
 		DVector<GameObject> rawGos;
-		for (auto go : *GOs)
+		for (GameObject const* go : *GOs)
 		{
+			auto bb = go->mEntity.has<D_ECS_COMP::TransformComponent>();
 			rawGos.push_back(*go);
 		}
 
 		sceneJson["Objects"] = rawGos;
 
 		// Serializing components
-		for (auto go : *GOs)
+		for (GameObject const* go : *GOs)
 		{
 			D_SERIALIZATION::Json objectComps;
-			go->VisitComponents([&](auto const comp)
+			go->VisitComponents([&](D_ECS_COMP::ComponentBase const* comp)
 				{
 					D_SERIALIZATION::Json componentJson;
 					comp->Serialize(componentJson);
@@ -216,14 +264,12 @@ namespace Darius::Scene
 
 	void SceneManager::Unload()
 	{
-		for (auto& go : *GOs)
+		for (auto go : *GOs)
 		{
-			World.remove_all(go->GetEntity());
-			delete go;
+			DeleteGameObjectData(go);
 		}
+
 		GOs->clear();
-		EntityMap->clear();
-		UuidMap->clear();
 	}
 
 	D_ECS::ECSRegistry& SceneManager::GetRegistry()

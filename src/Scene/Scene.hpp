@@ -20,6 +20,7 @@ namespace Darius::Scene
 		static void				Shutdown();
 
 		static GameObject*		CreateGameObject();
+		static void				DeleteGameObject(GameObject* go);
 		static void				GetGameObjects(D_CONTAINERS::DVector<GameObject*>& container);
 		
 		static GameObject*		GetGameObject(D_ECS::Entity entity);
@@ -34,6 +35,7 @@ namespace Darius::Scene
 		static D_ECS::ECSRegistry& GetRegistry();
 
 	private:
+		static void				DeleteGameObjectData(GameObject* go);
 		static GameObject*		CreateGameObject(Uuid uuid);
 		static void				StartScene();
 	};
