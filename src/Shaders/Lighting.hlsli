@@ -65,7 +65,7 @@ float3 BlinnPhong(
     float3 halfVec = normalize(toEye + lightVec);
     
     float lambCos = max(dot(halfVec, normal), 0.f);
-    float roughnessFactor = m == 0.f ? 1.f : (m + 8.f) * pow(lambCos, m) / 8.f;
+    float roughnessFactor = m == 0.f ? 1.f : (m + 2.f) * pow(lambCos, m) / 8.f;
     float3 fresnelFactor = SchlickFresnel(mat.FresnelR0, halfVec, lightVec);
     
     float3 specAlbedo = fresnelFactor * roughnessFactor;
@@ -133,7 +133,7 @@ float3 ComputeSpotLight(Light L, Material mat, float3 pos, float3 normal, float3
     // The distance from surface to light.
     float d = length(lightVec);
 
-    // Range test.
+    // Range testz
     if (d > L.FalloffEnd)
         return 0.0f;
 
@@ -169,7 +169,7 @@ float4 ComputeLighting(
 #if (NUM_DIR_LIGHTS > 0)
     for (i = 0; i < NUM_DIR_LIGHTS; ++i)
     {
-        uint masks = LightMask.Load(i / 32);
+        uint masks = LightMask.Load((i / 32) * 4);
         uint idx = i - (i / 32) * 32;
         if (masks & (1 << (32 - idx)))
             result += shadowFactor * ComputeDirectionalLight(LightData[i], mat, normal, toEye);
@@ -179,7 +179,7 @@ float4 ComputeLighting(
 #if (NUM_POINT_LIGHTS > 0)
     for (i = NUM_DIR_LIGHTS; i < NUM_DIR_LIGHTS + NUM_POINT_LIGHTS; ++i)
     {
-        uint masks = LightMask.Load(i / 32);
+        uint masks = LightMask.Load((i / 32) * 4);
         uint idx = i - (i / 32) * 32;
         if (masks & (1 << (32 - idx)))
             result += ComputePointLight(LightData[i], mat, pos, normal, toEye);
@@ -189,7 +189,7 @@ float4 ComputeLighting(
 #if (NUM_SPOT_LIGHTS > 0)
     for (i = NUM_DIR_LIGHTS + NUM_POINT_LIGHTS; i < NUM_DIR_LIGHTS + NUM_POINT_LIGHTS + NUM_SPOT_LIGHTS; ++i)
     {
-        uint masks = LightMask.Load(i / 32);
+        uint masks = LightMask.Load((i / 32) * 4);
         uint idx = i - (i / 32) * 32;
         if (masks & (1 << (32 - idx)))
             result += ComputeSpotLight(LightData[i], mat, pos, normal, toEye);

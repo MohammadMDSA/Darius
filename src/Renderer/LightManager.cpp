@@ -110,7 +110,7 @@ namespace Darius::Renderer::LightManager
 
 			for (size_t bitIdx = 0; bitIdx < sizeof(UINT) * 8; bitIdx++)
 			{
-				auto lightIdx = i * bitIdx * sizeof(UINT) + bitIdx;
+				auto lightIdx = i * sizeof(UINT) * 8 + bitIdx;
 				DVector<LightData>* LightVec = nullptr;
 				DVector<Transform const*>* transformVec = nullptr;
 				DVector<std::pair<bool, bool>>* activeVec = nullptr;
@@ -160,6 +160,7 @@ namespace Darius::Renderer::LightManager
 				}
 				activeFlags <<= 1;
 			}
+
 			data[i] = activeFlags;
 		}
 
@@ -261,7 +262,7 @@ namespace Darius::Renderer::LightManager
 
 		// Requesting the same type, so return what requester already own
 		if (preType == type)
-			preIndex;
+			return preIndex;
 
 		// Removing owner data to accuire new light
 		ReleaseLight(preType, preIndex);
