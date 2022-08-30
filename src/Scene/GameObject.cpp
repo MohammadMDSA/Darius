@@ -3,7 +3,7 @@
 #include "GameObject.hpp"
 #include "Scene/Utils/DetailsDrawer.hpp"
 #include "Scene.hpp"
-#include "Serialization/Serializer.hpp"
+#include "Utils/Serializer.hpp"
 #include "EntityComponentSystem/Components/ComponentBase.hpp"
 #include "EntityComponentSystem/Components/TransformComponent.hpp"
 
@@ -18,13 +18,17 @@ using namespace D_ECS_COMP;
 
 namespace Darius::Scene
 {
+	// Comp name and display name
+	D_CONTAINERS::DVector<std::pair<std::string, std::string>> GameObject::RegisteredComponents = D_CONTAINERS::DVector<std::pair<std::string, std::string>>();
+
 	GameObject::GameObject(Uuid uuid, D_ECS::Entity entity) :
 		mActive(true),
 		mType(Type::Movable),
 		mName("GameObject"),
 		mUuid(uuid),
 		mEntity(entity),
-		mStarted(false)
+		mStarted(false),
+		mDeleted(false)
 	{
 		// Initializing Mesh Constants buffers
 		for (size_t i = 0; i < D_RENDERER_FRAME_RESOUCE::gNumFrameResources; i++)
@@ -36,8 +40,13 @@ namespace Darius::Scene
 		AddComponent<D_ECS_COMP::TransformComponent>();
 	}
 
-	GameObject::~GameObject()
+	void GameObject::OnDestroy()
 	{
+		VisitComponents([](auto comp)
+			{
+				comp->OnDestroy();
+			});
+
 		mEntity.each([&](flecs::id compId)
 			{
 				mEntity.remove(compId);
@@ -99,11 +108,12 @@ namespace Darius::Scene
 				ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 8.f);
 				
 				ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2{ 4, 4 });
-				bool open = ImGui::TreeNodeEx(comp->GetComponentName().c_str(), treeNodeFlags);
+				bool open = ImGui::TreeNodeEx(comp->GetDisplayName().c_str(), treeNodeFlags);
 				ImGui::PopStyleVar();
 
 				if (isTransform)
 				{
+					std::string a;
 					ImGui::SameLine(contentRegionAvailable.x - lineHeight * 0.5f);
 				}
 				else
@@ -149,7 +159,39 @@ namespace Darius::Scene
 				D_LOG_ERROR("Error drawing component with error: " << ex.what());
 			});
 
+		ImGui::Spacing();
+		ImGui::Spacing();
 
+		float addCompButtonWidth = 100.f;
+		ImGui::SameLine(std::max((contentRegionAvailable.x - addCompButtonWidth) / 2, 0.f));
+
+		// Component selection popup
+		if (ImGui::BeginPopupContextItem("##ComponentAdditionPopup", ImGuiPopupFlags_NoOpenOverExistingPopup))
+		{
+			auto& reg = D_WORLD::GetRegistry();
+
+			for (auto const& [compName, compDisplayName] : RegisteredComponents)
+			{
+				auto compGeneric = reg.component(compName.c_str());
+				if (!reg.is_valid(compGeneric))
+					continue;
+
+				if (mEntity.has(compGeneric))
+					continue;
+
+				if (ImGui::Selectable(compDisplayName.c_str()))
+				{
+					AddComponent(compName);
+				}
+			}
+
+			ImGui::EndPopup();
+		}
+
+		if (ImGui::Button("Add Component", ImVec2(addCompButtonWidth, 0)))
+		{
+			ImGui::OpenPopup("##ComponentAdditionPopup");
+		}
 
 		return changeValue;
 	}
@@ -162,14 +204,14 @@ namespace Darius::Scene
 
 	Transform const* GameObject::GetTransform() const
 	{
-		auto ff = mEntity.get<Darius::Scene::ECS::Components::TransformComponent>()->GetData();
-		return ff;
+		return mEntity.get<Darius::Scene::ECS::Components::TransformComponent>()->GetDataC();
 	}
 
 	void GameObject::VisitComponents(std::function<void(ComponentBase*)> callback, std::function<void(D_EXCEPTION::Exception const&)> onException) const
 	{
-
+		bool h = mEntity.has<TransformComponent>();
 		callback(mEntity.get_mut<TransformComponent>());
+		h = mEntity.has<TransformComponent>();
 
 		auto& reg = D_WORLD::GetRegistry();
 
@@ -183,6 +225,7 @@ namespace Darius::Scene
 				if (transId == compId)
 					return;
 
+				bool hh = mEntity.has(compId);
 				auto compP = mEntity.get_mut(compId);
 				try
 				{
@@ -204,8 +247,10 @@ namespace Darius::Scene
 
 		auto compT = reg.component(name.c_str());
 
-		auto compEnt = mEntity.add(compT);
-		auto compP = mEntity.get_mut(compEnt);
+		auto bb = reg.is_valid(compT);
+
+		mEntity.add(compT);
+		auto compP = mEntity.get_mut(compT);
 
 		auto ref = reinterpret_cast<ComponentBase*>(compP);
 		AddComponentRoutine(ref);
@@ -240,7 +285,7 @@ namespace Darius::Scene
 		// Abort if transform
 		if (reg.id<D_ECS_COMP::TransformComponent>() == compId)
 			return;
-
+		comp->OnDestroy();
 		mEntity.remove(compId);
 	}
 
@@ -255,6 +300,19 @@ namespace Darius::Scene
 		D_H_DESERIALIZE(Active);
 		D_H_DESERIALIZE(Name);
 		D_H_DESERIALIZE(Type);
+	}
+
+	void GameObject::RegisterComponent(std::string name, std::string displayName)
+	{
+		auto& reg = D_WORLD::GetRegistry();
+		if (!reg.is_valid(reg.component(name.c_str())))
+			throw D_EXCEPTION::Exception("found no component using provided name");
+
+		GameObject::RegisteredComponents.push_back({ name, displayName });
+		std::sort(RegisteredComponents.begin(), RegisteredComponents.end(), [](auto first, auto second)
+			{
+				return first.second < second.second;
+			});
 	}
 
 }

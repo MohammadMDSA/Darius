@@ -54,13 +54,12 @@ namespace Darius::Scene
 
 	public:
 
-		~GameObject();
-
 		void								SetTransform(Transform const& trans);
 		Transform const*					GetTransform() const;
 
 		// Object states
 		void								Start();
+		void								OnDestroy();
 
 		INLINE D3D12_GPU_VIRTUAL_ADDRESS	GetConstantsAddress() { return mMeshConstantsGPU.GetGpuVirtualAddress(); }
 
@@ -111,6 +110,7 @@ namespace Darius::Scene
 			if (std::is_same<T, Darius::Scene::ECS::Components::TransformComponent>::value)
 				return;
 
+			mEntity.get_ref<T>()->OnDestroy();
 			mEntity.remove<T>();
 		}
 
@@ -125,15 +125,20 @@ namespace Darius::Scene
 			return CountedOwner{ WSTR_STR(mName), "GameObject", this, 0 };
 		}
 
+		static void							RegisterComponent(std::string name, std::string displayName);
+
 		D_CH_RW_FIELD(bool, Active);
 		D_CH_RW_FIELD(std::string, Name);
 		D_CH_RW_FIELD(Type, Type);
 		D_CH_R_FIELD_CONST(Uuid, Uuid);
 		D_CH_R_FIELD(D_ECS::Entity, Entity);
 		D_CH_R_FIELD(bool, Started);
+		D_CH_R_FIELD(bool, Deleted);
 
 	private:
 		friend class D_SCENE::SceneManager;
+		friend class Darius::Scene::ECS::Components::ComponentBase;
+
 		friend void							to_json(D_SERIALIZATION::Json& j, const GameObject& value);
 		friend void							from_json(const D_SERIALIZATION::Json& j, GameObject& value);
 
@@ -147,6 +152,8 @@ namespace Darius::Scene
 		D_GRAPHICS_BUFFERS::UploadBuffer	mMeshConstantsCPU[D_RENDERER_FRAME_RESOUCE::gNumFrameResources];
 		ByteAddressBuffer					mMeshConstantsGPU;
 
+		// Comp name and display name
+		static D_CONTAINERS::DVector<std::pair<std::string, std::string>> RegisteredComponents;
 	};
 
 	D_H_SERIALIZE_ENUM(GameObject::Type, {
