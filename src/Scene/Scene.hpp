@@ -38,6 +38,8 @@ namespace Darius::Scene
 		static void				DeleteGameObjectData(GameObject* go);
 		static GameObject*		CreateGameObject(Uuid uuid);
 		static void				StartScene();
+		static void				RemoveDeleted();
+
 	};
 
 }

@@ -61,6 +61,8 @@ namespace Darius::Scene
 
 		context.PIXBeginEvent(L"Updating components");
 		
+		RemoveDeleted();
+
 		for (auto const go : *GOs)
 		{
 			go->VisitComponents([deltaTime](D_ECS_COMP::ComponentBase* comp)
@@ -89,14 +91,7 @@ namespace Darius::Scene
 			goIterator++;
 		}
 
-		// Delete game objects
-		for (auto go : ToBeDeleted)
-		{
-			DeleteGameObjectData(go);
-			GOs->erase(go);
-		}
-
-		ToBeDeleted.clear();
+		RemoveDeleted();
 
 		PIXEndEvent(context.GetCommandList());
 		context.Finish();
@@ -290,6 +285,19 @@ namespace Darius::Scene
 		{
 			go->Start();
 		}
+	}
+
+	void SceneManager::RemoveDeleted()
+	{
+
+		// Delete game objects
+		for (auto go : ToBeDeleted)
+		{
+			DeleteGameObjectData(go);
+			GOs->erase(go);
+		}
+
+		ToBeDeleted.clear();
 	}
 
 }

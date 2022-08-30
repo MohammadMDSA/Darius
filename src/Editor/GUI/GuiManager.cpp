@@ -136,6 +136,12 @@ namespace Darius::Editor::Gui::GuiManager
 					{
 						D_WORLD::CreateGameObject();
 					}
+
+					if (ImGui::MenuItem("Delete Game Object", (const char*)0, false, D_EDITOR_CONTEXT::GetSelectedGameObject() != nullptr))
+					{
+						D_WORLD::DeleteGameObject(D_EDITOR_CONTEXT::GetSelectedGameObject());
+						D_EDITOR_CONTEXT::SetSelectedGameObject(nullptr);
+					}
 					
 					ImGui::EndMenu();
 				}
