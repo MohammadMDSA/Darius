@@ -7,11 +7,12 @@ list(APPEND SCENE_LIBS_INCLUDE
 	"GameObject.hpp"
 	"Scene.hpp"
     "Utils/DetailsDrawer.hpp"
-	"Serialization/Serializer.hpp"
+	"Utils/Serializer.hpp"
 	"EntityComponentSystem/Entity.hpp"
 	"EntityComponentSystem/Components/ComponentBase.hpp"
 	"EntityComponentSystem/Components/TransformComponent.hpp"
 	"EntityComponentSystem/Components/MeshRendererComponent.hpp"
+	"EntityComponentSystem/Components/LightComponent.hpp"
 	"pch.hpp"
 	)
 
@@ -21,10 +22,11 @@ list(APPEND SCENE_LIBS_SOURCES
 	"pch.cpp"
     "Utils/Utils.cpp"
     "Utils/DetailsDrawer.cpp"
-	"Serialization/Serializer.cpp"
+	"Utils/Serializer.cpp"
 	"EntityComponentSystem/Components/ComponentBase.cpp"
 	"EntityComponentSystem/Components/TransformComponent.cpp"
 	"EntityComponentSystem/Components/MeshRendererComponent.cpp"
+	"EntityComponentSystem/Components/LightComponent.cpp"
 	)
 
 
