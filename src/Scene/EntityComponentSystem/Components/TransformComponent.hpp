@@ -13,15 +13,17 @@ namespace Darius::Scene::ECS::Components
 {
 	class TransformComponent : public ComponentBase
 	{
-		D_H_COMP_BODY(TransformComponent, ComponentBase);
+		D_H_COMP_BODY(TransformComponent, ComponentBase, "Transform");
 	public:
 
 		// Serialization
 		virtual void						Serialize(D_SERIALIZATION::Json& j) const override;
 		virtual void						Deserialize(D_SERIALIZATION::Json const& j) override;
 
-		INLINE D_MATH::Transform const*		GetData() const { return &mTransform; }
-		INLINE D_MATH::Transform			GetData() { return mTransform; }
+		virtual INLINE  void				SetEnabled(bool) override {}
+
+		INLINE D_MATH::Transform const*		GetDataC() const { return &mTransform; }
+		INLINE D_MATH::Transform			GetData() const { return mTransform; }
 		INLINE void							SetTransform(D_MATH::Transform const& trans) { mTransform = trans; mChangeSignal(); }
 
 #ifdef _D_EDITOR

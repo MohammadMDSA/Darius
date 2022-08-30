@@ -2,7 +2,7 @@
 #include "TransformComponent.hpp"
 
 #include "Scene/Utils/DetailsDrawer.hpp"
-#include "Scene/Serialization/Serializer.hpp"
+#include "Scene/Utils/Serializer.hpp"
 
 using namespace D_SERIALIZATION;
 

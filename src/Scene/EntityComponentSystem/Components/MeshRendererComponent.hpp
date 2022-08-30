@@ -17,7 +17,7 @@ namespace Darius::Scene::ECS::Components
 {
 	class MeshRendererComponent : public ComponentBase
 	{
-		D_H_COMP_BODY(MeshRendererComponent, ComponentBase);
+		D_H_COMP_BODY(MeshRendererComponent, ComponentBase, "Mesh Renderer");
 
 	public:
 
@@ -38,14 +38,16 @@ namespace Darius::Scene::ECS::Components
 		RenderItem							GetRenderItem();
 
 
-		INLINE bool							CanRender() { return mActive && GetGameObject()->GetActive() && GetEnabled() && mMeshResource.IsValid(); }
+		INLINE bool							CanRender() { return GetGameObject()->GetActive() && GetEnabled() && mMeshResource.IsValid(); }
 		INLINE const BoundingSphere&		GetBounds() const { return mMeshResource.Get()->GetData()->mBoundSp; }
-
-		D_CH_RW_FIELD(bool, Active);
 
 	private:
 
+		void								_SetMesh(ResourceHandle handle);
+		void								_SetMaterial(ResourceHandle handle);
+
 		Ref<MeshResource>					mMeshResource;
 		Ref<MaterialResource>				mMaterialResource;
+		D_CORE::Signal<void()>				mChangeSignal;
 	};
 }

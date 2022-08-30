@@ -16,22 +16,20 @@ namespace Darius::Scene::ECS::Components
 
 
 	MeshRendererComponent::MeshRendererComponent() :
-		ComponentBase(),
-		mActive(true)
+		ComponentBase()
 	{
 	}
 
 	MeshRendererComponent::MeshRendererComponent(D_CORE::Uuid uuid) :
-		ComponentBase(uuid),
-		mActive(true)
+		ComponentBase(uuid)
 	{
 	}
 
 	void MeshRendererComponent::Start()
 	{
 
-		SetMesh({ ResourceType::None, 0 });
-		SetMaterial(D_RESOURCE::GetDefaultResource(DefaultResource::DefaultMaterial));
+		_SetMesh({ ResourceType::None, 0 });
+		_SetMaterial(D_RESOURCE::GetDefaultResource(DefaultResource::DefaultMaterial));
 
 	}
 
@@ -84,6 +82,7 @@ namespace Darius::Scene::ECS::Components
 
 				ImGui::EndPopup();
 			}
+
 		}
 
 		D_SCENE_DET_DRAW::DrawDetails(*mMaterialResource->ModifyData(), nullptr);
@@ -128,14 +127,24 @@ namespace Darius::Scene::ECS::Components
 
 	void MeshRendererComponent::SetMesh(ResourceHandle handle)
 	{
-		mMeshResource = D_RESOURCE::GetResource<MeshResource>(handle, *GetGameObject());
-
+		mChangeSignal();
+		_SetMesh(handle);
 	}
 
 	void MeshRendererComponent::SetMaterial(ResourceHandle handle)
 	{
-		mMaterialResource = D_RESOURCE::GetResource<MaterialResource>(handle, *GetGameObject());
+		mChangeSignal();
+		_SetMaterial(handle);
+	}
 
+	void MeshRendererComponent::_SetMesh(ResourceHandle handle)
+	{
+		mMeshResource = D_RESOURCE::GetResource<MeshResource>(handle, *GetGameObject());
+	}
+
+	void MeshRendererComponent::_SetMaterial(ResourceHandle handle)
+	{
+		mMaterialResource = D_RESOURCE::GetResource<MaterialResource>(handle, *GetGameObject());
 	}
 
 	void MeshRendererComponent::Serialize(Json& j) const
