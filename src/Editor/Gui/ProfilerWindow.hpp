@@ -40,7 +40,7 @@ namespace Darius::Editor::Gui::Windows
 		float							mAvgCpu;
 		float							mAvgFrameDelta;
 
-		float							mHistory = 10.f;
+		float							mHistory = 5.f;
 	};
 
 }
