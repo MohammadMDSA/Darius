@@ -25,11 +25,6 @@ cbuffer cbPass : register(b1)
     float gDeltaTime;
     float4 gAmbientLight;
     
-    // Indices [0, NUM_DIR_LIGHTS) are directional lights;
-    // indices [NUM_DIR_LIGHTS, NUM_DIR_LIGHTS+NUM_POINT_LIGHTS) are point lights;
-    // indices [NUM_DIR_LIGHTS+NUM_POINT_LIGHTS, NUM_DIR_LIGHTS+NUM_POINT_LIGHT+NUM_SPOT_LIGHTS)
-    // are spot lights for a maximum of MaxLights per object.
-    Light gLights[MAX_LIGHTS];
 };
 
 struct VertexOut
@@ -53,7 +48,7 @@ float4 main(VertexOut pin) : SV_Target
     const float shininess = 1.0f - gRoughness;
     Material mat = { gDiffuseAlbedo, gFresnelR0, shininess };
     float3 shadowFactor = 1.0f;
-    float4 directLight = ComputeLighting(gLights, mat, pin.WorldPos,
+    float4 directLight = ComputeLighting(mat, pin.WorldPos,
         pin.WorldNormal, toEyeW, shadowFactor);
 
     float4 litColor = ambient + directLight;

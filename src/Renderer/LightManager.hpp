@@ -19,6 +19,13 @@ namespace Darius::Renderer::LightManager
 	constexpr int		MaxNumSpotLight = 125;
 	constexpr int		MaxNumLight = MaxNumDirectionalLight + MaxNumPointLight + MaxNumSpotLight;
 
+	enum class LightSourceType
+	{
+		DirectionalLight,
+		PointLight,
+		SpotLight
+	};
+
 	struct LightData
 	{
 		XMFLOAT4		Color = Vector4(kOne);
@@ -32,7 +39,19 @@ namespace Darius::Renderer::LightManager
 
 	void				Initialize();
 	void				Shutdown();
+	void				Reset();
 
 	void				UpdateBuffers(D_GRAPHICS::GraphicsContext& context);
+
 	D3D12_CPU_DESCRIPTOR_HANDLE GetLightMaskHandle();
+	D3D12_CPU_DESCRIPTOR_HANDLE GetLightDataHandle();
+
+	// Accessed by light components
+	/// O(n) Don't use too often
+	int					AccuireLightSource(LightSourceType type);
+	/// O(n) Don't use too often
+	int					SwapLightSource(LightSourceType type, LightSourceType preType, int preIndex);
+	void				ReleaseLight(LightSourceType preType, int preIndex);
+
+	void				UpdateLight(LightSourceType type, int index, Transform const* trans, bool active, LightData const& light);
 }

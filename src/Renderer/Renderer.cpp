@@ -121,11 +121,16 @@ namespace Darius::Renderer
 		context.SetDynamicConstantBufferView(kCommonCBV, sizeof(GlobalConstants), &globals);
 
 		// Setting up common texture (light for now)
-		UINT destCount = 1;
-		UINT sourceCounts[] = { 1 };
-		auto lightMaskHandle = D_LIGHT::GetLightMaskHandle();
+		UINT destCount = 2;
+		UINT sourceCounts[] = { 1, 1 };
+		D3D12_CPU_DESCRIPTOR_HANDLE lightHandles[] =
+		{
+			D_LIGHT::GetLightMaskHandle(),
+			D_LIGHT::GetLightDataHandle()
+		};
 
-		_device->CopyDescriptors(1, &CommonTexture, &destCount, destCount, &lightMaskHandle, sourceCounts, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+		_device->CopyDescriptors(1, &CommonTexture, &destCount, destCount, lightHandles, sourceCounts, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+
 		context.SetDescriptorHeap(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, TextureHeap.GetHeapPointer());
 		context.SetDescriptorTable(kCommonSRVs, CommonTexture);
 

@@ -35,8 +35,6 @@ namespace Darius::Renderer::ConstantFrameResource
 		float				TotalTime = 0.0f;
 		float				DeltaTime = 0.0f;
 		XMFLOAT4			AmbientLight;
-
-		D_LIGHT::LightData	Lights[256];
 	};
 
 	ALIGN_DECL_256 struct MeshConstants
