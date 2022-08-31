@@ -19,8 +19,10 @@ namespace Darius::InputManager
 
 	int												lastX;
 	int												lastY;
+	int												lastWheel;
 	int												currentX;
 	int												currentY;
+	int												currentWheel;
 
 	void Initialize(HWND window)
 	{
@@ -48,8 +50,10 @@ namespace Darius::InputManager
 		mouseTracker.Update(currentMouseState);
 		lastX = currentX;
 		lastY = currentY;
+		lastWheel = currentWheel;
 		currentX = currentMouseState.x;
 		currentY = currentMouseState.y;
+		currentWheel = currentMouseState.scrollWheelValue;
 	}
 
 	void _processKeyboardMessage(UINT message, WPARAM wParam, LPARAM lParam)
@@ -150,7 +154,7 @@ namespace Darius::InputManager
 
 		int GetWheel()
 		{
-			return currentMouseState.scrollWheelValue;
+			return currentWheel - lastWheel;
 		}
 
 		void SetVisibility(bool visible)
