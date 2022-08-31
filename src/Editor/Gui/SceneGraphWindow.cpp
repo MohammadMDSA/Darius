@@ -2,6 +2,7 @@
 #include "SceneGraphWindow.hpp"
 #include "Editor/EditorContext.hpp"
 
+#include <Core/Input.hpp>
 #include <Scene/Scene.hpp>
 
 #include <imgui/imgui.h>
@@ -28,6 +29,11 @@ namespace Darius::Editor::Gui::Windows
 		auto selectedObj = D_EDITOR_CONTEXT::GetSelectedGameObject();
 
 		DrawObjList(gos, selectedObj);
+
+		if (!ImGui::IsAnyItemHovered() && mHovered && ImGui::IsMouseClicked(ImGuiMouseButton_Left))
+		{
+			D_EDITOR_CONTEXT::SetSelectedGameObject(nullptr);
+		}
 	}
 
 	void SceneGraphWindow::DrawObjList(DVector<GameObject*> const& gos, GameObject* selectedObj)
