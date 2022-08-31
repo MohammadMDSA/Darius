@@ -25,7 +25,7 @@ namespace Darius::Math
         INLINE explicit Quaternion(FXMVECTOR vec) { m_vec = vec; }
         INLINE explicit Quaternion(EIdentityTag) { m_vec = XMQuaternionIdentity(); }
         
-        INLINE Vector3 Angles()
+        INLINE Vector3 Angles() const
         {
             Vector3 result;
             auto mat = XMMatrixRotationQuaternion(m_vec);
