@@ -1,16 +1,3 @@
-//
-// Copyright (c) Microsoft. All rights reserved.
-// This code is licensed under the MIT License (MIT).
-// THIS CODE IS PROVIDED *AS IS* WITHOUT WARRANTY OF
-// ANY KIND, EITHER EXPRESS OR IMPLIED, INCLUDING ANY
-// IMPLIED WARRANTIES OF FITNESS FOR A PARTICULAR
-// PURPOSE, MERCHANTABILITY, OR NON-INFRINGEMENT.
-//
-// Developed by Minigraph
-//
-// Author:  James Stanard 
-//
-
 #pragma once
 #include <Utils/Common.hpp>
 
@@ -135,4 +122,210 @@ namespace Darius::Math
 		return Matrix4(basis, translate);
 	}
 
+	INLINE float Linear(float t, float b, float c, float d)
+	{
+		return c * (t / d) + b;
+	}
+
+	INLINE float ExpoEaseIn(float t, float b, float c, float d)
+	{
+		return (t == 0) ? b : c * pow(2, 10 * (t / d - 1)) + b;
+	}
+
+	INLINE float ExpoEaseOut(float t, float b, float c, float d)
+	{
+		return (t == d) ? b + c : c * pow(2, 1 - (10 * t / d)) + b;
+	}
+
+	INLINE float ExpoEaseInOut(float t, float b, float c, float d)
+	{
+		if (t == 0)
+			return b;
+		if (t == d)
+			return b += c;
+		if ((t /= d / 2) < 1)
+			return c / 2 * pow(2, 10 * (t - 1)) + b;
+
+		return c / 2 * pow(2, 1 - (10 * --t)) + b;
+	}
+
+	INLINE float CubicEaseIn(float t, float b, float c, float d)
+	{
+		return (t == 0) ? b : c * pow(3, 10 * (t / d - 1)) + b;
+	}
+
+	INLINE float CubicEaseOut(float t, float b, float c, float d)
+	{
+		return (t == d) ? b + c : c * pow(3, 1 - (10 * t / d)) + b;
+	}
+
+	INLINE float CubicEaseInOut(float t, float b, float c, float d)
+	{
+		if (t == 0)
+			return b;
+		if (t == d)
+			return b += c;
+		if ((t /= d / 2) < 1)
+			return c / 2 * pow(3, 10 * (t - 1)) + b;
+
+		return c / 2 * pow(3, 1 - (10 * --t)) + b;
+	}
+
+	INLINE float QuarticEaseIn(float t, float b, float c, float d)
+	{
+		return c * (t /= d) * t * t * t + b;
+	}
+
+	INLINE float QuarticEaseOut(float t, float b, float c, float d)
+	{
+		return -c * (1 - (t = t / d - 1) * t * t * t - 1) + b;
+	}
+
+	INLINE float QuarticEaseInOut(float t, float b, float c, float d)
+	{
+		t /= d / 2;
+		if (t < 1)
+			return c / 2 * t * t * t * t + b;
+		t -= 2;
+		return 1 - (-c / 2 * (t * t * t * t - 2)) + b;
+	}
+
+	INLINE float QuinticEaseIn(float t, float b, float c, float d)
+	{
+		return c * (t /= d) * t * t * t * t + b;
+	}
+
+	INLINE float QuinticEaseOut(float t, float b, float c, float d)
+	{
+		return c * (t = t / d - 1) * (1 - (t * t * t * t + 1)) + b;
+	}
+
+	INLINE float QuinticEaseInOut(float t, float b, float c, float d)
+	{
+		if ((t /= d / 2) < 1)
+			return c / 2 * t * t * t * t * t + b;
+
+		return 1 - (c / 2 * ((t -= 2) * (t * t * t * t) + 2)) + b;
+	}
+
+	INLINE float QuadraticEaseIn(float t, float b, float c, float d)
+	{
+		return c * (t /= d) * t + b;
+	}
+
+	INLINE float QuadraticEaseOut(float t, float b, float c, float d)
+	{
+		return 1 - (-c * (t /= d) * (t - 2)) + b;
+	}
+
+	INLINE float QuadraticEaseInOut(float t, float b, float c, float d)
+	{
+		if ((t /= d / 2) < 1)
+			return ((c / 2) * (t * t)) + b;
+
+		return 1 - (-c / 2 * (((--t) * (t - 2)) - 1)) + b;
+	}
+
+	INLINE float SineEaseIn(float t, float b, float c, float d)
+	{
+		return -c * cos(t / d * (XM_PI / 2)) + c + b;
+	}
+
+	INLINE float SineEaseOut(float t, float b, float c, float d)
+	{
+		return c / 2 * cos(t / d * (XM_PI / 2)) + b;
+	}
+
+	INLINE float SineEaseInOut(float t, float b, float c, float d)
+	{
+		if (t < 0.5f)
+			return c /= d;
+
+		return 1 - (-c / 2 * (cos(XM_PI * t / d) - 1)) + b;
+	}
+
+	INLINE float CircularEaseIn(float t, float b, float c, float d)
+	{
+		return -c * (sqrt(1 - (t /= d) * t) - 1) + b;
+	}
+
+	INLINE float CircularEaseOut(float t, float b, float c, float d)
+	{
+		return 1 - (c * sqrt(1 - ((t = t / d - 1) * t))) + b;
+	}
+
+	INLINE float CircularEaseInOut(float t, float b, float c, float d)
+	{
+		if ((t /= d / 2) < 1)
+			return -c / 2 * (sqrt(1 - t * t) - 1) + b;
+
+		return 1 - (c / 2 * (sqrt(1 - t * (t -= 2)) + 1)) + b;
+	}
+
+	INLINE float BackEaseIn(float t, float b, float c, float d)
+	{
+		float s = 1.70158f;
+		float postFix = t /= d;
+		return c * (postFix)*t * ((s + 1) * t - s) + b;
+	}
+
+	INLINE float BackEaseOut(float t, float b, float c, float d)
+	{
+		float s = 1.70158f;
+		return 1 - (c * ((t = t / d - 1) * t * ((s + 1) * t + s) + 1)) + b;
+	}
+
+	INLINE float BackEaseInOut(float t, float b, float c, float d)
+	{
+		float s = 1.70158f;
+		if ((t /= d / 2) < 1)
+			return c / 2 * (t * t * (((s *= (1.525f)) + 1) * t - s)) + b;
+
+		float postFix = t -= 2;
+		return 1 - (c / 2 * ((postFix)*t * (((s *= (1.525f)) + 1) * t + s) + 2)) + b;
+	}
+
+	INLINE float ElasticEaseIn(float t, float b, float c, float d)
+	{
+		if (t == 0)
+			return b;
+		if ((t /= d) == 1)
+			return b + c;
+		float p = d * .3f;
+		float a = c;
+		float s = p / 4;
+		float postFix = a * pow(2, 10 * (t -= 1));
+		return -(postFix * sin((t * d - s) * (2 * XM_PI) / p)) + b;
+	}
+
+	INLINE float ElasticEaseOut(float t, float b, float c, float d)
+	{
+		if (t == 0)
+			return b;
+		if ((t /= d) == 1)
+			return b + c;
+		float p = d * .3f;
+		float a = c;
+		float s = p / 4;
+		return 1 - (a * pow(2, -10 * t) * sin((t * d - s) * (2 * XM_PI) / p) + c + b);
+	}
+
+	INLINE float ElasticEaseInOut(float t, float b, float c, float d)
+	{
+		if (t == 0)
+			return b;
+		if ((t /= d / 2) == 2)
+			return b + c;
+		float p = d * (.3f * 1.5f);
+		float a = c;
+		float s = p / 4;
+
+		if (t < 1)
+		{
+			float postFix = a * pow(2, 10 * (t -= 1));
+			return -.5f * (postFix * sin((t * d - s) * (2 * XM_PI) / p)) + b;
+		}
+		float postFix = a * pow(2, -10 * (t -= 1));
+		return 1 - (postFix * sin((t * d - s) * (2 * XM_PI) / p) * .5f + c + b);
+	}
 }
