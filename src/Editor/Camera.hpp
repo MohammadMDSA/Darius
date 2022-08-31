@@ -27,7 +27,7 @@ namespace Darius::Editor
     {
     public:
         // Assumes worldUp is not the X basis vector
-        CameraController(D_MATH_CAMERA::Camera& camera) : m_TargetCamera(camera) {}
+        CameraController(D_MATH_CAMERA::Camera& camera) : mTargetCamera(camera) {}
         virtual ~CameraController() {}
         virtual void Update(float dt) = 0;
 
@@ -35,7 +35,7 @@ namespace Darius::Editor
         static void ApplyMomentum(float& oldValue, float& newValue, float deltaTime);
 
     protected:
-        D_MATH_CAMERA::Camera& m_TargetCamera;
+        D_MATH_CAMERA::Camera& mTargetCamera;
 
     private:
         CameraController& operator=(const CameraController&) { return *this; }
@@ -48,37 +48,40 @@ namespace Darius::Editor
 
         virtual void Update(float dt) override;
 
-        void SlowMovement(bool enable) { m_FineMovement = enable; }
-        void SlowRotation(bool enable) { m_FineRotation = enable; }
+        void SlowMovement(bool enable) { mFineMovement = enable; }
+        void SlowRotation(bool enable) { mFineRotation = enable; }
 
-        void EnableMomentum(bool enable) { m_Momentum = enable; }
+        void EnableMomentum(bool enable) { mMomentum = enable; }
 
         void SetHeadingPitchAndPosition(float heading, float pitch, const D_MATH::Vector3& position);
 
+        INLINE void SetOrientationDirty() { mDirtyOrientation = true; mLastForward = mLastStrafe = mLastAscent = 0.f; }
+
     private:
         FlyingFPSCamera& operator=(const FlyingFPSCamera&) { return *this; }
-        D_MATH::Vector3 m_WorldUp;
-        D_MATH::Vector3 m_WorldNorth;
-        D_MATH::Vector3 m_WorldEast;
-        float m_HorizontalLookSensitivity;
-        float m_VerticalLookSensitivity;
-        float m_MoveSpeed;
-        float m_StrafeSpeed;
-        float m_MouseSensitivityX;
-        float m_MouseSensitivityY;
+        D_MATH::Vector3 mWorldUp;
+        D_MATH::Vector3 mWorldNorth;
+        D_MATH::Vector3 mWorldEast;
+        float mHorizontalLookSensitivity;
+        float mVerticalLookSensitivity;
+        float mMoveSpeed;
+        float mStrafeSpeed;
+        float mMouseSensitivityX;
+        float mMouseSensitivityY;
 
-        float m_CurrentHeading;
-        float m_CurrentPitch;
+        float mCurrentHeading;
+        float mCurrentPitch;
 
-        bool m_FineMovement;
-        bool m_FineRotation;
-        bool m_Momentum;
+        bool mFineMovement;
+        bool mFineRotation;
+        bool mMomentum;
+        bool mDirtyOrientation;
 
-        float m_LastYaw;
-        float m_LastPitch;
-        float m_LastForward;
-        float m_LastStrafe;
-        float m_LastAscent;
+        float mLastYaw;
+        float mLastPitch;
+        float mLastForward;
+        float mLastStrafe;
+        float mLastAscent;
     };
 
     class OrbitCamera : public CameraController
@@ -90,28 +93,54 @@ namespace Darius::Editor
 
         virtual void Update(float dt) override;
 
-        void EnableMomentum(bool enable) { m_Momentum = enable; }
+        void EnableMomentum(bool enable) { mMomentum = enable; }
+        void SetTarget(D_MATH::Vector3 target);
+
+        INLINE void SetTargetLocationDirty() { mTargetLocationDirty = true; }
+        INLINE bool IsAdjusting() { return mAdjusting; }
 
     private:
+        INLINE D_MATH::Vector3 ComputeTargetFromPosition(D_MATH::Vector3 pos)
+        {
+            D_MATH::Matrix3 orientation = D_MATH::Matrix3(XMMatrixRotationQuaternion(mTargetCamera.GetRotation()));
+
+            return -pos + orientation.GetZ() * (mModelBounds.GetRadius() * D_MATH::Lerp(3.0f, 1.0f, mCurrentCloseness) + mTargetCamera.GetNearClip());
+        }
+
+        INLINE D_MATH::Vector3 ComputePositionFromTarget(D_MATH::Vector3 target)
+        {
+            D_MATH::Matrix3 orientation = D_MATH::Matrix3(XMMatrixRotationQuaternion(mTargetCamera.GetRotation()));
+
+            return target + orientation.GetZ() * (mModelBounds.GetRadius() * D_MATH::Lerp(3.0f, 1.0f, mCurrentCloseness) + mTargetCamera.GetNearClip());
+        }
+
         OrbitCamera& operator=(const OrbitCamera&) { return *this; }
 
-        D_MATH_BOUNDS::BoundingSphere m_ModelBounds;
-        D_MATH::Vector3 m_WorldUp;
+        D_MATH_BOUNDS::BoundingSphere mModelBounds;
+        D_MATH::Vector3 mWorldUp;
 
-        float m_JoystickSensitivityX;
-        float m_JoystickSensitivityY;
+        D_MATH::Vector3 mTargetLocation;
+        D_MATH::Vector3 mAdjustmentTarget;
+        D_MATH::Vector3 mAdjustmentStartLocation;
 
-        float m_MouseSensitivityX;
-        float m_MouseSensitivityY;
+        float mJoystickSensitivityX;
+        float mJoystickSensitivityY;
 
-        float m_CurrentHeading;
-        float m_CurrentPitch;
-        float m_CurrentCloseness;
+        float mMouseSensitivityX;
+        float mMouseSensitivityY;
+        float mMouseSensitivityWheel;
 
-        bool m_Momentum;
+        float mCurrentCloseness;
+        float mLastYaw;
+        float mLastPitch;
+        float mLastForward;
 
-        float m_LastYaw;
-        float m_LastPitch;
-        float m_LastForward;
+        float mAdjustmentTime;
+        float mAdjustmentStartTime = -1;
+
+        bool mMomentum;
+        bool mTargetLocationDirty;
+
+        bool mAdjusting;
     };
 }

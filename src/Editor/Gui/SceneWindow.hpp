@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Window.hpp"
+#include "Editor/Camera.hpp"
 
 #include <Core/Containers/Vector.hpp>
 #include <Scene/Scene.hpp>
@@ -41,6 +42,8 @@ namespace Darius::Editor::Gui::Windows
 		void UpdateGlobalConstants(D_RENDERER_FRAME_RESOUCE::GlobalConstants& globals);
 
 		D_MATH_CAMERA::Camera						mCamera;
+		D_EDITOR::FlyingFPSCamera					mFlyingCam;
+		D_EDITOR::OrbitCamera						mOrbitCam;
 
 		D_GRAPHICS_BUFFERS::ColorBuffer				mSceneTexture;
 		D_GRAPHICS_BUFFERS::DepthBuffer				mSceneDepth;

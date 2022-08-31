@@ -1,7 +1,6 @@
 #include "Editor/pch.hpp"
 #include <Renderer/pch.hpp>
 #include "SceneWindow.hpp"
-#include "Editor/Camera.hpp"
 #include "Editor/EditorContext.hpp"
 
 #include <Core/TimeManager/TimeManager.hpp>
@@ -16,11 +15,14 @@
 
 namespace Darius::Editor::Gui::Windows
 {
-	SceneWindow::SceneWindow()
+	SceneWindow::SceneWindow() :
+		mFlyingCam(mCamera, Vector3::Up()),
+		mOrbitCam(mCamera, D_MATH_BOUNDS::BoundingSphere(0.f, 0.f, 0.f, 5.f), Vector3::Up())
 	{
 		CreateBuffers();
 		mTextureHandle = D_RENDERER::GetUiTextureHandle(1);
 
+		// Setup cameras
 		mCamera.SetFOV(XM_PI / 3);
 		mCamera.SetZRange(0.01f, 1000.f);
 		mCamera.SetPosition(Vector3(2.f, 2.f, 2.f));
@@ -41,6 +43,7 @@ namespace Darius::Editor::Gui::Windows
 		mLineConstantsGPU.Create(L"Scene Window Grid GPU Buffer", total, sizeof(MeshConstants), consts.data());
 
 		CreateGrid(mWindowRenderItems, total);
+
 	}
 
 	SceneWindow::~SceneWindow()
@@ -152,12 +155,26 @@ namespace Darius::Editor::Gui::Windows
 			CreateBuffers();
 		}
 
-		static auto fc = FlyingFPSCamera(mCamera, Vector3::Up());
+		if (mOrbitCam.IsAdjusting() || (D_KEYBOARD::GetKey(D_KEYBOARD::Keys::LeftAlt) && D_MOUSE::GetButton(D_MOUSE::Keys::Left) && mHovered))
+		{
+			mOrbitCam.Update(dt);
+			mFlyingCam.SetOrientationDirty();
 
-		if (D_MOUSE::GetButton(D_MOUSE::Keys::Right) && mHovered)
-			fc.Update(dt);
+		}
+		else if (D_MOUSE::GetButton(D_MOUSE::Keys::Right) && mHovered)
+		{
+			mFlyingCam.Update(dt);
+			mOrbitCam.SetTargetLocationDirty();
+		}
 		else
 			mCamera.Update();
+
+		// Focusing on object
+		auto selectedGameObject = D_EDITOR_CONTEXT::GetSelectedGameObject();
+		if (D_KEYBOARD::IsKeyDown(D_KEYBOARD::Keys::F) && selectedGameObject)
+		{
+			mOrbitCam.SetTarget(selectedGameObject->GetTransform()->Translation);
+		}
 
 	}
 
