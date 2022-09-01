@@ -54,7 +54,15 @@ namespace Darius::Editor::Gui::Windows
 		auto nodeOpen = ImGui::TreeNodeEx((void*)(go), nodeFlag, go->GetName().c_str());
 		if (ImGui::BeginPopupContextItem())
 		{
-			if (ImGui::Selectable("Delete Game Object"))
+			ImGui::Text("Game Object");
+			ImGui::Separator();
+
+			if (ImGui::Selectable("Add Game Object"))
+			{
+				D_WORLD::CreateGameObject()->SetParent(go);
+			}
+
+			if (ImGui::Selectable("Delete"))
 			{
 				D_WORLD::DeleteGameObject(go);
 				if (selected)
