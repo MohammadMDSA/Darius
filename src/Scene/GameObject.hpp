@@ -64,9 +64,9 @@ namespace Darius::Scene
 		void								OnDestroy();
 
 		void								VisitComponents(std::function<void(Darius::Scene::ECS::Components::ComponentBase*)> callback, std::function<void(D_EXCEPTION::Exception const&)> onException = nullptr) const;
-		void								VisitAncestors(std::function<void(GameObject*)> callback);
-		void								VisitChildren(std::function<void(GameObject*)> callback);
-		void								VisitDescendants(std::function<void(GameObject*)> callback);
+		void								VisitAncestors(std::function<void(GameObject*)> callback) const;
+		void								VisitChildren(std::function<void(GameObject*)> callback) const;
+		void								VisitDescendants(std::function<void(GameObject*)> callback) const;
 
 		INLINE D3D12_GPU_VIRTUAL_ADDRESS	GetConstantsAddress() { return mMeshConstantsGPU.GetGpuVirtualAddress(); }
 

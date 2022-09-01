@@ -323,7 +323,7 @@ namespace Darius::Scene
 			});
 	}
 
-	void GameObject::VisitAncestors(std::function<void(GameObject*)> callback)
+	void GameObject::VisitAncestors(std::function<void(GameObject*)> callback) const
 	{
 		auto current = mParent;
 		while (current)
@@ -333,7 +333,7 @@ namespace Darius::Scene
 		}
 	}
 
-	void GameObject::VisitChildren(std::function<void(GameObject*)> callback)
+	void GameObject::VisitChildren(std::function<void(GameObject*)> callback) const
 	{
 		mEntity.children([callback](D_ECS::Entity childEnt)
 			{
@@ -341,7 +341,7 @@ namespace Darius::Scene
 			});
 	}
 
-	void GameObject::VisitDescendants(std::function<void(GameObject*)> callback)
+	void GameObject::VisitDescendants(std::function<void(GameObject*)> callback) const
 	{
 		VisitChildren([callback](GameObject* child)
 			{
