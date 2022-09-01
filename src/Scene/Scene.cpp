@@ -199,6 +199,19 @@ namespace Darius::Scene
 			from_json(jObj, *obj);
 		}
 
+		// Loading hierarchy
+		for (auto [obUuid, childList] : sceneJson["Hierarchy"].items())
+		{
+			auto go = (*UuidMap)[FromString(obUuid)];
+			for (int i = 0; i < childList.size(); i++)
+			{
+				Uuid childUuid;
+				D_CORE::from_json(childList[i], childUuid);
+				auto child = (*UuidMap)[childUuid];
+				child->SetParent(go);
+			}
+		}
+
 		// Loading Components
 		for (auto& [objUuidStr, objCompsJ] : sceneJson["ObjectComponent"].items())
 		{
@@ -232,14 +245,22 @@ namespace Darius::Scene
 	{
 		D_SERIALIZATION::Json sceneJson = D_SERIALIZATION::Json::object();
 
-		// Serializing objects
+		// Serializing objects and hierarchy
 		DVector<GameObject> rawGos;
 		for (GameObject const* go : *GOs)
 		{
 			auto bb = go->mEntity.has<D_ECS_COMP::TransformComponent>();
 			rawGos.push_back(*go);
-		}
 
+
+			// Serialize hierarchy
+			Json& goContext = sceneJson["Hierarchy"][ToString(go->GetUuid())];
+			go->VisitChildren([&](GameObject const* child)
+				{
+					goContext.push_back(ToString(child->GetUuid()));
+					
+				});
+		}
 		sceneJson["Objects"] = rawGos;
 
 		// Serializing components
