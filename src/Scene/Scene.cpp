@@ -156,8 +156,8 @@ namespace Darius::Scene
 	{
 		go->OnDestroy();
 		UuidMap->erase(go->GetUuid());
-		EntityMap->erase(go->GetEntity());
-		go->GetEntity().destruct();
+		EntityMap->erase(go->mEntity);
+		go->mEntity.destruct();
 		delete go;
 	}
 

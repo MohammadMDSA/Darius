@@ -138,7 +138,7 @@ namespace Darius::Scene
 		D_CH_RW_FIELD(std::string, Name);
 		D_CH_RW_FIELD(Type, Type);
 		D_CH_R_FIELD_CONST(Uuid, Uuid);
-		D_CH_R_FIELD(D_ECS::Entity, Entity);
+		D_CH_FIELD(D_ECS::Entity, Entity);
 		D_CH_R_FIELD(bool, Started);
 		D_CH_R_FIELD(bool, Deleted);
 		D_CH_R_FIELD(GameObject*, Parent);
