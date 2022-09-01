@@ -25,7 +25,7 @@ namespace Darius::Editor::Gui::Windows
 
 	private:
 
-		void DrawObject(D_ECS::Entity gos, GameObject* selectedObj);
+		void DrawObject(GameObject* go, GameObject* selectedObj);
 	};
 
 }

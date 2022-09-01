@@ -29,13 +29,11 @@ namespace Darius::Editor::Gui::Windows
 		D_CONTAINERS::DVector<GameObject*> gos;
 		D_WORLD::GetGameObjects(gos);
 		auto selectedObj = D_EDITOR_CONTEXT::GetSelectedGameObject();
-		(selectedObj);
-		auto& reg = D_WORLD::GetRegistry();
-		(reg);
-		//auto f = reg.filter_builder()
-		//	.se
 
-		//DrawObjList(gos, selectedObj);
+		D_WORLD::GetRoot().children([&](D_ECS::Entity e)
+			{
+				DrawObject(D_WORLD::GetGameObject(e), selectedObj);
+			});
 
 		if (!ImGui::IsAnyItemHovered() && mHovered && ImGui::IsMouseClicked(ImGuiMouseButton_Left))
 		{
@@ -43,38 +41,41 @@ namespace Darius::Editor::Gui::Windows
 		}
 	}
 
-	/*void SceneGraphWindow::DrawObject(Entity gos, GameObject* selectedObj)
+	void SceneGraphWindow::DrawObject(GameObject* go, GameObject* selectedObj)
 	{
 		ImGuiTreeNodeFlags baseFlag = ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_SpanAvailWidth | ImGuiTreeNodeFlags_SpanFullWidth | ImGuiTreeNodeFlags_Leaf;
 
-		auto idx = 0;
-		for (auto& go : gos)
+		ImGuiTreeNodeFlags nodeFlag = baseFlag;
+
+		auto selected = go == selectedObj;
+		if (selected)
+			nodeFlag |= ImGuiTreeNodeFlags_Selected;
+
+		auto nodeOpen = ImGui::TreeNodeEx((void*)(go), nodeFlag, go->GetName().c_str());
+		if (ImGui::BeginPopupContextItem())
 		{
-			ImGuiTreeNodeFlags nodeFlag = baseFlag;
-
-			auto selected = go == selectedObj;
-			if (selected)
-				nodeFlag |= ImGuiTreeNodeFlags_Selected;
-
-			auto nodeOpen = ImGui::TreeNodeEx((void*)(intptr_t)(idx++), nodeFlag, go->GetName().c_str());
-			if (ImGui::BeginPopupContextItem())
+			if (ImGui::Selectable("Delete Game Object"))
 			{
-				if (ImGui::Selectable("Delete Game Object"))
-				{
-					D_WORLD::DeleteGameObject(go);
-					if (selected)
-						D_EDITOR_CONTEXT::SetSelectedGameObject(nullptr);
-				}
-
-				ImGui::EndPopup();
+				D_WORLD::DeleteGameObject(go);
+				if (selected)
+					D_EDITOR_CONTEXT::SetSelectedGameObject(nullptr);
 			}
 
-			if (ImGui::IsItemClicked() && !selected)
-				D_EDITOR_CONTEXT::SetSelectedGameObject(go);
-
-			if (nodeOpen)
-				ImGui::TreePop();
+			ImGui::EndPopup();
 		}
-	}*/
+
+		if (ImGui::IsItemClicked() && !selected)
+			D_EDITOR_CONTEXT::SetSelectedGameObject(go);
+
+		if (nodeOpen)
+		{
+			go->VisitChildren([&](GameObject* child)
+				{
+					DrawObject(child, selectedObj);
+				});
+
+			ImGui::TreePop();
+		}
+	}
 
 }
