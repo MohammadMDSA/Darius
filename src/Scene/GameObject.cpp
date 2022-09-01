@@ -160,12 +160,6 @@ namespace Darius::Scene
 				D_LOG_ERROR("Error drawing component with error: " << ex.what());
 			});
 
-		ImGui::Spacing();
-		ImGui::Spacing();
-
-		float addCompButtonWidth = 100.f;
-		ImGui::SameLine(std::max((contentRegionAvailable.x - addCompButtonWidth) / 2, 0.f));
-
 		// Component selection popup
 		if (ImGui::BeginPopupContextItem("##ComponentAdditionPopup", ImGuiPopupFlags_NoOpenOverExistingPopup))
 		{
@@ -188,6 +182,15 @@ namespace Darius::Scene
 
 			ImGui::EndPopup();
 		}
+
+		ImGui::Spacing();
+		ImGui::Spacing();
+		ImGui::Separator();
+		ImGui::Spacing();
+		ImGui::Spacing();
+
+		float addCompButtonWidth = 100.f;
+		ImGui::SameLine(std::max((contentRegionAvailable.x - addCompButtonWidth) / 2, 0.f));
 
 		if (ImGui::Button("Add Component", ImVec2(addCompButtonWidth, 0)))
 		{

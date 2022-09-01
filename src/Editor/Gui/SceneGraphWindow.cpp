@@ -43,15 +43,16 @@ namespace Darius::Editor::Gui::Windows
 
 	void SceneGraphWindow::DrawObject(GameObject* go, GameObject* selectedObj)
 	{
-		ImGuiTreeNodeFlags baseFlag = ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_SpanAvailWidth | ImGuiTreeNodeFlags_SpanFullWidth | ImGuiTreeNodeFlags_Leaf;
-
-		ImGuiTreeNodeFlags nodeFlag = baseFlag;
+		ImGuiTreeNodeFlags baseFlag = ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_SpanAvailWidth | ImGuiTreeNodeFlags_FramePadding;
+		if (!go->CountChildren())
+			baseFlag |= ImGuiTreeNodeFlags_Leaf;
 
 		auto selected = go == selectedObj;
 		if (selected)
-			nodeFlag |= ImGuiTreeNodeFlags_Selected;
+			baseFlag |= ImGuiTreeNodeFlags_Selected;
 
-		auto nodeOpen = ImGui::TreeNodeEx((void*)(go), nodeFlag, go->GetName().c_str());
+		auto nodeOpen = ImGui::TreeNodeEx((void*)(go), baseFlag, go->GetName().c_str());
+		
 		if (ImGui::BeginPopupContextItem())
 		{
 			ImGui::Text("Game Object");
