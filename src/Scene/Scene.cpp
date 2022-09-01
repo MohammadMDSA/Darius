@@ -40,6 +40,12 @@ namespace Darius::Scene
 		UuidMap = std::make_unique<D_CONTAINERS::DMap<Uuid, GameObject*, UuidHasher>>();
 		GOs = std::make_unique<D_CONTAINERS::DSet<GameObject*>>();
 		EntityMap = std::make_unique<D_CONTAINERS::DMap<D_ECS::EntityId, GameObject*>>();
+
+
+#ifdef _DEBUG
+		World.set<flecs::Rest>({});
+#endif // _DEBUG
+
 	}
 
 	void SceneManager::Shutdown()
@@ -103,10 +109,6 @@ namespace Darius::Scene
 			Unload();
 		SceneName = name;
 
-#ifdef _DEBUG
-		World.set<flecs::Rest>({});
-#endif // _DEBUG
-
 		Loaded = true;
 		return true;
 	}
@@ -147,7 +149,7 @@ namespace Darius::Scene
 		go->OnDestroy();
 		UuidMap->erase(go->GetUuid());
 		EntityMap->erase(go->GetEntity());
-		World.remove_all(go->GetEntity());
+		go->GetEntity().destruct();
 		delete go;
 	}
 

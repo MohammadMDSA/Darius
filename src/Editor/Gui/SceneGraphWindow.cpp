@@ -7,6 +7,8 @@
 
 #include <imgui/imgui.h>
 
+using namespace D_ECS;
+
 namespace Darius::Editor::Gui::Windows
 {
 
@@ -27,8 +29,13 @@ namespace Darius::Editor::Gui::Windows
 		D_CONTAINERS::DVector<GameObject*> gos;
 		D_WORLD::GetGameObjects(gos);
 		auto selectedObj = D_EDITOR_CONTEXT::GetSelectedGameObject();
+		(selectedObj);
+		auto& reg = D_WORLD::GetRegistry();
+		(reg);
+		//auto f = reg.filter_builder()
+		//	.se
 
-		DrawObjList(gos, selectedObj);
+		//DrawObjList(gos, selectedObj);
 
 		if (!ImGui::IsAnyItemHovered() && mHovered && ImGui::IsMouseClicked(ImGuiMouseButton_Left))
 		{
@@ -36,7 +43,7 @@ namespace Darius::Editor::Gui::Windows
 		}
 	}
 
-	void SceneGraphWindow::DrawObjList(DVector<GameObject*> const& gos, GameObject* selectedObj)
+	/*void SceneGraphWindow::DrawObject(Entity gos, GameObject* selectedObj)
 	{
 		ImGuiTreeNodeFlags baseFlag = ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_SpanAvailWidth | ImGuiTreeNodeFlags_SpanFullWidth | ImGuiTreeNodeFlags_Leaf;
 
@@ -68,6 +75,6 @@ namespace Darius::Editor::Gui::Windows
 			if (nodeOpen)
 				ImGui::TreePop();
 		}
-	}
+	}*/
 
 }

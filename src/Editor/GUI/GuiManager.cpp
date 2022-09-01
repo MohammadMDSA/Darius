@@ -16,6 +16,7 @@
 #include <Renderer/Camera/CameraManager.hpp>
 #include <ResourceManager/ResourceManager.hpp>
 #include <ResourceManager/ResourceLoader.hpp>
+#include <Scene/EntityComponentSystem/Components/TransformComponent.hpp>
 #include <Utils/Assert.hpp>
 
 using namespace Darius::Editor::Gui::Windows;
@@ -122,7 +123,7 @@ namespace Darius::Editor::Gui::GuiManager
 
 					if (ImGui::MenuItem("Load Scene"))
 					{
-						
+
 						if (D_WORLD::Load(D_EDITOR_CONTEXT::GetAssetsPath().append("Foo.dar")))
 							D_EDITOR_CONTEXT::SetSelectedGameObject(nullptr);
 					}
@@ -142,7 +143,7 @@ namespace Darius::Editor::Gui::GuiManager
 						D_WORLD::DeleteGameObject(D_EDITOR_CONTEXT::GetSelectedGameObject());
 						D_EDITOR_CONTEXT::SetSelectedGameObject(nullptr);
 					}
-					
+
 					ImGui::EndMenu();
 				}
 
@@ -151,6 +152,37 @@ namespace Darius::Editor::Gui::GuiManager
 					if (ImGui::MenuItem("Create Material"))
 					{
 						D_RESOURCE::GetManager()->CreateMaterial(D_EDITOR_CONTEXT::GetAssetsPath());
+					}
+
+					static D_ECS::Entity e0;
+					static D_ECS::Entity e;
+					static D_ECS::Entity e1;
+					static D_ECS::Entity e2;
+					static D_ECS::Entity e3;
+
+					if (ImGui::MenuItem("Do"))
+					{
+						e0 = D_WORLD::GetRegistry().entity().add<D_ECS_COMP::TransformComponent>();
+						e = D_WORLD::GetRegistry().entity("Root").add<D_ECS_COMP::TransformComponent>().child_of(e0);
+						e1 = D_WORLD::GetRegistry().entity().add<D_ECS_COMP::TransformComponent>().child_of(e);
+						e2 = D_WORLD::GetRegistry().entity().add<D_ECS_COMP::TransformComponent>().child_of(e1);
+						e3 = D_WORLD::GetRegistry().entity().add<D_ECS_COMP::TransformComponent>().child_of(e2);
+					}
+
+					if (ImGui::MenuItem("Don't"))
+					{
+						auto f = D_WORLD::GetRegistry().query_builder<D_ECS_COMP::TransformComponent>()
+							.term<D_ECS_COMP::TransformComponent>()/*.up(flecs::ChildOf).cascade()*/
+							.build();
+
+						f.each([&](flecs::entity ee, D_ECS_COMP::TransformComponent& t)
+							{
+								(ee);
+								(t);
+								int i = 0;
+								i++;
+							});
+
 					}
 
 					ImGui::EndMenu();
