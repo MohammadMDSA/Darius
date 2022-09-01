@@ -32,7 +32,7 @@ struct Material
     float Shininess;
 };
 
-ByteAddressBuffer       LightMask : register(t10);
+ByteAddressBuffer LightMask : register(t10);
 StructuredBuffer<Light> LightData : register(t11);
 
 float CalcAttenuation(float d, float falloffStart, float falloffEnd)
@@ -166,35 +166,21 @@ float4 ComputeLighting(
 
     uint i = 0;
 
-#if (NUM_DIR_LIGHTS > 0)
-    for (i = 0; i < NUM_DIR_LIGHTS; ++i)
+    for (i = 0; i < NUM_DIR_LIGHTS + NUM_POINT_LIGHTS + NUM_SPOT_LIGHTS; ++i)
     {
         uint masks = LightMask.Load((i / 32) * 4);
         uint idx = i - (i / 32) * 32;
-        if (masks & (1 << (31 - idx)))
+        if (!(masks & (1 << (31 - idx))))
+            continue;
+        
+        if (i < NUM_DIR_LIGHTS)
             result += shadowFactor * ComputeDirectionalLight(LightData[i], mat, normal, toEye);
-    }
-#endif
-
-#if (NUM_POINT_LIGHTS > 0)
-    for (i = NUM_DIR_LIGHTS; i < NUM_DIR_LIGHTS + NUM_POINT_LIGHTS; ++i)
-    {
-        uint masks = LightMask.Load((i / 32) * 4);
-        uint idx = i - (i / 32) * 32;
-        if (masks & (1 << (31 - idx)))
+        else if (i < NUM_DIR_LIGHTS + NUM_POINT_LIGHTS)
             result += ComputePointLight(LightData[i], mat, pos, normal, toEye);
-    }
-#endif
-
-#if (NUM_SPOT_LIGHTS > 0)
-    for (i = NUM_DIR_LIGHTS + NUM_POINT_LIGHTS; i < NUM_DIR_LIGHTS + NUM_POINT_LIGHTS + NUM_SPOT_LIGHTS; ++i)
-    {
-        uint masks = LightMask.Load((i / 32) * 4);
-        uint idx = i - (i / 32) * 32;
-        if (masks & (1 << (31 - idx)))
+        else
             result += ComputeSpotLight(LightData[i], mat, pos, normal, toEye);
+        
     }
-#endif 
-
+    
     return float4(result, 0.0f);
 }
