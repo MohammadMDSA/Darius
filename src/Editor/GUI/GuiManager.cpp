@@ -57,6 +57,9 @@ namespace Darius::Editor::Gui::GuiManager
 
 		io.IniFilename = LayoutPath.c_str();
 		ImGui::GetStyle().FrameRounding = 5.f;
+		ImGui::GetStyle().PopupRounding = 5.f;
+		ImGui::GetStyle().WindowRounding = 5.f;
+
 	}
 
 	void Shutdown()
@@ -160,28 +163,12 @@ namespace Darius::Editor::Gui::GuiManager
 					static D_ECS::Entity e2;
 					static D_ECS::Entity e3;
 
-					if (ImGui::MenuItem("Do"))
-					{
-						e0 = D_WORLD::GetRegistry().entity().add<D_ECS_COMP::TransformComponent>();
-						e = D_WORLD::GetRegistry().entity("Root").add<D_ECS_COMP::TransformComponent>().child_of(e0);
-						e1 = D_WORLD::GetRegistry().entity().add<D_ECS_COMP::TransformComponent>().child_of(e);
-						e2 = D_WORLD::GetRegistry().entity().add<D_ECS_COMP::TransformComponent>().child_of(e1);
-						e3 = D_WORLD::GetRegistry().entity().add<D_ECS_COMP::TransformComponent>().child_of(e2);
-					}
-
 					if (ImGui::MenuItem("Don't"))
 					{
-						auto f = D_WORLD::GetRegistry().query_builder<D_ECS_COMP::TransformComponent>()
-							.term<D_ECS_COMP::TransformComponent>()/*.up(flecs::ChildOf).cascade()*/
-							.build();
-
-						f.each([&](flecs::entity ee, D_ECS_COMP::TransformComponent& t)
-							{
-								(ee);
-								(t);
-								int i = 0;
-								i++;
-							});
+						for (size_t i = 0; i < 1000; i++)
+						{
+							D_WORLD::CreateGameObject();
+						}
 
 					}
 
