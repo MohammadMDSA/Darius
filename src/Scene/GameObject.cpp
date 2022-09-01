@@ -290,17 +290,24 @@ namespace Darius::Scene
 		mEntity.remove(compId);
 	}
 
-	void to_json(D_SERIALIZATION::Json& j, const GameObject& value) {
-		D_H_SERIALIZE(Active);
-		D_H_SERIALIZE(Name);
-		D_H_SERIALIZE(Type);
-		D_CORE::to_json(j["Uuid"], value.mUuid);
-	}
+	void GameObject::SetParent(GameObject* newParent)
+	{
+		auto& reg = D_WORLD::GetRegistry();
 
-	void from_json(const D_SERIALIZATION::Json& j, GameObject& value) {
-		D_H_DESERIALIZE(Active);
-		D_H_DESERIALIZE(Name);
-		D_H_DESERIALIZE(Type);
+		if (!newParent) // Unparent
+		{
+			if (mParent) // Already has a parent
+			{
+				mEntity.child_of(D_WORLD::GetRoot());
+			}
+
+			mParent = nullptr;
+			return;
+		}
+
+		// New parent is legit
+		mEntity.child_of(newParent->mEntity);
+		mParent = newParent;
 	}
 
 	void GameObject::RegisterComponent(std::string name, std::string displayName)
@@ -314,6 +321,46 @@ namespace Darius::Scene
 			{
 				return first.second < second.second;
 			});
+	}
+
+	void GameObject::VisitAncestors(std::function<void(GameObject*)> callback)
+	{
+		auto current = mParent;
+		while (current)
+		{
+			callback(current);
+			current = current->mParent;
+		}
+	}
+
+	void GameObject::VisitChildren(std::function<void(GameObject*)> callback)
+	{
+		mEntity.children([callback](D_ECS::Entity childEnt)
+			{
+				callback(D_WORLD::GetGameObject(childEnt));
+			});
+	}
+
+	void GameObject::VisitDescendants(std::function<void(GameObject*)> callback)
+	{
+		VisitChildren([callback](GameObject* child)
+			{
+				callback(child);
+				child->VisitDescendants(callback);
+			});
+	}
+
+	void to_json(D_SERIALIZATION::Json& j, const GameObject& value) {
+		D_H_SERIALIZE(Active);
+		D_H_SERIALIZE(Name);
+		D_H_SERIALIZE(Type);
+		D_CORE::to_json(j["Uuid"], value.mUuid);
+	}
+
+	void from_json(const D_SERIALIZATION::Json& j, GameObject& value) {
+		D_H_DESERIALIZE(Active);
+		D_H_DESERIALIZE(Name);
+		D_H_DESERIALIZE(Type);
 	}
 
 }

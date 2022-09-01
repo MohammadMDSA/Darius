@@ -56,10 +56,17 @@ namespace Darius::Scene
 
 		void								SetTransform(Transform const& trans);
 		Transform const*					GetTransform() const;
+		
+		void								SetParent(GameObject* newParent);
 
 		// Object states
 		void								Start();
 		void								OnDestroy();
+
+		void								VisitComponents(std::function<void(Darius::Scene::ECS::Components::ComponentBase*)> callback, std::function<void(D_EXCEPTION::Exception const&)> onException = nullptr) const;
+		void								VisitAncestors(std::function<void(GameObject*)> callback);
+		void								VisitChildren(std::function<void(GameObject*)> callback);
+		void								VisitDescendants(std::function<void(GameObject*)> callback);
 
 		INLINE D3D12_GPU_VIRTUAL_ADDRESS	GetConstantsAddress() { return mMeshConstantsGPU.GetGpuVirtualAddress(); }
 
@@ -134,6 +141,7 @@ namespace Darius::Scene
 		D_CH_R_FIELD(D_ECS::Entity, Entity);
 		D_CH_R_FIELD(bool, Started);
 		D_CH_R_FIELD(bool, Deleted);
+		D_CH_R_FIELD(GameObject*, Parent);
 
 	private:
 		friend class D_SCENE::SceneManager;
@@ -143,7 +151,6 @@ namespace Darius::Scene
 		friend void							from_json(const D_SERIALIZATION::Json& j, GameObject& value);
 
 		GameObject(Uuid uuid, D_ECS::Entity entity);
-		void								VisitComponents(std::function<void(Darius::Scene::ECS::Components::ComponentBase*)> callback, std::function<void(D_EXCEPTION::Exception const&)> onException = nullptr) const;
 
 		void								Update(D_GRAPHICS::GraphicsContext& context, float deltaTime);
 
