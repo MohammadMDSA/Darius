@@ -16,15 +16,13 @@ namespace Darius::Scene::ECS::Components
 		ComponentBase(),
 		mLightType(LightSourceType::PointLight),
 		mLightIndex(-1)
-	{
-	}
+	{ }
 
 	LightComponent::LightComponent(D_CORE::Uuid uuid) :
 		ComponentBase(uuid),
 		mLightType(LightSourceType::PointLight),
 		mLightIndex(-1)
-	{
-	}
+	{ }
 
 	void LightComponent::OnDestroy()
 	{
