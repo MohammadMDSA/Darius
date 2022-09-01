@@ -30,9 +30,11 @@ namespace Darius::Scene
 
 	std::string															SceneName;
 
-	flecs::world														World;
-
 	bool																Loaded = false;
+
+	// Static Init
+	D_ECS::Entity SceneManager::Root = D_ECS::Entity();
+	D_ECS::ECSRegistry SceneManager::World = D_ECS::ECSRegistry();
 
 	void SceneManager::Initialize()
 	{
@@ -46,6 +48,7 @@ namespace Darius::Scene
 		World.set<flecs::Rest>({});
 #endif // _DEBUG
 
+		Root = World.entity("Root");
 	}
 
 	void SceneManager::Shutdown()
@@ -121,7 +124,7 @@ namespace Darius::Scene
 
 	GameObject* SceneManager::CreateGameObject(Uuid uuid)
 	{
-		auto entity = World.entity();
+		auto entity = World.entity().child_of(Root);
 		D_LOG_DEBUG("Created entity: " << entity.id());
 
 		// TODO: Better allocation
@@ -140,6 +143,11 @@ namespace Darius::Scene
 
 	void SceneManager::DeleteGameObject(GameObject* go)
 	{
+		go->VisitChildren([&](GameObject* child)
+			{
+				DeleteGameObject(child);
+			});
+
 		go->mDeleted = true;
 		ToBeDeleted.push_back(go);
 	}
@@ -267,11 +275,6 @@ namespace Darius::Scene
 		}
 
 		GOs->clear();
-	}
-
-	D_ECS::ECSRegistry& SceneManager::GetRegistry()
-	{
-		return World;
 	}
 
 	GameObject* SceneManager::GetGameObject(D_ECS::Entity entity)

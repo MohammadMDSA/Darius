@@ -32,13 +32,17 @@ namespace Darius::Scene
 		static bool				Load(std::wstring const& path);
 		static bool				Save(std::string const& name, D_FILE::Path const& path);
 		
-		static D_ECS::ECSRegistry& GetRegistry();
+		static INLINE D_ECS::Entity	GetRoot() { return Root; }
+		static INLINE D_ECS::ECSRegistry& GetRegistry() { return World; }
 
 	private:
 		static void				DeleteGameObjectData(GameObject* go);
 		static GameObject*		CreateGameObject(Uuid uuid);
 		static void				StartScene();
 		static void				RemoveDeleted();
+
+		static D_ECS::Entity	Root;
+		static D_ECS::ECSRegistry World;
 
 	};
 
