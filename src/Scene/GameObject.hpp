@@ -67,6 +67,7 @@ namespace Darius::Scene
 		void								VisitAncestors(std::function<void(GameObject*)> callback) const;
 		void								VisitChildren(std::function<void(GameObject*)> callback) const;
 		void								VisitDescendants(std::function<void(GameObject*)> callback) const;
+		int									CountChildren();
 
 		INLINE D3D12_GPU_VIRTUAL_ADDRESS	GetConstantsAddress() { return mMeshConstantsGPU.GetGpuVirtualAddress(); }
 

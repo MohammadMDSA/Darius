@@ -335,7 +335,7 @@ namespace Darius::Scene
 
 	void GameObject::VisitChildren(std::function<void(GameObject*)> callback) const
 	{
-		mEntity.children([callback](D_ECS::Entity childEnt)
+		mEntity.children([&](D_ECS::Entity childEnt)
 			{
 				callback(D_WORLD::GetGameObject(childEnt));
 			});
@@ -343,11 +343,21 @@ namespace Darius::Scene
 
 	void GameObject::VisitDescendants(std::function<void(GameObject*)> callback) const
 	{
-		VisitChildren([callback](GameObject* child)
+		VisitChildren([&](GameObject* child)
 			{
 				callback(child);
 				child->VisitDescendants(callback);
 			});
+	}
+
+	int GameObject::CountChildren()
+	{
+		int result = 0;
+		VisitChildren([&](GameObject*)
+			{
+				result++;
+			});
+		return result;
 	}
 
 	void to_json(D_SERIALIZATION::Json& j, const GameObject& value) {
