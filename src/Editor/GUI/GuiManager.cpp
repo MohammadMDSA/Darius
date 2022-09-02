@@ -118,26 +118,28 @@ namespace Darius::Editor::Gui::GuiManager
 			{
 				if (ImGui::BeginMenu("File"))
 				{
-					if (ImGui::MenuItem("Load"))
+					/*if (ImGui::MenuItem("Load"))
 					{
 						D_RESOURCE_LOADER::LoadResource(L"ff.fbx");
-					}
+					}*/
 
-					if (ImGui::MenuItem("Save All"))
+					if (ImGui::MenuItem(ICON_FA_SAVE "  Save Project"))
 						D_RESOURCE::SaveAll();
 
-					if (ImGui::MenuItem("Close Scene"))
+					if (ImGui::MenuItem(ICON_FA_TRASH "  Close Scene"))
 					{
 						D_WORLD::Unload();
 						D_EDITOR_CONTEXT::SetSelectedGameObject(nullptr);
 					}
 
-					if (ImGui::MenuItem("Save Scene"))
+					ImGui::Separator();
+
+					if (ImGui::MenuItem(ICON_FA_SAVE "  Save Scene"))
 					{
 						D_WORLD::Save("Foo", D_EDITOR_CONTEXT::GetAssetsPath().wstring());
 					}
 
-					if (ImGui::MenuItem("Load Scene"))
+					if (ImGui::MenuItem(ICON_FA_TRUCK_LOADING "  Load Scene"))
 					{
 
 						if (D_WORLD::Load(D_EDITOR_CONTEXT::GetAssetsPath().append("Foo.dar")))
