@@ -30,7 +30,7 @@ namespace Darius::Editor::Gui::Windows
 
 		friend void Darius::Editor::Gui::GuiManager::DrawGUI();
 
-		bool						mOpen = true;
+		float						mPadding[2] = { 8.f, 8.f };
 
 		float						mWidth;
 		float						mHeight;
@@ -38,6 +38,7 @@ namespace Darius::Editor::Gui::Windows
 		float						mPosX;
 		float						mPosY;
 
+		bool						mOpen = true;
 		bool						mHovered;
 	};
 

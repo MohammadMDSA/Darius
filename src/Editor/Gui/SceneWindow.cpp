@@ -44,6 +44,8 @@ namespace Darius::Editor::Gui::Windows
 
 		CreateGrid(mWindowRenderItems, total);
 
+		// Window padding
+		mPadding[0] = mPadding[1] = 0.f;
 	}
 
 	SceneWindow::~SceneWindow()
@@ -145,6 +147,11 @@ namespace Darius::Editor::Gui::Windows
 				selectedObj->SetTransform(world);
 			}
 		}
+
+		// Drawing tool buttons
+		ImGui::SetCursorPos({ 50.f, 50.f });
+		ImGui::Button("foo");
+
 	}
 
 	void SceneWindow::Update(float dt)

@@ -242,12 +242,15 @@ namespace Darius::Editor::Gui::GuiManager
 
 			if (wind->mOpen)
 			{
+				ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(wind->mPadding[0], wind->mPadding[1]));
 				ImGui::Begin(wind->GetName().c_str(), &wind->mOpen);
 				wind->PrepareGUI();
 
 				wind->DrawGUI();
 
 				ImGui::End();
+				ImGui::PopStyleVar();
+
 			}
 		}
 	}
