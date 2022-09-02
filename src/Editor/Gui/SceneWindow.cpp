@@ -153,13 +153,14 @@ namespace Darius::Editor::Gui::Windows
 		// Drawing tool buttons
 		ImGui::SetCursorPos({ 10.f, 30.f });
 		{
-			ImGuizmo::OPERATION modes[] =
+			// Gizmo manipulation operation
+			ImGuizmo::OPERATION operations[] =
 			{
 				ImGuizmo::OPERATION::TRANSLATE,
 				ImGuizmo::OPERATION::ROTATE,
 				ImGuizmo::OPERATION::SCALE
 			};
-			std::string names[] =
+			std::string OperationnNames[] =
 			{
 				"T",
 				"R",
@@ -168,12 +169,41 @@ namespace Darius::Editor::Gui::Windows
 
 			for (size_t i = 0; i < 3; i++)
 			{
-				bool selected = (ImGuizmo::OPERATION)mManipulateOperation == modes[i];
+				bool selected = (ImGuizmo::OPERATION)mManipulateOperation == operations[i];
 				if (selected)
 					ImGui::PushStyleColor(ImGuiCol_Button, { 0.26f, 0.59f, 1.f, 1.f });
-				if (ImGui::Button(names[i].c_str()))
+				if (ImGui::Button(OperationnNames[i].c_str()))
 				{
-					mManipulateOperation = modes[i];
+					mManipulateOperation = operations[i];
+				}
+				if (selected)
+					ImGui::PopStyleColor();
+
+				ImGui::SameLine();
+			}
+
+			ImGui::SameLine(150.f);
+
+			// Gizmo manipulation mode
+			ImGuizmo::MODE modes[] =
+			{
+				ImGuizmo::MODE::LOCAL,
+				ImGuizmo::MODE::WORLD
+			};
+			std::string modeNames[] =
+			{
+				"L",
+				"W"
+			};
+
+			for (size_t i = 0; i < 2; i++)
+			{
+				bool selected = (ImGuizmo::MODE)mManipulateMode == modes[i];
+				if (selected)
+					ImGui::PushStyleColor(ImGuiCol_Button, { 0.26f, 0.59f, 1.f, 1.f });
+				if (ImGui::Button(modeNames[i].c_str()))
+				{
+					mManipulateMode = modes[i];
 				}
 				if (selected)
 					ImGui::PopStyleColor();
@@ -181,7 +211,6 @@ namespace Darius::Editor::Gui::Windows
 				ImGui::SameLine();
 			}
 			ImGui::Spacing();
-
 		}
 	}
 
