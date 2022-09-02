@@ -22,3 +22,6 @@
 [submodule "src/Libs/flecs"]
 	path = src/Libs/flecs
 	url = https://github.com/SanderMertens/flecs
+[submodule "src/Libs/FontIcon"]
+	path = src/Libs/FontIcon
+	url = https://github.com/juliettef/IconFontCppHeaders.git
