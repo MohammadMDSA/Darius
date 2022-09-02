@@ -40,6 +40,7 @@ namespace Darius::Editor::Gui::Windows
 
 		bool						mOpen = true;
 		bool						mHovered;
+		bool						mFocused;
 	};
 
 }

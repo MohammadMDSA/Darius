@@ -12,7 +12,8 @@ namespace Darius::Editor::Gui::Windows
 		mHeight(1.f),
 		mPosX(0.f),
 		mPosY(0.f),
-		mHovered(false)
+		mHovered(false),
+		mFocused(false)
 	{
 	}
 
@@ -26,6 +27,7 @@ namespace Darius::Editor::Gui::Windows
 		mPosX = pos.x;
 		mPosY = pos.y;
 
+		mFocused = ImGui::IsWindowFocused();
 		mHovered = ImGui::IsWindowHovered();
 
 	}
