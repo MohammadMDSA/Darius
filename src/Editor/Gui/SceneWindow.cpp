@@ -213,6 +213,16 @@ namespace Darius::Editor::Gui::Windows
 			mOrbitCam.SetTarget(selectedGameObject->GetTransform().Translation);
 		}
 
+		// Shortcuts
+		if (!mFocused)
+			return;
+
+		if (D_KEYBOARD::IsKeyDown(D_KEYBOARD::Keys::W))
+			mManipulateOperation = ImGuizmo::OPERATION::TRANSLATE;
+		else if (D_KEYBOARD::IsKeyDown(D_KEYBOARD::Keys::E))
+			mManipulateOperation = ImGuizmo::OPERATION::ROTATE;
+		else if (D_KEYBOARD::IsKeyDown(D_KEYBOARD::Keys::R))
+			mManipulateOperation = ImGuizmo::OPERATION::SCALE;
 	}
 
 	void SceneWindow::CreateBuffers()
