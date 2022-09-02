@@ -1,5 +1,5 @@
 #pragma once
-#include <implot/implot.h>
+#include <imgui.h>
 
 namespace Darius::Editor::Gui::Windows::Utils
 {

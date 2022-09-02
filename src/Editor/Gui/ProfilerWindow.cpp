@@ -4,6 +4,8 @@
 #include <Core/TimeManager/TimeManager.hpp>
 #include <Renderer/GraphicsUtils/Profiling/Profiling.hpp>
 
+#include <implot/implot.h>
+
 namespace Darius::Editor::Gui::Windows
 {
 
