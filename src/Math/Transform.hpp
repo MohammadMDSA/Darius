@@ -244,10 +244,11 @@ namespace Darius::Math
 		}
 
 		INLINE operator XMMATRIX const() { return GetWorld(); }
-		INLINE operator XMMATRIX() { return GetWorld(); }
+
 		INLINE Vector3 operator* (Vector3 vec) const { return Vector3(XMVector3Transform(vec, GetWorld())); }
+
 		INLINE Transform operator* (const Transform& mat) const {
-			return Transform(GetWorld() * mat.GetWorld());
+			return GetWorld() * mat.GetWorld();
 		}
 
 		Vector3 Translation = Vector3(kZero);

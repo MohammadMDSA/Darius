@@ -1,8 +1,8 @@
 #pragma once
 
-#include "GameObject.hpp"
 #include "EntityComponentSystem/Entity.hpp"
 
+#include <Core/Uuid.hpp>
 #include <Core/Containers/Vector.hpp>
 #include <Core/Filesystem/Path.hpp>
 
@@ -10,8 +10,12 @@
 #define D_WORLD Darius::Scene::SceneManager
 #endif // !D_WORLD
 
+using namespace D_CORE;
+
 namespace Darius::Scene
 {
+
+	class GameObject;
 
 	class SceneManager
 	{
