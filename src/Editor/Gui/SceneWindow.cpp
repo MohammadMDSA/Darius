@@ -17,7 +17,9 @@ namespace Darius::Editor::Gui::Windows
 {
 	SceneWindow::SceneWindow() :
 		mFlyingCam(mCamera, Vector3::Up()),
-		mOrbitCam(mCamera, D_MATH_BOUNDS::BoundingSphere(0.f, 0.f, 0.f, 5.f), Vector3::Up())
+		mOrbitCam(mCamera, D_MATH_BOUNDS::BoundingSphere(0.f, 0.f, 0.f, 5.f), Vector3::Up()),
+		mManipulateOperation(ImGuizmo::OPERATION::TRANSLATE),
+		mManipulateMode(ImGuizmo::MODE::LOCAL)
 	{
 		CreateBuffers();
 		mTextureHandle = D_RENDERER::GetUiTextureHandle(1);
@@ -82,7 +84,7 @@ namespace Darius::Editor::Gui::Windows
 		globals.FarZ = mCamera.GetFarClip();
 		globals.TotalTime = (float)time.GetTotalSeconds();
 		globals.DeltaTime = (float)time.GetElapsedSeconds();
-		globals.AmbientLight = { 0.5f, 0.5f, 0.5f, 1.0f };
+		globals.AmbientLight = { 0.1f, 0.1f, 0.1f, 1.0f };
 
 	}
 
@@ -142,16 +144,45 @@ namespace Darius::Editor::Gui::Windows
 		if (selectedObj)
 		{
 			auto world = selectedObj->GetTransform().GetWorld();
-			if (ImGuizmo::Manipulate((float*)&view, (float*)&proj, ImGuizmo::OPERATION::TRANSLATE, ImGuizmo::MODE::LOCAL, (float*)&world))
+			if (ImGuizmo::Manipulate((float*)&view, (float*)&proj, (ImGuizmo::OPERATION)mManipulateOperation, (ImGuizmo::MODE)mManipulateMode, (float*)&world))
 			{
 				selectedObj->SetTransform(world);
 			}
 		}
 
 		// Drawing tool buttons
-		ImGui::SetCursorPos({ 50.f, 50.f });
-		ImGui::Button("foo");
+		ImGui::SetCursorPos({ 10.f, 30.f });
+		{
+			ImGuizmo::OPERATION modes[] =
+			{
+				ImGuizmo::OPERATION::TRANSLATE,
+				ImGuizmo::OPERATION::ROTATE,
+				ImGuizmo::OPERATION::SCALE
+			};
+			std::string names[] =
+			{
+				"T",
+				"R",
+				"S"
+			};
 
+			for (size_t i = 0; i < 3; i++)
+			{
+				bool selected = (ImGuizmo::OPERATION)mManipulateOperation == modes[i];
+				if (selected)
+					ImGui::PushStyleColor(ImGuiCol_Button, { 0.26f, 0.59f, 1.f, 1.f });
+				if (ImGui::Button(names[i].c_str()))
+				{
+					mManipulateOperation = modes[i];
+				}
+				if (selected)
+					ImGui::PopStyleColor();
+
+				ImGui::SameLine();
+			}
+			ImGui::Spacing();
+
+		}
 	}
 
 	void SceneWindow::Update(float dt)

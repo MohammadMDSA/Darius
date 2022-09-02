@@ -14,6 +14,7 @@
 #include <Renderer/GraphicsUtils/Memory/DescriptorHeap.hpp>
 #include <ResourceManager/ResourceTypes/BatchResource.hpp>
 
+
 #include <iostream>
 
 using namespace D_CONTAINERS;
@@ -47,6 +48,9 @@ namespace Darius::Editor::Gui::Windows
 		D_MATH_CAMERA::Camera						mCamera;
 		D_EDITOR::FlyingFPSCamera					mFlyingCam;
 		D_EDITOR::OrbitCamera						mOrbitCam;
+
+		UINT										mManipulateOperation;
+		UINT										mManipulateMode;
 
 		D_GRAPHICS_BUFFERS::ColorBuffer				mSceneTexture;
 		D_GRAPHICS_BUFFERS::DepthBuffer				mSceneDepth;
