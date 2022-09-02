@@ -53,10 +53,26 @@ namespace Darius::Scene
 		};
 
 	public:
-
-		void								SetTransform(Transform const& trans);
-		Transform const*					GetTransform() const;
 		
+		// Transform helpers
+		void								SetLocalTransform(Transform const& trans);
+		Transform const&					GetLocalTransform() const;
+
+		INLINE void							SetTransform(Transform const& trans)
+		{
+			if (mParent)
+				SetLocalTransform((XMMATRIX)(trans.GetWorld() * Matrix4(mParent->GetTransform()).Inverse()));
+			else
+				SetLocalTransform(trans);
+		}
+
+		INLINE Transform					GetTransform() const
+		{
+			if (mParent)
+				return GetLocalTransform() * mParent->GetTransform();
+			return GetLocalTransform();
+		}
+
 		void								SetParent(GameObject* newParent);
 
 		// Object states
@@ -67,7 +83,7 @@ namespace Darius::Scene
 		void								VisitAncestors(std::function<void(GameObject*)> callback) const;
 		void								VisitChildren(std::function<void(GameObject*)> callback) const;
 		void								VisitDescendants(std::function<void(GameObject*)> callback) const;
-		int									CountChildren();
+		UINT								CountChildren();
 
 		INLINE D3D12_GPU_VIRTUAL_ADDRESS	GetConstantsAddress() { return mMeshConstantsGPU.GetGpuVirtualAddress(); }
 

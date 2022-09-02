@@ -28,7 +28,8 @@ namespace Darius::Scene
 		mUuid(uuid),
 		mEntity(entity),
 		mStarted(false),
-		mDeleted(false)
+		mDeleted(false),
+		mParent(nullptr)
 	{
 		// Initializing Mesh Constants buffers
 		for (size_t i = 0; i < D_RENDERER_FRAME_RESOUCE::gNumFrameResources; i++)
@@ -64,7 +65,7 @@ namespace Darius::Scene
 		auto& currentUploadBuff = mMeshConstantsCPU[D_RENDERER_DEVICE::GetCurrentResourceIndex()];
 		MeshConstants* cb = (MeshConstants*)currentUploadBuff.Map();
 
-		auto world = GetTransform()->GetWorld();
+		auto world = GetTransform().GetWorld();
 		cb->mWorld = Matrix4(world);
 		cb->mWorldIT = InverseTranspose(Matrix3(world));
 
@@ -201,21 +202,19 @@ namespace Darius::Scene
 	}
 #endif // _EDITOR
 
-	void GameObject::SetTransform(Transform const& trans)
+	void GameObject::SetLocalTransform(Transform const& trans)
 	{
-		GetComponent<Darius::Scene::ECS::Components::TransformComponent>()->SetTransform(trans);
+		GetComponent<Darius::Scene::ECS::Components::TransformComponent>()->SetLocalTransform(trans);
 	}
 
-	Transform const* GameObject::GetTransform() const
+	Transform const& GameObject::GetLocalTransform() const
 	{
-		return mEntity.get<Darius::Scene::ECS::Components::TransformComponent>()->GetDataC();
+		return *mEntity.get<Darius::Scene::ECS::Components::TransformComponent>()->GetDataC();
 	}
 
 	void GameObject::VisitComponents(std::function<void(ComponentBase*)> callback, std::function<void(D_EXCEPTION::Exception const&)> onException) const
 	{
-		bool h = mEntity.has<TransformComponent>();
 		callback(mEntity.get_mut<TransformComponent>());
-		h = mEntity.has<TransformComponent>();
 
 		auto& reg = D_WORLD::GetRegistry();
 
@@ -353,7 +352,7 @@ namespace Darius::Scene
 			});
 	}
 
-	int GameObject::CountChildren()
+	UINT GameObject::CountChildren()
 	{
 		int result = 0;
 		VisitChildren([&](GameObject*)
