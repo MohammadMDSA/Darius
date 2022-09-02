@@ -7,6 +7,7 @@ list(APPEND CORE_LIBS_INCLUDE
 	"Containers/ConcurrentQueue.hpp"
 	"Containers/Vector.hpp"
 	"Containers/Set.hpp"
+	"Containers/List.hpp"
 	"Serialization/Json.hpp"
 	"Exceptions/Exception.hpp"
 	"TimeManager/StepTimer.hpp"
