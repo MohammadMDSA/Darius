@@ -12,6 +12,7 @@
 
 #include <imgui/imgui.h>
 #include <ImGuizmo/ImGuizmo.h>
+#include <Libs/FontIcon/IconsFontAwesome6.h>
 
 namespace Darius::Editor::Gui::Windows
 {
@@ -151,7 +152,7 @@ namespace Darius::Editor::Gui::Windows
 		}
 
 		// Drawing tool buttons
-		ImGui::SetCursorPos({ 10.f, 30.f });
+		ImGui::SetCursorPos({ 20.f, 30.f });
 		{
 			// Gizmo manipulation operation
 			ImGuizmo::OPERATION operations[] =
@@ -162,11 +163,10 @@ namespace Darius::Editor::Gui::Windows
 			};
 			std::string OperationnNames[] =
 			{
-				"T",
-				"R",
-				"S"
+				ICON_FA_ARROWS_UP_DOWN_LEFT_RIGHT,
+				ICON_FA_ROTATE,
+				ICON_FA_RULER
 			};
-
 			for (size_t i = 0; i < 3; i++)
 			{
 				bool selected = (ImGuizmo::OPERATION)mManipulateOperation == operations[i];
@@ -192,8 +192,8 @@ namespace Darius::Editor::Gui::Windows
 			};
 			std::string modeNames[] =
 			{
-				"L",
-				"W"
+				ICON_FA_GLOBE,
+				ICON_FA_CUBE
 			};
 
 			for (size_t i = 0; i < 2; i++)

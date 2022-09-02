@@ -19,6 +19,9 @@
 #include <Scene/EntityComponentSystem/Components/TransformComponent.hpp>
 #include <Utils/Assert.hpp>
 
+#include <Libs/FontIcon/IconsFontAwesome5.h>
+#include <imgui.h>
+
 using namespace Darius::Editor::Gui::Windows;
 
 namespace Darius::Editor::Gui::GuiManager
@@ -51,8 +54,18 @@ namespace Darius::Editor::Gui::GuiManager
 		Windows[profilerWindow->GetName()] = profilerWindow;
 
 		ImGuiIO& io = ImGui::GetIO();
+		// Setup docking
 		io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
 
+		// Setup fonts
+		io.Fonts->AddFontDefault();
+		// Merge fontawesom fonts
+		static const ImWchar icons_ranges[] = { ICON_MIN_FA, ICON_MAX_16_FA, 0 };
+		ImFontConfig icons_config; icons_config.MergeMode = true; icons_config.PixelSnapH = true;
+		io.Fonts->AddFontFromFileTTF("EditorRes/fonts/" FONT_ICON_FILE_NAME_FAS, 12.0f, &icons_config, icons_ranges);
+
+
+		// Read layout from file
 		LayoutPath = Path(D_EDITOR_CONTEXT::GetEditorConfigPath()).append("layout.ini").string();
 
 		io.IniFilename = LayoutPath.c_str();
@@ -156,12 +169,6 @@ namespace Darius::Editor::Gui::GuiManager
 					{
 						D_RESOURCE::GetManager()->CreateMaterial(D_EDITOR_CONTEXT::GetAssetsPath());
 					}
-
-					static D_ECS::Entity e0;
-					static D_ECS::Entity e;
-					static D_ECS::Entity e1;
-					static D_ECS::Entity e2;
-					static D_ECS::Entity e3;
 
 					if (ImGui::MenuItem("Don't"))
 					{
