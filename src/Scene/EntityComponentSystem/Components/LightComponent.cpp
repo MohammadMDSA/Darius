@@ -37,7 +37,7 @@ namespace Darius::Scene::ECS::Components
 	void LightComponent::Update(float deltaTime)
 	{
 		if (mLightIndex >= 0)
-			D_LIGHT::UpdateLight(mLightType, mLightIndex, &GetTransformC(), IsActive(), mLightData);
+			D_LIGHT::UpdateLight(mLightType, mLightIndex, GetTransform(), IsActive(), mLightData);
 	}
 
 #ifdef _DEBUG

@@ -4,6 +4,7 @@
 #include "Editor/Camera.hpp"
 
 #include <Core/Containers/Vector.hpp>
+#include <Core/Ref.hpp>
 #include <Scene/Scene.hpp>
 #include <Renderer/Renderer.hpp>
 #include <Renderer/FrameResource.hpp>
@@ -16,6 +17,8 @@
 #include <iostream>
 
 using namespace D_CONTAINERS;
+using namespace D_CORE;
+using namespace D_RESOURCE;
 
 namespace Darius::Editor::Gui::Windows
 {

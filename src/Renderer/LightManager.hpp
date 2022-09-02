@@ -53,5 +53,5 @@ namespace Darius::Renderer::LightManager
 	int					SwapLightSource(LightSourceType type, LightSourceType preType, int preIndex);
 	void				ReleaseLight(LightSourceType preType, int preIndex);
 
-	void				UpdateLight(LightSourceType type, int index, Transform const* trans, bool active, LightData const& light);
+	void				UpdateLight(LightSourceType type, int index, Transform const& trans, bool active, LightData const& light);
 }

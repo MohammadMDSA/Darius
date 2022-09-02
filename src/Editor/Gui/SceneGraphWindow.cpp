@@ -3,11 +3,13 @@
 #include "Editor/EditorContext.hpp"
 
 #include <Core/Input.hpp>
+#include <Core/Containers/List.hpp>
 #include <Scene/Scene.hpp>
 
 #include <imgui/imgui.h>
 
 using namespace D_ECS;
+using namespace D_CONTAINERS;
 
 namespace Darius::Editor::Gui::Windows
 {
@@ -30,10 +32,17 @@ namespace Darius::Editor::Gui::Windows
 		D_WORLD::GetGameObjects(gos);
 		auto selectedObj = D_EDITOR_CONTEXT::GetSelectedGameObject();
 
-		D_WORLD::GetRoot().children([&](D_ECS::Entity e)
+		// Iterating over root game objects
+		auto root = D_WORLD::GetRoot();
+		DList<GameObject*> children;
+		root.children([&](D_ECS::Entity e)
 			{
-				DrawObject(D_WORLD::GetGameObject(e), selectedObj);
+				children.push_back(D_WORLD::GetGameObject(e));
 			});
+		for (auto it = children.begin(); it != children.end(); it++)
+		{
+			DrawObject(*it, selectedObj);
+		}
 
 		if (!ImGui::IsAnyItemHovered() && mHovered && ImGui::IsMouseClicked(ImGuiMouseButton_Left))
 		{
@@ -44,7 +53,9 @@ namespace Darius::Editor::Gui::Windows
 	void SceneGraphWindow::DrawObject(GameObject* go, GameObject* selectedObj)
 	{
 		ImGuiTreeNodeFlags baseFlag = ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_SpanAvailWidth | ImGuiTreeNodeFlags_FramePadding;
-		if (!go->CountChildren())
+
+		auto childrenCount = go->CountChildren();
+		if (!childrenCount)
 			baseFlag |= ImGuiTreeNodeFlags_Leaf;
 
 		auto selected = go == selectedObj;
@@ -52,7 +63,7 @@ namespace Darius::Editor::Gui::Windows
 			baseFlag |= ImGuiTreeNodeFlags_Selected;
 
 		auto nodeOpen = ImGui::TreeNodeEx((void*)(go), baseFlag, go->GetName().c_str());
-		
+
 		if (ImGui::BeginPopupContextItem())
 		{
 			ImGui::Text("Game Object");
@@ -78,10 +89,16 @@ namespace Darius::Editor::Gui::Windows
 
 		if (nodeOpen)
 		{
+			auto children = DList<GameObject*>();
 			go->VisitChildren([&](GameObject* child)
 				{
-					DrawObject(child, selectedObj);
+					children.push_back(child);
 				});
+
+			for (auto child : children)
+			{
+				DrawObject(child, selectedObj);
+			}
 
 			ImGui::TreePop();
 		}

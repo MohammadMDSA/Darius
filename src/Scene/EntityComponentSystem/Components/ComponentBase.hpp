@@ -1,12 +1,15 @@
 #pragma once
 
 #include "Scene/Scene.hpp"
+#include "Scene/GameObject.hpp"
 
 #include <Core/Uuid.hpp>
 #include <Core/Signal.hpp>
 #include <Core/Serialization/Json.hpp>
+#include <Math/VectorMath.hpp>
 #include <Utils/Common.hpp>
 #include <Utils/Log.hpp>
+#include <Utils/Assert.hpp>
 #include <Utils/StaticConstructor.hpp>
 
 #ifndef D_ECS_COMP
@@ -72,7 +75,7 @@ namespace Darius::Scene::ECS::Components
 
         virtual INLINE void         Update(float) { };
 
-        INLINE bool                 IsActive() const { return mGameObject->GetActive() && mEnabled; }
+        bool                        IsActive() const;
 
         // Serialization
         virtual void                Serialize(D_SERIALIZATION::Json&) const {};
@@ -80,8 +83,9 @@ namespace Darius::Scene::ECS::Components
 
         virtual INLINE void         SetEnabled(bool value) { mEnabled = value; }
 
-        INLINE D_MATH::Transform const& GetTransformC() const { return *mGameObject->GetTransform(); }
-        INLINE D_MATH::Transform    GetTransform() { return *mGameObject->GetTransform(); }
+        INLINE D_MATH::Transform const& GetLocalTransform() const { return mGameObject->GetLocalTransform(); }
+        INLINE D_MATH::Transform const& GetTransform() const { return mGameObject->GetTransform(); }
+        INLINE void                 SetLocalTransform(D_MATH::Transform const& transform) { return mGameObject->SetLocalTransform(transform); }
         INLINE void                 SetTransform(D_MATH::Transform const& transform) { return mGameObject->SetTransform(transform); }
 
         static INLINE std::string   GetName() { return "ComponentBase"; }

@@ -20,7 +20,7 @@ namespace Darius::Scene::ECS::Components
 		auto temp = mTransform;
 		if (D_SCENE_DET_DRAW::DrawDetails(temp, nullptr))
 		{
-			SetTransform(temp);
+			SetLocalTransform(temp);
 			return true;
 		}
 		return false;

@@ -1,6 +1,8 @@
 #include "Scene/pch.hpp"
 #include "ComponentBase.hpp"
+
 #include "TransformComponent.hpp"
+#include "Scene/GameObject.hpp"
 
 using namespace D_CORE;
 
@@ -21,5 +23,10 @@ namespace Darius::Scene::ECS::Components
 		mEnabled(true),
 		mGameObject(nullptr)
 	{}
+
+	bool ComponentBase::IsActive() const
+	{
+		return mGameObject->GetActive() && mEnabled;
+	}
 
 }

@@ -139,11 +139,10 @@ namespace Darius::Editor::Gui::Windows
 
 		if (selectedObj)
 		{
-			auto transform = *selectedObj->GetTransform();
-			auto world = transform.GetWorld();
+			auto world = selectedObj->GetTransform().GetWorld();
 			if (ImGuizmo::Manipulate((float*)&view, (float*)&proj, ImGuizmo::OPERATION::TRANSLATE, ImGuizmo::MODE::LOCAL, (float*)&world))
 			{
-				selectedObj->SetTransform(D_MATH::Transform(D_MATH::Matrix4(world)));
+				selectedObj->SetTransform(world);
 			}
 		}
 	}
@@ -173,7 +172,7 @@ namespace Darius::Editor::Gui::Windows
 		auto selectedGameObject = D_EDITOR_CONTEXT::GetSelectedGameObject();
 		if (D_KEYBOARD::IsKeyDown(D_KEYBOARD::Keys::F) && selectedGameObject)
 		{
-			mOrbitCam.SetTarget(selectedGameObject->GetTransform()->Translation);
+			mOrbitCam.SetTarget(selectedGameObject->GetTransform().Translation);
 		}
 
 	}
@@ -252,7 +251,7 @@ namespace Darius::Editor::Gui::Windows
 					return;
 
 				// Is it in our frustum
-				auto bsp = *meshComp.GetGameObject()->GetTransform() * meshComp.GetBounds();
+				auto bsp = meshComp.GetGameObject()->GetTransform() * meshComp.GetBounds();
 				auto vsp = BoundingSphere(Vector3(cam->GetViewMatrix() * bsp.GetCenter()), bsp.GetRadius());
 				if (!frustum.IntersectSphere(vsp))
 					return;
@@ -260,7 +259,7 @@ namespace Darius::Editor::Gui::Windows
 				items.push_back(meshComp.GetRenderItem());
 			});
 
-		//D_LOG_DEBUG("Number of render items: " + std::to_string(items.size()));
+		D_LOG_DEBUG("Number of render items: " + std::to_string(items.size()));
 		meshQuery.destruct();
 	}
 }

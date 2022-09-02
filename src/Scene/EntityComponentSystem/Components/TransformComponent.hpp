@@ -24,7 +24,7 @@ namespace Darius::Scene::ECS::Components
 
 		INLINE D_MATH::Transform const*		GetDataC() const { return &mTransform; }
 		INLINE D_MATH::Transform			GetData() const { return mTransform; }
-		INLINE void							SetTransform(D_MATH::Transform const& trans) { mTransform = trans; mChangeSignal(); }
+		INLINE void							SetLocalTransform(D_MATH::Transform const& trans) { mTransform = trans; mChangeSignal(); }
 
 #ifdef _D_EDITOR
 		virtual bool						DrawDetails(float params[]) override;

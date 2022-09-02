@@ -25,9 +25,9 @@ namespace Darius::Renderer::LightManager
 	DVector<std::pair<bool, bool>>	ActivePointLight;
 	DVector<std::pair<bool, bool>>	ActiveSpotLight;
 
-	DVector<Transform const*>		DirectionalLightTransforms;
-	DVector<Transform const*>		PointLightTransforms;
-	DVector<Transform const*>		SpotLightTransforms;
+	DVector<Transform>				DirectionalLightTransforms;
+	DVector<Transform>				PointLightTransforms;
+	DVector<Transform>				SpotLightTransforms;
 
 	// Gpu buffers
 	D_GRAPHICS_BUFFERS::UploadBuffer	ActiveLightsUpload[D_RENDERER_FRAME_RESOUCE::gNumFrameResources];
@@ -37,7 +37,7 @@ namespace Darius::Renderer::LightManager
 
 	INLINE DVector<std::pair<bool, bool>>* GetAssociatedActiveLightWithType(LightSourceType type);
 	INLINE DVector<LightData>* GetAssociatedLightsWithType(LightSourceType type);
-	INLINE DVector<Transform const*>* GetAssociatedLightTransformsWithType(LightSourceType type);
+	INLINE DVector<Transform>* GetAssociatedLightTransformsWithType(LightSourceType type);
 
 	void Initialize()
 	{
@@ -78,19 +78,16 @@ namespace Darius::Renderer::LightManager
 		for (size_t i = 0; i < MaxNumDirectionalLight; i++)
 		{
 			ActiveDirectionalLight[i] = { false, false };
-			DirectionalLightTransforms[i] = nullptr;
 		}
 
 		for (size_t i = 0; i < MaxNumPointLight; i++)
 		{
 			ActivePointLight[i] = { false, false };
-			PointLightTransforms[i] = nullptr;
 		}
 
 		for (size_t i = 0; i < MaxNumSpotLight; i++)
 		{
 			ActiveSpotLight[i] = { false, false };
-			SpotLightTransforms[i] = nullptr;
 		}
 	}
 
@@ -112,7 +109,7 @@ namespace Darius::Renderer::LightManager
 			{
 				auto lightIdx = i * sizeof(UINT) * 8 + bitIdx;
 				DVector<LightData>* LightVec = nullptr;
-				DVector<Transform const*>* transformVec = nullptr;
+				DVector<Transform>* transformVec = nullptr;
 				DVector<std::pair<bool, bool>>* activeVec = nullptr;
 				int indexInVec = -1;
 
@@ -152,8 +149,8 @@ namespace Darius::Renderer::LightManager
 					// Setting location and direction
 					auto trans = (*transformVec)[indexInVec];
 					LightData& lightData = (*LightVec)[indexInVec];
-					lightData.Position = Vector4(trans->Translation, 0.f);
-					XMStoreFloat4(&lightData.Direction, XMVector3Rotate({ 0.f, 0.f, -1.f }, trans->Rotation));
+					lightData.Position = Vector4(trans.Translation, 0.f);
+					XMStoreFloat4(&lightData.Direction, XMVector3Rotate({ 0.f, 0.f, -1.f }, trans.Rotation));
 					activeFlags = +1;
 
 					lightUploadData[lightIdx] = lightData;
@@ -205,7 +202,7 @@ namespace Darius::Renderer::LightManager
 		}
 	}
 
-	INLINE DVector<Transform const*>* GetAssociatedLightTransformsWithType(LightSourceType type)
+	INLINE DVector<Transform>* GetAssociatedLightTransformsWithType(LightSourceType type)
 	{
 		switch (type)
 		{
@@ -277,7 +274,7 @@ namespace Darius::Renderer::LightManager
 		(*GetAssociatedActiveLightWithType(preType))[preIndex].first = false;
 	}
 
-	void UpdateLight(LightSourceType type, int index, Transform const* trans, bool active, LightData const& light)
+	void UpdateLight(LightSourceType type, int index, Transform const& trans, bool active, LightData const& light)
 	{
 		GetAssociatedActiveLightWithType(type)->at(index).second = active;
 		if (!active)
