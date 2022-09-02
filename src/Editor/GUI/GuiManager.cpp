@@ -126,7 +126,7 @@ namespace Darius::Editor::Gui::GuiManager
 					if (ImGui::MenuItem(ICON_FA_SAVE "  Save Project"))
 						D_RESOURCE::SaveAll();
 
-					if (ImGui::MenuItem(ICON_FA_TRASH "  Close Scene"))
+					if (ImGui::MenuItem(ICON_FA_FOLDER_MINUS "  Close Scene"))
 					{
 						D_WORLD::Unload();
 						D_EDITOR_CONTEXT::SetSelectedGameObject(nullptr);
@@ -139,7 +139,7 @@ namespace Darius::Editor::Gui::GuiManager
 						D_WORLD::Save("Foo", D_EDITOR_CONTEXT::GetAssetsPath().wstring());
 					}
 
-					if (ImGui::MenuItem(ICON_FA_TRUCK_LOADING "  Load Scene"))
+					if (ImGui::MenuItem(ICON_FA_FOLDER "  Load Scene"))
 					{
 
 						if (D_WORLD::Load(D_EDITOR_CONTEXT::GetAssetsPath().append("Foo.dar")))
