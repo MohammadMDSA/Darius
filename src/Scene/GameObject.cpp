@@ -12,6 +12,7 @@
 #include <Renderer/RenderDeviceManager.hpp>
 
 #include <imgui.h>
+#include <Libs/FontIcon/IconsFontAwesome6.h>
 
 using namespace D_RESOURCE;
 using namespace D_ECS_COMP;
@@ -132,7 +133,7 @@ namespace Darius::Scene
 					ImGui::SameLine();
 				}
 
-				if (ImGui::Button("+", ImVec2{ lineHeight, lineHeight }))
+				if (ImGui::Button(ICON_FA_ELLIPSIS_VERTICAL, { lineHeight, lineHeight }))
 				{
 					ImGui::OpenPopup("ComponentSettings");
 				}
