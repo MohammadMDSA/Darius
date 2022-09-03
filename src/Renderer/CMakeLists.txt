@@ -13,6 +13,7 @@ list(APPEND RENDERER_LIBS_INCLUDE
 	"GraphicsUtils/RootSignature.hpp"
 	"GraphicsUtils/PipelineState.hpp"
 	"GraphicsUtils/SamplerManager.hpp"
+	"GraphicsUtils/DDSTextureLoader.hpp"
 	"GraphicsUtils/Profiling/Profiling.hpp"
 	"GraphicsUtils/Profiling/GpuTimeManager.hpp"
 	"GraphicsUtils/Memory/DescriptorHeap.hpp"
@@ -24,6 +25,7 @@ list(APPEND RENDERER_LIBS_INCLUDE
 	"GraphicsUtils/Buffers/UploadBuffer.hpp"
 	"GraphicsUtils/Buffers/DepthBuffer.hpp"
 	"GraphicsUtils/Buffers/ReadbackBuffer.hpp"
+	"GraphicsUtils/Buffers/Texture.hpp"
 	"Camera/CameraManager.hpp"
 	"CommandSignature.hpp"
 	"CommandContext.hpp"
@@ -48,6 +50,7 @@ list(APPEND RENDERER_LIBS_SOURCES
 	"GraphicsUtils/RootSignature.cpp"
 	"GraphicsUtils/PipelineState.cpp"
 	"GraphicsUtils/SamplerManager.cpp"
+	"GraphicsUtils/DDSTextureLoader.cpp"
 	"GraphicsUtils/Profiling/Profiling.cpp"
 	"GraphicsUtils/Profiling/GpuTimeManager.cpp"
 	"GraphicsUtils/Memory/DescriptorHeap.cpp"
@@ -59,6 +62,7 @@ list(APPEND RENDERER_LIBS_SOURCES
 	"GraphicsUtils/Buffers/UploadBuffer.cpp"
 	"GraphicsUtils/Buffers/DepthBuffer.cpp"
 	"GraphicsUtils/Buffers/ReadbackBuffer.cpp"
+	"GraphicsUtils/Buffers/Texture.cpp"
 	"Camera/CameraManager.cpp"
 	"CommandSignature.cpp"
 	"CommandContext.cpp"
@@ -77,7 +81,7 @@ add_library("Renderer")
 target_sources("Renderer"
 	PRIVATE
 	${RENDERER_LIBS_SOURCES}
-	${RENDERER_LIBS_INCLUDE})
+	${RENDERER_LIBS_INCLUDE} "GraphicsUtils/Buffers/Texture.hpp")
 
 	
 set(Boost_USE_STATIC_LIBS ON) 
