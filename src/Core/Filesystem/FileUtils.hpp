@@ -2,31 +2,28 @@
 
 #include "Path.hpp"
 
+#include <fstream>
+#include <cstddef>
+#include <memory>
+#include <ppl.h>
+#include <ppltasks.h>
+
 #ifndef D_FILE
 #define D_FILE Darius::Core::Filesystem
 #endif // !D_FILE
 
+using namespace std;
+
 namespace Darius::Core::Filesystem
 {
+	typedef shared_ptr<vector<std::byte>> ByteArray;
+	static const ByteArray NullFile = std::make_shared<vector<std::byte> >(vector<std::byte>());
 
-	std::wstring GetNewFileName(std::wstring const& baseName, std::wstring const& extension, Path parent)
-	{
-		short newIndex = -1;
+	std::wstring GetNewFileName(std::wstring const& baseName, std::wstring const& extension, Path parent);
 
-		Path resultPath;
-		std::wstring result;
-		do
-		{
-			auto directory = Path(parent);
-			newIndex++;
-			if (newIndex)
-				result = baseName + L"(" + std::to_wstring(newIndex) + L")" + extension;
-			else
-				result = baseName + extension;
-			resultPath = directory.append(result);
-		} while (D_H_ENSURE_FILE(resultPath));
+	ByteArray ReadFileHelper(const wstring& fileName);
 
-		return result;
-	}
+	ByteArray ReadFileSync(std::wstring const& path);
 
+	Concurrency::task<ByteArray> ReadFileAsync(std::wstring const& path);
 }

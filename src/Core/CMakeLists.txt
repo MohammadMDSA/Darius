@@ -31,6 +31,7 @@ list(APPEND CORE_LIBS_SOURCES
 	"TimeManager/SystemTime.cpp"
 	"Containers/Containers.cpp"
 	"Serialization/Json.cpp"
+	"Filesystem/FileUtils.cpp"
 	"Memory/Memory.cpp"
 	"Signal.cpp"
 	"Input.cpp"
