@@ -63,6 +63,9 @@ namespace Darius::Editor::Gui::Windows
 		DVector<RenderItem>							mMesheRenderItems;
 		DVector<RenderItem>							mWindowRenderItems;
 		D_RENDERER_FRAME_RESOUCE::GlobalConstants	mSceneGlobals;
+
+		bool										mDrawGrid;
+		bool										mMovingCam;
 	};
 
 }

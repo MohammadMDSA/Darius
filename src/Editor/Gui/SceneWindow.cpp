@@ -20,7 +20,8 @@ namespace Darius::Editor::Gui::Windows
 		mFlyingCam(mCamera, Vector3::Up()),
 		mOrbitCam(mCamera, D_MATH_BOUNDS::BoundingSphere(0.f, 0.f, 0.f, 5.f), Vector3::Up()),
 		mManipulateOperation(ImGuizmo::OPERATION::TRANSLATE),
-		mManipulateMode(ImGuizmo::MODE::LOCAL)
+		mManipulateMode(ImGuizmo::MODE::LOCAL),
+		mDrawGrid(true)
 	{
 		CreateBuffers();
 		mTextureHandle = D_RENDERER::GetUiTextureHandle(1);
@@ -121,9 +122,12 @@ namespace Darius::Editor::Gui::Windows
 		context.SetPipelineState(D_RENDERER::GetPSO(PipelineStateTypes::Opaque));
 		D_RENDERER::RenderMeshes(context, mMesheRenderItems, mSceneGlobals);
 
-		// Render window batches
-		context.SetPipelineState(D_RENDERER::GetPSO(PipelineStateTypes::Color));
-		D_RENDERER::RenderBatchs(context, mWindowRenderItems, mSceneGlobals);
+		if (mDrawGrid)
+		{
+			// Render window batches
+			context.SetPipelineState(D_RENDERER::GetPSO(PipelineStateTypes::Color));
+			D_RENDERER::RenderBatchs(context, mWindowRenderItems, mSceneGlobals);
+		}
 
 		context.TransitionResource(mSceneTexture, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, true);
 		D_RENDERER_DEVICE::GetDevice()->CopyDescriptorsSimple(1, mTextureHandle, mSceneTexture.GetSRV(), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
@@ -210,7 +214,22 @@ namespace Darius::Editor::Gui::Windows
 
 				ImGui::SameLine();
 			}
-			ImGui::Spacing();
+
+			ImGui::SameLine(230.f);
+
+			// Grid settings
+			{
+				auto preDrawGrid = mDrawGrid;
+				if (mDrawGrid)
+					ImGui::PushStyleColor(ImGuiCol_Button, { 0.26f, 0.59f, 1.f, 1.f });
+				if (ImGui::Button(ICON_FA_TABLE_CELLS))
+				{
+					mDrawGrid = !mDrawGrid;
+				}
+				if (preDrawGrid)
+					ImGui::PopStyleColor();
+			}
+
 		}
 	}
 
@@ -225,15 +244,19 @@ namespace Darius::Editor::Gui::Windows
 		{
 			mOrbitCam.Update(dt);
 			mFlyingCam.SetOrientationDirty();
-
+			mMovingCam = true;
 		}
 		else if (D_MOUSE::GetButton(D_MOUSE::Keys::Right) && mHovered)
 		{
 			mFlyingCam.Update(dt);
 			mOrbitCam.SetTargetLocationDirty();
+			mMovingCam = true;
 		}
 		else
+		{
 			mCamera.Update();
+			mMovingCam = false;
+		}
 
 		// Focusing on object
 		auto selectedGameObject = D_EDITOR_CONTEXT::GetSelectedGameObject();
@@ -241,6 +264,9 @@ namespace Darius::Editor::Gui::Windows
 		{
 			mOrbitCam.SetTarget(selectedGameObject->GetTransform().Translation);
 		}
+
+		if (mMovingCam)
+			return;
 
 		// Shortcuts
 		if (!mFocused)
