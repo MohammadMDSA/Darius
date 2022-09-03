@@ -9,6 +9,8 @@ list(APPEND RESOUCE_MANAGER_LIBS_INCLUDE
 	"ResourceTypes/BatchResource.hpp"
 	"ResourceTypes/MeshResource.hpp"
 	"ResourceTypes/MaterialResource.hpp"
+	"ResourceTypes/TextureResource.hpp"
+	"ResourceTypes/Texture2DResource.hpp"
 	"ResourceLoader.hpp"
 	)
 
@@ -18,6 +20,8 @@ list(APPEND RESOUCE_MANAGER_LIBS_SOURCES
 	"ResourceTypes/MeshResource.cpp"
 	"ResourceTypes/BatchResource.cpp"
 	"ResourceTypes/MaterialResource.cpp"
+	"ResourceTypes/TextureResource.cpp"
+	"ResourceTypes/Texture2DResource.cpp"
 	"ResourceLoader.cpp"
 	)
 

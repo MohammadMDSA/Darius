@@ -4,6 +4,7 @@
 #include "ResourceTypes/MeshResource.hpp"
 #include "ResourceTypes/MaterialResource.hpp"
 #include "ResourceTypes/BatchResource.hpp"
+#include "ResourceTypes/Texture2DResource.hpp"
 #include "ResourceLoader.hpp"
 
 #include <Core/Filesystem/Path.hpp>
@@ -24,7 +25,8 @@ namespace Darius::ResourceManager
 	{
 		{ MeshResource::GetTypeName(), ResourceType::Mesh },
 		{ MaterialResource::GetTypeName(), ResourceType::Material },
-		{ BatchResource::GetTypeName(), ResourceType::Batch }
+		{ BatchResource::GetTypeName(), ResourceType::Batch },
+		{ Texture2DResource::GetTypeName(), ResourceType::Texture2D }
 	};
 
 	void Initialize()
@@ -109,6 +111,7 @@ namespace Darius::ResourceManager
 		mResourceMap[ResourceType::Mesh];
 		mResourceMap[ResourceType::Material];
 		mResourceMap[ResourceType::Batch];
+		mResourceMap[ResourceType::Texture2D];
 
 		LoadDefaultResources();
 	}
@@ -271,6 +274,19 @@ namespace Darius::ResourceManager
 		// Add the handle to path and resource maps
 		ResourceHandle handle = { ResourceType::Material, matRes->GetId() };
 		UpdateMaps(matRes);
+
+		return handle;
+	}
+
+	ResourceHandle DResourceManager::CreateTexture2D(Uuid uuid, std::wstring const& path, bool isDefault, bool fromFile)
+	{
+		// TODO: Better allocation
+		auto tex2dRes = new Texture2DResource(uuid, path, GetNewId(), isDefault);
+		dynamic_cast<Resource*>(tex2dRes)->mLoaded = !fromFile;
+
+		// Add the handle to path and resource maps
+		ResourceHandle handle = { ResourceType::Texture2D, tex2dRes->GetId() };
+		UpdateMaps(tex2dRes);
 
 		return handle;
 	}

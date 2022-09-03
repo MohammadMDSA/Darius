@@ -53,7 +53,7 @@ namespace Darius::ResourceManager
 	void					GetAllResources(DVector<Resource*>& resources);
 #endif // _D_EDITOR
 
-
+#pragma region GetResource
 	// Resource retreival stuff
 	template<class T>
 	Ref<T> GetResource(Uuid uuid, std::optional<CountedOwner> ownerData = std::nullopt)
@@ -79,7 +79,7 @@ namespace Darius::ResourceManager
 		// Requested resource type must be compatible with T
 		if (handle.Type != T::GetResourceType())
 			throw D_EXCEPTION::Exception("Requested type and handle type are not compatible");
-			
+
 		return Ref(dynamic_cast<T*>(_GetRawResource(handle, true)), ownerData);
 	}
 
@@ -88,6 +88,8 @@ namespace Darius::ResourceManager
 	{
 		return GetResource<T>(handle, std::optional<CountedOwner>{CountedOwner{ ownerName, ownerType, owner, 0 }});
 	}
+
+#pragma endregion
 
 	D_CONTAINERS::DVector<ResourcePreview> GetResourcePreviews(ResourceType type);
 	
@@ -120,11 +122,12 @@ namespace Darius::ResourceManager
 
 		ResourceHandle				CreateMaterial(Uuid uuid, std::wstring const& path, bool isDefault, bool fromFile);
 		ResourceHandle				CreateMesh(Uuid uuid, std::wstring const& path, bool isDefault, bool fromFile);
+		ResourceHandle				CreateTexture2D(Uuid uuid, std::wstring const& path, bool isDefault, bool fromFile);
 
 		void						UpdateMaps(Resource* resuorce);
 
-		void LoadDefaultResources();
-		INLINE DResourceId GetNewId() { return ++mLastId; }
+		void						LoadDefaultResources();
+		INLINE DResourceId			GetNewId() { return ++mLastId; }
 
 		DMap<ResourceType, DMap<DResourceId, Resource*>>	mResourceMap;
 		DMap<Uuid, Resource*, UuidHasher>					mUuidMap;

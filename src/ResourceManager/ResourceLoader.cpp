@@ -26,6 +26,8 @@ namespace Darius::ResourceManager
 			return manager->CreateMesh(meta.Uuid, meta.Path, false, true);
 		case Darius::ResourceManager::ResourceType::Material:
 			return manager->CreateMaterial(meta.Uuid, meta.Path, false, true);
+		case Darius::ResourceManager::ResourceType::Texture2D:
+			return manager->CreateTexture2D(meta.Uuid, meta.Path, false, true);
 		case Darius::ResourceManager::ResourceType::None:
 		default:
 			return { ResourceType::None, 0 };
@@ -41,6 +43,8 @@ namespace Darius::ResourceManager
 			return manager->CreateMaterial(GenerateUuid(), path, false, true);
 		if (extension == ".fbx")
 			return manager->CreateMesh(GenerateUuid(), path, false, true);
+		if (extension == ".tga" || extension == ".dds")
+			return manager->CreateTexture2D(GenerateUuid(), path, false, true);
 		return { ResourceType::None, 0 };
 	}
 
