@@ -76,9 +76,9 @@ namespace Darius::Graphics::Utils::Buffers
 
         CommandContext::InitializeTexture(*this, 1, &texResource);
 
-        if (m_hCpuDescriptorHandle.ptr == D3D12_GPU_VIRTUAL_ADDRESS_UNKNOWN)
-            m_hCpuDescriptorHandle = AllocateDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-        device->CreateShaderResourceView(mResource.Get(), nullptr, m_hCpuDescriptorHandle);
+        if (mCpuDescriptorHandle.ptr == D3D12_GPU_VIRTUAL_ADDRESS_UNKNOWN)
+            mCpuDescriptorHandle = AllocateDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+        device->CreateShaderResourceView(mResource.Get(), nullptr, mCpuDescriptorHandle);
     }
 
     void Texture::CreateCube(size_t RowPitchBytes, size_t Width, size_t Height, DXGI_FORMAT Format, const void* InitialData)
@@ -124,8 +124,8 @@ namespace Darius::Graphics::Utils::Buffers
 
         CommandContext::InitializeTexture(*this, 1, &texResource);
 
-        if (m_hCpuDescriptorHandle.ptr == D3D12_GPU_VIRTUAL_ADDRESS_UNKNOWN)
-            m_hCpuDescriptorHandle = AllocateDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+        if (mCpuDescriptorHandle.ptr == D3D12_GPU_VIRTUAL_ADDRESS_UNKNOWN)
+            mCpuDescriptorHandle = AllocateDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 
         D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc;
         srvDesc.Format = Format;
@@ -134,7 +134,7 @@ namespace Darius::Graphics::Utils::Buffers
         srvDesc.TextureCube.MipLevels = 1;
         srvDesc.TextureCube.MostDetailedMip = 0;
         srvDesc.TextureCube.ResourceMinLODClamp = 0.0f;
-        device->CreateShaderResourceView(mResource.Get(), &srvDesc, m_hCpuDescriptorHandle);
+        device->CreateShaderResourceView(mResource.Get(), &srvDesc, mCpuDescriptorHandle);
     }
 
 
@@ -192,11 +192,11 @@ namespace Darius::Graphics::Utils::Buffers
 
     bool Texture::CreateDDSFromMemory(const void* filePtr, size_t fileSize, bool sRGB)
     {
-        if (m_hCpuDescriptorHandle.ptr == D3D12_GPU_VIRTUAL_ADDRESS_UNKNOWN)
-            m_hCpuDescriptorHandle = AllocateDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+        if (mCpuDescriptorHandle.ptr == D3D12_GPU_VIRTUAL_ADDRESS_UNKNOWN)
+            mCpuDescriptorHandle = AllocateDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 
         HRESULT hr = CreateDDSTextureFromMemory(D_RENDERER_DEVICE::GetDevice(),
-            (const uint8_t*)filePtr, fileSize, 0, sRGB, &mResource, m_hCpuDescriptorHandle);
+            (const uint8_t*)filePtr, fileSize, 0, sRGB, &mResource, mCpuDescriptorHandle);
 
         return SUCCEEDED(hr);
     }

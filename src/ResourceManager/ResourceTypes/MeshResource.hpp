@@ -25,7 +25,7 @@ namespace Darius::ResourceManager
 		D_CH_RESOURCE_BODY(MeshResource, ResourceType::Mesh)
 
 	public:
-		INLINE Mesh* ModifyData() { MakeDiskDirty(); MakeGpuDirty(); return &mMesh; }
+		INLINE Mesh*					ModifyData() { MakeDiskDirty(); MakeGpuDirty(); return &mMesh; }
 		INLINE const Mesh*				GetData() const { return &mMesh; }
 
 		INLINE virtual ResourceType		GetType() const override { return ResourceType::Mesh; }

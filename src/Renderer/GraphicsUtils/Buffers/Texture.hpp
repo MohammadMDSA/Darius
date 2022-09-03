@@ -27,8 +27,8 @@ namespace Darius::Graphics::Utils::Buffers
 
     public:
 
-        Texture() { m_hCpuDescriptorHandle.ptr = D3D12_GPU_VIRTUAL_ADDRESS_UNKNOWN; }
-        Texture(D3D12_CPU_DESCRIPTOR_HANDLE Handle) : m_hCpuDescriptorHandle(Handle) {}
+        Texture() { mCpuDescriptorHandle.ptr = D3D12_GPU_VIRTUAL_ADDRESS_UNKNOWN; }
+        Texture(D3D12_CPU_DESCRIPTOR_HANDLE Handle) : mCpuDescriptorHandle(Handle) {}
 
         // Create a 1-level textures
         void Create2D(size_t RowPitchBytes, size_t Width, size_t Height, DXGI_FORMAT Format, const void* InitData);
@@ -41,10 +41,10 @@ namespace Darius::Graphics::Utils::Buffers
         virtual void Destroy() override
         {
             GpuResource::Destroy();
-            m_hCpuDescriptorHandle.ptr = D3D12_GPU_VIRTUAL_ADDRESS_UNKNOWN;
+            mCpuDescriptorHandle.ptr = D3D12_GPU_VIRTUAL_ADDRESS_UNKNOWN;
         }
 
-        const D3D12_CPU_DESCRIPTOR_HANDLE& GetSRV() const { return m_hCpuDescriptorHandle; }
+        const D3D12_CPU_DESCRIPTOR_HANDLE& GetSRV() const { return mCpuDescriptorHandle; }
 
         uint32_t GetWidth() const { return mWidth; }
         uint32_t GetHeight() const { return mHeight; }
@@ -56,6 +56,6 @@ namespace Darius::Graphics::Utils::Buffers
         uint32_t mHeight;
         uint32_t mDepth;
 
-        D3D12_CPU_DESCRIPTOR_HANDLE m_hCpuDescriptorHandle;
+        D3D12_CPU_DESCRIPTOR_HANDLE mCpuDescriptorHandle;
     };
 }
