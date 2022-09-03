@@ -20,13 +20,16 @@
 
 #include <Utils/Common.hpp>
 
-namespace Darius::Graphics::Utils::Buffers
+namespace Darius::Graphics::Utils
 {
-
     //--------------------------------------------------------------------------------------
     // Return the BPP for a particular format
     //--------------------------------------------------------------------------------------
     size_t BitsPerPixel(_In_ DXGI_FORMAT fmt);
+}
+
+namespace Darius::Graphics::Utils::Buffers
+{
 
     static UINT BytesPerPixel(DXGI_FORMAT Format)
     {
