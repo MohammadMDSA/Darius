@@ -49,7 +49,7 @@ namespace Darius::ResourceManager
 
 	}
 
-	void MaterialResource::UploadToGpu(D_GRAPHICS::GraphicsContext& context)
+	bool MaterialResource::UploadToGpu(D_GRAPHICS::GraphicsContext& context)
 	{
 		if (mMaterialConstantsGPU.GetGpuVirtualAddress() == D3D12_GPU_VIRTUAL_ADDRESS_NULL)
 		{
@@ -59,7 +59,7 @@ namespace Darius::ResourceManager
 				mMaterialConstantsCPU[i].Create(L"Material Constatns Upload Buffer: " + GetName(), sizeof(MaterialConstants));
 			}
 			mMaterialConstantsGPU.Create(L"Material Constants GPU Buffer: " + GetName(), 1, sizeof(MaterialConstants), &mMaterial);
-			return;
+			return true;
 		}
 
 		// Updating material constnats
@@ -72,8 +72,9 @@ namespace Darius::ResourceManager
 
 		// Uploading
 		context.TransitionResource(mMaterialConstantsGPU, D3D12_RESOURCE_STATE_COPY_DEST, true);
-		context.GetCommandList()->CopyBufferRegion(mMaterialConstantsGPU.GetResource(), 0, mMaterialConstantsCPU->GetResource(), 0, mMaterialConstantsCPU->GetBufferSize());
+		context.GetCommandList()->CopyBufferRegion(mMaterialConstantsGPU.GetResource(), 0, currentMatUploadBuff.GetResource(), 0, currentMatUploadBuff.GetBufferSize());
 		context.TransitionResource(mMaterialConstantsGPU, D3D12_RESOURCE_STATE_GENERIC_READ);
+		return true;
 	}
 
 }

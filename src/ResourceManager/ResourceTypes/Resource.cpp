@@ -14,6 +14,8 @@ namespace Darius::ResourceManager
 			return "Material";
 		case Darius::ResourceManager::ResourceType::Batch:
 			return "Batch";
+		case Darius::ResourceManager::ResourceType::Texture2D:
+			return "Texture2D";
 		default:
 			throw D_CORE::Exception::Exception("Resource type not defined");
 		case Darius::ResourceManager::ResourceType::None:
@@ -29,6 +31,8 @@ namespace Darius::ResourceManager
 			return ResourceType::Material;
 		if (type == "Batch")
 			return ResourceType::Batch;
+		if (type == "Texture2D")
+			return ResourceType::Texture2D;
 		return ResourceType::None;
 	}
 
@@ -38,8 +42,7 @@ namespace Darius::ResourceManager
 		if (!mDirtyGPU)
 			return;
 
-		UploadToGpu(context);
-		mDirtyGPU = false;
+		mDirtyGPU = UploadToGpu(context);
 	}
 
 }

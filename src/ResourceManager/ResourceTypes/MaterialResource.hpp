@@ -27,8 +27,6 @@ namespace Darius::ResourceManager
 		INLINE MaterialConstants* ModifyData() { MakeDiskDirty(); MakeGpuDirty(); return &mMaterial; }
 		INLINE const MaterialConstants*			GetData() const { return &mMaterial; }
 
-		INLINE virtual ResourceType		GetType() const override { return ResourceType::Material; }
-		
 		virtual bool					SuppoertsExtension(std::wstring ext) override;
 
 		INLINE operator const MaterialConstants* () const { return &mMaterial; }
@@ -42,7 +40,7 @@ namespace Darius::ResourceManager
 
 		virtual void						WriteResourceToFile() const override;
 		virtual void						ReadResourceFromFile() override;
-		virtual void						UploadToGpu(D_GRAPHICS::GraphicsContext& context) override;
+		virtual bool						UploadToGpu(D_GRAPHICS::GraphicsContext& context) override;
 
 	private:
 		friend class DResourceManager;

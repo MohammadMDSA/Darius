@@ -16,7 +16,8 @@
 
 #define D_CH_RESOURCE_BODY(T, ResT) D_CH_TYPE_NAME_GETTER(T)\
 public: \
-static INLINE ResourceType GetResourceType() { return ResT; }
+static INLINE ResourceType GetResourceType() { return ResT; } \
+INLINE ResourceType GetType() const override { return ResT; }
 
 using namespace D_CORE;
 using namespace D_FILE;
@@ -33,7 +34,8 @@ namespace Darius::ResourceManager
 		None,
 		Mesh,
 		Batch,
-		Material
+		Material,
+		Texture2D
 	};
 
 	D_H_SERIALIZE_ENUM(ResourceType, {
@@ -41,14 +43,17 @@ namespace Darius::ResourceManager
 		{ ResourceType::Mesh, "Mesh" },
 		{ ResourceType::Batch, "Batch" },
 		{ ResourceType::Material, "Material" },
+		{ ResourceType::Texture2D, "Texture2D" },
 		})
 
 	struct ResourceHandle
 	{
-		ResourceType			Type;
-		DResourceId				Id;
+		ResourceType			Type = ResourceType::None;
+		DResourceId				Id = 0;
 
 	};
+
+	constexpr ResourceHandle EmptyHandle = { ResourceType::None, 0 };
 
 	struct ResourcePreview
 	{
@@ -130,6 +135,6 @@ namespace Darius::ResourceManager
 
 		virtual void				WriteResourceToFile() const = 0;
 		virtual void				ReadResourceFromFile() = 0;
-		virtual void				UploadToGpu(D_GRAPHICS::GraphicsContext& context) = 0;
+		virtual bool				UploadToGpu(D_GRAPHICS::GraphicsContext& context) = 0;
 	};
 }

@@ -170,8 +170,9 @@ namespace Darius::ResourceManager
 	{
 	}
 
-	void MeshResource::UploadToGpu(D_GRAPHICS::GraphicsContext& context)
+	bool MeshResource::UploadToGpu(D_GRAPHICS::GraphicsContext& context)
 	{
 		(context);
+		return true;
 	}
 }

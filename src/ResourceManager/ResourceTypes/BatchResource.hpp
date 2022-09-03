@@ -24,8 +24,6 @@ namespace Darius::ResourceManager
 
 	public:
 
-		INLINE virtual ResourceType		GetType() const override { return ResourceType::Batch; }
-
 		virtual void					Create(std::wstring name, MeshData<VertexType>& data) override;
 		
 	private:

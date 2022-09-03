@@ -28,8 +28,6 @@ namespace Darius::ResourceManager
 		INLINE Mesh*					ModifyData() { MakeDiskDirty(); MakeGpuDirty(); return &mMesh; }
 		INLINE const Mesh*				GetData() const { return &mMesh; }
 
-		INLINE virtual ResourceType		GetType() const override { return ResourceType::Mesh; }
-
 		virtual void					Create(std::wstring name,  MeshData<VertexType>& data);
 
 		virtual bool					SuppoertsExtension(std::wstring ext) override;
@@ -41,9 +39,9 @@ namespace Darius::ResourceManager
 
 	protected:
 
-		virtual void						WriteResourceToFile() const override;
-		virtual void						ReadResourceFromFile() override;
-		virtual void						UploadToGpu(D_GRAPHICS::GraphicsContext& context) override;
+		virtual void					WriteResourceToFile() const override;
+		virtual void					ReadResourceFromFile() override;
+		virtual bool					UploadToGpu(D_GRAPHICS::GraphicsContext& context) override;
 		
 		MeshResource(Uuid uuid, std::wstring const& path, DResourceId id, bool isDefault = false) :
 			Resource(uuid, path, id, isDefault) {}
