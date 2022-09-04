@@ -158,8 +158,14 @@ namespace Darius::Graphics::Utils
         {
             ComPtr<ID3DBlob> pOutBlob, pErrorBlob;
 
-            D_HR_CHECK(D3D12SerializeRootSignature(&RootDesc, D3D_ROOT_SIGNATURE_VERSION_1,
-                pOutBlob.GetAddressOf(), pErrorBlob.GetAddressOf()));
+            auto hr = D3D12SerializeRootSignature(&RootDesc, D3D_ROOT_SIGNATURE_VERSION_1,
+                pOutBlob.GetAddressOf(), pErrorBlob.GetAddressOf());
+
+            if (pErrorBlob != nullptr)
+            {
+                D_LOG_FATAL((char*)pErrorBlob->GetBufferPointer());
+            }
+            D_HR_CHECK(hr);
 
             D_HR_CHECK(D_RENDERER_DEVICE::GetDevice()->CreateRootSignature(1, pOutBlob->GetBufferPointer(), pOutBlob->GetBufferSize(),
                 IID_PPV_ARGS(&mSignature)));
