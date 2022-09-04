@@ -1,5 +1,6 @@
 #include "Renderer/pch.hpp"
 #include "MaterialResource.hpp"
+#include "ResourceManager/ResourceManager.hpp"
 
 #include <Core/Serialization/Json.hpp>
 #include <Renderer/RenderDeviceManager.hpp>
@@ -14,6 +15,14 @@ using namespace D_SERIALIZATION;
 
 namespace Darius::ResourceManager
 {
+	MaterialResource::MaterialResource(Uuid uuid, std::wstring const& path, DResourceId id, bool isDefault) :
+		Resource(uuid, path, id, isDefault)
+	{
+		mBaseColorTextureHandle = D_RESOURCE::GetDefaultResource(D_RESOURCE::DefaultResource::Texture2DWhiteOpaque);
+		mNormalTextureHandle = D_RESOURCE::GetDefaultResource(D_RESOURCE::DefaultResource::Texture2DNormalMap);
+		mRoughnessTextureHandle = D_RESOURCE::GetDefaultResource(D_RESOURCE::DefaultResource::Texture2DBlackOpaque);
+	}
+
 	bool MaterialResource::SuppoertsExtension(std::wstring ext)
 	{
 		if (ext == L".mat")
@@ -31,6 +40,18 @@ namespace Darius::ResourceManager
 			{ "Roughness", mMaterial.Roughness }
 		};
 
+		bool usedBaseColorTex = mMaterial.TextureStatusMask & (1 << kBaseColor);
+		if (usedBaseColorTex)
+			data["BaseColorTexture"] = ToString(mBaseColorTexture->GetUuid());
+
+		bool usedRoughnessTex = mMaterial.TextureStatusMask & (1 << kRoughness);
+		if(usedRoughnessTex)
+			data["RoughnessTexture"] = ToString(mRoughnessTexture->GetUuid());
+
+		bool usedNormalTex = mMaterial.TextureStatusMask & (1 << kNormal);
+		if (usedNormalTex)
+			data["NormalTexture"] = ToString(mNormalTexture->GetUuid());
+
 		std::ofstream os(GetPath());
 		os << data;
 	}
@@ -46,19 +67,58 @@ namespace Darius::ResourceManager
 		mMaterial.DifuseAlbedo = XMFLOAT4(data["DefuseAlbedo"].get<std::vector<float>>().data());
 		mMaterial.FresnelR0 = XMFLOAT3(data["FresnelR0"].get<std::vector<float>>().data());
 		mMaterial.Roughness = data["Roughness"];
+		mMaterial.TextureStatusMask = 0;
 
+		if (data.contains("BaseColorTexture"))
+		{
+			mBaseColorTextureHandle = D_RESOURCE::GetResourceHandle(FromString(data["BaseColorTexture"]));
+			mMaterial.TextureStatusMask |= 1 << kBaseColor;
+		}
+
+		if (data.contains("RoughnessTexture"))
+		{
+			mRoughnessTextureHandle = D_RESOURCE::GetResourceHandle(FromString(data["RoughnessTexture"]));
+			mMaterial.TextureStatusMask |= 1 << kRoughness;
+		}
+
+		if (data.contains("NormalTexture"))
+		{
+			mNormalTextureHandle = D_RESOURCE::GetResourceHandle(FromString(data["NormalTexture"]));
+			mMaterial.TextureStatusMask |= 1 << kNormal;
+		}
 	}
 
 	bool MaterialResource::UploadToGpu(D_GRAPHICS::GraphicsContext& context)
 	{
 		if (mMaterialConstantsGPU.GetGpuVirtualAddress() == D3D12_GPU_VIRTUAL_ADDRESS_NULL)
 		{
+			// Load resources
+			mBaseColorTexture = D_RESOURCE::GetResource<Texture2DResource>(mBaseColorTextureHandle, *this);
+			mNormalTexture = D_RESOURCE::GetResource<Texture2DResource>(mNormalTextureHandle, *this);
+			mRoughnessTexture = D_RESOURCE::GetResource<Texture2DResource>(mRoughnessTextureHandle, *this);
+
 			// Initializing Material Constants buffers
 			for (size_t i = 0; i < D_RENDERER_FRAME_RESOUCE::gNumFrameResources; i++)
 			{
 				mMaterialConstantsCPU[i].Create(L"Material Constatns Upload Buffer: " + GetName(), sizeof(MaterialConstants));
 			}
 			mMaterialConstantsGPU.Create(L"Material Constants GPU Buffer: " + GetName(), 1, sizeof(MaterialConstants), &mMaterial);
+
+			// Update texture regions
+			mTexturesHeap = D_RENDERER::AllocateTextureDescriptor(kNumTextures);
+
+			UINT destCount = kNumTextures;
+			UINT sourceCounts[kNumTextures] = { 1, 1, 1, 1, 1 };
+			D3D12_CPU_DESCRIPTOR_HANDLE initialTextures[kNumTextures]
+			{
+				mBaseColorTexture->GetTextureData()->GetSRV(),
+				mRoughnessTexture->GetTextureData()->GetSRV(),
+				mRoughnessTexture->GetTextureData()->GetSRV(),
+				mRoughnessTexture->GetTextureData()->GetSRV(),
+				mNormalTexture->GetTextureData()->GetSRV()
+			};
+			D_RENDERER_DEVICE::GetDevice()->CopyDescriptors(1, &mTexturesHeap, &destCount, destCount, initialTextures, sourceCounts, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+
 			return true;
 		}
 
@@ -75,6 +135,68 @@ namespace Darius::ResourceManager
 		context.GetCommandList()->CopyBufferRegion(mMaterialConstantsGPU.GetResource(), 0, currentMatUploadBuff.GetResource(), 0, currentMatUploadBuff.GetBufferSize());
 		context.TransitionResource(mMaterialConstantsGPU, D3D12_RESOURCE_STATE_GENERIC_READ);
 		return true;
+	}
+
+	void MaterialResource::SetTexture(ResourceHandle textureHandle, D_RENDERER::TextureType type)
+	{
+
+		if (textureHandle.Type != ResourceType::Texture2D)
+		{
+			mMaterial.TextureStatusMask &= ~(1 << type);
+			switch (type)
+			{
+			case Darius::Renderer::kBaseColor:
+				mBaseColorTextureHandle = textureHandle;
+				break;
+			case Darius::Renderer::kRoughness:
+				mRoughnessTextureHandle = textureHandle;
+				break;
+			case Darius::Renderer::kNormal:
+				mNormalTextureHandle = textureHandle;
+				break;
+			case Darius::Renderer::kOcculusion:
+			case Darius::Renderer::kEmissive:
+			default:
+				return;
+			}
+
+			MakeGpuDirty();
+			MakeDiskDirty();
+
+			return;
+		}
+
+		auto device = D_RENDERER_DEVICE::GetDevice();
+		auto incSize = device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+
+#define SetTex(name) \
+m##name##TextureHandle = textureHandle; \
+m##name##Texture = D_RESOURCE::GetResource<Texture2DResource>(textureHandle, *this); \
+device->CopyDescriptorsSimple(1, mTexturesHeap + type * incSize, m##name##Texture->GetTextureData()->GetSRV(), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+
+		auto& context = D_GRAPHICS::GraphicsContext::Begin(L"Set Material Texture");
+
+		switch (type)
+		{
+		case Darius::Renderer::kBaseColor:
+			SetTex(BaseColor);
+			break;
+		case Darius::Renderer::kRoughness:
+			SetTex(Roughness);
+			break;
+		case Darius::Renderer::kNormal:
+			SetTex(Normal);
+			break;
+		case Darius::Renderer::kOcculusion:
+		case Darius::Renderer::kEmissive:
+		default:
+			return;
+		}
+
+		mMaterial.TextureStatusMask |= 1 << type;
+		MakeGpuDirty();
+		MakeDiskDirty();
+
 	}
 
 }
