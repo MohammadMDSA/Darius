@@ -39,7 +39,7 @@ namespace Darius::Scene::ECS::Components
 
 
 		INLINE bool							CanRender() { return GetGameObject()->GetActive() && GetEnabled() && mMeshResource.IsValid(); }
-		INLINE const BoundingSphere&		GetBounds() const { return mMeshResource.Get()->GetData()->mBoundSp; }
+		INLINE const BoundingSphere&		GetBounds() const { return mMeshResource.Get()->GetMeshData()->mBoundSp; }
 
 	private:
 

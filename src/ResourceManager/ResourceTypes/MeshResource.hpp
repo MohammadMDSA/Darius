@@ -25,15 +25,15 @@ namespace Darius::ResourceManager
 		D_CH_RESOURCE_BODY(MeshResource, ResourceType::Mesh)
 
 	public:
-		INLINE Mesh*					ModifyData() { MakeDiskDirty(); MakeGpuDirty(); return &mMesh; }
-		INLINE const Mesh*				GetData() const { return &mMesh; }
+		INLINE Mesh*					ModifyMeshData() { MakeDiskDirty(); MakeGpuDirty(); return &mMesh; }
+		INLINE const Mesh*				GetMeshData() const { return &mMesh; }
 
 		virtual void					Create(std::wstring name,  MeshData<VertexType>& data);
 
 		virtual bool					SuppoertsExtension(std::wstring ext) override;
 
 		INLINE operator const Mesh* () const { return &mMesh; }
-		INLINE operator Mesh* () { return ModifyData(); }
+		INLINE operator Mesh* () { return ModifyMeshData(); }
 
 		D_CH_FIELD_ACC(Mesh, Mesh, protected);
 

@@ -313,7 +313,7 @@ namespace Darius::Editor::Gui::Windows
 	void SceneWindow::CreateGrid(DVector<D_RENDERER_FRAME_RESOUCE::RenderItem>& items, int count)
 	{
 		RenderItem item;
-		const Mesh* mesh = mLineMeshResource->GetData();
+		const Mesh* mesh = mLineMeshResource->GetMeshData();
 		item.BaseVertexLocation = mesh->mDraw[0].BaseVertexLocation;
 		item.IndexCount = mesh->mDraw[0].IndexCount;
 		item.StartIndexLocation = mesh->mDraw[0].StartIndexLocation;

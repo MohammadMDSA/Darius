@@ -2,9 +2,16 @@
 #include "Texture2DResource.hpp"
 
 #include <Core/Filesystem/FileUtils.hpp>
+#include <Renderer/RenderDeviceManager.hpp>
 
 namespace Darius::ResourceManager
 {
+
+	void Texture2DResource::CreateRaw(uint32_t color, DXGI_FORMAT format, size_t rowPitchByte, size_t width, size_t height)
+	{
+		mTexture.Create2D(rowPitchByte, width, height, format, &color);
+	}
+
 	bool Texture2DResource::UploadToGpu(D_GRAPHICS::GraphicsContext& context)
 	{
 		auto path = GetPath();

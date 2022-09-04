@@ -20,8 +20,8 @@ namespace Darius::ResourceManager
 	{
 		D_CH_RESOURCE_BODY(TextureResource, ResourceType::Texture2D)
 	public:
-		INLINE D_GRAPHICS_BUFFERS::Texture*			ModifyData() { MakeDiskDirty(), MakeGpuDirty(); return &mTexture; }
-		INLINE D_GRAPHICS_BUFFERS::Texture const*	GetData() const { return &mTexture; }
+		INLINE D_GRAPHICS_BUFFERS::Texture*			ModifyTextureData() { MakeDiskDirty(), MakeGpuDirty(); return &mTexture; }
+		INLINE D_GRAPHICS_BUFFERS::Texture const*	GetTextureData() const { return &mTexture; }
 
 		D_CH_FIELD_ACC(D_GRAPHICS_BUFFERS::Texture, Texture, protected);
 
@@ -36,7 +36,6 @@ namespace Darius::ResourceManager
 		virtual void WriteResourceToFile() const override;
 
 		virtual void ReadResourceFromFile() override;
-
 
 	};
 }
