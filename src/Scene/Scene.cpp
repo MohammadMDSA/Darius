@@ -290,10 +290,10 @@ namespace Darius::Scene
 
 	void SceneManager::Unload()
 	{
-		for (auto go : *GOs)
-		{
-			DeleteGameObjectData(go);
-		}
+		Root.children([&](D_ECS::Entity ent)
+			{
+				DeleteGameObject((*EntityMap)[ent]);
+			});
 
 		GOs->clear();
 	}
