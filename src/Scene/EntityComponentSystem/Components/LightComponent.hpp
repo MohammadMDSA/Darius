@@ -28,8 +28,8 @@ namespace Darius::Scene::ECS::Components
 		virtual void					Deserialize(Json const& j) override;
 
 		// States
-		virtual INLINE void				Start() override { D_LIGHT::ReleaseLight(mLightType, mLightIndex); }
-		virtual INLINE void				OnDestroy() override { SetLightType(mLightType); }
+		virtual INLINE void				Start() override { SetLightType(mLightType); }
+		virtual INLINE void				OnDestroy() override { D_LIGHT::ReleaseLight(mLightType, mLightIndex); }
 
 		virtual void					Update(float deltaTime) override;
 
