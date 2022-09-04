@@ -24,6 +24,7 @@ namespace Darius::ResourceManager
 
 	enum class DefaultResource
 	{
+		// Meshes
 		BoxMesh,
 		CylinderMesh,
 		GeosphereMesh,
@@ -31,7 +32,17 @@ namespace Darius::ResourceManager
 		QuadMesh,
 		SphereMesh,
 		LineMesh,
-		DefaultMaterial
+
+		// Materials
+		Material,
+
+		// Textures
+		Texture2DMagenta,
+		Texture2DBlackOpaque,
+		Texture2DBlackTransparent,
+		Texture2DWhiteOpaque,
+		Texture2DWhiteTransparent,
+		Texture2DNormalMap,
 	};
 
 	extern const DMap<std::string, ResourceType>		ResourceTypeMap;
@@ -89,6 +100,8 @@ namespace Darius::ResourceManager
 		return GetResource<T>(handle, std::optional<CountedOwner>{CountedOwner{ ownerName, ownerType, owner, 0 }});
 	}
 
+	ResourceHandle GetResourceHandle(Uuid uuid);
+
 #pragma endregion
 
 	D_CONTAINERS::DVector<ResourcePreview> GetResourcePreviews(ResourceType type);
@@ -117,6 +130,8 @@ namespace Darius::ResourceManager
 #ifdef _D_EDITOR
 		void						GetAllResources(DVector<Resource*>& resources);
 #endif // _D_EDITOR
+
+		void						LoadDefaultResources();
 	private:
 		friend class ResourceLoader;
 
@@ -126,7 +141,6 @@ namespace Darius::ResourceManager
 
 		void						UpdateMaps(Resource* resuorce);
 
-		void						LoadDefaultResources();
 		INLINE DResourceId			GetNewId() { return ++mLastId; }
 
 		DMap<ResourceType, DMap<DResourceId, Resource*>>	mResourceMap;

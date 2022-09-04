@@ -33,6 +33,7 @@ namespace Darius::ResourceManager
 	{
 		D_ASSERT(_ResourceManager == nullptr);
 		_ResourceManager = std::make_unique<DResourceManager>();
+		_ResourceManager->LoadDefaultResources();
 	}
 
 	void Shutdown()
@@ -63,6 +64,12 @@ namespace Darius::ResourceManager
 		// Load resource if not loaded yet
 		if (load && !resource->GetLoaded())
 			D_RESOURCE_LOADER::LoadResource(resource);
+		if (load && resource->GetDirtyGPU())
+		{
+			auto& context = D_GRAPHICS::GraphicsContext::Begin(L"Resource uploader");
+			resource->UpdateGPU(context);
+			context.Finish(true);
+		}
 		return resource;
 	}
 
@@ -73,7 +80,18 @@ namespace Darius::ResourceManager
 		// Load resource if not loaded yet
 		if (load && !resource->GetLoaded())
 			D_RESOURCE_LOADER::LoadResource(resource);
+		if (load && resource->GetDirtyGPU())
+		{
+			auto& context = D_GRAPHICS::GraphicsContext::Begin(L"Resource uploader");
+			resource->UpdateGPU(context);
+			context.Finish(true);
+		}
 		return resource;
+	}
+
+	ResourceHandle GetResourceHandle(Uuid uuid)
+	{
+		return *_ResourceManager->GetRawResource(uuid);
 	}
 
 	D_CONTAINERS::DVector<ResourcePreview> GetResourcePreviews(ResourceType type)
@@ -113,7 +131,6 @@ namespace Darius::ResourceManager
 		mResourceMap[ResourceType::Batch];
 		mResourceMap[ResourceType::Texture2D];
 
-		LoadDefaultResources();
 	}
 
 	DResourceManager::~DResourceManager()
@@ -156,83 +173,110 @@ namespace Darius::ResourceManager
 
 	void DResourceManager::LoadDefaultResources()
 	{
-		auto box = D_RENDERER_GEOMETRY_GENERATOR::CreateBox(1.f, 1.f, 1.f, 1);
-		auto cylinder = D_RENDERER_GEOMETRY_GENERATOR::CreateCylinder(0.5f, 0.5f, 1, 40, 20);
-		auto geosphere = D_RENDERER_GEOMETRY_GENERATOR::CreateGeosphere(0.5f, 40);
-		auto grid = D_RENDERER_GEOMETRY_GENERATOR::CreateGrid(100.f, 100.f, 100, 100);
-		auto quad = D_RENDERER_GEOMETRY_GENERATOR::CreateQuad(0.f, 0.f, 1.f, 1.f, 0.f);
-		auto sphere = D_RENDERER_GEOMETRY_GENERATOR::CreateSphere(0.5f, 40, 40);
-		auto line = D_RENDERER_GEOMETRY_GENERATOR::CreateLine(0.f, 0.f, 0.f, 0.f, 0.f, -1.f);
-
-		// TODO: bad allocation
-		auto res = new MeshResource(GenerateUuidFor("Box Mesh"), L"Box Mesh", GetNewId(), true);
-		res->Create(L"Box Mesh", box);
-		auto rRes = dynamic_cast<Resource*>(res);
-		rRes->mDirtyGPU = false;
-		rRes->mDirtyDisk = false;
-		mDefaultResourceMap.insert({ DefaultResource::BoxMesh, { ResourceType::Mesh, res->GetId() } });
-		UpdateMaps(rRes);
-
-		res = new MeshResource(GenerateUuidFor("Cylinder Mesh"), L"Cylinder Mesh", GetNewId(), true);
-		res->Create(L"Cylinder Mesh", cylinder);
-		rRes = dynamic_cast<Resource*>(res);
-		rRes->mDirtyGPU = false;
-		rRes->mDirtyDisk = false;
-		mDefaultResourceMap.insert({ DefaultResource::CylinderMesh, { ResourceType::Mesh, res->GetId() } });
-		UpdateMaps(rRes);
-
-		res = new MeshResource(GenerateUuidFor("Geosphere Mesh"), L"Geosphere Mesh", GetNewId(), true);
-		res->Create(L"Geosphere Mesh", geosphere);
-		rRes = dynamic_cast<Resource*>(res);
-		rRes->mDirtyGPU = false;
-		rRes->mDirtyDisk = false;
-		mDefaultResourceMap.insert({ DefaultResource::GeosphereMesh, { ResourceType::Mesh, res->GetId() } });
-		UpdateMaps(rRes);
-
-		res = new MeshResource(GenerateUuidFor("Grid Mesh"), L"Grid Mesh", GetNewId(), true);
-		res->Create(L"Grid Mesh", grid);
-		rRes = dynamic_cast<Resource*>(res);
-		rRes->mDirtyGPU = false;
-		rRes->mDirtyDisk = false;
-		mDefaultResourceMap.insert({ DefaultResource::GridMesh, { ResourceType::Mesh, res->GetId() } });
-		UpdateMaps(rRes);
-
-		res = new MeshResource(GenerateUuidFor("Quad Mesh"), L"Quad Mesh", GetNewId(), true);
-		res->Create(L"Quad Mesh", quad);
-		rRes = dynamic_cast<Resource*>(res);
-		rRes->mDirtyGPU = false;
-		rRes->mDirtyDisk = false;
-		mDefaultResourceMap.insert({ DefaultResource::QuadMesh, { ResourceType::Mesh, res->GetId() } });
-		UpdateMaps(rRes);
-
-		res = new MeshResource(GenerateUuidFor("Sphere Mesh"), L"Sphere Mesh", GetNewId(), true);
-		res->Create(L"Sphere Mesh", sphere);
-		rRes = dynamic_cast<Resource*>(res);
-		rRes->mDirtyGPU = false;
-		rRes->mDirtyDisk = false;
-		mDefaultResourceMap.insert({ DefaultResource::SphereMesh, { ResourceType::Mesh, res->GetId() } });
-		UpdateMaps(rRes);
-
-		res = new BatchResource(GenerateUuidFor("Line Mesh"), L"Line Mesh", GetNewId(), true);
-		res->Create(L"Line Mesh", line);
-		rRes = dynamic_cast<Resource*>(res);
-		rRes->mDirtyGPU = false;
-		rRes->mDirtyDisk = false;
-		mDefaultResourceMap.insert({ DefaultResource::LineMesh, { ResourceType::Batch, res->GetId() } });
-		UpdateMaps(rRes);
-
+		// Creating default meshes
 		{
-			auto defaultMeshHandle = CreateMaterial(GenerateUuidFor("Default Material"), L"Default Material", true, false);
-			auto materialRes = (MaterialResource*)GetRawResource(defaultMeshHandle);
-			auto mat = materialRes->ModifyData();
+			auto box = D_RENDERER_GEOMETRY_GENERATOR::CreateBox(1.f, 1.f, 1.f, 0);
+			auto cylinder = D_RENDERER_GEOMETRY_GENERATOR::CreateCylinder(0.5f, 0.5f, 1, 40, 20);
+			auto geosphere = D_RENDERER_GEOMETRY_GENERATOR::CreateGeosphere(0.5f, 40);
+			auto grid = D_RENDERER_GEOMETRY_GENERATOR::CreateGrid(100.f, 100.f, 100, 100);
+			auto quad = D_RENDERER_GEOMETRY_GENERATOR::CreateQuad(0.f, 0.f, 1.f, 1.f, 0.f);
+			auto sphere = D_RENDERER_GEOMETRY_GENERATOR::CreateSphere(0.5f, 40, 40);
+			auto line = D_RENDERER_GEOMETRY_GENERATOR::CreateLine(0.f, 0.f, 0.f, 0.f, 0.f, -1.f);
+
+			// TODO: bad allocation
+			auto res = new MeshResource(GenerateUuidFor("Box Mesh"), L"Box Mesh", GetNewId(), true);
+			res->Create(L"Box Mesh", box);
+			auto rRes = dynamic_cast<Resource*>(res);
+			rRes->mDirtyGPU = false;
+			rRes->mDirtyDisk = false;
+			mDefaultResourceMap.insert({ DefaultResource::BoxMesh, { ResourceType::Mesh, res->GetId() } });
+			UpdateMaps(rRes);
+
+			res = new MeshResource(GenerateUuidFor("Cylinder Mesh"), L"Cylinder Mesh", GetNewId(), true);
+			res->Create(L"Cylinder Mesh", cylinder);
+			rRes = dynamic_cast<Resource*>(res);
+			rRes->mDirtyGPU = false;
+			rRes->mDirtyDisk = false;
+			mDefaultResourceMap.insert({ DefaultResource::CylinderMesh, { ResourceType::Mesh, res->GetId() } });
+			UpdateMaps(rRes);
+
+			res = new MeshResource(GenerateUuidFor("Geosphere Mesh"), L"Geosphere Mesh", GetNewId(), true);
+			res->Create(L"Geosphere Mesh", geosphere);
+			rRes = dynamic_cast<Resource*>(res);
+			rRes->mDirtyGPU = false;
+			rRes->mDirtyDisk = false;
+			mDefaultResourceMap.insert({ DefaultResource::GeosphereMesh, { ResourceType::Mesh, res->GetId() } });
+			UpdateMaps(rRes);
+
+			res = new MeshResource(GenerateUuidFor("Grid Mesh"), L"Grid Mesh", GetNewId(), true);
+			res->Create(L"Grid Mesh", grid);
+			rRes = dynamic_cast<Resource*>(res);
+			rRes->mDirtyGPU = false;
+			rRes->mDirtyDisk = false;
+			mDefaultResourceMap.insert({ DefaultResource::GridMesh, { ResourceType::Mesh, res->GetId() } });
+			UpdateMaps(rRes);
+
+			res = new MeshResource(GenerateUuidFor("Quad Mesh"), L"Quad Mesh", GetNewId(), true);
+			res->Create(L"Quad Mesh", quad);
+			rRes = dynamic_cast<Resource*>(res);
+			rRes->mDirtyGPU = false;
+			rRes->mDirtyDisk = false;
+			mDefaultResourceMap.insert({ DefaultResource::QuadMesh, { ResourceType::Mesh, res->GetId() } });
+			UpdateMaps(rRes);
+
+			res = new MeshResource(GenerateUuidFor("Sphere Mesh"), L"Sphere Mesh", GetNewId(), true);
+			res->Create(L"Sphere Mesh", sphere);
+			rRes = dynamic_cast<Resource*>(res);
+			rRes->mDirtyGPU = false;
+			rRes->mDirtyDisk = false;
+			mDefaultResourceMap.insert({ DefaultResource::SphereMesh, { ResourceType::Mesh, res->GetId() } });
+			UpdateMaps(rRes);
+
+			res = new BatchResource(GenerateUuidFor("Line Mesh"), L"Line Mesh", GetNewId(), true);
+			res->Create(L"Line Mesh", line);
+			rRes = dynamic_cast<Resource*>(res);
+			rRes->mDirtyGPU = false;
+			rRes->mDirtyDisk = false;
+			mDefaultResourceMap.insert({ DefaultResource::LineMesh, { ResourceType::Batch, res->GetId() } });
+			UpdateMaps(rRes);
+		}
+
+		// Create default textures
+		{
+#define CreateDefaultTexture2D(name, color) \
+{ \
+	auto defaultTextureHandle = CreateTexture2D(GenerateUuidFor("Default Texture2D " #name), L"Default Texture2D " #name, true, false); \
+	auto textureRes = (Texture2DResource*)GetRawResource(defaultTextureHandle); \
+	textureRes->CreateRaw(color, DXGI_FORMAT_R8G8B8A8_UNORM, 4, 1, 1); \
+	auto rRes = dynamic_cast<Resource*>(textureRes); \
+	rRes->mDirtyGPU = false; \
+	rRes->mDirtyDisk = false; \
+	mDefaultResourceMap.insert({ DefaultResource::Texture2D##name, { ResourceType::Texture2D, textureRes->GetId() } }); \
+}
+
+			CreateDefaultTexture2D(Magenta, 0xFFFF00FF);
+			CreateDefaultTexture2D(BlackOpaque, 0xFF000000);
+			CreateDefaultTexture2D(BlackTransparent, 0x00000000);
+			CreateDefaultTexture2D(WhiteOpaque, 0xFFFFFFFF);
+			CreateDefaultTexture2D(WhiteTransparent, 0x00FFFFFF);
+			CreateDefaultTexture2D(NormalMap, 0x00FF8080);
+
+		}
+
+		// Creating default materials
+		{
+			auto defaultMaterialHandle = CreateMaterial(GenerateUuidFor("Default Material"), L"Default Material", true, false);
+			auto materialRes = (MaterialResource*)GetRawResource(defaultMaterialHandle);
+			auto mat = materialRes->ModifyMaterialData();
 			mat->DifuseAlbedo = XMFLOAT4(Vector4(kOne));
 			mat->FresnelR0 = XMFLOAT3(Vector3(kZero));
 			mat->Roughness = 0.2f;
-			rRes = dynamic_cast<Resource*>(res);
+			auto rRes = dynamic_cast<Resource*>(materialRes);
 			rRes->mDirtyGPU = true;
 			rRes->mDirtyDisk = false;
-			mDefaultResourceMap.insert({ DefaultResource::DefaultMaterial, { ResourceType::Material, materialRes->GetId() } });
+			mDefaultResourceMap.insert({ DefaultResource::Material, { ResourceType::Material, materialRes->GetId() } });
 		}
+
 	}
 
 	ResourceHandle DResourceManager::CreateMesh(Uuid uuid, std::wstring const& path, bool isDefault, bool fromFile)
