@@ -24,16 +24,6 @@ namespace Darius::Scene::ECS::Components
 		mLightIndex(-1)
 	{ }
 
-	void LightComponent::OnDestroy()
-	{
-		D_LIGHT::ReleaseLight(mLightType, mLightIndex);
-	}
-
-	void LightComponent::Start()
-	{
-		SetLightType(mLightType);
-	}
-
 	void LightComponent::Update(float deltaTime)
 	{
 		if (mLightIndex >= 0)
@@ -99,7 +89,7 @@ namespace Darius::Scene::ECS::Components
 					ImGui::Text("Falloff Start");
 
 					ImGui::TableSetColumnIndex(1);
-					changed |= ImGui::DragFloat("##FalloffStart", &mLightData.FalloffStart, 0.01, 0, mLightData.FalloffStart, "%.3f");
+					changed |= ImGui::DragFloat("##FalloffStart", &mLightData.FalloffStart, 0.01, 0, mLightData.FalloffEnd, "%.3f");
 
 					// Falloff End
 					ImGui::TableNextRow();

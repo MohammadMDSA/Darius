@@ -151,7 +151,7 @@ namespace Darius::Renderer::LightManager
 					LightData& lightData = (*LightVec)[indexInVec];
 					lightData.Position = Vector4(trans.Translation, 0.f);
 					XMStoreFloat4(&lightData.Direction, XMVector3Rotate({ 0.f, 0.f, -1.f }, trans.Rotation));
-					activeFlags = +1;
+					activeFlags += 1;
 
 					lightUploadData[lightIdx] = lightData;
 				}
