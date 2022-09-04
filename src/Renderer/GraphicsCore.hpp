@@ -25,7 +25,20 @@ namespace Darius::Graphics
 	CommandListManager* GetCommandManager();
 	ContextManager*		GetContextManager();
 
-	//D3D12_CPU_DESCRIPTOR_HANDLE GetDefaultTexture(eDefaultTexture texID);
+	enum DefaultTexture
+	{
+		kMagenta2D,  // Useful for indicating missing textures
+		kBlackOpaque2D,
+		kBlackTransparent2D,
+		kWhiteOpaque2D,
+		kWhiteTransparent2D,
+		kDefaultNormalMap,
+		kBlackCubeMap,
+
+		kNumDefaultTextures
+	};
+
+	D3D12_CPU_DESCRIPTOR_HANDLE GetDefaultTexture(DefaultTexture texID);
 	
 	extern std::unordered_map<std::string, ComPtr<ID3DBlob>>	Shaders;
 
@@ -75,16 +88,4 @@ namespace Darius::Graphics
 
 	extern D_GRAPHICS_UTILS::RootSignature	CommonRS;
 
-	enum eDefaultTexture
-	{
-		kMagenta2D,  // Useful for indicating missing textures
-		kBlackOpaque2D,
-		kBlackTransparent2D,
-		kWhiteOpaque2D,
-		kWhiteTransparent2D,
-		kDefaultNormalMap,
-		kBlackCubeMap,
-
-		kNumDefaultTextures
-	};
 }

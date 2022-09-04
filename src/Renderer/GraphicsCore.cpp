@@ -7,11 +7,13 @@
 #include "GraphicsUtils/D3DUtils.hpp"
 #include "GraphicsUtils/Profiling/GpuTimeManager.hpp"
 #include "LightManager.hpp"
+#include "GraphicsUtils/Buffers/Texture.hpp"
 
 #include <Core/TimeManager/TimeManager.hpp>
 #include <Utils/Assert.hpp>
 
 using namespace D_GRAPHICS_MEMORY;
+using namespace D_GRAPHICS_BUFFERS;
 
 namespace Darius::Graphics
 {
@@ -72,13 +74,6 @@ namespace Darius::Graphics
 	D3D12_DEPTH_STENCIL_DESC DepthStateReadOnly;
 	D3D12_DEPTH_STENCIL_DESC DepthStateReadOnlyReversed;
 	D3D12_DEPTH_STENCIL_DESC DepthStateTestEqual;
-
-	/*Texture DefaultTextures[kNumDefaultTextures];
-	D3D12_CPU_DESCRIPTOR_HANDLE GetDefaultTexture(eDefaultTexture texID)
-	{
-		D_ASSERT(texID < kNumDefaultTextures);
-		return DefaultTextures[texID].GetSRV();
-	}*/
 
 	CommandSignature					DispatchIndirectCommandSignature(1);
 	CommandSignature					DrawIndirectCommandSignature(1);
@@ -207,21 +202,6 @@ namespace Darius::Graphics
 		SamplerPointBorderDesc.SetTextureAddressMode(D3D12_TEXTURE_ADDRESS_MODE_BORDER);
 		SamplerPointBorderDesc.SetBorderColor(Color(0.0f, 0.0f, 0.0f, 0.0f));
 		SamplerPointBorder = SamplerPointBorderDesc.CreateDescriptor();
-
-		/*uint32_t MagentaPixel = 0xFFFF00FF;
-		DefaultTextures[kMagenta2D].Create2D(4, 1, 1, DXGI_FORMAT_R8G8B8A8_UNORM, &MagentaPixel);
-		uint32_t BlackOpaqueTexel = 0xFF000000;
-		DefaultTextures[kBlackOpaque2D].Create2D(4, 1, 1, DXGI_FORMAT_R8G8B8A8_UNORM, &BlackOpaqueTexel);
-		uint32_t BlackTransparentTexel = 0x00000000;
-		DefaultTextures[kBlackTransparent2D].Create2D(4, 1, 1, DXGI_FORMAT_R8G8B8A8_UNORM, &BlackTransparentTexel);
-		uint32_t WhiteOpaqueTexel = 0xFFFFFFFF;
-		DefaultTextures[kWhiteOpaque2D].Create2D(4, 1, 1, DXGI_FORMAT_R8G8B8A8_UNORM, &WhiteOpaqueTexel);
-		uint32_t WhiteTransparentTexel = 0x00FFFFFF;
-		DefaultTextures[kWhiteTransparent2D].Create2D(4, 1, 1, DXGI_FORMAT_R8G8B8A8_UNORM, &WhiteTransparentTexel);
-		uint32_t FlatNormalTexel = 0x00FF8080;
-		DefaultTextures[kDefaultNormalMap].Create2D(4, 1, 1, DXGI_FORMAT_R8G8B8A8_UNORM, &FlatNormalTexel);
-		uint32_t BlackCubeTexels[6] = {};
-		DefaultTextures[kBlackCubeMap].CreateCube(4, 1, 1, DXGI_FORMAT_R8G8B8A8_UNORM, BlackCubeTexels);*/
 
 		// Default rasterizer states
 		RasterizerDefault.FillMode = D3D12_FILL_MODE_SOLID;
