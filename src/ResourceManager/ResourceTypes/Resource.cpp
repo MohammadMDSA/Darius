@@ -42,7 +42,7 @@ namespace Darius::ResourceManager
 		if (!mDirtyGPU)
 			return;
 
-		mDirtyGPU = UploadToGpu(context);
+		mDirtyGPU = !UploadToGpu(context);
 	}
 
 }

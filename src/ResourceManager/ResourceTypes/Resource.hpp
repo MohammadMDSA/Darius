@@ -51,6 +51,7 @@ namespace Darius::ResourceManager
 		ResourceType			Type = ResourceType::None;
 		DResourceId				Id = 0;
 
+		INLINE bool IsValid() { return Type != ResourceType::None; }
 	};
 
 	constexpr ResourceHandle EmptyHandle = { ResourceType::None, 0 };

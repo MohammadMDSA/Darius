@@ -80,7 +80,7 @@ namespace Darius::Core
 			return mData;
 		}
 
-		INLINE bool IsValid()
+		INLINE bool IsValid() const
 		{
 			return mData != nullptr;
 		}
