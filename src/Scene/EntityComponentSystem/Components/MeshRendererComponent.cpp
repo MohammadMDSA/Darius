@@ -29,21 +29,22 @@ namespace Darius::Scene::ECS::Components
 	{
 
 		_SetMesh({ ResourceType::None, 0 });
-		_SetMaterial(D_RESOURCE::GetDefaultResource(DefaultResource::DefaultMaterial));
+		_SetMaterial(D_RESOURCE::GetDefaultResource(DefaultResource::Material));
 
 	}
 
 	RenderItem MeshRendererComponent::GetRenderItem()
 	{
 		auto result = RenderItem();
-		const Mesh* mesh = mMeshResource.Get()->GetData();
+		const Mesh* mesh = mMeshResource.Get()->GetMeshData();
 		result.BaseVertexLocation = mesh->mDraw[0].BaseVertexLocation;
 		result.IndexCount = mesh->mDraw[0].IndexCount;
 		result.StartIndexLocation = mesh->mDraw[0].StartIndexLocation;
 		result.Mesh = mesh;
 		result.PrimitiveType = D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
 		result.MeshCBV = GetGameObject()->GetConstantsAddress();
-		result.MaterialCBV = *mMaterialResource.Get();
+		result.Material.MaterialCBV = *mMaterialResource.Get();
+		result.Material.MaterialSRV = mMaterialResource->GetTexturesHandle();
 		return result;
 	}
 
@@ -52,6 +53,7 @@ namespace Darius::Scene::ECS::Components
 	{
 		auto changeValue = false;
 
+		// Mesh selection
 		{
 			MeshResource* currentMesh = mMeshResource.Get();
 
@@ -85,8 +87,82 @@ namespace Darius::Scene::ECS::Components
 
 		}
 
-		D_SCENE_DET_DRAW::DrawDetails(*mMaterialResource->ModifyData(), nullptr);
+		// Material details
+		auto materialData = *mMaterialResource->GetMaterialData();
+		if (D_SCENE_DET_DRAW::DrawDetails(materialData, nullptr))
+		{
+			*mMaterialResource->ModifyMaterialData() = materialData;
+		}
 
+		// Texture selection
+		{
+			// Base Color
+			{
+				Texture2DResource* currentTexture = mMaterialResource->GetBaseColorTexture().Get();
+
+				if (ImGui::Button("Select Base Color Texture"))
+				{
+					ImGui::OpenPopup("Select Diffuse");
+				}
+
+				if (ImGui::BeginPopup("Select Diffuse"))
+				{
+					auto meshes = D_RESOURCE::GetResourcePreviews(D_RESOURCE::ResourceType::Texture2D);
+					int idx = 0;
+					for (auto prev : meshes)
+					{
+						bool selected = currentTexture && prev.Handle.Id == currentTexture->GetId() && prev.Handle.Type == currentTexture->GetType();
+
+						auto name = STR_WSTR(prev.Name);
+						ImGui::PushID((name + std::to_string(idx)).c_str());
+						if (ImGui::Selectable(name.c_str(), &selected))
+						{
+							mMaterialResource->SetTexture(prev.Handle, kBaseColor);
+							changeValue = true;
+						}
+						ImGui::PopID();
+
+						idx++;
+					}
+
+					ImGui::EndPopup();
+				}
+			}
+
+			// Roughness
+			{
+				Texture2DResource* currentTexture = mMaterialResource->GetBaseColorTexture().Get();
+
+				if (ImGui::Button("Select Roughness Texture"))
+				{
+					ImGui::OpenPopup("Select Roughness");
+				}
+
+				if (ImGui::BeginPopup("Select Roughness"))
+				{
+					auto meshes = D_RESOURCE::GetResourcePreviews(D_RESOURCE::ResourceType::Texture2D);
+					int idx = 0;
+					for (auto prev : meshes)
+					{
+						bool selected = currentTexture && prev.Handle.Id == currentTexture->GetId() && prev.Handle.Type == currentTexture->GetType();
+
+						auto name = STR_WSTR(prev.Name);
+						ImGui::PushID((name + std::to_string(idx)).c_str());
+						if (ImGui::Selectable(name.c_str(), &selected))
+						{
+							mMaterialResource->SetTexture(prev.Handle, kRoughness);
+							changeValue = true;
+						}
+						ImGui::PopID();
+						idx++;
+					}
+
+					ImGui::EndPopup();
+				}
+			}
+		}
+
+		// Material selection
 		{
 			MaterialResource* currentMaterial = mMaterialResource.Get();
 

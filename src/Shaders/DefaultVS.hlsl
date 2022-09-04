@@ -31,13 +31,15 @@ struct VertexIn
 {
     float3 Pos :        POSITION;
     float3 Normal :     NORMAL;
+    float2 UV :         TEXCOORD0;
 };
 
 struct VertexOut
 {
-    float4 Pos :        SV_POSITION;
-    float3 WorldPos :   POSITION;
-    float3 WorldNormal : NORMAL;
+    float4 Pos :            SV_POSITION;
+    float3 WorldPos :       POSITION;
+    float3 WorldNormal :    NORMAL;
+    float2 UV :             TEXCOORD0;
 };
 
 VertexOut main(VertexIn vin)
@@ -54,5 +56,7 @@ VertexOut main(VertexIn vin)
     // Transform to homogeneous clip space.
     vout.Pos = mul(gViewProj, posW);
 
+    vout.UV = vin.UV;
+    
     return vout;
 }

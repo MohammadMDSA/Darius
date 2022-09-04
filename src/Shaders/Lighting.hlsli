@@ -1,5 +1,6 @@
+#ifndef __LIGHTING_HLSLI__
+#define __LIGHTING_HLSLI__
 
-#include "Common.hlsli"
 #define MAX_LIGHTS 256
 
 // Defaults for number of lights.
@@ -27,9 +28,10 @@ struct Light
 
 struct Material
 {
-    float4 DiffuseAlbedo;
-    float3 FresnelR0;
-    float Shininess;
+    float4  DiffuseAlbedo;
+    float3  FresnelR0;
+    float   Shininess;
+    int     TexStats;   
 };
 
 ByteAddressBuffer LightMask : register(t10);
@@ -106,7 +108,7 @@ float3 ComputePointLight(Light L, Material mat, float3 pos, float3 normal, float
 
     // Range test.
     if (d > L.FalloffEnd)
-        return 0.0f;
+        return float3(0.f, 0.f, 0.f);
 
     // Normalize the light vector.
     lightVec /= d;
@@ -135,7 +137,7 @@ float3 ComputeSpotLight(Light L, Material mat, float3 pos, float3 normal, float3
 
     // Range testz
     if (d > L.FalloffEnd)
-        return 0.0f;
+        return float3(0.f, 0.f, 0.f);
 
     // Normalize the light vector.
     lightVec /= d;
@@ -184,3 +186,5 @@ float4 ComputeLighting(
     
     return float4(result, 0.0f);
 }
+
+#endif
