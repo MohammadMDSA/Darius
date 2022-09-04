@@ -21,6 +21,8 @@ namespace Darius::Renderer
 	{
 		kMeshConstants,			// Holds mesh constants only in VS
 		kMaterialConstants,		// Holds material constants only in PS
+		kMaterialSRVs,
+		kMaterialSamplers,
 		kCommonCBV,				// Holds global constants in all shaders
 		kCommonSRVs,			
 
@@ -34,6 +36,17 @@ namespace Darius::Renderer
 		kColorCommonCBV,
 
 		kColorNumRootBindings
+	};
+
+	enum TextureType
+	{
+		kBaseColor,
+		kRoughness,
+		kOcculusion,
+		kEmissive,
+		kNormal,
+
+		kNumTextures
 	};
 
 	enum class PipelineStateTypes
@@ -67,4 +80,6 @@ namespace Darius::Renderer
 
 	D_GRAPHICS_UTILS::GraphicsPSO& GetPSO(PipelineStateTypes type);
 	D_GRAPHICS_UTILS::RootSignature& GetRootSignature(RootSignatureTypes type);
+
+	DescriptorHandle		AllocateTextureDescriptor(UINT count = 1);
 }

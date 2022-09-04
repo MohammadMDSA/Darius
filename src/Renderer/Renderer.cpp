@@ -55,6 +55,7 @@ namespace Darius::Renderer
 	DescriptorHeap										SamplerHeap;
 
 	DescriptorHandle									CommonTexture;
+	DescriptorHandle									CommonTextureSamplers;
 
 	//////////////////////////////////////////////////////
 	// Functions
@@ -80,6 +81,7 @@ namespace Darius::Renderer
 		SamplerHeap.Create(L"Scene Smpaler Descriptors", D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER, 2048);
 		
 		CommonTexture = TextureHeap.Alloc(8);
+		CommonTextureSamplers = SamplerHeap.Alloc(kNumTextures);
 
 #ifdef _D_EDITOR
 		InitializeGUI();
@@ -91,6 +93,8 @@ namespace Darius::Renderer
 	{
 		D_ASSERT(_device != nullptr);
 		ImguiHeap.Destroy();
+		TextureHeap.Destroy();
+		SamplerHeap.Destroy();
 		D_GRAPHICS_UTILS::RootSignature::DestroyAll();
 		D_GRAPHICS_UTILS::GraphicsPSO::DestroyAll();
 	}
@@ -128,11 +132,14 @@ namespace Darius::Renderer
 			D_LIGHT::GetLightMaskHandle(),
 			D_LIGHT::GetLightDataHandle()
 		};
-
 		_device->CopyDescriptors(1, &CommonTexture, &destCount, destCount, lightHandles, sourceCounts, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-
 		context.SetDescriptorHeap(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, TextureHeap.GetHeapPointer());
 		context.SetDescriptorTable(kCommonSRVs, CommonTexture);
+		
+		// Setup samplers
+		context.SetDescriptorHeap(D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER, SamplerHeap.GetHeapPointer());
+		context.SetDescriptorTable(kMaterialSamplers, CommonTextureSamplers);
+
 
 		PIXBeginEvent(context.GetCommandList(), PIX_COLOR_DEFAULT, L"Render opaque");
 
@@ -146,10 +153,10 @@ namespace Darius::Renderer
 			context.SetPrimitiveTopology(ri.PrimitiveType);
 
 			context.SetConstantBuffer(kMeshConstants, ri.MeshCBV);
-			context.SetConstantBuffer(kMaterialConstants, ri.MaterialCBV);
+			context.SetConstantBuffer(kMaterialConstants, ri.Material.MaterialCBV);
+			context.SetDescriptorTable(kMaterialSRVs,	ri.Material.MaterialSRV);
 			context.DrawIndexedInstanced(ri.IndexCount, 1, ri.StartIndexLocation, ri.BaseVertexLocation, 0);
 		}
-
 		PIXEndEvent(context.GetCommandList());
 	}
 
@@ -252,7 +259,7 @@ namespace Darius::Renderer
 		Psos[PipelineStateTypes::Opaque] = GraphicsPSO(L"Opaque");
 		auto& pso = Psos[PipelineStateTypes::Opaque];
 
-		auto il = D_RENDERER_VERTEX::VertexPositionNormal::InputLayout;
+		auto il = D_RENDERER_VERTEX::VertexPositionNormalTexture::InputLayout;
 		pso.SetInputLayout(il.NumElements, il.pInputElementDescs);
 
 		pso.SetVertexShader(reinterpret_cast<BYTE*>(Shaders["standardVS"]->GetBufferPointer()),
@@ -303,13 +310,25 @@ namespace Darius::Renderer
 	{
 		// Default root signature
 		auto& def = RootSigns[RootSignatureTypes::Default];
-		def.Reset(kNumRootBindings, 0);
+		def.Reset(kNumRootBindings, 3);
+
+		// Create samplers
+		SamplerDesc defaultSamplerDesc;
+		defaultSamplerDesc.MaxAnisotropy = 8;
+		SamplerDesc cubeMapSamplerDesc = defaultSamplerDesc;
+		def.InitStaticSampler(10, defaultSamplerDesc, D3D12_SHADER_VISIBILITY_PIXEL);
+		def.InitStaticSampler(11, SamplerShadowDesc, D3D12_SHADER_VISIBILITY_PIXEL);
+		def.InitStaticSampler(12, cubeMapSamplerDesc, D3D12_SHADER_VISIBILITY_PIXEL);
+
 		// Create root CBVs.
 		def[kMeshConstants].InitAsConstantBuffer(0, D3D12_SHADER_VISIBILITY_VERTEX);
 		def[kMaterialConstants].InitAsConstantBuffer(0, D3D12_SHADER_VISIBILITY_PIXEL);
+		def[kMaterialSRVs].InitAsDescriptorRange(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 0, 10, D3D12_SHADER_VISIBILITY_PIXEL);
+		def[kMaterialSamplers].InitAsDescriptorRange(D3D12_DESCRIPTOR_RANGE_TYPE_SAMPLER, 0, 10, D3D12_SHADER_VISIBILITY_PIXEL);
 		def[kCommonCBV].InitAsConstantBuffer(1);
 		def[kCommonSRVs].InitAsDescriptorRange(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 10, 8, D3D12_SHADER_VISIBILITY_PIXEL);
 		def.Finalize(L"Main Root Sig", D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT);
+
 
 		//Color root signature
 		auto& col = RootSigns[RootSignatureTypes::Color];
@@ -320,6 +339,11 @@ namespace Darius::Renderer
 		col[kColorCommonCBV].InitAsConstantBuffer(1, D3D12_SHADER_VISIBILITY_VERTEX);
 		col.Finalize(L"Color Root Sig", D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT);
 
+	}
+
+	DescriptorHandle AllocateTextureDescriptor(UINT count)
+	{
+		return TextureHeap.Alloc(count);
 	}
 
 #ifdef _D_EDITOR

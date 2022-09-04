@@ -54,6 +54,7 @@ namespace Darius::Renderer::ConstantFrameResource
 		XMFLOAT4					DifuseAlbedo = { 1.f, 1.f, 1.f, 1.f };
 		XMFLOAT3					FresnelR0 = { 0.f, 0.f, 0.f };
 		float						Roughness = 0.2f;
+		int							TextureStatusMask = 0;
 	};
 
 	// Lightweight structure stores parameters to draw a shape.
@@ -61,22 +62,18 @@ namespace Darius::Renderer::ConstantFrameResource
 	{
 		RenderItem() = default;
 
-		// Dirty flag indicating the object data has changed and we need
-		// to update thhe constant buffer. Because we have an object
-		// cbuffer for each FrameResource, we have to apply the
-		// uupdate to each FrameResource. Thus, when we modify object data we
-		// should set.
-		// NumFramesDirty = mNumFrameResources so that each frame resource
-		// gets the update.
-		int								NumFramesDirty = gNumFrameResources;
-
 		// Mesh constants GPU Address
 		D3D12_GPU_VIRTUAL_ADDRESS		MeshCBV;
 
 		// Material or color
 		union
 		{
-			D3D12_GPU_VIRTUAL_ADDRESS	MaterialCBV;
+			struct MaterialData
+			{
+				D3D12_GPU_VIRTUAL_ADDRESS	MaterialCBV;
+				D3D12_GPU_DESCRIPTOR_HANDLE	MaterialSRV;
+			} Material;
+			
 			XMFLOAT4					Color = { 1.f, 1.f, 1.f, 1.f };
 		};
 
