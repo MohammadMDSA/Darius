@@ -31,24 +31,24 @@ namespace Darius::ResourceManager
 		submesh.StartIndexLocation = 0;
 		submesh.BaseVertexLocation = 0;
 
-		DVector<D_RENDERER_VERTEX::VertexPositionNormal> vertices(data.Vertices.size());
+		DVector<D_RENDERER_VERTEX::VertexPositionNormalTexture> vertices(data.Vertices.size());
 
 		for (size_t i = 0; i < data.Vertices.size(); i++)
 		{
 			auto& ver = data.Vertices[i];
-			vertices[i] = D_RENDERER_VERTEX::VertexPositionNormal(ver.mPosition, ver.mNormal);
+			vertices[i] = D_RENDERER_VERTEX::VertexPositionNormalTexture(ver.mPosition, ver.mNormal, ver.mTexC);
 		}
 
 		DVector<std::uint16_t> indices;
 		indices.insert(indices.end(), std::begin(data.GetIndices16()), std::end(data.GetIndices16()));
 
-		const UINT vbByteSize = (UINT)vertices.size() * sizeof(D_RENDERER_VERTEX::VertexPositionNormal);
+		const UINT vbByteSize = (UINT)vertices.size() * sizeof(D_RENDERER_VERTEX::VertexPositionNormalTexture);
 		const UINT ibByteSize = (UINT)indices.size() * sizeof(std::uint16_t);
 
 		mMesh.name = GetName();
 
 		// Create vertex buffer
-		mMesh.VertexDataGpu.Create(mMesh.name + L" Vertex Buffer", vertices.size(), sizeof(D_RENDERER_VERTEX::VertexPositionNormal), vertices.data());
+		mMesh.VertexDataGpu.Create(mMesh.name + L" Vertex Buffer", vertices.size(), sizeof(D_RENDERER_VERTEX::VertexPositionNormalTexture), vertices.data());
 
 		// Create index buffer
 		mMesh.IndexDataGpu.Create(mMesh.name + L" Index Buffer", indices.size(), sizeof(std::uint16_t), indices.data());
