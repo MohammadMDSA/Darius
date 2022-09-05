@@ -185,7 +185,7 @@ namespace Darius::ResourceManager
 
 			// TODO: bad allocation
 			auto res = new MeshResource(GenerateUuidFor("Box Mesh"), L"Box Mesh", GetNewId(), true);
-			res->Create(L"Box Mesh", box);
+			res->Create(box);
 			auto rRes = dynamic_cast<Resource*>(res);
 			rRes->mDirtyGPU = false;
 			rRes->mDirtyDisk = false;
@@ -193,7 +193,7 @@ namespace Darius::ResourceManager
 			UpdateMaps(rRes);
 
 			res = new MeshResource(GenerateUuidFor("Cylinder Mesh"), L"Cylinder Mesh", GetNewId(), true);
-			res->Create(L"Cylinder Mesh", cylinder);
+			res->Create(cylinder);
 			rRes = dynamic_cast<Resource*>(res);
 			rRes->mDirtyGPU = false;
 			rRes->mDirtyDisk = false;
@@ -201,7 +201,7 @@ namespace Darius::ResourceManager
 			UpdateMaps(rRes);
 
 			res = new MeshResource(GenerateUuidFor("Geosphere Mesh"), L"Geosphere Mesh", GetNewId(), true);
-			res->Create(L"Geosphere Mesh", geosphere);
+			res->Create(geosphere);
 			rRes = dynamic_cast<Resource*>(res);
 			rRes->mDirtyGPU = false;
 			rRes->mDirtyDisk = false;
@@ -209,7 +209,7 @@ namespace Darius::ResourceManager
 			UpdateMaps(rRes);
 
 			res = new MeshResource(GenerateUuidFor("Grid Mesh"), L"Grid Mesh", GetNewId(), true);
-			res->Create(L"Grid Mesh", grid);
+			res->Create(grid);
 			rRes = dynamic_cast<Resource*>(res);
 			rRes->mDirtyGPU = false;
 			rRes->mDirtyDisk = false;
@@ -217,7 +217,7 @@ namespace Darius::ResourceManager
 			UpdateMaps(rRes);
 
 			res = new MeshResource(GenerateUuidFor("Quad Mesh"), L"Quad Mesh", GetNewId(), true);
-			res->Create(L"Quad Mesh", quad);
+			res->Create(quad);
 			rRes = dynamic_cast<Resource*>(res);
 			rRes->mDirtyGPU = false;
 			rRes->mDirtyDisk = false;
@@ -225,7 +225,7 @@ namespace Darius::ResourceManager
 			UpdateMaps(rRes);
 
 			res = new MeshResource(GenerateUuidFor("Sphere Mesh"), L"Sphere Mesh", GetNewId(), true);
-			res->Create(L"Sphere Mesh", sphere);
+			res->Create(sphere);
 			rRes = dynamic_cast<Resource*>(res);
 			rRes->mDirtyGPU = false;
 			rRes->mDirtyDisk = false;
@@ -233,7 +233,7 @@ namespace Darius::ResourceManager
 			UpdateMaps(rRes);
 
 			res = new BatchResource(GenerateUuidFor("Line Mesh"), L"Line Mesh", GetNewId(), true);
-			res->Create(L"Line Mesh", line);
+			res->Create(line);
 			rRes = dynamic_cast<Resource*>(res);
 			rRes->mDirtyGPU = false;
 			rRes->mDirtyDisk = false;

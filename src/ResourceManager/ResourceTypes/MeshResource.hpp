@@ -28,7 +28,7 @@ namespace Darius::ResourceManager
 		INLINE Mesh*					ModifyMeshData() { MakeDiskDirty(); MakeGpuDirty(); return &mMesh; }
 		INLINE const Mesh*				GetMeshData() const { return &mMesh; }
 
-		virtual void					Create(std::wstring name,  MeshData<VertexType>& data);
+		virtual void					Create(MeshData<VertexType>& data);
 
 		virtual bool					SuppoertsExtension(std::wstring ext) override;
 

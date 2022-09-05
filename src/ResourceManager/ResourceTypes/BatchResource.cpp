@@ -6,10 +6,10 @@
 
 namespace Darius::ResourceManager
 {
-	void BatchResource::Create(std::wstring name, MeshData<VertexType>& data)
+	void BatchResource::Create(MeshData<VertexType>& data)
 	{
 		Destroy();
-		SetName(name);
+		SetName(GetName());
 
 		Mesh::Draw submesh;
 		submesh.IndexCount = (UINT)data.Indices32.size();

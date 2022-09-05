@@ -24,7 +24,7 @@ namespace Darius::ResourceManager
 
 	public:
 
-		virtual void					Create(std::wstring name, MeshData<VertexType>& data) override;
+		virtual void					Create(MeshData<VertexType>& data) override;
 		
 	private:
 		friend class DResourceManager;
