@@ -258,19 +258,19 @@ namespace Darius::Editor::Gui::Windows
 			mMovingCam = false;
 		}
 
-		// Focusing on object
-		auto selectedGameObject = D_EDITOR_CONTEXT::GetSelectedGameObject();
-		if (D_KEYBOARD::IsKeyDown(D_KEYBOARD::Keys::F) && selectedGameObject)
-		{
-			mOrbitCam.SetTarget(selectedGameObject->GetTransform().Translation);
-		}
-
 		if (mMovingCam)
 			return;
 
 		// Shortcuts
 		if (!mFocused)
 			return;
+
+		// Focusing on object
+		auto selectedGameObject = D_EDITOR_CONTEXT::GetSelectedGameObject();
+		if (D_KEYBOARD::IsKeyDown(D_KEYBOARD::Keys::F) && selectedGameObject)
+		{
+			mOrbitCam.SetTarget(selectedGameObject->GetTransform().Translation);
+		}
 
 		if (D_KEYBOARD::IsKeyDown(D_KEYBOARD::Keys::W))
 			mManipulateOperation = ImGuizmo::OPERATION::TRANSLATE;
