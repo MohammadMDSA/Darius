@@ -1,6 +1,16 @@
 set(IMGUI_DIR ${CMAKE_CURRENT_SOURCE_DIR}/imgui)
 set(IMGUIZMO_DIR ${CMAKE_CURRENT_SOURCE_DIR}/ImGuizmo)
 set(IMPLOT_DIR ${CMAKE_CURRENT_SOURCE_DIR}/implot)
+set(IMGUIFILEDIALOG_DIR ${CMAKE_CURRENT_SOURCE_DIR}/ImGuiFileDialog)
+
+ADD_LIBRARY(IMGUIFILEDIALOG static)
+
+target_sources(IMGUIFILEDIALOG
+                private
+                ${IMGUIFILEDIALOG_DIR}/ImGuiFileDialog.cpp)
+target_include_directories(IMGUIFILEDIALOG
+                public
+                ${IMGUIFILEDIALOG_DIR}/ImGuiFileDialog.h)
 
 add_library(IMGUI STATIC)
 
