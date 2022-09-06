@@ -22,10 +22,6 @@ namespace Darius::ResourceManager
 	{
 		D_CH_RESOURCE_BODY(BatchResource, ResourceType::Batch)
 
-	public:
-
-		virtual void					Create(MeshData<VertexType>& data) override;
-		
 	private:
 		friend class DResourceManager;
 
