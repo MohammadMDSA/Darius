@@ -1,6 +1,7 @@
 #include "Renderer/pch.hpp"
 #include "MaterialResource.hpp"
 #include "ResourceManager/ResourceManager.hpp"
+#include "ResourceManager/ResourceLoader.hpp"
 
 #include <Core/Serialization/Json.hpp>
 #include <Renderer/RenderDeviceManager.hpp>
@@ -209,7 +210,7 @@ device->CopyDescriptorsSimple(1, mTexturesHeap + type * incSize, m##name##Textur
 	{
 		if (!GetLoaded())
 		{
-			this->ReadResourceFromFile();
+			D_RESOURCE_LOADER::LoadResource(this);
 			auto& context = D_GRAPHICS::GraphicsContext::Begin(L"Force gpu update on detail");
 			this->UpdateGPU(context);
 			context.Finish(true);
