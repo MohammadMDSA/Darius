@@ -185,7 +185,8 @@ namespace Darius::ResourceManager
 
 			// TODO: bad allocation
 			auto res = new MeshResource(GenerateUuidFor("Box Mesh"), L"Box Mesh", GetNewId(), true);
-			res->Create(box);
+			auto meshVec = DVector<MeshData<MeshResource::VertexType>>{ box };
+			res->Create(meshVec);
 			auto rRes = dynamic_cast<Resource*>(res);
 			rRes->mDirtyGPU = false;
 			rRes->mDirtyDisk = false;
@@ -193,7 +194,8 @@ namespace Darius::ResourceManager
 			UpdateMaps(rRes);
 
 			res = new MeshResource(GenerateUuidFor("Cylinder Mesh"), L"Cylinder Mesh", GetNewId(), true);
-			res->Create(cylinder);
+			meshVec = DVector<MeshData<MeshResource::VertexType>>{ cylinder };
+			res->Create(meshVec);
 			rRes = dynamic_cast<Resource*>(res);
 			rRes->mDirtyGPU = false;
 			rRes->mDirtyDisk = false;
@@ -201,7 +203,8 @@ namespace Darius::ResourceManager
 			UpdateMaps(rRes);
 
 			res = new MeshResource(GenerateUuidFor("Geosphere Mesh"), L"Geosphere Mesh", GetNewId(), true);
-			res->Create(geosphere);
+			meshVec = DVector<MeshData<MeshResource::VertexType>>{ geosphere };
+			res->Create(meshVec);
 			rRes = dynamic_cast<Resource*>(res);
 			rRes->mDirtyGPU = false;
 			rRes->mDirtyDisk = false;
@@ -209,7 +212,8 @@ namespace Darius::ResourceManager
 			UpdateMaps(rRes);
 
 			res = new MeshResource(GenerateUuidFor("Grid Mesh"), L"Grid Mesh", GetNewId(), true);
-			res->Create(grid);
+			meshVec = DVector<MeshData<MeshResource::VertexType>>{ grid };
+			res->Create(meshVec);
 			rRes = dynamic_cast<Resource*>(res);
 			rRes->mDirtyGPU = false;
 			rRes->mDirtyDisk = false;
@@ -217,7 +221,8 @@ namespace Darius::ResourceManager
 			UpdateMaps(rRes);
 
 			res = new MeshResource(GenerateUuidFor("Quad Mesh"), L"Quad Mesh", GetNewId(), true);
-			res->Create(quad);
+			meshVec = DVector<MeshData<MeshResource::VertexType>>{ quad };
+			res->Create(meshVec);
 			rRes = dynamic_cast<Resource*>(res);
 			rRes->mDirtyGPU = false;
 			rRes->mDirtyDisk = false;
@@ -225,7 +230,8 @@ namespace Darius::ResourceManager
 			UpdateMaps(rRes);
 
 			res = new MeshResource(GenerateUuidFor("Sphere Mesh"), L"Sphere Mesh", GetNewId(), true);
-			res->Create(sphere);
+			meshVec = DVector<MeshData<MeshResource::VertexType>>{ sphere };
+			res->Create(meshVec);
 			rRes = dynamic_cast<Resource*>(res);
 			rRes->mDirtyGPU = false;
 			rRes->mDirtyDisk = false;
@@ -233,7 +239,8 @@ namespace Darius::ResourceManager
 			UpdateMaps(rRes);
 
 			res = new BatchResource(GenerateUuidFor("Line Mesh"), L"Line Mesh", GetNewId(), true);
-			res->Create(line);
+			meshVec = DVector<MeshData<MeshResource::VertexType>>{ line };
+			res->Create(meshVec);
 			rRes = dynamic_cast<Resource*>(res);
 			rRes->mDirtyGPU = false;
 			rRes->mDirtyDisk = false;

@@ -28,12 +28,12 @@ namespace Darius::ResourceManager
 		INLINE Mesh*					ModifyMeshData() { MakeDiskDirty(); MakeGpuDirty(); return &mMesh; }
 		INLINE const Mesh*				GetMeshData() const { return &mMesh; }
 
-		virtual void					Create(MeshData<VertexType>& data);
+		virtual void					Create(D_CONTAINERS::DVector<MeshData<VertexType>>& data);
 
 		virtual bool					SuppoertsExtension(std::wstring ext) override;
 
 #ifdef _D_EDITOR
-		virtual bool						DrawDetails(float params[]) override { (params); return false; };
+		virtual bool					DrawDetails(float params[]) override { (params); return false; };
 #endif // _D_EDITOR
 
 		INLINE operator const Mesh* () const { return &mMesh; }
@@ -52,6 +52,9 @@ namespace Darius::ResourceManager
 
 	private:
 		friend class DResourceManager;
+
+		void GetFBXUVs(DVector<D_RENDERER_GEOMETRY::MeshData<VertexType>>& meshData, void const* mesh, DVector<DMap<int, int>>& indexMapper);
+
 		
 	};
 }

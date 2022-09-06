@@ -38,7 +38,7 @@ namespace Darius::Scene::ECS::Components
 		auto result = RenderItem();
 		const Mesh* mesh = mMeshResource.Get()->GetMeshData();
 		result.BaseVertexLocation = mesh->mDraw[0].BaseVertexLocation;
-		result.IndexCount = mesh->mDraw[0].IndexCount;
+		result.IndexCount = mesh->mNumTotalIndices;
 		result.StartIndexLocation = mesh->mDraw[0].StartIndexLocation;
 		result.Mesh = mesh;
 		result.PrimitiveType = D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST;

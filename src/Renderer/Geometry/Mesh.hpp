@@ -50,6 +50,9 @@ namespace Darius::Renderer::Geometry
 
 		D_MATH_BOUNDS::BoundingSphere	mBoundSp;
 		D_MATH_BOUNDS::AxisAlignedBox	mBoundBox;
+
+		UINT							mNumTotalVertices;
+		UINT							mNumTotalIndices;
 	};
 
 }

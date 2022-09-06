@@ -3,6 +3,7 @@
 #include "ResourceManager/ResourceManager.hpp"
 
 #include <Core/Filesystem/Path.hpp>
+#include <Core/Containers/Set.hpp>
 #include <Renderer/RenderDeviceManager.hpp>
 #include <Renderer/GraphicsCore.hpp>
 
@@ -15,8 +16,6 @@ using namespace D_CONTAINERS;
 namespace Darius::ResourceManager
 {
 
-	void GetFBXUVs(MeshData<MeshResource::VertexType>& meshData, FbxMesh const* mesh);
-
 	bool MeshResource::SuppoertsExtension(std::wstring ext)
 	{
 		if (ext == L".fbx")
@@ -24,29 +23,56 @@ namespace Darius::ResourceManager
 		return false;
 	}
 
-	void MeshResource::Create(MeshData<VertexType>& data)
+	void MeshResource::Create(DVector<MeshData<VertexType>>& data)
 	{
 		Destroy();
 		SetName(GetName());
 
-		Mesh::Draw submesh;
-		submesh.IndexCount = (UINT)data.Indices32.size();
-		submesh.StartIndexLocation = 0;
-		submesh.BaseVertexLocation = 0;
-
-		DVector<D_RENDERER_VERTEX::VertexPositionNormalTexture> vertices(data.Vertices.size());
-
-		for (size_t i = 0; i < data.Vertices.size(); i++)
+		auto totalVertices = 0u;
+		auto totalIndices = 0u;
+		for (auto meshData : data)
 		{
-			auto& ver = data.Vertices[i];
-			vertices[i] = D_RENDERER_VERTEX::VertexPositionNormalTexture(ver.mPosition, ver.mNormal, ver.mTexC);
+			totalVertices += meshData.Vertices.size();
+			totalIndices += meshData.Indices32.size();
 		}
 
+		DVector<D_RENDERER_VERTEX::VertexPositionNormalTexture> vertices(totalVertices);
 		DVector<std::uint16_t> indices;
-		indices.insert(indices.end(), std::begin(data.GetIndices16()), std::end(data.GetIndices16()));
 
-		const UINT vbByteSize = (UINT)vertices.size() * sizeof(D_RENDERER_VERTEX::VertexPositionNormalTexture);
-		const UINT ibByteSize = (UINT)indices.size() * sizeof(std::uint16_t);
+		mMesh.mNumTotalIndices = totalIndices;
+		mMesh.mNumTotalVertices = totalVertices;
+
+		auto vertexIndex = 0;
+		auto indexIndex = 0;
+		for (auto meshData : data)
+		{
+			// Creating submesh
+			Mesh::Draw submesh;
+			submesh.IndexCount = meshData.Indices32.size();
+			submesh.StartIndexLocation = indexIndex;
+			submesh.BaseVertexLocation = vertexIndex;
+
+			// Adding vertices
+			for (size_t i = 0; i < meshData.Vertices.size(); i++)
+			{
+				auto& ver = meshData.Vertices[i];
+				vertices[vertexIndex] = D_RENDERER_VERTEX::VertexPositionNormalTexture(ver.mPosition, ver.mNormal, ver.mTexC);
+				vertexIndex++;
+			}
+
+			// Adding indices
+			for (auto index : meshData.GetIndices16())
+			{
+				indices.push_back(index + submesh.BaseVertexLocation);
+			}
+			indexIndex += submesh.IndexCount;
+
+			// Updating bounding sphear
+			mMesh.mBoundSp = mMesh.mBoundSp.Union(meshData.CalcBoundingSphere());
+			mMesh.mBoundBox = mMesh.mBoundBox.Union(meshData.CalcBoundingBox());
+
+			mMesh.mDraw.push_back(submesh);
+		}
 
 		mMesh.name = GetName();
 
@@ -56,10 +82,6 @@ namespace Darius::ResourceManager
 		// Create index buffer
 		mMesh.IndexDataGpu.Create(mMesh.name + L" Index Buffer", indices.size(), sizeof(std::uint16_t), indices.data());
 
-		mMesh.mDraw.push_back(submesh);
-
-		mMesh.mBoundSp = data.CalcBoundingSphere();
-		mMesh.mBoundBox = data.CalcBoundingBox();
 	}
 
 	void MeshResource::WriteResourceToFile() const
@@ -121,46 +143,54 @@ namespace Darius::ResourceManager
 
 		auto controlPoints = mesh->GetControlPoints();
 
-		D_RENDERER_GEOMETRY::MeshData<VertexType> meshData;
+		DVector<D_RENDERER_GEOMETRY::MeshData<VertexType>> meshDataVec;
 
 		fbxsdk::FbxLayerElementArrayTemplate<fbxsdk::FbxVector2>* uvArr;
 
-		// Add vertext positions
-		for (size_t i = 0; i < mesh->GetControlPointsCount(); i++)
-		{
-			VertexType vert;
-			auto controlPoint = controlPoints[i];
-			vert.mPosition.x = (float)controlPoint[0];
-			vert.mPosition.y = (float)controlPoint[1];
-			vert.mPosition.z = (float)controlPoint[2];
-			vert.mTexC = XMFLOAT2(0.f, 0.f);
-			meshData.Vertices.push_back(vert);
-		}
-
-		// Add indices
+		// Iterating polygons
 		auto polyCount = mesh->GetPolygonCount();
-		for (size_t polyIdx = 0; polyIdx < mesh->GetPolygonCount(); polyIdx++)
+		DVector<DMap<int, int>> indexMapper(polyCount);
+		for (size_t polyIdx = 0; polyIdx < polyCount; polyIdx++)
 		{
+			// A submesh for each polygon
+			D_RENDERER_GEOMETRY::MeshData<VertexType> submeshData;
+
 			for (size_t vertIdx = 0; vertIdx < mesh->GetPolygonSize(polyIdx); vertIdx++)
 			{
+				// Add new mapped index
 				auto vertexGlobalIdx = mesh->GetPolygonVertex(polyIdx, vertIdx);
+				if (!indexMapper[polyIdx].contains(vertexGlobalIdx))
+				{
+					VertexType vert;
+					auto controlPoint = controlPoints[vertexGlobalIdx];
+					vert.mPosition.x = (float)controlPoint[0];
+					vert.mPosition.y = (float)controlPoint[1];
+					vert.mPosition.z = (float)controlPoint[2];
+					submeshData.Vertices.push_back(vert);
 
-				meshData.Indices32.push_back(vertexGlobalIdx);
+					indexMapper[polyIdx][vertexGlobalIdx] = submeshData.Vertices.size() - 1;
+				}
+
+				submeshData.Indices32.push_back(indexMapper[polyIdx][vertexGlobalIdx]);
 			}
+
+			meshDataVec.push_back(submeshData);
 		}
 
 		//Add UV data
-		GetFBXUVs(meshData, mesh);
+		GetFBXUVs(meshDataVec, mesh, indexMapper);
 
 		// Destroy the SDK manager and all the other objects it was handling.
 		lSdkManager->Destroy();
 
-		Create(meshData);
+		Create(meshDataVec);
 		return true;
 	}
 
-	void GetFBXUVs(MeshData<MeshResource::VertexType>& meshData, FbxMesh const* mesh)
+	void MeshResource::GetFBXUVs(DVector<D_RENDERER_GEOMETRY::MeshData<VertexType>>& meshDataVec, void const* meshP, DVector<DMap<int, int>>& indexMapper)
 	{
+		auto mesh = (FbxMesh const*)meshP;
+
 		FbxStringList lUVSetNameList;
 		mesh->GetUVSetNames(lUVSetNameList);
 
@@ -171,19 +201,16 @@ namespace Darius::ResourceManager
 		const int lIndexCount = (lUseIndex) ? lUVElement->GetIndexArray().GetCount() : 0;
 
 		//iterating through the data by polygon
-		const int lPolyCount = mesh->GetPolygonCount();
-
 		if (lUVElement->GetMappingMode() == FbxGeometryElement::eByControlPoint)
 		{
-			for (int lPolyIndex = 0; lPolyIndex < lPolyCount; ++lPolyIndex)
+			for (int lPolyIndex = 0; lPolyIndex < mesh->GetPolygonCount(); ++lPolyIndex)
 			{
+				auto& polyMeshData = meshDataVec[lPolyIndex];
 				// build the max index array that we need to pass into MakePoly
-				const int lPolySize = mesh->GetPolygonSize(lPolyIndex);
-				for (int lVertIndex = 0; lVertIndex < lPolySize; ++lVertIndex)
+				for (int lVertIndex = 0; lVertIndex < mesh->GetPolygonSize(lPolyIndex); ++lVertIndex)
 				{
 					FbxVector2 lUVValue;
 
-					//get the index of the current vertex in control points array
 					int lPolyVertIndex = mesh->GetPolygonVertex(lPolyIndex, lVertIndex);
 
 					//the UV index depends on the reference mode
@@ -191,19 +218,22 @@ namespace Darius::ResourceManager
 
 					lUVValue = lUVElement->GetDirectArray().GetAt(lUVIndex);
 
-					meshData.Vertices[lPolyVertIndex].mTexC.x = lUVValue[0];
-					meshData.Vertices[lPolyVertIndex].mTexC.y = lUVValue[1];
+					auto& vert = polyMeshData.Vertices[indexMapper[lPolyIndex][polyMeshData.Indices32[lVertIndex]]];
+
+					vert.mTexC.x = lUVValue[0];
+					vert.mTexC.y = lUVValue[1];
 				}
 			}
 		}
 		else if (lUVElement->GetMappingMode() == FbxGeometryElement::eByPolygonVertex)
 		{
 			int lPolyIndexCounter = 0;
-			for (int lPolyIndex = 0; lPolyIndex < lPolyCount; ++lPolyIndex)
+			for (int lPolyIndex = 0; lPolyIndex < mesh->GetPolygonCount(); ++lPolyIndex)
 			{
+				auto& polyMeshData = meshDataVec[lPolyIndex];
+
 				// build the max index array that we need to pass into MakePoly
-				const int lPolySize = mesh->GetPolygonSize(lPolyIndex);
-				for (int lVertIndex = 0; lVertIndex < lPolySize; ++lVertIndex)
+				for (int lVertIndex = 0; lVertIndex < mesh->GetPolygonSize(lPolyIndex); ++lVertIndex)
 				{
 					if (lPolyIndexCounter < lIndexCount)
 					{
@@ -215,9 +245,9 @@ namespace Darius::ResourceManager
 						lUVValue = lUVElement->GetDirectArray().GetAt(lUVIndex);
 
 						//get the index of the current vertex in control points array
-						int lPolyVertIndex = meshData.Indices32[lPolyIndexCounter];
-						meshData.Vertices[lPolyVertIndex].mTexC.x = lUVValue[0];
-						meshData.Vertices[lPolyVertIndex].mTexC.y = lUVValue[1];
+						auto& vert = polyMeshData.Vertices[polyMeshData.Indices32[lVertIndex]];
+						vert.mTexC.x = lUVValue[0];
+						vert.mTexC.y = 1 - lUVValue[1];
 
 						lPolyIndexCounter++;
 					}
