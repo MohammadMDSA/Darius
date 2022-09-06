@@ -3,6 +3,8 @@
 #include <Core/Filesystem/Path.hpp>
 #include <Scene/GameObject.hpp>
 
+#include <Utils/Detailed.hpp>
+
 #ifndef D_EDITOR_CONTEXT
 #define D_EDITOR_CONTEXT Darius::Editor::ContextManager
 #endif // !D_EDITOR_CONTEXT
@@ -18,6 +20,8 @@ namespace Darius::Editor::ContextManager
 
 	GameObject*						GetSelectedGameObject();
 	void							SetSelectedGameObject(GameObject* go);
+	Detailed*						GetSelectedDetailed();
+	void							SetSelectedDetailed(Detailed* d);
 
 	// Paths
 	Path							GetProjectPath();

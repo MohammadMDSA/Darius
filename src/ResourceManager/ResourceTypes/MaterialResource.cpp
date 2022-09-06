@@ -6,6 +6,7 @@
 #include <Renderer/RenderDeviceManager.hpp>
 #include <Utils/Common.hpp>
 
+#include <imgui.h>
 #include <nlohmann/json.hpp>
 
 #include <fstream>
@@ -45,7 +46,7 @@ namespace Darius::ResourceManager
 			data["BaseColorTexture"] = ToString(mBaseColorTexture->GetUuid());
 
 		bool usedRoughnessTex = mMaterial.TextureStatusMask & (1 << kRoughness);
-		if(usedRoughnessTex)
+		if (usedRoughnessTex)
 			data["RoughnessTexture"] = ToString(mRoughnessTexture->GetUuid());
 
 		bool usedNormalTex = mMaterial.TextureStatusMask & (1 << kNormal);
@@ -146,13 +147,16 @@ namespace Darius::ResourceManager
 			switch (type)
 			{
 			case Darius::Renderer::kBaseColor:
-				mBaseColorTextureHandle = textureHandle;
+				mBaseColorTextureHandle = EmptyHandle;
+				mBaseColorTexture.Unref();
 				break;
 			case Darius::Renderer::kRoughness:
-				mRoughnessTextureHandle = textureHandle;
+				mRoughnessTextureHandle = EmptyHandle;
+				mRoughnessTexture.Unref();
 				break;
 			case Darius::Renderer::kNormal:
-				mNormalTextureHandle = textureHandle;
+				mNormalTextureHandle = EmptyHandle;
+				mNormalTexture.Unref();
 				break;
 			case Darius::Renderer::kOcculusion:
 			case Darius::Renderer::kEmissive:
@@ -198,5 +202,134 @@ device->CopyDescriptorsSimple(1, mTexturesHeap + type * incSize, m##name##Textur
 		MakeDiskDirty();
 
 	}
+
+
+#ifdef _D_EDITOR
+	bool MaterialResource::DrawDetails(float params[])
+	{
+		if (!GetLoaded())
+		{
+			this->ReadResourceFromFile();
+			auto& context = D_GRAPHICS::GraphicsContext::Begin(L"Force gpu update on detail");
+			this->UpdateGPU(context);
+			context.Finish(true);
+		}
+
+#define DrawTexture2DHolder(prop, type) \
+{ \
+	Texture2DResource* currentTexture = prop.Get(); \
+ \
+	auto curName = (mMaterial.TextureStatusMask & (1 << type)) ? prop->GetName() : L"<None>"; \
+	if (ImGui::Button(STR_WSTR(curName).c_str())) \
+	{ \
+		\
+		ImGui::OpenPopup("Select " #type); \
+	} \
+		 \
+	if (ImGui::BeginPopup("Select " #type)) \
+	{ \
+		bool nonSel = !prop.IsValid(); \
+		if (ImGui::Selectable("<None>", &nonSel)) \
+		{ \
+			SetTexture(EmptyHandle, type); \
+			valueChanged = true; \
+		} \
+			 \
+		auto meshes = D_RESOURCE::GetResourcePreviews(D_RESOURCE::ResourceType::Texture2D); \
+		int idx = 0; \
+		for (auto prev : meshes) \
+		{ \
+			bool selected = currentTexture && prev.Handle.Id == currentTexture->GetId() && prev.Handle.Type == currentTexture->GetType(); \
+ \
+			auto name = STR_WSTR(prev.Name); \
+			ImGui::PushID((name + std::to_string(idx)).c_str()); \
+			if (ImGui::Selectable(name.c_str(), &selected)) \
+			{ \
+				SetTexture(prev.Handle, type); \
+				valueChanged = true; \
+			} \
+			ImGui::PopID(); \
+				 \
+			idx++; \
+		} \
+		 \
+		ImGui::EndPopup(); \
+	} \
+} \
+
+		// Material constants
+		{
+			bool valueChanged = false;
+
+			ImGuiIO& io = ImGui::GetIO();
+			auto boldFont = io.Fonts->Fonts[0];
+
+
+			if (ImGui::BeginTable("mat editor", 2, ImGuiTableFlags_BordersInnerV))
+			{
+				ImGui::TableSetupColumn("label", ImGuiTableColumnFlags_WidthFixed, 100.f);
+				ImGui::TableSetupColumn("value", ImGuiTableColumnFlags_WidthStretch);
+
+
+				// Diffuse
+				if (!(mMaterial.TextureStatusMask & (1 << kBaseColor)))
+				{
+
+					ImGui::TableNextRow();
+					ImGui::TableSetColumnIndex(0);
+					ImGui::Text("Diffuse Color");
+
+					ImGui::TableSetColumnIndex(1);
+					float defL[] = { 0.f, 1.f };
+					if (D_MATH::DrawDetails(*(Vector4*)&mMaterial.DifuseAlbedo, defL))
+					{
+						valueChanged = true;
+					}
+				}
+
+				// Fresnel
+				ImGui::TableNextRow();
+				ImGui::TableSetColumnIndex(0);
+				ImGui::Text("Fresnel");
+
+				ImGui::TableSetColumnIndex(1);
+				float defR[] = { 0.f, 1.f };
+				if (D_MATH::DrawDetails(*(Vector3*)&mMaterial.FresnelR0, defR))
+				{
+					valueChanged = true;
+				}
+
+				// Roughness
+				if (!(mMaterial.TextureStatusMask & (1 << kRoughness)))
+				{
+					ImGui::TableNextRow();
+					ImGui::TableSetColumnIndex(0);
+					ImGui::Text("Roughness");
+
+					ImGui::TableSetColumnIndex(1);
+					float defS[] = { 1.f, 0.f };
+					if (ImGui::DragFloat("##X", &mMaterial.Roughness, 0.01f, 0.f, 1.f, "% .3f"))
+					{
+						valueChanged = true;
+					}
+				}
+
+				ImGui::EndTable();
+			}
+
+			// Texture selection
+			{
+				// Base Color
+				DrawTexture2DHolder(mBaseColorTexture, kBaseColor);
+
+				// Roughness
+				DrawTexture2DHolder(mRoughnessTexture, kRoughness);
+			}
+
+
+			return valueChanged;
+		}
+	}
+#endif // _D_EDITOR
 
 }

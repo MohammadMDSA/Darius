@@ -29,6 +29,9 @@ list(APPEND MATH_LIBS_SOURCES
 	"Bounds/BoundingSphere.cpp"
 	"pch.cpp"
 	"Color.cpp"
+	"Vector.cpp"
+	"Transform.cpp"
+	"Quaternion.cpp"
 	"Camera/Camera.cpp"
 	"Camera/Frustum.cpp"
 	)
@@ -39,7 +42,7 @@ add_library("Math")
 target_sources("Math"
 	PRIVATE
 	${MATH_LIBS_SOURCES}
-	${MATH_LIBS_INCLUDE})
+	${MATH_LIBS_INCLUDE} "Quaternion.cpp")
 
 	
 set(Boost_USE_STATIC_LIBS ON) 
@@ -63,7 +66,7 @@ PRIVATE
 
 target_link_libraries("Math" PRIVATE ${Boost_LIBRARIES})
 # target_link_libraries("Math" PRIVATE DirectXTK12)
-target_link_libraries("Math" PRIVATE Utils)
+target_link_libraries("Math" PRIVATE Utils IMGUI)
 
 
 if(BUILD_TESTS)

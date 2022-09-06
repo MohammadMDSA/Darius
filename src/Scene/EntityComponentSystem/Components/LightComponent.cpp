@@ -63,7 +63,7 @@ namespace Darius::Scene::ECS::Components
 
 				float defC[] = { 0.f, 1.f };
 				ImGui::TableSetColumnIndex(1);
-				changed |= D_SCENE_DET_DRAW::DrawDetails(*(D_MATH::Vector3*)&mLightData.Color, defC);
+				changed |= D_MATH::DrawDetails(*(D_MATH::Vector3*)&mLightData.Color, defC);
 
 				if (mLightType == LightSourceType::SpotLight)
 				{

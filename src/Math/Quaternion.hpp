@@ -74,4 +74,12 @@ namespace Darius::Math
     INLINE Quaternion Normalize(Quaternion q) { return Quaternion(XMQuaternionNormalize(q)); }
     INLINE Quaternion Slerp(Quaternion a, Quaternion b, float t) { return Normalize(Quaternion(XMQuaternionSlerp(a, b, t))); }
     INLINE Quaternion Lerp(Quaternion a, Quaternion b, float t) { return Normalize(Quaternion(XMVectorLerp(a, b, t))); }
+
+
+#ifdef _D_EDITOR
+
+    bool DrawDetails(D_MATH::Quaternion& quat, float params[]);
+
+#endif // _D_EDITOR
+
 }

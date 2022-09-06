@@ -7,6 +7,7 @@
 #include <Core/Serialization/Json.hpp>
 #include <Renderer/CommandContext.hpp>
 #include <Utils/Common.hpp>
+#include <Utils/Detailed.hpp>
 
 #ifndef D_RESOURCE
 #define D_RESOURCE Darius::ResourceManager
@@ -74,7 +75,7 @@ namespace Darius::ResourceManager
 	std::string ResourceTypeToString(ResourceType type);
 	ResourceType StringToResourceType(std::string type);
 
-	class Resource : public D_CORE::Counted
+	class Resource : public D_CORE::Counted, public Detailed
 	{
 	public:
 		
@@ -109,6 +110,11 @@ namespace Darius::ResourceManager
 	public:
 		void						UpdateGPU(D_GRAPHICS::GraphicsContext& context);
 		virtual bool				SuppoertsExtension(std::wstring ext) = 0;
+
+#ifdef _D_EDITOR
+		virtual bool				DrawDetails(float params[]) = 0;
+#endif // _D_EDITOR
+
 
 		friend class DResourceManager;
 		friend class ResourceLoader;

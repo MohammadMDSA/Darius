@@ -1,6 +1,8 @@
 #include "Editor/pch.hpp"
 #include "ResourceMonitorWindow.hpp"
 
+#include "Editor/EditorContext.hpp"
+
 #include <ResourceManager/ResourceManager.hpp>
 
 #include <imgui/imgui.h>
@@ -45,6 +47,7 @@ namespace Darius::Editor::Gui::Windows
 			ImGuiListClipper clipper;
 			clipper.Begin(200);
 
+			static int selected;
 			while (clipper.Step())
 			{
 				for (int row = clipper.DisplayStart; row < (int)resources.size() && row < clipper.DisplayEnd; row++)
@@ -53,8 +56,17 @@ namespace Darius::Editor::Gui::Windows
 					auto resourceName = resource->GetName();
 					auto resNameStr = STR_WSTR(resourceName);
 					ImGui::TableNextRow();
+
+
 					ImGui::TableSetColumnIndex(0);
-					ImGui::Text(std::to_string(resource->GetId()).c_str());
+					// Selectable row
+					bool isSelected = row == selected;
+					if (ImGui::Selectable(std::to_string(resource->GetId()).c_str(), &isSelected, ImGuiSelectableFlags_SpanAllColumns))
+					{
+						selected = row;
+						D_EDITOR_CONTEXT::SetSelectedDetailed(resource);
+					}
+
 					ImGui::TableSetColumnIndex(1);
 					ImGui::Text(resNameStr.c_str());
 					ImGui::TableSetColumnIndex(2);

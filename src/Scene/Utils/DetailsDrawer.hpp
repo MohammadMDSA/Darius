@@ -16,16 +16,7 @@
 
 namespace Darius::Scene::Utils::DetailsDrawer
 {
-	bool DrawDetails(D_MATH::Vector3& elem, float params[]);
-
-	bool DrawDetails(D_MATH::Vector4& elem, float params[]);
-
-	bool DrawDetails(D_MATH::Quaternion& quat, float params[]);
-
-	bool DrawDetails(D_MATH::Transform& elem, float params[]);
-
-	bool DrawDetails(D_RENDERER_FRAME_RESOUCE::MaterialConstants& mat, float params[]);
-
+	
 	template<typename T>
 	INLINE bool DrawDetails(T& elem, float params[])
 	{

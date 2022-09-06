@@ -18,7 +18,7 @@ namespace Darius::Scene::ECS::Components
 	bool TransformComponent::DrawDetails(float params[])
 	{
 		auto temp = mTransform;
-		if (D_SCENE_DET_DRAW::DrawDetails(temp, nullptr))
+		if (D_MATH::DrawDetails(temp, nullptr))
 		{
 			SetLocalTransform(temp);
 			return true;

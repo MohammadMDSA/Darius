@@ -8,6 +8,7 @@ list(APPEND UTILS_LIBS_INCLUDE
 	"Common.hpp"
 	"Log.hpp"
 	"Debug.hpp"
+	"Detailed.hpp"
 	)
 	
 list(APPEND UTILS_LIBS_SOURCES

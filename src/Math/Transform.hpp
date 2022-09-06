@@ -256,4 +256,11 @@ namespace Darius::Math
 		Vector3 Scale = Vector3(kOne);
 
 	};
+
+#ifdef _D_EDITOR
+
+	bool DrawDetails(D_MATH::Transform& elem, float params[]);
+
+#endif // _D_EDITOR
+
 }

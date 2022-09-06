@@ -15,6 +15,12 @@ namespace Darius::ResourceManager
 	{
 		D_CH_RESOURCE_BODY(Texture2DResource, ResourceType::Texture2D)
 
+	public:
+
+#ifdef _D_EDITOR
+		virtual bool						DrawDetails(float params[]) override { (params); return false; };
+#endif // _D_EDITOR
+
 	protected:
 
 		virtual bool UploadToGpu(D_GRAPHICS::GraphicsContext& context);

@@ -32,6 +32,10 @@ namespace Darius::ResourceManager
 
 		virtual bool					SuppoertsExtension(std::wstring ext) override;
 
+#ifdef _D_EDITOR
+		virtual bool						DrawDetails(float params[]) override { (params); return false; };
+#endif // _D_EDITOR
+
 		INLINE operator const Mesh* () const { return &mMesh; }
 		INLINE operator Mesh* () { return ModifyMeshData(); }
 

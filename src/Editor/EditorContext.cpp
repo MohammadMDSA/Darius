@@ -13,6 +13,7 @@ namespace Darius::Editor::ContextManager
 	bool						_initialized = false;
 
 	GameObject*					SelectedGameObject;
+	Detailed*					SelectedDetailed;
 	D_FILE::Path				ProjectPath;
 
 	void Initialize(D_FILE::Path projectPath)
@@ -56,6 +57,23 @@ namespace Darius::Editor::ContextManager
 	{
 		D_ASSERT(_initialized);
 		SelectedGameObject = go;
+		SelectedDetailed = dynamic_cast<Detailed*>(go);
+	}
+
+	Detailed* GetSelectedDetailed()
+	{
+		return SelectedDetailed;
+	}
+
+	void SetSelectedDetailed(Detailed* d)
+	{
+		if (auto go = dynamic_cast<GameObject*>(d); go)
+		{
+			SetSelectedGameObject(go);
+			return;
+		}
+		SelectedDetailed = d;
+		SelectedGameObject = nullptr;
 	}
 
 	Path GetProjectPath()

@@ -162,4 +162,12 @@ namespace Darius::Math
         XMVECTOR m_vec;
     };
 
+#ifdef _D_EDITOR
+
+    bool DrawDetails(D_MATH::Vector3& elem, float params[]);
+
+    bool DrawDetails(D_MATH::Vector4& elem, float params[]);
+
+#endif // _D_EDITOR
+
 }

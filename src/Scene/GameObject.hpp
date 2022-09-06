@@ -15,6 +15,7 @@
 #include <Renderer/GraphicsUtils/Buffers/GpuBuffer.hpp>
 #include <ResourceManager/ResourceTypes/MeshResource.hpp>
 #include <ResourceManager/ResourceTypes/MaterialResource.hpp>
+#include <Utils/Detailed.hpp>
 
 #include <functional>
 #include <type_traits>
@@ -43,7 +44,7 @@ namespace Darius::Scene
 	void to_json(D_SERIALIZATION::Json& j, const GameObject& value);
 	void from_json(const D_SERIALIZATION::Json& j, GameObject& value);
 
-	class GameObject
+	class GameObject : public Detailed
 	{
 	public:
 		enum class Type

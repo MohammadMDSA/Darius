@@ -15,7 +15,7 @@ namespace Darius::Editor::Gui::Windows
 
 	void DetailsWindow::DrawGUI()
 	{
-		auto obj = D_EDITOR_CONTEXT::GetSelectedGameObject();
+		auto obj = D_EDITOR_CONTEXT::GetSelectedDetailed();
 		if (obj)
 			obj->DrawDetails(nullptr);
 	}
