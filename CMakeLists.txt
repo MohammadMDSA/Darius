@@ -129,7 +129,7 @@ find_package(Boost 1.50 COMPONENTS REQUIRED)
 
 if(Boost_FOUND)
     include_directories(SYSTEM ${Boost_INCLUDE_DIRS})
-    target_link_libraries(${PROJECT_NAME} PRIVATE ${Boost_LIBRARIES})
+    target_link_libraries(${PROJECT_NAME} PRIVATE ${Boost_LIBRARIES} IMGUIFILEDIALOG)
 else()
     message(FATAL_ERROR "Boost not found!")
 endif()

@@ -3,13 +3,14 @@ set(IMGUIZMO_DIR ${CMAKE_CURRENT_SOURCE_DIR}/ImGuizmo)
 set(IMPLOT_DIR ${CMAKE_CURRENT_SOURCE_DIR}/implot)
 set(IMGUIFILEDIALOG_DIR ${CMAKE_CURRENT_SOURCE_DIR}/ImGuiFileDialog)
 
-ADD_LIBRARY(IMGUIFILEDIALOG static)
+ADD_LIBRARY(IMGUIFILEDIALOG STATIC)
 
 target_sources(IMGUIFILEDIALOG
-                private
+                PRIVATE
                 ${IMGUIFILEDIALOG_DIR}/ImGuiFileDialog.cpp)
+
 target_include_directories(IMGUIFILEDIALOG
-                public
+                PUBLIC
                 ${IMGUIFILEDIALOG_DIR}/ImGuiFileDialog.h)
 
 add_library(IMGUI STATIC)
@@ -42,3 +43,5 @@ target_include_directories( IMGUI
                                 ${IMGUIZMO_DIR}
                                 .
                             )
+
+target_link_libraries(IMGUIFILEDIALOG PUBLIC IMGUI)
