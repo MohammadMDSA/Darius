@@ -163,7 +163,7 @@ namespace Darius::Scene
 			});
 
 		// Component selection popup
-		if (ImGui::BeginPopupContextItem("##ComponentAdditionPopup", ImGuiPopupFlags_NoOpenOverExistingPopup))
+		if (ImGui::BeginPopupContextItem("ComponentAdditionPopup", ImGuiPopupFlags_NoOpenOverExistingPopup))
 		{
 			auto& reg = D_WORLD::GetRegistry();
 
@@ -196,7 +196,7 @@ namespace Darius::Scene
 
 		if (ImGui::Button("Add Component", ImVec2(addCompButtonWidth, 0)))
 		{
-			ImGui::OpenPopup("##ComponentAdditionPopup");
+			ImGui::OpenPopup("ComponentAdditionPopup");
 		}
 
 		return changeValue;
