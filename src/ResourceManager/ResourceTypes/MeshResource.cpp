@@ -166,6 +166,8 @@ namespace Darius::ResourceManager
 					vert.mPosition.x = (float)controlPoint[0];
 					vert.mPosition.y = (float)controlPoint[1];
 					vert.mPosition.z = (float)controlPoint[2];
+					vert.mNormal = { 0.f, 0.f, 0.f };
+					vert.mTangent = { 0.f, 0.f, 0.f };
 					submeshData.Vertices.push_back(vert);
 
 					indexMapper[polyIdx][vertexGlobalIdx] = submeshData.Vertices.size() - 1;
@@ -180,11 +182,84 @@ namespace Darius::ResourceManager
 		//Add UV data
 		GetFBXUVs(meshDataVec, mesh, indexMapper);
 
+		// Add Normal data
+		GetFBXNormalss(meshDataVec, mesh, indexMapper);
+
 		// Destroy the SDK manager and all the other objects it was handling.
 		lSdkManager->Destroy();
 
 		Create(meshDataVec);
 		return true;
+	}
+
+	void MeshResource::GetFBXNormalss(DVector<D_RENDERER_GEOMETRY::MeshData<VertexType>>& meshDataVec, void const* meshP, DVector<DMap<int, int>>& indexMapper)
+	{
+		auto mesh = (FbxMesh const*)meshP;
+
+		//get the normal element
+		FbxGeometryElementNormal const* lNormalElement = mesh->GetElementNormal();
+		if (lNormalElement)
+		{
+			//mapping mode is by control points. The mesh should be smooth and soft.
+			//we can get normals by retrieving each control point
+			if (lNormalElement->GetMappingMode() == FbxGeometryElement::eByControlPoint)
+			{
+				//Let's get normals of each vertex, since the mapping mode of normal element is by control point
+				for (int lVertexIndex = 0; lVertexIndex < mesh->GetControlPointsCount(); lVertexIndex++)
+				{
+					int lNormalIndex = 0;
+					//reference mode is direct, the normal index is same as vertex index.
+					//get normals by the index of control vertex
+					if (lNormalElement->GetReferenceMode() == FbxGeometryElement::eDirect)
+						lNormalIndex = lVertexIndex;
+
+					//reference mode is index-to-direct, get normals by the index-to-direct
+					if (lNormalElement->GetReferenceMode() == FbxGeometryElement::eIndexToDirect)
+						lNormalIndex = lNormalElement->GetIndexArray().GetAt(lVertexIndex);
+
+					//Got normals of each vertex.
+					FbxVector4 lNormal = lNormalElement->GetDirectArray().GetAt(lNormalIndex);
+					//add your custom code here, to output normals or get them into a list, such as KArrayTemplate<FbxVector4>
+					throw D_EXCEPTION::Exception("Normal by control point not supported yet");
+				}//end for lVertexIndex
+			}//end eByControlPoint
+			//mapping mode is by polygon-vertex.
+			//we can get normals by retrieving polygon-vertex.
+			else if (lNormalElement->GetMappingMode() == FbxGeometryElement::eByPolygonVertex)
+			{
+				int lIndexByPolygonVertex = 0;
+				//Let's get normals of each polygon, since the mapping mode of normal element is by polygon-vertex.
+				for (int lPolygonIndex = 0; lPolygonIndex < mesh->GetPolygonCount(); lPolygonIndex++)
+				{
+					auto& polyMeshData = meshDataVec[lPolygonIndex];
+					//get polygon size, you know how many vertices in current polygon.
+					int lPolygonSize = mesh->GetPolygonSize(lPolygonIndex);
+					//retrieve each vertex of current polygon.
+					for (int i = 0; i < lPolygonSize; i++)
+					{
+						int lNormalIndex = 0;
+						//reference mode is direct, the normal index is same as lIndexByPolygonVertex.
+						if (lNormalElement->GetReferenceMode() == FbxGeometryElement::eDirect)
+							lNormalIndex = lIndexByPolygonVertex;
+
+						//reference mode is index-to-direct, get normals by the index-to-direct
+						if (lNormalElement->GetReferenceMode() == FbxGeometryElement::eIndexToDirect)
+							lNormalIndex = lNormalElement->GetIndexArray().GetAt(lIndexByPolygonVertex);
+
+						//Got normals of each polygon-vertex.
+						FbxVector4 lNormal = lNormalElement->GetDirectArray().GetAt(lNormalIndex);
+						
+						auto& vert = polyMeshData.Vertices[polyMeshData.Indices32[i]];
+						vert.mNormal.x = lNormal.mData[0];
+						vert.mNormal.y = lNormal.mData[1];
+						vert.mNormal.z = lNormal.mData[2];
+
+						lIndexByPolygonVertex++;
+					}//end for i //lPolygonSize
+				}//end for lPolygonIndex //PolygonCount
+
+			}//end eByPolygonVertex
+		}
 	}
 
 	void MeshResource::GetFBXUVs(DVector<D_RENDERER_GEOMETRY::MeshData<VertexType>>& meshDataVec, void const* meshP, DVector<DMap<int, int>>& indexMapper)
