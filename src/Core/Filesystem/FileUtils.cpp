@@ -54,4 +54,12 @@ namespace Darius::Core::Filesystem
 	{
 		return Concurrency::create_task([=] { return ReadFileHelper(path); });
 	}
+
+	std::wstring GetFileName(Path path)
+	{
+		auto ext = path.extension().wstring();
+		auto fullname = path.filename().wstring();
+
+		return fullname.substr(0, fullname.length() - ext.length());
+	}
 }

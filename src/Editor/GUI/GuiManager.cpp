@@ -249,5 +249,19 @@ namespace Darius::Editor::Gui::GuiManager
 			// close
 			ImGuiFileDialog::Instance()->Close();
 		}
+
+		if (ImGuiFileDialog::Instance()->Display("SaveScene"))
+		{
+			// action if OK
+			if (ImGuiFileDialog::Instance()->IsOk())
+			{
+				std::string filePathName = ImGuiFileDialog::Instance()->GetFilePathName();
+				if (D_WORLD::Load(WSTR_STR(filePathName)))
+					D_EDITOR_CONTEXT::SetSelectedGameObject(nullptr);
+			}
+
+			// close
+			ImGuiFileDialog::Instance()->Close();
+		}
 	}
 }

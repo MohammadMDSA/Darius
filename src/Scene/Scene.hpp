@@ -31,10 +31,13 @@ namespace Darius::Scene
 
 		static void				Update(float deltaTime);
 
-		static bool				Create(std::string const& name);
+		static bool				Create(D_FILE::Path const& path);
 		static void				Unload();
 		static bool				Load(std::wstring const& path);
-		static bool				Save(std::string const& name, D_FILE::Path const& path);
+		static bool				Save();
+		static D_FILE::Path		GetPath();
+		static void				SetPath(D_FILE::Path path);
+		static bool				IsLoaded();
 		
 		static INLINE D_ECS::Entity	GetRoot() { return Root; }
 		static INLINE D_ECS::ECSRegistry& GetRegistry() { return World; }

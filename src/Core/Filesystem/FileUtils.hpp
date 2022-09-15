@@ -26,4 +26,6 @@ namespace Darius::Core::Filesystem
 	ByteArray ReadFileSync(std::wstring const& path);
 
 	Concurrency::task<ByteArray> ReadFileAsync(std::wstring const& path);
+
+	std::wstring GetFileName(Path path);
 }

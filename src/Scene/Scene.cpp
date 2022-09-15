@@ -6,6 +6,7 @@
 #include "EntityComponentSystem/Components/ComponentBase.hpp"
 #include "EntityComponentSystem/Components/TransformComponent.hpp"
 
+#include <Core/Filesystem/FileUtils.hpp>
 #include <Core/Memory/Memory.hpp>
 #include <Core/Containers/Set.hpp>
 #include <Core/Serialization/Json.hpp>
@@ -29,6 +30,7 @@ namespace Darius::Scene
 	DVector<GameObject*>												ToBeDeleted;
 
 	std::string															SceneName;
+	D_FILE::Path														ScenePath;
 
 	bool																Loaded = false;
 
@@ -106,11 +108,14 @@ namespace Darius::Scene
 		context.Finish();
 	}
 
-	bool SceneManager::Create(std::string const& name)
+	bool SceneManager::Create(D_FILE::Path const& path)
 	{
 		if (Loaded)
 			Unload();
-		SceneName = name;
+		auto filename = D_FILE::GetFileName(path);
+		SceneName = STR_WSTR(filename);
+
+		ScenePath = path;
 
 		Loaded = true;
 		return true;
@@ -185,7 +190,7 @@ namespace Darius::Scene
 		auto filename = filePath.string();
 		filename = filename.substr(0, filename.size() - filePath.extension().string().size());
 
-		Create(filename);
+		Create(filePath);
 
 		// Loading Objects
 		for (int i = 0; i < sceneJson["Objects"].size(); i++)
@@ -241,7 +246,7 @@ namespace Darius::Scene
 		StartScene();
 	}
 
-	bool SceneManager::Save(std::string const& name, const Path& path)
+	bool SceneManager::Save()
 	{
 		D_SERIALIZATION::Json sceneJson = D_SERIALIZATION::Json::object();
 
@@ -277,7 +282,7 @@ namespace Darius::Scene
 			sceneJson["ObjectComponent"][ToString(go->GetUuid())] = objectComps;
 		}
 
-		auto pathName = Path(path).append(name).string() + ".dar";
+		auto pathName = Path(ScenePath);
 
 		auto ofs = std::ofstream(pathName);
 		if (!ofs)
@@ -296,6 +301,10 @@ namespace Darius::Scene
 			});
 
 		GOs->clear();
+
+		SceneName = "";
+		ScenePath = Path();
+		Loaded = false;
 	}
 
 	GameObject* SceneManager::GetGameObject(D_ECS::Entity entity)
@@ -324,6 +333,22 @@ namespace Darius::Scene
 		}
 
 		ToBeDeleted.clear();
+	}
+
+
+	D_FILE::Path		SceneManager::GetPath()
+	{
+		return ScenePath;
+	}
+
+	void				SceneManager::SetPath(D_FILE::Path path)
+	{
+		ScenePath = path;
+	}
+	
+	bool				SceneManager::IsLoaded()
+	{
+		return Loaded;
 	}
 
 }
