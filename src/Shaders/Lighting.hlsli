@@ -66,8 +66,8 @@ float3 BlinnPhong(
     const float m = mat.Shininess * 256.f;
     float3 halfVec = normalize(toEye + lightVec);
     
-    float lambCos = max(dot(halfVec, normal), 0.f);
-    float roughnessFactor = m == 0.f ? 1.f : (m + 2.f) * pow(lambCos, m) / 8.f;
+    float lambCos = saturate(dot(halfVec, normal));
+    float roughnessFactor = lambCos == 0 ? 0.f : (m + 2.f) * pow(lambCos, m) / 8.f;
     float3 fresnelFactor = SchlickFresnel(mat.FresnelR0, halfVec, lightVec);
     
     float3 specAlbedo = fresnelFactor * roughnessFactor;
@@ -157,7 +157,7 @@ float3 ComputeSpotLight(Light L, Material mat, float3 pos, float3 normal, float3
     return BlinnPhong(lightStrength, lightVec, normal, toEye, mat);
 }
 
-float4 ComputeLighting(
+float3 ComputeLighting(
     Material mat,
     float3 pos,
     float3 normal,
@@ -184,7 +184,7 @@ float4 ComputeLighting(
         
     }
     
-    return float4(result, 0.0f);
+    return result;
 }
 
 #endif
