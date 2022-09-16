@@ -52,8 +52,9 @@ namespace Darius::Renderer::ConstantFrameResource
 	ALIGN_DECL_256 struct MaterialConstants
 	{
 		XMFLOAT4					DifuseAlbedo = { 1.f, 1.f, 1.f, 1.f };
-		XMFLOAT3					FresnelR0 = { 0.f, 0.f, 0.f };
+		XMFLOAT3					FresnelR0 = { 0.56f, 0.56f, 0.56f };
 		float						Roughness = 0.2f;
+		XMFLOAT3					Emissive = { 0.f, 0.f, 0.f };
 		int							TextureStatusMask = 0;
 	};
 

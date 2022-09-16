@@ -52,9 +52,11 @@ namespace Darius::ResourceManager
 		D_CH_R_FIELD(Ref<Texture2DResource>, BaseColorTexture);
 		D_CH_R_FIELD(Ref<Texture2DResource>, NormalTexture);
 		D_CH_R_FIELD(Ref<Texture2DResource>, RoughnessTexture);
+		D_CH_R_FIELD(Ref<Texture2DResource>, EmissiveTexture);
 		D_CH_R_FIELD(ResourceHandle, BaseColorTextureHandle);
 		D_CH_R_FIELD(ResourceHandle, NormalTextureHandle);
 		D_CH_R_FIELD(ResourceHandle, RoughnessTextureHandle);
+		D_CH_R_FIELD(ResourceHandle, EmissiveTextureHandle);
 
 	protected:
 

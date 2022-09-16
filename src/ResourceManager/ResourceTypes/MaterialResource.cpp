@@ -9,6 +9,7 @@
 
 #include <imgui.h>
 #include <nlohmann/json.hpp>
+#include <Libs/FontIcon/IconsFontAwesome6.h>
 
 #include <fstream>
 
@@ -159,8 +160,11 @@ namespace Darius::ResourceManager
 				mNormalTextureHandle = EmptyHandle;
 				mNormalTexture.Unref();
 				break;
-			case Darius::Renderer::kOcculusion:
 			case Darius::Renderer::kEmissive:
+				mEmissiveTextureHandle = EmptyHandle;
+				mEmissiveTexture.Unref();
+				break;
+			case Darius::Renderer::kOcculusion:
 			default:
 				return;
 			}
@@ -192,8 +196,10 @@ device->CopyDescriptorsSimple(1, mTexturesHeap + type * incSize, m##name##Textur
 		case Darius::Renderer::kNormal:
 			SetTex(Normal);
 			break;
-		case Darius::Renderer::kOcculusion:
 		case Darius::Renderer::kEmissive:
+			SetTex(Emissive);
+			break;
+		case Darius::Renderer::kOcculusion:
 		default:
 			return;
 		}
@@ -211,20 +217,21 @@ device->CopyDescriptorsSimple(1, mTexturesHeap + type * incSize, m##name##Textur
 		if (!GetLoaded())
 		{
 			D_RESOURCE_LOADER::LoadResource(this);
-			auto& context = D_GRAPHICS::GraphicsContext::Begin(L"Force gpu update on detail");
-			this->UpdateGPU(context);
-			context.Finish(true);
+			return false;
 		}
 
 #define DrawTexture2DHolder(prop, type) \
 { \
 	Texture2DResource* currentTexture = prop.Get(); \
  \
-	auto curName = (mMaterial.TextureStatusMask & (1 << type)) ? prop->GetName() : L"<None>"; \
-	if (ImGui::Button(STR_WSTR(curName).c_str())) \
+	bool hasTexture = (mMaterial.TextureStatusMask & (1 << type)); \
+	auto curName = hasTexture ? prop->GetName() : L"<None>"; \
+	const char* selectButtonName = hasTexture ? ICON_FA_IMAGE "##" #type : ICON_FA_SQUARE "##" #type; \
+	if (ImGui::Button(selectButtonName)) \
 	{ \
 		\
 		ImGui::OpenPopup("Select " #type); \
+		D_LOG_DEBUG("OPEN " #type); \
 	} \
 		 \
 	if (ImGui::BeginPopup("Select " #type)) \
@@ -265,7 +272,6 @@ device->CopyDescriptorsSimple(1, mTexturesHeap + type * incSize, m##name##Textur
 			ImGuiIO& io = ImGui::GetIO();
 			auto boldFont = io.Fonts->Fonts[0];
 
-
 			if (ImGui::BeginTable("mat editor", 2, ImGuiTableFlags_BordersInnerV))
 			{
 				ImGui::TableSetupColumn("label", ImGuiTableColumnFlags_WidthFixed, 100.f);
@@ -273,13 +279,13 @@ device->CopyDescriptorsSimple(1, mTexturesHeap + type * incSize, m##name##Textur
 
 
 				// Diffuse
+				ImGui::TableNextRow();
+				ImGui::TableSetColumnIndex(0);
+				DrawTexture2DHolder(mBaseColorTexture, kBaseColor);
+				ImGui::SameLine();
+				ImGui::Text("Diffuse");
 				if (!(mMaterial.TextureStatusMask & (1 << kBaseColor)))
 				{
-
-					ImGui::TableNextRow();
-					ImGui::TableSetColumnIndex(0);
-					ImGui::Text("Diffuse Color");
-
 					ImGui::TableSetColumnIndex(1);
 					float defL[] = { 0.f, 1.f };
 					if (D_MATH::DrawDetails(*(Vector4*)&mMaterial.DifuseAlbedo, defL))
@@ -288,28 +294,45 @@ device->CopyDescriptorsSimple(1, mTexturesHeap + type * incSize, m##name##Textur
 					}
 				}
 
-				// Fresnel
-				ImGui::TableNextRow();
-				ImGui::TableSetColumnIndex(0);
-				ImGui::Text("Fresnel");
+				//// Fresnel
+				//ImGui::TableNextRow();
+				//ImGui::TableSetColumnIndex(0);
+				//ImGui::Text("Fresnel");
 
-				ImGui::TableSetColumnIndex(1);
-				float defR[] = { 0.f, 1.f };
-				if (D_MATH::DrawDetails(*(Vector3*)&mMaterial.FresnelR0, defR))
-				{
-					valueChanged = true;
-				}
+				//ImGui::TableSetColumnIndex(1);
+				//float defR[] = { 0.f, 1.f };
+				//if (D_MATH::DrawDetails(*(Vector3*)&mMaterial.FresnelR0, defR))
+				//{
+				//	valueChanged = true;
+				//}
 
 				// Roughness
+				ImGui::TableNextRow();
+				ImGui::TableSetColumnIndex(0);
+				DrawTexture2DHolder(mRoughnessTexture, kRoughness);
+				ImGui::SameLine();
+				ImGui::Text("Roughness");
 				if (!(mMaterial.TextureStatusMask & (1 << kRoughness)))
 				{
-					ImGui::TableNextRow();
-					ImGui::TableSetColumnIndex(0);
-					ImGui::Text("Roughness");
-
 					ImGui::TableSetColumnIndex(1);
 					float defS[] = { 1.f, 0.f };
-					if (ImGui::DragFloat("##X", &mMaterial.Roughness, 0.01f, 0.f, 1.f, "% .3f"))
+					if (ImGui::DragFloat("##X", &mMaterial.Roughness, 0.001f, 0.f, 1.f, "% .3f"))
+					{
+						valueChanged = true;
+					}
+				}
+
+				// Emission
+				ImGui::TableNextRow();
+				ImGui::TableSetColumnIndex(0);
+				DrawTexture2DHolder(mEmissiveTexture, kEmissive);
+				ImGui::SameLine();
+				ImGui::Text("Emission");
+				if (!(mMaterial.TextureStatusMask & (1 << kEmissive)))
+				{
+					ImGui::TableSetColumnIndex(1);
+					float emS[] = { 0.f, 1.f };
+					if (D_MATH::DrawDetails(*(Vector3*)&mMaterial.Emissive, emS))
 					{
 						valueChanged = true;
 					}
@@ -318,15 +341,11 @@ device->CopyDescriptorsSimple(1, mTexturesHeap + type * incSize, m##name##Textur
 				ImGui::EndTable();
 			}
 
-			// Texture selection
+			if (valueChanged)
 			{
-				// Base Color
-				DrawTexture2DHolder(mBaseColorTexture, kBaseColor);
-
-				// Roughness
-				DrawTexture2DHolder(mRoughnessTexture, kRoughness);
+				MakeDiskDirty();
+				MakeGpuDirty();
 			}
-
 
 			return valueChanged;
 		}

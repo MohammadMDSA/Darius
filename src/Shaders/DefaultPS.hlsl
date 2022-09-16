@@ -8,6 +8,7 @@ cbuffer cbMaterial : register(b0)
     float4  gDiffuseAlbedo;
     float3  gFresnelR0;
     float   gRoughness;
+    float3  gEmissive;
     int     gTexStats;
 };
 
@@ -58,6 +59,7 @@ float4 main(VertexOut pin) : SV_Target
 
     float4 diffuseAlbedo;
     
+    // Diffuse Albedo
     if(BitMasked(gTexStats, 0))
         diffuseAlbedo = SAMPLE_TEX(texDiffuse);
     else
@@ -66,20 +68,28 @@ float4 main(VertexOut pin) : SV_Target
     // Direct Lightin
     float4 ambient = gAmbientLight * diffuseAlbedo;
 
+    // Roughness
     float roughness;
     if (BitMasked(gTexStats, 1))
         roughness = SAMPLE_TEX(texRoughness);
     else
         roughness = gRoughness;
     
+    // Emissive 
+    float3 emissive;
+    if(BitMasked(gTexStats, 3))
+        emissive = SAMPLE_TEX(texEmissive);
+    else
+        emissive = gEmissive;
+    
     const float shininess = 1.0f - roughness;
     Material mat = { diffuseAlbedo, gFresnelR0, shininess, gTexStats };
     float3 shadowFactor = 1.0f;
 
-    float4 directLight = ComputeLighting(mat, pin.WorldPos,
+    float3 directLight = ComputeLighting(mat, pin.WorldPos,
         pin.WorldNormal, toEyeW, shadowFactor);
 
-    float4 litColor = ambient + directLight;
+    float4 litColor = float4(emissive, 0.f) + ambient + float4(directLight, 0.f);
 
     // Common convention to take alpha from diffuse material.
     litColor.a = diffuseAlbedo.a;
