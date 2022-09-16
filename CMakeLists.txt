@@ -302,8 +302,8 @@ add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
         "$<TARGET_FILE_DIR:${PROJECT_NAME}>/Shaders"
 
     COMMAND ${CMAKE_COMMAND} -E make_directory
-        "$<TARGET_FILE_DIR:${PROJECT_NAME}>/EditorRes"
+        "$<TARGET_FILE_DIR:${PROJECT_NAME}>/EditorResources"
 
     COMMAND ${CMAKE_COMMAND} -E copy_directory
-        "${CMAKE_SOURCE_DIR}/Res"
-        "$<TARGET_FILE_DIR:${PROJECT_NAME}>/EditorRes")
+        "${CMAKE_SOURCE_DIR}/Editor Resources"
+        "$<TARGET_FILE_DIR:${PROJECT_NAME}>/EditorResources")
