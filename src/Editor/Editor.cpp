@@ -82,7 +82,6 @@ namespace Darius::Editor
 
 		D_RENDERER::RegisterGuiDrawer(&D_GUI_MANAGER::DrawGUI);
 
-		D_WORLD::Create("Main");
 		/*for (size_t i = 0; i < 100; i++)
 		{
 			auto ob = D_WORLD::CreateGameObject();

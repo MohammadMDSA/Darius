@@ -336,17 +336,17 @@ namespace Darius::Scene
 	}
 
 
-	D_FILE::Path		SceneManager::GetPath()
+	D_FILE::Path SceneManager::GetPath()
 	{
 		return ScenePath;
 	}
 
-	void				SceneManager::SetPath(D_FILE::Path path)
+	void SceneManager::SetPath(D_FILE::Path path)
 	{
 		ScenePath = path;
 	}
 	
-	bool				SceneManager::IsLoaded()
+	bool SceneManager::IsLoaded()
 	{
 		return Loaded;
 	}

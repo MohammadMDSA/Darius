@@ -140,7 +140,10 @@ namespace Darius::Editor::Gui::GuiManager
 
 					if (ImGui::MenuItem(ICON_FA_SAVE "  Save Scene"))
 					{
-						D_WORLD::Save("Foo", D_EDITOR_CONTEXT::GetAssetsPath().wstring());
+						if (D_WORLD::IsLoaded())
+							D_WORLD::Save();
+						else
+							ImGuiFileDialog::Instance()->OpenDialog("SaveScene", "Create Scene File", ".dar", D_EDITOR_CONTEXT::GetAssetsPath().string());
 					}
 
 					if (ImGui::MenuItem(ICON_FA_FOLDER "  Load Scene"))
@@ -256,8 +259,10 @@ namespace Darius::Editor::Gui::GuiManager
 			if (ImGuiFileDialog::Instance()->IsOk())
 			{
 				std::string filePathName = ImGuiFileDialog::Instance()->GetFilePathName();
-				if (D_WORLD::Load(WSTR_STR(filePathName)))
-					D_EDITOR_CONTEXT::SetSelectedGameObject(nullptr);
+				if (D_WORLD::Create(WSTR_STR(filePathName)))
+				{
+					D_WORLD::Save();
+				}
 			}
 
 			// close
