@@ -362,7 +362,7 @@ namespace Darius::Editor::Gui::Windows
 				items.push_back(meshComp.GetRenderItem());
 			});
 
-		D_LOG_DEBUG("Number of render items: " + std::to_string(items.size()));
+		//D_LOG_DEBUG("Number of render items: " + std::to_string(items.size()));
 		meshQuery.destruct();
 	}
 }
