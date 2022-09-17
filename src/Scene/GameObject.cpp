@@ -91,9 +91,13 @@ namespace Darius::Scene
 		char* name = const_cast<char*>(mName.c_str());
 		ImGui::SetNextItemWidth(contentRegionAvailable.x - lineHeight * 0.5f - 10.f);
 		ImGui::InputText("##ObjectName", name, 30);
+		bool active = mActive;
 		ImGui::SameLine(contentRegionAvailable.x - lineHeight * 0.5f);
-		if (ImGui::Checkbox("##Active", &mActive))
+		if (ImGui::Checkbox("##Active", &active))
+		{
+			SetActive(active);
 			changeValue = true;
+		}
 		ImGui::Spacing();
 
 		// Drawing components
@@ -361,6 +365,23 @@ namespace Darius::Scene
 				result++;
 			});
 		return result;
+	}
+
+	void GameObject::SetActive(bool active)
+	{
+		this->mActive = active;
+
+		if (active)
+			VisitComponents([](auto comp)
+				{
+					comp->OnGameObjectActivate();
+				});
+		else
+			VisitComponents([](auto comp)
+				{
+					comp->OnGameObjectDeactivate();
+				});
+
 	}
 
 	void to_json(D_SERIALIZATION::Json& j, const GameObject& value) {

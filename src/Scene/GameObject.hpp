@@ -76,6 +76,8 @@ namespace Darius::Scene
 
 		void								SetParent(GameObject* newParent);
 
+		void								SetActive(bool active);
+
 		// Object states
 		void								Start();
 		void								OnDestroy();
@@ -152,7 +154,7 @@ namespace Darius::Scene
 
 		static void							RegisterComponent(std::string name, std::string displayName);
 
-		D_CH_RW_FIELD(bool, Active);
+		D_CH_R_FIELD(bool, Active);
 		D_CH_RW_FIELD(std::string, Name);
 		D_CH_RW_FIELD(Type, Type);
 		D_CH_R_FIELD_CONST(Uuid, Uuid);

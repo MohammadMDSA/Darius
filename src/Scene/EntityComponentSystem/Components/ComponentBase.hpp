@@ -56,8 +56,8 @@ namespace Darius::Scene
 
 namespace Darius::Scene::ECS::Components
 {
-	class ComponentBase
-	{
+    class ComponentBase
+    {
     public:
 
         ComponentBase();
@@ -72,6 +72,10 @@ namespace Darius::Scene::ECS::Components
 
         virtual INLINE void         Start() { }
         virtual INLINE void         OnDestroy() { }
+
+        // Gameobject Events
+        virtual INLINE void         OnGameObjectActivate() {}
+        virtual INLINE void         OnGameObjectDeactivate() {}
 
         virtual INLINE void         Update(float) { };
 
