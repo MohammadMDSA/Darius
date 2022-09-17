@@ -76,6 +76,8 @@ namespace Darius::Scene
 
 		for (auto const go : *GOs)
 		{
+			if (!go->GetActive())
+				continue;
 			go->VisitComponents([deltaTime](D_ECS_COMP::ComponentBase* comp)
 				{
 					try
