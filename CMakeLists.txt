@@ -68,6 +68,8 @@ if(BUILD_EDITOR)
         "src/Editor/Camera.cpp"
         "src/Editor/EditorContext.hpp"
         "src/Editor/EditorContext.cpp"
+        "src/Editor/Simulation.hpp"
+        "src/Editor/Simulation.cpp"
         "src/Editor/Gui/GuiManager.hpp"
         "src/Editor/Gui/GuiManager.cpp"
         "src/Editor/Gui/Window.hpp"

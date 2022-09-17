@@ -6,9 +6,7 @@
 #include "Editor.hpp"
 #include "Gui/GuiManager.hpp"
 #include "EditorContext.hpp"
-
-#include "imgui_impl_dx12.h"
-#include "imgui_impl_win32.h"
+#include "Simulation.hpp"
 
 #include <Math/VectorMath.hpp>
 #include <Core/Input.hpp>
@@ -49,7 +47,7 @@ namespace Darius::Editor
 
 	Editor::~Editor()
 	{
-		D_WORLD::Shutdown();
+		D_SIMULATE::Shutdown();
 		D_EDITOR_CONTEXT::Shutdown();
 		D_RESOURCE::Shutdown();
 		D_INPUT::Shutdown();
@@ -67,40 +65,33 @@ namespace Darius::Editor
 		D_RENDERER_DEVICE::Initialize(window, width, height);
 		D_RENDERER::Initialize();
 
+		// Creating device and window resources
 		CreateDeviceDependentResources();
 		CreateWindowSizeDependentResources();
 
+		// Initialing the tiem manager
 		D_TIME::Initialize();
+
+		// Initializing the input manater
 		D_INPUT::Initialize(window);
+
+		// Initializing the resource manager
 		D_RESOURCE::Initialize();
 
+		// Initializing the editor context manager
 		D_EDITOR_CONTEXT::Initialize(projectPath);
 
-		D_WORLD::Initialize();
+		// Initializing the simulator
+		D_SIMULATE::Initialize();
 
+		// Setting V-Sync
 		D_TIME::EnableFixedTimeStep(1.0 / 60);
 
+		// Registering gui drawer function
 		D_RENDERER::RegisterGuiDrawer(&D_GUI_MANAGER::DrawGUI);
 
-		/*for (size_t i = 0; i < 100; i++)
-		{
-			auto ob = D_WORLD::CreateGameObject();
-			ob->SetMesh(D_RESOURCE::GetDefaultResource(D_RESOURCE::DefaultResource::SphereMesh));
-			auto x = static_cast<float>(rand()) / static_cast<float>(RAND_MAX);
-			auto y = static_cast<float>(rand()) / static_cast<float>(RAND_MAX);
-			auto z = static_cast<float>(rand()) / static_cast<float>(RAND_MAX);
-
-			x = (x * 2 - 1) * 100.f;
-			y = (y * 2 - 1) * 100.f;
-			z = (z * 2 - 1) * 100.f;
-			ob->mTransform = Transform(Vector3(x, y, z));
-
-		}
-		a1->SetMesh(D_RESOURCE::GetDefaultResource(D_RESOURCE::DefaultResource::SphereMesh));
-		a2->SetMesh(D_RESOURCE::GetDefaultResource(D_RESOURCE::DefaultResource::SphereMesh));
-		a1->mTransform = Transform(Vector3(-2.f, 1.f, -5.f));
-		a2->mTransform = Transform(Vector3(2.f, -1.f, -5.f));
-		D_EDITOR_CONTEXT::SetSelectedGameObject(a2);*/
+		// Registering components
+		// TODO:: Better component initialization
 		D_ECS_COMP::LightComponent::StaticConstructor();
 		D_ECS_COMP::MeshRendererComponent::StaticConstructor();
 		D_ECS_COMP::TransformComponent::StaticConstructor();
@@ -127,7 +118,9 @@ namespace Darius::Editor
 
 		float elapsedTime = float(timer.GetElapsedSeconds());
 		D_INPUT::Update();
-		D_WORLD::Update(elapsedTime);
+
+		// Updating the simulator
+		D_SIMULATE::Update(elapsedTime);
 
 		auto& context = D_GRAPHICS::GraphicsContext::Begin(L"Update resources");
 		D_LIGHT::UpdateBuffers(context);
