@@ -35,6 +35,8 @@ namespace Darius::Editor::Gui::GuiManager
 
 	void ShowDialogs();
 
+	void RootToolbar();
+
 	void Initialize()
 	{
 		D_ASSERT(!initialzied);
@@ -111,7 +113,11 @@ namespace Darius::Editor::Gui::GuiManager
 			windowFlags |= ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoNavFocus;
 
 			ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
+
+			ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4(0, 0.1, .3, 1));
 			ImGui::Begin("Editor GUI Root", (bool*)1, windowFlags);
+			ImGui::PopStyleColor();
+			RootToolbar();
 			ImGui::PopStyleVar(3);
 
 			ImGuiID dockspaceId = ImGui::GetID("EditorDockspace");
@@ -268,5 +274,33 @@ namespace Darius::Editor::Gui::GuiManager
 			// close
 			ImGuiFileDialog::Instance()->Close();
 		}
+	}
+
+	void RootToolbar()
+	{
+		auto width = ImGui::GetWindowWidth();
+		auto buttonSize = 30.f;
+		auto margin = 5.f;
+
+		ImGui::Spacing();
+		ImGui::Spacing();
+
+		ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(margin, margin));
+
+		auto offset = (width - 3 * buttonSize) / 2;
+
+		// Play button
+		ImGui::SameLine(offset);
+		ImGui::Button(ICON_FA_PLAY, ImVec2(buttonSize, 0));
+
+		// Pause button
+		ImGui::SameLine();
+		ImGui::Button(ICON_FA_PAUSE, ImVec2(buttonSize, 0));
+
+		// Step button
+		ImGui::SameLine();
+		ImGui::Button(ICON_FA_FAST_FORWARD, ImVec2(buttonSize, 0));
+
+		ImGui::PopStyleVar();
 	}
 }
