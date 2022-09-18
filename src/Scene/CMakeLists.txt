@@ -8,6 +8,7 @@ list(APPEND SCENE_LIBS_INCLUDE
 	"Scene.hpp"
     "Utils/DetailsDrawer.hpp"
 	"Utils/Serializer.hpp"
+	"SceneLight.hpp"
 	"EntityComponentSystem/Entity.hpp"
 	"EntityComponentSystem/Components/ComponentBase.hpp"
 	"EntityComponentSystem/Components/TransformComponent.hpp"

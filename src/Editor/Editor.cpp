@@ -17,7 +17,7 @@
 #include <Scene/EntityComponentSystem/Components/MeshRendererComponent.hpp>
 #include <Scene/EntityComponentSystem/Components/LightComponent.hpp>
 #include <Scene/EntityComponentSystem/Components/TransformComponent.hpp>
-
+#include <Scene/SceneLight.hpp>
 #include <Renderer/Renderer.hpp>
 #include <Renderer/FrameResource.hpp>
 #include <Renderer/Camera/CameraManager.hpp>
@@ -121,6 +121,9 @@ namespace Darius::Editor
 
 		// Updating the simulator
 		D_SIMULATE::Update(elapsedTime);
+
+		// Updating lights
+		::D_SCENE_LIGHT::Update(elapsedTime);
 
 		auto& context = D_GRAPHICS::GraphicsContext::Begin(L"Update resources");
 		D_LIGHT::UpdateBuffers(context);
