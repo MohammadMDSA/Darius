@@ -341,13 +341,12 @@ namespace Darius::Editor::Gui::Windows
 		items.clear();
 
 		auto& worldReg = D_WORLD::GetRegistry();
-		auto meshQuery = worldReg.query_builder<D_ECS_COMP::MeshRendererComponent>().build();
 
 		auto cam = D_CAMERA_MANAGER::GetActiveCamera();
 		auto frustum = cam->GetViewSpaceFrustum();
 
 		// Iterating over meshes
-		meshQuery.each([&](D_ECS_COMP::MeshRendererComponent& meshComp)
+		worldReg.each([&](D_ECS_COMP::MeshRendererComponent& meshComp)
 			{
 				// Can't render
 				if (!meshComp.CanRender())
@@ -363,6 +362,5 @@ namespace Darius::Editor::Gui::Windows
 			});
 
 		//D_LOG_DEBUG("Number of render items: " + std::to_string(items.size()));
-		meshQuery.destruct();
 	}
 }
