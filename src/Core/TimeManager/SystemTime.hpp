@@ -54,47 +54,4 @@ namespace Darius::Core::TimeManager
         static double sm_CpuTickDelta;
     };
 
-
-    class CpuTimer
-    {
-    public:
-
-        CpuTimer()
-        {
-            m_StartTick = 0ll;
-            m_ElapsedTicks = 0ll;
-        }
-
-        void Start()
-        {
-            if (m_StartTick == 0ll)
-                m_StartTick = SystemTime::GetCurrentTick();
-        }
-
-        void Stop()
-        {
-            if (m_StartTick != 0ll)
-            {
-                m_ElapsedTicks += SystemTime::GetCurrentTick() - m_StartTick;
-                m_StartTick = 0ll;
-            }
-        }
-
-        void Reset()
-        {
-            m_ElapsedTicks = 0ll;
-            m_StartTick = 0ll;
-        }
-
-        double GetTime() const
-        {
-            return SystemTime::TicksToSeconds(m_ElapsedTicks);
-        }
-
-    private:
-
-        int64_t m_StartTick;
-        int64_t m_ElapsedTicks;
-    };
-
 }
