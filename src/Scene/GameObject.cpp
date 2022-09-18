@@ -55,7 +55,7 @@ namespace Darius::Scene
 			});
 	}
 
-	void GameObject::Update(D_GRAPHICS::GraphicsContext& context, float deltaTime)
+	void GameObject::Update(D_GRAPHICS::GraphicsContext& context)
 	{
 		// We won't update constant buffer for static objects
 		if (mType == Type::Static)

@@ -172,7 +172,7 @@ namespace Darius::Scene
 
 		GameObject(Uuid uuid, D_ECS::Entity entity);
 
-		void								Update(D_GRAPHICS::GraphicsContext& context, float deltaTime);
+		void								Update(D_GRAPHICS::GraphicsContext& context);
 
 		void								AddComponentRoutine(Darius::Scene::ECS::Components::ComponentBase*);
 
