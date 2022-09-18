@@ -30,6 +30,7 @@ namespace Darius::Scene
 		static GameObject*		GetGameObject(D_ECS::Entity entity);
 
 		static void				Update(float deltaTime);
+		static void				UpdateObjectsConstatns();
 
 		static bool				Create(D_FILE::Path const& path);
 		static void				Unload();
@@ -41,6 +42,15 @@ namespace Darius::Scene
 		
 		static INLINE D_ECS::Entity	GetRoot() { return Root; }
 		static INLINE D_ECS::ECSRegistry& GetRegistry() { return World; }
+
+#ifdef _D_EDITOR
+	public:
+#elif
+	private:
+#endif
+		// Dumping and reloading scene for simulation
+		static void				DumpScene(Json& sceneDump);
+		static void				LoadSceneDump(Json const& sceneDump);
 
 	private:
 		static void				DeleteGameObjectData(GameObject* go);
