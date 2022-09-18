@@ -113,7 +113,7 @@ namespace Darius::Scene
 				ImGui::Separator();
 
 				ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 8.f);
-				
+
 				ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2{ 4, 4 });
 				bool open = ImGui::TreeNodeEx(comp->GetDisplayName().c_str(), treeNodeFlags);
 				ImGui::PopStyleVar();
@@ -145,7 +145,7 @@ namespace Darius::Scene
 
 				if (ImGui::BeginPopup("ComponentSettings"))
 				{
-					
+
 					if (!isTransform && ImGui::MenuItem("Remove component"))
 						RemoveComponent(comp);
 
@@ -219,7 +219,9 @@ namespace Darius::Scene
 
 	void GameObject::VisitComponents(std::function<void(ComponentBase*)> callback, std::function<void(D_EXCEPTION::Exception const&)> onException) const
 	{
-		callback(mEntity.get_mut<TransformComponent>());
+		auto compList = DVector<ComponentBase*>(3);
+
+		compList.push_back(mEntity.get_mut<TransformComponent>());
 
 		auto& reg = D_WORLD::GetRegistry();
 
@@ -238,7 +240,7 @@ namespace Darius::Scene
 				try
 				{
 					auto comp = reinterpret_cast<ComponentBase*>(compP);
-					callback(comp);
+					compList.push_back(comp);
 
 				}
 				catch (const D_EXCEPTION::Exception& e)
@@ -247,6 +249,9 @@ namespace Darius::Scene
 						onException(e);
 				}
 			});
+
+		for (auto comp : compList)
+			callback(comp);
 	}
 
 	D_ECS_COMP::ComponentBase* GameObject::AddComponent(std::string const& name)
@@ -289,7 +294,7 @@ namespace Darius::Scene
 	{
 		auto& reg = D_WORLD::GetRegistry();
 		auto compId = reg.component(comp->GetComponentName().c_str());
-		
+
 		// Abort if transform
 		if (reg.id<D_ECS_COMP::TransformComponent>() == compId)
 			return;
@@ -333,21 +338,33 @@ namespace Darius::Scene
 	void GameObject::VisitAncestors(std::function<void(GameObject*)> callback) const
 	{
 		auto current = mParent;
+
+		auto ancestorList = DVector<GameObject*>(3);
+
 		while (current)
 		{
-			callback(current);
+			ancestorList.push_back(current);
 			current = current->mParent;
 		}
+
+		for (auto anc : ancestorList)
+			callback(anc);
 	}
 
 	void GameObject::VisitChildren(std::function<void(GameObject*)> callback) const
 	{
+		auto childrenList = DVector<GameObject*>(6);
+
 		mEntity.children([&](D_ECS::Entity childEnt)
 			{
-				callback(D_WORLD::GetGameObject(childEnt));
+				childrenList.push_back(D_WORLD::GetGameObject(childEnt));
 			});
+
+		for (auto child : childrenList)
+			callback(child);
 	}
 
+	// TODO: All descendants should be loaded on a list and then iterated, otherwise a descendant may change the hierarchy and invalidates the traversal.
 	void GameObject::VisitDescendants(std::function<void(GameObject*)> callback) const
 	{
 		VisitChildren([&](GameObject* child)
