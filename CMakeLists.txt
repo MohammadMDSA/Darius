@@ -127,11 +127,11 @@ if(NOT DEFINED BOOST_ROOT)
     set(BOOST_ROOT $ENV{Boost_ROOT})
 endif(NOT DEFINED BOOST_ROOT)
 
-find_package(Boost 1.50 COMPONENTS REQUIRED)
+find_package(Boost 1.70 COMPONENTS REQUIRED)
 
 if(Boost_FOUND)
     include_directories(SYSTEM ${Boost_INCLUDE_DIRS})
-    target_link_libraries(${PROJECT_NAME} PRIVATE ${Boost_LIBRARIES} IMGUIFILEDIALOG)
+    target_link_libraries(${PROJECT_NAME} PRIVATE ${Boost_LIBRARIES})
 else()
     message(FATAL_ERROR "Boost not found!")
 endif()
@@ -168,7 +168,7 @@ list(APPEND DARIUS_LIBS
     "ResourceManager"
 	)
 
-target_link_libraries(${PROJECT_NAME} PUBLIC ${DARIUS_LIBS})
+target_link_libraries(${PROJECT_NAME} PUBLIC ${DARIUS_LIBS} PRIVATE IMGUIFILEDIALOG)
 
 ##############################
 ############ TEST ############
