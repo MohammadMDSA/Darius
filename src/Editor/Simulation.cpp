@@ -36,6 +36,7 @@ namespace Darius::Editor::Simulate
 		if (IsRunning || Stepping)
 			D_WORLD::Update(elapsedTime);
 
+		D_WORLD::UpdateObjectsConstatns();
 
 		if (Stepping)
 			Stepping = false;
@@ -48,7 +49,7 @@ namespace Darius::Editor::Simulate
 			return;
 
 		IsRunning = true;
-		boost::timer::cpu_timer
+		//boost::timer::cpu_timer
 	}
 
 	void Pause()
