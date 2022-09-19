@@ -301,6 +301,11 @@ namespace Darius::Graphics::Utils::Profiling
 		static float GetMaxGpuTime() { return s_TotalGpuTime.GetMax(); }
 		static float GetMaxFrameDelta() { return s_FrameDelta.GetMax(); }
 
+		static INLINE void SetLastFrameTick(uint64_t tick)
+		{
+			s_lastFrameTick = tick;
+		}
+
 	private:
 
 		void DeleteChildren(void)
@@ -371,6 +376,21 @@ namespace Darius::Graphics::Utils::Profiling
 	void EndBlock(CommandContext* Context)
 	{
 		NestedTimingTree::PopProfilingMarker(Context);
+	}
+
+	void Pause()
+	{
+		if (Paused)
+			return;
+		Paused = true;
+	}
+
+	void Resume()
+	{
+		if (!Paused)
+			return;
+		Paused = false;
+		NestedTimingTree::SetLastFrameTick(D_TIME::SystemTime::GetCurrentTick());
 	}
 
 	bool IsPaused()

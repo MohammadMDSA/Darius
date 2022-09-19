@@ -1,6 +1,8 @@
 #include "Editor/pch.hpp"
 #include "ProfilerWindow.hpp"
 
+#include "Editor/Simulation.hpp"
+
 #include <Core/TimeManager/TimeManager.hpp>
 #include <Renderer/GraphicsUtils/Profiling/Profiling.hpp>
 
@@ -11,6 +13,9 @@ namespace Darius::Editor::Gui::Windows
 
 	ProfilerWindow::ProfilerWindow()
 	{
+		mGpuRealtime.AddPoint(0.f, 0.f);
+		mCpuRealtime.AddPoint(0.f, 0.f);
+		mFrameTimeRealtime.AddPoint(0.f, 0.f);
 	}
 
 	ProfilerWindow::~ProfilerWindow()
@@ -19,6 +24,9 @@ namespace Darius::Editor::Gui::Windows
 
 	void ProfilerWindow::Update(float)
 	{
+		if (!D_SIMULATE::IsSimulating())
+			return;
+
 		float time = D_TIME::GetStepTimer()->GetTotalSeconds();
 
 		mMaxGpu = D_PROFILING::GetMaxGpuTime();

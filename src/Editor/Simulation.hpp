@@ -10,7 +10,7 @@ namespace Darius::Editor::Simulate
 	void Initialize();
 	void Shutdown();
 
-	void Update(float elapsedTime);
+	void Update();
 
 	void Run();
 	void Stop();

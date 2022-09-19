@@ -2,6 +2,7 @@
 #include "Simulation.hpp"
 
 #include <Core/TimeManager/TimeManager.hpp>
+#include <Renderer/GraphicsUtils/Profiling/Profiling.hpp>
 #include <Scene/Scene.hpp>
 #include <Utils/Assert.hpp>
 
@@ -14,6 +15,8 @@ namespace Darius::Editor::Simulate
 	bool							Paused = false;
 	bool							Stepping = false;
 
+	D_TIME::StepTimer*				Timer;
+
 	D_SERIALIZATION::Json			SceneDump;
 
 	void Initialize()
@@ -21,6 +24,7 @@ namespace Darius::Editor::Simulate
 		D_ASSERT(!_Initialized);
 
 		D_WORLD::Initialize();
+		Timer = D_TIME::GetStepTimer();
 
 		_Initialized = true;
 
@@ -32,15 +36,32 @@ namespace Darius::Editor::Simulate
 		D_WORLD::Shutdown();
 	}
 
-	void Update(float elapsedTime)
+	void INLINE PauseTime()
 	{
-		if (Running && (!Paused || Stepping))
-			D_WORLD::Update(elapsedTime);
+		Timer->Pause();
+		D_PROFILING::Pause();
+	}
+
+	void INLINE ResumeTime()
+	{
+		Timer->Resume();
+		D_PROFILING::Resume();
+	}
+
+	void Update()
+	{
+		
+		Timer->Tick([]() {
+			D_WORLD::Update(Timer->GetElapsedSeconds());
+			});
 
 		D_WORLD::UpdateObjectsConstatns();
 
 		if (Stepping)
+		{
+			PauseTime();
 			Stepping = false;
+		}
 
 	}
 
@@ -52,6 +73,8 @@ namespace Darius::Editor::Simulate
 		// Saving a dump of scene to be able to reload after simulation stop
 		D_WORLD::DumpScene(SceneDump);
 
+		ResumeTime();
+
 		Running = true;
 		Paused = false;
 	}
@@ -60,6 +83,8 @@ namespace Darius::Editor::Simulate
 	{
 		if (!Running)
 			return;
+
+		PauseTime();
 
 		// Resetting scene to what it originally was
 		D_WORLD::LoadSceneDump(SceneDump);
@@ -73,6 +98,8 @@ namespace Darius::Editor::Simulate
 		if (!Running || Paused)
 			return;
 
+		PauseTime();
+
 		Paused = true;
 	}
 
@@ -80,6 +107,9 @@ namespace Darius::Editor::Simulate
 	{
 		if (!Running || !Paused)
 			return;
+
+		ResumeTime();
+
 		Paused = false;
 	}
 
@@ -87,6 +117,8 @@ namespace Darius::Editor::Simulate
 	{
 		if (!Paused || Stepping)
 			return;
+
+		ResumeTime();
 
 		Stepping = true;
 	}

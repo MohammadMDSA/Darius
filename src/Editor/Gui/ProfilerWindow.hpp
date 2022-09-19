@@ -28,17 +28,17 @@ namespace Darius::Editor::Gui::Windows
 		Utils::ScrollingBuffer			mCpuRealtime;
 		Utils::ScrollingBuffer			mFrameTimeRealtime;
 
-		float							mMaxGpu;
-		float							mMaxCpu;
-		float							mMaxFrameDelta;
+		float							mMaxGpu = 0.f;
+		float							mMaxCpu = 0.f;
+		float							mMaxFrameDelta = 0.f;
 
-		float							mLastGpu;
-		float							mLastCpu;
-		float							mLastFrameDelta;
+		float							mLastGpu = 0.f;
+		float							mLastCpu = 0.f;
+		float							mLastFrameDelta = 0.f;
 
-		float							mAvgGpu;
-		float							mAvgCpu;
-		float							mAvgFrameDelta;
+		float							mAvgGpu = 0.f;
+		float							mAvgCpu = 0.f;
+		float							mAvgFrameDelta = 0.f;
 
 		float							mHistory = 5.f;
 	};

@@ -32,9 +32,8 @@ namespace Darius::Graphics::Utils::Profiling
 	void BeginBlock(const std::wstring& name, CommandContext* Context = nullptr);
 	void EndBlock(CommandContext* Context = nullptr);
 
-	//void DisplayFrameRate(TextContext& Text);
-	//void DisplayPerfGraph(GraphicsContext& Text);
-	//void Display(TextContext& Text, float x, float y, float w, float h);
+	void Pause();
+	void Resume();
 	bool IsPaused();
 
 	float GetAvgCpuTime();

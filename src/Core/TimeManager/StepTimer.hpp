@@ -28,7 +28,8 @@ namespace Darius::Core::TimeManager
             m_framesThisSecond(0),
             m_qpcSecondCounter(0),
             m_isFixedTimeStep(false),
-            m_targetElapsedTicks(TicksPerSecond / 60)
+            m_targetElapsedTicks(TicksPerSecond / 60),
+            m_paused(true)
         {
             if (!QueryPerformanceFrequency(&m_qpcFrequency))
             {
@@ -92,6 +93,10 @@ namespace Darius::Core::TimeManager
         template<typename TUpdate>
         void Tick(const TUpdate& update)
         {
+
+            if (m_paused)
+                return;
+
             // Query the current time.
             LARGE_INTEGER currentTime;
 
@@ -170,6 +175,27 @@ namespace Darius::Core::TimeManager
             }
         }
 
+        void Pause()
+        {
+            if (m_paused)
+                return;
+
+            m_paused = true;
+        }
+
+        void Resume()
+        {
+            if (!m_paused)
+                return;
+
+            if (!QueryPerformanceCounter(&m_qpcLastTime))
+            {
+                throw std::exception();
+            }
+
+            m_paused = false;
+        }
+
     private:
         // Source timing data uses QPC units.
         LARGE_INTEGER m_qpcFrequency;
@@ -190,5 +216,7 @@ namespace Darius::Core::TimeManager
         // Members for configuring fixed timestep mode.
         bool m_isFixedTimeStep;
         uint64_t m_targetElapsedTicks;
+
+        bool m_paused;
     };
 }

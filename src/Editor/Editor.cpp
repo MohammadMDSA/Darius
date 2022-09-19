@@ -98,17 +98,18 @@ namespace Darius::Editor
 		D_ECS_COMP::TransformComponent::StaticConstructor();
 		D_ECS_COMP::BehaviourComponent::StaticConstructor();
 		Demo::MovementBehaviour::StaticConstructor();
+
+		mTimer.Resume();
 	}
 
 #pragma region Frame Update
 	// Executes the basic game loop.
 	void Editor::Tick()
 	{
-		auto timer = D_TIME::GetStepTimer();
-		timer->Tick([&]()
+		mTimer.Tick([&]()
 			{
 				D_PROFILING::Update();
-				Update(*timer);
+				Update(mTimer);
 			});
 		Render();
 
@@ -123,7 +124,7 @@ namespace Darius::Editor
 		D_INPUT::Update();
 
 		// Updating the simulator
-		D_SIMULATE::Update(elapsedTime);
+		D_SIMULATE::Update();
 
 		// Updating lights
 		::D_SCENE_LIGHT::Update(elapsedTime);
@@ -144,7 +145,7 @@ namespace Darius::Editor
 	void Editor::Render()
 	{
 		// Don't try to render anything before the first Update.
-		if (D_TIME::GetStepTimer()->GetFrameCount() < 2)
+		if (mTimer.GetFrameCount() < 2)
 		{
 			return;
 		}

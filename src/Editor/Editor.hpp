@@ -64,5 +64,6 @@ namespace Darius::Editor
 		void CreateDeviceDependentResources();
 		void CreateWindowSizeDependentResources();
 
+		D_TIME::StepTimer						mTimer;
 	};
 }
