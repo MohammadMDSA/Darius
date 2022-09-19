@@ -8,6 +8,7 @@
 #include "ResourceMonitorWindow.hpp"
 #include "ProfilerWindow.hpp"
 #include "Editor/EditorContext.hpp"
+#include "Editor/Simulation.hpp"
 
 #include <Core/Containers/Map.hpp>
 #include <Core/TimeManager/TimeManager.hpp>
@@ -114,7 +115,7 @@ namespace Darius::Editor::Gui::GuiManager
 
 			ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
 
-			ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4(0, 0.1, .3, 1));
+			ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4(0.f, 0.05f, 0.1f, 1.f));
 			ImGui::Begin("Editor GUI Root", (bool*)1, windowFlags);
 			ImGui::PopStyleColor();
 			RootToolbar();
@@ -289,17 +290,51 @@ namespace Darius::Editor::Gui::GuiManager
 
 		auto offset = (width - 3 * buttonSize) / 2;
 
+		auto isSimulating = D_SIMULATE::IsSimulating();
+
 		// Play button
 		ImGui::SameLine(offset);
-		ImGui::Button(ICON_FA_PLAY, ImVec2(buttonSize, 0));
+		if (ImGui::Button(isSimulating ? ICON_FA_STOP : ICON_FA_PLAY, ImVec2(buttonSize, 0)))
+			isSimulating ? D_SIMULATE::Stop() : D_SIMULATE::Run();
+
+		// Update states
+		isSimulating = D_SIMULATE::IsSimulating();
+		auto isPaused = D_SIMULATE::IsPaused();
+
+
 
 		// Pause button
+		// Deciding puase button color
+		if (isPaused)
+			ImGui::PushStyleColor(ImGuiCol_Button, { 0.26f, 0.59f, 1.f, 1.f });
+
 		ImGui::SameLine();
-		ImGui::Button(ICON_FA_PAUSE, ImVec2(buttonSize, 0));
+
+		// Disable if not simulating
+		if (!isSimulating)
+			ImGui::BeginDisabled();
+
+		// The button itself
+		if (ImGui::Button(ICON_FA_PAUSE, ImVec2(buttonSize, 0)))
+			isPaused ? D_SIMULATE::Resume() : D_SIMULATE::Pause();
+
+		// Cleaning up disabled and color status if necessary
+		if (!isSimulating)
+			ImGui::EndDisabled();
+		if (isPaused)
+			ImGui::PopStyleColor();
+
+		isPaused = D_SIMULATE::IsPaused();
 
 		// Step button
 		ImGui::SameLine();
-		ImGui::Button(ICON_FA_FAST_FORWARD, ImVec2(buttonSize, 0));
+
+		if (!isPaused)
+			ImGui::BeginDisabled();
+		if (ImGui::Button(ICON_FA_FAST_FORWARD, ImVec2(buttonSize, 0)))
+			D_SIMULATE::Step();
+		if (!isPaused)
+			ImGui::EndDisabled();
 
 		ImGui::PopStyleVar();
 	}
