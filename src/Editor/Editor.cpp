@@ -17,6 +17,7 @@
 #include <Scene/EntityComponentSystem/Components/MeshRendererComponent.hpp>
 #include <Scene/EntityComponentSystem/Components/LightComponent.hpp>
 #include <Scene/EntityComponentSystem/Components/TransformComponent.hpp>
+#include <Demo/MovementBehaviour.hpp>
 #include <Scene/SceneLight.hpp>
 #include <Renderer/Renderer.hpp>
 #include <Renderer/FrameResource.hpp>
@@ -95,6 +96,8 @@ namespace Darius::Editor
 		D_ECS_COMP::LightComponent::StaticConstructor();
 		D_ECS_COMP::MeshRendererComponent::StaticConstructor();
 		D_ECS_COMP::TransformComponent::StaticConstructor();
+		D_ECS_COMP::BehaviourComponent::StaticConstructor();
+		Demo::MovementBehaviour::StaticConstructor();
 	}
 
 #pragma region Frame Update
@@ -140,17 +143,16 @@ namespace Darius::Editor
 	// Draws the scene.
 	void Editor::Render()
 	{
-		auto& context = D_GRAPHICS::GraphicsContext::Begin(L"Render Scene");
-
 		// Don't try to render anything before the first Update.
-		if (D_TIME::GetStepTimer()->GetFrameCount() == 0)
+		if (D_TIME::GetStepTimer()->GetFrameCount() < 2)
 		{
 			return;
 		}
 
+		auto& context = D_GRAPHICS::GraphicsContext::Begin(L"Render Scene");
+
 		D_GUI_MANAGER::Render(context);
 		Darius::Renderer::Present(context);
-
 
 	}
 #pragma endregion

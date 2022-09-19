@@ -189,6 +189,20 @@ endif(BUILD_TESTS)
 ##############################
 
 
+##############################
+######## Game Project ########
+##############################
+
+add_subdirectory("Demo/Source")
+target_link_libraries(DEMO PRIVATE Scene IMGUI)
+target_include_directories(DEMO PRIVATE "src")
+target_link_libraries(${PROJECT_NAME} PRIVATE DEMO)
+
+
+##############################
+##############################
+##############################
+
 target_link_libraries(${PROJECT_NAME} PRIVATE
     d3d12.lib dxgi.lib dxguid.lib uuid.lib
     kernel32.lib user32.lib
