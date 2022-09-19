@@ -100,8 +100,8 @@ namespace Darius::Renderer::DeviceResource
 			ComPtr<ID3D12Debug5> debugController;
 			if (SUCCEEDED(D3D12GetDebugInterface(IID_PPV_ARGS(debugController.GetAddressOf()))))
 			{
-				/*debugController->EnableDebugLayer();
-				debugController->SetEnableGPUBasedValidation(true);*/
+				debugController->EnableDebugLayer();
+				debugController->SetEnableGPUBasedValidation(true);
 			}
 			else
 			{
@@ -180,6 +180,7 @@ namespace Darius::Renderer::DeviceResource
 				// Workarounds for debug layer issues on hybrid-graphics systems
 				D3D12_MESSAGE_ID_EXECUTECOMMANDLISTS_WRONGSWAPCHAINBUFFERREFERENCE,
 				D3D12_MESSAGE_ID_RESOURCE_BARRIER_MISMATCHING_COMMAND_LIST_TYPE,
+				D3D12_MESSAGE_ID_RESOLVE_QUERY_INVALID_QUERY_STATE
 			};
 			D3D12_INFO_QUEUE_FILTER filter = {};
 			filter.DenyList.NumIDs = static_cast<UINT>(std::size(hide));
@@ -451,7 +452,7 @@ namespace Darius::Renderer::DeviceResource
 		}
 
 		// Send the command list off to the GPU for processing.
-		context.Finish();
+		m_frameResources[m_currentResourceIndex]->Fence = context.Finish();
 
 		HRESULT hr;
 		if (m_options & c_AllowTearing)
@@ -512,10 +513,7 @@ namespace Darius::Renderer::DeviceResource
 			ThrowIfFailed(m_fence->SetEventOnCompletion(m_frameResources[m_currentResourceIndex]->Fence, m_fenceEvent.Get()));
 			std::ignore = WaitForSingleObjectEx(m_fenceEvent.Get(), INFINITE, FALSE);
 		}
-
-		// Set the fence value for the next frame.
-		m_frameResources[m_currentResourceIndex]->Fence = currentFenceValue + 1;
-
+		
 	}
 
 	// This method acquires the first available hardware adapter that supports Direct3D 12.
