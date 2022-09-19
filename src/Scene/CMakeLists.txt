@@ -14,6 +14,7 @@ list(APPEND SCENE_LIBS_INCLUDE
 	"EntityComponentSystem/Components/TransformComponent.hpp"
 	"EntityComponentSystem/Components/MeshRendererComponent.hpp"
 	"EntityComponentSystem/Components/LightComponent.hpp"
+	"EntityComponentSystem/Components/BehaviourComponent.hpp"
 	"pch.hpp"
 	)
 
@@ -28,6 +29,7 @@ list(APPEND SCENE_LIBS_SOURCES
 	"EntityComponentSystem/Components/TransformComponent.cpp"
 	"EntityComponentSystem/Components/MeshRendererComponent.cpp"
 	"EntityComponentSystem/Components/LightComponent.cpp"
+	"EntityComponentSystem/Components/BehaviourComponent.cpp"
 	)
 
 
@@ -48,7 +50,7 @@ find_package(Boost REQUIRED)
 set_target_properties("Scene" PROPERTIES LINKER_LANGUAGE CXX)
 
 if ((${CMAKE_VERSION} VERSION_GREATER_EQUAL "3.16") AND (NOT MINGW))
-    target_precompile_headers("Core" PRIVATE pch.hpp )
+    target_precompile_headers("Scene" PRIVATE pch.hpp )
 endif()
 
 target_include_directories("Scene"
@@ -59,7 +61,7 @@ PRIVATE
 )
 
 target_link_libraries("Scene" PRIVATE ${Boost_LIBRARIES})
-target_link_libraries("Scene" PUBLIC flecs_static PRIVATE Utils Core Math Renderer ResourceManager IMGUI)
+target_link_libraries("Scene" PUBLIC flecs_static Utils Core Math Renderer ResourceManager IMGUI)
 
 
 if(BUILD_TESTS)
