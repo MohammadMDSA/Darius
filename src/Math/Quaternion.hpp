@@ -52,7 +52,7 @@ namespace Darius::Math
                 result.SetZ(atan2f(fmat._13, fmat._11));
                 result.SetY(0.f);
             }
-            return result;
+            return -result;
         }
 
         INLINE Quaternion operator~ (void) const { return Quaternion(XMQuaternionConjugate(m_vec)); }

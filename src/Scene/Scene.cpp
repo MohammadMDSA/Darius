@@ -4,6 +4,7 @@
 #include "GameObject.hpp"
 
 #include "EntityComponentSystem/Components/ComponentBase.hpp"
+#include "EntityComponentSystem/Components/BehaviourComponent.hpp"
 #include "EntityComponentSystem/Components/TransformComponent.hpp"
 
 #include <Core/Filesystem/FileUtils.hpp>
@@ -78,7 +79,7 @@ namespace Darius::Scene
 		{
 			if (!go->GetActive())
 				continue;
-			go->VisitComponents([deltaTime](D_ECS_COMP::ComponentBase* comp)
+			go->VisitBehaviourComponents([deltaTime](D_ECS_COMP::BehaviourComponent* comp)
 				{
 					try
 					{

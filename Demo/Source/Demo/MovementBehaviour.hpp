@@ -9,7 +9,7 @@ namespace Demo
 {
 	class MovementBehaviour : public BehaviourComponent
 	{
-		D_H_COMP_BODY(MovementBehaviour, BehaviourComponent, "Movement", true);
+		D_H_BEHAVIOUR_COMP_BODY(MovementBehaviour, BehaviourComponent, "Movement", true);
 
 	public:
 

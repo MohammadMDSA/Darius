@@ -6,6 +6,7 @@
 #include <Core/Uuid.hpp>
 #include <Core/Serialization/Json.hpp>
 #include <Core/Exceptions/Exception.hpp>
+#include <Core/Containers/Set.hpp>
 #include <Math/VectorMath.hpp>
 #include <Renderer/Geometry/Mesh.hpp>
 #include <Renderer/FrameResource.hpp>
@@ -33,6 +34,7 @@ using namespace D_CORE;
 namespace Darius::Scene::ECS::Components
 {
 	class ComponentBase;
+	class BehaviourComponent;
 	class TransformComponent;
 }
 
@@ -83,6 +85,7 @@ namespace Darius::Scene
 		void								OnDestroy();
 
 		void								VisitComponents(std::function<void(Darius::Scene::ECS::Components::ComponentBase*)> callback, std::function<void(D_EXCEPTION::Exception const&)> onException = nullptr) const;
+		void								VisitBehaviourComponents(std::function<void(Darius::Scene::ECS::Components::BehaviourComponent*)> callback, std::function<void(D_EXCEPTION::Exception const&)> onException = nullptr) const;
 		void								VisitAncestors(std::function<void(GameObject*)> callback) const;
 		void								VisitChildren(std::function<void(GameObject*)> callback) const;
 		void								VisitDescendants(std::function<void(GameObject*)> callback) const;
@@ -153,6 +156,7 @@ namespace Darius::Scene
 		}
 
 		static void							RegisterComponent(std::string name, std::string displayName);
+		static void							RegisterBehaviourComponent(D_ECS::EntityId componentId);
 
 		D_CH_R_FIELD(bool, Active);
 		D_CH_RW_FIELD(std::string, Name);
@@ -181,6 +185,7 @@ namespace Darius::Scene
 
 		// Comp name and display name
 		static D_CONTAINERS::DVector<std::pair<std::string, std::string>> RegisteredComponents;
+		static D_CONTAINERS::DSet<D_ECS::EntityId> RegisteredBehaviours;
 	};
 
 	D_H_SERIALIZE_ENUM(GameObject::Type, {

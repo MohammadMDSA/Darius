@@ -5,6 +5,7 @@
 #include "Scene.hpp"
 #include "Utils/Serializer.hpp"
 #include "EntityComponentSystem/Components/ComponentBase.hpp"
+#include "EntityComponentSystem/Components/BehaviourComponent.hpp"
 #include "EntityComponentSystem/Components/TransformComponent.hpp"
 
 #include <Core/Uuid.hpp>
@@ -21,6 +22,7 @@ namespace Darius::Scene
 {
 	// Comp name and display name
 	D_CONTAINERS::DVector<std::pair<std::string, std::string>> GameObject::RegisteredComponents = D_CONTAINERS::DVector<std::pair<std::string, std::string>>();
+	D_CONTAINERS::DSet<D_ECS::EntityId> GameObject::RegisteredBehaviours = D_CONTAINERS::DSet<D_ECS::EntityId>();
 
 	GameObject::GameObject(Uuid uuid, D_ECS::Entity entity) :
 		mActive(true),
@@ -217,6 +219,37 @@ namespace Darius::Scene
 		return *mEntity.get<Darius::Scene::ECS::Components::TransformComponent>()->GetDataC();
 	}
 
+	void GameObject::VisitBehaviourComponents(std::function<void(Darius::Scene::ECS::Components::BehaviourComponent*)> callback, std::function<void(D_EXCEPTION::Exception const&)> onException) const
+	{
+		auto& reg = D_WORLD::GetRegistry();
+
+		auto compList = DVector<BehaviourComponent*>();
+		mEntity.each([&](flecs::id compId)
+			{
+				if (!reg.is_valid(compId))
+					return;
+				
+				if (!RegisteredBehaviours.contains(compId))
+					return;
+
+				auto compP = mEntity.get_mut(compId);
+				try
+				{
+					auto comp = reinterpret_cast<BehaviourComponent*>(compP);
+					compList.push_back(comp);
+
+				}
+				catch (const D_EXCEPTION::Exception& e)
+				{
+					if (onException)
+						onException(e);
+				}
+			});
+
+		for (auto comp : compList)
+			callback(comp);
+	}
+
 	void GameObject::VisitComponents(std::function<void(ComponentBase*)> callback, std::function<void(D_EXCEPTION::Exception const&)> onException) const
 	{
 		auto compList = DVector<ComponentBase*>();
@@ -235,7 +268,6 @@ namespace Darius::Scene
 				if (transId == compId)
 					return;
 
-				bool hh = mEntity.has(compId);
 				auto compP = mEntity.get_mut(compId);
 				try
 				{
@@ -322,19 +354,6 @@ namespace Darius::Scene
 		mParent = newParent;
 	}
 
-	void GameObject::RegisterComponent(std::string name, std::string displayName)
-	{
-		auto& reg = D_WORLD::GetRegistry();
-		if (!reg.is_valid(reg.component(name.c_str())))
-			throw D_EXCEPTION::Exception("found no component using provided name");
-
-		GameObject::RegisteredComponents.push_back({ name, displayName });
-		std::sort(RegisteredComponents.begin(), RegisteredComponents.end(), [](auto first, auto second)
-			{
-				return first.second < second.second;
-			});
-	}
-
 	void GameObject::VisitAncestors(std::function<void(GameObject*)> callback) const
 	{
 		auto current = mParent;
@@ -399,6 +418,24 @@ namespace Darius::Scene
 					comp->OnGameObjectDeactivate();
 				});
 
+	}
+
+	void GameObject::RegisterComponent(std::string name, std::string displayName)
+	{
+		auto& reg = D_WORLD::GetRegistry();
+		if (!reg.is_valid(reg.component(name.c_str())))
+			throw D_EXCEPTION::Exception("found no component using provided name");
+
+		GameObject::RegisteredComponents.push_back({ name, displayName });
+		std::sort(RegisteredComponents.begin(), RegisteredComponents.end(), [](auto first, auto second)
+			{
+				return first.second < second.second;
+			});
+	}
+
+	void GameObject::RegisterBehaviourComponent(D_ECS::EntityId compId)
+	{
+		RegisteredBehaviours.insert(compId);
 	}
 
 	void to_json(D_SERIALIZATION::Json& j, const GameObject& value) {

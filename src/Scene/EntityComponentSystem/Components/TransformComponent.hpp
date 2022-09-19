@@ -13,7 +13,7 @@ namespace Darius::Scene::ECS::Components
 {
 	class TransformComponent : public ComponentBase
 	{
-		D_H_COMP_BODY(TransformComponent, ComponentBase, "Transform", true);
+		D_H_COMP_BODY(TransformComponent, ComponentBase, "Transform", true, false);
 	public:
 
 		// Serialization

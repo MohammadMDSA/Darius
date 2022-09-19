@@ -16,7 +16,7 @@
 #define D_ECS_COMP Darius::Scene::ECS::Components
 #endif // !D_ECS_COMP
 
-#define D_H_COMP_BODY(type, parent, compName, shouldRegister) \
+#define D_H_COMP_BODY(type, parent, compName, shouldRegister, isBehaviour) \
 public: \
 type(); \
 type(D_CORE::Uuid uuid); \
@@ -37,6 +37,8 @@ static void StaticConstructor() \
     comp.is_a(parentComp); \
     if(shouldRegister) \
         D_SCENE::GameObject::RegisterComponent(D_NAMEOF(type), compName); \
+    if(isBehaviour) \
+        D_SCENE::GameObject::RegisterBehaviourComponent(comp); \
     sInit = true; \
 } \
 \
