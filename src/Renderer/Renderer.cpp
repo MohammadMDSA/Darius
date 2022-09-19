@@ -219,8 +219,6 @@ namespace Darius::Renderer
 		PIXEndEvent(context.GetCommandList());
 #endif
 
-		context.Flush();
-
 		// Show the new frame.
 		PIXBeginEvent(PIX_COLOR_DEFAULT, L"Present");
 		Resources->Present(context);
