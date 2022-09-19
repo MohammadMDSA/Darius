@@ -58,8 +58,8 @@ namespace D_EDITOR
 		if (mDirtyOrientation)
 		{
 			auto angles = mTargetCamera.GetRotation().Angles();
-			mCurrentPitch = -angles.GetX();
-			mCurrentHeading = -angles.GetY();
+			mCurrentPitch = angles.GetX();
+			mCurrentHeading = angles.GetY();
 			mDirtyOrientation = false;
 		}
 
@@ -208,11 +208,11 @@ namespace D_EDITOR
 
 		auto rotationAngles = mTargetCamera.GetRotation().Angles();
 
-		float mCurrentPitch = pitch - rotationAngles.GetX();
+		float mCurrentPitch = pitch + rotationAngles.GetX();
 		mCurrentPitch = XMMin(XM_PIDIV2, mCurrentPitch);
 		mCurrentPitch = XMMax(-XM_PIDIV2, mCurrentPitch);
 
-		float mCurrentHeading = -yaw - rotationAngles.GetY();
+		float mCurrentHeading = -yaw + rotationAngles.GetY();
 		if (mCurrentHeading > XM_PI)
 			mCurrentHeading -= XM_2PI;
 		else if (mCurrentHeading <= -XM_PI)
