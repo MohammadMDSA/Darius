@@ -5,14 +5,13 @@
 #include <Scene/Scene.hpp>
 #include <Utils/Assert.hpp>
 
-#include <boost/timer/timer.hpp>
-
 namespace Darius::Editor::Simulate
 {
 
 	bool							_Initialized = false;
 
-	bool							IsRunning = false;
+	bool							Running = false;
+	bool							Paused = false;
 	bool							Stepping = false;
 
 	void Initialize()
@@ -33,7 +32,7 @@ namespace Darius::Editor::Simulate
 
 	void Update(float elapsedTime)
 	{
-		if (IsRunning || Stepping)
+		if (Running && (!Paused || Stepping))
 			D_WORLD::Update(elapsedTime);
 
 		D_WORLD::UpdateObjectsConstatns();
@@ -45,24 +44,40 @@ namespace Darius::Editor::Simulate
 
 	void Run()
 	{
-		if (IsRunning)
+		if (Running)
 			return;
 
-		IsRunning = true;
-		//boost::timer::cpu_timer
+		Running = true;
+		Paused = false;
+	}
+
+	void Stop()
+	{
+		if (!Running)
+			return;
+
+		Running = false;
+		Paused = false;
 	}
 
 	void Pause()
 	{
-		if (!IsRunning)
+		if (!Running || Paused)
 			return;
 
-		IsRunning = false;
+		Paused = true;
+	}
+
+	void Resume()
+	{
+		if (!Running || !Paused)
+			return;
+		Paused = false;
 	}
 
 	void Step()
 	{
-		if (IsRunning || Stepping)
+		if (!Paused || Stepping)
 			return;
 
 		Stepping = true;
@@ -70,6 +85,16 @@ namespace Darius::Editor::Simulate
 
 	bool IsSimulating()
 	{
-		return IsRunning;
+		return Running;
+	}
+
+	bool IsPaused()
+	{
+		return Paused;
+	}
+
+	bool IsStepping()
+	{
+		return Stepping;
 	}
 }

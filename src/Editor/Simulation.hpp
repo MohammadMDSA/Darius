@@ -13,8 +13,14 @@ namespace Darius::Editor::Simulate
 	void Update(float elapsedTime);
 
 	void Run();
+	void Stop();
+
 	void Pause();
+	void Resume();
+
 	void Step();
 
 	bool IsSimulating();
+	bool IsPaused();
+	bool IsStepping();
 }
