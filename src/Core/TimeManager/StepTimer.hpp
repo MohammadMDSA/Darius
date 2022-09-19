@@ -5,6 +5,8 @@
 #pragma once
 #include "Core/pch.hpp"
 
+#include <Utils/Common.hpp>
+
 #include <cmath>
 #include <cstdint>
 #include <exception>
@@ -66,6 +68,9 @@ namespace Darius::Core::TimeManager
         void SetTargetElapsedTicks(uint64_t targetElapsed) noexcept { m_targetElapsedTicks = targetElapsed; }
         void SetTargetElapsedSeconds(double targetElapsed) noexcept { m_targetElapsedTicks = SecondsToTicks(targetElapsed); }
 
+        INLINE uint64_t GetTargetElapsedTicks() { return m_targetElapsedTicks; }
+        INLINE double GetTargetElapsedSeconds() { return TicksToSeconds(m_targetElapsedTicks); }
+
         // Integer format represents time using 10,000,000 ticks per second.
         static constexpr uint64_t TicksPerSecond = 10000000;
 
@@ -87,6 +92,13 @@ namespace Darius::Core::TimeManager
             m_framesPerSecond = 0;
             m_framesThisSecond = 0;
             m_qpcSecondCounter = 0;
+        }
+
+        void Reset()
+        {
+            ResetElapsedTime();
+            m_totalTicks = 0;
+            m_frameCount = 0;
         }
 
         // Update timer state, calling the specified Update function the appropriate number of times.

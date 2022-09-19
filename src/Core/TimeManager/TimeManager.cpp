@@ -35,6 +35,11 @@ namespace Darius::Core::TimeManager
 		Timer->SetFixedTimeStep(false);
 	}
 
+	float GetTargetElapsedSeconds()
+	{
+		return (float)Timer->GetTargetElapsedSeconds();
+	}
+
 	StepTimer* GetStepTimer()
 	{
 		return Timer.get();
