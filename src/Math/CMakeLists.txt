@@ -66,7 +66,7 @@ PRIVATE
 
 target_link_libraries("Math" PRIVATE ${Boost_LIBRARIES})
 # target_link_libraries("Math" PRIVATE DirectXTK12)
-target_link_libraries("Math" PRIVATE Utils IMGUI)
+target_link_libraries("Math" PRIVATE IMGUI PUBLIC Utils)
 
 
 if(BUILD_TESTS)

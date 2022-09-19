@@ -63,14 +63,12 @@ endif()
 include_directories(SYSTEM ${Boost_INCLUDE_DIRS})
 
 target_include_directories("Core"
-PUBLIC
-	".."
-	"../Libs/MemAll/include"
 PRIVATE
+	".."
 	${Boost_INCLUDE_DIRS}
 )
 
-target_link_libraries("Core" PUBLIC nlohmann_json::nlohmann_json PRIVATE ${Boost_LIBRARIES} DirectXTK12)
+target_link_libraries("Core" PUBLIC Utils nlohmann_json::nlohmann_json PRIVATE ${Boost_LIBRARIES} DirectXTK12)
 
 if(BUILD_TESTS)
 	set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/../../cmake")

@@ -54,7 +54,7 @@ PRIVATE
 	${FBX_INCLUDE_DIRS}
 )
 
-target_link_libraries("ResourceManager" PRIVATE ${Boost_LIBRARIES} Core Renderer Utils ${FBX_LINK_LIBS})
+target_link_libraries("ResourceManager" PRIVATE ${Boost_LIBRARIES} ${FBX_LINK_LIBS} PUBLIC Core Renderer Utils)
 
 if(BUILD_TESTS)
 	set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/../../cmake")
