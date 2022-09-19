@@ -1,7 +1,9 @@
 #include "pch.hpp"
 #include "Simulation.hpp"
+#include "EditorContext.hpp"
 
 #include <Core/TimeManager/TimeManager.hpp>
+#include <Core/Signal.hpp>
 #include <Renderer/GraphicsUtils/Profiling/Profiling.hpp>
 #include <Scene/Scene.hpp>
 #include <Utils/Assert.hpp>
@@ -14,6 +16,9 @@ namespace Darius::Editor::Simulate
 	bool							Running = false;
 	bool							Paused = false;
 	bool							Stepping = false;
+
+	D_CORE::Signal<void()>			RunSignal;
+	D_CORE::Signal<void()>			StopSignal;
 
 	D_TIME::StepTimer*				Timer;
 
@@ -77,6 +82,8 @@ namespace Darius::Editor::Simulate
 
 		Running = true;
 		Paused = false;
+
+		RunSignal();
 	}
 
 	void Stop()
@@ -85,12 +92,17 @@ namespace Darius::Editor::Simulate
 			return;
 
 		PauseTime();
+		Timer->Reset();
 
 		// Resetting scene to what it originally was
+		D_EDITOR_CONTEXT::SetSelectedGameObject(nullptr);
+		D_WORLD::ClearScene();
 		D_WORLD::LoadSceneDump(SceneDump);
 
 		Running = false;
 		Paused = false;
+
+		StopSignal();
 	}
 
 	void Pause()
@@ -136,5 +148,15 @@ namespace Darius::Editor::Simulate
 	bool IsStepping()
 	{
 		return Stepping;
+	}
+
+	void SubscribeOnRun(std::function<void()> callback)
+	{
+		RunSignal.connect(callback);
+	}
+
+	void SubscribeOnStop(std::function<void()> callback)
+	{
+		StopSignal.connect(callback);
 	}
 }
