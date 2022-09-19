@@ -273,10 +273,11 @@ namespace Darius::Graphics::Utils::Profiling
 		static void UpdateTimes(void)
 		{
 			uint32_t FrameIndex = (uint32_t)D_GRAPHICS::GetFrameCount();
+			uint64_t frameTick = D_TIME::SystemTime::GetCurrentTick();
 
 			D_PROFILING_GPU::BeginReadBack();
 			sm_RootScope.GatherTimes(FrameIndex);
-			s_FrameDelta.RecordStat(FrameIndex, D_PROFILING_GPU::GetTime(0));
+			s_FrameDelta.RecordStat(FrameIndex, D_TIME::SystemTime::TimeBetweenTicks(s_lastFrameTick, frameTick));
 			D_PROFILING_GPU::EndReadBack();
 
 			float TotalCpuTime, TotalGpuTime;
@@ -284,6 +285,7 @@ namespace Darius::Graphics::Utils::Profiling
 			s_TotalCpuTime.RecordStat(FrameIndex, TotalCpuTime);
 			s_TotalGpuTime.RecordStat(FrameIndex, TotalGpuTime);
 
+			s_lastFrameTick = frameTick;
 		}
 
 		static float GetAvgCpuTime() { return s_TotalCpuTime.GetAvg(); }
@@ -301,7 +303,6 @@ namespace Darius::Graphics::Utils::Profiling
 
 	private:
 
-		void StoreToGraph(void);
 		void DeleteChildren(void)
 		{
 			for (auto node : m_Children)
@@ -325,7 +326,7 @@ namespace Darius::Graphics::Utils::Profiling
 		static NestedTimingTree sm_RootScope;
 		static NestedTimingTree* sm_CurrentNode;
 		static NestedTimingTree* sm_SelectedScope;
-
+		static uint64_t s_lastFrameTick;
 	};
 
 	StatHistory NestedTimingTree::s_TotalCpuTime;
@@ -334,6 +335,7 @@ namespace Darius::Graphics::Utils::Profiling
 	NestedTimingTree NestedTimingTree::sm_RootScope(L"");
 	NestedTimingTree* NestedTimingTree::sm_CurrentNode = &NestedTimingTree::sm_RootScope;
 	NestedTimingTree* NestedTimingTree::sm_SelectedScope = &NestedTimingTree::sm_RootScope;
+	uint64_t NestedTimingTree::s_lastFrameTick = D_TIME::SystemTime::GetCurrentTick();
 
 	const bool DrawPerfGraph = false;
 
