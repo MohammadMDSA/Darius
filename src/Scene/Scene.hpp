@@ -34,6 +34,7 @@ namespace Darius::Scene
 
 		static bool				Create(D_FILE::Path const& path);
 		static void				Unload();
+		static void				ClearScene();
 		static bool				Load(std::wstring const& path);
 		static bool				Save();
 		static D_FILE::Path		GetPath();

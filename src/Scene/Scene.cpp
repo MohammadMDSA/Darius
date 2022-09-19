@@ -325,6 +325,17 @@ namespace Darius::Scene
 		Loaded = false;
 	}
 
+	void SceneManager::ClearScene()
+	{
+		Root.children([&](D_ECS::Entity ent)
+			{
+				DeleteGameObject((*EntityMap)[ent]);
+			});
+
+		GOs->clear();
+		RemoveDeleted();
+	}
+
 	GameObject* SceneManager::GetGameObject(D_ECS::Entity entity)
 	{
 		if (!EntityMap->contains(entity))
