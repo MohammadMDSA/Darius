@@ -219,7 +219,7 @@ namespace Darius::Scene
 
 	void GameObject::VisitComponents(std::function<void(ComponentBase*)> callback, std::function<void(D_EXCEPTION::Exception const&)> onException) const
 	{
-		auto compList = DVector<ComponentBase*>(3);
+		auto compList = DVector<ComponentBase*>();
 
 		compList.push_back(mEntity.get_mut<TransformComponent>());
 
@@ -339,7 +339,7 @@ namespace Darius::Scene
 	{
 		auto current = mParent;
 
-		auto ancestorList = DVector<GameObject*>(3);
+		auto ancestorList = DVector<GameObject*>();
 
 		while (current)
 		{
@@ -353,7 +353,7 @@ namespace Darius::Scene
 
 	void GameObject::VisitChildren(std::function<void(GameObject*)> callback) const
 	{
-		auto childrenList = DVector<GameObject*>(6);
+		auto childrenList = DVector<GameObject*>();
 
 		mEntity.children([&](D_ECS::Entity childEnt)
 			{
