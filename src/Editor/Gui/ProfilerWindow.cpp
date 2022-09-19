@@ -13,9 +13,12 @@ namespace Darius::Editor::Gui::Windows
 
 	ProfilerWindow::ProfilerWindow()
 	{
-		mGpuRealtime.AddPoint(0.f, 0.f);
-		mCpuRealtime.AddPoint(0.f, 0.f);
-		mFrameTimeRealtime.AddPoint(0.f, 0.f);
+		D_SIMULATE::SubscribeOnStop([&]()
+			{
+				ResetGraphs();
+			});
+
+		ResetGraphs();
 	}
 
 	ProfilerWindow::~ProfilerWindow()
