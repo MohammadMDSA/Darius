@@ -16,7 +16,7 @@
 #define D_ECS_COMP Darius::Scene::ECS::Components
 #endif // !D_ECS_COMP
 
-#define D_H_COMP_BODY(type, parent, compName) \
+#define D_H_COMP_BODY(type, parent, compName, shouldRegister) \
 public: \
 type(); \
 type(D_CORE::Uuid uuid); \
@@ -35,7 +35,8 @@ static void StaticConstructor() \
     auto parentComp = reg.component<parent>(); \
     D_ASSERT(reg.is_valid(parentComp)); \
     comp.is_a(parentComp); \
-    D_SCENE::GameObject::RegisterComponent(D_NAMEOF(type), compName); \
+    if(shouldRegister) \
+        D_SCENE::GameObject::RegisterComponent(D_NAMEOF(type), compName); \
     sInit = true; \
 } \
 \
@@ -88,7 +89,7 @@ namespace Darius::Scene::ECS::Components
         virtual INLINE void         SetEnabled(bool value) { mEnabled = value; }
 
         INLINE D_MATH::Transform const& GetLocalTransform() const { return mGameObject->GetLocalTransform(); }
-        INLINE D_MATH::Transform const& GetTransform() const { return mGameObject->GetTransform(); }
+        INLINE D_MATH::Transform const GetTransform() const { return mGameObject->GetTransform(); }
         INLINE void                 SetLocalTransform(D_MATH::Transform const& transform) { return mGameObject->SetLocalTransform(transform); }
         INLINE void                 SetTransform(D_MATH::Transform const& transform) { return mGameObject->SetTransform(transform); }
 
@@ -112,7 +113,7 @@ namespace Darius::Scene::ECS::Components
         D_CH_R_FIELD(D_CORE::Uuid, Uuid);
         D_CH_R_FIELD(Darius::Scene::GameObject*, GameObject);
         D_CH_R_FIELD(bool, Started);
-        D_CH_R_FIELD(bool, Enabled)
+        D_CH_R_FIELD(bool, Enabled);
 
     private:
         friend class Darius::Scene::GameObject;
