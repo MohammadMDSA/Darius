@@ -92,6 +92,7 @@ namespace Darius::Scene
 		}
 
 		context.PIXEndEvent();
+		context.Finish();
 
 	}
 
