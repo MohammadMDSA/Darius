@@ -14,6 +14,8 @@ namespace Darius::Editor::Simulate
 	bool							Paused = false;
 	bool							Stepping = false;
 
+	D_SERIALIZATION::Json			SceneDump;
+
 	void Initialize()
 	{
 		D_ASSERT(!_Initialized);
@@ -46,6 +48,9 @@ namespace Darius::Editor::Simulate
 	{
 		if (Running)
 			return;
+		
+		// Saving a dump of scene to be able to reload after simulation stop
+		D_WORLD::DumpScene(SceneDump);
 
 		Running = true;
 		Paused = false;
@@ -55,6 +60,9 @@ namespace Darius::Editor::Simulate
 	{
 		if (!Running)
 			return;
+
+		// Resetting scene to what it originally was
+		D_WORLD::LoadSceneDump(SceneDump);
 
 		Running = false;
 		Paused = false;
