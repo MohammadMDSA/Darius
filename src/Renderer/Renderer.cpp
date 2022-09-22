@@ -44,8 +44,8 @@ namespace Darius::Renderer
 #endif
 
 	// Input layout and root signature
-	std::unordered_map<RootSignatureTypes, D_GRAPHICS_UTILS::RootSignature> RootSigns;
-	std::unordered_map<PipelineStateTypes, D_GRAPHICS_UTILS::GraphicsPSO> Psos;
+	std::array<D_GRAPHICS_UTILS::RootSignature, (size_t)RootSignatureTypes::_num> RootSigns;
+	std::array<D_GRAPHICS_UTILS::GraphicsPSO, (size_t)PipelineStateTypes::_num> Psos;
 
 	// Device resource
 	std::unique_ptr<DeviceResource::DeviceResources>	Resources;
@@ -100,19 +100,19 @@ namespace Darius::Renderer
 
 	D_GRAPHICS_UTILS::GraphicsPSO& GetPSO(PipelineStateTypes type)
 	{
-		return Psos[type];
+		return Psos[(size_t)type];
 	}
 
 	D_GRAPHICS_UTILS::RootSignature& GetRootSignature(RootSignatureTypes type)
 	{
-		return RootSigns[type];
+		return RootSigns[(size_t)type];
 	}
 
 	void RenderMeshes(D_GRAPHICS::GraphicsContext& context, D_CONTAINERS::DVector<RenderItem> const& renderItems, D_RENDERER_FRAME_RESOUCE::GlobalConstants const& globals)
 	{
 
 		// Setting Root Signature
-		context.SetRootSignature(RootSigns[RootSignatureTypes::Default]);
+		context.SetRootSignature(RootSigns[(size_t)RootSignatureTypes::Default]);
 
 		context.SetDynamicConstantBufferView(kCommonCBV, sizeof(GlobalConstants), &globals);
 
@@ -155,7 +155,7 @@ namespace Darius::Renderer
 	void RenderBatchs(D_GRAPHICS::GraphicsContext& context, D_CONTAINERS::DVector<RenderItem> const& renderItems, D_RENDERER_FRAME_RESOUCE::GlobalConstants const& globals)
 	{
 		// Setting Root Signature
-		context.SetRootSignature(RootSigns[RootSignatureTypes::Color]);
+		context.SetRootSignature(RootSigns[(size_t)RootSignatureTypes::Color]);
 
 		context.SetDynamicConstantBufferView(kColorCommonCBV, sizeof(GlobalConstants), &globals);
 
@@ -221,8 +221,8 @@ namespace Darius::Renderer
 	void BuildPSO()
 	{
 		// For Opaque objects
-		Psos[PipelineStateTypes::Opaque] = GraphicsPSO(L"Opaque");
-		auto& pso = Psos[PipelineStateTypes::Opaque];
+		Psos[(size_t)PipelineStateTypes::Opaque] = GraphicsPSO(L"Opaque");
+		auto& pso = Psos[(size_t)PipelineStateTypes::Opaque];
 
 		auto il = D_RENDERER_VERTEX::VertexPositionNormalTexture::InputLayout;
 		pso.SetInputLayout(il.NumElements, il.pInputElementDescs);
@@ -234,7 +234,7 @@ namespace Darius::Renderer
 		auto rasterState = CD3DX12_RASTERIZER_DESC(D3D12_DEFAULT);
 		rasterState.FillMode = D3D12_FILL_MODE_SOLID;
 		rasterState.CullMode = D3D12_CULL_MODE_FRONT;
-		pso.SetRootSignature(RootSigns[RootSignatureTypes::Default]);
+		pso.SetRootSignature(RootSigns[(size_t)RootSignatureTypes::Default]);
 		pso.SetRasterizerState(D_GRAPHICS::RasterizerDefault);
 		pso.SetBlendState(CD3DX12_BLEND_DESC(D3D12_DEFAULT));
 		pso.SetDepthStencilState(CD3DX12_DEPTH_STENCIL_DESC(D3D12_DEFAULT));
@@ -245,36 +245,29 @@ namespace Darius::Renderer
 
 
 		// For opaque wireframe objecs
-		Psos[PipelineStateTypes::Wireframe] = pso;
-		auto& wirePso = Psos[PipelineStateTypes::Wireframe];
+		Psos[(size_t)PipelineStateTypes::Wireframe] = pso;
+		auto& wirePso = Psos[(size_t)PipelineStateTypes::Wireframe];
 		auto wireRasterState = rasterState;
 		wireRasterState.FillMode = D3D12_FILL_MODE_WIREFRAME;
 		wirePso.SetRasterizerState(wireRasterState);
 		wirePso.Finalize(L"Wireframe");
 
 		// For colored only objects
-		Psos[PipelineStateTypes::Color] = pso;
-		auto& colorPso = Psos[PipelineStateTypes::Color];
+		Psos[(size_t)PipelineStateTypes::Color] = pso;
+		auto& colorPso = Psos[(size_t)PipelineStateTypes::Color];
 		il = D_RENDERER_VERTEX::VertexPosition::InputLayout;
 		colorPso.SetInputLayout(il.NumElements, il.pInputElementDescs);
 		colorPso.SetVertexShader(reinterpret_cast<BYTE*>(Shaders["colorVS"]->GetBufferPointer()), Shaders["colorVS"]->GetBufferSize());
 		colorPso.SetPixelShader(reinterpret_cast<BYTE*>(Shaders["colorPS"]->GetBufferPointer()), Shaders["colorPS"]->GetBufferSize());
-		colorPso.SetRootSignature(RootSigns[RootSignatureTypes::Color]);
+		colorPso.SetRootSignature(RootSigns[(size_t)RootSignatureTypes::Color]);
 		colorPso.SetPrimitiveTopologyType(D3D12_PRIMITIVE_TOPOLOGY_TYPE_LINE);
 		colorPso.Finalize(L"Color");
-
-		// For wireframe colored only objects
-		Psos[PipelineStateTypes::WireframeColor] = colorPso;
-		auto& wireColorPso = Psos[PipelineStateTypes::WireframeColor];
-		wireColorPso.SetRasterizerState(wireRasterState);
-		wireColorPso.Finalize(L"Color Wireframe");
-
 	}
 
 	void BuildRootSignature()
 	{
 		// Default root signature
-		auto& def = RootSigns[RootSignatureTypes::Default];
+		auto& def = RootSigns[(size_t)RootSignatureTypes::Default];
 		def.Reset(kNumRootBindings, 3);
 
 		// Create samplers
@@ -296,7 +289,7 @@ namespace Darius::Renderer
 
 
 		//Color root signature
-		auto& col = RootSigns[RootSignatureTypes::Color];
+		auto& col = RootSigns[(size_t)RootSignatureTypes::Color];
 		col.Reset(kColorNumRootBindings);
 		// Create root CBVs.
 		col[kColorMeshConstants].InitAsConstantBuffer(0, D3D12_SHADER_VISIBILITY_VERTEX);

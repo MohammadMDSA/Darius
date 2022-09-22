@@ -54,13 +54,16 @@ namespace Darius::Renderer
 		Opaque,
 		Wireframe,
 		Color,
-		WireframeColor
+
+		_num
 	};
 
 	enum class RootSignatureTypes
 	{
 		Default,
 		Color,
+
+		_num
 	};
 
 	void Initialize();
