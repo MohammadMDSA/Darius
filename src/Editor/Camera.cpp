@@ -15,7 +15,7 @@
 #include "Camera.hpp"
 
 #include <Core/Input.hpp>
-#include <Core/TimeManager/TimeManager.hpp>
+#include <Core/TimeManager/SystemTime.hpp>
 #include <Utils/Log.hpp>
 
 using namespace D_MATH;
@@ -107,7 +107,7 @@ namespace D_EDITOR
 		else if (mCurrentHeading <= -XM_PI)
 			mCurrentHeading += XM_2PI;
 
-		auto orientation = Matrix3(mWorldEast, mWorldUp, -mWorldNorth)* Matrix3::MakeYRotation(mCurrentHeading) * Matrix3::MakeXRotation(mCurrentPitch);
+		auto orientation = Matrix3(mWorldEast, mWorldUp, -mWorldNorth) * Matrix3::MakeYRotation(mCurrentHeading) * Matrix3::MakeXRotation(mCurrentPitch);
 
 		Vector3 position = orientation * Vector3(strafe, ascent, -forward) + mTargetCamera.GetPosition();
 		mTargetCamera.SetTransform(AffineTransform(orientation, position));
@@ -177,7 +177,7 @@ namespace D_EDITOR
 			return;
 		mAdjustmentTarget = ComputePositionFromTarget(target);
 		mAdjusting = true;
-		mAdjustmentStartTime = D_TIME::GetTotalTime();
+		mAdjustmentStartTime = D_TIME::SystemTime::GetCurrentSecond();
 		mAdjustmentStartLocation = mTargetCamera.GetPosition();
 	}
 
@@ -185,20 +185,22 @@ namespace D_EDITOR
 	{
 		if (mAdjusting)
 		{
-			auto passedTime = D_TIME::GetTotalTime() - mAdjustmentStartTime;
-			if (mAdjustmentTime < passedTime)
+			auto passedTime = D_TIME::SystemTime::GetCurrentSecond() - mAdjustmentStartTime;
+			if (mAdjustmentTime <= passedTime)
 			{
 				mAdjusting = false;
 				mTargetCamera.SetPosition(mAdjustmentTarget);
 				SetTargetLocationDirty();
 			}
+			else
+			{
+				auto normal = D_MATH::ExpoEaseOut(passedTime, 0, 1, mAdjustmentTime);
+				auto location = D_MATH::Lerp(mAdjustmentTarget, mAdjustmentStartLocation, normal);
+				mTargetCamera.SetPosition(location);
 
-			auto normal = D_MATH::ExpoEaseOut(passedTime, 0, 1, mAdjustmentTime);
-			auto location = D_MATH::Lerp(mAdjustmentTarget, mAdjustmentStartLocation, normal);
-			mTargetCamera.SetPosition(location);
-
-			mTargetCamera.Update();
-			return;
+				mTargetCamera.Update();
+				return;
+			}
 		}
 
 		// don't apply momentum to mouse inputs
@@ -222,9 +224,9 @@ namespace D_EDITOR
 		mCurrentCloseness = Clamp(mCurrentCloseness, 0.0f, 1.0f);
 
 		Matrix3 orientation = Matrix3::MakeYRotation(mCurrentHeading) * Matrix3::MakeXRotation(mCurrentPitch);
-		
+
 		Vector3 position;
-			
+
 		if (mTargetLocationDirty)
 		{
 			position = mTargetCamera.GetPosition();
