@@ -53,11 +53,17 @@ namespace Darius::Graphics
 	D3D12_CPU_DESCRIPTOR_HANDLE SamplerLinearBorder;
 
 	D3D12_RASTERIZER_DESC RasterizerDefault;	// Counter-clockwise
+	D3D12_RASTERIZER_DESC RasterizerDefaultWireframe;
 	D3D12_RASTERIZER_DESC RasterizerDefaultMsaa;
+	D3D12_RASTERIZER_DESC RasterizerDefaultMsaaWireframe;
 	D3D12_RASTERIZER_DESC RasterizerDefaultCw;	// Clockwise winding
+	D3D12_RASTERIZER_DESC RasterizerDefaultCwWireframe;
 	D3D12_RASTERIZER_DESC RasterizerDefaultCwMsaa;
+	D3D12_RASTERIZER_DESC RasterizerDefaultCwMsaaWireframe;
 	D3D12_RASTERIZER_DESC RasterizerTwoSided;
+	D3D12_RASTERIZER_DESC RasterizerTwoSidedWireframe;
 	D3D12_RASTERIZER_DESC RasterizerTwoSidedMsaa;
+	D3D12_RASTERIZER_DESC RasterizerTwoSidedMsaaWireframe;
 	D3D12_RASTERIZER_DESC RasterizerShadow;
 	D3D12_RASTERIZER_DESC RasterizerShadowCW;
 	D3D12_RASTERIZER_DESC RasterizerShadowTwoSided;
@@ -216,20 +222,38 @@ namespace Darius::Graphics
 		RasterizerDefault.ForcedSampleCount = 0;
 		RasterizerDefault.ConservativeRaster = D3D12_CONSERVATIVE_RASTERIZATION_MODE_OFF;
 
+		RasterizerDefaultWireframe = RasterizerDefault;
+		RasterizerDefaultWireframe.FillMode = D3D12_FILL_MODE_WIREFRAME;
+
 		RasterizerDefaultMsaa = RasterizerDefault;
 		RasterizerDefaultMsaa.MultisampleEnable = TRUE;
+
+		RasterizerDefaultMsaaWireframe = RasterizerDefaultMsaa;
+		RasterizerDefaultMsaaWireframe.FillMode = D3D12_FILL_MODE_WIREFRAME;
 
 		RasterizerDefaultCw = RasterizerDefault;
 		RasterizerDefaultCw.FrontCounterClockwise = FALSE;
 
+		RasterizerDefaultCwWireframe = RasterizerDefaultCw;
+		RasterizerDefaultCwWireframe.FillMode = D3D12_FILL_MODE_WIREFRAME;
+
 		RasterizerDefaultCwMsaa = RasterizerDefaultCw;
 		RasterizerDefaultCwMsaa.MultisampleEnable = TRUE;
+
+		RasterizerDefaultCwMsaaWireframe = RasterizerDefaultCwMsaa;
+		RasterizerDefaultCwMsaaWireframe.FillMode = D3D12_FILL_MODE_WIREFRAME;
 
 		RasterizerTwoSided = RasterizerDefault;
 		RasterizerTwoSided.CullMode = D3D12_CULL_MODE_NONE;
 
+		RasterizerTwoSidedWireframe = RasterizerTwoSided;
+		RasterizerTwoSidedWireframe.FillMode = D3D12_FILL_MODE_WIREFRAME;
+
 		RasterizerTwoSidedMsaa = RasterizerTwoSided;
 		RasterizerTwoSidedMsaa.MultisampleEnable = TRUE;
+
+		RasterizerTwoSidedMsaaWireframe = RasterizerTwoSidedMsaa;
+		RasterizerTwoSidedMsaaWireframe.FillMode = D3D12_FILL_MODE_WIREFRAME;
 
 		// Shadows need their own rasterizer state so we can reverse the winding of faces
 		RasterizerShadow = RasterizerDefault;

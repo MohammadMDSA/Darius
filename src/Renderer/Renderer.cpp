@@ -231,9 +231,6 @@ namespace Darius::Renderer
 			Shaders["standardVS"]->GetBufferSize());
 		pso.SetPixelShader(reinterpret_cast<BYTE*>(Shaders["opaquePS"]->GetBufferPointer()),
 			Shaders["opaquePS"]->GetBufferSize());
-		auto rasterState = CD3DX12_RASTERIZER_DESC(D3D12_DEFAULT);
-		rasterState.FillMode = D3D12_FILL_MODE_SOLID;
-		rasterState.CullMode = D3D12_CULL_MODE_FRONT;
 		pso.SetRootSignature(RootSigns[(size_t)RootSignatureTypes::Default]);
 		pso.SetRasterizerState(D_GRAPHICS::RasterizerDefault);
 		pso.SetBlendState(CD3DX12_BLEND_DESC(D3D12_DEFAULT));
@@ -247,7 +244,7 @@ namespace Darius::Renderer
 		// For opaque wireframe objecs
 		Psos[(size_t)PipelineStateTypes::Wireframe] = pso;
 		auto& wirePso = Psos[(size_t)PipelineStateTypes::Wireframe];
-		auto wireRasterState = rasterState;
+		auto wireRasterState = D_GRAPHICS::RasterizerDefaultWireframe;
 		wireRasterState.FillMode = D3D12_FILL_MODE_WIREFRAME;
 		wirePso.SetRasterizerState(wireRasterState);
 		wirePso.Finalize(L"Wireframe");

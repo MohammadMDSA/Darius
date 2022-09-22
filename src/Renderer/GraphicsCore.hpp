@@ -61,11 +61,17 @@ namespace Darius::Graphics
 	extern D3D12_CPU_DESCRIPTOR_HANDLE SamplerLinearBorder;
 
 	extern D3D12_RASTERIZER_DESC RasterizerDefault;	// Counter-clockwise
+	extern D3D12_RASTERIZER_DESC RasterizerDefaultWireframe;
 	extern D3D12_RASTERIZER_DESC RasterizerDefaultMsaa;
+	extern D3D12_RASTERIZER_DESC RasterizerDefaultMsaaWireframe;
 	extern D3D12_RASTERIZER_DESC RasterizerDefaultCw;	// Clockwise winding
+	extern D3D12_RASTERIZER_DESC RasterizerDefaultCwWireframe;
 	extern D3D12_RASTERIZER_DESC RasterizerDefaultCwMsaa;
+	extern D3D12_RASTERIZER_DESC RasterizerDefaultCwMsaaWireframe;
 	extern D3D12_RASTERIZER_DESC RasterizerTwoSided;
+	extern D3D12_RASTERIZER_DESC RasterizerTwoSidedWireframe;
 	extern D3D12_RASTERIZER_DESC RasterizerTwoSidedMsaa;
+	extern D3D12_RASTERIZER_DESC RasterizerTwoSidedMsaaWireframe;
 	extern D3D12_RASTERIZER_DESC RasterizerShadow;
 	extern D3D12_RASTERIZER_DESC RasterizerShadowCW;
 	extern D3D12_RASTERIZER_DESC RasterizerShadowTwoSided;
