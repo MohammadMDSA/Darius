@@ -35,12 +35,22 @@ namespace Darius::Core::TimeManager
 
         static inline double TicksToSeconds(int64_t TickCount)
         {
-            return TickCount * sm_CpuTickDelta;
+            return (double)TickCount * sm_CpuTickDelta;
+        }
+
+        static inline double GetCurrentSecond()
+        {
+            return TicksToSeconds(GetCurrentTick());
+        }
+
+        static inline double GetCurrentMillisecond()
+        {
+            return TicksToMillisecs(GetCurrentTick());
         }
 
         static inline double TicksToMillisecs(int64_t TickCount)
         {
-            return TickCount * sm_CpuTickDelta * 1000.0;
+            return (double)TickCount * sm_CpuTickDelta * 1000.0;
         }
 
         static inline double TimeBetweenTicks(int64_t tick1, int64_t tick2)
