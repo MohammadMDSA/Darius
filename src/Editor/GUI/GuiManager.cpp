@@ -23,6 +23,8 @@
 #include <ImGuiFileDialog/ImGuiFileDialog.h>
 #include <Libs/FontIcon/IconsFontAwesome5.h>
 #include <imgui.h>
+#include <imgui_impl_dx12.h>
+#include <imgui_impl_win32.h>
 
 using namespace Darius::Editor::Gui::Windows;
 
@@ -91,6 +93,15 @@ namespace Darius::Editor::Gui::GuiManager
 
 		for (auto& kv : Windows)
 			kv.second->Update(deltaTime);
+
+		// Prepare imgui
+		ImGui_ImplDX12_NewFrame();
+		ImGui_ImplWin32_NewFrame();
+		ImGui::NewFrame();
+
+		DrawGUI();
+
+		ImGui::Render();
 	}
 
 	void Render(D_GRAPHICS::GraphicsContext& context)

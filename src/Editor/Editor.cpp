@@ -88,9 +88,6 @@ namespace Darius::Editor
 		// Setting V-Sync
 		D_TIME::EnableFixedTimeStep(1.0 / 60);
 
-		// Registering gui drawer function
-		D_RENDERER::RegisterGuiDrawer(&D_GUI_MANAGER::DrawGUI);
-
 		// Registering components
 		// TODO:: Better component initialization
 		D_ECS_COMP::LightComponent::StaticConstructor();
@@ -153,7 +150,8 @@ namespace Darius::Editor
 		auto& context = D_GRAPHICS::GraphicsContext::Begin(L"Render Scene");
 
 		D_GUI_MANAGER::Render(context);
-		Darius::Renderer::Present(context);
+		D_RENDERER::RenderGui(context);
+		D_RENDERER::Present(context);
 
 	}
 #pragma endregion

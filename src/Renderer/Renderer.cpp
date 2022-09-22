@@ -39,7 +39,6 @@ namespace Darius::Renderer
 	ID3D12Device* _device = nullptr;
 
 #ifdef _D_EDITOR
-	std::function<void(void)>							GuiDrawer = nullptr;
 	DescriptorHeap										ImguiHeap;
 	UINT												MaxImguiElements = 2;
 #endif
@@ -79,7 +78,7 @@ namespace Darius::Renderer
 
 		TextureHeap.Create(L"Scene Texture Descriptors", D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, 4096);
 		SamplerHeap.Create(L"Scene Smpaler Descriptors", D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER, 2048);
-		
+
 		CommonTexture = TextureHeap.Alloc(8);
 		CommonTextureSamplers = SamplerHeap.Alloc(kNumTextures);
 
@@ -98,13 +97,6 @@ namespace Darius::Renderer
 		D_GRAPHICS_UTILS::RootSignature::DestroyAll();
 		D_GRAPHICS_UTILS::GraphicsPSO::DestroyAll();
 	}
-
-#ifdef _D_EDITOR
-	void RegisterGuiDrawer(std::function<void(void)> drawer)
-	{
-		GuiDrawer = drawer;
-	}
-#endif
 
 	D_GRAPHICS_UTILS::GraphicsPSO& GetPSO(PipelineStateTypes type)
 	{
@@ -135,7 +127,7 @@ namespace Darius::Renderer
 		_device->CopyDescriptors(1, &CommonTexture, &destCount, destCount, lightHandles, sourceCounts, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 		context.SetDescriptorHeap(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, TextureHeap.GetHeapPointer());
 		context.SetDescriptorTable(kCommonSRVs, CommonTexture);
-		
+
 		// Setup samplers
 		context.SetDescriptorHeap(D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER, SamplerHeap.GetHeapPointer());
 		context.SetDescriptorTable(kMaterialSamplers, CommonTextureSamplers);
@@ -154,7 +146,7 @@ namespace Darius::Renderer
 
 			context.SetConstantBuffer(kMeshConstants, ri.MeshCBV);
 			context.SetConstantBuffer(kMaterialConstants, ri.Material.MaterialCBV);
-			context.SetDescriptorTable(kMaterialSRVs,	ri.Material.MaterialSRV);
+			context.SetDescriptorTable(kMaterialSRVs, ri.Material.MaterialSRV);
 			context.DrawIndexedInstanced(ri.IndexCount, 1, ri.StartIndexLocation, ri.BaseVertexLocation, 0);
 		}
 		PIXEndEvent(context.GetCommandList());
@@ -194,31 +186,6 @@ namespace Darius::Renderer
 
 	void Present(D_GRAPHICS::GraphicsContext& context)
 	{
-
-#ifdef _D_EDITOR
-		PIXBeginEvent(context.GetCommandList(), PIX_COLOR_DEFAULT, L"Render gui");
-		if (GuiDrawer)
-		{
-			auto& viewportRt = Resources->GetRTBuffer();
-			context.TransitionResource(viewportRt, D3D12_RESOURCE_STATE_RENDER_TARGET, true);
-
-			// Clear RT
-			Clear(context, Resources->GetRTBuffer(), Resources->GetDepthStencilBuffer(), Resources->GetOutputSize());
-
-			// Prepare imgui
-			ImGui_ImplDX12_NewFrame();
-			ImGui_ImplWin32_NewFrame();
-			ImGui::NewFrame();
-
-			GuiDrawer();
-
-			ImGui::Render();
-			context.SetDescriptorHeap(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, ImguiHeap.GetHeapPointer());
-			ImGui_ImplDX12_RenderDrawData(ImGui::GetDrawData(), context.GetCommandList());
-		}
-		PIXEndEvent(context.GetCommandList());
-#endif
-
 		// Show the new frame.
 		PIXBeginEvent(PIX_COLOR_DEFAULT, L"Present");
 		Resources->Present(context);
@@ -350,6 +317,21 @@ namespace Darius::Renderer
 		D_ASSERT_M(index != 0, "Access to 0 index of render resouces are not allowed");
 		D_ASSERT_M(index < MaxImguiElements&& index >= 1, "Index out of bound");
 		return ImguiHeap[index];
+	}
+
+	void RenderGui(D_GRAPHICS::GraphicsContext& context)
+	{
+		PIXBeginEvent(context.GetCommandList(), PIX_COLOR_DEFAULT, L"Render gui");
+		auto& viewportRt = Resources->GetRTBuffer();
+		context.TransitionResource(viewportRt, D3D12_RESOURCE_STATE_RENDER_TARGET, true);
+
+		// Clear RT
+		Clear(context, Resources->GetRTBuffer(), Resources->GetDepthStencilBuffer(), Resources->GetOutputSize());
+
+		context.SetDescriptorHeap(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, ImguiHeap.GetHeapPointer());
+		ImGui_ImplDX12_RenderDrawData(ImGui::GetDrawData(), context.GetCommandList());
+
+		PIXEndEvent(context.GetCommandList());
 	}
 
 	void InitializeGUI()

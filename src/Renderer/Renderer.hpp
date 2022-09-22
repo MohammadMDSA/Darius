@@ -67,8 +67,8 @@ namespace Darius::Renderer
 	void Shutdown();
 
 #ifdef _D_EDITOR
-	void					RegisterGuiDrawer(std::function<void(void)> drawer);
 	DescriptorHandle		GetUiTextureHandle(UINT index);
+	void					RenderGui(D_GRAPHICS::GraphicsContext& context);
 #endif
 	// For rendering meshs
 	void					RenderMeshes(D_GRAPHICS::GraphicsContext& context, D_CONTAINERS::DVector<RenderItem> const& renderItems, D_RENDERER_FRAME_RESOUCE::GlobalConstants const& globals);
