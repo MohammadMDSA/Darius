@@ -34,8 +34,8 @@ namespace D_EDITOR
 		mVerticalLookSensitivity = 2.0f;
 		mMoveSpeed = 10.0f;
 		mStrafeSpeed = 10.0f;
-		mMouseSensitivityX = 0.005f;
-		mMouseSensitivityY = 0.005f;
+		mMouseSensitivityX = 0.002f;
+		mMouseSensitivityY = 0.002f;
 
 		mCurrentPitch = Sin(Dot(camera.GetForwardVec(), mWorldUp));
 
@@ -156,8 +156,8 @@ namespace D_EDITOR
 		mJoystickSensitivityX = 2.0f;
 		mJoystickSensitivityY = 2.0f;
 
-		mMouseSensitivityX = 0.005f;
-		mMouseSensitivityY = 0.005f;
+		mMouseSensitivityX = 0.002f;
+		mMouseSensitivityY = 0.002f;
 		mMouseSensitivityWheel = 0.001f;
 
 		mCurrentCloseness = 0.5f;

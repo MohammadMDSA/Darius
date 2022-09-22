@@ -28,7 +28,7 @@ static void StaticConstructor() \
     /* Registering component*/ \
     if(sInit) \
         return; \
-    D_LOG_INFO("Registering" << D_NAMEOF(type) << " child of " << D_NAMEOF(parent)); \
+    D_LOG_INFO("Registering " << D_NAMEOF(type) << " child of " << D_NAMEOF(parent)); \
     parent::StaticConstructor(); \
     auto& reg = D_WORLD::GetRegistry(); \
     auto comp = reg.component<type>(D_NAMEOF(type)); \
