@@ -12,26 +12,6 @@ cbuffer cbMaterial : register(b0)
     int     gTexStats;
 };
 
-cbuffer cbPass : register(b1)
-{
-    float4x4 gView;
-    float4x4 gInvView;
-    float4x4 gProj;
-    float4x4 gInvProj;
-    float4x4 gViewProj;
-    float4x4 gInvViewProj;
-    float3 gCameraPosW;
-    float cbPerObjectPad1;
-    float2 gRenderTargetSize;
-    float2 gInvRenderTargetSize;
-    float gNearZ;
-    float gFarZ;
-    float gTotalTime;
-    float gDeltaTime;
-    float4 gAmbientLight;
-    
-};
-
 struct VertexOut
 {
     sample float4 Pos           : SV_POSITION;
