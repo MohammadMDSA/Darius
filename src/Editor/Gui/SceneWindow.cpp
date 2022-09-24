@@ -121,7 +121,7 @@ namespace Darius::Editor::Gui::Windows
 		context.ClearColor(mSceneTexture);
 
 		sorter.RenderMeshes(MeshSorter::kOpaque, context, mSceneGlobals);
-		//sorter.RenderMeshes(MeshSorter::kTransparent, context, mSceneGlobals);
+		sorter.RenderMeshes(MeshSorter::kTransparent, context, mSceneGlobals);
 
 		context.TransitionResource(mSceneTexture, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, true);
 		D_RENDERER_DEVICE::GetDevice()->CopyDescriptorsSimple(1, mTextureHandle, mSceneTexture.GetSRV(), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
@@ -334,7 +334,7 @@ namespace Darius::Editor::Gui::Windows
 
 	void SceneWindow::AddWindowRenderItems(D_RENDERER::MeshSorter& sorter)
 	{
-		for (auto item : mWindowRenderItems)
+		for (auto& item : mWindowRenderItems)
 		{
 			sorter.AddMesh(item, 1);
 		}
