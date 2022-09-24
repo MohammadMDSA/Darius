@@ -39,7 +39,8 @@ namespace Darius::Editor::Gui::Windows
 	private:
 		void CreateBuffers();
 
-		void UpdateSceneRenderItems(DVector<RenderItem>& items);
+		void AddSceneRenderItems(D_RENDERER::MeshSorter& sorter);
+		void AddWindowRenderItems(D_RENDERER::MeshSorter& sorter);
 		void CreateGrid(DVector<D_RENDERER_FRAME_RESOUCE::RenderItem>& items, int count);
 		void CalcGridLineConstants(DVector<MeshConstants>& constants, int count);
 
@@ -60,7 +61,6 @@ namespace Darius::Editor::Gui::Windows
 
 		ByteAddressBuffer							mLineConstantsGPU;
 
-		DVector<RenderItem>							mMesheRenderItems;
 		DVector<RenderItem>							mWindowRenderItems;
 		D_RENDERER_FRAME_RESOUCE::GlobalConstants	mSceneGlobals;
 

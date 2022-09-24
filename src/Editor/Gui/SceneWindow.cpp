@@ -93,41 +93,35 @@ namespace Darius::Editor::Gui::Windows
 	void SceneWindow::Render(D_GRAPHICS::GraphicsContext& context)
 	{
 
-		// Prepare the command list to render a new frame.
-		context.TransitionResource(mSceneTexture, D3D12_RESOURCE_STATE_RENDER_TARGET, true);
-
-		PIXBeginEvent(PIX_COLOR_DEFAULT, "Clear Scene Buffers");
-
-		// Clear the views.
-		auto const rtvDescriptor = mSceneTexture.GetRTV();
-		auto const dsvDescriptor = mSceneDepth.GetDSV();
-
-		// Set the viewport and scissor rect.
-		auto viewport = CD3DX12_VIEWPORT(0.f, 0.f, mWidth, mHeight, D3D12_MIN_DEPTH, D3D12_MAX_DEPTH);
-		auto scissorRect = CD3DX12_RECT(0l, 0l, (long)(mWidth), (long)(mHeight));
-
-		context.ClearColor(mSceneTexture, &scissorRect);
-		context.ClearDepth(mSceneDepth);
-		context.SetRenderTarget(rtvDescriptor, dsvDescriptor);
-		context.SetViewportAndScissor(viewport, scissorRect);
-
-		PIXEndEvent();
-
 		UpdateGlobalConstants(mSceneGlobals);
 
-		// Updating render items
-		UpdateSceneRenderItems(mMesheRenderItems);
+		// Clearing depth
+		context.TransitionResource(mSceneDepth, D3D12_RESOURCE_STATE_DEPTH_WRITE, true);
+		context.ClearDepth(mSceneDepth);
 
-		// Render scene
-		context.SetPipelineState(D_RENDERER::GetPSO(PipelineStateTypes::Opaque));
-		D_RENDERER::RenderMeshes(context, mMesheRenderItems, mSceneGlobals);
+		// Setting up sorter
+		MeshSorter sorter(MeshSorter::kDefault);
+		sorter.SetCamera(mCamera);
+		sorter.SetViewport(CD3DX12_VIEWPORT(0.f, 0.f, mWidth, mHeight, D3D12_MIN_DEPTH, D3D12_MAX_DEPTH));
+		sorter.SetScissor(CD3DX12_RECT(0l, 0l, (long)(mWidth), (long)(mHeight)));
+		sorter.SetDepthStencilTarget(mSceneDepth);
+		sorter.AddRenderTarget(mSceneTexture);
 
+		// Add meshes to sorter
+		AddSceneRenderItems(sorter);
+
+		// Draw grid
 		if (mDrawGrid)
-		{
-			// Render window batches
-			context.SetPipelineState(D_RENDERER::GetPSO(PipelineStateTypes::Color));
-			D_RENDERER::RenderBatchs(context, mWindowRenderItems, mSceneGlobals);
-		}
+			AddWindowRenderItems(sorter);
+
+		sorter.Sort();
+
+		// Clearing scene color texture
+		context.TransitionResource(mSceneTexture, D3D12_RESOURCE_STATE_RENDER_TARGET, true);
+		context.ClearColor(mSceneTexture);
+
+		sorter.RenderMeshes(MeshSorter::kOpaque, context, mSceneGlobals);
+		//sorter.RenderMeshes(MeshSorter::kTransparent, context, mSceneGlobals);
 
 		context.TransitionResource(mSceneTexture, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, true);
 		D_RENDERER_DEVICE::GetDevice()->CopyDescriptorsSimple(1, mTextureHandle, mSceneTexture.GetSRV(), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
@@ -318,6 +312,8 @@ namespace Darius::Editor::Gui::Windows
 		item.IndexCount = mesh->mDraw[0].IndexCount;
 		item.StartIndexLocation = mesh->mDraw[0].StartIndexLocation;
 		item.Mesh = mesh;
+		item.PsoFlags = RenderItem::ColorOnly;
+		item.PsoType = D_RENDERER::PipelineStateTypes::ColorPso;
 		item.PrimitiveType = D3D_PRIMITIVE_TOPOLOGY_LINELIST;
 		item.MeshCBV = mLineConstantsGPU.GetGpuVirtualAddress();
 
@@ -336,10 +332,16 @@ namespace Darius::Editor::Gui::Windows
 
 	}
 
-	void SceneWindow::UpdateSceneRenderItems(DVector<RenderItem>& items)
+	void SceneWindow::AddWindowRenderItems(D_RENDERER::MeshSorter& sorter)
 	{
-		items.clear();
+		for (auto item : mWindowRenderItems)
+		{
+			sorter.AddMesh(item, 1);
+		}
+	}
 
+	void SceneWindow::AddSceneRenderItems(D_RENDERER::MeshSorter& sorter)
+	{
 		auto& worldReg = D_WORLD::GetRegistry();
 
 		auto cam = D_CAMERA_MANAGER::GetActiveCamera();
@@ -353,12 +355,13 @@ namespace Darius::Editor::Gui::Windows
 					return;
 
 				// Is it in our frustum
-				auto bsp = meshComp.GetGameObject()->GetTransform() * meshComp.GetBounds();
-				auto vsp = BoundingSphere(Vector3(cam->GetViewMatrix() * bsp.GetCenter()), bsp.GetRadius());
-				if (!frustum.IntersectSphere(vsp))
+				auto sphereWorldSpace = meshComp.GetGameObject()->GetTransform() * meshComp.GetBounds();
+				auto sphereViewSpace = BoundingSphere(Vector3(cam->GetViewMatrix() * sphereWorldSpace.GetCenter()), sphereWorldSpace.GetRadius());
+				if (!frustum.IntersectSphere(sphereViewSpace))
 					return;
 
-				items.push_back(meshComp.GetRenderItem());
+				auto distance = -sphereViewSpace.GetCenter().GetZ() - sphereViewSpace.GetRadius();
+				sorter.AddMesh(meshComp.GetRenderItem(), distance);
 			});
 
 		//D_LOG_DEBUG("Number of render items: " + std::to_string(items.size()));

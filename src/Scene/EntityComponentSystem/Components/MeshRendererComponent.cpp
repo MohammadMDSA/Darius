@@ -45,6 +45,7 @@ namespace Darius::Scene::ECS::Components
 		result.MeshCBV = GetGameObject()->GetConstantsAddress();
 		result.Material.MaterialCBV = *mMaterialResource.Get();
 		result.Material.MaterialSRV = mMaterialResource->GetTexturesHandle();
+		result.PsoType = D_RENDERER::OpaquePso;
 		return result;
 	}
 

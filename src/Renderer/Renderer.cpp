@@ -44,8 +44,8 @@ namespace Darius::Renderer
 #endif
 
 	// Input layout and root signature
-	std::array<D_GRAPHICS_UTILS::RootSignature, (size_t)RootSignatureTypes::_num> RootSigns;
-	std::array<D_GRAPHICS_UTILS::GraphicsPSO, (size_t)PipelineStateTypes::_num> Psos;
+	std::array<D_GRAPHICS_UTILS::RootSignature, (size_t)RootSignatureTypes::_numRootSig> RootSigns;
+	std::array<D_GRAPHICS_UTILS::GraphicsPSO, (size_t)PipelineStateTypes::_numPso> Psos;
 
 	// Device resource
 	std::unique_ptr<DeviceResource::DeviceResources>	Resources;
@@ -77,7 +77,7 @@ namespace Darius::Renderer
 		BuildPSO();
 
 		TextureHeap.Create(L"Scene Texture Descriptors", D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, 4096);
-		SamplerHeap.Create(L"Scene Smpaler Descriptors", D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER, 2048);
+		SamplerHeap.Create(L"Scene Sampler Descriptors", D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER, 2048);
 
 		CommonTexture = TextureHeap.Alloc(8);
 		CommonTextureSamplers = SamplerHeap.Alloc(kNumTextures);
@@ -112,7 +112,7 @@ namespace Darius::Renderer
 	{
 
 		// Setting Root Signature
-		context.SetRootSignature(RootSigns[(size_t)RootSignatureTypes::Default]);
+		context.SetRootSignature(RootSigns[(size_t)RootSignatureTypes::DefaultRootSig]);
 
 		context.SetDynamicConstantBufferView(kCommonCBV, sizeof(GlobalConstants), &globals);
 
@@ -154,34 +154,34 @@ namespace Darius::Renderer
 
 	void RenderBatchs(D_GRAPHICS::GraphicsContext& context, D_CONTAINERS::DVector<RenderItem> const& renderItems, D_RENDERER_FRAME_RESOUCE::GlobalConstants const& globals)
 	{
-		// Setting Root Signature
-		context.SetRootSignature(RootSigns[(size_t)RootSignatureTypes::Color]);
+		//// Setting Root Signature
+		//context.SetRootSignature(RootSigns[(size_t)RootSignatureTypes::DefaultRootSig]);
 
-		context.SetDynamicConstantBufferView(kColorCommonCBV, sizeof(GlobalConstants), &globals);
+		//context.SetDynamicConstantBufferView(kColorCommonCBV, sizeof(GlobalConstants), &globals);
 
-		PIXBeginEvent(context.GetCommandList(), PIX_COLOR_DEFAULT, L"Render batches");
+		//PIXBeginEvent(context.GetCommandList(), PIX_COLOR_DEFAULT, L"Render batches");
 
-		// Draw each batch render item
-		for (auto const& ri : renderItems)
-		{
-			auto vbv = ri.Mesh->VertexBufferView();
-			auto ibv = ri.Mesh->IndexBufferView();
-			context.SetVertexBuffer(0, vbv);
-			context.SetIndexBuffer(ibv);
-			context.SetPrimitiveTopology(ri.PrimitiveType);
+		//// Draw each batch render item
+		//for (auto const& ri : renderItems)
+		//{
+		//	auto vbv = ri.Mesh->VertexBufferView();
+		//	auto ibv = ri.Mesh->IndexBufferView();
+		//	context.SetVertexBuffer(0, vbv);
+		//	context.SetIndexBuffer(ibv);
+		//	context.SetPrimitiveTopology(ri.PrimitiveType);
 
-			// Setup mesh constants
-			context.SetConstantBuffer(kColorMeshConstants, ri.MeshCBV);
+		//	// Setup mesh constants
+		//	context.SetConstantBuffer(kColorMeshConstants, ri.MeshCBV);
 
-			// Setup color
-			D_RENDERER_FRAME_RESOUCE::ColorConstants color = { ri.Color };
-			context.SetDynamicConstantBufferView(kColorConstants, sizeof(ColorConstants), &color);
+		//	// Setup color
+		//	D_RENDERER_FRAME_RESOUCE::ColorConstants color = { ri.Color };
+		//	context.SetDynamicConstantBufferView(kColorConstants, sizeof(ColorConstants), &color);
 
-			// Render
-			context.DrawIndexedInstanced(ri.IndexCount, 1, ri.StartIndexLocation, ri.BaseVertexLocation, 0);
-		}
+		//	// Render
+		//	context.DrawIndexedInstanced(ri.IndexCount, 1, ri.StartIndexLocation, ri.BaseVertexLocation, 0);
+		//}
 
-		PIXEndEvent(context.GetCommandList());
+		//PIXEndEvent(context.GetCommandList());
 	}
 
 	void Present(D_GRAPHICS::GraphicsContext& context)
@@ -221,8 +221,8 @@ namespace Darius::Renderer
 	void BuildPSO()
 	{
 		// For Opaque objects
-		Psos[(size_t)PipelineStateTypes::Opaque] = GraphicsPSO(L"Opaque");
-		auto& pso = Psos[(size_t)PipelineStateTypes::Opaque];
+		Psos[(size_t)PipelineStateTypes::OpaquePso] = GraphicsPSO(L"Opaque");
+		auto& pso = Psos[(size_t)PipelineStateTypes::OpaquePso];
 
 		auto il = D_RENDERER_VERTEX::VertexPositionNormalTexture::InputLayout;
 		pso.SetInputLayout(il.NumElements, il.pInputElementDescs);
@@ -231,7 +231,7 @@ namespace Darius::Renderer
 			Shaders["standardVS"]->GetBufferSize());
 		pso.SetPixelShader(reinterpret_cast<BYTE*>(Shaders["opaquePS"]->GetBufferPointer()),
 			Shaders["opaquePS"]->GetBufferSize());
-		pso.SetRootSignature(RootSigns[(size_t)RootSignatureTypes::Default]);
+		pso.SetRootSignature(RootSigns[(size_t)RootSignatureTypes::DefaultRootSig]);
 		pso.SetRasterizerState(D_GRAPHICS::RasterizerDefault);
 		pso.SetBlendState(CD3DX12_BLEND_DESC(D3D12_DEFAULT));
 		pso.SetDepthStencilState(CD3DX12_DEPTH_STENCIL_DESC(D3D12_DEFAULT));
@@ -242,21 +242,21 @@ namespace Darius::Renderer
 
 
 		// For opaque wireframe objecs
-		Psos[(size_t)PipelineStateTypes::Wireframe] = pso;
-		auto& wirePso = Psos[(size_t)PipelineStateTypes::Wireframe];
+		Psos[(size_t)PipelineStateTypes::WireframePso] = pso;
+		auto& wirePso = Psos[(size_t)PipelineStateTypes::WireframePso];
 		auto wireRasterState = D_GRAPHICS::RasterizerDefaultWireframe;
 		wireRasterState.FillMode = D3D12_FILL_MODE_WIREFRAME;
 		wirePso.SetRasterizerState(wireRasterState);
 		wirePso.Finalize(L"Wireframe");
 
 		// For colored only objects
-		Psos[(size_t)PipelineStateTypes::Color] = pso;
-		auto& colorPso = Psos[(size_t)PipelineStateTypes::Color];
+		Psos[(size_t)PipelineStateTypes::ColorPso] = pso;
+		auto& colorPso = Psos[(size_t)PipelineStateTypes::ColorPso];
 		il = D_RENDERER_VERTEX::VertexPosition::InputLayout;
 		colorPso.SetInputLayout(il.NumElements, il.pInputElementDescs);
 		colorPso.SetVertexShader(reinterpret_cast<BYTE*>(Shaders["colorVS"]->GetBufferPointer()), Shaders["colorVS"]->GetBufferSize());
 		colorPso.SetPixelShader(reinterpret_cast<BYTE*>(Shaders["colorPS"]->GetBufferPointer()), Shaders["colorPS"]->GetBufferSize());
-		colorPso.SetRootSignature(RootSigns[(size_t)RootSignatureTypes::Color]);
+		colorPso.SetRootSignature(RootSigns[(size_t)RootSignatureTypes::DefaultRootSig]);
 		colorPso.SetPrimitiveTopologyType(D3D12_PRIMITIVE_TOPOLOGY_TYPE_LINE);
 		colorPso.Finalize(L"Color");
 	}
@@ -264,7 +264,7 @@ namespace Darius::Renderer
 	void BuildRootSignature()
 	{
 		// Default root signature
-		auto& def = RootSigns[(size_t)RootSignatureTypes::Default];
+		auto& def = RootSigns[(size_t)RootSignatureTypes::DefaultRootSig];
 		def.Reset(kNumRootBindings, 3);
 
 		// Create samplers
@@ -284,21 +284,215 @@ namespace Darius::Renderer
 		def[kCommonSRVs].InitAsDescriptorRange(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 10, 8, D3D12_SHADER_VISIBILITY_PIXEL);
 		def.Finalize(L"Main Root Sig", D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT);
 
-
-		//Color root signature
-		auto& col = RootSigns[(size_t)RootSignatureTypes::Color];
-		col.Reset(kColorNumRootBindings);
-		// Create root CBVs.
-		col[kColorMeshConstants].InitAsConstantBuffer(0, D3D12_SHADER_VISIBILITY_VERTEX);
-		col[kColorConstants].InitAsConstantBuffer(0, D3D12_SHADER_VISIBILITY_PIXEL);
-		col[kColorCommonCBV].InitAsConstantBuffer(1, D3D12_SHADER_VISIBILITY_VERTEX);
-		col.Finalize(L"Color Root Sig", D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT);
-
 	}
 
 	DescriptorHandle AllocateTextureDescriptor(UINT count)
 	{
 		return TextureHeap.Alloc(count);
+	}
+
+	void MeshSorter::AddMesh(RenderItem const& renderItem, float distance)
+	{
+		SortKey key;
+		key.value = m_SortObjects.size();
+
+		bool alphaBlend = renderItem.PsoFlags & RenderItem::AlphaBlend;
+		bool alphaTest = renderItem.PsoFlags & RenderItem::AlphaTest;
+
+		union float_or_int { float f; uint32_t u; } dist;
+		dist.f = Max(distance, 0.0f);
+
+		if (renderItem.PsoFlags & RenderItem::AlphaBlend)
+		{
+			key.passID = kTransparent;
+			key.psoIdx = renderItem.PsoType;
+			key.key = ~dist.u;
+			m_SortKeys.push_back(key.value);
+			m_PassCounts[kTransparent]++;
+		}
+		/*else if (alphaTest)
+		{
+			key.passID = kZPass;
+			key.psoIdx = depthPSO;
+			key.key = dist.u;
+			m_SortKeys.push_back(key.value);
+			m_PassCounts[kZPass]++;
+
+			key.passID = kOpaque;
+			key.psoIdx = renderItem.pso + 1;
+			key.key = dist.u;
+			m_SortKeys.push_back(key.value);
+			m_PassCounts[kOpaque]++;
+		}*/
+		else
+		{
+			key.passID = kOpaque;
+			key.psoIdx = renderItem.PsoType;
+			key.key = dist.u;
+			m_SortKeys.push_back(key.value);
+			m_PassCounts[kOpaque]++;
+		}
+
+		SortObject object = { renderItem };
+		m_SortObjects.push_back(object);
+	}
+
+	void MeshSorter::Sort()
+	{
+		struct { bool operator()(uint64_t a, uint64_t b) const { return a < b; } } Cmp;
+		std::sort(m_SortKeys.begin(), m_SortKeys.end(), Cmp);
+	}
+
+	void MeshSorter::RenderMeshes(
+		DrawPass pass,
+		D_GRAPHICS::GraphicsContext& context,
+		GlobalConstants& globals)
+	{
+		D_ASSERT(m_DSV != nullptr);
+
+		context.PIXBeginEvent(L"Render Meshes");
+
+		context.SetRootSignature(RootSigns[DefaultRootSig]);
+
+		context.SetDynamicConstantBufferView(kCommonCBV, sizeof(GlobalConstants), &globals);
+
+		// Setting up common texture (light for now)
+		UINT destCount = 2;
+		UINT sourceCounts[] = { 1, 1 };
+		D3D12_CPU_DESCRIPTOR_HANDLE lightHandles[] =
+		{
+			D_LIGHT::GetLightMaskHandle(),
+			D_LIGHT::GetLightDataHandle()
+		};
+		_device->CopyDescriptors(1, &CommonTexture, &destCount, destCount, lightHandles, sourceCounts, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+		context.SetDescriptorHeap(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, TextureHeap.GetHeapPointer());
+		context.SetDescriptorTable(kCommonSRVs, CommonTexture);
+
+		// Setup samplers
+		context.SetDescriptorHeap(D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER, SamplerHeap.GetHeapPointer());
+		context.SetDescriptorTable(kMaterialSamplers, CommonTextureSamplers);
+
+		if (m_BatchType == kShadows)
+		{
+			context.TransitionResource(*m_DSV, D3D12_RESOURCE_STATE_DEPTH_WRITE, true);
+			context.ClearDepth(*m_DSV);
+			context.SetDepthStencilTarget(m_DSV->GetDSV());
+
+			if (m_Viewport.Width == 0)
+			{
+				m_Viewport.TopLeftX = 0.0f;
+				m_Viewport.TopLeftY = 0.0f;
+				m_Viewport.Width = (float)m_DSV->GetWidth();
+				m_Viewport.Height = (float)m_DSV->GetHeight();
+				m_Viewport.MaxDepth = 1.0f;
+				m_Viewport.MinDepth = 0.0f;
+
+				m_Scissor.left = 1;
+				m_Scissor.right = m_DSV->GetWidth() - 2;
+				m_Scissor.top = 1;
+				m_Scissor.bottom = m_DSV->GetHeight() - 2;
+			}
+		}
+		else
+		{
+			for (uint32_t i = 0; i < m_NumRTVs; ++i)
+			{
+				D_ASSERT(m_RTV[i] != nullptr);
+				D_ASSERT(m_DSV->GetWidth() == m_RTV[i]->GetWidth());
+				D_ASSERT(m_DSV->GetHeight() == m_RTV[i]->GetHeight());
+			}
+
+			if (m_Viewport.Width == 0)
+			{
+				m_Viewport.TopLeftX = 0.0f;
+				m_Viewport.TopLeftY = 0.0f;
+				m_Viewport.Width = (float)m_DSV->GetWidth();
+				m_Viewport.Height = (float)m_DSV->GetHeight();
+				m_Viewport.MaxDepth = 1.0f;
+				m_Viewport.MinDepth = 0.0f;
+
+				m_Scissor.left = 0;
+				m_Scissor.right = m_DSV->GetWidth();
+				m_Scissor.top = 0;
+				m_Scissor.bottom = m_DSV->GetWidth();
+			}
+		}
+
+		for (; m_CurrentPass <= pass; m_CurrentPass = (DrawPass)(m_CurrentPass + 1))
+		{
+			const uint32_t passCount = m_PassCounts[m_CurrentPass];
+			if (passCount == 0)
+				continue;
+
+			if (m_BatchType == kDefault)
+			{
+				switch (m_CurrentPass)
+				{
+				case kZPass:
+					/*context.TransitionResource(*m_DSV, D3D12_RESOURCE_STATE_DEPTH_WRITE);
+					context.SetDepthStencilTarget(m_DSV->GetDSV());
+					break;*/
+					continue;
+				case kOpaque:
+					context.TransitionResource(*m_DSV, D3D12_RESOURCE_STATE_DEPTH_WRITE);
+					context.TransitionResource(*m_RTV[0], D3D12_RESOURCE_STATE_RENDER_TARGET);
+					context.SetRenderTarget(m_RTV[0]->GetRTV(), m_DSV->GetDSV());
+					break;
+				case kTransparent:
+					context.TransitionResource(*m_DSV, D3D12_RESOURCE_STATE_DEPTH_READ);
+					context.TransitionResource(*m_RTV[0], D3D12_RESOURCE_STATE_RENDER_TARGET);
+					context.SetRenderTarget(m_RTV[0]->GetRTV(), m_DSV->GetDSV_DepthReadOnly());
+					break;
+				}
+			}
+
+			context.SetViewportAndScissor(m_Viewport, m_Scissor);
+			context.FlushResourceBarriers();
+
+			const uint32_t lastDraw = m_CurrentDraw + passCount;
+
+			while (m_CurrentDraw < lastDraw)
+			{
+				SortKey key;
+				key.value = m_SortKeys[m_CurrentDraw];
+				const SortObject& object = m_SortObjects[key.objectIdx];
+				RenderItem const& ri = object.renderItem;
+
+				context.SetPrimitiveTopology(ri.PrimitiveType);
+
+				context.SetConstantBuffer(kMeshConstants, ri.MeshCBV);
+
+				if (ri.PsoFlags & RenderItem::ColorOnly)
+				{
+					D_RENDERER_FRAME_RESOUCE::ColorConstants color = { ri.Color };
+					context.SetDynamicConstantBufferView(kMaterialConstants, sizeof(ColorConstants), &color);
+				}
+				else
+				{
+					context.SetConstantBuffer(kMaterialConstants, ri.Material.MaterialCBV);
+					context.SetDescriptorTable(kMaterialSRVs, ri.Material.MaterialSRV);
+				}
+
+				context.SetPipelineState(Psos[key.psoIdx]);
+
+				context.SetVertexBuffer(0, ri.Mesh->VertexBufferView());
+				context.SetIndexBuffer(ri.Mesh->IndexBufferView());
+
+				// TODO: Render submeshes one by one
+				//for (uint32_t i = 0; i < ri.Mesh->mDraw; ++i)
+					//context.DrawIndexed(mesh.draw[i].primCount, mesh.draw[i].startIndex, mesh.draw[i].baseVertex);
+				context.DrawIndexedInstanced(ri.IndexCount, 1, ri.StartIndexLocation, ri.BaseVertexLocation, 0);
+
+				++m_CurrentDraw;
+			}
+		}
+
+		if (m_BatchType == kShadows)
+		{
+			context.TransitionResource(*m_DSV, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
+		}
+
+		context.PIXEndEvent();
 	}
 
 #ifdef _D_EDITOR

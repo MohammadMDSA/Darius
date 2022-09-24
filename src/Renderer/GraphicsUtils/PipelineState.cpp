@@ -92,7 +92,7 @@ namespace Darius::Graphics::Utils
 
 	void GraphicsPSO::SetRenderTargetFormats(UINT NumRTVs, const DXGI_FORMAT* RTVFormats, DXGI_FORMAT DSVFormat, UINT MsaaCount, UINT MsaaQuality)
 	{
-		D_ASSERT(NumRTVs == 0 || RTVFormats != nullptr, "Null format array conflicts with non-zero length");
+		D_ASSERT_M(NumRTVs == 0 || RTVFormats != nullptr, "Null format array conflicts with non-zero length");
 		for (UINT i = 0; i < NumRTVs; ++i)
 		{
 			D_ASSERT(RTVFormats[i] != DXGI_FORMAT_UNKNOWN);

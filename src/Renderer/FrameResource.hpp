@@ -58,9 +58,19 @@ namespace Darius::Renderer::ConstantFrameResource
 		int							TextureStatusMask = 0;
 	};
 
+	
 	// Lightweight structure stores parameters to draw a shape.
 	struct RenderItem
 	{
+		enum PSOFlags : uint16_t
+		{
+			TwoSided = 0x001,  // Required
+			AlphaTest = 0x002,  // Required
+			AlphaBlend = 0x004,
+			ColorOnly = 0x008,  // Required (for now)
+			Wireframe = 0x010
+		};
+
 		RenderItem() = default;
 
 		// Mesh constants GPU Address
@@ -89,6 +99,9 @@ namespace Darius::Renderer::ConstantFrameResource
 		UINT						IndexCount = 0;
 		UINT						StartIndexLocation = 0;
 		int							BaseVertexLocation = 0;
+
+		uint16_t					PsoFlags = 0;
+		uint16_t					PsoType;
 	};
 
 	// Stores the resources needed for the CPU to build the command lists

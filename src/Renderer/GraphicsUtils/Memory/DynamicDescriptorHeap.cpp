@@ -169,7 +169,7 @@ namespace Darius::Graphics::Utils::Memory
             StaleParams ^= (1 << RootIndex);
 
             uint32_t MaxSetHandle;
-            D_ASSERT(TRUE == _BitScanReverse((unsigned long*)&MaxSetHandle, m_RootDescriptorTable[RootIndex].AssignedHandlesBitMap),
+            D_ASSERT_M(TRUE == _BitScanReverse((unsigned long*)&MaxSetHandle, m_RootDescriptorTable[RootIndex].AssignedHandlesBitMap),
                 "Root entry marked as stale but has no stale descriptors");
 
             NeededSpace += MaxSetHandle + 1;
