@@ -49,5 +49,6 @@ namespace Darius::Scene::ECS::Components
 		Ref<MeshResource>					mMeshResource;
 		Ref<MaterialResource>				mMaterialResource;
 		D_CORE::Signal<void()>				mChangeSignal;
+		uint16_t							mPsoFlags;
 	};
 }

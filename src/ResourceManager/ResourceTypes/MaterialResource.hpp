@@ -31,6 +31,7 @@ namespace Darius::ResourceManager
 		INLINE MaterialConstants*			ModifyMaterialData() { MakeDiskDirty(); MakeGpuDirty(); return &mMaterial; }
 		INLINE const MaterialConstants*		GetMaterialData() const { return &mMaterial; }
 		INLINE D3D12_GPU_DESCRIPTOR_HANDLE	GetTexturesHandle() const { return mTexturesHeap; }
+		INLINE uint16_t						GetPsoFlags() const { return mPsoFlags; }
 		void								SetTexture(ResourceHandle textureHandle, D_RENDERER::TextureType type);
 
 		virtual bool						SuppoertsExtension(std::wstring ext) override;
@@ -73,6 +74,8 @@ namespace Darius::ResourceManager
 		ByteAddressBuffer					mMaterialConstantsGPU;
 
 		DescriptorHandle					mTexturesHeap;
+
+		uint16_t							mPsoFlags;
 
 	};
 }

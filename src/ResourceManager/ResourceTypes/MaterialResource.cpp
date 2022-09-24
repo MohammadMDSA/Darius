@@ -19,7 +19,8 @@ using namespace D_SERIALIZATION;
 namespace Darius::ResourceManager
 {
 	MaterialResource::MaterialResource(Uuid uuid, std::wstring const& path, DResourceId id, bool isDefault) :
-		Resource(uuid, path, id, isDefault)
+		Resource(uuid, path, id, isDefault),
+		mPsoFlags(0)
 	{
 		mBaseColorTextureHandle = D_RESOURCE::GetDefaultResource(D_RESOURCE::DefaultResource::Texture2DWhiteOpaque);
 		mNormalTextureHandle = D_RESOURCE::GetDefaultResource(D_RESOURCE::DefaultResource::Texture2DNormalMap);
@@ -55,6 +56,8 @@ namespace Darius::ResourceManager
 		if (usedNormalTex)
 			data["NormalTexture"] = ToString(mNormalTexture->GetUuid());
 
+		data["PsoFlags"] = mPsoFlags;
+
 		std::ofstream os(GetPath());
 		os << data;
 	}
@@ -89,6 +92,8 @@ namespace Darius::ResourceManager
 			mNormalTextureHandle = D_RESOURCE::GetResourceHandle(FromString(data["NormalTexture"]));
 			mMaterial.TextureStatusMask |= 1 << kNormal;
 		}
+
+		mPsoFlags = data.contains("PsoFlags") ? data["PsoFlags"].get<uint16_t>() : 0u;
 	}
 
 	bool MaterialResource::UploadToGpu(D_GRAPHICS::GraphicsContext& context)
@@ -274,9 +279,31 @@ device->CopyDescriptorsSimple(1, mTexturesHeap + type * incSize, m##name##Textur
 
 			if (ImGui::BeginTable("mat editor", 2, ImGuiTableFlags_BordersInnerV))
 			{
+				// Shader type
 				ImGui::TableSetupColumn("label", ImGuiTableColumnFlags_WidthFixed, 100.f);
 				ImGui::TableSetupColumn("value", ImGuiTableColumnFlags_WidthStretch);
 
+				ImGui::TableNextRow();
+				ImGui::TableSetColumnIndex(0);
+				ImGui::Text("Shader Type");
+				ImGui::TableSetColumnIndex(1);
+				if (ImGui::Button(mPsoFlags & RenderItem::AlphaBlend ? "Transparent" : "Opaque", ImVec2(-1, 0)))
+				{
+					ImGui::OpenPopup("##ShaderTypeSelecionPopup");
+				}
+				if (ImGui::BeginPopupContextItem("##ShaderTypeSelecionPopup", ImGuiPopupFlags_NoOpenOverExistingPopup))
+				{
+					if (ImGui::Selectable("Opaque"))
+					{
+						mPsoFlags &= ~RenderItem::AlphaBlend;
+					}
+
+					if (ImGui::Selectable("Transparent"))
+					{
+						mPsoFlags |= RenderItem::AlphaBlend;
+					}
+					ImGui::EndPopup();
+				}
 
 				// Diffuse
 				ImGui::TableNextRow();
@@ -293,18 +320,6 @@ device->CopyDescriptorsSimple(1, mTexturesHeap + type * incSize, m##name##Textur
 						valueChanged = true;
 					}
 				}
-
-				//// Fresnel
-				//ImGui::TableNextRow();
-				//ImGui::TableSetColumnIndex(0);
-				//ImGui::Text("Fresnel");
-
-				//ImGui::TableSetColumnIndex(1);
-				//float defR[] = { 0.f, 1.f };
-				//if (D_MATH::DrawDetails(*(Vector3*)&mMaterial.FresnelR0, defR))
-				//{
-				//	valueChanged = true;
-				//}
 
 				// Roughness
 				ImGui::TableNextRow();

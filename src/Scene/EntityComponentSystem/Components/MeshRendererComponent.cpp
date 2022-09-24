@@ -16,12 +16,14 @@ namespace Darius::Scene::ECS::Components
 
 
 	MeshRendererComponent::MeshRendererComponent() :
-		ComponentBase()
+		ComponentBase(),
+		mPsoFlags(0)
 	{
 	}
 
 	MeshRendererComponent::MeshRendererComponent(D_CORE::Uuid uuid) :
-		ComponentBase(uuid)
+		ComponentBase(uuid),
+		mPsoFlags(0)
 	{
 	}
 
@@ -46,6 +48,7 @@ namespace Darius::Scene::ECS::Components
 		result.Material.MaterialCBV = *mMaterialResource.Get();
 		result.Material.MaterialSRV = mMaterialResource->GetTexturesHandle();
 		result.PsoType = D_RENDERER::OpaquePso;
+		result.PsoFlags = mPsoFlags | mMaterialResource->GetPsoFlags();
 		return result;
 	}
 
