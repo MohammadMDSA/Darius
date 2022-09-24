@@ -49,6 +49,7 @@ namespace Darius::Renderer
 	enum PipelineStateTypes
 	{
 		OpaquePso,
+		TransparentPso,
 		WireframePso,
 		ColorPso,
 

@@ -108,82 +108,6 @@ namespace Darius::Renderer
 		return RootSigns[(size_t)type];
 	}
 
-	void RenderMeshes(D_GRAPHICS::GraphicsContext& context, D_CONTAINERS::DVector<RenderItem> const& renderItems, D_RENDERER_FRAME_RESOUCE::GlobalConstants const& globals)
-	{
-
-		// Setting Root Signature
-		context.SetRootSignature(RootSigns[(size_t)RootSignatureTypes::DefaultRootSig]);
-
-		context.SetDynamicConstantBufferView(kCommonCBV, sizeof(GlobalConstants), &globals);
-
-		// Setting up common texture (light for now)
-		UINT destCount = 2;
-		UINT sourceCounts[] = { 1, 1 };
-		D3D12_CPU_DESCRIPTOR_HANDLE lightHandles[] =
-		{
-			D_LIGHT::GetLightMaskHandle(),
-			D_LIGHT::GetLightDataHandle()
-		};
-		_device->CopyDescriptors(1, &CommonTexture, &destCount, destCount, lightHandles, sourceCounts, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-		context.SetDescriptorHeap(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, TextureHeap.GetHeapPointer());
-		context.SetDescriptorTable(kCommonSRVs, CommonTexture);
-
-		// Setup samplers
-		context.SetDescriptorHeap(D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER, SamplerHeap.GetHeapPointer());
-		context.SetDescriptorTable(kMaterialSamplers, CommonTextureSamplers);
-
-
-		PIXBeginEvent(context.GetCommandList(), PIX_COLOR_DEFAULT, L"Render opaque");
-
-		// Draw each render item
-		for (auto const& ri : renderItems)
-		{
-			auto vbv = ri.Mesh->VertexBufferView();
-			auto ibv = ri.Mesh->IndexBufferView();
-			context.SetVertexBuffer(0, vbv);
-			context.SetIndexBuffer(ibv);
-			context.SetPrimitiveTopology(ri.PrimitiveType);
-
-			context.SetConstantBuffer(kMeshConstants, ri.MeshCBV);
-			context.SetConstantBuffer(kMaterialConstants, ri.Material.MaterialCBV);
-			context.SetDescriptorTable(kMaterialSRVs, ri.Material.MaterialSRV);
-			context.DrawIndexedInstanced(ri.IndexCount, 1, ri.StartIndexLocation, ri.BaseVertexLocation, 0);
-		}
-		PIXEndEvent(context.GetCommandList());
-	}
-
-	void RenderBatchs(D_GRAPHICS::GraphicsContext& context, D_CONTAINERS::DVector<RenderItem> const& renderItems, D_RENDERER_FRAME_RESOUCE::GlobalConstants const& globals)
-	{
-		//// Setting Root Signature
-		//context.SetRootSignature(RootSigns[(size_t)RootSignatureTypes::DefaultRootSig]);
-
-		//context.SetDynamicConstantBufferView(kColorCommonCBV, sizeof(GlobalConstants), &globals);
-
-		//PIXBeginEvent(context.GetCommandList(), PIX_COLOR_DEFAULT, L"Render batches");
-
-		//// Draw each batch render item
-		//for (auto const& ri : renderItems)
-		//{
-		//	auto vbv = ri.Mesh->VertexBufferView();
-		//	auto ibv = ri.Mesh->IndexBufferView();
-		//	context.SetVertexBuffer(0, vbv);
-		//	context.SetIndexBuffer(ibv);
-		//	context.SetPrimitiveTopology(ri.PrimitiveType);
-
-		//	// Setup mesh constants
-		//	context.SetConstantBuffer(kColorMeshConstants, ri.MeshCBV);
-
-		//	// Setup color
-		//	D_RENDERER_FRAME_RESOUCE::ColorConstants color = { ri.Color };
-		//	context.SetDynamicConstantBufferView(kColorConstants, sizeof(ColorConstants), &color);
-
-		//	// Render
-		//	context.DrawIndexedInstanced(ri.IndexCount, 1, ri.StartIndexLocation, ri.BaseVertexLocation, 0);
-		//}
-
-		//PIXEndEvent(context.GetCommandList());
-	}
-
 	void Present(D_GRAPHICS::GraphicsContext& context)
 	{
 		// Show the new frame.
@@ -221,7 +145,7 @@ namespace Darius::Renderer
 	void BuildPSO()
 	{
 		// For Opaque objects
-		Psos[(size_t)PipelineStateTypes::OpaquePso] = GraphicsPSO(L"Opaque");
+		Psos[(size_t)PipelineStateTypes::OpaquePso] = GraphicsPSO(L"Opaque PSO");
 		auto& pso = Psos[(size_t)PipelineStateTypes::OpaquePso];
 
 		auto il = D_RENDERER_VERTEX::VertexPositionNormalTexture::InputLayout;
@@ -240,6 +164,12 @@ namespace Darius::Renderer
 		pso.SetRenderTargetFormat(D_RENDERER_DEVICE::GetBackBufferFormat(), D_RENDERER_DEVICE::GetDepthBufferFormat());
 		pso.Finalize();
 
+		// Transparent
+		Psos[(size_t)PipelineStateTypes::TransparentPso] = GraphicsPSO(L"Transparent PSO");
+		auto& transPso = Psos[(size_t)PipelineStateTypes::TransparentPso];
+		transPso = pso;
+		transPso.SetBlendState(D_GRAPHICS::BlendTraditional);
+		transPso.Finalize();
 
 		// For opaque wireframe objecs
 		Psos[(size_t)PipelineStateTypes::WireframePso] = pso;
@@ -305,7 +235,7 @@ namespace Darius::Renderer
 		if (renderItem.PsoFlags & RenderItem::AlphaBlend)
 		{
 			key.passID = kTransparent;
-			key.psoIdx = renderItem.PsoType;
+			key.psoIdx = TransparentPso;
 			key.key = ~dist.u;
 			m_SortKeys.push_back(key.value);
 			m_PassCounts[kTransparent]++;
