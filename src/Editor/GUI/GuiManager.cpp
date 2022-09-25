@@ -21,7 +21,7 @@
 #include <Utils/Assert.hpp>
 
 #include <ImGuiFileDialog/ImGuiFileDialog.h>
-#include <Libs/FontIcon/IconsFontAwesome5.h>
+#include <Libs/FontIcon/IconsFontAwesome6.h>
 #include <imgui.h>
 #include <imgui_impl_dx12.h>
 #include <imgui_impl_win32.h>
@@ -138,25 +138,25 @@ namespace Darius::Editor::Gui::GuiManager
 #pragma region Toolbar
 			if (ImGui::BeginMenuBar())
 			{
-				if (ImGui::BeginMenu("File"))
+				if (ImGui::BeginMenu(ICON_FA_FILE "  File"))
 				{
 					/*if (ImGui::MenuItem("Load"))
 					{
 						D_RESOURCE_LOADER::LoadResource(L"ff.fbx");
 					}*/
 
-					if (ImGui::MenuItem(ICON_FA_SAVE "  Save Project"))
+					if (ImGui::MenuItem(ICON_FA_FLOPPY_DISK "  Save Project"))
 						D_RESOURCE::SaveAll();
 
-					if (ImGui::MenuItem(ICON_FA_FOLDER_MINUS "  Close Scene"))
+					ImGui::Separator();
+
+					if (ImGui::MenuItem(ICON_FA_XMARK"  Close Scene"))
 					{
 						D_WORLD::Unload();
 						D_EDITOR_CONTEXT::SetSelectedGameObject(nullptr);
 					}
 
-					ImGui::Separator();
-
-					if (ImGui::MenuItem(ICON_FA_SAVE "  Save Scene"))
+					if (ImGui::MenuItem(ICON_FA_FLOPPY_DISK "  Save Scene"))
 					{
 						if (D_WORLD::IsLoaded())
 							D_WORLD::Save();
@@ -342,7 +342,7 @@ namespace Darius::Editor::Gui::GuiManager
 
 		if (!isPaused)
 			ImGui::BeginDisabled();
-		if (ImGui::Button(ICON_FA_FAST_FORWARD, ImVec2(buttonSize, 0)))
+		if (ImGui::Button(ICON_FA_FORWARD_STEP, ImVec2(buttonSize, 0)))
 			D_SIMULATE::Step();
 		if (!isPaused)
 			ImGui::EndDisabled();
