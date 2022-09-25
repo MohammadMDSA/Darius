@@ -13,9 +13,6 @@
 [submodule "src/Libs/imgui_wrapper/implot"]
 	path = src/Libs/imgui_wrapper/implot
 	url = https://github.com/epezent/implot.git
-[submodule "src/Libs/FontIcon"]
-	path = src/Libs/FontIcon
-	url = https://github.com/juliettef/IconFontCppHeaders.git
 [submodule "src/Libs/imgui_wrapper/ImGuiFileDialog"]
 	path = src/Libs/imgui_wrapper/ImGuiFileDialog
 	url = https://github.com/aiekick/ImGuiFileDialog.git
