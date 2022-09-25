@@ -8,7 +8,6 @@
 #include <Utils/Common.hpp>
 
 #include <imgui.h>
-#include <nlohmann/json.hpp>
 #include <Libs/FontIcon/IconsFontAwesome6.h>
 
 #include <fstream>

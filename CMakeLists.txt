@@ -114,8 +114,9 @@ add_subdirectory("src/Libs/imgui_wrapper")
 include("cmake/AddFBXSDK.cmake")
 
 # Adding Nlohmann Json
-set(JSON_BuildTests OFF CACHE INTERNAL "")
-add_subdirectory("src/Libs/nlohmann_json")
+# set(JSON_BuildTests OFF CACHE INTERNAL "")
+# add_subdirectory("src/Libs/nlohmann_json")
+include_directories("src/Libs/nlohmann_json/single_include")
 
 # Adding Boost
 set(Boost_USE_STATIC_LIBS ON)

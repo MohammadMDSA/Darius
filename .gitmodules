@@ -13,9 +13,6 @@
 [submodule "src/Libs/MemAll"]
 	path = src/Libs/MemAll
 	url = https://github.com/foonathan/memory
-[submodule "src/Libs/nlohmann_json"]
-	path = src/Libs/nlohmann_json
-	url = https://github.com/nlohmann/json
 [submodule "src/Libs/imgui_wrapper/implot"]
 	path = src/Libs/imgui_wrapper/implot
 	url = https://github.com/epezent/implot.git
