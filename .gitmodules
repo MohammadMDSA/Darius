@@ -16,9 +16,6 @@
 [submodule "src/Libs/imgui_wrapper/implot"]
 	path = src/Libs/imgui_wrapper/implot
 	url = https://github.com/epezent/implot.git
-[submodule "src/Libs/flecs"]
-	path = src/Libs/flecs
-	url = https://github.com/SanderMertens/flecs
 [submodule "src/Libs/FontIcon"]
 	path = src/Libs/FontIcon
 	url = https://github.com/juliettef/IconFontCppHeaders.git
