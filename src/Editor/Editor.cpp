@@ -107,8 +107,8 @@ namespace Darius::Editor
 			{
 				D_PROFILING::Update();
 				Update(mTimer);
+				Render();
 			});
-		Render();
 
 	}
 
