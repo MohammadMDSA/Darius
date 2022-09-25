@@ -1,6 +1,9 @@
 #pragma once
 #include <Utils/Common.hpp>
 
+#pragma warning(push)
+#pragma warning(disable:4244)
+
 namespace Darius::Math
 {
 	// To allow floats to implicitly construct Scalars, we need to clarify these operators and suppress
@@ -329,3 +332,4 @@ namespace Darius::Math
 		return 1 - (postFix * sin((t * d - s) * (2 * XM_PI) / p) * .5f + c + b);
 	}
 }
+#pragma warning(pop)
