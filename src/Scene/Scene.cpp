@@ -203,6 +203,7 @@ namespace Darius::Scene
 		LoadSceneDump(sceneJson);
 
 		StartScene();
+		return true;
 	}
 
 	bool SceneManager::Save()
