@@ -114,8 +114,6 @@ add_subdirectory("src/Libs/imgui_wrapper")
 include("cmake/AddFBXSDK.cmake")
 
 # Adding Nlohmann Json
-# set(JSON_BuildTests OFF CACHE INTERNAL "")
-# add_subdirectory("src/Libs/nlohmann_json")
 include_directories("src/Libs/nlohmann_json/single_include")
 
 # Adding Boost
@@ -140,7 +138,7 @@ endif()
 # Adding DirectXTK 12
 add_subdirectory("${SOURCE_DIR}/Libs/DirectXTK12" "${CMAKE_BINARY_DIR}/bin/CMake/DirectXTK12")
 
-# # Adding fjs
+# Adding fjs
 # add_subdirectory("src/Libs/fjs")
 # target_link_libraries(${PROJECT_NAME} PUBLIC "fjs")
 
