@@ -58,15 +58,16 @@ namespace Darius::Editor::Simulate
 		
 		Timer->Tick([]() {
 			D_WORLD::Update(Timer->GetElapsedSeconds());
+
+			if (Stepping)
+			{
+				PauseTime();
+				Stepping = false;
+			}
 			});
 
 		D_WORLD::UpdateObjectsConstatns();
 
-		if (Stepping)
-		{
-			PauseTime();
-			Stepping = false;
-		}
 
 	}
 
