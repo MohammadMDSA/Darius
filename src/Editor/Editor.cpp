@@ -115,6 +115,7 @@ namespace Darius::Editor
 	// Updates the world.
 	void Editor::Update(D_TIME::StepTimer const& timer)
 	{
+		D_PROFILING::ScopedTimer _profiler(L"Update");
 		PIXBeginEvent(PIX_COLOR_DEFAULT, L"Update");
 
 		float elapsedTime = float(timer.GetElapsedSeconds());
