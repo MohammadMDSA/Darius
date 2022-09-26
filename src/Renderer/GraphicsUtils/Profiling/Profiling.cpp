@@ -237,9 +237,6 @@ namespace Darius::Graphics::Utils::Profiling
 
 		void GatherTimes(uint32_t FrameIndex)
 		{
-			if (sm_SelectedScope == this)
-			{
-			}
 			if (Paused)
 			{
 				for (auto node : m_Children)
