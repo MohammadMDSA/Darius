@@ -72,7 +72,7 @@ namespace Darius::Scene
 		D_GRAPHICS::GraphicsContext& context = D_GRAPHICS::GraphicsContext::Begin(L"Updateing objects");
 
 		context.PIXBeginEvent(L"Updating components");
-		
+
 		RemoveDeleted();
 
 		for (auto const go : *GOs)
@@ -99,7 +99,8 @@ namespace Darius::Scene
 
 	void SceneManager::UpdateObjectsConstatns()
 	{
-		
+		RemoveDeleted();
+
 		D_GRAPHICS::GraphicsContext& context = D_GRAPHICS::GraphicsContext::Begin(L"Update Mesh Constant Buffers");
 
 		D_CONTAINERS::DSet<GameObject*>::iterator goIterator = GOs->begin();
@@ -111,9 +112,8 @@ namespace Darius::Scene
 			goIterator++;
 		}
 
-		RemoveDeleted();
-
 		context.Finish();
+
 	}
 
 	bool SceneManager::Create(D_FILE::Path const& path)
@@ -261,55 +261,58 @@ namespace Darius::Scene
 	void SceneManager::LoadSceneDump(Json const& sceneJson)
 	{
 		// Loading Objects
-		for (int i = 0; i < sceneJson["Objects"].size(); i++)
-		{
-			D_SERIALIZATION::Json jObj = sceneJson["Objects"][i];
+		if (sceneJson.contains("Objects"))
+			for (int i = 0; i < sceneJson["Objects"].size(); i++)
+			{
+				D_SERIALIZATION::Json jObj = sceneJson["Objects"][i];
 
-			Uuid uuid;
-			D_CORE::from_json(jObj["Uuid"], uuid);
-			auto obj = CreateGameObject(uuid);
+				Uuid uuid;
+				D_CORE::from_json(jObj["Uuid"], uuid);
+				auto obj = CreateGameObject(uuid);
 
-			from_json(jObj, *obj);
-		}
+				from_json(jObj, *obj);
+			}
 
 		// Loading hierarchy
-		for (auto [obUuid, childList] : sceneJson["Hierarchy"].items())
-		{
-			auto go = (*UuidMap)[FromString(obUuid)];
-			for (int i = 0; i < childList.size(); i++)
+		if (sceneJson.contains("Hierarchy"))
+			for (auto [obUuid, childList] : sceneJson["Hierarchy"].items())
 			{
-				Uuid childUuid;
-				D_CORE::from_json(childList[i], childUuid);
-				auto child = (*UuidMap)[childUuid];
-				child->SetParent(go);
+				auto go = (*UuidMap)[FromString(obUuid)];
+				for (int i = 0; i < childList.size(); i++)
+				{
+					Uuid childUuid;
+					D_CORE::from_json(childList[i], childUuid);
+					auto child = (*UuidMap)[childUuid];
+					child->SetParent(go);
+				}
 			}
-		}
 
 		// Loading Components
-		for (auto& [objUuidStr, objCompsJ] : sceneJson["ObjectComponent"].items())
-		{
-			Uuid objUuid = FromString(objUuidStr);
-			auto gameObject = (*UuidMap)[objUuid];
-
-			for (auto& [compName, compJ] : objCompsJ.items())
+		if (sceneJson.contains("ObjectComponent"))
+			for (auto& [objUuidStr, objCompsJ] : sceneJson["ObjectComponent"].items())
 			{
-				auto compR = World.component(compName.c_str());
-				auto compId = World.id(compR);
+				Uuid objUuid = FromString(objUuidStr);
+				auto gameObject = (*UuidMap)[objUuid];
 
-				// Adding component to entity
-				gameObject->mEntity.add(compR);
+				for (auto& [compName, compJ] : objCompsJ.items())
+				{
+					auto compR = World.component(compName.c_str());
+					auto compId = World.id(compR);
 
-				auto compP = gameObject->mEntity.get_mut(compId);
+					// Adding component to entity
+					gameObject->mEntity.add(compR);
 
-				// Get component pointer
-				auto comp = reinterpret_cast<D_ECS_COMP::ComponentBase*>(compP);
+					auto compP = gameObject->mEntity.get_mut(compId);
 
-				D_CORE::from_json(compJ["Uuid"], comp->mUuid);
-				comp->mGameObject = gameObject;
+					// Get component pointer
+					auto comp = reinterpret_cast<D_ECS_COMP::ComponentBase*>(compP);
 
-				comp->Deserialize(compJ);
+					D_CORE::from_json(compJ["Uuid"], comp->mUuid);
+					comp->mGameObject = gameObject;
+
+					comp->Deserialize(compJ);
+				}
 			}
-		}
 	}
 
 	void SceneManager::Unload()
@@ -375,7 +378,7 @@ namespace Darius::Scene
 	{
 		ScenePath = path;
 	}
-	
+
 	bool SceneManager::IsLoaded()
 	{
 		return Loaded;
