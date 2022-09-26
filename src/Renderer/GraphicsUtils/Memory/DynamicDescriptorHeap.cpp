@@ -178,7 +178,7 @@ namespace Darius::Graphics::Utils::Memory
             ++StaleParamCount;
         }
 
-        D_ASSERT(StaleParamCount <= DescriptorHandleCache::kMaxNumDescriptorTables,
+        D_ASSERT_M(StaleParamCount <= DescriptorHandleCache::kMaxNumDescriptorTables,
             "We're only equipped to handle so many descriptor tables");
 
         mStaleRootParamsBitMap = 0;
@@ -309,7 +309,7 @@ namespace Darius::Graphics::Utils::Memory
 
     void DynamicDescriptorHeap::DescriptorHandleCache::StageDescriptorHandles(UINT RootIndex, UINT Offset, UINT NumHandles, const D3D12_CPU_DESCRIPTOR_HANDLE Handles[])
     {
-        D_ASSERT(((1 << RootIndex) & mRootDescriptorTablesBitMap) != 0, "Root parameter is not a CBV_SRV_UAV descriptor table");
+        D_ASSERT_M(((1 << RootIndex) & mRootDescriptorTablesBitMap) != 0, "Root parameter is not a CBV_SRV_UAV descriptor table");
         D_ASSERT(Offset + NumHandles <= m_RootDescriptorTable[RootIndex].TableSize);
 
         DescriptorTableCache& TableCache = m_RootDescriptorTable[RootIndex];

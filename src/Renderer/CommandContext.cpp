@@ -423,7 +423,7 @@ namespace Darius::Graphics
 
     void CommandContext::InsertUAVBarrier(GpuResource& Resource, bool FlushImmediate)
     {
-        D_ASSERT(m_NumBarriersToFlush < 16, "Exceeded arbitrary limit on buffered barriers");
+        D_ASSERT_M(m_NumBarriersToFlush < 16, "Exceeded arbitrary limit on buffered barriers");
         D3D12_RESOURCE_BARRIER& BarrierDesc = m_ResourceBarrierBuffer[m_NumBarriersToFlush++];
 
         BarrierDesc.Type = D3D12_RESOURCE_BARRIER_TYPE_UAV;
@@ -436,7 +436,7 @@ namespace Darius::Graphics
 
     void CommandContext::InsertAliasBarrier(GpuResource& Before, GpuResource& After, bool FlushImmediate)
     {
-        D_ASSERT(m_NumBarriersToFlush < 16, "Exceeded arbitrary limit on buffered barriers");
+        D_ASSERT_M(m_NumBarriersToFlush < 16, "Exceeded arbitrary limit on buffered barriers");
         D3D12_RESOURCE_BARRIER& BarrierDesc = m_ResourceBarrierBuffer[m_NumBarriersToFlush++];
 
         BarrierDesc.Type = D3D12_RESOURCE_BARRIER_TYPE_ALIASING;
