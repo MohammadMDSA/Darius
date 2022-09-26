@@ -63,6 +63,8 @@ namespace Darius::Scene
 
 		INLINE void							SetTransform(Transform const& trans)
 		{
+			if (mType == Type::Static)
+				return;
 			if (mParent)
 				SetLocalTransform((XMMATRIX)(trans.GetWorld() * Matrix4(mParent->GetTransform()).Inverse()));
 			else

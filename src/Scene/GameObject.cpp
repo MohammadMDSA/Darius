@@ -55,6 +55,12 @@ namespace Darius::Scene
 			{
 				mEntity.remove(compId);
 			});
+
+		for (size_t i = 0; i < D_RENDERER_FRAME_RESOUCE::gNumFrameResources; i++)
+		{
+			mMeshConstantsCPU[i].Destroy();
+		}
+		mMeshConstantsGPU.Destroy();
 	}
 
 	void GameObject::Update(D_GRAPHICS::GraphicsContext& context)
@@ -211,6 +217,8 @@ namespace Darius::Scene
 
 	void GameObject::SetLocalTransform(Transform const& trans)
 	{
+		if (mType == Type::Static)
+			return;
 		GetComponent<Darius::Scene::ECS::Components::TransformComponent>()->SetLocalTransform(trans);
 	}
 
