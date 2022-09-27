@@ -150,6 +150,11 @@ namespace Darius::Editor::Gui::GuiManager
 
 					ImGui::Separator();
 
+					auto simulating = D_SIMULATE::IsSimulating();
+
+					if (simulating)
+						ImGui::BeginDisabled();
+
 					if (ImGui::MenuItem(ICON_FA_XMARK"  Close Scene"))
 					{
 						D_WORLD::Unload();
@@ -170,6 +175,9 @@ namespace Darius::Editor::Gui::GuiManager
 						ImGuiFileDialog::Instance()->OpenDialog("LoadScene", "Choose Scene File", ".dar", D_EDITOR_CONTEXT::GetAssetsPath().string(), 1, nullptr);
 
 					}
+
+					if (simulating)
+						ImGui::EndDisabled();
 
 					ImGui::EndMenu();
 				}
