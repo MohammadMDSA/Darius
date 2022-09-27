@@ -31,6 +31,8 @@ namespace Darius::Scene::ECS::Components
 
 		// States
 		virtual void						Start() override;
+		virtual void						Update(float dt) override;
+		virtual void						OnDestroy() override;
 
 		void								SetMesh(ResourceHandle handle);
 		void								SetMaterial(ResourceHandle handle);
@@ -38,8 +40,10 @@ namespace Darius::Scene::ECS::Components
 		RenderItem							GetRenderItem();
 
 
-		INLINE bool							CanRender() { return GetGameObject()->GetActive() && GetEnabled() && mMeshResource.IsValid(); }
+		INLINE bool							CanRender() { return IsActive() && mMeshResource.IsValid(); }
 		INLINE const BoundingSphere&		GetBounds() const { return mMeshResource.Get()->GetMeshData()->mBoundSp; }
+
+		INLINE D3D12_GPU_VIRTUAL_ADDRESS	GetConstantsAddress() { return mMeshConstantsGPU.GetGpuVirtualAddress(); }
 
 	private:
 
@@ -50,5 +54,10 @@ namespace Darius::Scene::ECS::Components
 		Ref<MaterialResource>				mMaterialResource;
 		D_CORE::Signal<void()>				mChangeSignal;
 		uint16_t							mPsoFlags;
+
+		// Gpu buffers
+		D_GRAPHICS_BUFFERS::UploadBuffer	mMeshConstantsCPU[D_RENDERER_FRAME_RESOUCE::gNumFrameResources];
+		ByteAddressBuffer					mMeshConstantsGPU;
+
 	};
 }

@@ -93,8 +93,6 @@ namespace Darius::Scene
 		void								VisitDescendants(std::function<void(GameObject*)> callback) const;
 		UINT								CountChildren();
 
-		INLINE D3D12_GPU_VIRTUAL_ADDRESS	GetConstantsAddress() { return mMeshConstantsGPU.GetGpuVirtualAddress(); }
-
 		template<class T>
 		T*									GetComponent()
 		{
@@ -142,8 +140,9 @@ namespace Darius::Scene
 			if (std::is_same<T, Darius::Scene::ECS::Components::TransformComponent>::value)
 				return;
 
-			mEntity.get_ref<T>()->OnDestroy();
 			mEntity.remove<T>();
+
+			RemoveComponentRoutine(mEntity.get_ref<T>());
 		}
 
 		void								RemoveComponent(Darius::Scene::ECS::Components::ComponentBase*);
@@ -178,12 +177,8 @@ namespace Darius::Scene
 
 		GameObject(Uuid uuid, D_ECS::Entity entity);
 
-		void								Update(D_GRAPHICS::GraphicsContext& context);
-
 		void								AddComponentRoutine(Darius::Scene::ECS::Components::ComponentBase*);
-
-		D_GRAPHICS_BUFFERS::UploadBuffer	mMeshConstantsCPU[D_RENDERER_FRAME_RESOUCE::gNumFrameResources];
-		ByteAddressBuffer					mMeshConstantsGPU;
+		void								RemoveComponentRoutine(Darius::Scene::ECS::Components::ComponentBase*);
 
 		// Comp name and display name
 		static D_CONTAINERS::DVector<std::pair<std::string, std::string>> RegisteredComponents;

@@ -60,8 +60,9 @@ PRIVATE
 	${Boost_INCLUDE_DIRS}
 )
 
-target_link_libraries("Scene" PRIVATE ${Boost_LIBRARIES})
-target_link_libraries("Scene" PUBLIC flecs_static Utils Core Math Renderer ResourceManager IMGUI)
+
+target_link_libraries("Scene" PRIVATE ${Boost_LIBRARIES} fjs IMGUI)
+target_link_libraries("Scene" PUBLIC flecs_static Utils Core Math Renderer ResourceManager)
 
 
 if(BUILD_TESTS)

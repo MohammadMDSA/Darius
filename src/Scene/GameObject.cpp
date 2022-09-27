@@ -34,13 +34,6 @@ namespace Darius::Scene
 		mDeleted(false),
 		mParent(nullptr)
 	{
-		// Initializing Mesh Constants buffers
-		for (size_t i = 0; i < D_RENDERER_FRAME_RESOUCE::gNumFrameResources; i++)
-		{
-			mMeshConstantsCPU[i].Create(L"Mesh Constant Upload Buffer", sizeof(MeshConstants));
-		}
-		mMeshConstantsGPU.Create(L"Mesh Constant GPU Buffer", 1, sizeof(MeshConstants));
-
 		AddComponent<D_ECS_COMP::TransformComponent>();
 	}
 
@@ -55,35 +48,6 @@ namespace Darius::Scene
 			{
 				mEntity.remove(compId);
 			});
-
-		for (size_t i = 0; i < D_RENDERER_FRAME_RESOUCE::gNumFrameResources; i++)
-		{
-			mMeshConstantsCPU[i].Destroy();
-		}
-		mMeshConstantsGPU.Destroy();
-	}
-
-	void GameObject::Update(D_GRAPHICS::GraphicsContext& context)
-	{
-		// We won't update constant buffer for static objects
-		if (mType == Type::Static)
-			return;
-
-		// Updating mesh constants
-		// Mapping upload buffer
-		auto& currentUploadBuff = mMeshConstantsCPU[D_RENDERER_DEVICE::GetCurrentResourceIndex()];
-		MeshConstants* cb = (MeshConstants*)currentUploadBuff.Map();
-
-		auto world = GetTransform().GetWorld();
-		cb->mWorld = Matrix4(world);
-		cb->mWorldIT = InverseTranspose(Matrix3(world));
-
-		currentUploadBuff.Unmap();
-
-		// Uploading
-		context.TransitionResource(mMeshConstantsGPU, D3D12_RESOURCE_STATE_COPY_DEST, true);
-		context.GetCommandList()->CopyBufferRegion(mMeshConstantsGPU.GetResource(), 0, currentUploadBuff.GetResource(), 0, currentUploadBuff.GetBufferSize());
-		context.TransitionResource(mMeshConstantsGPU, D3D12_RESOURCE_STATE_GENERIC_READ);
 
 	}
 
@@ -236,7 +200,7 @@ namespace Darius::Scene
 			{
 				if (!reg.is_valid(compId))
 					return;
-				
+
 				if (!RegisteredBehaviours.contains(compId))
 					return;
 
@@ -313,8 +277,21 @@ namespace Darius::Scene
 	void GameObject::AddComponentRoutine(Darius::Scene::ECS::Components::ComponentBase* comp)
 	{
 		comp->mGameObject = this;
+
+		if (auto bComp = dynamic_cast<D_ECS_COMP::BehaviourComponent*>(comp); bComp)
+			D_WORLD::AddBehaviour(bComp);
+
 		if (mStarted)
 			comp->Start();
+
+	}
+	
+	void GameObject::RemoveComponentRoutine(Darius::Scene::ECS::Components::ComponentBase* comp)
+	{
+		comp->OnDestroy();
+
+		if (auto bComp = dynamic_cast<D_ECS_COMP::BehaviourComponent*>(comp); bComp)
+			D_WORLD::RemoveBehaviour(bComp);
 	}
 
 	void GameObject::Start()
@@ -338,8 +315,9 @@ namespace Darius::Scene
 		// Abort if transform
 		if (reg.id<D_ECS_COMP::TransformComponent>() == compId)
 			return;
-		comp->OnDestroy();
 		mEntity.remove(compId);
+		
+		RemoveComponentRoutine(comp);
 	}
 
 	void GameObject::SetParent(GameObject* newParent)

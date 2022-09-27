@@ -6,6 +6,7 @@
 #include "EntityComponentSystem/Components/ComponentBase.hpp"
 #include "EntityComponentSystem/Components/BehaviourComponent.hpp"
 #include "EntityComponentSystem/Components/TransformComponent.hpp"
+#include "EntityComponentSystem/Components/MeshRendererComponent.hpp"
 
 #include <Core/Filesystem/FileUtils.hpp>
 #include <Core/Memory/Memory.hpp>
@@ -16,6 +17,8 @@
 #include <Utils/Assert.hpp>
 
 #include <flecs.h>
+//#include <fjs/Counter.h>
+//#include <fjs/Manager.h>
 
 #include <fstream>
 
@@ -27,6 +30,7 @@ namespace Darius::Scene
 	std::unique_ptr<D_CONTAINERS::DSet<GameObject*>>					GOs = nullptr;
 	std::unique_ptr<D_CONTAINERS::DMap<Uuid, GameObject*, UuidHasher>>	UuidMap = nullptr;
 	std::unique_ptr<D_CONTAINERS::DMap<D_ECS::EntityId, GameObject*>>	EntityMap = nullptr;
+	D_CONTAINERS::DSet<D_ECS_COMP::BehaviourComponent*>					BehaviourComponents;
 
 	DVector<GameObject*>												ToBeDeleted;
 
@@ -34,6 +38,8 @@ namespace Darius::Scene
 	D_FILE::Path														ScenePath;
 
 	bool																Loaded = false;
+
+	//std::unique_ptr<fjs::Manager>										SceneJobManager;
 
 	// Static Init
 	D_ECS::Entity SceneManager::Root = D_ECS::Entity();
@@ -52,6 +58,10 @@ namespace Darius::Scene
 #endif // _DEBUG
 
 		Root = World.entity("Root");
+
+		//auto sceneJobManagerInfo = fjs::ManagerOptions();
+		//sceneJobManagerInfo.ThreadAffinity = true;
+		//SceneJobManager = std::make_unique<fjs::Manager>(sceneJobManagerInfo);
 	}
 
 	void SceneManager::Shutdown()
@@ -60,6 +70,7 @@ namespace Darius::Scene
 
 		GOs.reset();
 		UuidMap.reset();
+
 	}
 
 	void SceneManager::Update(float deltaTime)
@@ -69,31 +80,11 @@ namespace Darius::Scene
 
 		World.progress(deltaTime);
 
-		D_GRAPHICS::GraphicsContext& context = D_GRAPHICS::GraphicsContext::Begin(L"Updateing objects");
-
-		context.PIXBeginEvent(L"Updating components");
-
 		RemoveDeleted();
 
-		for (auto const go : *GOs)
-		{
-			if (!go->GetActive())
-				continue;
-			go->VisitBehaviourComponents([deltaTime](D_ECS_COMP::BehaviourComponent* comp)
-				{
-					try
-					{
-						comp->Update(deltaTime);
-					}
-					catch (const std::exception& e)
-					{
-						D_LOG_ERROR("Exception during updating component " << comp->GetComponentName() << " : " << e.what());
-					}
-				});
-		}
-
-		context.PIXEndEvent();
-		context.Finish();
+		for (auto behaviour : BehaviourComponents)
+			if (behaviour->IsActive())
+				behaviour->Update(deltaTime);
 
 	}
 
@@ -101,19 +92,15 @@ namespace Darius::Scene
 	{
 		RemoveDeleted();
 
-		D_GRAPHICS::GraphicsContext& context = D_GRAPHICS::GraphicsContext::Begin(L"Update Mesh Constant Buffers");
+		//auto jobManager = SceneJobManager.get();
+		//auto counter = fjs::Counter(jobManager);
+		World.each([&](D_ECS_COMP::MeshRendererComponent& meshComp)
+			{
+				meshComp.Update(-1.f);
+			}
+		);
 
-		D_CONTAINERS::DSet<GameObject*>::iterator goIterator = GOs->begin();
-
-		while (goIterator != GOs->end())
-		{
-			if ((*goIterator)->GetActive())
-				(*goIterator)->Update(context);
-			goIterator++;
-		}
-
-		context.Finish();
-
+		//jobManager->WaitForCounter(&counter, 0);
 	}
 
 	bool SceneManager::Create(D_FILE::Path const& path)
@@ -310,6 +297,8 @@ namespace Darius::Scene
 					D_CORE::from_json(compJ["Uuid"], comp->mUuid);
 					comp->mGameObject = gameObject;
 
+					gameObject->AddComponentRoutine(comp);
+
 					comp->Deserialize(compJ);
 				}
 			}
@@ -323,6 +312,7 @@ namespace Darius::Scene
 			});
 
 		GOs->clear();
+		BehaviourComponents.clear();
 
 		SceneName = "";
 		ScenePath = Path();
@@ -338,6 +328,7 @@ namespace Darius::Scene
 
 		GOs->clear();
 		RemoveDeleted();
+		BehaviourComponents.clear();
 	}
 
 	GameObject* SceneManager::GetGameObject(D_ECS::Entity entity)
@@ -368,7 +359,6 @@ namespace Darius::Scene
 		ToBeDeleted.clear();
 	}
 
-
 	D_FILE::Path SceneManager::GetPath()
 	{
 		return ScenePath;
@@ -384,4 +374,13 @@ namespace Darius::Scene
 		return Loaded;
 	}
 
+	void SceneManager::AddBehaviour(D_ECS_COMP::BehaviourComponent* comp)
+	{
+		BehaviourComponents.insert(comp);
+	}
+
+	void SceneManager::RemoveBehaviour(D_ECS_COMP::BehaviourComponent* comp)
+	{
+		BehaviourComponents.erase(comp);
+	}
 }

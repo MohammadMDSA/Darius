@@ -12,6 +12,11 @@
 
 using namespace D_CORE;
 
+namespace Darius::Scene::ECS::Components
+{
+	class BehaviourComponent;
+}
+
 namespace Darius::Scene
 {
 
@@ -43,6 +48,9 @@ namespace Darius::Scene
 		
 		static INLINE D_ECS::Entity	GetRoot() { return Root; }
 		static INLINE D_ECS::ECSRegistry& GetRegistry() { return World; }
+
+		static void				AddBehaviour(Darius::Scene::ECS::Components::BehaviourComponent* comp);
+		static void				RemoveBehaviour(Darius::Scene::ECS::Components::BehaviourComponent* comp);
 
 #ifdef _D_EDITOR
 	public:

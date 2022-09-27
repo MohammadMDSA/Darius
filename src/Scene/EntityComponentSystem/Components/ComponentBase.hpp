@@ -82,7 +82,7 @@ namespace Darius::Scene::ECS::Components
 
         virtual INLINE void         Update(float) { };
 
-        bool                        IsActive() const;
+        INLINE bool                 IsActive() const { return mGameObject->GetActive() && mEnabled; }
 
         // Serialization
         virtual void                Serialize(D_SERIALIZATION::Json&) const {};

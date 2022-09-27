@@ -30,6 +30,13 @@ namespace Darius::Scene::ECS::Components
 	void MeshRendererComponent::Start()
 	{
 
+		// Initializing Mesh Constants buffers
+		for (size_t i = 0; i < D_RENDERER_FRAME_RESOUCE::gNumFrameResources; i++)
+		{
+			mMeshConstantsCPU[i].Create(L"Mesh Constant Upload Buffer", sizeof(MeshConstants));
+		}
+		mMeshConstantsGPU.Create(L"Mesh Constant GPU Buffer", 1, sizeof(MeshConstants));
+
 		_SetMesh({ ResourceType::None, 0 });
 		_SetMaterial(D_RESOURCE::GetDefaultResource(DefaultResource::Material));
 
@@ -44,7 +51,7 @@ namespace Darius::Scene::ECS::Components
 		result.StartIndexLocation = mesh->mDraw[0].StartIndexLocation;
 		result.Mesh = mesh;
 		result.PrimitiveType = D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
-		result.MeshCBV = GetGameObject()->GetConstantsAddress();
+		result.MeshCBV = GetConstantsAddress();
 		result.Material.MaterialCBV = *mMaterialResource.Get();
 		result.Material.MaterialSRV = mMaterialResource->GetTexturesHandle();
 		result.PsoType = D_RENDERER::OpaquePso;
@@ -172,4 +179,43 @@ namespace Darius::Scene::ECS::Components
 		mMeshResource = D_RESOURCE::GetResource<MeshResource>(meshUuid, *go);
 	}
 
+	void MeshRendererComponent::Update(float dt)
+	{
+		if (!IsActive())
+			return;
+
+		// We won't update constant buffer for static objects
+		if (GetGameObject()->GetType() == GameObject::Type::Static)
+			return;
+
+		auto& context = D_GRAPHICS::GraphicsContext::Begin(L"Update mesh constants");
+
+		// Updating mesh constants
+		// Mapping upload buffer
+		auto& currentUploadBuff = mMeshConstantsCPU[D_RENDERER_DEVICE::GetCurrentResourceIndex()];
+		MeshConstants* cb = (MeshConstants*)currentUploadBuff.Map();
+
+		auto world = GetTransform().GetWorld();
+		cb->mWorld = Matrix4(world);
+		cb->mWorldIT = InverseTranspose(Matrix3(world));
+
+		currentUploadBuff.Unmap();
+
+		// Uploading
+		context.TransitionResource(mMeshConstantsGPU, D3D12_RESOURCE_STATE_COPY_DEST, true);
+		context.GetCommandList()->CopyBufferRegion(mMeshConstantsGPU.GetResource(), 0, currentUploadBuff.GetResource(), 0, currentUploadBuff.GetBufferSize());
+		context.TransitionResource(mMeshConstantsGPU, D3D12_RESOURCE_STATE_GENERIC_READ);
+
+		context.Finish();
+
+	}
+
+	void MeshRendererComponent::OnDestroy()
+	{
+		for (size_t i = 0; i < D_RENDERER_FRAME_RESOUCE::gNumFrameResources; i++)
+		{
+			mMeshConstantsCPU[i].Destroy();
+		}
+		mMeshConstantsGPU.Destroy();
+	}
 }

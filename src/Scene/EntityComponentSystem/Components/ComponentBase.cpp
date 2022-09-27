@@ -24,9 +24,4 @@ namespace Darius::Scene::ECS::Components
 		mGameObject(nullptr)
 	{}
 
-	bool ComponentBase::IsActive() const
-	{
-		return mGameObject->GetActive() && mEnabled;
-	}
-
 }
