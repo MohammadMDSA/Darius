@@ -37,9 +37,8 @@ namespace Darius::Scene::ECS::Components
 		}
 		mMeshConstantsGPU.Create(L"Mesh Constant GPU Buffer", 1, sizeof(MeshConstants));
 
-		_SetMesh({ ResourceType::None, 0 });
-		_SetMaterial(D_RESOURCE::GetDefaultResource(DefaultResource::Material));
-
+		if(!mMaterialResource.IsValid())
+			_SetMaterial(D_RESOURCE::GetDefaultResource(DefaultResource::Material));
 	}
 
 	RenderItem MeshRendererComponent::GetRenderItem()

@@ -38,6 +38,7 @@ namespace Darius::Scene
 	D_FILE::Path														ScenePath;
 
 	bool																Loaded = false;
+	bool																Started = false;
 
 	//std::unique_ptr<fjs::Manager>										SceneJobManager;
 
@@ -58,6 +59,8 @@ namespace Darius::Scene
 #endif // _DEBUG
 
 		Root = World.entity("Root");
+
+		Started = true;
 
 		//auto sceneJobManagerInfo = fjs::ManagerOptions();
 		//sceneJobManagerInfo.ThreadAffinity = true;
@@ -136,7 +139,8 @@ namespace Darius::Scene
 
 		EntityMap->emplace(entity, go);
 
-		go->Start();
+		if (Started)
+			go->Start();
 
 		return go;
 	}
@@ -189,7 +193,6 @@ namespace Darius::Scene
 
 		LoadSceneDump(sceneJson);
 
-		StartScene();
 		return true;
 	}
 
@@ -247,6 +250,8 @@ namespace Darius::Scene
 
 	void SceneManager::LoadSceneDump(Json const& sceneJson)
 	{
+		Started = false;
+
 		// Loading Objects
 		if (sceneJson.contains("Objects"))
 			for (int i = 0; i < sceneJson["Objects"].size(); i++)
@@ -295,13 +300,14 @@ namespace Darius::Scene
 					auto comp = reinterpret_cast<D_ECS_COMP::ComponentBase*>(compP);
 
 					D_CORE::from_json(compJ["Uuid"], comp->mUuid);
-					comp->mGameObject = gameObject;
-
+					
 					gameObject->AddComponentRoutine(comp);
 
 					comp->Deserialize(compJ);
 				}
 			}
+
+		StartScene();
 	}
 
 	void SceneManager::Unload()
@@ -340,10 +346,15 @@ namespace Darius::Scene
 
 	void SceneManager::StartScene()
 	{
+		if (Started)
+			return;
+
 		for (auto go : *GOs)
 		{
 			go->Start();
 		}
+
+		Started = true;
 	}
 
 	void SceneManager::RemoveDeleted()
