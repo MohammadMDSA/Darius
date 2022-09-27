@@ -15,7 +15,7 @@ namespace Darius::Job
 		else
 		{
 			m_isAlive = true;
-			for (ThreadNumber threadIndex = 0; threadIndex < m_numberOfThreads; m_numberOfThreads++)
+			for (ThreadNumber threadIndex = 0; threadIndex < m_numberOfThreads; threadIndex++)
 			{
 				m_threadObjects.emplace_back(std::make_unique<ThreadObject>(threadIndex, *this));
 			}

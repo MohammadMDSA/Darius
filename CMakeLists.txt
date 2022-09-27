@@ -139,7 +139,7 @@ endif()
 add_subdirectory("${SOURCE_DIR}/Libs/DirectXTK12" "${CMAKE_BINARY_DIR}/bin/CMake/DirectXTK12")
 
 # Adding fjs
-add_subdirectory("src/Libs/fjs")
+# add_subdirectory("src/Libs/fjs")
 
 ##############################
 ############ Libs ############

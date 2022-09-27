@@ -13,12 +13,11 @@
 #include <Core/Containers/Set.hpp>
 #include <Core/Serialization/Json.hpp>
 #include <Core/Uuid.hpp>
+#include <Job/Job.hpp>
 #include <Renderer/CommandContext.hpp>
 #include <Utils/Assert.hpp>
 
 #include <flecs.h>
-//#include <fjs/Counter.h>
-//#include <fjs/Manager.h>
 
 #include <fstream>
 
@@ -40,8 +39,6 @@ namespace Darius::Scene
 	bool																Loaded = false;
 	bool																Started = false;
 
-	//std::unique_ptr<fjs::Manager>										SceneJobManager;
-
 	// Static Init
 	D_ECS::Entity SceneManager::Root = D_ECS::Entity();
 	D_ECS::ECSRegistry SceneManager::World = D_ECS::ECSRegistry();
@@ -62,9 +59,6 @@ namespace Darius::Scene
 
 		Started = true;
 
-		//auto sceneJobManagerInfo = fjs::ManagerOptions();
-		//sceneJobManagerInfo.ThreadAffinity = true;
-		//SceneJobManager = std::make_unique<fjs::Manager>(sceneJobManagerInfo);
 	}
 
 	void SceneManager::Shutdown()
@@ -73,7 +67,6 @@ namespace Darius::Scene
 
 		GOs.reset();
 		UuidMap.reset();
-
 	}
 
 	void SceneManager::Update(float deltaTime)
@@ -91,19 +84,27 @@ namespace Darius::Scene
 
 	}
 
+	void foo(D_ECS_COMP::MeshRendererComponent* meshComp)
+	{
+		meshComp->Update(-1);
+	}
+
 	void SceneManager::UpdateObjectsConstatns()
 	{
 		RemoveDeleted();
 
-		//auto jobManager = SceneJobManager.get();
-		//auto counter = fjs::Counter(jobManager);
 		World.each([&](D_ECS_COMP::MeshRendererComponent& meshComp)
 			{
-				meshComp.Update(-1.f);
+				Darius::Job::AssignTask([&](int threadNumber, int)
+					{
+						meshComp.Update(-1);
+
+					});
 			}
 		);
 
-		//jobManager->WaitForCounter(&counter, 0);
+		if (D_JOB::IsMainThread())
+			Darius::Job::WaitForThreadsToFinish();
 	}
 
 	bool SceneManager::Create(D_FILE::Path const& path)
@@ -300,7 +301,7 @@ namespace Darius::Scene
 					auto comp = reinterpret_cast<D_ECS_COMP::ComponentBase*>(compP);
 
 					D_CORE::from_json(compJ["Uuid"], comp->mUuid);
-					
+
 					gameObject->AddComponentRoutine(comp);
 
 					comp->Deserialize(compJ);

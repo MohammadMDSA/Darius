@@ -187,7 +187,7 @@ namespace Darius::Scene::ECS::Components
 		if (GetGameObject()->GetType() == GameObject::Type::Static)
 			return;
 
-		auto& context = D_GRAPHICS::GraphicsContext::Begin(L"Update mesh constants");
+		auto& context = D_GRAPHICS::GraphicsContext::Begin();
 
 		// Updating mesh constants
 		// Mapping upload buffer

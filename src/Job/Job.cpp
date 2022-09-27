@@ -45,10 +45,10 @@ namespace Darius::Job
 		std::atomic<int>		m_remainingTasksCount;
 	};
 
-	void Init()
+	void Initialize()
 	{
 		D_ASSERT(state == nullptr);
-		state = D_malloc(State);
+		state = new State();
 	}
 
 	void Shutdown()

@@ -3,9 +3,14 @@
 #include "JobCommon.hpp"
 #include <Utils/Common.hpp>
 
+#ifndef D_JOB
+#define D_JOB Darius::Job
+#endif // !D_JOB
+
+
 namespace Darius::Job
 {
-    void Init();
+    void Initialize();
     void Shutdown();
 
     void AssignTasks(std::vector<Task> const& tasks, OnFinishCallback const& callback = nullptr);

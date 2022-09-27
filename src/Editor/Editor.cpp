@@ -13,7 +13,7 @@
 #include <Core/Filesystem/Path.hpp>
 #include <Core/Containers/Vector.hpp>
 #include <Core/TimeManager/TimeManager.hpp>
-
+#include <Job/Job.hpp>
 #include <Scene/EntityComponentSystem/Components/MeshRendererComponent.hpp>
 #include <Scene/EntityComponentSystem/Components/LightComponent.hpp>
 #include <Scene/EntityComponentSystem/Components/TransformComponent.hpp>
@@ -53,6 +53,7 @@ namespace Darius::Editor
 		D_RESOURCE::Shutdown();
 		D_INPUT::Shutdown();
 		D_TIME::Shutdown();
+		D_JOB::Shutdown();
 		D_RENDERER::Shutdown();
 		D_RENDERER_DEVICE::Shutdown();
 	}
@@ -69,6 +70,8 @@ namespace Darius::Editor
 		// Creating device and window resources
 		CreateDeviceDependentResources();
 		CreateWindowSizeDependentResources();
+
+		D_JOB::Initialize();
 
 		// Initialing the tiem manager
 		D_TIME::Initialize();
