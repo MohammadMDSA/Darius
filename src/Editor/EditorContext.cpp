@@ -83,11 +83,11 @@ namespace Darius::Editor::ContextManager
 
 	Path GetAssetsPath()
 	{
-		return Path(ProjectPath).append("Assets");
+		return Path(ProjectPath).append("Assets/");
 	}
 
 	Path GetEditorConfigPath()
 	{
-		return Path(ProjectPath).append("Config");
+		return Path(ProjectPath).append("Config/");
 	}
 }

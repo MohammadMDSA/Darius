@@ -84,11 +84,6 @@ namespace Darius::Scene
 
 	}
 
-	void foo(D_ECS_COMP::MeshRendererComponent* meshComp)
-	{
-		meshComp->Update(-1);
-	}
-
 	void SceneManager::UpdateObjectsConstatns()
 	{
 		RemoveDeleted();
