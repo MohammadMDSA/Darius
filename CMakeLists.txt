@@ -269,7 +269,7 @@ if ( CMAKE_CXX_COMPILER_ID MATCHES "MSVC" )
          "/wd4265" "/wd4625" "/wd4626" "/wd4986" "/wd5204" "/wd5220"
          "/wd4324"
          "/wd5026" "/wd5027" "/wd4623" "/wd5038" "/wd4244"
-         "/wd4464" "/wd4127")
+         "/wd4464" "/wd4127" "/wd5205")
 
     if(ENABLE_CODE_ANALYSIS)
         target_compile_options(${PROJECT_NAME} PRIVATE /analyze)

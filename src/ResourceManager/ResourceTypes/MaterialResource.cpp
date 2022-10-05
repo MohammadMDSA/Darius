@@ -17,6 +17,8 @@ using namespace D_SERIALIZATION;
 
 namespace Darius::ResourceManager
 {
+	D_CH_RESOURCE_DEF(MaterialResource);
+
 	MaterialResource::MaterialResource(Uuid uuid, std::wstring const& path, DResourceId id, bool isDefault) :
 		Resource(uuid, path, id, isDefault),
 		mPsoFlags(0)
@@ -24,13 +26,6 @@ namespace Darius::ResourceManager
 		mBaseColorTextureHandle = D_RESOURCE::GetDefaultResource(D_RESOURCE::DefaultResource::Texture2DWhiteOpaque);
 		mNormalTextureHandle = D_RESOURCE::GetDefaultResource(D_RESOURCE::DefaultResource::Texture2DNormalMap);
 		mRoughnessTextureHandle = D_RESOURCE::GetDefaultResource(D_RESOURCE::DefaultResource::Texture2DBlackOpaque);
-	}
-
-	bool MaterialResource::SuppoertsExtension(std::wstring ext)
-	{
-		if (ext == L".mat")
-			return true;
-		return false;
 	}
 
 	void MaterialResource::WriteResourceToFile() const
@@ -147,25 +142,25 @@ namespace Darius::ResourceManager
 	void MaterialResource::SetTexture(ResourceHandle textureHandle, D_RENDERER::TextureType type)
 	{
 
-		if (textureHandle.Type != ResourceType::Texture2D)
+		if (textureHandle.Type != Texture2DResource::GetResourceType())
 		{
 			mMaterial.TextureStatusMask &= ~(1 << type);
 			switch (type)
 			{
 			case Darius::Renderer::kBaseColor:
-				mBaseColorTextureHandle = EmptyHandle;
+				mBaseColorTextureHandle = EmptyResourceHandle;
 				mBaseColorTexture.Unref();
 				break;
 			case Darius::Renderer::kRoughness:
-				mRoughnessTextureHandle = EmptyHandle;
+				mRoughnessTextureHandle = EmptyResourceHandle;
 				mRoughnessTexture.Unref();
 				break;
 			case Darius::Renderer::kNormal:
-				mNormalTextureHandle = EmptyHandle;
+				mNormalTextureHandle = EmptyResourceHandle;
 				mNormalTexture.Unref();
 				break;
 			case Darius::Renderer::kEmissive:
-				mEmissiveTextureHandle = EmptyHandle;
+				mEmissiveTextureHandle = EmptyResourceHandle;
 				mEmissiveTexture.Unref();
 				break;
 			case Darius::Renderer::kOcculusion:
@@ -243,11 +238,11 @@ device->CopyDescriptorsSimple(1, mTexturesHeap + type * incSize, m##name##Textur
 		bool nonSel = !prop.IsValid(); \
 		if (ImGui::Selectable("<None>", &nonSel)) \
 		{ \
-			SetTexture(EmptyHandle, type); \
+			SetTexture(EmptyResourceHandle, type); \
 			valueChanged = true; \
 		} \
 			 \
-		auto meshes = D_RESOURCE::GetResourcePreviews(D_RESOURCE::ResourceType::Texture2D); \
+		auto meshes = D_RESOURCE::GetResourcePreviews(Texture2DResource::GetResourceType()); \
 		int idx = 0; \
 		for (auto prev : meshes) \
 		{ \

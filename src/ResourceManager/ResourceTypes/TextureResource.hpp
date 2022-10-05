@@ -18,7 +18,7 @@ namespace Darius::ResourceManager
 
 	class TextureResource : public Resource
 	{
-		D_CH_RESOURCE_BODY(TextureResource, ResourceType::Texture2D)
+		//D_CH_RESOURCE_BODY(TextureResource, ResourceType::Texture2D)
 	public:
 		INLINE D_GRAPHICS_BUFFERS::Texture*			ModifyTextureData() { MakeDiskDirty(), MakeGpuDirty(); return &mTexture; }
 		INLINE D_GRAPHICS_BUFFERS::Texture const*	GetTextureData() const { return &mTexture; }
@@ -31,8 +31,6 @@ namespace Darius::ResourceManager
 
 
 		// Inherited via Resource
-		virtual bool SuppoertsExtension(std::wstring ext) override;
-
 		virtual void WriteResourceToFile() const override;
 
 		virtual void ReadResourceFromFile() override;

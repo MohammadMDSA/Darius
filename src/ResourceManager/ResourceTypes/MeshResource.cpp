@@ -16,12 +16,7 @@ using namespace D_CONTAINERS;
 namespace Darius::ResourceManager
 {
 
-	bool MeshResource::SuppoertsExtension(std::wstring ext)
-	{
-		if (ext == L".fbx")
-			return true;
-		return false;
-	}
+	D_CH_RESOURCE_DEF(MeshResource);
 
 	void MeshResource::Create(DVector<MeshData<VertexType>>& data)
 	{

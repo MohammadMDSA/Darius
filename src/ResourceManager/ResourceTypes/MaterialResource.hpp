@@ -25,7 +25,7 @@ namespace Darius::ResourceManager
 
 	class MaterialResource : public Resource
 	{
-		D_CH_RESOURCE_BODY(MaterialResource, ResourceType::Material)
+		D_CH_RESOURCE_BODY(MaterialResource, "Material", ".mat")
 		
 	public:
 		INLINE MaterialConstants*			ModifyMaterialData() { MakeDiskDirty(); MakeGpuDirty(); return &mMaterial; }
@@ -33,8 +33,6 @@ namespace Darius::ResourceManager
 		INLINE D3D12_GPU_DESCRIPTOR_HANDLE	GetTexturesHandle() const { return mTexturesHeap; }
 		INLINE uint16_t						GetPsoFlags() const { return mPsoFlags; }
 		void								SetTexture(ResourceHandle textureHandle, D_RENDERER::TextureType type);
-
-		virtual bool						SuppoertsExtension(std::wstring ext) override;
 
 #ifdef _D_EDITOR
 		virtual bool						DrawDetails(float params[]) override;

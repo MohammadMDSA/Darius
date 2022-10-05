@@ -45,8 +45,6 @@ namespace Darius::ResourceManager
 		Texture2DNormalMap,
 	};
 
-	extern const DMap<std::string, ResourceType>		ResourceTypeMap;
-
 	void					Initialize();
 	void					Shutdown();
 
@@ -84,7 +82,7 @@ namespace Darius::ResourceManager
 		D_STATIC_ASSERT(conv::value);
 
 		// Requested None resource so we return nothing
-		if (handle.Type == ResourceType::None)
+		if (handle.Type == 0)
 			return Ref<T>();
 
 		// Requested resource type must be compatible with T
@@ -135,15 +133,39 @@ namespace Darius::ResourceManager
 	private:
 		friend class ResourceLoader;
 
-		ResourceHandle				CreateMaterial(Uuid uuid, std::wstring const& path, bool isDefault, bool fromFile);
-		ResourceHandle				CreateMesh(Uuid uuid, std::wstring const& path, bool isDefault, bool fromFile);
-		ResourceHandle				CreateTexture2D(Uuid uuid, std::wstring const& path, bool isDefault, bool fromFile);
+		ResourceHandle				CreateResource(ResourceType type, Uuid uuid, std::wstring const& path, bool isDefault, bool fromFile)
+		{
+			
+			auto factory = Resource::GetFactoryForResourceType(type);
+			if (!factory)
+				return EmptyResourceHandle;
 
-		void						UpdateMaps(Resource* resuorce);
+			auto res = factory->Create(uuid, path, GetNewId(), isDefault);
+
+			res->mLoaded = !fromFile;
+
+			// Add the handle to path and resource maps
+			ResourceHandle handle = { type , res->GetId()};
+			UpdateMaps(res);
+
+			return handle;
+		}
+
+		template<class T>
+		INLINE ResourceHandle		CreateResource(Uuid uuid, std::wstring const& path, bool isDefault, bool fromFile)
+		{
+			// Checking if T is a resource type
+			using conv = std::is_convertible<T*, Resource*>;
+			D_STATIC_ASSERT(conv::value);
+
+			return CreateResource(T::GetResourceType(), uuid, path, isDefault, fromFile);
+		}
+
+		void						UpdateMaps(std::shared_ptr<Resource> resuorce);
 
 		INLINE DResourceId			GetNewId() { return ++mLastId; }
 
-		DMap<ResourceType, DMap<DResourceId, Resource*>>	mResourceMap;
+		DMap<ResourceType, DMap<DResourceId, std::shared_ptr<Resource>>>	mResourceMap;
 		DMap<Uuid, Resource*, UuidHasher>					mUuidMap;
 		DMap<std::wstring, Resource*>						mPathMap;
 		DMap<DefaultResource, ResourceHandle>				mDefaultResourceMap;

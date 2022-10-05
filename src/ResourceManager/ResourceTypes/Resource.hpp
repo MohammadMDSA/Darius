@@ -15,10 +15,34 @@
 
 #define D_T_RESOURCE_ID UINT16
 
-#define D_CH_RESOURCE_BODY(T, ResT) D_CH_TYPE_NAME_GETTER(T)\
+// TODO: Better resource allocation
+#define D_CH_RESOURCE_BODY(T, ResT, ...) \
 public: \
-static INLINE ResourceType GetResourceType() { return ResT; } \
-INLINE ResourceType GetType() const override { return ResT; }
+	class T##Factory : public Resource::ResourceFactory \
+	{ \
+	public: \
+		virtual std::shared_ptr<Resource> Create(Uuid uuid, std::wstring const& path, DResourceId id, bool isDefault) const; \
+	}; \
+public: \
+	friend class Factory; \
+	static INLINE ResourceType GetResourceType() { return Resource::GetResourceType(ResT); } \
+	INLINE ResourceType GetType() const override { return Resource::GetResourceType(ResT); } \
+	static void Register() \
+	{ \
+		D_ASSERT_M(!Resource::GetResourceType(ResT), "Resource " #T " is already registered."); \
+		auto resType = Resource::RegisterResourceTypeName<T, T::T##Factory>(ResT); \
+		\
+		std::string supportedExtensions[] = { __VA_ARGS__ }; \
+		for (std::string const& ext : supportedExtensions) \
+		{ \
+			if(ext == "") continue; \
+			Resource::RegisterResourceExtension(ext, resType); \
+		} \
+	} \
+	\
+
+#define D_CH_RESOURCE_DEF(T) \
+std::shared_ptr<Resource> T::T##Factory::Create(Uuid uuid, std::wstring const& path, DResourceId id, bool isDefault) const { return std::shared_ptr<Resource>(new T(uuid, path, id, isDefault)); }
 
 using namespace D_CORE;
 using namespace D_FILE;
@@ -30,32 +54,17 @@ namespace Darius::ResourceManager
 
 	typedef D_T_RESOURCE_ID DResourceId;
 
-	enum class ResourceType
-	{
-		None,
-		Mesh,
-		Batch,
-		Material,
-		Texture2D
-	};
-
-	D_H_SERIALIZE_ENUM(ResourceType, {
-		{ ResourceType::None, "None" },
-		{ ResourceType::Mesh, "Mesh" },
-		{ ResourceType::Batch, "Batch" },
-		{ ResourceType::Material, "Material" },
-		{ ResourceType::Texture2D, "Texture2D" },
-		})
+	typedef uint16_t ResourceType;
 
 	struct ResourceHandle
 	{
-		ResourceType			Type = ResourceType::None;
+		ResourceType			Type = 0;
 		DResourceId				Id = 0;
 
-		INLINE bool IsValid() { return Type != ResourceType::None; }
+		INLINE bool IsValid() { return Type != 0; }
 	};
 
-	constexpr ResourceHandle EmptyHandle = { ResourceType::None, 0 };
+	constexpr ResourceHandle EmptyResourceHandle = { 0, 0 };
 
 	struct ResourcePreview
 	{
@@ -77,6 +86,17 @@ namespace Darius::ResourceManager
 
 	class Resource : public D_CORE::Counted, public Detailed
 	{
+	public:
+
+		class ResourceFactory
+		{
+		public:
+			ResourceFactory() = default;
+			~ResourceFactory() = default;
+
+			virtual std::shared_ptr<Resource> Create(Uuid uuid, std::wstring const& path, DResourceId id, bool isDefault) const = 0;
+		};
+
 	public:
 		
 		void Destroy()
@@ -109,12 +129,34 @@ namespace Darius::ResourceManager
 
 	public:
 		void						UpdateGPU(D_GRAPHICS::GraphicsContext& context);
-		virtual bool				SuppoertsExtension(std::wstring ext) = 0;
 
 #ifdef _D_EDITOR
 		virtual bool				DrawDetails(float params[]) = 0;
 #endif // _D_EDITOR
 
+		static INLINE ResourceType	GetResourceType(std::string name) { return ResourceTypeMapR.contains(name) ? ResourceTypeMapR[name] : 0; }
+		static INLINE std::string	GetResourceName(ResourceType type) { return ResourceTypeMap[type]; }
+		static INLINE ResourceFactory* GetFactoryForResourceType(ResourceType type) { return ResourceFactories.contains(type) ? ResourceFactories[type] : nullptr; }
+		static INLINE void			RegisterResourceExtension(std::string ext, ResourceType type) { ResourceExtensionMap[ext] = type; }
+		static INLINE ResourceType	GetResourceTypeByExtension(std::string ext) { return ResourceExtensionMap.contains(ext) ? ResourceExtensionMap[ext] : 0; }
+
+		template<class R, class FAC>
+		static ResourceType			RegisterResourceTypeName(std::string name)
+		{
+			// Checking if T is a resource type
+			using conv = std::is_convertible<R*, Resource*>;
+			D_STATIC_ASSERT(conv::value);
+			using convFac = std::is_convertible<FAC*, ResourceFactory*>;
+			D_STATIC_ASSERT(convFac::value);
+
+			// TODO: Better allocation
+			ResourceType type = (ResourceType)(ResourceTypeMap.size() + 1);
+			ResourceTypeMap[type] = name;
+			ResourceTypeMapR[name] = type;
+			ResourceFactories.insert({ type, new FAC });
+
+			return type;
+		}
 
 		friend class DResourceManager;
 		friend class ResourceLoader;
@@ -143,5 +185,11 @@ namespace Darius::ResourceManager
 		virtual void				WriteResourceToFile() const = 0;
 		virtual void				ReadResourceFromFile() = 0;
 		virtual bool				UploadToGpu(D_GRAPHICS::GraphicsContext& context) = 0;
+
+		static DMap<ResourceType, std::string> ResourceTypeMap;
+		static DMap<std::string, ResourceType> ResourceTypeMapR;
+		static DMap<ResourceType, ResourceFactory*> ResourceFactories;
+		static DMap<std::string, ResourceType> ResourceExtensionMap;
 	};
+
 }

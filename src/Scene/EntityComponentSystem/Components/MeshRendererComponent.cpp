@@ -74,7 +74,7 @@ namespace Darius::Scene::ECS::Components
 
 			if (ImGui::BeginPopup("Select Res"))
 			{
-				auto meshes = D_RESOURCE::GetResourcePreviews(D_RESOURCE::ResourceType::Mesh);
+				auto meshes = D_RESOURCE::GetResourcePreviews(MeshResource::GetResourceType());
 				int idx = 0;
 				for (auto prev : meshes)
 				{
@@ -106,7 +106,7 @@ namespace Darius::Scene::ECS::Components
 
 				if (ImGui::BeginPopup("Select Mat"))
 				{
-					auto meshes = D_RESOURCE::GetResourcePreviews(D_RESOURCE::ResourceType::Material);
+					auto meshes = D_RESOURCE::GetResourcePreviews(MaterialResource::GetResourceType());
 					int idx = 0;
 					for (auto prev : meshes)
 					{

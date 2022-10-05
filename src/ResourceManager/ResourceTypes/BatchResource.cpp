@@ -6,4 +6,5 @@
 
 namespace Darius::ResourceManager
 {
+	D_CH_RESOURCE_DEF(BatchResource);
 }

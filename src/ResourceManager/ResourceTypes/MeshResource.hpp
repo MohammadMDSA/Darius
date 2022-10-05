@@ -22,15 +22,12 @@ namespace Darius::ResourceManager
 	public:
 		using VertexType = D_RENDERER_VERTEX::VertexPositionNormalTangentTexture;
 
-		D_CH_RESOURCE_BODY(MeshResource, ResourceType::Mesh)
+		D_CH_RESOURCE_BODY(MeshResource, "Mesh", ".fbx")
 
 	public:
 		INLINE Mesh*					ModifyMeshData() { MakeDiskDirty(); MakeGpuDirty(); return &mMesh; }
 		INLINE const Mesh*				GetMeshData() const { return &mMesh; }
-
 		virtual void					Create(D_CONTAINERS::DVector<MeshData<VertexType>>& data);
-
-		virtual bool					SuppoertsExtension(std::wstring ext) override;
 
 #ifdef _D_EDITOR
 		virtual bool					DrawDetails(float params[]) override { (params); return false; };

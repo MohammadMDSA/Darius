@@ -20,32 +20,20 @@ namespace Darius::ResourceManager
 	// Only used in resource reading / wrting, from / to file context
 	ResourceHandle ResourceLoader::CreateResourceObject(ResourceMeta const& meta, DResourceManager* manager)
 	{
-		switch (meta.Type)
-		{
-		case Darius::ResourceManager::ResourceType::Mesh:
-			return manager->CreateMesh(meta.Uuid, meta.Path, false, true);
-		case Darius::ResourceManager::ResourceType::Material:
-			return manager->CreateMaterial(meta.Uuid, meta.Path, false, true);
-		case Darius::ResourceManager::ResourceType::Texture2D:
-			return manager->CreateTexture2D(meta.Uuid, meta.Path, false, true);
-		case Darius::ResourceManager::ResourceType::None:
-		default:
-			return { ResourceType::None, 0 };
-		}
+		auto factory = Resource::GetFactoryForResourceType(meta.Type);
+		if (!factory)
+			return EmptyResourceHandle;
+
+		return manager->CreateResource(meta.Type, meta.Uuid, meta.Path, false, true);
 	}
 
 	// Only used in resource reading / wrting, from / to file context
 	ResourceHandle ResourceLoader::CreateResourceObject(Path const& path, DResourceManager* manager)
 	{
 		auto extension = path.extension();
+		auto resourceType = Resource::GetResourceTypeByExtension(extension.string());
 
-		if (extension == ".mat")
-			return manager->CreateMaterial(GenerateUuid(), path, false, true);
-		if (extension == ".fbx")
-			return manager->CreateMesh(GenerateUuid(), path, false, true);
-		if (extension == ".tga" || extension == ".dds")
-			return manager->CreateTexture2D(GenerateUuid(), path, false, true);
-		return { ResourceType::None, 0 };
+		return manager->CreateResource(resourceType, GenerateUuid(), path, false, true);
 	}
 
 	void SerializeMeta(Json& json, ResourceMeta const& meta)
@@ -76,7 +64,7 @@ namespace Darius::ResourceManager
 
 	bool ResourceLoader::SaveResource(Resource* resource, bool metaOnly = false)
 	{
-		if (resource->GetType() == ResourceType::None)
+		if (resource->GetType() == 0)
 			throw D_CORE::Exception::Exception("Bad resource type to save");
 		if (resource->mDefault)
 		{
@@ -134,7 +122,7 @@ namespace Darius::ResourceManager
 		// Meta file exists?
 		D_FILE::Path tosPath = D_FILE::Path(path).wstring() + L".tos";
 		if (!D_H_ENSURE_FILE(tosPath))
-			return { ResourceType::None, 0 };
+			return EmptyResourceHandle;
 
 
 		// Read from meta file
@@ -152,7 +140,7 @@ namespace Darius::ResourceManager
 	ResourceHandle ResourceLoader::LoadResource(Path path, bool metaOnly)
 	{
 		if (!D_H_ENSURE_FILE(path))
-			return { ResourceType::None, 0 };
+			return EmptyResourceHandle;
 
 		// Read meta
 		auto handle = LoadResourceMeta(path);
@@ -160,7 +148,7 @@ namespace Darius::ResourceManager
 		auto manager = D_RESOURCE::GetManager();
 
 		// Meta available?
-		if (handle.Type != ResourceType::None)
+		if (handle.Type != 0)
 		{
 			// Fetch pointer to resource
 			auto resource = manager->GetRawResource(handle);
@@ -182,7 +170,7 @@ namespace Darius::ResourceManager
 		handle = CreateResourceObject(path, manager);
 
 		// Resource not supported
-		if (handle.Type == ResourceType::None)
+		if (handle.Type == 0)
 		{
 			D_LOG_WARN("Resource " + path.filename().string() + " not supported");
 			return handle;

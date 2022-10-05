@@ -6,10 +6,12 @@
 
 namespace Darius::ResourceManager
 {
+	D_CH_RESOURCE_DEF(Texture2DResource);
 
 	void Texture2DResource::CreateRaw(uint32_t color, DXGI_FORMAT format, size_t rowPitchByte, size_t width, size_t height)
 	{
 		mTexture.Create2D(rowPitchByte, width, height, format, &color);
+		auto a = std::shared_ptr<Resource>(new Texture2DResource(GenerateUuid(), Path(), 0, false));
 	}
 
 	bool Texture2DResource::UploadToGpu(D_GRAPHICS::GraphicsContext& context)

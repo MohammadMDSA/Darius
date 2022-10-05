@@ -13,7 +13,7 @@ namespace Darius::ResourceManager
 
 	class Texture2DResource : public TextureResource
 	{
-		D_CH_RESOURCE_BODY(Texture2DResource, ResourceType::Texture2D)
+		D_CH_RESOURCE_BODY(Texture2DResource, "Texture2D", ".tga", ".dds")
 
 	public:
 

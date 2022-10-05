@@ -4,36 +4,34 @@
 namespace Darius::ResourceManager
 {
 
+	DMap<ResourceType, std::string> Resource::ResourceTypeMap =
+	{
+		{ 0, "" }
+	};
+
+	DMap<std::string, ResourceType> Resource::ResourceTypeMapR =
+	{
+		{ "", 0 }
+	};
+
+	DMap<ResourceType, Resource::ResourceFactory*> Resource::ResourceFactories =
+	{
+		{ 0, nullptr }
+	};
+
+	DMap<std::string, ResourceType> Resource::ResourceExtensionMap = {};
+
 	std::string ResourceTypeToString(ResourceType type)
 	{
-		switch (type)
-		{
-		case Darius::ResourceManager::ResourceType::Mesh:
-			return "Mesh";
-		case Darius::ResourceManager::ResourceType::Material:
-			return "Material";
-		case Darius::ResourceManager::ResourceType::Batch:
-			return "Batch";
-		case Darius::ResourceManager::ResourceType::Texture2D:
-			return "Texture2D";
-		default:
+		auto name = Resource::GetResourceName(type);
+		if(name == "")
 			throw D_CORE::Exception::Exception("Resource type not defined");
-		case Darius::ResourceManager::ResourceType::None:
-			return "";
-		}
+		return name;
 	}
 
-	ResourceType StringToResourceType(std::string type)
+	ResourceType StringToResourceType(std::string name)
 	{
-		if (type == "Mesh")
-			return ResourceType::Mesh;
-		if (type == "Material")
-			return ResourceType::Material;
-		if (type == "Batch")
-			return ResourceType::Batch;
-		if (type == "Texture2D")
-			return ResourceType::Texture2D;
-		return ResourceType::None;
+		return Resource::GetResourceType(name);
 	}
 
 	void Resource::UpdateGPU(D_GRAPHICS::GraphicsContext& context)
