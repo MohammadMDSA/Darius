@@ -22,8 +22,8 @@
     - Dynamic Entity Component System
 - Editor
     - Resource Monitor
-    - Ghost and Orbit cameras
-    - Gizmos
+    - Ghost and Orbit Cameras
+    - Gizmos (Translation, Rotation, and Scale)
     - Simulation (Run, Stop, Pause, and Step)
     - Profiler Graph
     - Game Object Property Manipulation trough GUI (including components)
