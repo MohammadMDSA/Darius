@@ -3,33 +3,35 @@
 
 ## First Look
 
-<img src="images/overview.png" width="100%"><p>This is how the editor looks like. You can select game objects from Scene Graph window and change its transform properties and mesh trough Details window. You also can change object position via the gizmo which is located on object position.</p>
+<img src="Docs/overview.png" width="100%">
 
-<p>You can explore the scene with ghost camera by holding mouse right-button and via W/A/S/D.</p>
-
-## Interaction
-
-### Scene Graph Window
-<table border="0" width="100%">
- <tr>
-    <td width="80%"><img src="images/Scene Graph.png"></td>
-    <td style="vertical-align:text-top">This is the Scene Graph window and all objects in the scene are shown here. You can select a game object through this window and start interacting with the object.</td>
- </tr>
-</table>
-
-### Details Window
-<table border="0" width="100%">
- <tr>
-    <td width="80%"><img src="images/Details.png"></td>
-    <td style="vertical-align:text-top">You can change object property via Detail window. It is currently support modifying object transformation, shape and material.</td>
- </tr>
-</table>
-
-### Scene Window
-<img src="images/Scene.png">
-Scene window shows the active 3D scene from perspective of editor camera. You can see how are objects will be shown in your scene through this window. Selected object location can be modified via the gizmo which always appears on object location.
-
-You can change your view by holding mouse right-button and move your mouse. You can also move while holding right-click using W/A/S/D keys on your keyboard.
+## Features
+- Resource Management
+    - Default: Material, Texture2D (DDS, TGA), Mesh (FBX), and Vertex Batch Resources
+    - Dynamic Resource Type Registration (You can define your own)
+- Renderer
+    - Frustum Culling
+    - Material Rendering
+        - Texture Mapping
+        - Emissive, Specular Color, and Roughness Components
+        - Opaque and Transparent
+    - Basic Lights (Point, Cone, and Directional)
+    - PIX Debugging Integration
+- Scene Management
+    - Saving & Loading
+    - Dynamic Entity Component System
+- Editor
+    - Resource Monitor
+    - Ghost and Orbit cameras
+    - Gizmos
+    - Simulation (Run, Stop, Pause, and Step)
+    - Profiler Graph
+    - Game Object Property Manipulation trough GUI (including components)
+    - Resource Property Manipulation trough GUI (including saving & loading)
+- Job System and CPU Multi-Core Utilization
+- CPU & GPU Profiling
+- Scene Graph and Hierarchical Transform Math
+- And so much more!
 
 ## Installing
 
@@ -44,4 +46,4 @@ You can change your view by holding mouse right-button and move your mouse. You 
         2. Have `FBXSDK_ROOT` system environment variable pointing to where you've installed FBX SDK.
 3. Configure and Build using CMake and *MSVC* compiler. (Other compilers *may* work but not tested)
 
-4. Run `DariusEngine` executable to run Darius Editor.
+4. Run `DariusEngine` executable to run Darius Editor with demo project.
