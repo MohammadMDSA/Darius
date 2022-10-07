@@ -7,7 +7,7 @@
 #define D_LOG_WARN_IMPL(msg) std::cerr << "WARN:\t" << msg << std::endl
 #define D_LOG_ERROR_IMPL(msg) std::cerr << "ERROR:\t" << msg << std::endl
 #define D_LOG_FATAL_IMPL(msg) std::cerr << "FATAL:\t" << msg <<  std::endl
-#elif
+#else
 #define D_LOG_IMPL(msg, lvl)
 #define D_LOG_TRACE_IMPL(msg)
 #define D_LOG_DEBUG_IMPL(msg)
