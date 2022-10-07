@@ -152,6 +152,7 @@ add_subdirectory("src/job")
 add_subdirectory("src/renderer")
 add_subdirectory("src/scene")
 add_subdirectory("src/resourceManager")
+add_subdirectory("src/physics")
 
 SET(DARIUS_LIBS)
 
@@ -163,6 +164,7 @@ list(APPEND DARIUS_LIBS
     "Renderer"
     "Scene"
     "ResourceManager"
+    "Physics"
 	)
 
 target_link_libraries(${PROJECT_NAME} PUBLIC ${DARIUS_LIBS} PRIVATE IMGUIFILEDIALOG)

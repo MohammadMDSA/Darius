@@ -1,0 +1,65 @@
+set(PHYSICS_LIBS_SOURCES)
+set(PHYSICS_LIBS_INCLUDE)
+
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ".")
+
+list(APPEND PHYSICS_LIBS_INCLUDE
+	"pch.hpp"
+	)
+
+list(APPEND PHYSICS_LIBS_SOURCES
+	"pch.cpp"
+	)
+
+
+add_library("Physics")
+
+target_sources("Physics"
+	PRIVATE
+	${PHYSICS_LIBS_SOURCES}
+	${PHYSICS_LIBS_INCLUDE})
+
+set_target_properties("Physics" PROPERTIES LINKER_LANGUAGE CXX)
+
+if ((${CMAKE_VERSION} VERSION_GREATER_EQUAL "3.16") AND (NOT MINGW))
+    target_precompile_headers("Physics" PRIVATE pch.hpp )
+endif()
+
+target_include_directories("Physics"
+PUBLIC
+PRIVATE
+	".."
+	${Boost_INCLUDE_DIRS}
+	"Libs/PhysX/include"
+)
+
+set(PHYSX_LIBS)
+
+if(${CMAKE_BUILD_TYPE} MATCHES Release)
+	list(APPEND PHYSX_LIBS
+		"Libs/PhysX/libs/win.x86_64.vc142/release/PhysX_64.lib"
+		"Libs/PhysX/libs/win.x86_64.vc142/release/PhysXCommon_64.lib"
+		"Libs/PhysX/libs/win.x86_64.vc142/release/PhysXFoundation_64.lib"
+	)
+else()
+	list(APPEND PHYSX_LIBS
+		"Libs/PhysX/libs/win.x86_64.vc142/debug/PhysX_64.lib"
+		"Libs/PhysX/libs/win.x86_64.vc142/debug/PhysXCommon_64.lib"
+		"Libs/PhysX/libs/win.x86_64.vc142/debug/PhysXFoundation_64.lib"
+	)
+endif()
+
+message(${PHYSX_LIBS})
+
+target_link_libraries("Physics" PRIVATE ${Boost_LIBRARIES} PHYSX_LIBS)
+target_link_libraries("Physics" PUBLIC flecs_static Utils Core Math Renderer ResourceManager Job)
+
+
+if(BUILD_TESTS)
+	set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/../../cmake")
+	include(BoostTestHelper)
+	add_compile_definitions(BOOST_TEST_LOG_LEVEL=all)
+	add_compile_definitions(BOOST_TEST_DETECT_MEMORY_LEAK=1)
+	add_compile_definitions(BOOST_TEST_SHOW_PROGRESS=yes)
+	# add_boost_test(SOURCE "Tests/PhysicsTests.cpp" INCLUDE "." LINK Physics PREFIX Physics)
+endif(BUILD_TESTS)
