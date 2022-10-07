@@ -39,14 +39,9 @@ namespace Darius::Scene
 
 	void GameObject::OnDestroy()
 	{
-		VisitComponents([](auto comp)
+		VisitComponents([&](auto comp)
 			{
-				comp->OnDestroy();
-			});
-
-		mEntity.each([&](flecs::id compId)
-			{
-				mEntity.remove(compId);
+				RemoveComponentRoutine(comp);
 			});
 
 	}
@@ -276,13 +271,18 @@ namespace Darius::Scene
 
 	void GameObject::AddComponentRoutine(Darius::Scene::ECS::Components::ComponentBase* comp)
 	{
+		if (!comp)
+			return;
 		comp->mGameObject = this;
 
 		if (auto bComp = dynamic_cast<D_ECS_COMP::BehaviourComponent*>(comp); bComp)
 			D_WORLD::AddBehaviour(bComp);
 
 		if (mStarted)
+		{
+			comp->mStarted = true;
 			comp->Start();
+		}
 
 	}
 	
@@ -299,8 +299,9 @@ namespace Darius::Scene
 		if (mStarted)
 			return;
 
-		VisitComponents([](auto comp)
+		VisitComponents([&](ComponentBase* comp)
 			{
+				comp->mStarted = true;
 				comp->Start();
 			});
 
