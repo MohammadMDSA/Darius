@@ -5,10 +5,12 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ".")
 
 list(APPEND PHYSICS_LIBS_INCLUDE
 	"pch.hpp"
+	"PhysicsManager.hpp"
 	)
 
 list(APPEND PHYSICS_LIBS_SOURCES
 	"pch.cpp"
+	"PhysicsManager.cpp"
 	)
 
 
@@ -30,28 +32,16 @@ PUBLIC
 PRIVATE
 	".."
 	${Boost_INCLUDE_DIRS}
-	"Libs/PhysX/include"
+	"../Libs/PhysX/include"
 )
 
-set(PHYSX_LIBS)
-
 if(${CMAKE_BUILD_TYPE} MATCHES Release)
-	list(APPEND PHYSX_LIBS
-		"Libs/PhysX/libs/win.x86_64.vc142/release/PhysX_64.lib"
-		"Libs/PhysX/libs/win.x86_64.vc142/release/PhysXCommon_64.lib"
-		"Libs/PhysX/libs/win.x86_64.vc142/release/PhysXFoundation_64.lib"
-	)
+	target_link_libraries("Physics" PRIVATE -L/Libs/PhysX/libs/win.x86_64.vc142/release/)
 else()
-	list(APPEND PHYSX_LIBS
-		"Libs/PhysX/libs/win.x86_64.vc142/debug/PhysX_64.lib"
-		"Libs/PhysX/libs/win.x86_64.vc142/debug/PhysXCommon_64.lib"
-		"Libs/PhysX/libs/win.x86_64.vc142/debug/PhysXFoundation_64.lib"
-	)
+	target_link_libraries("Physics" PRIVATE -L/Libs/PhysX/libs/win.x86_64.vc142/debug/)
 endif()
 
-message(${PHYSX_LIBS})
-
-target_link_libraries("Physics" PRIVATE ${Boost_LIBRARIES} PHYSX_LIBS)
+target_link_libraries("Physics" PRIVATE ${Boost_LIBRARIES})
 target_link_libraries("Physics" PUBLIC flecs_static Utils Core Math Renderer ResourceManager Job)
 
 
