@@ -51,6 +51,14 @@ static bool sInit;
 bool type::sInit = false; \
 //INVOKE_STATIC_CONSTRUCTOR(type);
 
+#define D_H_COMP_DEFAULT_CONSTRUCTOR_DEF_PAR(type, parent) \
+type::type() : \
+    parent() {} \
+type::type(D_CORE::Uuid uuid) : \
+    parent(uuid) {}
+
+#define D_H_COMP_DEFAULT_CONSTRUCTOR_DEF(type) D_H_COMP_DEFAULT_CONSTRUCTOR_DEF_PAR(type, ComponentBase)
+
 namespace Darius::Scene
 {
     class SceneManager;
