@@ -18,6 +18,7 @@
 #include <Scene/EntityComponentSystem/Components/LightComponent.hpp>
 #include <Scene/EntityComponentSystem/Components/TransformComponent.hpp>
 #include <Demo/MovementBehaviour.hpp>
+#include <Physics/PhysicsManager.hpp>
 #include <Scene/SceneLight.hpp>
 #include <Renderer/Renderer.hpp>
 #include <Renderer/FrameResource.hpp>
@@ -50,6 +51,7 @@ namespace Darius::Editor
 	{
 		D_SIMULATE::Shutdown();
 		D_EDITOR_CONTEXT::Shutdown();
+		D_PHYSICS::Shutdown();
 		D_RESOURCE::Shutdown();
 		D_INPUT::Shutdown();
 		D_TIME::Shutdown();
@@ -81,6 +83,9 @@ namespace Darius::Editor
 
 		// Initializing the resource manager
 		D_RESOURCE::Initialize();
+
+		// Initializeing physics
+		D_PHYSICS::Initialize();
 
 		// Initializing the editor context manager
 		D_EDITOR_CONTEXT::Initialize(projectPath);
@@ -122,13 +127,20 @@ namespace Darius::Editor
 		PIXBeginEvent(PIX_COLOR_DEFAULT, L"Update");
 
 		float elapsedTime = float(timer.GetElapsedSeconds());
-		D_INPUT::Update();
+
+		{
+			D_PROFILING::ScopedTimer inputProfiling(L"Update Input");
+			D_INPUT::Update();
+		}
 
 		// Updating the simulator
 		D_SIMULATE::Update();
 
 		// Updating lights
-		::D_SCENE_LIGHT::Update(elapsedTime);
+		{
+			D_PROFILING::ScopedTimer lightProfiling(L"Update Lights");
+			::D_SCENE_LIGHT::Update(elapsedTime);
+		}
 
 		auto& context = D_GRAPHICS::GraphicsContext::Begin(L"Update resources");
 		D_LIGHT::UpdateBuffers(context);

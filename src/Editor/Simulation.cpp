@@ -4,6 +4,8 @@
 
 #include <Core/TimeManager/TimeManager.hpp>
 #include <Core/Signal.hpp>
+#include <Physics/PhysicsManager.hpp>
+#include <Renderer/GraphicsUtils/Profiling/Profiling.hpp>
 #include <Renderer/GraphicsUtils/Profiling/Profiling.hpp>
 #include <Scene/Scene.hpp>
 #include <Utils/Assert.hpp>
@@ -20,7 +22,7 @@ namespace Darius::Editor::Simulate
 	D_CORE::Signal<void()>			RunSignal;
 	D_CORE::Signal<void()>			StopSignal;
 
-	D_TIME::StepTimer*				Timer;
+	D_TIME::StepTimer* Timer;
 
 	D_SERIALIZATION::Json			SceneDump;
 
@@ -55,18 +57,26 @@ namespace Darius::Editor::Simulate
 
 	void Update()
 	{
-		
-		Timer->Tick([]() {
-			D_WORLD::Update(Timer->GetElapsedSeconds());
 
-			if (Stepping)
-			{
-				PauseTime();
-				Stepping = false;
-			}
-			});
+		{
+			D_PROFILING::ScopedTimer simProfiler(L"Update Simulation");
+			Timer->Tick([]() {
+				D_WORLD::Update(Timer->GetElapsedSeconds());
 
-		D_WORLD::UpdateObjectsConstatns();
+				D_PHYSICS::Update();
+
+				if (Stepping)
+				{
+					PauseTime();
+					Stepping = false;
+				}
+				});
+		}
+
+		{
+			D_PROFILING::ScopedTimer objConstProfiling(L"Update Object Constants");
+			D_WORLD::UpdateObjectsConstatns();
+		}
 
 
 	}
@@ -75,7 +85,7 @@ namespace Darius::Editor::Simulate
 	{
 		if (Running)
 			return;
-		
+
 		// Saving a dump of scene to be able to reload after simulation stop
 		D_WORLD::DumpScene(SceneDump);
 
@@ -83,6 +93,8 @@ namespace Darius::Editor::Simulate
 
 		Running = true;
 		Paused = false;
+
+		D_WORLD::SetAwake();
 
 		RunSignal();
 	}
