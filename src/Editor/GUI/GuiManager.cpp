@@ -102,20 +102,10 @@ namespace Darius::Editor::Gui::GuiManager
 
 		{
 			D_PROFILING::ScopedTimer guiSetupProfiling(L"Setup Gui Draw");
-			auto a1 = D_TIME::SystemTime::GetCurrentMillisecond();
 			// Prepare imgui
 			ImGui_ImplDX12_NewFrame();
-			auto a2 = D_TIME::SystemTime::GetCurrentMillisecond();
 			ImGui_ImplWin32_NewFrame();
-			auto a3 = D_TIME::SystemTime::GetCurrentMillisecond();
 			ImGui::NewFrame();
-			auto a4 = D_TIME::SystemTime::GetCurrentMillisecond();
-			(a1);
-			(a2);
-			(a3);
-			(a4);
-			int i = 0;
-			i++;
 		}
 
 		DrawGUI();
