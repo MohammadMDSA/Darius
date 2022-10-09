@@ -6,11 +6,17 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ".")
 list(APPEND PHYSICS_LIBS_INCLUDE
 	"pch.hpp"
 	"PhysicsManager.hpp"
+#	"Components/BoxColliderComponent.hpp"
+	"Components/ColliderComponent.hpp"
+	"Components/RigidBodyComponent.hpp"
 	)
 
 list(APPEND PHYSICS_LIBS_SOURCES
 	"pch.cpp"
 	"PhysicsManager.cpp"
+# 	"Components/BoxColliderComponent.cpp"
+	"Components/ColliderComponent.cpp"
+	"Components/RigidBodyComponent.cpp"
 	)
 
 
@@ -29,16 +35,24 @@ endif()
 
 target_include_directories("Physics"
 PUBLIC
+	"../Libs/PhysX/include"
 PRIVATE
 	".."
 	${Boost_INCLUDE_DIRS}
-	"../Libs/PhysX/include"
 )
 
 if(${CMAKE_BUILD_TYPE} MATCHES Release)
-	target_link_libraries("Physics" PRIVATE -L/Libs/PhysX/libs/win.x86_64.vc142/release/)
+	target_link_libraries("Physics" PRIVATE "${SOURCE_DIR}/Libs/PhysX/libs/win.x86_64.vc142/release/PhysX_64.lib")
+	target_link_libraries("Physics" PRIVATE "${SOURCE_DIR}/Libs/PhysX/libs/win.x86_64.vc142/release/PhysXFoundation_64.lib")
+	target_link_libraries("Physics" PRIVATE "${SOURCE_DIR}/Libs/PhysX/libs/win.x86_64.vc142/release/PhysXCommon_64.lib")
+	target_link_libraries("Physics" PRIVATE "${SOURCE_DIR}/Libs/PhysX/libs/win.x86_64.vc142/release/PhysXExtensions_static_64.lib")
+	target_link_libraries("Physics" PRIVATE "${SOURCE_DIR}/Libs/PhysX/libs/win.x86_64.vc142/release/PhysXPvdSDK_static_64.lib")
 else()
-	target_link_libraries("Physics" PRIVATE -L/Libs/PhysX/libs/win.x86_64.vc142/debug/)
+	target_link_libraries("Physics" PRIVATE "${SOURCE_DIR}/Libs/PhysX/libs/win.x86_64.vc142/debug/PhysX_64.lib")
+	target_link_libraries("Physics" PRIVATE "${SOURCE_DIR}/Libs/PhysX/libs/win.x86_64.vc142/debug/PhysXFoundation_64.lib")
+	target_link_libraries("Physics" PRIVATE "${SOURCE_DIR}/Libs/PhysX/libs/win.x86_64.vc142/debug/PhysXCommon_64.lib")
+	target_link_libraries("Physics" PRIVATE "${SOURCE_DIR}/Libs/PhysX/libs/win.x86_64.vc142/debug/PhysXExtensions_static_64.lib")
+	target_link_libraries("Physics" PRIVATE "${SOURCE_DIR}/Libs/PhysX/libs/win.x86_64.vc142/debug/PhysXPvdSDK_static_64.lib")
 endif()
 
 target_link_libraries("Physics" PRIVATE ${Boost_LIBRARIES})
