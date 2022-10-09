@@ -82,6 +82,7 @@ namespace Darius::Scene::ECS::Components
         virtual INLINE std::string  GetDisplayName() const { return ""; }
 
         virtual INLINE void         Start() { }
+        virtual INLINE void         Awake() { }
         virtual INLINE void         OnDestroy() { }
 
         // Gameobject Events
@@ -93,8 +94,8 @@ namespace Darius::Scene::ECS::Components
         INLINE bool                 IsActive() const { return mGameObject->GetActive() && mEnabled; }
 
         // Serialization
-        virtual void                Serialize(D_SERIALIZATION::Json&) const {};
-        virtual void                Deserialize(D_SERIALIZATION::Json const&) {};
+        virtual INLINE void         Serialize(D_SERIALIZATION::Json&) const {};
+        virtual INLINE void         Deserialize(D_SERIALIZATION::Json const&) {};
 
         virtual INLINE void         SetEnabled(bool value) { mEnabled = value; }
 

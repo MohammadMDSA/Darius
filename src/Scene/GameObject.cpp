@@ -32,7 +32,8 @@ namespace Darius::Scene
 		mEntity(entity),
 		mStarted(false),
 		mDeleted(false),
-		mParent(nullptr)
+		mParent(nullptr),
+		mAwake(false)
 	{
 		AddComponent<D_ECS_COMP::TransformComponent>();
 	}
@@ -284,6 +285,11 @@ namespace Darius::Scene
 			comp->Start();
 		}
 
+		if (mAwake)
+		{
+			comp->Awake();
+		}
+
 	}
 	
 	void GameObject::RemoveComponentRoutine(Darius::Scene::ECS::Components::ComponentBase* comp)
@@ -299,13 +305,26 @@ namespace Darius::Scene
 		if (mStarted)
 			return;
 
-		VisitComponents([&](ComponentBase* comp)
+		VisitComponents([](ComponentBase* comp)
 			{
 				comp->mStarted = true;
 				comp->Start();
 			});
 
 		mStarted = true;
+	}
+
+	void GameObject::Awake()
+	{
+		if (mAwake)
+			return;
+		
+		mAwake = true;
+
+		VisitComponents([](ComponentBase* comp)
+			{
+				comp->Awake();
+			});
 	}
 
 	void GameObject::RemoveComponent(D_ECS_COMP::ComponentBase* comp)

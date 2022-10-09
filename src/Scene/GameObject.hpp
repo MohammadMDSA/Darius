@@ -84,6 +84,7 @@ namespace Darius::Scene
 
 		// Object states
 		void								Start();
+		void								Awake();
 		void								OnDestroy();
 
 		void								VisitComponents(std::function<void(Darius::Scene::ECS::Components::ComponentBase*)> callback, std::function<void(D_EXCEPTION::Exception const&)> onException = nullptr) const;
@@ -165,6 +166,7 @@ namespace Darius::Scene
 		D_CH_R_FIELD_CONST(Uuid, Uuid);
 		D_CH_FIELD(D_ECS::Entity, Entity);
 		D_CH_R_FIELD(bool, Started);
+		D_CH_R_FIELD(bool, Awake);
 		D_CH_R_FIELD(bool, Deleted);
 		D_CH_R_FIELD(GameObject*, Parent);
 

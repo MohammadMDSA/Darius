@@ -15,6 +15,7 @@
 #include <Core/Uuid.hpp>
 #include <Job/Job.hpp>
 #include <Renderer/CommandContext.hpp>
+#include <Renderer/GraphicsUtils/Profiling/Profiling.hpp>
 #include <Utils/Assert.hpp>
 
 #include <flecs.h>
@@ -38,6 +39,7 @@ namespace Darius::Scene
 
 	bool																Loaded = false;
 	bool																Started = false;
+	bool																Running = false;
 
 	// Static Init
 	D_ECS::Entity SceneManager::Root = D_ECS::Entity();
@@ -58,6 +60,7 @@ namespace Darius::Scene
 		Root = World.entity("Root");
 
 		Started = true;
+		Running = false;
 
 	}
 
@@ -73,6 +76,8 @@ namespace Darius::Scene
 	{
 		if (!GOs)
 			return;
+
+		D_PROFILING::ScopedTimer SceneUpdateProfiling(L"Behaviour Update");
 
 		World.progress(deltaTime);
 
@@ -137,6 +142,8 @@ namespace Darius::Scene
 
 		if (Started)
 			go->Start();
+		if (Running)
+			go->Awake();
 
 		return go;
 	}
@@ -247,6 +254,7 @@ namespace Darius::Scene
 	void SceneManager::LoadSceneDump(Json const& sceneJson)
 	{
 		Started = false;
+		Running = false;
 
 		// Loading Objects
 		if (sceneJson.contains("Objects"))
@@ -319,6 +327,7 @@ namespace Darius::Scene
 		SceneName = "";
 		ScenePath = Path();
 		Loaded = false;
+		Running = false;
 	}
 
 	void SceneManager::ClearScene()
@@ -331,6 +340,7 @@ namespace Darius::Scene
 		GOs->clear();
 		RemoveDeleted();
 		BehaviourComponents.clear();
+		Running = false;
 	}
 
 	GameObject* SceneManager::GetGameObject(D_ECS::Entity entity)
@@ -389,5 +399,15 @@ namespace Darius::Scene
 	void SceneManager::RemoveBehaviour(D_ECS_COMP::BehaviourComponent* comp)
 	{
 		BehaviourComponents.erase(comp);
+	}
+
+	void SceneManager::SetAwake()
+	{
+		Running = true;
+
+		for (auto go : *GOs)
+		{
+			go->Awake();
+		}
 	}
 }
