@@ -12,9 +12,11 @@
 
 #include <Core/Containers/Map.hpp>
 #include <Core/TimeManager/TimeManager.hpp>
+#include <Core/TimeManager/SystemTime.hpp>
 #include <Math/VectorMath.hpp>
 #include <Renderer/Renderer.hpp>
 #include <Renderer/Camera/CameraManager.hpp>
+#include <Renderer/GraphicsUtils/Profiling/Profiling.hpp>
 #include <ResourceManager/ResourceManager.hpp>
 #include <ResourceManager/ResourceLoader.hpp>
 #include <Scene/EntityComponentSystem/Components/TransformComponent.hpp>
@@ -90,18 +92,38 @@ namespace Darius::Editor::Gui::GuiManager
 
 	void Update(float deltaTime)
 	{
+		D_PROFILING::ScopedTimer guiProfiling(L"Update Gui");
 
-		for (auto& kv : Windows)
-			kv.second->Update(deltaTime);
+		{
+			D_PROFILING::ScopedTimer windowProfiling(L"Update Windows");
+			for (auto& kv : Windows)
+				kv.second->Update(deltaTime);
+		}
 
-		// Prepare imgui
-		ImGui_ImplDX12_NewFrame();
-		ImGui_ImplWin32_NewFrame();
-		ImGui::NewFrame();
+		{
+			D_PROFILING::ScopedTimer guiSetupProfiling(L"Setup Gui Draw");
+			auto a1 = D_TIME::SystemTime::GetCurrentMillisecond();
+			// Prepare imgui
+			ImGui_ImplDX12_NewFrame();
+			auto a2 = D_TIME::SystemTime::GetCurrentMillisecond();
+			ImGui_ImplWin32_NewFrame();
+			auto a3 = D_TIME::SystemTime::GetCurrentMillisecond();
+			ImGui::NewFrame();
+			auto a4 = D_TIME::SystemTime::GetCurrentMillisecond();
+			(a1);
+			(a2);
+			(a3);
+			(a4);
+			int i = 0;
+			i++;
+		}
 
 		DrawGUI();
 
-		ImGui::Render();
+		{
+			D_PROFILING::ScopedTimer guiRender(L"Gui Render");
+			ImGui::Render();
+		}
 	}
 
 	void Render(D_GRAPHICS::GraphicsContext& context)
@@ -114,7 +136,11 @@ namespace Darius::Editor::Gui::GuiManager
 	{
 		D_ASSERT_M(initialzied, "Gui Manager is not initialized yet!");
 
+		D_PROFILING::ScopedTimer windowProfiling(L"Draw Gui");
+
 		{
+			D_PROFILING::ScopedTimer drawFrameProfiling(L"Draw Frame");
+
 			const ImGuiViewport* viewport = ImGui::GetMainViewport();
 			ImGui::SetNextWindowPos(viewport->WorkPos);
 			ImGui::SetNextWindowSize(viewport->WorkSize);
@@ -136,99 +162,7 @@ namespace Darius::Editor::Gui::GuiManager
 			ImGui::DockSpace(dockspaceId, ImVec2(0.0f, 0.0f), ImGuiDockNodeFlags_None);
 
 #pragma region Toolbar
-			if (ImGui::BeginMenuBar())
-			{
-				if (ImGui::BeginMenu(ICON_FA_FILE "  File"))
-				{
-					/*if (ImGui::MenuItem("Load"))
-					{
-						D_RESOURCE_LOADER::LoadResource(L"ff.fbx");
-					}*/
-
-					if (ImGui::MenuItem(ICON_FA_FLOPPY_DISK "  Save Project"))
-						D_RESOURCE::SaveAll();
-
-					ImGui::Separator();
-
-					auto simulating = D_SIMULATE::IsSimulating();
-
-					if (simulating)
-						ImGui::BeginDisabled();
-
-					if (ImGui::MenuItem(ICON_FA_XMARK"  Close Scene"))
-					{
-						D_WORLD::Unload();
-						D_EDITOR_CONTEXT::SetSelectedGameObject(nullptr);
-					}
-
-					if (ImGui::MenuItem(ICON_FA_FLOPPY_DISK "  Save Scene"))
-					{
-						if (D_WORLD::IsLoaded())
-							D_WORLD::Save();
-						else
-							ImGuiFileDialog::Instance()->OpenDialog("SaveScene", "Create Scene File", ".dar", D_EDITOR_CONTEXT::GetAssetsPath().string());
-					}
-
-					if (ImGui::MenuItem(ICON_FA_FOLDER "  Load Scene"))
-					{
-
-						ImGuiFileDialog::Instance()->OpenDialog("LoadScene", "Choose Scene File", ".dar", D_EDITOR_CONTEXT::GetAssetsPath().string(), 1, nullptr);
-
-					}
-
-					if (simulating)
-						ImGui::EndDisabled();
-
-					ImGui::EndMenu();
-				}
-
-				if (ImGui::BeginMenu("Scene"))
-				{
-					if (ImGui::MenuItem("Create Game Object"))
-					{
-						D_WORLD::CreateGameObject();
-					}
-
-					if (ImGui::MenuItem("Delete Game Object", (const char*)0, false, D_EDITOR_CONTEXT::GetSelectedGameObject() != nullptr))
-					{
-						D_WORLD::DeleteGameObject(D_EDITOR_CONTEXT::GetSelectedGameObject());
-						D_EDITOR_CONTEXT::SetSelectedGameObject(nullptr);
-					}
-
-					ImGui::EndMenu();
-				}
-
-				if (ImGui::BeginMenu("Resource"))
-				{
-					if (ImGui::MenuItem("Create Material"))
-					{
-						D_RESOURCE::GetManager()->CreateMaterial(D_EDITOR_CONTEXT::GetAssetsPath());
-					}
-
-					if (ImGui::MenuItem("Don't"))
-					{
-						for (size_t i = 0; i < 1000; i++)
-						{
-							D_WORLD::CreateGameObject();
-						}
-
-					}
-
-					ImGui::EndMenu();
-				}
-				if (ImGui::BeginMenu("Window"))
-				{
-					for (auto& kv : Windows)
-					{
-						if (ImGui::MenuItem(kv.second->GetName().c_str()))
-						{
-							kv.second->mOpen = true;
-						}
-					}
-					ImGui::EndMenu();
-				}
-				ImGui::EndMenuBar();
-			}
+			_DrawMenuBar();
 			ShowDialogs();
 #pragma endregion
 
@@ -242,23 +176,27 @@ namespace Darius::Editor::Gui::GuiManager
 
 		}
 
-		for (auto& kv : Windows)
 		{
-			auto wind = kv.second;
-
-			ImGui::SetNextWindowBgAlpha(1.f);
-
-			if (wind->mOpen)
+			D_PROFILING::ScopedTimer windowDrawProfiling(L"Draw Window Gui");
+			
+			for (auto& kv : Windows)
 			{
-				ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(wind->mPadding[0], wind->mPadding[1]));
-				ImGui::Begin(wind->GetName().c_str(), &wind->mOpen);
-				wind->PrepareGUI();
+				auto wind = kv.second;
 
-				wind->DrawGUI();
+				ImGui::SetNextWindowBgAlpha(1.f);
 
-				ImGui::End();
-				ImGui::PopStyleVar();
+				if (wind->mOpen)
+				{
+					ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(wind->mPadding[0], wind->mPadding[1]));
+					ImGui::Begin(wind->GetName().c_str(), &wind->mOpen);
+					wind->PrepareGUI();
 
+					wind->DrawGUI();
+
+					ImGui::End();
+					ImGui::PopStyleVar();
+
+				}
 			}
 		}
 	}
@@ -293,6 +231,105 @@ namespace Darius::Editor::Gui::GuiManager
 
 			// close
 			ImGuiFileDialog::Instance()->Close();
+		}
+	}
+
+	void _DrawMenuBar()
+	{
+		D_PROFILING::ScopedTimer menubarProfiling(L"Draw Menubar");
+
+		if (ImGui::BeginMenuBar())
+		{
+			if (ImGui::BeginMenu(ICON_FA_FILE "  File"))
+			{
+				/*if (ImGui::MenuItem("Load"))
+				{
+					D_RESOURCE_LOADER::LoadResource(L"ff.fbx");
+				}*/
+
+				if (ImGui::MenuItem(ICON_FA_FLOPPY_DISK "  Save Project"))
+					D_RESOURCE::SaveAll();
+
+				ImGui::Separator();
+
+				auto simulating = D_SIMULATE::IsSimulating();
+
+				if (simulating)
+					ImGui::BeginDisabled();
+
+				if (ImGui::MenuItem(ICON_FA_XMARK"  Close Scene"))
+				{
+					D_WORLD::Unload();
+					D_EDITOR_CONTEXT::SetSelectedGameObject(nullptr);
+				}
+
+				if (ImGui::MenuItem(ICON_FA_FLOPPY_DISK "  Save Scene"))
+				{
+					if (D_WORLD::IsLoaded())
+						D_WORLD::Save();
+					else
+						ImGuiFileDialog::Instance()->OpenDialog("SaveScene", "Create Scene File", ".dar", D_EDITOR_CONTEXT::GetAssetsPath().string());
+				}
+
+				if (ImGui::MenuItem(ICON_FA_FOLDER "  Load Scene"))
+				{
+
+					ImGuiFileDialog::Instance()->OpenDialog("LoadScene", "Choose Scene File", ".dar", D_EDITOR_CONTEXT::GetAssetsPath().string(), 1, nullptr);
+
+				}
+
+				if (simulating)
+					ImGui::EndDisabled();
+
+				ImGui::EndMenu();
+			}
+
+			if (ImGui::BeginMenu("Scene"))
+			{
+				if (ImGui::MenuItem("Create Game Object"))
+				{
+					D_WORLD::CreateGameObject();
+				}
+
+				if (ImGui::MenuItem("Delete Game Object", (const char*)0, false, D_EDITOR_CONTEXT::GetSelectedGameObject() != nullptr))
+				{
+					D_WORLD::DeleteGameObject(D_EDITOR_CONTEXT::GetSelectedGameObject());
+					D_EDITOR_CONTEXT::SetSelectedGameObject(nullptr);
+				}
+
+				ImGui::EndMenu();
+			}
+
+			if (ImGui::BeginMenu("Resource"))
+			{
+				if (ImGui::MenuItem("Create Material"))
+				{
+					D_RESOURCE::GetManager()->CreateMaterial(D_EDITOR_CONTEXT::GetAssetsPath());
+				}
+
+				if (ImGui::MenuItem("Don't"))
+				{
+					for (size_t i = 0; i < 1000; i++)
+					{
+						D_WORLD::CreateGameObject();
+					}
+
+				}
+
+				ImGui::EndMenu();
+			}
+			if (ImGui::BeginMenu("Window"))
+			{
+				for (auto& kv : Windows)
+				{
+					if (ImGui::MenuItem(kv.second->GetName().c_str()))
+					{
+						kv.second->mOpen = true;
+					}
+				}
+				ImGui::EndMenu();
+			}
+			ImGui::EndMenuBar();
 		}
 	}
 
