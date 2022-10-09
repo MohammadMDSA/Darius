@@ -21,6 +21,7 @@ namespace Darius::Math
         INLINE Quaternion() { m_vec = XMQuaternionIdentity(); }
         INLINE Quaternion(const Vector3& axis, const Scalar& angle) { m_vec = XMQuaternionRotationAxis(axis, angle); }
         INLINE Quaternion(float pitch, float yaw, float roll) { m_vec = XMQuaternionRotationMatrix(XMMatrixRotationZ(roll) * XMMatrixRotationX(pitch) * XMMatrixRotationY(yaw)); }
+        INLINE Quaternion(float x, float y, float z, float w) { m_vec = XMVectorSet(x, y, z, w); }
         INLINE explicit Quaternion(const XMMATRIX& matrix) { m_vec = XMQuaternionRotationMatrix(matrix); }
         INLINE explicit Quaternion(FXMVECTOR vec) { m_vec = vec; }
         INLINE explicit Quaternion(EIdentityTag) { m_vec = XMQuaternionIdentity(); }
@@ -54,6 +55,10 @@ namespace Darius::Math
             }
             return -result;
         }
+        INLINE Scalar GetX() const { return Scalar(XMVectorSplatX(m_vec)); }
+        INLINE Scalar GetY() const { return Scalar(XMVectorSplatY(m_vec)); }
+        INLINE Scalar GetZ() const { return Scalar(XMVectorSplatZ(m_vec)); }
+        INLINE Scalar GetW() const { return Scalar(XMVectorSplatW(m_vec)); }
 
         INLINE Quaternion operator~ (void) const { return Quaternion(XMQuaternionConjugate(m_vec)); }
         INLINE Quaternion operator- (void) const { return Quaternion(XMVectorNegate(m_vec)); }
