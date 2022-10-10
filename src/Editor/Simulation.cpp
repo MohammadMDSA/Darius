@@ -4,6 +4,7 @@
 
 #include <Core/TimeManager/TimeManager.hpp>
 #include <Core/Signal.hpp>
+#include <Debug/DebugDraw.hpp>
 #include <Physics/PhysicsManager.hpp>
 #include <Renderer/GraphicsUtils/Profiling/Profiling.hpp>
 #include <Renderer/GraphicsUtils/Profiling/Profiling.hpp>
@@ -32,6 +33,7 @@ namespace Darius::Editor::Simulate
 
 		D_WORLD::Initialize();
 		Timer = D_TIME::GetStepTimer();
+		Timer->SetFixedTimeStep(false);
 
 		_Initialized = true;
 
@@ -61,10 +63,15 @@ namespace Darius::Editor::Simulate
 		{
 			D_PROFILING::ScopedTimer simProfiler(L"Update Simulation");
 			Timer->Tick([]() {
+
+				// Clearing debug draws
+				D_DEBUG_DRAW::Clear();
+
 				D_WORLD::Update(Timer->GetElapsedSeconds());
 
 				D_PHYSICS::Update();
 
+				D_DEBUG_DRAW::FinalizeUpload();
 				if (Stepping)
 				{
 					PauseTime();

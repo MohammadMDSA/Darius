@@ -13,6 +13,7 @@
 #include <Core/Filesystem/Path.hpp>
 #include <Core/Containers/Vector.hpp>
 #include <Core/TimeManager/TimeManager.hpp>
+#include <Debug/DebugDraw.hpp>
 #include <Job/Job.hpp>
 #include <Scene/EntityComponentSystem/Components/MeshRendererComponent.hpp>
 #include <Scene/EntityComponentSystem/Components/LightComponent.hpp>
@@ -52,6 +53,9 @@ namespace Darius::Editor
 		D_SIMULATE::Shutdown();
 		D_EDITOR_CONTEXT::Shutdown();
 		D_PHYSICS::Shutdown();
+#ifdef _DEBUG
+		D_DEBUG_DRAW::Shutdown();
+#endif // _DEBUG
 		D_RESOURCE::Shutdown();
 		D_INPUT::Shutdown();
 		D_TIME::Shutdown();
@@ -84,6 +88,11 @@ namespace Darius::Editor
 		// Initializing the resource manager
 		D_RESOURCE::Initialize();
 
+		// Initialize Debug Drawer
+#ifdef _DEBUG
+		D_DEBUG_DRAW::Initialize();
+#endif // _DEBUG
+
 		// Initializeing physics
 		D_PHYSICS::Initialize();
 
@@ -104,6 +113,8 @@ namespace Darius::Editor
 		D_ECS_COMP::BehaviourComponent::StaticConstructor();
 		Demo::MovementBehaviour::StaticConstructor();
 
+		mTimer.SetFixedTimeStep(true);
+		mTimer.SetTargetElapsedSeconds(1.f / 60.f);
 		mTimer.Resume();
 	}
 
