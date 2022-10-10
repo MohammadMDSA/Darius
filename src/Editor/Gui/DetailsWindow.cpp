@@ -15,6 +15,7 @@ namespace Darius::Editor::Gui::Windows
 
 	void DetailsWindow::DrawGUI()
 	{
+		D_PROFILING::ScopedTimer profiling(L"Details Window Draw GUI");
 		auto obj = D_EDITOR_CONTEXT::GetSelectedDetailed();
 		if (!obj)
 			return;

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <Renderer/CommandContext.hpp>
+#include <Renderer/GraphicsUtils/Profiling/Profiling.hpp>
 
 using namespace D_GRAPHICS;
 

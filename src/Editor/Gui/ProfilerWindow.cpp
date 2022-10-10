@@ -51,6 +51,8 @@ namespace Darius::Editor::Gui::Windows
 
 	void ProfilerWindow::DrawGUI()
 	{
+		D_PROFILING::ScopedTimer profiling(L"Profiler Window Draw GUI");
+
 		ImPlotAxisFlags flags = ImPlotAxisFlags_None;
 		auto time = D_TIME::GetTotalTime();
 

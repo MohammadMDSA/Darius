@@ -28,6 +28,8 @@ namespace Darius::Editor::Gui::Windows
 
 	void SceneGraphWindow::DrawGUI()
 	{
+		D_PROFILING::ScopedTimer profiling(L"Scene Graph Window Draw GUI");
+		
 		D_CONTAINERS::DVector<GameObject*> gos;
 		D_WORLD::GetGameObjects(gos);
 		auto selectedObj = D_EDITOR_CONTEXT::GetSelectedGameObject();

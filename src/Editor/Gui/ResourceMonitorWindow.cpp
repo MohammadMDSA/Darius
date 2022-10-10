@@ -22,6 +22,7 @@ namespace Darius::Editor::Gui::Windows
 
 	void ResourceMonitorWindow::DrawGUI()
 	{
+		D_PROFILING::ScopedTimer profiling(L"Resource Window Draw GUI");
 
 		DVector<Resource*> resources;
 		D_RESOURCE::GetAllResources(resources);
