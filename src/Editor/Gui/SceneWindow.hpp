@@ -66,6 +66,7 @@ namespace Darius::Editor::Gui::Windows
 
 		bool										mDrawGrid;
 		bool										mMovingCam;
+		bool										mDrawDebug;
 	};
 
 }

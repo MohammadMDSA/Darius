@@ -5,6 +5,7 @@
 
 #include <Core/TimeManager/TimeManager.hpp>
 #include <Core/Input.hpp>
+#include <Debug/DebugDraw.hpp>
 #include <Scene/Scene.hpp>
 #include <Scene/EntityComponentSystem/Components/MeshRendererComponent.hpp>
 #include <Renderer/Renderer.hpp>
@@ -21,7 +22,8 @@ namespace Darius::Editor::Gui::Windows
 		mOrbitCam(mCamera, D_MATH_BOUNDS::BoundingSphere(0.f, 0.f, 0.f, 5.f), Vector3::Up()),
 		mManipulateOperation(ImGuizmo::OPERATION::TRANSLATE),
 		mManipulateMode(ImGuizmo::MODE::LOCAL),
-		mDrawGrid(true)
+		mDrawGrid(true),
+		mDrawDebug(true)
 	{
 		CreateBuffers();
 		mTextureHandle = D_RENDERER::GetUiTextureHandle(1);
@@ -114,6 +116,13 @@ namespace Darius::Editor::Gui::Windows
 		if (mDrawGrid)
 			AddWindowRenderItems(sorter);
 
+
+		// Add debug draw items
+		if (mDrawDebug)
+		{
+			D_DEBUG_DRAW::GetRenderItems(sorter);
+		}
+
 		sorter.Sort();
 
 		// Clearing scene color texture
@@ -129,6 +138,7 @@ namespace Darius::Editor::Gui::Windows
 
 	void SceneWindow::DrawGUI()
 	{
+		D_PROFILING::ScopedTimer profiling(L"Scene Window Draw GUI");
 		auto min = ImGui::GetWindowContentRegionMin();
 		auto max = ImGui::GetWindowContentRegionMax();
 
