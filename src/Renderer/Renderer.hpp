@@ -52,6 +52,8 @@ namespace Darius::Renderer
 		TransparentPso,
 		WireframePso,
 		ColorPso,
+		ColorWireframePso,
+		ColorWireframeTwoSidedPso,
 
 		_numPso
 	};

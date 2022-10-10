@@ -1,6 +1,6 @@
 #include "Renderer.hpp"
-#include "Renderer.hpp"
 #include "pch.hpp"
+
 #include "Renderer.hpp"
 #include "Geometry/Mesh.hpp"
 #include "FrameResource.hpp"
@@ -91,6 +91,7 @@ namespace Darius::Renderer
 	void Shutdown()
 	{
 		D_ASSERT(_device != nullptr);
+
 		ImguiHeap.Destroy();
 		TextureHeap.Destroy();
 		SamplerHeap.Destroy();
@@ -189,6 +190,22 @@ namespace Darius::Renderer
 		colorPso.SetRootSignature(RootSigns[(size_t)RootSignatureTypes::DefaultRootSig]);
 		colorPso.SetPrimitiveTopologyType(D3D12_PRIMITIVE_TOPOLOGY_TYPE_LINE);
 		colorPso.Finalize(L"Color");
+
+		{
+			// For colored wireframe objecs
+			Psos[(size_t)PipelineStateTypes::ColorWireframePso] = Psos[(size_t)PipelineStateTypes::ColorPso];
+			auto& wireColorPso = Psos[(size_t)PipelineStateTypes::ColorWireframePso];
+			wireColorPso.SetRasterizerState(D_GRAPHICS::RasterizerDefaultWireframe);
+			wireColorPso.Finalize(L"Color Wireframe");
+		}
+
+		{
+			// For colored wireframe objecs
+			Psos[(size_t)PipelineStateTypes::ColorWireframeTwoSidedPso] = Psos[(size_t)PipelineStateTypes::ColorWireframePso];
+			auto& wireColorPso = Psos[(size_t)PipelineStateTypes::ColorWireframeTwoSidedPso];
+			wireColorPso.SetRasterizerState(D_GRAPHICS::RasterizerTwoSidedMsaaWireframe);
+			wireColorPso.Finalize(L"Color Wireframe Two Sided");
+		}
 	}
 
 	void BuildRootSignature()
@@ -235,7 +252,7 @@ namespace Darius::Renderer
 		if (renderItem.PsoFlags & RenderItem::AlphaBlend)
 		{
 			key.passID = kTransparent;
-			key.psoIdx = TransparentPso;
+			key.psoIdx = renderItem.PsoFlags & RenderItem::Wireframe ? WireframePso : TransparentPso;
 			key.key = ~dist.u;
 			m_SortKeys.push_back(key.value);
 			m_PassCounts[kTransparent]++;
