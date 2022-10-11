@@ -11,13 +11,13 @@
 
 namespace Darius::Physics
 {
-	class ColliderComponent : D_ECS_COMP::ComponentBase
+	class ColliderComponent : public D_ECS_COMP::ComponentBase
 	{
-		D_H_COMP_BODY(ColliderComponent, ComponentBase, "Collider", true, false);
+		D_H_COMP_BODY(ColliderComponent, ComponentBase, "Collider", false, false);
 
 	public:
 
-		virtual void				Awake() override;
+		virtual void				Start() override;
 		virtual void				OnDestroy() override;
 
 		virtual void				Update(float dt) override;
@@ -28,11 +28,21 @@ namespace Darius::Physics
 		virtual void                Serialize(D_SERIALIZATION::Json&) const override;
 		virtual void                Deserialize(D_SERIALIZATION::Json const&) override;
 
-	private:
+		INLINE bool					IsDynamic() const { return !mIsStatic; }
 
 		D_CH_FIELD(bool, IsStatic = false);
 
-		D_CH_FIELD(physx::PxRigidActor*, Actor = nullptr);
-		D_CH_FIELD(physx::PxShape*, Shape = nullptr);
+		D_CH_FIELD(physx::PxRigidActor*,	Actor = nullptr);
+		D_CH_FIELD(physx::PxShape*,			Shape = nullptr);
+
+	protected:
+		virtual INLINE physx::PxGeometry const* GetPhysicsGeometry() const { return nullptr; };
+		virtual INLINE physx::PxGeometry* UpdateAndGetPhysicsGeometry(bool& changed) { changed = false; return nullptr; };
+
+	private:
+
+		void						InitActor();
+		void						UpdateShape();
+
 	};
 }

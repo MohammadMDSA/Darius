@@ -3,6 +3,8 @@
 
 #include <imgui.h>
 
+using namespace physx;
+
 namespace Darius::Physics
 {
 	D_H_COMP_DEF(ColliderComponent);
@@ -11,34 +13,65 @@ namespace Darius::Physics
 
 	bool ColliderComponent::DrawDetails(float params[])
 	{
-		return ImGui::Checkbox("Is static", &mIsStatic);
+		if (ImGui::Checkbox("Is static", &mIsStatic))
+		{
+			InitActor();
+			return true;
+		}
+		return false;
 
 	}
 
-	void ColliderComponent::Awake()
+	void ColliderComponent::Start()
 	{
+		InitActor();
+	}
+
+	void ColliderComponent::InitActor()
+	{
+		auto pxScene = D_PHYSICS::GetScene();
 		auto physics = D_PHYSICS::GetCore();
 
-		auto material = D_PHYSICS::GetDefaultMaterial();
+		// Remove actor if the type is incorrect
+		if (mActor)
+		{
+			auto type = mActor->getType();
+			if ((type == PxActorType::eRIGID_STATIC && IsDynamic()) ||
+				(type == PxActorType::eRIGID_DYNAMIC && !IsDynamic()))
+			{
+				pxScene->removeActor(*mActor);
+				mActor->release();
+				mActor = nullptr;
+			}
+		}
 
+		// Create actor initial transform
 		auto mainTransform = GetTransform();
 		auto transform = D_PHYSICS::GetTransform(mainTransform);
 
-		auto geom = physx::PxBoxGeometry(mainTransform.Scale.GetX() / 2.f, mainTransform.Scale.GetY() / 2.f, mainTransform.Scale.GetZ() / 2.f);
-
-
-		if (mIsStatic)
+		// Create proper actor if doesn't exist
+		if (!mActor)
 		{
-			mActor = physics->createRigidStatic(transform);
+			if (IsDynamic())
+			{
+				mActor = physics->createRigidDynamic(transform);
+			}
+			else
+			{
+				mActor = physics->createRigidStatic(transform);
+			}
 		}
-		else
+
+		if (mShape)
 		{
-			mActor = physics->createRigidDynamic(transform);
+			mShape = nullptr;
 		}
 
-		mShape = physx::PxRigidActorExt::createExclusiveShape(*mActor, geom, *material);
+		auto geom = GetPhysicsGeometry();
+		mShape = physx::PxRigidActorExt::createExclusiveShape(*mActor, *geom, *D_PHYSICS::GetDefaultMaterial());
 
-		D_PHYSICS::GetScene()->addActor(*mActor);
+		pxScene->addActor(*mActor);
+
 	}
 
 	void ColliderComponent::Update(float dt)
@@ -52,6 +85,16 @@ namespace Darius::Physics
 
 	void ColliderComponent::PreUpdate()
 	{
+
+		// Updating scale, pos, rot
+		bool geomChanged;
+		auto geom = UpdateAndGetPhysicsGeometry(geomChanged);
+
+		if (geomChanged)
+		{
+			mShape->setGeometry(*geom);
+		}
+
 		if (!mIsStatic)
 			mActor->setGlobalPose(D_PHYSICS::GetTransform(GetTransform()));
 	}

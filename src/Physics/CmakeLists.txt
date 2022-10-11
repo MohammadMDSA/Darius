@@ -6,7 +6,7 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ".")
 list(APPEND PHYSICS_LIBS_INCLUDE
 	"pch.hpp"
 	"PhysicsManager.hpp"
-#	"Components/BoxColliderComponent.hpp"
+	"Components/BoxColliderComponent.hpp"
 	"Components/ColliderComponent.hpp"
 	"Components/RigidBodyComponent.hpp"
 	)
@@ -14,7 +14,7 @@ list(APPEND PHYSICS_LIBS_INCLUDE
 list(APPEND PHYSICS_LIBS_SOURCES
 	"pch.cpp"
 	"PhysicsManager.cpp"
-# 	"Components/BoxColliderComponent.cpp"
+ 	"Components/BoxColliderComponent.cpp"
 	"Components/ColliderComponent.cpp"
 	"Components/RigidBodyComponent.cpp"
 	)
@@ -56,7 +56,7 @@ else()
 endif()
 
 target_link_libraries("Physics" PRIVATE ${Boost_LIBRARIES})
-target_link_libraries("Physics" PUBLIC flecs_static Utils Core Math Renderer ResourceManager Job)
+target_link_libraries("Physics" PUBLIC flecs_static Utils Core Math Renderer ResourceManager Job Debug)
 
 
 if(BUILD_TESTS)
