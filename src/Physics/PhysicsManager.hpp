@@ -13,7 +13,7 @@ namespace Darius::Physics
 	void					Initialize();
 	void					Shutdown();
 
-	void					Update();
+	void					Update(bool running);
 
 	physx::PxScene*			GetScene();
 	physx::PxPhysics*		GetCore();

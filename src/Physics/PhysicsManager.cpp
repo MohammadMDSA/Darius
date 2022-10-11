@@ -1,6 +1,8 @@
 #include "pch.hpp"
 #include "PhysicsManager.hpp"
-#include "Physics/Components/ColliderComponent.hpp"
+
+#include "Components/ColliderComponent.hpp"
+#include "Components/BoxColliderComponent.hpp"
 
 #include <Core/TimeManager/TimeManager.hpp>
 #include <Scene/Scene.hpp>
@@ -70,6 +72,7 @@ namespace Darius::Physics
 		gDefaultMaterial = gPhysics->createMaterial(0.5f, 0.5f, 0.6f);
 
 		ColliderComponent::StaticConstructor();
+		BoxColliderComponent::StaticConstructor();
 	}
 
 	void Shutdown()
@@ -91,25 +94,28 @@ namespace Darius::Physics
 		PX_RELEASE(gFoundation);
 	}
 
-	void Update()
+	void Update(bool running)
 	{
 		D_PROFILING::ScopedTimer physicsProfiler(L"Physics Update");
 
 		UpdatePrePhysicsTransform();
 
+		if (running)
 		{
-			D_PROFILING::ScopedTimer physicsProfiler(L"Physics Simulation Update");
-			gScene->simulate(D_TIME::GetTargetElapsedSeconds());
-			gScene->fetchResults(true);
-		}
+			{
+				D_PROFILING::ScopedTimer physicsProfiler(L"Physics Simulation Update");
+				gScene->simulate(D_TIME::GetTargetElapsedSeconds());
+				gScene->fetchResults(true);
+			}
 
-		UpdatePostPhysicsTransforms();
+			UpdatePostPhysicsTransforms();
+		}
 	}
 
 	void UpdatePostPhysicsTransforms()
 	{
 		D_PROFILING::ScopedTimer physicsProfiler(L"Physics Post Update");
-		D_WORLD::GetRegistry().each([&](ColliderComponent& colliderComp)
+		D_WORLD::GetRegistry().each([&](BoxColliderComponent& colliderComp)
 			{
 				D_JOB::AssignTask([&](int threadNumber, int)
 					{
@@ -126,18 +132,12 @@ namespace Darius::Physics
 	void UpdatePrePhysicsTransform()
 	{
 		D_PROFILING::ScopedTimer physicsProfiler(L"Physics Post Update");
-		D_WORLD::GetRegistry().each([&](ColliderComponent& colliderComp)
+		D_WORLD::GetRegistry().each([&](BoxColliderComponent& colliderComp)
 			{
-				D_JOB::AssignTask([&](int threadNumber, int)
-					{
-						colliderComp.PreUpdate();
-
-					});
+				colliderComp.PreUpdate();
 			}
 		);
 
-		if (D_JOB::IsMainThread())
-			D_JOB::WaitForThreadsToFinish();
 	}
 
 	PxScene* GetScene()

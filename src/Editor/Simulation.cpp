@@ -60,24 +60,27 @@ namespace Darius::Editor::Simulate
 	void Update()
 	{
 
+		D_DEBUG_DRAW::Clear();
 		{
 			D_PROFILING::ScopedTimer simProfiler(L"Update Simulation");
 			Timer->Tick([]() {
 
 				// Clearing debug draws
-				D_DEBUG_DRAW::Clear();
 
 				D_WORLD::Update(Timer->GetElapsedSeconds());
 
-				D_PHYSICS::Update();
-
-				D_DEBUG_DRAW::FinalizeUpload();
 				if (Stepping)
 				{
 					PauseTime();
 					Stepping = false;
 				}
 				});
+
+			{
+				D_PROFILING::ScopedTimer simPhysProf(L"Update Physics");
+				D_PHYSICS::Update(!Timer->IsPaused());
+				D_DEBUG_DRAW::FinalizeUpload();
+			}
 		}
 
 		{
