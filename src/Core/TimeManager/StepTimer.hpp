@@ -208,6 +208,8 @@ namespace Darius::Core::TimeManager
             m_paused = false;
         }
 
+        INLINE bool IsPaused() { return m_paused; }
+
     private:
         // Source timing data uses QPC units.
         LARGE_INTEGER m_qpcFrequency;
