@@ -104,6 +104,15 @@ namespace Darius::Scene
 		}
 
 		template<class T>
+		bool								HasComponent()
+		{
+			// Checking if T is a resource type
+			using conv = std::is_convertible<T*, Darius::Scene::ECS::Components::ComponentBase*>;
+			D_STATIC_ASSERT(conv::value);
+			return mEntity.has<T>();
+		}
+
+		template<class T>
 		T*									AddComponent()
 		{
 			// Checking if T is a resource type
