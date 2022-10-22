@@ -10,7 +10,7 @@ namespace Darius::Physics
 {
 	class RigidBodyComponent : D_ECS_COMP::ComponentBase
 	{
-		D_H_COMP_BODY(RigidBodyComponent, ComponentBase, "Rigid Body", true, false);
+		D_H_COMP_BODY(RigidBodyComponent, ComponentBase, "Physics/Rigid Body", true, false);
 
 	public:
 

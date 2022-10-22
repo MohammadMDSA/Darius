@@ -18,6 +18,7 @@
 #include <ResourceManager/ResourceTypes/MaterialResource.hpp>
 #include <Utils/Detailed.hpp>
 
+#include <map>
 #include <functional>
 #include <type_traits>
 
@@ -56,10 +57,10 @@ namespace Darius::Scene
 		};
 
 	public:
-		
+
 		// Transform helpers
 		void								SetLocalTransform(Transform const& trans);
-		Transform const&					GetLocalTransform() const;
+		Transform const& GetLocalTransform() const;
 
 		INLINE void							SetTransform(Transform const& trans)
 		{
@@ -95,7 +96,7 @@ namespace Darius::Scene
 		UINT								CountChildren();
 
 		template<class T>
-		T*									GetComponent()
+		T* GetComponent()
 		{
 			// Checking if T is a resource type
 			using conv = std::is_convertible<T*, Darius::Scene::ECS::Components::ComponentBase*>;
@@ -113,7 +114,7 @@ namespace Darius::Scene
 		}
 
 		template<class T>
-		T*									AddComponent()
+		T* AddComponent()
 		{
 			// Checking if T is a resource type
 			using conv = std::is_convertible<T*, Darius::Scene::ECS::Components::ComponentBase*>;
@@ -126,7 +127,7 @@ namespace Darius::Scene
 		}
 
 		template<class T>
-		T*									AddComponent(T const& value)
+		T* AddComponent(T const& value)
 		{
 			// Checking if T is a resource type
 			using conv = std::is_convertible<T*, Darius::Scene::ECS::Components::ComponentBase*>;
@@ -179,6 +180,13 @@ namespace Darius::Scene
 		D_CH_R_FIELD(bool, Deleted);
 		D_CH_R_FIELD(GameObject*, Parent);
 
+		struct ComponentAddressNode
+		{
+			std::string							ComponentName;
+			D_CONTAINERS::DMap<std::string, ComponentAddressNode> ChildrenNameMap;
+			bool								IsBranch;
+		};
+
 	private:
 		friend class D_SCENE::SceneManager;
 		friend class Darius::Scene::ECS::Components::ComponentBase;
@@ -191,8 +199,13 @@ namespace Darius::Scene
 		void								AddComponentRoutine(Darius::Scene::ECS::Components::ComponentBase*);
 		void								RemoveComponentRoutine(Darius::Scene::ECS::Components::ComponentBase*);
 
+#ifdef _D_EDITOR
+		void								DrawComponentNameContext(D_CONTAINERS::DMap<std::string, GameObject::ComponentAddressNode> const& componentNameTree);
+#endif // _D_EDITOR
+
+
 		// Comp name and display name
-		static D_CONTAINERS::DVector<std::pair<std::string, std::string>> RegisteredComponents;
+		static D_CONTAINERS::DMap<std::string, GameObject::ComponentAddressNode> RegisteredComponents;
 		static D_CONTAINERS::DSet<D_ECS::EntityId> RegisteredBehaviours;
 	};
 

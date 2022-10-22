@@ -10,7 +10,7 @@ namespace Darius::Physics
 {
 	class BoxColliderComponent : public ColliderComponent
 	{
-		D_H_COMP_BODY(BoxColliderComponent, ColliderComponent, "Box Collider", true, false);
+		D_H_COMP_BODY(BoxColliderComponent, ColliderComponent, "Physics/Box Collider", true, false);
 		
 	public:
 

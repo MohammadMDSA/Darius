@@ -14,6 +14,7 @@
 
 #include <imgui.h>
 #include <Libs/FontIcon/IconsFontAwesome6.h>
+#include <boost/algorithm/string.hpp>
 
 using namespace D_RESOURCE;
 using namespace D_ECS_COMP;
@@ -21,7 +22,7 @@ using namespace D_ECS_COMP;
 namespace Darius::Scene
 {
 	// Comp name and display name
-	D_CONTAINERS::DVector<std::pair<std::string, std::string>> GameObject::RegisteredComponents = D_CONTAINERS::DVector<std::pair<std::string, std::string>>();
+	D_CONTAINERS::DMap<std::string, GameObject::ComponentAddressNode> GameObject::RegisteredComponents = D_CONTAINERS::DMap<std::string, GameObject::ComponentAddressNode>();
 	D_CONTAINERS::DSet<D_ECS::EntityId> GameObject::RegisteredBehaviours = D_CONTAINERS::DSet<D_ECS::EntityId>();
 
 	GameObject::GameObject(Uuid uuid, D_ECS::Entity entity) :
@@ -135,25 +136,10 @@ namespace Darius::Scene
 			});
 
 		// Component selection popup
-		if (ImGui::BeginPopupContextItem("ComponentAdditionPopup", ImGuiPopupFlags_NoOpenOverExistingPopup))
+		if (ImGui::BeginPopup("ComponentAdditionPopup", ImGuiPopupFlags_NoOpenOverExistingPopup))
 		{
-			auto& reg = D_WORLD::GetRegistry();
-
-			for (auto const& [compName, compDisplayName] : RegisteredComponents)
-			{
-				auto compGeneric = reg.component(compName.c_str());
-				if (!reg.is_valid(compGeneric))
-					continue;
-
-				if (mEntity.has(compGeneric))
-					continue;
-
-				if (ImGui::Selectable(compDisplayName.c_str()))
-				{
-					AddComponent(compName);
-				}
-			}
-
+			
+			DrawComponentNameContext(RegisteredComponents);
 			ImGui::EndPopup();
 		}
 
@@ -173,6 +159,39 @@ namespace Darius::Scene
 
 		return changeValue;
 	}
+
+	void GameObject::DrawComponentNameContext(D_CONTAINERS::DMap<std::string, ComponentAddressNode> const& componentNameTree)
+	{
+		auto& reg = D_WORLD::GetRegistry();
+
+		for (auto const& [compDisplay, compGroup] : componentNameTree)
+		{
+
+			if (compGroup.IsBranch)
+			{
+				if (compGroup.ChildrenNameMap.size() && ImGui::BeginMenu(compDisplay.c_str()))
+				{
+					DrawComponentNameContext(compGroup.ChildrenNameMap);
+					ImGui::EndMenu();
+				}
+
+				continue;
+			}
+
+			auto compGeneric = reg.component(compGroup.ComponentName.c_str());
+			if (!reg.is_valid(compGeneric))
+				continue;
+
+			if (mEntity.has(compGeneric))
+				continue;
+
+			if (ImGui::MenuItem(compDisplay.c_str()))
+			{
+				AddComponent(compGroup.ComponentName);
+			}
+		}
+	}
+
 #endif // _EDITOR
 
 	void GameObject::SetLocalTransform(Transform const& trans)
@@ -291,13 +310,12 @@ namespace Darius::Scene
 		}
 
 	}
-	
+
 	void GameObject::RemoveComponentRoutine(Darius::Scene::ECS::Components::ComponentBase* comp)
 	{
 		comp->OnDestroy();
 
-		if (auto bComp = dynamic_cast<D_ECS_COMP::BehaviourComponent*>(comp); bComp)
-			D_WORLD::RemoveBehaviour(bComp);
+		D_WORLD::RemoveBehaviour((D_ECS_COMP::BehaviourComponent*)comp);
 	}
 
 	void GameObject::Start()
@@ -318,7 +336,7 @@ namespace Darius::Scene
 	{
 		if (mAwake)
 			return;
-		
+
 		mAwake = true;
 
 		VisitComponents([](ComponentBase* comp)
@@ -336,7 +354,7 @@ namespace Darius::Scene
 		if (reg.id<D_ECS_COMP::TransformComponent>() == compId)
 			return;
 		mEntity.remove(compId);
-		
+
 		RemoveComponentRoutine(comp);
 	}
 
@@ -432,11 +450,31 @@ namespace Darius::Scene
 		if (!reg.is_valid(reg.component(name.c_str())))
 			throw D_EXCEPTION::Exception("found no component using provided name");
 
-		GameObject::RegisteredComponents.push_back({ name, displayName });
-		std::sort(RegisteredComponents.begin(), RegisteredComponents.end(), [](auto first, auto second)
+		// Add component name to names list respecting categories
+		auto currentLevel = &RegisteredComponents;
+		D_CONTAINERS::DVector<std::string> splitted;
+		// Splitting name by / to determine cats
+		boost::split(splitted, displayName, boost::is_any_of("/"));
+		for (int i = 0; i < splitted.size(); i++)
+		{
+			// This is the last part of name (what we want to show)
+			if (i == splitted.size() - 1)
 			{
-				return first.second < second.second;
-			});
+				auto& node = (*currentLevel)[splitted[i]];
+				node.IsBranch = false;
+				node.ComponentName = name;
+				break;
+			}
+
+			// Add to a child cat
+			if (!currentLevel->contains(splitted[i]))
+			{
+				auto& node = (*currentLevel)[splitted[i]];
+				node.IsBranch = true;
+			}
+			currentLevel = &(*currentLevel)[splitted[i]].ChildrenNameMap;
+		}
+
 	}
 
 	void GameObject::RegisterBehaviourComponent(D_ECS::EntityId compId)
