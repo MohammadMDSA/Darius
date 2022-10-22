@@ -42,7 +42,10 @@ namespace Darius::Physics
 	private:
 
 		void						InitActor();
-		void						UpdateShape();
+
+		void						EnablePhysics();
+		void						DisablePhysics();
+
 
 	};
 }

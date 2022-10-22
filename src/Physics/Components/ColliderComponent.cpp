@@ -1,6 +1,8 @@
 #include "Physics/pch.hpp"
 #include "ColliderComponent.hpp"
 
+#include "Physics/Components/RigidBodyComponent.hpp"
+
 #include <imgui.h>
 
 using namespace physx;
@@ -95,7 +97,7 @@ namespace Darius::Physics
 			mShape->setGeometry(*geom);
 		}
 
-		if (!mIsStatic)
+		if (IsDynamic())
 			mActor->setGlobalPose(D_PHYSICS::GetTransform(GetTransform()));
 	}
 
@@ -114,4 +116,19 @@ namespace Darius::Physics
 		auto phScene = D_PHYSICS::GetScene();
 		phScene->removeActor(*mActor);
 	}
+
+	void ColliderComponent::EnablePhysics()
+	{
+
+	}
+
+	void ColliderComponent::DisablePhysics()
+	{
+
+	}
+
+	//bool ColliderComponent::IsDynamic() const
+	//{
+	//	return GetGameObject()->HasComponent<RigidBodyComponent>();
+	//}
 }
