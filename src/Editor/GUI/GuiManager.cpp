@@ -34,7 +34,7 @@ namespace Darius::Editor::Gui::GuiManager
 {
 	bool										initialzied = false;
 
-	D_CONTAINERS::DMap<std::string, Window*>	Windows;
+	D_CONTAINERS::DUnorderedMap<std::string, Window*>	Windows;
 
 	std::string									LayoutPath;
 
@@ -160,7 +160,7 @@ namespace Darius::Editor::Gui::GuiManager
 		}
 
 		{
-			static bool show_demo_window = false;
+			static bool show_demo_window = true;
 			if (show_demo_window)
 				ImGui::ShowDemoWindow(&show_demo_window);
 

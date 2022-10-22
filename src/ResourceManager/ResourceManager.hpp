@@ -165,10 +165,10 @@ namespace Darius::ResourceManager
 
 		INLINE DResourceId			GetNewId() { return ++mLastId; }
 
-		DMap<ResourceType, DMap<DResourceId, std::shared_ptr<Resource>>>	mResourceMap;
-		DMap<Uuid, Resource*, UuidHasher>					mUuidMap;
-		DMap<std::wstring, Resource*>						mPathMap;
-		DMap<DefaultResource, ResourceHandle>				mDefaultResourceMap;
+		DUnorderedMap<ResourceType, DUnorderedMap<DResourceId, std::shared_ptr<Resource>>>	mResourceMap;
+		DUnorderedMap<Uuid, Resource*, UuidHasher>					mUuidMap;
+		DUnorderedMap<std::wstring, Resource*>						mPathMap;
+		DUnorderedMap<DefaultResource, ResourceHandle>				mDefaultResourceMap;
 
 		DResourceId											mLastId = 0;
 	};

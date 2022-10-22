@@ -50,8 +50,8 @@ namespace Darius::ResourceManager
 	private:
 		friend class DResourceManager;
 
-		void GetFBXUVs(DVector<D_RENDERER_GEOMETRY::MeshData<VertexType>>& meshData, void const* mesh, DVector<DMap<int, int>>& indexMapper);
-		void GetFBXNormalss(DVector<D_RENDERER_GEOMETRY::MeshData<VertexType>>& meshData, void const* mesh, DVector<DMap<int, int>>& indexMapper);
+		void GetFBXUVs(DVector<D_RENDERER_GEOMETRY::MeshData<VertexType>>& meshData, void const* mesh, DVector<DUnorderedMap<int, int>>& indexMapper);
+		void GetFBXNormalss(DVector<D_RENDERER_GEOMETRY::MeshData<VertexType>>& meshData, void const* mesh, DVector<DUnorderedMap<int, int>>& indexMapper);
 		
 	};
 }

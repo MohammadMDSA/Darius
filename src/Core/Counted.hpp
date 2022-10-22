@@ -82,7 +82,7 @@ namespace Darius::Core
 				return false;
 		}
 
-		DMap<void*, CountedOwner>				mOwners;
+		DUnorderedMap<void*, CountedOwner>				mOwners;
 		CountedOwner							mAnonymous;
 	};
 }

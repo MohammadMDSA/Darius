@@ -4,22 +4,22 @@
 namespace Darius::ResourceManager
 {
 
-	DMap<ResourceType, std::string> Resource::ResourceTypeMap =
+	DUnorderedMap<ResourceType, std::string> Resource::ResourceTypeMap =
 	{
 		{ 0, "" }
 	};
 
-	DMap<std::string, ResourceType> Resource::ResourceTypeMapR =
+	DUnorderedMap<std::string, ResourceType> Resource::ResourceTypeMapR =
 	{
 		{ "", 0 }
 	};
 
-	DMap<ResourceType, Resource::ResourceFactory*> Resource::ResourceFactories =
+	DUnorderedMap<ResourceType, Resource::ResourceFactory*> Resource::ResourceFactories =
 	{
 		{ 0, nullptr }
 	};
 
-	DMap<std::string, ResourceType> Resource::ResourceExtensionMap = {};
+	DUnorderedMap<std::string, ResourceType> Resource::ResourceExtensionMap = {};
 
 	std::string ResourceTypeToString(ResourceType type)
 	{

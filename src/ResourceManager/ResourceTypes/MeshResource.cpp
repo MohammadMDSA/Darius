@@ -144,7 +144,7 @@ namespace Darius::ResourceManager
 
 		// Iterating polygons
 		auto polyCount = mesh->GetPolygonCount();
-		DVector<DMap<int, int>> indexMapper(polyCount);
+		DVector<DUnorderedMap<int, int>> indexMapper(polyCount);
 		for (size_t polyIdx = 0; polyIdx < polyCount; polyIdx++)
 		{
 			// A submesh for each polygon
@@ -187,7 +187,7 @@ namespace Darius::ResourceManager
 		return true;
 	}
 
-	void MeshResource::GetFBXNormalss(DVector<D_RENDERER_GEOMETRY::MeshData<VertexType>>& meshDataVec, void const* meshP, DVector<DMap<int, int>>& indexMapper)
+	void MeshResource::GetFBXNormalss(DVector<D_RENDERER_GEOMETRY::MeshData<VertexType>>& meshDataVec, void const* meshP, DVector<DUnorderedMap<int, int>>& indexMapper)
 	{
 		auto mesh = (FbxMesh const*)meshP;
 
@@ -257,7 +257,7 @@ namespace Darius::ResourceManager
 		}
 	}
 
-	void MeshResource::GetFBXUVs(DVector<D_RENDERER_GEOMETRY::MeshData<VertexType>>& meshDataVec, void const* meshP, DVector<DMap<int, int>>& indexMapper)
+	void MeshResource::GetFBXUVs(DVector<D_RENDERER_GEOMETRY::MeshData<VertexType>>& meshDataVec, void const* meshP, DVector<DUnorderedMap<int, int>>& indexMapper)
 	{
 		auto mesh = (FbxMesh const*)meshP;
 

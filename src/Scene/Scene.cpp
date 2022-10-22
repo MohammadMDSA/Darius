@@ -28,8 +28,8 @@ using namespace D_CORE;
 namespace Darius::Scene
 {
 	std::unique_ptr<D_CONTAINERS::DSet<GameObject*>>					GOs = nullptr;
-	std::unique_ptr<D_CONTAINERS::DMap<Uuid, GameObject*, UuidHasher>>	UuidMap = nullptr;
-	std::unique_ptr<D_CONTAINERS::DMap<D_ECS::EntityId, GameObject*>>	EntityMap = nullptr;
+	std::unique_ptr<D_CONTAINERS::DUnorderedMap<Uuid, GameObject*, UuidHasher>>	UuidMap = nullptr;
+	std::unique_ptr<D_CONTAINERS::DUnorderedMap<D_ECS::EntityId, GameObject*>>	EntityMap = nullptr;
 	D_CONTAINERS::DSet<D_ECS_COMP::BehaviourComponent*>					BehaviourComponents;
 
 	DVector<GameObject*>												ToBeDeleted;
@@ -48,9 +48,9 @@ namespace Darius::Scene
 	void SceneManager::Initialize()
 	{
 		D_ASSERT(!GOs);
-		UuidMap = std::make_unique<D_CONTAINERS::DMap<Uuid, GameObject*, UuidHasher>>();
+		UuidMap = std::make_unique<D_CONTAINERS::DUnorderedMap<Uuid, GameObject*, UuidHasher>>();
 		GOs = std::make_unique<D_CONTAINERS::DSet<GameObject*>>();
-		EntityMap = std::make_unique<D_CONTAINERS::DMap<D_ECS::EntityId, GameObject*>>();
+		EntityMap = std::make_unique<D_CONTAINERS::DUnorderedMap<D_ECS::EntityId, GameObject*>>();
 
 
 #ifdef _DEBUG

@@ -186,10 +186,10 @@ namespace Darius::ResourceManager
 		virtual void				ReadResourceFromFile() = 0;
 		virtual bool				UploadToGpu(D_GRAPHICS::GraphicsContext& context) = 0;
 
-		static DMap<ResourceType, std::string> ResourceTypeMap;
-		static DMap<std::string, ResourceType> ResourceTypeMapR;
-		static DMap<ResourceType, ResourceFactory*> ResourceFactories;
-		static DMap<std::string, ResourceType> ResourceExtensionMap;
+		static DUnorderedMap<ResourceType, std::string> ResourceTypeMap;
+		static DUnorderedMap<std::string, ResourceType> ResourceTypeMapR;
+		static DUnorderedMap<ResourceType, ResourceFactory*> ResourceFactories;
+		static DUnorderedMap<std::string, ResourceType> ResourceExtensionMap;
 	};
 
 }
