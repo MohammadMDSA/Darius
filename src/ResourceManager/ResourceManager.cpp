@@ -2,6 +2,7 @@
 #include "ResourceManager.hpp"
 #include "ResourceTypes/Resource.hpp"
 #include "ResourceTypes/StaticMeshResource.hpp"
+#include "ResourceTypes/SkeletalMeshResource.hpp"
 #include "ResourceTypes/MaterialResource.hpp"
 #include "ResourceTypes/BatchResource.hpp"
 #include "ResourceTypes/Texture2DResource.hpp"
@@ -28,6 +29,7 @@ namespace Darius::ResourceManager
 
 		Texture2DResource::Register();
 		StaticMeshResource::Register();
+		SkeletalMeshResource::Register();
 		MaterialResource::Register();
 		BatchResource::Register();
 
@@ -172,57 +174,58 @@ namespace Darius::ResourceManager
 			auto line = D_RENDERER_GEOMETRY_GENERATOR::CreateLine(0.f, 0.f, 0.f, 0.f, 0.f, -1.f);
 
 			auto resHandle = CreateResource<StaticMeshResource>(GenerateUuidFor("Box Mesh"), L"Box Mesh", GetNewId(), true);
-			auto meshVec = DVector<MeshData<StaticMeshResource::VertexType>>{ box };
+			MultiPartMeshData<StaticMeshResource::VertexType> meshData;
+			meshData.meshParts = DVector<MeshData<StaticMeshResource::VertexType>>{ box };
 			auto res = _GetRawResource(resHandle);
-			((StaticMeshResource*)res)->Create(meshVec);
+			((StaticMeshResource*)res)->Create(meshData);
 			res->mDirtyGPU = false;
 			res->mDirtyDisk = false;
 			mDefaultResourceMap.insert({ DefaultResource::BoxMesh, { StaticMeshResource::GetResourceType(), res->GetId()} });
 
 			resHandle = CreateResource<StaticMeshResource>(GenerateUuidFor("Cylinder Mesh"), L"Cylinder Mesh", GetNewId(), true);
-			meshVec = DVector<MeshData<StaticMeshResource::VertexType>>{ cylinder };
+			meshData.meshParts = DVector<MeshData<StaticMeshResource::VertexType>>{ cylinder };
 			res = GetRawResource(resHandle);
-			((StaticMeshResource*)res)->Create(meshVec);
+			((StaticMeshResource*)res)->Create(meshData);
 			res->mDirtyGPU = false;
 			res->mDirtyDisk = false;
 			mDefaultResourceMap.insert({ DefaultResource::CylinderMesh, { StaticMeshResource::GetResourceType(), res->GetId() } });
 
 			resHandle = CreateResource<StaticMeshResource>(GenerateUuidFor("Geosphere Mesh"), L"Geosphere Mesh", GetNewId(), true);
-			meshVec = DVector<MeshData<StaticMeshResource::VertexType>>{ geosphere };
+			meshData.meshParts = DVector<MeshData<StaticMeshResource::VertexType>>{ geosphere };
 			res = GetRawResource(resHandle);
-			((StaticMeshResource*)res)->Create(meshVec);
+			((StaticMeshResource*)res)->Create(meshData);
 			res->mDirtyGPU = false;
 			res->mDirtyDisk = false;
 			mDefaultResourceMap.insert({ DefaultResource::GeosphereMesh, { StaticMeshResource::GetResourceType(), res->GetId() } });
 
 			resHandle = CreateResource<StaticMeshResource>(GenerateUuidFor("Grid Mesh"), L"Grid Mesh", GetNewId(), true);
-			meshVec = DVector<MeshData<StaticMeshResource::VertexType>>{ grid };
+			meshData.meshParts = DVector<MeshData<StaticMeshResource::VertexType>>{ grid };
 			res = GetRawResource(resHandle);
-			((StaticMeshResource*)res)->Create(meshVec);
+			((StaticMeshResource*)res)->Create(meshData);
 			res->mDirtyGPU = false;
 			res->mDirtyDisk = false;
 			mDefaultResourceMap.insert({ DefaultResource::GridMesh, { StaticMeshResource::GetResourceType(), res->GetId() } });
 
 			resHandle = CreateResource<StaticMeshResource>(GenerateUuidFor("Quad Mesh"), L"Quad Mesh", GetNewId(), true);
-			meshVec = DVector<MeshData<StaticMeshResource::VertexType>>{ quad };
+			meshData.meshParts = DVector<MeshData<StaticMeshResource::VertexType>>{ quad };
 			res = GetRawResource(resHandle);
-			((StaticMeshResource*)res)->Create(meshVec);
+			((StaticMeshResource*)res)->Create(meshData);
 			res->mDirtyGPU = false;
 			res->mDirtyDisk = false;
 			mDefaultResourceMap.insert({ DefaultResource::QuadMesh, { StaticMeshResource::GetResourceType(), res->GetId() } });
 
 			resHandle = CreateResource<StaticMeshResource>(GenerateUuidFor("Sphere Mesh"), L"Sphere Mesh", GetNewId(), true);
-			meshVec = DVector<MeshData<StaticMeshResource::VertexType>>{ sphere };
+			meshData.meshParts = DVector<MeshData<StaticMeshResource::VertexType>>{ sphere };
 			res = GetRawResource(resHandle);
-			((StaticMeshResource*)res)->Create(meshVec);
+			((StaticMeshResource*)res)->Create(meshData);
 			res->mDirtyGPU = false;
 			res->mDirtyDisk = false;
 			mDefaultResourceMap.insert({ DefaultResource::SphereMesh, { StaticMeshResource::GetResourceType(), res->GetId() } });
 
 			resHandle = CreateResource<BatchResource>(GenerateUuidFor("Line Mesh"), L"Line Mesh", GetNewId(), true);
-			meshVec = DVector<MeshData<StaticMeshResource::VertexType>>{ line };
+			meshData.meshParts = DVector<MeshData<StaticMeshResource::VertexType>>{ line };
 			res = GetRawResource(resHandle);
-			((BatchResource*)res)->Create(meshVec);
+			((BatchResource*)res)->Create(meshData);
 			res->mDirtyGPU = false;
 			res->mDirtyDisk = false;
 			mDefaultResourceMap.insert({ DefaultResource::LineMesh, { BatchResource::GetResourceType(), res->GetId() } });

@@ -8,6 +8,7 @@
 #include <Debug/DebugDraw.hpp>
 #include <Scene/Scene.hpp>
 #include <Scene/EntityComponentSystem/Components/MeshRendererComponent.hpp>
+#include <Scene/EntityComponentSystem/Components/SkeletalMeshRendererComponent.hpp>
 #include <Renderer/Renderer.hpp>
 #include <ResourceManager/ResourceManager.hpp>
 
@@ -359,6 +360,23 @@ namespace Darius::Editor::Gui::Windows
 
 		// Iterating over meshes
 		worldReg.each([&](D_ECS_COMP::MeshRendererComponent& meshComp)
+			{
+				// Can't render
+				if (!meshComp.CanRender())
+					return;
+
+				// Is it in our frustum
+				auto sphereWorldSpace = meshComp.GetGameObject()->GetTransform() * meshComp.GetBounds();
+				auto sphereViewSpace = BoundingSphere(Vector3(cam->GetViewMatrix() * sphereWorldSpace.GetCenter()), sphereWorldSpace.GetRadius());
+				if (!frustum.IntersectSphere(sphereViewSpace))
+					return;
+
+				auto distance = -sphereViewSpace.GetCenter().GetZ() - sphereViewSpace.GetRadius();
+				sorter.AddMesh(meshComp.GetRenderItem(), distance);
+			});
+
+		// Iterating over meshes
+		worldReg.each([&](D_ECS_COMP::SkeletalMeshRendererComponent& meshComp)
 			{
 				// Can't render
 				if (!meshComp.CanRender())
