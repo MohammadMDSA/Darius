@@ -19,7 +19,9 @@ namespace Darius::ResourceManager
 		{ 0, nullptr }
 	};
 
-	DUnorderedMap<std::string, ResourceType> Resource::ResourceExtensionMap = {};
+	DUnorderedMap<std::string, D_CONTAINERS::DSet<ResourceType>> Resource::ResourceExtensionMap = {};
+
+	DUnorderedMap<ResourceType, std::function<bool(Path const&)>> Resource::ConstructValidationMap = {};
 
 	std::string ResourceTypeToString(ResourceType type)
 	{

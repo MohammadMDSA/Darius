@@ -24,7 +24,7 @@ namespace Darius::ResourceManager
 		static ResourceHandle	LoadResourceMeta(Path path);
 
 		static ResourceHandle	LoadResource(Resource* resource);
-		static ResourceHandle	LoadResource(Path path, bool metaOnly = false);
+		static DVector<ResourceHandle>	LoadResource(Path path, bool metaOnly = false);
 
 		static void				VisitSubdirectory(Path path, bool recursively = false);
 		
@@ -35,7 +35,7 @@ namespace Darius::ResourceManager
 
 		static bool				SaveResource(Resource* resource, bool metaOnly);
 		static ResourceHandle	CreateResourceObject(ResourceMeta const& meta, DResourceManager* manager);
-		static ResourceHandle	CreateResourceObject(Path const& path, DResourceManager* manager);
+		static DVector<ResourceHandle> CreateResourceObject(Path const& path, DResourceManager* manager);
 		static void				VisitFile(Path path);
 	};
 }

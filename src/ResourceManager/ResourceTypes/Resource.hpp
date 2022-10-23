@@ -2,6 +2,7 @@
 
 #include <Core/Filesystem/Path.hpp>
 #include <Core/Counted.hpp>
+#include <Core/Containers/Set.hpp>
 #include <Core/Uuid.hpp>
 #include <Core/Exceptions/Exception.hpp>
 #include <Core/Serialization/Json.hpp>
@@ -31,6 +32,8 @@ public: \
 	{ \
 		D_ASSERT_M(!Resource::GetResourceType(ResT), "Resource " #T " is already registered."); \
 		auto resType = Resource::RegisterResourceTypeName<T, T::T##Factory>(ResT); \
+		\
+		RegisterConstructinoValidation(resType, CanConstructFrom); \
 		\
 		std::string supportedExtensions[] = { __VA_ARGS__ }; \
 		for (std::string const& ext : supportedExtensions) \
@@ -137,8 +140,10 @@ namespace Darius::ResourceManager
 		static INLINE ResourceType	GetResourceType(std::string name) { return ResourceTypeMapR.contains(name) ? ResourceTypeMapR[name] : 0; }
 		static INLINE std::string	GetResourceName(ResourceType type) { return ResourceTypeMap[type]; }
 		static INLINE ResourceFactory* GetFactoryForResourceType(ResourceType type) { return ResourceFactories.contains(type) ? ResourceFactories[type] : nullptr; }
-		static INLINE void			RegisterResourceExtension(std::string ext, ResourceType type) { ResourceExtensionMap[ext] = type; }
-		static INLINE ResourceType	GetResourceTypeByExtension(std::string ext) { return ResourceExtensionMap.contains(ext) ? ResourceExtensionMap[ext] : 0; }
+		static INLINE void			RegisterResourceExtension(std::string ext, ResourceType type) { auto& key = ResourceExtensionMap[ext]; key.insert(type); }
+		static INLINE D_CONTAINERS::DSet<ResourceType>	GetResourceTypeByExtension(std::string ext) { return ResourceExtensionMap.contains(ext) ? ResourceExtensionMap[ext] : D_CONTAINERS::DSet<ResourceType>(); }
+		static INLINE void			RegisterConstructinoValidation(ResourceType type, std::function<bool(Path const&)> func) { ConstructValidationMap[type] = func; }
+		static INLINE bool			CanConstructTypeFromPath(ResourceType type, Path const& path) { return ConstructValidationMap.contains(type) ? ConstructValidationMap[type](path) : true; }
 
 		template<class R, class FAC>
 		static ResourceType			RegisterResourceTypeName(std::string name)
@@ -186,10 +191,13 @@ namespace Darius::ResourceManager
 		virtual void				ReadResourceFromFile() = 0;
 		virtual bool				UploadToGpu(D_GRAPHICS::GraphicsContext& context) = 0;
 
+		INLINE static bool			CanConstructFrom(Path const&) { return true; }
+
 		static DUnorderedMap<ResourceType, std::string> ResourceTypeMap;
 		static DUnorderedMap<std::string, ResourceType> ResourceTypeMapR;
 		static DUnorderedMap<ResourceType, ResourceFactory*> ResourceFactories;
-		static DUnorderedMap<std::string, ResourceType> ResourceExtensionMap;
+		static DUnorderedMap<std::string, D_CONTAINERS::DSet<ResourceType>> ResourceExtensionMap;
+		static DUnorderedMap<ResourceType, std::function<bool(Path const&)>> ConstructValidationMap;
 	};
 
 }

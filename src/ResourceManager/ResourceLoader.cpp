@@ -27,13 +27,26 @@ namespace Darius::ResourceManager
 		return manager->CreateResource(meta.Type, meta.Uuid, meta.Path, false, true);
 	}
 
-	// Only used in resource reading / wrting, from / to file context
-	ResourceHandle ResourceLoader::CreateResourceObject(Path const& path, DResourceManager* manager)
+	// Only used in resource reading/wrting, from/to file context
+	DVector<ResourceHandle> ResourceLoader::CreateResourceObject(Path const& path, DResourceManager* manager)
 	{
 		auto extension = path.extension();
-		auto resourceType = Resource::GetResourceTypeByExtension(extension.string());
+		auto resourceTypes = Resource::GetResourceTypeByExtension(extension.string());
 
-		return manager->CreateResource(resourceType, GenerateUuid(), path, false, true);
+		DVector<ResourceHandle> results;
+
+		for (auto type : resourceTypes)
+		{
+			if (D_RESOURCE::Resource::CanConstructTypeFromPath(type, path))
+			{
+				auto handle = manager->CreateResource(type, GenerateUuid(), path, false, true);
+				results.push_back(handle);
+			}
+
+		}
+
+		return results;
+
 	}
 
 	void SerializeMeta(Json& json, ResourceMeta const& meta)
@@ -104,7 +117,8 @@ namespace Darius::ResourceManager
 			return *resource;
 		}
 
-		return LoadResource(resource->GetPath());
+		auto loaded = LoadResource(resource->GetPath());
+		return loaded.size() > 0 ? loaded[0] : EmptyResourceHandle;
 
 	}
 
@@ -137,10 +151,10 @@ namespace Darius::ResourceManager
 		return CreateResourceObject(meta, manager);
 	}
 
-	ResourceHandle ResourceLoader::LoadResource(Path path, bool metaOnly)
+	DVector<ResourceHandle> ResourceLoader::LoadResource(Path path, bool metaOnly)
 	{
 		if (!D_H_ENSURE_FILE(path))
-			return EmptyResourceHandle;
+			return { };
 
 		// Read meta
 		auto handle = LoadResourceMeta(path);
@@ -160,34 +174,35 @@ namespace Darius::ResourceManager
 				resource->mLoaded = true;
 			}
 
-			return *resource;
+			return { *resource };
 
 		}
 
 		// No meta available for resource
 
 		// Create resource object
-		handle = CreateResourceObject(path, manager);
+		auto handles = CreateResourceObject(path, manager);
 
-		// Resource not supported
-		if (handle.Type == 0)
+		for (auto hndl : handles)
 		{
-			D_LOG_WARN("Resource " + path.filename().string() + " not supported");
-			return handle;
+			// Resource not supported
+			if (hndl.Type == 0)
+			{
+				D_LOG_WARN("Resource " + path.filename().string() + " not supported");
+			}
+
+			// Fetch pointer to resource
+			auto resource = _GetRawResource(hndl);
+			// Save meta to file
+			SaveResource(resource, true);
+
+			if (!metaOnly && !resource->GetLoaded())
+			{
+				resource->ReadResourceFromFile();
+				resource->mLoaded = true;
+			}
 		}
-
-		// Fetch pointer to resource
-		auto resource = _GetRawResource(handle);
-		// Save meta to file
-		SaveResource(resource, true);
-
-		if (!metaOnly && !resource->GetLoaded())
-		{
-			resource->ReadResourceFromFile();
-			resource->mLoaded = true;
-		}
-
-		return handle;
+		return handles;
 	}
 
 	void ResourceLoader::VisitSubdirectory(Path path, bool recursively)
