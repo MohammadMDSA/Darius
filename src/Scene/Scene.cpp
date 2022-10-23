@@ -7,6 +7,8 @@
 #include "EntityComponentSystem/Components/BehaviourComponent.hpp"
 #include "EntityComponentSystem/Components/TransformComponent.hpp"
 #include "EntityComponentSystem/Components/MeshRendererComponent.hpp"
+#include "EntityComponentSystem/Components/SkeletalMeshRendererComponent.hpp"
+#include "EntityComponentSystem/Components/LightComponent.hpp"
 
 #include <Core/Filesystem/FileUtils.hpp>
 #include <Core/Memory/Memory.hpp>
@@ -52,6 +54,12 @@ namespace Darius::Scene
 		GOs = std::make_unique<D_CONTAINERS::DSet<GameObject*>>();
 		EntityMap = std::make_unique<D_CONTAINERS::DUnorderedMap<D_ECS::EntityId, GameObject*>>();
 
+		// Registering components
+		D_ECS_COMP::LightComponent::StaticConstructor();
+		D_ECS_COMP::MeshRendererComponent::StaticConstructor();
+		D_ECS_COMP::SkeletalMeshRendererComponent::StaticConstructor();
+		D_ECS_COMP::TransformComponent::StaticConstructor();
+		D_ECS_COMP::BehaviourComponent::StaticConstructor();
 
 #ifdef _DEBUG
 		World.set<flecs::Rest>({});

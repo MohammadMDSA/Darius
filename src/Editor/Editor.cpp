@@ -15,9 +15,6 @@
 #include <Core/TimeManager/TimeManager.hpp>
 #include <Debug/DebugDraw.hpp>
 #include <Job/Job.hpp>
-#include <Scene/EntityComponentSystem/Components/MeshRendererComponent.hpp>
-#include <Scene/EntityComponentSystem/Components/LightComponent.hpp>
-#include <Scene/EntityComponentSystem/Components/TransformComponent.hpp>
 #include <Demo/MovementBehaviour.hpp>
 #include <Physics/PhysicsManager.hpp>
 #include <Scene/SceneLight.hpp>
@@ -107,10 +104,6 @@ namespace Darius::Editor
 
 		// Registering components
 		// TODO:: Better component initialization
-		D_ECS_COMP::LightComponent::StaticConstructor();
-		D_ECS_COMP::MeshRendererComponent::StaticConstructor();
-		D_ECS_COMP::TransformComponent::StaticConstructor();
-		D_ECS_COMP::BehaviourComponent::StaticConstructor();
 		Demo::MovementBehaviour::StaticConstructor();
 
 		mTimer.SetFixedTimeStep(true);
