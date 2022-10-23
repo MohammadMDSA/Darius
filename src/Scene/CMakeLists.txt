@@ -13,6 +13,7 @@ list(APPEND SCENE_LIBS_INCLUDE
 	"EntityComponentSystem/Components/ComponentBase.hpp"
 	"EntityComponentSystem/Components/TransformComponent.hpp"
 	"EntityComponentSystem/Components/MeshRendererComponent.hpp"
+	"EntityComponentSystem/Components/SkeletalMeshRendererComponent.hpp"
 	"EntityComponentSystem/Components/LightComponent.hpp"
 	"EntityComponentSystem/Components/BehaviourComponent.hpp"
 	"pch.hpp"
@@ -28,6 +29,7 @@ list(APPEND SCENE_LIBS_SOURCES
 	"EntityComponentSystem/Components/ComponentBase.cpp"
 	"EntityComponentSystem/Components/TransformComponent.cpp"
 	"EntityComponentSystem/Components/MeshRendererComponent.cpp"
+	"EntityComponentSystem/Components/SkeletalMeshRendererComponent.cpp"
 	"EntityComponentSystem/Components/LightComponent.cpp"
 	"EntityComponentSystem/Components/BehaviourComponent.cpp"
 	)
