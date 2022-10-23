@@ -111,6 +111,16 @@ namespace Darius::Scene
 			}
 		);
 
+		World.each([&](D_ECS_COMP::SkeletalMeshRendererComponent& meshComp)
+			{
+				Darius::Job::AssignTask([&](int threadNumber, int)
+					{
+						meshComp.Update(-1);
+
+					});
+			}
+		);
+
 		if (D_JOB::IsMainThread())
 			Darius::Job::WaitForThreadsToFinish();
 	}

@@ -53,7 +53,7 @@ namespace Darius::Scene::ECS::Components
 		result.MeshCBV = GetConstantsAddress();
 		result.Material.MaterialCBV = *mMaterialResource.Get();
 		result.Material.MaterialSRV = mMaterialResource->GetTexturesHandle();
-		result.PsoType = D_RENDERER::OpaquePso;
+		result.PsoType = D_RENDERER::SkinnedOpaquePso;
 		result.PsoFlags = mPsoFlags | mMaterialResource->GetPsoFlags();
 		return result;
 	}
