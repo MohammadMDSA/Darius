@@ -42,6 +42,8 @@ namespace Darius::ResourceManager
 		StaticMeshResource(Uuid uuid, std::wstring const& path, DResourceId id, bool isDefault = false) :
 			MeshResource(uuid, path, id, isDefault) {}
 
+		static bool						CanConstructFrom(Path const&);
+
 	private:
 		friend class DResourceManager;
 
