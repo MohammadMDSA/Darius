@@ -26,16 +26,19 @@ namespace Darius::ResourceManager
 		mBaseColorTextureHandle = D_RESOURCE::GetDefaultResource(D_RESOURCE::DefaultResource::Texture2DWhiteOpaque);
 		mNormalTextureHandle = D_RESOURCE::GetDefaultResource(D_RESOURCE::DefaultResource::Texture2DNormalMap);
 		mRoughnessTextureHandle = D_RESOURCE::GetDefaultResource(D_RESOURCE::DefaultResource::Texture2DBlackOpaque);
+		mEmissiveTextureHandle = D_RESOURCE::GetDefaultResource(D_RESOURCE::DefaultResource::Texture2DBlackOpaque);
 	}
 
 	void MaterialResource::WriteResourceToFile() const
 	{
 		float* defalb = (float*)&mMaterial.DifuseAlbedo;
 		float* fren = (float*)&mMaterial.FresnelR0;
+		float* ems = (float*)&mMaterial.Emissive;
 		Json data = {
 			{ "DefuseAlbedo", std::vector<float>(defalb, defalb + 4)},
 			{ "FresnelR0", std::vector<float>(fren, fren + 3) },
-			{ "Roughness", mMaterial.Roughness }
+			{ "Roughness", mMaterial.Roughness },
+			{ "Emission", std::vector<float>(ems, ems + 3) }
 		};
 
 		bool usedBaseColorTex = mMaterial.TextureStatusMask & (1 << kBaseColor);
@@ -49,6 +52,10 @@ namespace Darius::ResourceManager
 		bool usedNormalTex = mMaterial.TextureStatusMask & (1 << kNormal);
 		if (usedNormalTex)
 			data["NormalTexture"] = ToString(mNormalTexture->GetUuid());
+
+		bool usedEmissionTex = mMaterial.TextureStatusMask & (1 << kEmissive);
+		if (usedEmissionTex)
+			data["EmissionTexture"] = ToString(mEmissiveTexture->GetUuid());
 
 		data["PsoFlags"] = mPsoFlags;
 
@@ -67,6 +74,9 @@ namespace Darius::ResourceManager
 		mMaterial.DifuseAlbedo = XMFLOAT4(data["DefuseAlbedo"].get<std::vector<float>>().data());
 		mMaterial.FresnelR0 = XMFLOAT3(data["FresnelR0"].get<std::vector<float>>().data());
 		mMaterial.Roughness = data["Roughness"];
+
+		mMaterial.Emissive = XMFLOAT3(data["Emission"].get<std::vector<float>>().data());
+
 		mMaterial.TextureStatusMask = 0;
 
 		if (data.contains("BaseColorTexture"))
@@ -87,6 +97,12 @@ namespace Darius::ResourceManager
 			mMaterial.TextureStatusMask |= 1 << kNormal;
 		}
 
+		if (data.contains("EmissionTexture"))
+		{
+			mEmissiveTextureHandle = D_RESOURCE::GetResourceHandle(FromString(data["EmissionTexture"]));
+			mMaterial.TextureStatusMask |= 1 << kEmissive;
+		}
+
 		mPsoFlags = data.contains("PsoFlags") ? data["PsoFlags"].get<uint16_t>() : 0u;
 	}
 
@@ -98,6 +114,7 @@ namespace Darius::ResourceManager
 			mBaseColorTexture = D_RESOURCE::GetResource<Texture2DResource>(mBaseColorTextureHandle, *this);
 			mNormalTexture = D_RESOURCE::GetResource<Texture2DResource>(mNormalTextureHandle, *this);
 			mRoughnessTexture = D_RESOURCE::GetResource<Texture2DResource>(mRoughnessTextureHandle, *this);
+			mEmissiveTexture = D_RESOURCE::GetResource<Texture2DResource>(mEmissiveTextureHandle, *this);
 
 			// Initializing Material Constants buffers
 			for (size_t i = 0; i < D_RENDERER_FRAME_RESOUCE::gNumFrameResources; i++)
@@ -116,7 +133,7 @@ namespace Darius::ResourceManager
 				mBaseColorTexture->GetTextureData()->GetSRV(),
 				mRoughnessTexture->GetTextureData()->GetSRV(),
 				mRoughnessTexture->GetTextureData()->GetSRV(),
-				mRoughnessTexture->GetTextureData()->GetSRV(),
+				mEmissiveTexture->GetTextureData()->GetSRV(),
 				mNormalTexture->GetTextureData()->GetSRV()
 			};
 			D_RENDERER_DEVICE::GetDevice()->CopyDescriptors(1, &mTexturesHeap, &destCount, destCount, initialTextures, sourceCounts, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
