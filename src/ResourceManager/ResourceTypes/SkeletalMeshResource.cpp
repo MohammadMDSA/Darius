@@ -42,7 +42,7 @@ namespace Darius::ResourceManager
 			for (size_t i = 0; i < meshData.Vertices.size(); i++)
 			{
 				auto& ver = meshData.Vertices[i];
-				vertices[vertexIndex] = D_GRAPHICS_VERTEX::VertexPositionNormalTextureSkinned(ver.mPosition, ver.mNormal, ver.mTexC, ver.mBlendIndices, ver.mBlendWeights);
+				vertices[vertexIndex] = D_GRAPHICS_VERTEX::VertexPositionNormalTextureSkinned(ver.mPosition, Vector3(ver.mNormal).Normalize(), ver.mTexC, ver.mBlendIndices, ver.mBlendWeights);
 				vertexIndex++;
 			}
 
@@ -203,7 +203,7 @@ namespace Darius::ResourceManager
 		GetFBXUVs(meshDataVec, mesh, indexMapper);
 
 		// Add Normal data
-		GetFBXNormalss(meshDataVec, mesh, indexMapper);
+		GetFBXNormals(meshDataVec, mesh, indexMapper);
 
 		// Add SkinData
 		GetFBXSkin(meshDataVec, mesh, indexMapper);

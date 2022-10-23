@@ -51,7 +51,7 @@ namespace Darius::ResourceManager
 			for (size_t i = 0; i < meshData.Vertices.size(); i++)
 			{
 				auto& ver = meshData.Vertices[i];
-				vertices[vertexIndex] = D_GRAPHICS_VERTEX::VertexPositionNormalTexture(ver.mPosition, ver.mNormal, ver.mTexC);
+				vertices[vertexIndex] = D_GRAPHICS_VERTEX::VertexPositionNormalTexture(ver.mPosition, Vector3(ver.mNormal).Normalize(), ver.mTexC);
 				vertexIndex++;
 			}
 
@@ -213,7 +213,7 @@ namespace Darius::ResourceManager
 		GetFBXUVs(meshDataVec, mesh, indexMapper);
 
 		// Add Normal data
-		GetFBXNormalss(meshDataVec, mesh, indexMapper);
+		GetFBXNormals(meshDataVec, mesh, indexMapper);
 
 		// Destroy the SDK manager and all the other objects it was handling.
 		lSdkManager->Destroy();
