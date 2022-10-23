@@ -1,11 +1,6 @@
 #pragma once
 
-#include "MeshResource.hpp"
-
-#include <Renderer/Geometry/MeshData.hpp>
-#include <Renderer/Geometry/Mesh.hpp>
-#include <Renderer/GraphicsUtils/VertexTypes.hpp>
-
+#include "StaticMeshResource.hpp"
 
 #ifndef D_RESOURCE
 #define D_RESOURCE Darius::ResourceManager
@@ -18,7 +13,7 @@ namespace Darius::ResourceManager
 {
 	class DResourceManager;
 
-	class BatchResource : public MeshResource
+	class BatchResource : public StaticMeshResource
 	{
 		D_CH_RESOURCE_BODY(BatchResource, "Batch", "")
 
@@ -26,7 +21,7 @@ namespace Darius::ResourceManager
 		friend class DResourceManager;
 
 		BatchResource(Uuid uuid, std::wstring const& path, DResourceId id, bool isDefault = false) :
-			MeshResource(uuid, path, id, isDefault) {}
+			StaticMeshResource(uuid, path, id, isDefault) {}
 
 	};
 

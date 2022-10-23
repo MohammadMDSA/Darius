@@ -149,7 +149,7 @@ namespace Darius::Renderer
 		Psos[(size_t)PipelineStateTypes::OpaquePso] = GraphicsPSO(L"Opaque PSO");
 		auto& pso = Psos[(size_t)PipelineStateTypes::OpaquePso];
 
-		auto il = D_RENDERER_VERTEX::VertexPositionNormalTexture::InputLayout;
+		auto il = D_GRAPHICS_VERTEX::VertexPositionNormalTexture::InputLayout;
 		pso.SetInputLayout(il.NumElements, il.pInputElementDescs);
 
 		pso.SetVertexShader(reinterpret_cast<BYTE*>(Shaders["standardVS"]->GetBufferPointer()),
@@ -183,7 +183,7 @@ namespace Darius::Renderer
 		// For colored only objects
 		Psos[(size_t)PipelineStateTypes::ColorPso] = pso;
 		auto& colorPso = Psos[(size_t)PipelineStateTypes::ColorPso];
-		il = D_RENDERER_VERTEX::VertexPosition::InputLayout;
+		il = D_GRAPHICS_VERTEX::VertexPosition::InputLayout;
 		colorPso.SetInputLayout(il.NumElements, il.pInputElementDescs);
 		colorPso.SetVertexShader(reinterpret_cast<BYTE*>(Shaders["colorVS"]->GetBufferPointer()), Shaders["colorVS"]->GetBufferSize());
 		colorPso.SetPixelShader(reinterpret_cast<BYTE*>(Shaders["colorPS"]->GetBufferPointer()), Shaders["colorPS"]->GetBufferSize());

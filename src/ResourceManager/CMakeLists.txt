@@ -11,7 +11,10 @@ list(APPEND RESOUCE_MANAGER_LIBS_INCLUDE
 	"ResourceTypes/MaterialResource.hpp"
 	"ResourceTypes/TextureResource.hpp"
 	"ResourceTypes/Texture2DResource.hpp"
+	"ResourceTypes/SkeletalMeshResource.hpp"
+	"ResourceTypes/StaticMeshResource.hpp"
 	"ResourceLoader.hpp"
+	"pch.hpp"
 	)
 
 list(APPEND RESOUCE_MANAGER_LIBS_SOURCES
@@ -22,7 +25,10 @@ list(APPEND RESOUCE_MANAGER_LIBS_SOURCES
 	"ResourceTypes/MaterialResource.cpp"
 	"ResourceTypes/TextureResource.cpp"
 	"ResourceTypes/Texture2DResource.cpp"
+	"ResourceTypes/SkeletalMeshResource.cpp"
+	"ResourceTypes/StaticMeshResource.cpp"
 	"ResourceLoader.cpp"
+	"pch.cpp"
 	)
 
 

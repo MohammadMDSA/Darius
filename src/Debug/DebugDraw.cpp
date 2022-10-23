@@ -2,6 +2,7 @@
 #include "DebugDraw.hpp"
 
 #include <Renderer/RenderDeviceManager.hpp>
+#include <ResourceManager/ResourceTypes/StaticMeshResource.hpp>
 
 #include <mutex>
 
@@ -14,7 +15,7 @@ namespace Darius::Debug
 
 #ifdef _DEBUG
 
-	D_CORE::Ref<D_RESOURCE::MeshResource>	CubeMeshResource;
+	D_CORE::Ref<D_RESOURCE::StaticMeshResource>	CubeMeshResource;
 
 	// Gpu buffers
 	D_GRAPHICS_BUFFERS::UploadBuffer		MeshConstantsCPU[D_RENDERER_FRAME_RESOUCE::gNumFrameResources];
@@ -30,7 +31,7 @@ namespace Darius::Debug
 	void DebugDraw::Initialize()
 	{
 #ifdef _DEBUG
-		CubeMeshResource = GetResource<D_RESOURCE::MeshResource>(GetDefaultResource(D_RESOURCE::DefaultResource::BoxMesh));
+		CubeMeshResource = GetResource<D_RESOURCE::StaticMeshResource>(GetDefaultResource(D_RESOURCE::DefaultResource::BoxMesh));
 
 		// Initializing Mesh Constants buffers
 		for (size_t i = 0; i < D_RENDERER_FRAME_RESOUCE::gNumFrameResources; i++)

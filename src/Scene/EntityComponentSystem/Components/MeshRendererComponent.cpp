@@ -74,7 +74,7 @@ namespace Darius::Scene::ECS::Components
 
 			if (ImGui::BeginPopup("Select Res"))
 			{
-				auto meshes = D_RESOURCE::GetResourcePreviews(MeshResource::GetResourceType());
+				auto meshes = D_RESOURCE::GetResourcePreviews(StaticMeshResource::GetResourceType());
 				int idx = 0;
 				for (auto prev : meshes)
 				{
@@ -149,7 +149,7 @@ namespace Darius::Scene::ECS::Components
 
 	void MeshRendererComponent::_SetMesh(ResourceHandle handle)
 	{
-		mMeshResource = D_RESOURCE::GetResource<MeshResource>(handle, *GetGameObject());
+		mMeshResource = D_RESOURCE::GetResource<StaticMeshResource>(handle, *GetGameObject());
 	}
 
 	void MeshRendererComponent::_SetMaterial(ResourceHandle handle)
@@ -175,7 +175,7 @@ namespace Darius::Scene::ECS::Components
 		// Loading mesh
 		Uuid meshUuid;
 		D_CORE::from_json(j["Mesh"], meshUuid);
-		mMeshResource = D_RESOURCE::GetResource<MeshResource>(meshUuid, *go);
+		mMeshResource = D_RESOURCE::GetResource<StaticMeshResource>(meshUuid, *go);
 	}
 
 	void MeshRendererComponent::Update(float dt)

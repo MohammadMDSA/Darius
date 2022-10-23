@@ -5,6 +5,7 @@
 #include <Renderer/Geometry/MeshData.hpp>
 #include <Renderer/Geometry/Mesh.hpp>
 #include <Renderer/GraphicsUtils/VertexTypes.hpp>
+#include <Utils/Assert.hpp>
 
 #ifndef D_RESOURCE
 #define D_RESOURCE Darius::ResourceManager
@@ -20,14 +21,11 @@ namespace Darius::ResourceManager
 	class MeshResource : public Resource
 	{
 	public:
-		using VertexType = D_RENDERER_VERTEX::VertexPositionNormalTangentTexture;
-
-		D_CH_RESOURCE_BODY(MeshResource, "Mesh", ".fbx")
-
+		using VertexType = D_GRAPHICS_VERTEX::VertexPositionNormalTangentTextureSkinned;
 	public:
 		INLINE Mesh*					ModifyMeshData() { MakeDiskDirty(); MakeGpuDirty(); return &mMesh; }
 		INLINE const Mesh*				GetMeshData() const { return &mMesh; }
-		virtual void					Create(D_CONTAINERS::DVector<MeshData<VertexType>>& data);
+		virtual void					Create(D_CONTAINERS::DVector<MeshData<VertexType>>& data) = 0;
 
 #ifdef _D_EDITOR
 		virtual bool					DrawDetails(float params[]) override { (params); return false; };
@@ -40,8 +38,8 @@ namespace Darius::ResourceManager
 
 	protected:
 
-		virtual void					WriteResourceToFile() const override;
-		virtual void					ReadResourceFromFile() override;
+		INLINE virtual void				WriteResourceToFile() const override {};
+		INLINE virtual void				ReadResourceFromFile() override {};
 		virtual bool					UploadToGpu(D_GRAPHICS::GraphicsContext& context) override;
 		
 		MeshResource(Uuid uuid, std::wstring const& path, DResourceId id, bool isDefault = false) :
@@ -50,8 +48,9 @@ namespace Darius::ResourceManager
 	private:
 		friend class DResourceManager;
 
-		void GetFBXUVs(DVector<D_RENDERER_GEOMETRY::MeshData<VertexType>>& meshData, void const* mesh, DVector<DUnorderedMap<int, int>>& indexMapper);
-		void GetFBXNormalss(DVector<D_RENDERER_GEOMETRY::MeshData<VertexType>>& meshData, void const* mesh, DVector<DUnorderedMap<int, int>>& indexMapper);
-		
+		void							GetFBXUVs(DVector<D_RENDERER_GEOMETRY::MeshData<VertexType>>& meshDataVec, void const* meshP, DVector<DUnorderedMap<int, int>>& indexMapper);
+
+		void							GetFBXNormalss(DVector<D_RENDERER_GEOMETRY::MeshData<VertexType>>& meshDataVec, void const* meshP, DVector<DUnorderedMap<int, int>>& indexMapper);
+
 	};
 }

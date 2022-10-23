@@ -3,7 +3,7 @@
 #include "ComponentBase.hpp"
 
 #include <Core/Ref.hpp>
-#include <ResourceManager/ResourceTypes/MeshResource.hpp>
+#include <ResourceManager/ResourceTypes/StaticMeshResource.hpp>
 #include <ResourceManager/ResourceTypes/MaterialResource.hpp>
 
 #ifndef D_ECS_COMP
@@ -50,7 +50,7 @@ namespace Darius::Scene::ECS::Components
 		void								_SetMesh(ResourceHandle handle);
 		void								_SetMaterial(ResourceHandle handle);
 
-		Ref<MeshResource>					mMeshResource;
+		Ref<StaticMeshResource>				mMeshResource;
 		Ref<MaterialResource>				mMaterialResource;
 		D_CORE::Signal<void()>				mChangeSignal;
 		uint16_t							mPsoFlags;

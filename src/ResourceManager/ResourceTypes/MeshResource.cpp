@@ -1,4 +1,4 @@
-#include "Renderer/pch.hpp"
+#include "ResourceManager/pch.hpp"
 #include "MeshResource.hpp"
 #include "ResourceManager/ResourceManager.hpp"
 
@@ -15,78 +15,6 @@ using namespace D_CONTAINERS;
 
 namespace Darius::ResourceManager
 {
-
-	D_CH_RESOURCE_DEF(MeshResource);
-
-	void MeshResource::Create(DVector<MeshData<VertexType>>& data)
-	{
-		Destroy();
-		SetName(GetName());
-
-		auto totalVertices = 0u;
-		auto totalIndices = 0u;
-		for (auto meshData : data)
-		{
-			totalVertices += meshData.Vertices.size();
-			totalIndices += meshData.Indices32.size();
-		}
-
-		DVector<D_RENDERER_VERTEX::VertexPositionNormalTexture> vertices(totalVertices);
-		DVector<std::uint16_t> indices;
-
-		mMesh.mNumTotalIndices = totalIndices;
-		mMesh.mNumTotalVertices = totalVertices;
-
-		auto vertexIndex = 0;
-		auto indexIndex = 0;
-		for (auto meshData : data)
-		{
-			// Creating submesh
-			Mesh::Draw submesh;
-			submesh.IndexCount = meshData.Indices32.size();
-			submesh.StartIndexLocation = indexIndex;
-			submesh.BaseVertexLocation = vertexIndex;
-
-			// Adding vertices
-			for (size_t i = 0; i < meshData.Vertices.size(); i++)
-			{
-				auto& ver = meshData.Vertices[i];
-				vertices[vertexIndex] = D_RENDERER_VERTEX::VertexPositionNormalTexture(ver.mPosition, ver.mNormal, ver.mTexC);
-				vertexIndex++;
-			}
-
-			// Adding indices
-			for (auto index : meshData.GetIndices16())
-			{
-				indices.push_back(index + submesh.BaseVertexLocation);
-			}
-			indexIndex += submesh.IndexCount;
-
-			// Updating bounding sphear
-			mMesh.mBoundSp = mMesh.mBoundSp.Union(meshData.CalcBoundingSphere());
-			mMesh.mBoundBox = mMesh.mBoundBox.Union(meshData.CalcBoundingBox());
-
-			mMesh.mDraw.push_back(submesh);
-		}
-
-		mMesh.name = GetName();
-
-		// Create vertex buffer
-		mMesh.VertexDataGpu.Create(mMesh.name + L" Vertex Buffer", vertices.size(), sizeof(D_RENDERER_VERTEX::VertexPositionNormalTexture), vertices.data());
-
-		// Create index buffer
-		mMesh.IndexDataGpu.Create(mMesh.name + L" Index Buffer", indices.size(), sizeof(std::uint16_t), indices.data());
-
-	}
-
-	void MeshResource::WriteResourceToFile() const
-	{
-
-	}
-
-	void MeshResource::ReadResourceFromFile()
-	{
-	}
 
 	bool MeshResource::UploadToGpu(D_GRAPHICS::GraphicsContext& context)
 	{

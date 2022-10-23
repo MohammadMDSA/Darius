@@ -12,7 +12,7 @@ using namespace D_RENDERER_GEOMETRY;
 
 namespace
 {
-	using Vertex = D_RENDERER_VERTEX::VertexPositionNormalTangentTexture;
+	using Vertex = D_GRAPHICS_VERTEX::VertexPositionNormalTangentTextureSkinned;
 	using uint32 = std::uint32_t;
 }
 
