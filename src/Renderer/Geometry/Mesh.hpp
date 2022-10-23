@@ -29,6 +29,20 @@ namespace Darius::Renderer::Geometry
 			INT		BaseVertexLocation = 0;
 		};
 
+		struct SceneGraphNode
+		{
+			Math::Matrix4 xform;
+			Math::Quaternion rotation;
+			Math::XMFLOAT3 scale;
+			std::string name;
+
+			uint32_t matrixIdx : 28;
+			uint32_t hasSibling : 1;
+			uint32_t hasChildren : 1;
+			uint32_t staleMatrix : 1;
+			uint32_t skeletonRoot : 1;
+		};
+
 		INLINE D3D12_VERTEX_BUFFER_VIEW	VertexBufferView() const
 		{
 			return VertexDataGpu.VertexBufferView();
