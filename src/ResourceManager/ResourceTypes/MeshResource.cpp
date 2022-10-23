@@ -18,7 +18,7 @@ namespace Darius::ResourceManager
 
 	void MeshResource::GetFBXPolygons(MultiPartMeshData<VertexType>& meshDataVec, void const* meshP, DVector<DUnorderedMap<int, int>>& indexMapper)
 	{
-	
+
 		auto mesh = (FbxMesh const*)meshP;
 		auto polyCount = mesh->GetPolygonCount();
 
@@ -98,7 +98,7 @@ namespace Darius::ResourceManager
 			//we can get normals by retrieving each control point
 			if (lNormalElement->GetMappingMode() == FbxGeometryElement::eByControlPoint)
 			{
-				
+
 				//Let's get normals of each vertex, since the mapping mode of normal element is by control point
 				for (int lVertexIndex = 0; lVertexIndex < mesh->GetControlPointsCount(); lVertexIndex++)
 				{
@@ -147,7 +147,7 @@ namespace Darius::ResourceManager
 
 						//Got normals of each polygon-vertex.
 						FbxVector4 lNormal = lNormalElement->GetDirectArray().GetAt(lNormalIndex);
-						
+
 						auto& vert = polyMeshData.Vertices[polyMeshData.Indices32[i]];
 						vert.mNormal.x = lNormal.mData[0];
 						vert.mNormal.y = lNormal.mData[1];
@@ -180,9 +180,9 @@ namespace Darius::ResourceManager
 		//iterating through the data by polygon
 		if (lUVElement->GetMappingMode() == FbxGeometryElement::eByControlPoint)
 		{
+			auto& polyMeshData = meshDataVec.meshParts[0];
 			for (int lPolyIndex = 0; lPolyIndex < mesh->GetPolygonCount(); ++lPolyIndex)
 			{
-				auto& polyMeshData = meshDataVec.meshParts[lPolyIndex];
 				// build the max index array that we need to pass into MakePoly
 				for (int lVertIndex = 0; lVertIndex < mesh->GetPolygonSize(lPolyIndex); ++lVertIndex)
 				{
@@ -195,7 +195,7 @@ namespace Darius::ResourceManager
 
 					lUVValue = lUVElement->GetDirectArray().GetAt(lUVIndex);
 
-					auto& vert = polyMeshData.Vertices[indexMapper[lPolyIndex][polyMeshData.Indices32[lVertIndex]]];
+					auto& vert = polyMeshData.Vertices[lPolyVertIndex];
 
 					vert.mTexC.x = lUVValue[0];
 					vert.mTexC.y = lUVValue[1];
