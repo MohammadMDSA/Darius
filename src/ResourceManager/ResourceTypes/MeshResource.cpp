@@ -24,37 +24,69 @@ namespace Darius::ResourceManager
 
 		auto controlPoints = mesh->GetControlPoints();
 
-		for (size_t polyIdx = 0; polyIdx < polyCount; polyIdx++)
+		auto mappinMode = mesh->GetElementNormal()->GetMappingMode();
+
+		if (mappinMode == FbxGeometryElement::eByControlPoint)
 		{
-			// A submesh for each polygon
 			D_RENDERER_GEOMETRY::MeshData<VertexType> submeshData;
-
-			for (size_t vertIdx = 0; vertIdx < mesh->GetPolygonSize(polyIdx); vertIdx++)
+			for (size_t i = 0; i < mesh->GetControlPointsCount(); i++)
 			{
-				// Add new mapped index
-				auto vertexGlobalIdx = mesh->GetPolygonVertex(polyIdx, vertIdx);
-				if (!indexMapper[polyIdx].contains(vertexGlobalIdx))
-				{
-					VertexType vert;
-					auto controlPoint = controlPoints[vertexGlobalIdx];
-					vert.mPosition.x = (float)controlPoint[0];
-					vert.mPosition.y = (float)controlPoint[1];
-					vert.mPosition.z = (float)controlPoint[2];
-					vert.mNormal = { 0.f, 0.f, 0.f };
-					vert.mTangent = { 0.f, 0.f, 0.f };
-					submeshData.Vertices.push_back(vert);
-
-					indexMapper[polyIdx][vertexGlobalIdx] = submeshData.Vertices.size() - 1;
-				}
-
-				submeshData.Indices32.push_back(indexMapper[polyIdx][vertexGlobalIdx]);
+				VertexType vert;
+				auto controlPoint = controlPoints[i];
+				vert.mPosition.x = (float)controlPoint[0];
+				vert.mPosition.y = (float)controlPoint[1];
+				vert.mPosition.z = (float)controlPoint[2];
+				vert.mNormal = { 0.f, 0.f, 0.f };
+				vert.mTangent = { 0.f, 0.f, 0.f };
+				submeshData.Vertices.push_back(vert);
 			}
 
+			for (size_t polyIdx = 0; polyIdx < polyCount; polyIdx++)
+			{
+				for (size_t vertIdx = 0; vertIdx < mesh->GetPolygonSize(polyIdx); vertIdx++)
+				{
+					// Add new mapped index
+					auto vertexGlobalIdx = mesh->GetPolygonVertex(polyIdx, vertIdx);
+					indexMapper[polyIdx][vertexGlobalIdx] = vertIdx;
+					submeshData.Indices32.push_back(vertexGlobalIdx);
+				}
+			}
 			meshDataVec.meshParts.push_back(submeshData);
+		}
+		else
+		{
+			for (size_t polyIdx = 0; polyIdx < polyCount; polyIdx++)
+			{
+				// A submesh for each polygon
+				D_RENDERER_GEOMETRY::MeshData<VertexType> submeshData;
+
+				for (size_t vertIdx = 0; vertIdx < mesh->GetPolygonSize(polyIdx); vertIdx++)
+				{
+					// Add new mapped index
+					auto vertexGlobalIdx = mesh->GetPolygonVertex(polyIdx, vertIdx);
+					if (!indexMapper[polyIdx].contains(vertexGlobalIdx))
+					{
+						VertexType vert;
+						auto controlPoint = controlPoints[vertexGlobalIdx];
+						vert.mPosition.x = (float)controlPoint[0];
+						vert.mPosition.y = (float)controlPoint[1];
+						vert.mPosition.z = (float)controlPoint[2];
+						vert.mNormal = { 0.f, 0.f, 0.f };
+						vert.mTangent = { 0.f, 0.f, 0.f };
+						submeshData.Vertices.push_back(vert);
+
+						indexMapper[polyIdx][vertexGlobalIdx] = submeshData.Vertices.size() - 1;
+					}
+
+					submeshData.Indices32.push_back(indexMapper[polyIdx][vertexGlobalIdx]);
+				}
+
+				meshDataVec.meshParts.push_back(submeshData);
+			}
 		}
 	}
 
-	void MeshResource::GetFBXNormalss(MultiPartMeshData<VertexType>& meshDataVec, void const* meshP, DVector<DUnorderedMap<int, int>>& indexMapper)
+	void MeshResource::GetFBXNormals(MultiPartMeshData<VertexType>& meshDataVec, void const* meshP, DVector<DUnorderedMap<int, int>>& indexMapper)
 	{
 		auto mesh = (FbxMesh const*)meshP;
 
@@ -66,14 +98,7 @@ namespace Darius::ResourceManager
 			//we can get normals by retrieving each control point
 			if (lNormalElement->GetMappingMode() == FbxGeometryElement::eByControlPoint)
 			{
-				// Map vertex index to polygon index
-				DVector<std::pair<int, int>> vecPolMap(mesh->GetControlPointsCount());
-				for (int polIdx = 0; polIdx < indexMapper.size(); polIdx++)
-				{
-					for (auto [vertIdx, vertInnerIdx] : indexMapper[polIdx])
-						vecPolMap[vertIdx] = { polIdx, vertInnerIdx };
-				}
-
+				
 				//Let's get normals of each vertex, since the mapping mode of normal element is by control point
 				for (int lVertexIndex = 0; lVertexIndex < mesh->GetControlPointsCount(); lVertexIndex++)
 				{
@@ -91,8 +116,7 @@ namespace Darius::ResourceManager
 					FbxVector4 lNormal = lNormalElement->GetDirectArray().GetAt(lNormalIndex);
 					//add your custom code here, to output normals or get them into a list, such as KArrayTemplate<FbxVector4>
 
-					auto innerIndex = vecPolMap[lVertexIndex];
-					auto vert = meshDataVec.meshParts[innerIndex.first].Vertices[innerIndex.second];
+					auto& vert = meshDataVec.meshParts[0].Vertices[lVertexIndex];
 					vert.mNormal.x = lNormal.mData[0];
 					vert.mNormal.y = lNormal.mData[1];
 					vert.mNormal.z = lNormal.mData[2];
