@@ -26,7 +26,7 @@ namespace Darius::ResourceManager
 	public:
 		INLINE Mesh*					ModifyMeshData() { MakeDiskDirty(); MakeGpuDirty(); return &mMesh; }
 		INLINE const Mesh*				GetMeshData() const { return &mMesh; }
-		virtual void					Create(D_CONTAINERS::DVector<MeshData<VertexType>>& data) override;
+		void							Create(MultiPartMeshData<VertexType>& data);
 
 #ifdef _D_EDITOR
 		virtual bool					DrawDetails(float params[]) override { (params); return false; };
@@ -38,17 +38,15 @@ namespace Darius::ResourceManager
 		D_CH_FIELD_ACC(Mesh, Mesh, protected);
 
 	protected:
-
+		
 		StaticMeshResource(Uuid uuid, std::wstring const& path, DResourceId id, bool isDefault = false) :
 			MeshResource(uuid, path, id, isDefault) {}
+
+		virtual bool					UploadToGpu(D_GRAPHICS::GraphicsContext& context) override;
 
 		static bool						CanConstructFrom(Path const&);
 
 	private:
 		friend class DResourceManager;
-
-		void GetFBXUVs(DVector<D_RENDERER_GEOMETRY::MeshData<VertexType>>& meshData, void const* mesh, DVector<DUnorderedMap<int, int>>& indexMapper);
-		void GetFBXNormalss(DVector<D_RENDERER_GEOMETRY::MeshData<VertexType>>& meshData, void const* mesh, DVector<DUnorderedMap<int, int>>& indexMapper);
-		
 	};
 }

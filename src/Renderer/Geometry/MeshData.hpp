@@ -65,4 +65,11 @@ namespace Darius::Renderer::Geometry
 	private:
 		DVector<uint16>		mIndices16;
 	};
+
+	template<typename Vertex>
+	struct MultiPartMeshData
+	{
+		DVector<MeshData<Vertex>> meshParts;
+		DVector<DVector<std::pair<int, float>>> jointWeight; // For each vertex, for each connected joint, index and weight
+	};
 }

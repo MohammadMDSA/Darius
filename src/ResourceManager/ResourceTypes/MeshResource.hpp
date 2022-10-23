@@ -25,7 +25,6 @@ namespace Darius::ResourceManager
 	public:
 		INLINE Mesh*					ModifyMeshData() { MakeDiskDirty(); MakeGpuDirty(); return &mMesh; }
 		INLINE const Mesh*				GetMeshData() const { return &mMesh; }
-		virtual void					Create(D_CONTAINERS::DVector<MeshData<VertexType>>& data) = 0;
 
 #ifdef _D_EDITOR
 		virtual bool					DrawDetails(float params[]) override { (params); return false; };
@@ -38,19 +37,19 @@ namespace Darius::ResourceManager
 
 	protected:
 
-		INLINE virtual void				WriteResourceToFile() const override {};
-		INLINE virtual void				ReadResourceFromFile() override {};
-		virtual bool					UploadToGpu(D_GRAPHICS::GraphicsContext& context) override;
-		
 		MeshResource(Uuid uuid, std::wstring const& path, DResourceId id, bool isDefault = false) :
 			Resource(uuid, path, id, isDefault) {}
 
-	private:
+		INLINE virtual void				WriteResourceToFile() const override {};
+		INLINE virtual void				ReadResourceFromFile() override {};
+		
 		friend class DResourceManager;
 
-		void							GetFBXUVs(DVector<D_RENDERER_GEOMETRY::MeshData<VertexType>>& meshDataVec, void const* meshP, DVector<DUnorderedMap<int, int>>& indexMapper);
+		static void						GetFBXUVs(MultiPartMeshData<VertexType>& meshDataVec, void const* meshP, DVector<DUnorderedMap<int, int>>& indexMapper);
 
-		void							GetFBXNormalss(DVector<D_RENDERER_GEOMETRY::MeshData<VertexType>>& meshDataVec, void const* meshP, DVector<DUnorderedMap<int, int>>& indexMapper);
+		static void						GetFBXNormalss(MultiPartMeshData<VertexType>& meshDataVec, void const* meshP, DVector<DUnorderedMap<int, int>>& indexMapper);
+
+		static void						GetFBXPolygons(MultiPartMeshData<VertexType>& meshDataVec, void const* meshP, DVector<DUnorderedMap<int, int>>& indexMapper);
 
 	};
 }

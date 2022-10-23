@@ -16,63 +16,14 @@ using namespace D_CONTAINERS;
 namespace Darius::ResourceManager
 {
 
-	bool MeshResource::UploadToGpu(D_GRAPHICS::GraphicsContext& context)
+	void MeshResource::GetFBXPolygons(MultiPartMeshData<VertexType>& meshDataVec, void const* meshP, DVector<DUnorderedMap<int, int>>& indexMapper)
 	{
-		// Create the FBX SDK manager
-		FbxManager* lSdkManager = FbxManager::Create();
-
-		// Create an IOSettings object.
-		FbxIOSettings* ios = FbxIOSettings::Create(lSdkManager, IOSROOT);
-		lSdkManager->SetIOSettings(ios);
-
-		// Create an importer.
-		FbxImporter* lImporter = FbxImporter::Create(lSdkManager, "");
-
-		// Declare the path and filename of the file containing the scene.
-		// In this case, we are assuming the file is in the same directory as the executable.
-		auto pathStr = GetPath().string();
-		const char* lFilename = pathStr.c_str();
-
-
-		// Initialize the importer.
-		bool lImportStatus = lImporter->Initialize(lFilename, -1, lSdkManager->GetIOSettings());
-
-		if (!lImportStatus) {
-			D_LOG_ERROR("Call to FbxImporter::Initialize() failed.");
-			std::string msg = "Error returned: " + std::string(lImporter->GetStatus().GetErrorString());
-			D_LOG_ERROR(msg);
-			return false;
-		}
-
-		// Create a new scene so it can be populated by the imported file.
-		FbxScene* lScene = FbxScene::Create(lSdkManager, "modelScene");
-
-		// Import the contents of the file into the scene.
-		lImporter->Import(lScene);
-
-		// The file has been imported; we can get rid of the importer.
-		lImporter->Destroy();
-
-
-
-		// Print the nodes of the scene and their attributes recursively.
-		// Note that we are not printing the root node because it should
-		// not contain any attributes.
-		FbxNode* lRootNode = lScene->GetRootNode();
-
-		// Only dealing with first child
-		auto node = lRootNode->GetChild(0);
-		auto mesh = node->GetMesh();
+	
+		auto mesh = (FbxMesh const*)meshP;
+		auto polyCount = mesh->GetPolygonCount();
 
 		auto controlPoints = mesh->GetControlPoints();
 
-		DVector<D_RENDERER_GEOMETRY::MeshData<VertexType>> meshDataVec;
-
-		fbxsdk::FbxLayerElementArrayTemplate<fbxsdk::FbxVector2>* uvArr;
-
-		// Iterating polygons
-		auto polyCount = mesh->GetPolygonCount();
-		DVector<DUnorderedMap<int, int>> indexMapper(polyCount);
 		for (size_t polyIdx = 0; polyIdx < polyCount; polyIdx++)
 		{
 			// A submesh for each polygon
@@ -99,23 +50,11 @@ namespace Darius::ResourceManager
 				submeshData.Indices32.push_back(indexMapper[polyIdx][vertexGlobalIdx]);
 			}
 
-			meshDataVec.push_back(submeshData);
+			meshDataVec.meshParts.push_back(submeshData);
 		}
-
-		//Add UV data
-		GetFBXUVs(meshDataVec, mesh, indexMapper);
-
-		// Add Normal data
-		GetFBXNormalss(meshDataVec, mesh, indexMapper);
-
-		// Destroy the SDK manager and all the other objects it was handling.
-		lSdkManager->Destroy();
-
-		Create(meshDataVec);
-		return true;
 	}
 
-	void MeshResource::GetFBXNormalss(DVector<D_RENDERER_GEOMETRY::MeshData<VertexType>>& meshDataVec, void const* meshP, DVector<DUnorderedMap<int, int>>& indexMapper)
+	void MeshResource::GetFBXNormalss(MultiPartMeshData<VertexType>& meshDataVec, void const* meshP, DVector<DUnorderedMap<int, int>>& indexMapper)
 	{
 		auto mesh = (FbxMesh const*)meshP;
 
@@ -127,6 +66,14 @@ namespace Darius::ResourceManager
 			//we can get normals by retrieving each control point
 			if (lNormalElement->GetMappingMode() == FbxGeometryElement::eByControlPoint)
 			{
+				// Map vertex index to polygon index
+				DVector<std::pair<int, int>> vecPolMap(mesh->GetControlPointsCount());
+				for (int polIdx = 0; polIdx < indexMapper.size(); polIdx++)
+				{
+					for (auto [vertIdx, vertInnerIdx] : indexMapper[polIdx])
+						vecPolMap[vertIdx] = { polIdx, vertInnerIdx };
+				}
+
 				//Let's get normals of each vertex, since the mapping mode of normal element is by control point
 				for (int lVertexIndex = 0; lVertexIndex < mesh->GetControlPointsCount(); lVertexIndex++)
 				{
@@ -143,7 +90,12 @@ namespace Darius::ResourceManager
 					//Got normals of each vertex.
 					FbxVector4 lNormal = lNormalElement->GetDirectArray().GetAt(lNormalIndex);
 					//add your custom code here, to output normals or get them into a list, such as KArrayTemplate<FbxVector4>
-					throw D_EXCEPTION::Exception("Normal by control point not supported yet");
+
+					auto innerIndex = vecPolMap[lVertexIndex];
+					auto vert = meshDataVec.meshParts[innerIndex.first].Vertices[innerIndex.second];
+					vert.mNormal.x = lNormal.mData[0];
+					vert.mNormal.y = lNormal.mData[1];
+					vert.mNormal.z = lNormal.mData[2];
 				}//end for lVertexIndex
 			}//end eByControlPoint
 			//mapping mode is by polygon-vertex.
@@ -154,7 +106,7 @@ namespace Darius::ResourceManager
 				//Let's get normals of each polygon, since the mapping mode of normal element is by polygon-vertex.
 				for (int lPolygonIndex = 0; lPolygonIndex < mesh->GetPolygonCount(); lPolygonIndex++)
 				{
-					auto& polyMeshData = meshDataVec[lPolygonIndex];
+					auto& polyMeshData = meshDataVec.meshParts[lPolygonIndex];
 					//get polygon size, you know how many vertices in current polygon.
 					int lPolygonSize = mesh->GetPolygonSize(lPolygonIndex);
 					//retrieve each vertex of current polygon.
@@ -185,12 +137,15 @@ namespace Darius::ResourceManager
 		}
 	}
 
-	void MeshResource::GetFBXUVs(DVector<D_RENDERER_GEOMETRY::MeshData<VertexType>>& meshDataVec, void const* meshP, DVector<DUnorderedMap<int, int>>& indexMapper)
+	void MeshResource::GetFBXUVs(MultiPartMeshData<VertexType>& meshDataVec, void const* meshP, DVector<DUnorderedMap<int, int>>& indexMapper)
 	{
 		auto mesh = (FbxMesh const*)meshP;
 
 		FbxStringList lUVSetNameList;
 		mesh->GetUVSetNames(lUVSetNameList);
+
+		if (lUVSetNameList.GetCount() == 0)
+			return;
 
 		const FbxGeometryElementUV* lUVElement = mesh->GetElementUV(lUVSetNameList[0]);
 
@@ -203,7 +158,7 @@ namespace Darius::ResourceManager
 		{
 			for (int lPolyIndex = 0; lPolyIndex < mesh->GetPolygonCount(); ++lPolyIndex)
 			{
-				auto& polyMeshData = meshDataVec[lPolyIndex];
+				auto& polyMeshData = meshDataVec.meshParts[lPolyIndex];
 				// build the max index array that we need to pass into MakePoly
 				for (int lVertIndex = 0; lVertIndex < mesh->GetPolygonSize(lPolyIndex); ++lVertIndex)
 				{
@@ -228,7 +183,7 @@ namespace Darius::ResourceManager
 			int lPolyIndexCounter = 0;
 			for (int lPolyIndex = 0; lPolyIndex < mesh->GetPolygonCount(); ++lPolyIndex)
 			{
-				auto& polyMeshData = meshDataVec[lPolyIndex];
+				auto& polyMeshData = meshDataVec.meshParts[lPolyIndex];
 
 				// build the max index array that we need to pass into MakePoly
 				for (int lVertIndex = 0; lVertIndex < mesh->GetPolygonSize(lPolyIndex); ++lVertIndex)
