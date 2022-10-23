@@ -180,6 +180,16 @@ namespace Darius::Renderer
 		wirePso.SetRasterizerState(wireRasterState);
 		wirePso.Finalize(L"Wireframe");
 
+		// For Skinned Transparent
+		{
+			auto skinnedOpaquePso = GraphicsPSO(L"Skinned Opaque PSO");
+			skinnedOpaquePso = pso;
+			skinnedOpaquePso.SetVertexShader(Shaders["skinnedVS"]->GetBufferPointer(), Shaders["skinnedVS"]->GetBufferSize());
+			skinnedOpaquePso.SetInputLayout(D_GRAPHICS_VERTEX::VertexPositionNormalTextureSkinned::InputLayout.NumElements, D_GRAPHICS_VERTEX::VertexPositionNormalTextureSkinned::InputLayout.pInputElementDescs);
+			skinnedOpaquePso.Finalize();
+			Psos[(size_t)PipelineStateTypes::SkinnedOpaquePso] = skinnedOpaquePso;
+		}
+
 		// For colored only objects
 		Psos[(size_t)PipelineStateTypes::ColorPso] = pso;
 		auto& colorPso = Psos[(size_t)PipelineStateTypes::ColorPso];
