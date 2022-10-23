@@ -51,23 +51,19 @@ namespace Darius::ResourceManager
 
 	void SerializeMeta(Json& json, ResourceMeta const& meta)
 	{
-		json["Path"] = meta.Path.wstring();
-		json["Name"] = meta.Name;
+		json["Path"] = meta.Path.string();
+		json["Name"] = STR_WSTR(meta.Name);
 		json["Type"] = ResourceTypeToString(meta.Type);
-		json["UUID"] = meta.Uuid.data;
+		json["UUID"] = D_CORE::ToString(meta.Uuid);
 	}
 
 	void DeserializeMeta(Json const& json, ResourceMeta& meta)
 	{
-		meta.Path = json["Path"].get<std::wstring>();
-		meta.Name = json["Name"].get<std::wstring>();
+		meta.Path = json["Path"].get<std::string>();
+		auto name = json["Name"].get<std::string>();
+		meta.Name = WSTR_STR(name);
 		meta.Type = StringToResourceType(json["Type"]);
-		auto uuid = json["UUID"];
-
-		for (size_t i = 0; i < 16; i++)
-		{
-			meta.Uuid.data[i] = uuid[i];
-		}
+		meta.Uuid = D_CORE::FromString(json["UUID"]);
 	}
 
 	bool ResourceLoader::SaveResource(Resource* resource)
@@ -179,7 +175,6 @@ namespace Darius::ResourceManager
 		}
 
 		// No meta available for resource
-
 		// Create resource object
 		auto handles = CreateResourceObject(path, manager);
 
