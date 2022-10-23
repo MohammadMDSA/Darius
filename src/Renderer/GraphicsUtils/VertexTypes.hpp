@@ -2,11 +2,11 @@
 
 #include <Math/Vector.hpp>
 
-#define D_RENDERER_VERTEX Darius::Renderer::GraphicsUtils::VertexTypes
+#define D_GRAPHICS_VERTEX Darius::Graphics::Utils::VertexTypes
 
 using namespace Darius::Math;
 
-namespace Darius::Renderer::GraphicsUtils::VertexTypes
+namespace Darius::Graphics::Utils::VertexTypes
 {
 	interface IVertexType {};
 
@@ -93,6 +93,38 @@ namespace Darius::Renderer::GraphicsUtils::VertexTypes
 		static const D3D12_INPUT_ELEMENT_DESC	InputElements[InputElementCount];
 	};
 
+	struct VertexPositionNormalTextureSkinned : public IVertexType
+	{
+		VertexPositionNormalTextureSkinned() = default;
+
+		VertexPositionNormalTextureSkinned(const VertexPositionNormalTextureSkinned&) = default;
+		VertexPositionNormalTextureSkinned& operator=(const VertexPositionNormalTextureSkinned&) = default;
+
+		VertexPositionNormalTextureSkinned(VertexPositionNormalTextureSkinned&&) = default;
+		VertexPositionNormalTextureSkinned& operator=(VertexPositionNormalTextureSkinned&&) = default;
+
+		VertexPositionNormalTextureSkinned(Vector3 const& position, Vector3 const& normal, XMFLOAT2 const& tex, XMUINT4 const& blendIndices, XMFLOAT4 blendWeights) noexcept :
+			mPosition(position),
+			mNormal(normal),
+			mTexCoord(tex),
+			mBlendIndices(blendIndices),
+			mBlendWeights(blendWeights)
+		{
+		}
+
+		XMFLOAT3								mPosition;
+		XMFLOAT3								mNormal;
+		XMFLOAT2								mTexCoord;
+		XMUINT4									mBlendIndices;
+		XMFLOAT4								mBlendWeights;
+
+		static const D3D12_INPUT_LAYOUT_DESC	InputLayout;
+
+	private:
+		static constexpr unsigned int			InputElementCount = 5;
+		static const D3D12_INPUT_ELEMENT_DESC	InputElements[InputElementCount];
+	};
+
 	struct VertexPositionColor : public IVertexType
 	{
 		VertexPositionColor() = default;
@@ -158,6 +190,57 @@ namespace Darius::Renderer::GraphicsUtils::VertexTypes
 
 	private:
 		static constexpr unsigned int			InputElementCount = 4;
+		static const D3D12_INPUT_ELEMENT_DESC	InputElements[InputElementCount];
+	};
+
+
+	struct VertexPositionNormalTangentTextureSkinned : public IVertexType
+	{
+		VertexPositionNormalTangentTextureSkinned() = default;
+
+		VertexPositionNormalTangentTextureSkinned(const VertexPositionNormalTangentTextureSkinned&) = default;
+		VertexPositionNormalTangentTextureSkinned& operator=(const VertexPositionNormalTangentTextureSkinned&) = default;
+
+		VertexPositionNormalTangentTextureSkinned(VertexPositionNormalTangentTextureSkinned&&) = default;
+		VertexPositionNormalTangentTextureSkinned& operator=(VertexPositionNormalTangentTextureSkinned&&) = default;
+
+		VertexPositionNormalTangentTextureSkinned(Vector3 const& pos, Vector3 const& norm, Vector3 const& tang, XMFLOAT2 const& uv,
+			XMUINT4 const& blendIndices = { 0, 0, 0, 0 }, XMFLOAT4 blendWeights = { 0.f, 0.f, 0.f, 0.f }) :
+			mPosition(pos),
+			mNormal(norm),
+			mTangent(tang),
+			mTexC(uv),
+			mBlendIndices(blendIndices),
+			mBlendWeights(blendWeights)
+		{
+		}
+
+		VertexPositionNormalTangentTextureSkinned(
+			float px, float py, float pz,
+			float nx, float ny, float nz,
+			float tx, float ty, float tz,
+			float u, float v,
+			XMUINT4 const& blendIndices = { 0, 0, 0, 0 }, XMFLOAT4 blendWeights = { 0.f, 0.f, 0.f, 0.f }) :
+			mPosition(px, py, pz),
+			mNormal(nx, ny, nz),
+			mTangent(tx, ty, tz),
+			mTexC(u, v),
+			mBlendIndices(blendIndices),
+			mBlendWeights(blendWeights)
+		{
+		}
+
+		XMFLOAT3								mPosition;
+		XMFLOAT3								mNormal;
+		XMFLOAT3								mTangent;
+		XMFLOAT2								mTexC;
+		XMUINT4									mBlendIndices;
+		XMFLOAT4								mBlendWeights;
+
+		static const D3D12_INPUT_LAYOUT_DESC	InputLayout;
+
+	private:
+		static constexpr unsigned int			InputElementCount = 6;
 		static const D3D12_INPUT_ELEMENT_DESC	InputElements[InputElementCount];
 	};
 }

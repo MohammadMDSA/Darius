@@ -3,7 +3,7 @@
 
 #include <Utils/Assert.hpp>
 
-namespace Darius::Renderer::GraphicsUtils::VertexTypes
+namespace Darius::Graphics::Utils::VertexTypes
 {
 
 	/////////////////////////////////////////////////
@@ -60,6 +60,27 @@ namespace Darius::Renderer::GraphicsUtils::VertexTypes
 
 
 	/////////////////////////////////////////////////
+	////// Position Normal Texture Skinned //////////
+	/////////////////////////////////////////////////
+	const D3D12_INPUT_ELEMENT_DESC VertexPositionNormalTextureSkinned::InputElements[] =
+	{
+		{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D12_APPEND_ALIGNED_ELEMENT, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
+		{ "NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D12_APPEND_ALIGNED_ELEMENT, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
+		{ "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, D3D12_APPEND_ALIGNED_ELEMENT, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
+		{ "BLENDINDICES", 0, DXGI_FORMAT_R16G16B16A16_UINT, 0, D3D12_APPEND_ALIGNED_ELEMENT, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
+		{ "BLENDWEIGHT", 0, DXGI_FORMAT_R16G16B16A16_UNORM, 0, D3D12_APPEND_ALIGNED_ELEMENT, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 }
+	};
+
+	D_STATIC_ASSERT_M(sizeof(VertexPositionNormalTextureSkinned) == 64, "Vertex struct/layout mismatch");
+
+	const D3D12_INPUT_LAYOUT_DESC VertexPositionNormalTextureSkinned::InputLayout =
+	{
+		VertexPositionNormalTextureSkinned::InputElements,
+		VertexPositionNormalTextureSkinned::InputElementCount
+	};
+
+
+	/////////////////////////////////////////////////
 	/////////////// Position Color //////////////////
 	/////////////////////////////////////////////////
 	const D3D12_INPUT_ELEMENT_DESC VertexPositionColor::InputElements[] =
@@ -93,6 +114,27 @@ namespace Darius::Renderer::GraphicsUtils::VertexTypes
 	{
 		VertexPositionNormalTangentTexture::InputElements,
 		VertexPositionNormalTangentTexture::InputElementCount
+	};
+
+	/////////////////////////////////////////////////
+	/////// Position Normal Tangent UV Skined ///////
+	/////////////////////////////////////////////////
+	const D3D12_INPUT_ELEMENT_DESC VertexPositionNormalTangentTextureSkinned::InputElements[] =
+	{
+		{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D12_APPEND_ALIGNED_ELEMENT, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
+		{ "NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D12_APPEND_ALIGNED_ELEMENT, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
+		{ "TANGENT", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D12_APPEND_ALIGNED_ELEMENT, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
+		{ "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, D3D12_APPEND_ALIGNED_ELEMENT, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
+		{ "BLENDINDICES", 0, DXGI_FORMAT_R16G16B16A16_UINT, 0, D3D12_APPEND_ALIGNED_ELEMENT, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
+		{ "BLENDWEIGHT", 0, DXGI_FORMAT_R16G16B16A16_UNORM, 0, D3D12_APPEND_ALIGNED_ELEMENT, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 }
+	};
+
+	D_STATIC_ASSERT_M(sizeof(VertexPositionNormalTangentTextureSkinned) == 76, "Vertex struct/layout mismatch");
+
+	const D3D12_INPUT_LAYOUT_DESC VertexPositionNormalTangentTextureSkinned::InputLayout =
+	{
+		VertexPositionNormalTangentTextureSkinned::InputElements,
+		VertexPositionNormalTangentTextureSkinned::InputElementCount
 	};
 
 }
