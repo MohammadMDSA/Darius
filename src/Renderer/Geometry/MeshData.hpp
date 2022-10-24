@@ -70,6 +70,11 @@ namespace Darius::Renderer::Geometry
 	struct MultiPartMeshData
 	{
 		DVector<MeshData<Vertex>> meshParts;
+	};
+
+	struct VertexBlendWeightData
+	{
 		DVector<DVector<std::pair<int, float>>> jointWeight; // For each vertex, for each connected joint, index and weight
+
 	};
 }
