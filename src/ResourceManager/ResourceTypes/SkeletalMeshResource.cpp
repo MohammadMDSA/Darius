@@ -194,6 +194,8 @@ namespace Darius::ResourceManager
 
 		fbxsdk::FbxLayerElementArrayTemplate<fbxsdk::FbxVector2>* uvArr;
 
+		// List of polygon in which mapping global index of vertex to polygon index of it
+		// If controlpoint mapping, there will be only poly and all key-values will be the same
 		DVector<DUnorderedMap<int, int>> indexMapper(mesh->GetPolygonCount());
 
 		// Add polygons
@@ -218,7 +220,7 @@ namespace Darius::ResourceManager
 
 	void SkeletalMeshResource::GetFBXSkin(MultiPartMeshData<VertexType>& meshDataVec, void const* meshP, DVector<DUnorderedMap<int, int>>& indexMapper)
 	{
-
+		VertexBlendWeightData skinData;
 		auto mesh = (FbxMesh const*)meshP;
 
 		if (mesh->GetDeformerCount(FbxDeformer::eSkin) == 0)
@@ -262,11 +264,11 @@ namespace Darius::ResourceManager
 
 		// Assigning blend weights and indices
 		{
-			meshDataVec.jointWeight.resize(mesh->GetControlPointsCount());
+			skinData.jointWeight.resize(mesh->GetControlPointsCount());
 			for (int clusterIndex = 0; clusterIndex < clusterCount; clusterIndex++)
 			{
 				const auto cluster = deformer->GetCluster(clusterIndex);
-				
+
 				if (!cluster->GetLink())
 					continue;
 
@@ -280,16 +282,12 @@ namespace Darius::ResourceManager
 					auto jointSkeleton = cluster->GetLink()->GetSkeleton();
 					auto jointIndex = skeletonIndexMap[jointSkeleton];
 
-					meshDataVec.jointWeight[controlPointIndex].push_back({ jointIndex, controlPointWeight });
+					skinData.jointWeight[controlPointIndex].push_back({ jointIndex, controlPointWeight });
 				}
 			}
 		}
 
-
-		for (size_t i = 0; i < meshDataVec.jointWeight.size(); i++)
-		{
-			D_LOG_INFO("Count weights: " << meshDataVec.jointWeight[i].size());
-		}
+		AddJointWeightToVertices(meshDataVec, skinData, indexMapper);
 	}
 
 	void SkeletalMeshResource::AddSkeletonChildren(void const* skeletonNode, DVector<Mesh::SceneGraphNode>& skeletonData, DMap<void const*, int>& skeletonIndexMap)
@@ -309,9 +307,10 @@ namespace Darius::ResourceManager
 
 		// TODO: What if children are not skeleton?
 		currentSceneGraphNode.hasChildren = node->GetChildCount() > 0;
-
 		currentSceneGraphNode.name = node->GetInitialName();
-		
+
+		skeletonIndexMap.insert({ skeleton, (int)currentSceneGraphNode.matrixIdx });
+
 		for (int i = 0; i < node->GetChildCount(); i++)
 		{
 			auto child = node->GetChild(i);
@@ -336,4 +335,67 @@ namespace Darius::ResourceManager
 		}
 	}
 
+	void SkeletalMeshResource::AddJointWeightToVertices(
+		MultiPartMeshData<VertexType>& meshDataVec,
+		VertexBlendWeightData& skinData,
+		DVector<DUnorderedMap<int, int>> const& indexMapper
+	)
+	{
+		// Not by control points
+		if (meshDataVec.meshParts.size() != 1)
+		{
+			for (int polyIdx = 0; polyIdx < indexMapper.size(); polyIdx++)
+			{
+				for (auto [vertGlobalIndex, vertSubmeshIndex] : indexMapper[polyIdx])
+				{
+					// Which vertex to put data in
+					auto& targetVertex = meshDataVec.meshParts[polyIdx].Vertices[vertSubmeshIndex];
+
+					// Blend data to put in vector
+					// Taking 4 data with most significant blend values
+					auto& vertBlendData = skinData.jointWeight[vertGlobalIndex];
+
+					AddBlendDataToVertex(targetVertex, vertBlendData);
+				}
+			}
+		}
+		// By control point
+		else
+		{
+			for (int vertIndex = 0; vertIndex < meshDataVec.meshParts[0].Vertices.size(); vertIndex++)
+			{
+				auto& targetvertex = meshDataVec.meshParts[0].Vertices[vertIndex];
+				auto& vertBlendData = skinData.jointWeight[vertIndex];
+				AddBlendDataToVertex(targetvertex, vertBlendData);
+			}
+		}
+	}
+
+	void SkeletalMeshResource::AddBlendDataToVertex(MeshResource::VertexType& vertex, DVector<std::pair<int, float>>& blendData)
+	{
+		std::sort(blendData.begin(), blendData.end(),
+			[](std::pair<int, float> const& a, std::pair<int, float> const& b)
+			{
+				return b.second < a.second;
+			});
+
+		// Adding blend data to vertex
+		for (int i = 0; i < 4; i++)
+		{
+			if (i >= blendData.size())
+			{
+				((float*)&vertex.mBlendWeights)[i] = 0.f;
+				((int*)&vertex.mBlendIndices)[i] = 0;
+			}
+			else
+			{
+				((float*)&vertex.mBlendWeights)[i] = blendData[i].second;
+				((int*)&vertex.mBlendIndices)[i] = blendData[i].first;
+			}
+		}
+
+		auto weightVec = Vector4(vertex.mBlendWeights);
+		weightVec = weightVec / Dot(weightVec, Vector4(1.f, 1.f, 1.f, 1.f));
+		vertex.mBlendWeights = weightVec;
+	}
 }
