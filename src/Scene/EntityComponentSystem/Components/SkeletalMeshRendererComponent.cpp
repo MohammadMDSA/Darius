@@ -37,7 +37,7 @@ namespace Darius::Scene::ECS::Components
 		}
 		mMeshConstantsGPU.Create(L"Mesh Constant GPU Buffer", 1, sizeof(MeshConstants));
 
-		if(!mMaterialResource.IsValid())
+		if (!mMaterialResource.IsValid())
 			_SetMaterial(D_RESOURCE::GetDefaultResource(DefaultResource::Material));
 	}
 
@@ -63,43 +63,58 @@ namespace Darius::Scene::ECS::Components
 	{
 		auto changeValue = false;
 
-		// Mesh selection
+		if (ImGui::BeginTable("mesh editor", 2, ImGuiTableFlags_BordersInnerV))
 		{
-			MeshResource* currentMesh = mMeshResource.Get();
+			// Shader type
+			ImGui::TableSetupColumn("label", ImGuiTableColumnFlags_WidthFixed, 100.f);
+			ImGui::TableSetupColumn("value", ImGuiTableColumnFlags_WidthStretch);
 
-			if (ImGui::Button("Select"))
+			ImGui::TableNextRow();
+			ImGui::TableSetColumnIndex(0);
+			ImGui::Text("Mesh");
+			ImGui::TableSetColumnIndex(1);
+			// Mesh selection
 			{
-				ImGui::OpenPopup("Select Res");
-			}
+				MeshResource* currentMesh = mMeshResource.Get();
 
-			if (ImGui::BeginPopup("Select Res"))
-			{
-				auto meshes = D_RESOURCE::GetResourcePreviews(SkeletalMeshResource::GetResourceType());
-				int idx = 0;
-				for (auto prev : meshes)
+				if (ImGui::Button("Select"))
 				{
-					bool selected = currentMesh && prev.Handle.Id == currentMesh->GetId() && prev.Handle.Type == currentMesh->GetType();
-
-					auto name = STR_WSTR(prev.Name);
-					ImGui::PushID((name + std::to_string(idx)).c_str());
-					if (ImGui::Selectable(name.c_str(), &selected))
-					{
-						SetMesh(prev.Handle);
-						changeValue = true;
-					}
-					ImGui::PopID();
-
-					idx++;
+					ImGui::OpenPopup("Select Res");
 				}
 
-				ImGui::EndPopup();
+				if (ImGui::BeginPopup("Select Res"))
+				{
+					auto meshes = D_RESOURCE::GetResourcePreviews(SkeletalMeshResource::GetResourceType());
+					int idx = 0;
+					for (auto prev : meshes)
+					{
+						bool selected = currentMesh && prev.Handle.Id == currentMesh->GetId() && prev.Handle.Type == currentMesh->GetType();
+
+						auto name = STR_WSTR(prev.Name);
+						ImGui::PushID((name + std::to_string(idx)).c_str());
+						if (ImGui::Selectable(name.c_str(), &selected))
+						{
+							SetMesh(prev.Handle);
+							changeValue = true;
+						}
+						ImGui::PopID();
+
+						idx++;
+					}
+
+					ImGui::EndPopup();
+				}
 			}
 
+			ImGui::TableNextRow();
+			ImGui::TableSetColumnIndex(0);
+			ImGui::Text("Material");
+			ImGui::TableSetColumnIndex(1);
 			// Material selection
 			{
 				MaterialResource* currentMaterial = mMaterialResource.Get();
 
-				if (ImGui::Button("Select M"))
+				if (ImGui::Button("Select"))
 				{
 					ImGui::OpenPopup("Select Mat");
 				}
@@ -126,6 +141,8 @@ namespace Darius::Scene::ECS::Components
 
 					ImGui::EndPopup();
 				}
+
+				ImGui::EndTable();
 			}
 		}
 
