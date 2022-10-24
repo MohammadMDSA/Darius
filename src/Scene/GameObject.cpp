@@ -14,7 +14,6 @@
 
 #include <imgui.h>
 #include <Libs/FontIcon/IconsFontAwesome6.h>
-#include <boost/algorithm/string.hpp>
 
 using namespace D_RESOURCE;
 using namespace D_ECS_COMP;
@@ -444,7 +443,7 @@ namespace Darius::Scene
 
 	}
 
-	void GameObject::RegisterComponent(std::string name, std::string displayName)
+	void GameObject::RegisterComponent(std::string name, D_CONTAINERS::DVector<std::string>& displayName)
 	{
 		auto& reg = D_WORLD::GetRegistry();
 		if (!reg.is_valid(reg.component(name.c_str())))
@@ -452,9 +451,7 @@ namespace Darius::Scene
 
 		// Add component name to names list respecting categories
 		auto currentLevel = &RegisteredComponents;
-		D_CONTAINERS::DVector<std::string> splitted;
-		// Splitting name by / to determine cats
-		boost::split(splitted, displayName, boost::is_any_of("/"));
+		auto& splitted = displayName;
 		for (int i = 0; i < splitted.size(); i++)
 		{
 			// This is the last part of name (what we want to show)

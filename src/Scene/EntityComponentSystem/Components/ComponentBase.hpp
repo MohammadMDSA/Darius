@@ -12,6 +12,8 @@
 #include <Utils/Assert.hpp>
 #include <Utils/StaticConstructor.hpp>
 
+#include <boost/algorithm/string.hpp>
+
 #ifndef D_ECS_COMP
 #define D_ECS_COMP Darius::Scene::ECS::Components
 #endif // !D_ECS_COMP
@@ -21,7 +23,7 @@ public: \
 type(); \
 type(D_CORE::Uuid uuid); \
 static INLINE std::string GetName() { return D_NAMEOF(type); } \
-virtual INLINE std::string GetDisplayName() const override { return compName; } \
+virtual INLINE std::string GetDisplayName() const override { return type::DisplayName; } \
 virtual INLINE std::string GetComponentName() const override { return D_NAMEOF(type); } \
 static void StaticConstructor() \
 { \
@@ -35,8 +37,11 @@ static void StaticConstructor() \
     auto parentComp = reg.component<parent>(); \
     D_ASSERT(reg.is_valid(parentComp)); \
     comp.is_a(parentComp); \
+    D_CONTAINERS::DVector<std::string> splitted; \
+    boost::split(splitted, compName, boost::is_any_of("/")); \
+    type::DisplayName = splitted[splitted.size() - 1]; \
     if(shouldRegister) \
-        D_SCENE::GameObject::RegisterComponent(D_NAMEOF(type), compName); \
+        D_SCENE::GameObject::RegisterComponent(D_NAMEOF(type), splitted); \
     if(isBehaviour) \
         D_SCENE::GameObject::RegisterBehaviourComponent(comp); \
     sInit = true; \
@@ -45,10 +50,12 @@ static void StaticConstructor() \
 static void StaticDistructor() \
 {} \
 private: \
-static bool sInit;
+static bool sInit; \
+static std::string DisplayName;
 
 #define D_H_COMP_DEF(type) \
 bool type::sInit = false; \
+std::string type::DisplayName = "";
 //INVOKE_STATIC_CONSTRUCTOR(type);
 
 #define D_H_COMP_DEFAULT_CONSTRUCTOR_DEF_PAR(type, parent) \
@@ -131,5 +138,6 @@ namespace Darius::Scene::ECS::Components
         friend class Darius::Scene::SceneManager;
 
         static bool                 sInit;
+        static std::string          DisplayName;
 	};
 }

@@ -167,7 +167,7 @@ namespace Darius::Scene
 			return CountedOwner{ WSTR_STR(mName), "Game Object", this, 0 };
 		}
 
-		static void							RegisterComponent(std::string name, std::string displayName);
+		static void							RegisterComponent(std::string name, D_CONTAINERS::DVector<std::string>& displayName);
 		static void							RegisterBehaviourComponent(D_ECS::EntityId componentId);
 
 		D_CH_R_FIELD(bool, Active);
