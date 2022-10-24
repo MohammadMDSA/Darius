@@ -177,8 +177,10 @@ namespace Darius::Scene::ECS::Components
 
 	void MeshRendererComponent::Serialize(Json& j) const
 	{
-		D_CORE::to_json(j["Material"], mMaterialResource.Get()->GetUuid());
-		D_CORE::to_json(j["Mesh"], mMeshResource.Get()->GetUuid());
+		if (mMaterialResource.IsValid())
+			D_CORE::to_json(j["Material"], mMaterialResource.Get()->GetUuid());
+		if (mMeshResource.IsValid())
+			D_CORE::to_json(j["Mesh"], mMeshResource.Get()->GetUuid());
 	}
 
 	void MeshRendererComponent::Deserialize(Json const& j)
@@ -186,14 +188,20 @@ namespace Darius::Scene::ECS::Components
 		auto go = GetGameObject();
 
 		// Loading material
-		Uuid materialUuid;
-		D_CORE::from_json(j["Material"], materialUuid);
-		mMaterialResource = D_RESOURCE::GetResource<MaterialResource>(materialUuid, *go);
+		if (j.contains("Material"))
+		{
+			Uuid materialUuid;
+			D_CORE::from_json(j["Material"], materialUuid);
+			mMaterialResource = D_RESOURCE::GetResource<MaterialResource>(materialUuid, *go);
+		}
 
-		// Loading mesh
-		Uuid meshUuid;
-		D_CORE::from_json(j["Mesh"], meshUuid);
-		mMeshResource = D_RESOURCE::GetResource<StaticMeshResource>(meshUuid, *go);
+		if (j.contains("Mesh"))
+		{
+			// Loading mesh
+			Uuid meshUuid;
+			D_CORE::from_json(j["Mesh"], meshUuid);
+			mMeshResource = D_RESOURCE::GetResource<StaticMeshResource>(meshUuid, *go);
+		}
 	}
 
 	void MeshRendererComponent::Update(float dt)
