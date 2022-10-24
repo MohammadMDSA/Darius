@@ -58,6 +58,13 @@ namespace Darius::Renderer::ConstantFrameResource
 		int							TextureStatusMask = 0;
 	};
 
+
+	ALIGN_DECL_256 struct Joint
+	{
+		XMFLOAT4X4 PosXform;
+		XMFLOAT3X3 NrmXform;
+	};
+
 	
 	// Lightweight structure stores parameters to draw a shape.
 	struct RenderItem
