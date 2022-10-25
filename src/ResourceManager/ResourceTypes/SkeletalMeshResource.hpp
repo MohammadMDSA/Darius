@@ -34,7 +34,8 @@ namespace Darius::ResourceManager
 
 		SkeletalMeshResource(Uuid uuid, std::wstring const& path, DResourceId id, bool isDefault = false) :
 			MeshResource(uuid, path, id, isDefault),
-			mJointCount(0) {}
+			mJointCount(0),
+			mSkeletonRoot(nullptr) {}
 
 		virtual bool					UploadToGpu(D_GRAPHICS::GraphicsContext& context) override;
 

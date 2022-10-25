@@ -408,6 +408,7 @@ namespace Darius::ResourceManager
 		vertex.mBlendWeights = weightVec;
 	}
 
+#ifdef _D_EDITOR
 	void DrawJoint(const Mesh::SkeletonJoint* joint)
 	{
 		ImGuiTreeNodeFlags flag = joint->Children.size() ? 0 : ImGuiTreeNodeFlags_Leaf;
@@ -429,5 +430,6 @@ namespace Darius::ResourceManager
 
 		return false;
 	}
+#endif
 
 }
