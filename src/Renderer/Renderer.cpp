@@ -206,6 +206,7 @@ namespace Darius::Renderer
 			Psos[(size_t)PipelineStateTypes::ColorWireframePso] = Psos[(size_t)PipelineStateTypes::ColorPso];
 			auto& wireColorPso = Psos[(size_t)PipelineStateTypes::ColorWireframePso];
 			wireColorPso.SetRasterizerState(D_GRAPHICS::RasterizerDefaultWireframe);
+			wireColorPso.SetPrimitiveTopologyType(D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE);
 			wireColorPso.Finalize(L"Color Wireframe");
 		}
 
@@ -239,8 +240,8 @@ namespace Darius::Renderer
 		def[kMaterialSamplers].InitAsDescriptorRange(D3D12_DESCRIPTOR_RANGE_TYPE_SAMPLER, 0, 10, D3D12_SHADER_VISIBILITY_PIXEL);
 		def[kCommonCBV].InitAsConstantBuffer(1);
 		def[kCommonSRVs].InitAsDescriptorRange(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 10, 8, D3D12_SHADER_VISIBILITY_PIXEL);
+		def[kSkinMatrices].InitAsBufferSRV(20, D3D12_SHADER_VISIBILITY_VERTEX);
 		def.Finalize(L"Main Root Sig", D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT);
-
 	}
 
 	DescriptorHandle AllocateTextureDescriptor(UINT count)
@@ -428,6 +429,11 @@ namespace Darius::Renderer
 				{
 					context.SetConstantBuffer(kMaterialConstants, ri.Material.MaterialCBV);
 					context.SetDescriptorTable(kMaterialSRVs, ri.Material.MaterialSRV);
+				}
+
+				if (ri.mNumJoints > 0)
+				{
+					context.SetDynamicSRV(kSkinMatrices, sizeof(Joint)* ri.mNumJoints, ri.mJointData);
 				}
 
 				context.SetPipelineState(Psos[key.psoIdx]);

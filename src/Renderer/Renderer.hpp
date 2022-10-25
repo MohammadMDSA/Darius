@@ -30,7 +30,8 @@ namespace Darius::Renderer
 		kMaterialSRVs,
 		kMaterialSamplers,
 		kCommonCBV,				// Holds global constants in all shaders
-		kCommonSRVs,			
+		kCommonSRVs,	
+		kSkinMatrices,
 
 		kNumRootBindings		// Just to know how many root binings there are
 	};
