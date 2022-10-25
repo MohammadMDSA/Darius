@@ -192,7 +192,7 @@ namespace Darius::Scene::ECS::Components
 		{
 			Uuid materialUuid;
 			D_CORE::from_json(j["Material"], materialUuid);
-			mMaterialResource = D_RESOURCE::GetResource<MaterialResource>(materialUuid, *go);
+			_SetMaterial(*D_RESOURCE::GetResource<MaterialResource>(materialUuid, *go));
 		}
 
 		if (j.contains("Mesh"))
@@ -200,7 +200,7 @@ namespace Darius::Scene::ECS::Components
 			// Loading mesh
 			Uuid meshUuid;
 			D_CORE::from_json(j["Mesh"], meshUuid);
-			mMeshResource = D_RESOURCE::GetResource<StaticMeshResource>(meshUuid, *go);
+			_SetMesh(*D_RESOURCE::GetResource<StaticMeshResource>(meshUuid, *go));
 		}
 	}
 
