@@ -31,6 +31,7 @@ namespace Darius::ResourceManager
 		GridMesh,
 		QuadMesh,
 		SphereMesh,
+		LowPolySphereMesh,
 		LineMesh,
 
 		// Materials

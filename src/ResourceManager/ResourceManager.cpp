@@ -171,6 +171,7 @@ namespace Darius::ResourceManager
 			auto grid = D_RENDERER_GEOMETRY_GENERATOR::CreateGrid(100.f, 100.f, 100, 100);
 			auto quad = D_RENDERER_GEOMETRY_GENERATOR::CreateQuad(0.f, 0.f, 1.f, 1.f, 0.f);
 			auto sphere = D_RENDERER_GEOMETRY_GENERATOR::CreateSphere(0.5f, 40, 40);
+			auto lowSphere = D_RENDERER_GEOMETRY_GENERATOR::CreateSphere(0.5f, 10, 6);
 			auto line = D_RENDERER_GEOMETRY_GENERATOR::CreateLine(0.f, 0.f, 0.f, 0.f, 0.f, -1.f);
 
 			auto resHandle = CreateResource<StaticMeshResource>(GenerateUuidFor("Box Mesh"), L"Box Mesh", GetNewId(), true);
@@ -221,6 +222,14 @@ namespace Darius::ResourceManager
 			res->mDirtyGPU = false;
 			res->mDirtyDisk = false;
 			mDefaultResourceMap.insert({ DefaultResource::SphereMesh, { StaticMeshResource::GetResourceType(), res->GetId() } });
+
+			resHandle = CreateResource<StaticMeshResource>(GenerateUuidFor("Low Poly Sphere Mesh"), L"Low Poly Sphere Mesh", GetNewId(), true);
+			meshData.meshParts = DVector<MeshData<StaticMeshResource::VertexType>>{ lowSphere };
+			res = GetRawResource(resHandle);
+			((StaticMeshResource*)res)->Create(meshData);
+			res->mDirtyGPU = false;
+			res->mDirtyDisk = false;
+			mDefaultResourceMap.insert({ DefaultResource::LowPolySphereMesh, { StaticMeshResource::GetResourceType(), res->GetId() } });
 
 			resHandle = CreateResource<BatchResource>(GenerateUuidFor("Line Mesh"), L"Line Mesh", GetNewId(), true);
 			meshData.meshParts = DVector<MeshData<StaticMeshResource::VertexType>>{ line };
