@@ -79,13 +79,13 @@ namespace Darius::Editor::Simulate
 			{
 				D_PROFILING::ScopedTimer simPhysProf(L"Update Physics");
 				D_PHYSICS::Update(!Timer->IsPaused());
-				D_DEBUG_DRAW::FinalizeUpload();
 			}
 		}
 
 		{
 			D_PROFILING::ScopedTimer objConstProfiling(L"Update Object Constants");
 			D_WORLD::UpdateObjectsConstatns();
+			D_DEBUG_DRAW::FinalizeUpload();
 		}
 
 

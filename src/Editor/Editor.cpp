@@ -137,6 +137,8 @@ namespace Darius::Editor
 			D_INPUT::Update();
 		}
 
+		D_GUI_MANAGER::Update(elapsedTime);
+
 		// Updating the simulator
 		D_SIMULATE::Update();
 
@@ -150,8 +152,6 @@ namespace Darius::Editor
 		D_LIGHT::UpdateBuffers(context);
 		D_RESOURCE::UpdateGPUResources(context);
 		context.Finish();
-
-		D_GUI_MANAGER::Update(elapsedTime);
 
 		PIXEndEvent();
 	}
