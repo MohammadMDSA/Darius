@@ -2,7 +2,7 @@
 
 #include <Renderer/FrameResource.hpp>
 #include <Renderer/Renderer.hpp>
-#include <ResourceManager/ResourceTypes/MeshResource.hpp>
+#include <ResourceManager/ResourceTypes/StaticMeshResource.hpp>
 #include <ResourceManager/ResourceManager.hpp>
 #include <Utils/Common.hpp>
 
@@ -27,6 +27,7 @@ namespace Darius::Debug
 		static void GetRenderItems(D_RENDERER::MeshSorter& sorter);
 
 		static void DrawCube(D_MATH::Vector3 position, D_MATH::Quaternion rotation, D_MATH::Vector3 scale, D_MATH::Color color = { 1.f, 1.f, 1.f, 1.f });
+		static void DrawSphere(D_MATH::Vector3 position, float radius, D_MATH::Color color = { 1.f, 1.f, 1.f, 1.f });
 #else
 		static INLINE void FinalizeUpload() {}
 		static INLINE void Clear() {}
@@ -34,6 +35,8 @@ namespace Darius::Debug
 		static INLINE void GetRenderItems(D_RENDERER::MeshSorter& sorter) {}
 
 		static INLINE void DrawCube(D_MATH::Vector3 position, D_MATH::Quaternion rotation, D_MATH::Vector3 scale, D_MATH::Color color = { 1.f, 1.f, 1.f, 1.f }) {}
+		static INLINE void DrawCube(D_MATH::Vector3 position, float radius, D_MATH::Color color = { 1.f, 1.f, 1.f, 1.f }) {}
+
 
 #endif // _DEBUG
 
@@ -42,6 +45,10 @@ namespace Darius::Debug
 #ifdef _DEBUG
 		static void PopulateRenderItemFromMesh(D_RENDERER_FRAME_RESOUCE::RenderItem& renderItem, D_RENDERER_GEOMETRY::Mesh const* mesh);
 		static void UploadTransform(D_MATH::Transform const& trans, UINT index);
+
+		static D_CORE::Ref<D_RESOURCE::StaticMeshResource>	CubeMeshResource;
+		static D_CORE::Ref<D_RESOURCE::StaticMeshResource>	SphereMeshResource;
+
 #else
 		static INLINE void PopulateRenderItemFromMesh(D_RENDERER_FRAME_RESOUCE::RenderItem& renderItem, D_RENDERER_GEOMETRY::Mesh const* mesh) {}
 		static INLINE void UploadTransform(D_MATH::Transform const& trans, UINT index) {}

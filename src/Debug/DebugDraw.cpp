@@ -2,11 +2,19 @@
 #include "DebugDraw.hpp"
 
 #include <Renderer/RenderDeviceManager.hpp>
-#include <ResourceManager/ResourceTypes/StaticMeshResource.hpp>
 
 #include <mutex>
 
 #define MAX_DEBUG_DRAWS 1024
+
+#define RENDERSETUP(meshResource) \
+D_RENDERER_FRAME_RESOUCE::RenderItem ri; \
+PopulateRenderItemFromMesh(ri, meshResource->GetMeshData()); \
+ri.MeshCBV = MeshConstantsGPU.GetGpuVirtualAddress() + sizeof(D_RENDERER_FRAME_RESOUCE::MeshConstants) * index; \
+ri.Color = color; \
+ri.PsoType = D_RENDERER::ColorWireframeTwoSidedPso; \
+ri.PsoFlags = D_RENDERER_FRAME_RESOUCE::RenderItem::ColorOnly | D_RENDERER_FRAME_RESOUCE::RenderItem::Wireframe; \
+DrawPending.push_back(ri); \
 
 using namespace D_RESOURCE;
 
@@ -14,8 +22,6 @@ namespace Darius::Debug
 {
 
 #ifdef _DEBUG
-
-	D_CORE::Ref<D_RESOURCE::StaticMeshResource>	CubeMeshResource;
 
 	// Gpu buffers
 	D_GRAPHICS_BUFFERS::UploadBuffer		MeshConstantsCPU[D_RENDERER_FRAME_RESOUCE::gNumFrameResources];
@@ -25,6 +31,8 @@ namespace Darius::Debug
 
 	D_CONTAINERS::DVector<D_RENDERER_FRAME_RESOUCE::RenderItem> DrawPending;
 
+	D_CORE::Ref<D_RESOURCE::StaticMeshResource>	DebugDraw::CubeMeshResource;
+	D_CORE::Ref<D_RESOURCE::StaticMeshResource>	DebugDraw::SphereMeshResource;
 
 #endif // _DEBUG
 
@@ -32,6 +40,7 @@ namespace Darius::Debug
 	{
 #ifdef _DEBUG
 		CubeMeshResource = GetResource<D_RESOURCE::StaticMeshResource>(GetDefaultResource(D_RESOURCE::DefaultResource::BoxMesh));
+		SphereMeshResource = GetResource<D_RESOURCE::StaticMeshResource>(GetDefaultResource(D_RESOURCE::DefaultResource::LowPolySphereMesh));
 
 		// Initializing Mesh Constants buffers
 		for (size_t i = 0; i < D_RENDERER_FRAME_RESOUCE::gNumFrameResources; i++)
@@ -65,13 +74,20 @@ namespace Darius::Debug
 		// Upload transform
 		UploadTransform(D_MATH::Transform(position, rotation, scale), index);
 
-		D_RENDERER_FRAME_RESOUCE::RenderItem ri;
-		PopulateRenderItemFromMesh(ri, CubeMeshResource->GetMeshData());
-		ri.MeshCBV = MeshConstantsGPU.GetGpuVirtualAddress() + sizeof(D_RENDERER_FRAME_RESOUCE::MeshConstants) * index;
-		ri.Color = color;
-		ri.PsoType = D_RENDERER::ColorWireframeTwoSidedPso;
-		ri.PsoFlags = D_RENDERER_FRAME_RESOUCE::RenderItem::ColorOnly | D_RENDERER_FRAME_RESOUCE::RenderItem::Wireframe;
-		DrawPending.push_back(ri);
+		RENDERSETUP(CubeMeshResource);
+	}
+
+	void DebugDraw::DrawSphere(D_MATH::Vector3 position, float radius, D_MATH::Color color)
+	{
+		const std::lock_guard<std::mutex> lock(AdditionMutex);
+		if (DrawPending.size() >= MAX_DEBUG_DRAWS)
+			return;
+
+		auto index = DrawPending.size();
+
+		UploadTransform(D_MATH::Transform(position, Quaternion(kIdentity), { radius, radius, radius }), index);
+
+		RENDERSETUP(SphereMeshResource);
 	}
 
 	void DebugDraw::PopulateRenderItemFromMesh(D_RENDERER_FRAME_RESOUCE::RenderItem& renderItem, D_RENDERER_GEOMETRY::Mesh const* mesh)
