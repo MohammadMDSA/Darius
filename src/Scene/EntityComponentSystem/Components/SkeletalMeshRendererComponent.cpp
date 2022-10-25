@@ -2,6 +2,7 @@
 #include "SkeletalMeshRendererComponent.hpp"
 #include "Scene/Utils/DetailsDrawer.hpp"
 
+#include <Debug/DebugDraw.hpp>
 #include <ResourceManager/ResourceManager.hpp>
 
 #include <imgui.h>
@@ -31,11 +32,7 @@ namespace Darius::Scene::ECS::Components
 	{
 
 		// Initializing Mesh Constants buffers
-		for (size_t i = 0; i < D_RENDERER_FRAME_RESOUCE::gNumFrameResources; i++)
-		{
-			mMeshConstantsCPU[i].Create(L"Mesh Constant Upload Buffer", sizeof(MeshConstants));
-		}
-		mMeshConstantsGPU.Create(L"Mesh Constant GPU Buffer", 1, sizeof(MeshConstants));
+		CreateGPUBuffers();
 
 		if (!mMaterialResource.IsValid())
 			_SetMaterial(D_RESOURCE::GetDefaultResource(DefaultResource::Material));
@@ -53,6 +50,8 @@ namespace Darius::Scene::ECS::Components
 		result.MeshCBV = GetConstantsAddress();
 		result.Material.MaterialCBV = *mMaterialResource.Get();
 		result.Material.MaterialSRV = mMaterialResource->GetTexturesHandle();
+		result.mJointData = mJoints.data();
+		result.mNumJoints = mJoints.size();
 		result.PsoType = D_RENDERER::SkinnedOpaquePso;
 		result.PsoFlags = mPsoFlags | mMaterialResource->GetPsoFlags();
 		return result;
@@ -167,6 +166,12 @@ namespace Darius::Scene::ECS::Components
 	void SkeletalMeshRendererComponent::_SetMesh(ResourceHandle handle)
 	{
 		mMeshResource = D_RESOURCE::GetResource<SkeletalMeshResource>(handle, *GetGameObject());
+
+		if (mMeshResource.IsValid())
+		{
+			mSkeleton = mMeshResource->GetSkeleton();
+			mJoints.resize(mSkeleton.size());
+		}
 	}
 
 	void SkeletalMeshRendererComponent::_SetMaterial(ResourceHandle handle)
@@ -212,24 +217,104 @@ namespace Darius::Scene::ECS::Components
 		if (GetGameObject()->GetType() == GameObject::Type::Static)
 			return;
 
+		if (!mMeshResource.IsValid())
+			return;
+
 		auto& context = D_GRAPHICS::GraphicsContext::Begin();
+
+		// Updating joints matrices (indivisual)
+		if (HasAnimation())
+		{
+			for (int i = 0; i < mSkeleton.size(); i++)
+			{
+				auto& joint = mSkeleton[i];
+
+				// Update matrix if dirty
+				if (joint.staleMatrix)
+				{
+					joint.staleMatrix = false;
+					joint.xform.Set3x3(Matrix3(joint.rotation) * Matrix3::MakeScale(joint.scale));
+				}
+			}
+		}
 
 		// Updating mesh constants
 		// Mapping upload buffer
 		auto& currentUploadBuff = mMeshConstantsCPU[D_RENDERER_DEVICE::GetCurrentResourceIndex()];
 		MeshConstants* cb = (MeshConstants*)currentUploadBuff.Map();
 
+
 		auto world = GetTransform().GetWorld();
 		cb->mWorld = Matrix4(world);
-		cb->mWorldIT = InverseTranspose(Matrix3(world));
+		//cb->mWorldIT = InverseTranspose(Matrix3(world));
 
-		currentUploadBuff.Unmap();
+		auto const& ibms = mMeshResource->GetIBMatrices();
 
-		// Uploading
-		context.TransitionResource(mMeshConstantsGPU, D3D12_RESOURCE_STATE_COPY_DEST, true);
-		context.GetCommandList()->CopyBufferRegion(mMeshConstantsGPU.GetResource(), 0, currentUploadBuff.GetResource(), 0, currentUploadBuff.GetBufferSize());
-		context.TransitionResource(mMeshConstantsGPU, D3D12_RESOURCE_STATE_GENERIC_READ);
+		// Updating joints matrices on gpu
+		if(mSkeleton.size() > 0)
+		{
+			static const size_t kMaxStackDepth = 32;
+			size_t stackIdx = 0;
+			Matrix4 matrixStack[kMaxStackDepth];
+			Matrix4 parentMatrix = Matrix4(world);
 
+
+			for (const Mesh::SceneGraphNode* joint = mSkeleton.data(); ; ++joint)
+			{
+				auto xform = joint->xform;
+				if (!joint->skeletonRoot)
+					xform = parentMatrix * xform;
+
+				// Concatenate the transform with the parent's matrix and update the matrix list
+				{
+					// Scoped so that I don't forget that I'm pointing to write-combined memory and
+					// should not read from it.
+					auto index = joint->matrixIdx;
+					auto& j = mJoints[index];
+					auto withOffset = xform * ibms[index];
+					j.mWorld = withOffset;
+					//j.mWorldIT = InverseTranspose(withOffset.Get3x3());
+
+					/*Scalar scaleXSqr = LengthSquare((Vector3)xform.GetX());
+					Scalar scaleYSqr = LengthSquare((Vector3)xform.GetY());
+					Scalar scaleZSqr = LengthSquare((Vector3)xform.GetZ());
+					Scalar sphereScale = Sqrt(Max(Max(scaleXSqr, scaleYSqr), scaleZSqr));
+					boundingSphereTransforms[Node->matrixIdx] = ScaleAndTranslation((Vector3)xform.GetW(), sphereScale);*/
+				}
+
+				// If the next node will be a descendent, replace the parent matrix with our new matrix
+				if (joint->hasChildren)
+				{
+					// ...but if we have siblings, make sure to backup our current parent matrix on the stack
+					if (joint->hasSibling)
+					{
+						D_ASSERT(stackIdx < kMaxStackDepth, "Overflowed the matrix stack");
+						matrixStack[stackIdx++] = parentMatrix;
+					}
+					parentMatrix = xform;
+				}
+				else if (!joint->hasSibling)
+				{
+					// There are no more siblings.  If the stack is empty, we are done.  Otherwise, pop
+					// a matrix off the stack and continue.
+					if (stackIdx == 0)
+						break;
+
+					parentMatrix = matrixStack[--stackIdx];
+				}
+			}
+
+		}
+
+		// Copy to gpu
+		{
+			currentUploadBuff.Unmap();
+
+			// Uploading
+			context.TransitionResource(mMeshConstantsGPU, D3D12_RESOURCE_STATE_COPY_DEST, true);
+			context.GetCommandList()->CopyBufferRegion(mMeshConstantsGPU.GetResource(), 0, currentUploadBuff.GetResource(), 0, currentUploadBuff.GetBufferSize());
+			context.TransitionResource(mMeshConstantsGPU, D3D12_RESOURCE_STATE_GENERIC_READ);
+		}
 		context.Finish();
 
 	}
@@ -241,5 +326,14 @@ namespace Darius::Scene::ECS::Components
 			mMeshConstantsCPU[i].Destroy();
 		}
 		mMeshConstantsGPU.Destroy();
+	}
+
+	void SkeletalMeshRendererComponent::CreateGPUBuffers()
+	{
+		for (size_t i = 0; i < D_RENDERER_FRAME_RESOUCE::gNumFrameResources; i++)
+		{
+			mMeshConstantsCPU[i].Create(L"Mesh Constant Upload Buffer", sizeof(MeshConstants));
+		}
+		mMeshConstantsGPU.Create(L"Mesh Constant GPU Buffer", 1, sizeof(MeshConstants));
 	}
 }

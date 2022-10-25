@@ -36,6 +36,7 @@ namespace Darius::Scene::ECS::Components
 
 		void								SetMesh(ResourceHandle handle);
 		void								SetMaterial(ResourceHandle handle);
+		INLINE bool							HasAnimation() const { return true; }
 
 		RenderItem							GetRenderItem();
 
@@ -49,11 +50,14 @@ namespace Darius::Scene::ECS::Components
 
 		void								_SetMesh(ResourceHandle handle);
 		void								_SetMaterial(ResourceHandle handle);
+		void								CreateGPUBuffers();
 
 		Ref<SkeletalMeshResource>			mMeshResource;
 		Ref<MaterialResource>				mMaterialResource;
 		D_CORE::Signal<void()>				mChangeSignal;
 		uint16_t							mPsoFlags;
+		DVector<Mesh::SceneGraphNode>		mSkeleton;
+		DVector<Joint>						mJoints;
 
 		// Gpu buffers
 		D_GRAPHICS_BUFFERS::UploadBuffer	mMeshConstantsCPU[D_RENDERER_FRAME_RESOUCE::gNumFrameResources];
