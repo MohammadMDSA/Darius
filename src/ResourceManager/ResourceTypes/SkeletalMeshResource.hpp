@@ -19,19 +19,24 @@ namespace Darius::ResourceManager
 	public:
 		D_CH_RESOURCE_BODY(SkeletalMeshResource, "Skeletal Mesh", ".fbx")
 
-		void							Create(MultiPartMeshData<VertexType>& data, D_RENDERER_GEOMETRY::Mesh::SceneGraphNode* skeleton);
+		void							Create(MultiPartMeshData<VertexType>& data, DVector<D_RENDERER_GEOMETRY::Mesh::SceneGraphNode>& skeleton);
+
+		D_CH_R_FIELD(DVector<D_RENDERER_GEOMETRY::Mesh::SceneGraphNode>, Skeleton);
+		D_CH_R_FIELD(int, JointCount);
+		D_CH_R_FIELD(DVector<Matrix4>, IBMatrices);
 
 	protected:
 
 		SkeletalMeshResource(Uuid uuid, std::wstring const& path, DResourceId id, bool isDefault = false) :
-			MeshResource(uuid, path, id, isDefault) {}
+			MeshResource(uuid, path, id, isDefault),
+			mJointCount(0) {}
 
 		virtual bool					UploadToGpu(D_GRAPHICS::GraphicsContext& context) override;
 
 		static bool						CanConstructFrom(Path const& path);
 
 	private:
-		static void						GetFBXSkin(MultiPartMeshData<VertexType>& meshDataVec, void const* meshP, DVector<DUnorderedMap<int, int>>& indexMapper);
+		static void						GetFBXSkin(MultiPartMeshData<VertexType>& meshDataVec, void const* meshP, DVector<Mesh::SceneGraphNode>& skeletonHierarchy, DVector<Matrix4>& ibms, DVector<DUnorderedMap<int, int>>& indexMapper);
 		static void						AddSkeletonChildren(void const* skeletonNode, DVector<Mesh::SceneGraphNode>& skeletonData, DMap<void const*, int>& skeletonIndexMap);
 		static void						AddJointWeightToVertices(MultiPartMeshData<VertexType>& meshDataVec,
 			VertexBlendWeightData& skinData, DVector<DUnorderedMap<int, int>> const& indexMapper);

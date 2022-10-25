@@ -9,7 +9,7 @@ namespace Darius::ResourceManager
 
 	D_CH_RESOURCE_DEF(SkeletalMeshResource);
 
-	void SkeletalMeshResource::Create(MultiPartMeshData<VertexType>& data, D_RENDERER_GEOMETRY::Mesh::SceneGraphNode* skeleton)
+	void SkeletalMeshResource::Create(MultiPartMeshData<VertexType>& data, DVector<D_RENDERER_GEOMETRY::Mesh::SceneGraphNode>& skeleton)
 	{
 		Destroy();
 		SetName(GetName());
@@ -67,6 +67,9 @@ namespace Darius::ResourceManager
 
 		// Create index buffer
 		mMesh.IndexDataGpu.Create(mMesh.name + L" Index Buffer", indices.size(), sizeof(std::uint16_t), indices.data());
+
+		mSkeleton = skeleton;
+		mJointCount = mSkeleton.size();
 	}
 
 	bool SkeletalMeshResource::CanConstructFrom(Path const& path)
@@ -208,17 +211,18 @@ namespace Darius::ResourceManager
 		GetFBXNormals(meshDataVec, mesh, indexMapper);
 
 		// Add SkinData
-		GetFBXSkin(meshDataVec, mesh, indexMapper);
+		DVector<Mesh::SceneGraphNode> skeletonHierarchy;
+		GetFBXSkin(meshDataVec, mesh, skeletonHierarchy, mIBMatrices, indexMapper);
 
 		// Destroy the SDK manager and all the other objects it was handling.
 		lSdkManager->Destroy();
 
 
-		Create(meshDataVec, nullptr);
+		Create(meshDataVec, skeletonHierarchy);
 		return true;
 	}
 
-	void SkeletalMeshResource::GetFBXSkin(MultiPartMeshData<VertexType>& meshDataVec, void const* meshP, DVector<DUnorderedMap<int, int>>& indexMapper)
+	void SkeletalMeshResource::GetFBXSkin(MultiPartMeshData<VertexType>& meshDataVec, void const* meshP, DVector<Mesh::SceneGraphNode>& skeletonHierarchy, DVector<Matrix4>& ibms, DVector<DUnorderedMap<int, int>>& indexMapper)
 	{
 		VertexBlendWeightData skinData;
 		auto mesh = (FbxMesh const*)meshP;
@@ -249,7 +253,6 @@ namespace Darius::ResourceManager
 		}
 
 		// Creating skeleton hierarchy
-		DVector<Mesh::SceneGraphNode> skeletonHierarchy;
 		DMap<void const*, int> skeletonIndexMap;
 		{
 			Mesh::SceneGraphNode sceneGraphNode;
@@ -259,7 +262,22 @@ namespace Darius::ResourceManager
 			sceneGraphNode.skeletonRoot = true;
 			skeletonHierarchy.push_back(sceneGraphNode);
 			skeletonIndexMap.insert({ skeletonRoot, 0 });
+			skeletonRoot->GetNode()->SetGeometricTranslation(FbxNode::eSourcePivot, { 0.f, 0.f, 0.f, 1.f });
 			AddSkeletonChildren(skeletonRoot, skeletonHierarchy, skeletonIndexMap);
+
+			// Creating ibms
+			ibms.resize(skeletonIndexMap.size());
+			for (auto [skeletonP, index] : skeletonIndexMap)
+			{
+				auto sklt = (FbxSkeleton*)skeletonP;
+				float matData[16];
+				auto& fbxMat = sklt->GetNode()->EvaluateGlobalTransform();
+				for (int row = 0; row < 4; row++)
+					for (int col = 0; col < 4; col++)
+						matData[row * 4 + col] = fbxMat.Get(row, col);
+
+				ibms[index] = Matrix4(matData).Inverse();
+			}
 		}
 
 		// Assigning blend weights and indices
@@ -296,14 +314,16 @@ namespace Darius::ResourceManager
 		auto node = skeleton->GetNode();
 
 		// Setting translation
-		auto fbxTrans = node->GeometricTranslation.Get();
-		auto fbxSclae = node->GeometricScaling.Get();
-		auto fbxRot = node->GeometricRotation.Get();
+		auto transform = node->EvaluateLocalTransform();
+		auto fbxTrans = node->EvaluateLocalTranslation().Buffer();
+		auto fbxSclae = node->EvaluateLocalScaling();
+		auto fbxRot = transform.GetQ();
+		//FbxQuaternion()
 
 		auto& currentSceneGraphNode = skeletonData[skeletonData.size() - 1];
-		currentSceneGraphNode.xform.SetW({ (float)fbxTrans.mData[0], (float)fbxTrans.mData[1], (float)fbxTrans.mData[2], 1.f });
+		currentSceneGraphNode.xform.SetW({ (float)fbxTrans[0], (float)fbxTrans[1], (float)fbxTrans[2], 1.f });
 		currentSceneGraphNode.scale = { (float)fbxSclae.mData[0], (float)fbxSclae.mData[1], (float)fbxSclae.mData[2] };
-		currentSceneGraphNode.rotation = { (float)fbxRot.mData[0], (float)fbxRot.mData[1], (float)fbxRot.mData[2], 1.f };
+		currentSceneGraphNode.rotation = Quaternion((float)fbxRot.mData[0], (float)fbxRot.mData[1], (float)fbxRot.mData[2], (float)fbxRot.mData[3]);
 
 		// TODO: What if children are not skeleton?
 		currentSceneGraphNode.hasChildren = node->GetChildCount() > 0;
