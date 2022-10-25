@@ -71,7 +71,6 @@ namespace Darius::Debug
 		ri.Color = color;
 		ri.PsoType = D_RENDERER::ColorWireframeTwoSidedPso;
 		ri.PsoFlags = D_RENDERER_FRAME_RESOUCE::RenderItem::ColorOnly | D_RENDERER_FRAME_RESOUCE::RenderItem::Wireframe;
-		D_LOG_DEBUG(index);
 		DrawPending.push_back(ri);
 	}
 
@@ -93,7 +92,7 @@ namespace Darius::Debug
 
 		auto world = trans.GetWorld();
 		cb.mWorld = Matrix4(world);
-		cb.mWorldIT = InverseTranspose(Matrix3(world));
+		//cb.mWorldIT = InverseTranspose(Matrix3(world));
 
 		currentUploadBuff.Unmap();
 
@@ -104,7 +103,6 @@ namespace Darius::Debug
 		const std::lock_guard<std::mutex> lock(AdditionMutex);
 		if (DrawPending.size() <= 0)
 			return;
-		D_LOG_DEBUG("_________");
 
 		auto& currentUploadBuff = MeshConstantsCPU[D_RENDERER_DEVICE::GetCurrentResourceIndex()];
 
