@@ -5,14 +5,14 @@
 cbuffer cbPerObject : register(b0)
 {
     float4x4 gWorld;
-    float3x3 gWorldIT;
+    //float3x3 gWorldIT;
 };
 
-#ifdef dd
+#ifdef ENABLE_SKINNING
 struct Joint
 {
     float4x4 PosMatrix;
-    float4x3 NrmMatrix; // Inverse-transpose of PosMatrix
+    //float3x3 NrmMatrix; // Inverse-transpose of PosMatrix
 };
 
 StructuredBuffer<Joint> Joints : register(t20);
@@ -23,7 +23,7 @@ struct VertexIn
     float3 Pos :        POSITION;
     float3 Normal :     NORMAL;
 #ifndef NO_TANGENT_FRAME
-    float4 Tangent : TANGENT;
+    float4 Tangent :    TANGENT;
 #endif
     float2 UV :         TEXCOORD0;
 #ifdef ENABLE_SKINNING
@@ -38,7 +38,7 @@ struct VertexOut
     float3 WorldPos :       POSITION;
     float3 WorldNormal :    NORMAL;
 #ifndef NO_TANGENT_FRAME
-    float4 tangent : TANGENT;
+    float4 Tangent :        TANGENT;
 #endif
     float2 UV :             TEXCOORD0;
 };
@@ -48,38 +48,46 @@ VertexOut main(VertexIn vin)
     VertexOut vout;
     
     // Transform to world space
-    float4 posW = mul(gWorld, float4(vin.Pos, 1.f));
-    vout.WorldPos = posW.xyz;
+    float4 position = float4(vin.Pos, 1.f);
+    float3 normal = vin.Normal;
+#ifndef NO_TANGENT_FRAME
+    float4 tangent = vin.Tangent;
+#endif
     
-    // Assumes nonuniform scaling; otherwise, need to use inverse-transpose of world matrix.
-    vout.WorldNormal = mul((float3x3)gWorld, vin.Normal);
-
-    // Transform to homogeneous clip space.
-    vout.Pos = mul(gViewProj, posW);
-
-    vout.UV = vin.UV;
-    
-#ifdef dd
-    // I don't like this hack.  The weights should be normalized already, but something is fishy.
-    float4 weights = vsInput.jointWeights / dot(vsInput.jointWeights, 1);
-
+#ifdef ENABLE_SKINNING
     float4x4 skinPosMat =
-        Joints[vsInput.jointIndices.x].PosMatrix * weights.x +
-        Joints[vsInput.jointIndices.y].PosMatrix * weights.y +
-        Joints[vsInput.jointIndices.z].PosMatrix * weights.z +
-        Joints[vsInput.jointIndices.w].PosMatrix * weights.w;
+        Joints[vin.JointIndices.x].PosMatrix * vin.JointWeights.x +
+        Joints[vin.JointIndices.y].PosMatrix * vin.JointWeights.y +
+        Joints[vin.JointIndices.z].PosMatrix * vin.JointWeights.z +
+        Joints[vin.JointIndices.w].PosMatrix * vin.JointWeights.w;
 
     position = mul(skinPosMat, position);
 
-    float4x3 skinNrmMat =
-        Joints[vsInput.jointIndices.x].NrmMatrix * weights.x +
-        Joints[vsInput.jointIndices.y].NrmMatrix * weights.y +
-        Joints[vsInput.jointIndices.z].NrmMatrix * weights.z +
-        Joints[vsInput.jointIndices.w].NrmMatrix * weights.w;
+    float3x3 skinNrmMat =
+        Joints[vin.JointIndices.x].PosMatrix * vin.JointWeights.x +
+        Joints[vin.JointIndices.y].PosMatrix * vin.JointWeights.y +
+        Joints[vin.JointIndices.z].PosMatrix * vin.JointWeights.z +
+        Joints[vin.JointIndices.w].PosMatrix * vin.JointWeights.w;
 
     normal = mul(skinNrmMat, normal).xyz;
 
 #endif
+    
+    
+    vout.WorldPos = mul(gWorld, position).xyz;
+    
+    // Assumes nonuniform scaling; otherwise, need to use inverse-transpose of world matrix.
+    vout.WorldNormal = mul((float3x3) gWorld, normal);
+
+    // Transform to homogeneous clip space.
+    vout.Pos = mul(gViewProj, float4(vout.WorldPos, 1.f));
+
+#ifndef NO_TANGENT_FRAME
+    vout.Tangent = float4(mul(gWorldIT, tangent.xyz), tangent.w);
+#endif
+    
+    vout.UV = vin.UV;
+    
     
     return vout;
 }
