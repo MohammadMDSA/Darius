@@ -2,6 +2,7 @@
 
 #include "MeshResource.hpp"
 
+#include <Core/Containers/List.hpp>
 #include <Renderer/Geometry/MeshData.hpp>
 #include <Renderer/Geometry/Mesh.hpp>
 #include <Renderer/GraphicsUtils/VertexTypes.hpp>
@@ -19,11 +20,15 @@ namespace Darius::ResourceManager
 	public:
 		D_CH_RESOURCE_BODY(SkeletalMeshResource, "Skeletal Mesh", ".fbx")
 
-		void							Create(MultiPartMeshData<VertexType>& data, DVector<D_RENDERER_GEOMETRY::Mesh::SceneGraphNode>& skeleton);
+		void							Create(MultiPartMeshData<VertexType>& data);
 
-		D_CH_R_FIELD(DVector<D_RENDERER_GEOMETRY::Mesh::SceneGraphNode>, Skeleton);
+#ifdef _D_EDITOR
+		virtual bool					DrawDetails(float params[]) override;
+#endif // _D_EDITOR
+
+		D_CH_R_FIELD(DList<D_RENDERER_GEOMETRY::Mesh::SkeletonJoint>, Skeleton);
+		D_CH_R_FIELD(D_RENDERER_GEOMETRY::Mesh::SkeletonJoint*, SkeletonRoot);
 		D_CH_R_FIELD(int, JointCount);
-		D_CH_R_FIELD(DVector<Matrix4>, IBMatrices);
 
 	protected:
 
@@ -36,8 +41,8 @@ namespace Darius::ResourceManager
 		static bool						CanConstructFrom(Path const& path);
 
 	private:
-		static void						GetFBXSkin(MultiPartMeshData<VertexType>& meshDataVec, void const* meshP, DVector<Mesh::SceneGraphNode>& skeletonHierarchy, DVector<Matrix4>& ibms, DVector<DUnorderedMap<int, int>>& indexMapper);
-		static void						AddSkeletonChildren(void const* skeletonNode, DVector<Mesh::SceneGraphNode>& skeletonData, DMap<void const*, int>& skeletonIndexMap);
+		static void						GetFBXSkin(MultiPartMeshData<VertexType>& meshDataVec, void const* meshP, DList<Mesh::SkeletonJoint>& skeletonHierarchy, DVector<DUnorderedMap<int, int>>& indexMapper);
+		static void						AddSkeletonChildren(void const* skeletonNode, DList<Mesh::SkeletonJoint>& skeletonData, DMap<void const*, int>& skeletonIndexMap);
 		static void						AddJointWeightToVertices(MultiPartMeshData<VertexType>& meshDataVec,
 			VertexBlendWeightData& skinData, DVector<DUnorderedMap<int, int>> const& indexMapper);
 		static void						AddBlendDataToVertex(MeshResource::VertexType& vertex, DVector<std::pair<int, float>>& blendData);

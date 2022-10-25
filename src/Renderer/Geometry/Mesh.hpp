@@ -2,6 +2,7 @@
 
 #include "Renderer/GraphicsUtils/Buffers/GpuBuffer.hpp"
 
+#include <Core/Containers/Vector.hpp>
 #include <Math/Bounds/BoundingSphere.hpp>
 #include <Math/Bounds/BoundingBox.hpp>
 #include <Utils/Common.hpp>
@@ -29,18 +30,19 @@ namespace Darius::Renderer::Geometry
 			INT		BaseVertexLocation = 0;
 		};
 
-		struct SceneGraphNode
+		struct SkeletonJoint
 		{
-			Math::Matrix4 xform;
-			Math::Quaternion rotation;
-			Math::XMFLOAT3 scale;
-			std::string name;
+			Math::Matrix4			Xform;
+			Math::Quaternion		Rotation;
+			Math::XMFLOAT3			Scale;
+			std::string				Name;
+			Matrix4					IBM;
 
-			uint32_t matrixIdx : 28;
-			uint32_t hasSibling : 1;
-			uint32_t hasChildren : 1;
-			uint32_t staleMatrix : 1;
-			uint32_t skeletonRoot : 1;
+			D_CONTAINERS::DVector<SkeletonJoint*> Children;
+
+			uint32_t				MatrixIdx : 30;
+			uint32_t				StaleMatrix : 1;
+			uint32_t				SkeletonRoot : 1;
 		};
 
 		INLINE D3D12_VERTEX_BUFFER_VIEW	VertexBufferView() const
@@ -54,7 +56,7 @@ namespace Darius::Renderer::Geometry
 		}
 
 		// Mesh name
-		std::wstring name;
+		std::wstring Name;
 
 		D_GRAPHICS_BUFFERS::ByteAddressBuffer	VertexDataGpu;
 		D_GRAPHICS_BUFFERS::ByteAddressBuffer	IndexDataGpu;

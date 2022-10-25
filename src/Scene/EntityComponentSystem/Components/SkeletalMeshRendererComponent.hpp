@@ -51,12 +51,12 @@ namespace Darius::Scene::ECS::Components
 		void								_SetMesh(ResourceHandle handle);
 		void								_SetMaterial(ResourceHandle handle);
 		void								CreateGPUBuffers();
+		void								JointUpdateRecursion(Matrix4 const& parent, Mesh::SkeletonJoint& skeletonJoint);
 
 		Ref<SkeletalMeshResource>			mMeshResource;
 		Ref<MaterialResource>				mMaterialResource;
 		D_CORE::Signal<void()>				mChangeSignal;
 		uint16_t							mPsoFlags;
-		DVector<Mesh::SceneGraphNode>		mSkeleton;
 		DVector<Joint>						mJoints;
 
 		// Gpu buffers

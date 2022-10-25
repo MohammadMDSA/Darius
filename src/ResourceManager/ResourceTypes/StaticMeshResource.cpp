@@ -69,13 +69,13 @@ namespace Darius::ResourceManager
 			mMesh.mDraw.push_back(submesh);
 		}
 
-		mMesh.name = GetName();
+		mMesh.Name = GetName();
 
 		// Create vertex buffer
-		mMesh.VertexDataGpu.Create(mMesh.name + L" Vertex Buffer", vertices.size(), sizeof(D_GRAPHICS_VERTEX::VertexPositionNormalTexture), vertices.data());
+		mMesh.VertexDataGpu.Create(mMesh.Name + L" Vertex Buffer", vertices.size(), sizeof(D_GRAPHICS_VERTEX::VertexPositionNormalTexture), vertices.data());
 
 		// Create index buffer
-		mMesh.IndexDataGpu.Create(mMesh.name + L" Index Buffer", indices.size(), sizeof(std::uint16_t), indices.data());
+		mMesh.IndexDataGpu.Create(mMesh.Name + L" Index Buffer", indices.size(), sizeof(std::uint16_t), indices.data());
 
 	}
 

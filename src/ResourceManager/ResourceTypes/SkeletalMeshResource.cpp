@@ -3,13 +3,14 @@
 
 #include <fbxsdk.h>
 #include <fbxsdk/fileio/fbxiosettings.h>
+#include <imgui.h>
 
 namespace Darius::ResourceManager
 {
 
 	D_CH_RESOURCE_DEF(SkeletalMeshResource);
 
-	void SkeletalMeshResource::Create(MultiPartMeshData<VertexType>& data, DVector<D_RENDERER_GEOMETRY::Mesh::SceneGraphNode>& skeleton)
+	void SkeletalMeshResource::Create(MultiPartMeshData<VertexType>& data)
 	{
 		Destroy();
 		SetName(GetName());
@@ -60,16 +61,16 @@ namespace Darius::ResourceManager
 			mMesh.mDraw.push_back(submesh);
 		}
 
-		mMesh.name = GetName();
+		mMesh.Name = GetName();
 
 		// Create vertex buffer
-		mMesh.VertexDataGpu.Create(mMesh.name + L" Vertex Buffer", vertices.size(), sizeof(D_GRAPHICS_VERTEX::VertexPositionNormalTextureSkinned), vertices.data());
+		mMesh.VertexDataGpu.Create(mMesh.Name + L" Vertex Buffer", vertices.size(), sizeof(D_GRAPHICS_VERTEX::VertexPositionNormalTextureSkinned), vertices.data());
 
 		// Create index buffer
-		mMesh.IndexDataGpu.Create(mMesh.name + L" Index Buffer", indices.size(), sizeof(std::uint16_t), indices.data());
+		mMesh.IndexDataGpu.Create(mMesh.Name + L" Index Buffer", indices.size(), sizeof(std::uint16_t), indices.data());
 
-		mSkeleton = skeleton;
 		mJointCount = mSkeleton.size();
+		mSkeletonRoot = mJointCount > 0 ? &mSkeleton.front() : nullptr;
 	}
 
 	bool SkeletalMeshResource::CanConstructFrom(Path const& path)
@@ -211,18 +212,17 @@ namespace Darius::ResourceManager
 		GetFBXNormals(meshDataVec, mesh, indexMapper);
 
 		// Add SkinData
-		DVector<Mesh::SceneGraphNode> skeletonHierarchy;
-		GetFBXSkin(meshDataVec, mesh, skeletonHierarchy, mIBMatrices, indexMapper);
+		GetFBXSkin(meshDataVec, mesh, mSkeleton, indexMapper);
 
 		// Destroy the SDK manager and all the other objects it was handling.
 		lSdkManager->Destroy();
 
 
-		Create(meshDataVec, skeletonHierarchy);
+		Create(meshDataVec);
 		return true;
 	}
 
-	void SkeletalMeshResource::GetFBXSkin(MultiPartMeshData<VertexType>& meshDataVec, void const* meshP, DVector<Mesh::SceneGraphNode>& skeletonHierarchy, DVector<Matrix4>& ibms, DVector<DUnorderedMap<int, int>>& indexMapper)
+	void SkeletalMeshResource::GetFBXSkin(MultiPartMeshData<VertexType>& meshDataVec, void const* meshP, DList<Mesh::SkeletonJoint>& skeletonHierarchy, DVector<DUnorderedMap<int, int>>& indexMapper)
 	{
 		VertexBlendWeightData skinData;
 		auto mesh = (FbxMesh const*)meshP;
@@ -235,49 +235,34 @@ namespace Darius::ResourceManager
 		auto clusterCount = deformer->GetClusterCount();
 
 		// Finding skeleton root
-		FbxSkeleton* skeletonRoot = 0;
+		FbxSkeleton* SkeletonRoot = 0;
 		{
 			for (int i = 0; i < clusterCount; i++)
 			{
 				auto cluster = deformer->GetCluster(i);
 				if (!cluster->GetLink())
 					continue;
-				skeletonRoot = cluster->GetLink()->GetSkeleton();
+				SkeletonRoot = cluster->GetLink()->GetSkeleton();
 			}
 
-			if (!skeletonRoot)
+			if (!SkeletonRoot)
 				return;
 
-			while (!skeletonRoot->IsSkeletonRoot())
-				skeletonRoot = skeletonRoot->GetNode()->GetParent()->GetSkeleton();
+			while (!SkeletonRoot->IsSkeletonRoot())
+				SkeletonRoot = SkeletonRoot->GetNode()->GetParent()->GetSkeleton();
 		}
 
 		// Creating skeleton hierarchy
 		DMap<void const*, int> skeletonIndexMap;
 		{
-			Mesh::SceneGraphNode sceneGraphNode;
-			sceneGraphNode.matrixIdx = 0;
-			sceneGraphNode.hasSibling = 0;
-			sceneGraphNode.staleMatrix = true;
-			sceneGraphNode.skeletonRoot = true;
+			Mesh::SkeletonJoint sceneGraphNode;
+			sceneGraphNode.MatrixIdx = 0;
+			sceneGraphNode.StaleMatrix = true;
+			sceneGraphNode.SkeletonRoot = true;
 			skeletonHierarchy.push_back(sceneGraphNode);
-			skeletonIndexMap.insert({ skeletonRoot, 0 });
-			skeletonRoot->GetNode()->SetGeometricTranslation(FbxNode::eSourcePivot, { 0.f, 0.f, 0.f, 1.f });
-			AddSkeletonChildren(skeletonRoot, skeletonHierarchy, skeletonIndexMap);
-
-			// Creating ibms
-			ibms.resize(skeletonIndexMap.size());
-			for (auto [skeletonP, index] : skeletonIndexMap)
-			{
-				auto sklt = (FbxSkeleton*)skeletonP;
-				float matData[16];
-				auto& fbxMat = sklt->GetNode()->EvaluateGlobalTransform();
-				for (int row = 0; row < 4; row++)
-					for (int col = 0; col < 4; col++)
-						matData[row * 4 + col] = fbxMat.Get(row, col);
-
-				ibms[index] = Matrix4(matData).Inverse();
-			}
+			skeletonIndexMap.insert({ SkeletonRoot, 0 });
+			SkeletonRoot->GetNode()->SetGeometricTranslation(FbxNode::eSourcePivot, { 0.f, 0.f, 0.f, 1.f });
+			AddSkeletonChildren(SkeletonRoot, skeletonHierarchy, skeletonIndexMap);
 		}
 
 		// Assigning blend weights and indices
@@ -308,7 +293,7 @@ namespace Darius::ResourceManager
 		AddJointWeightToVertices(meshDataVec, skinData, indexMapper);
 	}
 
-	void SkeletalMeshResource::AddSkeletonChildren(void const* skeletonNode, DVector<Mesh::SceneGraphNode>& skeletonData, DMap<void const*, int>& skeletonIndexMap)
+	void SkeletalMeshResource::AddSkeletonChildren(void const* skeletonNode, DList<Mesh::SkeletonJoint>& skeletonData, DMap<void const*, int>& skeletonIndexMap)
 	{
 		auto skeleton = (FbxSkeleton*)skeletonNode;
 		auto node = skeleton->GetNode();
@@ -320,37 +305,41 @@ namespace Darius::ResourceManager
 		auto fbxRot = transform.GetQ();
 		//FbxQuaternion()
 
-		auto& currentSceneGraphNode = skeletonData[skeletonData.size() - 1];
-		currentSceneGraphNode.xform.SetW({ (float)fbxTrans[0], (float)fbxTrans[1], (float)fbxTrans[2], 1.f });
-		currentSceneGraphNode.scale = { (float)fbxSclae.mData[0], (float)fbxSclae.mData[1], (float)fbxSclae.mData[2] };
-		currentSceneGraphNode.rotation = Quaternion((float)fbxRot.mData[0], (float)fbxRot.mData[1], (float)fbxRot.mData[2], (float)fbxRot.mData[3]);
+		auto index = skeletonData.size() - 1;
 
-		// TODO: What if children are not skeleton?
-		currentSceneGraphNode.hasChildren = node->GetChildCount() > 0;
-		currentSceneGraphNode.name = node->GetInitialName();
+		auto& currentSceneGraphNode = skeletonData.back();
+		currentSceneGraphNode.Xform.SetW({ (float)fbxTrans[0], (float)fbxTrans[1], (float)fbxTrans[2], 1.f });
+		currentSceneGraphNode.Scale = { (float)fbxSclae.mData[0], (float)fbxSclae.mData[1], (float)fbxSclae.mData[2] };
+		currentSceneGraphNode.Rotation = Quaternion((float)fbxRot.mData[0], (float)fbxRot.mData[1], (float)fbxRot.mData[2], (float)fbxRot.mData[3]);
 
-		skeletonIndexMap.insert({ skeleton, (int)currentSceneGraphNode.matrixIdx });
+		currentSceneGraphNode.Name = node->GetInitialName();
+
+		// Compute ibm
+		{
+			float matData[16];
+			auto& fbxMat = node->EvaluateGlobalTransform();
+			for (int row = 0; row < 4; row++)
+				for (int col = 0; col < 4; col++)
+					matData[row * 4 + col] = fbxMat.Get(row, col);
+
+			currentSceneGraphNode.IBM = Matrix4(matData).Inverse();
+		}
+
+		skeletonIndexMap.insert({ skeleton, (int)currentSceneGraphNode.MatrixIdx });
 
 		for (int i = 0; i < node->GetChildCount(); i++)
 		{
 			auto child = node->GetChild(i);
 
-			// TODO: What if a there is a non-skeleton in hierarchy?
-			/*if (!child->GetSkeleton())
-				continue;*/
+			if (!child->GetSkeleton())
+				continue;
 
-			Mesh::SceneGraphNode sceneGraphNode;
-			ZeroMemory(&sceneGraphNode, sizeof(Mesh::SceneGraphNode));
-
-			if (i != node->GetChildCount() - 1)
-				sceneGraphNode.hasSibling = true;
-
-			if (node->GetChild(i)->GetChildCount() > 0)
-				sceneGraphNode.hasChildren = true;
-
-			sceneGraphNode.staleMatrix = true;
-			sceneGraphNode.matrixIdx = skeletonData.size();
+			Mesh::SkeletonJoint sceneGraphNode;
+			ZeroMemory(&sceneGraphNode, sizeof(Mesh::SkeletonJoint));
+			sceneGraphNode.StaleMatrix = true;
+			sceneGraphNode.MatrixIdx = skeletonData.size();
 			skeletonData.push_back(sceneGraphNode);
+			currentSceneGraphNode.Children.push_back(&skeletonData.back());
 			AddSkeletonChildren(node->GetChild(i)->GetSkeleton(), skeletonData, skeletonIndexMap);
 		}
 	}
@@ -418,4 +407,27 @@ namespace Darius::ResourceManager
 		weightVec = weightVec / Dot(weightVec, Vector4(1.f, 1.f, 1.f, 1.f));
 		vertex.mBlendWeights = weightVec;
 	}
+
+	void DrawJoint(const Mesh::SkeletonJoint* joint)
+	{
+		ImGuiTreeNodeFlags flag = joint->Children.size() ? 0 : ImGuiTreeNodeFlags_Leaf;
+		if (ImGui::TreeNodeEx(joint->Name.c_str(), flag))
+		{
+
+			for (auto childNode : joint->Children)
+			{
+				DrawJoint(childNode);
+			}
+
+			ImGui::TreePop();
+		}
+	}
+
+	bool SkeletalMeshResource::DrawDetails(float params[])
+	{
+		DrawJoint(mSkeletonRoot);
+
+		return false;
+	}
+
 }
