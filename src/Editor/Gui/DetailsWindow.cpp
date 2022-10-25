@@ -2,6 +2,8 @@
 #include "DetailsWindow.hpp"
 #include "Editor/EditorContext.hpp"
 
+#include <ResourceManager/ResourceLoader.hpp>
+
 namespace Darius::Editor::Gui::Windows
 {
 
@@ -19,6 +21,15 @@ namespace Darius::Editor::Gui::Windows
 		auto obj = D_EDITOR_CONTEXT::GetSelectedDetailed();
 		if (!obj)
 			return;
+
+		if (auto resource = dynamic_cast<Resource*>(obj); resource)
+		{
+			if (!resource->GetLoaded())
+			{
+				D_RESOURCE_LOADER::LoadResource(resource);
+				return;
+			}
+		}
 
 		obj->DrawDetails(nullptr);
 	}

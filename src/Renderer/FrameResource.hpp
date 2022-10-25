@@ -95,7 +95,7 @@ namespace Darius::Renderer::ConstantFrameResource
 
 		// Geometry associated with this render-item. Note that multiple
 		// render-items can share the same goemetry.
-		const Mesh* Mesh = nullptr;
+		Mesh const* Mesh = nullptr;
 
 		// Primitive topology.
 		D3D12_PRIMITIVE_TOPOLOGY	PrimitiveType = D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
@@ -105,7 +105,7 @@ namespace Darius::Renderer::ConstantFrameResource
 		UINT						StartIndexLocation = 0;
 		int							BaseVertexLocation = 0;
 
-		Joint*						mJointData = nullptr;
+		Joint const*				mJointData = nullptr;
 		int							mNumJoints = 0;
 
 		uint16_t					PsoFlags = 0;

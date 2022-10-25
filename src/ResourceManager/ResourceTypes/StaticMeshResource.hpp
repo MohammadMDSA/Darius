@@ -35,8 +35,6 @@ namespace Darius::ResourceManager
 		INLINE operator const Mesh* () const { return &mMesh; }
 		INLINE operator Mesh* () { return ModifyMeshData(); }
 
-		D_CH_FIELD_ACC(Mesh, Mesh, protected);
-
 	protected:
 		
 		StaticMeshResource(Uuid uuid, std::wstring const& path, DResourceId id, bool isDefault = false) :

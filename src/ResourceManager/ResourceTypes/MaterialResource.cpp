@@ -230,12 +230,6 @@ device->CopyDescriptorsSimple(1, mTexturesHeap + type * incSize, m##name##Textur
 #ifdef _D_EDITOR
 	bool MaterialResource::DrawDetails(float params[])
 	{
-		if (!GetLoaded())
-		{
-			D_RESOURCE_LOADER::LoadResource(this);
-			return false;
-		}
-
 #define DrawTexture2DHolder(prop, type) \
 { \
 	Texture2DResource* currentTexture = prop.Get(); \
