@@ -97,6 +97,7 @@ namespace Darius::Editor::Simulate
 			return;
 
 		// Saving a dump of scene to be able to reload after simulation stop
+		SceneDump.clear();
 		D_WORLD::DumpScene(SceneDump);
 
 		ResumeTime();
