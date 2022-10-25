@@ -40,7 +40,13 @@ namespace Darius::Renderer::ConstantFrameResource
 	ALIGN_DECL_256 struct MeshConstants
 	{
 		XMFLOAT4X4				mWorld;
-		XMFLOAT3X3				mWorldIT;
+		//XMFLOAT3X3				mWorldIT;
+	};
+
+	struct Joint
+	{
+		XMFLOAT4X4				mWorld;
+		//XMFLOAT3X3				mWorldIT;
 	};
 
 	// Color structure for color batches
@@ -57,14 +63,6 @@ namespace Darius::Renderer::ConstantFrameResource
 		XMFLOAT3					Emissive = { 0.f, 0.f, 0.f };
 		int							TextureStatusMask = 0;
 	};
-
-
-	ALIGN_DECL_256 struct Joint
-	{
-		XMFLOAT4X4 PosXform;
-		XMFLOAT3X3 NrmXform;
-	};
-
 	
 	// Lightweight structure stores parameters to draw a shape.
 	struct RenderItem
@@ -106,6 +104,9 @@ namespace Darius::Renderer::ConstantFrameResource
 		UINT						IndexCount = 0;
 		UINT						StartIndexLocation = 0;
 		int							BaseVertexLocation = 0;
+
+		Joint*						mJointData = nullptr;
+		int							mNumJoints = 0;
 
 		uint16_t					PsoFlags = 0;
 		uint16_t					PsoType;
