@@ -7,6 +7,8 @@
 #include <Renderer/RenderDeviceManager.hpp>
 #include <Renderer/GraphicsCore.hpp>
 
+#define FBXSDK_SHARED
+
 #include <fbxsdk.h>
 #include <fbxsdk/fileio/fbxiosettings.h>
 

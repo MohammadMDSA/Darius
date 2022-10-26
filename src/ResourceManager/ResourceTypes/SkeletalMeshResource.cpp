@@ -1,6 +1,8 @@
 #include "ResourceManager/pch.hpp"
 #include "SkeletalMeshResource.hpp"
 
+#define FBXSDK_SHARED
+
 #include <fbxsdk.h>
 #include <fbxsdk/fileio/fbxiosettings.h>
 #include <imgui.h>
