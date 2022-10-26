@@ -8,6 +8,7 @@
 #include "EditorContext.hpp"
 #include "Simulation.hpp"
 
+#include <Animation/AnimationManager.hpp>
 #include <Math/VectorMath.hpp>
 #include <Core/Input.hpp>
 #include <Core/Filesystem/Path.hpp>
@@ -49,6 +50,7 @@ namespace Darius::Editor
 	{
 		D_SIMULATE::Shutdown();
 		D_EDITOR_CONTEXT::Shutdown();
+		D_ANIMATION::Shutdown();
 		D_PHYSICS::Shutdown();
 #ifdef _DEBUG
 		D_DEBUG_DRAW::Shutdown();
@@ -92,6 +94,9 @@ namespace Darius::Editor
 
 		// Initializeing physics
 		D_PHYSICS::Initialize();
+
+		// Initializing animation
+		D_ANIMATION::Initialize();
 
 		// Initializing the editor context manager
 		D_EDITOR_CONTEXT::Initialize(projectPath);
