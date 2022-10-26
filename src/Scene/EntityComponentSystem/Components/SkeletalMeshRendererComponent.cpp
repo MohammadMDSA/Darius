@@ -2,6 +2,7 @@
 #include "SkeletalMeshRendererComponent.hpp"
 #include "Scene/Utils/DetailsDrawer.hpp"
 
+#include <Core/TimeManager/TimeManager.hpp>
 #include <Debug/DebugDraw.hpp>
 #include <ResourceManager/ResourceManager.hpp>
 
@@ -209,6 +210,7 @@ namespace Darius::Scene::ECS::Components
 
 	void SkeletalMeshRendererComponent::JointUpdateRecursion(Matrix4 const& parent, Mesh::SkeletonJoint& skeletonJoint)
 	{
+		
 		if (skeletonJoint.StaleMatrix)
 		{
 			skeletonJoint.StaleMatrix = false;
@@ -219,10 +221,24 @@ namespace Darius::Scene::ECS::Components
 		if (!skeletonJoint.SkeletonRoot)
 			xform = parent * xform;
 
+
+		if (skeletonJoint.MatrixIdx == 5)
+		{
+			xform.SetW(xform.GetW() + Vector4(0.f, 0.f, Sin(D_TIME::GetTotalTime() / 5.f) * 100, 0.f));
+		}
+
+
 		auto& joint = mJoints[skeletonJoint.MatrixIdx];
 		auto withOffset = xform * skeletonJoint.IBM;
 		joint.mWorld = withOffset;
 		//joint.mWorldIT = InverseTranspose(withOffset.Get3x3());
+
+
+		Scalar scaleXSqr = LengthSquare((Vector3)xform.GetX());
+		Scalar scaleYSqr = LengthSquare((Vector3)xform.GetY());
+		Scalar scaleZSqr = LengthSquare((Vector3)xform.GetZ());
+		Scalar sphereScale = Sqrt(Max(Max(scaleXSqr, scaleYSqr), scaleZSqr));
+		mBounds = mBounds.Union(BoundingSphere((Vector3)xform.GetW(), sphereScale));
 
 		for (auto childJoint : skeletonJoint.Children)
 		{
@@ -244,22 +260,6 @@ namespace Darius::Scene::ECS::Components
 
 		auto& context = D_GRAPHICS::GraphicsContext::Begin();
 
-		//// Updating joints matrices (indivisual)
-		//if (HasAnimation())
-		//{
-		//	for (int i = 0; i < mSkeleton.size(); i++)
-		//	{
-		//		auto& joint = mSkeleton[i];
-
-		//		// Update matrix if dirty
-		//		if (joint.StaleMatrix)
-		//		{
-		//			joint.StaleMatrix = false;
-		//			joint.Xform.Set3x3(Matrix3(joint.Rotation) * Matrix3::MakeScale(joint.Scale));
-		//		}
-		//	}
-		//}
-
 		// Updating mesh constants
 		// Mapping upload buffer
 		auto& currentUploadBuff = mMeshConstantsCPU[D_RENDERER_DEVICE::GetCurrentResourceIndex()];
@@ -274,59 +274,6 @@ namespace Darius::Scene::ECS::Components
 		auto skeletonRoot = mMeshResource->GetSkeletonRoot();
 		if(skeletonRoot)
 		{
-			//static const size_t kMaxStackDepth = 32;
-			//size_t stackIdx = 0;
-			//Matrix4 matrixStack[kMaxStackDepth];
-			//Matrix4 parentMatrix = Matrix4(world);
-
-
-			//for (const Mesh::SkeletonJoint* joint = mSkeleton.data(); ; ++joint)
-			//{
-			//	auto Xform = joint->Xform;
-			//	if (!joint->SkeletonRoot)
-			//		Xform = parentMatrix * Xform;
-
-			//	// Concatenate the transform with the parent's matrix and update the matrix list
-			//	{
-			//		// Scoped so that I don't forget that I'm pointing to write-combined memory and
-			//		// should not read from it.
-			//		auto index = joint->MatrixIdx;
-			//		auto& j = mJoints[index];
-			//		auto withOffset = Xform * ibms[index];
-			//		j.mWorld = withOffset;
-			//		//j.mWorldIT = InverseTranspose(withOffset.Get3x3());
-
-			//		Matrix4 tmp = Matrix4(world) * Xform;
-			//		Scalar scaleXSqr = LengthSquare((Vector3)tmp.GetX());
-			//		Scalar scaleYSqr = LengthSquare((Vector3)tmp.GetY());
-			//		Scalar scaleZSqr = LengthSquare((Vector3)tmp.GetZ());
-			//		Scalar sphereScale = Sqrt(Max(Max(scaleXSqr, scaleYSqr), scaleZSqr));
-			//		D_DEBUG_DRAW::DrawSphere((Vector3)tmp.GetW(), sphereScale * 10.f, {1.f, 0.f, 0.f, 1.f});
-
-			//		/*boundingSphereTransforms[Node->matrixIdx] = ScaleAndTranslation((Vector3)xform.GetW(), sphereScale); */
-			//	}
-
-			//	// If the next node will be a descendent, replace the parent matrix with our new matrix
-			//	if (joint->hasChildren)
-			//	{
-			//		// ...but if we have siblings, make sure to backup our current parent matrix on the stack
-			//		if (joint->hasSibling)
-			//		{
-			//			D_ASSERT(stackIdx < kMaxStackDepth, "Overflowed the matrix stack");
-			//			matrixStack[stackIdx++] = parentMatrix;
-			//		}
-			//		parentMatrix = Xform;
-			//	}
-			//	else if (!joint->hasSibling)
-			//	{
-			//		// There are no more siblings.  If the stack is empty, we are done.  Otherwise, pop
-			//		// a matrix off the stack and continue.
-			//		if (stackIdx == 0)
-			//			break;
-
-			//		parentMatrix = matrixStack[--stackIdx];
-			//	}
-			//}
 
 			JointUpdateRecursion(Matrix4(), *skeletonRoot);
 		}

@@ -42,7 +42,7 @@ namespace Darius::Scene::ECS::Components
 
 
 		INLINE bool							CanRender() { return IsActive() && mMeshResource.IsValid(); }
-		INLINE const BoundingSphere&		GetBounds() const { return mMeshResource.Get()->GetMeshData()->mBoundSp; }
+		INLINE const BoundingSphere&		GetBounds() const { return mBounds; }
 
 		INLINE D3D12_GPU_VIRTUAL_ADDRESS	GetConstantsAddress() { return mMeshConstantsGPU.GetGpuVirtualAddress(); }
 
@@ -58,6 +58,7 @@ namespace Darius::Scene::ECS::Components
 		D_CORE::Signal<void()>				mChangeSignal;
 		uint16_t							mPsoFlags;
 		DVector<Joint>						mJoints;
+		BoundingSphere						mBounds;
 
 		// Gpu buffers
 		D_GRAPHICS_BUFFERS::UploadBuffer	mMeshConstantsCPU[D_RENDERER_FRAME_RESOUCE::gNumFrameResources];
