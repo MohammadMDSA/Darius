@@ -43,6 +43,7 @@ namespace Darius::ResourceManager
 
 	private:
 		static void						GetFBXSkin(MultiPartMeshData<VertexType>& meshDataVec, void const* meshP, DList<Mesh::SkeletonJoint>& skeletonHierarchy, DVector<DUnorderedMap<int, int>>& indexMapper);
+		static void						ReadFBXCacheVertexPositions(MultiPartMeshData<VertexType>& meshDataVec, void const* meshP, DVector<DUnorderedMap<int, int>>& indexMapper);
 		static void						AddSkeletonChildren(void const* skeletonNode, DList<Mesh::SkeletonJoint>& skeletonData, DMap<void const*, int>& skeletonIndexMap);
 		static void						AddJointWeightToVertices(MultiPartMeshData<VertexType>& meshDataVec,
 			VertexBlendWeightData& skinData, DVector<DUnorderedMap<int, int>> const& indexMapper);

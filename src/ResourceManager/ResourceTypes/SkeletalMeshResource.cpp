@@ -118,12 +118,14 @@ namespace Darius::ResourceManager
 		FbxNode* lRootNode = lScene->GetRootNode();
 
 		FbxNode* node = 0;
+
 		for (int i = 0; i < lRootNode->GetChildCount(); i++)
 		{
 			auto attr = lRootNode->GetChild(i)->GetNodeAttribute();
 			if (attr->GetAttributeType() == FbxNodeAttribute::eMesh)
 			{
 				node = lRootNode->GetChild(i);
+				break;
 			}
 		}
 
@@ -186,6 +188,7 @@ namespace Darius::ResourceManager
 			if (attr->GetAttributeType() == FbxNodeAttribute::eMesh)
 			{
 				node = lRootNode->GetChild(i);
+				break;
 			}
 		}
 
@@ -214,6 +217,9 @@ namespace Darius::ResourceManager
 		// Add SkinData
 		GetFBXSkin(meshDataVec, mesh, mSkeleton, indexMapper);
 
+		// Update vertex position with cache poses
+		ReadFBXCacheVertexPositions(meshDataVec, mesh, indexMapper);
+
 		// Destroy the SDK manager and all the other objects it was handling.
 		lSdkManager->Destroy();
 
@@ -224,9 +230,7 @@ namespace Darius::ResourceManager
 
 	void SkeletalMeshResource::GetFBXSkin(MultiPartMeshData<VertexType>& meshDataVec, void const* meshP, DList<Mesh::SkeletonJoint>& skeletonHierarchy, DVector<DUnorderedMap<int, int>>& indexMapper)
 	{
-		VertexBlendWeightData skinData;
 		auto mesh = (FbxMesh const*)meshP;
-
 		if (mesh->GetDeformerCount(FbxDeformer::eSkin) == 0)
 			return;
 
@@ -261,11 +265,12 @@ namespace Darius::ResourceManager
 			sceneGraphNode.SkeletonRoot = true;
 			skeletonHierarchy.push_back(sceneGraphNode);
 			skeletonIndexMap.insert({ SkeletonRoot, 0 });
-			SkeletonRoot->GetNode()->SetGeometricTranslation(FbxNode::eSourcePivot, { 0.f, 0.f, 0.f, 1.f });
+			SkeletonRoot->GetNode()->SetGeometricTranslation(FbxNode::eDestinationPivot, { 0.f, 0.f, 0.f, 1.f });
 			AddSkeletonChildren(SkeletonRoot, skeletonHierarchy, skeletonIndexMap);
 		}
 
 		// Assigning blend weights and indices
+		VertexBlendWeightData skinData;
 		{
 			skinData.jointWeight.resize(mesh->GetControlPointsCount());
 			for (int clusterIndex = 0; clusterIndex < clusterCount; clusterIndex++)
@@ -298,16 +303,21 @@ namespace Darius::ResourceManager
 		auto skeleton = (FbxSkeleton*)skeletonNode;
 		auto node = skeleton->GetNode();
 
-		// Setting translation
-		auto transform = node->EvaluateLocalTransform();
-		auto fbxTrans = node->EvaluateLocalTranslation().Buffer();
-		auto fbxSclae = node->EvaluateLocalScaling();
-		auto fbxRot = transform.GetQ();
-		//FbxQuaternion()
-
 		auto index = skeletonData.size() - 1;
 
 		auto& currentSceneGraphNode = skeletonData.back();
+
+		// Setting translation
+		auto transform = node->EvaluateLocalTransform();
+		FbxDouble* fbxTrans;
+		if (currentSceneGraphNode.SkeletonRoot)
+			fbxTrans = FbxDouble3(0, 0, 0).Buffer();
+		else
+			fbxTrans = node->EvaluateLocalTranslation().Buffer();
+
+		auto fbxSclae = node->EvaluateLocalScaling();
+		auto fbxRot = transform.GetQ();
+		//FbxQuaternion()
 		currentSceneGraphNode.Xform.SetW({ (float)fbxTrans[0], (float)fbxTrans[1], (float)fbxTrans[2], 1.f });
 		currentSceneGraphNode.Scale = { (float)fbxSclae.mData[0], (float)fbxSclae.mData[1], (float)fbxSclae.mData[2] };
 		currentSceneGraphNode.Rotation = Quaternion((float)fbxRot.mData[0], (float)fbxRot.mData[1], (float)fbxRot.mData[2], (float)fbxRot.mData[3]);
@@ -318,6 +328,8 @@ namespace Darius::ResourceManager
 		{
 			float matData[16];
 			auto& fbxMat = node->EvaluateGlobalTransform();
+			if (currentSceneGraphNode.SkeletonRoot)
+				fbxMat.SetT({ 0, 0, 0, 1 });
 			for (int row = 0; row < 4; row++)
 				for (int col = 0; col < 4; col++)
 					matData[row * 4 + col] = fbxMat.Get(row, col);
@@ -407,6 +419,98 @@ namespace Darius::ResourceManager
 		weightVec = weightVec / Dot(weightVec, Vector4(1.f, 1.f, 1.f, 1.f));
 		vertex.mBlendWeights = weightVec;
 	}
+
+	void SkeletalMeshResource::ReadFBXCacheVertexPositions(MultiPartMeshData<VertexType>& meshDataVec, void const* meshP, DVector<DUnorderedMap<int, int>>& indexMapper)
+	{
+		auto mesh = (FbxMesh*)meshP;
+
+		auto a1 = mesh->GetDeformerCount(FbxDeformer::eVertexCache);
+		auto a2 = mesh->GetDeformerCount(FbxDeformer::eSkin);
+		auto a3 = mesh->GetDeformerCount(FbxDeformer::eUnknown);
+		auto a4 = mesh->GetDeformerCount(FbxDeformer::eBlendShape);
+		auto def = mesh->GetDeformer(FbxDeformer::eUnknown);
+
+		// Find vertex pos deformer
+		FbxVertexCacheDeformer* deformer = nullptr;
+		for (int i = 0; i < mesh->GetDeformerCount(FbxDeformer::eVertexCache); i++)
+		{
+			auto iterDeformer = static_cast<FbxVertexCacheDeformer*>(mesh->GetDeformer(i, FbxDeformer::eVertexCache));
+			if (iterDeformer->Type.Get() == FbxVertexCacheDeformer::ePositions)
+			{
+				deformer = iterDeformer;
+				break;
+			}
+		}
+
+		// Abort if doesn't exist
+		if (!deformer)
+			return;
+
+		// Reading vertex pos from cache
+		auto cache = deformer->GetCache();
+		int channelIndex = cache->GetChannelIndex(deformer->Channel.Get());
+		float* buffer;
+		int vertexCount = mesh->GetControlPointsCount();
+
+		// If there is cache for every vertex component xyz
+		{
+			unsigned int length = 0;
+			cache->Read(nullptr, length, FBXSDK_TIME_ZERO, channelIndex);
+
+			if (length != vertexCount * 3)
+				return;
+		}
+
+		unsigned int bufferSize = 0;
+		auto readSucceed = cache->Read(&buffer, bufferSize, FBXSDK_TIME_ZERO, channelIndex);
+
+		if (!readSucceed)
+			return;
+
+		unsigned int readBufferIndex = 0;
+		// Assigning vertices their initial positions
+		{
+			// Vertex by control point or polygon?
+			if (meshDataVec.meshParts.size() == 1)
+			{
+				auto& vertArray = meshDataVec.meshParts[0].Vertices;
+				while (readBufferIndex < 3 * vertexCount)
+				{
+					auto vertGlobalIdx = readBufferIndex / 3;
+
+					vertArray[vertGlobalIdx].mPosition.x = buffer[readBufferIndex]; readBufferIndex++;
+					vertArray[vertGlobalIdx].mPosition.y = buffer[readBufferIndex]; readBufferIndex++;
+					vertArray[vertGlobalIdx].mPosition.z = buffer[readBufferIndex]; readBufferIndex++;
+				}
+			}
+			// Indirect
+			else
+			{
+				// Map global vertex id to index in poly
+				DVector<std::pair<int, int>> vertexGlobalIndexMapper(vertexCount);
+				for (int polyIdx = 0; polyIdx < indexMapper.size(); polyIdx++)
+				{
+					for (auto [vertGlobalIdx, vertPolyIdx] : indexMapper[polyIdx])
+					{
+						vertexGlobalIndexMapper[vertGlobalIdx] = { polyIdx, vertPolyIdx };
+					}
+				}
+
+				// Assiging values
+				while (readBufferIndex < 3 * vertexCount)
+				{
+					auto vertGlobalIdx = readBufferIndex / 3;
+					auto const& dic = vertexGlobalIndexMapper[vertGlobalIdx];
+					auto& vert = meshDataVec.meshParts[dic.first].Vertices[dic.second];
+
+					vert.mPosition.x = buffer[readBufferIndex]; readBufferIndex++;
+					vert.mPosition.y = buffer[readBufferIndex]; readBufferIndex++;
+					vert.mPosition.z = buffer[readBufferIndex]; readBufferIndex++;
+				}
+			}
+		}
+	}
+
 
 #ifdef _D_EDITOR
 	void DrawJoint(const Mesh::SkeletonJoint* joint)

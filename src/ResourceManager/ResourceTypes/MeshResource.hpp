@@ -51,5 +51,7 @@ namespace Darius::ResourceManager
 
 		static void						GetFBXPolygons(MultiPartMeshData<VertexType>& meshDataVec, void const* meshP, DVector<DUnorderedMap<int, int>>& indexMapper);
 
+		static void						TraverseNodes(void* nodeP, std::function<void(void*)> callback);
+
 	};
 }
