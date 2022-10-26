@@ -154,6 +154,7 @@ add_subdirectory("src/scene")
 add_subdirectory("src/resourceManager")
 add_subdirectory("src/physics")
 add_subdirectory("src/debug")
+add_subdirectory("src/animation")
 
 SET(DARIUS_LIBS)
 
@@ -167,6 +168,7 @@ list(APPEND DARIUS_LIBS
     "ResourceManager"
     "Physics"
     "Debug"
+    "Animation"
 	)
 
 target_link_libraries(${PROJECT_NAME} PUBLIC ${DARIUS_LIBS} PRIVATE IMGUIFILEDIALOG)

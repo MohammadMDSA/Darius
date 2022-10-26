@@ -133,6 +133,7 @@ namespace Darius::ResourceManager
 		void						LoadDefaultResources();
 	private:
 		friend class ResourceLoader;
+		friend class Resource;
 
 		ResourceHandle				CreateResource(ResourceType type, Uuid uuid, std::wstring const& path, bool isDefault, bool fromFile)
 		{

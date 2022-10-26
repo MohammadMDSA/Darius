@@ -19,20 +19,20 @@
 // TODO: Better resource allocation
 #define D_CH_RESOURCE_BODY(T, ResT, ...) \
 public: \
-	class T##Factory : public Resource::ResourceFactory \
+	class T##Factory : public D_RESOURCE::Resource::ResourceFactory \
 	{ \
 	public: \
-		virtual std::shared_ptr<Resource> Create(Uuid uuid, std::wstring const& path, DResourceId id, bool isDefault) const; \
+		virtual std::shared_ptr<D_RESOURCE::Resource> Create(D_CORE::Uuid uuid, std::wstring const& path, D_RESOURCE::DResourceId id, bool isDefault) const; \
 	}; \
 public: \
 	friend class Factory; \
-	static INLINE ResourceType GetResourceType() { return Resource::GetResourceType(ResT); } \
-	INLINE ResourceType GetType() const override { return Resource::GetResourceType(ResT); } \
+	static INLINE D_RESOURCE::ResourceType GetResourceType() { return D_RESOURCE::Resource::GetResourceType(ResT); } \
+	INLINE D_RESOURCE::ResourceType GetType() const override { return D_RESOURCE::Resource::GetResourceType(ResT); } \
 	static void Register() \
 	{ \
-		D_ASSERT_M(!Resource::GetResourceType(ResT), "Resource " #T " is already registered."); \
-		auto resType = Resource::RegisterResourceTypeName<T, T::T##Factory>(ResT); \
-		\
+		D_ASSERT_M(!D_RESOURCE::Resource::GetResourceType(ResT), "Resource " #T " is already registered."); \
+		auto resType = D_RESOURCE::Resource::RegisterResourceTypeName<T, T::T##Factory>(ResT); \
+		D_RESOURCE::Resource::AddTypeContainer(resType); \
 		RegisterConstructinoValidation(resType, CanConstructFrom); \
 		\
 		std::string supportedExtensions[] = { __VA_ARGS__ }; \
@@ -45,7 +45,7 @@ public: \
 	\
 
 #define D_CH_RESOURCE_DEF(T) \
-std::shared_ptr<Resource> T::T##Factory::Create(Uuid uuid, std::wstring const& path, DResourceId id, bool isDefault) const { return std::shared_ptr<Resource>(new T(uuid, path, id, isDefault)); }
+std::shared_ptr<D_RESOURCE::Resource> T::T##Factory::Create(Uuid uuid, std::wstring const& path, D_RESOURCE::DResourceId id, bool isDefault) const { return std::shared_ptr<D_RESOURCE::Resource>(new T(uuid, path, id, isDefault)); }
 
 using namespace D_CORE;
 using namespace D_FILE;
@@ -190,6 +190,7 @@ namespace Darius::ResourceManager
 		virtual void				WriteResourceToFile() const = 0;
 		virtual void				ReadResourceFromFile() = 0;
 		virtual bool				UploadToGpu(D_GRAPHICS::GraphicsContext& context) = 0;
+		static void					AddTypeContainer(ResourceType type);
 
 		INLINE static bool			CanConstructFrom(Path const&) { return true; }
 

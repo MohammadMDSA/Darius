@@ -27,13 +27,14 @@ namespace Darius::ResourceManager
 	{
 		D_ASSERT(_ResourceManager == nullptr);
 
+		_ResourceManager = std::make_unique<DResourceManager>();
+
 		Texture2DResource::Register();
 		StaticMeshResource::Register();
 		SkeletalMeshResource::Register();
 		MaterialResource::Register();
 		BatchResource::Register();
 
-		_ResourceManager = std::make_unique<DResourceManager>();
 		_ResourceManager->LoadDefaultResources();
 	}
 
@@ -116,11 +117,6 @@ namespace Darius::ResourceManager
 
 	DResourceManager::DResourceManager()
 	{
-		for (auto [resType, _] : Resource::ResourceTypeMap)
-		{
-			mResourceMap[resType];
-		}
-
 	}
 
 	DResourceManager::~DResourceManager()

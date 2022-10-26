@@ -1,6 +1,8 @@
 #include "Renderer/pch.hpp"
 #include "Resource.hpp"
 
+#include "ResourceManager/ResourceManager.hpp"
+
 namespace Darius::ResourceManager
 {
 
@@ -43,6 +45,11 @@ namespace Darius::ResourceManager
 			return;
 
 		mDirtyGPU = !UploadToGpu(context);
+	}
+
+	void Resource::AddTypeContainer(ResourceType type)
+	{
+		D_RESOURCE::GetManager()->mResourceMap[type];
 	}
 
 }
