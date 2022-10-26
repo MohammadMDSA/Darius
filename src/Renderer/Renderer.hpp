@@ -112,6 +112,8 @@ namespace Darius::Renderer
 
 		void RenderMeshes(DrawPass pass, D_GRAPHICS::GraphicsContext& context, GlobalConstants& globals);
 
+		size_t CountObjects() const { return m_SortObjects.size(); }
+
 	private:
 
 		struct SortKey

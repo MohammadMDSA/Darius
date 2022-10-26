@@ -392,6 +392,6 @@ namespace Darius::Editor::Gui::Windows
 				sorter.AddMesh(meshComp.GetRenderItem(), distance);
 			});
 
-		//D_LOG_DEBUG("Number of render items: " + std::to_string(items.size()));
+		//D_LOG_DEBUG("Number of render items: " << sorter.CountObjects());
 	}
 }
