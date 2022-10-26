@@ -47,6 +47,7 @@ namespace Darius::ResourceManager
 		static void						AddSkeletonChildren(void const* skeletonNode, DList<Mesh::SkeletonJoint>& skeletonData, DMap<void const*, int>& skeletonIndexMap);
 		static void						AddJointWeightToVertices(MultiPartMeshData<VertexType>& meshDataVec,
 			VertexBlendWeightData& skinData, DVector<DUnorderedMap<int, int>> const& indexMapper);
-		static void						AddBlendDataToVertex(MeshResource::VertexType& vertex, DVector<std::pair<int, float>>& blendData);
+		static void						AddBlendDataToVertex(MeshResource::VertexType& vertex, DVector<std::pair<int, float>>& blendData, Matrix4 const& initial);
+
 	};
 }

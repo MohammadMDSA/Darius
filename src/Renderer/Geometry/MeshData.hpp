@@ -75,6 +75,6 @@ namespace Darius::Renderer::Geometry
 	struct VertexBlendWeightData
 	{
 		DVector<DVector<std::pair<int, float>>> jointWeight; // For each vertex, for each connected joint, index and weight
-
+		DVector<D_MATH::Matrix4> initialMatrix;
 	};
 }

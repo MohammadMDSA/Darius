@@ -10,6 +10,170 @@ namespace Darius::ResourceManager
 
 	D_CH_RESOURCE_DEF(SkeletalMeshResource);
 
+	INLINE Matrix4 GetMat4(FbxAMatrix const& mat)
+	{
+		float matData[16];
+		for (int row = 0; row < 4; row++)
+			for (int col = 0; col < 4; col++)
+				matData[row * 4 + col] = mat.Get(row, col);
+		return Matrix4(matData);
+	}
+
+	// Get the geometry offset to a node. It is never inherited by the children.
+	FbxAMatrix GetGeometry(FbxNode* pNode)
+	{
+		const FbxVector4 lT = pNode->GetGeometricTranslation(FbxNode::eSourcePivot);
+		const FbxVector4 lR = pNode->GetGeometricRotation(FbxNode::eSourcePivot);
+		const FbxVector4 lS = pNode->GetGeometricScaling(FbxNode::eSourcePivot);
+
+		return FbxAMatrix(lT, lR, lS);
+	}
+
+	// Get the matrix of the given pose
+	FbxAMatrix GetPoseMatrix(FbxPose* pPose, int pNodeIndex)
+	{
+		FbxAMatrix lPoseMatrix;
+		FbxMatrix lMatrix = pPose->GetMatrix(pNodeIndex);
+
+		memcpy((double*)lPoseMatrix, (double*)lMatrix, sizeof(lMatrix.mData));
+
+		return lPoseMatrix;
+	}
+
+	// Get the global position of the node for the current pose.
+	// If the specified node is not part of the pose or no pose is specified, get its
+	// global position at the current time.
+	FbxAMatrix GetGlobalPosition(FbxNode* pNode, const FbxTime& pTime, FbxPose* pPose = nullptr, FbxAMatrix* pParentGlobalPosition = nullptr)
+	{
+		FbxAMatrix lGlobalPosition;
+		bool        lPositionFound = false;
+
+		if (pPose)
+		{
+			int lNodeIndex = pPose->Find(pNode);
+
+			if (lNodeIndex > -1)
+			{
+				// The bind pose is always a global matrix.
+				// If we have a rest pose, we need to check if it is
+				// stored in global or local space.
+				if (pPose->IsBindPose() || !pPose->IsLocalMatrix(lNodeIndex))
+				{
+					lGlobalPosition = GetPoseMatrix(pPose, lNodeIndex);
+				}
+				else
+				{
+					// We have a local matrix, we need to convert it to
+					// a global space matrix.
+					FbxAMatrix lParentGlobalPosition;
+
+					if (pParentGlobalPosition)
+					{
+						lParentGlobalPosition = *pParentGlobalPosition;
+					}
+					else
+					{
+						if (pNode->GetParent())
+						{
+							lParentGlobalPosition = GetGlobalPosition(pNode->GetParent(), pTime, pPose);
+						}
+					}
+
+					FbxAMatrix lLocalPosition = GetPoseMatrix(pPose, lNodeIndex);
+					lGlobalPosition = lParentGlobalPosition * lLocalPosition;
+				}
+
+				lPositionFound = true;
+			}
+		}
+
+		if (!lPositionFound)
+		{
+			// There is no pose entry for that node, get the current global position instead.
+
+			// Ideally this would use parent global position and local position to compute the global position.
+			// Unfortunately the equation 
+			//    lGlobalPosition = pParentGlobalPosition * lLocalPosition
+			// does not hold when inheritance type is other than "Parent" (RSrs).
+			// To compute the parent rotation and scaling is tricky in the RrSs and Rrs cases.
+			lGlobalPosition = pNode->EvaluateGlobalTransform(pTime);
+		}
+
+		return lGlobalPosition;
+	}
+
+	void ComputeClusterDeformation(FbxAMatrix& pGlobalPosition,
+		FbxMesh const* pMesh,
+		FbxCluster* pCluster,
+		FbxAMatrix& pVertexTransformMatrix,
+		FbxTime pTime,
+		FbxPose* pPose)
+	{
+		FbxCluster::ELinkMode lClusterMode = pCluster->GetLinkMode();
+
+		FbxAMatrix lReferenceGlobalInitPosition;
+		FbxAMatrix lReferenceGlobalCurrentPosition;
+		FbxAMatrix lAssociateGlobalInitPosition;
+		FbxAMatrix lAssociateGlobalCurrentPosition;
+		FbxAMatrix lClusterGlobalInitPosition;
+		FbxAMatrix lClusterGlobalCurrentPosition;
+
+		FbxAMatrix lReferenceGeometry;
+		FbxAMatrix lAssociateGeometry;
+		FbxAMatrix lClusterGeometry;
+
+		FbxAMatrix lClusterRelativeInitPosition;
+		FbxAMatrix lClusterRelativeCurrentPositionInverse;
+
+		if (lClusterMode == FbxCluster::eAdditive && pCluster->GetAssociateModel())
+		{
+			pCluster->GetTransformAssociateModelMatrix(lAssociateGlobalInitPosition);
+			// Geometric transform of the model
+			lAssociateGeometry =  GetGeometry(pCluster->GetAssociateModel());
+			lAssociateGlobalInitPosition *= lAssociateGeometry;
+			lAssociateGlobalCurrentPosition = GetGlobalPosition(pCluster->GetAssociateModel(), pTime, pPose);
+
+			pCluster->GetTransformMatrix(lReferenceGlobalInitPosition);
+			// Multiply lReferenceGlobalInitPosition by Geometric Transformation
+			lReferenceGeometry = GetGeometry(pMesh->GetNode());
+			lReferenceGlobalInitPosition *= lReferenceGeometry;
+			lReferenceGlobalCurrentPosition = pGlobalPosition;
+
+			// Get the link initial global position and the link current global position.
+			pCluster->GetTransformLinkMatrix(lClusterGlobalInitPosition);
+			// Multiply lClusterGlobalInitPosition by Geometric Transformation
+			lClusterGeometry = GetGeometry(pCluster->GetLink());
+			lClusterGlobalInitPosition *= lClusterGeometry;
+			lClusterGlobalCurrentPosition = GetGlobalPosition(pCluster->GetLink(), pTime, pPose);
+
+			// Compute the shift of the link relative to the reference.
+			//ModelM-1 * AssoM * AssoGX-1 * LinkGX * LinkM-1*ModelM
+			pVertexTransformMatrix = lReferenceGlobalInitPosition.Inverse() * lAssociateGlobalInitPosition * lAssociateGlobalCurrentPosition.Inverse() *
+				lClusterGlobalCurrentPosition * lClusterGlobalInitPosition.Inverse() * lReferenceGlobalInitPosition;
+		}
+		else
+		{
+			pCluster->GetTransformMatrix(lReferenceGlobalInitPosition);
+			lReferenceGlobalCurrentPosition = pGlobalPosition;
+			// Multiply lReferenceGlobalInitPosition by Geometric Transformation
+			lReferenceGeometry = GetGeometry(pMesh->GetNode());
+			lReferenceGlobalInitPosition *= lReferenceGeometry;
+
+			// Get the link initial global position and the link current global position.
+			pCluster->GetTransformLinkMatrix(lClusterGlobalInitPosition);
+			lClusterGlobalCurrentPosition = GetGlobalPosition(pCluster->GetLink(), pTime, pPose);
+
+			// Compute the initial position of the link relative to the reference.
+			lClusterRelativeInitPosition = lClusterGlobalInitPosition.Inverse() * lReferenceGlobalInitPosition;
+
+			// Compute the current position of the link relative to the reference.
+			lClusterRelativeCurrentPositionInverse = lReferenceGlobalCurrentPosition.Inverse() * lClusterGlobalCurrentPosition;
+
+			// Compute the shift of the link relative to the reference.
+			pVertexTransformMatrix = lClusterRelativeCurrentPositionInverse * lClusterRelativeInitPosition;
+		}
+	}
+
 	void SkeletalMeshResource::Create(MultiPartMeshData<VertexType>& data)
 	{
 		Destroy();
@@ -265,7 +429,6 @@ namespace Darius::ResourceManager
 			sceneGraphNode.SkeletonRoot = true;
 			skeletonHierarchy.push_back(sceneGraphNode);
 			skeletonIndexMap.insert({ SkeletonRoot, 0 });
-			SkeletonRoot->GetNode()->SetGeometricTranslation(FbxNode::eDestinationPivot, { 0.f, 0.f, 0.f, 1.f });
 			AddSkeletonChildren(SkeletonRoot, skeletonHierarchy, skeletonIndexMap);
 		}
 
@@ -273,6 +436,7 @@ namespace Darius::ResourceManager
 		VertexBlendWeightData skinData;
 		{
 			skinData.jointWeight.resize(mesh->GetControlPointsCount());
+			skinData.initialMatrix.resize(mesh->GetControlPointsCount());
 			for (int clusterIndex = 0; clusterIndex < clusterCount; clusterIndex++)
 			{
 				const auto cluster = deformer->GetCluster(clusterIndex);
@@ -291,6 +455,12 @@ namespace Darius::ResourceManager
 					auto jointIndex = skeletonIndexMap[jointSkeleton];
 
 					skinData.jointWeight[controlPointIndex].push_back({ jointIndex, controlPointWeight });
+
+					auto glob = FbxAMatrix();
+					glob.SetIdentity();
+					FbxAMatrix lVertexTransformMatrix;
+					ComputeClusterDeformation(glob, mesh, cluster, lVertexTransformMatrix, FBXSDK_TIME_ZERO, nullptr);
+					skinData.initialMatrix[controlPointIndex] = GetMat4(lVertexTransformMatrix);
 				}
 			}
 		}
@@ -328,8 +498,6 @@ namespace Darius::ResourceManager
 		{
 			float matData[16];
 			auto& fbxMat = node->EvaluateGlobalTransform();
-			if (currentSceneGraphNode.SkeletonRoot)
-				fbxMat.SetT({ 0, 0, 0, 1 });
 			for (int row = 0; row < 4; row++)
 				for (int col = 0; col < 4; col++)
 					matData[row * 4 + col] = fbxMat.Get(row, col);
@@ -376,7 +544,7 @@ namespace Darius::ResourceManager
 					// Taking 4 data with most significant blend values
 					auto& vertBlendData = skinData.jointWeight[vertGlobalIndex];
 
-					AddBlendDataToVertex(targetVertex, vertBlendData);
+					AddBlendDataToVertex(targetVertex, vertBlendData, skinData.initialMatrix[vertGlobalIndex]);
 				}
 			}
 		}
@@ -387,12 +555,12 @@ namespace Darius::ResourceManager
 			{
 				auto& targetvertex = meshDataVec.meshParts[0].Vertices[vertIndex];
 				auto& vertBlendData = skinData.jointWeight[vertIndex];
-				AddBlendDataToVertex(targetvertex, vertBlendData);
+				AddBlendDataToVertex(targetvertex, vertBlendData, skinData.initialMatrix[vertIndex]);
 			}
 		}
 	}
 
-	void SkeletalMeshResource::AddBlendDataToVertex(MeshResource::VertexType& vertex, DVector<std::pair<int, float>>& blendData)
+	void SkeletalMeshResource::AddBlendDataToVertex(MeshResource::VertexType& vertex, DVector<std::pair<int, float>>& blendData, Matrix4 const& initial)
 	{
 		std::sort(blendData.begin(), blendData.end(),
 			[](std::pair<int, float> const& a, std::pair<int, float> const& b)
@@ -418,17 +586,13 @@ namespace Darius::ResourceManager
 		auto weightVec = Vector4(vertex.mBlendWeights);
 		weightVec = weightVec / Dot(weightVec, Vector4(1.f, 1.f, 1.f, 1.f));
 		vertex.mBlendWeights = weightVec;
+
+		vertex.mPosition = (DirectX::XMFLOAT3)Vector3(initial * vertex.mPosition);
 	}
 
 	void SkeletalMeshResource::ReadFBXCacheVertexPositions(MultiPartMeshData<VertexType>& meshDataVec, void const* meshP, DVector<DUnorderedMap<int, int>>& indexMapper)
 	{
 		auto mesh = (FbxMesh*)meshP;
-
-		auto a1 = mesh->GetDeformerCount(FbxDeformer::eVertexCache);
-		auto a2 = mesh->GetDeformerCount(FbxDeformer::eSkin);
-		auto a3 = mesh->GetDeformerCount(FbxDeformer::eUnknown);
-		auto a4 = mesh->GetDeformerCount(FbxDeformer::eBlendShape);
-		auto def = mesh->GetDeformer(FbxDeformer::eUnknown);
 
 		// Find vertex pos deformer
 		FbxVertexCacheDeformer* deformer = nullptr;
