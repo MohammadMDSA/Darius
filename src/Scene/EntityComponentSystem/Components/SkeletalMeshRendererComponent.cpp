@@ -221,13 +221,6 @@ namespace Darius::Scene::ECS::Components
 		if (!skeletonJoint.SkeletonRoot)
 			xform = parent * xform;
 
-
-		if (skeletonJoint.MatrixIdx == 5)
-		{
-			xform.SetW(xform.GetW() + Vector4(0.f, 0.f, Sin(D_TIME::GetTotalTime() / 5.f) * 100, 0.f));
-		}
-
-
 		auto& joint = mJoints[skeletonJoint.MatrixIdx];
 		auto withOffset = xform * skeletonJoint.IBM;
 		joint.mWorld = withOffset;

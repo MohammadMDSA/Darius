@@ -436,7 +436,6 @@ namespace Darius::ResourceManager
 		VertexBlendWeightData skinData;
 		{
 			skinData.jointWeight.resize(mesh->GetControlPointsCount());
-			skinData.initialMatrix.resize(mesh->GetControlPointsCount());
 			for (int clusterIndex = 0; clusterIndex < clusterCount; clusterIndex++)
 			{
 				const auto cluster = deformer->GetCluster(clusterIndex);
@@ -454,13 +453,13 @@ namespace Darius::ResourceManager
 					auto jointSkeleton = cluster->GetLink()->GetSkeleton();
 					auto jointIndex = skeletonIndexMap[jointSkeleton];
 
-					skinData.jointWeight[controlPointIndex].push_back({ jointIndex, controlPointWeight });
-
 					auto glob = FbxAMatrix();
 					glob.SetIdentity();
 					FbxAMatrix lVertexTransformMatrix;
 					ComputeClusterDeformation(glob, mesh, cluster, lVertexTransformMatrix, FBXSDK_TIME_ZERO, nullptr);
-					skinData.initialMatrix[controlPointIndex] = GetMat4(lVertexTransformMatrix);
+
+					skinData.jointWeight[controlPointIndex].push_back({ jointIndex, { controlPointWeight, GetMat4(lVertexTransformMatrix)}
+				});
 				}
 			}
 		}
@@ -544,7 +543,7 @@ namespace Darius::ResourceManager
 					// Taking 4 data with most significant blend values
 					auto& vertBlendData = skinData.jointWeight[vertGlobalIndex];
 
-					AddBlendDataToVertex(targetVertex, vertBlendData, skinData.initialMatrix[vertGlobalIndex]);
+					AddBlendDataToVertex(targetVertex, vertBlendData);
 				}
 			}
 		}
@@ -555,17 +554,17 @@ namespace Darius::ResourceManager
 			{
 				auto& targetvertex = meshDataVec.meshParts[0].Vertices[vertIndex];
 				auto& vertBlendData = skinData.jointWeight[vertIndex];
-				AddBlendDataToVertex(targetvertex, vertBlendData, skinData.initialMatrix[vertIndex]);
+				AddBlendDataToVertex(targetvertex, vertBlendData);
 			}
 		}
 	}
 
-	void SkeletalMeshResource::AddBlendDataToVertex(MeshResource::VertexType& vertex, DVector<std::pair<int, float>>& blendData, Matrix4 const& initial)
+	void SkeletalMeshResource::AddBlendDataToVertex(MeshResource::VertexType& vertex, DVector<std::pair<int, std::pair<float, D_MATH::Matrix4>>>& blendData)
 	{
 		std::sort(blendData.begin(), blendData.end(),
-			[](std::pair<int, float> const& a, std::pair<int, float> const& b)
+			[](std::pair<int, std::pair<float, D_MATH::Matrix4>> const& a, std::pair<int, std::pair<float, D_MATH::Matrix4>> const& b)
 			{
-				return b.second < a.second;
+				return b.second.first < a.second.first;
 			});
 
 		// Adding blend data to vertex
@@ -578,7 +577,7 @@ namespace Darius::ResourceManager
 			}
 			else
 			{
-				((float*)&vertex.mBlendWeights)[i] = blendData[i].second;
+				((float*)&vertex.mBlendWeights)[i] = blendData[i].second.first;
 				((int*)&vertex.mBlendIndices)[i] = blendData[i].first;
 			}
 		}
@@ -587,7 +586,15 @@ namespace Darius::ResourceManager
 		weightVec = weightVec / Dot(weightVec, Vector4(1.f, 1.f, 1.f, 1.f));
 		vertex.mBlendWeights = weightVec;
 
-		vertex.mPosition = (DirectX::XMFLOAT3)Vector3(initial * vertex.mPosition);
+		Vector3 pos(kZero);
+		auto weights = (float*)&vertex.mBlendWeights;
+		for (int i = 0; i < 4; i++)
+		{
+			if (i < blendData.size())
+				pos += Matrix4(weights[i] * blendData[i].second.second) * vertex.mPosition;
+		}
+
+		vertex.mPosition = (DirectX::XMFLOAT3)pos;
 	}
 
 	void SkeletalMeshResource::ReadFBXCacheVertexPositions(MultiPartMeshData<VertexType>& meshDataVec, void const* meshP, DVector<DUnorderedMap<int, int>>& indexMapper)
