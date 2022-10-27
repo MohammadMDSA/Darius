@@ -7,7 +7,7 @@
 
 ## Features
 - Resource Management
-    - Default: Material, Texture2D (DDS, TGA), Mesh (FBX), and Vertex Batch Resources
+    - Default: Material, Texture2D (DDS, TGA), Static and Skeletal Mesh (FBX), and Vertex Batch Resources
     - Dynamic Resource Type Registration (You can define your own)
 - Renderer
     - Frustum Culling
@@ -20,6 +20,9 @@
 - Scene Management
     - Saving & Loading
     - Dynamic Entity Component System
+- Physics
+    - Dynamic Body
+    - Collision Detection
 - Editor
     - Resource Monitor
     - Ghost and Orbit Cameras
