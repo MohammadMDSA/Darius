@@ -25,8 +25,8 @@ namespace Darius::ResourceManager
 		D_CH_FIELD_ACC(D_GRAPHICS_BUFFERS::Texture, Texture, protected);
 
 	protected:
-		TextureResource(Uuid uuid, std::wstring const& path, DResourceId id, bool isDefault = false) :
-			Resource(uuid, path, id, isDefault) {}
+		TextureResource(Uuid uuid, std::wstring const& path, std::wstring const& name, DResourceId id, bool isDefault = false) :
+			Resource(uuid, path, name, id, isDefault) {}
 
 
 		// Inherited via Resource

@@ -19,8 +19,8 @@ namespace Darius::ResourceManager
 {
 	D_CH_RESOURCE_DEF(MaterialResource);
 
-	MaterialResource::MaterialResource(Uuid uuid, std::wstring const& path, DResourceId id, bool isDefault) :
-		Resource(uuid, path, id, isDefault),
+	MaterialResource::MaterialResource(Uuid uuid, std::wstring const& path, std::wstring const& name, DResourceId id, bool isDefault) :
+		Resource(uuid, path, name, id, isDefault),
 		mPsoFlags(0)
 	{
 		mBaseColorTextureHandle = D_RESOURCE::GetDefaultResource(D_RESOURCE::DefaultResource::Texture2DWhiteOpaque);

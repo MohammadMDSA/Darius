@@ -5,8 +5,12 @@
 #include <fstream>
 #include <cstddef>
 #include <memory>
+
+#pragma warning(push)
+#pragma warning(disable: 4355)
 #include <ppl.h>
 #include <ppltasks.h>
+#pragma warning(pop)
 
 #ifndef D_FILE
 #define D_FILE Darius::Core::Filesystem

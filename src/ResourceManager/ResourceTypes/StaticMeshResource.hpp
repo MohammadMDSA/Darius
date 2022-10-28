@@ -37,12 +37,10 @@ namespace Darius::ResourceManager
 
 	protected:
 		
-		StaticMeshResource(Uuid uuid, std::wstring const& path, DResourceId id, bool isDefault = false) :
-			MeshResource(uuid, path, id, isDefault) {}
+		StaticMeshResource(Uuid uuid, std::wstring const& path, std::wstring const& name, DResourceId id, bool isDefault = false) :
+			MeshResource(uuid, path, name, id, isDefault) {}
 
 		virtual bool					UploadToGpu(D_GRAPHICS::GraphicsContext& context) override;
-
-		static bool						CanConstructFrom(Path const&);
 
 	private:
 		friend class DResourceManager;

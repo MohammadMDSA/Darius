@@ -25,10 +25,10 @@ namespace Darius::Animation
 		virtual INLINE void				ReadResourceFromFile() {};
 		virtual bool					UploadToGpu(D_GRAPHICS::GraphicsContext& context) override;
 
-		static bool						CanConstructFrom(Path const& path);
+		static DVector<ResourceDataInFile> CanConstructFrom(ResourceType type, Path const& path);
 
 	protected:
-		AnimationResource(Uuid uuid, std::wstring const& path, DResourceId id, bool isDefault = false) :
-			Resource(uuid, path, id, isDefault) {}
+		AnimationResource(Uuid uuid, std::wstring const& path, std::wstring const& name, DResourceId id, bool isDefault = false) :
+			Resource(uuid, path, name, id, isDefault) {}
 	};
 }

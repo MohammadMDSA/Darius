@@ -1,6 +1,7 @@
 #pragma once
 
 #include "ResourceTypes/Resource.hpp"
+#include "ResourceLoader.hpp"
 
 #include <Core/Ref.hpp>
 #include <Core/Uuid.hpp>
@@ -135,32 +136,16 @@ namespace Darius::ResourceManager
 		friend class ResourceLoader;
 		friend class Resource;
 
-		ResourceHandle				CreateResource(ResourceType type, Uuid uuid, std::wstring const& path, bool isDefault, bool fromFile)
-		{
-			
-			auto factory = Resource::GetFactoryForResourceType(type);
-			if (!factory)
-				return EmptyResourceHandle;
-
-			auto res = factory->Create(uuid, path, GetNewId(), isDefault);
-
-			res->mLoaded = !fromFile;
-
-			// Add the handle to path and resource maps
-			ResourceHandle handle = { type , res->GetId()};
-			UpdateMaps(res);
-
-			return handle;
-		}
+		ResourceHandle				CreateResource(ResourceType type, Uuid uuid, std::wstring const& path, std::wstring const& name, bool isDefault, bool fromFile);
 
 		template<class T>
-		INLINE ResourceHandle		CreateResource(Uuid uuid, std::wstring const& path, bool isDefault, bool fromFile)
+		INLINE ResourceHandle		CreateResource(Uuid uuid, std::wstring const& path, std::wstring const& name, bool isDefault, bool fromFile)
 		{
 			// Checking if T is a resource type
 			using conv = std::is_convertible<T*, Resource*>;
 			D_STATIC_ASSERT(conv::value);
 
-			return CreateResource(T::GetResourceType(), uuid, path, isDefault, fromFile);
+			return CreateResource(T::GetResourceType(), uuid, path, name, isDefault, fromFile);
 		}
 
 		void						UpdateMaps(std::shared_ptr<Resource> resuorce);
@@ -168,8 +153,8 @@ namespace Darius::ResourceManager
 		INLINE DResourceId			GetNewId() { return ++mLastId; }
 
 		DUnorderedMap<ResourceType, DUnorderedMap<DResourceId, std::shared_ptr<Resource>>>	mResourceMap;
-		DUnorderedMap<Uuid, Resource*, UuidHasher>					mUuidMap;
-		DUnorderedMap<std::wstring, Resource*>						mPathMap;
+		DUnorderedMap<Uuid, Resource*, UuidHasher>			mUuidMap;
+		DUnorderedMap<std::wstring, DVector<ResourceHandle>>						mPathMap;
 		DUnorderedMap<DefaultResource, ResourceHandle>				mDefaultResourceMap;
 
 		DResourceId											mLastId = 0;

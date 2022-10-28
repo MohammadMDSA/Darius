@@ -29,8 +29,8 @@ namespace Darius::ResourceManager
 
 		friend class DResourceManager;
 
-		Texture2DResource(Uuid uuid, std::wstring const& path, DResourceId id, bool isDefault = false) :
-			TextureResource(uuid, path, id, isDefault) {}
+		Texture2DResource(Uuid uuid, std::wstring const& path, std::wstring const& name, DResourceId id, bool isDefault = false) :
+			TextureResource(uuid, path, name, id, isDefault) {}
 
 		void			CreateRaw(uint32_t color, DXGI_FORMAT format, size_t rowPitchByte, size_t width, size_t height);
 	};

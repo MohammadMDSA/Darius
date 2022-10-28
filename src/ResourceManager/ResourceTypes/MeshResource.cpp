@@ -1,6 +1,8 @@
 #include "ResourceManager/pch.hpp"
 #include "MeshResource.hpp"
+
 #include "ResourceManager/ResourceManager.hpp"
+#include "SkeletalMeshResource.hpp"
 
 #include <Core/Filesystem/Path.hpp>
 #include <Core/Containers/Set.hpp>
@@ -17,6 +19,75 @@ using namespace D_CONTAINERS;
 
 namespace Darius::ResourceManager
 {
+
+	DVector<ResourceDataInFile> MeshResource::CanConstructFrom(ResourceType type, Path const& path)
+	{
+		// Create the FBX SDK manager
+		FbxManager* lSdkManager = FbxManager::Create();
+
+		// Create an IOSettings object.
+		FbxIOSettings* ios = FbxIOSettings::Create(lSdkManager, IOSROOT);
+		lSdkManager->SetIOSettings(ios);
+
+		// Create an importer.
+		FbxImporter* lImporter = FbxImporter::Create(lSdkManager, "");
+
+		// Declare the path and filename of the file containing the scene.
+		// In this case, we are assuming the file is in the same directory as the executable.
+		auto pathStr = path.string();
+		const char* lFilename = pathStr.c_str();
+
+
+		// Initialize the importer.
+		bool lImportStatus = lImporter->Initialize(lFilename, -1, lSdkManager->GetIOSettings());
+
+		if (!lImportStatus) {
+			D_LOG_ERROR("Call to FbxImporter::Initialize() failed.");
+			std::string msg = "Error returned: " + std::string(lImporter->GetStatus().GetErrorString());
+			D_LOG_ERROR(msg);
+			return DVector<ResourceDataInFile>();
+		}
+
+		// Create a new scene so it can be populated by the imported file.
+		FbxScene* lScene = FbxScene::Create(lSdkManager, "modelScene");
+
+		// Import the contents of the file into the scene.
+		lImporter->Import(lScene);
+
+		// The file has been imported; we can get rid of the importer.
+		lImporter->Destroy();
+
+
+
+		// Print the nodes of the scene and their attributes recursively.
+		// Note that we are not printing the root node because it should
+		// not contain any attributes.
+		FbxNode* lRootNode = lScene->GetRootNode();
+
+		DVector<ResourceDataInFile> results;
+
+		bool isSkeletal = SkeletalMeshResource::GetResourceType() == type;
+
+		TraverseNodes(lRootNode, [&results, type, isSkeletal](void* nodeP)
+			{
+				auto node = (FbxNode*)nodeP;
+				auto attr = node->GetNodeAttribute();
+				if (attr && attr->GetAttributeType() == FbxNodeAttribute::eMesh)
+				{
+					auto mesh = node->GetMesh();
+					auto hasSkin = mesh->GetDeformerCount(FbxDeformer::eSkin) > 0;
+					if ((hasSkin && isSkeletal) || (!hasSkin && !isSkeletal))
+					{
+						ResourceDataInFile data;
+						data.Name = node->GetName();
+						data.Type = type;
+						results.push_back(data);
+					}
+				}
+			});
+
+		return results;
+	}
 
 	void MeshResource::GetFBXPolygons(MultiPartMeshData<VertexType>& meshDataVec, void const* meshP, DVector<DUnorderedMap<int, int>>& indexMapper)
 	{

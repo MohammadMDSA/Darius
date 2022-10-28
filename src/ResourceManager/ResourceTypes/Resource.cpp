@@ -23,7 +23,7 @@ namespace Darius::ResourceManager
 
 	DUnorderedMap<std::string, D_CONTAINERS::DSet<ResourceType>> Resource::ResourceExtensionMap = {};
 
-	DUnorderedMap<ResourceType, std::function<bool(Path const&)>> Resource::ConstructValidationMap = {};
+	DUnorderedMap<ResourceType, std::function<DVector<ResourceDataInFile>(ResourceType type, Path const&)>> Resource::ConstructValidationMap = {};
 
 	std::string ResourceTypeToString(ResourceType type)
 	{
@@ -35,7 +35,7 @@ namespace Darius::ResourceManager
 
 	ResourceType StringToResourceType(std::string name)
 	{
-		return Resource::GetResourceType(name);
+		return Resource::GetResourceTypeFromName(name);
 	}
 
 	void Resource::UpdateGPU(D_GRAPHICS::GraphicsContext& context)
@@ -50,6 +50,15 @@ namespace Darius::ResourceManager
 	void Resource::AddTypeContainer(ResourceType type)
 	{
 		D_RESOURCE::GetManager()->mResourceMap[type];
+	}
+
+	DVector<ResourceDataInFile> Resource::CanConstructFrom(ResourceType type, Path const& path)
+	{
+		ResourceDataInFile data;
+		auto name = D_FILE::GetFileName(path);
+		data.Name = STR_WSTR(name);
+		data.Type = type;
+		return { data };
 	}
 
 }

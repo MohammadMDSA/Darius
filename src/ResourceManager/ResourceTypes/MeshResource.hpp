@@ -26,6 +26,8 @@ namespace Darius::ResourceManager
 		INLINE Mesh*					ModifyMeshData() { MakeDiskDirty(); MakeGpuDirty(); return &mMesh; }
 		INLINE const Mesh*				GetMeshData() const { return &mMesh; }
 
+		static DVector<ResourceDataInFile> CanConstructFrom(ResourceType type, Path const& path);
+
 #ifdef _D_EDITOR
 		virtual bool					DrawDetails(float params[]) override { (params); return false; };
 #endif // _D_EDITOR
@@ -37,8 +39,8 @@ namespace Darius::ResourceManager
 
 	protected:
 
-		MeshResource(Uuid uuid, std::wstring const& path, DResourceId id, bool isDefault = false) :
-			Resource(uuid, path, id, isDefault) {}
+		MeshResource(Uuid uuid, std::wstring const& path, std::wstring const& name, DResourceId id, bool isDefault = false) :
+			Resource(uuid, path, name, id, isDefault) {}
 
 		INLINE virtual void				WriteResourceToFile() const override {};
 		INLINE virtual void				ReadResourceFromFile() override {};

@@ -32,14 +32,12 @@ namespace Darius::ResourceManager
 
 	protected:
 
-		SkeletalMeshResource(Uuid uuid, std::wstring const& path, DResourceId id, bool isDefault = false) :
-			MeshResource(uuid, path, id, isDefault),
+		SkeletalMeshResource(Uuid uuid, std::wstring const& path, std::wstring const& name, DResourceId id, bool isDefault = false) :
+			MeshResource(uuid, path, name, id, isDefault),
 			mJointCount(0),
 			mSkeletonRoot(nullptr) {}
 
 		virtual bool					UploadToGpu(D_GRAPHICS::GraphicsContext& context) override;
-
-		static bool						CanConstructFrom(Path const& path);
 
 	private:
 		static void						GetFBXSkin(MultiPartMeshData<VertexType>& meshDataVec, void const* meshP, DList<Mesh::SkeletonJoint>& skeletonHierarchy, DVector<DUnorderedMap<int, int>>& indexMapper);

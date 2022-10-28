@@ -20,8 +20,8 @@ namespace Darius::ResourceManager
 	private:
 		friend class DResourceManager;
 
-		BatchResource(Uuid uuid, std::wstring const& path, DResourceId id, bool isDefault = false) :
-			StaticMeshResource(uuid, path, id, isDefault) {}
+		BatchResource(Uuid uuid, std::wstring const& path, std::wstring const& name, DResourceId id, bool isDefault = false) :
+			StaticMeshResource(uuid, path, name, id, isDefault) {}
 
 	};
 

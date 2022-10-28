@@ -77,12 +77,12 @@ namespace Darius::Scene::ECS::Components
 			{
 				MeshResource* currentMesh = mMeshResource.Get();
 
-				if (ImGui::Button("Select"))
+				if (ImGui::Button("Select Mesh"))
 				{
-					ImGui::OpenPopup("Select Res");
+					ImGui::OpenPopup("Select Mesh Res");
 				}
 
-				if (ImGui::BeginPopup("Select Res"))
+				if (ImGui::BeginPopup("Select Mesh Res"))
 				{
 					auto meshes = D_RESOURCE::GetResourcePreviews(StaticMeshResource::GetResourceType());
 					int idx = 0;
@@ -114,12 +114,12 @@ namespace Darius::Scene::ECS::Components
 			{
 				MaterialResource* currentMaterial = mMaterialResource.Get();
 
-				if (ImGui::Button("Select"))
+				if (ImGui::Button("Select Material"))
 				{
-					ImGui::OpenPopup("Select Mat");
+					ImGui::OpenPopup("Select Mat Res");
 				}
 
-				if (ImGui::BeginPopup("Select Mat"))
+				if (ImGui::BeginPopup("Select Mat Res"))
 				{
 					auto meshes = D_RESOURCE::GetResourcePreviews(MaterialResource::GetResourceType());
 					int idx = 0;

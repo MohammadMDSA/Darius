@@ -2,7 +2,6 @@
 #include "EditorContext.hpp"
 #include "Gui/GuiManager.hpp"
 
-#include <Core/Filesystem/Path.hpp>
 #include <ResourceManager/ResourceLoader.hpp>
 #include <Utils/Assert.hpp>
 

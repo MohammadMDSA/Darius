@@ -13,7 +13,7 @@ namespace Darius::Animation
 
 	D_CH_RESOURCE_DEF(AnimationResource);
 
-	bool AnimationResource::CanConstructFrom(Path const& path)
+	DVector<ResourceDataInFile> AnimationResource::CanConstructFrom(ResourceType type, Path const& path)
 	{
 		// Create the FBX SDK manager
 		FbxManager* lSdkManager = FbxManager::Create();
@@ -38,7 +38,7 @@ namespace Darius::Animation
 			D_LOG_ERROR("Call to FbxImporter::Initialize() failed.");
 			std::string msg = "Error returned: " + std::string(lImporter->GetStatus().GetErrorString());
 			D_LOG_ERROR(msg);
-			return false;
+			return {};
 		}
 
 		// Create a new scene so it can be populated by the imported file.
@@ -50,7 +50,19 @@ namespace Darius::Animation
 		// The file has been imported; we can get rid of the importer.
 		lImporter->Destroy();
 
-		return /*lScene->GetSrcObjectCount<FbxAnimStack>() >*/ 0;
+		DVector<ResourceDataInFile> result;
+
+		for (int i = 0; i < lScene->GetSrcObjectCount<FbxAnimStack>(); i++)
+		{
+			ResourceDataInFile data;
+			FbxAnimStack* animStack = lScene->GetSrcObject<FbxAnimStack>(i);
+
+			data.Name = animStack->GetName();
+			data.Type = AnimationResource::GetResourceType();
+			result.push_back(data);
+		}
+
+		return result;
 	}
 
 	bool AnimationResource::UploadToGpu(D_GRAPHICS::GraphicsContext& context)

@@ -170,7 +170,7 @@ namespace Darius::ResourceManager
 			auto lowSphere = D_RENDERER_GEOMETRY_GENERATOR::CreateSphere(0.5f, 10, 6);
 			auto line = D_RENDERER_GEOMETRY_GENERATOR::CreateLine(0.f, 0.f, 0.f, 0.f, 0.f, -1.f);
 
-			auto resHandle = CreateResource<StaticMeshResource>(GenerateUuidFor("Box Mesh"), L"Box Mesh", GetNewId(), true);
+			auto resHandle = CreateResource<StaticMeshResource>(GenerateUuidFor("Box Mesh"), L"Box Mesh", L"Box Mesh", GetNewId(), true);
 			MultiPartMeshData<StaticMeshResource::VertexType> meshData;
 			meshData.meshParts = DVector<MeshData<StaticMeshResource::VertexType>>{ box };
 			auto res = _GetRawResource(resHandle);
@@ -179,7 +179,7 @@ namespace Darius::ResourceManager
 			res->mDirtyDisk = false;
 			mDefaultResourceMap.insert({ DefaultResource::BoxMesh, { StaticMeshResource::GetResourceType(), res->GetId()} });
 
-			resHandle = CreateResource<StaticMeshResource>(GenerateUuidFor("Cylinder Mesh"), L"Cylinder Mesh", GetNewId(), true);
+			resHandle = CreateResource<StaticMeshResource>(GenerateUuidFor("Cylinder Mesh"), L"Cylinder Mesh", L"Cylinder Mesh", GetNewId(), true);
 			meshData.meshParts = DVector<MeshData<StaticMeshResource::VertexType>>{ cylinder };
 			res = GetRawResource(resHandle);
 			((StaticMeshResource*)res)->Create(meshData);
@@ -187,7 +187,7 @@ namespace Darius::ResourceManager
 			res->mDirtyDisk = false;
 			mDefaultResourceMap.insert({ DefaultResource::CylinderMesh, { StaticMeshResource::GetResourceType(), res->GetId() } });
 
-			resHandle = CreateResource<StaticMeshResource>(GenerateUuidFor("Geosphere Mesh"), L"Geosphere Mesh", GetNewId(), true);
+			resHandle = CreateResource<StaticMeshResource>(GenerateUuidFor("Geosphere Mesh"), L"Geosphere Mesh", L"Geosphere Mesh", GetNewId(), true);
 			meshData.meshParts = DVector<MeshData<StaticMeshResource::VertexType>>{ geosphere };
 			res = GetRawResource(resHandle);
 			((StaticMeshResource*)res)->Create(meshData);
@@ -195,7 +195,7 @@ namespace Darius::ResourceManager
 			res->mDirtyDisk = false;
 			mDefaultResourceMap.insert({ DefaultResource::GeosphereMesh, { StaticMeshResource::GetResourceType(), res->GetId() } });
 
-			resHandle = CreateResource<StaticMeshResource>(GenerateUuidFor("Grid Mesh"), L"Grid Mesh", GetNewId(), true);
+			resHandle = CreateResource<StaticMeshResource>(GenerateUuidFor("Grid Mesh"), L"Grid Mesh", L"Grid Mesh", GetNewId(), true);
 			meshData.meshParts = DVector<MeshData<StaticMeshResource::VertexType>>{ grid };
 			res = GetRawResource(resHandle);
 			((StaticMeshResource*)res)->Create(meshData);
@@ -203,7 +203,7 @@ namespace Darius::ResourceManager
 			res->mDirtyDisk = false;
 			mDefaultResourceMap.insert({ DefaultResource::GridMesh, { StaticMeshResource::GetResourceType(), res->GetId() } });
 
-			resHandle = CreateResource<StaticMeshResource>(GenerateUuidFor("Quad Mesh"), L"Quad Mesh", GetNewId(), true);
+			resHandle = CreateResource<StaticMeshResource>(GenerateUuidFor("Quad Mesh"), L"Quad Mesh", L"Quad Mesh", GetNewId(), true);
 			meshData.meshParts = DVector<MeshData<StaticMeshResource::VertexType>>{ quad };
 			res = GetRawResource(resHandle);
 			((StaticMeshResource*)res)->Create(meshData);
@@ -211,7 +211,7 @@ namespace Darius::ResourceManager
 			res->mDirtyDisk = false;
 			mDefaultResourceMap.insert({ DefaultResource::QuadMesh, { StaticMeshResource::GetResourceType(), res->GetId() } });
 
-			resHandle = CreateResource<StaticMeshResource>(GenerateUuidFor("Sphere Mesh"), L"Sphere Mesh", GetNewId(), true);
+			resHandle = CreateResource<StaticMeshResource>(GenerateUuidFor("Sphere Mesh"), L"Sphere Mesh", L"Sphere Mesh", GetNewId(), true);
 			meshData.meshParts = DVector<MeshData<StaticMeshResource::VertexType>>{ sphere };
 			res = GetRawResource(resHandle);
 			((StaticMeshResource*)res)->Create(meshData);
@@ -219,7 +219,7 @@ namespace Darius::ResourceManager
 			res->mDirtyDisk = false;
 			mDefaultResourceMap.insert({ DefaultResource::SphereMesh, { StaticMeshResource::GetResourceType(), res->GetId() } });
 
-			resHandle = CreateResource<StaticMeshResource>(GenerateUuidFor("Low Poly Sphere Mesh"), L"Low Poly Sphere Mesh", GetNewId(), true);
+			resHandle = CreateResource<StaticMeshResource>(GenerateUuidFor("Low Poly Sphere Mesh"), L"Low Poly Sphere Mesh", L"Low Poly Sphere Mesh", GetNewId(), true);
 			meshData.meshParts = DVector<MeshData<StaticMeshResource::VertexType>>{ lowSphere };
 			res = GetRawResource(resHandle);
 			((StaticMeshResource*)res)->Create(meshData);
@@ -227,7 +227,7 @@ namespace Darius::ResourceManager
 			res->mDirtyDisk = false;
 			mDefaultResourceMap.insert({ DefaultResource::LowPolySphereMesh, { StaticMeshResource::GetResourceType(), res->GetId() } });
 
-			resHandle = CreateResource<BatchResource>(GenerateUuidFor("Line Mesh"), L"Line Mesh", GetNewId(), true);
+			resHandle = CreateResource<BatchResource>(GenerateUuidFor("Line Mesh"), L"Line Mesh", L"Line Mesh", GetNewId(), true);
 			meshData.meshParts = DVector<MeshData<StaticMeshResource::VertexType>>{ line };
 			res = GetRawResource(resHandle);
 			((BatchResource*)res)->Create(meshData);
@@ -240,7 +240,7 @@ namespace Darius::ResourceManager
 		{
 #define CreateDefaultTexture2D(name, color) \
 { \
-	auto defaultTextureHandle = CreateResource<Texture2DResource>(GenerateUuidFor("Default Texture2D " #name), L"Default Texture2D " #name, true, false); \
+	auto defaultTextureHandle = CreateResource<Texture2DResource>(GenerateUuidFor("Default Texture2D " #name), L"Default Texture2D " #name, L"Default Texture2D " #name, true, false); \
 	auto textureRes = (Texture2DResource*)GetRawResource(defaultTextureHandle); \
 	textureRes->CreateRaw(color, DXGI_FORMAT_R8G8B8A8_UNORM, 4, 1, 1); \
 	auto rRes = dynamic_cast<Resource*>(textureRes); \
@@ -260,7 +260,7 @@ namespace Darius::ResourceManager
 
 		// Creating default materials
 		{
-			auto defaultMaterialHandle = CreateResource<MaterialResource>(GenerateUuidFor("Default Material"), L"Default Material", true, false);
+			auto defaultMaterialHandle = CreateResource<MaterialResource>(GenerateUuidFor("Default Material"), L"Default Material", L"Default Material", true, false);
 			auto materialRes = (MaterialResource*)GetRawResource(defaultMaterialHandle);
 			auto mat = materialRes->ModifyMaterialData();
 			mat->DifuseAlbedo = XMFLOAT4(Vector4(kOne));
@@ -284,9 +284,27 @@ namespace Darius::ResourceManager
 		auto path = parent.append(D_FILE::GetNewFileName(L"New Material", L".mat", parent));
 
 		// Create resource
-		auto handle = CreateResource<MaterialResource>(GenerateUuid(), path, false, false);
+		auto handle = CreateResource<MaterialResource>(GenerateUuid(), path, D_FILE::GetFileName(path), false, false);
 		auto res = GetRawResource(handle);
 		D_RESOURCE_LOADER::SaveResource(res);
+		return handle;
+	}
+
+	ResourceHandle DResourceManager::CreateResource(ResourceType type, Uuid uuid, std::wstring const& path, std::wstring const& name, bool isDefault, bool fromFile)
+
+	{
+		auto factory = Resource::GetFactoryForResourceType(type);
+		if (!factory)
+			return EmptyResourceHandle;
+
+		auto res = factory->Create(uuid, path, name, GetNewId(), isDefault);
+
+		res->mLoaded = !fromFile;
+
+		// Add the handle to path and resource maps
+		ResourceHandle handle = { type , res->GetId() };
+		UpdateMaps(res);
+
 		return handle;
 	}
 
@@ -318,7 +336,19 @@ namespace Darius::ResourceManager
 		mUuidMap.try_emplace(resource->GetUuid(), resource.get());
 
 		// Update path map
-		mPathMap.try_emplace(resource->GetPath().wstring(), resource.get());
+		auto& pathHandles = mPathMap[resource->GetPath().wstring()];
+		bool found = false;
+		ResourceHandle newHandle = *resource;
+		for (auto const& handle : pathHandles)
+		{
+			if (handle.Id == newHandle.Id && handle.Type == newHandle.Type)
+			{
+				found = true;
+				break;
+			}
+		}
+		if (!found)
+			pathHandles.push_back(newHandle);
 	}
 
 	void DResourceManager::SaveAllResources()
@@ -334,6 +364,7 @@ namespace Darius::ResourceManager
 		}
 	}
 
+#ifdef _D_EDITOR
 	void DResourceManager::GetAllResources(DVector<Resource*>& resources)
 	{
 		for (auto& resType : mResourceMap)
@@ -344,4 +375,5 @@ namespace Darius::ResourceManager
 			}
 		}
 	}
+#endif // _D_EDITOR
 }
