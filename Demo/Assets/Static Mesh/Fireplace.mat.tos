@@ -1,1 +1,10 @@
-{"Name":"Fireplace","Path":"A:/Projects/repos/Darius\\Demo\\Assets/Static Mesh/Fireplace.mat","Type":"Material","UUID":"b2d91752-38b3-4a7e-af4b-6a8590ee842e"}
+{
+  "Path": "A:/Projects/repos/Darius\\Demo\\Assets/Static Mesh/Fireplace.mat",
+  "Resources": [
+    {
+      "Name": "Fireplace",
+      "Type": "Material",
+      "Uuid": "694145a8-941d-4d77-9ce8-2f7fd4dc9b51"
+    }
+  ]
+}

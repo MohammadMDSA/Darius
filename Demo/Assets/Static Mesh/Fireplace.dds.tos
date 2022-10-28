@@ -1,6 +1,1 @@
-{
-  "Name": "Fireplace",
-  "Path": "A:/Projects/repos/Darius\\Demo\\Assets/Static Mesh/Fireplace.dds",
-  "Type": "Texture2D",
-  "UUID": "3cab83c9-962d-417d-8121-21baf7a306b8"
-}
+{"Path":"A:/Projects/repos/Darius\\Demo\\Assets/Static Mesh\\Fireplace.dds","Resources":[{"Name":"Fireplace","Type":"Texture2D","Uuid":"f8f21f88-67a3-45db-95f0-54dfd2e81526"}]}
