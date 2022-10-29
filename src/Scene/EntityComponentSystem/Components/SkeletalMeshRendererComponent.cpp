@@ -82,7 +82,7 @@ namespace Darius::Scene::ECS::Components
 					ImGui::OpenPopup("Select Mesh Res");
 				}
 
-				if (ImGui::BeginPopup("Select Res"))
+				if (ImGui::BeginPopup("Select Mesh Res"))
 				{
 					auto meshes = D_RESOURCE::GetResourcePreviews(SkeletalMeshResource::GetResourceType());
 					int idx = 0;
