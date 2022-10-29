@@ -123,21 +123,23 @@ namespace Darius::ResourceManager
 		// not contain any attributes.
 		FbxNode* lRootNode = lScene->GetRootNode();
 
-		// Searching for mesh just in first level
-		FbxNode* node = 0;
-		for (int i = 0; i < lRootNode->GetChildCount(); i++)
-		{
-			auto attr = lRootNode->GetChild(i)->GetNodeAttribute();
-			if (attr->GetAttributeType() == FbxNodeAttribute::eMesh)
+		// Searching for a mesh node with our resource name
+		FbxNode* targetNode = 0;
+		TraverseNodes(lRootNode, [&](void* nodeP)
 			{
-				node = lRootNode->GetChild(i);
-			}
-		}
+				auto node = (FbxNode*)nodeP;
+				auto attr = node->GetNodeAttribute();
+				auto nodeName = std::string(node->GetName());
+				if (attr && attr->GetAttributeType() == FbxNodeAttribute::eMesh && WSTR_STR(nodeName) == this->GetName())
+				{
+					targetNode = node;
+				}
+			});
 
-		if (!node)
+		if (!targetNode)
 			return true;
 
-		auto mesh = node->GetMesh();
+		auto mesh = targetNode->GetMesh();
 
 		MultiPartMeshData<VertexType> meshDataVec;
 
