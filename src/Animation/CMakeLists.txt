@@ -7,12 +7,14 @@ list(APPEND ANIMATION_LIBS_INCLUDE
 	"pch.hpp"
 	"AnimationResource.hpp"
 	"AnimationManager.hpp"
+	"AnimationComponent.hpp"
 	)
 
 list(APPEND ANIMATION_LIBS_SOURCES
 	"pch.cpp"
 	"AnimationResource.cpp"
 	"AnimationManager.cpp"
+	"AnimationComponent.cpp"
 	)
 
 
@@ -38,7 +40,7 @@ PRIVATE
 )
 
 target_link_libraries("Animation" PRIVATE ${Boost_LIBRARIES} ${FBX_LINK_LIBS})
-target_link_libraries("Animation" PUBLIC ResourceManager Debug)
+target_link_libraries("Animation" PUBLIC ResourceManager Debug Scene)
 
 
 if(BUILD_TESTS)

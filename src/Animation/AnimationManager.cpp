@@ -2,6 +2,7 @@
 #include "AnimationManager.hpp"
 
 #include "AnimationResource.hpp"
+#include "AnimationComponent.hpp"
 
 #include <Utils/Assert.hpp>
 
@@ -15,7 +16,11 @@ namespace Darius::Animation
 		D_ASSERT(!_initialized);
 		_initialized = true;
 
+		// Register resources
 		AnimationResource::Register();
+
+		// Register component
+		AnimationComponent::StaticConstructor();
 	}
 
 	void Shutdown()
