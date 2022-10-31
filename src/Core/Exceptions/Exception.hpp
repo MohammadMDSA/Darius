@@ -25,4 +25,11 @@ namespace Darius::Core::Exception
 			FileNotFoundException() : Exception("File not found!") {}
 			FileNotFoundException(std::string message) : Exception(message.c_str()) {}
 		};
+
+		class UnsupportedException : public Exception, public NonCopyable
+		{
+		public:
+			UnsupportedException() : Exception("Operation is not supported!") {}
+			UnsupportedException(std::string message) : Exception(message.c_str()) {}
+		};
 }
