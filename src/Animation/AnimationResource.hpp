@@ -1,5 +1,8 @@
 #pragma once
 
+#include "AnimationTypes.hpp"
+
+#include <Core/Containers/Map.hpp>
 #include <ResourceManager/ResourceManager.hpp>
 #include <ResourceManager/ResourceTypes/Resource.hpp>
 
@@ -21,14 +24,27 @@ namespace Darius::Animation
 		virtual bool					DrawDetails(float params[]) override { return false; }
 #endif // _D_EDITOR
 
-		virtual INLINE void				WriteResourceToFile() const {};
-		virtual INLINE void				ReadResourceFromFile() {};
-		virtual bool					UploadToGpu(D_GRAPHICS::GraphicsContext& context) override;
+		virtual INLINE void				WriteResourceToFile() const override { throw D_EXCEPTION::UnsupportedException(); };
+		virtual void					ReadResourceFromFile() override;
+		virtual INLINE bool				UploadToGpu(D_GRAPHICS::GraphicsContext& context) { return true; };
+
+		D_CONTAINERS::DUnorderedMap<std::string, int> const& GetSkeletonNameIndexMap() const { return mSkeletonNameIndexMap; }
 
 		static DVector<ResourceDataInFile> CanConstructFrom(ResourceType type, Path const& path);
 
+		D_CH_R_FIELD_ACC(AnimationLayer, AnimationData, protected)
+		D_CH_R_FIELD_ACC(DVector<AnimationCurve>, CurvesData, protected)
+		D_CH_R_FIELD_ACC(DVector<Keyframe>, Keyframes, protected)
+
 	protected:
 		AnimationResource(Uuid uuid, std::wstring const& path, std::wstring const& name, DResourceId id, bool isDefault = false) :
-			Resource(uuid, path, name, id, isDefault) {}
+			Resource(uuid, path, name, id, isDefault),
+			mAnimationData() {}
+
+		D_CONTAINERS::DUnorderedMap<std::string, int> mSkeletonNameIndexMap;
+
+	private:
+		bool						GetPropertyData(int jointIndex, void* propP, void* currentLayerP, AnimationCurve& animCurve);
+
 	};
 }

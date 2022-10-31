@@ -65,8 +65,52 @@ namespace Darius::Animation
 		return result;
 	}
 
-	bool AnimationResource::UploadToGpu(D_GRAPHICS::GraphicsContext& context)
+	bool AnimationResource::GetPropertyData(int jointIndex, void* propP, void* currentLayerP, AnimationCurve& animCurve)
 	{
+		FbxPropertyT<FbxDouble3>& prop = *(FbxPropertyT<FbxDouble3>*)propP;
+		FbxAnimLayer* currentLayer = (FbxAnimLayer*)currentLayerP;
+
+		animCurve.TargetNode = jointIndex;
+		// TODO: Extract right interpolation
+		animCurve.Interpolation = AnimationCurve::kLinear;
+		animCurve.KeyFrameOffset = mKeyframes.size();
+		animCurve.KeyFrameFormat = AnimationCurve::kFloat;
+		animCurve.KeyFrameStride = sizeof(float) / 4;
+
+
+		auto curve = prop.GetCurve(currentLayer);
+		// No curve for this property
+		if (!curve)
+			return false;
+
+		for (int keyIndex = 0; keyIndex < curve->KeyGetCount(); keyIndex++)
+		{
+			auto curveKey = curve->KeyGet(keyIndex);
+			auto keyTime = curveKey.GetTime().GetSecondDouble();
+
+			if (keyIndex == 0)
+			{
+				animCurve.StartTime = keyTime;
+			}
+
+			animCurve.KeyframeTimeMap.insert({ keyTime, keyIndex });
+
+			// Increasing keyframe vector size
+			for (int i = 0; i < 4; i++) mKeyframes.push_back(0);
+
+			auto keyDataLoc = mKeyframes.data() + animCurve.KeyFrameOffset + keyIndex * sizeof(float);
+			*keyDataLoc = curveKey.GetValue();
+		}
+
+		return true;
+	}
+
+	void AnimationResource::ReadResourceFromFile()
+	{
+		ZeroMemory(&mAnimationData, sizeof(AnimationLayer));
+		mCurvesData.clear();
+		mKeyframes.clear();
+
 		// Create the FBX SDK manager
 		FbxManager* lSdkManager = FbxManager::Create();
 
@@ -90,7 +134,7 @@ namespace Darius::Animation
 			D_LOG_ERROR("Call to FbxImporter::Initialize() failed.");
 			std::string msg = "Error returned: " + std::string(lImporter->GetStatus().GetErrorString());
 			D_LOG_ERROR(msg);
-			return false;
+			return;
 		}
 
 		// Create a new scene so it can be populated by the imported file.
@@ -102,31 +146,89 @@ namespace Darius::Animation
 		// The file has been imported; we can get rid of the importer.
 		lImporter->Destroy();
 
+		FbxAnimStack* targetAnimStack = 0;
 
-
-		// Print the nodes of the scene and their attributes recursively.
-		// Note that we are not printing the root node because it should
-		// not contain any attributes.
-		FbxNode* lRootNode = lScene->GetRootNode();
-
-		FbxNode* node = 0;
-
-		for (int i = 0; i < lRootNode->GetChildCount(); i++)
+		for (int i = 0; i < lScene->GetSrcObjectCount<FbxAnimStack>(); i++)
 		{
-			auto attr = lRootNode->GetChild(i)->GetNodeAttribute();
-			if (attr->GetAttributeType() == FbxNodeAttribute::eMesh)
+			FbxAnimStack* animStack = lScene->GetSrcObject<FbxAnimStack>(i);
+			std::string stackName = animStack->GetName();
+			if (GetName() == WSTR_STR(stackName))
 			{
-				node = lRootNode->GetChild(i);
+				targetAnimStack = animStack;
 				break;
 			}
 		}
 
-		if (!node)
-			return false;
+		if (!targetAnimStack)
+		{
+			auto name = GetName();
+			D_LOG_WARN("Animation " << STR_WSTR(name) << " from path " << GetPath().string() << " could not be read");
+			return;
+		}
+		// Getting the layer that we want to work with
+		auto currentLayer = targetAnimStack->GetMember<FbxAnimLayer>();
 
-		auto mesh = node->GetMesh();
+		// Get take info (duration)
+		auto takeInfo = lScene->GetTakeInfo(targetAnimStack->GetName());
+		mAnimationData.Duration = (float)(takeInfo->mLocalTimeSpan.GetStop() - takeInfo->mLocalTimeSpan.GetStart()).GetSecondDouble();
 
-		auto deformerCount = mesh->GetDeformerCount(FbxDeformer::eSkin);
-		return deformerCount != 0;
+		// Get frame rate from the scene.
+		FbxTime::EMode mode = lScene->GetGlobalSettings().GetTimeMode();
+		const float scene_frame_rate =
+			static_cast<float>((mode == FbxTime::eCustom)
+				? lScene->GetGlobalSettings().GetCustomFrameRate()
+				: FbxTime::GetFrameRate(mode));
+
+		// Creating a mapping from joint name to it's index (animations will use this index)
+		D_CONTAINERS::DUnorderedMap<FbxSkeleton*, int> skeletonMap;
+		mSkeletonNameIndexMap.clear();
+		{
+			auto skeltCnt = lScene->GetMemberCount<FbxSkeleton>();
+			int index = 0;
+			for (int skeletonIndex = 0; skeletonIndex < skeltCnt; skeletonIndex++)
+			{
+				auto skeleton = lScene->GetMember<FbxSkeleton>(skeletonIndex);
+				auto node = skeleton->GetNode();
+				if (!node)
+					continue;
+
+				skeletonMap[skeleton] = index;
+				mSkeletonNameIndexMap[node->GetName()] = index;
+
+				index++;
+			}
+		}
+
+		// Adding translation, scale, and rotation curves of joints
+		for (auto [skeleton, jointIndex] : skeletonMap)
+		{
+			auto node = skeleton->GetNode();
+
+			// Translation
+			{
+				AnimationCurve animCurve;
+				animCurve.TargetPath = AnimationCurve::kTranslation;
+				if (GetPropertyData(jointIndex, &node->LclTranslation, currentLayer, animCurve))
+					mCurvesData.push_back(animCurve);
+			}
+
+			// Scale
+			{
+				AnimationCurve animCurve;
+				animCurve.TargetPath = AnimationCurve::kScale;
+				if (GetPropertyData(jointIndex, &node->LclScaling, currentLayer, animCurve))
+					mCurvesData.push_back(animCurve);
+			}
+
+			// Rotation
+			{
+				AnimationCurve animCurve;
+				animCurve.TargetPath = AnimationCurve::kRotation;
+				if (GetPropertyData(jointIndex, &node->LclRotation, currentLayer, animCurve))
+					mCurvesData.push_back(animCurve);
+			}
+
+		}
+
 	}
 }
