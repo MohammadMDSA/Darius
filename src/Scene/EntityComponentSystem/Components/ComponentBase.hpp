@@ -66,6 +66,42 @@ type::type(D_CORE::Uuid uuid) : \
 
 #define D_H_COMP_DEFAULT_CONSTRUCTOR_DEF(type) D_H_COMP_DEFAULT_CONSTRUCTOR_DEF_PAR(type, ComponentBase)
 
+#ifdef _D_EDITOR
+#define D_H_RESOURCE_SELECTION_DRAW(resourceType, prop, placeHolder, handleFunction) \
+{ \
+    resourceType* currentResource = prop.Get(); \
+     \
+    if (ImGui::Button(placeHolder)) \
+    { \
+        ImGui::OpenPopup(placeHolder " Res"); \
+    } \
+     \
+    if (ImGui::BeginPopup(placeHolder " Res")) \
+    { \
+        auto resources = D_RESOURCE::GetResourcePreviews(resourceType::GetResourceType()); \
+        int idx = 0; \
+        for (auto prev : resources) \
+        { \
+            bool selected = currentResource && prev.Handle.Id == currentResource->GetId() && prev.Handle.Type == currentResource->GetType(); \
+     \
+            auto Name = STR_WSTR(prev.Name); \
+            ImGui::PushID((Name + std::to_string(idx)).c_str()); \
+            if (ImGui::Selectable(Name.c_str(), &selected)) \
+            { \
+                handleFunction(prev.Handle); \
+                changeValue = true; \
+            } \
+            ImGui::PopID(); \
+     \
+            idx++; \
+        } \
+     \
+        ImGui::EndPopup(); \
+    } \
+}
+#endif // _D_EDITOR
+
+
 namespace Darius::Scene
 {
     class SceneManager;

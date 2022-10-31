@@ -111,7 +111,7 @@ namespace Darius::Scene::ECS::Components
 			ImGui::EndTable();
 		}
 
-		return false;
+		return changed;
 	}
 #endif
 

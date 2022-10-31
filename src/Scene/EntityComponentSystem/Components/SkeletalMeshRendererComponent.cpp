@@ -65,7 +65,6 @@ namespace Darius::Scene::ECS::Components
 
 		if (ImGui::BeginTable("mesh editor", 2, ImGuiTableFlags_BordersInnerV))
 		{
-			// Shader type
 			ImGui::TableSetupColumn("label", ImGuiTableColumnFlags_WidthFixed, 100.f);
 			ImGui::TableSetupColumn("value", ImGuiTableColumnFlags_WidthStretch);
 
@@ -74,76 +73,17 @@ namespace Darius::Scene::ECS::Components
 			ImGui::Text("Mesh");
 			ImGui::TableSetColumnIndex(1);
 			// Mesh selection
-			{
-				MeshResource* currentMesh = mMeshResource.Get();
-
-				if (ImGui::Button("Select Mesh"))
-				{
-					ImGui::OpenPopup("Select Mesh Res");
-				}
-
-				if (ImGui::BeginPopup("Select Mesh Res"))
-				{
-					auto meshes = D_RESOURCE::GetResourcePreviews(SkeletalMeshResource::GetResourceType());
-					int idx = 0;
-					for (auto prev : meshes)
-					{
-						bool selected = currentMesh && prev.Handle.Id == currentMesh->GetId() && prev.Handle.Type == currentMesh->GetType();
-
-						auto Name = STR_WSTR(prev.Name);
-						ImGui::PushID((Name + std::to_string(idx)).c_str());
-						if (ImGui::Selectable(Name.c_str(), &selected))
-						{
-							SetMesh(prev.Handle);
-							changeValue = true;
-						}
-						ImGui::PopID();
-
-						idx++;
-					}
-
-					ImGui::EndPopup();
-				}
-			}
+			D_H_RESOURCE_SELECTION_DRAW(SkeletalMeshResource, mMeshResource, "Select Mesh", SetMesh)
+			
 
 			ImGui::TableNextRow();
 			ImGui::TableSetColumnIndex(0);
 			ImGui::Text("Material");
 			ImGui::TableSetColumnIndex(1);
 			// Material selection
-			{
-				MaterialResource* currentMaterial = mMaterialResource.Get();
-
-				if (ImGui::Button("Select Material"))
-				{
-					ImGui::OpenPopup("Select Mat Res");
-				}
-
-				if (ImGui::BeginPopup("Select Mat Res"))
-				{
-					auto meshes = D_RESOURCE::GetResourcePreviews(MaterialResource::GetResourceType());
-					int idx = 0;
-					for (auto prev : meshes)
-					{
-						bool selected = currentMaterial && prev.Handle.Id == currentMaterial->GetId() && prev.Handle.Type == currentMaterial->GetType();
-
-						auto Name = STR_WSTR(prev.Name);
-						ImGui::PushID((Name + std::to_string(idx)).c_str());
-						if (ImGui::Selectable(Name.c_str(), &selected))
-						{
-							SetMaterial(prev.Handle);
-							changeValue = true;
-						}
-						ImGui::PopID();
-
-						idx++;
-					}
-
-					ImGui::EndPopup();
-				}
-
-				ImGui::EndTable();
-			}
+			D_H_RESOURCE_SELECTION_DRAW(MaterialResource, mMaterialResource, "Select Material", SetMaterial);
+			
+			ImGui::EndTable();
 		}
 
 		return changeValue;
