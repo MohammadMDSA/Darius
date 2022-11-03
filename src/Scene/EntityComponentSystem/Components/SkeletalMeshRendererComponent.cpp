@@ -6,7 +6,11 @@
 #include <Debug/DebugDraw.hpp>
 #include <ResourceManager/ResourceManager.hpp>
 
+#define FBXSDK_SHARED
+
 #include <imgui.h>
+#include <fbxsdk.h>
+
 
 using namespace D_SERIALIZATION;
 using namespace D_RESOURCE;
@@ -74,15 +78,15 @@ namespace Darius::Scene::ECS::Components
 			ImGui::TableSetColumnIndex(1);
 			// Mesh selection
 			D_H_RESOURCE_SELECTION_DRAW(SkeletalMeshResource, mMeshResource, "Select Mesh", SetMesh)
-			
 
-			ImGui::TableNextRow();
+
+				ImGui::TableNextRow();
 			ImGui::TableSetColumnIndex(0);
 			ImGui::Text("Material");
 			ImGui::TableSetColumnIndex(1);
 			// Material selection
 			D_H_RESOURCE_SELECTION_DRAW(MaterialResource, mMaterialResource, "Select Material", SetMaterial);
-			
+
 			ImGui::EndTable();
 		}
 
@@ -108,9 +112,36 @@ namespace Darius::Scene::ECS::Components
 	{
 		mMeshResource = D_RESOURCE::GetResource<SkeletalMeshResource>(handle, *GetGameObject());
 
+		mJoints.clear();
+		mSkeleton.clear();
+		mSkeletonRoot = nullptr;
 		if (mMeshResource.IsValid())
 		{
+			// Copying skeleton to component
 			mJoints.resize(mMeshResource->GetJointCount());
+			for (auto const& skeletonNode : mMeshResource->GetSkeleton())
+			{
+				mSkeleton.push_back(skeletonNode);
+			}
+
+			// Attaching new children refrences and finding the root
+			for (auto& skeletonNode : mSkeleton)
+			{
+				// Storing children indices
+				D_CONTAINERS::DSet<int> childrendIndices;
+				for (auto const& child : skeletonNode.Children)
+					childrendIndices.insert(child->MatrixIdx);
+
+				skeletonNode.Children.clear();
+
+				for (auto childIndex : childrendIndices)
+					skeletonNode.Children.push_back(&mSkeleton[childIndex]);
+
+				if (skeletonNode.SkeletonRoot)
+				{
+					mSkeletonRoot = &skeletonNode;
+				}
+			}
 		}
 	}
 
@@ -150,11 +181,17 @@ namespace Darius::Scene::ECS::Components
 
 	void SkeletalMeshRendererComponent::JointUpdateRecursion(Matrix4 const& parent, Mesh::SkeletonJoint& skeletonJoint)
 	{
-		
+
 		if (skeletonJoint.StaleMatrix)
 		{
 			skeletonJoint.StaleMatrix = false;
-			skeletonJoint.Xform.Set3x3(Matrix3(skeletonJoint.Rotation) * Matrix3::MakeScale(skeletonJoint.Scale));
+
+			fbxsdk::FbxAMatrix mat;
+			mat.SetTRS({ 0, 0, 0 }, { skeletonJoint.Rotation.x, skeletonJoint.Rotation.y, skeletonJoint.Rotation.z, 1.f }, { 1, 1, 1 });
+			auto quat = mat.GetQ();
+
+
+			skeletonJoint.Xform.Set3x3(Matrix3(Quaternion(quat.mData[0], quat.mData[1], quat.mData[2], quat.mData[3])) * Matrix3::MakeScale(skeletonJoint.Scale));
 		}
 
 		auto xform = skeletonJoint.Xform;
@@ -204,11 +241,10 @@ namespace Darius::Scene::ECS::Components
 		//cb->mWorldIT = InverseTranspose(Matrix3(world));
 
 		// Updating joints matrices on gpu
-		auto skeletonRoot = mMeshResource->GetSkeletonRoot();
-		if(skeletonRoot)
+		if (mSkeletonRoot)
 		{
 
-			JointUpdateRecursion(Matrix4(), *skeletonRoot);
+			JointUpdateRecursion(Matrix4(), *mSkeletonRoot);
 		}
 
 		// Copy to gpu

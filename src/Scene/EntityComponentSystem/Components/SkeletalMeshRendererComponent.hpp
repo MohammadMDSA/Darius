@@ -39,12 +39,17 @@ namespace Darius::Scene::ECS::Components
 		INLINE bool							HasAnimation() const { return true; }
 
 		RenderItem							GetRenderItem();
+		DVector<Mesh::SkeletonJoint>&		GetSkeleton() { return mSkeleton; }
 
 
 		INLINE bool							CanRender() { return IsActive() && mMeshResource.IsValid(); }
 		INLINE const BoundingSphere&		GetBounds() const { return mBounds; }
 
 		INLINE D3D12_GPU_VIRTUAL_ADDRESS	GetConstantsAddress() { return mMeshConstantsGPU.GetGpuVirtualAddress(); }
+
+
+		D_CH_RW_FIELD_ACC(Ref<SkeletalMeshResource>, MeshResource, protected);
+		D_CH_RW_FIELD_ACC(Ref<MaterialResource>, MaterialResource, protected);
 
 	private:
 
@@ -53,11 +58,11 @@ namespace Darius::Scene::ECS::Components
 		void								CreateGPUBuffers();
 		void								JointUpdateRecursion(Matrix4 const& parent, Mesh::SkeletonJoint& skeletonJoint);
 
-		Ref<SkeletalMeshResource>			mMeshResource;
-		Ref<MaterialResource>				mMaterialResource;
 		D_CORE::Signal<void()>				mChangeSignal;
 		uint16_t							mPsoFlags;
 		DVector<Joint>						mJoints;
+		DVector<Mesh::SkeletonJoint>		mSkeleton;
+		Mesh::SkeletonJoint*				mSkeletonRoot;
 		BoundingSphere						mBounds;
 
 		// Gpu buffers

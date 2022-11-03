@@ -60,10 +60,11 @@ PUBLIC
 PRIVATE
 	".."
 	${Boost_INCLUDE_DIRS}
+	${FBX_INCLUDE_DIRS}
 )
 
 
-target_link_libraries("Scene" PRIVATE ${Boost_LIBRARIES} IMGUI)
+target_link_libraries("Scene" PRIVATE ${Boost_LIBRARIES} ${FBX_LINK_LIBS} IMGUI)
 target_link_libraries("Scene" PUBLIC flecs_static Utils Core Math Renderer ResourceManager Job Debug)
 
 
