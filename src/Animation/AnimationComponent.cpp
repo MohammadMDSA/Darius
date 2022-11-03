@@ -32,7 +32,6 @@ namespace Darius::Animation
 		mAnimationResource = D_RESOURCE::GetResource<AnimationResource>(handle, *GetGameObject());
 	}
 
-
 	static inline float ToFloat(const int8_t x) { return Math::Max(x / 127.0f, -1.0f); }
 	static inline float ToFloat(const uint8_t x) { return x / 255.0f; }
 	static inline float ToFloat(const int16_t x) { return Math::Max(x / 32767.0f, -1.0f); }
@@ -169,6 +168,8 @@ namespace Darius::Animation
 		// Update animation nodes
 		for (AnimationCurve const& curve : animResource.GetCurvesData())
 		{
+			if (!mAnimationJointIndexMap.contains(curve.TargetNode))
+				continue;
 
 			auto curveTime = mAnimState.Time - curve.StartTime;
 			auto upperIter = curve.KeyframeTimeMap.upper_bound(curveTime);
@@ -184,6 +185,7 @@ namespace Darius::Animation
 			const uint8_t* key1 = animResource.GetKeyframes().data() + curve.KeyFrameOffset + stride * key1pair.second;
 
 			const uint8_t* key2 = key1 + stride;
+
 			Mesh::SkeletonJoint& node = skeletalMesh->GetSkeleton()[mAnimationJointIndexMap[curve.TargetNode]];
 
 			switch (curve.TargetPath)
@@ -232,6 +234,31 @@ namespace Darius::Animation
 			mAnimationJointIndexMap.insert({ animIndex,  joint.MatrixIdx });
 		}
 
+	}
+
+	void AnimationComponent::Awake()
+	{
+		mAnimState.Time = 0.f;
+		mAnimState.State = AnimationState::kLooping;
+	}
+
+	void AnimationComponent::Serialize(Json& j) const
+	{
+		if (mAnimationResource.IsValid())
+			D_CORE::to_json(j["Animation"], mAnimationResource->GetUuid());
+	}
+
+	void AnimationComponent::Deserialize(Json const& j)
+	{
+		auto go = GetGameObject();
+
+		if (j.contains("Animation"))
+		{
+			Uuid animUuid;
+			D_CORE::from_json(j["Animation"], animUuid);
+
+			_SetAnimation(*D_RESOURCE::GetResource<AnimationResource>(animUuid, *go));
+		}
 	}
 
 }

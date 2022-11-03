@@ -31,10 +31,11 @@ namespace Darius::Animation
 #endif // _DEBUG
 
 		// Serialization
-		virtual void					Serialize(Json& j) const override {};
-		virtual void					Deserialize(Json const& j) override {};
+		virtual void					Serialize(Json& j) const override;
+		virtual void					Deserialize(Json const& j) override;
 
 		virtual void					Update(float deltaTime) override;
+		virtual void					Awake() override;
 
 		void							SetAnimation(ResourceHandle handle);
 
