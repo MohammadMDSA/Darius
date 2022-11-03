@@ -33,7 +33,7 @@ namespace Darius::Renderer::Geometry
 		struct SkeletonJoint
 		{
 			Math::Matrix4			Xform;
-			Math::Quaternion		Rotation;
+			Math::XMFLOAT3			Rotation;
 			Math::XMFLOAT3			Scale;
 			std::string				Name;
 			Matrix4					IBM;

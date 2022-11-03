@@ -131,7 +131,7 @@ namespace Darius::ResourceManager
 		{
 			pCluster->GetTransformAssociateModelMatrix(lAssociateGlobalInitPosition);
 			// Geometric transform of the model
-			lAssociateGeometry =  GetGeometry(pCluster->GetAssociateModel());
+			lAssociateGeometry = GetGeometry(pCluster->GetAssociateModel());
 			lAssociateGlobalInitPosition *= lAssociateGeometry;
 			lAssociateGlobalCurrentPosition = GetGlobalPosition(pCluster->GetAssociateModel(), pTime, pPose);
 
@@ -397,7 +397,7 @@ namespace Darius::ResourceManager
 					ComputeClusterDeformation(glob, mesh, cluster, lVertexTransformMatrix, FBXSDK_TIME_ZERO, nullptr);
 
 					skinData.jointWeight[controlPointIndex].push_back({ jointIndex, { controlPointWeight, GetMat4(lVertexTransformMatrix)}
-				});
+						});
 				}
 			}
 		}
@@ -423,11 +423,11 @@ namespace Darius::ResourceManager
 			fbxTrans = node->EvaluateLocalTranslation().Buffer();
 
 		auto fbxSclae = node->EvaluateLocalScaling();
-		auto fbxRot = transform.GetQ();
-		//FbxQuaternion()
+		auto fbxRot = node->LclRotation.Get();
+
 		currentSceneGraphNode.Xform.SetW({ (float)fbxTrans[0], (float)fbxTrans[1], (float)fbxTrans[2], 1.f });
 		currentSceneGraphNode.Scale = { (float)fbxSclae.mData[0], (float)fbxSclae.mData[1], (float)fbxSclae.mData[2] };
-		currentSceneGraphNode.Rotation = Quaternion((float)fbxRot.mData[0], (float)fbxRot.mData[1], (float)fbxRot.mData[2], (float)fbxRot.mData[3]);
+		currentSceneGraphNode.Rotation = XMFLOAT3((float)fbxRot.mData[0], (float)fbxRot.mData[1], (float)fbxRot.mData[2]);
 
 		currentSceneGraphNode.Name = node->GetInitialName();
 
