@@ -37,7 +37,7 @@ add_library("ResourceManager")
 target_sources("ResourceManager"
 	PRIVATE
 	${RESOUCE_MANAGER_LIBS_SOURCES}
-	${RESOUCE_MANAGER_LIBS_INCLUDE} "ResourceTypes/BatchResource.hpp" "../Utils/Detailed.hpp")
+	${RESOUCE_MANAGER_LIBS_INCLUDE})
 
 	
 set(Boost_USE_STATIC_LIBS ON) 

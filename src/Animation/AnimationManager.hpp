@@ -8,4 +8,6 @@ namespace Darius::Animation
 {
 	void							Initialize();
 	void							Shutdown();
+
+	void							Update(float dt);
 }

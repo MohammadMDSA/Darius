@@ -2,6 +2,7 @@
 #include "Simulation.hpp"
 #include "EditorContext.hpp"
 
+#include <Animation/AnimationManager.hpp>
 #include <Core/TimeManager/TimeManager.hpp>
 #include <Core/Signal.hpp>
 #include <Debug/DebugDraw.hpp>
@@ -65,14 +66,20 @@ namespace Darius::Editor::Simulate
 			D_PROFILING::ScopedTimer simProfiler(L"Update Simulation");
 			Timer->Tick([]() {
 
-				// Clearing debug draws
+				auto deltaTime = Timer->GetElapsedSeconds();
 
-				D_WORLD::Update(Timer->GetElapsedSeconds());
+				D_WORLD::Update(deltaTime);
 
 				if (Stepping)
 				{
 					PauseTime();
 					Stepping = false;
+				}
+
+				{
+					// Updating animations
+					D_PROFILING::ScopedTimer animProf(L"Update Animations");
+					D_ANIMATION::Update(deltaTime);
 				}
 				});
 
