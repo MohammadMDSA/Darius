@@ -44,7 +44,7 @@ namespace Darius::Animation
 		D_CONTAINERS::DUnorderedMap<std::string, int> mSkeletonNameIndexMap;
 
 	private:
-		bool						GetPropertyData(int jointIndex, void* propP, void* currentLayerP, AnimationCurve& animCurve);
+		bool						GetPropertyData(int jointIndex, void* propP, void* currentLayerP, AnimationCurve& animCurve, const char* channelName);
 
 	};
 }

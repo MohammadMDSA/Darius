@@ -65,7 +65,7 @@ namespace Darius::Animation
 		return result;
 	}
 
-	bool AnimationResource::GetPropertyData(int jointIndex, void* propP, void* currentLayerP, AnimationCurve& animCurve)
+	bool AnimationResource::GetPropertyData(int jointIndex, void* propP, void* currentLayerP, AnimationCurve& animCurve, const char* channelName)
 	{
 		FbxPropertyT<FbxDouble3>& prop = *(FbxPropertyT<FbxDouble3>*)propP;
 		FbxAnimLayer* currentLayer = (FbxAnimLayer*)currentLayerP;
@@ -78,7 +78,7 @@ namespace Darius::Animation
 		animCurve.KeyFrameStride = sizeof(float) / 4;
 
 
-		auto curve = prop.GetCurve(currentLayer);
+		auto curve = prop.GetCurve(currentLayer, channelName);
 		// No curve for this property
 		if (!curve)
 			return false;
@@ -99,7 +99,7 @@ namespace Darius::Animation
 			for (int i = 0; i < 4; i++) mKeyframes.push_back(0);
 
 			auto keyDataLoc = mKeyframes.data() + animCurve.KeyFrameOffset + keyIndex * sizeof(float);
-			*keyDataLoc = curveKey.GetValue();
+			*(float*)keyDataLoc = curveKey.GetValue();
 		}
 
 		return true;
@@ -206,26 +206,48 @@ namespace Darius::Animation
 
 			// Translation
 			{
-				AnimationCurve animCurve;
-				animCurve.TargetPath = AnimationCurve::kTranslation;
-				if (GetPropertyData(jointIndex, &node->LclTranslation, currentLayer, animCurve))
-					mCurvesData.push_back(animCurve);
+				auto curveNode = node->LclTranslation.GetCurveNode(currentLayer);
+				for (int channelIdx = 0; channelIdx < curveNode->GetChannelsCount(); channelIdx++)
+				{
+					AnimationCurve animCurve;
+					animCurve.TargetPath = AnimationCurve::kTranslation;
+					if (GetPropertyData(jointIndex, &node->LclTranslation, currentLayer, animCurve, curveNode->GetChannelName(channelIdx)))
+					{
+						animCurve.ChannelIndex = channelIdx;
+						mCurvesData.push_back(animCurve);
+					}
+				}
 			}
 
 			// Scale
 			{
-				AnimationCurve animCurve;
-				animCurve.TargetPath = AnimationCurve::kScale;
-				if (GetPropertyData(jointIndex, &node->LclScaling, currentLayer, animCurve))
-					mCurvesData.push_back(animCurve);
+				auto curveNode = node->LclScaling.GetCurveNode(currentLayer);
+				for (int channelIdx = 0; channelIdx < curveNode->GetChannelsCount(); channelIdx++)
+				{
+					AnimationCurve animCurve;
+					animCurve.TargetPath = AnimationCurve::kScale;
+					if (GetPropertyData(jointIndex, &node->LclScaling, currentLayer, animCurve, curveNode->GetChannelName(channelIdx)))
+					{
+						animCurve.ChannelIndex = channelIdx;
+						mCurvesData.push_back(animCurve);
+					}
+				}
 			}
 
 			// Rotation
 			{
-				AnimationCurve animCurve;
-				animCurve.TargetPath = AnimationCurve::kRotation;
-				if (GetPropertyData(jointIndex, &node->LclRotation, currentLayer, animCurve))
-					mCurvesData.push_back(animCurve);
+				auto curveNode = node->LclRotation.GetCurveNode(currentLayer);
+				for (int channelIdx = 0; channelIdx < curveNode->GetChannelsCount(); channelIdx++)
+				{
+					AnimationCurve animCurve;
+					animCurve.TargetPath = AnimationCurve::kRotation;
+					if (GetPropertyData(jointIndex, &node->LclRotation, currentLayer, animCurve, curveNode->GetChannelName(channelIdx)))
+					{
+						animCurve.ChannelIndex = channelIdx;
+						mCurvesData.push_back(animCurve);
+					}
+				}
+				
 			}
 
 		}
