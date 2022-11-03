@@ -13,12 +13,14 @@ namespace Darius::Animation
 
 	AnimationComponent::AnimationComponent() :
 		ComponentBase(),
-		mMeshId()
+		mMeshId(),
+		mRootMotion(false)
 	{ }
 
 	AnimationComponent::AnimationComponent(D_CORE::Uuid uuid) :
 		ComponentBase(uuid),
-		mMeshId()
+		mMeshId(),
+		mRootMotion(false)
 	{ }
 
 	void AnimationComponent::SetAnimation(ResourceHandle handle)
@@ -122,6 +124,13 @@ namespace Darius::Animation
 			// Mesh selection
 			D_H_RESOURCE_SELECTION_DRAW(AnimationResource, mAnimationResource, "Select Animation", SetAnimation);
 
+			ImGui::TableNextRow();
+			ImGui::TableSetColumnIndex(0);
+			ImGui::Text("Root Motion");
+			ImGui::TableSetColumnIndex(1);
+			if (ImGui::Checkbox("##RootMotion", &mRootMotion))
+				changeValue = true;
+
 			ImGui::EndTable();
 		}
 
@@ -150,7 +159,7 @@ namespace Darius::Animation
 			return;
 
 		mAnimState.Time += deltaTime;
-		
+
 		const AnimationResource& animResource = *mAnimationResource.Get();
 
 		const AnimationLayer& animation = animResource.GetAnimationData();
@@ -209,6 +218,14 @@ namespace Darius::Animation
 				break;
 			}
 		}
+
+		if (!mRootMotion)
+		{
+			auto root = skeletalMesh->GetSkeletonRoot();
+			root->Rotation = { 0.f, 0.f, 0.f };
+			root->Scale = { 1.f, 1.f, 1.f };
+			root->Xform.SetW({ 0.f, 0.f, 0.f, 1.f });
+		}
 	}
 
 	void AnimationComponent::CreateAnimationToJointIndexMap()
@@ -246,6 +263,8 @@ namespace Darius::Animation
 	{
 		if (mAnimationResource.IsValid())
 			D_CORE::to_json(j["Animation"], mAnimationResource->GetUuid());
+
+		j["RootMotion"] = mRootMotion;
 	}
 
 	void AnimationComponent::Deserialize(Json const& j)
@@ -258,6 +277,11 @@ namespace Darius::Animation
 			D_CORE::from_json(j["Animation"], animUuid);
 
 			_SetAnimation(*D_RESOURCE::GetResource<AnimationResource>(animUuid, *go));
+		}
+
+		if (j.contains("RootMotion"))
+		{
+			mRootMotion = j["RootMotion"];
 		}
 	}
 

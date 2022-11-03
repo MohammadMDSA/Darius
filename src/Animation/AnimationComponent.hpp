@@ -39,6 +39,7 @@ namespace Darius::Animation
 
 		void							SetAnimation(ResourceHandle handle);
 
+		D_CH_RW_FIELD(bool, RootMotion);
 		D_CH_RW_FIELD_ACC(AnimationState, AnimState, protected);
 
 	private:
