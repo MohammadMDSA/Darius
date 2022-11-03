@@ -134,7 +134,7 @@ namespace Darius::Animation
 			ImGui::EndTable();
 		}
 
-		if (ImGui::Button("Playe"))
+		if (ImGui::Button("Play"))
 			mAnimState.State = AnimationState::kLooping;
 
 		return changeValue;
