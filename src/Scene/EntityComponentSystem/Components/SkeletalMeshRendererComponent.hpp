@@ -39,7 +39,8 @@ namespace Darius::Scene::ECS::Components
 		INLINE bool							HasAnimation() const { return true; }
 
 		RenderItem							GetRenderItem();
-		DVector<Mesh::SkeletonJoint>&		GetSkeleton() { return mSkeleton; }
+		INLINE DVector<Mesh::SkeletonJoint>& GetSkeleton() { return mSkeleton; }
+		INLINE Mesh::SkeletonJoint*			GetSkeletonRoot() { return mSkeletonRoot; }
 
 
 		INLINE bool							CanRender() { return IsActive() && mMeshResource.IsValid(); }
