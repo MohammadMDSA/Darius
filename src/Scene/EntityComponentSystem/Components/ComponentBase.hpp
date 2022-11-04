@@ -129,8 +129,8 @@ namespace Darius::Scene::ECS::Components
         virtual INLINE void         OnDestroy() { }
 
         // Gameobject Events
-        virtual INLINE void         OnGameObjectActivate() {}
-        virtual INLINE void         OnGameObjectDeactivate() {}
+        virtual INLINE void         OnActivate() {}
+        virtual INLINE void         OnDeactivate() {}
 
         virtual INLINE void         Update(float) { };
 
@@ -140,7 +140,17 @@ namespace Darius::Scene::ECS::Components
         virtual INLINE void         Serialize(D_SERIALIZATION::Json&) const {};
         virtual INLINE void         Deserialize(D_SERIALIZATION::Json const&) {};
 
-        virtual INLINE void         SetEnabled(bool value) { mEnabled = value; }
+        virtual INLINE void         SetEnabled(bool value)
+        {
+            auto changed = mEnabled != value;
+            mEnabled = value;
+            if (!changed)
+                return;
+            if (value)
+                OnActivate();
+            else
+                OnDeactivate();
+        }
 
         INLINE D_MATH::Transform const& GetLocalTransform() const { return mGameObject->GetLocalTransform(); }
         INLINE D_MATH::Transform const GetTransform() const { return mGameObject->GetTransform(); }

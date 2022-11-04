@@ -149,13 +149,13 @@ namespace Darius::Scene::ECS::Components
 		mLightType = type;
 	}
 
-	void LightComponent::OnGameObjectActivate()
+	void LightComponent::OnActivate()
 	{
 		if (mLightIndex >= 0)
 			D_LIGHT::UpdateLight(mLightType, mLightIndex, GetTransform(), IsActive(), mLightData);
 	}
 
-	void LightComponent::OnGameObjectDeactivate()
+	void LightComponent::OnDeactivate()
 	{
 		if (mLightIndex >= 0)
 			D_LIGHT::UpdateLight(mLightType, mLightIndex, GetTransform(), IsActive(), mLightData);

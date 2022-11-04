@@ -32,8 +32,8 @@ namespace Darius::Scene::ECS::Components
 		virtual INLINE void				OnDestroy() override { D_LIGHT::ReleaseLight(mLightType, mLightIndex); }
 
 		// Gameobject events
-		virtual void					OnGameObjectActivate() override;
-		virtual void					OnGameObjectDeactivate() override;
+		virtual void					OnActivate() override;
+		virtual void					OnDeactivate() override;
 
 		virtual void					Update(float deltaTime) override;
 
