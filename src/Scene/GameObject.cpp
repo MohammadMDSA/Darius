@@ -433,12 +433,12 @@ namespace Darius::Scene
 		if (active)
 			VisitComponents([](auto comp)
 				{
-					comp->OnGameObjectActivate();
+					comp->OnActivate();
 				});
 		else
 			VisitComponents([](auto comp)
 				{
-					comp->OnGameObjectDeactivate();
+					comp->OnDeactivate();
 				});
 
 	}
