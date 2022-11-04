@@ -11,7 +11,13 @@ namespace Darius::Physics
 {
 	D_H_COMP_DEF(ColliderComponent);
 
-	D_H_COMP_DEFAULT_CONSTRUCTOR_DEF(ColliderComponent);
+	ColliderComponent::ColliderComponent() :
+		ComponentBase(),
+		mIsStatic(false) {}
+
+	ColliderComponent::ColliderComponent(D_CORE::Uuid uuid) :
+		ComponentBase(uuid),
+		mIsStatic(false) {}
 
 	bool ColliderComponent::DrawDetails(float params[])
 	{
@@ -85,11 +91,13 @@ namespace Darius::Physics
 		SetTransform(preTrans);
 	}
 
-	void ColliderComponent::PreUpdate()
+	void ColliderComponent::PreUpdate(bool simulating)
 	{
+		if (!IsDynamic() && simulating)
+			return;
 
 		// Updating scale, pos, rot
-		bool geomChanged;
+		bool geomChanged = false;
 		auto geom = UpdateAndGetPhysicsGeometry(geomChanged);
 
 		if (geomChanged)
@@ -97,8 +105,7 @@ namespace Darius::Physics
 			mShape->setGeometry(*geom);
 		}
 
-		if (IsDynamic())
-			mActor->setGlobalPose(D_PHYSICS::GetTransform(GetTransform()));
+		mActor->setGlobalPose(D_PHYSICS::GetTransform(GetTransform()));
 	}
 
 	void ColliderComponent::Serialize(D_SERIALIZATION::Json& json) const

@@ -35,7 +35,7 @@ namespace Darius::Physics
 	PxPvd* gPvd = NULL;
 
 	void					UpdatePostPhysicsTransforms();
-	void					UpdatePrePhysicsTransform();
+	void					UpdatePrePhysicsTransform(bool simulating);
 
 	void Initialize()
 	{
@@ -98,7 +98,7 @@ namespace Darius::Physics
 	{
 		D_PROFILING::ScopedTimer physicsProfiler(L"Physics Update");
 
-		UpdatePrePhysicsTransform();
+		UpdatePrePhysicsTransform(running);
 
 		if (running)
 		{
@@ -129,12 +129,12 @@ namespace Darius::Physics
 			D_JOB::WaitForThreadsToFinish();
 	}
 
-	void UpdatePrePhysicsTransform()
+	void UpdatePrePhysicsTransform(bool simulating)
 	{
 		D_PROFILING::ScopedTimer physicsProfiler(L"Physics Post Update");
 		D_WORLD::GetRegistry().each([&](BoxColliderComponent& colliderComp)
 			{
-				colliderComp.PreUpdate();
+				colliderComp.PreUpdate(simulating);
 			}
 		);
 
