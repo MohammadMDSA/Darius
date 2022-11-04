@@ -28,9 +28,9 @@ namespace Darius::Physics
 
 	}
 
-	void BoxColliderComponent::PreUpdate()
+	void BoxColliderComponent::PreUpdate(bool simulating)
 	{
-		ColliderComponent::PreUpdate();
+		ColliderComponent::PreUpdate(simulating);
 
 		auto transform = GetTransform();
 		D_DEBUG_DRAW::DrawCube(transform.Translation, transform.Rotation, transform.Scale, { 0.f, 1.f, 0.f, 1.f });

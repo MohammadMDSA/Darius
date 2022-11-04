@@ -17,7 +17,7 @@ namespace Darius::Physics
 		virtual void						Start() override;
 		
 		virtual void						Update(float dt) override;
-		virtual void						PreUpdate() override;
+		virtual void						PreUpdate(bool simulating) override;
 
 		D_CH_FIELD(physx::PxBoxGeometry, Geometry);
 

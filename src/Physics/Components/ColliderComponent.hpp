@@ -21,7 +21,7 @@ namespace Darius::Physics
 		virtual void				OnDestroy() override;
 
 		virtual void				Update(float dt) override;
-		virtual void				PreUpdate();
+		virtual void				PreUpdate(bool simulating);
 
 		virtual bool				DrawDetails(float params[]) override;
 
@@ -29,8 +29,9 @@ namespace Darius::Physics
 		virtual void                Deserialize(D_SERIALIZATION::Json const&) override;
 
 		INLINE bool					IsDynamic() const { return !mIsStatic; }
+		INLINE void					SetIsStatic(bool isStatic) { mIsStatic = isStatic; InitActor(); }
 
-		D_CH_FIELD(bool, IsStatic = false);
+		D_CH_R_FIELD(bool, IsStatic);
 
 		D_CH_FIELD(physx::PxRigidActor*,	Actor = nullptr);
 		D_CH_FIELD(physx::PxShape*,			Shape = nullptr);
