@@ -140,8 +140,13 @@ namespace Darius::Scene::ECS::Components
         virtual INLINE void         Serialize(D_SERIALIZATION::Json&) const {};
         virtual INLINE void         Deserialize(D_SERIALIZATION::Json const&) {};
 
+        virtual INLINE bool         IsDisableable() const { return true; }
+        
         virtual INLINE void         SetEnabled(bool value)
         {
+            if (!value && !IsDisableable())
+                return;
+
             auto changed = mEnabled != value;
             mEnabled = value;
             if (!changed)

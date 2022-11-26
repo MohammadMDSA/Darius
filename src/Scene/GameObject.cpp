@@ -75,6 +75,9 @@ namespace Darius::Scene
 		// Drawing components
 		VisitComponents([&](auto comp)
 			{
+				if (!comp)
+					return;
+
 				bool isTransform = dynamic_cast<D_ECS_COMP::TransformComponent*>(comp);
 
 				// Styling component frame
@@ -96,11 +99,19 @@ namespace Darius::Scene
 					ImGui::SameLine(contentRegionAvailable.x - 2 * lineHeight);
 
 					// Component enabled box
-					auto enabled = comp->GetEnabled();
-					if (ImGui::Checkbox("##Enabled", &enabled))
 					{
-						comp->SetEnabled(enabled);
-						changeValue = true;
+						auto canDisable = comp->IsDisableable();
+						ImGui::BeginDisabled(!canDisable);
+						auto enabled = canDisable ? comp->GetEnabled() : true;
+						if (ImGui::Checkbox("##Enabled", &enabled))
+						{
+							comp->SetEnabled(enabled);
+							changeValue = true;
+						}
+
+						if (!canDisable)
+							ImGui::EndDisabled();
+
 					}
 					ImGui::SameLine();
 				}
@@ -137,7 +148,6 @@ namespace Darius::Scene
 		// Component selection popup
 		if (ImGui::BeginPopup("ComponentAdditionPopup", ImGuiPopupFlags_NoOpenOverExistingPopup))
 		{
-			
 			DrawComponentNameContext(RegisteredComponents);
 			ImGui::EndPopup();
 		}
