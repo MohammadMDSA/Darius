@@ -7,7 +7,7 @@ using namespace Microsoft::WRL;
 
 namespace Darius::Renderer::GraphicsUtils
 {
-	
+
 	ComPtr<ID3DBlob> CompileShader(const std::wstring& filename, const D3D_SHADER_MACRO* defines, const std::string& entrypoint, const std::string& target)
 	{
 		// Use debug flags in debug mode.
@@ -28,7 +28,10 @@ namespace Darius::Renderer::GraphicsUtils
 		{
 			char* msg = (char*)errors->GetBufferPointer();
 			OutputDebugString(msg);
-			D_LOG_FATAL(msg);
+			if (D_HR_SUCCEEDED(hr))
+				D_LOG_WARN(msg);
+			else
+				D_LOG_ERROR(msg);
 		}
 
 		D_HR_CHECK(hr);
