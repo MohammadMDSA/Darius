@@ -6,17 +6,21 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ".")
 list(APPEND PHYSICS_LIBS_INCLUDE
 	"pch.hpp"
 	"PhysicsManager.hpp"
+	"PhysicsScene.hpp"
+	"PhysicsActor.hpp"
 	"Components/BoxColliderComponent.hpp"
 	"Components/ColliderComponent.hpp"
-	"Components/RigidBodyComponent.hpp"
+	"Components/RigidbodyComponent.hpp"
 	)
 
 list(APPEND PHYSICS_LIBS_SOURCES
 	"pch.cpp"
 	"PhysicsManager.cpp"
+	"PhysicsScene.cpp"
+	"PhysicsActor.cpp"
  	"Components/BoxColliderComponent.cpp"
 	"Components/ColliderComponent.cpp"
-	"Components/RigidBodyComponent.cpp"
+	"Components/RigidbodyComponent.cpp"
 	)
 
 
@@ -25,7 +29,7 @@ add_library("Physics")
 target_sources("Physics"
 	PRIVATE
 	${PHYSICS_LIBS_SOURCES}
-	${PHYSICS_LIBS_INCLUDE})
+	${PHYSICS_LIBS_INCLUDE} "PhysicsScene.cpp")
 
 set_target_properties("Physics" PROPERTIES LINKER_LANGUAGE CXX)
 

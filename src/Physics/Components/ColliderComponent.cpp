@@ -2,6 +2,7 @@
 #include "ColliderComponent.hpp"
 
 #include "Physics/Components/RigidBodyComponent.hpp"
+#include "Physics/PhysicsScene.hpp"
 
 #include <imgui.h>
 
@@ -13,87 +14,29 @@ namespace Darius::Physics
 
 	ColliderComponent::ColliderComponent() :
 		ComponentBase(),
-		mIsStatic(false) {}
+		mDynamic(false)
+	{}
 
 	ColliderComponent::ColliderComponent(D_CORE::Uuid uuid) :
 		ComponentBase(uuid),
-		mIsStatic(false) {}
+		mDynamic(false)
+	{}
 
 	bool ColliderComponent::DrawDetails(float params[])
 	{
-		if (ImGui::Checkbox("Is static", &mIsStatic))
-		{
-			InitActor();
-			return true;
-		}
+		
 		return false;
 
 	}
 
 	void ColliderComponent::Start()
 	{
-		InitActor();
-	}
-
-	void ColliderComponent::InitActor()
-	{
-		auto pxScene = D_PHYSICS::GetScene();
-		auto physics = D_PHYSICS::GetCore();
-
-		// Remove actor if the type is incorrect
-		if (mActor)
-		{
-			auto type = mActor->getType();
-			if ((type == PxActorType::eRIGID_STATIC && IsDynamic()) ||
-				(type == PxActorType::eRIGID_DYNAMIC && !IsDynamic()))
-			{
-				pxScene->removeActor(*mActor);
-				mActor->release();
-				mActor = nullptr;
-			}
-		}
-
-		// Create actor initial transform
-		auto mainTransform = GetTransform();
-		auto transform = D_PHYSICS::GetTransform(mainTransform);
-
-		// Create proper actor if doesn't exist
-		if (!mActor)
-		{
-			if (IsDynamic())
-			{
-				mActor = physics->createRigidDynamic(transform);
-			}
-			else
-			{
-				mActor = physics->createRigidStatic(transform);
-			}
-		}
-
-		if (mShape)
-		{
-			mShape = nullptr;
-		}
-
-		auto geom = GetPhysicsGeometry();
-		mShape = physx::PxRigidActorExt::createExclusiveShape(*mActor, *geom, *D_PHYSICS::GetDefaultMaterial());
-
-		pxScene->addActor(*mActor);
-
-	}
-
-	void ColliderComponent::Update(float dt)
-	{
-		auto preTrans = GetTransform();
-		D_MATH::Transform physicsTrans = D_PHYSICS::GetTransform(physx::PxShapeExt::getGlobalPose(*mShape, *mActor));
-		preTrans.Translation = physicsTrans.Translation;
-		preTrans.Rotation = physicsTrans.Rotation;
-		SetTransform(preTrans);
+		D_PHYSICS::PhysicsScene::AddShapeToActor(GetGameObject(), GetPhysicsGeometry(), mDynamic);
 	}
 
 	void ColliderComponent::PreUpdate(bool simulating)
 	{
-		if (!IsDynamic() && simulating)
+		if (!GetDynamic() && simulating)
 			return;
 
 		// Updating scale, pos, rot
@@ -105,37 +48,30 @@ namespace Darius::Physics
 			mShape->setGeometry(*geom);
 		}
 
-		mActor->setGlobalPose(D_PHYSICS::GetTransform(GetTransform()));
 	}
-
-	void ColliderComponent::Serialize(D_SERIALIZATION::Json& json) const
-	{
-		json["Static"] = mIsStatic;
-	}
-
-	void ColliderComponent::Deserialize(D_SERIALIZATION::Json const& json)
-	{
-		mIsStatic = json["Static"];
-	}
-
+	
 	void ColliderComponent::OnDestroy()
 	{
-		auto phScene = D_PHYSICS::GetScene();
-		phScene->removeActor(*mActor);
+		if (mShape)
+		{
+			D_PHYSICS::PhysicsScene::RemoveShapeFromActor(GetGameObject(), mShape);
+			mShape = nullptr;
+		}
 	}
 
-	void ColliderComponent::EnablePhysics()
+	void ColliderComponent::OnActivate()
 	{
-
+		if (!mShape)
+			mShape = D_PHYSICS::PhysicsScene::AddShapeToActor(GetGameObject(), GetPhysicsGeometry(), mDynamic);
 	}
 
-	void ColliderComponent::DisablePhysics()
+	void ColliderComponent::OnDeactivate()
 	{
-
+		if (mShape)
+		{
+			D_PHYSICS::PhysicsScene::RemoveShapeFromActor(GetGameObject(), mShape);
+			mShape = nullptr;
+		}
 	}
 
-	//bool ColliderComponent::IsDynamic() const
-	//{
-	//	return GetGameObject()->HasComponent<RigidBodyComponent>();
-	//}
 }
