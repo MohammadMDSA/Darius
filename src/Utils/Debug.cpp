@@ -1,5 +1,7 @@
 #include "Debug.hpp"
 
+#include <Utils/Log.hpp>
+
 #include <windows.h>
 #include <fcntl.h>
 #include <io.h>
@@ -28,6 +30,9 @@ namespace Darius::Utils::Debug
 
 		std::wstring newestVersionFound;
 
+		if (!std::filesystem::exists(pixInstallationPath))
+			return "";
+
 		for (auto const& directory_entry : std::filesystem::directory_iterator(pixInstallationPath))
 		{
 			if (directory_entry.is_directory())
@@ -52,7 +57,12 @@ namespace Darius::Utils::Debug
 		// This may happen if the application is launched through the PIX UI. 
 		if (GetModuleHandle(_T("WinPixGpuCapturer.dll")) == 0)
 		{
-			LoadLibrary(_T(GetLatestWinPixGpuCapturerPath().c_str()));
+			auto path = GetLatestWinPixGpuCapturerPath();
+			if (path == "")
+				D_LOG_WARN("Couldn't find PIX to attach");
+			else
+				LoadLibrary(_T(path.c_str()));
+
 		}
 	}
 
