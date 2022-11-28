@@ -69,7 +69,7 @@ namespace Darius::Physics
 		}
 #endif // _DEBUG
 
-		gDefaultMaterial = gPhysics->createMaterial(0.5f, 0.5f, 0.6f);
+		gDefaultMaterial = gPhysics->createMaterial(0.5f, 0.5f, 0.f);
 
 		ColliderComponent::StaticConstructor();
 		BoxColliderComponent::StaticConstructor();
