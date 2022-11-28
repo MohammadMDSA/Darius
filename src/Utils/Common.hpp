@@ -50,7 +50,12 @@ D_CH_FIELD_ACC(type, name, access)
 public: \
 static INLINE std::string const GetTypeName() { return D_NAMEOF(T); }
 
-/////////////////////////////Helpers
+///////////////////////////// Function Helpers
+#define _IN_
+#define _OUT_
+#define _IN_OUT_
+
+///////////////////////////// Helpers
 #define STR_WSTR(str) std::string(str.begin(), str.end())
 #define WSTR_STR(wstr) std::wstring(wstr.begin(), wstr.end())
 #define D_H_CONCAT(A, B) A##B
