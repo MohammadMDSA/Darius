@@ -65,6 +65,8 @@ namespace Darius::Editor::Gui::Windows
 		float							mAvgFrameDelta;
 
 		float							mHistory = 5.f;
+
+		D_CONTAINERS::DVector<D_PROFILING::ScopeTimeData>mSnapshot;
 	};
 
 }

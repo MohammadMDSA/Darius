@@ -7,7 +7,9 @@
 #include <Renderer/GraphicsUtils/Profiling/Profiling.hpp>
 
 #include <implot/implot.h>
-#include <imgui-flame-graph/imgui_widget_flamegraph.h>
+#include <ImGuiFlameGraph/imgui_widget_flamegraph.h>
+
+#include <Libs/FontIcon/IconsFontAwesome6.h>
 
 namespace Darius::Editor::Gui::Windows
 {
@@ -175,9 +177,15 @@ namespace Darius::Editor::Gui::Windows
 			}
 
 			ImGui::EndTable();
-
-			ImGuiWidgetFlameGraph::PlotFlame("CPU", &D_PROFILING::CpuProfilerValueGetter, nullptr, D_PROFILING::ScopesCount(), 0, "Main Thread", FLT_MAX, FLT_MAX, ImVec2(0, 400));
 		}
+
+		if (ImGui::Button(ICON_FA_CAMERA))
+		{
+			mSnapshot.clear();
+			D_PROFILING::ScopeTimerSnapshot(mSnapshot);
+		}
+
+		ImGuiWidgetFlameGraph::PlotFlame(L"", &D_PROFILING::CpuProfilerValueGetter, mSnapshot.data(), (int)mSnapshot.size(), 1, L"", FLT_MAX, FLT_MAX, {1600, 0.f});
 	}
 
 	void ProfilerWindow::SetupMetricColor(float val, float bad, float warn)

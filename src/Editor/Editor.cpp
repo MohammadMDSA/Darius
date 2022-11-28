@@ -124,8 +124,8 @@ namespace Darius::Editor
 			{
 				D_PROFILING::Update();
 				Update(mTimer);
-				Render();
 			});
+		Render();
 
 	}
 
@@ -133,7 +133,6 @@ namespace Darius::Editor
 	void Editor::Update(D_TIME::StepTimer const& timer)
 	{
 		D_PROFILING::ScopedTimer _profiler(L"Update CPU");
-		PIXBeginEvent(PIX_COLOR_DEFAULT, L"Update");
 
 		float elapsedTime = float(timer.GetElapsedSeconds());
 
@@ -158,7 +157,6 @@ namespace Darius::Editor
 		D_RESOURCE::UpdateGPUResources(context);
 		context.Finish();
 
-		PIXEndEvent();
 	}
 #pragma endregion
 
@@ -166,17 +164,17 @@ namespace Darius::Editor
 	// Draws the scene.
 	void Editor::Render()
 	{
+		//D_PROFILING::ScopedTimer _prof(L"Render");
+
 		// Don't try to render anything before the first Update.
 		if (mTimer.GetFrameCount() < 2)
 		{
 			return;
 		}
 
-		auto& context = D_GRAPHICS::GraphicsContext::Begin(L"Render Scene");
-
-		D_GUI_MANAGER::Render(context);
-		D_RENDERER::RenderGui(context);
-		D_RENDERER::Present(context);
+		D_GUI_MANAGER::Render();
+		D_RENDERER::RenderGui();
+		D_RENDERER::Present();
 
 	}
 #pragma endregion
