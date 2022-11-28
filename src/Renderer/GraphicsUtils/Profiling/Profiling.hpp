@@ -15,6 +15,8 @@
 
 #include "Renderer/CommandContext.hpp"
 
+#include <Utils/Common.hpp>
+
 #include <string>
 
 #ifndef D_PROFILING
@@ -48,6 +50,9 @@ namespace Darius::Graphics::Utils::Profiling
 	float GetMaxCpuTime();
 	float GetMaxGpuTime();
 	float GetMaxFrameDelta();
+
+	void CpuProfilerValueGetter(float* startTimestamp, float* endTimestamp, unsigned char* level, std::wstring* caption, const void* data, int idx);
+	int ScopesCount();
 
 
 #ifdef RELEASE
