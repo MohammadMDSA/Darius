@@ -106,6 +106,7 @@ target_compile_options(flecs_static PRIVATE)
 
 # Adding imgui
 add_subdirectory("src/Libs/imgui_wrapper")
+target_link_libraries(${PROJECT_NAME} PRIVATE IMGUIFILEDIALOG IMGUI_FLAME_GRAPH)
 
 # Adding Memory Allocators
 # add_subdirectory("src/Libs/MemAll")
@@ -171,7 +172,7 @@ list(APPEND DARIUS_LIBS
     "Animation"
 	)
 
-target_link_libraries(${PROJECT_NAME} PUBLIC ${DARIUS_LIBS} PRIVATE IMGUIFILEDIALOG IMGUI_FLAME_GRAPH)
+target_link_libraries(${PROJECT_NAME} PUBLIC ${DARIUS_LIBS})
 
 ##############################
 ############ TEST ############

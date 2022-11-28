@@ -17,7 +17,6 @@
 #include "Renderer/CommandContext.hpp"
 #include "Renderer/GraphicsCore.hpp"
 
-#include <Core/Containers/Vector.hpp>
 #include <Core/Containers/Map.hpp>
 #include <Core/TimeManager/SystemTime.hpp>
 
@@ -190,6 +189,11 @@ namespace Darius::Graphics::Utils::Profiling
 				return &sm_RootScope;
 		}
 
+		inline ScopeTimeData GetScopeData()
+		{
+			return { m_Name, m_LastStartTick - s_preLastFrameTick, m_LastEndTick - s_preLastFrameTick, (unsigned char)m_Level };
+		}
+
 		NestedTimingTree* PrevChild(NestedTimingTree* curChild)
 		{
 			D_ASSERT(curChild->m_Parent == this);
@@ -239,7 +243,6 @@ namespace Darius::Graphics::Utils::Profiling
 
 		void GatherTimes(uint32_t FrameIndex)
 		{
-			s_TimingTreeData.push_back(this);
 			if (Paused)
 			{
 				for (auto node : m_Children)
@@ -252,8 +255,17 @@ namespace Darius::Graphics::Utils::Profiling
 			for (auto node : m_Children)
 				node->GatherTimes(FrameIndex);
 
+			m_LastStartTick = m_StartTick;
+			m_LastEndTick = m_EndTick;
 			m_StartTick = 0;
 			m_EndTick = 0;
+		}
+
+		void ScopeTimerSnapshot(D_CONTAINERS::DVector<ScopeTimeData>& container)
+		{
+			container.push_back(GetScopeData());
+			for (auto node : m_Children)
+				node->ScopeTimerSnapshot(container);
 		}
 
 		void SumInclusiveTimes(float& cpuTime, float& gpuTime)
@@ -275,10 +287,10 @@ namespace Darius::Graphics::Utils::Profiling
 			uint32_t FrameIndex = (uint32_t)D_GRAPHICS::GetFrameCount();
 			uint64_t frameTick = D_TIME::SystemTime::GetCurrentTick();
 
-			// Clearing tree data array
-			s_TimingTreeData.clear();
-
 			D_PROFILING_GPU::BeginReadBack();
+			auto delta = 
+			sm_RootScope.m_StartTick = s_lastFrameTick;
+			sm_RootScope.m_EndTick = frameTick;
 			sm_RootScope.GatherTimes(FrameIndex);
 			s_FrameDelta.RecordStat(FrameIndex, D_TIME::SystemTime::TimeBetweenTicks(s_lastFrameTick, frameTick));
 			D_PROFILING_GPU::EndReadBack();
@@ -288,6 +300,7 @@ namespace Darius::Graphics::Utils::Profiling
 			s_TotalCpuTime.RecordStat(FrameIndex, TotalCpuTime);
 			s_TotalGpuTime.RecordStat(FrameIndex, TotalGpuTime);
 
+			s_preLastFrameTick = s_lastFrameTick;
 			s_lastFrameTick = frameTick;
 		}
 
@@ -313,7 +326,7 @@ namespace Darius::Graphics::Utils::Profiling
 	private:
 
 		friend void CpuProfilerValueGetter(float* startTimestamp, float* endTimestamp, unsigned char* level, std::wstring* caption, const void* data, int idx);
-		friend int ScopesCount();
+		friend void ScopeTimerSnapshot(D_CONTAINERS::DVector<ScopeTimeData>& container);
 
 		void DeleteChildren(void)
 		{
@@ -326,11 +339,13 @@ namespace Darius::Graphics::Utils::Profiling
 		NestedTimingTree* m_Parent;
 		D_CONTAINERS::DVector<NestedTimingTree*> m_Children;
 		D_CONTAINERS::DUnorderedMap<std::wstring, NestedTimingTree*> m_LUT;
-		int64_t m_StartTick;
-		int64_t m_EndTick;
+		uint64_t m_StartTick;
+		uint64_t m_EndTick;
+		uint64_t m_LastStartTick;
+		uint64_t m_LastEndTick;
 		StatHistory m_CpuTime;
 		StatHistory m_GpuTime;
-		int m_Level = 0;
+		int m_Level = 1;
 		bool m_IsExpanded;
 		GpuTimer m_GpuTimer;
 		static StatHistory s_TotalCpuTime;
@@ -340,7 +355,7 @@ namespace Darius::Graphics::Utils::Profiling
 		static NestedTimingTree* sm_CurrentNode;
 		static NestedTimingTree* sm_SelectedScope;
 		static uint64_t s_lastFrameTick;
-		static D_CONTAINERS::DVector<NestedTimingTree const*> s_TimingTreeData;
+		static uint64_t s_preLastFrameTick;
 	};
 
 	StatHistory NestedTimingTree::s_TotalCpuTime;
@@ -350,6 +365,7 @@ namespace Darius::Graphics::Utils::Profiling
 	NestedTimingTree* NestedTimingTree::sm_CurrentNode = &NestedTimingTree::sm_RootScope;
 	NestedTimingTree* NestedTimingTree::sm_SelectedScope = &NestedTimingTree::sm_RootScope;
 	uint64_t NestedTimingTree::s_lastFrameTick = D_TIME::SystemTime::GetCurrentTick();
+	uint64_t NestedTimingTree::s_preLastFrameTick = s_lastFrameTick;
 
 	const bool DrawPerfGraph = false;
 
@@ -372,19 +388,35 @@ namespace Darius::Graphics::Utils::Profiling
 		NestedTimingTree::UpdateTimes();
 	}
 
-	void CpuProfilerValueGetter(float* startTimestamp, float* endTimestamp, unsigned char* level, std::wstring* caption, const void* data, int idx)
+	void ScopeTimerSnapshot(D_CONTAINERS::DVector<ScopeTimeData>& container)
 	{
-		auto nestedTree = NestedTimingTree::s_TimingTreeData[idx];
-
-		*startTimestamp = (float)D_TIME::SystemTime::TicksToMillisecs(nestedTree->m_StartTick);
-		*endTimestamp = (float)D_TIME::SystemTime::TicksToMillisecs(nestedTree->m_EndTick);
-		*level = (unsigned char)nestedTree->m_Level;
-		*caption = nestedTree->m_Name;
+		NestedTimingTree::sm_RootScope.ScopeTimerSnapshot(container);
 	}
 
-	int ScopesCount()
+	void CpuProfilerValueGetter(float* startTimestamp, float* endTimestamp, unsigned char* level, std::wstring* caption, const void* data, int idx)
 	{
-		return NestedTimingTree::s_TimingTreeData.size();
+		auto nestedTree = reinterpret_cast<ScopeTimeData const*>(data)[idx];
+
+		if (startTimestamp)
+		{
+			auto value = D_TIME::SystemTime::TicksToMillisecs(nestedTree.StartTick);
+
+			*startTimestamp = value >= 0 ? (float)value : 0;
+		}
+
+		if (endTimestamp)
+		{
+
+			auto value = D_TIME::SystemTime::TicksToMillisecs(nestedTree.EndTick);
+
+			*endTimestamp = value >= 0 ? (float)value : 0;
+		}
+
+		if (level)
+			*level = (unsigned char)nestedTree.Depth;
+
+		if (caption)
+			*caption = nestedTree.Name;
 	}
 
 	void BeginBlock(const std::wstring& name, CommandContext* Context)

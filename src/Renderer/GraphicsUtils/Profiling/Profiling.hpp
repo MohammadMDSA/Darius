@@ -15,6 +15,7 @@
 
 #include "Renderer/CommandContext.hpp"
 
+#include <Core/Containers/Vector.hpp>
 #include <Utils/Common.hpp>
 
 #include <string>
@@ -28,6 +29,14 @@ using namespace D_GRAPHICS;
 namespace Darius::Graphics::Utils::Profiling
 {
 	class StatHistory;
+
+	struct ScopeTimeData
+	{
+		std::wstring		Name;
+		unsigned long long	StartTick;
+		unsigned long long	EndTick;
+		unsigned char		Depth;
+	};
 
 	void Update();
 
@@ -52,7 +61,8 @@ namespace Darius::Graphics::Utils::Profiling
 	float GetMaxFrameDelta();
 
 	void CpuProfilerValueGetter(float* startTimestamp, float* endTimestamp, unsigned char* level, std::wstring* caption, const void* data, int idx);
-	int ScopesCount();
+
+	void ScopeTimerSnapshot(D_CONTAINERS::DVector<ScopeTimeData>& container);
 
 
 #ifdef RELEASE
