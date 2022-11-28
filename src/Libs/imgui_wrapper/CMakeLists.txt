@@ -44,4 +44,8 @@ target_include_directories( IMGUI
                                 .
                             )
 
-target_link_libraries(IMGUIFILEDIALOG PUBLIC IMGUI)
+target_link_libraries(IMGUIFILEDIALOG PRIVATE IMGUI)
+
+add_subdirectory(ImGuiFlameGraph/)
+target_link_libraries(IMGUI_FLAME_GRAPH PRIVATE IMGUI)
+
