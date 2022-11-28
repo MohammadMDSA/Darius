@@ -7,6 +7,7 @@
 #include <Renderer/GraphicsUtils/Profiling/Profiling.hpp>
 
 #include <implot/implot.h>
+#include <imgui-flame-graph/imgui_widget_flamegraph.h>
 
 namespace Darius::Editor::Gui::Windows
 {
@@ -174,6 +175,8 @@ namespace Darius::Editor::Gui::Windows
 			}
 
 			ImGui::EndTable();
+
+			ImGuiWidgetFlameGraph::PlotFlame("CPU", &D_PROFILING::CpuProfilerValueGetter, nullptr, D_PROFILING::ScopesCount(), 0, "Main Thread", FLT_MAX, FLT_MAX, ImVec2(0, 400));
 		}
 	}
 
