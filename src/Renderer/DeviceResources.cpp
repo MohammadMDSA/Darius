@@ -443,8 +443,11 @@ namespace Darius::Renderer::DeviceResource
 	}
 
 	// Present the contents of the swap chain to the screen.
-	void DeviceResources::Present(D_GRAPHICS::GraphicsContext& context, D3D12_RESOURCE_STATES beforeState)
+	void DeviceResources::Present(D3D12_RESOURCE_STATES beforeState)
 	{
+
+		auto& context = D_GRAPHICS::GraphicsContext::Begin(L"Present");
+
 		if (beforeState != D3D12_RESOURCE_STATE_PRESENT)
 		{
 			// Transition the render target to the state that allows it to be presented to the display.

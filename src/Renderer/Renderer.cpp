@@ -11,6 +11,7 @@
 #include "GraphicsUtils/Buffers/ColorBuffer.hpp"
 #include "GraphicsUtils/VertexTypes.hpp"
 #include "Camera/CameraManager.hpp"
+#include "GraphicsUtils/Profiling/Profiling.hpp"
 
 #include <imgui.h>
 #include <implot/implot.h>
@@ -109,13 +110,10 @@ namespace Darius::Renderer
 		return RootSigns[(size_t)type];
 	}
 
-	void Present(D_GRAPHICS::GraphicsContext& context)
+	void Present()
 	{
 		// Show the new frame.
-		PIXBeginEvent(PIX_COLOR_DEFAULT, L"Present");
-		Resources->Present(context);
-
-		PIXEndEvent();
+		Resources->Present();
 	}
 
 	// Helper method to clear the back buffers.
@@ -466,9 +464,10 @@ namespace Darius::Renderer
 		return ImguiHeap[index];
 	}
 
-	void RenderGui(D_GRAPHICS::GraphicsContext& context)
+	void RenderGui()
 	{
-		PIXBeginEvent(context.GetCommandList(), PIX_COLOR_DEFAULT, L"Render gui");
+		auto& context = D_GRAPHICS::GraphicsContext::Begin(L"Render Gui");
+
 		auto& viewportRt = Resources->GetRTBuffer();
 		context.TransitionResource(viewportRt, D3D12_RESOURCE_STATE_RENDER_TARGET, true);
 
@@ -477,8 +476,7 @@ namespace Darius::Renderer
 
 		context.SetDescriptorHeap(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, ImguiHeap.GetHeapPointer());
 		ImGui_ImplDX12_RenderDrawData(ImGui::GetDrawData(), context.GetCommandList());
-
-		PIXEndEvent(context.GetCommandList());
+		context.Finish();
 	}
 
 	void InitializeGUI()

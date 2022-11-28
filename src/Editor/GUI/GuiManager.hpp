@@ -18,7 +18,7 @@ namespace Darius::Editor::Gui::GuiManager
 	void Shutdown();
 
 	void Update(float deltaTime);
-	void Render(D_GRAPHICS::GraphicsContext& context);
+	void Render();
 	void DrawGUI();
 	void _DrawMenuBar();
 }
