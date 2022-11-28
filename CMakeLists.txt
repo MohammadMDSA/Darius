@@ -171,7 +171,7 @@ list(APPEND DARIUS_LIBS
     "Animation"
 	)
 
-target_link_libraries(${PROJECT_NAME} PUBLIC ${DARIUS_LIBS} PRIVATE IMGUIFILEDIALOG)
+target_link_libraries(${PROJECT_NAME} PUBLIC ${DARIUS_LIBS} PRIVATE IMGUIFILEDIALOG IMGUI_FLAME_GRAPH)
 
 ##############################
 ############ TEST ############
