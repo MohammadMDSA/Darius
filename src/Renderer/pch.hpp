@@ -6,6 +6,7 @@
 #pragma once
 
 #define D_HR_CHECK(hr) Darius::Renderer::GraphicsUtils::ThrowIfFailed(hr);
+#define D_HR_SUCCEEDED(hr) SUCCEEDED(hr)
 
 #define D3D12_GPU_VIRTUAL_ADDRESS_NULL      ((D3D12_GPU_VIRTUAL_ADDRESS)0)
 #define D3D12_GPU_VIRTUAL_ADDRESS_UNKNOWN   ((D3D12_GPU_VIRTUAL_ADDRESS)-1)
