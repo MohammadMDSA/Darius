@@ -116,10 +116,12 @@ namespace Darius::Editor::Gui::GuiManager
 		}
 	}
 
-	void Render(D_GRAPHICS::GraphicsContext& context)
+	void Render()
 	{
+		auto& context = D_GRAPHICS::GraphicsContext::Begin(L"Render Windows Contents");
 		for (auto& kv : Windows)
 			kv.second->Render(context);
+		context.Finish();
 	}
 
 	void DrawGUI()

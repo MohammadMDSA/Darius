@@ -156,7 +156,7 @@ namespace Darius::Renderer
 
 #ifdef _D_EDITOR
 	DescriptorHandle		GetUiTextureHandle(UINT index);
-	void					RenderGui(D_GRAPHICS::GraphicsContext& context);
+	void					RenderGui();
 #endif
 	// For rendering meshs
 	void					RenderMeshes(D_GRAPHICS::GraphicsContext& context, D_CONTAINERS::DVector<RenderItem> const& renderItems, D_RENDERER_FRAME_RESOUCE::GlobalConstants const& globals);
@@ -164,7 +164,7 @@ namespace Darius::Renderer
 	// For rendering batches like line and debug stuff
 	void					RenderBatchs(D_GRAPHICS::GraphicsContext& context, D_CONTAINERS::DVector<RenderItem> const& renderItems, D_RENDERER_FRAME_RESOUCE::GlobalConstants const& globals);
 
-	void					Present(D_GRAPHICS::GraphicsContext& context);
+	void					Present();
 
 	D_GRAPHICS_UTILS::GraphicsPSO& GetPSO(PipelineStateTypes type);
 	D_GRAPHICS_UTILS::RootSignature& GetRootSignature(RootSignatureTypes type);

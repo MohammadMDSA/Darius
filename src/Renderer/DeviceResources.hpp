@@ -65,7 +65,7 @@ namespace Darius::Renderer::DeviceResource
         }
         void Prepare(D_GRAPHICS_BUFFERS::ColorBuffer* buffer, bool frameStart, ID3D12PipelineState* pso = nullptr, D3D12_RESOURCE_STATES beforeState = D3D12_RESOURCE_STATE_PRESENT,
             D3D12_RESOURCE_STATES afterState = D3D12_RESOURCE_STATE_RENDER_TARGET);
-        void Present(D_GRAPHICS::GraphicsContext& context, D3D12_RESOURCE_STATES beforeState = D3D12_RESOURCE_STATE_RENDER_TARGET);
+        void Present(D3D12_RESOURCE_STATES beforeState = D3D12_RESOURCE_STATE_RENDER_TARGET);
         void UpdateColorSpace();
 
         // Device Accessors.
