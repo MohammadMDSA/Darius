@@ -30,6 +30,8 @@ namespace Darius::Scene::ECS::Components
 		virtual bool						DrawDetails(float params[]) override;
 #endif
 
+		INLINE virtual bool					IsDisableable() const { return false; }
+
 		INLINE operator D_MATH::Transform const* () const { return &mTransform; }
 
 	private:

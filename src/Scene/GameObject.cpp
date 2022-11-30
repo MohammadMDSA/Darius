@@ -89,31 +89,28 @@ namespace Darius::Scene
 				bool open = ImGui::TreeNodeEx(comp->GetDisplayName().c_str(), treeNodeFlags);
 				ImGui::PopStyleVar();
 
-				if (isTransform)
-				{
-					std::string a;
-					ImGui::SameLine(contentRegionAvailable.x - lineHeight * 0.5f);
-				}
-				else
-				{
-					ImGui::SameLine(contentRegionAvailable.x - 2 * lineHeight);
 
-					// Component enabled box
+				// Component enabled box
+				{
+					auto canDisable = comp->IsDisableable();
+
+					if (canDisable)
 					{
-						auto canDisable = comp->IsDisableable();
-						ImGui::BeginDisabled(!canDisable);
-						auto enabled = canDisable ? comp->GetEnabled() : true;
+						ImGui::SameLine(contentRegionAvailable.x - 2 * lineHeight);
+						auto enabled = comp->GetEnabled();
 						if (ImGui::Checkbox("##Enabled", &enabled))
 						{
 							comp->SetEnabled(enabled);
 							changeValue = true;
 						}
-
-						if (!canDisable)
-							ImGui::EndDisabled();
+						ImGui::SameLine();
+					}
+					else
+					{
+						ImGui::SameLine(contentRegionAvailable.x - lineHeight * 0.5f);
 
 					}
-					ImGui::SameLine();
+
 				}
 
 				if (ImGui::Button(ICON_FA_ELLIPSIS_VERTICAL, { lineHeight, lineHeight }))
