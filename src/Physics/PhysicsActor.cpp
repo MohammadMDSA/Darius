@@ -11,8 +11,7 @@ namespace Darius::Physics
 	PhysicsActor::PhysicsActor(D_SCENE::GameObject* gameObject, PhysicsActorType type) :
 		mActorType(type),
 		mPxActor(nullptr),
-		mGameObject(gameObject),
-		mColliderCount(0)
+		mGameObject(gameObject)
 	{
 	}
 

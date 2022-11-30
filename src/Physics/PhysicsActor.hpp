@@ -31,8 +31,7 @@ namespace Darius::Physics
 		INLINE PhysicsActor() :
 			mGameObject(nullptr),
 			mPxActor(nullptr),
-			mActorType(PhysicsActorType::Static),
-			mColliderCount(0) {}
+			mActorType(PhysicsActorType::Static) {}
 
 		~PhysicsActor();
 		
@@ -50,7 +49,7 @@ namespace Darius::Physics
 		void							InitializeActor();
 		
 		D_SCENE::GameObject* const		mGameObject;
-		int								mColliderCount;
+		D_CONTAINERS::DSet<D_CORE::Uuid, boost::hash<D_CORE::Uuid>> mCollider;
 	};
 
 }

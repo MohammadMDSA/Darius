@@ -38,8 +38,6 @@ namespace Darius::Physics
 		newActor.InitializeActor(); // Initialize physics actor
 		auto dynamicActor = reinterpret_cast<PxRigidDynamic*>(newActor.GetPxActor());
 
-		InvalidateAllColliders(go);
-
 		return dynamicActor;
 
 	}
@@ -57,18 +55,16 @@ namespace Darius::Physics
 		if (actor.IsStatic())
 			return;
 
-		auto invalidColliders = actor.mColliderCount;
+		auto invalidCollidersCount = actor.mCollider.size();
 
-		auto dynamicActor = reinterpret_cast<PxRigidDynamic*>(actor.GetPxActor());
 		sActorMap.erase(go);
 
-		if (invalidColliders <= 0)
+		if (invalidCollidersCount <= 0)
 			return;
 
 		sActorMap.emplace(go, PhysicsActor(go, PhysicsActor::PhysicsActorType::Static));
 		auto& newActor = sActorMap[go];
 
-		InvalidateAllColliders(go);
 	}
 
 	physx::PxShape* PhysicsScene::AddCollider(ColliderComponent* collider, _OUT_ bool& nonStatic)
@@ -90,7 +86,7 @@ namespace Darius::Physics
 		auto shape = PxRigidActorExt::createExclusiveShape(*pxActor, *collider->GetPhysicsGeometry(), *collider->GetMaterial());
 
 		if (shape)
-			actor.mColliderCount++;
+			actor.mCollider.insert(collider->GetUuid());
 
 		return shape;
 
@@ -104,22 +100,18 @@ namespace Darius::Physics
 		if (!sActorMap.contains(go))
 			return;
 
-		auto actor = sActorMap[go];
+		auto& actor = sActorMap[go];
 
 		auto pxActor = actor.GetPxActor();
 
 		pxActor->detachShape(*collider->mShape);
 
-		actor.mColliderCount--;
+		actor.mCollider.erase(collider->GetUuid());
 
-		if (actor.IsStatic() && actor.mColliderCount <= 0)
+		if (actor.IsStatic() && actor.mCollider.size() <= 0)
 		{
 			sActorMap.erase(go);
 		}
-	}
-
-	void PhysicsScene::InvalidateAllColliders(GameObject const* go)
-	{
 	}
 
 	void PhysicsScene::AddActor(GameObject const* go)
