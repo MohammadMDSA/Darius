@@ -329,6 +329,8 @@ namespace Darius::Scene
 				}
 			}
 
+		World.progress();
+
 		StartScene();
 	}
 
@@ -341,7 +343,7 @@ namespace Darius::Scene
 
 		GOs->clear();
 		BehaviourComponents.clear();
-
+		World.progress();
 		SceneName = "";
 		ScenePath = Path();
 		Loaded = false;
@@ -357,6 +359,7 @@ namespace Darius::Scene
 
 		GOs->clear();
 		RemoveDeleted();
+		World.progress();
 		BehaviourComponents.clear();
 		Running = false;
 	}
