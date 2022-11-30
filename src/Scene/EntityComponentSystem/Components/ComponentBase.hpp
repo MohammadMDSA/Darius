@@ -179,10 +179,12 @@ namespace Darius::Scene::ECS::Components
         {
         }
 
+        // TODO: Add awake status
         D_CH_R_FIELD(D_CORE::Uuid, Uuid);
         D_CH_R_FIELD(Darius::Scene::GameObject*, GameObject);
         D_CH_R_FIELD(bool, Started);
         D_CH_R_FIELD(bool, Enabled);
+        D_CH_R_FIELD(bool, Destroyed);
 
     private:
         friend class Darius::Scene::GameObject;

@@ -14,14 +14,16 @@ namespace Darius::Scene::ECS::Components
 		mUuid(GenerateUuid()),
 		mStarted(false),
 		mEnabled(true),
-		mGameObject(nullptr)
+		mGameObject(nullptr),
+		mDestroyed(false)
 	{}
 
 	ComponentBase::ComponentBase(Uuid uuid) :
 		mUuid(uuid),
 		mStarted(false),
 		mEnabled(true),
-		mGameObject(nullptr)
+		mGameObject(nullptr),
+		mDestroyed(false)
 	{}
 
 }
