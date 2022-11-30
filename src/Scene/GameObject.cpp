@@ -320,7 +320,7 @@ namespace Darius::Scene
 	void GameObject::RemoveComponentRoutine(Darius::Scene::ECS::Components::ComponentBase* comp)
 	{
 		comp->OnDestroy();
-
+		comp->mDestroyed = true;
 		D_WORLD::RemoveBehaviour((D_ECS_COMP::BehaviourComponent*)comp);
 	}
 
