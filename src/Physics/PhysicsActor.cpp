@@ -11,12 +11,15 @@ namespace Darius::Physics
 	PhysicsActor::PhysicsActor(D_SCENE::GameObject* gameObject, PhysicsActorType type) :
 		mActorType(type),
 		mPxActor(nullptr),
-		mGameObject(gameObject)
+		mGameObject(gameObject),
+		mColliderCount(0)
 	{
 	}
 
 	PhysicsActor::~PhysicsActor()
 	{
+		if (!mPxActor)
+			return;
 		auto scene = D_PHYSICS::GetScene();
 		scene->removeActor(*mPxActor);
 		mPxActor = nullptr;
@@ -24,6 +27,7 @@ namespace Darius::Physics
 
 	void PhysicsActor::InitializeActor()
 	{
+		D_ASSERT(mGameObject);
 		if (mPxActor)
 			return;
 
