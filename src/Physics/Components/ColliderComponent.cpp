@@ -1,7 +1,7 @@
 #include "Physics/pch.hpp"
 #include "ColliderComponent.hpp"
 
-#include "Physics/Components/RigidBodyComponent.hpp"
+#include "RigidbodyComponent.hpp"
 #include "Physics/PhysicsScene.hpp"
 
 #include <imgui.h>
@@ -24,18 +24,21 @@ namespace Darius::Physics
 
 	bool ColliderComponent::DrawDetails(float params[])
 	{
-		
+
 		return false;
 
 	}
 
 	void ColliderComponent::Start()
 	{
-		D_PHYSICS::PhysicsScene::AddShapeToActor(GetGameObject(), GetPhysicsGeometry(), mDynamic);
+		InvalidatePhysicsActor();
 	}
 
 	void ColliderComponent::PreUpdate(bool simulating)
 	{
+		if (GetDynamic() != GetGameObject()->HasComponent<RigidbodyComponent>())
+			InvalidatePhysicsActor();
+
 		if (!GetDynamic() && simulating)
 			return;
 
@@ -49,12 +52,12 @@ namespace Darius::Physics
 		}
 
 	}
-	
+
 	void ColliderComponent::OnDestroy()
 	{
 		if (mShape)
 		{
-			D_PHYSICS::PhysicsScene::RemoveShapeFromActor(GetGameObject(), mShape);
+			D_PHYSICS::PhysicsScene::RemoveCollider(this);
 			mShape = nullptr;
 		}
 	}
@@ -62,16 +65,27 @@ namespace Darius::Physics
 	void ColliderComponent::OnActivate()
 	{
 		if (!mShape)
-			mShape = D_PHYSICS::PhysicsScene::AddShapeToActor(GetGameObject(), GetPhysicsGeometry(), mDynamic);
+			InvalidatePhysicsActor();
 	}
 
 	void ColliderComponent::OnDeactivate()
 	{
 		if (mShape)
 		{
-			D_PHYSICS::PhysicsScene::RemoveShapeFromActor(GetGameObject(), mShape);
+			D_PHYSICS::PhysicsScene::RemoveCollider(this);
 			mShape = nullptr;
 		}
+	}
+
+	void ColliderComponent::InvalidatePhysicsActor()
+	{
+		if (GetDestroyed())
+			return;
+
+		mShape = nullptr;
+
+		auto material = D_PHYSICS::GetDefaultMaterial();
+		mShape = D_PHYSICS::PhysicsScene::AddCollider(this, mDynamic);
 	}
 
 }

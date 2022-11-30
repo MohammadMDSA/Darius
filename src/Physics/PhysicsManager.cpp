@@ -1,7 +1,7 @@
 #include "pch.hpp"
 #include "PhysicsManager.hpp"
 
-#include "Components/ColliderComponent.hpp"
+#include "Components/RigidbodyComponent.hpp"
 #include "Components/BoxColliderComponent.hpp"
 
 #include <Core/TimeManager/TimeManager.hpp>
@@ -69,10 +69,10 @@ namespace Darius::Physics
 		}
 #endif // _DEBUG
 
-		gDefaultMaterial = gPhysics->createMaterial(0.5f, 0.5f, 0.f);
+		gDefaultMaterial = gPhysics->createMaterial(0.5f, 0.5f, 0.6f);
 
-		ColliderComponent::StaticConstructor();
 		BoxColliderComponent::StaticConstructor();
+		RigidbodyComponent::StaticConstructor();
 	}
 
 	void Shutdown()
@@ -115,7 +115,7 @@ namespace Darius::Physics
 	void UpdatePostPhysicsTransforms()
 	{
 		D_PROFILING::ScopedTimer physicsProfiler(L"Physics Post Update");
-		D_WORLD::GetRegistry().each([&](BoxColliderComponent& colliderComp)
+		D_WORLD::GetRegistry().each([&](RigidbodyComponent& colliderComp)
 			{
 				D_JOB::AssignTask([&](int threadNumber, int)
 					{
@@ -132,12 +132,19 @@ namespace Darius::Physics
 	void UpdatePrePhysicsTransform(bool simulating)
 	{
 		D_PROFILING::ScopedTimer physicsProfiler(L"Physics Post Update");
-		D_WORLD::GetRegistry().each([&](BoxColliderComponent& colliderComp)
+		auto& reg = D_WORLD::GetRegistry();
+
+		reg.each([&](BoxColliderComponent& colliderComp)
 			{
 				colliderComp.PreUpdate(simulating);
 			}
 		);
 
+		reg.each([&](RigidbodyComponent& rigidbodyComp)
+			{
+				rigidbodyComp.PreUpdate();
+			}
+		);
 	}
 
 	PxScene* GetScene()

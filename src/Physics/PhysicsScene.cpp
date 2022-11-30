@@ -1,6 +1,10 @@
 #include "pch.hpp"
 #include "PhysicsScene.hpp"
 
+#include "PhysicsManager.hpp"
+#include "Components/ColliderComponent.hpp"
+#include "Components/RigidbodyComponent.hpp"
+
 #include <PxPhysics.h>
 #include <PxPhysicsAPI.h>
 
@@ -21,25 +25,23 @@ namespace Darius::Physics
 			auto& actor = sActorMap[go];
 
 			// The registered actor is a dynamic one so just return it
-			if (actor.IsDynamic())
-				return dynamic_cast<PxRigidDynamic*>(actor.GetPxActor());
+			if (!actor.IsStatic())
+				return reinterpret_cast<PxRigidDynamic*>(actor.GetPxActor());
 
-
-			// The registered one is an static one and needs to get switched to a dynamic one
-			auto staticActor = dynamic_cast<PxRigidStatic*>(actor.GetPxActor());
 			sActorMap.erase(go);
-
-			// Deciding the actor type
-			auto type = kinematic ? PhysicsActor::PhysicsActorType::Kinematic : PhysicsActor::PhysicsActorType::Dynamic;
-			sActorMap.emplace(go, PhysicsActor(go, type));
-			auto& newActor = sActorMap[go];
-			newActor.InitializeActor(); // Initialize physics actor
-			auto dynamicActor = dynamic_cast<PxRigidDynamic*>(newActor.GetPxActor());
-
-			StaticActorToDynamic(staticActor, dynamicActor);
-
-			return dynamicActor;
 		}
+
+		// Deciding the actor type
+		auto type = kinematic ? PhysicsActor::PhysicsActorType::Kinematic : PhysicsActor::PhysicsActorType::Dynamic;
+		sActorMap.emplace(go, PhysicsActor(go, type));
+		auto& newActor = sActorMap[go];
+		newActor.InitializeActor(); // Initialize physics actor
+		auto dynamicActor = reinterpret_cast<PxRigidDynamic*>(newActor.GetPxActor());
+
+		InvalidateAllColliders(go);
+
+		return dynamicActor;
+
 	}
 
 	void PhysicsScene::RemoveDynamicActor(D_SCENE::GameObject* go)
@@ -55,25 +57,79 @@ namespace Darius::Physics
 		if (actor.IsStatic())
 			return;
 
-		auto dynamicActor = dynamic_cast<PxRigidDynamic*>(actor.GetPxActor());
+		auto invalidColliders = actor.mColliderCount;
+
+		auto dynamicActor = reinterpret_cast<PxRigidDynamic*>(actor.GetPxActor());
 		sActorMap.erase(go);
+
+		if (invalidColliders <= 0)
+			return;
+
 		sActorMap.emplace(go, PhysicsActor(go, PhysicsActor::PhysicsActorType::Static));
 		auto& newActor = sActorMap[go];
-		auto staticActor = dynamic_cast<PxRigidStatic*>(actor.GetPxActor());
 
-		DynamicActorToStatic(dynamicActor, staticActor);
+		InvalidateAllColliders(go);
 	}
 
-	physx::PxShape* PhysicsScene::AddShapeToActor(D_SCENE::GameObject const* go, physx::PxGeometry const* geom, _OUT_ bool& nonStatic)
+	physx::PxShape* PhysicsScene::AddCollider(ColliderComponent* collider, _OUT_ bool& nonStatic)
 	{
-		auto ref = const_cast<D_SCENE::GameObject*>(go);
-		auto& actor = sActorMap[ref];
+		auto go = collider->GetGameObject();
+
+		if (!sActorMap.contains(go))
+			AddActor(go);
+
+		D_ASSERT(sActorMap.contains(go));
+
+		auto& actor = sActorMap[go];
 
 		// Check if corresponding actor is non-static
 		nonStatic = !actor.IsStatic();
 
+		auto pxActor = actor.GetPxActor();
 
+		auto shape = PxRigidActorExt::createExclusiveShape(*pxActor, *collider->GetPhysicsGeometry(), *collider->GetMaterial());
+
+		if (shape)
+			actor.mColliderCount++;
+
+		return shape;
 
 	}
-	
+
+	void PhysicsScene::RemoveCollider(ColliderComponent const* collider)
+	{
+		auto coll = const_cast<ColliderComponent*>(collider);
+		auto go = coll->GetGameObject();
+
+		if (!sActorMap.contains(go))
+			return;
+
+		auto actor = sActorMap[go];
+
+		auto pxActor = actor.GetPxActor();
+
+		pxActor->detachShape(*collider->mShape);
+
+		actor.mColliderCount--;
+
+		if (actor.IsStatic() && actor.mColliderCount <= 0)
+		{
+			sActorMap.erase(go);
+		}
+	}
+
+	void PhysicsScene::InvalidateAllColliders(GameObject const* go)
+	{
+	}
+
+	void PhysicsScene::AddActor(GameObject const* go)
+	{
+		auto ref = const_cast<GameObject*>(go);
+		if (sActorMap.contains(ref))
+			return;
+
+		sActorMap.emplace(ref, PhysicsActor(ref, PhysicsActor::PhysicsActorType::Static));
+		sActorMap[ref].InitializeActor();
+	}
+
 }
