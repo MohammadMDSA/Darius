@@ -1,5 +1,7 @@
 #pragma once
 
+#include "Physics/PhysicsScene.hpp"
+
 #include <Scene/EntityComponentSystem/Components/ComponentBase.hpp>
 
 #ifndef D_PHYSICS
@@ -8,7 +10,7 @@
 
 namespace Darius::Physics
 {
-	class RigidbodyComponent : D_ECS_COMP::ComponentBase
+	class RigidbodyComponent : public D_ECS_COMP::ComponentBase
 	{
 		D_H_COMP_BODY(RigidbodyComponent, ComponentBase, "Physics/Rigidbody", true, false);
 
@@ -23,7 +25,6 @@ namespace Darius::Physics
 
 	protected:
 		D_CH_FIELD(physx::PxRigidDynamic*,	Actor = nullptr);
-
 	private:
 
 	};

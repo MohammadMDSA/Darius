@@ -26,9 +26,12 @@ namespace Darius::Physics
 		virtual void				OnActivate() override;
 		virtual void				OnDeactivate() override;
 
+#ifdef _D_EDITOR
 		virtual bool				DrawDetails(float params[]) override;
+#endif
 
 		INLINE physx::PxShape*		GetShape() { return mShape; }
+		INLINE physx::PxMaterial const* GetMaterial() const { return D_PHYSICS::GetDefaultMaterial(); }
 
 		D_CH_FIELD(physx::PxShape*,			Shape = nullptr);
 		D_CH_R_FIELD(bool,					Dynamic)
@@ -38,6 +41,8 @@ namespace Darius::Physics
 		virtual INLINE physx::PxGeometry* UpdateAndGetPhysicsGeometry(bool& changed) { changed = false; return nullptr; };
 
 	private:
+		friend class PhysicsScene;
 
+		void						InvalidatePhysicsActor();
 	};
 }

@@ -1,5 +1,5 @@
 #include "Physics/pch.hpp"
-#include "RigidBodyComponent.hpp"
+#include "RigidbodyComponent.hpp"
 
 #include "Physics/PhysicsManager.hpp"
 #include "Physics/PhysicsScene.hpp"
@@ -12,7 +12,7 @@ namespace Darius::Physics
 
 	void RigidbodyComponent::Start()
 	{
-		mActor = D_PHYSICS::PhysicsScene::AddDynamicActor(GetGameObject());
+		mActor = D_PHYSICS::PhysicsScene::AddDynamicActor(GetGameObject(), false);
 	}
 	
 	void RigidbodyComponent::OnDestroy()
