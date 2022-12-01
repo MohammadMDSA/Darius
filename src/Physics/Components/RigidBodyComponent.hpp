@@ -23,9 +23,17 @@ namespace Darius::Physics
 		virtual void					Update(float) override;
 		virtual void					PreUpdate();
 
+#ifdef _D_EDITOR
+		virtual bool					DrawDetails(float[]) override;
+#endif
+
+		// Kinematic
+		void							SetKinematic(bool value);
+		bool							IsKinematic() const;
+
 	protected:
 		D_CH_FIELD(physx::PxRigidDynamic*,	Actor = nullptr);
 	private:
-
+		D_CH_FIELD(bool, Kinematic)
 	};
 }

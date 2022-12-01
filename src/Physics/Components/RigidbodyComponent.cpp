@@ -4,6 +4,10 @@
 #include "Physics/PhysicsManager.hpp"
 #include "Physics/PhysicsScene.hpp"
 
+#include <imgui.h>
+
+using namespace physx;
+
 namespace Darius::Physics
 {
 	D_H_COMP_DEF(RigidbodyComponent);
@@ -33,5 +37,40 @@ namespace Darius::Physics
 	{
 		mActor->setGlobalPose(D_PHYSICS::GetTransform(GetTransform()));
 	}
+
+	void RigidbodyComponent::SetKinematic(bool value)
+	{
+		mActor->setRigidBodyFlag(PxRigidBodyFlag::eKINEMATIC, value);
+	}
+
+	bool RigidbodyComponent::IsKinematic() const
+	{
+		return mActor->getRigidBodyFlags().isSet(PxRigidBodyFlag::eKINEMATIC);
+	}
+
+#ifdef _D_EDITOR
+	bool RigidbodyComponent::DrawDetails(float[])
+	{
+		bool valueChanged = false;
+
+		D_H_DETAILS_DRAW_BEGIN_TABLE();
+
+		// Kinematic property
+		{
+			D_H_DETAILS_DRAW_PROPERTY("Kinematic");
+			bool kinematic = IsKinematic();
+			if (ImGui::Checkbox("##kinematic", &kinematic))
+			{
+				SetKinematic(kinematic);
+				valueChanged = true;
+			}
+			
+		}
+
+		D_H_DETAILS_DRAW_END_TABLE();
+
+		return valueChanged;
+	}
+#endif
 
 }
