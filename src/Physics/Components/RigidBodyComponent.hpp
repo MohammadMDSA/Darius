@@ -27,9 +27,17 @@ namespace Darius::Physics
 		virtual bool					DrawDetails(float[]) override;
 #endif
 
+		// Serialization
+		virtual void					Serialize(D_SERIALIZATION::Json& json) const override;
+		virtual void					Deserialize(D_SERIALIZATION::Json const& json) override;
+
 		// Kinematic
 		void							SetKinematic(bool value);
 		bool							IsKinematic() const;
+
+		// Linear Velocity
+		D_MATH::Vector3					GetLinearVelocity() const;
+		void							SetLinearVelocity(D_MATH::Vector3 const& v, bool autoWake = true);
 
 	protected:
 		D_CH_FIELD(physx::PxRigidDynamic*,	Actor = nullptr);

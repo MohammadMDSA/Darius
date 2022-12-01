@@ -7,18 +7,42 @@
 #include <imgui.h>
 
 using namespace physx;
+using namespace D_MATH;
 
 namespace Darius::Physics
 {
 	D_H_COMP_DEF(RigidbodyComponent);
 
-	D_H_COMP_DEFAULT_CONSTRUCTOR_DEF(RigidbodyComponent);
+	RigidbodyComponent::RigidbodyComponent() :
+		ComponentBase(),
+		mKinematic(false) {}
+
+	RigidbodyComponent::RigidbodyComponent(D_CORE::Uuid uuid) :
+		ComponentBase(uuid),
+		mKinematic(false) {}
 
 	void RigidbodyComponent::Start()
 	{
 		mActor = D_PHYSICS::PhysicsScene::AddDynamicActor(GetGameObject(), false);
+
+		SetKinematic(mKinematic);
 	}
-	
+
+	void RigidbodyComponent::Serialize(D_SERIALIZATION::Json& json) const
+	{
+		json["Kinematic"] = IsKinematic();
+	}
+
+	void RigidbodyComponent::Deserialize(D_SERIALIZATION::Json const& json)
+	{
+		D_H_DESERIALIZE(Kinematic);
+
+		if (mActor)
+		{
+			SetKinematic(mKinematic);
+		}
+	}
+
 	void RigidbodyComponent::OnDestroy()
 	{
 		D_PHYSICS::PhysicsScene::RemoveDynamicActor(GetGameObject());
@@ -48,6 +72,17 @@ namespace Darius::Physics
 		return mActor->getRigidBodyFlags().isSet(PxRigidBodyFlag::eKINEMATIC);
 	}
 
+	Vector3 RigidbodyComponent::GetLinearVelocity() const
+	{
+		auto v = mActor->getLinearVelocity();
+		return Vector3(reinterpret_cast<float*>(&v));
+	}
+
+	void RigidbodyComponent::SetLinearVelocity(Vector3 const& v, bool autoWake)
+	{
+		mActor->setLinearVelocity(PxVec3(v.GetX(), v.GetY(), v.GetZ()));
+	}
+
 #ifdef _D_EDITOR
 	bool RigidbodyComponent::DrawDetails(float[])
 	{
@@ -64,8 +99,22 @@ namespace Darius::Physics
 				SetKinematic(kinematic);
 				valueChanged = true;
 			}
-			
+
 		}
+
+		ImGui::NewLine();
+		ImGui::NewLine();
+
+
+		ImGui::BeginDisabled();
+		float dummy;
+		// Velocity
+		{
+			auto v = GetLinearVelocity();
+			D_H_DETAILS_DRAW_PROPERTY("Angular Velocity");
+			D_MATH::DrawDetails(v, &dummy);
+		}
+		ImGui::EndDisabled();
 
 		D_H_DETAILS_DRAW_END_TABLE();
 
