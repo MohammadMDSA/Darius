@@ -99,6 +99,23 @@ type::type(D_CORE::Uuid uuid) : \
         ImGui::EndPopup(); \
     } \
 }
+
+#define D_H_DETAILS_DRAW_BEGIN_TABLE() \
+if (ImGui::BeginTable((std::string("##edit") + this->GetComponentName()).c_str(), 2, ImGuiTableFlags_BordersInnerV)) \
+{ \
+ImGui::TableSetupColumn("label", ImGuiTableColumnFlags_WidthFixed, 100.f); \
+ImGui::TableSetupColumn("value", ImGuiTableColumnFlags_WidthStretch);
+
+#define D_H_DETAILS_DRAW_PROPERTY(prop) \
+ImGui::TableNextRow(); \
+ImGui::TableSetColumnIndex(0); \
+ImGui::Text(prop); \
+ImGui::TableSetColumnIndex(1); \
+
+#define D_H_DETAILS_DRAW_END_TABLE() \
+ImGui::EndTable(); \
+} \
+
 #endif // _D_EDITOR
 
 
