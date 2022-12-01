@@ -222,6 +222,7 @@ namespace Darius::Graphics::Utils::Profiling
 
 		void StartTiming(CommandContext* Context)
 		{
+			D_ASSERT(!AwaitingUpdate);
 			m_StartTick = D_TIME::SystemTime::GetCurrentTick();
 			if (Context == nullptr)
 				return;
@@ -233,6 +234,7 @@ namespace Darius::Graphics::Utils::Profiling
 
 		void StopTiming(CommandContext* Context)
 		{
+			D_ASSERT(!AwaitingUpdate);
 			m_EndTick = D_TIME::SystemTime::GetCurrentTick();
 			if (Context == nullptr)
 				return;
