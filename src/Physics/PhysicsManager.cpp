@@ -3,6 +3,7 @@
 
 #include "Components/RigidbodyComponent.hpp"
 #include "Components/BoxColliderComponent.hpp"
+#include "Resources/PhysicsMaterialResource.hpp"
 
 #include <Core/TimeManager/TimeManager.hpp>
 #include <Scene/Scene.hpp>
@@ -71,6 +72,10 @@ namespace Darius::Physics
 
 		gDefaultMaterial = gPhysics->createMaterial(0.5f, 0.5f, 0.6f);
 
+		// Registering Resources
+		PhysicsMaterialResource::Register();
+
+		// Registering Components
 		BoxColliderComponent::StaticConstructor();
 		RigidbodyComponent::StaticConstructor();
 	}
