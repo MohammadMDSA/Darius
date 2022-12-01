@@ -31,8 +31,7 @@ namespace Darius::ResourceManager
 
 		// Inherited via Resource
 		virtual void WriteResourceToFile() const override;
-
 		virtual void ReadResourceFromFile() override;
-
+		virtual void Unload() override;
 	};
 }

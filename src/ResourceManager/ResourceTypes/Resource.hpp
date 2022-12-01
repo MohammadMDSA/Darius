@@ -193,7 +193,10 @@ namespace Darius::ResourceManager
 		virtual void				WriteResourceToFile() const = 0;
 		virtual void				ReadResourceFromFile() = 0;
 		virtual bool				UploadToGpu(D_GRAPHICS::GraphicsContext& context) = 0;
-		//virtual void				Unload() = 0;
+
+		// Unload and Evict need implementation for every resource
+		virtual void				EvictFromGpu() {}
+		virtual void				Unload() = 0;
 		static void					AddTypeContainer(ResourceType type);
 
 		static DVector<ResourceDataInFile> CanConstructFrom(ResourceType type, Path const& path);

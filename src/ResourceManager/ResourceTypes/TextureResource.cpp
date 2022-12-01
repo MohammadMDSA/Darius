@@ -13,4 +13,9 @@ namespace Darius::ResourceManager
 	{
 	}
 
+	void TextureResource::Unload()
+	{
+		EvictFromGpu();
+	}
+
 }

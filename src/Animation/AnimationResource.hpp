@@ -27,6 +27,7 @@ namespace Darius::Animation
 		virtual INLINE void				WriteResourceToFile() const override { throw D_EXCEPTION::UnsupportedException(); };
 		virtual void					ReadResourceFromFile() override;
 		virtual INLINE bool				UploadToGpu(D_GRAPHICS::GraphicsContext& context) { return true; };
+		virtual INLINE void				Unload() override { EvictFromGpu(); }
 
 		D_CONTAINERS::DUnorderedMap<std::string, int> const& GetSkeletonNameIndexMap() const { return mSkeletonNameIndexMap; }
 

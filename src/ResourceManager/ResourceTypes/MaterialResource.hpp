@@ -62,6 +62,7 @@ namespace Darius::ResourceManager
 		virtual void						WriteResourceToFile() const override;
 		virtual void						ReadResourceFromFile() override;
 		virtual bool						UploadToGpu(D_GRAPHICS::GraphicsContext& context) override;
+		INLINE virtual void					Unload() override { EvictFromGpu(); }
 
 	private:
 		friend class DResourceManager;

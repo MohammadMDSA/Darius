@@ -44,6 +44,8 @@ namespace Darius::ResourceManager
 
 		INLINE virtual void				WriteResourceToFile() const override {};
 		INLINE virtual void				ReadResourceFromFile() override {};
+		INLINE virtual void				Unload() override { EvictFromGpu(); }
+
 		
 		friend class DResourceManager;
 
