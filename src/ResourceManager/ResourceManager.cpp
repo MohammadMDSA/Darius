@@ -293,6 +293,9 @@ namespace Darius::ResourceManager
 	ResourceHandle DResourceManager::CreateResource(ResourceType type, Uuid uuid, std::wstring const& path, std::wstring const& name, bool isDefault, bool fromFile)
 
 	{
+		if (!fromFile && D_H_ENSURE_FILE(path))
+			throw D_EXCEPTION::Exception(("A file with the same name already exists: " + STR_WSTR(path)).c_str());
+
 		auto factory = Resource::GetFactoryForResourceType(type);
 		if (!factory)
 			return EmptyResourceHandle;
