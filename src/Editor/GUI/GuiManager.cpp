@@ -14,6 +14,7 @@
 #include <Core/TimeManager/TimeManager.hpp>
 #include <Core/TimeManager/SystemTime.hpp>
 #include <Math/VectorMath.hpp>
+#include <Physics/Resources/PhysicsMaterialResource.hpp>
 #include <Renderer/Renderer.hpp>
 #include <Renderer/Camera/CameraManager.hpp>
 #include <Renderer/GraphicsUtils/Profiling/Profiling.hpp>
@@ -195,6 +196,7 @@ namespace Darius::Editor::Gui::GuiManager
 
 	void ShowDialogs()
 	{
+
 		if (ImGuiFileDialog::Instance()->Display("LoadScene"))
 		{
 			// action if OK
@@ -224,6 +226,25 @@ namespace Darius::Editor::Gui::GuiManager
 			// close
 			ImGuiFileDialog::Instance()->Close();
 		}
+
+#pragma warning(push)
+#pragma warning(disable: 4616 4302)
+		if (ImGuiFileDialog::Instance()->Display("SaveResource"))
+		{
+			// action if OK
+			if (ImGuiFileDialog::Instance()->IsOk())
+			{
+				std::string _filePathName = ImGuiFileDialog::Instance()->GetFilePathName();
+				std::wstring filePathName = WSTR_STR(_filePathName);
+
+				ResourceType type = (ResourceType)ImGuiFileDialog::Instance()->GetUserDatas();
+				D_RESOURCE::GetManager()->CreateResource(type, filePathName, D_FILE::GetFileName(filePathName));
+			}
+
+			// close
+			ImGuiFileDialog::Instance()->Close();
+		}
+#pragma warning(pop)
 	}
 
 	void _DrawMenuBar()
@@ -294,9 +315,21 @@ namespace Darius::Editor::Gui::GuiManager
 
 			if (ImGui::BeginMenu("Resource"))
 			{
-				if (ImGui::MenuItem("Create Material"))
+				if (ImGui::BeginMenu("Create"))
 				{
-					D_RESOURCE::GetManager()->CreateMaterial(D_EDITOR_CONTEXT::GetAssetsPath());
+					if (ImGui::MenuItem("Material"))
+					{
+						D_RESOURCE::GetManager()->CreateMaterial(D_EDITOR_CONTEXT::GetAssetsPath());
+					}
+
+					ImGui::Separator();
+
+					if (ImGui::MenuItem("Physics Material"))
+					{
+						ImGuiFileDialog::Instance()->OpenDialog("SaveResource", "Create Physics Material", ".physmat", D_EDITOR_CONTEXT::GetAssetsPath().string(), 1, (void*)D_PHYSICS::PhysicsMaterialResource::GetResourceType());
+					}
+
+					ImGui::EndMenu();
 				}
 
 				if (ImGui::MenuItem("Don't"))
