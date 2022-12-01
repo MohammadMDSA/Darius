@@ -29,6 +29,8 @@ namespace Darius::ResourceManager
 		static void				VisitSubdirectory(Path path, bool recursively = false);
 		static ResourceFileMeta GetResourceFileMetaFromResource(Resource* resource);
 
+		static INLINE D_FILE::Path GetPathForNewResource(std::wstring const& name, std::wstring const& ext, D_FILE::Path const& parent) { auto dir = Path(parent); return dir.append(D_FILE::GetNewFileName(name, ext, dir)); }
+
 	private:
 
 		friend class ResourceManager;
