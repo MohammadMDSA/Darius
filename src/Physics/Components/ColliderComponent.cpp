@@ -36,7 +36,8 @@ namespace Darius::Physics
 
 	void ColliderComponent::PreUpdate(bool simulating)
 	{
-		if (GetDynamic() != GetGameObject()->HasComponent<RigidbodyComponent>())
+
+		if (!simulating && GetDynamic() != GetGameObject()->HasComponent<RigidbodyComponent>())
 			InvalidatePhysicsActor();
 
 		if (!GetDynamic() && simulating)
