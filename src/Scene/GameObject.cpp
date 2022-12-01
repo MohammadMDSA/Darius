@@ -487,16 +487,16 @@ namespace Darius::Scene
 	}
 
 	void to_json(D_SERIALIZATION::Json& j, const GameObject& value) {
-		D_H_SERIALIZE(Active);
-		D_H_SERIALIZE(Name);
-		D_H_SERIALIZE(Type);
+		D_H_SERIALIZE_VALUE(Active);
+		D_H_SERIALIZE_VALUE(Name);
+		D_H_SERIALIZE_VALUE(Type);
 		D_CORE::to_json(j["Uuid"], value.mUuid);
 	}
 
 	void from_json(const D_SERIALIZATION::Json& j, GameObject& value) {
-		D_H_DESERIALIZE(Active);
-		D_H_DESERIALIZE(Name);
-		D_H_DESERIALIZE(Type);
+		D_H_DESERIALIZE_VALUE(Active);
+		D_H_DESERIALIZE_VALUE(Name);
+		D_H_DESERIALIZE_VALUE(Type);
 	}
 
 }
