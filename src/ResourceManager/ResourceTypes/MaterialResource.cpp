@@ -319,7 +319,7 @@ device->CopyDescriptorsSimple(1, mTexturesHeap + type * incSize, m##name##Textur
 				if (!(mMaterial.TextureStatusMask & (1 << kBaseColor)))
 				{
 					ImGui::TableSetColumnIndex(1);
-					float defL[] = { 0.f, 1.f };
+					float defL[] = D_H_DRAW_DETAILS_MAKE_VEC_PARAM_COLOR;
 					if (D_MATH::DrawDetails(*(Vector4*)&mMaterial.DifuseAlbedo, defL))
 					{
 						valueChanged = true;
@@ -351,7 +351,7 @@ device->CopyDescriptorsSimple(1, mTexturesHeap + type * incSize, m##name##Textur
 				if (!(mMaterial.TextureStatusMask & (1 << kEmissive)))
 				{
 					ImGui::TableSetColumnIndex(1);
-					float emS[] = { 0.f, 1.f };
+					float emS[] = D_H_DRAW_DETAILS_MAKE_VEC_PARAM_COLOR;
 					if (D_MATH::DrawDetails(*(Vector3*)&mMaterial.Emissive, emS))
 					{
 						valueChanged = true;

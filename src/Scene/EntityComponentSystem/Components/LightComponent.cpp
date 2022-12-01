@@ -61,7 +61,7 @@ namespace Darius::Scene::ECS::Components
 				ImGui::TableSetColumnIndex(0);
 				ImGui::Text("Color");
 
-				float defC[] = { 0.f, 1.f };
+				float defC[] = D_H_DRAW_DETAILS_MAKE_VEC_PARAM_COLOR;
 				ImGui::TableSetColumnIndex(1);
 				changed |= D_MATH::DrawDetails(*(D_MATH::Vector3*)&mLightData.Color, defC);
 

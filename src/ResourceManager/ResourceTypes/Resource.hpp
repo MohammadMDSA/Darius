@@ -114,7 +114,7 @@ namespace Darius::ResourceManager
 			mVersion++;
 		}
 
-		INLINE ResourcePreview GetPreview() const
+		INLINE ResourcePreview		GetPreview() const
 		{
 			return { mName, mPath, { GetType(), mId } };
 		}
@@ -142,6 +142,7 @@ namespace Darius::ResourceManager
 		virtual bool				DrawDetails(float params[]) = 0;
 #endif // _D_EDITOR
 
+#pragma region Registeration
 		static INLINE ResourceType	GetResourceTypeFromName(std::string name) { return ResourceTypeMapR.contains(name) ? ResourceTypeMapR[name] : 0; }
 		static INLINE std::string	GetResourceName(ResourceType type) { return ResourceTypeMap[type]; }
 		static INLINE ResourceFactory* GetFactoryForResourceType(ResourceType type) { return ResourceFactories.contains(type) ? ResourceFactories[type] : nullptr; }
@@ -149,6 +150,7 @@ namespace Darius::ResourceManager
 		static INLINE D_CONTAINERS::DSet<ResourceType>	GetResourceTypeByExtension(std::string ext) { return ResourceExtensionMap.contains(ext) ? ResourceExtensionMap[ext] : D_CONTAINERS::DSet<ResourceType>(); }
 		static INLINE void			RegisterConstructionValidation(ResourceType type, std::function<DVector<ResourceDataInFile>(ResourceType, Path const&)> func) { ConstructValidationMap[type] = func; }
 		static INLINE DVector<ResourceDataInFile>	CanConstructTypeFromPath(ResourceType type, Path const& path) { return ConstructValidationMap.contains(type) ? ConstructValidationMap[type](type, path) : DVector<ResourceDataInFile>(); }
+#pragma endregion
 
 		template<class R, class FAC>
 		static ResourceType			RegisterResourceTypeName(std::string name)
@@ -191,6 +193,7 @@ namespace Darius::ResourceManager
 		virtual void				WriteResourceToFile() const = 0;
 		virtual void				ReadResourceFromFile() = 0;
 		virtual bool				UploadToGpu(D_GRAPHICS::GraphicsContext& context) = 0;
+		//virtual void				Unload() = 0;
 		static void					AddTypeContainer(ResourceType type);
 
 		static DVector<ResourceDataInFile> CanConstructFrom(ResourceType type, Path const& path);

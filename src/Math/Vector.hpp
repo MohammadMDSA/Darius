@@ -164,6 +164,10 @@ namespace Darius::Math
 
 #ifdef _D_EDITOR
 
+#define D_H_DRAW_DETAILS_MAKE_VEC_PARAM(_default, hasColor) { _default, hasColor ? 1 : 0 }
+#define D_H_DRAW_DETAILS_MAKE_VEC_PARAM_COLOR D_H_DRAW_DETAILS_MAKE_VEC_PARAM(0, 1)
+#define D_H_DRAW_DETAILS_MAKE_VEC_PARAM_VECTOR D_H_DRAW_DETAILS_MAKE_VEC_PARAM(0, 0)
+
     bool DrawDetails(D_MATH::Vector3& elem, float params[]);
 
     bool DrawDetails(D_MATH::Vector4& elem, float params[]);

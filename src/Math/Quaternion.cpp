@@ -13,7 +13,7 @@ namespace Darius::Math
 		deg.SetY(XMConvertToDegrees(radian.GetY()));
 		deg.SetZ(XMConvertToDegrees(radian.GetZ()));
 
-		float def[] = { 0.f, 0.f };
+		float def[] = D_H_DRAW_DETAILS_MAKE_VEC_PARAM_VECTOR;
 		if (DrawDetails(deg, def))
 		{
 			quat = Quaternion(XMConvertToRadians(deg.GetX()), XMConvertToRadians(deg.GetY()), XMConvertToRadians(deg.GetZ()));

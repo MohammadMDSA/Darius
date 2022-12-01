@@ -107,12 +107,12 @@ namespace Darius::Physics
 
 
 		ImGui::BeginDisabled();
-		float dummy;
 		// Velocity
 		{
+			float params[] = D_H_DRAW_DETAILS_MAKE_VEC_PARAM(0.f, false);
 			auto v = GetLinearVelocity();
-			D_H_DETAILS_DRAW_PROPERTY("Angular Velocity");
-			D_MATH::DrawDetails(v, &dummy);
+			D_H_DETAILS_DRAW_PROPERTY("Linear Velocity");
+			D_MATH::DrawDetails(v, params);
 		}
 		ImGui::EndDisabled();
 
