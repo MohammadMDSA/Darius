@@ -39,6 +39,7 @@ namespace Darius::Graphics::Utils::Profiling
 	};
 
 	void Update();
+	void FinishFrame();
 
 	void BeginBlock(const std::wstring& name, CommandContext* Context = nullptr);
 	void EndBlock(CommandContext* Context = nullptr);

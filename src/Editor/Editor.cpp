@@ -126,7 +126,7 @@ namespace Darius::Editor
 				Update(mTimer);
 			});
 		Render();
-
+		D_PROFILING::FinishFrame();
 	}
 
 	// Updates the world.

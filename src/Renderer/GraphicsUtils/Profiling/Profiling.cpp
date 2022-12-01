@@ -26,6 +26,7 @@ namespace Darius::Graphics::Utils::Profiling
 {
 
 	bool Paused = false;
+	bool AwaitingUpdate = true;
 
 	class StatPlot
 	{
@@ -288,8 +289,8 @@ namespace Darius::Graphics::Utils::Profiling
 			uint64_t frameTick = D_TIME::SystemTime::GetCurrentTick();
 
 			D_PROFILING_GPU::BeginReadBack();
-			auto delta = 
-			sm_RootScope.m_StartTick = s_lastFrameTick;
+			auto delta =
+				sm_RootScope.m_StartTick = s_lastFrameTick;
 			sm_RootScope.m_EndTick = frameTick;
 			sm_RootScope.GatherTimes(FrameIndex);
 			s_FrameDelta.RecordStat(FrameIndex, D_TIME::SystemTime::TimeBetweenTicks(s_lastFrameTick, frameTick));
@@ -385,7 +386,13 @@ namespace Darius::Graphics::Utils::Profiling
 
 	void Update(void)
 	{
+		AwaitingUpdate = false;
 		NestedTimingTree::UpdateTimes();
+	}
+
+	void FinishFrame()
+	{
+		AwaitingUpdate = true;
 	}
 
 	void ScopeTimerSnapshot(D_CONTAINERS::DVector<ScopeTimeData>& container)
@@ -421,12 +428,14 @@ namespace Darius::Graphics::Utils::Profiling
 
 	void BeginBlock(const std::wstring& name, CommandContext* Context)
 	{
-		NestedTimingTree::PushProfilingMarker(name, Context);
+		if (!AwaitingUpdate)
+			NestedTimingTree::PushProfilingMarker(name, Context);
 	}
 
 	void EndBlock(CommandContext* Context)
 	{
-		NestedTimingTree::PopProfilingMarker(Context);
+		if (!AwaitingUpdate)
+			NestedTimingTree::PopProfilingMarker(Context);
 	}
 
 	void Pause()
