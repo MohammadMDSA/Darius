@@ -22,7 +22,7 @@
 public: \
 type(); \
 type(D_CORE::Uuid uuid); \
-static INLINE std::string GetName() { return D_NAMEOF(type); } \
+static INLINE std::string ClassName() { return D_NAMEOF(type); } \
 virtual INLINE std::string GetDisplayName() const override { return type::DisplayName; } \
 virtual INLINE std::string GetComponentName() const override { return D_NAMEOF(type); } \
 static void StaticConstructor() \
@@ -65,58 +65,6 @@ type::type(D_CORE::Uuid uuid) : \
     parent(uuid) {}
 
 #define D_H_COMP_DEFAULT_CONSTRUCTOR_DEF(type) D_H_COMP_DEFAULT_CONSTRUCTOR_DEF_PAR(type, ComponentBase)
-
-#ifdef _D_EDITOR
-#define D_H_RESOURCE_SELECTION_DRAW(resourceType, prop, placeHolder, handleFunction) \
-{ \
-    resourceType* currentResource = prop.Get(); \
-     \
-    if (ImGui::Button(placeHolder)) \
-    { \
-        ImGui::OpenPopup(placeHolder " Res"); \
-    } \
-     \
-    if (ImGui::BeginPopup(placeHolder " Res")) \
-    { \
-        auto resources = D_RESOURCE::GetResourcePreviews(resourceType::GetResourceType()); \
-        int idx = 0; \
-        for (auto prev : resources) \
-        { \
-            bool selected = currentResource && prev.Handle.Id == currentResource->GetId() && prev.Handle.Type == currentResource->GetType(); \
-     \
-            auto Name = STR_WSTR(prev.Name); \
-            ImGui::PushID((Name + std::to_string(idx)).c_str()); \
-            if (ImGui::Selectable(Name.c_str(), &selected)) \
-            { \
-                handleFunction(prev.Handle); \
-                changeValue = true; \
-            } \
-            ImGui::PopID(); \
-     \
-            idx++; \
-        } \
-     \
-        ImGui::EndPopup(); \
-    } \
-}
-
-#define D_H_DETAILS_DRAW_BEGIN_TABLE() \
-if (ImGui::BeginTable((std::string("##edit") + this->GetComponentName()).c_str(), 2, ImGuiTableFlags_BordersInnerV)) \
-{ \
-ImGui::TableSetupColumn("label", ImGuiTableColumnFlags_WidthFixed, 100.f); \
-ImGui::TableSetupColumn("value", ImGuiTableColumnFlags_WidthStretch);
-
-#define D_H_DETAILS_DRAW_PROPERTY(prop) \
-ImGui::TableNextRow(); \
-ImGui::TableSetColumnIndex(0); \
-ImGui::Text(prop); \
-ImGui::TableSetColumnIndex(1); \
-
-#define D_H_DETAILS_DRAW_END_TABLE() \
-ImGui::EndTable(); \
-} \
-
-#endif // _D_EDITOR
 
 
 namespace Darius::Scene

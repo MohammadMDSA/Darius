@@ -29,6 +29,7 @@ public: \
 	friend class Factory; \
 	static INLINE D_RESOURCE::ResourceType GetResourceType() { return D_RESOURCE::Resource::GetResourceTypeFromName(ResT); } \
 	INLINE D_RESOURCE::ResourceType GetType() const override { return D_RESOURCE::Resource::GetResourceTypeFromName(ResT); } \
+	static INLINE std::string ClassName() { return D_NAMEOF(T); } \
 	static void Register() \
 	{ \
 		D_ASSERT_M(!D_RESOURCE::Resource::GetResourceTypeFromName(ResT), "Resource " #T " is already registered."); \
