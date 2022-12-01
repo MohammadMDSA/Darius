@@ -33,8 +33,7 @@ namespace Darius::Physics
 		D_CH_FIELD(physx::PxMaterial*, PxData)
 
 	protected:
-		PhysicsMaterialResource(D_CORE::Uuid uuid, std::wstring const& path, std::wstring const& name, DResourceId id, bool isDefault = false) :
-			Resource(uuid, path, name, id, isDefault) {}
+		PhysicsMaterialResource(D_CORE::Uuid uuid, std::wstring const& path, std::wstring const& name, DResourceId id, bool isDefault = false);
 
 	};
 }

@@ -12,9 +12,27 @@ namespace Darius::Physics
 
 	D_CH_RESOURCE_DEF(PhysicsMaterialResource);
 
+	PhysicsMaterialResource::PhysicsMaterialResource(D_CORE::Uuid uuid, std::wstring const& path, std::wstring const& name, DResourceId id, bool isDefault) :
+		Resource(uuid, path, name, id, isDefault)
+	{
+		auto core = D_PHYSICS::GetCore();
+		mPxData = core->createMaterial(0.5f, 0.5f, 0.5f);
+	}
+
 	void PhysicsMaterialResource::WriteResourceToFile() const
 	{
-		
+		if (!mPxData)
+			return;
+
+		Json j = {
+			{ "StaticFriction", mPxData->getStaticFriction() },
+			{ "DynamicFriction", mPxData->getDynamicFriction() },
+			{ "Restitution", mPxData->getRestitution() }
+		};
+
+		std::ofstream os(GetPath());
+		os << j;
+		os.close();
 	}
 
 	void PhysicsMaterialResource::ReadResourceFromFile()
@@ -24,7 +42,20 @@ namespace Darius::Physics
 		is >> j;
 		is.close();
 
+		float staticFriction = 0.f;
+		float dynamicFriction = 0.f;
+		float restitution = 0.f;
 
+		if (j.contains("StaticFriction"))
+			staticFriction = j["StaticFriction"];
+
+		if (j.contains("DynamicFriction"))
+			staticFriction = j["DynamicFriction"];
+
+		if (j.contains("Restitution"))
+			staticFriction = j["Restitution"];
+
+		mPxData = D_PHYSICS::GetCore()->createMaterial(staticFriction, dynamicFriction, restitution);
 	}
 
 	bool PhysicsMaterialResource::UploadToGpu(D_GRAPHICS::GraphicsContext& context)
