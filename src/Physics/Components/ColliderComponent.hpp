@@ -1,9 +1,10 @@
 #pragma once
 
 #include "Physics/PhysicsManager.hpp"
+#include "Physics/Resources/PhysicsMaterialResource.hpp"
 
+#include <ResourceManager/ResourceManager.hpp>
 #include <Scene/EntityComponentSystem/Components/ComponentBase.hpp>
-
 
 #ifndef D_PHYSICS
 #define D_PHYSICS Darius::Physics
@@ -30,8 +31,13 @@ namespace Darius::Physics
 		virtual bool				DrawDetails(float params[]) override;
 #endif
 
+		// Serialization
+		virtual void				Serialize(D_SERIALIZATION::Json& json) const override;
+		virtual void				Deserialize(D_SERIALIZATION::Json const& json) override;
+
 		INLINE physx::PxShape*		GetShape() { return mShape; }
-		INLINE physx::PxMaterial const* GetMaterial() const { return D_PHYSICS::GetDefaultMaterial(); }
+
+		D_H_COMP_REF_PROP(PhysicsMaterialResource, Material, SetPxShapeMaterial(););
 
 		D_CH_FIELD(physx::PxShape*,			Shape = nullptr);
 		D_CH_R_FIELD(bool,					Dynamic)
@@ -44,5 +50,12 @@ namespace Darius::Physics
 		friend class PhysicsScene;
 
 		void						InvalidatePhysicsActor();
+		INLINE void					SetPxShapeMaterial()
+		{
+			if (!mShape)
+				return;
+			physx::PxMaterial* mats[] = { const_cast<physx::PxMaterial*>(mMaterial.Get()->GetMaterial()) };
+			mShape->setMaterials(mats, 1);
+		}
 	};
 }

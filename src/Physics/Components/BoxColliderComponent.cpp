@@ -22,6 +22,15 @@ namespace Darius::Physics
 		ColliderComponent::Start();
 	}
 
+	bool BoxColliderComponent::DrawDetails(float params[])
+	{
+		bool valueChanged = false;
+
+		valueChanged |= ColliderComponent::DrawDetails(params);
+
+		return valueChanged;
+	}
+
 	void BoxColliderComponent::Update(float dt)
 	{
 		ColliderComponent::Update(dt);

@@ -15,7 +15,11 @@ namespace Darius::Physics
 	public:
 
 		virtual void						Start() override;
-		
+
+#ifdef _D_EDITOR
+		virtual bool						DrawDetails(float params[]) override;
+#endif
+
 		virtual void						Update(float dt) override;
 		virtual void						PreUpdate(bool simulating) override;
 
