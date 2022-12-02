@@ -3,6 +3,7 @@
 
 #include "Components/RigidbodyComponent.hpp"
 #include "Components/BoxColliderComponent.hpp"
+#include "Components/SphereColliderComponent.hpp"
 #include "Resources/PhysicsMaterialResource.hpp"
 
 #include <Core/TimeManager/TimeManager.hpp>
@@ -76,6 +77,7 @@ namespace Darius::Physics
 
 		// Registering Components
 		BoxColliderComponent::StaticConstructor();
+		SphereColliderComponent::StaticConstructor();
 		RigidbodyComponent::StaticConstructor();
 
 		// Create default resources
@@ -142,6 +144,12 @@ namespace Darius::Physics
 		auto& reg = D_WORLD::GetRegistry();
 
 		reg.each([&](BoxColliderComponent& colliderComp)
+			{
+				colliderComp.PreUpdate(simulating);
+			}
+		);
+
+		reg.each([&](SphereColliderComponent& colliderComp)
 			{
 				colliderComp.PreUpdate(simulating);
 			}
