@@ -124,10 +124,15 @@ namespace Darius::ResourceManager
 		ResourceHandle				CreateMaterial(std::wstring const& dirpath);
 
 		template<class T>
-		INLINE ResourceHandle		CreateResource(std::wstring const& path, std::wstring const& name) {
+		INLINE ResourceHandle		CreateResource(Uuid uuid, std::wstring const& path, std::wstring const& name, bool isDefault = false) {
 			if (D_H_ENSURE_DIR(path))
 				throw D_EXCEPTION::Exception(("A file with the same name already exists: " + STR_WSTR(path)).c_str());
-			return CreateResource<T>(GenerateUuid(), path, name, false, false);
+			return CreateResource<T>(uuid, path, name, isDefault, false);
+		}
+
+		template<class T>
+		INLINE ResourceHandle		CreateResource(std::wstring const& path, std::wstring const& name, bool isDefault = false) {
+			return CreateResource<T>(GenerateUuid(), path, name, isDefault);
 		}
 
 		INLINE ResourceHandle		CreateResource(ResourceType type, std::wstring const& path, std::wstring const& name)
