@@ -39,16 +39,36 @@ namespace Darius::Physics
 		void							ClearForce();
 
 		// Gravity
-		bool							IsGravityEnabled() const;
-		void							SetGravityEnabled(bool enable);
+		bool							IsUsingGravity() const;
+		void							SetUsingGravity(bool enable);
 
 		// Linear Velocity
 		D_MATH::Vector3					GetLinearVelocity() const;
 		void							SetLinearVelocity(D_MATH::Vector3 const& v, bool autoWake = true);
 
+		// Angular Velocity
+		D_MATH::Vector3					GetAngularVelocity() const;
+		void							SetAngularVelocity(D_MATH::Vector3 const& v, bool autoWake = true);
+
+		// Rotation Constraints
+		bool							GetRotationConstraintsX() const;
+		bool							GetRotationConstraintsY() const;
+		bool							GetRotationConstraintsZ() const;
+		void							SetRotationConstraintsX(bool enable);
+		void							SetRotationConstraintsY(bool enable);
+		void							SetRotationConstraintsZ(bool enable);
+
 	protected:
-		D_CH_FIELD(physx::PxRigidDynamic*,	Actor = nullptr);
+		D_CH_FIELD(physx::PxRigidDynamic*, Actor = nullptr);
 	private:
-		D_CH_FIELD(bool, Kinematic)
+
+#ifdef _D_EDITOR
+		bool							DrawRotationConstraints();
+#endif
+
+		bool							mKinematic;
+		bool							mUsingGravity;
+		bool							mRotationConstraints[3];
+
 	};
 }

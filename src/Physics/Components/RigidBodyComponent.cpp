@@ -5,6 +5,7 @@
 #include "Physics/PhysicsScene.hpp"
 
 #include <imgui.h>
+#include <imgui_internal.h>
 
 #define VEC3_2_PX(v) PxVec3(v.GetX(), v.GetY(), v.GetZ())
 
@@ -17,31 +18,59 @@ namespace Darius::Physics
 
 	RigidbodyComponent::RigidbodyComponent() :
 		ComponentBase(),
-		mKinematic(false) {}
+		mKinematic(false),
+		mUsingGravity(true)
+	{
+		ZeroMemory(mRotationConstraints, 3 * sizeof(bool));
+	}
 
 	RigidbodyComponent::RigidbodyComponent(D_CORE::Uuid uuid) :
 		ComponentBase(uuid),
-		mKinematic(false) {}
+		mKinematic(false),
+		mUsingGravity(true)
+	{
+		ZeroMemory(mRotationConstraints, 3 * sizeof(bool));
+	}
 
 	void RigidbodyComponent::Start()
 	{
 		mActor = D_PHYSICS::PhysicsScene::AddDynamicActor(GetGameObject(), false);
 
 		SetKinematic(mKinematic);
+		SetUsingGravity(mUsingGravity);
+		SetRotationConstraintsX(mRotationConstraints[0]);
+		SetRotationConstraintsY(mRotationConstraints[1]);
+		SetRotationConstraintsZ(mRotationConstraints[2]);
 	}
 
 	void RigidbodyComponent::Serialize(D_SERIALIZATION::Json& json) const
 	{
 		json["Kinematic"] = IsKinematic();
+		json["UsingGravity"] = IsUsingGravity();
+		bool rotConst[3] = { GetRotationConstraintsX(), GetRotationConstraintsY(), GetRotationConstraintsZ() };
+		json["RotationConstraints"] = rotConst;
 	}
 
 	void RigidbodyComponent::Deserialize(D_SERIALIZATION::Json const& json)
 	{
 		D_H_DESERIALIZE(Kinematic);
+		D_H_DESERIALIZE(UsingGravity);
+
+		if (json.contains("RotationConstraints"))
+		{
+			auto& val = json["RotationConstraints"];
+			mRotationConstraints[0] = val[0];
+			mRotationConstraints[1] = val[1];
+			mRotationConstraints[2] = val[2];
+		}
 
 		if (mActor)
 		{
 			SetKinematic(mKinematic);
+			SetUsingGravity(mUsingGravity);
+			SetRotationConstraintsX(mRotationConstraints[0]);
+			SetRotationConstraintsY(mRotationConstraints[1]);
+			SetRotationConstraintsZ(mRotationConstraints[2]);
 		}
 	}
 
@@ -64,14 +93,14 @@ namespace Darius::Physics
 		mActor->setGlobalPose(D_PHYSICS::GetTransform(GetTransform()));
 	}
 
-	bool RigidbodyComponent::IsGravityEnabled() const
+	bool RigidbodyComponent::IsUsingGravity() const
 	{
 		auto flags = mActor->getActorFlags();
 
 		return !flags.isSet(PxActorFlag::eDISABLE_GRAVITY);
 	}
 
-	void RigidbodyComponent::SetGravityEnabled(bool enable)
+	void RigidbodyComponent::SetUsingGravity(bool enable)
 	{
 		mActor->setActorFlag(PxActorFlag::eDISABLE_GRAVITY, !enable);
 		mChangeSignal();
@@ -97,6 +126,54 @@ namespace Darius::Physics
 	void RigidbodyComponent::SetLinearVelocity(Vector3 const& v, bool autoWake)
 	{
 		mActor->setLinearVelocity(VEC3_2_PX(v));
+		mChangeSignal();
+	}
+
+	Vector3 RigidbodyComponent::GetAngularVelocity() const
+	{
+		auto v = mActor->getAngularVelocity();
+		return Vector3(reinterpret_cast<float*>(&v));
+	}
+
+	bool RigidbodyComponent::GetRotationConstraintsX() const
+	{
+		auto flags = mActor->getRigidDynamicLockFlags();
+		return flags.isSet(PxRigidDynamicLockFlag::eLOCK_ANGULAR_X);
+	}
+
+	bool RigidbodyComponent::GetRotationConstraintsY() const
+	{
+		auto flags = mActor->getRigidDynamicLockFlags();
+		return flags.isSet(PxRigidDynamicLockFlag::eLOCK_ANGULAR_Y);
+	}
+
+	bool RigidbodyComponent::GetRotationConstraintsZ() const
+	{
+		auto flags = mActor->getRigidDynamicLockFlags();
+		return flags.isSet(PxRigidDynamicLockFlag::eLOCK_ANGULAR_Z);
+	}
+
+	void RigidbodyComponent::SetRotationConstraintsX(bool enable)
+	{
+		mActor->setRigidDynamicLockFlag(PxRigidDynamicLockFlag::eLOCK_ANGULAR_X, enable);
+		mChangeSignal();
+	}
+
+	void RigidbodyComponent::SetRotationConstraintsY(bool enable)
+	{
+		mActor->setRigidDynamicLockFlag(PxRigidDynamicLockFlag::eLOCK_ANGULAR_Y, enable);
+		mChangeSignal();
+	}
+
+	void RigidbodyComponent::SetRotationConstraintsZ(bool enable)
+	{
+		mActor->setRigidDynamicLockFlag(PxRigidDynamicLockFlag::eLOCK_ANGULAR_Z, enable);
+		mChangeSignal();
+	}
+
+	void RigidbodyComponent::SetAngularVelocity(Vector3 const& v, bool autoWake)
+	{
+		mActor->setAngularVelocity(VEC3_2_PX(v));
 		mChangeSignal();
 	}
 
@@ -132,38 +209,106 @@ namespace Darius::Physics
 
 		// Gravity property
 		{
-			D_H_DETAILS_DRAW_PROPERTY("Gravity");
-			bool gravity = IsGravityEnabled();
+			D_H_DETAILS_DRAW_PROPERTY("Use Gravity");
+			bool gravity = IsUsingGravity();
 			if (ImGui::Checkbox("##gravity", &gravity))
 			{
-				SetGravityEnabled(gravity);
+				SetUsingGravity(gravity);
 				valueChanged = true;
 			}
 		}
 
 		D_H_DETAILS_DRAW_END_TABLE();
 
-		ImGui::NewLine();
-
-		if (ImGui::TreeNode("Details"))
+		ImGui::Separator();
+		if (ImGui::TreeNode("Constraints"))
 		{
-			ImGui::BeginDisabled();
+			D_H_DETAILS_DRAW_BEGIN_TABLE("Constraints");
 
-			D_H_DETAILS_DRAW_BEGIN_TABLE();
-
-			// Velocity
+			// Rotation Constraints
 			{
-				float params[] = D_H_DRAW_DETAILS_MAKE_VEC_PARAM(0.f, false);
-				auto v = GetLinearVelocity();
-				D_H_DETAILS_DRAW_PROPERTY("Linear Velocity");
-				D_MATH::DrawDetails(v, params);
+				D_H_DETAILS_DRAW_PROPERTY("Rotation Constraints");
+				valueChanged |= DrawRotationConstraints();
 			}
-			ImGui::EndDisabled();
+
 
 			D_H_DETAILS_DRAW_END_TABLE();
 
 			ImGui::TreePop();
 		}
+
+		ImGui::Separator();
+
+		if (ImGui::TreeNode("Details"))
+		{
+			ImGui::BeginDisabled();
+
+			D_H_DETAILS_DRAW_BEGIN_TABLE("Details");
+
+			float simpleVecParams[] = D_H_DRAW_DETAILS_MAKE_VEC_PARAM(0.f, false);
+
+			// Linear Velocity
+			{
+				auto v = GetLinearVelocity();
+				D_H_DETAILS_DRAW_PROPERTY("Linear Velocity");
+				D_MATH::DrawDetails(v, simpleVecParams);
+			}
+
+			// Angular Velocity
+			{
+				auto v = GetAngularVelocity();
+				D_H_DETAILS_DRAW_PROPERTY("Angular Velocity");
+				D_MATH::DrawDetails(v, simpleVecParams);
+			}
+
+			ImGui::EndDisabled();
+			D_H_DETAILS_DRAW_END_TABLE();
+
+			ImGui::TreePop();
+		}
+
+		return valueChanged;
+	}
+
+	bool RigidbodyComponent::DrawRotationConstraints()
+	{
+		auto valueChanged = false;
+
+		ImGui::PushID("RotationConstraints");
+
+
+		ImGui::BeginGroup();
+		bool lockX = GetRotationConstraintsX();
+		if (ImGui::Checkbox("X", &lockX))
+		{
+			valueChanged = true;
+			SetRotationConstraintsX(lockX);
+		}
+		ImGui::EndGroup();
+
+		ImGui::SameLine(100);
+
+		ImGui::BeginGroup();
+		bool lockY = GetRotationConstraintsY();
+		if (ImGui::Checkbox("Y", &lockY))
+		{
+			valueChanged = true;
+			SetRotationConstraintsY(lockY);
+		}
+		ImGui::EndGroup();
+
+		ImGui::SameLine(150);
+
+		ImGui::BeginGroup();
+		bool lockZ = GetRotationConstraintsZ();
+		if (ImGui::Checkbox("Z", &lockZ))
+		{
+			valueChanged = true;
+			SetRotationConstraintsZ(lockZ);
+		}
+		ImGui::EndGroup();
+
+		ImGui::PopID();
 
 		return valueChanged;
 	}
