@@ -90,7 +90,7 @@ static INLINE std::string const GetTypeName() { return D_NAMEOF(T); }
             if (ImGui::Selectable(Name.c_str(), &selected)) \
             { \
                 handleFunction(prev.Handle); \
-                changeValue = true; \
+                valueChanged = true; \
             } \
             ImGui::PopID(); \
      \
@@ -100,6 +100,8 @@ static INLINE std::string const GetTypeName() { return D_NAMEOF(T); }
         ImGui::EndPopup(); \
     } \
 }
+#define D_H_RESOURCE_SELECTION_DRAW_SHORT(type, name, label) D_H_RESOURCE_SELECTION_DRAW(type, m##name, label, Set##name)
+#define D_H_RESOURCE_SELECTION_DRAW_DEF(type, name) D_H_RESOURCE_SELECTION_DRAW_SHORT(type, name, "Select " #name, Set##name)
 
 #define D_H_DETAILS_DRAW_BEGIN_TABLE() \
 if (ImGui::BeginTable((std::string("##edit") + ClassName()).c_str(), 2, ImGuiTableFlags_BordersInnerV)) \
