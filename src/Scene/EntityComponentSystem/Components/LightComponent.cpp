@@ -35,7 +35,7 @@ namespace Darius::Scene::ECS::Components
 	{
 		bool changed = false;
 
-		if (ImGui::BeginTable("##componentLayout", 2, ImGuiTableFlags_BordersInnerV))
+		if (ImGui::BeginTable("LightComponentLayout", 2, ImGuiTableFlags_BordersInnerV))
 		{
 			ImGui::TableSetupColumn("label", ImGuiTableColumnFlags_WidthFixed, 100.f);
 			ImGui::TableSetupColumn("value", ImGuiTableColumnFlags_WidthStretch);

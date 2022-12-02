@@ -77,7 +77,7 @@ namespace Darius::Editor::Gui::Windows
 
 			ImGuiTableFlags tableFlags = ImGuiTableFlags_NoHostExtendX | ImGuiTableFlags_Resizable;
 			ImGuiTableColumnFlags colFlags = ImGuiTableFlags_SizingFixedFit;
-			if (ImGui::BeginTable("##ProfilerLayout", 2, tableFlags, ImVec2(-1, 160)))
+			if (ImGui::BeginTable("ProfilerLayout", 2, tableFlags, ImVec2(-1, 160)))
 			{
 				ImGui::TableSetupColumn("##Metrics", ImGuiTableColumnFlags_WidthFixed);
 				ImGui::TableSetupColumn("##Graph");
@@ -85,7 +85,7 @@ namespace Darius::Editor::Gui::Windows
 				ImGui::TableNextRow();
 				ImGui::TableSetColumnIndex(0);
 
-				if (ImGui::BeginTable("##ProfilerTimeTable", 5, ImGuiTableFlags_Resizable, ImVec2(300, 0)))
+				if (ImGui::BeginTable("ProfilerTimeTable", 5, ImGuiTableFlags_Resizable, ImVec2(300, 0)))
 				{
 					ImGui::TableSetupColumn("##timeType", colFlags);
 					ImGui::TableSetupColumn("CPU", colFlags);

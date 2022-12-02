@@ -112,7 +112,7 @@ namespace Darius::Animation
 	{
 		bool valueChanged = false;
 
-		if (ImGui::BeginTable("##componentLayout", 2, ImGuiTableFlags_BordersInnerV))
+		if (ImGui::BeginTable("AnimationComponentLayout", 2, ImGuiTableFlags_BordersInnerV))
 		{
 			ImGui::TableSetupColumn("label", ImGuiTableColumnFlags_WidthFixed, 100.f);
 			ImGui::TableSetupColumn("value", ImGuiTableColumnFlags_WidthStretch);
