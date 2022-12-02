@@ -64,9 +64,23 @@ namespace Darius::Physics
 		mActor->setGlobalPose(D_PHYSICS::GetTransform(GetTransform()));
 	}
 
+	bool RigidbodyComponent::IsGravityEnabled() const
+	{
+		auto flags = mActor->getActorFlags();
+
+		return !flags.isSet(PxActorFlag::eDISABLE_GRAVITY);
+	}
+
+	void RigidbodyComponent::SetGravityEnabled(bool enable)
+	{
+		mActor->setActorFlag(PxActorFlag::eDISABLE_GRAVITY, !enable);
+		mChangeSignal();
+	}
+
 	void RigidbodyComponent::SetKinematic(bool value)
 	{
 		mActor->setRigidBodyFlag(PxRigidBodyFlag::eKINEMATIC, value);
+		mChangeSignal();
 	}
 
 	bool RigidbodyComponent::IsKinematic() const
@@ -82,20 +96,20 @@ namespace Darius::Physics
 
 	void RigidbodyComponent::SetLinearVelocity(Vector3 const& v, bool autoWake)
 	{
-		mChangeSignal();
 		mActor->setLinearVelocity(VEC3_2_PX(v));
+		mChangeSignal();
 	}
 
 	void RigidbodyComponent::AddForce(D_MATH::Vector3 const& f)
 	{
-		mChangeSignal();
 		mActor->addForce(VEC3_2_PX(f));
+		mChangeSignal();
 	}
 
 	void RigidbodyComponent::ClearForce()
 	{
-		mChangeSignal();
 		mActor->clearForce();
+		mChangeSignal();
 	}
 
 #ifdef _D_EDITOR
@@ -114,27 +128,43 @@ namespace Darius::Physics
 				SetKinematic(kinematic);
 				valueChanged = true;
 			}
-
 		}
 
-		ImGui::NewLine();
-		ImGui::NewLine();
-
-
-		ImGui::BeginDisabled();
-		// Velocity
+		// Gravity property
 		{
-			float params[] = D_H_DRAW_DETAILS_MAKE_VEC_PARAM(0.f, false);
-			auto v = GetLinearVelocity();
-			D_H_DETAILS_DRAW_PROPERTY("Linear Velocity");
-			D_MATH::DrawDetails(v, params);
+			D_H_DETAILS_DRAW_PROPERTY("Gravity");
+			bool gravity = IsGravityEnabled();
+			if (ImGui::Checkbox("##gravity", &gravity))
+			{
+				SetGravityEnabled(gravity);
+				valueChanged = true;
+			}
 		}
-		ImGui::EndDisabled();
 
 		D_H_DETAILS_DRAW_END_TABLE();
 
-		if (valueChanged)
-			mChangeSignal();
+		ImGui::NewLine();
+
+		if (ImGui::TreeNode("Details"))
+		{
+			ImGui::BeginDisabled();
+
+			D_H_DETAILS_DRAW_BEGIN_TABLE();
+
+			// Velocity
+			{
+				float params[] = D_H_DRAW_DETAILS_MAKE_VEC_PARAM(0.f, false);
+				auto v = GetLinearVelocity();
+				D_H_DETAILS_DRAW_PROPERTY("Linear Velocity");
+				D_MATH::DrawDetails(v, params);
+			}
+			ImGui::EndDisabled();
+
+			D_H_DETAILS_DRAW_END_TABLE();
+
+			ImGui::TreePop();
+		}
+
 		return valueChanged;
 	}
 #endif

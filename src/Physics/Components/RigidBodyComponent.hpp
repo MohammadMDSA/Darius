@@ -38,6 +38,10 @@ namespace Darius::Physics
 		void							AddForce(D_MATH::Vector3 const& f);
 		void							ClearForce();
 
+		// Gravity
+		bool							IsGravityEnabled() const;
+		void							SetGravityEnabled(bool enable);
+
 		// Linear Velocity
 		D_MATH::Vector3					GetLinearVelocity() const;
 		void							SetLinearVelocity(D_MATH::Vector3 const& v, bool autoWake = true);
