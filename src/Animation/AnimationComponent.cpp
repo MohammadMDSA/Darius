@@ -112,27 +112,16 @@ namespace Darius::Animation
 	{
 		bool valueChanged = false;
 
-		if (ImGui::BeginTable("AnimationComponentLayout", 2, ImGuiTableFlags_BordersInnerV))
-		{
-			ImGui::TableSetupColumn("label", ImGuiTableColumnFlags_WidthFixed, 100.f);
-			ImGui::TableSetupColumn("value", ImGuiTableColumnFlags_WidthStretch);
+		D_H_DETAILS_DRAW_BEGIN_TABLE();
 
-			ImGui::TableNextRow();
-			ImGui::TableSetColumnIndex(0);
-			ImGui::Text("Animation Clip");
-			ImGui::TableSetColumnIndex(1);
-			// Mesh selection
-			D_H_RESOURCE_SELECTION_DRAW(AnimationResource, mAnimationResource, "Select Animation", SetAnimation);
+		D_H_DETAILS_DRAW_PROPERTY("Animation Clip");
+		D_H_RESOURCE_SELECTION_DRAW(AnimationResource, mAnimationResource, "Select Animation", SetAnimation);
 
-			ImGui::TableNextRow();
-			ImGui::TableSetColumnIndex(0);
-			ImGui::Text("Root Motion");
-			ImGui::TableSetColumnIndex(1);
-			if (ImGui::Checkbox("##RootMotion", &mRootMotion))
-				valueChanged = true;
+		D_H_DETAILS_DRAW_PROPERTY("Root Motion");
+		if (ImGui::Checkbox("##RootMotion", &mRootMotion))
+			valueChanged = true;
 
-			ImGui::EndTable();
-		}
+		D_H_DETAILS_DRAW_END_TABLE();
 
 		if (ImGui::Button("Play"))
 			mAnimState.State = AnimationState::kLooping;

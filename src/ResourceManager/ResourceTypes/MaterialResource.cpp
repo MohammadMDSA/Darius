@@ -276,99 +276,91 @@ device->CopyDescriptorsSimple(1, mTexturesHeap + type * incSize, m##name##Textur
 } \
 
 		// Material constants
+	{
+		bool valueChanged = false;
+
+		ImGuiIO& io = ImGui::GetIO();
+		auto boldFont = io.Fonts->Fonts[0];
+
+		D_H_DETAILS_DRAW_BEGIN_TABLE();
+
+		D_H_DETAILS_DRAW_PROPERTY("Shader Type");
+		if (ImGui::Button(mPsoFlags & RenderItem::AlphaBlend ? "Transparent" : "Opaque", ImVec2(-1, 0)))
 		{
-			bool valueChanged = false;
-
-			ImGuiIO& io = ImGui::GetIO();
-			auto boldFont = io.Fonts->Fonts[0];
-
-			if (ImGui::BeginTable("mat editor", 2, ImGuiTableFlags_BordersInnerV))
-			{
-				// Shader type
-				ImGui::TableSetupColumn("label", ImGuiTableColumnFlags_WidthFixed, 100.f);
-				ImGui::TableSetupColumn("value", ImGuiTableColumnFlags_WidthStretch);
-
-				ImGui::TableNextRow();
-				ImGui::TableSetColumnIndex(0);
-				ImGui::Text("Shader Type");
-				ImGui::TableSetColumnIndex(1);
-				if (ImGui::Button(mPsoFlags & RenderItem::AlphaBlend ? "Transparent" : "Opaque", ImVec2(-1, 0)))
-				{
-					ImGui::OpenPopup("##ShaderTypeSelecionPopup");
-				}
-				if (ImGui::BeginPopupContextItem("##ShaderTypeSelecionPopup", ImGuiPopupFlags_NoOpenOverExistingPopup))
-				{
-					if (ImGui::Selectable("Opaque"))
-					{
-						mPsoFlags &= ~RenderItem::AlphaBlend;
-					}
-
-					if (ImGui::Selectable("Transparent"))
-					{
-						mPsoFlags |= RenderItem::AlphaBlend;
-					}
-					ImGui::EndPopup();
-				}
-
-				// Diffuse
-				ImGui::TableNextRow();
-				ImGui::TableSetColumnIndex(0);
-				DrawTexture2DHolder(mBaseColorTexture, kBaseColor);
-				ImGui::SameLine();
-				ImGui::Text("Diffuse");
-				if (!(mMaterial.TextureStatusMask & (1 << kBaseColor)))
-				{
-					ImGui::TableSetColumnIndex(1);
-					float defL[] = D_H_DRAW_DETAILS_MAKE_VEC_PARAM_COLOR;
-					if (D_MATH::DrawDetails(*(Vector4*)&mMaterial.DifuseAlbedo, defL))
-					{
-						valueChanged = true;
-					}
-				}
-
-				// Roughness
-				ImGui::TableNextRow();
-				ImGui::TableSetColumnIndex(0);
-				DrawTexture2DHolder(mRoughnessTexture, kRoughness);
-				ImGui::SameLine();
-				ImGui::Text("Roughness");
-				if (!(mMaterial.TextureStatusMask & (1 << kRoughness)))
-				{
-					ImGui::TableSetColumnIndex(1);
-					float defS[] = { 1.f, 0.f };
-					if (ImGui::DragFloat("##X", &mMaterial.Roughness, 0.001f, 0.f, 1.f, "% .3f"))
-					{
-						valueChanged = true;
-					}
-				}
-
-				// Emission
-				ImGui::TableNextRow();
-				ImGui::TableSetColumnIndex(0);
-				DrawTexture2DHolder(mEmissiveTexture, kEmissive);
-				ImGui::SameLine();
-				ImGui::Text("Emission");
-				if (!(mMaterial.TextureStatusMask & (1 << kEmissive)))
-				{
-					ImGui::TableSetColumnIndex(1);
-					float emS[] = D_H_DRAW_DETAILS_MAKE_VEC_PARAM_COLOR;
-					if (D_MATH::DrawDetails(*(Vector3*)&mMaterial.Emissive, emS))
-					{
-						valueChanged = true;
-					}
-				}
-
-				ImGui::EndTable();
-			}
-
-			if (valueChanged)
-			{
-				MakeDiskDirty();
-				MakeGpuDirty();
-			}
-
-			return valueChanged;
+			ImGui::OpenPopup("##ShaderTypeSelecionPopup");
 		}
+		if (ImGui::BeginPopupContextItem("##ShaderTypeSelecionPopup", ImGuiPopupFlags_NoOpenOverExistingPopup))
+		{
+			if (ImGui::Selectable("Opaque"))
+			{
+				mPsoFlags &= ~RenderItem::AlphaBlend;
+			}
+
+			if (ImGui::Selectable("Transparent"))
+			{
+				mPsoFlags |= RenderItem::AlphaBlend;
+			}
+			ImGui::EndPopup();
+		}
+
+		// Diffuse
+		ImGui::TableNextRow();
+		ImGui::TableSetColumnIndex(0);
+		DrawTexture2DHolder(mBaseColorTexture, kBaseColor);
+		ImGui::SameLine();
+		ImGui::Text("Diffuse");
+		if (!(mMaterial.TextureStatusMask & (1 << kBaseColor)))
+		{
+			ImGui::TableSetColumnIndex(1);
+			float defL[] = D_H_DRAW_DETAILS_MAKE_VEC_PARAM_COLOR;
+			if (D_MATH::DrawDetails(*(Vector4*)&mMaterial.DifuseAlbedo, defL))
+			{
+				valueChanged = true;
+			}
+		}
+
+		// Roughness
+		ImGui::TableNextRow();
+		ImGui::TableSetColumnIndex(0);
+		DrawTexture2DHolder(mRoughnessTexture, kRoughness);
+		ImGui::SameLine();
+		ImGui::Text("Roughness");
+		if (!(mMaterial.TextureStatusMask & (1 << kRoughness)))
+		{
+			ImGui::TableSetColumnIndex(1);
+			float defS[] = { 1.f, 0.f };
+			if (ImGui::DragFloat("##X", &mMaterial.Roughness, 0.001f, 0.f, 1.f, "% .3f"))
+			{
+				valueChanged = true;
+			}
+		}
+
+		// Emission
+		ImGui::TableNextRow();
+		ImGui::TableSetColumnIndex(0);
+		DrawTexture2DHolder(mEmissiveTexture, kEmissive);
+		ImGui::SameLine();
+		ImGui::Text("Emission");
+		if (!(mMaterial.TextureStatusMask & (1 << kEmissive)))
+		{
+			ImGui::TableSetColumnIndex(1);
+			float emS[] = D_H_DRAW_DETAILS_MAKE_VEC_PARAM_COLOR;
+			if (D_MATH::DrawDetails(*(Vector3*)&mMaterial.Emissive, emS))
+			{
+				valueChanged = true;
+			}
+		}
+
+		D_H_DETAILS_DRAW_END_TABLE();
+
+		if (valueChanged)
+		{
+			MakeDiskDirty();
+			MakeGpuDirty();
+		}
+
+		return valueChanged;
+	}
 	}
 #endif // _D_EDITOR
 

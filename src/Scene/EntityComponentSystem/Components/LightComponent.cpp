@@ -35,18 +35,10 @@ namespace Darius::Scene::ECS::Components
 	{
 		bool changed = false;
 
-		if (ImGui::BeginTable("LightComponentLayout", 2, ImGuiTableFlags_BordersInnerV))
-		{
-			ImGui::TableSetupColumn("label", ImGuiTableColumnFlags_WidthFixed, 100.f);
-			ImGui::TableSetupColumn("value", ImGuiTableColumnFlags_WidthStretch);
-
+		D_H_DETAILS_DRAW_BEGIN_TABLE()
 
 			// Light type
-			ImGui::TableNextRow();
-			ImGui::TableSetColumnIndex(0);
-			ImGui::Text("Light Type");
-
-			ImGui::TableSetColumnIndex(1);
+			D_H_DETAILS_DRAW_PROPERTY("Light Type");
 			int lightType = (int)mLightType;
 			if (ImGui::Combo("##LightTyp", &lightType, "DirectionalLight\0PointLight\0SpotLight\0\0"))
 			{
@@ -57,22 +49,15 @@ namespace Darius::Scene::ECS::Components
 			if (mLightIndex >= 0)
 			{
 				// Light type
-				ImGui::TableNextRow();
-				ImGui::TableSetColumnIndex(0);
-				ImGui::Text("Color");
-
+				D_H_DETAILS_DRAW_PROPERTY("Color");
 				float defC[] = D_H_DRAW_DETAILS_MAKE_VEC_PARAM_COLOR;
-				ImGui::TableSetColumnIndex(1);
 				changed |= D_MATH::DrawDetails(*(D_MATH::Vector3*)&mLightData.Color, defC);
 
 				if (mLightType == LightSourceType::SpotLight)
 				{
 					// Spot Power
-					ImGui::TableNextRow();
-					ImGui::TableSetColumnIndex(0);
-					ImGui::Text("Spot Power");
+					D_H_DETAILS_DRAW_PROPERTY("Spot Power");
 
-					ImGui::TableSetColumnIndex(1);
 					float powerLog = D_MATH::Log(mLightData.SpotPower);
 					if (ImGui::DragFloat("##SpotPower", &powerLog, 0.01, 0.001, -1, "%.3f"))
 					{
@@ -84,19 +69,11 @@ namespace Darius::Scene::ECS::Components
 				if (mLightType != LightSourceType::DirectionalLight)
 				{
 					// Falloff Start
-					ImGui::TableNextRow();
-					ImGui::TableSetColumnIndex(0);
-					ImGui::Text("Falloff Start");
-
-					ImGui::TableSetColumnIndex(1);
+					D_H_DETAILS_DRAW_PROPERTY("Falloff Start");
 					changed |= ImGui::DragFloat("##FalloffStart", &mLightData.FalloffStart, 0.01, 0, mLightData.FalloffEnd, "%.3f");
 
 					// Falloff End
-					ImGui::TableNextRow();
-					ImGui::TableSetColumnIndex(0);
-					ImGui::Text("Falloff End");
-
-					ImGui::TableSetColumnIndex(1);
+					D_H_DETAILS_DRAW_PROPERTY("Falloff End");
 					changed |= ImGui::DragFloat("##FalloffEnd", &mLightData.FalloffEnd, 0.01, mLightData.FalloffStart, -1, "%.3f");
 				}
 			}
@@ -108,8 +85,7 @@ namespace Darius::Scene::ECS::Components
 					SetLightType(mLightType);
 			}
 
-			ImGui::EndTable();
-		}
+			D_H_DETAILS_DRAW_END_TABLE();
 
 		return changed;
 	}

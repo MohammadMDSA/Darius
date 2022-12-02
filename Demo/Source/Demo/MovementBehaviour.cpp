@@ -39,24 +39,16 @@ namespace Demo
 	{
 		bool changed = false;
 
-		if (ImGui::BeginTable("ComponentLayout", 2, ImGuiTableFlags_BordersInnerV))
-		{
-			ImGui::TableSetupColumn("label", ImGuiTableColumnFlags_WidthFixed, 100.f);
-			ImGui::TableSetupColumn("value", ImGuiTableColumnFlags_WidthStretch);
+		D_H_DETAILS_DRAW_BEGIN_TABLE();
 
 
-			// sample field
-			ImGui::TableNextRow();
-			ImGui::TableSetColumnIndex(0);
-			ImGui::Text("field");
+		// sample field
+		D_H_DETAILS_DRAW_PROPERTY("field");
 
-			ImGui::TableSetColumnIndex(1);
-			float val;
-			changed |= ImGui::InputFloat("##val", &val);
+		float val;
+		changed |= ImGui::InputFloat("##val", &val);
 
-			// Ending table
-			ImGui::EndTable();
-		}
+		D_H_DETAILS_DRAW_END_TABLE();
 
 		return false;
 	}

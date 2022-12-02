@@ -63,28 +63,19 @@ namespace Darius::Scene::ECS::Components
 	{
 		auto valueChanged = false;
 
-		if (ImGui::BeginTable("mesh editor", 2, ImGuiTableFlags_BordersInnerV))
-		{
-			ImGui::TableSetupColumn("label", ImGuiTableColumnFlags_WidthFixed, 100.f);
-			ImGui::TableSetupColumn("value", ImGuiTableColumnFlags_WidthStretch);
+		D_H_DETAILS_DRAW_BEGIN_TABLE();
 
-			ImGui::TableNextRow();
-			ImGui::TableSetColumnIndex(0);
-			ImGui::Text("Mesh");
-			ImGui::TableSetColumnIndex(1);
-			// Mesh selection
-			D_H_RESOURCE_SELECTION_DRAW(StaticMeshResource, mMeshResource, "Select Mesh", SetMesh);
+		// Mesh selection
+		D_H_DETAILS_DRAW_PROPERTY("Mesh");
+		D_H_RESOURCE_SELECTION_DRAW(StaticMeshResource, mMeshResource, "Select Mesh", SetMesh);
 
 
-			ImGui::TableNextRow();
-			ImGui::TableSetColumnIndex(0);
-			ImGui::Text("Material");
-			ImGui::TableSetColumnIndex(1);
-			// Material selection
-			D_H_RESOURCE_SELECTION_DRAW(MaterialResource, mMaterialResource, "Select Material", SetMaterial);
+		// Material selection
+		D_H_DETAILS_DRAW_PROPERTY("Material");
+		D_H_RESOURCE_SELECTION_DRAW(MaterialResource, mMaterialResource, "Select Material", SetMaterial);
 
-			ImGui::EndTable();
-		}
+		D_H_DETAILS_DRAW_END_TABLE();
+
 		return valueChanged;
 
 	}
