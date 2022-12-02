@@ -16,8 +16,8 @@ namespace Darius::Math
 
 		if (ImGui::BeginTable("vec3 editor", 2, ImGuiTableFlags_BordersInnerV))
 		{
-			ImGui::TableSetupColumn("label", ImGuiTableColumnFlags_WidthFixed, 100.f);
-			ImGui::TableSetupColumn("value", ImGuiTableColumnFlags_WidthStretch);
+			ImGui::TableSetupColumn("label", ImGuiTableColumnFlags_WidthStretch, 1);
+			ImGui::TableSetupColumn("value", ImGuiTableColumnFlags_WidthStretch, 2);
 
 
 			// Translation
