@@ -39,6 +39,8 @@ namespace Darius::Physics
 
 		D_H_DETAILS_DRAW_END_TABLE();
 
+		if (valueChanged)
+			mChangeSignal();
 		return valueChanged;
 
 	}
