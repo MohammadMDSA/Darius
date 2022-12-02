@@ -103,8 +103,8 @@ static INLINE std::string const GetTypeName() { return D_NAMEOF(T); }
 #define D_H_RESOURCE_SELECTION_DRAW_SHORT(type, name, label) D_H_RESOURCE_SELECTION_DRAW(type, m##name, label, Set##name)
 #define D_H_RESOURCE_SELECTION_DRAW_DEF(type, name) D_H_RESOURCE_SELECTION_DRAW_SHORT(type, name, "Select " #name, Set##name)
 
-#define D_H_DETAILS_DRAW_BEGIN_TABLE() \
-if (ImGui::BeginTable((std::string("Layout") + ClassName()).c_str(), 2, ImGuiTableFlags_BordersInnerV)) \
+#define D_H_DETAILS_DRAW_BEGIN_TABLE(...) \
+if (ImGui::BeginTable((std::string("Layout" __VA_ARGS__) + ClassName()).c_str(), 2, ImGuiTableFlags_BordersInnerV | ImGuiTableFlags_PreciseWidths)) \
 { \
 ImGui::TableSetupColumn("label", ImGuiTableColumnFlags_WidthStretch, 1); \
 ImGui::TableSetupColumn("value", ImGuiTableColumnFlags_WidthStretch, 2);

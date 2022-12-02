@@ -95,7 +95,8 @@ namespace Darius::Physics
 		if (gPvd)
 		{
 			auto transport = gPvd->getTransport();
-			gPvd->release();
+			if (gPvd)
+				gPvd->release();
 			gPvd = nullptr;
 			PX_RELEASE(transport);
 		}
