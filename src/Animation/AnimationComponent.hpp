@@ -52,7 +52,6 @@ namespace Darius::Animation
 
 		D_CORE::Uuid							mMeshId;
 
-		D_CORE::Signal<void()>					mChangeSignal;
 	};
 
 }

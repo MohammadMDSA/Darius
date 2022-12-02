@@ -21,9 +21,5 @@ namespace Demo
 		virtual void					Start() override;
 
 		virtual void					Update(float deltaTime) override;
-
-	protected:
-
-		D_CORE::Signal<void()>			mChangeSignal;
 	};
 }

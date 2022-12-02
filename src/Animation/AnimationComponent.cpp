@@ -31,7 +31,7 @@ namespace Darius::Animation
 
 	void AnimationComponent::_SetAnimation(ResourceHandle handle)
 	{
-		mAnimationResource = D_RESOURCE::GetResource<AnimationResource>(handle, *GetGameObject());
+		mAnimationResource = D_RESOURCE::GetResource<AnimationResource>(handle, *this);
 	}
 
 	static inline float ToFloat(const int8_t x) { return Math::Max(x / 127.0f, -1.0f); }
@@ -110,7 +110,7 @@ namespace Darius::Animation
 #ifdef _DEBUG
 	bool AnimationComponent::DrawDetails(float params[])
 	{
-		bool changeValue = false;
+		bool valueChanged = false;
 
 		if (ImGui::BeginTable("##componentLayout", 2, ImGuiTableFlags_BordersInnerV))
 		{
@@ -129,7 +129,7 @@ namespace Darius::Animation
 			ImGui::Text("Root Motion");
 			ImGui::TableSetColumnIndex(1);
 			if (ImGui::Checkbox("##RootMotion", &mRootMotion))
-				changeValue = true;
+				valueChanged = true;
 
 			ImGui::EndTable();
 		}
@@ -137,7 +137,7 @@ namespace Darius::Animation
 		if (ImGui::Button("Play"))
 			mAnimState.State = AnimationState::kLooping;
 
-		return changeValue;
+		return valueChanged;
 	}
 #endif
 
