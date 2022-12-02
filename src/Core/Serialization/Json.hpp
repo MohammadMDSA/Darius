@@ -17,6 +17,15 @@
         m##prop = json[D_NAMEOF(prop)]; \
 }
 
+#define D_H_DESERIALIZE_REF_PROP(prop) \
+{ \
+    if(json.contains(D_NAMEOF(prop))) \
+    { \
+        auto uuid = D_CORE::FromString(json[D_NAMEOF(prop)]); \
+        m##prop##Handle = D_RESOURCE::GetResourceHandle(uuid); \
+    } \
+}
+
 #define D_H_DESERIALIZE_SETTER(prop, setter) \
 { \
     if(json.contains(#prop)) \
