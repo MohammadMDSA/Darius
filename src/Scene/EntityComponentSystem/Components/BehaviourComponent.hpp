@@ -16,8 +16,5 @@ namespace Darius::Scene::ECS::Components
 	{
 		D_H_COMP_BODY(BehaviourComponent, ComponentBase, "Behaviour", false, false);
 
-	protected:
-
-		D_CORE::Signal<void()>			mChangeSignal;
 	};
 }

@@ -50,6 +50,7 @@ static void StaticConstructor() \
 static void StaticDistructor() \
 {} \
 private: \
+D_CORE::Signal<void()> mChangeSignal; \
 static bool sInit; \
 static std::string DisplayName;
 
@@ -66,6 +67,15 @@ type::type(D_CORE::Uuid uuid) : \
 
 #define D_H_COMP_DEFAULT_CONSTRUCTOR_DEF(type) D_H_COMP_DEFAULT_CONSTRUCTOR_DEF_PAR(type, ComponentBase)
 
+#define D_H_COMP_REF_PROP(type, name, ...) \
+public: \
+    INLINE void Set##name(D_RESOURCE::ResourceHandle handle) { mChangeSignal(); _Set##name(handle); } \
+    INLINE type* Get##name() { return m##name.Get(); } \
+    /*INLINE type const* Get##name() const { return m##name.Get(); } */ \
+private: \
+    INLINE void _Set##name(D_RESOURCE::ResourceHandle handle) { m##name##Handle = handle; m##name = D_RESOURCE::GetResource<type>(handle, *this); __VA_ARGS__ } \
+    D_CH_FIELD(D_CORE::Ref<type>, name); \
+    D_CH_FIELD(D_RESOURCE::ResourceHandle, name##Handle);
 
 namespace Darius::Scene
 {
@@ -126,6 +136,11 @@ namespace Darius::Scene::ECS::Components
         INLINE D_MATH::Transform const GetTransform() const { return mGameObject->GetTransform(); }
         INLINE void                 SetLocalTransform(D_MATH::Transform const& transform) { return mGameObject->SetLocalTransform(transform); }
         INLINE void                 SetTransform(D_MATH::Transform const& transform) { return mGameObject->SetTransform(transform); }
+
+        INLINE operator CountedOwner const() {
+            auto strName = GetComponentName();
+            return CountedOwner{ WSTR_STR(strName), "Game Object Component", this, 0};
+        }
 
         static INLINE std::string   GetName() { return "ComponentBase"; }
 

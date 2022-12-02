@@ -65,7 +65,7 @@ namespace Darius::Scene::ECS::Components
 #ifdef _D_EDITOR
 	bool SkeletalMeshRendererComponent::DrawDetails(float params[])
 	{
-		auto changeValue = false;
+		auto valueChanged = false;
 
 		if (ImGui::BeginTable("mesh editor", 2, ImGuiTableFlags_BordersInnerV))
 		{
@@ -90,7 +90,7 @@ namespace Darius::Scene::ECS::Components
 			ImGui::EndTable();
 		}
 
-		return changeValue;
+		return valueChanged;
 
 	}
 #endif
@@ -110,7 +110,7 @@ namespace Darius::Scene::ECS::Components
 
 	void SkeletalMeshRendererComponent::_SetMesh(ResourceHandle handle)
 	{
-		mMeshResource = D_RESOURCE::GetResource<SkeletalMeshResource>(handle, *GetGameObject());
+		mMeshResource = D_RESOURCE::GetResource<SkeletalMeshResource>(handle, *this);
 
 		mJoints.clear();
 		mSkeleton.clear();
@@ -147,7 +147,7 @@ namespace Darius::Scene::ECS::Components
 
 	void SkeletalMeshRendererComponent::_SetMaterial(ResourceHandle handle)
 	{
-		mMaterialResource = D_RESOURCE::GetResource<MaterialResource>(handle, *GetGameObject());
+		mMaterialResource = D_RESOURCE::GetResource<MaterialResource>(handle, *this);
 	}
 
 	void SkeletalMeshRendererComponent::Serialize(Json& j) const

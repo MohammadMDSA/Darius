@@ -52,7 +52,6 @@ namespace Darius::Scene::ECS::Components
 
 		Ref<StaticMeshResource>				mMeshResource;
 		Ref<MaterialResource>				mMaterialResource;
-		D_CORE::Signal<void()>				mChangeSignal;
 		uint16_t							mPsoFlags;
 
 		// Gpu buffers

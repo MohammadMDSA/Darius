@@ -61,7 +61,7 @@ namespace Darius::Scene::ECS::Components
 #ifdef _D_EDITOR
 	bool MeshRendererComponent::DrawDetails(float params[])
 	{
-		auto changeValue = false;
+		auto valueChanged = false;
 
 		if (ImGui::BeginTable("mesh editor", 2, ImGuiTableFlags_BordersInnerV))
 		{
@@ -85,7 +85,7 @@ namespace Darius::Scene::ECS::Components
 
 			ImGui::EndTable();
 		}
-		return changeValue;
+		return valueChanged;
 
 	}
 #endif
@@ -105,12 +105,12 @@ namespace Darius::Scene::ECS::Components
 
 	void MeshRendererComponent::_SetMesh(ResourceHandle handle)
 	{
-		mMeshResource = D_RESOURCE::GetResource<StaticMeshResource>(handle, *GetGameObject());
+		mMeshResource = D_RESOURCE::GetResource<StaticMeshResource>(handle, *this);
 	}
 
 	void MeshRendererComponent::_SetMaterial(ResourceHandle handle)
 	{
-		mMaterialResource = D_RESOURCE::GetResource<MaterialResource>(handle, *GetGameObject());
+		mMaterialResource = D_RESOURCE::GetResource<MaterialResource>(handle, *this);
 	}
 
 	void MeshRendererComponent::Serialize(Json& j) const

@@ -59,7 +59,6 @@ namespace Darius::Scene::ECS::Components
 		void								CreateGPUBuffers();
 		void								JointUpdateRecursion(Matrix4 const& parent, Mesh::SkeletonJoint& skeletonJoint);
 
-		D_CORE::Signal<void()>				mChangeSignal;
 		uint16_t							mPsoFlags;
 		DVector<Joint>						mJoints;
 		DVector<Mesh::SkeletonJoint>		mSkeleton;

@@ -36,6 +36,5 @@ namespace Darius::Scene::ECS::Components
 
 	private:
 		D_MATH::Transform					mTransform;
-		D_CORE::Signal<void(void)>			mChangeSignal;
 	};
 }

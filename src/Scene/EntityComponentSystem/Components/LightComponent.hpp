@@ -44,8 +44,5 @@ namespace Darius::Scene::ECS::Components
 		D_CH_RW_FIELD(LightData, LightData);
 		D_CH_R_FIELD(int, LightIndex);
 
-	private:
-
-		D_CORE::Signal<void()>			mChangeSignal;
 	};
 }
