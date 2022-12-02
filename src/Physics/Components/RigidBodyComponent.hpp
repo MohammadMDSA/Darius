@@ -35,6 +35,9 @@ namespace Darius::Physics
 		void							SetKinematic(bool value);
 		bool							IsKinematic() const;
 
+		void							AddForce(D_MATH::Vector3 const& f);
+		void							ClearForce();
+
 		// Linear Velocity
 		D_MATH::Vector3					GetLinearVelocity() const;
 		void							SetLinearVelocity(D_MATH::Vector3 const& v, bool autoWake = true);

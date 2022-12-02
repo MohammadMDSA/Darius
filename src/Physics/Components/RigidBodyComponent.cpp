@@ -6,6 +6,8 @@
 
 #include <imgui.h>
 
+#define VEC3_2_PX(v) PxVec3(v.GetX(), v.GetY(), v.GetZ())
+
 using namespace physx;
 using namespace D_MATH;
 
@@ -80,7 +82,20 @@ namespace Darius::Physics
 
 	void RigidbodyComponent::SetLinearVelocity(Vector3 const& v, bool autoWake)
 	{
-		mActor->setLinearVelocity(PxVec3(v.GetX(), v.GetY(), v.GetZ()));
+		mChangeSignal();
+		mActor->setLinearVelocity(VEC3_2_PX(v));
+	}
+
+	void RigidbodyComponent::AddForce(D_MATH::Vector3 const& f)
+	{
+		mChangeSignal();
+		mActor->addForce(VEC3_2_PX(f));
+	}
+
+	void RigidbodyComponent::ClearForce()
+	{
+		mChangeSignal();
+		mActor->clearForce();
 	}
 
 #ifdef _D_EDITOR
@@ -118,6 +133,8 @@ namespace Darius::Physics
 
 		D_H_DETAILS_DRAW_END_TABLE();
 
+		if (valueChanged)
+			mChangeSignal();
 		return valueChanged;
 	}
 #endif
