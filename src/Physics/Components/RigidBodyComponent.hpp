@@ -58,17 +58,27 @@ namespace Darius::Physics
 		void							SetRotationConstraintsY(bool enable);
 		void							SetRotationConstraintsZ(bool enable);
 
+		// Position Constraints
+		bool							GetPositionConstraintsX() const;
+		bool							GetPositionConstraintsY() const;
+		bool							GetPositionConstraintsZ() const;
+		void							SetPositionConstraintsX(bool enable);
+		void							SetPositionConstraintsY(bool enable);
+		void							SetPositionConstraintsZ(bool enable);
+
 	protected:
 		D_CH_FIELD(physx::PxRigidDynamic*, Actor = nullptr);
 	private:
 
 #ifdef _D_EDITOR
 		bool							DrawRotationConstraints();
+		bool							DrawPositionConstraints();
 #endif
 
 		bool							mKinematic;
 		bool							mUsingGravity;
 		bool							mRotationConstraints[3];
+		bool							mPositionConstraints[3];
 
 	};
 }
