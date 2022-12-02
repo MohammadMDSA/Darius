@@ -54,7 +54,9 @@ namespace Darius::Physics
 
 		if (j.contains("Restitution"))
 			staticFriction = j["Restitution"];
-
+		
+		if (mPxData)
+			mPxData->release();
 		mPxData = D_PHYSICS::GetCore()->createMaterial(staticFriction, dynamicFriction, restitution);
 	}
 

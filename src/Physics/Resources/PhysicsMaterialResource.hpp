@@ -30,6 +30,8 @@ namespace Darius::Physics
 		virtual bool					UploadToGpu(D_GRAPHICS::GraphicsContext& context);
 		virtual void					Unload() override;
 
+		INLINE operator physx::PxMaterial const& () const { return *mPxData; }
+
 		D_CH_FIELD(physx::PxMaterial*, PxData)
 
 	protected:
