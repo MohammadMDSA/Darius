@@ -1,6 +1,7 @@
 #pragma once
 
 #include <Math/VectorMath.hpp>
+#include <ResourceManager/ResourceTypes/Resource.hpp>
 
 #include <PxPhysicsAPI.h>
 
@@ -17,7 +18,7 @@ namespace Darius::Physics
 
 	physx::PxScene*			GetScene();
 	physx::PxPhysics*		GetCore();
-	physx::PxMaterial const* GetDefaultMaterial();
+	D_RESOURCE::ResourceHandle GetDefaultMaterial();
 
 	INLINE physx::PxQuat GetQuat(D_MATH::Quaternion const& quat)
 	{

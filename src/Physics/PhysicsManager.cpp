@@ -6,9 +6,10 @@
 #include "Resources/PhysicsMaterialResource.hpp"
 
 #include <Core/TimeManager/TimeManager.hpp>
+#include <Job/Job.hpp>
+#include <ResourceManager/ResourceManager.hpp>
 #include <Scene/Scene.hpp>
 #include <Renderer/GraphicsUtils/Profiling/Profiling.hpp>
-#include <Job/Job.hpp>
 #include <Utils/Assert.hpp>
 
 #include <PxPhysics.h>
@@ -31,9 +32,9 @@ namespace Darius::Physics
 	PxDefaultCpuDispatcher* gDispatcher = NULL;
 	PxScene* gScene = NULL;
 
-	PxMaterial* gDefaultMaterial = NULL;
-
 	PxPvd* gPvd = NULL;
+
+	D_RESOURCE::ResourceHandle				gDefaultMaterial;
 
 	void					UpdatePostPhysicsTransforms();
 	void					UpdatePrePhysicsTransform(bool simulating);
@@ -70,14 +71,15 @@ namespace Darius::Physics
 		}
 #endif // _DEBUG
 
-		gDefaultMaterial = gPhysics->createMaterial(0.5f, 0.5f, 0.6f);
-
 		// Registering Resources
 		PhysicsMaterialResource::Register();
 
 		// Registering Components
 		BoxColliderComponent::StaticConstructor();
 		RigidbodyComponent::StaticConstructor();
+
+		// Create default resources
+		gDefaultMaterial = D_RESOURCE::GetManager()->CreateResource<PhysicsMaterialResource>(GenerateUuidFor("Default Physics Material"), L"Default Physics Material", L"Default Physics Material", true);
 	}
 
 	void Shutdown()
@@ -162,7 +164,7 @@ namespace Darius::Physics
 		return gPhysics;
 	}
 
-	PxMaterial const* GetDefaultMaterial()
+	D_RESOURCE::ResourceHandle GetDefaultMaterial()
 	{
 		return gDefaultMaterial;
 	}
