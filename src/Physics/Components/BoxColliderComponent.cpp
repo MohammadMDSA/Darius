@@ -42,7 +42,7 @@ namespace Darius::Physics
 		ColliderComponent::PreUpdate(simulating);
 
 		auto transform = GetTransform();
-		D_DEBUG_DRAW::DrawCube(transform.Translation, transform.Rotation, transform.Scale, { 0.f, 1.f, 0.f, 1.f });
+		D_DEBUG_DRAW::DrawCube(transform.Translation, transform.Rotation, transform.Scale, 0, { 0.f, 1.f, 0.f, 1.f });
 	}
 
 	physx::PxGeometry* BoxColliderComponent::UpdateAndGetPhysicsGeometry(bool& changed)

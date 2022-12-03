@@ -1,6 +1,7 @@
 #include "pch.hpp"
 #include "DebugDraw.hpp"
 
+#include <Core/TimeManager/TimeManager.hpp>
 #include <Renderer/RenderDeviceManager.hpp>
 
 #include <mutex>
@@ -15,6 +16,10 @@ ri.Color = color; \
 ri.PsoType = D_RENDERER::ColorWireframeTwoSidedPso; \
 ri.PsoFlags = D_RENDERER_FRAME_RESOUCE::RenderItem::ColorOnly | D_RENDERER_FRAME_RESOUCE::RenderItem::Wireframe; \
 DrawPending.push_back(ri); \
+if(duration > 0) \
+{ \
+	DrawsWithDuration.insert({ D_TIME::GetTotalTime() + duration, { ri, trans } }); \
+}
 
 using namespace D_RESOURCE;
 
@@ -30,6 +35,8 @@ namespace Darius::Debug
 	std::mutex								AdditionMutex;
 
 	D_CONTAINERS::DVector<D_RENDERER_FRAME_RESOUCE::RenderItem> DrawPending;
+
+	D_CONTAINERS::DUnorderedMap<double, std::pair<D_RENDERER_FRAME_RESOUCE::RenderItem, D_MATH::Transform>> DrawsWithDuration;
 
 	D_CORE::Ref<D_RESOURCE::StaticMeshResource>	DebugDraw::CubeMeshResource;
 	D_CORE::Ref<D_RESOURCE::StaticMeshResource>	DebugDraw::SphereMeshResource;
@@ -62,7 +69,7 @@ namespace Darius::Debug
 		MeshConstantsGPU.Destroy();
 	}
 
-	void DebugDraw::DrawCube(D_MATH::Vector3 position, D_MATH::Quaternion rotation, D_MATH::Vector3 scale, D_MATH::Color color)
+	void DebugDraw::DrawCube(D_MATH::Vector3 position, D_MATH::Quaternion rotation, D_MATH::Vector3 scale, double duration, D_MATH::Color color)
 	{
 		const std::lock_guard<std::mutex> lock(AdditionMutex);
 
@@ -72,12 +79,13 @@ namespace Darius::Debug
 		auto index = DrawPending.size();
 
 		// Upload transform
-		UploadTransform(D_MATH::Transform(position, rotation, scale), index);
+		auto trans = D_MATH::Transform(position, rotation, scale);
+		UploadTransform(trans, index);
 
 		RENDERSETUP(CubeMeshResource);
 	}
 
-	void DebugDraw::DrawSphere(D_MATH::Vector3 position, float radius, D_MATH::Color color)
+	void DebugDraw::DrawSphere(D_MATH::Vector3 position, float radius, double duration, D_MATH::Color color)
 	{
 		const std::lock_guard<std::mutex> lock(AdditionMutex);
 		if (DrawPending.size() >= MAX_DEBUG_DRAWS)
@@ -85,7 +93,8 @@ namespace Darius::Debug
 
 		auto index = DrawPending.size();
 
-		UploadTransform(D_MATH::Transform(position, Quaternion(kIdentity), { radius, radius, radius }), index);
+		auto trans = D_MATH::Transform(position, Quaternion(kIdentity), { radius, radius, radius });
+		UploadTransform(trans, index);
 
 		RENDERSETUP(SphereMeshResource);
 	}
@@ -144,6 +153,22 @@ namespace Darius::Debug
 	{
 		const std::lock_guard<std::mutex> lock(AdditionMutex);
 		DrawPending.clear();
+		
+		auto now = D_TIME::GetTotalTime();
+
+		int index = 0;
+
+		for (auto it = DrawsWithDuration.cbegin(); it != DrawsWithDuration.cend();)
+		{
+			if (it->first < now)
+				DrawsWithDuration.erase(it++);
+			else
+			{
+				UploadTransform(it->second.second, index++);
+				DrawPending.push_back(it->second.first);
+				it++;
+			}
+		}
 	}
 
 }

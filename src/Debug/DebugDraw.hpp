@@ -26,16 +26,16 @@ namespace Darius::Debug
 
 		static void GetRenderItems(D_RENDERER::MeshSorter& sorter);
 
-		static void DrawCube(D_MATH::Vector3 position, D_MATH::Quaternion rotation, D_MATH::Vector3 scale, D_MATH::Color color = { 1.f, 1.f, 1.f, 1.f });
-		static void DrawSphere(D_MATH::Vector3 position, float radius, D_MATH::Color color = { 1.f, 1.f, 1.f, 1.f });
+		static void DrawCube(D_MATH::Vector3 position, D_MATH::Quaternion rotation, D_MATH::Vector3 scale, double duration = 0.f, D_MATH::Color color = { 1.f, 1.f, 1.f, 1.f });
+		static void DrawSphere(D_MATH::Vector3 position, float radius, double duration = 0.f, D_MATH::Color color = { 1.f, 1.f, 1.f, 1.f });
 #else
 		static INLINE void FinalizeUpload() {}
 		static INLINE void Clear() {}
 
 		static INLINE void GetRenderItems(D_RENDERER::MeshSorter& sorter) {}
 
-		static INLINE void DrawCube(D_MATH::Vector3 position, D_MATH::Quaternion rotation, D_MATH::Vector3 scale, D_MATH::Color color = { 1.f, 1.f, 1.f, 1.f }) {}
-		static INLINE void DrawCube(D_MATH::Vector3 position, float radius, D_MATH::Color color = { 1.f, 1.f, 1.f, 1.f }) {}
+		static INLINE void DrawCube(D_MATH::Vector3 position, D_MATH::Quaternion rotation, D_MATH::Vector3 scale, double duration = 0.f, D_MATH::Color color = { 1.f, 1.f, 1.f, 1.f }) {}
+		static INLINE void DrawCube(D_MATH::Vector3 position, float radius, double duration = 0.f, D_MATH::Color color = { 1.f, 1.f, 1.f, 1.f }) {}
 
 
 #endif // _DEBUG
