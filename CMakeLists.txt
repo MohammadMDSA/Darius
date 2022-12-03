@@ -198,7 +198,7 @@ endif(BUILD_TESTS)
 ##############################
 
 add_subdirectory("Demo/Source")
-target_link_libraries(DEMO PRIVATE Scene IMGUI)
+target_link_libraries(DEMO PRIVATE Debug Physics Scene IMGUI)
 target_include_directories(DEMO PRIVATE "src")
 target_link_libraries(${PROJECT_NAME} PRIVATE DEMO)
 
