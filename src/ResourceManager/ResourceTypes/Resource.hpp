@@ -70,7 +70,7 @@ namespace Darius::ResourceManager
 
 	struct ResourceFileMeta
 	{
-		Path						Path;
+		std::wstring				FileName;
 		DVector<ResourceDataInFile>	Resources;
 	};
 

@@ -36,7 +36,7 @@ namespace Darius::ResourceManager
 		friend class ResourceManager;
 
 		static bool				SaveResource(Resource* resource, bool metaOnly);
-		static DVector<ResourceHandle> CreateResourceObject(ResourceFileMeta const& meta, DResourceManager* manager);
+		static DVector<ResourceHandle> CreateResourceObject(ResourceFileMeta const& meta, DResourceManager* manager, Path const& directory);
 		static DVector<ResourceHandle> CreateResourceObject(Path const& path, DResourceManager* manager);
 		static void				VisitFile(Path path);
 	};

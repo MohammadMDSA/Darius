@@ -18,7 +18,7 @@ namespace Darius::ResourceManager
 {
 
 	// Only used in resource reading / wrting, from / to file context
-	DVector<ResourceHandle> ResourceLoader::CreateResourceObject(ResourceFileMeta const& meta, DResourceManager* manager)
+	DVector<ResourceHandle> ResourceLoader::CreateResourceObject(ResourceFileMeta const& meta, DResourceManager* manager, Path const& directory)
 	{
 		auto result = DVector<ResourceHandle>();
 		for (auto resourceMeta : meta.Resources)
@@ -27,7 +27,7 @@ namespace Darius::ResourceManager
 			if (!factory)
 				continue;
 
-			auto resouceHandle = manager->CreateResource(resourceMeta.Type, resourceMeta.Uuid, meta.Path, WSTR_STR(resourceMeta.Name), false, true);
+			auto resouceHandle = manager->CreateResource(resourceMeta.Type, resourceMeta.Uuid, directory / meta.FileName, WSTR_STR(resourceMeta.Name), false, true);
 
 			if (resouceHandle.Type != 0)
 
@@ -152,7 +152,7 @@ namespace Darius::ResourceManager
 
 		meta = jMeta;
 
-		return CreateResourceObject(meta, manager);
+		return CreateResourceObject(meta, manager, path.parent_path());
 	}
 
 	DVector<ResourceHandle> ResourceLoader::LoadResource(Path path, bool metaOnly)
@@ -223,7 +223,7 @@ namespace Darius::ResourceManager
 
 		ResourceFileMeta result;
 
-		result.Path = path;
+		result.FileName = path.filename();
 
 		for (auto resouceHandle : resourceHandleVec)
 		{
@@ -254,7 +254,7 @@ namespace Darius::ResourceManager
 
 	void to_json(D_SERIALIZATION::Json& j, const ResourceFileMeta& value)
 	{
-		j["Path"] = value.Path.string();
+		j["Path"] = value.FileName;
 		j["Resources"] = value.Resources;
 	}
 
@@ -267,7 +267,8 @@ namespace Darius::ResourceManager
 
 	void from_json(const D_SERIALIZATION::Json& j, ResourceFileMeta& value)
 	{
-		value.Path = Path(j["Path"].get<std::string>());
+		std::string fname = j["Path"];
+		value.FileName = WSTR_STR(fname);
 		value.Resources = j["Resources"];
 	}
 
