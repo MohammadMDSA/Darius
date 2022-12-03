@@ -19,8 +19,7 @@ namespace Darius::Math
     {
     public:
         INLINE Quaternion() { m_vec = XMQuaternionIdentity(); }
-        INLINE Quaternion(const Vector3& axis, const Scalar& angle) { m_vec = XMQuaternionRotationAxis(axis, angle); }
-        INLINE Quaternion(Vector3 const& normal, float const& angle) { m_vec = XMQuaternionRotationNormal(normal, angle); }
+        INLINE Quaternion(const Vector3& axis, const Scalar& angle) { m_vec = XMQuaternionRotationAxis(axis, angle); } 
         INLINE Quaternion(float pitch, float yaw, float roll) { m_vec = XMQuaternionRotationMatrix(XMMatrixRotationZ(roll) * XMMatrixRotationX(pitch) * XMMatrixRotationY(yaw)); }
         INLINE Quaternion(float x, float y, float z, float w) { m_vec = XMVectorSet(x, y, z, w); }
         INLINE explicit Quaternion(const XMMATRIX& matrix) { m_vec = XMQuaternionRotationMatrix(matrix); }

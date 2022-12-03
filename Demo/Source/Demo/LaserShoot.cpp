@@ -23,7 +23,7 @@ namespace Demo
 
 	void LaserShoot::Start()
 	{
-
+		
 	}
 
 	void LaserShoot::Update(float deltaTime)
@@ -37,7 +37,7 @@ namespace Demo
 
 		physx::PxRaycastBuffer hit;
 		if (D_PHYSICS::Raycast(trans.Translation + dir * 2, dir, 100, hit))
-			D_DEBUG_DRAW::DrawSphere(D_PHYSICS::GetVec3(hit.block.position), 1, 0, {1.f, 0.f, 0.f, 1.f});
+			D_DEBUG_DRAW::DrawCube(D_PHYSICS::GetVec3(hit.block.position), D_MATH::LookAt(D_PHYSICS::GetVec3(hit.block.normal), Vector3::Up()), Vector3(0.5f, 0.5f, 0.5f), 1, {1.f, 0.f, 0.f, 1.f});
 
 	}
 

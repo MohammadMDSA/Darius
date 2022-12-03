@@ -117,6 +117,28 @@ namespace Darius::Math
 
 	INLINE Matrix4 Transpose(const Matrix4& mat) { return Matrix4(XMMatrixTranspose(mat)); }
 	INLINE Matrix4 Invert(const Matrix4& mat) { return Matrix4(XMMatrixInverse(nullptr, mat)); }
+	
+
+	INLINE Quaternion LookAt(Vector3 const& dir, Vector3 const& up)
+	{
+		auto z = Normalize(dir);
+		auto x = Normalize(Cross(up, dir));
+		auto y = Cross(z, x);
+
+		Matrix3 mat(x, y, z);
+
+		return Quaternion(Matrix3(x, y, z));
+	}
+
+	INLINE Quaternion LookAt(Vector3 const& dir) { return LookAt(dir, Vector3::Up()); }
+
+	INLINE Quaternion RotationOfVectors(Vector3 const& first, Vector3 const& second)
+	{
+		auto cross = D_MATH::Cross(first, second);
+		float w = Sqrt(Pow((float)Length(first), 2.f) * Pow((float)Length(second), 2.f)) + Dot(first, second);
+		return Quaternion(cross.GetX(), cross.GetY(), cross.GetZ(), w);
+	}
+
 
 	INLINE Matrix4 OrthoInvert(const Matrix4& xform)
 	{
