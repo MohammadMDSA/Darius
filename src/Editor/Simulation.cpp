@@ -71,8 +71,9 @@ namespace Darius::Editor::Simulate
 				D_PHYSICS::Update(!Timer->IsPaused());
 			}
 
-			Timer->Tick([]() {
-
+			Timer->Tick([]() {});
+			if (!Timer->IsPaused())
+			{
 				auto deltaTime = Timer->GetElapsedSeconds();
 
 				// World Logic
@@ -89,8 +90,7 @@ namespace Darius::Editor::Simulate
 					PauseTime();
 					Stepping = false;
 				}
-
-				});
+			}
 
 		}
 
