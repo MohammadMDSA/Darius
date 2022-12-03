@@ -178,4 +178,8 @@ namespace Darius::Physics
 		return gDefaultMaterial;
 	}
 
+	bool Raycast(_IN_ D_MATH::Vector3 const& origin, _IN_ D_MATH::Vector3 const& direction, _IN_ float const& maxDistance, _OUT_ physx::PxRaycastBuffer& hit)
+	{
+		return gScene->raycast(*(PxVec3 const*)&origin, *(PxVec3 const*)&direction, maxDistance, hit);
+	}
 }
