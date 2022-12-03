@@ -64,11 +64,25 @@ namespace Darius::Editor::Simulate
 		D_DEBUG_DRAW::Clear();
 		{
 			D_PROFILING::ScopedTimer simProfiler(L"Update Simulation");
+
+			// Physics
+			{
+				D_PROFILING::ScopedTimer simPhysProf(L"Update Physics");
+				D_PHYSICS::Update(!Timer->IsPaused());
+			}
+
 			Timer->Tick([]() {
 
 				auto deltaTime = Timer->GetElapsedSeconds();
 
+				// World Logic
 				D_WORLD::Update(deltaTime);
+
+				{
+					// Updating animations
+					D_PROFILING::ScopedTimer animProf(L"Update Animations");
+					D_ANIMATION::Update(deltaTime);
+				}
 
 				if (Stepping)
 				{
@@ -76,17 +90,8 @@ namespace Darius::Editor::Simulate
 					Stepping = false;
 				}
 
-				{
-					// Updating animations
-					D_PROFILING::ScopedTimer animProf(L"Update Animations");
-					D_ANIMATION::Update(deltaTime);
-				}
 				});
 
-			{
-				D_PROFILING::ScopedTimer simPhysProf(L"Update Physics");
-				D_PHYSICS::Update(!Timer->IsPaused());
-			}
 		}
 
 		{
