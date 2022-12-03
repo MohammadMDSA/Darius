@@ -1,13 +1,12 @@
 #pragma once
 
 #include <Scene/EntityComponentSystem/Components/BehaviourComponent.hpp>
-#include <Renderer/LightManager.hpp>
 
 namespace Demo
 {
-	class MovementBehaviour : public D_ECS_COMP::BehaviourComponent
+	class LaserShoot : public D_ECS_COMP::BehaviourComponent
 	{
-		D_H_BEHAVIOUR_COMP_BODY(MovementBehaviour, D_ECS_COMP::BehaviourComponent, "Movement", true, true);
+		D_H_BEHAVIOUR_COMP_BODY(LaserShoot, D_ECS_COMP::BehaviourComponent, "Gameplay/Laser Shoot", true, true);
 
 	public:
 

@@ -6,18 +6,16 @@
 
 #include <imgui.h>
 
-using namespace D_ECS_COMP;
-
 namespace Demo
 {
-	D_H_COMP_DEF(MovementBehaviour);
+	D_H_BEHAVIOUR_COMP_DEF(MovementBehaviour);
 
 	MovementBehaviour::MovementBehaviour() :
-		BehaviourComponent()
+		D_ECS_COMP::BehaviourComponent()
 	{ }
 
 	MovementBehaviour::MovementBehaviour(D_CORE::Uuid uuid) :
-		BehaviourComponent(uuid)
+		D_ECS_COMP::BehaviourComponent(uuid)
 	{ }
 
 	void MovementBehaviour::Start()
@@ -30,11 +28,12 @@ namespace Demo
 		auto time = D_TIME::GetTotalTime();
 
 		auto trans = GetTransform();
-		trans.Translation = D_MATH::Vector3(0.f, D_MATH::Cos(time) * 5, 0.f);
+		trans.Translation = D_MATH::Vector3(0.f, D_MATH::Cos(time * 2) * 5, 0.f);
+		trans.Rotation = D_MATH::Quaternion(D_MATH::Vector3::Up(), time);
 		SetTransform(trans);
 	}
 
-#ifdef _DEBUG
+#ifdef _D_EDITOR
 	bool MovementBehaviour::DrawDetails(float params[])
 	{
 		bool changed = false;

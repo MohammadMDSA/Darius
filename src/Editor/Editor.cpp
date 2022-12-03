@@ -17,6 +17,7 @@
 #include <Debug/DebugDraw.hpp>
 #include <Job/Job.hpp>
 #include <Demo/MovementBehaviour.hpp>
+#include <Demo/LaserShoot.hpp>
 #include <Physics/PhysicsManager.hpp>
 #include <Scene/SceneLight.hpp>
 #include <Renderer/Renderer.hpp>
@@ -110,6 +111,7 @@ namespace Darius::Editor
 		// Registering components
 		// TODO:: Better component initialization
 		Demo::MovementBehaviour::StaticConstructor();
+		Demo::LaserShoot::StaticConstructor();
 
 		mTimer.SetFixedTimeStep(true);
 		mTimer.SetTargetElapsedSeconds(1.f / 60.f);
