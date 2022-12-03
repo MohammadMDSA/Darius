@@ -301,9 +301,6 @@ namespace Darius::Scene
 			return;
 		comp->mGameObject = this;
 
-		if (auto bComp = dynamic_cast<D_ECS_COMP::BehaviourComponent*>(comp); bComp)
-			D_WORLD::AddBehaviour(bComp);
-
 		if (mStarted)
 		{
 			comp->mStarted = true;
@@ -321,7 +318,6 @@ namespace Darius::Scene
 	{
 		comp->OnDestroy();
 		comp->mDestroyed = true;
-		D_WORLD::RemoveBehaviour((D_ECS_COMP::BehaviourComponent*)comp);
 	}
 
 	void GameObject::Start()

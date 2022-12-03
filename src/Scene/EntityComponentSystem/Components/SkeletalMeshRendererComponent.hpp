@@ -17,7 +17,7 @@ namespace Darius::Scene::ECS::Components
 {
 	class SkeletalMeshRendererComponent : public ComponentBase
 	{
-		D_H_COMP_BODY(SkeletalMeshRendererComponent, ComponentBase, "Rendering/Skeletal Mesh Renderer", true, false);
+		D_H_COMP_BODY(SkeletalMeshRendererComponent, ComponentBase, "Rendering/Skeletal Mesh Renderer", true);
 
 	public:
 

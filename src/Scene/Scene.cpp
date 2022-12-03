@@ -32,7 +32,8 @@ namespace Darius::Scene
 	std::unique_ptr<D_CONTAINERS::DSet<GameObject*>>					GOs = nullptr;
 	std::unique_ptr<D_CONTAINERS::DUnorderedMap<Uuid, GameObject*, UuidHasher>>	UuidMap = nullptr;
 	std::unique_ptr<D_CONTAINERS::DUnorderedMap<D_ECS::EntityId, GameObject*>>	EntityMap = nullptr;
-	D_CONTAINERS::DSet<D_ECS_COMP::BehaviourComponent*>					BehaviourComponents;
+	
+	DVector<std::function<void(float, D_ECS::ECSRegistry&)>>			BehaviourUpdaterFunctions;
 
 	DVector<GameObject*>												ToBeDeleted;
 
@@ -91,9 +92,8 @@ namespace Darius::Scene
 
 		RemoveDeleted();
 
-		for (auto behaviour : BehaviourComponents)
-			if (behaviour->IsActive())
-				behaviour->Update(deltaTime);
+		for (auto updater : BehaviourUpdaterFunctions)
+			updater(deltaTime, World);
 
 	}
 
@@ -342,7 +342,6 @@ namespace Darius::Scene
 			});
 
 		GOs->clear();
-		BehaviourComponents.clear();
 		World.progress();
 		SceneName = "";
 		ScenePath = Path();
@@ -360,7 +359,6 @@ namespace Darius::Scene
 		GOs->clear();
 		RemoveDeleted();
 		World.progress();
-		BehaviourComponents.clear();
 		Running = false;
 	}
 
@@ -412,16 +410,6 @@ namespace Darius::Scene
 		return Loaded;
 	}
 
-	void SceneManager::AddBehaviour(D_ECS_COMP::BehaviourComponent* comp)
-	{
-		BehaviourComponents.insert(comp);
-	}
-
-	void SceneManager::RemoveBehaviour(D_ECS_COMP::BehaviourComponent* comp)
-	{
-		BehaviourComponents.erase(comp);
-	}
-
 	void SceneManager::SetAwake()
 	{
 		Running = true;
@@ -430,5 +418,10 @@ namespace Darius::Scene
 		{
 			go->Awake();
 		}
+	}
+
+	void SceneManager::RegisterComponentUpdater(std::function<void(float, D_ECS::ECSRegistry&)> updater)
+	{
+		BehaviourUpdaterFunctions.push_back(updater);
 	}
 }

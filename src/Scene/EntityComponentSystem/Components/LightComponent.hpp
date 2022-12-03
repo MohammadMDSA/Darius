@@ -15,7 +15,7 @@ namespace Darius::Scene::ECS::Components
 {
 	class LightComponent : public ComponentBase
 	{
-		D_H_COMP_BODY(LightComponent, ComponentBase, "Rendering/Light", true, false);
+		D_H_COMP_BODY(LightComponent, ComponentBase, "Rendering/Light", true);
 
 	public:
 

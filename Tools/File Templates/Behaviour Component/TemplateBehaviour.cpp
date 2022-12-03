@@ -7,7 +7,7 @@
 
 namespace %%NAMESPACE%%
 {
-	D_H_COMP_DEF(%%CLASS_NAME%%);
+	D_H_BEHAVIOUR_COMP_DEF(%%CLASS_NAME%%);
 
 	%%CLASS_NAME%%::%%CLASS_NAME%%() :
 		D_ECS_COMP::BehaviourComponent()

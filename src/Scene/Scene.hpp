@@ -49,8 +49,8 @@ namespace Darius::Scene
 		static INLINE D_ECS::Entity	GetRoot() { return Root; }
 		static INLINE D_ECS::ECSRegistry& GetRegistry() { return World; }
 
-		static void				AddBehaviour(Darius::Scene::ECS::Components::BehaviourComponent* comp);
-		static void				RemoveBehaviour(Darius::Scene::ECS::Components::BehaviourComponent* comp);
+		// Don't call!
+		static void				RegisterComponentUpdater(std::function<void(float, D_ECS::ECSRegistry&)> updater);
 
 		static void				SetAwake();
 

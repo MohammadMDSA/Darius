@@ -18,7 +18,9 @@
 #define D_ECS_COMP Darius::Scene::ECS::Components
 #endif // !D_ECS_COMP
 
-#define D_H_COMP_BODY(type, parent, compName, shouldRegister, isBehaviour) \
+#define D_H_COMP_BODY(type, parent, compName, shouldRegister) D_H_COMP_BODY_RAW(type, parent, compName, shouldRegister, false, false)
+
+#define D_H_COMP_BODY_RAW(type, parent, compName, shouldRegister, isBehaviour, receivesUpdates) \
 public: \
 type(); \
 type(D_CORE::Uuid uuid); \
@@ -43,7 +45,11 @@ static void StaticConstructor() \
     if(shouldRegister) \
         D_SCENE::GameObject::RegisterComponent(D_NAMEOF(type), splitted); \
     if(isBehaviour) \
+    { \
         D_SCENE::GameObject::RegisterBehaviourComponent(comp); \
+        if(receivesUpdates) \
+            D_WORLD::RegisterComponentUpdater(&ComponentUpdater);\
+    } \
     sInit = true; \
 } \
 \
@@ -154,6 +160,8 @@ namespace Darius::Scene::ECS::Components
             auto comp = reg.component<ComponentBase>("ComponentBase");
             sInit = true;
         }
+
+        static void                 ComponentUpdater(float, D_ECS::ECSRegistry&) {  }
 
         static void                 StaticDestructor()
         {

@@ -6,7 +6,7 @@ namespace %%NAMESPACE%%
 {
 	class %%CLASS_NAME%% : public D_ECS_COMP::BehaviourComponent
 	{
-		D_H_BEHAVIOUR_COMP_BODY(%%CLASS_NAME%%, D_ECS_COMP::BehaviourComponent, "%%DISPLAY_NAME%%", true);
+		D_H_BEHAVIOUR_COMP_BODY(%%CLASS_NAME%%, D_ECS_COMP::BehaviourComponent, "%%DISPLAY_NAME%%", true, true);
 
 	public:
 
