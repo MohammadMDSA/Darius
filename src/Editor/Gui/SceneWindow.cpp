@@ -117,13 +117,6 @@ namespace Darius::Editor::Gui::Windows
 		if (mDrawGrid)
 			AddWindowRenderItems(sorter);
 
-
-		// Add debug draw items
-		if (mDrawDebug)
-		{
-			D_DEBUG_DRAW::GetRenderItems(sorter);
-		}
-
 		sorter.Sort();
 
 		// Clearing scene color texture
@@ -132,6 +125,15 @@ namespace Darius::Editor::Gui::Windows
 
 		sorter.RenderMeshes(MeshSorter::kOpaque, context, mSceneGlobals);
 		sorter.RenderMeshes(MeshSorter::kTransparent, context, mSceneGlobals);
+
+		// Add debug draw items
+		if (mDrawDebug)
+		{
+			MeshSorter debugDrawSorter(sorter);
+			D_DEBUG_DRAW::GetRenderItems(debugDrawSorter);
+			debugDrawSorter.RenderMeshes(MeshSorter::kOpaque, context, mSceneGlobals);
+			debugDrawSorter.RenderMeshes(MeshSorter::kTransparent, context, mSceneGlobals);
+		}
 
 		context.TransitionResource(mSceneTexture, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, true);
 		D_RENDERER_DEVICE::GetDevice()->CopyDescriptorsSimple(1, mTextureHandle, mSceneTexture.GetSRV(), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);

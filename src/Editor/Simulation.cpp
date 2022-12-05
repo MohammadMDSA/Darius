@@ -118,6 +118,7 @@ namespace Darius::Editor::Simulate
 		Paused = false;
 
 		D_WORLD::SetAwake();
+		D_DEBUG_DRAW::Clear(true);
 
 		RunSignal();
 	}
@@ -134,11 +135,13 @@ namespace Darius::Editor::Simulate
 		D_EDITOR_CONTEXT::SetSelectedGameObject(nullptr);
 		D_WORLD::ClearScene();
 		D_WORLD::LoadSceneDump(SceneDump);
+		D_DEBUG_DRAW::Clear(true);
 
 		Running = false;
 		Paused = false;
 
 		StopSignal();
+
 	}
 
 	void Pause()

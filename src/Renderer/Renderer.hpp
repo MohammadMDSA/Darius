@@ -92,6 +92,25 @@ namespace Darius::Renderer
 			m_CurrentDraw = 0;
 		}
 
+		// Copies only render config and NOT render items
+		MeshSorter(MeshSorter const& other)
+		{
+			m_BatchType = other.m_BatchType;
+			m_Camera = other.m_Camera;
+			m_Viewport = other.m_Viewport;
+			m_Scissor = other.m_Scissor;
+			m_NumRTVs = other.m_NumRTVs;
+			m_DSV = other.m_DSV;
+			memcpy(m_RTV, other.m_RTV, sizeof(D_GRAPHICS_BUFFERS::ColorBuffer*) * m_NumRTVs);
+
+			m_SortObjects.clear();
+			m_SortKeys.clear();
+			std::memset(m_PassCounts, 0, sizeof(m_PassCounts));
+			m_CurrentPass = kZPass;
+			m_CurrentDraw = 0;
+
+		}
+
 		void SetCamera(const BaseCamera& camera) { m_Camera = &camera; }
 		void SetViewport(const D3D12_VIEWPORT& viewport) { m_Viewport = viewport; }
 		void SetScissor(const D3D12_RECT& scissor) { m_Scissor = scissor; }

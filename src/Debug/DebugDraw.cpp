@@ -149,23 +149,28 @@ namespace Darius::Debug
 		}
 	}
 
-	void DebugDraw::Clear()
+	void DebugDraw::Clear(bool clearCache = false)
 	{
 		const std::lock_guard<std::mutex> lock(AdditionMutex);
 		DrawPending.clear();
+
+		if (clearCache)
+			DrawsWithDuration.clear();
 		
 		auto now = D_TIME::GetTotalTime();
 
 		int index = 0;
 
-		for (auto it = DrawsWithDuration.cbegin(); it != DrawsWithDuration.cend();)
+		for (auto it = DrawsWithDuration.begin(); it != DrawsWithDuration.end(); index++)
 		{
 			if (it->first < now)
 				DrawsWithDuration.erase(it++);
 			else
 			{
-				UploadTransform(it->second.second, index++);
-				DrawPending.push_back(it->second.first);
+				UploadTransform(it->second.second, index);
+				auto& ri = it->second.first;
+				ri.MeshCBV = MeshConstantsGPU.GetGpuVirtualAddress() + sizeof(D_RENDERER_FRAME_RESOUCE::MeshConstants) * index;
+				DrawPending.push_back(ri);
 				it++;
 			}
 		}
