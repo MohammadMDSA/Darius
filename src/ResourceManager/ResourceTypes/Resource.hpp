@@ -191,8 +191,15 @@ namespace Darius::ResourceManager
 		INLINE void					MakeDiskDirty() { mDirtyDisk = true; }
 		INLINE void					MakeGpuDirty() { mDirtyGPU = true; }
 
-		virtual void				WriteResourceToFile() const = 0;
-		virtual void				ReadResourceFromFile() = 0;
+		// Serialization methods get a json param as an input/output to write variation properties of the resource
+		// in case the main resource file is a third-party format whose resources are being read with extra 
+		// parameters provided with the json param. If you have your custom resource and need to write it's properties
+		// to a file and it's likely that you are loading seperate resources from seperate files of this resource without
+		// extra parameters, it is strongly suggested that you avoid writing/reading resource properties on/from the json
+		// param.
+		virtual void				WriteResourceToFile(D_SERIALIZATION::Json& j) const = 0;
+		virtual void				ReadResourceFromFile(D_SERIALIZATION::Json const& j) = 0;
+
 		virtual bool				UploadToGpu(D_GRAPHICS::GraphicsContext& context) = 0;
 
 		// Unload and Evict need implementation for every resource

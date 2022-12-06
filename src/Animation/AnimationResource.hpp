@@ -24,8 +24,8 @@ namespace Darius::Animation
 		virtual bool					DrawDetails(float params[]) override { return false; }
 #endif // _D_EDITOR
 
-		virtual INLINE void				WriteResourceToFile() const override { throw D_EXCEPTION::UnsupportedException(); };
-		virtual void					ReadResourceFromFile() override;
+		virtual INLINE void				WriteResourceToFile(D_SERIALIZATION::Json& json) const override { throw D_EXCEPTION::UnsupportedException(); };
+		virtual void					ReadResourceFromFile(D_SERIALIZATION::Json const& json) override;
 		virtual INLINE bool				UploadToGpu(D_GRAPHICS::GraphicsContext& context) { return true; };
 		virtual INLINE void				Unload() override { EvictFromGpu(); }
 

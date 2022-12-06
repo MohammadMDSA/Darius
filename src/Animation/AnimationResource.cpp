@@ -105,7 +105,7 @@ namespace Darius::Animation
 		return true;
 	}
 
-	void AnimationResource::ReadResourceFromFile()
+	void AnimationResource::ReadResourceFromFile(D_SERIALIZATION::Json const& json)
 	{
 		ZeroMemory(&mAnimationData, sizeof(AnimationLayer));
 		mCurvesData.clear();

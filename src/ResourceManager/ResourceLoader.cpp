@@ -80,6 +80,13 @@ namespace Darius::ResourceManager
 
 		auto path = D_FILE::Path(resource->mPath.string() + ".tos");
 
+		Json resourceProps;
+		if (!metaOnly)
+		{
+			resource->WriteResourceToFile(resourceProps);
+			resource->mDirtyDisk = false;
+		}
+
 		// Meta already exists
 		if (!D_H_ENSURE_FILE(path))
 		{
@@ -89,17 +96,13 @@ namespace Darius::ResourceManager
 			Json jmeta;
 			jmeta = meta;
 
+			jmeta["Properties"] = resourceProps;
+
 			std::ofstream os(path);
 			if (!os)
 				int i = 3;
 			os << jmeta;
 			os.close();
-		}
-
-		if (!metaOnly)
-		{
-			resource->WriteResourceToFile();
-			resource->mDirtyDisk = false;
 		}
 
 		return true;
@@ -120,7 +123,7 @@ namespace Darius::ResourceManager
 
 	}
 
-	DVector<ResourceHandle> ResourceLoader::CreateReourceFromMeta(Path path, bool& foundMeta)
+	DVector<ResourceHandle> ResourceLoader::CreateReourceFromMeta(Path path, bool& foundMeta, Json& jMeta)
 	{
 		foundMeta = false;
 
@@ -146,7 +149,6 @@ namespace Darius::ResourceManager
 		// Read from meta file
 		std::ifstream is(tosPath);
 
-		Json jMeta;
 		is >> jMeta;
 		is.close();
 
@@ -162,7 +164,8 @@ namespace Darius::ResourceManager
 
 		// Read meta
 		bool hasMeta;
-		auto handles = CreateReourceFromMeta(path, hasMeta);
+		Json meta;
+		auto handles = CreateReourceFromMeta(path, hasMeta, meta);
 
 		auto manager = D_RESOURCE::GetManager();
 
@@ -172,6 +175,8 @@ namespace Darius::ResourceManager
 			// Create resource object
 			handles = CreateResourceObject(path, manager);
 		}
+
+		Json properties = meta.contains("Properties") ? meta["Properties"] : Json();
 
 		for (auto handle : handles)
 		{
@@ -188,7 +193,7 @@ namespace Darius::ResourceManager
 				// Load if not loaded and should load, do it!
 				if (!metaOnly && !resource->GetLoaded())
 				{
-					resource->ReadResourceFromFile();
+					resource->ReadResourceFromFile(properties);
 					resource->mLoaded = true;
 				}
 

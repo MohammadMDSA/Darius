@@ -20,8 +20,8 @@ namespace %%NAMESPACE%%
 		virtual bool					DrawDetails(float params[]) override;
 #endif // _D_EDITOR
 
-		virtual void					WriteResourceToFile() const override;
-		virtual void					ReadResourceFromFile() override;
+		virtual void					WriteResourceToFile(D_SERIALIZATION::Json& j) const override;
+		virtual void					ReadResourceFromFile(D_SERIALIZATION::Json const& j) override;
 		virtual bool					UploadToGpu(D_GRAPHICS::GraphicsContext& context);
 		virtual INLINE void				Unload() override { EvictFromGpu(); }
 
