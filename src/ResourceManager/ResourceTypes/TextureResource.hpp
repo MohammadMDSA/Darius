@@ -29,6 +29,7 @@ namespace Darius::ResourceManager
 #endif
 		
 		void										CreateRaw(uint32_t color, DXGI_FORMAT format, size_t rowPitchByte, size_t width, size_t height);
+		void										CreateCubeMap(uint32_t* color, DXGI_FORMAT format, size_t rowPitchByte, size_t width, size_t height);
 
 		D_CH_FIELD_ACC(D_GRAPHICS_BUFFERS::Texture, Texture, protected);
 		D_CH_FIELD(bool, CubeMap)

@@ -45,6 +45,7 @@ namespace Darius::ResourceManager
 		Texture2DWhiteOpaque,
 		Texture2DWhiteTransparent,
 		Texture2DNormalMap,
+		TextureCubeMapBlack
 	};
 
 	void					Initialize();
