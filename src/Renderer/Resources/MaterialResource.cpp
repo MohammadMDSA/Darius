@@ -1,10 +1,13 @@
 #include "Renderer/pch.hpp"
 #include "MaterialResource.hpp"
-#include "ResourceManager/ResourceManager.hpp"
-#include "ResourceManager/ResourceLoader.hpp"
 
+#include "Renderer/RenderDeviceManager.hpp"
+
+#include "Renderer/GraphicsCore.hpp"
+
+#include <ResourceManager/ResourceManager.hpp>
+#include <ResourceManager/ResourceLoader.hpp>
 #include <Core/Serialization/Json.hpp>
-#include <Renderer/RenderDeviceManager.hpp>
 #include <Utils/Common.hpp>
 
 #include <imgui.h>
@@ -14,8 +17,9 @@
 
 using namespace D_CORE;
 using namespace D_SERIALIZATION;
+using namespace D_RESOURCE;
 
-namespace Darius::ResourceManager
+namespace Darius::Graphics
 {
 	D_CH_RESOURCE_DEF(MaterialResource);
 
@@ -23,10 +27,10 @@ namespace Darius::ResourceManager
 		Resource(uuid, path, name, id, isDefault),
 		mPsoFlags(0)
 	{
-		mBaseColorTextureHandle = D_RESOURCE::GetDefaultResource(D_RESOURCE::DefaultResource::Texture2DWhiteOpaque);
-		mNormalTextureHandle = D_RESOURCE::GetDefaultResource(D_RESOURCE::DefaultResource::Texture2DNormalMap);
-		mRoughnessTextureHandle = D_RESOURCE::GetDefaultResource(D_RESOURCE::DefaultResource::Texture2DBlackOpaque);
-		mEmissiveTextureHandle = D_RESOURCE::GetDefaultResource(D_RESOURCE::DefaultResource::Texture2DBlackOpaque);
+		mBaseColorTextureHandle = D_GRAPHICS::GetDefaultGraphicsResource(D_GRAPHICS::DefaultResource::Texture2DWhiteOpaque);
+		mNormalTextureHandle = D_GRAPHICS::GetDefaultGraphicsResource(D_GRAPHICS::DefaultResource::Texture2DNormalMap);
+		mRoughnessTextureHandle = D_GRAPHICS::GetDefaultGraphicsResource(D_GRAPHICS::DefaultResource::Texture2DBlackOpaque);
+		mEmissiveTextureHandle = D_GRAPHICS::GetDefaultGraphicsResource(D_GRAPHICS::DefaultResource::Texture2DBlackOpaque);
 	}
 
 	void MaterialResource::WriteResourceToFile(D_SERIALIZATION::Json& j) const
@@ -106,8 +110,9 @@ namespace Darius::ResourceManager
 		mPsoFlags = data.contains("PsoFlags") ? data["PsoFlags"].get<uint16_t>() : 0u;
 	}
 
-	bool MaterialResource::UploadToGpu(D_GRAPHICS::GraphicsContext& context)
+	bool MaterialResource::UploadToGpu(void* ctx)
 	{
+		D_GRAPHICS::GraphicsContext& context = *reinterpret_cast<D_GRAPHICS::GraphicsContext*>(ctx);
 		if (mMaterialConstantsGPU.GetGpuVirtualAddress() == D3D12_GPU_VIRTUAL_ADDRESS_NULL)
 		{
 			// Load resources

@@ -60,7 +60,7 @@ namespace Darius::Physics
 		mPxData = D_PHYSICS::GetCore()->createMaterial(staticFriction, dynamicFriction, restitution);
 	}
 
-	bool PhysicsMaterialResource::UploadToGpu(D_GRAPHICS::GraphicsContext& context)
+	bool PhysicsMaterialResource::UploadToGpu(void* context)
 	{
 		return true;
 	}

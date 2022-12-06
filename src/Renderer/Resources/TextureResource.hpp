@@ -1,22 +1,22 @@
 #pragma once
 
-#include "Resource.hpp"
+#include "Renderer/GraphicsUtils/Buffers/Texture.hpp"
 
-#include <Renderer/GraphicsUtils/Buffers/Texture.hpp>
+#include <ResourceManager/Resource.hpp>
 #include <Utils/Common.hpp>
 
-#ifndef D_RESOURCE
-#define D_RESOURCE Darius::ResourceManager
-#endif // !D_RESOURCE
+#ifndef D_GRAPHICS
+#define D_GRAPHICS Darius::Graphics
+#endif
 
 using namespace D_CORE;
 using namespace D_GRAPHICS_BUFFERS;
 
-namespace Darius::ResourceManager
+namespace Darius::Graphics
 {
 	class DResourceManager;
 
-	class TextureResource : public Resource
+	class TextureResource : public D_RESOURCE::Resource
 	{
 		D_CH_RESOURCE_BODY(TextureResource, "Texture", ".tga", ".dds")
 
@@ -35,14 +35,14 @@ namespace Darius::ResourceManager
 		D_CH_FIELD(bool, CubeMap)
 
 	protected:
-		TextureResource(Uuid uuid, std::wstring const& path, std::wstring const& name, DResourceId id, bool isDefault = false) :
+		TextureResource(Uuid uuid, std::wstring const& path, std::wstring const& name, D_RESOURCE::DResourceId id, bool isDefault = false) :
 			Resource(uuid, path, name, id, isDefault) {}
 
 
 		// Inherited via Resource
 		virtual void WriteResourceToFile(D_SERIALIZATION::Json& j) const override;
 		virtual void ReadResourceFromFile(D_SERIALIZATION::Json const& j) override;
-		virtual bool UploadToGpu(D_GRAPHICS::GraphicsContext& context);
+		virtual bool UploadToGpu(void* context) override;
 
 		virtual void Unload() override;
 	};

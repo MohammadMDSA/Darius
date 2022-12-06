@@ -5,26 +5,14 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ".")
 
 list(APPEND RESOUCE_MANAGER_LIBS_INCLUDE
 	"ResourceManager.hpp"
-	"ResourceTypes/Resource.hpp"
-	"ResourceTypes/BatchResource.hpp"
-	"ResourceTypes/MeshResource.hpp"
-	"ResourceTypes/MaterialResource.hpp"
-	"ResourceTypes/TextureResource.hpp"
-	"ResourceTypes/SkeletalMeshResource.hpp"
-	"ResourceTypes/StaticMeshResource.hpp"
+	"Resource.hpp"
 	"ResourceLoader.hpp"
 	"pch.hpp"
 	)
 
 list(APPEND RESOUCE_MANAGER_LIBS_SOURCES
 	"ResourceManager.cpp"
-	"ResourceTypes/Resource.cpp"
-	"ResourceTypes/MeshResource.cpp"
-	"ResourceTypes/BatchResource.cpp"
-	"ResourceTypes/MaterialResource.cpp"
-	"ResourceTypes/TextureResource.cpp"
-	"ResourceTypes/SkeletalMeshResource.cpp"
-	"ResourceTypes/StaticMeshResource.cpp"
+	"Resource.cpp"
 	"ResourceLoader.cpp"
 	"pch.cpp"
 	)
@@ -58,7 +46,7 @@ PRIVATE
 	${FBX_INCLUDE_DIRS}
 )
 
-target_link_libraries("ResourceManager" PRIVATE ${Boost_LIBRARIES} ${FBX_LINK_LIBS} PUBLIC Core Renderer Utils)
+target_link_libraries("ResourceManager" PRIVATE ${Boost_LIBRARIES} PUBLIC Core Utils)
 
 if(BUILD_TESTS)
 	set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/../../cmake")

@@ -2,18 +2,18 @@
 
 #include "MeshResource.hpp"
 
-#include <Renderer/Geometry/MeshData.hpp>
-#include <Renderer/Geometry/Mesh.hpp>
-#include <Renderer/GraphicsUtils/VertexTypes.hpp>
+#include "Renderer/Geometry/MeshData.hpp"
+#include "Renderer/Geometry/Mesh.hpp"
+#include "Renderer/GraphicsUtils/VertexTypes.hpp"
 
-#ifndef D_RESOURCE
-#define D_RESOURCE Darius::ResourceManager
-#endif // !D_RESOURCE
+#ifndef D_GRAPHICS
+#define D_GRAPHICS Darius::Graphics
+#endif
 
 using namespace D_RENDERER_GEOMETRY;
 using namespace D_CORE;
 
-namespace Darius::ResourceManager
+namespace Darius::Graphics
 {
 	class DResourceManager;
 
@@ -40,7 +40,7 @@ namespace Darius::ResourceManager
 		StaticMeshResource(Uuid uuid, std::wstring const& path, std::wstring const& name, DResourceId id, bool isDefault = false) :
 			MeshResource(uuid, path, name, id, isDefault) {}
 
-		virtual bool					UploadToGpu(D_GRAPHICS::GraphicsContext& context) override;
+		virtual bool					UploadToGpu(void* context) override;
 
 	private:
 		friend class DResourceManager;

@@ -39,7 +39,7 @@ namespace Darius::Editor::Gui::Windows
 		D_CAMERA_MANAGER::SetActiveCamera(&mCamera);
 
 		// Fetch line mesh resource
-		auto lineHandle = D_RESOURCE::GetDefaultResource(D_RESOURCE::DefaultResource::LineMesh);
+		auto lineHandle = D_GRAPHICS::GetDefaultGraphicsResource(D_GRAPHICS::DefaultResource::LineMesh);
 		mLineMeshResource = D_RESOURCE::GetResource<BatchResource>(lineHandle, this, L"Scene Window", "Editor Window");
 
 		// Initializing grid gpu constants

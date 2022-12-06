@@ -1,13 +1,13 @@
-#include "ResourceManager/pch.hpp"
+#include "Renderer/pch.hpp"
 #include "MeshResource.hpp"
 
-#include "ResourceManager/ResourceManager.hpp"
 #include "SkeletalMeshResource.hpp"
+#include "Renderer/RenderDeviceManager.hpp"
+#include "Renderer/GraphicsCore.hpp"
 
 #include <Core/Filesystem/Path.hpp>
 #include <Core/Containers/Set.hpp>
-#include <Renderer/RenderDeviceManager.hpp>
-#include <Renderer/GraphicsCore.hpp>
+#include <ResourceManager/ResourceManager.hpp>
 
 #define FBXSDK_SHARED
 
@@ -17,7 +17,7 @@
 using namespace D_RENDERER_GEOMETRY;
 using namespace D_CONTAINERS;
 
-namespace Darius::ResourceManager
+namespace Darius::Graphics
 {
 
 	DVector<ResourceDataInFile> MeshResource::CanConstructFrom(ResourceType type, Path const& path)

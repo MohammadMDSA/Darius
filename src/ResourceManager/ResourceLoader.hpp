@@ -1,6 +1,6 @@
 #pragma once
 
-#include "ResourceTypes/Resource.hpp"
+#include "Resource.hpp"
 
 #include <Core/Filesystem/Path.hpp>
 

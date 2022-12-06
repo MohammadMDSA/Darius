@@ -40,7 +40,7 @@ namespace Darius::Scene::ECS::Components
 		CreateGPUBuffers();
 
 		if (!mMaterialResource.IsValid())
-			_SetMaterial(D_RESOURCE::GetDefaultResource(DefaultResource::Material));
+			_SetMaterial(D_GRAPHICS::GetDefaultGraphicsResource(DefaultResource::Material));
 	}
 
 	RenderItem SkeletalMeshRendererComponent::GetRenderItem()

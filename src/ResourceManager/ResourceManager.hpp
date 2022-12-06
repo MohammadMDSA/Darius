@@ -1,6 +1,6 @@
 #pragma once
 
-#include "ResourceTypes/Resource.hpp"
+#include "Resource.hpp"
 #include "ResourceLoader.hpp"
 
 #include <Core/Ref.hpp>
@@ -23,43 +23,16 @@ namespace Darius::ResourceManager
 	class DResourceManager;
 	class ResourceLoader;
 
-	enum class DefaultResource
-	{
-		// Meshes
-		BoxMesh,
-		CylinderMesh,
-		GeosphereMesh,
-		GridMesh,
-		QuadMesh,
-		SphereMesh,
-		LowPolySphereMesh,
-		LineMesh,
-
-		// Materials
-		Material,
-
-		// Textures
-		Texture2DMagenta,
-		Texture2DBlackOpaque,
-		Texture2DBlackTransparent,
-		Texture2DWhiteOpaque,
-		Texture2DWhiteTransparent,
-		Texture2DNormalMap,
-		TextureCubeMapBlack
-	};
-
 	void					Initialize();
 	void					Shutdown();
 
-	void					UpdateGPUResources(D_GRAPHICS::GraphicsContext& context);
+	void					UpdateGPUResources();
 
 	DResourceManager*		GetManager();
 
 	Resource*				_GetRawResource(Uuid uuid, bool load = false);
 	Resource*				_GetRawResource(ResourceHandle handle, bool load = false);
 	void					SaveAll();
-
-	ResourceHandle			GetDefaultResource(DefaultResource type);
 
 #ifdef _D_EDITOR
 	void					GetAllResources(DVector<Resource*>& resources);
@@ -143,15 +116,12 @@ namespace Darius::ResourceManager
 			return CreateResource(type, GenerateUuid(), path, name, false, false);
 		}
 
-		void						UpdateGPUResources(D_GRAPHICS::GraphicsContext& context);
-
-		ResourceHandle				GetDefaultResource(DefaultResource type);
+		void						UpdateGPUResources();
 
 #ifdef _D_EDITOR
 		void						GetAllResources(DVector<Resource*>& resources);
 #endif // _D_EDITOR
 
-		void						LoadDefaultResources();
 	private:
 		friend class ResourceLoader;
 		friend class Resource;
@@ -175,8 +145,6 @@ namespace Darius::ResourceManager
 		DUnorderedMap<ResourceType, DUnorderedMap<DResourceId, std::shared_ptr<Resource>>>	mResourceMap;
 		DUnorderedMap<Uuid, Resource*, UuidHasher>			mUuidMap;
 		DUnorderedMap<std::wstring, DVector<ResourceHandle>>						mPathMap;
-		DUnorderedMap<DefaultResource, ResourceHandle>				mDefaultResourceMap;
-
 		DResourceId											mLastId = 0;
 	};
 

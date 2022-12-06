@@ -2,14 +2,14 @@
 
 #include "StaticMeshResource.hpp"
 
-#ifndef D_RESOURCE
-#define D_RESOURCE Darius::ResourceManager
-#endif // !D_RESOURCE
+#ifndef D_GRAPHICS
+#define D_GRAPHICS Darius::Graphics
+#endif
 
 using namespace D_RENDERER_GEOMETRY;
 using namespace D_CORE;
 
-namespace Darius::ResourceManager
+namespace Darius::Graphics
 {
 	class DResourceManager;
 

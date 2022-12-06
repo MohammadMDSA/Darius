@@ -56,12 +56,12 @@ namespace Darius::Editor
 #ifdef _DEBUG
 		D_DEBUG_DRAW::Shutdown();
 #endif // _DEBUG
-		D_RESOURCE::Shutdown();
 		D_INPUT::Shutdown();
 		D_TIME::Shutdown();
 		D_JOB::Shutdown();
 		D_RENDERER::Shutdown();
 		D_RENDERER_DEVICE::Shutdown();
+		D_RESOURCE::Shutdown();
 	}
 
 	// Initialize the Direct3D resources required to run.
@@ -70,6 +70,9 @@ namespace Darius::Editor
 #ifdef _DEBUG
 		D_DEBUG::AttachWinPixGpuCapturer();
 #endif
+		// Initializing the resource manager
+		D_RESOURCE::Initialize();
+
 		D_RENDERER_DEVICE::Initialize(window, width, height);
 		D_RENDERER::Initialize();
 
@@ -84,9 +87,6 @@ namespace Darius::Editor
 
 		// Initializing the input manater
 		D_INPUT::Initialize(window);
-
-		// Initializing the resource manager
-		D_RESOURCE::Initialize();
 
 		// Initialize Debug Drawer
 #ifdef _DEBUG
@@ -156,7 +156,7 @@ namespace Darius::Editor
 
 		auto& context = D_GRAPHICS::GraphicsContext::Begin(L"Update resources");
 		D_LIGHT::UpdateBuffers(context);
-		D_RESOURCE::UpdateGPUResources(context);
+		D_RESOURCE::UpdateGPUResources();
 		context.Finish();
 
 	}

@@ -38,7 +38,7 @@ namespace Darius::ResourceManager
 		return Resource::GetResourceTypeFromName(name);
 	}
 
-	void Resource::UpdateGPU(D_GRAPHICS::GraphicsContext& context)
+	void Resource::UpdateGPU(void* context)
 	{
 		// Is gpu already up to date
 		if (!mDirtyGPU)

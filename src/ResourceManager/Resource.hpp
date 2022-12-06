@@ -7,8 +7,8 @@
 #include <Core/Uuid.hpp>
 #include <Core/Exceptions/Exception.hpp>
 #include <Core/Serialization/Json.hpp>
-#include <Renderer/CommandContext.hpp>
 #include <Utils/Common.hpp>
+#include <Utils/Assert.hpp>
 #include <Utils/Detailed.hpp>
 
 #ifndef D_RESOURCE
@@ -137,7 +137,7 @@ namespace Darius::ResourceManager
 		D_CH_R_FIELD(bool, DirtyGPU);
 
 	public:
-		void						UpdateGPU(D_GRAPHICS::GraphicsContext& context);
+		void						UpdateGPU(void*);
 
 #ifdef _D_EDITOR
 		virtual bool				DrawDetails(float params[]) = 0;
@@ -171,6 +171,11 @@ namespace Darius::ResourceManager
 			return type;
 		}
 
+		INLINE void					MakeDiskDirty() { mDirtyDisk = true; }
+		INLINE void					MakeGpuDirty() { mDirtyGPU = true; }
+		INLINE void					MakeDiskClean() { mDirtyDisk = false; }
+		INLINE void					MakeGpuClean() { mDirtyGPU = false; }
+
 		friend class DResourceManager;
 		friend class ResourceLoader;
 
@@ -187,9 +192,6 @@ namespace Darius::ResourceManager
 			mUuid(uuid)
 		{
 		}
-		
-		INLINE void					MakeDiskDirty() { mDirtyDisk = true; }
-		INLINE void					MakeGpuDirty() { mDirtyGPU = true; }
 
 		// Serialization methods get a json param as an input/output to write variation properties of the resource
 		// in case the main resource file is a third-party format whose resources are being read with extra 
@@ -200,7 +202,7 @@ namespace Darius::ResourceManager
 		virtual void				WriteResourceToFile(D_SERIALIZATION::Json& j) const = 0;
 		virtual void				ReadResourceFromFile(D_SERIALIZATION::Json const& j) = 0;
 
-		virtual bool				UploadToGpu(D_GRAPHICS::GraphicsContext& context) = 0;
+		virtual bool				UploadToGpu(void* context) = 0;
 
 		// Unload and Evict need implementation for every resource
 		virtual void				EvictFromGpu() {}

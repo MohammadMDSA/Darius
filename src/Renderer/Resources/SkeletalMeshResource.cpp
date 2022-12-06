@@ -1,4 +1,4 @@
-#include "ResourceManager/pch.hpp"
+#include "Renderer/pch.hpp"
 #include "SkeletalMeshResource.hpp"
 
 #define FBXSDK_SHARED
@@ -7,7 +7,7 @@
 #include <fbxsdk/fileio/fbxiosettings.h>
 #include <imgui.h>
 
-namespace Darius::ResourceManager
+namespace Darius::Graphics
 {
 
 	D_CH_RESOURCE_DEF(SkeletalMeshResource);
@@ -239,8 +239,9 @@ namespace Darius::ResourceManager
 		mSkeletonRoot = mJointCount > 0 ? &mSkeleton.front() : nullptr;
 	}
 
-	bool SkeletalMeshResource::UploadToGpu(D_GRAPHICS::GraphicsContext& context)
+	bool SkeletalMeshResource::UploadToGpu(void* ctx)
 	{
+		D_GRAPHICS::GraphicsContext& context = *reinterpret_cast<D_GRAPHICS::GraphicsContext*>(ctx);
 		// Create the FBX SDK manager
 		FbxManager* lSdkManager = FbxManager::Create();
 

@@ -8,8 +8,15 @@
 #include "GraphicsUtils/Profiling/GpuTimeManager.hpp"
 #include "LightManager.hpp"
 #include "GraphicsUtils/Buffers/Texture.hpp"
+#include "Resources/StaticMeshResource.hpp"
+#include "Resources/SkeletalMeshResource.hpp"
+#include "Resources/MaterialResource.hpp"
+#include "Resources/BatchResource.hpp"
+#include "Resources/TextureResource.hpp"
+#include "Geometry/GeometryGenerator.hpp"
 
 #include <Core/TimeManager/TimeManager.hpp>
+#include <ResourceManager/ResourceManager.hpp>
 #include <Utils/Assert.hpp>
 
 using namespace D_GRAPHICS_MEMORY;
@@ -29,6 +36,8 @@ namespace Darius::Graphics
 	};
 
 	std::unordered_map<std::string, ComPtr<ID3DBlob>>	Shaders;
+
+	DUnorderedMap<DefaultResource, ResourceHandle>		DefaultResourceMap;
 
 	//////////////////////////////////
 	////////// Common States /////////
@@ -106,6 +115,7 @@ namespace Darius::Graphics
 	void InitializeCommonStates();
 	void DestroyCommonStates();
 	void BuildShaders();
+	void LoadDefaultResources();
 
 	void Initialize()
 	{
@@ -125,6 +135,15 @@ namespace Darius::Graphics
 		BuildShaders();
 
 		D_LIGHT::Initialize();
+
+		// Initializing Resources
+		TextureResource::Register();
+		StaticMeshResource::Register();
+		SkeletalMeshResource::Register();
+		MaterialResource::Register();
+		BatchResource::Register();
+
+		LoadDefaultResources();
 	}
 
 	void Shutdown()
@@ -151,6 +170,11 @@ namespace Darius::Graphics
 		for (auto& kv : Shaders)
 			kv.second.Reset();
 
+	}
+
+	D_RESOURCE::ResourceHandle GetDefaultGraphicsResource(DefaultResource type)
+	{
+		return DefaultResourceMap[type];
 	}
 
 	uint32_t GetFrameCount()
@@ -380,6 +404,134 @@ namespace Darius::Graphics
 		Shaders["colorVS"] = CompileShader(L"Shaders\\SimpleColorVS.hlsl", nullptr, "main", "vs_5_1");
 		Shaders["colorPS"] = CompileShader(L"Shaders\\SimpleColorPS.hlsl", nullptr, "main", "ps_5_1");
 		Shaders["skinnedVS"] = CompileShader(L"Shaders\\SkinnedVS.hlsl", nullptr, "main", "vs_5_1");
+
+	}
+
+	void LoadDefaultResources()
+	{
+		// Creating default meshes
+		{
+			auto box = D_RENDERER_GEOMETRY_GENERATOR::CreateBox(1.f, 1.f, 1.f, 0);
+			auto cylinder = D_RENDERER_GEOMETRY_GENERATOR::CreateCylinder(0.5f, 0.5f, 1, 40, 20);
+			auto geosphere = D_RENDERER_GEOMETRY_GENERATOR::CreateGeosphere(0.5f, 40);
+			auto grid = D_RENDERER_GEOMETRY_GENERATOR::CreateGrid(100.f, 100.f, 100, 100);
+			auto quad = D_RENDERER_GEOMETRY_GENERATOR::CreateQuad(0.f, 0.f, 1.f, 1.f, 0.f);
+			auto sphere = D_RENDERER_GEOMETRY_GENERATOR::CreateSphere(0.5f, 40, 40);
+			auto lowSphere = D_RENDERER_GEOMETRY_GENERATOR::CreateSphere(0.5f, 10, 6);
+			auto line = D_RENDERER_GEOMETRY_GENERATOR::CreateLine(0.f, 0.f, 0.f, 0.f, 0.f, -1.f);
+
+			auto resHandle = D_RESOURCE::GetManager()->CreateResource<StaticMeshResource>(GenerateUuidFor("Box Mesh"), L"Box Mesh", L"Box Mesh", true);
+			MultiPartMeshData<StaticMeshResource::VertexType> meshData;
+			meshData.meshParts = DVector<MeshData<StaticMeshResource::VertexType>>{ box };
+			auto res = D_RESOURCE::GetManager()->GetRawResource(resHandle);
+			res->MakeGpuClean();
+			res->MakeDiskClean();
+			((StaticMeshResource*)res)->Create(meshData);
+			DefaultResourceMap.insert({ DefaultResource::BoxMesh, { StaticMeshResource::GetResourceType(), res->GetId()} });
+
+			resHandle = D_RESOURCE::GetManager()->CreateResource<StaticMeshResource>(GenerateUuidFor("Cylinder Mesh"), L"Cylinder Mesh", L"Cylinder Mesh", true);
+			meshData.meshParts = DVector<MeshData<StaticMeshResource::VertexType>>{ cylinder };
+			res = D_RESOURCE::GetManager()->GetRawResource(resHandle);
+			res->MakeGpuClean();
+			res->MakeDiskClean();
+			((StaticMeshResource*)res)->Create(meshData);
+			DefaultResourceMap.insert({ DefaultResource::CylinderMesh, { StaticMeshResource::GetResourceType(), res->GetId() } });
+
+			resHandle = D_RESOURCE::GetManager()->CreateResource<StaticMeshResource>(GenerateUuidFor("Geosphere Mesh"), L"Geosphere Mesh", L"Geosphere Mesh", true);
+			meshData.meshParts = DVector<MeshData<StaticMeshResource::VertexType>>{ geosphere };
+			res = D_RESOURCE::GetManager()->GetRawResource(resHandle);
+			res->MakeGpuClean();
+			res->MakeDiskClean();
+			((StaticMeshResource*)res)->Create(meshData);
+			DefaultResourceMap.insert({ DefaultResource::GeosphereMesh, { StaticMeshResource::GetResourceType(), res->GetId() } });
+
+			resHandle = D_RESOURCE::GetManager()->CreateResource<StaticMeshResource>(GenerateUuidFor("Grid Mesh"), L"Grid Mesh", L"Grid Mesh", true);
+			meshData.meshParts = DVector<MeshData<StaticMeshResource::VertexType>>{ grid };
+			res = D_RESOURCE::GetManager()->GetRawResource(resHandle);
+			res->MakeGpuClean();
+			res->MakeDiskClean();
+			((StaticMeshResource*)res)->Create(meshData);
+			DefaultResourceMap.insert({ DefaultResource::GridMesh, { StaticMeshResource::GetResourceType(), res->GetId() } });
+
+			resHandle = D_RESOURCE::GetManager()->CreateResource<StaticMeshResource>(GenerateUuidFor("Quad Mesh"), L"Quad Mesh", L"Quad Mesh", true);
+			meshData.meshParts = DVector<MeshData<StaticMeshResource::VertexType>>{ quad };
+			res = D_RESOURCE::GetManager()->GetRawResource(resHandle);
+			res->MakeGpuClean();
+			res->MakeDiskClean();
+			((StaticMeshResource*)res)->Create(meshData);
+			DefaultResourceMap.insert({ DefaultResource::QuadMesh, { StaticMeshResource::GetResourceType(), res->GetId() } });
+
+			resHandle = D_RESOURCE::GetManager()->CreateResource<StaticMeshResource>(GenerateUuidFor("Sphere Mesh"), L"Sphere Mesh", L"Sphere Mesh", true);
+			meshData.meshParts = DVector<MeshData<StaticMeshResource::VertexType>>{ sphere };
+			res = D_RESOURCE::GetManager()->GetRawResource(resHandle);
+			res->MakeGpuClean();
+			res->MakeDiskClean();
+			((StaticMeshResource*)res)->Create(meshData);
+			DefaultResourceMap.insert({ DefaultResource::SphereMesh, { StaticMeshResource::GetResourceType(), res->GetId() } });
+
+			resHandle = D_RESOURCE::GetManager()->CreateResource<StaticMeshResource>(GenerateUuidFor("Low Poly Sphere Mesh"), L"Low Poly Sphere Mesh", L"Low Poly Sphere Mesh", true);
+			meshData.meshParts = DVector<MeshData<StaticMeshResource::VertexType>>{ lowSphere };
+			res = D_RESOURCE::GetManager()->GetRawResource(resHandle);
+			res->MakeGpuClean();
+			res->MakeDiskClean();
+			((StaticMeshResource*)res)->Create(meshData);
+			DefaultResourceMap.insert({ DefaultResource::LowPolySphereMesh, { StaticMeshResource::GetResourceType(), res->GetId() } });
+
+			resHandle = D_RESOURCE::GetManager()->CreateResource<BatchResource>(GenerateUuidFor("Line Mesh"), L"Line Mesh", L"Line Mesh", true);
+			meshData.meshParts = DVector<MeshData<StaticMeshResource::VertexType>>{ line };
+			res = D_RESOURCE::GetManager()->GetRawResource(resHandle);
+			res->MakeGpuClean();
+			res->MakeDiskClean();
+			((BatchResource*)res)->Create(meshData);
+			DefaultResourceMap.insert({ DefaultResource::LineMesh, { BatchResource::GetResourceType(), res->GetId() } });
+		}
+
+		// Create default textures
+		{
+#define CreateDefaultTexture2D(name, color) \
+{ \
+	auto defaultTextureHandle = D_RESOURCE::GetManager()->CreateResource<TextureResource>(GenerateUuidFor("Default Texture2D " #name), L"Default Texture2D " #name, L"Default Texture2D " #name, true); \
+	auto textureRes = (TextureResource*)D_RESOURCE::GetManager()->GetRawResource(defaultTextureHandle); \
+	textureRes->CreateRaw(color, DXGI_FORMAT_R8G8B8A8_UNORM, 4, 1, 1); \
+	auto rRes = dynamic_cast<Resource*>(textureRes); \
+	rRes->MakeGpuClean(); \
+	rRes->MakeDiskClean(); \
+	DefaultResourceMap.insert({ DefaultResource::Texture2D##name, { TextureResource::GetResourceType(), textureRes->GetId() } }); \
+}
+
+#define CreateDefaultTextureCubeMap(name, color) \
+{ \
+	auto defaultTextureHandle = D_RESOURCE::GetManager()->CreateResource<TextureResource>(GenerateUuidFor("Default TextureCubeMap" #name), L"Default Texture2D " #name, L"Default Texture2D " #name, true); \
+	auto textureRes = (TextureResource*)D_RESOURCE::GetManager()->GetRawResource(defaultTextureHandle); \
+	textureRes->CreateCubeMap(color, DXGI_FORMAT_R8G8B8A8_UNORM, 4, 1, 1); \
+	auto rRes = dynamic_cast<Resource*>(textureRes); \
+	rRes->MakeGpuClean(); \
+	rRes->MakeDiskClean(); \
+	DefaultResourceMap.insert({ DefaultResource::TextureCubeMap##name, { TextureResource::GetResourceType(), textureRes->GetId() } }); \
+}
+
+			CreateDefaultTexture2D(Magenta, 0xFFFF00FF);
+			CreateDefaultTexture2D(BlackOpaque, 0xFF000000);
+			CreateDefaultTexture2D(BlackTransparent, 0x00000000);
+			CreateDefaultTexture2D(WhiteOpaque, 0xFFFFFFFF);
+			CreateDefaultTexture2D(WhiteTransparent, 0x00FFFFFF);
+			CreateDefaultTexture2D(NormalMap, 0x00FF8080);
+
+			uint32_t blackCubeTexels[6] = {};
+			CreateDefaultTextureCubeMap(Black, blackCubeTexels);
+		}
+
+		// Creating default materials
+		{
+			auto defaultMaterialHandle = D_RESOURCE::GetManager()->CreateResource<MaterialResource>(GenerateUuidFor("Default Material"), L"Default Material", L"Default Material", true);
+			auto materialRes = (MaterialResource*)D_RESOURCE::GetManager()->GetRawResource(defaultMaterialHandle);
+			auto mat = materialRes->ModifyMaterialData();
+			mat->DifuseAlbedo = XMFLOAT4(Vector4(kOne));
+			mat->FresnelR0 = XMFLOAT3(Vector3(kZero));
+			mat->Roughness = 0.2f;
+			auto rRes = dynamic_cast<Resource*>(materialRes);
+			DefaultResourceMap.insert({ DefaultResource::Material, { MaterialResource::GetResourceType(), materialRes->GetId() } });
+		}
 
 	}
 

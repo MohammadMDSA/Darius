@@ -12,8 +12,7 @@
 #include <Renderer/GraphicsUtils/Buffers/ColorBuffer.hpp>
 #include <Renderer/GraphicsUtils/Buffers/DepthBuffer.hpp>
 #include <Renderer/GraphicsUtils/Memory/DescriptorHeap.hpp>
-#include <ResourceManager/ResourceTypes/BatchResource.hpp>
-
+#include <Renderer/Resources/BatchResource.hpp>
 
 #include <iostream>
 

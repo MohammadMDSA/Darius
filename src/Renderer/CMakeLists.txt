@@ -26,6 +26,12 @@ list(APPEND RENDERER_LIBS_INCLUDE
 	"GraphicsUtils/Buffers/DepthBuffer.hpp"
 	"GraphicsUtils/Buffers/ReadbackBuffer.hpp"
 	"GraphicsUtils/Buffers/Texture.hpp"
+	"Resources/BatchResource.hpp"
+	"Resources/MeshResource.hpp"
+	"Resources/MaterialResource.hpp"
+	"Resources/TextureResource.hpp"
+	"Resources/SkeletalMeshResource.hpp"
+	"Resources/StaticMeshResource.hpp"
 	"Camera/CameraManager.hpp"
 	"CommandSignature.hpp"
 	"CommandContext.hpp"
@@ -63,6 +69,12 @@ list(APPEND RENDERER_LIBS_SOURCES
 	"GraphicsUtils/Buffers/DepthBuffer.cpp"
 	"GraphicsUtils/Buffers/ReadbackBuffer.cpp"
 	"GraphicsUtils/Buffers/Texture.cpp"
+	"Resources/MeshResource.cpp"
+	"Resources/BatchResource.cpp"
+	"Resources/MaterialResource.cpp"
+	"Resources/TextureResource.cpp"
+	"Resources/SkeletalMeshResource.cpp"
+	"Resources/StaticMeshResource.cpp"
 	"Camera/CameraManager.cpp"
 	"CommandSignature.cpp"
 	"CommandContext.cpp"
@@ -76,12 +88,12 @@ list(APPEND RENDERER_LIBS_SOURCES
 	)
 
 
-add_library("Renderer")
+add_library("Renderer" STATIC)
 
 target_sources("Renderer"
 	PRIVATE
 	${RENDERER_LIBS_SOURCES}
-	${RENDERER_LIBS_INCLUDE} "GraphicsUtils/Buffers/Texture.hpp")
+	${RENDERER_LIBS_INCLUDE})
 
 	
 set(Boost_USE_STATIC_LIBS ON) 
@@ -103,9 +115,10 @@ PUBLIC
 PRIVATE
 	".."
 	${Boost_INCLUDE_DIRS}
+	${FBX_INCLUDE_DIRS}
 )
 
-target_link_libraries("Renderer" PRIVATE ${Boost_LIBRARIES} PUBLIC IMGUI)
+target_link_libraries("Renderer" PRIVATE ${Boost_LIBRARIES} ${FBX_LINK_LIBS} PUBLIC IMGUI ResourceManager)
 
 if(BUILD_TESTS)
 	set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/../../cmake")
