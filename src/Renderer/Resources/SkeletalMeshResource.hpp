@@ -2,16 +2,17 @@
 
 #include "MeshResource.hpp"
 
+#include "Renderer/Geometry/MeshData.hpp"
+#include "Renderer/Geometry/Mesh.hpp"
+#include "Renderer/GraphicsUtils/VertexTypes.hpp"
+
 #include <Core/Containers/List.hpp>
-#include <Renderer/Geometry/MeshData.hpp>
-#include <Renderer/Geometry/Mesh.hpp>
-#include <Renderer/GraphicsUtils/VertexTypes.hpp>
 
-#ifndef D_RESOURCE
-#define D_RESOURCE Darius::ResourceManager
-#endif // !D_RESOURCE
+#ifndef D_GRAPHICS
+#define D_GRAPHICS Darius::Graphics
+#endif
 
-namespace Darius::ResourceManager
+namespace Darius::Graphics
 {
 	class DResourceManager;
 
@@ -37,7 +38,7 @@ namespace Darius::ResourceManager
 			mJointCount(0),
 			mSkeletonRoot(nullptr) {}
 
-		virtual bool					UploadToGpu(D_GRAPHICS::GraphicsContext& context) override;
+		virtual bool					UploadToGpu(void* context) override;
 
 	private:
 		static void						GetFBXSkin(MultiPartMeshData<VertexType>& meshDataVec, void const* meshP, DList<Mesh::SkeletonJoint>& skeletonHierarchy, DVector<DUnorderedMap<int, int>>& indexMapper);

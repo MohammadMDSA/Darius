@@ -1,18 +1,15 @@
 #include "pch.hpp"
 #include "ResourceManager.hpp"
-#include "ResourceTypes/Resource.hpp"
-#include "ResourceTypes/StaticMeshResource.hpp"
-#include "ResourceTypes/SkeletalMeshResource.hpp"
-#include "ResourceTypes/MaterialResource.hpp"
-#include "ResourceTypes/BatchResource.hpp"
-#include "ResourceTypes/TextureResource.hpp"
+#include "Resource.hpp"
 #include "ResourceLoader.hpp"
+
+#include <Renderer/Resources/MaterialResource.hpp>
+#include <Renderer/CommandContext.hpp>
 
 #include <Core/Filesystem/Path.hpp>
 #include <Core/Filesystem/FileUtils.hpp>
 #include <Core/Containers/Map.hpp>
 #include <Core/Exceptions/Exception.hpp>
-#include <Renderer/Geometry/GeometryGenerator.hpp>
 #include <Utils/Assert.hpp>
 
 using namespace D_CONTAINERS;
@@ -29,13 +26,6 @@ namespace Darius::ResourceManager
 
 		_ResourceManager = std::make_unique<DResourceManager>();
 
-		TextureResource::Register();
-		StaticMeshResource::Register();
-		SkeletalMeshResource::Register();
-		MaterialResource::Register();
-		BatchResource::Register();
-
-		_ResourceManager->LoadDefaultResources();
 	}
 
 	void Shutdown()
@@ -58,7 +48,7 @@ namespace Darius::ResourceManager
 		if (load && resource->GetDirtyGPU())
 		{
 			auto& context = D_GRAPHICS::GraphicsContext::Begin(L"Resource uploader");
-			resource->UpdateGPU(context);
+			resource->UpdateGPU(&context);
 			context.Finish(true);
 		}
 		return resource;
@@ -74,7 +64,7 @@ namespace Darius::ResourceManager
 		if (load && resource->GetDirtyGPU())
 		{
 			auto& context = D_GRAPHICS::GraphicsContext::Begin(L"Resource uploader");
-			resource->UpdateGPU(context);
+			resource->UpdateGPU(&context);
 			context.Finish(true);
 		}
 		return resource;
@@ -90,16 +80,9 @@ namespace Darius::ResourceManager
 		return _ResourceManager->GetResourcePreviews(type);
 	}
 
-	ResourceHandle GetDefaultResource(DefaultResource type)
+	void UpdateGPUResources()
 	{
-		return _ResourceManager->GetDefaultResource(type);
-	}
-
-	void UpdateGPUResources(D_GRAPHICS::GraphicsContext& context)
-	{
-		PIXBeginEvent(context.GetCommandList(), PIX_COLOR_DEFAULT, "Update GPU Resources");
-		_ResourceManager->UpdateGPUResources(context);
-		PIXEndEvent(context.GetCommandList());
+		_ResourceManager->UpdateGPUResources();
 	}
 
 	void SaveAll()
@@ -157,136 +140,6 @@ namespace Darius::ResourceManager
 		return res;
 	}
 
-	void DResourceManager::LoadDefaultResources()
-	{
-		// Creating default meshes
-		{
-			auto box = D_RENDERER_GEOMETRY_GENERATOR::CreateBox(1.f, 1.f, 1.f, 0);
-			auto cylinder = D_RENDERER_GEOMETRY_GENERATOR::CreateCylinder(0.5f, 0.5f, 1, 40, 20);
-			auto geosphere = D_RENDERER_GEOMETRY_GENERATOR::CreateGeosphere(0.5f, 40);
-			auto grid = D_RENDERER_GEOMETRY_GENERATOR::CreateGrid(100.f, 100.f, 100, 100);
-			auto quad = D_RENDERER_GEOMETRY_GENERATOR::CreateQuad(0.f, 0.f, 1.f, 1.f, 0.f);
-			auto sphere = D_RENDERER_GEOMETRY_GENERATOR::CreateSphere(0.5f, 40, 40);
-			auto lowSphere = D_RENDERER_GEOMETRY_GENERATOR::CreateSphere(0.5f, 10, 6);
-			auto line = D_RENDERER_GEOMETRY_GENERATOR::CreateLine(0.f, 0.f, 0.f, 0.f, 0.f, -1.f);
-
-			auto resHandle = CreateResource<StaticMeshResource>(GenerateUuidFor("Box Mesh"), L"Box Mesh", L"Box Mesh", GetNewId(), true);
-			MultiPartMeshData<StaticMeshResource::VertexType> meshData;
-			meshData.meshParts = DVector<MeshData<StaticMeshResource::VertexType>>{ box };
-			auto res = _GetRawResource(resHandle);
-			((StaticMeshResource*)res)->Create(meshData);
-			res->mDirtyGPU = false;
-			res->mDirtyDisk = false;
-			mDefaultResourceMap.insert({ DefaultResource::BoxMesh, { StaticMeshResource::GetResourceType(), res->GetId()} });
-
-			resHandle = CreateResource<StaticMeshResource>(GenerateUuidFor("Cylinder Mesh"), L"Cylinder Mesh", L"Cylinder Mesh", GetNewId(), true);
-			meshData.meshParts = DVector<MeshData<StaticMeshResource::VertexType>>{ cylinder };
-			res = GetRawResource(resHandle);
-			((StaticMeshResource*)res)->Create(meshData);
-			res->mDirtyGPU = false;
-			res->mDirtyDisk = false;
-			mDefaultResourceMap.insert({ DefaultResource::CylinderMesh, { StaticMeshResource::GetResourceType(), res->GetId() } });
-
-			resHandle = CreateResource<StaticMeshResource>(GenerateUuidFor("Geosphere Mesh"), L"Geosphere Mesh", L"Geosphere Mesh", GetNewId(), true);
-			meshData.meshParts = DVector<MeshData<StaticMeshResource::VertexType>>{ geosphere };
-			res = GetRawResource(resHandle);
-			((StaticMeshResource*)res)->Create(meshData);
-			res->mDirtyGPU = false;
-			res->mDirtyDisk = false;
-			mDefaultResourceMap.insert({ DefaultResource::GeosphereMesh, { StaticMeshResource::GetResourceType(), res->GetId() } });
-
-			resHandle = CreateResource<StaticMeshResource>(GenerateUuidFor("Grid Mesh"), L"Grid Mesh", L"Grid Mesh", GetNewId(), true);
-			meshData.meshParts = DVector<MeshData<StaticMeshResource::VertexType>>{ grid };
-			res = GetRawResource(resHandle);
-			((StaticMeshResource*)res)->Create(meshData);
-			res->mDirtyGPU = false;
-			res->mDirtyDisk = false;
-			mDefaultResourceMap.insert({ DefaultResource::GridMesh, { StaticMeshResource::GetResourceType(), res->GetId() } });
-
-			resHandle = CreateResource<StaticMeshResource>(GenerateUuidFor("Quad Mesh"), L"Quad Mesh", L"Quad Mesh", GetNewId(), true);
-			meshData.meshParts = DVector<MeshData<StaticMeshResource::VertexType>>{ quad };
-			res = GetRawResource(resHandle);
-			((StaticMeshResource*)res)->Create(meshData);
-			res->mDirtyGPU = false;
-			res->mDirtyDisk = false;
-			mDefaultResourceMap.insert({ DefaultResource::QuadMesh, { StaticMeshResource::GetResourceType(), res->GetId() } });
-
-			resHandle = CreateResource<StaticMeshResource>(GenerateUuidFor("Sphere Mesh"), L"Sphere Mesh", L"Sphere Mesh", GetNewId(), true);
-			meshData.meshParts = DVector<MeshData<StaticMeshResource::VertexType>>{ sphere };
-			res = GetRawResource(resHandle);
-			((StaticMeshResource*)res)->Create(meshData);
-			res->mDirtyGPU = false;
-			res->mDirtyDisk = false;
-			mDefaultResourceMap.insert({ DefaultResource::SphereMesh, { StaticMeshResource::GetResourceType(), res->GetId() } });
-
-			resHandle = CreateResource<StaticMeshResource>(GenerateUuidFor("Low Poly Sphere Mesh"), L"Low Poly Sphere Mesh", L"Low Poly Sphere Mesh", GetNewId(), true);
-			meshData.meshParts = DVector<MeshData<StaticMeshResource::VertexType>>{ lowSphere };
-			res = GetRawResource(resHandle);
-			((StaticMeshResource*)res)->Create(meshData);
-			res->mDirtyGPU = false;
-			res->mDirtyDisk = false;
-			mDefaultResourceMap.insert({ DefaultResource::LowPolySphereMesh, { StaticMeshResource::GetResourceType(), res->GetId() } });
-
-			resHandle = CreateResource<BatchResource>(GenerateUuidFor("Line Mesh"), L"Line Mesh", L"Line Mesh", GetNewId(), true);
-			meshData.meshParts = DVector<MeshData<StaticMeshResource::VertexType>>{ line };
-			res = GetRawResource(resHandle);
-			((BatchResource*)res)->Create(meshData);
-			res->mDirtyGPU = false;
-			res->mDirtyDisk = false;
-			mDefaultResourceMap.insert({ DefaultResource::LineMesh, { BatchResource::GetResourceType(), res->GetId() } });
-		}
-
-		// Create default textures
-		{
-#define CreateDefaultTexture2D(name, color) \
-{ \
-	auto defaultTextureHandle = CreateResource<TextureResource>(GenerateUuidFor("Default Texture2D " #name), L"Default Texture2D " #name, L"Default Texture2D " #name, true, false); \
-	auto textureRes = (TextureResource*)GetRawResource(defaultTextureHandle); \
-	textureRes->CreateRaw(color, DXGI_FORMAT_R8G8B8A8_UNORM, 4, 1, 1); \
-	auto rRes = dynamic_cast<Resource*>(textureRes); \
-	rRes->mDirtyGPU = false; \
-	rRes->mDirtyDisk = false; \
-	mDefaultResourceMap.insert({ DefaultResource::Texture2D##name, { TextureResource::GetResourceType(), textureRes->GetId() } }); \
-}
-
-#define CreateDefaultTextureCubeMap(name, color) \
-{ \
-	auto defaultTextureHandle = CreateResource<TextureResource>(GenerateUuidFor("Default TextureCubeMap" #name), L"Default Texture2D " #name, L"Default Texture2D " #name, true, false); \
-	auto textureRes = (TextureResource*)GetRawResource(defaultTextureHandle); \
-	textureRes->CreateCubeMap(color, DXGI_FORMAT_R8G8B8A8_UNORM, 4, 1, 1); \
-	auto rRes = dynamic_cast<Resource*>(textureRes); \
-	rRes->mDirtyGPU = false; \
-	rRes->mDirtyDisk = false; \
-	mDefaultResourceMap.insert({ DefaultResource::TextureCubeMap##name, { TextureResource::GetResourceType(), textureRes->GetId() } }); \
-}
-
-			CreateDefaultTexture2D(Magenta, 0xFFFF00FF);
-			CreateDefaultTexture2D(BlackOpaque, 0xFF000000);
-			CreateDefaultTexture2D(BlackTransparent, 0x00000000);
-			CreateDefaultTexture2D(WhiteOpaque, 0xFFFFFFFF);
-			CreateDefaultTexture2D(WhiteTransparent, 0x00FFFFFF);
-			CreateDefaultTexture2D(NormalMap, 0x00FF8080);
-
-			uint32_t blackCubeTexels[6] = {};
-			CreateDefaultTextureCubeMap(Black, blackCubeTexels);
-		}
-
-		// Creating default materials
-		{
-			auto defaultMaterialHandle = CreateResource<MaterialResource>(GenerateUuidFor("Default Material"), L"Default Material", L"Default Material", true, false);
-			auto materialRes = (MaterialResource*)GetRawResource(defaultMaterialHandle);
-			auto mat = materialRes->ModifyMaterialData();
-			mat->DifuseAlbedo = XMFLOAT4(Vector4(kOne));
-			mat->FresnelR0 = XMFLOAT3(Vector3(kZero));
-			mat->Roughness = 0.2f;
-			auto rRes = dynamic_cast<Resource*>(materialRes);
-			rRes->mDirtyGPU = true;
-			rRes->mDirtyDisk = false;
-			mDefaultResourceMap.insert({ DefaultResource::Material, { MaterialResource::GetResourceType(), materialRes->GetId() } });
-		}
-
-	}
-
 	ResourceHandle DResourceManager::CreateMaterial(std::wstring const& dirpath)
 	{
 
@@ -297,7 +150,7 @@ namespace Darius::ResourceManager
 		auto path = parent.append(D_FILE::GetNewFileName(L"New Material", L".mat", parent));
 
 		// Create resource
-		auto handle = CreateResource<MaterialResource>(GenerateUuid(), path, D_FILE::GetFileName(path), false, false);
+		auto handle = CreateResource<D_GRAPHICS::MaterialResource>(GenerateUuid(), path, D_FILE::GetFileName(path), false, false);
 		auto res = GetRawResource(handle);
 		D_RESOURCE_LOADER::SaveResource(res);
 		return handle;
@@ -316,6 +169,7 @@ namespace Darius::ResourceManager
 		auto res = factory->Create(uuid, path, name, GetNewId(), isDefault);
 
 		res->mLoaded = !fromFile;
+		res->mDirtyDisk = !fromFile;
 
 		// Add the handle to path and resource maps
 		ResourceHandle handle = { type , res->GetId() };
@@ -324,22 +178,20 @@ namespace Darius::ResourceManager
 		return handle;
 	}
 
-	ResourceHandle DResourceManager::GetDefaultResource(DefaultResource type)
+	void DResourceManager::UpdateGPUResources()
 	{
-		return mDefaultResourceMap.at(type);
-	}
-
-	void DResourceManager::UpdateGPUResources(D_GRAPHICS::GraphicsContext& context)
-	{
+		// TODO: Paralelize gpu resource update
+		D_GRAPHICS::GraphicsContext& context = D_GRAPHICS::GraphicsContext::Begin(L"Updating GPU Resources");
 		for (auto& resType : mResourceMap)
 		{
 			for (auto& res : resType.second)
 			{
 				auto resource = res.second;
 				if (resource->GetDirtyGPU() && resource->GetLoaded())
-					resource->UpdateGPU(context);
+					resource->UpdateGPU(&context);
 			}
 		}
+		context.Finish();
 	}
 
 	void DResourceManager::UpdateMaps(std::shared_ptr<Resource> resource)

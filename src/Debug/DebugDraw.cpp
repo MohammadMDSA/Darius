@@ -38,16 +38,16 @@ namespace Darius::Debug
 
 	D_CONTAINERS::DUnorderedMap<double, std::pair<D_RENDERER_FRAME_RESOUCE::RenderItem, D_MATH::Transform>> DrawsWithDuration;
 
-	D_CORE::Ref<D_RESOURCE::StaticMeshResource>	DebugDraw::CubeMeshResource;
-	D_CORE::Ref<D_RESOURCE::StaticMeshResource>	DebugDraw::SphereMeshResource;
+	D_CORE::Ref<D_GRAPHICS::StaticMeshResource>	DebugDraw::CubeMeshResource;
+	D_CORE::Ref<D_GRAPHICS::StaticMeshResource>	DebugDraw::SphereMeshResource;
 
 #endif // _DEBUG
 
 	void DebugDraw::Initialize()
 	{
 #ifdef _DEBUG
-		CubeMeshResource = GetResource<D_RESOURCE::StaticMeshResource>(GetDefaultResource(D_RESOURCE::DefaultResource::BoxMesh));
-		SphereMeshResource = GetResource<D_RESOURCE::StaticMeshResource>(GetDefaultResource(D_RESOURCE::DefaultResource::LowPolySphereMesh));
+		CubeMeshResource = GetResource<D_GRAPHICS::StaticMeshResource>(D_GRAPHICS::GetDefaultGraphicsResource(D_GRAPHICS::DefaultResource::BoxMesh));
+		SphereMeshResource = GetResource<D_GRAPHICS::StaticMeshResource>(D_GRAPHICS::GetDefaultGraphicsResource(D_GRAPHICS::DefaultResource::LowPolySphereMesh));
 
 		// Initializing Mesh Constants buffers
 		for (size_t i = 0; i < D_RENDERER_FRAME_RESOUCE::gNumFrameResources; i++)

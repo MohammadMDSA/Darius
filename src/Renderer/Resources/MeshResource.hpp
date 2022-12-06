@@ -1,20 +1,22 @@
 #pragma once
 
-#include "Resource.hpp"
+#include "Renderer/Geometry/MeshData.hpp"
+#include "Renderer/Geometry/Mesh.hpp"
+#include "Renderer/GraphicsUtils/VertexTypes.hpp"
 
-#include <Renderer/Geometry/MeshData.hpp>
-#include <Renderer/Geometry/Mesh.hpp>
-#include <Renderer/GraphicsUtils/VertexTypes.hpp>
+#include <ResourceManager/Resource.hpp>
 #include <Utils/Assert.hpp>
 
-#ifndef D_RESOURCE
-#define D_RESOURCE Darius::ResourceManager
-#endif // !D_RESOURCE
+#ifndef D_GRAPHICS
+#define D_GRAPHICS Darius::Graphics
+#endif
 
 using namespace D_RENDERER_GEOMETRY;
 using namespace D_CORE;
 
-namespace Darius::ResourceManager
+using namespace D_RESOURCE;
+
+namespace Darius::Graphics
 {
 	class DResourceManager;
 

@@ -1,7 +1,7 @@
 #pragma once
 
 #include <Math/VectorMath.hpp>
-#include <ResourceManager/ResourceTypes/Resource.hpp>
+#include <ResourceManager/Resource.hpp>
 
 #include <PxPhysicsAPI.h>
 

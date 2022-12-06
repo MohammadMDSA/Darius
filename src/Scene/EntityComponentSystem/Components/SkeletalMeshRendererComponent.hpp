@@ -3,8 +3,8 @@
 #include "ComponentBase.hpp"
 
 #include <Core/Ref.hpp>
-#include <ResourceManager/ResourceTypes/SkeletalMeshResource.hpp>
-#include <ResourceManager/ResourceTypes/MaterialResource.hpp>
+#include <Renderer/Resources/SkeletalMeshResource.hpp>
+#include <Renderer/Resources/MaterialResource.hpp>
 
 #ifndef D_ECS_COMP
 #define D_ECS_COMP Darius::Scene::ECS::Components

@@ -1,11 +1,12 @@
-#include "ResourceManager/pch.hpp"
+#include "Renderer/pch.hpp"
 #include "StaticMeshResource.hpp"
-#include "ResourceManager/ResourceManager.hpp"
+
+#include "Renderer/RenderDeviceManager.hpp"
+#include "Renderer/GraphicsCore.hpp"
 
 #include <Core/Filesystem/Path.hpp>
 #include <Core/Containers/Set.hpp>
-#include <Renderer/RenderDeviceManager.hpp>
-#include <Renderer/GraphicsCore.hpp>
+#include <ResourceManager/ResourceManager.hpp>
 
 #define FBXSDK_SHARED
 
@@ -15,7 +16,7 @@
 using namespace D_RENDERER_GEOMETRY;
 using namespace D_CONTAINERS;
 
-namespace Darius::ResourceManager
+namespace Darius::Graphics
 {
 
 	D_CH_RESOURCE_DEF(StaticMeshResource);
@@ -81,8 +82,10 @@ namespace Darius::ResourceManager
 
 	}
 
-	bool StaticMeshResource::UploadToGpu(D_GRAPHICS::GraphicsContext& context)
+	bool StaticMeshResource::UploadToGpu(void* ctx)
 	{
+		D_GRAPHICS::GraphicsContext& context = *reinterpret_cast<D_GRAPHICS::GraphicsContext*>(ctx);
+
 		// Create the FBX SDK manager
 		FbxManager* lSdkManager = FbxManager::Create();
 

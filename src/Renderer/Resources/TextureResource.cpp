@@ -1,11 +1,11 @@
-#include "ResourceManager/pch.hpp"
+#include "Renderer/pch.hpp"
 #include "TextureResource.hpp"
 
-#include "ResourceManager/ResourceManager.hpp"
+#include <ResourceManager/ResourceManager.hpp>
 
 #include <imgui.h>
 
-namespace Darius::ResourceManager
+namespace Darius::Graphics
 {
 	D_CH_RESOURCE_DEF(TextureResource);
 
@@ -54,8 +54,10 @@ namespace Darius::ResourceManager
 	}
 #endif // _D_EDITOR
 
-	bool TextureResource::UploadToGpu(D_GRAPHICS::GraphicsContext& context)
+	bool TextureResource::UploadToGpu(void* ctx)
 	{
+		D_GRAPHICS::GraphicsContext& context = *reinterpret_cast<D_GRAPHICS::GraphicsContext*>(ctx);
+
 		auto path = GetPath();
 		auto ext = path.extension().string();
 		if (ext == ".dds")

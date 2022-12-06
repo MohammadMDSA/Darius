@@ -4,7 +4,7 @@
 
 #include <Core/Containers/Map.hpp>
 #include <ResourceManager/ResourceManager.hpp>
-#include <ResourceManager/ResourceTypes/Resource.hpp>
+#include <ResourceManager/Resource.hpp>
 
 #ifndef D_ANIMATION
 #define D_ANIMATION Darius::Animation
@@ -26,7 +26,7 @@ namespace Darius::Animation
 
 		virtual INLINE void				WriteResourceToFile(D_SERIALIZATION::Json& json) const override { throw D_EXCEPTION::UnsupportedException(); };
 		virtual void					ReadResourceFromFile(D_SERIALIZATION::Json const& json) override;
-		virtual INLINE bool				UploadToGpu(D_GRAPHICS::GraphicsContext& context) { return true; };
+		virtual INLINE bool				UploadToGpu(void* context) override { return true; };
 		virtual INLINE void				Unload() override { EvictFromGpu(); }
 
 		D_CONTAINERS::DUnorderedMap<std::string, int> const& GetSkeletonNameIndexMap() const { return mSkeletonNameIndexMap; }

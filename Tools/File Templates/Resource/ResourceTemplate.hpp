@@ -22,7 +22,7 @@ namespace %%NAMESPACE%%
 
 		virtual void					WriteResourceToFile(D_SERIALIZATION::Json& j) const override;
 		virtual void					ReadResourceFromFile(D_SERIALIZATION::Json const& j) override;
-		virtual bool					UploadToGpu(D_GRAPHICS::GraphicsContext& context);
+		virtual bool					UploadToGpu(void* context) override;
 		virtual INLINE void				Unload() override { EvictFromGpu(); }
 
 	protected:

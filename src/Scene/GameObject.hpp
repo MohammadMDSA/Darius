@@ -14,8 +14,6 @@
 #include <Renderer/CommandContext.hpp>
 #include <Renderer/GraphicsUtils/Buffers/UploadBuffer.hpp>
 #include <Renderer/GraphicsUtils/Buffers/GpuBuffer.hpp>
-#include <ResourceManager/ResourceTypes/MeshResource.hpp>
-#include <ResourceManager/ResourceTypes/MaterialResource.hpp>
 #include <Utils/Detailed.hpp>
 
 #include <map>
@@ -29,7 +27,6 @@
 using namespace D_MATH;
 using namespace D_RENDERER_FRAME_RESOUCE;
 using namespace D_GRAPHICS_BUFFERS;
-using namespace D_RESOURCE;
 using namespace D_CORE;
 
 namespace Darius::Scene::ECS::Components

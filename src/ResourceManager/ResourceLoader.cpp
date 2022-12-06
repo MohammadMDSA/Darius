@@ -1,8 +1,6 @@
 #include "pch.hpp"
 #include "ResourceLoader.hpp"
 #include "ResourceManager.hpp"
-#include "ResourceTypes/MeshResource.hpp"
-#include "ResourceTypes/MaterialResource.hpp"
 
 #include <Core/Serialization/Json.hpp>
 #include <Core/Exceptions/Exception.hpp>
@@ -259,7 +257,7 @@ namespace Darius::ResourceManager
 
 	void to_json(D_SERIALIZATION::Json& j, const ResourceFileMeta& value)
 	{
-		j["Path"] = value.FileName;
+		j["Path"] = STR_WSTR(value.FileName);
 		j["Resources"] = value.Resources;
 	}
 

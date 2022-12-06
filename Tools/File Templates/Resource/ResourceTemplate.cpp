@@ -20,7 +20,7 @@ namespace %%NAMESPACE%%
 		
 	}
 
-	bool %%CLASS_NAME%%::UploadToGpu(D_GRAPHICS::GraphicsContext& context)
+	bool %%CLASS_NAME%%::UploadToGpu(void* context)
 	{
 		return true;
 	}

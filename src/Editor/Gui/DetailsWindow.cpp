@@ -4,6 +4,8 @@
 
 #include <ResourceManager/ResourceLoader.hpp>
 
+using namespace D_RESOURCE;
+
 namespace Darius::Editor::Gui::Windows
 {
 

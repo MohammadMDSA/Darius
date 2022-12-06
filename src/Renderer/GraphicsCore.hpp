@@ -6,6 +6,9 @@
 #include "GraphicsUtils/RootSignature.hpp"
 #include "GraphicsUtils/PipelineState.hpp"
 
+#include <ResourceManager/Resource.hpp>
+#include <ResourceManager/ResourceManager.hpp>
+
 #define D_GRAPHICS Darius::Graphics
 
 using namespace D_GRAPHICS_UTILS;
@@ -25,21 +28,33 @@ namespace Darius::Graphics
 	CommandListManager* GetCommandManager();
 	ContextManager*		GetContextManager();
 
-	enum DefaultTexture
+	enum class DefaultResource
 	{
-		kMagenta2D,  // Useful for indicating missing textures
-		kBlackOpaque2D,
-		kBlackTransparent2D,
-		kWhiteOpaque2D,
-		kWhiteTransparent2D,
-		kDefaultNormalMap,
-		kBlackCubeMap,
+		// Meshes
+		BoxMesh,
+		CylinderMesh,
+		GeosphereMesh,
+		GridMesh,
+		QuadMesh,
+		SphereMesh,
+		LowPolySphereMesh,
+		LineMesh,
 
-		kNumDefaultTextures
+		// Materials
+		Material,
+
+		// Textures
+		Texture2DMagenta,
+		Texture2DBlackOpaque,
+		Texture2DBlackTransparent,
+		Texture2DWhiteOpaque,
+		Texture2DWhiteTransparent,
+		Texture2DNormalMap,
+		TextureCubeMapBlack
 	};
 
-	D3D12_CPU_DESCRIPTOR_HANDLE GetDefaultTexture(DefaultTexture texID);
-	
+	D_RESOURCE::ResourceHandle GetDefaultGraphicsResource(DefaultResource type);
+
 	extern std::unordered_map<std::string, ComPtr<ID3DBlob>>	Shaders;
 
 	extern SamplerDesc SamplerLinearWrapDesc;

@@ -1,6 +1,6 @@
 #pragma once
 
-#include <ResourceManager/ResourceTypes/Resource.hpp>
+#include <ResourceManager/Resource.hpp>
 
 #ifndef D_PHYSICS
 #define D_PHYSICS Darius::Physics
@@ -27,7 +27,7 @@ namespace Darius::Physics
 
 		virtual void					WriteResourceToFile(D_SERIALIZATION::Json& j) const override;
 		virtual void					ReadResourceFromFile(D_SERIALIZATION::Json const& j) override;
-		virtual bool					UploadToGpu(D_GRAPHICS::GraphicsContext& context);
+		virtual bool					UploadToGpu(void* context) override;
 		virtual void					Unload() override;
 
 		INLINE operator physx::PxMaterial const& () const { return *mPxData; }
