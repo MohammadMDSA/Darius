@@ -149,7 +149,7 @@ namespace Darius::Debug
 		}
 	}
 
-	void DebugDraw::Clear(bool clearCache = false)
+	void DebugDraw::Clear(bool clearCache)
 	{
 		const std::lock_guard<std::mutex> lock(AdditionMutex);
 		DrawPending.clear();

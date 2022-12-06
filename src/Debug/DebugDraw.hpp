@@ -22,7 +22,7 @@ namespace Darius::Debug
 
 #ifdef _DEBUG
 		static void FinalizeUpload();
-		static void Clear(bool clearCache);
+		static void Clear(bool clearCache = false);
 
 		static void GetRenderItems(D_RENDERER::MeshSorter& sorter);
 
@@ -30,7 +30,7 @@ namespace Darius::Debug
 		static void DrawSphere(D_MATH::Vector3 position, float radius, double duration = 0.f, D_MATH::Color color = { 1.f, 1.f, 1.f, 1.f });
 #else
 		static INLINE void FinalizeUpload() {}
-		static INLINE void Clear(bool clearCache) {}
+		static INLINE void Clear(bool clearCache = false) {}
 
 		static INLINE void GetRenderItems(D_RENDERER::MeshSorter& sorter) {}
 
