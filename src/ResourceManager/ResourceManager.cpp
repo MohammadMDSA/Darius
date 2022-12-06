@@ -3,7 +3,6 @@
 #include "Resource.hpp"
 #include "ResourceLoader.hpp"
 
-#include <Renderer/Resources/MaterialResource.hpp>
 #include <Renderer/CommandContext.hpp>
 
 #include <Core/Filesystem/Path.hpp>
@@ -138,22 +137,6 @@ namespace Darius::ResourceManager
 		}
 
 		return res;
-	}
-
-	ResourceHandle DResourceManager::CreateMaterial(std::wstring const& dirpath)
-	{
-
-		if (!D_H_ENSURE_DIR(dirpath))
-			throw D_EXCEPTION::FileNotFoundException("Specified directory not found: " + STR_WSTR(dirpath));
-		auto parent = Path(dirpath);
-
-		auto path = parent.append(D_FILE::GetNewFileName(L"New Material", L".mat", parent));
-
-		// Create resource
-		auto handle = CreateResource<D_GRAPHICS::MaterialResource>(GenerateUuid(), path, D_FILE::GetFileName(path), false, false);
-		auto res = GetRawResource(handle);
-		D_RESOURCE_LOADER::SaveResource(res);
-		return handle;
 	}
 
 	ResourceHandle DResourceManager::CreateResource(ResourceType type, Uuid uuid, std::wstring const& path, std::wstring const& name, bool isDefault, bool fromFile)
