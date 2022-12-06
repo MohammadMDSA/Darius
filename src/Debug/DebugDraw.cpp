@@ -161,7 +161,7 @@ namespace Darius::Debug
 
 		int index = 0;
 
-		for (auto it = DrawsWithDuration.begin(); it != DrawsWithDuration.end(); index++)
+		for (auto it = DrawsWithDuration.begin(); it != DrawsWithDuration.end();)
 		{
 			if (it->first < now)
 				DrawsWithDuration.erase(it++);
@@ -171,6 +171,7 @@ namespace Darius::Debug
 				auto& ri = it->second.first;
 				ri.MeshCBV = MeshConstantsGPU.GetGpuVirtualAddress() + sizeof(D_RENDERER_FRAME_RESOUCE::MeshConstants) * index;
 				DrawPending.push_back(ri);
+				index++;
 				it++;
 			}
 		}
