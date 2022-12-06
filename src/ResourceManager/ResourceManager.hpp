@@ -95,8 +95,6 @@ namespace Darius::ResourceManager
 
 		DVector<ResourcePreview>	GetResourcePreviews(ResourceType type);
 
-		ResourceHandle				CreateMaterial(std::wstring const& dirpath);
-
 		template<class T>
 		INLINE ResourceHandle		CreateResource(Uuid uuid, std::wstring const& path, std::wstring const& name, bool isDefault = false) {
 			if (D_H_ENSURE_DIR(path))

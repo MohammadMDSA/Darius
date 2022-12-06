@@ -16,8 +16,8 @@
 #include <Math/VectorMath.hpp>
 #include <Physics/Resources/PhysicsMaterialResource.hpp>
 #include <Renderer/Renderer.hpp>
-#include <Renderer/Camera/CameraManager.hpp>
 #include <Renderer/GraphicsUtils/Profiling/Profiling.hpp>
+#include <Renderer/Resources/MaterialResource.hpp>
 #include <ResourceManager/ResourceManager.hpp>
 #include <ResourceManager/ResourceLoader.hpp>
 #include <Scene/EntityComponentSystem/Components/TransformComponent.hpp>
@@ -319,7 +319,7 @@ namespace Darius::Editor::Gui::GuiManager
 				{
 					if (ImGui::MenuItem("Material"))
 					{
-						D_RESOURCE::GetManager()->CreateMaterial(D_EDITOR_CONTEXT::GetAssetsPath());
+						ImGuiFileDialog::Instance()->OpenDialog("SaveResource", "Create Material", ".mat", D_EDITOR_CONTEXT::GetAssetsPath().string(), 1, (void*)D_GRAPHICS::MaterialResource::GetResourceType());
 					}
 
 					ImGui::Separator();
