@@ -29,7 +29,7 @@ namespace Darius::ResourceManager
 		mEmissiveTextureHandle = D_RESOURCE::GetDefaultResource(D_RESOURCE::DefaultResource::Texture2DBlackOpaque);
 	}
 
-	void MaterialResource::WriteResourceToFile() const
+	void MaterialResource::WriteResourceToFile(D_SERIALIZATION::Json& j) const
 	{
 		float* defalb = (float*)&mMaterial.DifuseAlbedo;
 		float* fren = (float*)&mMaterial.FresnelR0;
@@ -63,7 +63,7 @@ namespace Darius::ResourceManager
 		os << data;
 	}
 
-	void MaterialResource::ReadResourceFromFile()
+	void MaterialResource::ReadResourceFromFile(D_SERIALIZATION::Json const& j)
 	{
 
 		Json data;
@@ -111,10 +111,10 @@ namespace Darius::ResourceManager
 		if (mMaterialConstantsGPU.GetGpuVirtualAddress() == D3D12_GPU_VIRTUAL_ADDRESS_NULL)
 		{
 			// Load resources
-			mBaseColorTexture = D_RESOURCE::GetResource<Texture2DResource>(mBaseColorTextureHandle, *this);
-			mNormalTexture = D_RESOURCE::GetResource<Texture2DResource>(mNormalTextureHandle, *this);
-			mRoughnessTexture = D_RESOURCE::GetResource<Texture2DResource>(mRoughnessTextureHandle, *this);
-			mEmissiveTexture = D_RESOURCE::GetResource<Texture2DResource>(mEmissiveTextureHandle, *this);
+			mBaseColorTexture = D_RESOURCE::GetResource<TextureResource>(mBaseColorTextureHandle, *this);
+			mNormalTexture = D_RESOURCE::GetResource<TextureResource>(mNormalTextureHandle, *this);
+			mRoughnessTexture = D_RESOURCE::GetResource<TextureResource>(mRoughnessTextureHandle, *this);
+			mEmissiveTexture = D_RESOURCE::GetResource<TextureResource>(mEmissiveTextureHandle, *this);
 
 			// Initializing Material Constants buffers
 			for (size_t i = 0; i < D_RENDERER_FRAME_RESOUCE::gNumFrameResources; i++)
@@ -159,7 +159,7 @@ namespace Darius::ResourceManager
 	void MaterialResource::SetTexture(ResourceHandle textureHandle, D_RENDERER::TextureType type)
 	{
 
-		if (textureHandle.Type != Texture2DResource::GetResourceType())
+		if (textureHandle.Type != TextureResource::GetResourceType())
 		{
 			mMaterial.TextureStatusMask &= ~(1 << type);
 			switch (type)
@@ -196,7 +196,7 @@ namespace Darius::ResourceManager
 
 #define SetTex(name) \
 m##name##TextureHandle = textureHandle; \
-m##name##Texture = D_RESOURCE::GetResource<Texture2DResource>(textureHandle, *this); \
+m##name##Texture = D_RESOURCE::GetResource<TextureResource>(textureHandle, *this); \
 device->CopyDescriptorsSimple(1, mTexturesHeap + type * incSize, m##name##Texture->GetTextureData()->GetSRV(), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 
 		auto& context = D_GRAPHICS::GraphicsContext::Begin(L"Set Material Texture");
@@ -232,7 +232,7 @@ device->CopyDescriptorsSimple(1, mTexturesHeap + type * incSize, m##name##Textur
 	{
 #define DrawTexture2DHolder(prop, type) \
 { \
-	Texture2DResource* currentTexture = prop.Get(); \
+	TextureResource* currentTexture = prop.Get(); \
  \
 	bool hasTexture = (mMaterial.TextureStatusMask & (1 << type)); \
 	auto curName = hasTexture ? prop->GetName() : L"<None>"; \
@@ -253,7 +253,7 @@ device->CopyDescriptorsSimple(1, mTexturesHeap + type * incSize, m##name##Textur
 			valueChanged = true; \
 		} \
 			 \
-		auto meshes = D_RESOURCE::GetResourcePreviews(Texture2DResource::GetResourceType()); \
+		auto meshes = D_RESOURCE::GetResourcePreviews(TextureResource::GetResourceType()); \
 		int idx = 0; \
 		for (auto prev : meshes) \
 		{ \

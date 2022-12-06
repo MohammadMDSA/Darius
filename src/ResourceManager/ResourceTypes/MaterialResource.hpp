@@ -1,7 +1,7 @@
 #pragma once
 
 #include "Resource.hpp"
-#include "Texture2DResource.hpp"
+#include "TextureResource.hpp"
 
 #include <Core/Ref.hpp>
 #include <Renderer/FrameResource.hpp>
@@ -48,10 +48,10 @@ namespace Darius::ResourceManager
 		}
 			
 		D_CH_FIELD(MaterialConstants, Material);
-		D_CH_R_FIELD(Ref<Texture2DResource>, BaseColorTexture);
-		D_CH_R_FIELD(Ref<Texture2DResource>, NormalTexture);
-		D_CH_R_FIELD(Ref<Texture2DResource>, RoughnessTexture);
-		D_CH_R_FIELD(Ref<Texture2DResource>, EmissiveTexture);
+		D_CH_R_FIELD(Ref<TextureResource>, BaseColorTexture);
+		D_CH_R_FIELD(Ref<TextureResource>, NormalTexture);
+		D_CH_R_FIELD(Ref<TextureResource>, RoughnessTexture);
+		D_CH_R_FIELD(Ref<TextureResource>, EmissiveTexture);
 		D_CH_R_FIELD(ResourceHandle, BaseColorTextureHandle);
 		D_CH_R_FIELD(ResourceHandle, NormalTextureHandle);
 		D_CH_R_FIELD(ResourceHandle, RoughnessTextureHandle);
@@ -59,8 +59,8 @@ namespace Darius::ResourceManager
 
 	protected:
 
-		virtual void						WriteResourceToFile() const override;
-		virtual void						ReadResourceFromFile() override;
+		virtual void						WriteResourceToFile(D_SERIALIZATION::Json& j) const override;
+		virtual void						ReadResourceFromFile(D_SERIALIZATION::Json const& j) override;
 		virtual bool						UploadToGpu(D_GRAPHICS::GraphicsContext& context) override;
 		INLINE virtual void					Unload() override { EvictFromGpu(); }
 

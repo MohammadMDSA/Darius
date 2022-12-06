@@ -10,12 +10,12 @@ namespace %%NAMESPACE%%
 
 	D_CH_RESOURCE_DEF(%%CLASS_NAME%%);
 
-	void %%CLASS_NAME%%::WriteResourceToFile() const
+	void %%CLASS_NAME%%::WriteResourceToFile(D_SERIALIZATION::Json& j) const
 	{
 		
 	}
 
-	void %%CLASS_NAME%%::ReadResourceFromFile()
+	void %%CLASS_NAME%%::ReadResourceFromFile(D_SERIALIZATION::Json const& j)
 	{
 		
 	}

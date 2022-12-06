@@ -5,7 +5,7 @@
 #include "ResourceTypes/SkeletalMeshResource.hpp"
 #include "ResourceTypes/MaterialResource.hpp"
 #include "ResourceTypes/BatchResource.hpp"
-#include "ResourceTypes/Texture2DResource.hpp"
+#include "ResourceTypes/TextureResource.hpp"
 #include "ResourceLoader.hpp"
 
 #include <Core/Filesystem/Path.hpp>
@@ -29,7 +29,7 @@ namespace Darius::ResourceManager
 
 		_ResourceManager = std::make_unique<DResourceManager>();
 
-		Texture2DResource::Register();
+		TextureResource::Register();
 		StaticMeshResource::Register();
 		SkeletalMeshResource::Register();
 		MaterialResource::Register();
@@ -240,13 +240,13 @@ namespace Darius::ResourceManager
 		{
 #define CreateDefaultTexture2D(name, color) \
 { \
-	auto defaultTextureHandle = CreateResource<Texture2DResource>(GenerateUuidFor("Default Texture2D " #name), L"Default Texture2D " #name, L"Default Texture2D " #name, true, false); \
-	auto textureRes = (Texture2DResource*)GetRawResource(defaultTextureHandle); \
+	auto defaultTextureHandle = CreateResource<TextureResource>(GenerateUuidFor("Default Texture2D " #name), L"Default Texture2D " #name, L"Default Texture2D " #name, true, false); \
+	auto textureRes = (TextureResource*)GetRawResource(defaultTextureHandle); \
 	textureRes->CreateRaw(color, DXGI_FORMAT_R8G8B8A8_UNORM, 4, 1, 1); \
 	auto rRes = dynamic_cast<Resource*>(textureRes); \
 	rRes->mDirtyGPU = false; \
 	rRes->mDirtyDisk = false; \
-	mDefaultResourceMap.insert({ DefaultResource::Texture2D##name, { Texture2DResource::GetResourceType(), textureRes->GetId() } }); \
+	mDefaultResourceMap.insert({ DefaultResource::Texture2D##name, { TextureResource::GetResourceType(), textureRes->GetId() } }); \
 }
 
 			CreateDefaultTexture2D(Magenta, 0xFFFF00FF);

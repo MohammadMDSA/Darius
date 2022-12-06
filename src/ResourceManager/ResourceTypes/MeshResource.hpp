@@ -42,8 +42,8 @@ namespace Darius::ResourceManager
 		MeshResource(Uuid uuid, std::wstring const& path, std::wstring const& name, DResourceId id, bool isDefault = false) :
 			Resource(uuid, path, name, id, isDefault) {}
 
-		INLINE virtual void				WriteResourceToFile() const override {};
-		INLINE virtual void				ReadResourceFromFile() override {};
+		INLINE virtual void				WriteResourceToFile(D_SERIALIZATION::Json&) const override {};
+		INLINE virtual void				ReadResourceFromFile(D_SERIALIZATION::Json const&) override {};
 		INLINE virtual void				Unload() override { EvictFromGpu(); }
 
 		

@@ -21,7 +21,7 @@ namespace Darius::ResourceManager
 	public:
 		static bool				SaveResource(Resource* resource);
 
-		static DVector<ResourceHandle> CreateReourceFromMeta(Path path, bool& foundMeta);
+		static DVector<ResourceHandle> CreateReourceFromMeta(Path path, bool& foundMeta, Json& jMeta);
 
 		static ResourceHandle	LoadResource(Resource* resource);
 		static DVector<ResourceHandle>	LoadResource(Path path, bool metaOnly = false);

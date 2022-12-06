@@ -19,7 +19,7 @@ namespace Darius::Physics
 		mPxData = core->createMaterial(0.5f, 0.5f, 0.5f);
 	}
 
-	void PhysicsMaterialResource::WriteResourceToFile() const
+	void PhysicsMaterialResource::WriteResourceToFile(D_SERIALIZATION::Json& json) const
 	{
 		if (!mPxData)
 			return;
@@ -35,7 +35,7 @@ namespace Darius::Physics
 		os.close();
 	}
 
-	void PhysicsMaterialResource::ReadResourceFromFile()
+	void PhysicsMaterialResource::ReadResourceFromFile(D_SERIALIZATION::Json const& json)
 	{
 		Json j;
 		std::ifstream is(GetPath());
