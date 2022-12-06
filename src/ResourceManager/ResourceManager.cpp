@@ -249,6 +249,17 @@ namespace Darius::ResourceManager
 	mDefaultResourceMap.insert({ DefaultResource::Texture2D##name, { TextureResource::GetResourceType(), textureRes->GetId() } }); \
 }
 
+#define CreateDefaultTextureCubeMap(name, color) \
+{ \
+	auto defaultTextureHandle = CreateResource<TextureResource>(GenerateUuidFor("Default TextureCubeMap" #name), L"Default Texture2D " #name, L"Default Texture2D " #name, true, false); \
+	auto textureRes = (TextureResource*)GetRawResource(defaultTextureHandle); \
+	textureRes->CreateCubeMap(color, DXGI_FORMAT_R8G8B8A8_UNORM, 4, 1, 1); \
+	auto rRes = dynamic_cast<Resource*>(textureRes); \
+	rRes->mDirtyGPU = false; \
+	rRes->mDirtyDisk = false; \
+	mDefaultResourceMap.insert({ DefaultResource::TextureCubeMap##name, { TextureResource::GetResourceType(), textureRes->GetId() } }); \
+}
+
 			CreateDefaultTexture2D(Magenta, 0xFFFF00FF);
 			CreateDefaultTexture2D(BlackOpaque, 0xFF000000);
 			CreateDefaultTexture2D(BlackTransparent, 0x00000000);
@@ -256,6 +267,8 @@ namespace Darius::ResourceManager
 			CreateDefaultTexture2D(WhiteTransparent, 0x00FFFFFF);
 			CreateDefaultTexture2D(NormalMap, 0x00FF8080);
 
+			uint32_t blackCubeTexels[6] = {};
+			CreateDefaultTextureCubeMap(Black, blackCubeTexels);
 		}
 
 		// Creating default materials

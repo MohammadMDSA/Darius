@@ -24,7 +24,12 @@ namespace Darius::ResourceManager
 		mTexture.Create2D(rowPitchByte, width, height, format, &color);
 	}
 
-	
+	void TextureResource::CreateCubeMap(uint32_t* color, DXGI_FORMAT format, size_t rowPitchByte, size_t width, size_t height)
+	{
+		mTexture.CreateCube(rowPitchByte, width, height, format, color);
+
+	}
+
 #ifdef _D_EDITOR
 	bool TextureResource::DrawDetails(float params[])
 	{
