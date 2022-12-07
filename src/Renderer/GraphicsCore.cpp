@@ -405,6 +405,10 @@ namespace Darius::Graphics
 		Shaders["colorPS"] = CompileShader(L"Shaders\\SimpleColorPS.hlsl", nullptr, "main", "ps_5_1");
 		Shaders["skinnedVS"] = CompileShader(L"Shaders\\SkinnedVS.hlsl", nullptr, "main", "vs_5_1");
 
+		// Skybox
+		Shaders["skyboxVS"] = CompileShader(L"Shaders\\SkyboxVS.hlsl", nullptr, "main", "vs_5_1");
+		Shaders["skyboxPs"] = CompileShader(L"Shaders\\SkyboxPS.hlsl", nullptr, "main", "ps_5_1");
+
 	}
 
 	void LoadDefaultResources()
