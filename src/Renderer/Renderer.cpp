@@ -12,6 +12,7 @@
 #include "GraphicsUtils/VertexTypes.hpp"
 #include "Camera/CameraManager.hpp"
 #include "GraphicsUtils/Profiling/Profiling.hpp"
+#include "Resources/TextureResource.hpp"
 
 #include <imgui.h>
 #include <implot/implot.h>
@@ -57,6 +58,11 @@ namespace Darius::Renderer
 	DescriptorHandle									CommonTexture;
 	DescriptorHandle									CommonTextureSamplers;
 
+	D_CORE::Ref<TextureResource>						RadianceCubeMap;
+	D_CORE::Ref<TextureResource>						IrradianceCubeMap;
+	D_CORE::Ref<TextureResource>						DefaultBlackCubeMap;
+	float												SpecularIBLRange;
+
 	//////////////////////////////////////////////////////
 	// Functions
 #ifdef _D_EDITOR
@@ -87,6 +93,7 @@ namespace Darius::Renderer
 		InitializeGUI();
 #endif // _D_EDITOR
 
+		DefaultBlackCubeMap = D_RESOURCE::GetResource<D_GRAPHICS::TextureResource>(GetDefaultGraphicsResource(D_GRAPHICS::DefaultResource::TextureCubeMapBlack), nullptr, std::wstring(L"Renderer"), std::wstring(L"Engine Subsystem"));
 	}
 
 	void Shutdown()
@@ -215,6 +222,55 @@ namespace Darius::Renderer
 			wireColorPso.SetRasterizerState(D_GRAPHICS::RasterizerTwoSidedMsaaWireframe);
 			wireColorPso.Finalize(L"Color Wireframe Two Sided");
 		}
+
+		// Skybox
+		{
+			Psos[(size_t)PipelineStateTypes::SkyboxPso] = Psos[(size_t)PipelineStateTypes::OpaquePso];
+			auto& skyboxPso = Psos[(size_t)PipelineStateTypes::ColorWireframeTwoSidedPso];
+			skyboxPso.SetDepthStencilState(DepthStateReadOnly);
+			skyboxPso.SetInputLayout(0, nullptr);
+			skyboxPso.SetVertexShader(reinterpret_cast<BYTE*>(Shaders["skyboxVS"]->GetBufferPointer()), Shaders["skyboxVS"]->GetBufferSize());
+			skyboxPso.SetPixelShader(reinterpret_cast<BYTE*>(Shaders["skyboxPS"]->GetBufferPointer()), Shaders["skyboxPS"]->GetBufferSize());
+			skyboxPso.Finalize(L"Skybox");
+		}
+	}
+
+	void SetIBLTextures(D_CORE::Ref<TextureResource>& diffuseIBL, D_CORE::Ref<TextureResource>& specularIBL)
+	{
+		RadianceCubeMap = specularIBL;
+		IrradianceCubeMap = diffuseIBL;
+
+		SpecularIBLRange = 0.f;
+		if (RadianceCubeMap.IsValid())
+		{
+			auto texRes = const_cast<ID3D12Resource*>(RadianceCubeMap->GetTextureData()->GetResource());
+			const D3D12_RESOURCE_DESC& texDesc = texRes->GetDesc();
+			SpecularIBLRange = D_MATH::Max(0.f, (float)texDesc.MipLevels - 1);
+		}
+
+
+		uint32_t DestCount = 2;
+		uint32_t SourceCounts[] = { 1, 1 };
+
+		D3D12_CPU_DESCRIPTOR_HANDLE specHandle;
+		D3D12_CPU_DESCRIPTOR_HANDLE diffHandle;
+		if (specularIBL.IsValid())
+			specHandle = specularIBL->GetTextureData()->GetSRV();
+		else
+			specHandle = DefaultBlackCubeMap->GetTextureData()->GetSRV();
+
+		if (diffuseIBL.IsValid())
+			diffHandle = diffuseIBL->GetTextureData()->GetSRV();
+		else
+			diffHandle = DefaultBlackCubeMap->GetTextureData()->GetSRV();
+
+		D3D12_CPU_DESCRIPTOR_HANDLE SourceTextures[] =
+		{
+			specHandle,
+			diffHandle
+		};
+
+		_device->CopyDescriptors(1, &CommonTexture, &DestCount, DestCount, SourceTextures, SourceCounts, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 	}
 
 	void BuildRootSignature()

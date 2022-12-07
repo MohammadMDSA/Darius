@@ -5,6 +5,7 @@
 #include "CommandContext.hpp"
 #include "GraphicsUtils/Buffers/ColorBuffer.hpp"
 #include "GraphicsUtils/Buffers/DepthBuffer.hpp"
+#include "Resources/TextureResource.hpp"
 
 #include <Core/Containers/Vector.hpp>
 #include <Math/Transform.hpp>
@@ -58,6 +59,7 @@ namespace Darius::Renderer
 		ColorPso,
 		ColorWireframePso,
 		ColorWireframeTwoSidedPso,
+		SkyboxPso,
 
 		_numPso
 	};
@@ -177,16 +179,13 @@ namespace Darius::Renderer
 	DescriptorHandle		GetUiTextureHandle(UINT index);
 	void					RenderGui();
 #endif
-	// For rendering meshs
-	void					RenderMeshes(D_GRAPHICS::GraphicsContext& context, D_CONTAINERS::DVector<RenderItem> const& renderItems, D_RENDERER_FRAME_RESOUCE::GlobalConstants const& globals);
-
-	// For rendering batches like line and debug stuff
-	void					RenderBatchs(D_GRAPHICS::GraphicsContext& context, D_CONTAINERS::DVector<RenderItem> const& renderItems, D_RENDERER_FRAME_RESOUCE::GlobalConstants const& globals);
 
 	void					Present();
 
 	D_GRAPHICS_UTILS::GraphicsPSO& GetPSO(PipelineStateTypes type);
 	D_GRAPHICS_UTILS::RootSignature& GetRootSignature(RootSignatureTypes type);
+
+	void					SetIBLTextures(D_CORE::Ref<TextureResource>& diffuseIBL, D_CORE::Ref<TextureResource>& specularIBL);
 
 	DescriptorHandle		AllocateTextureDescriptor(UINT count = 1);
 }
