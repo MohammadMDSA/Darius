@@ -5,7 +5,7 @@ cbuffer PSConstants : register(b0)
 	float TextureLevel;
 };
 
-TextureCube<float3> radianceIBLTexture		: register(t16)
+TextureCube<float3> radianceIBLTexture : register(t12);
 
 struct VSOutput
 {
@@ -15,5 +15,6 @@ struct VSOutput
 
 float4 main(VSOutput vsOutput) : SV_Target0
 {
-	return float4(radianceIBLTexture.SampleLevel(defaultSampler, vsOutput.viewDir, Texturelevel), 1);
+    float3 aa = radianceIBLTexture.SampleLevel(defaultSampler, vsOutput.viewDir, TextureLevel);
+	return float4(aa, 1);
 }
