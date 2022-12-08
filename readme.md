@@ -16,6 +16,7 @@
         - Emissive, Specular Color, and Roughness Components
         - Opaque and Transparent
     - Basic Lights (Point, Cone, and Directional)
+    - Skybox
     - PIX Debugging Integration
 - Debug
     - Debug Draws
@@ -36,6 +37,9 @@
     - Resource Property Manipulation trough GUI (including saving & loading)
 - Job System and CPU Multi-Core Utilization
 - CPU & GPU Profiling
+    - Framerate Metrics (Last, Max, Avg)
+    - Framerate Graphs
+    - CPU Frame Snapshot and Flame Graph
 - Scene Graph and Hierarchical Transform Math
 - And so much more!
 
