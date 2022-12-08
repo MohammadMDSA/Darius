@@ -14,14 +14,15 @@
 #include "GraphicsUtils/Profiling/Profiling.hpp"
 #include "Resources/TextureResource.hpp"
 
+#include <ResourceManager/ResourceManager.hpp>
+#include <Core/TimeManager/TimeManager.hpp>
+#include <Math/VectorMath.hpp>
+#include <Utils/Assert.hpp>
+
 #include <imgui.h>
 #include <implot/implot.h>
 #include <imgui_impl_dx12.h>
 #include <imgui_impl_win32.h>
-
-#include <Core/TimeManager/TimeManager.hpp>
-#include <Math/VectorMath.hpp>
-#include <Utils/Assert.hpp>
 
 #include <filesystem>
 
@@ -62,6 +63,7 @@ namespace Darius::Renderer
 	D_CORE::Ref<TextureResource>						IrradianceCubeMap;
 	D_CORE::Ref<TextureResource>						DefaultBlackCubeMap;
 	float												SpecularIBLRange;
+	float												SpecularIBLBias = FLT_MAX;
 
 	//////////////////////////////////////////////////////
 	// Functions
@@ -92,8 +94,7 @@ namespace Darius::Renderer
 #ifdef _D_EDITOR
 		InitializeGUI();
 #endif // _D_EDITOR
-
-		DefaultBlackCubeMap = D_RESOURCE::GetResource<D_GRAPHICS::TextureResource>(GetDefaultGraphicsResource(D_GRAPHICS::DefaultResource::TextureCubeMapBlack), nullptr, std::wstring(L"Renderer"), std::wstring(L"Engine Subsystem"));
+		DefaultBlackCubeMap = D_RESOURCE::GetResource<TextureResource>(GetDefaultGraphicsResource(D_GRAPHICS::DefaultResource::TextureCubeMapBlack), nullptr, L"Renderer", "Engine Subsystem");
 	}
 
 	void Shutdown()
@@ -226,51 +227,13 @@ namespace Darius::Renderer
 		// Skybox
 		{
 			Psos[(size_t)PipelineStateTypes::SkyboxPso] = Psos[(size_t)PipelineStateTypes::OpaquePso];
-			auto& skyboxPso = Psos[(size_t)PipelineStateTypes::ColorWireframeTwoSidedPso];
-			skyboxPso.SetDepthStencilState(DepthStateReadOnly);
+			auto& skyboxPso = Psos[(size_t)PipelineStateTypes::SkyboxPso];
+			skyboxPso.SetDepthStencilState(DepthStateTestEqual);
 			skyboxPso.SetInputLayout(0, nullptr);
 			skyboxPso.SetVertexShader(reinterpret_cast<BYTE*>(Shaders["skyboxVS"]->GetBufferPointer()), Shaders["skyboxVS"]->GetBufferSize());
 			skyboxPso.SetPixelShader(reinterpret_cast<BYTE*>(Shaders["skyboxPS"]->GetBufferPointer()), Shaders["skyboxPS"]->GetBufferSize());
 			skyboxPso.Finalize(L"Skybox");
 		}
-	}
-
-	void SetIBLTextures(D_CORE::Ref<TextureResource>& diffuseIBL, D_CORE::Ref<TextureResource>& specularIBL)
-	{
-		RadianceCubeMap = specularIBL;
-		IrradianceCubeMap = diffuseIBL;
-
-		SpecularIBLRange = 0.f;
-		if (RadianceCubeMap.IsValid())
-		{
-			auto texRes = const_cast<ID3D12Resource*>(RadianceCubeMap->GetTextureData()->GetResource());
-			const D3D12_RESOURCE_DESC& texDesc = texRes->GetDesc();
-			SpecularIBLRange = D_MATH::Max(0.f, (float)texDesc.MipLevels - 1);
-		}
-
-
-		uint32_t DestCount = 2;
-		uint32_t SourceCounts[] = { 1, 1 };
-
-		D3D12_CPU_DESCRIPTOR_HANDLE specHandle;
-		D3D12_CPU_DESCRIPTOR_HANDLE diffHandle;
-		if (specularIBL.IsValid())
-			specHandle = specularIBL->GetTextureData()->GetSRV();
-		else
-			specHandle = DefaultBlackCubeMap->GetTextureData()->GetSRV();
-
-		if (diffuseIBL.IsValid())
-			diffHandle = diffuseIBL->GetTextureData()->GetSRV();
-		else
-			diffHandle = DefaultBlackCubeMap->GetTextureData()->GetSRV();
-
-		D3D12_CPU_DESCRIPTOR_HANDLE SourceTextures[] =
-		{
-			specHandle,
-			diffHandle
-		};
-
-		_device->CopyDescriptors(1, &CommonTexture, &DestCount, DestCount, SourceTextures, SourceCounts, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 	}
 
 	void BuildRootSignature()
@@ -301,6 +264,92 @@ namespace Darius::Renderer
 	DescriptorHandle AllocateTextureDescriptor(UINT count)
 	{
 		return TextureHeap.Alloc(count);
+	}
+
+	void SetIBLTextures(D_CORE::Ref<TextureResource>& diffuseIBL, D_CORE::Ref<TextureResource>& specularIBL)
+	{
+		RadianceCubeMap = specularIBL;
+		IrradianceCubeMap = diffuseIBL;
+
+		SpecularIBLRange = 0.f;
+		if (RadianceCubeMap.IsValid())
+		{
+			auto texRes = const_cast<ID3D12Resource*>(RadianceCubeMap->GetTextureData()->GetResource());
+			const D3D12_RESOURCE_DESC& texDesc = texRes->GetDesc();
+			SpecularIBLRange = D_MATH::Max(0.f, (float)texDesc.MipLevels - 1);
+			SpecularIBLBias = D_MATH::Min(SpecularIBLBias, SpecularIBLRange);
+		}
+
+		uint32_t DestCount = 2;
+		uint32_t SourceCounts[] = { 1, 1 };
+
+		D3D12_CPU_DESCRIPTOR_HANDLE specHandle;
+		D3D12_CPU_DESCRIPTOR_HANDLE diffHandle;
+		if (specularIBL.IsValid())
+			specHandle = specularIBL->GetTextureData()->GetSRV();
+		else
+			specHandle = DefaultBlackCubeMap->GetTextureData()->GetSRV();
+
+		if (diffuseIBL.IsValid())
+			diffHandle = diffuseIBL->GetTextureData()->GetSRV();
+		else
+			diffHandle = DefaultBlackCubeMap->GetTextureData()->GetSRV();
+
+		D3D12_CPU_DESCRIPTOR_HANDLE SourceTextures[] =
+		{
+			specHandle,
+			diffHandle
+		};
+
+		DescriptorHandle dest = CommonTexture + 2 * TextureHeap.GetDescriptorSize();
+
+		_device->CopyDescriptors(1, &dest, &DestCount, DestCount, SourceTextures, SourceCounts, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+	}
+
+	void DrawSkybox(D_GRAPHICS::GraphicsContext& context, const D_MATH_CAMERA::Camera& camera, D_GRAPHICS_BUFFERS::ColorBuffer& sceneColor, D_GRAPHICS_BUFFERS::DepthBuffer sceneDepth, const D3D12_VIEWPORT& viewport, const D3D12_RECT& scissor)
+	{
+		D_PROFILING::ScopedTimer _prof(L"Draw Skybox", context);
+
+		// Creating constant buffers
+		ALIGN_DECL_16 struct SkyboxVSCB
+		{
+			Matrix4 ProjInverse;
+			Matrix3 ViewInverse;
+		} skyVSCB;
+		skyVSCB.ProjInverse = Invert(camera.GetProjMatrix());
+		skyVSCB.ViewInverse = Invert(camera.GetViewMatrix()).Get3x3();
+
+		ALIGN_DECL_16 struct SkyboxPSCB
+		{
+			float TextureLevel;
+		} skyPSVB;
+		skyPSVB.TextureLevel = SpecularIBLBias;
+
+		// Setting root signature and pso
+		context.SetRootSignature(RootSigns[(size_t)RootSignatureTypes::DefaultRootSig]);
+		context.SetPipelineState(Psos[(size_t)PipelineStateTypes::SkyboxPso]);
+
+		// Transition of render targets
+		context.TransitionResource(sceneDepth, D3D12_RESOURCE_STATE_DEPTH_READ);
+		context.TransitionResource(sceneColor, D3D12_RESOURCE_STATE_RENDER_TARGET, true);
+
+		context.SetRenderTarget(sceneColor.GetRTV(), sceneDepth.GetDSV_DepthReadOnly());
+		context.SetViewportAndScissor(viewport, scissor);
+
+		// Bind pipeline resources
+		context.SetDescriptorHeap(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, TextureHeap.GetHeapPointer());
+		context.SetDynamicConstantBufferView(kMeshConstants, sizeof(SkyboxVSCB), &skyVSCB);
+		context.SetDynamicConstantBufferView(kMaterialConstants, sizeof(SkyboxPSCB), &skyPSVB);
+		context.SetDescriptorTable(kCommonSRVs, CommonTexture);
+
+		context.SetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+		
+		context.Draw(3);
+	}
+
+	void SetIBLBias(float LODBias)
+	{
+		SpecularIBLBias = Min(LODBias, SpecularIBLRange);
 	}
 
 	void MeshSorter::AddMesh(RenderItem const& renderItem, float distance)
@@ -525,10 +574,12 @@ namespace Darius::Renderer
 		auto& context = D_GRAPHICS::GraphicsContext::Begin(L"Render Gui");
 
 		auto& viewportRt = Resources->GetRTBuffer();
+		auto& depthStencil = Resources->GetDepthStencilBuffer();
+		context.TransitionResource(depthStencil, D3D12_RESOURCE_STATE_DEPTH_WRITE);
 		context.TransitionResource(viewportRt, D3D12_RESOURCE_STATE_RENDER_TARGET, true);
 
 		// Clear RT
-		Clear(context, Resources->GetRTBuffer(), Resources->GetDepthStencilBuffer(), Resources->GetOutputSize());
+		Clear(context, viewportRt, depthStencil, Resources->GetOutputSize());
 
 		context.SetDescriptorHeap(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, ImguiHeap.GetHeapPointer());
 		ImGui_ImplDX12_RenderDrawData(ImGui::GetDrawData(), context.GetCommandList());
