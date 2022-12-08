@@ -185,7 +185,11 @@ namespace Darius::Renderer
 	D_GRAPHICS_UTILS::GraphicsPSO& GetPSO(PipelineStateTypes type);
 	D_GRAPHICS_UTILS::RootSignature& GetRootSignature(RootSignatureTypes type);
 
+	// Set IBL properties
 	void					SetIBLTextures(D_CORE::Ref<TextureResource>& diffuseIBL, D_CORE::Ref<TextureResource>& specularIBL);
+	void					SetIBLBias(float LODBias);
+
+	void					DrawSkybox(D_GRAPHICS::GraphicsContext& context, const D_MATH_CAMERA::Camera& camera, D_GRAPHICS_BUFFERS::ColorBuffer& sceneColor, D_GRAPHICS_BUFFERS::DepthBuffer sceneDepth, const D3D12_VIEWPORT& viewport, const D3D12_RECT& scissor);
 
 	DescriptorHandle		AllocateTextureDescriptor(UINT count = 1);
 }
