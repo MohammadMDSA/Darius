@@ -12,13 +12,13 @@ struct VSOutput
 
 VSOutput main(uint VertID : SV_VertexID)
 {
-	float2 ScreenUV = float2(uint2(VertID, VertID << 1) & 2);
-	float4 ProjectedPos = float4(lerp(float2(-1, 1), float2(1, -1), ScreenUV), 0, 1);
-	float4 PosViewSpace = mul(ProjInverse, ProjectedPos);
-	
-	VSOutput vsOutput;
-	vsOutput.position = ProjectedPos;
-	vsOutput.viewDir = mul(ViewInverse, PosViewSpace.xyz / PosViewSpace.w);
+    float2 ScreenUV = float2(uint2(VertID, VertID << 1) & 2);
+    float4 ProjectedPos = float4(lerp(float2(-1, 1), float2(1, -1), ScreenUV), 1, 1);
+    float4 PosViewSpace = mul(ProjInverse, ProjectedPos);
 
-	return vsOutput;
+    VSOutput vsOutput;
+    vsOutput.position = ProjectedPos;
+    vsOutput.viewDir = mul(ViewInverse, PosViewSpace.xyz / PosViewSpace.w);
+
+    return vsOutput;
 }
