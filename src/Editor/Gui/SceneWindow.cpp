@@ -53,6 +53,19 @@ namespace Darius::Editor::Gui::Windows
 
 		// Window padding
 		mPadding[0] = mPadding[1] = 0.f;
+
+		auto diffIBLHandle = D_RESOURCE_LOADER::LoadResource(D_EDITOR_CONTEXT::GetAssetsPath() / "PBR/DefaultSkyboxDiffuseIBL.dds");
+		auto specIBLHandle = D_RESOURCE_LOADER::LoadResource(D_EDITOR_CONTEXT::GetAssetsPath() / "PBR/DefaultSkyboxSpecularIBL.dds");
+
+		auto diffTex = D_RESOURCE::GetResource<TextureResource>(diffIBLHandle[0], this, L"Scene Window", "Editor Window");
+		auto specTex = D_RESOURCE::GetResource<TextureResource>(specIBLHandle[0], this, L"Scene Window", "Editor Window");
+		
+		D_RENDERER::SetIBLTextures(
+			diffTex,
+			specTex
+		);
+
+		D_RENDERER::SetIBLBias(0);
 	}
 
 	SceneWindow::~SceneWindow()
@@ -103,10 +116,12 @@ namespace Darius::Editor::Gui::Windows
 		context.ClearDepth(mSceneDepth);
 
 		// Setting up sorter
+		auto viewPort = CD3DX12_VIEWPORT(0.f, 0.f, mWidth, mHeight, D3D12_MIN_DEPTH, D3D12_MAX_DEPTH);
+		auto scissor = CD3DX12_RECT(0l, 0l, (long)mWidth, (long)mHeight);
 		MeshSorter sorter(MeshSorter::kDefault);
 		sorter.SetCamera(mCamera);
-		sorter.SetViewport(CD3DX12_VIEWPORT(0.f, 0.f, mWidth, mHeight, D3D12_MIN_DEPTH, D3D12_MAX_DEPTH));
-		sorter.SetScissor(CD3DX12_RECT(0l, 0l, (long)(mWidth), (long)(mHeight)));
+		sorter.SetViewport(viewPort);
+		sorter.SetScissor(scissor);
 		sorter.SetDepthStencilTarget(mSceneDepth);
 		sorter.AddRenderTarget(mSceneTexture);
 
@@ -124,6 +139,9 @@ namespace Darius::Editor::Gui::Windows
 		context.ClearColor(mSceneTexture);
 
 		sorter.RenderMeshes(MeshSorter::kOpaque, context, mSceneGlobals);
+
+		D_RENDERER::DrawSkybox(context, mCamera, mSceneTexture, mSceneDepth, viewPort, scissor);
+
 		sorter.RenderMeshes(MeshSorter::kTransparent, context, mSceneGlobals);
 
 		// Add debug draw items
