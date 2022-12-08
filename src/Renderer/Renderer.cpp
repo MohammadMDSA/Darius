@@ -165,7 +165,7 @@ namespace Darius::Renderer
 		pso.SetRootSignature(RootSigns[(size_t)RootSignatureTypes::DefaultRootSig]);
 		pso.SetRasterizerState(D_GRAPHICS::RasterizerDefault);
 		pso.SetBlendState(CD3DX12_BLEND_DESC(D3D12_DEFAULT));
-		pso.SetDepthStencilState(CD3DX12_DEPTH_STENCIL_DESC(D3D12_DEFAULT));
+		pso.SetDepthStencilState(DepthStateReadWrite);
 		pso.SetSampleMask(UINT_MAX);
 		pso.SetPrimitiveTopologyType(D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE);
 		pso.SetRenderTargetFormat(D_RENDERER_DEVICE::GetBackBufferFormat(), D_RENDERER_DEVICE::GetDepthBufferFormat());
