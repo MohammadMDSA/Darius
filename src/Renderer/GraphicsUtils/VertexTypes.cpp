@@ -108,7 +108,7 @@ namespace Darius::Graphics::Utils::VertexTypes
 		{ "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, D3D12_APPEND_ALIGNED_ELEMENT, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 }
 	};
 
-	D_STATIC_ASSERT_M(sizeof(VertexPositionNormalTangentTexture) == 44, "Vertex struct/layout mismatch");
+	D_STATIC_ASSERT_M(sizeof(VertexPositionNormalTangentTexture) == 48, "Vertex struct/layout mismatch");
 
 	const D3D12_INPUT_LAYOUT_DESC VertexPositionNormalTangentTexture::InputLayout =
 	{
@@ -129,7 +129,7 @@ namespace Darius::Graphics::Utils::VertexTypes
 		{ "BLENDWEIGHT", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, D3D12_APPEND_ALIGNED_ELEMENT, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 }
 	};
 
-	D_STATIC_ASSERT_M(sizeof(VertexPositionNormalTangentTextureSkinned) == 76, "Vertex struct/layout mismatch");
+	D_STATIC_ASSERT_M(sizeof(VertexPositionNormalTangentTextureSkinned) == 80, "Vertex struct/layout mismatch");
 
 	const D3D12_INPUT_LAYOUT_DESC VertexPositionNormalTangentTextureSkinned::InputLayout =
 	{

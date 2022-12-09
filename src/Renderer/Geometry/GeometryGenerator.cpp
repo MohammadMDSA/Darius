@@ -12,8 +12,8 @@ namespace Darius::Renderer::Geometry::GeometryGenerator
 		XMVECTOR n0 = XMLoadFloat3(&v0.mNormal);
 		XMVECTOR n1 = XMLoadFloat3(&v1.mNormal);
 
-		XMVECTOR tan0 = XMLoadFloat3(&v0.mTangent);
-		XMVECTOR tan1 = XMLoadFloat3(&v1.mTangent);
+		XMVECTOR tan0 = XMLoadFloat4(&v0.mTangent);
+		XMVECTOR tan1 = XMLoadFloat4(&v1.mTangent);
 
 		XMVECTOR tex0 = XMLoadFloat2(&v0.mTexC);
 		XMVECTOR tex1 = XMLoadFloat2(&v1.mTexC);
@@ -28,7 +28,7 @@ namespace Darius::Renderer::Geometry::GeometryGenerator
 		Vertex v;
 		XMStoreFloat3(&v.mPosition, pos);
 		XMStoreFloat3(&v.mNormal, normal);
-		XMStoreFloat3(&v.mTangent, tangent);
+		XMStoreFloat4(&v.mTangent, tangent);
 		XMStoreFloat2(&v.mTexC, tex);
 
 		return v;
@@ -111,40 +111,40 @@ namespace Darius::Renderer::Geometry::GeometryGenerator
 		float d2 = 0.5f * depth;
 
 		// Fill in the front face vertex data.
-		v[0] = Vertex(-w2, -h2, -d2, 0.0f, 0.0f, -1.0f, 1.0f, 0.0f, 0.0f, 0.0f, 1.0f);
-		v[1] = Vertex(-w2, +h2, -d2, 0.0f, 0.0f, -1.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f);
-		v[2] = Vertex(+w2, +h2, -d2, 0.0f, 0.0f, -1.0f, 1.0f, 0.0f, 0.0f, 1.0f, 0.0f);
-		v[3] = Vertex(+w2, -h2, -d2, 0.0f, 0.0f, -1.0f, 1.0f, 0.0f, 0.0f, 1.0f, 1.0f);
+		v[0] = Vertex(-w2, -h2, -d2, 0.0f, 0.0f, -1.0f, 1.0f, 0.0f, 0.0f, 1.f, 0.0f, 1.0f);
+		v[1] = Vertex(-w2, +h2, -d2, 0.0f, 0.0f, -1.0f, 1.0f, 0.0f, 0.0f, 1.f, 0.0f, 0.0f);
+		v[2] = Vertex(+w2, +h2, -d2, 0.0f, 0.0f, -1.0f, 1.0f, 0.0f, 0.0f, 1.f, 1.0f, 0.0f);
+		v[3] = Vertex(+w2, -h2, -d2, 0.0f, 0.0f, -1.0f, 1.0f, 0.0f, 0.0f, 1.f, 1.0f, 1.0f);
 
 		// Fill in the back face vertex data.
-		v[4] = Vertex(-w2, -h2, +d2, 0.0f, 0.0f, 1.0f, -1.0f, 0.0f, 0.0f, 1.0f, 1.0f);
-		v[5] = Vertex(+w2, -h2, +d2, 0.0f, 0.0f, 1.0f, -1.0f, 0.0f, 0.0f, 0.0f, 1.0f);
-		v[6] = Vertex(+w2, +h2, +d2, 0.0f, 0.0f, 1.0f, -1.0f, 0.0f, 0.0f, 0.0f, 0.0f);
-		v[7] = Vertex(-w2, +h2, +d2, 0.0f, 0.0f, 1.0f, -1.0f, 0.0f, 0.0f, 1.0f, 0.0f);
+		v[4] = Vertex(-w2, -h2, +d2, 0.0f, 0.0f, 1.0f, -1.0f, 0.0f, 0.0f, 1.f, 1.0f, 1.0f);
+		v[5] = Vertex(+w2, -h2, +d2, 0.0f, 0.0f, 1.0f, -1.0f, 0.0f, 0.0f, 1.f, 0.0f, 1.0f);
+		v[6] = Vertex(+w2, +h2, +d2, 0.0f, 0.0f, 1.0f, -1.0f, 0.0f, 0.0f, 1.f, 0.0f, 0.0f);
+		v[7] = Vertex(-w2, +h2, +d2, 0.0f, 0.0f, 1.0f, -1.0f, 0.0f, 0.0f, 1.f, 1.0f, 0.0f);
 
 		// Fill in the top face vertex data.
-		v[8] = Vertex(-w2, +h2, -d2, 0.0f, 1.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 1.0f);
-		v[9] = Vertex(-w2, +h2, +d2, 0.0f, 1.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f);
-		v[10] = Vertex(+w2, +h2, +d2, 0.0f, 1.0f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f, 0.0f);
-		v[11] = Vertex(+w2, +h2, -d2, 0.0f, 1.0f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f, 1.0f);
+		v[8] = Vertex(-w2, +h2, -d2, 0.0f, 1.0f, 0.0f, 1.0f, 0.0f, 0.0f, 1.f, 0.0f, 1.0f);
+		v[9] = Vertex(-w2, +h2, +d2, 0.0f, 1.0f, 0.0f, 1.0f, 0.0f, 0.0f, 1.f, 0.0f, 0.0f);
+		v[10] = Vertex(+w2, +h2, +d2, 0.0f, 1.0f, 0.0f, 1.0f, 0.0f, 0.0f, 1.f, 1.0f, 0.0f);
+		v[11] = Vertex(+w2, +h2, -d2, 0.0f, 1.0f, 0.0f, 1.0f, 0.0f, 0.0f, 1.f, 1.0f, 1.0f);
 
 		// Fill in the bottom face vertex data.
-		v[12] = Vertex(-w2, -h2, -d2, 0.0f, -1.0f, 0.0f, -1.0f, 0.0f, 0.0f, 1.0f, 1.0f);
-		v[13] = Vertex(+w2, -h2, -d2, 0.0f, -1.0f, 0.0f, -1.0f, 0.0f, 0.0f, 0.0f, 1.0f);
-		v[14] = Vertex(+w2, -h2, +d2, 0.0f, -1.0f, 0.0f, -1.0f, 0.0f, 0.0f, 0.0f, 0.0f);
-		v[15] = Vertex(-w2, -h2, +d2, 0.0f, -1.0f, 0.0f, -1.0f, 0.0f, 0.0f, 1.0f, 0.0f);
+		v[12] = Vertex(-w2, -h2, -d2, 0.0f, -1.0f, 0.0f, -1.0f, 0.0f, 0.0f, 1.f, 1.0f, 1.0f);
+		v[13] = Vertex(+w2, -h2, -d2, 0.0f, -1.0f, 0.0f, -1.0f, 0.0f, 0.0f, 1.f, 0.0f, 1.0f);
+		v[14] = Vertex(+w2, -h2, +d2, 0.0f, -1.0f, 0.0f, -1.0f, 0.0f, 0.0f, 1.f, 0.0f, 0.0f);
+		v[15] = Vertex(-w2, -h2, +d2, 0.0f, -1.0f, 0.0f, -1.0f, 0.0f, 0.0f, 1.f, 1.0f, 0.0f);
 
 		// Fill in the left face vertex data.
-		v[16] = Vertex(-w2, -h2, +d2, -1.0f, 0.0f, 0.0f, 0.0f, 0.0f, -1.0f, 0.0f, 1.0f);
-		v[17] = Vertex(-w2, +h2, +d2, -1.0f, 0.0f, 0.0f, 0.0f, 0.0f, -1.0f, 0.0f, 0.0f);
-		v[18] = Vertex(-w2, +h2, -d2, -1.0f, 0.0f, 0.0f, 0.0f, 0.0f, -1.0f, 1.0f, 0.0f);
-		v[19] = Vertex(-w2, -h2, -d2, -1.0f, 0.0f, 0.0f, 0.0f, 0.0f, -1.0f, 1.0f, 1.0f);
+		v[16] = Vertex(-w2, -h2, +d2, -1.0f, 0.0f, 0.0f, 0.0f, 0.0f, -1.0f, 1.f, 0.0f, 1.0f);
+		v[17] = Vertex(-w2, +h2, +d2, -1.0f, 0.0f, 0.0f, 0.0f, 0.0f, -1.0f, 1.f, 0.0f, 0.0f);
+		v[18] = Vertex(-w2, +h2, -d2, -1.0f, 0.0f, 0.0f, 0.0f, 0.0f, -1.0f, 1.f, 1.0f, 0.0f);
+		v[19] = Vertex(-w2, -h2, -d2, -1.0f, 0.0f, 0.0f, 0.0f, 0.0f, -1.0f, 1.f, 1.0f, 1.0f);
 
 		// Fill in the right face vertex data.
-		v[20] = Vertex(+w2, -h2, -d2, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f);
-		v[21] = Vertex(+w2, +h2, -d2, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f);
-		v[22] = Vertex(+w2, +h2, +d2, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 1.0f, 0.0f);
-		v[23] = Vertex(+w2, -h2, +d2, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f);
+		v[20] = Vertex(+w2, -h2, -d2, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 1.f, 0.0f, 1.0f);
+		v[21] = Vertex(+w2, +h2, -d2, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 1.f, 0.0f, 0.0f);
+		v[22] = Vertex(+w2, +h2, +d2, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 1.f, 1.0f, 0.0f);
+		v[23] = Vertex(+w2, -h2, +d2, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 1.f, 1.0f, 1.0f);
 
 		meshData.Vertices.assign(&v[0], &v[24]);
 
@@ -200,8 +200,8 @@ namespace Darius::Renderer::Geometry::GeometryGenerator
 		// Poles: note that there will be texture coordinate distortion as there is
 		// not a unique point on the texture map to assign to the pole when mapping
 		// a rectangular texture onto a sphere.
-		Vertex topVertex(0.0f, +radius, 0.0f, 0.0f, +1.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f);
-		Vertex bottomVertex(0.0f, -radius, 0.0f, 0.0f, -1.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 1.0f);
+		Vertex topVertex(0.0f, +radius, 0.0f, 0.0f, +1.0f, 0.0f, 1.0f, 0.0f, 0.0f, 1.f, 0.0f, 0.0f);
+		Vertex bottomVertex(0.0f, -radius, 0.0f, 0.0f, -1.0f, 0.0f, 1.0f, 0.0f, 0.0f, 1.f, 0.0f, 1.0f);
 
 		meshData.Vertices.push_back(topVertex);
 
@@ -230,8 +230,8 @@ namespace Darius::Renderer::Geometry::GeometryGenerator
 				v.mTangent.y = 0.0f;
 				v.mTangent.z = +radius * sinf(phi) * cosf(theta);
 
-				XMVECTOR T = XMLoadFloat3(&v.mTangent);
-				XMStoreFloat3(&v.mTangent, XMVector3Normalize(T));
+				XMVECTOR T = XMLoadFloat4(&v.mTangent);
+				XMStoreFloat4(&v.mTangent, XMVector3Normalize(T));
 
 				XMVECTOR p = XMLoadFloat3(&v.mPosition);
 				XMStoreFloat3(&v.mNormal, XMVector3Normalize(p));
@@ -368,8 +368,8 @@ namespace Darius::Renderer::Geometry::GeometryGenerator
 			meshData.Vertices[i].mTangent.y = 0.0f;
 			meshData.Vertices[i].mTangent.z = +radius * sinf(phi) * cosf(theta);
 
-			XMVECTOR T = XMLoadFloat3(&meshData.Vertices[i].mTangent);
-			XMStoreFloat3(&meshData.Vertices[i].mTangent, XMVector3Normalize(T));
+			XMVECTOR T = XMLoadFloat4(&meshData.Vertices[i].mTangent);
+			XMStoreFloat4(&meshData.Vertices[i].mTangent, XMVector3Normalize(T));
 		}
 
 		return meshData;
@@ -394,11 +394,11 @@ namespace Darius::Renderer::Geometry::GeometryGenerator
 			float u = x / height + 0.5f;
 			float v = z / height + 0.5f;
 
-			meshData.Vertices.push_back(Vertex(x, y, z, 0.0f, 1.0f, 0.0f, 1.0f, 0.0f, 0.0f, u, v));
+			meshData.Vertices.push_back(Vertex(x, y, z, 0.0f, 1.0f, 0.0f, 1.0f, 0.0f, 1.f, 0.0f, u, v));
 		}
 
 		// Cap center vertex.
-		meshData.Vertices.push_back(Vertex(0.0f, y, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.5f, 0.5f));
+		meshData.Vertices.push_back(Vertex(0.0f, y, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f, 0.0f, 0.0f, 1.f, 0.5f, 0.5f));
 
 		// Index of center vertex.
 		uint32 centerIndex = (uint32)meshData.Vertices.size() - 1;
@@ -433,11 +433,11 @@ namespace Darius::Renderer::Geometry::GeometryGenerator
 			float u = x / height + 0.5f;
 			float v = z / height + 0.5f;
 
-			meshData.Vertices.push_back(Vertex(x, y, z, 0.0f, -1.0f, 0.0f, 1.0f, 0.0f, 0.0f, u, v));
+			meshData.Vertices.push_back(Vertex(x, y, z, 0.0f, -1.0f, 0.0f, 1.0f, 0.0f, 0.0f, 1.f, u, v));
 		}
 
 		// Cap center vertex.
-		meshData.Vertices.push_back(Vertex(0.0f, y, 0.0f, 0.0f, -1.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.5f, 0.5f));
+		meshData.Vertices.push_back(Vertex(0.0f, y, 0.0f, 0.0f, -1.0f, 0.0f, 1.0f, 0.0f, 0.0f, 1.f, 0.5f, 0.5f));
 
 		// Cache the index of center vertex.
 		uint32 centerIndex = (uint32)meshData.Vertices.size() - 1;
@@ -505,12 +505,12 @@ namespace Darius::Renderer::Geometry::GeometryGenerator
 				//  dz/dv = (r0-r1)*sin(t)
 
 				// This is unit length.
-				vertex.mTangent = XMFLOAT3(-s, 0.0f, c);
+				vertex.mTangent = XMFLOAT4(-s, 0.0f, c, 1.f);
 
 				float dr = bottomRadius - topRadius;
 				XMFLOAT3 bitangent(dr * c, -height, dr * s);
 
-				XMVECTOR T = XMLoadFloat3(&vertex.mTangent);
+				XMVECTOR T = XMLoadFloat4(&vertex.mTangent);
 				XMVECTOR B = XMLoadFloat3(&bitangent);
 				XMVECTOR N = XMVector3Normalize(XMVector3Cross(T, B));
 				XMStoreFloat3(&vertex.mNormal, N);
@@ -574,7 +574,7 @@ namespace Darius::Renderer::Geometry::GeometryGenerator
 
 				meshData.Vertices[i * n + j].mPosition = XMFLOAT3(x, 0.0f, z);
 				meshData.Vertices[i * n + j].mNormal = XMFLOAT3(0.0f, 1.0f, 0.0f);
-				meshData.Vertices[i * n + j].mTangent = XMFLOAT3(1.0f, 0.0f, 0.0f);
+				meshData.Vertices[i * n + j].mTangent = XMFLOAT4(1.0f, 0.0f, 0.0f, 1.f);
 
 				// Stretch texture over grid.
 				meshData.Vertices[i * n + j].mTexC.x = j * du;
@@ -620,25 +620,25 @@ namespace Darius::Renderer::Geometry::GeometryGenerator
 		meshData.Vertices[0] = Vertex(
 			x, y - h, depth,
 			0.0f, 0.0f, -1.0f,
-			1.0f, 0.0f, 0.0f,
+			1.0f, 0.0f, 0.0f, 1.f,
 			0.0f, 1.0f);
 
 		meshData.Vertices[1] = Vertex(
 			x, y, depth,
 			0.0f, 0.0f, -1.0f,
-			1.0f, 0.0f, 0.0f,
+			1.0f, 0.0f, 0.0f, 1.f,
 			0.0f, 0.0f);
 
 		meshData.Vertices[2] = Vertex(
 			x + w, y, depth,
 			0.0f, 0.0f, -1.0f,
-			1.0f, 0.0f, 0.0f,
+			1.0f, 0.0f, 0.0f, 1.f,
 			1.0f, 0.0f);
 
 		meshData.Vertices[3] = Vertex(
 			x + w, y - h, depth,
 			0.0f, 0.0f, -1.0f,
-			1.0f, 0.0f, 0.0f,
+			1.0f, 0.0f, 0.0f, 1.f,
 			1.0f, 1.0f);
 
 		meshData.Indices32[0] = 0;
