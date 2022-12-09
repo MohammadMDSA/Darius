@@ -108,5 +108,7 @@ namespace Darius::Graphics
 	extern CommandSignature					DrawIndirectCommandSignature;
 
 	extern D_GRAPHICS_UTILS::RootSignature	CommonRS;
+	extern ComputePSO GenerateMipsLinearPSO[4];
+	extern ComputePSO GenerateMipsGammaPSO[4];
 
 }

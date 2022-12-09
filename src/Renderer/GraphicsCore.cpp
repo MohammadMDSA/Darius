@@ -94,7 +94,7 @@ namespace Darius::Graphics
 	CommandSignature					DrawIndirectCommandSignature(1);
 
 	D_GRAPHICS_UTILS::RootSignature		CommonRS;
-	/*ComputePSO GenerateMipsLinearPSO[4] =
+	ComputePSO GenerateMipsLinearPSO[4] =
 	{
 		{L"Generate Mips Linear CS"},
 		{L"Generate Mips Linear Odd X CS"},
@@ -108,7 +108,7 @@ namespace Darius::Graphics
 		{ L"Generate Mips Gamma Odd X CS" },
 		{ L"Generate Mips Gamma Odd Y CS" },
 		{ L"Generate Mips Gamma Odd CS" },
-	};*/
+	};
 
 	/*GraphicsPSO DownsampleDepthPSO(L"DownsampleDepth PSO")*/;
 
@@ -131,8 +131,8 @@ namespace Darius::Graphics
 
 		D_PROFILING_GPU::Initialize(4096);
 
-		InitializeCommonStates();
 		BuildShaders();
+		InitializeCommonStates();
 
 		D_LIGHT::Initialize();
 
@@ -360,19 +360,19 @@ namespace Darius::Graphics
 		CommonRS.InitStaticSampler(2, SamplerLinearBorderDesc);
 		CommonRS.Finalize(L"GraphicsCommonRS");
 
-#define CreatePSO(ObjName, ShaderByteCode ) \
-		ObjName.SetRootSignature(g_CommonRS); \
-		ObjName.SetComputeShader(ShaderByteCode, sizeof(ShaderByteCode) ); \
+#define CreatePSO(ObjName, name ) \
+		ObjName.SetRootSignature(CommonRS); \
+		ObjName.SetComputeShader(Shaders[#name]->GetBufferPointer(), Shaders[#name]->GetBufferSize() ); \
 		ObjName.Finalize();
 
-		/*CreatePSO(GenerateMipsLinearPSO[0], g_pGenerateMipsLinearCS);
-		CreatePSO(GenerateMipsLinearPSO[1], g_pGenerateMipsLinearOddXCS);
-		CreatePSO(GenerateMipsLinearPSO[2], g_pGenerateMipsLinearOddYCS);
-		CreatePSO(GenerateMipsLinearPSO[3], g_pGenerateMipsLinearOddCS);
-		CreatePSO(GenerateMipsGammaPSO[0], g_pGenerateMipsGammaCS);
-		CreatePSO(GenerateMipsGammaPSO[1], g_pGenerateMipsGammaOddXCS);
-		CreatePSO(GenerateMipsGammaPSO[2], g_pGenerateMipsGammaOddYCS);
-		CreatePSO(GenerateMipsGammaPSO[3], g_pGenerateMipsGammaOddCS);*/
+		CreatePSO(GenerateMipsLinearPSO[0], GenerateMipsLinearCS);
+		CreatePSO(GenerateMipsLinearPSO[1], GenerateMipsLinearOddXCS);
+		CreatePSO(GenerateMipsLinearPSO[2], GenerateMipsLinearOddYCS);
+		CreatePSO(GenerateMipsLinearPSO[3], GenerateMipsLinearOddCS);
+		CreatePSO(GenerateMipsGammaPSO[0], GenerateMipsGammaCS);
+		CreatePSO(GenerateMipsGammaPSO[1], GenerateMipsGammaOddXCS);
+		CreatePSO(GenerateMipsGammaPSO[2], GenerateMipsGammaOddYCS);
+		CreatePSO(GenerateMipsGammaPSO[3], GenerateMipsGammaOddCS);
 
 		/*DownsampleDepthPSO.SetRootSignature(g_CommonRS);
 		DownsampleDepthPSO.SetRasterizerState(RasterizerTwoSided);
@@ -408,6 +408,15 @@ namespace Darius::Graphics
 		// Skybox
 		Shaders["skyboxVS"] = CompileShader(L"Shaders\\SkyboxVS.hlsl", nullptr, "main", "vs_5_1");
 		Shaders["skyboxPS"] = CompileShader(L"Shaders\\SkyboxPS.hlsl", nullptr, "main", "ps_5_1");
+
+		Shaders["GenerateMipsLinearCS"] = CompileShader(L"Shaders\\GenerateMips\\GenerateMipsLinearCS.hlsl", nullptr, "main", "cs_5_1");
+		Shaders["GenerateMipsLinearOddXCS"] = CompileShader(L"Shaders\\GenerateMips\\GenerateMipsLinearOddXCS.hlsl", nullptr, "main", "cs_5_1");
+		Shaders["GenerateMipsLinearOddYCS"] = CompileShader(L"Shaders\\GenerateMips\\GenerateMipsLinearOddYCS.hlsl", nullptr, "main", "cs_5_1");
+		Shaders["GenerateMipsLinearOddCS"] = CompileShader(L"Shaders\\GenerateMips\\GenerateMipsLinearOddCS.hlsl", nullptr, "main", "cs_5_1");
+		Shaders["GenerateMipsGammaCS"] = CompileShader(L"Shaders\\GenerateMips\\GenerateMipsGammaCS.hlsl", nullptr, "main", "cs_5_1");
+		Shaders["GenerateMipsGammaOddXCS"] = CompileShader(L"Shaders\\GenerateMips\\GenerateMipsGammaOddXCS.hlsl", nullptr, "main", "cs_5_1");
+		Shaders["GenerateMipsGammaOddYCS"] = CompileShader(L"Shaders\\GenerateMips\\GenerateMipsGammaOddYCS.hlsl", nullptr, "main", "cs_5_1");
+		Shaders["GenerateMipsGammaOddCS"] = CompileShader(L"Shaders\\GenerateMips\\GenerateMipsGammaOddCS.hlsl", nullptr, "main", "cs_5_1");
 
 	}
 
