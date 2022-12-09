@@ -332,21 +332,23 @@ device->CopyDescriptorsSimple(1, mTexturesHeap + type * incSize, m##name##Textur
 		ImGui::TableSetColumnIndex(0);
 		DrawTexture2DHolder(mMetallicRoughnessTexture, kRoughness);
 		ImGui::SameLine();
-		ImGui::Text("Roughness");
 		if (!(mMaterial.TextureStatusMask & (1 << kRoughness)))
 		{
+			ImGui::Text("Metallic");
 			ImGui::TableSetColumnIndex(1);
-			float defS[] = { 1.f, 0.f };
-			if (ImGui::DragFloat("##Roughness", &mMaterial.MetallicRoughness.y, 0.001f, 0.f, 1.f, "% .3f"))
-			{
-				valueChanged = true;
-			}
-
-			D_H_DETAILS_DRAW_PROPERTY("Metallic");
-			if (ImGui::DragFloat("##Metallic", &mMaterial.MetallicRoughness.x, 0.001f, 0.f, 1.f, "% .3f"))
-			{
-				valueChanged = true;
-			}
+			valueChanged |= ImGui::SliderFloat("##Metallic", &mMaterial.MetallicRoughness.x, 0.f, 1.f, "% .3f");
+			
+			ImGui::TableNextRow();
+			ImGui::TableSetColumnIndex(0);
+			ImGui::Indent(30.f);
+			ImGui::Text("Roughness");
+			ImGui::Unindent();
+			ImGui::TableSetColumnIndex(1);
+			valueChanged |= ImGui::SliderFloat("##Roughness", &mMaterial.MetallicRoughness.y, 0.f, 1.f, "% .3f");
+		}
+		else
+		{
+			ImGui::Text("Metallic Roughtness");
 		}
 
 		// Emission

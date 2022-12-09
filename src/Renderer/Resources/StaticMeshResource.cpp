@@ -3,6 +3,7 @@
 
 #include "Renderer/RenderDeviceManager.hpp"
 #include "Renderer/GraphicsCore.hpp"
+#include "Renderer/Geometry/ModelLoader/FbxLoader.hpp"
 
 #include <Core/Filesystem/Path.hpp>
 #include <Core/Containers/Set.hpp>
@@ -144,6 +145,7 @@ namespace Darius::Graphics
 
 		auto mesh = targetNode->GetMesh();
 
+		D_RENDERER_GEOMETRY_LOADER::InitializeMesh(mesh);
 		MultiPartMeshData<VertexType> meshDataVec;
 
 		fbxsdk::FbxLayerElementArrayTemplate<fbxsdk::FbxVector2>* uvArr;
