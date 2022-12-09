@@ -29,7 +29,7 @@ namespace Darius::Graphics
 	{
 		mBaseColorTextureHandle = D_GRAPHICS::GetDefaultGraphicsResource(D_GRAPHICS::DefaultResource::Texture2DWhiteOpaque);
 		mNormalTextureHandle = D_GRAPHICS::GetDefaultGraphicsResource(D_GRAPHICS::DefaultResource::Texture2DNormalMap);
-		mRoughnessTextureHandle = D_GRAPHICS::GetDefaultGraphicsResource(D_GRAPHICS::DefaultResource::Texture2DBlackOpaque);
+		mMetallicRoughnessTextureHandle = D_GRAPHICS::GetDefaultGraphicsResource(D_GRAPHICS::DefaultResource::Texture2DBlackOpaque);
 		mEmissiveTextureHandle = D_GRAPHICS::GetDefaultGraphicsResource(D_GRAPHICS::DefaultResource::Texture2DBlackOpaque);
 	}
 
@@ -41,7 +41,8 @@ namespace Darius::Graphics
 		Json data = {
 			{ "DefuseAlbedo", std::vector<float>(defalb, defalb + 4)},
 			{ "FresnelR0", std::vector<float>(fren, fren + 3) },
-			{ "Roughness", mMaterial.Roughness },
+			{ "Roughness", mMaterial.MetallicRoughness.y },
+			{ "Metallic", mMaterial.MetallicRoughness.x },
 			{ "Emission", std::vector<float>(ems, ems + 3) }
 		};
 
@@ -51,7 +52,7 @@ namespace Darius::Graphics
 
 		bool usedRoughnessTex = mMaterial.TextureStatusMask & (1 << kRoughness);
 		if (usedRoughnessTex)
-			data["RoughnessTexture"] = ToString(mRoughnessTexture->GetUuid());
+			data["MetallicRoughnessTexture"] = ToString(mMetallicRoughnessTexture->GetUuid());
 
 		bool usedNormalTex = mMaterial.TextureStatusMask & (1 << kNormal);
 		if (usedNormalTex)
@@ -77,7 +78,10 @@ namespace Darius::Graphics
 
 		mMaterial.DifuseAlbedo = XMFLOAT4(data["DefuseAlbedo"].get<std::vector<float>>().data());
 		mMaterial.FresnelR0 = XMFLOAT3(data["FresnelR0"].get<std::vector<float>>().data());
-		mMaterial.Roughness = data["Roughness"];
+		mMaterial.MetallicRoughness.y = data["Roughness"];
+
+		if (data.contains("Metallic"))
+			mMaterial.MetallicRoughness.x = data["Metallic"];
 
 		mMaterial.Emissive = XMFLOAT3(data["Emission"].get<std::vector<float>>().data());
 
@@ -89,9 +93,9 @@ namespace Darius::Graphics
 			mMaterial.TextureStatusMask |= 1 << kBaseColor;
 		}
 
-		if (data.contains("RoughnessTexture"))
+		if (data.contains("MetallicRoughnessTexture"))
 		{
-			mRoughnessTextureHandle = D_RESOURCE::GetResourceHandle(FromString(data["RoughnessTexture"]));
+			mMetallicRoughnessTextureHandle = D_RESOURCE::GetResourceHandle(FromString(data["MetallicRoughnessTexture"]));
 			mMaterial.TextureStatusMask |= 1 << kRoughness;
 		}
 
@@ -106,7 +110,6 @@ namespace Darius::Graphics
 			mEmissiveTextureHandle = D_RESOURCE::GetResourceHandle(FromString(data["EmissionTexture"]));
 			mMaterial.TextureStatusMask |= 1 << kEmissive;
 		}
-
 		mPsoFlags = data.contains("PsoFlags") ? data["PsoFlags"].get<uint16_t>() : 0u;
 	}
 
@@ -118,7 +121,7 @@ namespace Darius::Graphics
 			// Load resources
 			mBaseColorTexture = D_RESOURCE::GetResource<TextureResource>(mBaseColorTextureHandle, *this);
 			mNormalTexture = D_RESOURCE::GetResource<TextureResource>(mNormalTextureHandle, *this);
-			mRoughnessTexture = D_RESOURCE::GetResource<TextureResource>(mRoughnessTextureHandle, *this);
+			mMetallicRoughnessTexture = D_RESOURCE::GetResource<TextureResource>(mMetallicRoughnessTextureHandle, *this);
 			mEmissiveTexture = D_RESOURCE::GetResource<TextureResource>(mEmissiveTextureHandle, *this);
 
 			// Initializing Material Constants buffers
@@ -136,8 +139,8 @@ namespace Darius::Graphics
 			D3D12_CPU_DESCRIPTOR_HANDLE initialTextures[kNumTextures]
 			{
 				mBaseColorTexture->GetTextureData()->GetSRV(),
-				mRoughnessTexture->GetTextureData()->GetSRV(),
-				mRoughnessTexture->GetTextureData()->GetSRV(),
+				mMetallicRoughnessTexture->GetTextureData()->GetSRV(),
+				mMetallicRoughnessTexture->GetTextureData()->GetSRV(),
 				mEmissiveTexture->GetTextureData()->GetSRV(),
 				mNormalTexture->GetTextureData()->GetSRV()
 			};
@@ -174,8 +177,8 @@ namespace Darius::Graphics
 				mBaseColorTexture.Unref();
 				break;
 			case Darius::Renderer::kRoughness:
-				mRoughnessTextureHandle = EmptyResourceHandle;
-				mRoughnessTexture.Unref();
+				mMetallicRoughnessTextureHandle = EmptyResourceHandle;
+				mMetallicRoughnessTexture.Unref();
 				break;
 			case Darius::Renderer::kNormal:
 				mNormalTextureHandle = EmptyResourceHandle;
@@ -212,7 +215,7 @@ device->CopyDescriptorsSimple(1, mTexturesHeap + type * incSize, m##name##Textur
 			SetTex(BaseColor);
 			break;
 		case Darius::Renderer::kRoughness:
-			SetTex(Roughness);
+			SetTex(MetallicRoughness);
 			break;
 		case Darius::Renderer::kNormal:
 			SetTex(Normal);
@@ -327,14 +330,20 @@ device->CopyDescriptorsSimple(1, mTexturesHeap + type * incSize, m##name##Textur
 		// Roughness
 		ImGui::TableNextRow();
 		ImGui::TableSetColumnIndex(0);
-		DrawTexture2DHolder(mRoughnessTexture, kRoughness);
+		DrawTexture2DHolder(mMetallicRoughnessTexture, kRoughness);
 		ImGui::SameLine();
 		ImGui::Text("Roughness");
 		if (!(mMaterial.TextureStatusMask & (1 << kRoughness)))
 		{
 			ImGui::TableSetColumnIndex(1);
 			float defS[] = { 1.f, 0.f };
-			if (ImGui::DragFloat("##X", &mMaterial.Roughness, 0.001f, 0.f, 1.f, "% .3f"))
+			if (ImGui::DragFloat("##Roughness", &mMaterial.MetallicRoughness.y, 0.001f, 0.f, 1.f, "% .3f"))
+			{
+				valueChanged = true;
+			}
+
+			D_H_DETAILS_DRAW_PROPERTY("Metallic");
+			if (ImGui::DragFloat("##Metallic", &mMaterial.MetallicRoughness.x, 0.001f, 0.f, 1.f, "% .3f"))
 			{
 				valueChanged = true;
 			}

@@ -35,6 +35,8 @@ namespace Darius::Renderer::ConstantFrameResource
 		float				TotalTime = 0.0f;
 		float				DeltaTime = 0.0f;
 		XMFLOAT4			AmbientLight;
+		float IBLRange;
+		float IBLBias;
 	};
 
 	ALIGN_DECL_256 struct MeshConstants
@@ -59,11 +61,13 @@ namespace Darius::Renderer::ConstantFrameResource
 	{
 		XMFLOAT4					DifuseAlbedo = { 1.f, 1.f, 1.f, 1.f };
 		XMFLOAT3					FresnelR0 = { 0.56f, 0.56f, 0.56f };
-		float						Roughness = 0.2f;
+		int _pad1;
 		XMFLOAT3					Emissive = { 0.f, 0.f, 0.f };
+		int _pad2;
+		XMFLOAT2					MetallicRoughness = { 0.f, 0.2f };
 		int							TextureStatusMask = 0;
 	};
-	
+
 	// Lightweight structure stores parameters to draw a shape.
 	struct RenderItem
 	{
@@ -89,7 +93,7 @@ namespace Darius::Renderer::ConstantFrameResource
 				D3D12_GPU_VIRTUAL_ADDRESS	MaterialCBV;
 				D3D12_GPU_DESCRIPTOR_HANDLE	MaterialSRV;
 			} Material;
-			
+
 			XMFLOAT4					Color = { 1.f, 1.f, 1.f, 1.f };
 		};
 
@@ -105,7 +109,7 @@ namespace Darius::Renderer::ConstantFrameResource
 		UINT						StartIndexLocation = 0;
 		int							BaseVertexLocation = 0;
 
-		Joint const*				mJointData = nullptr;
+		Joint const* mJointData = nullptr;
 		int							mNumJoints = 0;
 
 		uint16_t					PsoFlags = 0;
