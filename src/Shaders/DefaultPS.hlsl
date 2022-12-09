@@ -1,35 +1,34 @@
-#include "Common.hlsli"
 #include "Lighting.hlsli"
 
 #define BitMasked(value, bitIdx) value & (1 << bitIdx)
 
 cbuffer cbMaterial : register(b0)
 {
-    float4  gDiffuseAlbedo;
-    float3  gFresnelR0;
-    float   gRoughness;
-    float3  gEmissive;
-    int     gTexStats;
+    float4 gDiffuseAlbedo;
+    float3 gFresnelR0;
+    float3 gEmissive;
+    float2 gMetallicRoughness;
+    int gTexStats;
 };
 
 struct VertexOut
 {
-    sample float4 Pos           : SV_POSITION;
-    sample float3 WorldPos      : POSITION;
-    sample float3 WorldNormal   : NORMAL;
-    sample float2 UV            : TEXCOORD0;
+    sample float4 Pos : SV_POSITION;
+    sample float3 WorldPos : POSITION;
+    sample float3 WorldNormal : NORMAL;
+    sample float2 UV : TEXCOORD0;
     
 };
 
-Texture2D<float4>       texDiffuse      : register(t0);
-Texture2D<float>        texRoughness    : register(t1);
-Texture2D<float3>       texOcculusion   : register(t2);
-Texture2D<float3>       texEmissive     : register(t3);
-Texture2D<float3>       texNormal       : register(t4);
+Texture2D<float4> texDiffuse                        : register(t0);
+Texture2D<float3> texMetallicRoughness              : register(t1);
+Texture2D<float3> texOcculusion                     : register(t2);
+Texture2D<float3> texEmissive                       : register(t3);
+Texture2D<float3> texNormal                         : register(t4);
 
 float4 main(VertexOut pin) : SV_Target
 {
-# define SAMPLE_TEX(texName) texName.Sample(defaultSampler, pin.UV)
+#define SAMPLE_TEX(texName) texName.Sample(defaultSampler, pin.UV)
     
     // Interpolating normal can unnormalize it, so renormalize it.
     pin.WorldNormal = normalize(pin.WorldNormal);
@@ -40,7 +39,7 @@ float4 main(VertexOut pin) : SV_Target
     float4 diffuseAlbedo;
     
     // Diffuse Albedo
-    if(BitMasked(gTexStats, 0))
+    if (BitMasked(gTexStats, 0))
         diffuseAlbedo = SAMPLE_TEX(texDiffuse);
     else
         diffuseAlbedo = gDiffuseAlbedo;
@@ -49,30 +48,23 @@ float4 main(VertexOut pin) : SV_Target
     float4 ambient = gAmbientLight * diffuseAlbedo;
 
     // Roughness
-    float roughness;
+    float2 metallicRoughness;
     if (BitMasked(gTexStats, 1))
-        roughness = SAMPLE_TEX(texRoughness);
+        metallicRoughness = SAMPLE_TEX(texMetallicRoughness).xy;
     else
-        roughness = gRoughness;
+        metallicRoughness = gMetallicRoughness;
     
     // Emissive 
     float3 emissive;
-    if(BitMasked(gTexStats, 3))
+    if (BitMasked(gTexStats, 3))
         emissive = SAMPLE_TEX(texEmissive);
     else
         emissive = gEmissive;
     
-    const float shininess = 1.0f - roughness;
-    Material mat = { diffuseAlbedo, gFresnelR0, shininess, gTexStats };
-    float3 shadowFactor = 1.0f;
-
-    float3 directLight = ComputeLighting(mat, pin.WorldPos,
-        pin.WorldNormal, toEyeW, shadowFactor);
-
-    float4 litColor = float4(emissive, 0.f) + ambient + float4(directLight, 0.f);
-
+    float3 litColor = ComputeLitColor(pin.WorldPos, pin.WorldNormal, toEyeW,
+                            diffuseAlbedo, metallicRoughness.x, metallicRoughness.y,
+                            emissive, 1, gFresnelR0);
+    
     // Common convention to take alpha from diffuse material.
-    litColor.a = diffuseAlbedo.a;
-
-    return litColor;
+    return float4(litColor, diffuseAlbedo.a);
 }

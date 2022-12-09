@@ -23,6 +23,8 @@ cbuffer cbPass : register(b1)
     float gTotalTime;
     float gDeltaTime;
     float4 gAmbientLight;
+    float IBLRange;
+    float IBLBias;
     
 };
 

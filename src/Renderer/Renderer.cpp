@@ -415,6 +415,8 @@ namespace Darius::Renderer
 
 		context.SetRootSignature(RootSigns[DefaultRootSig]);
 
+		globals.IBLBias = SpecularIBLBias;
+		globals.IBLRange = SpecularIBLRange;
 		context.SetDynamicConstantBufferView(kCommonCBV, sizeof(GlobalConstants), &globals);
 
 		// Setting up common texture (light for now)

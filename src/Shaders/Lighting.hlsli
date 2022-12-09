@@ -1,3 +1,5 @@
+#include "Common.hlsli"
+
 #ifndef __LIGHTING_HLSLI__
 #define __LIGHTING_HLSLI__
 
@@ -31,11 +33,20 @@ struct Material
     float4  DiffuseAlbedo;
     float3  FresnelR0;
     float   Shininess;
-    int     TexStats;   
 };
 
-ByteAddressBuffer LightMask : register(t10);
-StructuredBuffer<Light> LightData : register(t11);
+ByteAddressBuffer LightMask                 : register(t10);
+StructuredBuffer<Light> LightData           : register(t11);
+TextureCube<float3> radianceIBLTexture      : register(t12);
+TextureCube<float3> irradianceIBLTexture    : register(t13);
+
+static const float3 kDielectricSpecular = float3(0.04, 0.04, 0.04);
+
+float Pow5(float x)
+{
+    float xSq = x * x;
+    return xSq * xSq * x;
+}
 
 float CalcAttenuation(float d, float falloffStart, float falloffEnd)
 {
@@ -50,9 +61,15 @@ float3 SchlickFresnel(float3 R0, float3 normal, float3 lightVec)
     float cosIncidentAngle = saturate(dot(normal, lightVec));
     
     float f0 = 1.f - cosIncidentAngle;
-    float3 reflectPercent = R0 + (1.f - R0) * (f0 * f0 * f0 * f0 * f0);
+    float3 reflectPercent = R0 + (1.f - R0) * Pow5(f0);
     
     return reflectPercent;
+}
+
+// Shlick's approximation of Fresnel
+float3 Fresnel_Shlick(float3 F0, float3 F90, float cosine)
+{
+    return lerp(F0, F90, Pow5(1.0 - cosine));
 }
 
 float3 BlinnPhong(
@@ -171,6 +188,28 @@ float3 ComputeSpotLight(Light L, Material mat, float3 pos, float3 normal, float3
     return result;
 }
 
+// Diffuse irradiance
+float3 Diffuse_IBL(float3 normal, float3 toEye, float3 diffuseColor, float roughness)
+{
+    // Assumption:  L = N
+
+    //return Surface.c_diff * irradianceIBLTexture.Sample(defaultSampler, Surface.N);
+
+    // This is nicer but more expensive, and specular can often drown out the diffuse anyway
+    float LdotH = saturate(dot(normal, normalize(normal + toEye)));
+    float fd90 = 0.5 + 2.0 * roughness * LdotH * LdotH;
+    float3 DiffuseBurley = diffuseColor * Fresnel_Shlick(1, fd90, saturate(dot(normal, toEye)));
+    return DiffuseBurley * irradianceIBLTexture.Sample(defaultSampler, normal);
+}
+
+// Approximate specular IBL by sampling lower mips according to roughness.  Then modulate by Fresnel. 
+float3 Specular_IBL(float3 spec, float3 normal, float3 toEye, float roughness)
+{
+    float lod = roughness * IBLRange + IBLBias;
+    float3 specular = Fresnel_Shlick(spec, 1, saturate(dot(normal, toEye)));
+    return specular * radianceIBLTexture.SampleLevel(cubeMapSampler, reflect(-toEye, normal), lod);
+}
+
 float3 ComputeLighting(
     Material mat,
     float3 pos,
@@ -199,6 +238,23 @@ float3 ComputeLighting(
     }
     
     return result;
+}
+
+float3 ComputeLitColor(float3 worldPos, float3 normal, float3 toEye, float4 diffuseAlbedo, float metallic, float roughness, float3 emissive, float occlusion, float3 F0)
+{
+    const float shininess = 1.0f - roughness;
+    Material mat = { diffuseAlbedo, F0, shininess };
+    float3 shadowFactor = 1.0f;
+
+    float3 directLight = ComputeLighting(mat, worldPos,
+        normal, toEye, shadowFactor);
+
+    float3 c_diff = diffuseAlbedo.rgb * (1 - kDielectricSpecular) * (1 - metallic) * occlusion;
+    float3 c_spec = lerp(kDielectricSpecular, diffuseAlbedo, metallic) * occlusion;
+    
+    float3 litColor = emissive + directLight;
+
+    return litColor + Diffuse_IBL(normal, toEye, c_diff, roughness) + Specular_IBL(c_spec, normal, toEye, roughness);
 }
 
 #endif
