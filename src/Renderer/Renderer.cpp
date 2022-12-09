@@ -95,6 +95,25 @@ namespace Darius::Renderer
 		InitializeGUI();
 #endif // _D_EDITOR
 		DefaultBlackCubeMap = D_RESOURCE::GetResource<TextureResource>(GetDefaultGraphicsResource(D_GRAPHICS::DefaultResource::TextureCubeMapBlack), nullptr, L"Renderer", "Engine Subsystem");
+
+		// Initialize IBL Textrues on GPU
+		{
+			uint32_t DestCount = 2;
+			uint32_t SourceCounts[] = { 1, 1 };
+
+			D3D12_CPU_DESCRIPTOR_HANDLE specHandle = DefaultBlackCubeMap->GetTextureData()->GetSRV();
+			D3D12_CPU_DESCRIPTOR_HANDLE diffHandle = DefaultBlackCubeMap->GetTextureData()->GetSRV();
+
+			D3D12_CPU_DESCRIPTOR_HANDLE SourceTextures[] =
+			{
+				specHandle,
+				diffHandle
+			};
+
+			DescriptorHandle dest = CommonTexture + 2 * TextureHeap.GetDescriptorSize();
+
+			_device->CopyDescriptors(1, &dest, &DestCount, DestCount, SourceTextures, SourceCounts, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+		}
 	}
 
 	void Shutdown()
