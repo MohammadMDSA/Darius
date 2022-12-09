@@ -47,7 +47,6 @@ float Pow5(float x)
     float xSq = x * x;
     return xSq * xSq * x;
 }
-
 float CalcAttenuation(float d, float falloffStart, float falloffEnd)
 {
     // Linear falloff
@@ -128,7 +127,6 @@ float3 ComputePointLight(Light L, Material mat, float3 pos, float3 normal, float
     // Range test.
     if (d > L.FalloffEnd)
         result = float3(0.f, 0.f, 0.f);
-    
     else
     {
         // Normalize the light vector.
@@ -164,7 +162,6 @@ float3 ComputeSpotLight(Light L, Material mat, float3 pos, float3 normal, float3
     // Range testz
     if (d > L.FalloffEnd)
         result = float3(0.f, 0.f, 0.f);
-
     else
     {
         // Normalize the light vector.
@@ -182,7 +179,7 @@ float3 ComputeSpotLight(Light L, Material mat, float3 pos, float3 normal, float3
         float spotFactor = pow(max(dot(-lightVec, L.Direction.xyz), 0.0f), L.SpotPower);
         lightStrength *= spotFactor;
 
-        result =  BlinnPhong(lightStrength, lightVec, normal, toEye, mat);
+        result = BlinnPhong(lightStrength, lightVec, normal, toEye, mat);
     }
 
     return result;
@@ -191,14 +188,9 @@ float3 ComputeSpotLight(Light L, Material mat, float3 pos, float3 normal, float3
 // Diffuse irradiance
 float3 Diffuse_IBL(float3 normal, float3 toEye, float3 diffuseColor, float roughness)
 {
-    // Assumption:  L = N
-
-    //return Surface.c_diff * irradianceIBLTexture.Sample(defaultSampler, Surface.N);
-
-    // This is nicer but more expensive, and specular can often drown out the diffuse anyway
     float LdotH = saturate(dot(normal, normalize(normal + toEye)));
     float fd90 = 0.5 + 2.0 * roughness * LdotH * LdotH;
-    float3 DiffuseBurley = diffuseColor * Fresnel_Shlick(1, fd90, saturate(dot(normal, toEye)));
+    float3 DiffuseBurley = diffuseColor * Fresnel_Shlick(1.f, fd90, saturate(dot(normal, toEye)));
     return DiffuseBurley * irradianceIBLTexture.Sample(defaultSampler, normal);
 }
 
@@ -250,7 +242,7 @@ float3 ComputeLitColor(float3 worldPos, float3 normal, float3 toEye, float4 diff
         normal, toEye, shadowFactor);
 
     float3 c_diff = diffuseAlbedo.rgb * (1 - kDielectricSpecular) * (1 - metallic) * occlusion;
-    float3 c_spec = lerp(kDielectricSpecular, diffuseAlbedo, metallic) * occlusion;
+    float3 c_spec = lerp(kDielectricSpecular, diffuseAlbedo.xyz, metallic) * occlusion;
     
     float3 litColor = emissive + directLight;
 
