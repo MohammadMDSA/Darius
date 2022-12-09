@@ -49,9 +49,9 @@ VertexOut main(VertexIn vin)
     
     // Transform to world space
     float4 position = float4(vin.Pos, 1.f);
-    float3 normal = vin.Normal;// * 2 - 1;
+    float3 normal = vin.Normal;
 #ifndef NO_TANGENT_FRAME
-    float4 tangent = vsInput.tangent * 2 - 1
+    float4 tangent = vsInput.tangent;
 #endif
     
 #ifdef ENABLE_SKINNING
