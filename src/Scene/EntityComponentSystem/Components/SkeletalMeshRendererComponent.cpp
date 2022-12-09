@@ -190,7 +190,7 @@ namespace Darius::Scene::ECS::Components
 		auto& joint = mJoints[skeletonJoint.MatrixIdx];
 		auto withOffset = xform * skeletonJoint.IBM;
 		joint.mWorld = withOffset;
-		//joint.mWorldIT = InverseTranspose(withOffset.Get3x3());
+		joint.mWorldIT = InverseTranspose(withOffset.Get3x3());
 
 
 		Scalar scaleXSqr = LengthSquare((Vector3)xform.GetX());
@@ -225,9 +225,9 @@ namespace Darius::Scene::ECS::Components
 		MeshConstants* cb = (MeshConstants*)currentUploadBuff.Map();
 
 
-		auto world = GetTransform().GetWorld();
-		cb->mWorld = Matrix4(world);
-		//cb->mWorldIT = InverseTranspose(Matrix3(world));
+		Matrix4 world = Matrix4(GetTransform().GetWorld());
+		cb->mWorld = world;
+		cb->mWorldIT = InverseTranspose(world.Get3x3());
 
 		// Updating joints matrices on gpu
 		if (mSkeletonRoot)

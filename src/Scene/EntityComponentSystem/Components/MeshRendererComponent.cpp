@@ -151,7 +151,7 @@ namespace Darius::Scene::ECS::Components
 
 		auto world = GetTransform().GetWorld();
 		cb->mWorld = Matrix4(world);
-		//cb->mWorldIT = InverseTranspose(Matrix3(world));
+		cb->mWorldIT = InverseTranspose(Matrix3(world));
 
 		currentUploadBuff.Unmap();
 
