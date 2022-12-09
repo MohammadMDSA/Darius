@@ -22,6 +22,15 @@ namespace
 
 namespace Darius::Renderer::Geometry
 {
+
+	struct SubMesh
+	{
+		SubMesh() : IndexOffset(0), IndexCount(0) {}
+
+		int IndexOffset;
+		int IndexCount;
+	};
+
 	template<typename Vertex>
 	struct MeshData
 	{
@@ -43,7 +52,7 @@ namespace Darius::Renderer::Geometry
 		BoundingSphere CalcBoundingSphere()
 		{
 			BoundingSphere res;
-			for (auto vert : Vertices)
+			for (auto const& vert : Vertices)
 			{
 				BoundingSphere vertBound(vert.mPosition, 0.001);
 				res = res.Union(vertBound);
@@ -54,7 +63,7 @@ namespace Darius::Renderer::Geometry
 		AxisAlignedBox CalcBoundingBox()
 		{
 			AxisAlignedBox box;
-			for (auto vert : Vertices)
+			for (auto const& vert : Vertices)
 			{
 				box.AddBoundingBox(AxisAlignedBox(vert.mPosition, vert.mPosition));
 			}
@@ -69,7 +78,8 @@ namespace Darius::Renderer::Geometry
 	template<typename Vertex>
 	struct MultiPartMeshData
 	{
-		DVector<MeshData<Vertex>> meshParts;
+		MeshData<Vertex>	MeshData;
+		DVector<SubMesh>	SubMeshes;
 	};
 
 	struct VertexBlendWeightData
