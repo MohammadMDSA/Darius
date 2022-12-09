@@ -161,7 +161,7 @@ namespace Darius::Graphics::Utils::VertexTypes
 		VertexPositionNormalTangentTexture(VertexPositionNormalTangentTexture&&) = default;
 		VertexPositionNormalTangentTexture& operator=(VertexPositionNormalTangentTexture&&) = default;
 
-		VertexPositionNormalTangentTexture(Vector3 const& pos, Vector3 const& norm, Vector3 const& tang, XMFLOAT2 const& uv) :
+		VertexPositionNormalTangentTexture(Vector3 const& pos, Vector3 const& norm, Vector4 const& tang, XMFLOAT2 const& uv) :
 			mPosition(pos),
 			mNormal(norm),
 			mTangent(tang),
@@ -172,18 +172,18 @@ namespace Darius::Graphics::Utils::VertexTypes
 		VertexPositionNormalTangentTexture(
 			float px, float py, float pz,
 			float nx, float ny, float nz,
-			float tx, float ty, float tz,
+			float tx, float ty, float tz, float tw,
 			float u, float v) :
 			mPosition(px, py, pz),
 			mNormal(nx, ny, nz),
-			mTangent(tx, ty, tz),
+			mTangent(tx, ty, tz, tw),
 			mTexC(u, v)
 		{
 		}
 
 		XMFLOAT3								mPosition;
 		XMFLOAT3								mNormal;
-		XMFLOAT3								mTangent;
+		XMFLOAT4								mTangent;
 		XMFLOAT2								mTexC;
 
 		static const D3D12_INPUT_LAYOUT_DESC	InputLayout;
@@ -204,7 +204,7 @@ namespace Darius::Graphics::Utils::VertexTypes
 		VertexPositionNormalTangentTextureSkinned(VertexPositionNormalTangentTextureSkinned&&) = default;
 		VertexPositionNormalTangentTextureSkinned& operator=(VertexPositionNormalTangentTextureSkinned&&) = default;
 
-		VertexPositionNormalTangentTextureSkinned(Vector3 const& pos, Vector3 const& norm, Vector3 const& tang, XMFLOAT2 const& uv,
+		VertexPositionNormalTangentTextureSkinned(Vector3 const& pos, Vector3 const& norm, Vector4 const& tang, XMFLOAT2 const& uv,
 			XMUINT4 const& blendIndices = { 0, 0, 0, 0 }, XMFLOAT4 blendWeights = { 0.f, 0.f, 0.f, 0.f }) :
 			mPosition(pos),
 			mNormal(norm),
@@ -218,12 +218,12 @@ namespace Darius::Graphics::Utils::VertexTypes
 		VertexPositionNormalTangentTextureSkinned(
 			float px, float py, float pz,
 			float nx, float ny, float nz,
-			float tx, float ty, float tz,
+			float tx, float ty, float tz, float tw,
 			float u, float v,
 			XMUINT4 const& blendIndices = { 0, 0, 0, 0 }, XMFLOAT4 blendWeights = { 0.f, 0.f, 0.f, 0.f }) :
 			mPosition(px, py, pz),
 			mNormal(nx, ny, nz),
-			mTangent(tx, ty, tz),
+			mTangent(tx, ty, tz, tw),
 			mTexC(u, v),
 			mBlendIndices(blendIndices),
 			mBlendWeights(blendWeights)
@@ -232,7 +232,7 @@ namespace Darius::Graphics::Utils::VertexTypes
 
 		XMFLOAT3								mPosition;
 		XMFLOAT3								mNormal;
-		XMFLOAT3								mTangent;
+		XMFLOAT4								mTangent;
 		XMFLOAT2								mTexC;
 		XMUINT4									mBlendIndices;
 		XMFLOAT4								mBlendWeights;
