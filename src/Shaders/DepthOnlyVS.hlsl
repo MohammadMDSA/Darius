@@ -58,6 +58,7 @@ struct VSOutput
 #endif
 };
 
+[RootSignature(Renderer_RootSig)]
 VSOutput main(VSInput vsInput)
 {
     VSOutput vsOutput;

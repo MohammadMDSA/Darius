@@ -13,6 +13,7 @@ struct VSOutput
 	float3 viewDir : TEXCOORD3;
 };
 
+[RootSignature(Renderer_RootSig)]
 float4 main(VSOutput vsOutput) : SV_Target0
 {
     float3 aa = radianceIBLTexture.SampleLevel(defaultSampler, vsOutput.viewDir, TextureLevel);
