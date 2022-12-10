@@ -170,6 +170,13 @@ namespace Darius::Renderer
 
 	void BuildPSO()
 	{
+#define ShaderData(name) Shaders[name]->GetBufferPointer(), Shaders[name]->GetBufferSize()
+#define VertexData(il) il::InputLayout.NumElements, il::InputLayout.pInputElementDescs
+
+		DXGI_FORMAT ColorFormat = Resources->GetBackBufferFormat();
+		DXGI_FORMAT DepthFormat = Resources->GetDepthBufferFormat();
+		DXGI_FORMAT ShadowFormat = Resources->GetShadowBufferFormat();
+
 		// For Opaque objects
 		Psos[(size_t)PipelineStateTypes::OpaquePso] = GraphicsPSO(L"Opaque PSO");
 		auto& pso = Psos[(size_t)PipelineStateTypes::OpaquePso];
@@ -187,7 +194,7 @@ namespace Darius::Renderer
 		pso.SetDepthStencilState(DepthStateReadWrite);
 		pso.SetSampleMask(UINT_MAX);
 		pso.SetPrimitiveTopologyType(D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE);
-		pso.SetRenderTargetFormat(D_RENDERER_DEVICE::GetBackBufferFormat(), D_RENDERER_DEVICE::GetDepthBufferFormat());
+		pso.SetRenderTargetFormat(ColorFormat, DepthFormat);
 		pso.Finalize();
 
 		// Transparent
@@ -253,6 +260,63 @@ namespace Darius::Renderer
 			skyboxPso.SetPixelShader(reinterpret_cast<BYTE*>(Shaders["SkyboxPS"]->GetBufferPointer()), Shaders["SkyboxPS"]->GetBufferSize());
 			skyboxPso.Finalize(L"Skybox");
 		}
+
+		// Depth Only PSOs
+
+		GraphicsPSO DepthOnlyPSO(L"Renderer: Depth Only PSO");
+		DepthOnlyPSO.SetRootSignature(RootSigns[(size_t)RootSignatureTypes::DefaultRootSig]);
+		DepthOnlyPSO.SetRasterizerState(RasterizerDefault);
+		DepthOnlyPSO.SetBlendState(BlendDisable);
+		DepthOnlyPSO.SetDepthStencilState(DepthStateReadWrite);
+		DepthOnlyPSO.SetInputLayout(VertexData(D_GRAPHICS_VERTEX::VertexPosition));
+		DepthOnlyPSO.SetPrimitiveTopologyType(D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE);
+		DepthOnlyPSO.SetRenderTargetFormats(0, nullptr, DepthFormat);
+		DepthOnlyPSO.SetVertexShader(ShaderData("DepthOnlyVS"));
+		DepthOnlyPSO.Finalize();
+		Psos[(size_t)PipelineStateTypes::DepthOnlyPso] = DepthOnlyPSO;
+
+		GraphicsPSO CutoutDepthPSO(L"Renderer: Cutout Depth PSO");
+		CutoutDepthPSO = DepthOnlyPSO;
+		CutoutDepthPSO.SetInputLayout(VertexData(D_GRAPHICS_VERTEX::VertexPositionTexture));
+		CutoutDepthPSO.SetRasterizerState(RasterizerTwoSided);
+		CutoutDepthPSO.SetVertexShader(ShaderData("CutoutDepthVS"));
+		CutoutDepthPSO.SetPixelShader(ShaderData("CutoutDepthPS"));
+		CutoutDepthPSO.Finalize();
+		Psos[(size_t)PipelineStateTypes::CutoutDepthPso] = CutoutDepthPSO;
+
+		GraphicsPSO SkinDepthOnlyPSO = DepthOnlyPSO;
+		SkinDepthOnlyPSO.SetInputLayout(VertexData(D_GRAPHICS_VERTEX::VertexPositionSkinned));
+		SkinDepthOnlyPSO.SetVertexShader(ShaderData("DepthOnlySkinVS"));
+		SkinDepthOnlyPSO.Finalize();
+		Psos[(size_t)PipelineStateTypes::SkinDepthOnlyPso] = SkinDepthOnlyPSO;
+
+		GraphicsPSO SkinCutoutDepthPSO = CutoutDepthPSO;
+		SkinCutoutDepthPSO.SetInputLayout(VertexData(D_GRAPHICS_VERTEX::VertexPositionTextureSkinned));
+		SkinCutoutDepthPSO.SetVertexShader(ShaderData("CutoutDepthSkinVS"));
+		SkinCutoutDepthPSO.Finalize();
+		Psos[(size_t)PipelineStateTypes::SkinCutoutDepthPso] = SkinCutoutDepthPSO;
+
+		// Shadow PSOs
+
+		DepthOnlyPSO.SetRasterizerState(RasterizerShadow);
+		DepthOnlyPSO.SetRenderTargetFormats(0, nullptr, ShadowFormat);
+		DepthOnlyPSO.Finalize();
+		Psos[(size_t)PipelineStateTypes::ShadowDepthOnlyPso] = DepthOnlyPSO;
+
+		CutoutDepthPSO.SetRasterizerState(RasterizerShadowTwoSided);
+		CutoutDepthPSO.SetRenderTargetFormats(0, nullptr, ShadowFormat);
+		CutoutDepthPSO.Finalize();
+		Psos[(size_t)PipelineStateTypes::ShadowCutoutDepthPso] = CutoutDepthPSO;
+
+		SkinDepthOnlyPSO.SetRasterizerState(RasterizerShadow);
+		SkinDepthOnlyPSO.SetRenderTargetFormats(0, nullptr, ShadowFormat);
+		SkinDepthOnlyPSO.Finalize();
+		Psos[(size_t)PipelineStateTypes::ShadowSkinDepthOnlyPso] = SkinDepthOnlyPSO;
+
+		SkinCutoutDepthPSO.SetRasterizerState(RasterizerShadowTwoSided);
+		SkinCutoutDepthPSO.SetRenderTargetFormats(0, nullptr, ShadowFormat);
+		SkinCutoutDepthPSO.Finalize();
+		Psos[(size_t)PipelineStateTypes::ShadowSkinCutoutDepthPso] = SkinCutoutDepthPSO;
 	}
 
 	void BuildRootSignature()

@@ -19,7 +19,7 @@ namespace Darius::Graphics::Utils::VertexTypes
 
 		VertexPosition(VertexPosition&&) = default;
 		VertexPosition& operator=(VertexPosition&&) = default;
-		
+
 		VertexPosition(Vector3 const& position) noexcept :
 			mPosition(position)
 		{
@@ -36,6 +36,115 @@ namespace Darius::Graphics::Utils::VertexTypes
 
 	private:
 		static constexpr unsigned int			InputElementCount = 1;
+		static const D3D12_INPUT_ELEMENT_DESC	InputElements[InputElementCount];
+	};
+
+	struct VertexPositionSkinned : public IVertexType
+	{
+		VertexPositionSkinned() = default;
+
+		VertexPositionSkinned(const VertexPositionSkinned&) = default;
+		VertexPositionSkinned& operator=(const VertexPositionSkinned&) = default;
+
+		VertexPositionSkinned(VertexPositionSkinned&&) = default;
+		VertexPositionSkinned& operator=(VertexPositionSkinned&&) = default;
+
+		VertexPositionSkinned(Vector3 const& position,
+			XMUINT4 const& blendIndices = { 0, 0, 0, 0 }, XMFLOAT4 blendWeights = { 0.f, 0.f, 0.f, 0.f }) noexcept :
+			mPosition(position),
+			mBlendIndices(blendIndices),
+			mBlendWeights(blendWeights)
+		{
+		}
+
+		VertexPositionSkinned(Vector3 position,
+			XMUINT4 const& blendIndices = { 0, 0, 0, 0 }, XMFLOAT4 blendWeights = { 0.f, 0.f, 0.f, 0.f }) noexcept :
+			mPosition(position),
+			mBlendIndices(blendIndices),
+			mBlendWeights(blendWeights)
+		{
+		}
+
+		XMFLOAT3								mPosition;
+		XMUINT4									mBlendIndices;
+		XMFLOAT4								mBlendWeights;
+
+		static const D3D12_INPUT_LAYOUT_DESC	InputLayout;
+
+	private:
+		static constexpr unsigned int			InputElementCount = 3;
+		static const D3D12_INPUT_ELEMENT_DESC	InputElements[InputElementCount];
+	};
+
+	struct VertexPositionTexture : public IVertexType
+	{
+		VertexPositionTexture() = default;
+
+		VertexPositionTexture(const VertexPositionTexture&) = default;
+		VertexPositionTexture& operator=(const VertexPositionTexture&) = default;
+
+		VertexPositionTexture(VertexPositionTexture&&) = default;
+		VertexPositionTexture& operator=(VertexPositionTexture&&) = default;
+
+		VertexPositionTexture(Vector3 const& position, float u, float v) noexcept :
+			mPosition(position),
+			mUV(u, v)
+		{
+		}
+
+		VertexPositionTexture(Vector3 position, float u, float v) noexcept :
+			mPosition(position),
+			mUV(u, v)
+		{
+		}
+
+		XMFLOAT3								mPosition;
+		XMFLOAT2								mUV;
+
+		static const D3D12_INPUT_LAYOUT_DESC	InputLayout;
+
+	private:
+		static constexpr unsigned int			InputElementCount = 2;
+		static const D3D12_INPUT_ELEMENT_DESC	InputElements[InputElementCount];
+	};
+
+	struct VertexPositionTextureSkinned : public IVertexType
+	{
+		VertexPositionTextureSkinned() = default;
+
+		VertexPositionTextureSkinned(const VertexPositionTextureSkinned&) = default;
+		VertexPositionTextureSkinned& operator=(const VertexPositionTextureSkinned&) = default;
+
+		VertexPositionTextureSkinned(VertexPositionTextureSkinned&&) = default;
+		VertexPositionTextureSkinned& operator=(VertexPositionTextureSkinned&&) = default;
+
+		VertexPositionTextureSkinned(Vector3 const& position, float u, float v,
+			XMUINT4 const& blendIndices = { 0, 0, 0, 0 }, XMFLOAT4 blendWeights = { 0.f, 0.f, 0.f, 0.f }) noexcept :
+			mPosition(position),
+			mUV(u, v),
+			mBlendIndices(blendIndices),
+			mBlendWeights(blendWeights)
+		{
+		}
+
+		VertexPositionTextureSkinned(Vector3 position, float u, float v,
+			XMUINT4 const& blendIndices = { 0, 0, 0, 0 }, XMFLOAT4 blendWeights = { 0.f, 0.f, 0.f, 0.f }) noexcept :
+			mPosition(position),
+			mUV(u, v),
+			mBlendIndices(blendIndices),
+			mBlendWeights(blendWeights)
+		{
+		}
+
+		XMFLOAT3								mPosition;
+		XMFLOAT2								mUV;
+		XMUINT4									mBlendIndices;
+		XMFLOAT4								mBlendWeights;
+
+		static const D3D12_INPUT_LAYOUT_DESC	InputLayout;
+
+	private:
+		static constexpr unsigned int			InputElementCount = 4;
 		static const D3D12_INPUT_ELEMENT_DESC	InputElements[InputElementCount];
 	};
 
