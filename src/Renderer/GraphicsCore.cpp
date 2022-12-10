@@ -399,24 +399,26 @@ namespace Darius::Graphics
 	void BuildShaders()
 	{
 
-		Shaders["standardVS"] = CompileShader(L"Shaders\\DefaultVS.hlsl", nullptr, "main", "vs_5_1");
-		Shaders["opaquePS"] = CompileShader(L"Shaders\\DefaultPS.hlsl", nullptr, "main", "ps_5_1");
-		Shaders["colorVS"] = CompileShader(L"Shaders\\SimpleColorVS.hlsl", nullptr, "main", "vs_5_1");
-		Shaders["colorPS"] = CompileShader(L"Shaders\\SimpleColorPS.hlsl", nullptr, "main", "ps_5_1");
-		Shaders["skinnedVS"] = CompileShader(L"Shaders\\SkinnedVS.hlsl", nullptr, "main", "vs_5_1");
+		D_FILE::VisitFilesInDirectory(L"Shaders", true, [&](Path const& path)
+			{
+				if (path.extension() != L".hlsl")
+					return;
 
-		// Skybox
-		Shaders["skyboxVS"] = CompileShader(L"Shaders\\SkyboxVS.hlsl", nullptr, "main", "vs_5_1");
-		Shaders["skyboxPS"] = CompileShader(L"Shaders\\SkyboxPS.hlsl", nullptr, "main", "ps_5_1");
+				auto shaderNameW = D_FILE::GetFileName(path);
+				auto shaderName = STR_WSTR(shaderNameW);
 
-		Shaders["GenerateMipsLinearCS"] = CompileShader(L"Shaders\\GenerateMips\\GenerateMipsLinearCS.hlsl", nullptr, "main", "cs_5_1");
-		Shaders["GenerateMipsLinearOddXCS"] = CompileShader(L"Shaders\\GenerateMips\\GenerateMipsLinearOddXCS.hlsl", nullptr, "main", "cs_5_1");
-		Shaders["GenerateMipsLinearOddYCS"] = CompileShader(L"Shaders\\GenerateMips\\GenerateMipsLinearOddYCS.hlsl", nullptr, "main", "cs_5_1");
-		Shaders["GenerateMipsLinearOddCS"] = CompileShader(L"Shaders\\GenerateMips\\GenerateMipsLinearOddCS.hlsl", nullptr, "main", "cs_5_1");
-		Shaders["GenerateMipsGammaCS"] = CompileShader(L"Shaders\\GenerateMips\\GenerateMipsGammaCS.hlsl", nullptr, "main", "cs_5_1");
-		Shaders["GenerateMipsGammaOddXCS"] = CompileShader(L"Shaders\\GenerateMips\\GenerateMipsGammaOddXCS.hlsl", nullptr, "main", "cs_5_1");
-		Shaders["GenerateMipsGammaOddYCS"] = CompileShader(L"Shaders\\GenerateMips\\GenerateMipsGammaOddYCS.hlsl", nullptr, "main", "cs_5_1");
-		Shaders["GenerateMipsGammaOddCS"] = CompileShader(L"Shaders\\GenerateMips\\GenerateMipsGammaOddCS.hlsl", nullptr, "main", "cs_5_1");
+				std::string compiler;
+				if (shaderName.ends_with("VS"))
+					compiler = "vs_5_1";
+				else if (shaderName.ends_with("PS"))
+					compiler = "ps_5_1";
+				else if (shaderName.ends_with("CS"))
+					compiler = "cs_5_1";
+				else
+					return;
+
+				Shaders[shaderName] = CompileShader(path, nullptr, "main", compiler);
+			});
 
 	}
 
