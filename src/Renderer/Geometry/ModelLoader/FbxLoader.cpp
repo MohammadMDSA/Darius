@@ -566,33 +566,6 @@ namespace Darius::Renderer::Geometry::ModelLoader::Fbx
             subMeshes[lMaterialIndex]->TriangleCount += 1;
         }
 
-        //// Create VBOs
-        //glGenBuffers(VBO_COUNT, mVBONames);
-
-        //// Save vertex attributes into GPU
-        //glBindBuffer(GL_ARRAY_BUFFER, mVBONames[VERTEX_VBO]);
-        //glBufferData(GL_ARRAY_BUFFER, lPolygonVertexCount * VERTEX_STRIDE * sizeof(float), lVertices, GL_STATIC_DRAW);
-        //delete[] lVertices;
-
-        //if (mHasNormal)
-        //{
-        //    glBindBuffer(GL_ARRAY_BUFFER, mVBONames[NORMAL_VBO]);
-        //    glBufferData(GL_ARRAY_BUFFER, lPolygonVertexCount * NORMAL_STRIDE * sizeof(float), lNormals, GL_STATIC_DRAW);
-        //    delete[] lNormals;
-        //}
-
-        //if (mHasUV)
-        //{
-        //    glBindBuffer(GL_ARRAY_BUFFER, mVBONames[UV_VBO]);
-        //    glBufferData(GL_ARRAY_BUFFER, lPolygonVertexCount * UV_STRIDE * sizeof(float), lUVs, GL_STATIC_DRAW);
-        //    delete[] lUVs;
-        //}
-
-        //glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mVBONames[INDEX_VBO]);
-        //glBufferData(GL_ELEMENT_ARRAY_BUFFER, lPolygonCount * TRIANGLE_VERTEX_COUNT * sizeof(unsigned int), lIndices, GL_STATIC_DRAW);
-        //delete[] lIndices;
-
-
         result.SubMeshes.resize(subMeshes.Size());
         for (int i = 0; i < subMeshes.GetCount(); i++)
         {
