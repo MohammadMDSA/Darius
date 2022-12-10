@@ -62,4 +62,25 @@ namespace Darius::Core::Filesystem
 
 		return fullname.substr(0, fullname.length() - ext.length());
 	}
+
+	void VisitEntriesInDirectory(Path const& path, bool recursively, std::function<void(Path const&, bool)> callback)
+	{
+		for (const auto& entry : std::filesystem::directory_iterator(path))
+		{
+			callback(entry.path(), entry.is_directory());
+			if (entry.is_directory() && recursively)
+			{
+				VisitEntriesInDirectory(entry.path(), true, callback);
+			}
+		}
+	}
+
+	void VisitFilesInDirectory(Path const& path, bool recursively, std::function<void(Path const&)> callback)
+	{
+		VisitEntriesInDirectory(path, recursively, [&](Path const& _path, bool isDir)
+			{
+				if (!isDir)
+					callback(_path);
+			});
+	}
 }
