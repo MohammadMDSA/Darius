@@ -80,6 +80,7 @@ namespace Darius::Renderer::DeviceResource
         ID3D12CommandAllocator* GetCommandAllocator() const noexcept            { return m_frameResources[m_currentResourceIndex]->CmdListAlloc.Get(); }
         DXGI_FORMAT                 GetBackBufferFormat() const noexcept        { return m_backBufferFormat; }
         DXGI_FORMAT                 GetDepthBufferFormat() const noexcept       { return m_depthBufferFormat; }
+        DXGI_FORMAT                 GetShadowBufferFormat() const noexcept      { return DXGI_FORMAT_D16_UNORM; }
         D3D12_VIEWPORT              GetScreenViewport() const noexcept          { return m_screenViewport; }
         D3D12_RECT                  GetScissorRect() const noexcept             { return m_scissorRect; }
         UINT                        GetCurrentFrameResourceIndex() const noexcept  { return m_currentResourceIndex; }

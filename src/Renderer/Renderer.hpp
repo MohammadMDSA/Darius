@@ -60,6 +60,14 @@ namespace Darius::Renderer
 		ColorWireframePso,
 		ColorWireframeTwoSidedPso,
 		SkyboxPso,
+		DepthOnlyPso,
+		CutoutDepthPso,
+		SkinDepthOnlyPso,
+		SkinCutoutDepthPso,
+		ShadowDepthOnlyPso,
+		ShadowCutoutDepthPso,
+		ShadowSkinDepthOnlyPso,
+		ShadowSkinCutoutDepthPso,
 
 		_numPso
 	};
