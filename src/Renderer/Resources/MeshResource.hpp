@@ -1,7 +1,5 @@
 #pragma once
 
-#include "Renderer/Geometry/MeshData.hpp"
-#include "Renderer/Geometry/Mesh.hpp"
 #include "Renderer/GraphicsUtils/VertexTypes.hpp"
 
 #include <ResourceManager/Resource.hpp>
@@ -56,8 +54,6 @@ namespace Darius::Graphics
 		static void						GetFBXNormals(MultiPartMeshData<VertexType>& meshDataVec, void const* meshP, DVector<DUnorderedMap<int, int>>& indexMapper);
 
 		static void						GetFBXPolygons(MultiPartMeshData<VertexType>& meshDataVec, void const* meshP, DVector<DUnorderedMap<int, int>>& indexMapper);
-
-		static void						TraverseNodes(void* nodeP, std::function<void(void*)> callback);
 
 	};
 }

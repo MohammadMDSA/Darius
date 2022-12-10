@@ -86,6 +86,8 @@ namespace Darius::Graphics
 				}
 			});
 
+		lSdkManager->Destroy();
+
 		return results;
 	}
 
@@ -303,17 +305,6 @@ namespace Darius::Graphics
 					}
 				}
 			}
-		}
-	}
-
-	void MeshResource::TraverseNodes(void* nodeP, std::function<void(void*)> callback)
-	{
-		auto node = (FbxNode*)nodeP;
-		callback(nodeP);
-
-		for (int i = 0; i < node->GetChildCount(); i++)
-		{
-			TraverseNodes(node->GetChild(i), callback);
 		}
 	}
 
