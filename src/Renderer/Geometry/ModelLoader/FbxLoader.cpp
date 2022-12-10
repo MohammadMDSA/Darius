@@ -1,7 +1,5 @@
+#include "Renderer/pch.hpp"
 #include "FbxLoader.hpp"
-
-#include "Renderer/Geometry/MeshData.hpp"
-#include "Renderer/GraphicsUtils/VertexTypes.hpp"
 
 #include <Utils/Assert.hpp>
 
@@ -10,6 +8,10 @@
 
 #include <fbxsdk.h>
 #include <fbxsdk/fileio/fbxiosettings.h>
+
+using namespace fbxsdk;
+using namespace D_RESOURCE;
+using namespace D_CONTAINERS;
 
 namespace Darius::Renderer::Geometry::ModelLoader
 {
@@ -32,6 +34,60 @@ namespace Darius::Renderer::Geometry::ModelLoader
         int IndexOffset;
         int TriangleCount;
     };
+
+    // Reads the scene from path and return a pointer to root node of the scene
+    // to work with and the sdk manager to get dispose of later.
+    bool InitializeFbxScene(D_FILE::Path const& path, FbxNode* rootNode, FbxManager* sdkManager)
+    {
+        // Create the FBX SDK manager
+        sdkManager = FbxManager::Create();
+
+        // Create an IOSettings object.
+        FbxIOSettings* ios = FbxIOSettings::Create(sdkManager, IOSROOT);
+        sdkManager->SetIOSettings(ios);
+
+        // Declare the path and filename of the file containing the scene.
+        // In this case, we are assuming the file is in the same directory as the executable.
+        auto pathStr = path.string();
+        const char* lFilename = pathStr.c_str();
+
+        // Create an importer.
+        FbxImporter* lImporter = FbxImporter::Create(sdkManager, pathStr.c_str());
+
+        // Initialize the importer.
+        bool lImportStatus = lImporter->Initialize(lFilename, -1, sdkManager->GetIOSettings());
+
+        if (!lImportStatus) {
+            D_LOG_ERROR("Call to FbxImporter::Initialize() failed. Tried to load resource from " << pathStr);
+            std::string msg = "Error returned: " + std::string(lImporter->GetStatus().GetErrorString());
+            D_LOG_ERROR(msg);
+            return false;
+        }
+
+        // Create a new scene so it can be populated by the imported file.
+        FbxScene* lScene = FbxScene::Create(sdkManager, "modelScene");
+
+        // Import the contents of the file into the scene.
+        lImporter->Import(lScene);
+
+        // The file has been imported; we can get rid of the importer.
+        lImporter->Destroy();
+
+        // Print the nodes of the scene and their attributes recursively.
+        // Note that we are not printing the root node because it should
+        // not contain any attributes.
+        rootNode = lScene->GetRootNode();
+    }
+
+    void TraverseNodes(void* nodeP, std::function<void(void*)> callback);
+
+    bool ReadMeshNode(const void* meshP, MultiPartMeshData<D_GRAPHICS_VERTEX::VertexPositionNormalTangentTextureSkinned>& result);
+
+    D_CONTAINERS::DVector<D_RESOURCE::ResourceDataInFile> GetResourcesDataFromFile(D_RESOURCE::ResourceType, D_FILE::Path const& path)
+    {
+        FbxManager* sdkManager;
+
+    }
 
     bool ReadMeshNode(void* meshP, MultiPartMeshData<D_GRAPHICS_VERTEX::VertexPositionNormalTangentTextureSkinned>& result)
     {
@@ -324,33 +380,6 @@ namespace Darius::Renderer::Geometry::ModelLoader
             subMeshes[lMaterialIndex]->TriangleCount += 1;
         }
 
-        //// Create VBOs
-        //glGenBuffers(VBO_COUNT, mVBONames);
-
-        //// Save vertex attributes into GPU
-        //glBindBuffer(GL_ARRAY_BUFFER, mVBONames[VERTEX_VBO]);
-        //glBufferData(GL_ARRAY_BUFFER, lPolygonVertexCount * VERTEX_STRIDE * sizeof(float), lVertices, GL_STATIC_DRAW);
-        //delete[] lVertices;
-
-        //if (mHasNormal)
-        //{
-        //    glBindBuffer(GL_ARRAY_BUFFER, mVBONames[NORMAL_VBO]);
-        //    glBufferData(GL_ARRAY_BUFFER, lPolygonVertexCount * NORMAL_STRIDE * sizeof(float), lNormals, GL_STATIC_DRAW);
-        //    delete[] lNormals;
-        //}
-
-        //if (mHasUV)
-        //{
-        //    glBindBuffer(GL_ARRAY_BUFFER, mVBONames[UV_VBO]);
-        //    glBufferData(GL_ARRAY_BUFFER, lPolygonVertexCount * UV_STRIDE * sizeof(float), lUVs, GL_STATIC_DRAW);
-        //    delete[] lUVs;
-        //}
-
-        //glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mVBONames[INDEX_VBO]);
-        //glBufferData(GL_ELEMENT_ARRAY_BUFFER, lPolygonCount * TRIANGLE_VERTEX_COUNT * sizeof(unsigned int), lIndices, GL_STATIC_DRAW);
-        //delete[] lIndices;
-
-
         result.SubMeshes.resize(subMeshes.Size());
         for (int i = 0; i < subMeshes.GetCount(); i++)
         {
@@ -380,7 +409,24 @@ namespace Darius::Renderer::Geometry::ModelLoader
             result.MeshData.Indices32.push_back(lIndices[i]);
         }
 
+        delete[] lVertices;
+        delete[] lIndices;
+        delete[] lNormals;
+        delete[] lTangents;
+        delete[] lUVs;
+
         return true;
+    }
+
+    void TraverseNodes(void* nodeP, std::function<void(void*)> callback)
+    {
+        auto node = reinterpret_cast<FbxNode*>(nodeP);
+        callback(nodeP);
+
+        for (int i = 0; i < node->GetChildCount(); i++)
+        {
+            TraverseNodes(node->GetChild(i), callback);
+        }
     }
 
 }
