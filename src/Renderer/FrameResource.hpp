@@ -73,11 +73,17 @@ namespace Darius::Renderer::ConstantFrameResource
 	{
 		enum PSOFlags : uint16_t
 		{
-			TwoSided = 0x001,  // Required
-			AlphaTest = 0x002,  // Required
-			AlphaBlend = 0x004,
-			ColorOnly = 0x008,  // Required (for now)
-			Wireframe = 0x010
+			HasPosition    = 0x001,
+			HasNormal      = 0x002,
+			HasTangent     = 0x004,
+			HasUV0         = 0x008,
+			HasUV1         = 0x010,
+			AlphaBlend     = 0x020,
+			AlphaTest      = 0x040,
+			TwoSided       = 0x080,
+			HasSkin        = 0x100,
+			Wireframe	   = 0x200,
+			ColorOnly	   = 0x400
 		};
 
 		RenderItem() = default;
