@@ -177,10 +177,10 @@ namespace Darius::Renderer
 		auto il = D_GRAPHICS_VERTEX::VertexPositionNormalTexture::InputLayout;
 		pso.SetInputLayout(il.NumElements, il.pInputElementDescs);
 
-		pso.SetVertexShader(reinterpret_cast<BYTE*>(Shaders["standardVS"]->GetBufferPointer()),
-			Shaders["standardVS"]->GetBufferSize());
-		pso.SetPixelShader(reinterpret_cast<BYTE*>(Shaders["opaquePS"]->GetBufferPointer()),
-			Shaders["opaquePS"]->GetBufferSize());
+		pso.SetVertexShader(reinterpret_cast<BYTE*>(Shaders["DefaultVS"]->GetBufferPointer()),
+			Shaders["DefaultVS"]->GetBufferSize());
+		pso.SetPixelShader(reinterpret_cast<BYTE*>(Shaders["DefaultPS"]->GetBufferPointer()),
+			Shaders["DefaultPS"]->GetBufferSize());
 		pso.SetRootSignature(RootSigns[(size_t)RootSignatureTypes::DefaultRootSig]);
 		pso.SetRasterizerState(D_GRAPHICS::RasterizerDefault);
 		pso.SetBlendState(CD3DX12_BLEND_DESC(D3D12_DEFAULT));
@@ -209,7 +209,7 @@ namespace Darius::Renderer
 		{
 			auto skinnedOpaquePso = GraphicsPSO(L"Skinned Opaque PSO");
 			skinnedOpaquePso = pso;
-			skinnedOpaquePso.SetVertexShader(Shaders["skinnedVS"]->GetBufferPointer(), Shaders["skinnedVS"]->GetBufferSize());
+			skinnedOpaquePso.SetVertexShader(Shaders["SkinnedVS"]->GetBufferPointer(), Shaders["SkinnedVS"]->GetBufferSize());
 			skinnedOpaquePso.SetInputLayout(D_GRAPHICS_VERTEX::VertexPositionNormalTextureSkinned::InputLayout.NumElements, D_GRAPHICS_VERTEX::VertexPositionNormalTextureSkinned::InputLayout.pInputElementDescs);
 			skinnedOpaquePso.Finalize();
 			Psos[(size_t)PipelineStateTypes::SkinnedOpaquePso] = skinnedOpaquePso;
@@ -220,8 +220,8 @@ namespace Darius::Renderer
 		auto& colorPso = Psos[(size_t)PipelineStateTypes::ColorPso];
 		il = D_GRAPHICS_VERTEX::VertexPosition::InputLayout;
 		colorPso.SetInputLayout(il.NumElements, il.pInputElementDescs);
-		colorPso.SetVertexShader(reinterpret_cast<BYTE*>(Shaders["colorVS"]->GetBufferPointer()), Shaders["colorVS"]->GetBufferSize());
-		colorPso.SetPixelShader(reinterpret_cast<BYTE*>(Shaders["colorPS"]->GetBufferPointer()), Shaders["colorPS"]->GetBufferSize());
+		colorPso.SetVertexShader(reinterpret_cast<BYTE*>(Shaders["ColorVS"]->GetBufferPointer()), Shaders["ColorVS"]->GetBufferSize());
+		colorPso.SetPixelShader(reinterpret_cast<BYTE*>(Shaders["ColorPS"]->GetBufferPointer()), Shaders["ColorPS"]->GetBufferSize());
 		colorPso.SetRootSignature(RootSigns[(size_t)RootSignatureTypes::DefaultRootSig]);
 		colorPso.SetPrimitiveTopologyType(D3D12_PRIMITIVE_TOPOLOGY_TYPE_LINE);
 		colorPso.Finalize(L"Color");
@@ -249,8 +249,8 @@ namespace Darius::Renderer
 			auto& skyboxPso = Psos[(size_t)PipelineStateTypes::SkyboxPso];
 			skyboxPso.SetDepthStencilState(DepthStateTestEqual);
 			skyboxPso.SetInputLayout(0, nullptr);
-			skyboxPso.SetVertexShader(reinterpret_cast<BYTE*>(Shaders["skyboxVS"]->GetBufferPointer()), Shaders["skyboxVS"]->GetBufferSize());
-			skyboxPso.SetPixelShader(reinterpret_cast<BYTE*>(Shaders["skyboxPS"]->GetBufferPointer()), Shaders["skyboxPS"]->GetBufferSize());
+			skyboxPso.SetVertexShader(reinterpret_cast<BYTE*>(Shaders["SkyboxVS"]->GetBufferPointer()), Shaders["SkyboxVS"]->GetBufferSize());
+			skyboxPso.SetPixelShader(reinterpret_cast<BYTE*>(Shaders["SkyboxPS"]->GetBufferPointer()), Shaders["SkyboxPS"]->GetBufferSize());
 			skyboxPso.Finalize(L"Skybox");
 		}
 	}
@@ -382,7 +382,18 @@ namespace Darius::Renderer
 		union float_or_int { float f; uint32_t u; } dist;
 		dist.f = Max(distance, 0.0f);
 
-		if (renderItem.PsoFlags & RenderItem::AlphaBlend)
+		/*if (m_BatchType == kShadows)
+		{
+			if (alphaBlend)
+				return;
+
+			key.passID = kZPass;
+			key.psoIdx = depthPSO + 4;
+			key.key = dist.u;
+			m_SortKeys.push_back(key.value);
+			m_PassCounts[kZPass]++;
+		}
+		else*/ if (renderItem.PsoFlags & RenderItem::AlphaBlend)
 		{
 			key.passID = kTransparent;
 			key.psoIdx = renderItem.PsoFlags & RenderItem::Wireframe ? WireframePso : TransparentPso;
