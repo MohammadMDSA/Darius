@@ -23,13 +23,17 @@ namespace Darius::Core::Filesystem
 	typedef shared_ptr<vector<std::byte>> ByteArray;
 	static const ByteArray NullFile = std::make_shared<vector<std::byte> >(vector<std::byte>());
 
-	std::wstring GetNewFileName(std::wstring const& baseName, std::wstring const& extension, Path parent);
+	std::wstring					GetNewFileName(std::wstring const& baseName, std::wstring const& extension, Path parent);
 
-	ByteArray ReadFileHelper(const wstring& fileName);
+	ByteArray						ReadFileHelper(const wstring& fileName);
 
-	ByteArray ReadFileSync(std::wstring const& path);
+	ByteArray						ReadFileSync(std::wstring const& path);
 
-	Concurrency::task<ByteArray> ReadFileAsync(std::wstring const& path);
+	Concurrency::task<ByteArray>	ReadFileAsync(std::wstring const& path);
 
-	std::wstring GetFileName(Path path);
+	std::wstring					GetFileName(Path path);
+
+	// Calls the callback providing entry path and whether it is a directory
+	void							VisitEntriesInDirectory(Path const& path, bool recursively, std::function<void(Path const&, bool)> callback);
+	void							VisitFilesInDirectory(Path const& path, bool recursively, std::function<void(Path const&)> callback);
 }

@@ -26,7 +26,7 @@ namespace Darius::ResourceManager
 		static ResourceHandle	LoadResource(Resource* resource);
 		static DVector<ResourceHandle>	LoadResource(Path path, bool metaOnly = false);
 
-		static void				VisitSubdirectory(Path path, bool recursively = false);
+		static void				VisitSubdirectory(Path const& path, bool recursively = false);
 		static ResourceFileMeta GetResourceFileMetaFromResource(Resource* resource);
 
 		static INLINE D_FILE::Path GetPathForNewResource(std::wstring const& name, std::wstring const& ext, D_FILE::Path const& parent) { auto dir = Path(parent); return dir.append(D_FILE::GetNewFileName(name, ext, dir)); }

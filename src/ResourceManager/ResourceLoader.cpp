@@ -10,7 +10,6 @@
 
 using namespace D_CORE;
 using namespace D_SERIALIZATION;
-namespace fs = std::filesystem;
 
 namespace Darius::ResourceManager
 {
@@ -200,21 +199,12 @@ namespace Darius::ResourceManager
 		return handles;
 	}
 
-	void ResourceLoader::VisitSubdirectory(Path path, bool recursively)
+	void ResourceLoader::VisitSubdirectory(Path const& path, bool recursively)
 	{
-		for (const auto& entry : fs::directory_iterator(path))
-		{
-			if (!entry.is_directory())
+		VisitFilesInDirectory(path, recursively, [&](Path const& _path)
 			{
-				VisitFile(entry.path());
-				continue;
-			}
-			else
-			{
-				if (recursively)
-					VisitSubdirectory(entry.path(), true);
-			}
-		}
+				VisitFile(_path);
+			});
 	}
 
 	ResourceFileMeta ResourceLoader::GetResourceFileMetaFromResource(Resource* resource)
