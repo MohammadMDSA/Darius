@@ -316,6 +316,7 @@ device->CopyDescriptorsSimple(1, mTexturesHeap + type * incSize, m##name##Textur
 		if (ImGui::Button(mPsoFlags & RenderItem::AlphaBlend ? "Transparent" : "Opaque", ImVec2(-1, 0)))
 		{
 			ImGui::OpenPopup("##ShaderTypeSelecionPopup");
+			valueChanged = true;
 		}
 		if (ImGui::BeginPopupContextItem("##ShaderTypeSelecionPopup", ImGuiPopupFlags_NoOpenOverExistingPopup))
 		{
