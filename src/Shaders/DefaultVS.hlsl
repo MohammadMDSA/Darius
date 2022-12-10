@@ -43,6 +43,7 @@ struct VertexOut
     float2 UV :             TEXCOORD0;
 };
 
+[RootSignature(Renderer_RootSig)]
 VertexOut main(VertexIn vin)
 {
     VertexOut vout;

@@ -1,3 +1,5 @@
+#include "Common.hlsli"
+    
 cbuffer VSConstants : register(b0)
 {
 	float4x4 ProjInverse;
@@ -10,6 +12,7 @@ struct VSOutput
 	float3 viewDir : TEXCOORD3;
 };
 
+[RootSignature(Renderer_RootSig)]
 VSOutput main(uint VertID : SV_VertexID)
 {
     float2 ScreenUV = float2(uint2(VertID, VertID << 1) & 2);

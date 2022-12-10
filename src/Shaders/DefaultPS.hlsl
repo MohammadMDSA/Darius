@@ -57,6 +57,7 @@ float3 ComputeNormal(VertexOut pin)
 #endif
 }
 
+[RootSignature(Renderer_RootSig)]
 float4 main(VertexOut pin) : SV_Target
 {
 #define SAMPLE_TEX(texName) texName.Sample(defaultSampler, pin.UV)

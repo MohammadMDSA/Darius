@@ -16,6 +16,7 @@ struct PixelIn
 	float4 pos : SV_POSITION;
 };
 
+[RootSignature(Renderer_RootSig)]
 PixelIn main(VertexIn vin)
 {
 	PixelIn vout;
