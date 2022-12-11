@@ -3,7 +3,6 @@
 
 #include "Renderer/RenderDeviceManager.hpp"
 #include "Renderer/GraphicsCore.hpp"
-#include "Renderer/Geometry/ModelLoader/FbxLoader.hpp"
 
 #include <Core/Filesystem/Path.hpp>
 #include <Core/Containers/Set.hpp>
@@ -22,150 +21,40 @@ namespace Darius::Graphics
 
 	D_CH_RESOURCE_DEF(StaticMeshResource);
 
-	void StaticMeshResource::Create(MultiPartMeshData<VertexType>& data)
+	void StaticMeshResource::Create(MultiPartMeshData<VertexType> const& data)
 	{
 		Destroy();
 		SetName(GetName());
 
-		auto totalVertices = 0u;
-		auto totalIndices = 0u;
-		for (auto meshData : data.meshParts)
-		{
-			totalVertices += meshData.Vertices.size();
-			totalIndices += meshData.Indices32.size();
-		}
-
-		DVector<D_GRAPHICS_VERTEX::VertexPositionNormalTexture> vertices(totalVertices);
+		DVector<D_GRAPHICS_VERTEX::VertexPositionNormalTangentTexture> vertices;
 		DVector<std::uint16_t> indices;
 
-		mMesh.mNumTotalIndices = totalIndices;
-		mMesh.mNumTotalVertices = totalVertices;
-
-		auto vertexIndex = 0;
-		auto indexIndex = 0;
-		for (auto meshData : data.meshParts)
+		// Filling vertex and index data
+		for (int i = 0; i < data.MeshData.Vertices.size(); i++)
 		{
-			// Creating submesh
-			Mesh::Draw submesh;
-			submesh.IndexCount = meshData.Indices32.size();
-			submesh.StartIndexLocation = indexIndex;
-			submesh.BaseVertexLocation = vertexIndex;
+			auto const& meshVertex = data.MeshData.Vertices[i];
+			vertices.push_back(D_GRAPHICS_VERTEX::VertexPositionNormalTangentTexture(meshVertex.mPosition, Vector3(meshVertex.mNormal).Normalize(), meshVertex.mTangent, meshVertex.mTexC));
+		}
+		for (int i = 0; i < data.MeshData.Indices32.size(); i++)
+		{
+			indices.push_back(data.MeshData.Indices32[i]);
+		}
 
-			// Adding vertices
-			for (size_t i = 0; i < meshData.Vertices.size(); i++)
-			{
-				auto& ver = meshData.Vertices[i];
-				vertices[vertexIndex] = D_GRAPHICS_VERTEX::VertexPositionNormalTexture(ver.mPosition, Vector3(ver.mNormal).Normalize(), ver.mTexC);
-				vertexIndex++;
-			}
-
-			// Adding indices
-			for (auto index : meshData.GetIndices16())
-			{
-				indices.push_back(index + submesh.BaseVertexLocation);
-			}
-			indexIndex += submesh.IndexCount;
-
-			// Updating bounding sphear
-			mMesh.mBoundSp = mMesh.mBoundSp.Union(meshData.CalcBoundingSphere());
-			mMesh.mBoundBox = mMesh.mBoundBox.Union(meshData.CalcBoundingBox());
-
-			mMesh.mDraw.push_back(submesh);
+		mMesh.mDraw.clear();
+		for (int i = 0; i < data.SubMeshes.size(); i++)
+		{
+			auto const& draw = data.SubMeshes[i];
+			mMesh.mDraw.push_back({ draw.IndexCount, draw.IndexOffset, 0 });
 		}
 
 		mMesh.Name = GetName();
 
 		// Create vertex buffer
-		mMesh.VertexDataGpu.Create(mMesh.Name + L" Vertex Buffer", vertices.size(), sizeof(D_GRAPHICS_VERTEX::VertexPositionNormalTexture), vertices.data());
+		mMesh.VertexDataGpu.Create(mMesh.Name + L" Vertex Buffer", vertices.size(), sizeof(D_GRAPHICS_VERTEX::VertexPositionNormalTangentTexture), vertices.data());
 
 		// Create index buffer
 		mMesh.IndexDataGpu.Create(mMesh.Name + L" Index Buffer", indices.size(), sizeof(std::uint16_t), indices.data());
 
-	}
-
-	bool StaticMeshResource::UploadToGpu(void* ctx)
-	{
-		D_GRAPHICS::GraphicsContext& context = *reinterpret_cast<D_GRAPHICS::GraphicsContext*>(ctx);
-
-		// Create the FBX SDK manager
-		FbxManager* lSdkManager = FbxManager::Create();
-
-		// Create an IOSettings object.
-		FbxIOSettings* ios = FbxIOSettings::Create(lSdkManager, IOSROOT);
-		lSdkManager->SetIOSettings(ios);
-
-		// Create an importer.
-		FbxImporter* lImporter = FbxImporter::Create(lSdkManager, "");
-
-		// Declare the path and filename of the file containing the scene.
-		// In this case, we are assuming the file is in the same directory as the executable.
-		auto pathStr = GetPath().string();
-		const char* lFilename = pathStr.c_str();
-
-
-		// Initialize the importer.
-		bool lImportStatus = lImporter->Initialize(lFilename, -1, lSdkManager->GetIOSettings());
-
-		if (!lImportStatus) {
-			D_LOG_ERROR("Call to FbxImporter::Initialize() failed.");
-			std::string msg = "Error returned: " + std::string(lImporter->GetStatus().GetErrorString());
-			D_LOG_ERROR(msg);
-			return false;
-		}
-
-		// Create a new scene so it can be populated by the imported file.
-		FbxScene* lScene = FbxScene::Create(lSdkManager, "modelScene");
-
-		// Import the contents of the file into the scene.
-		lImporter->Import(lScene);
-
-		// The file has been imported; we can get rid of the importer.
-		lImporter->Destroy();
-
-		// Print the nodes of the scene and their attributes recursively.
-		// Note that we are not printing the root node because it should
-		// not contain any attributes.
-		FbxNode* lRootNode = lScene->GetRootNode();
-
-		// Searching for a mesh node with our resource name
-		FbxNode* targetNode = 0;
-		TraverseNodes(lRootNode, [&](void* nodeP)
-			{
-				auto node = (FbxNode*)nodeP;
-				auto attr = node->GetNodeAttribute();
-				auto nodeName = std::string(node->GetName());
-				if (attr && attr->GetAttributeType() == FbxNodeAttribute::eMesh && WSTR_STR(nodeName) == this->GetName())
-				{
-					targetNode = node;
-				}
-			});
-
-		if (!targetNode)
-			return true;
-
-		auto mesh = targetNode->GetMesh();
-
-		D_RENDERER_GEOMETRY_LOADER::InitializeMesh(mesh);
-		MultiPartMeshData<VertexType> meshDataVec;
-
-		fbxsdk::FbxLayerElementArrayTemplate<fbxsdk::FbxVector2>* uvArr;
-
-		DVector<DUnorderedMap<int, int>> indexMapper(mesh->GetPolygonCount());
-
-		// Add polygons
-		GetFBXPolygons(meshDataVec, mesh, indexMapper);
-
-		//Add UV data
-		GetFBXUVs(meshDataVec, mesh, indexMapper);
-
-		// Add Normal data
-		GetFBXNormals(meshDataVec, mesh, indexMapper);
-
-		// Destroy the SDK manager and all the other objects it was handling.
-		lSdkManager->Destroy();
-
-		Create(meshDataVec);
-		return true;
 	}
 
 }
