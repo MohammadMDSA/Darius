@@ -82,8 +82,6 @@ namespace Darius::Renderer::Geometry
 		DVector<SubMesh>	SubMeshes;
 	};
 
-	struct VertexBlendWeightData
-	{
-		DVector<DVector<std::pair<int, std::pair<float, D_MATH::Matrix4>>>> jointWeight; // For each vertex, for each connected joint, index and (weight, init mat)
-	};
+	// For each vertex, for each connected joint, index and (weight, init mat)
+	typedef DVector<DVector<std::pair<int, std::pair<float, D_MATH::Matrix4>>>> VertexBlendWeightData;
 }

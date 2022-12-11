@@ -21,7 +21,7 @@ namespace Darius::Graphics
 	public:
 		D_CH_RESOURCE_BODY(SkeletalMeshResource, "Skeletal Mesh", ".fbx")
 
-		void							Create(MultiPartMeshData<VertexType>& data);
+		virtual void					Create(MultiPartMeshData<VertexType> const& data) override;
 
 #ifdef _D_EDITOR
 		virtual bool					DrawDetails(float params[]) override;
@@ -39,14 +39,6 @@ namespace Darius::Graphics
 			mSkeletonRoot(nullptr) {}
 
 		virtual bool					UploadToGpu(void* context) override;
-
-	private:
-		static void						GetFBXSkin(MultiPartMeshData<VertexType>& meshDataVec, void const* meshP, DList<Mesh::SkeletonJoint>& skeletonHierarchy, DVector<DUnorderedMap<int, int>>& indexMapper);
-		static void						ReadFBXCacheVertexPositions(MultiPartMeshData<VertexType>& meshDataVec, void const* meshP, DVector<DUnorderedMap<int, int>>& indexMapper);
-		static void						AddSkeletonChildren(void const* skeletonNode, DList<Mesh::SkeletonJoint>& skeletonData, DMap<void const*, int>& skeletonIndexMap);
-		static void						AddJointWeightToVertices(MultiPartMeshData<VertexType>& meshDataVec,
-			VertexBlendWeightData& skinData, DVector<DUnorderedMap<int, int>> const& indexMapper);
-		static void						AddBlendDataToVertex(MeshResource::VertexType& vertex, DVector<std::pair<int, std::pair<float, D_MATH::Matrix4>>>& blendData);
 
 	};
 }
