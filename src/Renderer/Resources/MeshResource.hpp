@@ -25,6 +25,7 @@ namespace Darius::Graphics
 	public:
 		INLINE Mesh*					ModifyMeshData() { MakeDiskDirty(); MakeGpuDirty(); return &mMesh; }
 		INLINE const Mesh*				GetMeshData() const { return &mMesh; }
+		virtual void					Create(MultiPartMeshData<VertexType> const& data);
 
 		static DVector<ResourceDataInFile> CanConstructFrom(ResourceType type, Path const& path);
 
@@ -44,16 +45,12 @@ namespace Darius::Graphics
 
 		INLINE virtual void				WriteResourceToFile(D_SERIALIZATION::Json&) const override {};
 		INLINE virtual void				ReadResourceFromFile(D_SERIALIZATION::Json const&) override {};
+		virtual bool					UploadToGpu(void* context) override;
+
 		INLINE virtual void				Unload() override { EvictFromGpu(); }
 
 		
 		friend class DResourceManager;
-
-		static void						GetFBXUVs(MultiPartMeshData<VertexType>& meshDataVec, void const* meshP, DVector<DUnorderedMap<int, int>>& indexMapper);
-
-		static void						GetFBXNormals(MultiPartMeshData<VertexType>& meshDataVec, void const* meshP, DVector<DUnorderedMap<int, int>>& indexMapper);
-
-		static void						GetFBXPolygons(MultiPartMeshData<VertexType>& meshDataVec, void const* meshP, DVector<DUnorderedMap<int, int>>& indexMapper);
 
 	};
 }
