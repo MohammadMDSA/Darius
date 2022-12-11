@@ -435,7 +435,7 @@ namespace Darius::Graphics
 
 			auto resHandle = D_RESOURCE::GetManager()->CreateResource<StaticMeshResource>(GenerateUuidFor("Box Mesh"), L"Box Mesh", L"Box Mesh", true);
 			MultiPartMeshData<StaticMeshResource::VertexType> meshData;
-			meshData.meshParts = DVector<MeshData<StaticMeshResource::VertexType>>{ box };
+			meshData.MeshData = box;
 			auto res = D_RESOURCE::GetManager()->GetRawResource(resHandle);
 			res->MakeGpuClean();
 			res->MakeDiskClean();
@@ -443,7 +443,7 @@ namespace Darius::Graphics
 			DefaultResourceMap.insert({ DefaultResource::BoxMesh, { StaticMeshResource::GetResourceType(), res->GetId()} });
 
 			resHandle = D_RESOURCE::GetManager()->CreateResource<StaticMeshResource>(GenerateUuidFor("Cylinder Mesh"), L"Cylinder Mesh", L"Cylinder Mesh", true);
-			meshData.meshParts = DVector<MeshData<StaticMeshResource::VertexType>>{ cylinder };
+			meshData.MeshData = cylinder;
 			res = D_RESOURCE::GetManager()->GetRawResource(resHandle);
 			res->MakeGpuClean();
 			res->MakeDiskClean();
@@ -451,7 +451,7 @@ namespace Darius::Graphics
 			DefaultResourceMap.insert({ DefaultResource::CylinderMesh, { StaticMeshResource::GetResourceType(), res->GetId() } });
 
 			resHandle = D_RESOURCE::GetManager()->CreateResource<StaticMeshResource>(GenerateUuidFor("Geosphere Mesh"), L"Geosphere Mesh", L"Geosphere Mesh", true);
-			meshData.meshParts = DVector<MeshData<StaticMeshResource::VertexType>>{ geosphere };
+			meshData.MeshData = geosphere;
 			res = D_RESOURCE::GetManager()->GetRawResource(resHandle);
 			res->MakeGpuClean();
 			res->MakeDiskClean();
@@ -459,7 +459,7 @@ namespace Darius::Graphics
 			DefaultResourceMap.insert({ DefaultResource::GeosphereMesh, { StaticMeshResource::GetResourceType(), res->GetId() } });
 
 			resHandle = D_RESOURCE::GetManager()->CreateResource<StaticMeshResource>(GenerateUuidFor("Grid Mesh"), L"Grid Mesh", L"Grid Mesh", true);
-			meshData.meshParts = DVector<MeshData<StaticMeshResource::VertexType>>{ grid };
+			meshData.MeshData = grid;
 			res = D_RESOURCE::GetManager()->GetRawResource(resHandle);
 			res->MakeGpuClean();
 			res->MakeDiskClean();
@@ -467,7 +467,7 @@ namespace Darius::Graphics
 			DefaultResourceMap.insert({ DefaultResource::GridMesh, { StaticMeshResource::GetResourceType(), res->GetId() } });
 
 			resHandle = D_RESOURCE::GetManager()->CreateResource<StaticMeshResource>(GenerateUuidFor("Quad Mesh"), L"Quad Mesh", L"Quad Mesh", true);
-			meshData.meshParts = DVector<MeshData<StaticMeshResource::VertexType>>{ quad };
+			meshData.MeshData = quad;
 			res = D_RESOURCE::GetManager()->GetRawResource(resHandle);
 			res->MakeGpuClean();
 			res->MakeDiskClean();
@@ -475,7 +475,7 @@ namespace Darius::Graphics
 			DefaultResourceMap.insert({ DefaultResource::QuadMesh, { StaticMeshResource::GetResourceType(), res->GetId() } });
 
 			resHandle = D_RESOURCE::GetManager()->CreateResource<StaticMeshResource>(GenerateUuidFor("Sphere Mesh"), L"Sphere Mesh", L"Sphere Mesh", true);
-			meshData.meshParts = DVector<MeshData<StaticMeshResource::VertexType>>{ sphere };
+			meshData.MeshData = sphere;
 			res = D_RESOURCE::GetManager()->GetRawResource(resHandle);
 			res->MakeGpuClean();
 			res->MakeDiskClean();
@@ -483,7 +483,7 @@ namespace Darius::Graphics
 			DefaultResourceMap.insert({ DefaultResource::SphereMesh, { StaticMeshResource::GetResourceType(), res->GetId() } });
 
 			resHandle = D_RESOURCE::GetManager()->CreateResource<StaticMeshResource>(GenerateUuidFor("Low Poly Sphere Mesh"), L"Low Poly Sphere Mesh", L"Low Poly Sphere Mesh", true);
-			meshData.meshParts = DVector<MeshData<StaticMeshResource::VertexType>>{ lowSphere };
+			meshData.MeshData = lowSphere;
 			res = D_RESOURCE::GetManager()->GetRawResource(resHandle);
 			res->MakeGpuClean();
 			res->MakeDiskClean();
@@ -491,7 +491,7 @@ namespace Darius::Graphics
 			DefaultResourceMap.insert({ DefaultResource::LowPolySphereMesh, { StaticMeshResource::GetResourceType(), res->GetId() } });
 
 			resHandle = D_RESOURCE::GetManager()->CreateResource<BatchResource>(GenerateUuidFor("Line Mesh"), L"Line Mesh", L"Line Mesh", true);
-			meshData.meshParts = DVector<MeshData<StaticMeshResource::VertexType>>{ line };
+			meshData.MeshData = line;
 			res = D_RESOURCE::GetManager()->GetRawResource(resHandle);
 			res->MakeGpuClean();
 			res->MakeDiskClean();

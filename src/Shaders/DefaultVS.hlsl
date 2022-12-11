@@ -1,6 +1,6 @@
 #include "Common.hlsli"
 
-#define NO_TANGENT_FRAME
+//#define NO_TANGENT_FRAME
 
 cbuffer cbPerObject : register(b0)
 {
@@ -51,7 +51,7 @@ VertexOut main(VertexIn vin)
     float4 position = float4(vin.Pos, 1.f);
     float3 normal = vin.Normal;
 #ifndef NO_TANGENT_FRAME
-    float4 tangent = vsInput.tangent;
+    float4 tangent = vin.Tangent;
 #endif
     
 #ifdef ENABLE_SKINNING

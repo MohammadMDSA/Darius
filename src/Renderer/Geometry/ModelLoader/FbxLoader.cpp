@@ -33,15 +33,16 @@ namespace Darius::Renderer::Geometry::ModelLoader::Fbx
 	{
 		SubMesh() : IndexOffset(0), TriangleCount(0) {}
 
-		int IndexOffset;
-		int TriangleCount;
+		UINT IndexOffset;
+		UINT TriangleCount;
 	};
 
 	void TraverseNodes(FbxNode* nodeP, std::function<void(FbxNode*)> callback);
-	bool ReadMeshNode(FbxMesh* pMesh, MultiPartMeshData<D_GRAPHICS_VERTEX::VertexPositionNormalTangentTextureSkinned>& result, DUnorderedMap<int, DVector<int>>& controlPointIndexToVertexIndexMap, FbxMesh** mesh);
+	bool ReadMeshNode(FbxMesh* pMesh, MultiPartMeshData<D_GRAPHICS_VERTEX::VertexPositionNormalTangentTextureSkinned>& result, DUnorderedMap<int, DVector<int>>& controlPointIndexToVertexIndexMap);
 	bool ReadMeshSkin(FbxMesh* pMesh, MultiPartMeshData<D_GRAPHICS_VERTEX::VertexPositionNormalTangentTextureSkinned>& meshData, DList<D_RENDERER_GEOMETRY::Mesh::SkeletonJoint>& skeleton, DUnorderedMap<int, DVector<int>> const& controlPointIndexToVertexIndexMap);
 	void AddSkeletonChildren(FbxSkeleton const* skeletonNode, DList<Mesh::SkeletonJoint>& skeletonData, DMap<FbxSkeleton const*, int>& skeletonIndexMap);
-	void ReadFBXCacheVertexPositions(MultiPartMeshData<D_GRAPHICS_VERTEX::VertexPositionNormalTangentTextureSkinned>& meshDataVec, void const* meshP, DUnorderedMap<int, DVector<int>> const& controlPointIndexToVertexIndexMap);
+	void ReadFBXCacheVertexPositions(MultiPartMeshData<D_GRAPHICS_VERTEX::VertexPositionNormalTangentTextureSkinned>& meshDataVec, FbxMesh const* mesh, DUnorderedMap<int, DVector<int>> const& controlPointIndexToVertexIndexMap);
+	void AddJointWeightToVertices(VertexBlendWeightData const& skinData, MultiPartMeshData<D_GRAPHICS_VERTEX::VertexPositionNormalTangentTextureSkinned>& meshData, DUnorderedMap<int, DVector<int>> const& controlPointIndexToVertexIndexMap);
 
 	// Reads the scene from path and return a pointer to root node of the scene
 	// to work with and the sdk manager to get dispose of later.
@@ -285,12 +286,11 @@ namespace Darius::Renderer::Geometry::ModelLoader::Fbx
 		return results;
 	}
 
-	bool ReadMeshByName(D_FILE::Path const& path, std::wstring const& meshName, MultiPartMeshData<D_GRAPHICS_VERTEX::VertexPositionNormalTangentTextureSkinned>& result, DUnorderedMap<int, DVector<int>>& controlPointIndexToVertexIndexMap, FbxMesh** mesh)
+	bool ReadMeshByName(D_FILE::Path const& path, std::wstring const& meshName, MultiPartMeshData<D_GRAPHICS_VERTEX::VertexPositionNormalTangentTextureSkinned>& result, DUnorderedMap<int, DVector<int>>& controlPointIndexToVertexIndexMap, FbxMesh** mesh, FbxManager** sdkManager)
 	{
-		FbxManager* sdkManager = nullptr;
 		FbxNode* rootNode = nullptr;
 
-		InitializeFbxScene(path, &rootNode, &sdkManager);
+		InitializeFbxScene(path, &rootNode, sdkManager);
 
 		// Searching for a mesh node with our resource name
 		FbxNode* targetNode = 0;
@@ -309,14 +309,19 @@ namespace Darius::Renderer::Geometry::ModelLoader::Fbx
 
 		*mesh = targetNode->GetMesh();
 		ReadMeshNode(*mesh, result, controlPointIndexToVertexIndexMap);
-
-		sdkManager->Destroy();
 	}
 
 	bool ReadMeshByName(D_FILE::Path const& path, std::wstring const& meshName, MultiPartMeshData<D_GRAPHICS_VERTEX::VertexPositionNormalTangentTextureSkinned>& result)
 	{
+		FbxMesh* mesh;
+		FbxManager* sdkManager;
+
 		DUnorderedMap<int, DVector<int>> controlPointIndexToVertexIndexMap;
-		return ReadMeshByName(path, meshName, result, controlPointIndexToVertexIndexMap);
+		auto res = ReadMeshByName(path, meshName, result, controlPointIndexToVertexIndexMap, &mesh, &sdkManager);
+
+
+		sdkManager->Destroy();
+		return res;
 	}
 
 	bool ReadMeshNode(FbxMesh* pMesh, MultiPartMeshData<D_GRAPHICS_VERTEX::VertexPositionNormalTangentTextureSkinned>& result, DUnorderedMap<int, DVector<int>>& controlPointIndexToVertexIndexMap)
@@ -325,7 +330,7 @@ namespace Darius::Renderer::Geometry::ModelLoader::Fbx
 			return false;
 
 		pMesh->GenerateNormals();
-		pMesh->GenerateTangentsData(0);
+		auto f = pMesh->GenerateTangentsData();
 
 		FbxArray<SubMesh*> subMeshes;
 		bool mHasNormal;
@@ -630,16 +635,27 @@ namespace Darius::Renderer::Geometry::ModelLoader::Fbx
 		subMeshes.Clear();
 
 		D_ASSERT(lNormals);
-		D_ASSERT(lTangents);
-		D_ASSERT(lUVs);
+
+		float empty[] = { 0.f, 1.f, 0.f, 1.f };
 
 		for (int i = 0; i < lPolygonVertexCount; i++)
 		{
 			float* vert = &lVertices[i * VERTEX_STRIDE];
 			float* norm = &lNormals[i * NORMAL_STRIDE];
-			float* tang = &lTangents[i * TANGENT_STRIDE];
-			float* uv = &lUVs[i * UV_STRIDE];
-			auto vertex = D_GRAPHICS_VERTEX::VertexPositionNormalTangentTextureSkinned(vert[0], vert[1], vert[2], norm[0], norm[1], norm[2], tang[0], tang[1], tang[2], tang[3], uv[0], uv[1]);
+			
+			float* tang;
+			if (mHasTangent)
+				tang = &lTangents[i * TANGENT_STRIDE];
+			else
+				tang = empty;
+
+			float* uv;
+			if (mHasUV)
+				uv = &lUVs[i * UV_STRIDE];
+			else
+				uv = empty;
+
+			auto vertex = D_GRAPHICS_VERTEX::VertexPositionNormalTangentTextureSkinned(vert[0], vert[1], vert[2], norm[0], norm[1], norm[2], tang[0], tang[1], tang[2], tang[3], uv[0], 1 - uv[1]);
 
 			result.MeshData.Vertices.push_back(vertex);
 		}
@@ -651,8 +667,10 @@ namespace Darius::Renderer::Geometry::ModelLoader::Fbx
 		delete[] lVertices;
 		delete[] lIndices;
 		delete[] lNormals;
-		delete[] lTangents;
-		delete[] lUVs;
+		if (mHasTangent)
+			delete[] lTangents;
+		if (mHasUV)
+			delete[] lUVs;
 
 		return true;
 	}
@@ -664,12 +682,22 @@ namespace Darius::Renderer::Geometry::ModelLoader::Fbx
 
 		// Read mesh data
 		FbxMesh* mesh;
-		if (!ReadMeshByName(path, meshName, result, controlPointIndexToVertexIndexMap, &mesh))
+		FbxManager* sdkManager;
+
+		if (!ReadMeshByName(path, meshName, result, controlPointIndexToVertexIndexMap, &mesh, &sdkManager))
+		{
+			sdkManager->Destroy();
 			return false;
+		}
 
 		// Read skeleton data
 		if (ReadMeshSkin(mesh, result, skeleton, controlPointIndexToVertexIndexMap))
 			ReadFBXCacheVertexPositions(result, mesh, controlPointIndexToVertexIndexMap);
+
+
+		sdkManager->Destroy();
+		return true;
+
 	}
 
 	bool ReadMeshSkin(FbxMesh* mesh, MultiPartMeshData<D_GRAPHICS_VERTEX::VertexPositionNormalTangentTextureSkinned>& meshData, DList<D_RENDERER_GEOMETRY::Mesh::SkeletonJoint>& skeletonHierarchy, DUnorderedMap<int, DVector<int>> const& controlPointIndexToVertexIndexMap)
