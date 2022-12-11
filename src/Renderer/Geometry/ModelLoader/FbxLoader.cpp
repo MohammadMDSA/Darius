@@ -17,21 +17,21 @@ using namespace D_CONTAINERS;
 
 namespace Darius::Renderer::Geometry::ModelLoader::Fbx
 {
-    const int TRIANGLE_VERTEX_COUNT = 3;
+	const int TRIANGLE_VERTEX_COUNT = 3;
 
-    // Four floats for every position.
-    const int VERTEX_STRIDE = 4;
-    // Three floats for every normal.
-    const int NORMAL_STRIDE = 3;
-    // Two floats for every UV.
-    const int UV_STRIDE = 2;
-    // Four floats for every Tangent.
-    const int TANGENT_STRIDE = 4;
+	// Four floats for every position.
+	const int VERTEX_STRIDE = 4;
+	// Three floats for every normal.
+	const int NORMAL_STRIDE = 3;
+	// Two floats for every UV.
+	const int UV_STRIDE = 2;
+	// Four floats for every Tangent.
+	const int TANGENT_STRIDE = 4;
 
-    // For every material, record the offsets in every VBO and triangle counts
-    struct SubMesh
-    {
-        SubMesh() : IndexOffset(0), TriangleCount(0) {}
+	// For every material, record the offsets in every VBO and triangle counts
+	struct SubMesh
+	{
+		SubMesh() : IndexOffset(0), TriangleCount(0) {}
 
 		UINT IndexOffset;
 		UINT TriangleCount;
@@ -274,153 +274,153 @@ namespace Darius::Renderer::Geometry::ModelLoader::Fbx
         pMesh->GenerateNormals();
 		auto f = pMesh->GenerateTangentsData();
 
-        FbxArray<SubMesh*> subMeshes;
-        bool mHasNormal;
-        bool mHasUV;
-        bool mHasTangent;
-        bool mAllByControlPoint = true; // Save data in VBO by control point or by polygon vertex.
+		FbxArray<SubMesh*> subMeshes;
+		bool mHasNormal;
+		bool mHasUV;
+		bool mHasTangent;
+		bool mAllByControlPoint = true; // Save data in VBO by control point or by polygon vertex.
 
-        const int lPolygonCount = pMesh->GetPolygonCount();
+		const int lPolygonCount = pMesh->GetPolygonCount();
 
-        // Count the polygon count of each material
-        FbxLayerElementArrayTemplate<int>* lMaterialIndice = NULL;
-        FbxGeometryElement::EMappingMode lMaterialMappingMode = FbxGeometryElement::eNone;
-        if (pMesh->GetElementMaterial())
-        {
-            lMaterialIndice = &pMesh->GetElementMaterial()->GetIndexArray();
-            lMaterialMappingMode = pMesh->GetElementMaterial()->GetMappingMode();
-            if (lMaterialIndice && lMaterialMappingMode == FbxGeometryElement::eByPolygon)
-            {
-                FBX_ASSERT(lMaterialIndice->GetCount() == lPolygonCount);
-                if (lMaterialIndice->GetCount() == lPolygonCount)
-                {
-                    // Count the faces of each material
-                    for (int lPolygonIndex = 0; lPolygonIndex < lPolygonCount; ++lPolygonIndex)
-                    {
-                        const int lMaterialIndex = lMaterialIndice->GetAt(lPolygonIndex);
-                        if (subMeshes.GetCount() < lMaterialIndex + 1)
-                        {
-                            subMeshes.Resize(lMaterialIndex + 1);
-                        }
-                        if (subMeshes[lMaterialIndex] == NULL)
-                        {
-                            subMeshes[lMaterialIndex] = new SubMesh;
-                        }
-                        subMeshes[lMaterialIndex]->TriangleCount += 1;
-                    }
+		// Count the polygon count of each material
+		FbxLayerElementArrayTemplate<int>* lMaterialIndice = NULL;
+		FbxGeometryElement::EMappingMode lMaterialMappingMode = FbxGeometryElement::eNone;
+		if (pMesh->GetElementMaterial())
+		{
+			lMaterialIndice = &pMesh->GetElementMaterial()->GetIndexArray();
+			lMaterialMappingMode = pMesh->GetElementMaterial()->GetMappingMode();
+			if (lMaterialIndice && lMaterialMappingMode == FbxGeometryElement::eByPolygon)
+			{
+				FBX_ASSERT(lMaterialIndice->GetCount() == lPolygonCount);
+				if (lMaterialIndice->GetCount() == lPolygonCount)
+				{
+					// Count the faces of each material
+					for (int lPolygonIndex = 0; lPolygonIndex < lPolygonCount; ++lPolygonIndex)
+					{
+						const int lMaterialIndex = lMaterialIndice->GetAt(lPolygonIndex);
+						if (subMeshes.GetCount() < lMaterialIndex + 1)
+						{
+							subMeshes.Resize(lMaterialIndex + 1);
+						}
+						if (subMeshes[lMaterialIndex] == NULL)
+						{
+							subMeshes[lMaterialIndex] = new SubMesh;
+						}
+						subMeshes[lMaterialIndex]->TriangleCount += 1;
+					}
 
-                    // Make sure we have no "holes" (NULL) in the subMeshes table. This can happen
-                    // if, in the loop above, we resized the subMeshes by more than one slot.
-                    for (int i = 0; i < subMeshes.GetCount(); i++)
-                    {
-                        if (subMeshes[i] == NULL)
-                            subMeshes[i] = new SubMesh;
-                    }
+					// Make sure we have no "holes" (NULL) in the subMeshes table. This can happen
+					// if, in the loop above, we resized the subMeshes by more than one slot.
+					for (int i = 0; i < subMeshes.GetCount(); i++)
+					{
+						if (subMeshes[i] == NULL)
+							subMeshes[i] = new SubMesh;
+					}
 
-                    // Record the offset (how many vertex)
-                    const int lMaterialCount = subMeshes.GetCount();
-                    int lOffset = 0;
-                    for (int lIndex = 0; lIndex < lMaterialCount; ++lIndex)
-                    {
-                        subMeshes[lIndex]->IndexOffset = lOffset;
-                        lOffset += subMeshes[lIndex]->TriangleCount * 3;
-                        // This will be used as counter in the following procedures, reset to zero
-                        subMeshes[lIndex]->TriangleCount = 0;
-                    }
-                    FBX_ASSERT(lOffset == lPolygonCount * 3);
-                }
-            }
-        }
+					// Record the offset (how many vertex)
+					const int lMaterialCount = subMeshes.GetCount();
+					int lOffset = 0;
+					for (int lIndex = 0; lIndex < lMaterialCount; ++lIndex)
+					{
+						subMeshes[lIndex]->IndexOffset = lOffset;
+						lOffset += subMeshes[lIndex]->TriangleCount * 3;
+						// This will be used as counter in the following procedures, reset to zero
+						subMeshes[lIndex]->TriangleCount = 0;
+					}
+					FBX_ASSERT(lOffset == lPolygonCount * 3);
+				}
+			}
+		}
 
-        // All faces will use the same material.
-        if (subMeshes.GetCount() == 0)
-        {
-            subMeshes.Resize(1);
-            subMeshes[0] = new SubMesh();
-        }
+		// All faces will use the same material.
+		if (subMeshes.GetCount() == 0)
+		{
+			subMeshes.Resize(1);
+			subMeshes[0] = new SubMesh();
+		}
 
-        // Congregate all the data of a mesh to be cached in VBOs.
-        // If normal or UV is by polygon vertex, record all vertex attributes by polygon vertex.
-        mHasNormal = pMesh->GetElementNormalCount() > 0;
-        mHasUV = pMesh->GetElementUVCount() > 0;
-        mHasTangent = pMesh->GetElementTangentCount() > 0;
-        FbxGeometryElement::EMappingMode lNormalMappingMode = FbxGeometryElement::eNone;
-        FbxGeometryElement::EMappingMode lUVMappingMode = FbxGeometryElement::eNone;
-        FbxGeometryElement::EMappingMode lTangentMappingMode = FbxGeometryElement::eNone;
-        if (mHasNormal)
-        {
-            lNormalMappingMode = pMesh->GetElementNormal(0)->GetMappingMode();
-            if (lNormalMappingMode == FbxGeometryElement::eNone)
-            {
-                mHasNormal = false;
-            }
-            if (mHasNormal && lNormalMappingMode != FbxGeometryElement::eByControlPoint)
-            {
-                mAllByControlPoint = false;
-            }
-        }
-        if (mHasUV)
-        {
-            lUVMappingMode = pMesh->GetElementUV(0)->GetMappingMode();
-            if (lUVMappingMode == FbxGeometryElement::eNone)
-            {
-                mHasUV = false;
-            }
-            if (mHasUV && lUVMappingMode != FbxGeometryElement::eByControlPoint)
-            {
-                mAllByControlPoint = false;
-            }
-        }
-        if (mHasTangent)
-        {
-            lTangentMappingMode = pMesh->GetElementTangent(0)->GetMappingMode();
-            if (lTangentMappingMode == FbxGeometryElement::eNone)
-            {
-                mHasTangent = false;
-            }
-            if (mHasTangent && lTangentMappingMode != FbxGeometryElement::eByControlPoint)
-            {
-                mAllByControlPoint = false;
-            }
-        }
+		// Congregate all the data of a mesh to be cached in VBOs.
+		// If normal or UV is by polygon vertex, record all vertex attributes by polygon vertex.
+		mHasNormal = pMesh->GetElementNormalCount() > 0;
+		mHasUV = pMesh->GetElementUVCount() > 0;
+		mHasTangent = pMesh->GetElementTangentCount() > 0;
+		FbxGeometryElement::EMappingMode lNormalMappingMode = FbxGeometryElement::eNone;
+		FbxGeometryElement::EMappingMode lUVMappingMode = FbxGeometryElement::eNone;
+		FbxGeometryElement::EMappingMode lTangentMappingMode = FbxGeometryElement::eNone;
+		if (mHasNormal)
+		{
+			lNormalMappingMode = pMesh->GetElementNormal(0)->GetMappingMode();
+			if (lNormalMappingMode == FbxGeometryElement::eNone)
+			{
+				mHasNormal = false;
+			}
+			if (mHasNormal && lNormalMappingMode != FbxGeometryElement::eByControlPoint)
+			{
+				mAllByControlPoint = false;
+			}
+		}
+		if (mHasUV)
+		{
+			lUVMappingMode = pMesh->GetElementUV(0)->GetMappingMode();
+			if (lUVMappingMode == FbxGeometryElement::eNone)
+			{
+				mHasUV = false;
+			}
+			if (mHasUV && lUVMappingMode != FbxGeometryElement::eByControlPoint)
+			{
+				mAllByControlPoint = false;
+			}
+		}
+		if (mHasTangent)
+		{
+			lTangentMappingMode = pMesh->GetElementTangent(0)->GetMappingMode();
+			if (lTangentMappingMode == FbxGeometryElement::eNone)
+			{
+				mHasTangent = false;
+			}
+			if (mHasTangent && lTangentMappingMode != FbxGeometryElement::eByControlPoint)
+			{
+				mAllByControlPoint = false;
+			}
+		}
 
-        // Allocate the array memory, by control point or by polygon vertex.
-        int lPolygonVertexCount = pMesh->GetControlPointsCount();
-        if (!mAllByControlPoint)
-        {
-            lPolygonVertexCount = lPolygonCount * TRIANGLE_VERTEX_COUNT;
-        }
+		// Allocate the array memory, by control point or by polygon vertex.
+		int lPolygonVertexCount = pMesh->GetControlPointsCount();
+		if (!mAllByControlPoint)
+		{
+			lPolygonVertexCount = lPolygonCount * TRIANGLE_VERTEX_COUNT;
+		}
 
-        // Vertices
-        float* lVertices = new float[lPolygonVertexCount * VERTEX_STRIDE];
+		// Vertices
+		float* lVertices = new float[lPolygonVertexCount * VERTEX_STRIDE];
 
-        // Indices
-        unsigned int* lIndices = new unsigned int[lPolygonCount * TRIANGLE_VERTEX_COUNT];
+		// Indices
+		unsigned int* lIndices = new unsigned int[lPolygonCount * TRIANGLE_VERTEX_COUNT];
 
-        // Normals
-        float* lNormals = NULL;
-        if (mHasNormal)
-        {
-            lNormals = new float[lPolygonVertexCount * NORMAL_STRIDE];
-        }
+		// Normals
+		float* lNormals = NULL;
+		if (mHasNormal)
+		{
+			lNormals = new float[lPolygonVertexCount * NORMAL_STRIDE];
+		}
 
-        // UVs
-        float* lUVs = NULL;
-        FbxStringList lUVNames;
-        pMesh->GetUVSetNames(lUVNames);
-        const char* lUVName = NULL;
-        if (mHasUV && lUVNames.GetCount())
-        {
-            lUVs = new float[lPolygonVertexCount * UV_STRIDE];
-            lUVName = lUVNames[0];
-        }
+		// UVs
+		float* lUVs = NULL;
+		FbxStringList lUVNames;
+		pMesh->GetUVSetNames(lUVNames);
+		const char* lUVName = NULL;
+		if (mHasUV && lUVNames.GetCount())
+		{
+			lUVs = new float[lPolygonVertexCount * UV_STRIDE];
+			lUVName = lUVNames[0];
+		}
 
-        // Tangents
-        float* lTangents = NULL;
-        if (mHasTangent)
-        {
-            lTangents = new float[lPolygonVertexCount * TANGENT_STRIDE];
-        }
+		// Tangents
+		float* lTangents = NULL;
+		if (mHasTangent)
+		{
+			lTangents = new float[lPolygonVertexCount * TANGENT_STRIDE];
+		}
 
         // Populate the array with vertex attribute, if by control point.
         const FbxVector4* lControlPoints = pMesh->GetControlPoints();
@@ -471,71 +471,71 @@ namespace Darius::Renderer::Geometry::ModelLoader::Fbx
                     lNormals[lIndex * NORMAL_STRIDE + 2] = static_cast<float>(lCurrentNormal[2]);
                 }
 
-                // Save the UV.
-                if (mHasUV)
-                {
-                    int lUVIndex = lIndex;
-                    if (lUVElement->GetReferenceMode() == FbxLayerElement::eIndexToDirect)
-                    {
-                        lUVIndex = lUVElement->GetIndexArray().GetAt(lIndex);
-                    }
-                    lCurrentUV = lUVElement->GetDirectArray().GetAt(lUVIndex);
-                    lUVs[lIndex * UV_STRIDE] = static_cast<float>(lCurrentUV[0]);
-                    lUVs[lIndex * UV_STRIDE + 1] = static_cast<float>(lCurrentUV[1]);
-                }
+				// Save the UV.
+				if (mHasUV)
+				{
+					int lUVIndex = lIndex;
+					if (lUVElement->GetReferenceMode() == FbxLayerElement::eIndexToDirect)
+					{
+						lUVIndex = lUVElement->GetIndexArray().GetAt(lIndex);
+					}
+					lCurrentUV = lUVElement->GetDirectArray().GetAt(lUVIndex);
+					lUVs[lIndex * UV_STRIDE] = static_cast<float>(lCurrentUV[0]);
+					lUVs[lIndex * UV_STRIDE + 1] = static_cast<float>(lCurrentUV[1]);
+				}
 
-                // Save the tangent
-                if (mHasTangent)
-                {
-                    int lTantentIndex = lIndex;
-                    if (lTangentElement->GetReferenceMode() == FbxLayerElement::eIndexToDirect)
-                    {
-                        lTantentIndex = lTangentElement->GetIndexArray().GetAt(lIndex);
-                    }
-                    lCurrentTangent = lTangentElement->GetDirectArray().GetAt(lTantentIndex);
-                    lTangents[lIndex * TANGENT_STRIDE] = static_cast<float>(lCurrentTangent[0]);
-                    lTangents[lIndex * TANGENT_STRIDE + 1] = static_cast<float>(lCurrentTangent[1]);
-                    lTangents[lIndex * TANGENT_STRIDE + 2] = static_cast<float>(lCurrentTangent[2]);
-                    lTangents[lIndex * TANGENT_STRIDE + 3] = static_cast<float>(lCurrentTangent[3]);
-                }
-            }
+				// Save the tangent
+				if (mHasTangent)
+				{
+					int lTantentIndex = lIndex;
+					if (lTangentElement->GetReferenceMode() == FbxLayerElement::eIndexToDirect)
+					{
+						lTantentIndex = lTangentElement->GetIndexArray().GetAt(lIndex);
+					}
+					lCurrentTangent = lTangentElement->GetDirectArray().GetAt(lTantentIndex);
+					lTangents[lIndex * TANGENT_STRIDE] = static_cast<float>(lCurrentTangent[0]);
+					lTangents[lIndex * TANGENT_STRIDE + 1] = static_cast<float>(lCurrentTangent[1]);
+					lTangents[lIndex * TANGENT_STRIDE + 2] = static_cast<float>(lCurrentTangent[2]);
+					lTangents[lIndex * TANGENT_STRIDE + 3] = static_cast<float>(lCurrentTangent[3]);
+				}
+			}
 
-        }
+		}
 
-        int lVertexCount = 0;
-        for (int lPolygonIndex = 0; lPolygonIndex < lPolygonCount; ++lPolygonIndex)
-        {
-            // The material for current face.
-            int lMaterialIndex = 0;
-            if (lMaterialIndice && lMaterialMappingMode == FbxGeometryElement::eByPolygon)
-            {
-                lMaterialIndex = lMaterialIndice->GetAt(lPolygonIndex);
-            }
+		int lVertexCount = 0;
+		for (int lPolygonIndex = 0; lPolygonIndex < lPolygonCount; ++lPolygonIndex)
+		{
+			// The material for current face.
+			int lMaterialIndex = 0;
+			if (lMaterialIndice && lMaterialMappingMode == FbxGeometryElement::eByPolygon)
+			{
+				lMaterialIndex = lMaterialIndice->GetAt(lPolygonIndex);
+			}
 
-            // Where should I save the vertex attribute index, according to the material
-            const int lIndexOffset = subMeshes[lMaterialIndex]->IndexOffset +
-                subMeshes[lMaterialIndex]->TriangleCount * 3;
-            for (int lVerticeIndex = 0; lVerticeIndex < TRIANGLE_VERTEX_COUNT; ++lVerticeIndex)
-            {
-                const int lControlPointIndex = pMesh->GetPolygonVertex(lPolygonIndex, lVerticeIndex);
-                // If the lControlPointIndex is -1, we probably have a corrupted mesh data. At this point,
-                // it is not guaranteed that the cache will work as expected.
-                if (lControlPointIndex >= 0)
-                {
-                    if (mAllByControlPoint)
-                    {
-                        lIndices[lIndexOffset + lVerticeIndex] = static_cast<unsigned int>(lControlPointIndex);
-                    }
-                    // Populate the array with vertex attribute, if by polygon vertex.
-                    else
-                    {
-                        lIndices[lIndexOffset + lVerticeIndex] = static_cast<unsigned int>(lVertexCount);
+			// Where should I save the vertex attribute index, according to the material
+			const int lIndexOffset = subMeshes[lMaterialIndex]->IndexOffset +
+				subMeshes[lMaterialIndex]->TriangleCount * 3;
+			for (int lVerticeIndex = 0; lVerticeIndex < TRIANGLE_VERTEX_COUNT; ++lVerticeIndex)
+			{
+				const int lControlPointIndex = pMesh->GetPolygonVertex(lPolygonIndex, lVerticeIndex);
+				// If the lControlPointIndex is -1, we probably have a corrupted mesh data. At this point,
+				// it is not guaranteed that the cache will work as expected.
+				if (lControlPointIndex >= 0)
+				{
+					if (mAllByControlPoint)
+					{
+						lIndices[lIndexOffset + lVerticeIndex] = static_cast<unsigned int>(lControlPointIndex);
+					}
+					// Populate the array with vertex attribute, if by polygon vertex.
+					else
+					{
+						lIndices[lIndexOffset + lVerticeIndex] = static_cast<unsigned int>(lVertexCount);
 
-                        lCurrentVertex = lControlPoints[lControlPointIndex];
-                        lVertices[lVertexCount * VERTEX_STRIDE] = static_cast<float>(lCurrentVertex[0]);
-                        lVertices[lVertexCount * VERTEX_STRIDE + 1] = static_cast<float>(lCurrentVertex[1]);
-                        lVertices[lVertexCount * VERTEX_STRIDE + 2] = static_cast<float>(lCurrentVertex[2]);
-                        lVertices[lVertexCount * VERTEX_STRIDE + 3] = 1;
+						lCurrentVertex = lControlPoints[lControlPointIndex];
+						lVertices[lVertexCount * VERTEX_STRIDE] = static_cast<float>(lCurrentVertex[0]);
+						lVertices[lVertexCount * VERTEX_STRIDE + 1] = static_cast<float>(lCurrentVertex[1]);
+						lVertices[lVertexCount * VERTEX_STRIDE + 2] = static_cast<float>(lCurrentVertex[2]);
+						lVertices[lVertexCount * VERTEX_STRIDE + 3] = 1;
 
 						// Add index map
 						{
@@ -552,29 +552,29 @@ namespace Darius::Renderer::Geometry::ModelLoader::Fbx
                             lNormals[lVertexCount * NORMAL_STRIDE + 2] = static_cast<float>(lCurrentNormal[2]);
                         }
 
-                        if (mHasUV)
-                        {
-                            bool lUnmappedUV;
-                            pMesh->GetPolygonVertexUV(lPolygonIndex, lVerticeIndex, lUVName, lCurrentUV, lUnmappedUV);
-                            lUVs[lVertexCount * UV_STRIDE] = static_cast<float>(lCurrentUV[0]);
-                            lUVs[lVertexCount * UV_STRIDE + 1] = static_cast<float>(lCurrentUV[1]);
-                        }
-                    }
-                }
-                ++lVertexCount;
-            }
-            subMeshes[lMaterialIndex]->TriangleCount += 1;
-        }
+						if (mHasUV)
+						{
+							bool lUnmappedUV;
+							pMesh->GetPolygonVertexUV(lPolygonIndex, lVerticeIndex, lUVName, lCurrentUV, lUnmappedUV);
+							lUVs[lVertexCount * UV_STRIDE] = static_cast<float>(lCurrentUV[0]);
+							lUVs[lVertexCount * UV_STRIDE + 1] = static_cast<float>(lCurrentUV[1]);
+						}
+					}
+				}
+				++lVertexCount;
+			}
+			subMeshes[lMaterialIndex]->TriangleCount += 1;
+		}
 
-        result.SubMeshes.resize(subMeshes.Size());
-        for (int i = 0; i < subMeshes.GetCount(); i++)
-        {
-            result.SubMeshes[i].IndexOffset = subMeshes[i]->IndexOffset;
-            result.SubMeshes[i].IndexCount = subMeshes[i]->TriangleCount * TRIANGLE_VERTEX_COUNT;
-            delete subMeshes[i];
-        }
+		result.SubMeshes.resize(subMeshes.Size());
+		for (int i = 0; i < subMeshes.GetCount(); i++)
+		{
+			result.SubMeshes[i].IndexOffset = subMeshes[i]->IndexOffset;
+			result.SubMeshes[i].IndexCount = subMeshes[i]->TriangleCount * TRIANGLE_VERTEX_COUNT;
+			delete subMeshes[i];
+		}
 
-        subMeshes.Clear();
+		subMeshes.Clear();
 
         D_ASSERT(lNormals);
 
@@ -599,12 +599,12 @@ namespace Darius::Renderer::Geometry::ModelLoader::Fbx
 
 			auto vertex = D_GRAPHICS_VERTEX::VertexPositionNormalTangentTextureSkinned(vert[0], vert[1], vert[2], norm[0], norm[1], norm[2], tang[0], tang[1], tang[2], tang[3], uv[0], 1 - uv[1]);
 
-            result.MeshData.Vertices.push_back(vertex);
-        }
-        for (int i = 0; i < lPolygonCount * TRIANGLE_VERTEX_COUNT; i++)
-        {
-            result.MeshData.Indices32.push_back(lIndices[i]);
-        }
+			result.MeshData.Vertices.push_back(vertex);
+		}
+		for (int i = 0; i < lPolygonCount * TRIANGLE_VERTEX_COUNT; i++)
+		{
+			result.MeshData.Indices32.push_back(lIndices[i]);
+		}
 
 		delete[] lVertices;
 		delete[] lIndices;
