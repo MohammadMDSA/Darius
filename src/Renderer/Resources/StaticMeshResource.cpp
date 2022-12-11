@@ -3,7 +3,6 @@
 
 #include "Renderer/RenderDeviceManager.hpp"
 #include "Renderer/GraphicsCore.hpp"
-#include "Renderer/Geometry/ModelLoader/FbxLoader.hpp"
 
 #include <Core/Filesystem/Path.hpp>
 #include <Core/Containers/Set.hpp>
