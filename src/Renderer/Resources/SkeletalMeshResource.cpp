@@ -17,56 +17,46 @@ namespace Darius::Graphics
 		Destroy();
 		SetName(GetName());
 
-		auto totalVertices = 0u;
-		auto totalIndices = 0u;
-		for (auto meshData : data.meshParts)
-		{
-			totalVertices += meshData.Vertices.size();
-			totalIndices += meshData.Indices32.size();
-		}
-
-		DVector<D_GRAPHICS_VERTEX::VertexPositionNormalTextureSkinned> vertices(totalVertices);
+		DVector<D_GRAPHICS_VERTEX::VertexPositionNormalTangentTexture> vertices;
 		DVector<std::uint16_t> indices;
 
-		mMesh.mNumTotalIndices = totalIndices;
-		mMesh.mNumTotalVertices = totalVertices;
-
-		auto vertexIndex = 0;
-		auto indexIndex = 0;
-		for (auto meshData : data.MeshData)
+		// Filling vertex and index data
+		for (int i = 0; i < data.MeshData.Vertices.size(); i++)
 		{
-			// Creating submesh
-			Mesh::Draw submesh;
-			submesh.IndexCount = meshData.Indices32.size();
-			submesh.StartIndexLocation = indexIndex;
-			submesh.BaseVertexLocation = vertexIndex;
-
-			// Adding vertices
-			for (size_t i = 0; i < meshData.Vertices.size(); i++)
-			{
-				auto& ver = meshData.Vertices[i];
-				vertices[vertexIndex] = D_GRAPHICS_VERTEX::VertexPositionNormalTextureSkinned(ver.mPosition, Vector3(ver.mNormal).Normalize(), ver.mTexC, ver.mBlendIndices, ver.mBlendWeights);
-				vertexIndex++;
-			}
-
-			// Adding indices
-			for (auto index : meshData.GetIndices16())
-			{
-				indices.push_back(index + submesh.BaseVertexLocation);
-			}
-			indexIndex += submesh.IndexCount;
-
-			// Updating bounding sphear
-			mMesh.mBoundSp = mMesh.mBoundSp.Union(meshData.CalcBoundingSphere());
-			mMesh.mBoundBox = mMesh.mBoundBox.Union(meshData.CalcBoundingBox());
-
-			mMesh.mDraw.push_back(submesh);
+			auto const& meshVertex = data.MeshData.Vertices[i];
+			vertices.push_back(D_GRAPHICS_VERTEX::VertexPositionNormalTangentTexture(meshVertex.mPosition, Vector3(meshVertex.mNormal).Normalize(), meshVertex.mTangent, meshVertex.mTexC));
 		}
+		for (int i = 0; i < data.MeshData.Indices32.size(); i++)
+		{
+			indices.push_back(data.MeshData.Indices32[i]);
+		}
+
+		mMesh.mDraw.clear();
+		if (data.SubMeshes.size() <= 0)
+		{
+			Mesh::Draw gpuDraw = { indices.size(), 0, 0 };
+			mMesh.mDraw.push_back(gpuDraw);
+		}
+		else
+		{
+			for (int i = 0; i < data.SubMeshes.size(); i++)
+			{
+				auto const& draw = data.SubMeshes[i];
+				Mesh::Draw gpuDraw = { draw.IndexCount, draw.IndexOffset, 0 };
+				mMesh.mDraw.push_back(gpuDraw);
+			}
+		}
+
+		mMesh.mNumTotalVertices = vertices.size();
+		mMesh.mNumTotalIndices = indices.size();
+
+		mMesh.mBoundSp = mMesh.mBoundSp.Union(data.MeshData.CalcBoundingSphere());
+		mMesh.mBoundBox = mMesh.mBoundBox.Union(data.MeshData.CalcBoundingBox());
 
 		mMesh.Name = GetName();
 
 		// Create vertex buffer
-		mMesh.VertexDataGpu.Create(mMesh.Name + L" Vertex Buffer", vertices.size(), sizeof(D_GRAPHICS_VERTEX::VertexPositionNormalTextureSkinned), vertices.data());
+		mMesh.VertexDataGpu.Create(mMesh.Name + L" Vertex Buffer", vertices.size(), sizeof(D_GRAPHICS_VERTEX::VertexPositionNormalTangentTexture), vertices.data());
 
 		// Create index buffer
 		mMesh.IndexDataGpu.Create(mMesh.Name + L" Index Buffer", indices.size(), sizeof(std::uint16_t), indices.data());
@@ -84,7 +74,7 @@ namespace Darius::Graphics
 		Create(meshData);
 		return true;
 	}
-	
+
 #ifdef _D_EDITOR
 	void DrawJoint(const Mesh::SkeletonJoint* joint)
 	{

@@ -1,6 +1,8 @@
 #pragma once
 
 #include "Renderer/GraphicsUtils/VertexTypes.hpp"
+#include "Renderer/Geometry/Mesh.hpp"
+#include "Renderer/Geometry/MeshData.hpp"
 
 #include <ResourceManager/Resource.hpp>
 #include <Utils/Assert.hpp>
@@ -25,7 +27,7 @@ namespace Darius::Graphics
 	public:
 		INLINE Mesh*					ModifyMeshData() { MakeDiskDirty(); MakeGpuDirty(); return &mMesh; }
 		INLINE const Mesh*				GetMeshData() const { return &mMesh; }
-		virtual void					Create(MultiPartMeshData<VertexType> const& data);
+		virtual void					Create(MultiPartMeshData<VertexType> const& data) = 0;
 
 		static DVector<ResourceDataInFile> CanConstructFrom(ResourceType type, Path const& path);
 

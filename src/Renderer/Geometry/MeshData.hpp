@@ -49,7 +49,7 @@ namespace Darius::Renderer::Geometry
 			return mIndices16;
 		}
 
-		BoundingSphere CalcBoundingSphere()
+		BoundingSphere CalcBoundingSphere() const
 		{
 			BoundingSphere res;
 			for (auto const& vert : Vertices)
@@ -60,7 +60,7 @@ namespace Darius::Renderer::Geometry
 			return res;
 		}
 
-		AxisAlignedBox CalcBoundingBox()
+		AxisAlignedBox CalcBoundingBox() const
 		{
 			AxisAlignedBox box;
 			for (auto const& vert : Vertices)

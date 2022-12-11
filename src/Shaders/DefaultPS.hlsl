@@ -1,6 +1,6 @@
 #include "Lighting.hlsli"
 
-#define NO_TANGENT_FRAME
+//#define NO_TANGENT_FRAME
 
 #define BitMasked(value, bitIdx) value & (1 << bitIdx)
 
@@ -38,6 +38,7 @@ float3 ComputeNormal(VertexOut pin)
 #ifdef NO_TANGENT_FRAME
     return normal;
 #else
+    
     // Construct tangent frame
     float3 tangent = normalize(pin.Tangent.xyz);
     float3 bitangent = normalize(cross(normal, tangent)) * pin.Tangent.w;
