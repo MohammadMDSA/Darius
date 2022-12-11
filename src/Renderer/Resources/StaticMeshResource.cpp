@@ -21,7 +21,7 @@ namespace Darius::Graphics
 
 	D_CH_RESOURCE_DEF(StaticMeshResource);
 
-	void StaticMeshResource::Create(MultiPartMeshData<VertexType> const& data)
+	void StaticMeshResource::Create(D_RENDERER_GEOMETRY::MultiPartMeshData<VertexType> const& data)
 	{
 		Destroy();
 		SetName(GetName());
@@ -41,11 +41,26 @@ namespace Darius::Graphics
 		}
 
 		mMesh.mDraw.clear();
-		for (int i = 0; i < data.SubMeshes.size(); i++)
+		if (data.SubMeshes.size() <= 0)
 		{
-			auto const& draw = data.SubMeshes[i];
-			mMesh.mDraw.push_back({ draw.IndexCount, draw.IndexOffset, 0 });
+			Mesh::Draw gpuDraw = { indices.size(), 0, 0 };
+			mMesh.mDraw.push_back(gpuDraw);
 		}
+		else
+		{
+			for (int i = 0; i < data.SubMeshes.size(); i++)
+			{
+				auto const& draw = data.SubMeshes[i];
+				Mesh::Draw gpuDraw = { draw.IndexCount, draw.IndexOffset, 0 };
+				mMesh.mDraw.push_back(gpuDraw);
+			}
+		}
+
+		mMesh.mNumTotalVertices = vertices.size();
+		mMesh.mNumTotalIndices = indices.size();
+
+		mMesh.mBoundSp = mMesh.mBoundSp.Union(data.MeshData.CalcBoundingSphere());
+		mMesh.mBoundBox = mMesh.mBoundBox.Union(data.MeshData.CalcBoundingBox());
 
 		mMesh.Name = GetName();
 

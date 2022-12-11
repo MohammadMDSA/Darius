@@ -174,7 +174,7 @@ namespace Darius::Renderer
 		Psos[(size_t)PipelineStateTypes::OpaquePso] = GraphicsPSO(L"Opaque PSO");
 		auto& pso = Psos[(size_t)PipelineStateTypes::OpaquePso];
 
-		auto il = D_GRAPHICS_VERTEX::VertexPositionNormalTexture::InputLayout;
+		auto il = D_GRAPHICS_VERTEX::VertexPositionNormalTangentTexture::InputLayout;
 		pso.SetInputLayout(il.NumElements, il.pInputElementDescs);
 
 		pso.SetVertexShader(reinterpret_cast<BYTE*>(Shaders["standardVS"]->GetBufferPointer()),
@@ -210,7 +210,7 @@ namespace Darius::Renderer
 			auto skinnedOpaquePso = GraphicsPSO(L"Skinned Opaque PSO");
 			skinnedOpaquePso = pso;
 			skinnedOpaquePso.SetVertexShader(Shaders["skinnedVS"]->GetBufferPointer(), Shaders["skinnedVS"]->GetBufferSize());
-			skinnedOpaquePso.SetInputLayout(D_GRAPHICS_VERTEX::VertexPositionNormalTextureSkinned::InputLayout.NumElements, D_GRAPHICS_VERTEX::VertexPositionNormalTextureSkinned::InputLayout.pInputElementDescs);
+			skinnedOpaquePso.SetInputLayout(D_GRAPHICS_VERTEX::VertexPositionNormalTangentTextureSkinned::InputLayout.NumElements, D_GRAPHICS_VERTEX::VertexPositionNormalTangentTextureSkinned::InputLayout.pInputElementDescs);
 			skinnedOpaquePso.Finalize();
 			Psos[(size_t)PipelineStateTypes::SkinnedOpaquePso] = skinnedOpaquePso;
 		}

@@ -5,6 +5,7 @@
 #include "Renderer/GraphicsUtils/VertexTypes.hpp"
 
 #include <Core/Containers/Vector.hpp>
+#include <Core/Containers/List.hpp>
 #include <ResourceManager/Resource.hpp>
 
 #ifndef D_RENDERER_GEOMETRY_LOADER_FBX
@@ -18,6 +19,6 @@ namespace Darius::Renderer::Geometry::ModelLoader::Fbx
 
 	bool ReadMeshByName(D_FILE::Path const& path, std::wstring const& meshName, MultiPartMeshData<D_GRAPHICS_VERTEX::VertexPositionNormalTangentTextureSkinned>& result);
 
-	bool ReadMeshByName(D_FILE::Path const& path, std::wstring const& meshName, MultiPartMeshData<D_GRAPHICS_VERTEX::VertexPositionNormalTangentTextureSkinned>& result, DList<D_RENDERER_GEOMETRY::Mesh::SkeletonJoint>& skeleton);
+	bool ReadMeshByName(D_FILE::Path const& path, std::wstring const& meshName, MultiPartMeshData<D_GRAPHICS_VERTEX::VertexPositionNormalTangentTextureSkinned>& result, D_CONTAINERS::DList<D_RENDERER_GEOMETRY::Mesh::SkeletonJoint>& skeleton);
 
 }
