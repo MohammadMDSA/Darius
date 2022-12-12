@@ -15,7 +15,7 @@
 namespace Darius::Renderer::Geometry::ModelLoader::Fbx
 {
 
-	D_CONTAINERS::DVector<D_RESOURCE::ResourceDataInFile> GetResourcesDataFromFile(D_RESOURCE::ResourceType type, D_FILE::Path const& path);
+	D_CONTAINERS::DVector<D_RESOURCE::ResourceDataInFile> GetMeshResourcesDataFromFile(D_RESOURCE::ResourceType type, D_FILE::Path const& path);
 
 	bool ReadMeshByName(D_FILE::Path const& path, std::wstring const& meshName, MultiPartMeshData<D_GRAPHICS_VERTEX::VertexPositionNormalTangentTextureSkinned>& result);
 
