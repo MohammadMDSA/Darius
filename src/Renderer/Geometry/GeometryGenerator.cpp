@@ -64,8 +64,11 @@ namespace Darius::Renderer::Geometry::GeometryGenerator
 			//
 
 			Vertex m0 = MidPoint(v0, v1);
+			m0.mTangent.w = 1;
 			Vertex m1 = MidPoint(v1, v2);
+			m1.mTangent.w = 1;
 			Vertex m2 = MidPoint(v0, v2);
+			m2.mTangent.w = 1;
 
 			//
 			// Add new geometry.
@@ -232,6 +235,7 @@ namespace Darius::Renderer::Geometry::GeometryGenerator
 
 				XMVECTOR T = XMLoadFloat4(&v.mTangent);
 				XMStoreFloat4(&v.mTangent, XMVector3Normalize(T));
+				v.mTangent.w = 1.f;
 
 				XMVECTOR p = XMLoadFloat3(&v.mPosition);
 				XMStoreFloat3(&v.mNormal, XMVector3Normalize(p));
@@ -369,6 +373,8 @@ namespace Darius::Renderer::Geometry::GeometryGenerator
 			meshData.Vertices[i].mTangent.z = +radius * sinf(phi) * cosf(theta);
 
 			XMVECTOR T = XMLoadFloat4(&meshData.Vertices[i].mTangent);
+			meshData.Vertices[i].mTangent.w = 1.f;
+
 			XMStoreFloat4(&meshData.Vertices[i].mTangent, XMVector3Normalize(T));
 		}
 

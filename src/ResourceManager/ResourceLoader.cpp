@@ -212,7 +212,7 @@ namespace Darius::ResourceManager
 			else
 			{
 				if (recursively)
-					VisitSubdirectory(entry.path());
+					VisitSubdirectory(entry.path(), true);
 			}
 		}
 	}
