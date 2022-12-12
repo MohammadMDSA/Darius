@@ -62,6 +62,8 @@ namespace Darius::Animation
 			result.push_back(data);
 		}
 
+		lSdkManager->Destroy();
+
 		return result;
 	}
 
@@ -134,6 +136,7 @@ namespace Darius::Animation
 			D_LOG_ERROR("Call to FbxImporter::Initialize() failed.");
 			std::string msg = "Error returned: " + std::string(lImporter->GetStatus().GetErrorString());
 			D_LOG_ERROR(msg);
+			lSdkManager->Destroy();
 			return;
 		}
 
@@ -163,6 +166,7 @@ namespace Darius::Animation
 		{
 			auto name = GetName();
 			D_LOG_WARN("Animation " << STR_WSTR(name) << " from path " << GetPath().string() << " could not be read");
+			lSdkManager->Destroy();
 			return;
 		}
 		// Getting the layer that we want to work with
@@ -255,5 +259,6 @@ namespace Darius::Animation
 
 		}
 
+		lSdkManager->Destroy();
 	}
 }
