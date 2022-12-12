@@ -40,6 +40,7 @@ namespace Darius::Renderer
 	enum TextureType
 	{
 		kBaseColor,
+		kMetallic,
 		kRoughness,
 		kOcculusion,
 		kEmissive,

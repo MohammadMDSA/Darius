@@ -49,11 +49,13 @@ namespace Darius::Graphics
 		D_CH_FIELD(MaterialConstants, Material);
 		D_CH_R_FIELD(Ref<D_GRAPHICS::TextureResource>, BaseColorTexture);
 		D_CH_R_FIELD(Ref<D_GRAPHICS::TextureResource>, NormalTexture);
-		D_CH_R_FIELD(Ref<D_GRAPHICS::TextureResource>, MetallicRoughnessTexture);
+		D_CH_R_FIELD(Ref<D_GRAPHICS::TextureResource>, MetallicTexture);
+		D_CH_R_FIELD(Ref<D_GRAPHICS::TextureResource>, RoughnessTexture);
 		D_CH_R_FIELD(Ref<D_GRAPHICS::TextureResource>, EmissiveTexture);
 		D_CH_R_FIELD(D_RESOURCE::ResourceHandle, BaseColorTextureHandle);
 		D_CH_R_FIELD(D_RESOURCE::ResourceHandle, NormalTextureHandle);
-		D_CH_R_FIELD(D_RESOURCE::ResourceHandle, MetallicRoughnessTextureHandle);
+		D_CH_R_FIELD(D_RESOURCE::ResourceHandle, MetallicTextureHandle);
+		D_CH_R_FIELD(D_RESOURCE::ResourceHandle, RoughnessTextureHandle);
 		D_CH_R_FIELD(D_RESOURCE::ResourceHandle, EmissiveTextureHandle);
 
 	protected:

@@ -541,7 +541,8 @@ namespace Darius::Graphics
 			auto mat = materialRes->ModifyMaterialData();
 			mat->DifuseAlbedo = XMFLOAT4(Vector4(kOne));
 			mat->FresnelR0 = XMFLOAT3(Vector3(kZero));
-			mat->MetallicRoughness = { 0.f, 0.2f };
+			mat->Metallic = 0.f;
+			mat->Roughness = 0.f;
 			auto rRes = dynamic_cast<Resource*>(materialRes);
 			DefaultResourceMap.insert({ DefaultResource::Material, { MaterialResource::GetResourceType(), materialRes->GetId() } });
 		}

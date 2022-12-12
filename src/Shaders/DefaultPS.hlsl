@@ -9,7 +9,8 @@ cbuffer cbMaterial : register(b0)
     float4 gDiffuseAlbedo;
     float3 gFresnelR0;
     float3 gEmissive;
-    float2 gMetallicRoughness;
+    float1 gMetallic;
+    float1 gRoughness;
     int gTexStats;
 };
 
@@ -26,10 +27,11 @@ struct VertexOut
 };
 
 Texture2D<float4> texDiffuse                        : register(t0);
-Texture2D<float3> texMetallicRoughness              : register(t1);
-Texture2D<float3> texOcculusion                     : register(t2);
-Texture2D<float3> texEmissive                       : register(t3);
-Texture2D<float3> texNormal                         : register(t4);
+Texture2D<float3> texMetallic                       : register(t1);
+Texture2D<float1> texRoughness                      : register(t2);
+Texture2D<float1> texOcculusion                     : register(t3);
+Texture2D<float3> texEmissive                       : register(t4);
+Texture2D<float3> texNormal                         : register(t5);
 
 float3 ComputeNormal(VertexOut pin)
 {
@@ -45,7 +47,7 @@ float3 ComputeNormal(VertexOut pin)
     float3x3 tangentFrame = float3x3(tangent, bitangent, normal);
 
     // Read normal map and convert to SNORM (TODO:  convert all normal maps to R8G8B8A8_SNORM?)
-    normal = texNormal.Sample(defaultSampler, pin.UV) * 2.0 - 1.0;
+    normal = texNormal.Sample(defaultSampler, pin.UV);
 
     // glTF spec says to normalize N before and after scaling, but that's excessive
     //normal = normalize(normal * float3(normalTextureScale, normalTextureScale, 1));
@@ -75,29 +77,36 @@ float4 main(VertexOut pin) : SV_Target
     
     // Direct Lightin
     float4 ambient = gAmbientLight * diffuseAlbedo;
-
-    // Roughness
-    float2 metallicRoughness;
+    
+    // Metallic
+    float metallic;
     if (BitMasked(gTexStats, 1))
-        metallicRoughness = SAMPLE_TEX(texMetallicRoughness).xy;
+        metallic = SAMPLE_TEX(texMetallic).x;
     else
-        metallicRoughness = gMetallicRoughness;
+        metallic = gMetallic;
+    
+    // Roughness
+    float roughness;
+    if (BitMasked(gTexStats, 2))
+        roughness = SAMPLE_TEX(texRoughness).x;
+    else
+        roughness = gRoughness;
     
     // Emissive 
     float3 emissive;
-    if (BitMasked(gTexStats, 3))
+    if (BitMasked(gTexStats, 4))
         emissive = SAMPLE_TEX(texEmissive);
     else
         emissive = gEmissive;
     
     float3 normal;
-    if (BitMasked(gTexStats, 4))
+    if (BitMasked(gTexStats, 5))
         normal = ComputeNormal(pin);
     else
         normal = pin.WorldNormal;
     
     float3 litColor = ComputeLitColor(pin.WorldPos, normal, toEyeW,
-                            diffuseAlbedo, metallicRoughness.x, metallicRoughness.y,
+                            diffuseAlbedo, metallic, roughness,
                             emissive, 1, gFresnelR0);
     
     // Common convention to take alpha from diffuse material.
