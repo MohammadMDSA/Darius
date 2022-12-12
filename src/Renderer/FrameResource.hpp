@@ -63,8 +63,8 @@ namespace Darius::Renderer::ConstantFrameResource
 		XMFLOAT3					FresnelR0 = { 0.56f, 0.56f, 0.56f };
 		int _pad1;
 		XMFLOAT3					Emissive = { 0.f, 0.f, 0.f };
-		int _pad2;
-		XMFLOAT2					MetallicRoughness = { 0.f, 0.2f };
+		float						Metallic = 0.f;
+		float						Roughness = 0.f;
 		int							TextureStatusMask = 0;
 	};
 
