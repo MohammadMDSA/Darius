@@ -64,6 +64,7 @@ namespace Darius::Editor::Gui::Windows
 		D_RENDERER_FRAME_RESOUCE::GlobalConstants	mSceneGlobals;
 
 		bool										mDrawGrid;
+		bool										mDrawSkybox;
 		bool										mMovingCam;
 		bool										mDrawDebug;
 	};
