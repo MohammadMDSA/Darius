@@ -83,6 +83,17 @@ namespace Darius::Renderer::Geometry::ModelLoader::Fbx
 		// The file has been imported; we can get rid of the importer.
 		lImporter->Destroy();
 
+		// Convert mesh, NURBS and patch into triangle mesh
+		FbxGeometryConverter lGeomConverter(*sdkManager);
+		try {
+			lGeomConverter.Triangulate(lScene, /*replace*/true);
+		}
+		catch (std::runtime_error) {
+			FBXSDK_printf("Scene integrity verification failed.\n");
+			return false;
+		}
+
+
 		// Print the nodes of the scene and their attributes recursively.
 		// Note that we are not printing the root node because it should
 		// not contain any attributes.
@@ -201,7 +212,11 @@ namespace Darius::Renderer::Geometry::ModelLoader::Fbx
 		FbxManager* sdkManager = nullptr;
 		FbxNode* rootNode = nullptr;
 
-		InitializeFbxScene(path, &rootNode, &sdkManager);
+		if (!InitializeFbxScene(path, &rootNode, &sdkManager))
+		{
+			sdkManager->Destroy();
+			return D_CONTAINERS::DVector<D_RESOURCE::ResourceDataInFile>();
+		}
 
 		DVector<ResourceDataInFile> results;
 
@@ -233,7 +248,10 @@ namespace Darius::Renderer::Geometry::ModelLoader::Fbx
 	{
 		FbxNode* rootNode = nullptr;
 
-		InitializeFbxScene(path, &rootNode, sdkManager);
+		if (!InitializeFbxScene(path, &rootNode, sdkManager))
+		{
+			return false;
+		}
 
 		// Searching for a mesh node with our resource name
 		FbxNode* targetNode = 0;
@@ -844,6 +862,8 @@ namespace Darius::Renderer::Geometry::ModelLoader::Fbx
 		for (int controlPointIndex = 0; controlPointIndex < skinData.size(); controlPointIndex++)
 		{
 			auto controlPointBlendData = skinData[controlPointIndex];
+			if (!controlPointIndexToVertexIndexMap.contains(controlPointIndex))
+				continue;
 			for (auto const& vertexIndex : controlPointIndexToVertexIndexMap.at(controlPointIndex))
 			{
 				AddBlendDataToVertex(meshData.MeshData.Vertices[vertexIndex], controlPointBlendData);
