@@ -35,7 +35,7 @@ namespace Darius::Renderer::Geometry::ModelLoader::Fbx
 
 		UINT IndexOffset;
 		UINT TriangleCount;
-    };
+	};
 
 	void TraverseNodes(FbxNode* nodeP, std::function<void(FbxNode*)> callback);
 	bool ReadMeshNode(FbxMesh* pMesh, MultiPartMeshData<D_GRAPHICS_VERTEX::VertexPositionNormalTangentTextureSkinned>& result, DUnorderedMap<int, DVector<int>>& controlPointIndexToVertexIndexMap);
@@ -196,7 +196,7 @@ namespace Darius::Renderer::Geometry::ModelLoader::Fbx
 #pragma region Mesh
 
 	D_CONTAINERS::DVector<D_RESOURCE::ResourceDataInFile> GetMeshResourcesDataFromFile(D_RESOURCE::ResourceType type, D_FILE::Path const& path)
-    {
+	{
 		FbxManager* sdkManager = nullptr;
 		FbxNode* rootNode = nullptr;
 
@@ -268,10 +268,10 @@ namespace Darius::Renderer::Geometry::ModelLoader::Fbx
 
 	bool ReadMeshNode(FbxMesh* pMesh, MultiPartMeshData<D_GRAPHICS_VERTEX::VertexPositionNormalTangentTextureSkinned>& result, DUnorderedMap<int, DVector<int>>& controlPointIndexToVertexIndexMap)
 	{
-        if (!pMesh->GetNode())
-            return false;
+		if (!pMesh->GetNode())
+			return false;
 
-        pMesh->GenerateNormals();
+		pMesh->GenerateNormals();
 		auto f = pMesh->GenerateTangentsData();
 
 		FbxArray<SubMesh*> subMeshes;
@@ -422,54 +422,54 @@ namespace Darius::Renderer::Geometry::ModelLoader::Fbx
 			lTangents = new float[lPolygonVertexCount * TANGENT_STRIDE];
 		}
 
-        // Populate the array with vertex attribute, if by control point.
-        const FbxVector4* lControlPoints = pMesh->GetControlPoints();
-        FbxVector4 lCurrentVertex;
-        FbxVector4 lCurrentNormal;
-        FbxVector2 lCurrentUV;
-        FbxVector4 lCurrentTangent;
+		// Populate the array with vertex attribute, if by control point.
+		const FbxVector4* lControlPoints = pMesh->GetControlPoints();
+		FbxVector4 lCurrentVertex;
+		FbxVector4 lCurrentNormal;
+		FbxVector2 lCurrentUV;
+		FbxVector4 lCurrentTangent;
 
-        if (mAllByControlPoint)
-        {
-            const FbxGeometryElementNormal* lNormalElement = NULL;
-            const FbxGeometryElementUV* lUVElement = NULL;
-            const FbxGeometryElementTangent* lTangentElement = NULL;
-            if (mHasNormal)
-            {
-                lNormalElement = pMesh->GetElementNormal(0);
-            }
-            if (mHasUV)
-            {
-                lUVElement = pMesh->GetElementUV(0);
-            }
-            if (mHasTangent)
-            {
-                lTangentElement = pMesh->GetElementTangent(0);
-            }
-            for (int lIndex = 0; lIndex < lPolygonVertexCount; ++lIndex)
-            {
-                // Save the vertex position.
-                lCurrentVertex = lControlPoints[lIndex];
-                lVertices[lIndex * VERTEX_STRIDE] = static_cast<float>(lCurrentVertex[0]);
-                lVertices[lIndex * VERTEX_STRIDE + 1] = static_cast<float>(lCurrentVertex[1]);
-                lVertices[lIndex * VERTEX_STRIDE + 2] = static_cast<float>(lCurrentVertex[2]);
-                lVertices[lIndex * VERTEX_STRIDE + 3] = 1;
+		if (mAllByControlPoint)
+		{
+			const FbxGeometryElementNormal* lNormalElement = NULL;
+			const FbxGeometryElementUV* lUVElement = NULL;
+			const FbxGeometryElementTangent* lTangentElement = NULL;
+			if (mHasNormal)
+			{
+				lNormalElement = pMesh->GetElementNormal(0);
+			}
+			if (mHasUV)
+			{
+				lUVElement = pMesh->GetElementUV(0);
+			}
+			if (mHasTangent)
+			{
+				lTangentElement = pMesh->GetElementTangent(0);
+			}
+			for (int lIndex = 0; lIndex < lPolygonVertexCount; ++lIndex)
+			{
+				// Save the vertex position.
+				lCurrentVertex = lControlPoints[lIndex];
+				lVertices[lIndex * VERTEX_STRIDE] = static_cast<float>(lCurrentVertex[0]);
+				lVertices[lIndex * VERTEX_STRIDE + 1] = static_cast<float>(lCurrentVertex[1]);
+				lVertices[lIndex * VERTEX_STRIDE + 2] = static_cast<float>(lCurrentVertex[2]);
+				lVertices[lIndex * VERTEX_STRIDE + 3] = 1;
 
 				controlPointIndexToVertexIndexMap.insert({ lIndex, { lIndex } });
 
-                // Save the normal.
-                if (mHasNormal)
-                {
-                    int lNormalIndex = lIndex;
-                    if (lNormalElement->GetReferenceMode() == FbxLayerElement::eIndexToDirect)
-                    {
-                        lNormalIndex = lNormalElement->GetIndexArray().GetAt(lIndex);
-                    }
-                    lCurrentNormal = lNormalElement->GetDirectArray().GetAt(lNormalIndex);
-                    lNormals[lIndex * NORMAL_STRIDE] = static_cast<float>(lCurrentNormal[0]);
-                    lNormals[lIndex * NORMAL_STRIDE + 1] = static_cast<float>(lCurrentNormal[1]);
-                    lNormals[lIndex * NORMAL_STRIDE + 2] = static_cast<float>(lCurrentNormal[2]);
-                }
+				// Save the normal.
+				if (mHasNormal)
+				{
+					int lNormalIndex = lIndex;
+					if (lNormalElement->GetReferenceMode() == FbxLayerElement::eIndexToDirect)
+					{
+						lNormalIndex = lNormalElement->GetIndexArray().GetAt(lIndex);
+					}
+					lCurrentNormal = lNormalElement->GetDirectArray().GetAt(lNormalIndex);
+					lNormals[lIndex * NORMAL_STRIDE] = static_cast<float>(lCurrentNormal[0]);
+					lNormals[lIndex * NORMAL_STRIDE + 1] = static_cast<float>(lCurrentNormal[1]);
+					lNormals[lIndex * NORMAL_STRIDE + 2] = static_cast<float>(lCurrentNormal[2]);
+				}
 
 				// Save the UV.
 				if (mHasUV)
@@ -544,13 +544,13 @@ namespace Darius::Renderer::Geometry::ModelLoader::Fbx
 							controlPointIndexToVertexIndexMap[lControlPointIndex].push_back(lVertexCount);
 						}
 
-                        if (mHasNormal)
-                        {
-                            pMesh->GetPolygonVertexNormal(lPolygonIndex, lVerticeIndex, lCurrentNormal);
-                            lNormals[lVertexCount * NORMAL_STRIDE] = static_cast<float>(lCurrentNormal[0]);
-                            lNormals[lVertexCount * NORMAL_STRIDE + 1] = static_cast<float>(lCurrentNormal[1]);
-                            lNormals[lVertexCount * NORMAL_STRIDE + 2] = static_cast<float>(lCurrentNormal[2]);
-                        }
+						if (mHasNormal)
+						{
+							pMesh->GetPolygonVertexNormal(lPolygonIndex, lVerticeIndex, lCurrentNormal);
+							lNormals[lVertexCount * NORMAL_STRIDE] = static_cast<float>(lCurrentNormal[0]);
+							lNormals[lVertexCount * NORMAL_STRIDE + 1] = static_cast<float>(lCurrentNormal[1]);
+							lNormals[lVertexCount * NORMAL_STRIDE + 2] = static_cast<float>(lCurrentNormal[2]);
+						}
 
 						if (mHasUV)
 						{
@@ -576,14 +576,14 @@ namespace Darius::Renderer::Geometry::ModelLoader::Fbx
 
 		subMeshes.Clear();
 
-        D_ASSERT(lNormals);
+		D_ASSERT(lNormals);
 
 		float empty[] = { 0.f, 1.f, 0.f, 1.f };
 
-        for (int i = 0; i < lPolygonVertexCount; i++)
-        {
-            float* vert = &lVertices[i * VERTEX_STRIDE];
-            float* norm = &lNormals[i * NORMAL_STRIDE];
+		for (int i = 0; i < lPolygonVertexCount; i++)
+		{
+			float* vert = &lVertices[i * VERTEX_STRIDE];
+			float* norm = &lNormals[i * NORMAL_STRIDE];
 			
 			float* tang;
 			if (mHasTangent)
@@ -727,7 +727,7 @@ namespace Darius::Renderer::Geometry::ModelLoader::Fbx
 
 		// Finding skeleton root
 		if (clusterCount <= 0)
-        return true;
+			return true;
 		FbxSkeleton* skeletonRoot = nullptr;
 		{
 			// Finding first eligible skeleton joint
@@ -757,7 +757,7 @@ namespace Darius::Renderer::Geometry::ModelLoader::Fbx
 			skeletonHierarchy.push_back(sceneGraphNode);
 			skeletonIndexMap.insert({ skeletonRoot, 0 });
 			AddSkeletonChildren(skeletonRoot, skeletonHierarchy, skeletonIndexMap);
-    }
+		}
 
 		// Assigning blend weights and indices
 		VertexBlendWeightData skinData;
