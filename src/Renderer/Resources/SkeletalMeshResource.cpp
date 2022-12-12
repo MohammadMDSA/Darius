@@ -17,14 +17,14 @@ namespace Darius::Graphics
 		Destroy();
 		SetName(GetName());
 
-		DVector<D_GRAPHICS_VERTEX::VertexPositionNormalTangentTexture> vertices;
+		DVector<D_GRAPHICS_VERTEX::VertexPositionNormalTangentTextureSkinned> vertices;
 		DVector<std::uint16_t> indices;
 
 		// Filling vertex and index data
 		for (int i = 0; i < data.MeshData.Vertices.size(); i++)
 		{
 			auto const& meshVertex = data.MeshData.Vertices[i];
-			vertices.push_back(D_GRAPHICS_VERTEX::VertexPositionNormalTangentTexture(meshVertex.mPosition, Vector3(meshVertex.mNormal).Normalize(), meshVertex.mTangent, meshVertex.mTexC));
+			vertices.push_back(D_GRAPHICS_VERTEX::VertexPositionNormalTangentTextureSkinned(meshVertex.mPosition, Vector3(meshVertex.mNormal).Normalize(), meshVertex.mTangent, meshVertex.mTexC, meshVertex.mBlendIndices, meshVertex.mBlendWeights));
 		}
 		for (int i = 0; i < data.MeshData.Indices32.size(); i++)
 		{
@@ -56,7 +56,7 @@ namespace Darius::Graphics
 		mMesh.Name = GetName();
 
 		// Create vertex buffer
-		mMesh.VertexDataGpu.Create(mMesh.Name + L" Vertex Buffer", vertices.size(), sizeof(D_GRAPHICS_VERTEX::VertexPositionNormalTangentTexture), vertices.data());
+		mMesh.VertexDataGpu.Create(mMesh.Name + L" Vertex Buffer", vertices.size(), sizeof(D_GRAPHICS_VERTEX::VertexPositionNormalTangentTextureSkinned), vertices.data());
 
 		// Create index buffer
 		mMesh.IndexDataGpu.Create(mMesh.Name + L" Index Buffer", indices.size(), sizeof(std::uint16_t), indices.data());
