@@ -24,7 +24,8 @@ namespace Darius::Editor::Gui::Windows
 		mManipulateOperation(ImGuizmo::OPERATION::TRANSLATE),
 		mManipulateMode(ImGuizmo::MODE::LOCAL),
 		mDrawGrid(true),
-		mDrawDebug(true)
+		mDrawDebug(true),
+		mDrawSkybox(true)
 	{
 		CreateBuffers();
 		mTextureHandle = D_RENDERER::GetUiTextureHandle(1);
@@ -58,7 +59,7 @@ namespace Darius::Editor::Gui::Windows
 
 		auto diffTex = D_RESOURCE::GetResource<TextureResource>(diffIBLHandle[0], this, L"Scene Window", "Editor Window");
 		auto specTex = D_RESOURCE::GetResource<TextureResource>(specIBLHandle[0], this, L"Scene Window", "Editor Window");
-		
+
 		D_RENDERER::SetIBLTextures(
 			diffTex,
 			specTex
@@ -139,7 +140,8 @@ namespace Darius::Editor::Gui::Windows
 
 		sorter.RenderMeshes(MeshSorter::kOpaque, context, mSceneGlobals);
 
-		D_RENDERER::DrawSkybox(context, mCamera, mSceneTexture, mSceneDepth, viewPort, scissor);
+		if (mDrawSkybox)
+			D_RENDERER::DrawSkybox(context, mCamera, mSceneTexture, mSceneDepth, viewPort, scissor);
 
 		sorter.RenderMeshes(MeshSorter::kTransparent, context, mSceneGlobals);
 
@@ -251,6 +253,20 @@ namespace Darius::Editor::Gui::Windows
 					mDrawGrid = !mDrawGrid;
 				}
 				if (preDrawGrid)
+					ImGui::PopStyleColor();
+			}
+
+			ImGui::SameLine();
+			// Skybox settings
+			{
+				auto preDrawSkybox = mDrawSkybox;
+				if (mDrawSkybox)
+					ImGui::PushStyleColor(ImGuiCol_Button, { 0.26f, 0.59f, 1.f, 1.f });
+				if (ImGui::Button(ICON_FA_MOUNTAIN_SUN))
+				{
+					mDrawSkybox = !mDrawSkybox;
+				}
+				if (preDrawSkybox)
 					ImGui::PopStyleColor();
 			}
 
