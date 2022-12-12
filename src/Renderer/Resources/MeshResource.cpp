@@ -18,7 +18,7 @@ namespace Darius::Graphics
 
 	DVector<ResourceDataInFile> MeshResource::CanConstructFrom(ResourceType type, Path const& path)
 	{
-		return D_RENDERER_GEOMETRY_LOADER_FBX::GetResourcesDataFromFile(type, path);
+		return D_RENDERER_GEOMETRY_LOADER_FBX::GetMeshResourcesDataFromFile(type, path);
 	}
 
 	bool MeshResource::UploadToGpu(void* ctx)
