@@ -7,13 +7,13 @@
 
 ## Features
 - Resource Management
-    - Default: Material, Texture2D (DDS, TGA), Static and Skeletal Mesh (FBX), Vertex Batch Resources, and Physic Material
+    - Default: PBR Material, Texture (DDS, TGA), Static and Skeletal Mesh (FBX), Animation (FBX), Vertex Batch Resources, and Physics Material
     - Dynamic Resource Type Registration (You can define your own types)
 - Renderer
     - Frustum Culling
-    - Material Rendering
-        - Texture Mapping
-        - Emissive, Specular Color, and Roughness Components
+    - Physics-Based Rendering (PBR) Materials
+        - Diffuse, Normal, Roughness, Metallic, and Emissive Textures Mapping
+        - Diffuse Albedo, Emissive, Metallic, and Roughness Components
         - Opaque and Transparent
     - Basic Lights (Point, Cone, and Directional)
     - Skybox
@@ -27,6 +27,7 @@
     - Dynamic, Static, and Kinematic Actors
     - Physics Material
     - Collision Detection
+    - Ray Casting
 - Editor
     - Resource Monitor
     - Ghost and Orbit Cameras
