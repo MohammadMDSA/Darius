@@ -200,6 +200,7 @@ namespace Darius::Renderer::LightManager
 		case LightSourceType::SpotLight:
 			return &ActiveSpotLight;
 		}
+		return nullptr;
 	}
 
 	INLINE DVector<Transform>* GetAssociatedLightTransformsWithType(LightSourceType type)
@@ -213,6 +214,8 @@ namespace Darius::Renderer::LightManager
 		case LightSourceType::SpotLight:
 			return &SpotLightTransforms;
 		}
+
+		return nullptr;
 	}
 
 	INLINE DVector<LightData>* GetAssociatedLightsWithType(LightSourceType type)
@@ -226,6 +229,7 @@ namespace Darius::Renderer::LightManager
 		case LightSourceType::SpotLight:
 			return &SpotLights;
 		}
+		return nullptr;
 	}
 
 	int AccuireLightSource(LightSourceType type)

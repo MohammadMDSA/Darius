@@ -87,6 +87,7 @@ namespace Darius::Renderer::Geometry::ModelLoader::Fbx
 		// Note that we are not printing the root node because it should
 		// not contain any attributes.
 		*rootNode = lScene->GetRootNode();
+		return true;
 	}
 
 	void TraverseNodes(FbxNode* node, std::function<void(FbxNode*)> callback)
@@ -251,6 +252,7 @@ namespace Darius::Renderer::Geometry::ModelLoader::Fbx
 
 		*mesh = targetNode->GetMesh();
 		ReadMeshNode(*mesh, result, controlPointIndexToVertexIndexMap);
+		return true;
 	}
 
 	bool ReadMeshByName(D_FILE::Path const& path, std::wstring const& meshName, MultiPartMeshData<D_GRAPHICS_VERTEX::VertexPositionNormalTangentTextureSkinned>& result)
@@ -796,6 +798,7 @@ namespace Darius::Renderer::Geometry::ModelLoader::Fbx
 		}
 
 		AddJointWeightToVertices(skinData, meshData, controlPointIndexToVertexIndexMap);
+		return true;
 	}
 
 	void AddBlendDataToVertex(D_GRAPHICS_VERTEX::VertexPositionNormalTangentTextureSkinned& vertex, DVector<std::pair<int, std::pair<float, D_MATH::Matrix4>>>& blendData)
