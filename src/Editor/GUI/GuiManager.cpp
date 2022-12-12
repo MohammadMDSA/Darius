@@ -332,12 +332,12 @@ namespace Darius::Editor::Gui::GuiManager
 					ImGui::EndMenu();
 				}
 
-				if (ImGui::MenuItem("Don't"))
+				if (ImGui::MenuItem("Debug Button"))
 				{
-					for (size_t i = 0; i < 1000; i++)
+					/*for (size_t i = 0; i < 1000; i++)
 					{
 						D_WORLD::CreateGameObject();
-					}
+					}*/
 
 				}
 
