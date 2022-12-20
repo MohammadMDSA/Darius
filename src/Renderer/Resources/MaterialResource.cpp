@@ -399,6 +399,21 @@ device->CopyDescriptorsSimple(1, mTexturesHeap + type * incSize, m##name##Textur
 		ImGui::SameLine();
 		ImGui::Text("Normal");
 
+		// Two sided
+		{
+			bool val = mPsoFlags & RenderItem::TwoSided;
+			D_H_DETAILS_DRAW_PROPERTY("Two Sided");
+
+			if(ImGui::Checkbox("##TwoSided", &val))
+			{
+				valueChanged = true;
+				if (val)
+					mPsoFlags |= RenderItem::TwoSided;
+				else
+					mPsoFlags &= ~RenderItem::TwoSided;
+			}
+		}
+
 		D_H_DETAILS_DRAW_END_TABLE();
 
 		if (valueChanged)
