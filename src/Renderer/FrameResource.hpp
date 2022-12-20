@@ -65,7 +65,7 @@ namespace Darius::Renderer::ConstantFrameResource
 		XMFLOAT3					Emissive = { 0.f, 0.f, 0.f };
 		float						Metallic = 0.f;
 		float						Roughness = 0.f;
-		int							TextureStatusMask = 0;
+		UINT						TextureStatusMask = 0;
 	};
 
 	// Lightweight structure stores parameters to draw a shape.

@@ -73,7 +73,7 @@ namespace Darius::Renderer
 
 	//////////////////////////////////////////////////////
 	// Options
-	bool												SeparateZPass = false;
+	bool												SeparateZPass = true;
 
 	//////////////////////////////////////////////////////
 	// Functions
@@ -186,7 +186,7 @@ namespace Darius::Renderer
 		DefaultPso.SetVertexShader(ShaderData("DefaultVS"));
 		DefaultPso.SetPixelShader(ShaderData("DefaultPS"));
 		DefaultPso.SetRootSignature(RootSigns[(size_t)RootSignatureTypes::DefaultRootSig]);
-		DefaultPso.SetRasterizerState(D_GRAPHICS::RasterizerDefault);
+		DefaultPso.SetRasterizerState(D_GRAPHICS::RasterizerDefaultMsaa);
 		DefaultPso.SetBlendState(CD3DX12_BLEND_DESC(D3D12_DEFAULT));
 		DefaultPso.SetDepthStencilState(DepthStateReadWrite);
 		DefaultPso.SetSampleMask(UINT_MAX);
@@ -210,10 +210,10 @@ namespace Darius::Renderer
 
 		GraphicsPSO DepthOnlyPSO(L"Renderer: Depth Only PSO");
 		DepthOnlyPSO.SetRootSignature(RootSigns[(size_t)RootSignatureTypes::DefaultRootSig]);
-		DepthOnlyPSO.SetRasterizerState(RasterizerDefault);
+		DepthOnlyPSO.SetRasterizerState(RasterizerDefaultMsaa);
 		DepthOnlyPSO.SetBlendState(BlendDisable);
 		DepthOnlyPSO.SetDepthStencilState(DepthStateReadWrite);
-		DepthOnlyPSO.SetInputLayout(VertexData(D_GRAPHICS_VERTEX::VertexPosition));
+		DepthOnlyPSO.SetInputLayout(VertexData(D_GRAPHICS_VERTEX::VertexPositionNormalTangentTexture));
 		DepthOnlyPSO.SetPrimitiveTopologyType(D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE);
 		DepthOnlyPSO.SetRenderTargetFormats(0, nullptr, DepthFormat);
 		DepthOnlyPSO.SetVertexShader(ShaderData("DepthOnlyVS"));
@@ -222,21 +222,21 @@ namespace Darius::Renderer
 
 		GraphicsPSO CutoutDepthPSO(L"Renderer: Cutout Depth PSO");
 		CutoutDepthPSO = DepthOnlyPSO;
-		CutoutDepthPSO.SetInputLayout(VertexData(D_GRAPHICS_VERTEX::VertexPositionTexture));
-		CutoutDepthPSO.SetRasterizerState(RasterizerTwoSided);
+		CutoutDepthPSO.SetInputLayout(VertexData(D_GRAPHICS_VERTEX::VertexPositionNormalTangentTexture));
+		CutoutDepthPSO.SetRasterizerState(RasterizerTwoSidedMsaa);
 		CutoutDepthPSO.SetVertexShader(ShaderData("CutoutDepthVS"));
 		CutoutDepthPSO.SetPixelShader(ShaderData("CutoutDepthPS"));
 		CutoutDepthPSO.Finalize();
 		Psos.push_back(CutoutDepthPSO);
 
 		GraphicsPSO SkinDepthOnlyPSO = DepthOnlyPSO;
-		SkinDepthOnlyPSO.SetInputLayout(VertexData(D_GRAPHICS_VERTEX::VertexPositionSkinned));
+		SkinDepthOnlyPSO.SetInputLayout(VertexData(D_GRAPHICS_VERTEX::VertexPositionNormalTangentTextureSkinned));
 		SkinDepthOnlyPSO.SetVertexShader(ShaderData("DepthOnlySkinVS"));
 		SkinDepthOnlyPSO.Finalize();
 		Psos.push_back(SkinDepthOnlyPSO);
 
 		GraphicsPSO SkinCutoutDepthPSO = CutoutDepthPSO;
-		SkinCutoutDepthPSO.SetInputLayout(VertexData(D_GRAPHICS_VERTEX::VertexPositionTextureSkinned));
+		SkinCutoutDepthPSO.SetInputLayout(VertexData(D_GRAPHICS_VERTEX::VertexPositionNormalTangentTextureSkinned));
 		SkinCutoutDepthPSO.SetVertexShader(ShaderData("CutoutDepthSkinVS"));
 		SkinCutoutDepthPSO.Finalize();
 		Psos.push_back(SkinCutoutDepthPSO);
@@ -418,7 +418,7 @@ namespace Darius::Renderer
 		}
 		else if (SeparateZPass || alphaTest)
 		{
-			D_ASSERT(false);
+			//D_ASSERT(false);
 			key.passID = kZPass;
 			key.psoIdx = depthPSO;
 			key.key = dist.u;
@@ -538,14 +538,23 @@ namespace Darius::Renderer
 				switch (m_CurrentPass)
 				{
 				case kZPass:
-					/*context.TransitionResource(*m_DSV, D3D12_RESOURCE_STATE_DEPTH_WRITE);
+					context.TransitionResource(*m_DSV, D3D12_RESOURCE_STATE_DEPTH_WRITE);
 					context.SetDepthStencilTarget(m_DSV->GetDSV());
-					break;*/
+					break;
 					continue;
 				case kOpaque:
-					context.TransitionResource(*m_DSV, D3D12_RESOURCE_STATE_DEPTH_WRITE);
-					context.TransitionResource(*m_RTV[0], D3D12_RESOURCE_STATE_RENDER_TARGET);
-					context.SetRenderTarget(m_RTV[0]->GetRTV(), m_DSV->GetDSV());
+					if (SeparateZPass)
+					{
+						context.TransitionResource(*m_DSV, D3D12_RESOURCE_STATE_DEPTH_READ);
+						context.TransitionResource(*m_RTV[0], D3D12_RESOURCE_STATE_RENDER_TARGET);
+						context.SetRenderTarget(m_RTV[0]->GetRTV(), m_DSV->GetDSV_DepthReadOnly());
+					}
+					else
+					{
+						context.TransitionResource(*m_DSV, D3D12_RESOURCE_STATE_DEPTH_WRITE);
+						context.TransitionResource(*m_RTV[0], D3D12_RESOURCE_STATE_RENDER_TARGET);
+						context.SetRenderTarget(m_RTV[0]->GetRTV(), m_DSV->GetDSV());
+					}
 					break;
 				case kTransparent:
 					context.TransitionResource(*m_DSV, D3D12_RESOURCE_STATE_DEPTH_READ);
@@ -586,7 +595,6 @@ namespace Darius::Renderer
 				{
 					context.SetDynamicSRV(kSkinMatrices, sizeof(Joint) * ri.mNumJoints, ri.mJointData);
 				}
-
 				context.SetPipelineState(Psos[key.psoIdx]);
 
 				context.SetVertexBuffer(0, ri.Mesh->VertexBufferView());

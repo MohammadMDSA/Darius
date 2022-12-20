@@ -22,19 +22,20 @@ struct VSOutput
 Texture2D<float4> baseColorTexture          : register(t0);
 SamplerState baseColorSampler               : register(s0);
 
-cbuffer MaterialConstants : register(b0)
+cbuffer cbMaterial : register(b0)
 {
-    float4 baseColorFactor;
-    float3 emissiveFactor;
-    float normalTextureScale;
-    float2 metallicRoughnessFactor;
-    uint flags;
+    float4 gDiffuseAlbedo;
+    float3 gFresnelR0;
+    float3 gEmissive;
+    float1 gMetallic;
+    float1 gRoughness;
+    uint gTexStats;
 }
 
 [RootSignature(Renderer_RootSig)]
 void main(VSOutput vsOutput)
 {
-    float cutoff = f16tof32(flags >> 16);
+    float cutoff = f16tof32(gTexStats >> 16);
     if (baseColorTexture.Sample(baseColorSampler, vsOutput.uv).a < cutoff)
         discard;
 }

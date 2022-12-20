@@ -56,19 +56,21 @@ VertexOut main(VertexIn vin)
 #endif
     
 #ifdef ENABLE_SKINNING
+    float4 weights = vin.JointWeights / dot(vin.JointWeights, 1);
+    
     float4x4 skinPosMat =
-        Joints[vin.JointIndices.x].PosMatrix * vin.JointWeights.x +
-        Joints[vin.JointIndices.y].PosMatrix * vin.JointWeights.y +
-        Joints[vin.JointIndices.z].PosMatrix * vin.JointWeights.z +
-        Joints[vin.JointIndices.w].PosMatrix * vin.JointWeights.w;
+        Joints[vin.JointIndices.x].PosMatrix * weights.x +
+        Joints[vin.JointIndices.y].PosMatrix * weights.y +
+        Joints[vin.JointIndices.z].PosMatrix * weights.z +
+        Joints[vin.JointIndices.w].PosMatrix * weights.w;
 
     position = mul(skinPosMat, position);
 
     float3x3 skinNrmMat =
-        Joints[vin.JointIndices.x].NrmMatrix * vin.JointWeights.x +
-        Joints[vin.JointIndices.y].NrmMatrix * vin.JointWeights.y +
-        Joints[vin.JointIndices.z].NrmMatrix * vin.JointWeights.z +
-        Joints[vin.JointIndices.w].NrmMatrix * vin.JointWeights.w;
+        Joints[vin.JointIndices.x].NrmMatrix * weights.x +
+        Joints[vin.JointIndices.y].NrmMatrix * weights.y +
+        Joints[vin.JointIndices.z].NrmMatrix * weights.z +
+        Joints[vin.JointIndices.w].NrmMatrix * weights.w;
 
     normal = mul(skinNrmMat, normal).xyz;
     
