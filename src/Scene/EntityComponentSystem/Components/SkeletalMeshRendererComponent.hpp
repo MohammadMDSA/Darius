@@ -40,11 +40,11 @@ namespace Darius::Scene::ECS::Components
 
 		RenderItem							GetRenderItem();
 		INLINE DVector<Mesh::SkeletonJoint>& GetSkeleton() { return mSkeleton; }
-		INLINE Mesh::SkeletonJoint*			GetSkeletonRoot() { return mSkeletonRoot; }
+		INLINE Mesh::SkeletonJoint* GetSkeletonRoot() { return mSkeletonRoot; }
 
 
 		INLINE bool							CanRender() { return IsActive() && mMeshResource.IsValid(); }
-		INLINE const BoundingSphere&		GetBounds() const { return mBounds; }
+		INLINE const BoundingSphere& GetBounds() const { return mBounds; }
 
 		INLINE D3D12_GPU_VIRTUAL_ADDRESS	GetConstantsAddress() { return mMeshConstantsGPU.GetGpuVirtualAddress(); }
 
@@ -60,9 +60,19 @@ namespace Darius::Scene::ECS::Components
 		void								JointUpdateRecursion(Matrix4 const& parent, Mesh::SkeletonJoint& skeletonJoint);
 		INLINE uint16_t						GetPsoIndex()
 		{
+			auto materialPsoFlags = mMaterialResource->GetPsoFlags();
+			
+			// Whether resource has changed
+			if (mCachedMaterialPsoFlags != materialPsoFlags)
+			{
+				mCachedMaterialPsoFlags = materialPsoFlags;
+				mPsoIndexDirty = true;
+			}
+
+			// Whether pso index is not compatible with current pso flags
 			if (mPsoIndexDirty)
 			{
-				mPsoIndex = D_RENDERER::GetPso(mMaterialResource->GetPsoFlags() | mComponentPsoFlags);
+				mPsoIndex = D_RENDERER::GetPso(materialPsoFlags | mComponentPsoFlags);
 				mPsoIndexDirty = false;
 			}
 			return mPsoIndex;
@@ -78,6 +88,7 @@ namespace Darius::Scene::ECS::Components
 		ByteAddressBuffer					mMeshConstantsGPU;
 
 		uint16_t							mComponentPsoFlags;
+		uint16_t							mCachedMaterialPsoFlags;
 		uint16_t							mPsoIndex;
 		bool								mPsoIndexDirty;
 

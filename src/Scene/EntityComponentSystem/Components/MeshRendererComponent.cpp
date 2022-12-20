@@ -18,6 +18,7 @@ namespace Darius::Scene::ECS::Components
 	MeshRendererComponent::MeshRendererComponent() :
 		ComponentBase(),
 		mComponentPsoFlags(0),
+		mCachedMaterialPsoFlags(0),
 		mPsoIndex(0),
 		mPsoIndexDirty(true)
 	{
@@ -26,6 +27,7 @@ namespace Darius::Scene::ECS::Components
 	MeshRendererComponent::MeshRendererComponent(D_CORE::Uuid uuid) :
 		ComponentBase(uuid),
 		mComponentPsoFlags(0),
+		mCachedMaterialPsoFlags(0),
 		mPsoIndex(0),
 		mPsoIndexDirty(true)
 	{

@@ -52,9 +52,19 @@ namespace Darius::Scene::ECS::Components
 
 		INLINE uint16_t						GetPsoIndex()
 		{
+			auto materialPsoFlags = mMaterialResource->GetPsoFlags();
+
+			// Whether resource has changed
+			if (mCachedMaterialPsoFlags != materialPsoFlags)
+			{
+				mCachedMaterialPsoFlags = materialPsoFlags;
+				mPsoIndexDirty = true;
+			}
+
+			// Whether pso index is not compatible with current pso flags
 			if (mPsoIndexDirty)
 			{
-				mPsoIndex = D_RENDERER::GetPso(mMaterialResource->GetPsoFlags() | mComponentPsoFlags);
+				mPsoIndex = D_RENDERER::GetPso(materialPsoFlags | mComponentPsoFlags);
 				mPsoIndexDirty = false;
 			}
 			return mPsoIndex;
@@ -69,6 +79,7 @@ namespace Darius::Scene::ECS::Components
 		ByteAddressBuffer					mMeshConstantsGPU;
 
 		uint16_t							mComponentPsoFlags;
+		uint16_t							mCachedMaterialPsoFlags;
 		uint16_t							mPsoIndex;
 		bool								mPsoIndexDirty;
 

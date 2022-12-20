@@ -24,16 +24,20 @@ namespace Darius::Scene::ECS::Components
 	SkeletalMeshRendererComponent::SkeletalMeshRendererComponent() :
 		ComponentBase(),
 		mComponentPsoFlags(RenderItem::HasSkin),
+		mCachedMaterialPsoFlags(0),
 		mPsoIndex(0),
-		mPsoIndexDirty(true)
+		mPsoIndexDirty(true),
+		mSkeletonRoot(nullptr)
 	{
 	}
 
 	SkeletalMeshRendererComponent::SkeletalMeshRendererComponent(D_CORE::Uuid uuid) :
 		ComponentBase(uuid),
 		mComponentPsoFlags(RenderItem::HasSkin),
+		mCachedMaterialPsoFlags(0),
 		mPsoIndex(0),
-		mPsoIndexDirty(true)
+		mPsoIndexDirty(true),
+		mSkeletonRoot(nullptr)
 	{
 	}
 
