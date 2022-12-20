@@ -23,13 +23,17 @@ namespace Darius::Scene::ECS::Components
 
 	SkeletalMeshRendererComponent::SkeletalMeshRendererComponent() :
 		ComponentBase(),
-		mPsoFlags(0)
+		mComponentPsoFlags(RenderItem::HasSkin),
+		mPsoIndex(0),
+		mPsoIndexDirty(true)
 	{
 	}
 
 	SkeletalMeshRendererComponent::SkeletalMeshRendererComponent(D_CORE::Uuid uuid) :
 		ComponentBase(uuid),
-		mPsoFlags(0)
+		mComponentPsoFlags(RenderItem::HasSkin),
+		mPsoIndex(0),
+		mPsoIndexDirty(true)
 	{
 	}
 
@@ -57,8 +61,8 @@ namespace Darius::Scene::ECS::Components
 		result.Material.MaterialSRV = mMaterialResource->GetTexturesHandle();
 		result.mJointData = mJoints.data();
 		result.mNumJoints = mJoints.size();
-		result.PsoType = D_RENDERER::SkinnedOpaquePso;
-		result.PsoFlags = mPsoFlags | mMaterialResource->GetPsoFlags();
+		result.PsoType = GetPsoIndex();
+		result.PsoFlags = mComponentPsoFlags | mMaterialResource->GetPsoFlags();
 		return result;
 	}
 
@@ -136,6 +140,7 @@ namespace Darius::Scene::ECS::Components
 
 	void SkeletalMeshRendererComponent::_SetMaterial(ResourceHandle handle)
 	{
+		mPsoIndexDirty = true;
 		mMaterialResource = D_RESOURCE::GetResource<MaterialResource>(handle, *this);
 	}
 

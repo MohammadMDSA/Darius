@@ -358,8 +358,8 @@ namespace Darius::Editor::Gui::Windows
 		item.IndexCount = mesh->mDraw[0].IndexCount;
 		item.StartIndexLocation = mesh->mDraw[0].StartIndexLocation;
 		item.Mesh = mesh;
-		item.PsoFlags = RenderItem::ColorOnly;
-		item.PsoType = D_RENDERER::PipelineStateTypes::ColorPso;
+		item.PsoFlags = RenderItem::ColorOnly | RenderItem::TwoSided | RenderItem::LineOnly;
+		item.PsoType = D_RENDERER::GetPso(RenderItem::HasPosition | RenderItem::HasNormal | RenderItem::HasTangent | RenderItem::HasUV0 | item.PsoFlags);
 		item.PrimitiveType = D3D_PRIMITIVE_TOPOLOGY_LINELIST;
 		item.MeshCBV = mLineConstantsGPU.GetGpuVirtualAddress();
 

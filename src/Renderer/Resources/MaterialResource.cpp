@@ -25,7 +25,7 @@ namespace Darius::Graphics
 
 	MaterialResource::MaterialResource(Uuid uuid, std::wstring const& path, std::wstring const& name, DResourceId id, bool isDefault) :
 		Resource(uuid, path, name, id, isDefault),
-		mPsoFlags(0)
+		mPsoFlags(RenderItem::HasPosition | RenderItem::HasNormal | RenderItem::HasTangent | RenderItem::HasUV0)
 	{
 		mBaseColorTextureHandle = D_GRAPHICS::GetDefaultGraphicsResource(D_GRAPHICS::DefaultResource::Texture2DWhiteOpaque);
 		mNormalTextureHandle = D_GRAPHICS::GetDefaultGraphicsResource(D_GRAPHICS::DefaultResource::Texture2DNormalMap);
@@ -121,7 +121,10 @@ namespace Darius::Graphics
 			mEmissiveTextureHandle = D_RESOURCE::GetResourceHandle(FromString(data["EmissionTexture"]));
 			mMaterial.TextureStatusMask |= 1 << kEmissive;
 		}
+
 		mPsoFlags = data.contains("PsoFlags") ? data["PsoFlags"].get<uint16_t>() : 0u;
+		mPsoFlags = mPsoFlags | RenderItem::HasPosition | RenderItem::HasNormal | RenderItem::HasTangent | RenderItem::HasUV0;
+
 	}
 
 	bool MaterialResource::UploadToGpu(void* ctx)
@@ -316,18 +319,19 @@ device->CopyDescriptorsSimple(1, mTexturesHeap + type * incSize, m##name##Textur
 		if (ImGui::Button(mPsoFlags & RenderItem::AlphaBlend ? "Transparent" : "Opaque", ImVec2(-1, 0)))
 		{
 			ImGui::OpenPopup("##ShaderTypeSelecionPopup");
-			valueChanged = true;
 		}
 		if (ImGui::BeginPopupContextItem("##ShaderTypeSelecionPopup", ImGuiPopupFlags_NoOpenOverExistingPopup))
 		{
 			if (ImGui::Selectable("Opaque"))
 			{
 				mPsoFlags &= ~RenderItem::AlphaBlend;
+				valueChanged = true;
 			}
 
 			if (ImGui::Selectable("Transparent"))
 			{
 				mPsoFlags |= RenderItem::AlphaBlend;
+				valueChanged = true;
 			}
 			ImGui::EndPopup();
 		}

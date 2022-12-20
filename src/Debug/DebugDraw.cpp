@@ -13,7 +13,8 @@ D_RENDERER_FRAME_RESOUCE::RenderItem ri; \
 PopulateRenderItemFromMesh(ri, meshResource->GetMeshData()); \
 ri.MeshCBV = MeshConstantsGPU.GetGpuVirtualAddress() + sizeof(D_RENDERER_FRAME_RESOUCE::MeshConstants) * index; \
 ri.Color = color; \
-ri.PsoType = D_RENDERER::ColorWireframeTwoSidedPso; \
+ri.PsoFlags = RenderItem::HasPosition | RenderItem::HasNormal | RenderItem::HasTangent | RenderItem::HasUV0 | RenderItem::ColorOnly | RenderItem::TwoSided | RenderItem::Wireframe; \
+ri.PsoType = D_RENDERER::GetPso(ri.PsoFlags); \
 ri.PsoFlags = D_RENDERER_FRAME_RESOUCE::RenderItem::ColorOnly | D_RENDERER_FRAME_RESOUCE::RenderItem::Wireframe; \
 DrawPending.push_back(ri); \
 if(duration > 0) \

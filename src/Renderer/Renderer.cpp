@@ -36,6 +36,9 @@ using namespace D_RENDERER_GEOMETRY;
 using namespace D_GRAPHICS_MEMORY;
 using namespace D_GRAPHICS_UTILS;
 
+#define VertexData(il) il::InputLayout.NumElements, il::InputLayout.pInputElementDescs
+#define ShaderData(name) Shaders[name]->GetBufferPointer(), Shaders[name]->GetBufferSize()
+
 namespace Darius::Renderer
 {
 
@@ -48,7 +51,7 @@ namespace Darius::Renderer
 
 	// Input layout and root signature
 	std::array<D_GRAPHICS_UTILS::RootSignature, (size_t)RootSignatureTypes::_numRootSig> RootSigns;
-	std::array<D_GRAPHICS_UTILS::GraphicsPSO, (size_t)PipelineStateTypes::_numPso> Psos;
+	DVector<D_GRAPHICS_UTILS::GraphicsPSO> Psos(18);
 
 	// Device resource
 	std::unique_ptr<DeviceResource::DeviceResources>	Resources;
@@ -66,12 +69,40 @@ namespace Darius::Renderer
 	float												SpecularIBLBias = FLT_MAX;
 
 	//////////////////////////////////////////////////////
+	// Options
+	bool												SeparateZPass = false;
+
+	//////////////////////////////////////////////////////
 	// Functions
 #ifdef _D_EDITOR
 	void InitializeGUI();
 #endif
 	void BuildPSO();
 	void BuildRootSignature();
+
+	enum PipelineStateTypes
+	{
+		OpaquePso,
+		TransparentPso,
+		WireframePso,
+		SkinnedOpaquePso,
+		SkinnedTransparentPso,
+		SkinnedWireframePso,
+		ColorPso,
+		ColorWireframePso,
+		ColorWireframeTwoSidedPso,
+		SkyboxPso,
+		DepthOnlyPso,
+		CutoutDepthPso,
+		SkinDepthOnlyPso,
+		SkinCutoutDepthPso,
+		ShadowDepthOnlyPso,
+		ShadowCutoutDepthPso,
+		ShadowSkinDepthOnlyPso,
+		ShadowSkinCutoutDepthPso,
+
+	};
+
 
 	void Clear(D_GRAPHICS::GraphicsContext& context, D_GRAPHICS_BUFFERS::ColorBuffer& rt, D_GRAPHICS_BUFFERS::DepthBuffer& depthStencil, RECT bounds, std::wstring const& processName = L"Clear");
 
@@ -127,11 +158,6 @@ namespace Darius::Renderer
 		D_GRAPHICS_UTILS::GraphicsPSO::DestroyAll();
 	}
 
-	D_GRAPHICS_UTILS::GraphicsPSO& GetPSO(PipelineStateTypes type)
-	{
-		return Psos[(size_t)type];
-	}
-
 	D_GRAPHICS_UTILS::RootSignature& GetRootSignature(RootSignatureTypes type)
 	{
 		return RootSigns[(size_t)type];
@@ -170,8 +196,6 @@ namespace Darius::Renderer
 
 	void BuildPSO()
 	{
-#define ShaderData(name) Shaders[name]->GetBufferPointer(), Shaders[name]->GetBufferSize()
-#define VertexData(il) il::InputLayout.NumElements, il::InputLayout.pInputElementDescs
 
 		DXGI_FORMAT ColorFormat = Resources->GetBackBufferFormat();
 		DXGI_FORMAT DepthFormat = Resources->GetDepthBufferFormat();
@@ -426,7 +450,7 @@ namespace Darius::Renderer
 		context.SetDescriptorTable(kCommonSRVs, CommonTexture);
 
 		context.SetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-		
+
 		context.Draw(3);
 	}
 
@@ -440,14 +464,17 @@ namespace Darius::Renderer
 		SortKey key;
 		key.value = m_SortObjects.size();
 
-		bool alphaBlend = renderItem.PsoFlags & RenderItem::AlphaBlend;
-		bool alphaTest = renderItem.PsoFlags & RenderItem::AlphaTest;
+		bool alphaBlend = (renderItem.PsoFlags & RenderItem::AlphaBlend) == RenderItem::AlphaBlend;
+		bool alphaTest = (renderItem.PsoFlags & RenderItem::AlphaTest) == RenderItem::AlphaTest;
+		bool skinned = (renderItem.PsoFlags & RenderItem::HasSkin) == RenderItem::HasSkin;
+		uint64_t depthPSO = (skinned ? 2 : 0) + (alphaTest ? 1 : 0);
 
 		union float_or_int { float f; uint32_t u; } dist;
 		dist.f = Max(distance, 0.0f);
 
-		/*if (m_BatchType == kShadows)
+		if (m_BatchType == kShadows)
 		{
+			D_ASSERT(false);
 			if (alphaBlend)
 				return;
 
@@ -457,16 +484,17 @@ namespace Darius::Renderer
 			m_SortKeys.push_back(key.value);
 			m_PassCounts[kZPass]++;
 		}
-		else*/ if (renderItem.PsoFlags & RenderItem::AlphaBlend)
+		else if (renderItem.PsoFlags & RenderItem::AlphaBlend)
 		{
 			key.passID = kTransparent;
-			key.psoIdx = renderItem.PsoFlags & RenderItem::Wireframe ? WireframePso : TransparentPso;
+			key.psoIdx = renderItem.PsoType;
 			key.key = ~dist.u;
 			m_SortKeys.push_back(key.value);
 			m_PassCounts[kTransparent]++;
 		}
-		/*else if (alphaTest)
+		else if (SeparateZPass || alphaTest)
 		{
+			D_ASSERT(false);
 			key.passID = kZPass;
 			key.psoIdx = depthPSO;
 			key.key = dist.u;
@@ -474,11 +502,11 @@ namespace Darius::Renderer
 			m_PassCounts[kZPass]++;
 
 			key.passID = kOpaque;
-			key.psoIdx = renderItem.pso + 1;
+			key.psoIdx = renderItem.PsoType + 1;
 			key.key = dist.u;
 			m_SortKeys.push_back(key.value);
 			m_PassCounts[kOpaque]++;
-		}*/
+		}
 		else
 		{
 			key.passID = kOpaque;
@@ -632,7 +660,7 @@ namespace Darius::Renderer
 
 				if (ri.mNumJoints > 0)
 				{
-					context.SetDynamicSRV(kSkinMatrices, sizeof(Joint)* ri.mNumJoints, ri.mJointData);
+					context.SetDynamicSRV(kSkinMatrices, sizeof(Joint) * ri.mNumJoints, ri.mJointData);
 				}
 
 				context.SetPipelineState(Psos[key.psoIdx]);
@@ -790,5 +818,151 @@ namespace Darius::Renderer
 			cmdManager->IdleGPU();
 		}
 	}
+
+
+	uint8_t GetPso(uint16_t psoFlags)
+	{
+		GraphicsPSO ColorPSO = Psos[OpaquePso];
+		using namespace D_RENDERER_FRAME_RESOUCE;
+		uint16_t Requirements = RenderItem::HasPosition | RenderItem::HasNormal | RenderItem::HasTangent | RenderItem::HasUV0;
+
+		// Checking requirements and supported features
+		// Before removing any of unsupported check asserts, make sure the appropriate shader exists
+		// and is binded to a pipeline
+		D_ASSERT((psoFlags & Requirements) == Requirements);
+		D_ASSERT_M(!(psoFlags & RenderItem::HasUV1), "Higher level UV sets are not supported yet");
+
+		// Setting input layout
+		if (psoFlags & RenderItem::HasSkin)
+			ColorPSO.SetInputLayout(VertexData(D_GRAPHICS_VERTEX::VertexPositionNormalTangentTextureSkinned));
+		else
+			ColorPSO.SetInputLayout(VertexData(D_GRAPHICS_VERTEX::VertexPositionNormalTangentTexture));
+
+#define GET_SHADER(name) Psos[name]
+
+		if (psoFlags & RenderItem::ColorOnly)
+		{
+			ColorPSO.SetVertexShader(ShaderData("ColorVS"));
+			ColorPSO.SetPixelShader(ShaderData("ColorPS"));
+		}
+		else
+		{
+			if (psoFlags & RenderItem::HasSkin)
+			{
+				if (psoFlags & RenderItem::HasTangent)
+				{
+					if (psoFlags & RenderItem::HasUV1)
+					{
+						// TODO: Change to a shader supporting UV1
+						ColorPSO.SetVertexShader(ShaderData("SkinnedVS"));
+						ColorPSO.SetPixelShader(ShaderData("DefaultPS"));
+					}
+					else
+					{
+						ColorPSO.SetVertexShader(ShaderData("SkinnedVS"));
+						ColorPSO.SetPixelShader(ShaderData("DefaultPS"));
+					}
+				}
+				else
+				{
+					// TODO: Change all these to a shader without tangent parameter for every vertext
+					if (psoFlags & RenderItem::HasUV1)
+					{
+						ColorPSO.SetVertexShader(ShaderData("SkinnedVS"));
+						ColorPSO.SetPixelShader(ShaderData("DefaultPS"));
+					}
+					else
+					{
+						ColorPSO.SetVertexShader(ShaderData("SkinnedVS"));
+						ColorPSO.SetPixelShader(ShaderData("DefaultPS"));
+					}
+				}
+			}
+			else
+			{
+				if (psoFlags & RenderItem::HasTangent)
+				{
+					if (psoFlags & RenderItem::HasUV1)
+					{
+						// TODO: Change to a shader supporting UV1
+						ColorPSO.SetVertexShader(ShaderData("DefaultVS"));
+						ColorPSO.SetPixelShader(ShaderData("DefaultPS"));
+					}
+					else
+					{
+						ColorPSO.SetVertexShader(ShaderData("DefaultVS"));
+						ColorPSO.SetPixelShader(ShaderData("DefaultPS"));
+					}
+				}
+				else
+				{
+					// TODO: Change all these to a shader without tangent parameter for every vertext
+					if (psoFlags & RenderItem::HasUV1)
+					{
+						D_ASSERT_M(true, "Higher level UV sets are not supported yet");
+						ColorPSO.SetVertexShader(ShaderData("DefaultVS"));
+						ColorPSO.SetPixelShader(ShaderData("DefaultPS"));
+					}
+					else
+					{
+						ColorPSO.SetVertexShader(ShaderData("DefaultVS"));
+						ColorPSO.SetPixelShader(ShaderData("DefaultPS"));
+					}
+				}
+			}
+		}
+
+		if (psoFlags & RenderItem::AlphaBlend)
+		{
+			ColorPSO.SetBlendState(BlendTraditional);
+			ColorPSO.SetDepthStencilState(DepthStateReadOnly);
+		}
+		if (psoFlags & RenderItem::TwoSided)
+		{
+			if (psoFlags & RenderItem::Wireframe)
+				ColorPSO.SetRasterizerState(RasterizerTwoSidedMsaaWireframe);
+			else
+				ColorPSO.SetRasterizerState(RasterizerTwoSidedMsaa);
+		}
+		else
+		{
+			if (psoFlags & RenderItem::Wireframe)
+				ColorPSO.SetRasterizerState(RasterizerDefaultMsaaWireframe);
+			else
+				ColorPSO.SetRasterizerState(RasterizerDefaultMsaa);
+		}
+
+		if (psoFlags & RenderItem::LineOnly)
+			ColorPSO.SetPrimitiveTopologyType(D3D12_PRIMITIVE_TOPOLOGY_TYPE_LINE);
+		else
+			ColorPSO.SetPrimitiveTopologyType(D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE);
+		ColorPSO.Finalize();
+
+		// Look for an existing PSO
+		for (uint32_t i = 0; i < Psos.size(); ++i)
+		{
+			if (ColorPSO.GetPipelineStateObject() == Psos[i].GetPipelineStateObject())
+			{
+				return (uint8_t)i;
+			}
+		}
+
+		// If not found, keep the new one, and return its index
+		Psos.push_back(ColorPSO);
+
+		// The returned PSO index has read-write depth.  The index+1 tests for equal depth.
+		ColorPSO.SetDepthStencilState(DepthStateTestEqual);
+		ColorPSO.Finalize();
+#ifdef _DEBUG
+		for (uint32_t i = 0; i < Psos.size(); ++i)
+			D_ASSERT(ColorPSO.GetPipelineStateObject() != Psos[i].GetPipelineStateObject());
+#endif
+		Psos.push_back(ColorPSO);
+
+		D_ASSERT_M(Psos.size() <= 256, "Ran out of room for unique PSOs");
+
+		return (uint8_t)Psos.size() - 2;
+	}
+
 
 }

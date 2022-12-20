@@ -50,13 +50,27 @@ namespace Darius::Scene::ECS::Components
 		void								_SetMesh(ResourceHandle handle);
 		void								_SetMaterial(ResourceHandle handle);
 
+		INLINE uint16_t						GetPsoIndex()
+		{
+			if (mPsoIndexDirty)
+			{
+				mPsoIndex = D_RENDERER::GetPso(mMaterialResource->GetPsoFlags() | mComponentPsoFlags);
+				mPsoIndexDirty = false;
+			}
+			return mPsoIndex;
+		}
+
+
 		Ref<StaticMeshResource>				mMeshResource;
 		Ref<MaterialResource>				mMaterialResource;
-		uint16_t							mPsoFlags;
 
 		// Gpu buffers
 		D_GRAPHICS_BUFFERS::UploadBuffer	mMeshConstantsCPU[D_RENDERER_FRAME_RESOUCE::gNumFrameResources];
 		ByteAddressBuffer					mMeshConstantsGPU;
+
+		uint16_t							mComponentPsoFlags;
+		uint16_t							mPsoIndex;
+		bool								mPsoIndexDirty;
 
 	};
 }

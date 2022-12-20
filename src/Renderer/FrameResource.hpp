@@ -83,7 +83,8 @@ namespace Darius::Renderer::ConstantFrameResource
 			TwoSided       = 0x080,
 			HasSkin        = 0x100,
 			Wireframe	   = 0x200,
-			ColorOnly	   = 0x400
+			ColorOnly	   = 0x400,
+			LineOnly	   = 0x800
 		};
 
 		RenderItem() = default;

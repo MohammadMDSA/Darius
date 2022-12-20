@@ -76,6 +76,5 @@ namespace Darius::Graphics
 		DescriptorHandle					mTexturesHeap;
 
 		uint16_t							mPsoFlags;
-
 	};
 }
