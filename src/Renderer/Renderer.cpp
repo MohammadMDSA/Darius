@@ -51,7 +51,7 @@ namespace Darius::Renderer
 
 	// Input layout and root signature
 	std::array<D_GRAPHICS_UTILS::RootSignature, (size_t)RootSignatureTypes::_numRootSig> RootSigns;
-	DVector<D_GRAPHICS_UTILS::GraphicsPSO> Psos(18);
+	DVector<D_GRAPHICS_UTILS::GraphicsPSO> Psos;
 
 	// Device resource
 	std::unique_ptr<DeviceResource::DeviceResources>	Resources;
@@ -68,6 +68,9 @@ namespace Darius::Renderer
 	float												SpecularIBLRange;
 	float												SpecularIBLBias = FLT_MAX;
 
+	GraphicsPSO											DefaultPso;
+	GraphicsPSO											SkyboxPso;
+
 	//////////////////////////////////////////////////////
 	// Options
 	bool												SeparateZPass = false;
@@ -79,30 +82,6 @@ namespace Darius::Renderer
 #endif
 	void BuildPSO();
 	void BuildRootSignature();
-
-	enum PipelineStateTypes
-	{
-		OpaquePso,
-		TransparentPso,
-		WireframePso,
-		SkinnedOpaquePso,
-		SkinnedTransparentPso,
-		SkinnedWireframePso,
-		ColorPso,
-		ColorWireframePso,
-		ColorWireframeTwoSidedPso,
-		SkyboxPso,
-		DepthOnlyPso,
-		CutoutDepthPso,
-		SkinDepthOnlyPso,
-		SkinCutoutDepthPso,
-		ShadowDepthOnlyPso,
-		ShadowCutoutDepthPso,
-		ShadowSkinDepthOnlyPso,
-		ShadowSkinCutoutDepthPso,
-
-	};
-
 
 	void Clear(D_GRAPHICS::GraphicsContext& context, D_GRAPHICS_BUFFERS::ColorBuffer& rt, D_GRAPHICS_BUFFERS::DepthBuffer& depthStencil, RECT bounds, std::wstring const& processName = L"Clear");
 
@@ -202,88 +181,30 @@ namespace Darius::Renderer
 		DXGI_FORMAT ShadowFormat = Resources->GetShadowBufferFormat();
 
 		// For Opaque objects
-		Psos[(size_t)PipelineStateTypes::OpaquePso] = GraphicsPSO(L"Opaque PSO");
-		auto& pso = Psos[(size_t)PipelineStateTypes::OpaquePso];
-
-		auto il = D_GRAPHICS_VERTEX::VertexPositionNormalTangentTexture::InputLayout;
-		pso.SetInputLayout(il.NumElements, il.pInputElementDescs);
-
-		pso.SetVertexShader(reinterpret_cast<BYTE*>(Shaders["DefaultVS"]->GetBufferPointer()),
-			Shaders["DefaultVS"]->GetBufferSize());
-		pso.SetPixelShader(reinterpret_cast<BYTE*>(Shaders["DefaultPS"]->GetBufferPointer()),
-			Shaders["DefaultPS"]->GetBufferSize());
-		pso.SetRootSignature(RootSigns[(size_t)RootSignatureTypes::DefaultRootSig]);
-		pso.SetRasterizerState(D_GRAPHICS::RasterizerDefault);
-		pso.SetBlendState(CD3DX12_BLEND_DESC(D3D12_DEFAULT));
-		pso.SetDepthStencilState(DepthStateReadWrite);
-		pso.SetSampleMask(UINT_MAX);
-		pso.SetPrimitiveTopologyType(D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE);
-		pso.SetRenderTargetFormat(ColorFormat, DepthFormat);
-		pso.Finalize();
-
-		// Transparent
-		Psos[(size_t)PipelineStateTypes::TransparentPso] = GraphicsPSO(L"Transparent PSO");
-		auto& transPso = Psos[(size_t)PipelineStateTypes::TransparentPso];
-		transPso = pso;
-		transPso.SetBlendState(D_GRAPHICS::BlendTraditional);
-		transPso.Finalize();
-
-		// For opaque wireframe objecs
-		Psos[(size_t)PipelineStateTypes::WireframePso] = pso;
-		auto& wirePso = Psos[(size_t)PipelineStateTypes::WireframePso];
-		auto wireRasterState = D_GRAPHICS::RasterizerDefaultWireframe;
-		wireRasterState.FillMode = D3D12_FILL_MODE_WIREFRAME;
-		wirePso.SetRasterizerState(wireRasterState);
-		wirePso.Finalize(L"Wireframe");
-
-		// For Skinned Transparent
-		{
-			auto skinnedOpaquePso = GraphicsPSO(L"Skinned Opaque PSO");
-			skinnedOpaquePso = pso;
-			skinnedOpaquePso.SetVertexShader(Shaders["SkinnedVS"]->GetBufferPointer(), Shaders["SkinnedVS"]->GetBufferSize());
-			skinnedOpaquePso.SetInputLayout(D_GRAPHICS_VERTEX::VertexPositionNormalTangentTextureSkinned::InputLayout.NumElements, D_GRAPHICS_VERTEX::VertexPositionNormalTangentTextureSkinned::InputLayout.pInputElementDescs);
-			skinnedOpaquePso.Finalize();
-			Psos[(size_t)PipelineStateTypes::SkinnedOpaquePso] = skinnedOpaquePso;
-		}
-
-		// For colored only objects
-		Psos[(size_t)PipelineStateTypes::ColorPso] = pso;
-		auto& colorPso = Psos[(size_t)PipelineStateTypes::ColorPso];
-		il = D_GRAPHICS_VERTEX::VertexPosition::InputLayout;
-		colorPso.SetInputLayout(il.NumElements, il.pInputElementDescs);
-		colorPso.SetVertexShader(reinterpret_cast<BYTE*>(Shaders["ColorVS"]->GetBufferPointer()), Shaders["ColorVS"]->GetBufferSize());
-		colorPso.SetPixelShader(reinterpret_cast<BYTE*>(Shaders["ColorPS"]->GetBufferPointer()), Shaders["ColorPS"]->GetBufferSize());
-		colorPso.SetRootSignature(RootSigns[(size_t)RootSignatureTypes::DefaultRootSig]);
-		colorPso.SetPrimitiveTopologyType(D3D12_PRIMITIVE_TOPOLOGY_TYPE_LINE);
-		colorPso.Finalize(L"Color");
-
-		{
-			// For colored wireframe objecs
-			Psos[(size_t)PipelineStateTypes::ColorWireframePso] = Psos[(size_t)PipelineStateTypes::ColorPso];
-			auto& wireColorPso = Psos[(size_t)PipelineStateTypes::ColorWireframePso];
-			wireColorPso.SetRasterizerState(D_GRAPHICS::RasterizerDefaultWireframe);
-			wireColorPso.SetPrimitiveTopologyType(D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE);
-			wireColorPso.Finalize(L"Color Wireframe");
-		}
-
-		{
-			// For colored wireframe objecs
-			Psos[(size_t)PipelineStateTypes::ColorWireframeTwoSidedPso] = Psos[(size_t)PipelineStateTypes::ColorWireframePso];
-			auto& wireColorPso = Psos[(size_t)PipelineStateTypes::ColorWireframeTwoSidedPso];
-			wireColorPso.SetRasterizerState(D_GRAPHICS::RasterizerTwoSidedMsaaWireframe);
-			wireColorPso.Finalize(L"Color Wireframe Two Sided");
-		}
+		DefaultPso = GraphicsPSO(L"Opaque PSO");
+		DefaultPso.SetInputLayout(VertexData(D_GRAPHICS_VERTEX::VertexPositionNormalTangentTexture));
+		DefaultPso.SetVertexShader(ShaderData("DefaultVS"));
+		DefaultPso.SetPixelShader(ShaderData("DefaultPS"));
+		DefaultPso.SetRootSignature(RootSigns[(size_t)RootSignatureTypes::DefaultRootSig]);
+		DefaultPso.SetRasterizerState(D_GRAPHICS::RasterizerDefault);
+		DefaultPso.SetBlendState(CD3DX12_BLEND_DESC(D3D12_DEFAULT));
+		DefaultPso.SetDepthStencilState(DepthStateReadWrite);
+		DefaultPso.SetSampleMask(UINT_MAX);
+		DefaultPso.SetPrimitiveTopologyType(D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE);
+		DefaultPso.SetRenderTargetFormat(ColorFormat, DepthFormat);
+		DefaultPso.Finalize();
 
 		// Skybox
 		{
-			Psos[(size_t)PipelineStateTypes::SkyboxPso] = Psos[(size_t)PipelineStateTypes::OpaquePso];
-			auto& skyboxPso = Psos[(size_t)PipelineStateTypes::SkyboxPso];
-			skyboxPso.SetDepthStencilState(DepthStateTestEqual);
-			skyboxPso.SetInputLayout(0, nullptr);
-			skyboxPso.SetVertexShader(reinterpret_cast<BYTE*>(Shaders["SkyboxVS"]->GetBufferPointer()), Shaders["SkyboxVS"]->GetBufferSize());
-			skyboxPso.SetPixelShader(reinterpret_cast<BYTE*>(Shaders["SkyboxPS"]->GetBufferPointer()), Shaders["SkyboxPS"]->GetBufferSize());
-			skyboxPso.Finalize(L"Skybox");
+			SkyboxPso = DefaultPso;
+			SkyboxPso.SetDepthStencilState(DepthStateTestEqual);
+			SkyboxPso.SetInputLayout(0, nullptr);
+			SkyboxPso.SetVertexShader(ShaderData("SkyboxVS"));
+			SkyboxPso.SetPixelShader(ShaderData("SkyboxPS"));
+			SkyboxPso.Finalize(L"Skybox");
 		}
+
+		D_ASSERT(Psos.size() == 0);
 
 		// Depth Only PSOs
 
@@ -297,7 +218,7 @@ namespace Darius::Renderer
 		DepthOnlyPSO.SetRenderTargetFormats(0, nullptr, DepthFormat);
 		DepthOnlyPSO.SetVertexShader(ShaderData("DepthOnlyVS"));
 		DepthOnlyPSO.Finalize();
-		Psos[(size_t)PipelineStateTypes::DepthOnlyPso] = DepthOnlyPSO;
+		Psos.push_back(DepthOnlyPSO);
 
 		GraphicsPSO CutoutDepthPSO(L"Renderer: Cutout Depth PSO");
 		CutoutDepthPSO = DepthOnlyPSO;
@@ -306,41 +227,44 @@ namespace Darius::Renderer
 		CutoutDepthPSO.SetVertexShader(ShaderData("CutoutDepthVS"));
 		CutoutDepthPSO.SetPixelShader(ShaderData("CutoutDepthPS"));
 		CutoutDepthPSO.Finalize();
-		Psos[(size_t)PipelineStateTypes::CutoutDepthPso] = CutoutDepthPSO;
+		Psos.push_back(CutoutDepthPSO);
 
 		GraphicsPSO SkinDepthOnlyPSO = DepthOnlyPSO;
 		SkinDepthOnlyPSO.SetInputLayout(VertexData(D_GRAPHICS_VERTEX::VertexPositionSkinned));
 		SkinDepthOnlyPSO.SetVertexShader(ShaderData("DepthOnlySkinVS"));
 		SkinDepthOnlyPSO.Finalize();
-		Psos[(size_t)PipelineStateTypes::SkinDepthOnlyPso] = SkinDepthOnlyPSO;
+		Psos.push_back(SkinDepthOnlyPSO);
 
 		GraphicsPSO SkinCutoutDepthPSO = CutoutDepthPSO;
 		SkinCutoutDepthPSO.SetInputLayout(VertexData(D_GRAPHICS_VERTEX::VertexPositionTextureSkinned));
 		SkinCutoutDepthPSO.SetVertexShader(ShaderData("CutoutDepthSkinVS"));
 		SkinCutoutDepthPSO.Finalize();
-		Psos[(size_t)PipelineStateTypes::SkinCutoutDepthPso] = SkinCutoutDepthPSO;
+		Psos.push_back(SkinCutoutDepthPSO);
+
+
+		D_ASSERT(Psos.size() == 4);
 
 		// Shadow PSOs
 
 		DepthOnlyPSO.SetRasterizerState(RasterizerShadow);
 		DepthOnlyPSO.SetRenderTargetFormats(0, nullptr, ShadowFormat);
 		DepthOnlyPSO.Finalize();
-		Psos[(size_t)PipelineStateTypes::ShadowDepthOnlyPso] = DepthOnlyPSO;
+		Psos.push_back(DepthOnlyPSO);
 
 		CutoutDepthPSO.SetRasterizerState(RasterizerShadowTwoSided);
 		CutoutDepthPSO.SetRenderTargetFormats(0, nullptr, ShadowFormat);
 		CutoutDepthPSO.Finalize();
-		Psos[(size_t)PipelineStateTypes::ShadowCutoutDepthPso] = CutoutDepthPSO;
+		Psos.push_back(CutoutDepthPSO);
 
 		SkinDepthOnlyPSO.SetRasterizerState(RasterizerShadow);
 		SkinDepthOnlyPSO.SetRenderTargetFormats(0, nullptr, ShadowFormat);
 		SkinDepthOnlyPSO.Finalize();
-		Psos[(size_t)PipelineStateTypes::ShadowSkinDepthOnlyPso] = SkinDepthOnlyPSO;
+		Psos.push_back(SkinDepthOnlyPSO);
 
 		SkinCutoutDepthPSO.SetRasterizerState(RasterizerShadowTwoSided);
 		SkinCutoutDepthPSO.SetRenderTargetFormats(0, nullptr, ShadowFormat);
 		SkinCutoutDepthPSO.Finalize();
-		Psos[(size_t)PipelineStateTypes::ShadowSkinCutoutDepthPso] = SkinCutoutDepthPSO;
+		Psos.push_back(SkinCutoutDepthPSO);
 	}
 
 	void BuildRootSignature()
@@ -434,7 +358,7 @@ namespace Darius::Renderer
 
 		// Setting root signature and pso
 		context.SetRootSignature(RootSigns[(size_t)RootSignatureTypes::DefaultRootSig]);
-		context.SetPipelineState(Psos[(size_t)PipelineStateTypes::SkyboxPso]);
+		context.SetPipelineState(SkyboxPso);
 
 		// Transition of render targets
 		context.TransitionResource(sceneDepth, D3D12_RESOURCE_STATE_DEPTH_READ);
@@ -822,7 +746,7 @@ namespace Darius::Renderer
 
 	uint8_t GetPso(uint16_t psoFlags)
 	{
-		GraphicsPSO ColorPSO = Psos[OpaquePso];
+		GraphicsPSO ColorPSO = DefaultPso;
 		using namespace D_RENDERER_FRAME_RESOUCE;
 		uint16_t Requirements = RenderItem::HasPosition | RenderItem::HasNormal | RenderItem::HasTangent | RenderItem::HasUV0;
 
