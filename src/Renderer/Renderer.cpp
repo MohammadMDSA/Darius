@@ -595,6 +595,7 @@ namespace Darius::Renderer
 				{
 					context.SetDynamicSRV(kSkinMatrices, sizeof(Joint) * ri.mNumJoints, ri.mJointData);
 				}
+
 				context.SetPipelineState(Psos[key.psoIdx]);
 
 				context.SetVertexBuffer(0, ri.Mesh->VertexBufferView());

@@ -242,9 +242,9 @@ float3 ComputeLitColor(float3 worldPos, float3 normal, float3 toEye, float4 diff
         normal, toEye, shadowFactor);
 
     float3 c_diff = diffuseAlbedo.rgb * (1 - kDielectricSpecular) * (1 - metallic) * occlusion;
-    float3 c_spec = lerp(kDielectricSpecular, diffuseAlbedo.xyz, metallic) * occlusion;
+    float3 c_spec = lerp(kDielectricSpecular, diffuseAlbedo.rgb, metallic) * occlusion;
     
-    float3 litColor = emissive + directLight;
+    float3 litColor = emissive + directLight + (gAmbientLight.rgb * diffuseAlbedo.rgb);
 
     return litColor + Diffuse_IBL(normal, toEye, c_diff, roughness) + Specular_IBL(c_spec, normal, toEye, roughness);
 }

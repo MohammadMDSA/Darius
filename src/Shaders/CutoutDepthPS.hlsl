@@ -32,10 +32,20 @@ cbuffer cbMaterial : register(b0)
     uint gTexStats;
 }
 
+#define BitMasked(value, bitIdx) value & (1 << bitIdx)
+
 [RootSignature(Renderer_RootSig)]
 void main(VSOutput vsOutput)
 {
+    float4 diffuseAlbedo;
+    
+    // Diffuse Albedo
+    if (BitMasked(gTexStats, 0))
+        diffuseAlbedo = baseColorTexture.Sample(defaultSampler, vsOutput.uv);
+    else
+        diffuseAlbedo = gDiffuseAlbedo;
+    
     float cutoff = f16tof32(gTexStats >> 16);
-    if (baseColorTexture.Sample(baseColorSampler, vsOutput.uv).a < cutoff)
+    if (diffuseAlbedo.a < cutoff)
         discard;
 }

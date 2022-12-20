@@ -76,9 +76,6 @@ float4 main(VertexOut pin) : SV_Target
     else
         diffuseAlbedo = gDiffuseAlbedo;
     
-    // Direct Lightin
-    float4 ambient = gAmbientLight * diffuseAlbedo;
-    
     // Metallic
     float metallic;
     if (BitMasked(gTexStats, 1))

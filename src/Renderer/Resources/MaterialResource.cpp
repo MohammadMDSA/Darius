@@ -19,13 +19,23 @@ using namespace D_CORE;
 using namespace D_SERIALIZATION;
 using namespace D_RESOURCE;
 
+
+inline uint32_t floatToHalf(float f)
+{
+	const float kF32toF16 = (1.0 / (1ull << 56)) * (1.0 / (1ull << 56)); // 2^-112
+	union { float f; uint32_t u; } x;
+	x.f = D_MATH::Clamp(f, 0.0f, 1.0f) * kF32toF16;
+	return x.u >> 13;
+}
+
 namespace Darius::Graphics
 {
 	D_CH_RESOURCE_DEF(MaterialResource);
 
 	MaterialResource::MaterialResource(Uuid uuid, std::wstring const& path, std::wstring const& name, DResourceId id, bool isDefault) :
 		Resource(uuid, path, name, id, isDefault),
-		mPsoFlags(RenderItem::HasPosition | RenderItem::HasNormal | RenderItem::HasTangent | RenderItem::HasUV0)
+		mPsoFlags(RenderItem::HasPosition | RenderItem::HasNormal | RenderItem::HasTangent | RenderItem::HasUV0),
+		mCutout(0)
 	{
 		mBaseColorTextureHandle = D_GRAPHICS::GetDefaultGraphicsResource(D_GRAPHICS::DefaultResource::Texture2DWhiteOpaque);
 		mNormalTextureHandle = D_GRAPHICS::GetDefaultGraphicsResource(D_GRAPHICS::DefaultResource::Texture2DNormalMap);
@@ -44,7 +54,8 @@ namespace Darius::Graphics
 			{ "FresnelR0", std::vector<float>(fren, fren + 3) },
 			{ "Roughness", mMaterial.Roughness },
 			{ "Metallic", mMaterial.Metallic },
-			{ "Emission", std::vector<float>(ems, ems + 3) }
+			{ "Emission", std::vector<float>(ems, ems + 3) },
+			{ "AlphaCutout", mCutout }
 		};
 
 		bool usedBaseColorTex = mMaterial.TextureStatusMask & (1 << kBaseColor);
@@ -120,6 +131,12 @@ namespace Darius::Graphics
 		{
 			mEmissiveTextureHandle = D_RESOURCE::GetResourceHandle(FromString(data["EmissionTexture"]));
 			mMaterial.TextureStatusMask |= 1 << kEmissive;
+		}
+
+		if (data.contains("AlphaCutout"))
+		{
+			mCutout = data["AlphaCutout"];
+			mMaterial.AlphaCutout = floatToHalf(mCutout);
 		}
 
 		mPsoFlags = data.contains("PsoFlags") ? data["PsoFlags"].get<uint16_t>() : 0u;
@@ -316,7 +333,16 @@ device->CopyDescriptorsSimple(1, mTexturesHeap + type * incSize, m##name##Textur
 		D_H_DETAILS_DRAW_BEGIN_TABLE();
 
 		D_H_DETAILS_DRAW_PROPERTY("Shader Type");
-		if (ImGui::Button(mPsoFlags & RenderItem::AlphaBlend ? "Transparent" : "Opaque", ImVec2(-1, 0)))
+
+		std::string typeName;
+		if (mPsoFlags & RenderItem::AlphaBlend)
+			typeName = "Transparent";
+		else if (mPsoFlags & RenderItem::AlphaTest)
+			typeName = "Cutout";
+		else
+			typeName = "Opaque";
+
+		if (ImGui::Button(typeName.c_str(), ImVec2(-1, 0)))
 		{
 			ImGui::OpenPopup("##ShaderTypeSelecionPopup");
 		}
@@ -325,12 +351,19 @@ device->CopyDescriptorsSimple(1, mTexturesHeap + type * incSize, m##name##Textur
 			if (ImGui::Selectable("Opaque"))
 			{
 				mPsoFlags &= ~RenderItem::AlphaBlend;
+				mPsoFlags &= ~RenderItem::AlphaTest;
 				valueChanged = true;
 			}
-
+			if (ImGui::Selectable("Cutout"))
+			{
+				mPsoFlags &= ~RenderItem::AlphaBlend;
+				mPsoFlags |= RenderItem::AlphaTest;
+				valueChanged = true;
+			}
 			if (ImGui::Selectable("Transparent"))
 			{
 				mPsoFlags |= RenderItem::AlphaBlend;
+				mPsoFlags &= ~RenderItem::AlphaTest;
 				valueChanged = true;
 			}
 			ImGui::EndPopup();
@@ -411,6 +444,17 @@ device->CopyDescriptorsSimple(1, mTexturesHeap + type * incSize, m##name##Textur
 					mPsoFlags |= RenderItem::TwoSided;
 				else
 					mPsoFlags &= ~RenderItem::TwoSided;
+			}
+		}
+
+		// Alpha test cutout
+		if (mPsoFlags & RenderItem::AlphaTest)
+		{
+			D_H_DETAILS_DRAW_PROPERTY("Alpha Cutout");
+			if (ImGui::SliderFloat("##AlphaCutout", &mCutout, 0, 1, "%.2f"))
+			{
+				valueChanged = true;
+				mMaterial.AlphaCutout = floatToHalf(mCutout);
 			}
 		}
 

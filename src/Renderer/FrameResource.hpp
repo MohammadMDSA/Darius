@@ -57,6 +57,8 @@ namespace Darius::Renderer::ConstantFrameResource
 		XMFLOAT4		Color;
 	};
 
+#pragma warning(push)
+#pragma warning(disable: 4201)
 	ALIGN_DECL_256 struct MaterialConstants
 	{
 		XMFLOAT4					DifuseAlbedo = { 1.f, 1.f, 1.f, 1.f };
@@ -65,8 +67,13 @@ namespace Darius::Renderer::ConstantFrameResource
 		XMFLOAT3					Emissive = { 0.f, 0.f, 0.f };
 		float						Metallic = 0.f;
 		float						Roughness = 0.f;
-		UINT						TextureStatusMask = 0;
+		struct
+		{
+			UINT						TextureStatusMask : 16 = 0;
+			UINT						AlphaCutout : 16 = 0;
+		};
 	};
+#pragma warning(pop)
 
 	// Lightweight structure stores parameters to draw a shape.
 	struct RenderItem
