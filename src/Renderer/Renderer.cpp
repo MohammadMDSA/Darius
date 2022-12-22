@@ -223,7 +223,7 @@ namespace Darius::Renderer
 		GraphicsPSO CutoutDepthPSO(L"Renderer: Cutout Depth PSO");
 		CutoutDepthPSO = DepthOnlyPSO;
 		CutoutDepthPSO.SetInputLayout(VertexData(D_GRAPHICS_VERTEX::VertexPositionNormalTangentTexture));
-		CutoutDepthPSO.SetRasterizerState(RasterizerTwoSidedMsaa);
+		CutoutDepthPSO.SetRasterizerState(RasterizerDefaultMsaa);
 		CutoutDepthPSO.SetVertexShader(ShaderData("CutoutDepthVS"));
 		CutoutDepthPSO.SetPixelShader(ShaderData("CutoutDepthPS"));
 		CutoutDepthPSO.Finalize();
@@ -241,8 +241,43 @@ namespace Darius::Renderer
 		SkinCutoutDepthPSO.Finalize();
 		Psos.push_back(SkinCutoutDepthPSO);
 
+		// Depth Only Two Sided PSOs
 
-		D_ASSERT(Psos.size() == 4);
+		GraphicsPSO DepthOnlyTwoSidedPSO(L"Renderer: Depth Only PSO Two Sided");
+		DepthOnlyTwoSidedPSO.SetRootSignature(RootSigns[(size_t)RootSignatureTypes::DefaultRootSig]);
+		DepthOnlyTwoSidedPSO.SetRasterizerState(RasterizerTwoSidedMsaa);
+		DepthOnlyTwoSidedPSO.SetBlendState(BlendDisable);
+		DepthOnlyTwoSidedPSO.SetDepthStencilState(DepthStateReadWrite);
+		DepthOnlyTwoSidedPSO.SetInputLayout(VertexData(D_GRAPHICS_VERTEX::VertexPositionNormalTangentTexture));
+		DepthOnlyTwoSidedPSO.SetPrimitiveTopologyType(D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE);
+		DepthOnlyTwoSidedPSO.SetRenderTargetFormats(0, nullptr, DepthFormat);
+		DepthOnlyTwoSidedPSO.SetVertexShader(ShaderData("DepthOnlyVS"));
+		DepthOnlyTwoSidedPSO.Finalize();
+		Psos.push_back(DepthOnlyTwoSidedPSO);
+
+		GraphicsPSO CutoutDepthTwoSidedPSO(L"Renderer: Cutout Depth PSO Two Sided");
+		CutoutDepthTwoSidedPSO = DepthOnlyTwoSidedPSO;
+		CutoutDepthTwoSidedPSO.SetInputLayout(VertexData(D_GRAPHICS_VERTEX::VertexPositionNormalTangentTexture));
+		CutoutDepthTwoSidedPSO.SetRasterizerState(RasterizerTwoSidedMsaa);
+		CutoutDepthTwoSidedPSO.SetVertexShader(ShaderData("CutoutDepthVS"));
+		CutoutDepthTwoSidedPSO.SetPixelShader(ShaderData("CutoutDepthPS"));
+		CutoutDepthTwoSidedPSO.Finalize();
+		Psos.push_back(CutoutDepthTwoSidedPSO);
+
+		GraphicsPSO SkinDepthOnlyTwoSidedPSO = DepthOnlyTwoSidedPSO;
+		SkinDepthOnlyTwoSidedPSO.SetInputLayout(VertexData(D_GRAPHICS_VERTEX::VertexPositionNormalTangentTextureSkinned));
+		SkinDepthOnlyTwoSidedPSO.SetVertexShader(ShaderData("DepthOnlySkinVS"));
+		SkinDepthOnlyTwoSidedPSO.Finalize();
+		Psos.push_back(SkinDepthOnlyTwoSidedPSO);
+
+		GraphicsPSO SkinCutoutDepthTwoSidedPSO = CutoutDepthTwoSidedPSO;
+		SkinCutoutDepthTwoSidedPSO.SetInputLayout(VertexData(D_GRAPHICS_VERTEX::VertexPositionNormalTangentTextureSkinned));
+		SkinCutoutDepthTwoSidedPSO.SetVertexShader(ShaderData("CutoutDepthSkinVS"));
+		SkinCutoutDepthTwoSidedPSO.Finalize();
+		Psos.push_back(SkinCutoutDepthTwoSidedPSO);
+
+
+		D_ASSERT(Psos.size() == 8);
 
 		// Shadow PSOs
 
@@ -265,6 +300,28 @@ namespace Darius::Renderer
 		SkinCutoutDepthPSO.SetRenderTargetFormats(0, nullptr, ShadowFormat);
 		SkinCutoutDepthPSO.Finalize();
 		Psos.push_back(SkinCutoutDepthPSO);
+
+		// Shadow Two Sided PSOs
+
+		DepthOnlyTwoSidedPSO.SetRasterizerState(RasterizerShadow);
+		DepthOnlyTwoSidedPSO.SetRenderTargetFormats(0, nullptr, ShadowFormat);
+		DepthOnlyTwoSidedPSO.Finalize();
+		Psos.push_back(DepthOnlyTwoSidedPSO);
+
+		CutoutDepthTwoSidedPSO.SetRasterizerState(RasterizerShadowTwoSided);
+		CutoutDepthTwoSidedPSO.SetRenderTargetFormats(0, nullptr, ShadowFormat);
+		CutoutDepthTwoSidedPSO.Finalize();
+		Psos.push_back(CutoutDepthTwoSidedPSO);
+
+		SkinDepthOnlyTwoSidedPSO.SetRasterizerState(RasterizerShadow);
+		SkinDepthOnlyTwoSidedPSO.SetRenderTargetFormats(0, nullptr, ShadowFormat);
+		SkinDepthOnlyTwoSidedPSO.Finalize();
+		Psos.push_back(SkinDepthOnlyTwoSidedPSO);
+
+		SkinCutoutDepthTwoSidedPSO.SetRasterizerState(RasterizerShadowTwoSided);
+		SkinCutoutDepthTwoSidedPSO.SetRenderTargetFormats(0, nullptr, ShadowFormat);
+		SkinCutoutDepthTwoSidedPSO.Finalize();
+		Psos.push_back(SkinCutoutDepthTwoSidedPSO);
 	}
 
 	void BuildRootSignature()
@@ -391,7 +448,8 @@ namespace Darius::Renderer
 		bool alphaBlend = (renderItem.PsoFlags & RenderItem::AlphaBlend) == RenderItem::AlphaBlend;
 		bool alphaTest = (renderItem.PsoFlags & RenderItem::AlphaTest) == RenderItem::AlphaTest;
 		bool skinned = (renderItem.PsoFlags & RenderItem::HasSkin) == RenderItem::HasSkin;
-		uint64_t depthPSO = (skinned ? 2 : 0) + (alphaTest ? 1 : 0);
+		bool twoSided = renderItem.PsoFlags & RenderItem::TwoSided;
+		uint64_t depthPSO = (skinned ? 2 : 0) + (alphaTest ? 1 : 0) + (twoSided ? 4 : 0);
 
 		union float_or_int { float f; uint32_t u; } dist;
 		dist.f = Max(distance, 0.0f);
@@ -403,7 +461,7 @@ namespace Darius::Renderer
 				return;
 
 			key.passID = kZPass;
-			key.psoIdx = depthPSO + 4;
+			key.psoIdx = depthPSO + 8;
 			key.key = dist.u;
 			m_SortKeys.push_back(key.value);
 			m_PassCounts[kZPass]++;
