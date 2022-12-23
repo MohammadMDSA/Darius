@@ -149,8 +149,8 @@ namespace Darius::Renderer::LightManager
 					// Setting location and direction
 					auto trans = (*transformVec)[indexInVec];
 					LightData& lightData = (*LightVec)[indexInVec];
-					lightData.Position = Vector4(trans.Translation, 0.f);
-					XMStoreFloat4(&lightData.Direction, XMVector3Rotate({ 0.f, 0.f, -1.f }, trans.Rotation));
+					lightData.Position = (XMFLOAT3)trans.Translation;
+					XMStoreFloat3(&lightData.Direction, XMVector3Rotate({ 0.f, 0.f, -1.f }, trans.Rotation));
 					activeFlags += 1;
 
 					lightUploadData[lightIdx] = lightData;

@@ -530,7 +530,7 @@ namespace Darius::Graphics
 			CreateDefaultTexture2D(BlackTransparent, 0x00000000);
 			CreateDefaultTexture2D(WhiteOpaque, 0xFFFFFFFF);
 			CreateDefaultTexture2D(WhiteTransparent, 0x00FFFFFF);
-			CreateDefaultTexture2D(NormalMap, 0x00FF8080);
+			CreateDefaultTexture2D(NormalMap, 0x00FF0000);
 
 			uint32_t blackCubeTexels[6] = {};
 			CreateDefaultTextureCubeMap(Black, blackCubeTexels);
@@ -542,7 +542,7 @@ namespace Darius::Graphics
 			auto materialRes = (MaterialResource*)D_RESOURCE::GetManager()->GetRawResource(defaultMaterialHandle);
 			auto mat = materialRes->ModifyMaterialData();
 			mat->DifuseAlbedo = XMFLOAT4(Vector4(kOne));
-			mat->FresnelR0 = XMFLOAT3(Vector3(kZero));
+			mat->FresnelR0 = XMFLOAT3(Vector3(kOne) * 0.56f);
 			mat->Metallic = 0.f;
 			mat->Roughness = 0.f;
 			auto rRes = dynamic_cast<Resource*>(materialRes);

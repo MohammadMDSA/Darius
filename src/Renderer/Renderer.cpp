@@ -164,7 +164,6 @@ namespace Darius::Renderer
 		auto viewport = CD3DX12_VIEWPORT((float)bounds.left, (float)bounds.top, (long)width, (long)height, D3D12_MIN_DEPTH, D3D12_MAX_DEPTH);
 		auto scissorRect = CD3DX12_RECT(bounds.left, bounds.top, (long)width, (long)height);
 
-
 		context.ClearColor(rt, &scissorRect);
 		context.ClearDepth(depthStencil);
 		context.SetRenderTarget(rtvDescriptor, dsvDescriptor);

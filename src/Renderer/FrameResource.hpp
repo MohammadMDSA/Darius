@@ -26,6 +26,7 @@ namespace Darius::Renderer::ConstantFrameResource
 		XMFLOAT4X4			InvProj;
 		XMFLOAT4X4			ViewProj;
 		XMFLOAT4X4			InvViewProj;
+		XMFLOAT4			ShadowTexelSize;
 		XMFLOAT3			CameraPos;
 		float				cbPerObjectPad1 = 0.0f;
 		DirectX::XMFLOAT2	RenderTargetSize = { 0.0f, 0.0f };

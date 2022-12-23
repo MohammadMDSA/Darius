@@ -20,12 +20,12 @@
 
 struct Light
 {
-    float4 Color;
-    float4 Direction;
-    float4 Position;
-    float FalloffStart;
-    float FalloffEnd;
-    float SpotPower;
+    float3  Color;
+    float3  Direction;
+    float3  Position;
+    float   Intencity;
+    float   Radius;
+    float2  SpotAngles; // x = 1.0f / (cos(coneInner) - cos(coneOuter)), y = cos(coneOuter)
 };
 
 struct Material
@@ -33,156 +33,247 @@ struct Material
     float4  DiffuseAlbedo;
     float3  FresnelR0;
     float   Shininess;
+    float   SpecularMask;
 };
 
-ByteAddressBuffer LightMask                 : register(t10);
-StructuredBuffer<Light> LightData           : register(t11);
-TextureCube<float3> radianceIBLTexture      : register(t12);
-TextureCube<float3> irradianceIBLTexture    : register(t13);
+ByteAddressBuffer       LightMask               : register(t10);
+StructuredBuffer<Light> LightData               : register(t11);
+TextureCube<float3>     radianceIBLTexture      : register(t12);
+TextureCube<float3>     irradianceIBLTexture    : register(t13);
+Texture2DArray<float>   lightShadowArrayTex     : register(t14);
 
 static const float3 kDielectricSpecular = float3(0.04, 0.04, 0.04);
 
-float Pow5(float x)
+void AntiAliasSpecular(inout float3 texNormal, inout float gloss)
 {
-    float xSq = x * x;
-    return xSq * xSq * x;
-}
-float CalcAttenuation(float d, float falloffStart, float falloffEnd)
-{
-    // Linear falloff
-    return saturate((falloffEnd - d) / (falloffEnd - falloffStart));
-}
-
-// Schlick gives any approximation to Fresnel reflection
-// R0 = ( (n - 1) / (n + 1) ) ^ 2, where n is the index of refraction.
-float3 SchlickFresnel(float3 R0, float3 normal, float3 lightVec)
-{
-    float cosIncidentAngle = saturate(dot(normal, lightVec));
-    
-    float f0 = 1.f - cosIncidentAngle;
-    float3 reflectPercent = R0 + (1.f - R0) * Pow5(f0);
-    
-    return reflectPercent;
+    float normalLenSq = dot(texNormal, texNormal);
+    float invNormalLen = rsqrt(normalLenSq);
+    texNormal *= invNormalLen;
+    float normalLen = normalLenSq * invNormalLen;
+    float flatness = saturate(1 - abs(ddx(normalLen)) - abs(ddy(normalLen)));
+    gloss = exp2(lerp(0, log2(gloss), flatness));
 }
 
-// Shlick's approximation of Fresnel
-float3 Fresnel_Shlick(float3 F0, float3 F90, float cosine)
+// Apply fresnel to modulate the specular albedo
+void FSchlick(inout float3 specular, inout float3 diffuse, float3 lightDir, float3 halfVec)
 {
-    return lerp(F0, F90, Pow5(1.0 - cosine));
+    float fresnel = pow(1.0 - saturate(dot(lightDir, halfVec)), 5.0);
+    specular = lerp(specular, 1, fresnel);
+    diffuse = lerp(diffuse, 0, fresnel);
 }
 
-float3 BlinnPhong(
-    float3 lightStrength,
-    float3 lightVec,
-    float3 normal,
-    float3 toEye,
-    Material mat)
+float FShlick(float f0, float f90, float cosine)
 {
-    // Derive m from the shininess, which is derived from the roughness.
-    const float m = mat.Shininess * 256.f;
-    float3 halfVec = normalize(toEye + lightVec);
-    
-    float lambCos = saturate(dot(halfVec, normal));
-    float roughnessFactor = lambCos == 0 ? 0.f : (m + 2.f) * pow(lambCos, m) / 8.f;
-    float3 fresnelFactor = SchlickFresnel(mat.FresnelR0, halfVec, lightVec);
-    
-    float3 specAlbedo = fresnelFactor * roughnessFactor;
-    
-    // Our spec formula goes outside [0, 1] range, but we are doing
-    // LDR rendering. so scaale it down a bit.
-    
-    specAlbedo = specAlbedo / (specAlbedo + 1.f);
-    
-    return (mat.DiffuseAlbedo.rgb + specAlbedo) * lightStrength;
+    return lerp(f0, f90, pow(1.f - cosine, 5.f));
 }
 
-//---------------------------------------------------------------------------------------
-// Evaluates the lighting equation for directional lights.
-//---------------------------------------------------------------------------------------
-float3 ComputeDirectionalLight(Light L, Material mat, float3 normal, float3 toEye)
+float3 ApplyAmbientLight(
+    float3 diffuse, // Diffuse albedo
+    float ao, // Pre-computed ambient-occlusion
+    float3 lightColor // Radiance of ambient light
+    )
 {
-    // The light vector aims opposite the direction the light rays travel.
-    float3 lightVec = -L.Direction.xyz;
-
-    // Scale light down by Lambert's cosine law.
-    float ndotl = max(dot(lightVec, normal), 0.0f);
-    float3 lightStrength = L.Color.rgb * ndotl;
-
-    return BlinnPhong(lightStrength, lightVec, normal, toEye, mat);
+    return ao * diffuse * lightColor;
 }
 
-//---------------------------------------------------------------------------------------
-// Evaluates the lighting equation for point lights.
-//---------------------------------------------------------------------------------------
-float3 ComputePointLight(Light L, Material mat, float3 pos, float3 normal, float3 toEye)
+float GetDirectionalShadow(uint lightIndex, float3 ShadowCoord)
 {
-    float3 result;
+#ifdef SINGLE_SAMPLE
+    float result = texShadow.SampleCmpLevelZero( shadowSampler, ShadowCoord.xy, ShadowCoord.z );
+#else
+    
+    const float Dilation = 2.0;
+    float d1 = Dilation * gShadowTexelSize.x * 0.125;
+    float d2 = Dilation * gShadowTexelSize.x * 0.875;
+    float d3 = Dilation * gShadowTexelSize.x * 0.625;
+    float d4 = Dilation * gShadowTexelSize.x * 0.375;
 
-    // The vector from the surface to the light.
-    float3 lightVec = L.Position.xyz - pos;
-
-    // The distance from surface to light.
-    float d = length(lightVec);
-
-    // Range test.
-    if (d > L.FalloffEnd)
-        result = float3(0.f, 0.f, 0.f);
-    else
-    {
-        // Normalize the light vector.
-        lightVec /= d;
-
-        // Scale light down by Lambert's cosine law.
-        float ndotl = max(dot(lightVec, normal), 0.0f);
-        float3 lightStrength = L.Color.rgb * ndotl;
-
-        // Attenuate light by distance.
-        float att = CalcAttenuation(d, L.FalloffStart, L.FalloffEnd);
-        lightStrength *= att;
-
-        result = BlinnPhong(lightStrength, lightVec, normal, toEye, mat);
-    }
-
-    return result;
+    float3 coord = float3(ShadowCoord.xy, lightIndex);
+    
+    float result = (
+        2.0 * lightShadowArrayTex.SampleCmpLevelZero(shadowSampler, coord, ShadowCoord.z) +
+        lightShadowArrayTex.SampleCmpLevelZero(shadowSampler, coord + float3(-d2, d1, 0.f), ShadowCoord.z) +
+        lightShadowArrayTex.SampleCmpLevelZero(shadowSampler, coord + float3(-d1, -d2, 0.f), ShadowCoord.z) +
+        lightShadowArrayTex.SampleCmpLevelZero(shadowSampler, coord + float3(d2, -d1, 0.f), ShadowCoord.z) +
+        lightShadowArrayTex.SampleCmpLevelZero(shadowSampler, coord + float3(d1, d2, 0.f), ShadowCoord.z) +
+        lightShadowArrayTex.SampleCmpLevelZero(shadowSampler, coord + float3(-d4, d3, 0.f), ShadowCoord.z) +
+        lightShadowArrayTex.SampleCmpLevelZero(shadowSampler, coord + float3(-d3, -d4, 0.f), ShadowCoord.z) +
+        lightShadowArrayTex.SampleCmpLevelZero(shadowSampler, coord + float3(d4, -d3, 0.f), ShadowCoord.z) +
+        lightShadowArrayTex.SampleCmpLevelZero(shadowSampler, coord + float3(d3, d4, 0.f), ShadowCoord.z)
+        ) / 10.0;
+#endif
+    return result * result;
 }
 
-//---------------------------------------------------------------------------------------
-// Evaluates the lighting equation for spot lights.
-//---------------------------------------------------------------------------------------
-float3 ComputeSpotLight(Light L, Material mat, float3 pos, float3 normal, float3 toEye)
+float GetShadowConeLight(uint lightIndex, float3 shadowCoord)
 {
-    float3 result;
+    float result = lightShadowArrayTex.SampleCmpLevelZero(
+        shadowSampler, float3(shadowCoord.xy, lightIndex), shadowCoord.z);
+    return result * result;
+}
 
-    // The vector from the surface to the light.
-    float3 lightVec = L.Position.xyz - pos;
+float3 ApplyLightCommon(
+    float3 diffuseColor, // Diffuse albedo
+    float3 specularColor, // Specular albedo
+    float specularMask, // Where is it shiny or dingy?
+    float gloss, // Specular power
+    float3 normal, // World-space normal
+    float3 viewDir, // World-space vector from eye to point
+    float3 lightDir, // World-space vector from point to light
+    float3 lightColor // Radiance of directional light
+    )
+{
+    float3 halfVec = normalize(lightDir - viewDir);
+    float nDotH = saturate(dot(halfVec, normal));
 
-    // The distance from surface to light.
-    float d = length(lightVec);
+    FSchlick(diffuseColor, specularColor, lightDir, halfVec);
 
-    // Range testz
-    if (d > L.FalloffEnd)
-        result = float3(0.f, 0.f, 0.f);
-    else
-    {
-        // Normalize the light vector.
-        lightVec /= d;
+    float specularFactor = specularMask * pow(nDotH, max(gloss, 1.f)) * (gloss + 2) / 8;
 
-        // Scale light down by Lambert's cosine law.
-        float ndotl = max(dot(lightVec, normal), 0.0f);
-        float3 lightStrength = L.Color.rgb * ndotl;
+    float nDotL = saturate(dot(normal, lightDir));
 
-        // Attenuate light by distance.
-        float att = CalcAttenuation(d, L.FalloffStart, L.FalloffEnd);
-        lightStrength *= att;
+    return nDotL * lightColor * (diffuseColor + specularFactor * specularColor);
+}
 
-        // Scale by spotlight
-        float spotFactor = pow(max(dot(-lightVec, L.Direction.xyz), 0.0f), L.SpotPower);
-        lightStrength *= spotFactor;
+float3 ApplyDirectionalLight(
+    float3 diffuseColor, // Diffuse albedo
+    float3 specularColor, // Specular albedo
+    float specularMask, // Where is it shiny or dingy?
+    float gloss, // Specular power
+    float3 normal, // World-space normal
+    float3 viewDir, // World-space vector from eye to point
+    float3 lightDir, // World-space vector from point to light
+    float3 lightColor, // Radiance of directional light
+    float3 shadowCoord, // Shadow coordinate (Shadow map UV & light-relative Z)
+	uint lightIndex
+    )
+{
+    float shadow = /*GetDirectionalShadow(lightIndex, shadowCoord)*/ 1;
 
-        result = BlinnPhong(lightStrength, lightVec, normal, toEye, mat);
-    }
+    return shadow * ApplyLightCommon(
+        diffuseColor,
+        specularColor,
+        specularMask,
+        gloss,
+        normal,
+        viewDir,
+        lightDir,
+        lightColor
+        );
+}
 
-    return result;
+float3 ApplyPointLight(
+    float3 diffuseColor, // Diffuse albedo
+    float3 specularColor, // Specular albedo
+    float specularMask, // Where is it shiny or dingy?
+    float gloss, // Specular power
+    float3 normal, // World-space normal
+    float3 viewDir, // World-space vector from eye to point
+    float3 worldPos, // World-space fragment position
+    float3 lightPos, // World-space light position
+    float lightRadiusSq,
+    float3 lightColor, // Radiance of directional light
+    float lightIntencity
+    )
+{
+    float3 lightDir = lightPos - worldPos;
+    float lightDistSq = dot(lightDir, lightDir);
+    float invLightDist = rsqrt(lightDistSq);
+    lightDir *= invLightDist;
+    
+    float normalizedDist = sqrt(lightDistSq) * rsqrt(lightRadiusSq);
+    float distanceFalloff = saturate(lightIntencity / (1.0 + 25.0 * normalizedDist * normalizedDist) * saturate((1 - normalizedDist) * 5.0));
+    //float distanceFalloff = saturate(lightIntencity * lightRadiusSq / (lightRadiusSq + (0.25 * lightDistSq)));
+
+    return distanceFalloff * ApplyLightCommon(
+        diffuseColor,
+        specularColor,
+        specularMask,
+        gloss,
+        normal,
+        viewDir,
+        lightDir,
+        lightColor
+        );
+}
+
+float3 ApplyConeLight(
+    float3 diffuseColor, // Diffuse albedo
+    float3 specularColor, // Specular albedo
+    float specularMask, // Where is it shiny or dingy?
+    float gloss, // Specular power
+    float3 normal, // World-space normal
+    float3 viewDir, // World-space vector from eye to point
+    float3 worldPos, // World-space fragment position
+    float3 lightPos, // World-space light position
+    float lightRadiusSq,
+    float3 lightColor, // Radiance of directional light
+    float lightIntencity,
+    float3 coneDir,
+    float2 coneAngles
+    )
+{
+    float3 lightDir = lightPos - worldPos;
+    float lightDistSq = dot(lightDir, lightDir);
+    float invLightDist = rsqrt(lightDistSq);
+    lightDir *= invLightDist;
+    
+    float normalizedDist = sqrt(lightDistSq) * rsqrt(lightRadiusSq);
+    float distanceFalloff = saturate(lightIntencity / (1.0 + 25.0 * normalizedDist * normalizedDist) * saturate((1 - normalizedDist) * 5.0));
+    //float distanceFalloff = saturate(lightIntencity * lightRadiusSq / (lightRadiusSq + (0.25 * lightDistSq)));
+
+    float coneFalloff = dot(-lightDir, coneDir);
+    coneFalloff = saturate((coneFalloff - coneAngles.y) * coneAngles.x);
+
+    return (coneFalloff * distanceFalloff) * ApplyLightCommon(
+        diffuseColor,
+        specularColor,
+        specularMask,
+        gloss,
+        normal,
+        viewDir,
+        lightDir,
+        lightColor
+        );
+}
+
+float3 ApplyConeShadowedLight(
+    float3 diffuseColor, // Diffuse albedo
+    float3 specularColor, // Specular albedo
+    float specularMask, // Where is it shiny or dingy?
+    float gloss, // Specular power
+    float3 normal, // World-space normal
+    float3 viewDir, // World-space vector from eye to point
+    float3 worldPos, // World-space fragment position
+    float3 lightPos, // World-space light position
+    float lightRadiusSq,
+    float3 lightColor, // Radiance of directional light
+    float lightIntencity,
+    float3 coneDir,
+    float2 coneAngles,
+    float4x4 shadowTextureMatrix,
+    uint lightIndex
+    )
+{
+    float4 shadowCoord = mul(shadowTextureMatrix, float4(worldPos, 1.0));
+    shadowCoord.xyz *= rcp(shadowCoord.w);
+    float shadow = GetShadowConeLight(lightIndex, shadowCoord.xyz);
+
+    return shadow * ApplyConeLight(
+        diffuseColor,
+        specularColor,
+        specularMask,
+        gloss,
+        normal,
+        viewDir,
+        worldPos,
+        lightPos,
+        lightRadiusSq,
+        lightColor,
+        lightIntencity,
+        coneDir,
+        coneAngles
+        );
 }
 
 // Diffuse irradiance
@@ -190,7 +281,10 @@ float3 Diffuse_IBL(float3 normal, float3 toEye, float3 diffuseColor, float rough
 {
     float LdotH = saturate(dot(normal, normalize(normal + toEye)));
     float fd90 = 0.5 + 2.0 * roughness * LdotH * LdotH;
-    float3 DiffuseBurley = diffuseColor * Fresnel_Shlick(1.f, fd90, saturate(dot(normal, toEye)));
+    float3 DiffuseBurley = 1.f;
+    float3 temp = float3(0.f, 0.f, 0.f);
+    FSchlick(temp, DiffuseBurley, fd90, saturate(dot(normal, toEye)));
+    DiffuseBurley *= diffuseColor;
     return DiffuseBurley * irradianceIBLTexture.Sample(defaultSampler, normal);
 }
 
@@ -198,7 +292,9 @@ float3 Diffuse_IBL(float3 normal, float3 toEye, float3 diffuseColor, float rough
 float3 Specular_IBL(float3 spec, float3 normal, float3 toEye, float roughness)
 {
     float lod = roughness * IBLRange + IBLBias;
-    float3 specular = Fresnel_Shlick(spec, 1, saturate(dot(normal, toEye)));
+    float3 specular = spec;
+    float3 temp = float3(0.f, 0.f, 0.f);
+    FSchlick(spec, temp, 1, saturate(dot(normal, toEye)));
     return specular * radianceIBLTexture.SampleLevel(cubeMapSampler, reflect(-toEye, normal), lod);
 }
 
@@ -207,39 +303,76 @@ float3 ComputeLighting(
     float3 pos,
     float3 normal,
     float3 toEye,
-    float3 shadowFactor)
+    float gloss,
+    float ao)
 {
     float3 result = 0.0f;
+       
+#define POINT_LIGHT_ARGS \
+    mat.DiffuseAlbedo.rgb, \
+    mat.FresnelR0, \
+    mat.SpecularMask, \
+    gloss, \
+    normal, \
+    -toEye, \
+    pos, \
+    light.Position, \
+    light.Radius * light.Radius, \
+    light.Color, \
+    light.Intencity
 
-    uint i = 0;
+#define CONE_LIGHT_ARGS \
+    POINT_LIGHT_ARGS, \
+    light.Direction, \
+    light.SpotAngles
 
-    for (i = 0; i < NUM_DIR_LIGHTS + NUM_POINT_LIGHTS + NUM_SPOT_LIGHTS; ++i)
+#define SHADOWED_LIGHT_ARGS \
+    CONE_LIGHT_ARGS, \
+    lightData.shadowTextureMatrix, \
+    lightIndex
+    
+    for (uint i = 0; i < NUM_DIR_LIGHTS + NUM_POINT_LIGHTS + NUM_SPOT_LIGHTS; ++i)
     {
         uint masks = LightMask.Load((i / 32) * 4);
         uint idx = i - (i / 32) * 32;
         if (!(masks & (1 << (31 - idx))))
             continue;
         
+        Light light = LightData[i];
+        
         if (i < NUM_DIR_LIGHTS)
-            result += shadowFactor * ComputeDirectionalLight(LightData[i], mat, normal, toEye);
+        result += ApplyDirectionalLight(
+                mat.DiffuseAlbedo.rgb,
+                mat.FresnelR0,
+                mat.SpecularMask,
+                gloss,
+                normal,
+                -toEye,
+                -light.Direction,
+                light.Color,
+                float3(0.f, 0.f, 0.f),
+                i);
+            
+            //result += ComputeDirectionalLight(LightData[i], mat, normal, toEye);
         else if (i < NUM_DIR_LIGHTS + NUM_POINT_LIGHTS)
-            result += ComputePointLight(LightData[i], mat, pos, normal, toEye);
+            result += ApplyPointLight(POINT_LIGHT_ARGS);
         else
-            result += ComputeSpotLight(LightData[i], mat, pos, normal, toEye);
+            result += ApplyConeLight(CONE_LIGHT_ARGS);
         
     }
-    
+    result += ApplyAmbientLight(mat.DiffuseAlbedo.rgb, ao, gAmbientLight.rgb);
     return result;
 }
 
-float3 ComputeLitColor(float3 worldPos, float3 normal, float3 toEye, float4 diffuseAlbedo, float metallic, float roughness, float3 emissive, float occlusion, float3 F0)
+float3 ComputeLitColor(float3 worldPos, float3 normal, float3 toEye, float4 diffuseAlbedo, float metallic, float roughness, float3 emissive, float occlusion, float specularMask, float3 F0)
 {
     const float shininess = 1.0f - roughness;
-    Material mat = { diffuseAlbedo, F0, shininess };
-    float3 shadowFactor = 1.0f;
+    Material mat = { diffuseAlbedo, F0, shininess, specularMask };
 
-    float3 directLight = ComputeLighting(mat, worldPos,
-        normal, toEye, shadowFactor);
+    float gloss = shininess * 256;
+    // TODO: Add specular anti-aliasing
+    
+    float3 directLight = ComputeLighting(mat, worldPos, normal, toEye, gloss, occlusion);
 
     float3 c_diff = diffuseAlbedo.rgb * (1 - kDielectricSpecular) * (1 - metallic) * occlusion;
     float3 c_spec = lerp(kDielectricSpecular, diffuseAlbedo.rgb, metallic) * occlusion;

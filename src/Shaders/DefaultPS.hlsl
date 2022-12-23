@@ -105,7 +105,7 @@ float4 main(VertexOut pin) : SV_Target
     
     float3 litColor = ComputeLitColor(pin.WorldPos, normal, toEyeW,
                             diffuseAlbedo, metallic, roughness,
-                            emissive, 1, gFresnelR0);
+                            emissive, 1, 1, gFresnelR0);
     
     // Common convention to take alpha from diffuse material.
     return float4(litColor, diffuseAlbedo.a);

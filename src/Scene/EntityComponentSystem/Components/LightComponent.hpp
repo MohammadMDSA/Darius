@@ -42,7 +42,16 @@ namespace Darius::Scene::ECS::Components
 
 		D_CH_R_FIELD(D_LIGHT::LightSourceType, LightType);
 		D_CH_RW_FIELD(LightData, LightData);
+		D_CH_RW_FIELD(float, ConeOuterAngle);
+		D_CH_RW_FIELD(float, ConeInnerAngle);
 		D_CH_R_FIELD(int, LightIndex);
 
+	protected:
+		INLINE void						UpdateAngleData()
+		{
+			auto cosOuter = D_MATH::Cos(mConeOuterAngle);
+			mLightData.SpotAngles.x = 1.f / (D_MATH::Cos(mConeInnerAngle) - cosOuter);
+			mLightData.SpotAngles.y = cosOuter;
+		}
 	};
 }
