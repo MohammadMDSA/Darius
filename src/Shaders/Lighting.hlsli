@@ -20,27 +20,29 @@
 
 struct Light
 {
-    float3 Color;
-    float3 Direction;
-    float3 Position;
-    float Intencity;
-    float Radius;
-    float2 SpotAngles; // x = 1.0f / (cos(coneInner) - cos(coneOuter)), y = cos(coneOuter)
+    float3              Color;
+    float3              Direction;
+    float3              Position;
+    float               Intencity;
+    float               Radius;
+    float2              SpotAngles; // x = 1.0f / (cos(coneInner) - cos(coneOuter)), y = cos(coneOuter)
+    float4x4            ShadowMatrix;
+    bool                CastsShadow;
 };
 
 struct Material
 {
-    float4 DiffuseAlbedo;
-    float3 FresnelR0;
-    float Shininess;
-    float SpecularMask;
+    float4              DiffuseAlbedo;
+    float3              FresnelR0;
+    float               Shininess;
+    float               SpecularMask;
 };
 
-ByteAddressBuffer LightMask : register(t10);
-StructuredBuffer<Light> LightData : register(t11);
-TextureCube<float3> radianceIBLTexture : register(t12);
-TextureCube<float3> irradianceIBLTexture : register(t13);
-Texture2DArray<float> lightShadowArrayTex : register(t14);
+ByteAddressBuffer       LightMask               : register(t10);
+StructuredBuffer<Light> LightData               : register(t11);
+TextureCube<float3>     radianceIBLTexture      : register(t12);
+TextureCube<float3>     irradianceIBLTexture    : register(t13);
+Texture2DArray<float>   lightShadowArrayTex     : register(t14);
 
 static const float3 kDielectricSpecular = float3(0.04, 0.04, 0.04);
 
@@ -361,7 +363,7 @@ float3 ComputeLighting(
         float lightRadiusSq = light.Radius * light.Radius;
         
         // If pixel position is too far from light
-        if (lightDistSq <= lightRadiusSq)
+        if (lightDistSq >= lightRadiusSq)
             continue;
         
         if (i < NUM_DIR_LIGHTS + NUM_POINT_LIGHTS)
