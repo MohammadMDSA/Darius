@@ -40,9 +40,9 @@ struct Material
 
 ByteAddressBuffer       LightMask               : register(t10);
 StructuredBuffer<Light> LightData               : register(t11);
-TextureCube<float3>     radianceIBLTexture      : register(t12);
-TextureCube<float3>     irradianceIBLTexture    : register(t13);
-Texture2DArray<float>   lightShadowArrayTex     : register(t14);
+Texture2DArray<float>   lightShadowArrayTex     : register(t12);
+TextureCube<float3>     radianceIBLTexture      : register(t13);
+TextureCube<float3>     irradianceIBLTexture    : register(t14);
 
 static const float3 kDielectricSpecular = float3(0.04, 0.04, 0.04);
 

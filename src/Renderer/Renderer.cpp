@@ -120,7 +120,7 @@ namespace Darius::Renderer
 				diffHandle
 			};
 
-			DescriptorHandle dest = CommonTexture + 2 * TextureHeap.GetDescriptorSize();
+			DescriptorHandle dest = CommonTexture + 3 * TextureHeap.GetDescriptorSize();
 
 			_device->CopyDescriptors(1, &dest, &DestCount, DestCount, SourceTextures, SourceCounts, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 		}
@@ -344,7 +344,7 @@ namespace Darius::Renderer
 		def[kMaterialSamplers].InitAsDescriptorRange(D3D12_DESCRIPTOR_RANGE_TYPE_SAMPLER, 0, 10, D3D12_SHADER_VISIBILITY_PIXEL);
 		def[kCommonCBV].InitAsConstantBuffer(1);
 		def[kCommonSRVs].InitAsDescriptorRange(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 10, 8, D3D12_SHADER_VISIBILITY_PIXEL);
-		def[kSkinMatrices].InitAsBufferSRV(20, D3D12_SHADER_VISIBILITY_VERTEX);
+		def[kSkinMatrices].InitAsBufferSRV(20, D3D12_SHADER_VISIBILITY_VERTEX);\
 		def.Finalize(L"Main Root Sig", D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT);
 	}
 
@@ -388,7 +388,7 @@ namespace Darius::Renderer
 			diffHandle
 		};
 
-		DescriptorHandle dest = CommonTexture + 2 * TextureHeap.GetDescriptorSize();
+		DescriptorHandle dest = CommonTexture + 3 * TextureHeap.GetDescriptorSize();
 
 		_device->CopyDescriptors(1, &dest, &DestCount, DestCount, SourceTextures, SourceCounts, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 	}
@@ -522,22 +522,6 @@ namespace Darius::Renderer
 		globals.IBLRange = SpecularIBLRange;
 		context.SetDynamicConstantBufferView(kCommonCBV, sizeof(GlobalConstants), &globals);
 
-		// Setting up common texture (light for now)
-		UINT destCount = 2;
-		UINT sourceCounts[] = { 1, 1 };
-		D3D12_CPU_DESCRIPTOR_HANDLE lightHandles[] =
-		{
-			D_LIGHT::GetLightMaskHandle(),
-			D_LIGHT::GetLightDataHandle()
-		};
-		_device->CopyDescriptors(1, &CommonTexture, &destCount, destCount, lightHandles, sourceCounts, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-		context.SetDescriptorHeap(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, TextureHeap.GetHeapPointer());
-		context.SetDescriptorTable(kCommonSRVs, CommonTexture);
-
-		// Setup samplers
-		context.SetDescriptorHeap(D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER, SamplerHeap.GetHeapPointer());
-		context.SetDescriptorTable(kMaterialSamplers, CommonTextureSamplers);
-
 		if (m_BatchType == kShadows)
 		{
 			context.TransitionResource(*m_DSV, D3D12_RESOURCE_STATE_DEPTH_WRITE, true);
@@ -561,6 +545,24 @@ namespace Darius::Renderer
 		}
 		else
 		{
+
+			// Setting up common texture (light for now)
+			UINT destCount = 2;
+			UINT sourceCounts[] = { 1, 1 };
+			D3D12_CPU_DESCRIPTOR_HANDLE lightHandles[] =
+			{
+				D_LIGHT::GetLightMaskHandle(),
+				D_LIGHT::GetLightDataHandle(),
+				D_LIGHT::GetShadowTextureArrayHandle(),
+			};
+			_device->CopyDescriptors(1, &CommonTexture, &destCount, destCount, lightHandles, sourceCounts, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+			context.SetDescriptorHeap(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, TextureHeap.GetHeapPointer());
+			context.SetDescriptorTable(kCommonSRVs, CommonTexture);
+
+			// Setup samplers
+			context.SetDescriptorHeap(D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER, SamplerHeap.GetHeapPointer());
+			context.SetDescriptorTable(kMaterialSamplers, CommonTextureSamplers);
+
 			for (uint32_t i = 0; i < m_NumRTVs; ++i)
 			{
 				D_ASSERT(m_RTV[i] != nullptr);
@@ -633,8 +635,6 @@ namespace Darius::Renderer
 				const SortObject& object = m_SortObjects[key.objectIdx];
 				RenderItem const& ri = object.renderItem;
 
-				context.SetPrimitiveTopology(ri.PrimitiveType);
-
 				context.SetConstantBuffer(kMeshConstants, ri.MeshCBV);
 
 				if (ri.PsoFlags & RenderItem::ColorOnly)
@@ -654,6 +654,8 @@ namespace Darius::Renderer
 				}
 
 				context.SetPipelineState(Psos[key.psoIdx]);
+
+				context.SetPrimitiveTopology(ri.PrimitiveType);
 
 				context.SetVertexBuffer(0, ri.Mesh->VertexBufferView());
 				context.SetIndexBuffer(ri.Mesh->IndexBufferView());

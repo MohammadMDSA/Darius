@@ -31,7 +31,7 @@ namespace Darius::Renderer
 		kMaterialSRVs,
 		kMaterialSamplers,
 		kCommonCBV,				// Holds global constants in all shaders
-		kCommonSRVs,	
+		kCommonSRVs,
 		kSkinMatrices,
 
 		kNumRootBindings		// Just to know how many root binings there are
@@ -79,8 +79,8 @@ namespace Darius::Renderer
 			m_CurrentDraw = 0;
 		}
 
-		// Copies only render config and NOT render items
-		MeshSorter(MeshSorter const& other)
+		// Copies only render config
+		MeshSorter(MeshSorter const& other, bool keepRenderItems = false)
 		{
 			m_BatchType = other.m_BatchType;
 			m_Camera = other.m_Camera;
@@ -90,9 +90,13 @@ namespace Darius::Renderer
 			m_DSV = other.m_DSV;
 			memcpy(m_RTV, other.m_RTV, sizeof(D_GRAPHICS_BUFFERS::ColorBuffer*) * m_NumRTVs);
 
-			m_SortObjects.clear();
-			m_SortKeys.clear();
-			std::memset(m_PassCounts, 0, sizeof(m_PassCounts));
+			if (!keepRenderItems)
+			{
+				m_SortObjects.clear();
+				m_SortKeys.clear();
+
+				std::memset(m_PassCounts, 0, sizeof(m_PassCounts));
+			}
 			m_CurrentPass = kZPass;
 			m_CurrentDraw = 0;
 
