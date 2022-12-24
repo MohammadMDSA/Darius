@@ -358,7 +358,7 @@ namespace Darius::Editor::Gui::Windows
 		item.IndexCount = mesh->mDraw[0].IndexCount;
 		item.StartIndexLocation = mesh->mDraw[0].StartIndexLocation;
 		item.Mesh = mesh;
-		item.PsoFlags = RenderItem::ColorOnly | RenderItem::TwoSided | RenderItem::LineOnly;
+		item.PsoFlags = RenderItem::ColorOnly | RenderItem::TwoSided | RenderItem::LineOnly | RenderItem::AlphaBlend;
 		item.PsoType = D_RENDERER::GetPso(RenderItem::HasPosition | RenderItem::HasNormal | RenderItem::HasTangent | RenderItem::HasUV0 | item.PsoFlags);
 		item.PrimitiveType = D3D_PRIMITIVE_TOPOLOGY_LINELIST;
 		item.MeshCBV = mLineConstantsGPU.GetGpuVirtualAddress();
@@ -366,11 +366,11 @@ namespace Darius::Editor::Gui::Windows
 		for (int i = 0; i < count; i++)
 		{
 			if (i / 2 == 0)
-				item.Color = { 1.f, 1.f, 1.f, 1.f };
+				item.Color = { 1.f, 1.f, 1.f, 0.8f };
 			else if (((i - 2) / 4) % 10 == 9)
-				item.Color = { 0.501f, 0.501f, 0.501f, 1.f };
+				item.Color = { 0.501f, 0.501f, 0.501f, 0.8f };
 			else
-				item.Color = { 0.3f, 0.3f, 0.3f, 1.f };
+				item.Color = { 0.3f, 0.3f, 0.3f, 0.8f };
 
 			items.push_back(item);
 			item.MeshCBV += sizeof(MeshConstants);
