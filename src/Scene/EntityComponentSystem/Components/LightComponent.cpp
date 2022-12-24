@@ -86,13 +86,16 @@ namespace Darius::Scene::ECS::Components
 			if (mLightType != LightSourceType::DirectionalLight)
 			{
 				// Falloff Start
-				D_H_DETAILS_DRAW_PROPERTY("Falloff Start");
-				changed |= ImGui::DragFloat("##FalloffStart", &mLightData.FalloffStart, 0.01, 0, mLightData.FalloffEnd, "%.3f");
+				D_H_DETAILS_DRAW_PROPERTY("Intencity");
+				changed |= ImGui::DragFloat("##Intencity", &mLightData.Intencity, 0.01, 0, mLightData.Range, "%.3f");
 
 				// Falloff End
-				D_H_DETAILS_DRAW_PROPERTY("Falloff End");
-				changed |= ImGui::DragFloat("##FalloffEnd", &mLightData.FalloffEnd, 0.01, mLightData.FalloffStart, -1, "%.3f");
+				D_H_DETAILS_DRAW_PROPERTY("Range");
+				changed |= ImGui::DragFloat("##Range", &mLightData.Range, 0.01, mLightData.Intencity, -1, "%.3f");
 			}
+
+			D_H_DETAILS_DRAW_PROPERTY("Casts Shadow");
+			changed |= ImGui::Checkbox("##CastsShadow", &mLightData.CastsShadow);
 		}
 		else
 		{
@@ -115,8 +118,8 @@ namespace Darius::Scene::ECS::Components
 		{
 
 			j["Color"] = D_MATH::Vector3(D_MATH::Vector4(mLightData.Color));
-			j["FalloffEnd"] = mLightData.FalloffEnd;
-			j["FalloffStart"] = mLightData.FalloffStart;
+			j["Range"] = mLightData.Range;
+			j["Intencity"] = mLightData.Intencity;
 			j["SpotInnerAngle"] = mConeInnerAngle;
 			j["SpotOuterAngle"] = mConeOuterAngle;
 		}
@@ -129,8 +132,8 @@ namespace Darius::Scene::ECS::Components
 		{
 
 			mLightData.Color = (XMFLOAT3)j["Color"].get<D_MATH::Vector3>();
-			mLightData.FalloffEnd = j["FalloffEnd"];
-			mLightData.FalloffStart = j["FalloffStart"];
+			mLightData.Range = j["Range"];
+			mLightData.Intencity = j["Intencity"];
 
 			if (j.contains("SpotInnerAngle"))
 				mConeInnerAngle = j["SpotInnerAngle"];

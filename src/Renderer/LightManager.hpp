@@ -31,10 +31,11 @@ namespace Darius::Renderer::LightManager
 		XMFLOAT3		Color = Vector3(kOne);
 		XMFLOAT3		Direction = { 0.f, 0.f, -1.f };// Directional/Spot light only
 		XMFLOAT3		Position = Vector3(kZero);  // Point light only
-		float			FalloffStart = 1.f;			// Point/Spot light only
-		float			FalloffEnd = 10.f;			// Point/Spot light only
+		float			Intencity = 1.f;			// Point/Spot light only
+		float			Range = 10.f;			// Point/Spot light only
 		XMFLOAT2		SpotAngles = { 1000.f, 0.8};// Spot light only
-
+		XMFLOAT4X4		ShadowMatrix;
+		bool			CastsShadow = true;
 	};
 
 	void				Initialize();

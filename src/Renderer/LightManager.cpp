@@ -2,6 +2,7 @@
 #include "LightManager.hpp"
 
 #include "FrameResource.hpp"
+#include "GraphicsUtils/Buffers/ShadowBuffer.hpp"
 #include "GraphicsUtils/Buffers/GpuBuffer.hpp"
 #include "GraphicsUtils/Buffers/UploadBuffer.hpp"
 #include "RenderDeviceManager.hpp"
@@ -15,19 +16,28 @@ using namespace D_MATH;
 
 namespace Darius::Renderer::LightManager
 {
-	bool					_initialized = false;
 
-	DVector<LightData>		DirectionalLights;
-	DVector<LightData>		PointLights;
-	DVector<LightData>		SpotLights;
+	struct LightStatus
+	{
+		uint16_t LightActive : 1;
+		uint16_t ComponentActive : 1;
+	};
 
-	DVector<std::pair<bool, bool>>	ActiveDirectionalLight;
-	DVector<std::pair<bool, bool>>	ActivePointLight;
-	DVector<std::pair<bool, bool>>	ActiveSpotLight;
+	bool								_initialized = false;
 
-	DVector<Transform>				DirectionalLightTransforms;
-	DVector<Transform>				PointLightTransforms;
-	DVector<Transform>				SpotLightTransforms;
+	DVector<LightData>					DirectionalLights;
+	DVector<LightData>					PointLights;
+	DVector<LightData>					SpotLights;
+
+	DVector<LightStatus>				ActiveDirectionalLight;
+	DVector<LightStatus>				ActivePointLight;
+	DVector<LightStatus>				ActiveSpotLight;
+
+	DVector<Transform>					DirectionalLightTransforms;
+	DVector<Transform>					PointLightTransforms;
+	DVector<Transform>					SpotLightTransforms;
+
+	DVector<D_GRAPHICS_BUFFERS::ShadowBuffer> ShadowBuffers;
 
 	// Gpu buffers
 	D_GRAPHICS_BUFFERS::UploadBuffer	ActiveLightsUpload[D_RENDERER_FRAME_RESOUCE::gNumFrameResources];
@@ -35,9 +45,16 @@ namespace Darius::Renderer::LightManager
 	ByteAddressBuffer					ActiveLightsBufferGpu;
 	StructuredBuffer					LightsBufferGpu;
 
-	INLINE DVector<std::pair<bool, bool>>* GetAssociatedActiveLightWithType(LightSourceType type);
+	INLINE DVector<LightStatus>* GetAssociatedActiveLightWithType(LightSourceType type);
 	INLINE DVector<LightData>* GetAssociatedLightsWithType(LightSourceType type);
 	INLINE DVector<Transform>* GetAssociatedLightTransformsWithType(LightSourceType type);
+
+
+	/////////////////////////////////////////////////
+	// Options
+
+	uint32_t							ShadowBufferWidth = 2048;
+	uint32_t							ShodowBufferHeight = 2048;
 
 	void Initialize()
 	{
@@ -64,6 +81,12 @@ namespace Darius::Renderer::LightManager
 		}
 		ActiveLightsBufferGpu.Create(L"Active Light Buffer", count, sizeof(UINT), nullptr);
 		LightsBufferGpu.Create(L"Light Buffer", MaxNumLight, sizeof(LightData));
+
+		ShadowBuffers.resize(MaxNumLight);
+		for (int i = 0; i < ShadowBuffers.size(); i++)
+		{
+			ShadowBuffers[i].Create(L"Shadow Buffer " + i, ShadowBufferWidth, ShodowBufferHeight, D3D12_GPU_VIRTUAL_ADDRESS_UNKNOWN);
+		}
 
 	}
 
@@ -110,7 +133,7 @@ namespace Darius::Renderer::LightManager
 				auto lightIdx = i * sizeof(UINT) * 8 + bitIdx;
 				DVector<LightData>* LightVec = nullptr;
 				DVector<Transform>* transformVec = nullptr;
-				DVector<std::pair<bool, bool>>* activeVec = nullptr;
+				DVector<LightStatus>* activeVec = nullptr;
 				int indexInVec = -1;
 
 				// Setting light status
@@ -142,7 +165,7 @@ namespace Darius::Renderer::LightManager
 					break;
 				}
 
-				lightStatus = (*activeVec)[indexInVec].first && (*activeVec)[indexInVec].second;
+				lightStatus = (*activeVec)[indexInVec].LightActive && (*activeVec)[indexInVec].ComponentActive;
 
 				if (lightStatus)
 				{
@@ -179,6 +202,11 @@ namespace Darius::Renderer::LightManager
 
 	}
 
+	void CreateShadows()
+	{
+
+	}
+
 	D3D12_CPU_DESCRIPTOR_HANDLE GetLightMaskHandle()
 	{
 		return ActiveLightsBufferGpu.GetSRV();
@@ -189,7 +217,7 @@ namespace Darius::Renderer::LightManager
 		return LightsBufferGpu.GetSRV();
 	}
 
-	INLINE DVector<std::pair<bool, bool>>* GetAssociatedActiveLightWithType(LightSourceType type)
+	INLINE DVector<LightStatus>* GetAssociatedActiveLightWithType(LightSourceType type)
 	{
 		switch (type)
 		{
@@ -240,7 +268,7 @@ namespace Darius::Renderer::LightManager
 		int emptyIndex = -1;
 		for (int i = 0; i < typeOwners->size(); i++)
 		{
-			if (!typeOwners->at(i).first)
+			if (!typeOwners->at(i).LightActive)
 			{
 				emptyIndex = i;
 				break;
@@ -251,7 +279,7 @@ namespace Darius::Renderer::LightManager
 		if (emptyIndex == -1)
 			return -1;
 
-		(*typeOwners)[emptyIndex].first = true;
+		(*typeOwners)[emptyIndex].LightActive = true;
 
 		return emptyIndex;
 	}
@@ -275,17 +303,46 @@ namespace Darius::Renderer::LightManager
 
 	void ReleaseLight(LightSourceType preType, int preIndex)
 	{
-		(*GetAssociatedActiveLightWithType(preType))[preIndex].first = false;
+		(*GetAssociatedActiveLightWithType(preType))[preIndex].LightActive = false;
+	}
+
+	INLINE int GetGlobalLightIndex(LightSourceType type, int typeIndex)
+	{
+		switch (type)
+		{
+		case Darius::Renderer::LightManager::LightSourceType::DirectionalLight:
+			return typeIndex;
+		case Darius::Renderer::LightManager::LightSourceType::PointLight:
+			return MaxNumDirectionalLight + typeIndex;
+		case Darius::Renderer::LightManager::LightSourceType::SpotLight:
+			return MaxNumDirectionalLight + MaxNumPointLight + typeIndex;
+		default:
+			return -1;
+		}
+	}
+
+	void ComputeShadowMatrix(LightSourceType type, Transform const& trans, _OUT_ XMFLOAT4X4& shadowMat)
+	{
+
 	}
 
 	void UpdateLight(LightSourceType type, int index, Transform const& trans, bool active, LightData const& light)
 	{
-		GetAssociatedActiveLightWithType(type)->at(index).second = active;
+		auto& lightStat = GetAssociatedActiveLightWithType(type)->at(index);
+		lightStat.ComponentActive = active;
+
 		if (!active)
 			return;
 
 		GetAssociatedLightTransformsWithType(type)->at(index) = trans;
-		GetAssociatedLightsWithType(type)->at(index) = light;
+
+		auto& gpuLight = GetAssociatedLightsWithType(type)->at(index);
+		gpuLight = light;
+
+		// Update shadow matrix
+		if (light.CastsShadow && type != LightSourceType::PointLight)
+			ComputeShadowMatrix(type, trans, gpuLight.ShadowMatrix);
+
 	}
 
 }
