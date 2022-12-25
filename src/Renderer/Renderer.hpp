@@ -80,7 +80,7 @@ namespace Darius::Renderer
 		}
 
 		// Copies only render config
-		MeshSorter(MeshSorter const& other, bool keepRenderItems = false)
+		MeshSorter(MeshSorter const& other)
 		{
 			m_BatchType = other.m_BatchType;
 			m_Camera = other.m_Camera;
@@ -90,13 +90,12 @@ namespace Darius::Renderer
 			m_DSV = other.m_DSV;
 			memcpy(m_RTV, other.m_RTV, sizeof(D_GRAPHICS_BUFFERS::ColorBuffer*) * m_NumRTVs);
 
-			if (!keepRenderItems)
-			{
-				m_SortObjects.clear();
-				m_SortKeys.clear();
 
-				std::memset(m_PassCounts, 0, sizeof(m_PassCounts));
-			}
+			m_SortObjects.clear();
+			m_SortKeys.clear();
+
+			std::memset(m_PassCounts, 0, sizeof(m_PassCounts));
+
 			m_CurrentPass = kZPass;
 			m_CurrentDraw = 0;
 
@@ -123,6 +122,12 @@ namespace Darius::Renderer
 		void RenderMeshes(DrawPass pass, D_GRAPHICS::GraphicsContext& context, GlobalConstants& globals);
 
 		size_t CountObjects() const { return m_SortObjects.size(); }
+
+		void Reset()
+		{
+			m_CurrentPass = kZPass;
+			m_CurrentDraw = 0;
+		}
 
 	private:
 

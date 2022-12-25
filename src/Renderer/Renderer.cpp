@@ -455,7 +455,6 @@ namespace Darius::Renderer
 
 		if (m_BatchType == kShadows)
 		{
-			D_ASSERT(false);
 			if (alphaBlend)
 				return;
 
@@ -522,6 +521,9 @@ namespace Darius::Renderer
 		globals.IBLRange = SpecularIBLRange;
 		context.SetDynamicConstantBufferView(kCommonCBV, sizeof(GlobalConstants), &globals);
 
+		context.SetDescriptorHeap(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, TextureHeap.GetHeapPointer());
+		context.SetDescriptorTable(kCommonSRVs, CommonTexture);
+
 		if (m_BatchType == kShadows)
 		{
 			context.TransitionResource(*m_DSV, D3D12_RESOURCE_STATE_DEPTH_WRITE, true);
@@ -545,10 +547,9 @@ namespace Darius::Renderer
 		}
 		else
 		{
-
 			// Setting up common texture (light for now)
-			UINT destCount = 2;
-			UINT sourceCounts[] = { 1, 1 };
+			UINT destCount = 3;
+			UINT sourceCounts[] = { 1, 1, 1 };
 			D3D12_CPU_DESCRIPTOR_HANDLE lightHandles[] =
 			{
 				D_LIGHT::GetLightMaskHandle(),
@@ -556,8 +557,6 @@ namespace Darius::Renderer
 				D_LIGHT::GetShadowTextureArrayHandle(),
 			};
 			_device->CopyDescriptors(1, &CommonTexture, &destCount, destCount, lightHandles, sourceCounts, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-			context.SetDescriptorHeap(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, TextureHeap.GetHeapPointer());
-			context.SetDescriptorTable(kCommonSRVs, CommonTexture);
 
 			// Setup samplers
 			context.SetDescriptorHeap(D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER, SamplerHeap.GetHeapPointer());
