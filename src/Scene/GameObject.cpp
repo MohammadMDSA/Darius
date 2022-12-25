@@ -355,9 +355,9 @@ namespace Darius::Scene
 		// Abort if transform
 		if (reg.id<D_ECS_COMP::TransformComponent>() == compId)
 			return;
-		mEntity.remove(compId);
 
 		RemoveComponentRoutine(comp);
+		mEntity.remove(compId);
 	}
 
 	void GameObject::SetParent(GameObject* newParent)
