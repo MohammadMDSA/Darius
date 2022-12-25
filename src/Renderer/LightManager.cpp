@@ -6,9 +6,12 @@
 #include "GraphicsUtils/Buffers/GpuBuffer.hpp"
 #include "GraphicsUtils/Buffers/UploadBuffer.hpp"
 #include "RenderDeviceManager.hpp"
+#include "Renderer/Renderer.hpp"
 
 #include <Core/Containers/Map.hpp>
 #include <Core/Exceptions/Exception.hpp>
+#include <Math/Camera/ShadowCamera.hpp>
+#include <Job/Job.hpp>
 
 using namespace D_GRAPHICS_BUFFERS;
 using namespace D_CONTAINERS;
@@ -38,6 +41,7 @@ namespace Darius::Renderer::LightManager
 	DVector<Transform>					SpotLightTransforms;
 
 	DVector<D_GRAPHICS_BUFFERS::ShadowBuffer> ShadowBuffers;
+	D_GRAPHICS_BUFFERS::ColorBuffer		ShadowTextureArrayBuffer;
 
 	// Gpu buffers
 	D_GRAPHICS_BUFFERS::UploadBuffer	ActiveLightsUpload[D_RENDERER_FRAME_RESOUCE::gNumFrameResources];
@@ -53,8 +57,9 @@ namespace Darius::Renderer::LightManager
 	/////////////////////////////////////////////////
 	// Options
 
-	uint32_t							ShadowBufferWidth = 2048;
-	uint32_t							ShodowBufferHeight = 2048;
+	uint32_t							ShadowBufferWidth = 512;
+	uint32_t							ShodowBufferHeight = 512;
+	uint32_t							ShadowBufferDepthPercision = 16;
 
 	void Initialize()
 	{
@@ -85,8 +90,9 @@ namespace Darius::Renderer::LightManager
 		ShadowBuffers.resize(MaxNumLight);
 		for (int i = 0; i < ShadowBuffers.size(); i++)
 		{
-			ShadowBuffers[i].Create(L"Shadow Buffer " + i, ShadowBufferWidth, ShodowBufferHeight, D3D12_GPU_VIRTUAL_ADDRESS_UNKNOWN);
+			ShadowBuffers[i].Create(std::wstring(L"Shadow Buffer " + i), ShadowBufferWidth, ShodowBufferHeight, D3D12_GPU_VIRTUAL_ADDRESS_UNKNOWN);
 		}
+		ShadowTextureArrayBuffer.CreateArray(L"Shadow Texture Array Buffer", ShadowBufferWidth, ShodowBufferHeight, MaxNumLight, DXGI_FORMAT_R16_UNORM);
 
 	}
 
@@ -202,11 +208,6 @@ namespace Darius::Renderer::LightManager
 
 	}
 
-	void CreateShadows()
-	{
-
-	}
-
 	D3D12_CPU_DESCRIPTOR_HANDLE GetLightMaskHandle()
 	{
 		return ActiveLightsBufferGpu.GetSRV();
@@ -215,6 +216,11 @@ namespace Darius::Renderer::LightManager
 	D3D12_CPU_DESCRIPTOR_HANDLE GetLightDataHandle()
 	{
 		return LightsBufferGpu.GetSRV();
+	}
+
+	D3D12_CPU_DESCRIPTOR_HANDLE GetShadowTextureArrayHandle()
+	{
+		return ShadowTextureArrayBuffer.GetSRV();
 	}
 
 	INLINE DVector<LightStatus>* GetAssociatedActiveLightWithType(LightSourceType type)
@@ -321,9 +327,91 @@ namespace Darius::Renderer::LightManager
 		}
 	}
 
-	void ComputeShadowMatrix(LightSourceType type, Transform const& trans, _OUT_ XMFLOAT4X4& shadowMat)
+	void RenderDirectionalShadow(D_RENDERER::MeshSorter& sorter, D_GRAPHICS::GraphicsContext& context, LightData& light, int lightGloablIndex)
 	{
+		D_MATH_CAMERA::ShadowCamera cam;
+		cam.UpdateMatrix(-Vector3(light.Direction), Vector3(0.f, 0.f, 0.f), Vector3(5000, 3000, 3000), ShadowBufferWidth, ShodowBufferHeight, ShadowBufferDepthPercision);
+		light.ShadowMatrix = cam.GetShadowMatrix();
+		GlobalConstants globals;
+		globals.ViewProj = light.ShadowMatrix;
 
+		auto& shadowBuffer = ShadowBuffers[lightGloablIndex];
+
+		shadowBuffer.BeginRendering(context);
+
+		sorter.SetCamera(cam);
+		sorter.SetDepthStencilTarget(shadowBuffer);
+		sorter.RenderMeshes(MeshSorter::kZPass, context, globals);
+
+		context.TransitionResource(shadowBuffer, D3D12_RESOURCE_STATE_COPY_SOURCE);
+
+		context.TransitionResource(ShadowTextureArrayBuffer, D3D12_RESOURCE_STATE_COPY_DEST);
+
+		context.CopySubresource(ShadowTextureArrayBuffer, lightGloablIndex, shadowBuffer, 0);
+
+		context.TransitionResource(ShadowTextureArrayBuffer, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
+	}
+
+	void RenderSpotShadow(D_RENDERER::MeshSorter& sorter, D_GRAPHICS::GraphicsContext& context, LightData& light, int lightGloablIndex)
+	{
+		D_MATH_CAMERA::Camera shadowCamera;
+		shadowCamera.SetEyeAtUp(light.Position, Vector3(light.Position) + Vector3(light.Direction), Vector3(0, 1, 0));
+		shadowCamera.SetPerspectiveMatrix(light.SpotAngles.y * 2, 1.0f, light.Range * .05f, light.Range * 1.0f);
+		shadowCamera.Update();
+		light.ShadowMatrix = shadowCamera.GetViewProjMatrix();
+
+		GlobalConstants globals;
+		globals.ViewProj = light.ShadowMatrix;
+
+		auto& shadowBuffer = ShadowBuffers[lightGloablIndex];
+
+		shadowBuffer.BeginRendering(context);
+
+		sorter.SetCamera(shadowCamera);
+		sorter.SetDepthStencilTarget(shadowBuffer);
+		sorter.RenderMeshes(MeshSorter::kZPass, context, globals);
+
+		context.TransitionResource(shadowBuffer, D3D12_RESOURCE_STATE_COPY_SOURCE);
+
+		context.TransitionResource(ShadowTextureArrayBuffer, D3D12_RESOURCE_STATE_COPY_DEST);
+
+		context.CopySubresource(ShadowTextureArrayBuffer, lightGloablIndex, shadowBuffer, 0);
+
+		context.TransitionResource(ShadowTextureArrayBuffer, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
+	}
+
+	void RenderShadows(D_RENDERER::MeshSorter* parentSorter)
+	{
+		auto& shadowContext = D_GRAPHICS::GraphicsContext::Begin();
+		for (int i = 0; i < MaxNumLight; i++)
+		{
+
+			//D_JOB::AssignTask([&](int, int) {
+
+			parentSorter->Reset();
+
+			if (i < MaxNumDirectionalLight)
+			{
+				auto& light = DirectionalLights[i];
+				if (!light.CastsShadow || !ActiveDirectionalLight[i].LightActive || !ActiveDirectionalLight[i].ComponentActive)
+					continue;
+				RenderDirectionalShadow(*parentSorter, shadowContext, light, i);
+			}
+			else if (i >= MaxNumPointLight + MaxNumDirectionalLight)
+			{
+				auto idx = i - (MaxNumPointLight + MaxNumDirectionalLight);
+				auto& light = SpotLights[idx];
+				if (!light.CastsShadow || !ActiveSpotLight[idx].LightActive || !ActiveSpotLight[idx].ComponentActive)
+					continue;
+				RenderSpotShadow(*parentSorter, shadowContext, light, i);
+			}
+
+			//});
+		}
+		shadowContext.Finish();
+
+		if (D_JOB::IsMainThread())
+			D_JOB::WaitForThreadsToFinish();
 	}
 
 	void UpdateLight(LightSourceType type, int index, Transform const& trans, bool active, LightData const& light)
@@ -336,12 +424,10 @@ namespace Darius::Renderer::LightManager
 
 		GetAssociatedLightTransformsWithType(type)->at(index) = trans;
 
-		auto& gpuLight = GetAssociatedLightsWithType(type)->at(index);
-		gpuLight = light;
-
-		// Update shadow matrix
-		if (light.CastsShadow && type != LightSourceType::PointLight)
-			ComputeShadowMatrix(type, trans, gpuLight.ShadowMatrix);
+		auto preLight = GetAssociatedLightsWithType(type)->at(index);
+		LightData newLight = light;
+		newLight.ShadowMatrix = preLight.ShadowMatrix;
+		GetAssociatedLightsWithType(type)->at(index) = newLight;
 
 	}
 

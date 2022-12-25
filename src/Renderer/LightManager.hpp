@@ -12,6 +12,11 @@
 using namespace D_CONTAINERS;
 using namespace D_MATH;
 
+namespace Darius::Renderer
+{
+	class MeshSorter;
+}
+
 namespace Darius::Renderer::LightManager
 {
 	constexpr int		MaxNumDirectionalLight = 6;
@@ -43,9 +48,11 @@ namespace Darius::Renderer::LightManager
 	void				Reset();
 
 	void				UpdateBuffers(D_GRAPHICS::GraphicsContext& context);
+	void				RenderShadows(Darius::Renderer::MeshSorter* parentSorter);
 
 	D3D12_CPU_DESCRIPTOR_HANDLE GetLightMaskHandle();
 	D3D12_CPU_DESCRIPTOR_HANDLE GetLightDataHandle();
+	D3D12_CPU_DESCRIPTOR_HANDLE GetShadowTextureArrayHandle();
 
 	// Accessed by light components
 	/// O(n) Don't use too often
