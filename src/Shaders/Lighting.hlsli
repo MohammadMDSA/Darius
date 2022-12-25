@@ -109,8 +109,9 @@ float GetDirectionalShadow(uint lightIndex, float3 ShadowCoord)
 
 float GetShadowConeLight(uint lightIndex, float3 shadowCoord)
 {
+    float2 scrCoord = float2(shadowCoord.x, -shadowCoord.y) / 2 + 0.5f;
     float result = lightShadowArrayTex.SampleCmpLevelZero(
-        shadowSampler, float3(shadowCoord.xy, lightIndex), shadowCoord.z);
+        shadowSampler, float3(scrCoord, lightIndex), shadowCoord.z);
     return result * result;
 }
 
@@ -254,12 +255,17 @@ float3 ApplyConeShadowedLight(
     float3 coneDir,
     float2 coneAngles,
     float4x4 shadowTextureMatrix,
-    uint lightIndex
+    uint lightIndex,
+    bool castsShadow
     )
 {
-    float4 shadowCoord = mul(shadowTextureMatrix, float4(worldPos, 1.0));
-    shadowCoord.xyz *= rcp(shadowCoord.w);
-    float shadow = GetShadowConeLight(lightIndex, shadowCoord.xyz);
+    float shadow = 1.f;
+    if (castsShadow)
+    {
+        float4 shadowCoord = mul(shadowTextureMatrix, float4(worldPos, 1.0));
+        shadowCoord.xyz *= rcp(shadowCoord.w);
+        shadow = GetShadowConeLight(lightIndex, shadowCoord.xyz);
+    }
 
     return shadow * ApplyConeLight(
         diffuseColor,
@@ -282,7 +288,7 @@ float3 ApplyConeShadowedLight(
 float3 Diffuse_IBL(float3 normal, float3 toEye, float3 diffuseColor, float roughness)
 {
     float LdotH = saturate(dot(normal, normalize(normal + toEye)));
-    float fd90 = 0.5 + 2.0 * roughness * LdotH * LdotH;
+    float fd90 = roughness * LdotH * LdotH;
     float3 DiffuseBurley = 1.f;
     float3 temp = float3(0.f, 0.f, 0.f);
     FSchlick(temp, DiffuseBurley, fd90, saturate(dot(normal, toEye)));
@@ -330,8 +336,9 @@ float3 ComputeLighting(
 
 #define SHADOWED_LIGHT_ARGS \
     CONE_LIGHT_ARGS, \
-    lightData.shadowTextureMatrix, \
-    lightIndex
+    light.ShadowMatrix, \
+    i, \
+    light.CastsShadow
     
     for (uint i = 0; i < NUM_DIR_LIGHTS + NUM_POINT_LIGHTS + NUM_SPOT_LIGHTS; ++i)
     {
@@ -341,7 +348,7 @@ float3 ComputeLighting(
             continue;
         
         Light light = LightData[i];
-        
+
         if (i < NUM_DIR_LIGHTS)
         {
             result += ApplyDirectionalLight(
@@ -369,7 +376,8 @@ float3 ComputeLighting(
         if (i < NUM_DIR_LIGHTS + NUM_POINT_LIGHTS)
             result += ApplyPointLight(POINT_LIGHT_ARGS);
         else
-            result += ApplyConeLight(CONE_LIGHT_ARGS);
+            //result += ApplyConeLight(CONE_LIGHT_ARGS);
+            result += ApplyConeShadowedLight(SHADOWED_LIGHT_ARGS);
         
     }
     result += ApplyAmbientLight(mat.DiffuseAlbedo.rgb, ao, gAmbientLight.rgb);
