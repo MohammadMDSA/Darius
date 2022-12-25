@@ -23,6 +23,7 @@ list(APPEND MATH_LIBS_INCLUDE
 	"Viewport.hpp"
 	"Camera/Camera.hpp"
 	"Camera/Frustum.hpp"
+	"Camera/ShadowCamera.hpp"
 	)
 
 list(APPEND MATH_LIBS_SOURCES
@@ -34,6 +35,7 @@ list(APPEND MATH_LIBS_SOURCES
 	"Quaternion.cpp"
 	"Camera/Camera.cpp"
 	"Camera/Frustum.cpp"
+	"Camera/ShadowCamera.cpp"
 	)
 
 
