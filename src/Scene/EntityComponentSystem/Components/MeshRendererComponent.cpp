@@ -80,8 +80,14 @@ namespace Darius::Scene::ECS::Components
 		D_H_DETAILS_DRAW_PROPERTY("Material");
 		D_H_RESOURCE_SELECTION_DRAW(MaterialResource, mMaterialResource, "Select Material", SetMaterial);
 
+		// Casting shadow
+		D_H_DETAILS_DRAW_PROPERTY("Casts Shadow");
+		valueChanged |= ImGui::Checkbox("##CastsShadow", &mCastsShadow);
+
 		D_H_DETAILS_DRAW_END_TABLE();
 
+		if (valueChanged)
+			mChangeSignal();
 		return valueChanged;
 
 	}

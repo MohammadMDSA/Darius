@@ -45,6 +45,8 @@ namespace Darius::Scene::ECS::Components
 
 		INLINE D3D12_GPU_VIRTUAL_ADDRESS	GetConstantsAddress() { return mMeshConstantsGPU.GetGpuVirtualAddress(); }
 
+		D_CH_RW_FIELD(bool,					CastsShadow);
+
 	private:
 
 		void								_SetMesh(ResourceHandle handle);

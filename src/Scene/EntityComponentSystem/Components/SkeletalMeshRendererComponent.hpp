@@ -50,8 +50,9 @@ namespace Darius::Scene::ECS::Components
 
 
 		D_CH_RW_FIELD_ACC(Ref<SkeletalMeshResource>, MeshResource, protected);
-		D_CH_RW_FIELD_ACC(Ref<MaterialResource>, MaterialResource, protected);
+		D_CH_RW_FIELD(bool,					CastsShadow);
 
+		D_CH_R_FIELD_ACC(Ref<MaterialResource>, MaterialResource, protected);
 	private:
 
 		void								_SetMesh(ResourceHandle handle);
