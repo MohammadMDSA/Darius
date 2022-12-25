@@ -38,7 +38,7 @@ namespace Darius::Editor::Gui::Windows
 	private:
 		void CreateBuffers();
 
-		void AddSceneRenderItems(D_RENDERER::MeshSorter& sorter);
+		void AddSceneRenderItems(D_RENDERER::MeshSorter& sorter, bool onlyShado = false);
 		void AddWindowRenderItems(D_RENDERER::MeshSorter& sorter);
 		void CreateGrid(DVector<D_RENDERER_FRAME_RESOUCE::RenderItem>& items, int count);
 		void CalcGridLineConstants(DVector<MeshConstants>& constants, int count);

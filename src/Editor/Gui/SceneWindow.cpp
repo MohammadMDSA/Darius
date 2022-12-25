@@ -128,6 +128,13 @@ namespace Darius::Editor::Gui::Windows
 		// Add meshes to sorter
 		AddSceneRenderItems(sorter);
 
+		{
+			// Creating shadows
+			MeshSorter shadowSorter(MeshSorter::kShadows);
+			AddSceneRenderItems(shadowSorter, true);
+			D_LIGHT::RenderShadows(&shadowSorter);
+		}
+
 		// Draw grid
 		if (mDrawGrid)
 			AddWindowRenderItems(sorter);
@@ -386,7 +393,7 @@ namespace Darius::Editor::Gui::Windows
 		}
 	}
 
-	void SceneWindow::AddSceneRenderItems(D_RENDERER::MeshSorter& sorter)
+	void SceneWindow::AddSceneRenderItems(D_RENDERER::MeshSorter& sorter, bool onlyShadow)
 	{
 		auto& worldReg = D_WORLD::GetRegistry();
 
@@ -398,6 +405,9 @@ namespace Darius::Editor::Gui::Windows
 			{
 				// Can't render
 				if (!meshComp.CanRender())
+					return;
+
+				if (onlyShadow && !meshComp.GetCastsShadow())
 					return;
 
 				// Is it in our frustum
@@ -415,6 +425,9 @@ namespace Darius::Editor::Gui::Windows
 			{
 				// Can't render
 				if (!meshComp.CanRender())
+					return;
+
+				if (onlyShadow && !meshComp.GetCastsShadow())
 					return;
 
 				// Is it in our frustum
