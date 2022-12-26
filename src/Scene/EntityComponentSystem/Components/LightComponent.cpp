@@ -76,7 +76,7 @@ namespace Darius::Scene::ECS::Components
 				}
 
 				D_H_DETAILS_DRAW_PROPERTY("Outer Half Angle");
-				if (ImGui::SliderAngle("##SpotOuterAngle", &mConeOuterAngle, innerDeg, 179))
+				if (ImGui::SliderAngle("##SpotOuterAngle", &mConeOuterAngle, innerDeg, 79f))
 					changed = anglesChanged = true;
 
 				if (anglesChanged)

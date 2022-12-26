@@ -356,7 +356,7 @@ namespace Darius::Renderer::LightManager
 	{
 		D_MATH_CAMERA::Camera shadowCamera;
 		shadowCamera.SetEyeAtUp(light.Position, Vector3(light.Position) + Vector3(light.Direction), Vector3(0, 1, 0));
-		shadowCamera.SetPerspectiveMatrix(light.SpotAngles.y * 2, 1.0f, light.Range * .001f, light.Range * 1.0f);
+		shadowCamera.SetPerspectiveMatrix(D_MATH::ACos(light.SpotAngles.y) * 2, 1.0f, light.Range * .001f, light.Range * 1.0f);
 		shadowCamera.Update();
 		light.ShadowMatrix = shadowCamera.GetViewProjMatrix();
 
