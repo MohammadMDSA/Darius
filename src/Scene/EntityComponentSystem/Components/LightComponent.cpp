@@ -95,7 +95,12 @@ namespace Darius::Scene::ECS::Components
 			}
 
 			D_H_DETAILS_DRAW_PROPERTY("Casts Shadow");
-			changed |= ImGui::Checkbox("##CastsShadow", &mLightData.CastsShadow);
+			bool val = mLightData.CastsShadow;
+			if (ImGui::Checkbox("##CastsShadow", &val))
+			{
+				mLightData.CastsShadow = val ? 1 : 0;
+				changed = true;
+			}
 		}
 		else
 		{

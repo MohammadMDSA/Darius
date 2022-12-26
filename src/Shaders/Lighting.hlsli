@@ -28,6 +28,7 @@ struct Light
     float2              SpotAngles; // x = 1.0f / (cos(coneInner) - cos(coneOuter)), y = cos(coneOuter)
     float4x4            ShadowMatrix;
     bool                CastsShadow;
+    int3                padding;
 };
 
 struct Material

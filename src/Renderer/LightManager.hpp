@@ -41,6 +41,7 @@ namespace Darius::Renderer::LightManager
 		XMFLOAT2		SpotAngles = { 1000.f, 0.8};// Spot light only
 		XMFLOAT4X4		ShadowMatrix;
 		bool			CastsShadow = true;
+		XMFLOAT3		padding;
 	};
 
 	void				Initialize();
