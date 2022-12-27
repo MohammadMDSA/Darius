@@ -345,11 +345,8 @@ namespace Darius::Renderer::LightManager
 
 		context.TransitionResource(shadowBuffer, D3D12_RESOURCE_STATE_COPY_SOURCE);
 
-		context.TransitionResource(ShadowTextureArrayBuffer, D3D12_RESOURCE_STATE_COPY_DEST);
-
 		context.CopySubresource(ShadowTextureArrayBuffer, lightGloablIndex, shadowBuffer, 0);
 
-		context.TransitionResource(ShadowTextureArrayBuffer, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
 	}
 
 	void RenderSpotShadow(D_RENDERER::MeshSorter& sorter, D_GRAPHICS::GraphicsContext& context, LightData& light, int lightGloablIndex)
@@ -373,16 +370,15 @@ namespace Darius::Renderer::LightManager
 
 		context.TransitionResource(shadowBuffer, D3D12_RESOURCE_STATE_COPY_SOURCE);
 
-		context.TransitionResource(ShadowTextureArrayBuffer, D3D12_RESOURCE_STATE_COPY_DEST);
-
 		context.CopySubresource(ShadowTextureArrayBuffer, lightGloablIndex, shadowBuffer, 0);
 
-		context.TransitionResource(ShadowTextureArrayBuffer, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
 	}
 
 	void RenderShadows(D_RENDERER::MeshSorter* parentSorter)
 	{
 		auto& shadowContext = D_GRAPHICS::GraphicsContext::Begin();
+		shadowContext.TransitionResource(ShadowTextureArrayBuffer, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
+
 		for (int i = 0; i < MaxNumLight; i++)
 		{
 
@@ -407,11 +403,12 @@ namespace Darius::Renderer::LightManager
 			}
 
 			//});
+			shadowContext.TransitionResource(ShadowTextureArrayBuffer, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
 		}
 		shadowContext.Finish();
 
-		if (D_JOB::IsMainThread())
-			D_JOB::WaitForThreadsToFinish();
+		//if (D_JOB::IsMainThread())
+		//	D_JOB::WaitForThreadsToFinish();
 	}
 
 	void UpdateLight(LightSourceType type, int index, Transform const& trans, bool active, LightData const& light)
