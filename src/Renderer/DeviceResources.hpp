@@ -102,7 +102,7 @@ namespace Darius::Renderer::DeviceResource
 
         UINT                                                m_backBufferIndex;
         UINT                                                m_currentResourceIndex;
-        std::array<std::unique_ptr<FrameResource>, D_RENDERER_FRAME_RESOUCE::gNumFrameResources> m_frameResources;
+        std::array<std::unique_ptr<FrameResource>, D_RENDERER_FRAME_RESOURCE::gNumFrameResources> m_frameResources;
 
 
         // Direct3D objects.

@@ -8,7 +8,7 @@
 
 using namespace D_SERIALIZATION;
 using namespace D_RESOURCE;
-using namespace D_RENDERER_FRAME_RESOUCE;
+using namespace D_RENDERER_FRAME_RESOURCE;
 
 namespace Darius::Scene::ECS::Components
 {
@@ -37,7 +37,7 @@ namespace Darius::Scene::ECS::Components
 	{
 
 		// Initializing Mesh Constants buffers
-		for (size_t i = 0; i < D_RENDERER_FRAME_RESOUCE::gNumFrameResources; i++)
+		for (size_t i = 0; i < D_RENDERER_FRAME_RESOURCE::gNumFrameResources; i++)
 		{
 			mMeshConstantsCPU[i].Create(L"Mesh Constant Upload Buffer", sizeof(MeshConstants));
 		}
@@ -178,7 +178,7 @@ namespace Darius::Scene::ECS::Components
 
 	void MeshRendererComponent::OnDestroy()
 	{
-		for (size_t i = 0; i < D_RENDERER_FRAME_RESOUCE::gNumFrameResources; i++)
+		for (size_t i = 0; i < D_RENDERER_FRAME_RESOURCE::gNumFrameResources; i++)
 		{
 			mMeshConstantsCPU[i].Destroy();
 		}

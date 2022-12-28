@@ -1,6 +1,7 @@
 #pragma once
 
 #include "CommandContext.hpp"
+#include "Renderer/FrameResource.hpp"
 
 #include <Core/Containers/Vector.hpp>
 #include <Math/VectorMath.hpp>
@@ -49,7 +50,7 @@ namespace Darius::Renderer::LightManager
 	void				Reset();
 
 	void				UpdateBuffers(D_GRAPHICS::GraphicsContext& context);
-	void				RenderShadows(Darius::Renderer::MeshSorter* parentSorter);
+	void				RenderShadows(D_CONTAINERS::DVector<D_RENDERER_FRAME_RESOURCE::RenderItem> const& shadowRenderItems);
 
 	D3D12_CPU_DESCRIPTOR_HANDLE GetLightMaskHandle();
 	D3D12_CPU_DESCRIPTOR_HANDLE GetLightDataHandle();

@@ -44,8 +44,8 @@ namespace Darius::Renderer::LightManager
 	D_GRAPHICS_BUFFERS::ColorBuffer		ShadowTextureArrayBuffer;
 
 	// Gpu buffers
-	D_GRAPHICS_BUFFERS::UploadBuffer	ActiveLightsUpload[D_RENDERER_FRAME_RESOUCE::gNumFrameResources];
-	D_GRAPHICS_BUFFERS::UploadBuffer	LightsUpload[D_RENDERER_FRAME_RESOUCE::gNumFrameResources];
+	D_GRAPHICS_BUFFERS::UploadBuffer	ActiveLightsUpload[D_RENDERER_FRAME_RESOURCE::gNumFrameResources];
+	D_GRAPHICS_BUFFERS::UploadBuffer	LightsUpload[D_RENDERER_FRAME_RESOURCE::gNumFrameResources];
 	ByteAddressBuffer					ActiveLightsBufferGpu;
 	StructuredBuffer					LightsBufferGpu;
 
@@ -79,7 +79,7 @@ namespace Darius::Renderer::LightManager
 		// Initializing buffers
 		size_t elemSize = sizeof(UINT) * 8;
 		size_t count = (MaxNumLight + elemSize - 1) / elemSize;
-		for (size_t i = 0; i < D_RENDERER_FRAME_RESOUCE::gNumFrameResources; i++)
+		for (size_t i = 0; i < D_RENDERER_FRAME_RESOURCE::gNumFrameResources; i++)
 		{
 			ActiveLightsUpload[i].Create(L"Active Light Upload", count * sizeof(UINT));
 			LightsUpload[i].Create(L"Light Upload", MaxNumLight * sizeof(LightData));
@@ -380,22 +380,27 @@ namespace Darius::Renderer::LightManager
 		context.TransitionResource(ShadowTextureArrayBuffer, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
 	}
 
-	void RenderShadows(D_RENDERER::MeshSorter* parentSorter)
+	void RenderShadows(D_CONTAINERS::DVector<RenderItem> const& shadowRenderItems)
 	{
+
+		// TODO: Create sorter and input render item per light source
+		MeshSorter sorter(MeshSorter::kShadows);
+		for (auto const& ri : shadowRenderItems) sorter.AddMesh(ri, 0.1);
+
 		auto& shadowContext = D_GRAPHICS::GraphicsContext::Begin();
 		for (int i = 0; i < MaxNumLight; i++)
 		{
 
 			//D_JOB::AssignTask([&](int, int) {
 
-			parentSorter->Reset();
+			sorter.Reset();
 
 			if (i < MaxNumDirectionalLight)
 			{
 				auto& light = DirectionalLights[i];
 				if (!light.CastsShadow || !ActiveDirectionalLight[i].LightActive || !ActiveDirectionalLight[i].ComponentActive)
 					continue;
-				RenderDirectionalShadow(*parentSorter, shadowContext, light, i);
+				RenderDirectionalShadow(sorter, shadowContext, light, i);
 			}
 			else if (i >= MaxNumPointLight + MaxNumDirectionalLight)
 			{
@@ -403,7 +408,7 @@ namespace Darius::Renderer::LightManager
 				auto& light = SpotLights[idx];
 				if (!light.CastsShadow || !ActiveSpotLight[idx].LightActive || !ActiveSpotLight[idx].ComponentActive)
 					continue;
-				RenderSpotShadow(*parentSorter, shadowContext, light, i);
+				RenderSpotShadow(sorter, shadowContext, light, i);
 			}
 
 			//});

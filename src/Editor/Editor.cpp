@@ -21,7 +21,6 @@
 #include <Physics/PhysicsManager.hpp>
 #include <Scene/SceneLight.hpp>
 #include <Renderer/Renderer.hpp>
-#include <Renderer/FrameResource.hpp>
 #include <Renderer/Camera/CameraManager.hpp>
 #include <Renderer/GraphicsCore.hpp>
 #include <Renderer/CommandContext.hpp>
@@ -35,7 +34,6 @@
 extern void ExitGame() noexcept;
 
 using namespace DirectX;
-using namespace D_RENDERER_FRAME_RESOUCE;
 using namespace D_RENDERER_GEOMETRY;
 using namespace D_CONTAINERS;
 

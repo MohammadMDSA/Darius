@@ -14,7 +14,7 @@
 
 using namespace D_SERIALIZATION;
 using namespace D_RESOURCE;
-using namespace D_RENDERER_FRAME_RESOUCE;
+using namespace D_RENDERER_FRAME_RESOURCE;
 
 namespace Darius::Scene::ECS::Components
 {
@@ -267,7 +267,7 @@ namespace Darius::Scene::ECS::Components
 
 	void SkeletalMeshRendererComponent::OnDestroy()
 	{
-		for (size_t i = 0; i < D_RENDERER_FRAME_RESOUCE::gNumFrameResources; i++)
+		for (size_t i = 0; i < D_RENDERER_FRAME_RESOURCE::gNumFrameResources; i++)
 		{
 			mMeshConstantsCPU[i].Destroy();
 		}
@@ -276,7 +276,7 @@ namespace Darius::Scene::ECS::Components
 
 	void SkeletalMeshRendererComponent::CreateGPUBuffers()
 	{
-		for (size_t i = 0; i < D_RENDERER_FRAME_RESOUCE::gNumFrameResources; i++)
+		for (size_t i = 0; i < D_RENDERER_FRAME_RESOURCE::gNumFrameResources; i++)
 		{
 			mMeshConstantsCPU[i].Create(L"Mesh Constant Upload Buffer", sizeof(MeshConstants));
 		}

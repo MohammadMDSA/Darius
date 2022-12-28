@@ -260,7 +260,7 @@ namespace Darius::Renderer::DeviceResource
 		{
 			m_swapChainBuffer[n].Destroy();
 		}
-		for (UINT i = 0; i < D_RENDERER_FRAME_RESOUCE::gNumFrameResources; i++)
+		for (UINT i = 0; i < D_RENDERER_FRAME_RESOURCE::gNumFrameResources; i++)
 		{
 			m_frameResources[i]->Fence = 0;
 		}
@@ -414,7 +414,7 @@ namespace Darius::Renderer::DeviceResource
 		{
 			m_swapChainBuffer[n].Destroy();
 		}
-		for (UINT i = 0; i < D_RENDERER_FRAME_RESOUCE::gNumFrameResources; i++)
+		for (UINT i = 0; i < D_RENDERER_FRAME_RESOURCE::gNumFrameResources; i++)
 		{
 			m_frameResources[i]->CmdListAlloc.Reset();
 		}

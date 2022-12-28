@@ -9,7 +9,6 @@
 #include <Core/Containers/Set.hpp>
 #include <Math/VectorMath.hpp>
 #include <Renderer/Geometry/Mesh.hpp>
-#include <Renderer/FrameResource.hpp>
 #include <Renderer/Geometry/Mesh.hpp>
 #include <Renderer/CommandContext.hpp>
 #include <Renderer/GraphicsUtils/Buffers/UploadBuffer.hpp>
@@ -25,7 +24,6 @@
 #endif // !D_SCENE
 
 using namespace D_MATH;
-using namespace D_RENDERER_FRAME_RESOUCE;
 using namespace D_GRAPHICS_BUFFERS;
 using namespace D_CORE;
 

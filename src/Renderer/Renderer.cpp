@@ -1,7 +1,7 @@
 #include "Renderer.hpp"
 #include "pch.hpp"
 
-#include "Renderer.hpp"
+#include "Camera/CameraManager.hpp"
 #include "Geometry/Mesh.hpp"
 #include "FrameResource.hpp"
 #include "GraphicsCore.hpp"
@@ -10,8 +10,8 @@
 #include "GraphicsUtils/Memory/DescriptorHeap.hpp"
 #include "GraphicsUtils/Buffers/ColorBuffer.hpp"
 #include "GraphicsUtils/VertexTypes.hpp"
-#include "Camera/CameraManager.hpp"
 #include "GraphicsUtils/Profiling/Profiling.hpp"
+#include "LightManager.hpp"
 #include "Resources/TextureResource.hpp"
 
 #include <ResourceManager/ResourceManager.hpp>
@@ -638,7 +638,7 @@ namespace Darius::Renderer
 
 				if (ri.PsoFlags & RenderItem::ColorOnly)
 				{
-					D_RENDERER_FRAME_RESOUCE::ColorConstants color = { ri.Color };
+					D_RENDERER_FRAME_RESOURCE::ColorConstants color = { ri.Color };
 					context.SetDynamicConstantBufferView(kMaterialConstants, sizeof(ColorConstants), &color);
 				}
 				else
@@ -814,7 +814,7 @@ namespace Darius::Renderer
 	uint8_t GetPso(uint16_t psoFlags)
 	{
 		GraphicsPSO ColorPSO = DefaultPso;
-		using namespace D_RENDERER_FRAME_RESOUCE;
+		using namespace D_RENDERER_FRAME_RESOURCE;
 		uint16_t Requirements = RenderItem::HasPosition | RenderItem::HasNormal | RenderItem::HasTangent | RenderItem::HasUV0;
 
 		// Checking requirements and supported features
