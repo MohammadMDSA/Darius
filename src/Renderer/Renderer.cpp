@@ -327,7 +327,7 @@ namespace Darius::Renderer
 	{
 		// Default root signature
 		auto& def = RootSigns[(size_t)RootSignatureTypes::DefaultRootSig];
-		def.Reset(kNumRootBindings, 3);
+		def.Reset(kNumRootBindings, 4);
 
 		// Create samplers
 		SamplerDesc defaultSamplerDesc;
@@ -336,6 +336,7 @@ namespace Darius::Renderer
 		def.InitStaticSampler(10, defaultSamplerDesc, D3D12_SHADER_VISIBILITY_PIXEL);
 		def.InitStaticSampler(11, SamplerShadowDesc, D3D12_SHADER_VISIBILITY_PIXEL);
 		def.InitStaticSampler(12, cubeMapSamplerDesc, D3D12_SHADER_VISIBILITY_PIXEL);
+		def.InitStaticSampler(13, SamplerLinearWrapDesc, D3D12_SHADER_VISIBILITY_PIXEL);
 
 		// Create root CBVs.
 		def[kMeshConstants].InitAsConstantBuffer(0, D3D12_SHADER_VISIBILITY_VERTEX);
