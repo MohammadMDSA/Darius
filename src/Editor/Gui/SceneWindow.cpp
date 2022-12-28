@@ -10,6 +10,7 @@
 #include <Scene/EntityComponentSystem/Components/MeshRendererComponent.hpp>
 #include <Scene/EntityComponentSystem/Components/SkeletalMeshRendererComponent.hpp>
 #include <Renderer/Renderer.hpp>
+#include <Renderer/LightManager.hpp>
 #include <ResourceManager/ResourceManager.hpp>
 
 #include <imgui/imgui.h>
@@ -74,7 +75,7 @@ namespace Darius::Editor::Gui::Windows
 		mSceneTexture.Destroy();
 	}
 
-	void SceneWindow::UpdateGlobalConstants(D_RENDERER_FRAME_RESOUCE::GlobalConstants& globals)
+	void SceneWindow::UpdateGlobalConstants(D_RENDERER_FRAME_RESOURCE::GlobalConstants& globals)
 	{
 		Matrix4 temp;
 
@@ -130,9 +131,11 @@ namespace Darius::Editor::Gui::Windows
 
 		{
 			// Creating shadows
-			MeshSorter shadowSorter(MeshSorter::kShadows);
-			AddSceneRenderItems(shadowSorter, true);
-			D_LIGHT::RenderShadows(&shadowSorter);
+
+			DVector<RenderItem> shadowRenderItems;
+			PopulateShadowRenderItems(shadowRenderItems);
+
+			D_LIGHT::RenderShadows(shadowRenderItems);
 		}
 
 		// Draw grid
@@ -357,7 +360,7 @@ namespace Darius::Editor::Gui::Windows
 		}
 	}
 
-	void SceneWindow::CreateGrid(DVector<D_RENDERER_FRAME_RESOUCE::RenderItem>& items, int count)
+	void SceneWindow::CreateGrid(DVector<D_RENDERER_FRAME_RESOURCE::RenderItem>& items, int count)
 	{
 		RenderItem item;
 		const Mesh* mesh = mLineMeshResource->GetMeshData();
@@ -385,7 +388,7 @@ namespace Darius::Editor::Gui::Windows
 
 	}
 
-	void SceneWindow::AddWindowRenderItems(D_RENDERER::MeshSorter& sorter)
+	void SceneWindow::AddWindowRenderItems(D_RENDERER::MeshSorter& sorter) const
 	{
 		for (auto& item : mWindowRenderItems)
 		{
@@ -393,7 +396,7 @@ namespace Darius::Editor::Gui::Windows
 		}
 	}
 
-	void SceneWindow::AddSceneRenderItems(D_RENDERER::MeshSorter& sorter, bool onlyShadow)
+	void SceneWindow::PopulateShadowRenderItems(D_CONTAINERS::DVector<RenderItem>& items) const
 	{
 		auto& worldReg = D_WORLD::GetRegistry();
 
@@ -407,7 +410,38 @@ namespace Darius::Editor::Gui::Windows
 				if (!meshComp.CanRender())
 					return;
 
-				if (onlyShadow && !meshComp.GetCastsShadow())
+				if (!meshComp.GetCastsShadow())
+					return;
+
+				items.push_back(meshComp.GetRenderItem());
+			});
+
+		// Iterating over meshes
+		worldReg.each([&](D_ECS_COMP::SkeletalMeshRendererComponent& meshComp)
+			{
+				// Can't render
+				if (!meshComp.CanRender())
+					return;
+
+				if (!meshComp.GetCastsShadow())
+					return;
+
+				items.push_back(meshComp.GetRenderItem());
+			});
+	}
+
+	void SceneWindow::AddSceneRenderItems(D_RENDERER::MeshSorter& sorter) const
+	{
+		auto& worldReg = D_WORLD::GetRegistry();
+
+		auto cam = D_CAMERA_MANAGER::GetActiveCamera();
+		auto frustum = cam->GetViewSpaceFrustum();
+
+		// Iterating over meshes
+		worldReg.each([&](D_ECS_COMP::MeshRendererComponent& meshComp)
+			{
+				// Can't render
+				if (!meshComp.CanRender())
 					return;
 
 				// Is it in our frustum
@@ -425,9 +459,6 @@ namespace Darius::Editor::Gui::Windows
 			{
 				// Can't render
 				if (!meshComp.CanRender())
-					return;
-
-				if (onlyShadow && !meshComp.GetCastsShadow())
 					return;
 
 				// Is it in our frustum
