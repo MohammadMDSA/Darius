@@ -125,6 +125,10 @@ namespace Darius::Renderer::LightManager
 		auto& currentActiveLightUpload = ActiveLightsUpload[D_RENDERER_DEVICE::GetCurrentResourceIndex()];
 		auto& currentLightUpload = LightsUpload[D_RENDERER_DEVICE::GetCurrentResourceIndex()];
 
+		// Upload buffers state
+		context.TransitionResource(currentActiveLightUpload, D3D12_RESOURCE_STATE_COMMON);
+		context.TransitionResource(currentLightUpload, D3D12_RESOURCE_STATE_COMMON);
+
 		UINT* data = (UINT*)currentActiveLightUpload.Map();
 		LightData* lightUploadData = (LightData*)currentLightUpload.Map();
 
@@ -197,10 +201,12 @@ namespace Darius::Renderer::LightManager
 
 		context.PIXBeginEvent(L"Uploading light masks and data");
 
+		context.TransitionResource(currentActiveLightUpload, D3D12_RESOURCE_STATE_COPY_SOURCE);
+		context.TransitionResource(currentLightUpload, D3D12_RESOURCE_STATE_COPY_SOURCE);
 		context.TransitionResource(LightsBufferGpu, D3D12_RESOURCE_STATE_COPY_DEST);
 		context.TransitionResource(ActiveLightsBufferGpu, D3D12_RESOURCE_STATE_COPY_DEST, true);
-		context.GetCommandList()->CopyBufferRegion(LightsBufferGpu.GetResource(), 0, currentLightUpload.GetResource(), 0, currentLightUpload.GetBufferSize());
-		context.GetCommandList()->CopyBufferRegion(ActiveLightsBufferGpu.GetResource(), 0, currentActiveLightUpload.GetResource(), 0, currentActiveLightUpload.GetBufferSize());
+		context.CopyBufferRegion(LightsBufferGpu, 0, currentLightUpload, 0, currentLightUpload.GetBufferSize());
+		context.CopyBufferRegion(ActiveLightsBufferGpu, 0, currentActiveLightUpload, 0, currentActiveLightUpload.GetBufferSize());
 		context.TransitionResource(LightsBufferGpu, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
 
 		context.PIXEndEvent();
@@ -345,7 +351,7 @@ namespace Darius::Renderer::LightManager
 
 		context.TransitionResource(shadowBuffer, D3D12_RESOURCE_STATE_COPY_SOURCE);
 
-		context.TransitionResource(ShadowTextureArrayBuffer, D3D12_RESOURCE_STATE_COPY_DEST);
+		context.TransitionResource(ShadowTextureArrayBuffer, D3D12_RESOURCE_STATE_COPY_DEST, true);
 
 		context.CopySubresource(ShadowTextureArrayBuffer, lightGloablIndex, shadowBuffer, 0);
 
@@ -373,7 +379,7 @@ namespace Darius::Renderer::LightManager
 
 		context.TransitionResource(shadowBuffer, D3D12_RESOURCE_STATE_COPY_SOURCE);
 
-		context.TransitionResource(ShadowTextureArrayBuffer, D3D12_RESOURCE_STATE_COPY_DEST);
+		context.TransitionResource(ShadowTextureArrayBuffer, D3D12_RESOURCE_STATE_COPY_DEST, true);
 
 		context.CopySubresource(ShadowTextureArrayBuffer, lightGloablIndex, shadowBuffer, 0);
 

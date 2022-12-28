@@ -29,7 +29,8 @@ namespace Demo
 
 		auto trans = GetTransform();
 		trans.Translation = D_MATH::Vector3(0.f, D_MATH::Cos(time * 2) * 5, 0.f);
-		trans.Rotation = D_MATH::Quaternion(D_MATH::Vector3::Up(), time);
+		if (mRotate)
+			trans.Rotation = D_MATH::Quaternion(D_MATH::Vector3::Up(), time);
 		SetTransform(trans);
 	}
 
@@ -42,14 +43,14 @@ namespace Demo
 
 
 		// sample field
-		D_H_DETAILS_DRAW_PROPERTY("field");
+		D_H_DETAILS_DRAW_PROPERTY("Rotate");
 
 		float val;
-		changed |= ImGui::InputFloat("##val", &val);
+		changed |= ImGui::Checkbox("##Rotate", &mRotate);
 
 		D_H_DETAILS_DRAW_END_TABLE();
 
-		return false;
+		return changed;
 	}
 #endif
 

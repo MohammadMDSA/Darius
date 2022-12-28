@@ -19,5 +19,8 @@ namespace Demo
 		virtual void					Start() override;
 
 		virtual void					Update(float deltaTime) override;
+
+	private:
+		D_CH_RW_FIELD(bool, Rotate);
 	};
 }
