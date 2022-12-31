@@ -38,12 +38,14 @@ namespace Darius::Editor::Gui::Windows
 	private:
 		void CreateBuffers();
 
-		void AddSceneRenderItems(D_RENDERER::MeshSorter& sorter, bool onlyShado = false);
-		void AddWindowRenderItems(D_RENDERER::MeshSorter& sorter);
-		void CreateGrid(DVector<D_RENDERER_FRAME_RESOUCE::RenderItem>& items, int count);
+		void AddSceneRenderItems(D_RENDERER::MeshSorter& sorter) const;
+		void AddWindowRenderItems(D_RENDERER::MeshSorter& sorter) const;
+		void PopulateShadowRenderItems(_OUT_ D_CONTAINERS::DVector<RenderItem>& items) const;
+
+		void CreateGrid(DVector<D_RENDERER_FRAME_RESOURCE::RenderItem>& items, int count);
 		void CalcGridLineConstants(DVector<MeshConstants>& constants, int count);
 
-		void UpdateGlobalConstants(D_RENDERER_FRAME_RESOUCE::GlobalConstants& globals);
+		void UpdateGlobalConstants(D_RENDERER_FRAME_RESOURCE::GlobalConstants& globals);
 
 		D_MATH_CAMERA::Camera						mCamera;
 		D_EDITOR::FlyingFPSCamera					mFlyingCam;
@@ -61,7 +63,7 @@ namespace Darius::Editor::Gui::Windows
 		ByteAddressBuffer							mLineConstantsGPU;
 
 		DVector<RenderItem>							mWindowRenderItems;
-		D_RENDERER_FRAME_RESOUCE::GlobalConstants	mSceneGlobals;
+		D_RENDERER_FRAME_RESOURCE::GlobalConstants	mSceneGlobals;
 
 		bool										mDrawGrid;
 		bool										mDrawSkybox;

@@ -1,7 +1,6 @@
 #pragma once
 #include "Geometry/Mesh.hpp"
 #include "FrameResource.hpp"
-#include "LightManager.hpp"
 
 #include <Utils/Common.hpp>
 #include <Math/VectorMath.hpp>
@@ -12,7 +11,10 @@ using namespace D_RENDERER_GEOMETRY;
 
 using namespace Microsoft::WRL;
 
-#define D_RENDERER_FRAME_RESOUCE Darius::Renderer::ConstantFrameResource
+#ifndef D_RENDERER_FRAME_RESOURCE
+#define D_RENDERER_FRAME_RESOURCE Darius::Renderer::ConstantFrameResource
+#endif // !D_RENDERER_FRAME_RESOURCE
+
 
 namespace Darius::Renderer::ConstantFrameResource
 {

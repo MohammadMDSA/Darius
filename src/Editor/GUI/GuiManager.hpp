@@ -10,7 +10,6 @@
 #endif // !D_GUI_MANAGER
 
 using namespace D_GRAPHICS;
-using namespace D_RENDERER_FRAME_RESOUCE;
 
 namespace Darius::Editor::Gui::GuiManager
 {

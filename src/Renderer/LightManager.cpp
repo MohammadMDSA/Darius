@@ -44,8 +44,8 @@ namespace Darius::Renderer::LightManager
 	D_GRAPHICS_BUFFERS::ColorBuffer		ShadowTextureArrayBuffer;
 
 	// Gpu buffers
-	D_GRAPHICS_BUFFERS::UploadBuffer	ActiveLightsUpload[D_RENDERER_FRAME_RESOUCE::gNumFrameResources];
-	D_GRAPHICS_BUFFERS::UploadBuffer	LightsUpload[D_RENDERER_FRAME_RESOUCE::gNumFrameResources];
+	D_GRAPHICS_BUFFERS::UploadBuffer	ActiveLightsUpload[D_RENDERER_FRAME_RESOURCE::gNumFrameResources];
+	D_GRAPHICS_BUFFERS::UploadBuffer	LightsUpload[D_RENDERER_FRAME_RESOURCE::gNumFrameResources];
 	ByteAddressBuffer					ActiveLightsBufferGpu;
 	StructuredBuffer					LightsBufferGpu;
 
@@ -57,8 +57,8 @@ namespace Darius::Renderer::LightManager
 	/////////////////////////////////////////////////
 	// Options
 
-	uint32_t							ShadowBufferWidth = 512;
-	uint32_t							ShodowBufferHeight = 512;
+	uint32_t							ShadowBufferWidth = 2048;
+	uint32_t							ShodowBufferHeight = 2048;
 	uint32_t							ShadowBufferDepthPercision = 16;
 
 	void Initialize()
@@ -79,7 +79,7 @@ namespace Darius::Renderer::LightManager
 		// Initializing buffers
 		size_t elemSize = sizeof(UINT) * 8;
 		size_t count = (MaxNumLight + elemSize - 1) / elemSize;
-		for (size_t i = 0; i < D_RENDERER_FRAME_RESOUCE::gNumFrameResources; i++)
+		for (size_t i = 0; i < D_RENDERER_FRAME_RESOURCE::gNumFrameResources; i++)
 		{
 			ActiveLightsUpload[i].Create(L"Active Light Upload", count * sizeof(UINT));
 			LightsUpload[i].Create(L"Light Upload", MaxNumLight * sizeof(LightData));
@@ -124,6 +124,10 @@ namespace Darius::Renderer::LightManager
 	{
 		auto& currentActiveLightUpload = ActiveLightsUpload[D_RENDERER_DEVICE::GetCurrentResourceIndex()];
 		auto& currentLightUpload = LightsUpload[D_RENDERER_DEVICE::GetCurrentResourceIndex()];
+
+		// Upload buffers state
+		context.TransitionResource(currentActiveLightUpload, D3D12_RESOURCE_STATE_COMMON);
+		context.TransitionResource(currentLightUpload, D3D12_RESOURCE_STATE_COMMON);
 
 		UINT* data = (UINT*)currentActiveLightUpload.Map();
 		LightData* lightUploadData = (LightData*)currentLightUpload.Map();
@@ -197,10 +201,12 @@ namespace Darius::Renderer::LightManager
 
 		context.PIXBeginEvent(L"Uploading light masks and data");
 
+		context.TransitionResource(currentActiveLightUpload, D3D12_RESOURCE_STATE_COPY_SOURCE);
+		context.TransitionResource(currentLightUpload, D3D12_RESOURCE_STATE_COPY_SOURCE);
 		context.TransitionResource(LightsBufferGpu, D3D12_RESOURCE_STATE_COPY_DEST);
 		context.TransitionResource(ActiveLightsBufferGpu, D3D12_RESOURCE_STATE_COPY_DEST, true);
-		context.GetCommandList()->CopyBufferRegion(LightsBufferGpu.GetResource(), 0, currentLightUpload.GetResource(), 0, currentLightUpload.GetBufferSize());
-		context.GetCommandList()->CopyBufferRegion(ActiveLightsBufferGpu.GetResource(), 0, currentActiveLightUpload.GetResource(), 0, currentActiveLightUpload.GetBufferSize());
+		context.CopyBufferRegion(LightsBufferGpu, 0, currentLightUpload, 0, currentLightUpload.GetBufferSize());
+		context.CopyBufferRegion(ActiveLightsBufferGpu, 0, currentActiveLightUpload, 0, currentActiveLightUpload.GetBufferSize());
 		context.TransitionResource(LightsBufferGpu, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
 
 		context.PIXEndEvent();
@@ -330,10 +336,12 @@ namespace Darius::Renderer::LightManager
 	void RenderDirectionalShadow(D_RENDERER::MeshSorter& sorter, D_GRAPHICS::GraphicsContext& context, LightData& light, int lightGloablIndex)
 	{
 		D_MATH_CAMERA::ShadowCamera cam;
-		cam.UpdateMatrix(-Vector3(light.Direction), Vector3(0.f, 0.f, 0.f), Vector3(5000, 3000, 3000), ShadowBufferWidth, ShodowBufferHeight, ShadowBufferDepthPercision);
+		cam.UpdateMatrix(Vector3(light.Direction), Vector3(0.f, 0.f, 0.f), Vector3(100, 100, 3000), ShadowBufferWidth, ShodowBufferHeight, ShadowBufferDepthPercision);
 		light.ShadowMatrix = cam.GetShadowMatrix();
+
 		GlobalConstants globals;
 		globals.ViewProj = light.ShadowMatrix;
+		globals.ShadowTexelSize.x = 1.f / ShadowBufferWidth;
 
 		auto& shadowBuffer = ShadowBuffers[lightGloablIndex];
 
@@ -344,6 +352,8 @@ namespace Darius::Renderer::LightManager
 		sorter.RenderMeshes(MeshSorter::kZPass, context, globals);
 
 		context.TransitionResource(shadowBuffer, D3D12_RESOURCE_STATE_COPY_SOURCE);
+
+		context.TransitionResource(ShadowTextureArrayBuffer, D3D12_RESOURCE_STATE_COPY_DEST, true);
 
 		context.CopySubresource(ShadowTextureArrayBuffer, lightGloablIndex, shadowBuffer, 0);
 
@@ -370,12 +380,19 @@ namespace Darius::Renderer::LightManager
 
 		context.TransitionResource(shadowBuffer, D3D12_RESOURCE_STATE_COPY_SOURCE);
 
+		context.TransitionResource(ShadowTextureArrayBuffer, D3D12_RESOURCE_STATE_COPY_DEST, true);
+
 		context.CopySubresource(ShadowTextureArrayBuffer, lightGloablIndex, shadowBuffer, 0);
 
 	}
 
-	void RenderShadows(D_RENDERER::MeshSorter* parentSorter)
+	void RenderShadows(D_CONTAINERS::DVector<RenderItem> const& shadowRenderItems)
 	{
+
+		// TODO: Create sorter and input render item per light source
+		MeshSorter sorter(MeshSorter::kShadows);
+		for (auto const& ri : shadowRenderItems) sorter.AddMesh(ri, 0.1);
+
 		auto& shadowContext = D_GRAPHICS::GraphicsContext::Begin();
 		shadowContext.TransitionResource(ShadowTextureArrayBuffer, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
 
@@ -384,14 +401,14 @@ namespace Darius::Renderer::LightManager
 
 			//D_JOB::AssignTask([&](int, int) {
 
-			parentSorter->Reset();
+			sorter.Reset();
 
 			if (i < MaxNumDirectionalLight)
 			{
 				auto& light = DirectionalLights[i];
 				if (!light.CastsShadow || !ActiveDirectionalLight[i].LightActive || !ActiveDirectionalLight[i].ComponentActive)
 					continue;
-				RenderDirectionalShadow(*parentSorter, shadowContext, light, i);
+				RenderDirectionalShadow(sorter, shadowContext, light, i);
 			}
 			else if (i >= MaxNumPointLight + MaxNumDirectionalLight)
 			{
@@ -399,7 +416,7 @@ namespace Darius::Renderer::LightManager
 				auto& light = SpotLights[idx];
 				if (!light.CastsShadow || !ActiveSpotLight[idx].LightActive || !ActiveSpotLight[idx].ComponentActive)
 					continue;
-				RenderSpotShadow(*parentSorter, shadowContext, light, i);
+				RenderSpotShadow(sorter, shadowContext, light, i);
 			}
 
 			//});

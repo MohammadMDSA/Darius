@@ -14,7 +14,7 @@
 #define D_GRAPHICS Darius::Graphics
 #endif
 
-using namespace D_RENDERER_FRAME_RESOUCE;
+using namespace D_RENDERER_FRAME_RESOURCE;
 using namespace D_GRAPHICS_BUFFERS;
 using namespace D_CORE;
 
@@ -70,7 +70,7 @@ namespace Darius::Graphics
 
 		MaterialResource(Uuid uuid, std::wstring const& path, std::wstring const& name, D_RESOURCE::DResourceId id, bool isDefault = false);
 
-		D_GRAPHICS_BUFFERS::UploadBuffer	mMaterialConstantsCPU[D_RENDERER_FRAME_RESOUCE::gNumFrameResources];
+		D_GRAPHICS_BUFFERS::UploadBuffer	mMaterialConstantsCPU[D_RENDERER_FRAME_RESOURCE::gNumFrameResources];
 		ByteAddressBuffer					mMaterialConstantsGPU;
 
 		DescriptorHandle					mTexturesHeap;

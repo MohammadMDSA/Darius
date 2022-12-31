@@ -1,7 +1,7 @@
 #include "Renderer.hpp"
 #include "pch.hpp"
 
-#include "Renderer.hpp"
+#include "Camera/CameraManager.hpp"
 #include "Geometry/Mesh.hpp"
 #include "FrameResource.hpp"
 #include "GraphicsCore.hpp"
@@ -10,8 +10,8 @@
 #include "GraphicsUtils/Memory/DescriptorHeap.hpp"
 #include "GraphicsUtils/Buffers/ColorBuffer.hpp"
 #include "GraphicsUtils/VertexTypes.hpp"
-#include "Camera/CameraManager.hpp"
 #include "GraphicsUtils/Profiling/Profiling.hpp"
+#include "LightManager.hpp"
 #include "Resources/TextureResource.hpp"
 
 #include <ResourceManager/ResourceManager.hpp>
@@ -327,7 +327,7 @@ namespace Darius::Renderer
 	{
 		// Default root signature
 		auto& def = RootSigns[(size_t)RootSignatureTypes::DefaultRootSig];
-		def.Reset(kNumRootBindings, 3);
+		def.Reset(kNumRootBindings, 4);
 
 		// Create samplers
 		SamplerDesc defaultSamplerDesc;
@@ -336,6 +336,7 @@ namespace Darius::Renderer
 		def.InitStaticSampler(10, defaultSamplerDesc, D3D12_SHADER_VISIBILITY_PIXEL);
 		def.InitStaticSampler(11, SamplerShadowDesc, D3D12_SHADER_VISIBILITY_PIXEL);
 		def.InitStaticSampler(12, cubeMapSamplerDesc, D3D12_SHADER_VISIBILITY_PIXEL);
+		def.InitStaticSampler(13, SamplerLinearWrapDesc, D3D12_SHADER_VISIBILITY_PIXEL);
 
 		// Create root CBVs.
 		def[kMeshConstants].InitAsConstantBuffer(0, D3D12_SHADER_VISIBILITY_VERTEX);
@@ -638,7 +639,7 @@ namespace Darius::Renderer
 
 				if (ri.PsoFlags & RenderItem::ColorOnly)
 				{
-					D_RENDERER_FRAME_RESOUCE::ColorConstants color = { ri.Color };
+					D_RENDERER_FRAME_RESOURCE::ColorConstants color = { ri.Color };
 					context.SetDynamicConstantBufferView(kMaterialConstants, sizeof(ColorConstants), &color);
 				}
 				else
@@ -814,7 +815,7 @@ namespace Darius::Renderer
 	uint8_t GetPso(uint16_t psoFlags)
 	{
 		GraphicsPSO ColorPSO = DefaultPso;
-		using namespace D_RENDERER_FRAME_RESOUCE;
+		using namespace D_RENDERER_FRAME_RESOURCE;
 		uint16_t Requirements = RenderItem::HasPosition | RenderItem::HasNormal | RenderItem::HasTangent | RenderItem::HasUV0;
 
 		// Checking requirements and supported features

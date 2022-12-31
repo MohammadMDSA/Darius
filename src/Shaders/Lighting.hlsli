@@ -81,8 +81,11 @@ float3 ApplyAmbientLight(
 
 float GetDirectionalShadow(uint lightIndex, float3 ShadowCoord)
 {
+
+    float3 coord = float3(ShadowCoord.xy, lightIndex);
+
 #ifdef SINGLE_SAMPLE
-    float result = texShadow.SampleCmpLevelZero( shadowSampler, ShadowCoord.xy, ShadowCoord.z );
+    float result = texShadow.SampleCmpLevelZero(shadowSampler, coord.xy, ShadowCoord.z);
 #else
     
     const float Dilation = 2.0;
@@ -91,8 +94,6 @@ float GetDirectionalShadow(uint lightIndex, float3 ShadowCoord)
     float d3 = Dilation * gShadowTexelSize.x * 0.625;
     float d4 = Dilation * gShadowTexelSize.x * 0.375;
 
-    float3 coord = float3(ShadowCoord.xy, lightIndex);
-    
     float result = (
         2.0 * lightShadowArrayTex.SampleCmpLevelZero(shadowSampler, coord, ShadowCoord.z) +
         lightShadowArrayTex.SampleCmpLevelZero(shadowSampler, coord + float3(-d2, d1, 0.f), ShadowCoord.z) +
@@ -146,13 +147,21 @@ float3 ApplyDirectionalLight(
     float gloss, // Specular power
     float3 normal, // World-space normal
     float3 viewDir, // World-space vector from eye to point
+    float3 worldPos, // World-space fragment position
     float3 lightDir, // World-space vector from point to light
-    float3 lightColor, // Radiance of directional light
-    float3 shadowCoord, // Shadow coordinate (Shadow map UV & light-relative Z)
+    float3 lightColor, // Radiance of directional light,
+    float4x4 shadowTextureMatrix,
+    bool castsShadow,
 	uint lightIndex
     )
 {
-    float shadow = /*GetDirectionalShadow(lightIndex, shadowCoord)*/1;
+    float shadow = 1.f;
+    if (castsShadow)
+    {
+        float4 shadowCoord = mul(shadowTextureMatrix, float4(worldPos, 1.0));
+        shadowCoord.xyz *= rcp(shadowCoord.w);
+        shadow = GetDirectionalShadow(lightIndex, shadowCoord.xyz);
+    }
 
     return shadow * ApplyLightCommon(
         diffuseColor,
@@ -359,9 +368,11 @@ float3 ComputeLighting(
                 gloss,
                 normal,
                 -toEye,
+                pos,
                 -light.Direction,
                 light.Color,
-                float3(0.f, 0.f, 0.f),
+                light.ShadowMatrix,
+                true,
                 i);
             continue;
         }

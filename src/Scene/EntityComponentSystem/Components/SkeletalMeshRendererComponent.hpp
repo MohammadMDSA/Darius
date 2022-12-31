@@ -85,7 +85,7 @@ namespace Darius::Scene::ECS::Components
 		BoundingSphere						mBounds;
 
 		// Gpu buffers
-		D_GRAPHICS_BUFFERS::UploadBuffer	mMeshConstantsCPU[D_RENDERER_FRAME_RESOUCE::gNumFrameResources];
+		D_GRAPHICS_BUFFERS::UploadBuffer	mMeshConstantsCPU[D_RENDERER_FRAME_RESOURCE::gNumFrameResources];
 		ByteAddressBuffer					mMeshConstantsGPU;
 
 		uint16_t							mComponentPsoFlags;
