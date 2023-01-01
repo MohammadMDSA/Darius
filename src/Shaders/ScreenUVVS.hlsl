@@ -7,11 +7,11 @@ struct VSOutput
 };
 
 [RootSignature(Renderer_RootSig)]
-VSOutput main(int VertID : SV_VertexID)
+VSOutput main(uint VertID : SV_VertexID)
 {
 	VSOutput vout;
 	vout.tex = float2(uint2(VertID, VertID << 1) & 2);
-	vout.pos = vout.tex * 2.f - 1.f;
+    vout.pos = float4(vout.tex * 2.f - 1.f, 0.f, 1.f);
 
 	return vout;
 }

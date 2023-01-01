@@ -1,4 +1,4 @@
-#include "Common.hlsli"
+#include "../Common.hlsli"
 
 struct VSOutput
 {
@@ -11,5 +11,5 @@ Texture2D DebptTexture : register(t0);
 [RootSignature(Renderer_RootSig)]
 float4 main(VSOutput pin) : SV_Target
 {
-	return float4(DebptTexture.Sample(linearWrap, pin.tex).rrr. 1.f);
+	return float4(DebptTexture.Sample(linearWrap, pin.tex).rrr, 1.f);
 }
