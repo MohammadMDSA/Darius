@@ -203,6 +203,8 @@ namespace Darius::Editor::Gui::GuiManager
 			if (ImGuiFileDialog::Instance()->IsOk())
 			{
 				std::string filePathName = ImGuiFileDialog::Instance()->GetFilePathName();
+				D_WORLD::Unload();
+
 				if (D_WORLD::Load(WSTR_STR(filePathName)))
 					D_EDITOR_CONTEXT::SetSelectedGameObject(nullptr);
 			}
