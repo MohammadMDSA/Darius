@@ -82,7 +82,7 @@ float3 ApplyAmbientLight(
 float GetDirectionalShadow(uint lightIndex, float3 ShadowCoord)
 {
 
-    float3 coord = float3(ShadowCoord.xy, lightIndex);
+    float3 coord = float3(ShadowCoord.x / 2 + 0.5f, -ShadowCoord.y / 2 + 0.5f, lightIndex);
 
 #ifdef SINGLE_SAMPLE
     float result = texShadow.SampleCmpLevelZero(shadowSampler, coord.xy, ShadowCoord.z);

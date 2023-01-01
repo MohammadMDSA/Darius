@@ -27,10 +27,9 @@ namespace Darius::Math::Camera
         SetPosition(ShadowCenter);
 
         SetProjMatrix(Matrix4::MakeScale(Vector3(2.0f, 2.0f, 1.0f) * RcpDimensions));
-
         Update();
 
         // Transform from clip space to texture space
-        m_ShadowMatrix = Matrix4(AffineTransform(Matrix3::MakeScale(0.5f, -0.5f, 1.0f), Vector3(0.5f, 0.5f, 0.0f))) * m_ViewProjMatrix;
+        m_ShadowMatrix = /*Matrix4(AffineTransform(Matrix3::MakeScale(0.5f, -0.5f, 1.0f), Vector3(0.5f, 0.5f, 0.0f))) **/ m_ViewProjMatrix;
     }
 }

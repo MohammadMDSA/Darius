@@ -57,8 +57,8 @@ namespace Darius::Renderer::LightManager
 	/////////////////////////////////////////////////
 	// Options
 
-	uint32_t							ShadowBufferWidth = 2048;
-	uint32_t							ShodowBufferHeight = 2048;
+	uint32_t							ShadowBufferWidth = 512;
+	uint32_t							ShodowBufferHeight = 512;
 	uint32_t							ShadowBufferDepthPercision = 16;
 
 	void Initialize()
@@ -335,8 +335,10 @@ namespace Darius::Renderer::LightManager
 
 	void RenderDirectionalShadow(D_RENDERER::MeshSorter& sorter, D_GRAPHICS::GraphicsContext& context, LightData& light, int lightGloablIndex)
 	{
+
 		D_MATH_CAMERA::ShadowCamera cam;
-		cam.UpdateMatrix(Vector3(light.Direction), Vector3(0.f, 0.f, 0.f), Vector3(100, 100, 3000), ShadowBufferWidth, ShodowBufferHeight, ShadowBufferDepthPercision);
+		auto lightDir = -Vector3(light.Direction);
+		cam.UpdateMatrix(lightDir, Vector3(kZero), Vector3(100, 100, 3000), ShadowBufferWidth, ShodowBufferHeight, ShadowBufferDepthPercision);
 		light.ShadowMatrix = cam.GetShadowMatrix();
 
 		GlobalConstants globals;
