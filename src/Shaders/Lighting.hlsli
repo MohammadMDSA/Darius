@@ -157,12 +157,12 @@ float3 ApplyDirectionalLight(
     )
 {
     float shadow = 1.f;
-    if (castsShadow)
-    {
-        float4 shadowCoord = mul(shadowTextureMatrix, float4(worldPos, 1.0));
-        shadowCoord.xyz *= rcp(shadowCoord.w);
-        shadow = GetDirectionalShadow(lightIndex, shadowCoord.xyz);
-    }
+    //if (castsShadow)
+    //{
+    //    float4 shadowCoord = mul(shadowTextureMatrix, float4(worldPos, 1.0));
+    //    shadowCoord.xyz *= rcp(shadowCoord.w);
+    //    shadow = GetDirectionalShadow(lightIndex, shadowCoord.xyz);
+    //}
 
     return shadow * ApplyLightCommon(
         diffuseColor,
