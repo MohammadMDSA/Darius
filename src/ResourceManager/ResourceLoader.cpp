@@ -96,9 +96,8 @@ namespace Darius::ResourceManager
 			jmeta["Properties"] = resourceProps;
 
 			std::ofstream os(path);
-			if (!os)
-				int i = 3;
-			os << jmeta;
+			if (os)
+				os << jmeta;
 			os.close();
 		}
 
@@ -201,9 +200,16 @@ namespace Darius::ResourceManager
 
 	void ResourceLoader::VisitSubdirectory(Path const& path, bool recursively)
 	{
-		VisitFilesInDirectory(path, recursively, [&](Path const& _path)
+		D_FILE::VisitEntriesInDirectory(path, false, [&](Path const& _path, bool isDir)
 			{
-				VisitFile(_path);
+				if (isDir)
+				{
+					CheckDirectoryMeta(_path);
+					if (recursively)
+						VisitSubdirectory(_path, true);
+				}
+				else
+					VisitFile(_path);
 			});
 	}
 
@@ -235,7 +241,31 @@ namespace Darius::ResourceManager
 		return result;
 	}
 
-	void ResourceLoader::VisitFile(Path path)
+	void ResourceLoader::CheckDirectoryMeta(Path const& path)
+	{
+		if (!D_H_ENSURE_DIR(path))
+			return;
+
+		auto parent = path.parent_path();
+		auto name = path.filename().string();
+		auto metaName = name + ".tos";
+
+		auto metaPath = parent / metaName;
+
+		if (D_H_ENSURE_FILE(metaPath))
+			return;
+
+		Json metaData;
+		metaData["Path"] = name + "/";
+		metaData["Folder"] = true;
+
+		std::ofstream os(metaPath);
+		if (os)
+			os << metaData;
+		os.close();
+	}
+
+	void ResourceLoader::VisitFile(Path const& path)
 	{
 		if (path.extension() == ".tos")
 			return;

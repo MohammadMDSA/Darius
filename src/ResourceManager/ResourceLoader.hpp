@@ -38,7 +38,8 @@ namespace Darius::ResourceManager
 		static bool				SaveResource(Resource* resource, bool metaOnly);
 		static DVector<ResourceHandle> CreateResourceObject(ResourceFileMeta const& meta, DResourceManager* manager, Path const& directory);
 		static DVector<ResourceHandle> CreateResourceObject(Path const& path, DResourceManager* manager);
-		static void				VisitFile(Path path);
+		static void				VisitFile(Path const& path);
+		static void				CheckDirectoryMeta(Path const& path);
 	};
 
 	void to_json(D_SERIALIZATION::Json& j, const ResourceFileMeta& value);
