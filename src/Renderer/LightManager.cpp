@@ -338,15 +338,16 @@ namespace Darius::Renderer::LightManager
 
 		D_MATH_CAMERA::ShadowCamera cam;
 		auto lightDir = -Vector3(light.Direction);
-		cam.UpdateMatrix(lightDir, Vector3(kZero), Vector3(100, 100, 3000), ShadowBufferWidth, ShodowBufferHeight, ShadowBufferDepthPercision);
-		light.ShadowMatrix = cam.GetShadowMatrix();
+		cam.UpdateMatrix(lightDir, Vector3(0.f, 0.f, 0.f), Vector3(100, 100, 3000), ShadowBufferWidth, ShodowBufferHeight, ShadowBufferDepthPercision);
 
 		GlobalConstants globals;
-		globals.ViewProj = light.ShadowMatrix;
+		globals.ViewProj = cam.GetViewProjMatrix();
+		globals.View = cam.GetViewMatrix();
 		globals.ShadowTexelSize.x = 1.f / ShadowBufferWidth;
 
-		auto& shadowBuffer = ShadowBuffers[lightGloablIndex];
+		light.ShadowMatrix = Matrix4::Transpose(cam.GetShadowMatrix());
 
+		auto& shadowBuffer = ShadowBuffers[lightGloablIndex];
 		shadowBuffer.BeginRendering(context);
 
 		sorter.SetCamera(cam);

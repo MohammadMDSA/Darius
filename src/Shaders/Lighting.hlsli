@@ -79,12 +79,11 @@ float3 ApplyAmbientLight(
     return ao * diffuse * lightColor;
 }
 
-#define SINGLE_SAMPLE
-
 float GetDirectionalShadow(uint lightIndex, float3 ShadowCoord)
 {
 
-    float3 coord = float3(ShadowCoord.x / 2 + 0.5f, -ShadowCoord.y / 4 + 0.25, lightIndex);
+    float3 coord = float3(ShadowCoord.x / 2 + 0.5f, -ShadowCoord.y / 2 + 0.5f, lightIndex);
+    //float3 coord = float3(ShadowCoord.xy, lightIndex);
 
 #ifdef SINGLE_SAMPLE
     float result = lightShadowArrayTex.SampleCmpLevelZero(shadowSampler, coord, ShadowCoord.z);
