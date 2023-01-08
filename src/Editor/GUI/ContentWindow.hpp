@@ -14,15 +14,19 @@ namespace Darius::Editor::Gui::Windows
 		~ContentWindow();
 
 		// Inherited via Window
-		INLINE virtual std::string const GetName() override { return "Profiler"; }
+		INLINE virtual std::string const GetName() override { return "Content"; }
 
-		INLINE virtual void Render(D_GRAPHICS::GraphicsContext&) override {}
+		INLINE virtual void			Render(D_GRAPHICS::GraphicsContext&) override {}
 
-		INLINE virtual void Update(float) override {}
+		INLINE virtual void			Update(float) override {}
 
-		virtual void DrawGUI() override;
+		virtual void				DrawGUI() override;
+
+		void						UpdateDirectoryItems();
+		void						SetCurrentPath(D_FILE::Path const& path);
 
 		D_CH_R_FIELD(D_FILE::Path, CurrentDirectory);
+
 	private:
 		
 		D_CONTAINERS::DVector<std::pair<bool, std::string>>	mCurrentDirectoryItems; // isDirectory, name

@@ -87,6 +87,8 @@ if(BUILD_EDITOR)
         "src/Editor/Gui/ProfilerWindow.hpp"
         "src/Editor/Gui/ProfilerWindow.cpp"
         "src/Editor/Gui/Utils/Buffers.hpp"
+        "src/Editor/Gui/Components/ContentWindowComponents.cpp"
+        "src/Editor/Gui/Components/ContentWindowComponents.hpp"
     )
 
         add_definitions(-D_D_EDITOR)
