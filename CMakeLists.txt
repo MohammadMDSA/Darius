@@ -74,6 +74,8 @@ if(BUILD_EDITOR)
         "src/Editor/Gui/GuiManager.cpp"
         "src/Editor/Gui/Window.hpp"
         "src/Editor/Gui/Window.cpp"
+        "src/Editor/Gui/ContentWindow.hpp"
+        "src/Editor/Gui/ContentWindow.cpp"
         "src/Editor/Gui/SceneWindow.hpp"
         "src/Editor/Gui/SceneWindow.cpp"
         "src/Editor/Gui/SceneGraphWindow.hpp"

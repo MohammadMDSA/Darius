@@ -2,9 +2,10 @@
 #include <Renderer/pch.hpp>
 
 #include "GuiManager.hpp"
+#include "ContentWindow.hpp"
+#include "DetailsWindow.hpp"
 #include "SceneWindow.hpp"
 #include "SceneGraphWindow.hpp"
-#include "DetailsWindow.hpp"
 #include "ResourceMonitorWindow.hpp"
 #include "ProfilerWindow.hpp"
 #include "Editor/EditorContext.hpp"
@@ -63,6 +64,9 @@ namespace Darius::Editor::Gui::GuiManager
 
 		auto profilerWindow = new ProfilerWindow();
 		Windows[profilerWindow->GetName()] = profilerWindow;
+
+		auto contentWindow = new ContentWindow();
+		Windows[contentWindow->GetName()] = contentWindow;
 
 		ImGuiIO& io = ImGui::GetIO();
 		// Setup docking
@@ -163,7 +167,7 @@ namespace Darius::Editor::Gui::GuiManager
 		}
 
 		{
-			static bool show_demo_window = false;
+			static bool show_demo_window = true;
 			if (show_demo_window)
 				ImGui::ShowDemoWindow(&show_demo_window);
 
