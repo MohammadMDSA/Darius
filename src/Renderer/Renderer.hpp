@@ -170,7 +170,7 @@ namespace Darius::Renderer
 	void Shutdown();
 
 #ifdef _D_EDITOR
-	DescriptorHandle		GetUiTextureHandle(UINT index);
+	DescriptorHandle		AllocateUiTexture(UINT count = 1);
 	void					RenderGui();
 #endif
 

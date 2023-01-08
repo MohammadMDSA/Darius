@@ -29,7 +29,7 @@ namespace Darius::Editor::Gui::Windows
 		mDrawSkybox(true)
 	{
 		CreateBuffers();
-		mTextureHandle = D_RENDERER::GetUiTextureHandle(1);
+		mTextureHandle = D_RENDERER::AllocateUiTexture(1);
 
 		// Setup cameras
 		mCamera.SetFOV(XM_PI / 3);

@@ -46,7 +46,7 @@ namespace Darius::Renderer
 
 #ifdef _D_EDITOR
 	DescriptorHeap										ImguiHeap;
-	UINT												MaxImguiElements = 2;
+	UINT												MaxImguiElements = 2048;
 #endif
 
 	// Input layout and root signature
@@ -678,11 +678,9 @@ namespace Darius::Renderer
 	}
 
 #ifdef _D_EDITOR
-	DescriptorHandle	GetUiTextureHandle(UINT index)
+	DescriptorHandle	AllocateUiTexture(UINT count)
 	{
-		D_ASSERT_M(index != 0, "Access to 0 index of render resouces are not allowed");
-		D_ASSERT_M(index < MaxImguiElements&& index >= 1, "Index out of bound");
-		return ImguiHeap[index];
+		return ImguiHeap.Alloc(count);
 	}
 
 	void RenderGui()
@@ -705,11 +703,13 @@ namespace Darius::Renderer
 	void InitializeGUI()
 	{
 		ImguiHeap.Create(L"Imgui Heap", D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, MaxImguiElements);
-
+		
+		auto defualtHandle = ImguiHeap.Alloc(1);
+		
 		ImGui::CreateContext();
 		ImPlot::CreateContext();
 		ImGui_ImplWin32_Init(Resources->GetWindow());
-		ImGui_ImplDX12_Init(_device, Resources->GetBackBufferCount(), DXGI_FORMAT_B8G8R8A8_UNORM, ImguiHeap.GetHeapPointer(), ImguiHeap.GetHeapPointer()->GetCPUDescriptorHandleForHeapStart(), ImguiHeap.GetHeapPointer()->GetGPUDescriptorHandleForHeapStart());
+		ImGui_ImplDX12_Init(_device, Resources->GetBackBufferCount(), DXGI_FORMAT_B8G8R8A8_UNORM, ImguiHeap.GetHeapPointer(), defualtHandle, defualtHandle);
 	}
 #endif
 
