@@ -73,8 +73,7 @@ namespace Darius::Graphics::Utils::Memory
 		m_HeapDesc.Type = Type;
 		m_HeapDesc.NumDescriptors = MaxCount;
 		m_HeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
-		//m_HeapDesc.NodeMask = 1;
-		auto dev = D_RENDERER_DEVICE::GetDevice();
+		m_HeapDesc.NodeMask = 1;
 		D_HR_CHECK(D_RENDERER_DEVICE::GetDevice()->CreateDescriptorHeap(&m_HeapDesc, IID_PPV_ARGS(m_Heap.ReleaseAndGetAddressOf())));
 
 #ifdef RELEASE

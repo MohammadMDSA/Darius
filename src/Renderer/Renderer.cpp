@@ -46,7 +46,6 @@ namespace Darius::Renderer
 
 #ifdef _D_EDITOR
 	DescriptorHeap										ImguiHeap;
-	UINT												MaxImguiElements = 2048;
 #endif
 
 	// Input layout and root signature
@@ -130,7 +129,9 @@ namespace Darius::Renderer
 	{
 		D_ASSERT(_device != nullptr);
 
+#ifdef _D_EDITOR
 		ImguiHeap.Destroy();
+#endif
 		TextureHeap.Destroy();
 		SamplerHeap.Destroy();
 		D_GRAPHICS_UTILS::RootSignature::DestroyAll();
@@ -702,7 +703,7 @@ namespace Darius::Renderer
 
 	void InitializeGUI()
 	{
-		ImguiHeap.Create(L"Imgui Heap", D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, MaxImguiElements);
+		ImguiHeap.Create(L"Imgui Heap", D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, 4096);
 		
 		auto defualtHandle = ImguiHeap.Alloc(1);
 		
@@ -710,6 +711,8 @@ namespace Darius::Renderer
 		ImPlot::CreateContext();
 		ImGui_ImplWin32_Init(Resources->GetWindow());
 		ImGui_ImplDX12_Init(_device, Resources->GetBackBufferCount(), DXGI_FORMAT_B8G8R8A8_UNORM, ImguiHeap.GetHeapPointer(), defualtHandle, defualtHandle);
+
+		D_GRAPHICS::GetCommandManager()->IdleGPU();
 	}
 #endif
 
