@@ -59,7 +59,7 @@ namespace Darius::Renderer
 	DescriptorHeap										TextureHeap;
 	DescriptorHeap										SamplerHeap;
 
-	DescriptorHandle									CommonTexture;
+	DescriptorHandle									CommonTexture[D_RENDERER_FRAME_RESOURCE::gNumFrameResources];
 	DescriptorHandle									CommonTextureSamplers;
 
 	D_CORE::Ref<TextureResource>						RadianceCubeMap;
@@ -98,7 +98,10 @@ namespace Darius::Renderer
 		TextureHeap.Create(L"Scene Texture Descriptors", D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, 4096);
 		SamplerHeap.Create(L"Scene Sampler Descriptors", D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER, 2048);
 
-		CommonTexture = TextureHeap.Alloc(8);
+		for (int i = 0; i < D_RENDERER_FRAME_RESOURCE::gNumFrameResources; i++)
+		{
+			CommonTexture[i] = TextureHeap.Alloc(8);
+		}
 		CommonTextureSamplers = SamplerHeap.Alloc(kNumTextures);
 
 #ifdef _D_EDITOR
@@ -120,9 +123,12 @@ namespace Darius::Renderer
 				diffHandle
 			};
 
-			DescriptorHandle dest = CommonTexture + 3 * TextureHeap.GetDescriptorSize();
+			for (int i = 0; i < D_RENDERER_FRAME_RESOURCE::gNumFrameResources; i++)
+			{
+				DescriptorHandle dest = CommonTexture[i] + 3 * TextureHeap.GetDescriptorSize();
 
-			_device->CopyDescriptors(1, &dest, &DestCount, DestCount, SourceTextures, SourceCounts, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+				_device->CopyDescriptors(1, &dest, &DestCount, DestCount, SourceTextures, SourceCounts, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+			}
 		}
 	}
 
@@ -345,8 +351,8 @@ namespace Darius::Renderer
 		def[kMaterialSamplers].InitAsDescriptorRange(D3D12_DESCRIPTOR_RANGE_TYPE_SAMPLER, 0, 10, D3D12_SHADER_VISIBILITY_PIXEL);
 		def[kCommonCBV].InitAsConstantBuffer(1);
 		def[kCommonSRVs].InitAsDescriptorRange(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 10, 8, D3D12_SHADER_VISIBILITY_PIXEL);
-		def[kSkinMatrices].InitAsBufferSRV(20, D3D12_SHADER_VISIBILITY_VERTEX);\
-		def.Finalize(L"Main Root Sig", D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT);
+		def[kSkinMatrices].InitAsBufferSRV(20, D3D12_SHADER_VISIBILITY_VERTEX); \
+			def.Finalize(L"Main Root Sig", D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT);
 	}
 
 	DescriptorHandle AllocateTextureDescriptor(UINT count)
@@ -389,9 +395,13 @@ namespace Darius::Renderer
 			diffHandle
 		};
 
-		DescriptorHandle dest = CommonTexture + 3 * TextureHeap.GetDescriptorSize();
+		for (int i = 0; i < D_RENDERER_FRAME_RESOURCE::gNumFrameResources; i++)
+		{
+			DescriptorHandle dest = CommonTexture[i] + 3 * TextureHeap.GetDescriptorSize();
 
-		_device->CopyDescriptors(1, &dest, &DestCount, DestCount, SourceTextures, SourceCounts, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+			_device->CopyDescriptors(1, &dest, &DestCount, DestCount, SourceTextures, SourceCounts, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+
+		}
 	}
 
 	void DrawSkybox(D_GRAPHICS::GraphicsContext& context, const D_MATH_CAMERA::Camera& camera, D_GRAPHICS_BUFFERS::ColorBuffer& sceneColor, D_GRAPHICS_BUFFERS::DepthBuffer& sceneDepth, const D3D12_VIEWPORT& viewport, const D3D12_RECT& scissor)
@@ -428,7 +438,7 @@ namespace Darius::Renderer
 		context.SetDescriptorHeap(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, TextureHeap.GetHeapPointer());
 		context.SetDynamicConstantBufferView(kMeshConstants, sizeof(SkyboxVSCB), &skyVSCB);
 		context.SetDynamicConstantBufferView(kMaterialConstants, sizeof(SkyboxPSCB), &skyPSVB);
-		context.SetDescriptorTable(kCommonSRVs, CommonTexture);
+		context.SetDescriptorTable(kCommonSRVs, CommonTexture[Resources->GetCurrentFrameResourceIndex()]);
 
 		context.SetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
@@ -523,7 +533,7 @@ namespace Darius::Renderer
 		context.SetDynamicConstantBufferView(kCommonCBV, sizeof(GlobalConstants), &globals);
 
 		context.SetDescriptorHeap(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, TextureHeap.GetHeapPointer());
-		context.SetDescriptorTable(kCommonSRVs, CommonTexture);
+		context.SetDescriptorTable(kCommonSRVs, CommonTexture[Resources->GetCurrentFrameResourceIndex()]);
 
 		if (m_BatchType == kShadows)
 		{
@@ -557,7 +567,7 @@ namespace Darius::Renderer
 				D_LIGHT::GetLightDataHandle(),
 				D_LIGHT::GetShadowTextureArrayHandle(),
 			};
-			_device->CopyDescriptors(1, &CommonTexture, &destCount, destCount, lightHandles, sourceCounts, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+			_device->CopyDescriptors(1, &(CommonTexture[Resources->GetCurrentFrameResourceIndex()]), &destCount, destCount, lightHandles, sourceCounts, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 
 			// Setup samplers
 			context.SetDescriptorHeap(D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER, SamplerHeap.GetHeapPointer());
