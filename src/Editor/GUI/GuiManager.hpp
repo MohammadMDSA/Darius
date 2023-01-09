@@ -13,6 +13,15 @@ using namespace D_GRAPHICS;
 
 namespace Darius::Editor::Gui::GuiManager
 {
+
+	enum class Icon
+	{
+		Folder,
+		File,
+
+		NumIcons
+	};
+
 	void Initialize();
 	void Shutdown();
 
@@ -20,4 +29,6 @@ namespace Darius::Editor::Gui::GuiManager
 	void Render();
 	void DrawGUI();
 	void _DrawMenuBar();
+
+	uint64_t GetIconTextureId(Icon iconId);
 }

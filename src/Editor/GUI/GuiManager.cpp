@@ -34,12 +34,16 @@ using namespace Darius::Editor::Gui::Windows;
 
 namespace Darius::Editor::Gui::GuiManager
 {
-	bool										initialzied = false;
+	bool											initialzied = false;
+
+	D_CONTAINERS::DUnorderedMap<Icon, D_GRAPHICS_BUFFERS::Texture>	IconTexture;
+	D_CONTAINERS::DUnorderedMap<Icon, ImTextureID>	IconTextureHandle;
 
 	D_CONTAINERS::DUnorderedMap<std::string, Window*>	Windows;
 
-	std::string									LayoutPath;
+	std::string										LayoutPath;
 
+	void LoadIcons();
 	void ShowDialogs();
 
 	void RootToolbar();
@@ -48,6 +52,8 @@ namespace Darius::Editor::Gui::GuiManager
 	{
 		D_ASSERT(!initialzied);
 		initialzied = true;
+
+		LoadIcons();
 
 		// TODO: Use linear allocator to allocate windows
 		auto sceneWindow = new SceneWindow();
@@ -73,10 +79,13 @@ namespace Darius::Editor::Gui::GuiManager
 		io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
 
 		// Setup fonts
-		io.Fonts->AddFontDefault();
+		ImFontConfig fontConf;
+		io.Fonts->AddFontDefault(&fontConf);
 		// Merge fontawesom fonts
 		static const ImWchar icons_ranges[] = { ICON_MIN_FA, ICON_MAX_16_FA, 0 };
-		ImFontConfig icons_config; icons_config.MergeMode = true; icons_config.PixelSnapH = true;
+		ImFontConfig icons_config;
+		icons_config.MergeMode = true;
+		icons_config.PixelSnapH = true;
 		io.Fonts->AddFontFromFileTTF("EditorResources/fonts/" FONT_ICON_FILE_NAME_FAS, 12.0f, &icons_config, icons_ranges);
 
 
@@ -93,6 +102,29 @@ namespace Darius::Editor::Gui::GuiManager
 	void Shutdown()
 	{
 		D_ASSERT(initialzied);
+	}
+
+	void LoadIcons()
+	{
+		auto resPath = D_FILE::Path("EditorResources");
+
+		std::string fileNames[] = { "folder.dds", "document.dds" };
+
+		for (UINT i = 0; i < (UINT)Icon::NumIcons; i++)
+		{
+			IconTexture[(Icon)i] = D_GRAPHICS_BUFFERS::Texture();
+			auto& tex = IconTexture[(Icon)i];
+
+			auto fileData = D_FILE::ReadFileSync(resPath / "icons" / fileNames[i]);
+
+			tex.CreateDDSFromMemory(fileData->data(), fileData->size(), true);
+
+			auto gpuHandle = D_RENDERER::AllocateUiTexture(1);
+
+			D_RENDERER_DEVICE::GetDevice()->CopyDescriptorsSimple(1, gpuHandle, tex.GetSRV(), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+			IconTextureHandle[(Icon)i] = (ImTextureID)gpuHandle.GetGpuPtr();
+		}
+
 	}
 
 	void Update(float deltaTime)
@@ -175,7 +207,7 @@ namespace Darius::Editor::Gui::GuiManager
 
 		{
 			D_PROFILING::ScopedTimer windowDrawProfiling(L"Draw Window Gui");
-			
+
 			for (auto& kv : Windows)
 			{
 				auto wind = kv.second;
@@ -425,4 +457,10 @@ namespace Darius::Editor::Gui::GuiManager
 
 		ImGui::PopStyleVar();
 	}
+
+	uint64_t GetIconTextureId(Icon iconId)
+	{
+		return (uint64_t)IconTextureHandle[iconId];
+	}
+
 }
