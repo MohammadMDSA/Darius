@@ -94,6 +94,12 @@ namespace Darius::ResourceManager
 	{
 		_ResourceManager->GetAllResources(resources);
 	}
+
+	void GetAllResourcePaths(DVector<Path>& paths)
+	{
+		_ResourceManager->GetAllResourcePaths(paths);
+	}
+
 #endif // _D_EDITOR
 
 
@@ -216,7 +222,7 @@ namespace Darius::ResourceManager
 	}
 
 #ifdef _D_EDITOR
-	void DResourceManager::GetAllResources(DVector<Resource*>& resources)
+	void DResourceManager::GetAllResources(DVector<Resource*>& resources) const
 	{
 		for (auto& resType : mResourceMap)
 		{
@@ -224,6 +230,14 @@ namespace Darius::ResourceManager
 			{
 				resources.push_back(res.second.get());
 			}
+		}
+	}
+
+	void DResourceManager::GetAllResourcePaths(DVector<Path>& paths) const
+	{
+		for (auto const& path : mPathMap)
+		{
+			paths.push_back(Path(path.first));
 		}
 	}
 #endif // _D_EDITOR

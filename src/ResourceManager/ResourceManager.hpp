@@ -36,6 +36,7 @@ namespace Darius::ResourceManager
 
 #ifdef _D_EDITOR
 	void					GetAllResources(DVector<Resource*>& resources);
+	void					GetAllResourcePaths(DVector<Path>& paths);
 #endif // _D_EDITOR
 
 #pragma region GetResource
@@ -117,7 +118,8 @@ namespace Darius::ResourceManager
 		void						UpdateGPUResources();
 
 #ifdef _D_EDITOR
-		void						GetAllResources(DVector<Resource*>& resources);
+		void						GetAllResources(DVector<Resource*>& resources) const;
+		void						GetAllResourcePaths(DVector<Path>& paths) const;
 #endif // _D_EDITOR
 
 	private:
