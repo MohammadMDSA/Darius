@@ -2,7 +2,6 @@
 #include "ContentWindow.hpp"
 
 #include "Editor/EditorContext.hpp"
-#include "Components/ContentWindowComponents.hpp"
 
 #include <Core/Filesystem/FileUtils.hpp>
 
@@ -27,12 +26,11 @@ namespace Darius::Editor::Gui::Windows
 
 		float buttonWidth = 100;
 
-		for (auto const& dirItem : mCurrentDirectoryItems)
+		for (auto& dirItem : mCurrentDirectoryItems)
 		{
-			D_GUI_COMPONENT::EditorContentWindowItem itemData = { dirItem.second, mCurrentDirectory / dirItem.second, dirItem.first };
 			bool selected = false;
 			bool clicked;
-			D_GUI_COMPONENT::ContentWindowItemGrid(itemData, buttonWidth, buttonWidth, selected, clicked);
+			D_GUI_COMPONENT::ContentWindowItemGrid(dirItem, buttonWidth, buttonWidth, selected, clicked);
 
 			float last_button_x2 = ImGui::GetItemRectMax().x;
 			float next_button_x2 = last_button_x2 + style.ItemSpacing.x + buttonWidth; // Expected position if next button was on same line
@@ -48,7 +46,41 @@ namespace Darius::Editor::Gui::Windows
 
 		D_FILE::VisitEntriesInDirectory(mCurrentDirectory, false, [&](auto const& _path, bool isDir)
 			{
-				mCurrentDirectoryItems.push_back({ isDir, _path.filename().string() });
+				if (isDir)
+				{
+					mCurrentDirectoryItems.push_back({ _path.filename().string(), _path, true });
+				}
+				else
+				{
+
+					auto name = D_FILE::GetFileName(_path.filename());
+					auto nameStr = STR_WSTR(name);
+					mCurrentDirectoryItems.push_back({ nameStr, _path, false });
+
+				}
+			});
+
+		DVector<Path> resVec;
+		D_RESOURCE::GetAllResourcePaths(resVec);
+
+		for (auto const& path : resVec)
+		{
+			if (path.parent_path().compare(mCurrentDirectory) == 0)
+			{
+				auto name = D_FILE::GetFileName(path.filename());
+				auto nameStr = STR_WSTR(name);
+				mCurrentDirectoryItems.push_back({ nameStr, path, false });
+			}
+		}
+
+		std::sort(mCurrentDirectoryItems.begin(), mCurrentDirectoryItems.end(), [](auto first, auto second)
+			{
+				if (first.IsDirectory && !second.IsDirectory)
+					return true;
+				else if (second.IsDirectory && !first.IsDirectory)
+					return false;
+				else
+					return first.Name.compare(second.Name.c_str()) < 0;
 			});
 	}
 

@@ -1,5 +1,6 @@
 #pragma once
 
+#include <Core/Filesystem/Path.hpp>
 #include <Utils/Common.hpp>
 
 #ifndef D_GUI_COMPONENT
@@ -12,7 +13,7 @@ namespace Darius::Editor::Gui::Component
 	struct EditorContentWindowItem
 	{
 		std::string			Name;
-		std::wstring		Path;
+		D_FILE::Path		Path;
 		bool				IsDirectory;
 	};
 

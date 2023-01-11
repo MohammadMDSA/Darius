@@ -12,35 +12,44 @@ namespace Darius::Editor::Gui::Component
 	void ContentWindowItemGrid(EditorContentWindowItem& data, float width, float height, bool& selected, bool& doubleClicked)
 	{
 
-		auto nameStr = data.Name.c_str();
-		ImGui::PushID(nameStr);
+		auto pathStr = data.Path.c_str();
+		ImGui::PushID(pathStr);
 
-		ImGui::BeginGroup();
+		ImGui::BeginChildFrame(ImGui::GetID(pathStr), ImVec2(width, height), ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse | ImGuiWindowFlags_NoBackground);
 
-		auto padding = 15.f;
-		auto paddingVec = ImVec2(padding, padding);
+		auto availWidth = ImGui::GetContentRegionAvail().x;
+
+		auto textHight = ImGui::GetTextLineHeight();
+		auto padding = textHight + 5.f;
 		auto size = ImVec2(width - 2 * padding, height - 2 * padding);
 
 		auto startCurPos = ImGui::GetCursorPos();
 
-		ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, paddingVec);
+		ImGui::Button("##contentElBtn", ImVec2(-1, -1));
+
+		ImGui::SetCursorPos(ImVec2((availWidth - size.x) / 2 + startCurPos.x, startCurPos.y + 5));
 
 		if (data.IsDirectory)
-			ImGui::ImageButton("##icon", (ImTextureID)D_GUI_MANAGER::GetIconTextureId(D_GUI_MANAGER::Icon::Folder), size);
+			ImGui::Image((ImTextureID)D_GUI_MANAGER::GetIconTextureId(D_GUI_MANAGER::Icon::Folder), size);
 
 		else
-			ImGui::ImageButton("##icon", (ImTextureID)D_GUI_MANAGER::GetIconTextureId(D_GUI_MANAGER::Icon::File), size);
+			ImGui::Image((ImTextureID)D_GUI_MANAGER::GetIconTextureId(D_GUI_MANAGER::Icon::File), size);
 
-		ImGui::PopStyleVar();
+		auto nameStr = data.Name.c_str();
 
-		ImGui::SetCursorPos(ImVec2(startCurPos.x, startCurPos.y + height - padding + 2));
+		auto textWidth = ImGui::CalcTextSize(nameStr, 0, 0, availWidth).x;
+
+		auto textStart = (availWidth - textWidth) / 2;
+		textStart = textStart > 0 ? textStart : 0;
 		
-		//ImGui::TextWrapped(data.Name.c_str(), );
+		ImGui::SetCursorPos(ImVec2(startCurPos.x + textStart, startCurPos.y + height - 1.5 * padding));
+
+		ImGui::TextWrapped(nameStr);
 
 		selected = false;
 		doubleClicked = ImGui::IsMouseDoubleClicked(0) && ImGui::IsItemHovered();
 
-		ImGui::EndGroup();
+		ImGui::EndChildFrame();
 
 		ImGui::PopID();
 	}

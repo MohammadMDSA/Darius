@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Window.hpp"
+#include "Components/ContentWindowComponents.hpp"
 
 #include <Core/Filesystem/Path.hpp>
 #include <Core/Containers/Vector.hpp>
@@ -29,7 +30,7 @@ namespace Darius::Editor::Gui::Windows
 
 	private:
 		
-		D_CONTAINERS::DVector<std::pair<bool, std::string>>	mCurrentDirectoryItems; // isDirectory, name
+		D_CONTAINERS::DVector<D_GUI_COMPONENT::EditorContentWindowItem>	mCurrentDirectoryItems;
 
 	};
 }
