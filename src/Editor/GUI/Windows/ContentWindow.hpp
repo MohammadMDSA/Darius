@@ -1,7 +1,7 @@
 #pragma once
 
 #include "Window.hpp"
-#include "Components/ContentWindowComponents.hpp"
+#include "Editor/GUI/Components/ContentWindowComponents.hpp"
 
 #include <Core/Filesystem/Path.hpp>
 #include <Core/Containers/Vector.hpp>
@@ -24,13 +24,18 @@ namespace Darius::Editor::Gui::Windows
 		virtual void				DrawGUI() override;
 
 		void						UpdateDirectoryItems();
-		void						SetCurrentPath(D_FILE::Path const& path);
+		bool						SetCurrentPath(D_FILE::Path const& path);
 
 		D_CH_R_FIELD(D_FILE::Path, CurrentDirectory);
 
 	private:
+		void						DrawMainItems();
+		void						DrawBreadcrumb();
+
+		D_CONTAINERS::DUnorderedMap<D_RESOURCE::ResourceType, uint64_t> mResourceTypeTextureMap;
 		
 		D_CONTAINERS::DVector<D_GUI_COMPONENT::EditorContentWindowItem>	mCurrentDirectoryItems;
+		D_CONTAINERS::DVector<D_FILE::Path> mBreadcrumbItems; // it's from child to parent
 
 	};
 }

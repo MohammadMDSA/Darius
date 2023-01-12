@@ -1,7 +1,7 @@
 #pragma once
 
 #include "Window.hpp"
-#include "Utils/Buffers.hpp"
+#include "Editor/GUI/Utils/Buffers.hpp"
 
 #include <Core/TimeManager/TimeManager.hpp>
 

@@ -2,12 +2,12 @@
 #include <Renderer/pch.hpp>
 
 #include "GuiManager.hpp"
-#include "ContentWindow.hpp"
-#include "DetailsWindow.hpp"
-#include "SceneWindow.hpp"
-#include "SceneGraphWindow.hpp"
-#include "ResourceMonitorWindow.hpp"
-#include "ProfilerWindow.hpp"
+#include "Windows/ContentWindow.hpp"
+#include "Windows/DetailsWindow.hpp"
+#include "Windows/SceneWindow.hpp"
+#include "Windows/SceneGraphWindow.hpp"
+#include "Windows/ResourceMonitorWindow.hpp"
+#include "Windows/ProfilerWindow.hpp"
 #include "Editor/EditorContext.hpp"
 #include "Editor/Simulation.hpp"
 
@@ -108,7 +108,7 @@ namespace Darius::Editor::Gui::GuiManager
 	{
 		auto resPath = D_FILE::Path("EditorResources");
 
-		std::string fileNames[] = { "folder.dds", "document.dds" };
+		std::string fileNames[] = { "folder.dds", "document.dds", "material.dds" };
 
 		for (UINT i = 0; i < (UINT)Icon::NumIcons; i++)
 		{

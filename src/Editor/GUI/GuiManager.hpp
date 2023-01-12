@@ -18,6 +18,7 @@ namespace Darius::Editor::Gui::GuiManager
 	{
 		Folder,
 		File,
+		Material,
 
 		NumIcons
 	};
