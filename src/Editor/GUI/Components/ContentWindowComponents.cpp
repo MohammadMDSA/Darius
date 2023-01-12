@@ -1,10 +1,8 @@
 #include "Editor/pch.hpp"
 
 #include "ContentWindowComponents.hpp"
-#include "Editor/GUI/GuiManager.hpp"
 
 #include <imgui.h>
-#include <Libs/FontIcon/IconsFontAwesome6.h>
 
 namespace Darius::Editor::Gui::Component
 {
@@ -35,11 +33,7 @@ namespace Darius::Editor::Gui::Component
 
 		ImGui::SetCursorPos(ImVec2((availWidth - size.x) / 2 + startCurPos.x, startCurPos.y + 5));
 
-		if (data.IsDirectory)
-			ImGui::Image((ImTextureID)D_GUI_MANAGER::GetIconTextureId(D_GUI_MANAGER::Icon::Folder), size);
-
-		else
-			ImGui::Image((ImTextureID)D_GUI_MANAGER::GetIconTextureId(D_GUI_MANAGER::Icon::File), size);
+		ImGui::Image((ImTextureID)data.IconId, size);
 
 		auto nameStr = data.Name.c_str();
 
@@ -47,7 +41,7 @@ namespace Darius::Editor::Gui::Component
 
 		auto textStart = (availWidth - textWidth) / 2;
 		textStart = textStart > 0 ? textStart : 0;
-		
+
 		ImGui::SetCursorPos(ImVec2(startCurPos.x + textStart, startCurPos.y + height - 1.5 * padding));
 
 		ImGui::TextWrapped(nameStr);
