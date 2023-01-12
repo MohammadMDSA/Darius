@@ -26,17 +26,27 @@ namespace Darius::Editor::Gui::Windows
 
 		float buttonWidth = 100;
 
+		Path newContext;
+
 		for (auto& dirItem : mCurrentDirectoryItems)
 		{
 			bool selected = false;
 			bool clicked;
 			D_GUI_COMPONENT::ContentWindowItemGrid(dirItem, buttonWidth, buttonWidth, selected, clicked);
 
+			if (clicked && dirItem.IsDirectory)
+				newContext = dirItem.Path;
+
+			// Horzonal layout stuff
 			float last_button_x2 = ImGui::GetItemRectMax().x;
 			float next_button_x2 = last_button_x2 + style.ItemSpacing.x + buttonWidth; // Expected position if next button was on same line
 			if (next_button_x2 < window_visible_x2)
 				ImGui::SameLine();
 		}
+
+		// Switching to new director
+		if (!newContext.empty())
+			SetCurrentPath(newContext);
 
 	}
 
@@ -50,22 +60,18 @@ namespace Darius::Editor::Gui::Windows
 				{
 					mCurrentDirectoryItems.push_back({ _path.filename().string(), _path, true });
 				}
-				else
-				{
-
-					auto name = D_FILE::GetFileName(_path.filename());
-					auto nameStr = STR_WSTR(name);
-					mCurrentDirectoryItems.push_back({ nameStr, _path, false });
-
-				}
 			});
 
 		DVector<Path> resVec;
 		D_RESOURCE::GetAllResourcePaths(resVec);
 
+
 		for (auto const& path : resVec)
 		{
-			if (path.parent_path().compare(mCurrentDirectory) == 0)
+			auto parent = path.parent_path();
+			if (parent.empty())
+				continue;
+			if (std::filesystem::equivalent(mCurrentDirectory, parent))
 			{
 				auto name = D_FILE::GetFileName(path.filename());
 				auto nameStr = STR_WSTR(name);
@@ -86,7 +92,7 @@ namespace Darius::Editor::Gui::Windows
 
 	void ContentWindow::SetCurrentPath(D_FILE::Path const& path)
 	{
-		mCurrentDirectory = path;
+		mCurrentDirectory = path.lexically_normal();
 		UpdateDirectoryItems();
 	}
 }

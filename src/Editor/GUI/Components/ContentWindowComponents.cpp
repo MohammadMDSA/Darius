@@ -27,6 +27,12 @@ namespace Darius::Editor::Gui::Component
 
 		ImGui::Button("##contentElBtn", ImVec2(-1, -1));
 
+		selected = false;
+		doubleClicked = ImGui::IsMouseDoubleClicked(0) && ImGui::IsItemHovered();
+
+		if (ImGui::IsItemHovered())
+			ImGui::SetTooltip(data.Path.filename().string().c_str());
+
 		ImGui::SetCursorPos(ImVec2((availWidth - size.x) / 2 + startCurPos.x, startCurPos.y + 5));
 
 		if (data.IsDirectory)
@@ -45,9 +51,6 @@ namespace Darius::Editor::Gui::Component
 		ImGui::SetCursorPos(ImVec2(startCurPos.x + textStart, startCurPos.y + height - 1.5 * padding));
 
 		ImGui::TextWrapped(nameStr);
-
-		selected = false;
-		doubleClicked = ImGui::IsMouseDoubleClicked(0) && ImGui::IsItemHovered();
 
 		ImGui::EndChildFrame();
 
