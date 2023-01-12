@@ -32,8 +32,6 @@ namespace Darius::Editor::Gui::Windows
 		void						DrawMainItems();
 		void						DrawBreadcrumb();
 
-		D_CONTAINERS::DUnorderedMap<D_RESOURCE::ResourceType, uint64_t> mResourceTypeTextureMap;
-		
 		D_CONTAINERS::DVector<D_GUI_COMPONENT::EditorContentWindowItem>	mCurrentDirectoryItems;
 		D_CONTAINERS::DVector<D_FILE::Path> mBreadcrumbItems; // it's from child to parent
 

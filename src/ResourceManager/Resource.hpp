@@ -79,7 +79,8 @@ namespace Darius::ResourceManager
 		ResourceType			Type = 0;
 		DResourceId				Id = 0;
 
-		INLINE bool IsValid() { return Type != 0; }
+		INLINE bool IsValid() const { return Type != 0; }
+
 	};
 
 	constexpr ResourceHandle EmptyResourceHandle = { 0, 0 };
@@ -108,7 +109,7 @@ namespace Darius::ResourceManager
 		};
 
 	public:
-		
+
 		void Destroy()
 		{
 			mLoaded = false;

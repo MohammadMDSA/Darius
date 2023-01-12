@@ -4,10 +4,9 @@
 #include "Editor/EditorContext.hpp"
 #include "Editor/GUI/Components/Common.hpp"
 
-#include "Editor/GUI/GuiManager.hpp"
+#include "Editor/GUI/ThumbnailManager.hpp"
 
 #include <Core/Filesystem/FileUtils.hpp>
-#include <Renderer/Resources/MaterialResource.hpp>
 
 #include <imgui.h>
 #include <Libs/FontIcon/IconsFontAwesome6.h>
@@ -17,8 +16,6 @@ namespace Darius::Editor::Gui::Windows
 	ContentWindow::ContentWindow()
 	{
 		SetCurrentPath(D_EDITOR_CONTEXT::GetAssetsPath());
-
-		mResourceTypeTextureMap[D_GRAPHICS::MaterialResource::GetResourceType()] = D_GUI_MANAGER::GetIconTextureId(D_GUI_MANAGER::Icon::Material);
 	}
 
 	ContentWindow::~ContentWindow()
@@ -121,7 +118,7 @@ namespace Darius::Editor::Gui::Windows
 			{
 				if (isDir)
 				{
-					mCurrentDirectoryItems.push_back({ _path.filename().string(), _path, true, D_GUI_MANAGER::GetIconTextureId(D_GUI_MANAGER::Icon::Folder) });
+					mCurrentDirectoryItems.push_back({ _path.filename().string(), _path, true, D_THUMBNAIL::GetIconTextureId(D_THUMBNAIL::CommonIcon::Folder) });
 				}
 			});
 
@@ -140,9 +137,9 @@ namespace Darius::Editor::Gui::Windows
 				auto name = D_FILE::GetFileName(path.filename());
 				auto nameStr = STR_WSTR(name);
 
-				uint64_t icon = D_GUI_MANAGER::GetIconTextureId(D_GUI_MANAGER::Icon::File);
-				if (containedResources.size() == 1 && mResourceTypeTextureMap.contains(containedResources[0].Type))
-					icon = mResourceTypeTextureMap[containedResources[0].Type];
+				uint64_t icon = D_THUMBNAIL::GetIconTextureId(D_THUMBNAIL::CommonIcon::File);
+				if (containedResources.size() == 1)
+					icon = D_THUMBNAIL::GetResourceTextureId(containedResources[0]);
 
 				mCurrentDirectoryItems.push_back({ nameStr, path, false, icon });
 			}

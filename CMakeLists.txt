@@ -72,6 +72,8 @@ if(BUILD_EDITOR)
         "src/Editor/Simulation.cpp"
         "src/Editor/Gui/GuiManager.hpp"
         "src/Editor/Gui/GuiManager.cpp"
+        "src/Editor/Gui/ThumbnailManager.hpp"
+        "src/Editor/Gui/ThumbnailManager.cpp"
         "src/Editor/Gui/Windows/Window.hpp"
         "src/Editor/Gui/Windows/Window.cpp"
         "src/Editor/Gui/Windows/ContentWindow.hpp"

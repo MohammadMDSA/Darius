@@ -36,14 +36,10 @@ namespace Darius::Editor::Gui::GuiManager
 {
 	bool											initialzied = false;
 
-	D_CONTAINERS::DUnorderedMap<Icon, D_GRAPHICS_BUFFERS::Texture>	IconTexture;
-	D_CONTAINERS::DUnorderedMap<Icon, ImTextureID>	IconTextureHandle;
-
 	D_CONTAINERS::DUnorderedMap<std::string, Window*>	Windows;
 
 	std::string										LayoutPath;
 
-	void LoadIcons();
 	void ShowDialogs();
 
 	void RootToolbar();
@@ -52,8 +48,6 @@ namespace Darius::Editor::Gui::GuiManager
 	{
 		D_ASSERT(!initialzied);
 		initialzied = true;
-
-		LoadIcons();
 
 		// TODO: Use linear allocator to allocate windows
 		auto sceneWindow = new SceneWindow();
@@ -102,29 +96,6 @@ namespace Darius::Editor::Gui::GuiManager
 	void Shutdown()
 	{
 		D_ASSERT(initialzied);
-	}
-
-	void LoadIcons()
-	{
-		auto resPath = D_FILE::Path("EditorResources");
-
-		std::string fileNames[] = { "folder.dds", "document.dds", "material.dds" };
-
-		for (UINT i = 0; i < (UINT)Icon::NumIcons; i++)
-		{
-			IconTexture[(Icon)i] = D_GRAPHICS_BUFFERS::Texture();
-			auto& tex = IconTexture[(Icon)i];
-
-			auto fileData = D_FILE::ReadFileSync(resPath / "icons" / fileNames[i]);
-
-			tex.CreateDDSFromMemory(fileData->data(), fileData->size(), true);
-
-			auto gpuHandle = D_RENDERER::AllocateUiTexture(1);
-
-			D_RENDERER_DEVICE::GetDevice()->CopyDescriptorsSimple(1, gpuHandle, tex.GetSRV(), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-			IconTextureHandle[(Icon)i] = (ImTextureID)gpuHandle.GetGpuPtr();
-		}
-
 	}
 
 	void Update(float deltaTime)
@@ -456,11 +427,6 @@ namespace Darius::Editor::Gui::GuiManager
 			ImGui::EndDisabled();
 
 		ImGui::PopStyleVar();
-	}
-
-	uint64_t GetIconTextureId(Icon iconId)
-	{
-		return (uint64_t)IconTextureHandle[iconId];
 	}
 
 }

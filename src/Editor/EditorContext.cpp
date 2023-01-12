@@ -1,6 +1,8 @@
 #include "Editor/pch.hpp"
 #include "EditorContext.hpp"
-#include "Gui/GuiManager.hpp"
+
+#include "GUI/GuiManager.hpp"
+#include "GUI/ThumbnailManager.hpp"
 
 #include <ResourceManager/ResourceLoader.hpp>
 #include <Utils/Assert.hpp>
@@ -37,6 +39,7 @@ namespace Darius::Editor::ContextManager
 
 		D_RESOURCE_LOADER::VisitSubdirectory(GetAssetsPath(), true);
 
+		D_THUMBNAIL::Initialize();
 		D_GUI_MANAGER::Initialize();
 	}
 
@@ -44,6 +47,7 @@ namespace Darius::Editor::ContextManager
 	{
 		D_ASSERT(_initialized);
 		D_GUI_MANAGER::Shutdown();
+		D_THUMBNAIL::Shutdown();
 	}
 
 	GameObject* GetSelectedGameObject()
