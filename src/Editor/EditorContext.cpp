@@ -35,9 +35,9 @@ namespace Darius::Editor::ContextManager
 			D_ASSERT_M(std::filesystem::create_directory(GetEditorConfigPath()), "Could not detect/create editor config directory for project");
 		}
 
-		D_GUI_MANAGER::Initialize();
-
 		D_RESOURCE_LOADER::VisitSubdirectory(GetAssetsPath(), true);
+
+		D_GUI_MANAGER::Initialize();
 	}
 
 	void Shutdown()
