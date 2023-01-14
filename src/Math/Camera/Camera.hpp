@@ -132,6 +132,12 @@ namespace Darius::Math::Camera
         SetPosition(xform.GetTranslation());
     }
 
+    inline void BaseCamera::SetTransform(const OrthogonalTransform& xform)
+    {
+        SetRotation(xform.GetRotation());
+        SetPosition(xform.GetTranslation());
+    }
+
     inline void BaseCamera::SetRotation(Quaternion basisRotation)
     {
         m_CameraToWorld.SetRotation(Normalize(basisRotation));
