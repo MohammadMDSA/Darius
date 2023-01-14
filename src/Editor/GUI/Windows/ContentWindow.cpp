@@ -261,11 +261,17 @@ namespace Darius::Editor::Gui::Windows
 	void ContentWindow::SelectEditorContentItem(D_GUI_COMPONENT::EditorContentWindowItem const* item)
 	{
 		mSelectedItem = item;
+		
+		if (item->IsDirectory)
+			return;
 
 		auto containedResources = D_RESOURCE::ResourceLoader::LoadResource(item->Path, true);
 
 		if (containedResources.size() != 1)
+		{
+			D_EDITOR_CONTEXT::SetSelectedDetailed(nullptr);
 			return;
+		}
 
 		auto resource = D_RESOURCE::_GetRawResource(containedResources[0]);
 		D_EDITOR_CONTEXT::SetSelectedDetailed(resource);
