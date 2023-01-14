@@ -67,6 +67,10 @@ namespace Darius::Editor::Gui::Windows
 		);
 
 		D_RENDERER::SetIBLBias(0);
+
+
+		// Styling the gizmo
+		ImGuizmo::AllowAxisFlip(false);
 	}
 
 	SceneWindow::~SceneWindow()
