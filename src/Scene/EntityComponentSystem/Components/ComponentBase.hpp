@@ -73,7 +73,7 @@ type::type(D_CORE::Uuid uuid) : \
 
 #define D_H_COMP_DEFAULT_CONSTRUCTOR_DEF(type) D_H_COMP_DEFAULT_CONSTRUCTOR_DEF_PAR(type, ComponentBase)
 
-#define D_H_COMP_REF_PROP(type, name, ...) \
+#define D_H_COMP_RESOURCE_REF_PROP(type, name, ...) \
 public: \
     INLINE void Set##name(D_RESOURCE::ResourceHandle handle) { mChangeSignal(); _Set##name(handle); } \
     INLINE type* Get##name() { return m##name.Get(); } \

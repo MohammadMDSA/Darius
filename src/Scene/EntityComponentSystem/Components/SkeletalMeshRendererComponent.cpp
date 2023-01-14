@@ -10,6 +10,7 @@
 
 #include <imgui.h>
 #include <fbxsdk.h>
+#include <Libs/FontIcon/IconsFontAwesome6.h>
 
 
 using namespace D_SERIALIZATION;

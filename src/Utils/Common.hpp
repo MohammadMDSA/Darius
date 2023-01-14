@@ -69,11 +69,24 @@ static INLINE std::string const GetTypeName() { return D_NAMEOF(T); }
 //////////////////////////// Details Draw
 
 #ifdef _D_EDITOR
+
 #define D_H_RESOURCE_SELECTION_DRAW(resourceType, prop, placeHolder, handleFunction) \
 { \
     resourceType* currentResource = prop.Get(); \
      \
-    if (ImGui::Button(placeHolder)) \
+    std::string cuurrentResourceName; \
+    if(prop.IsValid()) \
+    { \
+        auto nameW = prop->GetName(); \
+        cuurrentResourceName = STR_WSTR(nameW); \
+    } \
+    else \
+        cuurrentResourceName = placeHolder; \
+    auto availableSpace = ImGui::GetContentRegionAvail(); \
+    auto selectorWidth = 20; \
+    ImGui::Button(cuurrentResourceName.c_str(), ImVec2(availableSpace.x - 2 * selectorWidth - 10.f, 0)); \
+    ImGui::SameLine(availableSpace.x - selectorWidth); \
+    if (ImGui::Button(ICON_FA_ELLIPSIS_VERTICAL, ImVec2(selectorWidth, 0))) \
     { \
         ImGui::OpenPopup(placeHolder " Res"); \
     } \

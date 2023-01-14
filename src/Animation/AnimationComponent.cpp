@@ -4,6 +4,7 @@
 #include <Scene/EntityComponentSystem/Components/SkeletalMeshRendererComponent.hpp>
 
 #include <imgui.h>
+#include <Libs/FontIcon/IconsFontAwesome6.h>
 
 using namespace D_ECS_COMP;
 
@@ -107,7 +108,7 @@ namespace Darius::Animation
 		}
 	}
 
-#ifdef _DEBUG
+#ifdef _D_EDITOR
 	bool AnimationComponent::DrawDetails(float params[])
 	{
 		bool valueChanged = false;

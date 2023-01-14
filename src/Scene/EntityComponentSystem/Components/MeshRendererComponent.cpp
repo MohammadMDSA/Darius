@@ -5,6 +5,7 @@
 #include <ResourceManager/ResourceManager.hpp>
 
 #include <imgui.h>
+#include <Libs/FontIcon/IconsFontAwesome6.h>
 
 using namespace D_SERIALIZATION;
 using namespace D_RESOURCE;

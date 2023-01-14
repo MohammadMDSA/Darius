@@ -7,6 +7,7 @@
 #include <ResourceManager/ResourceManager.hpp>
 
 #include <imgui.h>
+#include <Libs/FontIcon/IconsFontAwesome6.h>
 
 using namespace physx;
 
@@ -24,6 +25,7 @@ namespace Darius::Physics
 		mDynamic(false)
 	{}
 
+#ifdef _D_EDITOR
 	bool ColliderComponent::DrawDetails(float params[])
 	{
 		bool valueChanged = false;
@@ -42,6 +44,7 @@ namespace Darius::Physics
 		return valueChanged;
 
 	}
+#endif
 
 	void ColliderComponent::Start()
 	{

@@ -26,9 +26,9 @@ namespace Darius::Animation
 
 	public:
 
-#ifdef _DEBUG
+#ifdef _D_EDITOR
 		virtual bool					DrawDetails(float params[]) override;
-#endif // _DEBUG
+#endif // _D_EDITOR
 
 		// Serialization
 		virtual void					Serialize(Json& j) const override;

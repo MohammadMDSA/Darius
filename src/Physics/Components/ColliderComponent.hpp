@@ -37,7 +37,7 @@ namespace Darius::Physics
 
 		INLINE physx::PxShape*		GetShape() { return mShape; }
 
-		D_H_COMP_REF_PROP(PhysicsMaterialResource, Material, SetPxShapeMaterial(););
+		D_H_COMP_RESOURCE_REF_PROP(PhysicsMaterialResource, Material, SetPxShapeMaterial(););
 
 		D_CH_FIELD(physx::PxShape*,			Shape = nullptr);
 		D_CH_R_FIELD(bool,					Dynamic)
