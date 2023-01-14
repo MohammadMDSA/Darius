@@ -430,9 +430,10 @@ device->CopyDescriptorsSimple(1, mTexturesHeap + type * incSize, m##name##Textur
 		// Normal
 		ImGui::TableNextRow();
 		ImGui::TableSetColumnIndex(0);
-		DrawTexture2DHolder(mEmissiveTexture, Normal);
+		DrawTexture2DHolder(mNormalTexture, Normal);
 		ImGui::SameLine();
 		ImGui::Text("Normal");
+
 
 		// Two sided
 		{
