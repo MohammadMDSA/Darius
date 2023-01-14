@@ -11,11 +11,16 @@
 #include <imgui.h>
 #include <Libs/FontIcon/IconsFontAwesome6.h>
 
+using namespace D_FILE;
+
 namespace Darius::Editor::Gui::Windows
 {
 	ContentWindow::ContentWindow()
 	{
-		SetCurrentPath(D_EDITOR_CONTEXT::GetAssetsPath());
+		auto assetsPath = D_EDITOR_CONTEXT::GetAssetsPath();
+		SetCurrentPath(assetsPath);
+
+		mTreeViewFolderMap[assetsPath] = { assetsPath, false, assetsPath.parent_path().filename().string()};
 	}
 
 	ContentWindow::~ContentWindow()
@@ -32,7 +37,9 @@ namespace Darius::Editor::Gui::Windows
 		D_GUI_COMPONENT::Splitter(true, 8.f, &treeViewWidth, &rightPanelWidth, 50.f, 50.f, availableHeigh);
 
 		ImGui::BeginChild("##FileTreeView", ImVec2(treeViewWidth, availableHeigh));
-
+		{
+			DrawFolderTreeItem(mTreeViewFolderMap[D_EDITOR_CONTEXT::GetAssetsPath()]);
+		}
 		ImGui::EndChild();
 
 		ImGui::SameLine();
@@ -52,6 +59,57 @@ namespace Darius::Editor::Gui::Windows
 			ImGui::EndChild();
 		}
 		ImGui::EndChild();
+	}
+
+	void ContentWindow::DrawFolderTreeItem(TreeFoldeEntry& entry)
+	{
+		ImGuiTreeNodeFlags baseFlag = ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_SpanAvailWidth | ImGuiTreeNodeFlags_FramePadding;
+
+		if (entry.Openned && entry.Children.size() == 0)
+			baseFlag |= ImGuiTreeNodeFlags_Leaf;
+
+		if (&entry == mSelectedTreeNode)
+			baseFlag |= ImGuiTreeNodeFlags_Selected;
+
+		auto nodeOpen = ImGui::TreeNodeEx((void*)(&entry), baseFlag, entry.Name.c_str());
+
+		if (ImGui::IsItemClicked())
+		{
+			mSelectedTreeNode = &entry;
+			SetCurrentPath(entry.Path);
+		}
+
+		if (nodeOpen)
+		{
+			// Creating records for children
+			if (!entry.Openned)
+			{
+				entry.Openned = true;
+				D_FILE::VisitEntriesInDirectory(entry.Path, false, [&](Path const& _path, bool isDir)
+					{
+						if (!isDir)
+							return;
+
+						mTreeViewFolderMap[_path] = { _path, false, _path.filename().string(), D_CONTAINERS::DVector<TreeFoldeEntry*>() };
+
+						entry.Children.push_back(&mTreeViewFolderMap[_path]);
+					});
+
+				std::sort(entry.Children.begin(), entry.Children.end(), [](auto const& a, auto const& b)
+					{
+						return b->Name > a->Name;
+					});
+			}
+
+			// Drawing children
+			for (auto child : entry.Children)
+			{
+				DrawFolderTreeItem(*child);
+			}
+
+			ImGui::TreePop();
+		}
+
 	}
 
 	void ContentWindow::DrawBreadcrumb()
@@ -90,9 +148,13 @@ namespace Darius::Editor::Gui::Windows
 
 		for (auto& dirItem : mCurrentDirectoryItems)
 		{
-			bool selected = false;
+			bool selected = mSelectedItem == &dirItem;
 			bool clicked;
 			D_GUI_COMPONENT::ContentWindowItemGrid(dirItem, buttonWidth, buttonWidth, selected, clicked);
+			
+			// Check if becomes selected
+			if (selected && mSelectedItem != &dirItem)
+				SelectEditorContentItem(&dirItem);
 
 			if (clicked && dirItem.IsDirectory)
 				newContext = dirItem.Path;
@@ -133,7 +195,7 @@ namespace Darius::Editor::Gui::Windows
 				continue;
 			if (std::filesystem::equivalent(mCurrentDirectory, parent))
 			{
-				auto containedResources = D_RESOURCE::ResourceLoader::LoadResource(path);
+				auto containedResources = D_RESOURCE::ResourceLoader::LoadResource(path, true);
 				auto name = D_FILE::GetFileName(path.filename());
 				auto nameStr = STR_WSTR(name);
 
@@ -195,4 +257,18 @@ namespace Darius::Editor::Gui::Windows
 		UpdateDirectoryItems();
 		return true;
 	}
+
+	void ContentWindow::SelectEditorContentItem(D_GUI_COMPONENT::EditorContentWindowItem const* item)
+	{
+		mSelectedItem = item;
+
+		auto containedResources = D_RESOURCE::ResourceLoader::LoadResource(item->Path, true);
+
+		if (containedResources.size() != 1)
+			return;
+
+		auto resource = D_RESOURCE::_GetRawResource(containedResources[0]);
+		D_EDITOR_CONTEXT::SetSelectedDetailed(resource);
+	}
+
 }

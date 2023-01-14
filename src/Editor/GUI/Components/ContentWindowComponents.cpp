@@ -25,7 +25,7 @@ namespace Darius::Editor::Gui::Component
 
 		ImGui::Button("##contentElBtn", ImVec2(-1, -1));
 
-		selected = false;
+		selected = ImGui::IsItemClicked();
 		doubleClicked = ImGui::IsMouseDoubleClicked(0) && ImGui::IsItemHovered();
 
 		if (ImGui::IsItemHovered())
