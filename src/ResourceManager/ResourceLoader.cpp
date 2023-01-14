@@ -119,9 +119,10 @@ namespace Darius::ResourceManager
 
 	}
 
-	DVector<ResourceHandle> ResourceLoader::CreateReourceFromMeta(Path path, bool& foundMeta, Json& jMeta)
+	DVector<ResourceHandle> ResourceLoader::CreateReourceFromMeta(Path const& _path, bool& foundMeta, Json& jMeta)
 	{
 		foundMeta = false;
+		auto path = _path.lexically_normal();
 
 		// If already exists
 		auto manager = D_RESOURCE::GetManager();
@@ -153,7 +154,7 @@ namespace Darius::ResourceManager
 		return CreateResourceObject(meta, manager, path.parent_path());
 	}
 
-	DVector<ResourceHandle> ResourceLoader::LoadResource(Path path, bool metaOnly)
+	DVector<ResourceHandle> ResourceLoader::LoadResource(Path const& path, bool metaOnly)
 	{
 		if (!D_H_ENSURE_FILE(path))
 			return { };

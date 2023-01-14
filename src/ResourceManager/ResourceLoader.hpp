@@ -21,10 +21,10 @@ namespace Darius::ResourceManager
 	public:
 		static bool				SaveResource(Resource* resource);
 
-		static DVector<ResourceHandle> CreateReourceFromMeta(Path path, bool& foundMeta, Json& jMeta);
+		static DVector<ResourceHandle> CreateReourceFromMeta(Path const& path, bool& foundMeta, Json& jMeta);
 
 		static ResourceHandle	LoadResource(Resource* resource);
-		static DVector<ResourceHandle>	LoadResource(Path path, bool metaOnly = false);
+		static DVector<ResourceHandle>	LoadResource(Path const& path, bool metaOnly = false);
 
 		static void				VisitSubdirectory(Path const& path, bool recursively = false);
 		static ResourceFileMeta GetResourceFileMetaFromResource(Resource* resource);

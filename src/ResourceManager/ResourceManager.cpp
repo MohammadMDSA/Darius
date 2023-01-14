@@ -193,7 +193,10 @@ namespace Darius::ResourceManager
 		mUuidMap.try_emplace(resource->GetUuid(), resource.get());
 
 		// Update path map
-		auto& pathHandles = mPathMap[resource->GetPath().wstring()];
+
+		auto path = resource->GetPath().lexically_normal().wstring();
+
+		auto& pathHandles = mPathMap[path];
 		bool found = false;
 		ResourceHandle newHandle = *resource;
 		for (auto const& handle : pathHandles)
