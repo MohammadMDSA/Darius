@@ -32,7 +32,6 @@ namespace Darius::Graphics
 		void										CreateCubeMap(uint32_t* color, DXGI_FORMAT format, size_t rowPitchByte, size_t width, size_t height);
 
 		D_CH_FIELD_ACC(D_GRAPHICS_BUFFERS::Texture, Texture, protected);
-		D_CH_FIELD(bool, CubeMap)
 
 	protected:
 		TextureResource(Uuid uuid, std::wstring const& path, std::wstring const& name, D_RESOURCE::DResourceId id, bool isDefault = false) :

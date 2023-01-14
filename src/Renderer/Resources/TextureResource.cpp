@@ -11,12 +11,10 @@ namespace Darius::Graphics
 
 	void TextureResource::WriteResourceToFile(D_SERIALIZATION::Json& json) const
 	{
-		D_H_SERIALIZE(CubeMap);
 	}
 
 	void TextureResource::ReadResourceFromFile(D_SERIALIZATION::Json const& json)
 	{
-		D_H_DESERIALIZE(CubeMap);
 	}
 
 	void TextureResource::CreateRaw(uint32_t color, DXGI_FORMAT format, size_t rowPitchByte, size_t width, size_t height)
@@ -36,12 +34,72 @@ namespace Darius::Graphics
 		bool valueChanged = false;
 
 		D_H_DETAILS_DRAW_BEGIN_TABLE();
-		D_H_DETAILS_DRAW_PROPERTY("Cube Map");
-		if (ImGui::Checkbox("##CubeMap", &mCubeMap))
+
+		// Width
 		{
-			valueChanged = true;
+			D_H_DETAILS_DRAW_PROPERTY("Width");
+			size_t val = mTexture.mWidth;
+			ImGui::Text(std::to_string(val).c_str());
 		}
 
+		// Height
+		{
+			D_H_DETAILS_DRAW_PROPERTY("Height");
+			size_t val = mTexture.mHeight;
+			ImGui::Text(std::to_string(val).c_str());
+		}
+
+		// Depth
+		{
+			D_H_DETAILS_DRAW_PROPERTY("Depth");
+			size_t val = mTexture.mDepth;
+			ImGui::Text(std::to_string(val).c_str());
+		}
+
+		if (mTexture.mMetaData.Initialized)
+		{
+			// ArraySize
+			{
+				D_H_DETAILS_DRAW_PROPERTY("Array Size");
+				size_t val = mTexture.mMetaData.ArraySize;
+				ImGui::Text(std::to_string(val).c_str());
+			}
+
+			// MipLevels
+			{
+				D_H_DETAILS_DRAW_PROPERTY("Mip Levels");
+				size_t val = mTexture.mMetaData.MipLevels;
+				ImGui::Text(std::to_string(val).c_str());
+			}
+
+			// Format
+			{
+				D_H_DETAILS_DRAW_PROPERTY("Format");
+				ImGui::Text(Texture::GetFormatString(mTexture.mMetaData.Format).c_str());
+			}
+
+			// Dimension
+			{
+				D_H_DETAILS_DRAW_PROPERTY("Dimension");
+				std::string val;
+				switch (mTexture.mMetaData.Dimension)
+				{
+				case Texture::TextureMeta::TEX_DIMENSION_TEXTURE1D:
+					val = "1D";
+					break;
+				case Texture::TextureMeta::TEX_DIMENSION_TEXTURE2D:
+					val = "2D";
+					break;
+				case Texture::TextureMeta::TEX_DIMENSION_TEXTURE3D:
+					val = "3D";
+					break;
+				default:
+					break;
+				}
+				ImGui::Text(val.c_str());
+			}
+
+		}
 		D_H_DETAILS_DRAW_END_TABLE();
 
 		if (valueChanged)
