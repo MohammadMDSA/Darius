@@ -121,12 +121,12 @@ namespace Darius::Graphics
 		if (ext == ".dds")
 		{
 			auto fileData = D_FILE::ReadFileSync(path.wstring());
-			return mTexture.CreateDDSFromMemory(fileData->data(), fileData->size(), true);
+			return mTexture.CreateDDSFromMemory(fileData->data(), fileData->size(), false);
 		}
 		else if (ext == ".tga")
 		{
 			auto fileData = D_FILE::ReadFileSync(path.wstring());
-			mTexture.CreateTGAFromMemory(fileData->data(), fileData->size(), true);
+			mTexture.CreateTGAFromMemory(fileData->data(), fileData->size(), false);
 
 			return true;
 		}

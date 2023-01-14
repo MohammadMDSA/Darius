@@ -80,14 +80,12 @@ VertexOut main(VertexIn vin)
     
 #endif
     
-    
     vout.WorldPos = mul(gWorld, position).xyz;
     
-    // Assumes nonuniform scaling; otherwise, need to use inverse-transpose of world matrix.
-    //vout.WorldNormal = mul((float3x3) gWorld, normal);
     float3x3 wit = (float3x3) gWorldIT;
     normal = mul(wit, normal);
     vout.WorldNormal = normal;
+    
     // Transform to homogeneous clip space.
     vout.Pos = mul(gViewProj, float4(vout.WorldPos, 1.f));
 

@@ -47,13 +47,13 @@ float3 ComputeNormal(VertexOut pin)
     float3x3 tangentFrame = float3x3(tangent, bitangent, normal);
 
     // Read normal map and convert to SNORM (TODO:  convert all normal maps to R8G8B8A8_SNORM?)
-    normal = texNormal.Sample(defaultSampler, pin.UV);
-
+    normal = texNormal.Sample(defaultSampler, pin.UV) * 2.f - 1.f;
+    
     // glTF spec says to normalize N before and after scaling, but that's excessive
     //normal = normalize(normal * float3(normalTextureScale, normalTextureScale, 1));
 
     // Multiply by transpose (reverse order)
-    return mul(normal, tangentFrame);
+    return normalize(mul(normal, tangentFrame));
 #endif
 }
 
