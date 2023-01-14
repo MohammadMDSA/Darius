@@ -305,6 +305,7 @@ namespace Darius::Editor::Gui::Windows
 		else
 		{
 			mCamera.Update();
+			mFlyingCam.SetOrientationDirty();
 			mMovingCam = false;
 		}
 
