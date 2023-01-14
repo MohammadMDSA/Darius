@@ -5,10 +5,10 @@
 #include <Core/TimeManager/TimeManager.hpp>
 #include <Debug/DebugDraw.hpp>
 #include <ResourceManager/ResourceManager.hpp>
-
-#define FBXSDK_SHARED
+#include <Utils/DragDropPayload.hpp>
 
 #include <imgui.h>
+#define FBXSDK_SHARED
 #include <fbxsdk.h>
 #include <Libs/FontIcon/IconsFontAwesome6.h>
 

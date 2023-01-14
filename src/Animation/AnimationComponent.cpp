@@ -2,6 +2,7 @@
 #include "AnimationComponent.hpp"
 
 #include <Scene/EntityComponentSystem/Components/SkeletalMeshRendererComponent.hpp>
+#include <Utils/DragDropPayload.hpp>
 
 #include <imgui.h>
 #include <Libs/FontIcon/IconsFontAwesome6.h>

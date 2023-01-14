@@ -5,6 +5,7 @@
 #include "Physics/PhysicsScene.hpp"
 
 #include <ResourceManager/ResourceManager.hpp>
+#include <Utils/DragDropPayload.hpp>
 
 #include <imgui.h>
 #include <Libs/FontIcon/IconsFontAwesome6.h>

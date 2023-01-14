@@ -2,6 +2,7 @@
 #include "%%CLASS_NAME%%.hpp"
 
 #ifdef _D_EDITOR
+#include <Utils/DragDropPayload.hpp>
 #include <imgui.h>
 #endif
 

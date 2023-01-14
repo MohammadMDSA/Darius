@@ -3,7 +3,10 @@
 
 #include <Utils/Common.hpp>
 
+#ifdef _D_EDITOR
+#include <Utils/DragDropPayload.hpp>
 #include <imgui.h>
+#endif
 
 namespace %%NAMESPACE%%
 {
@@ -25,6 +28,7 @@ namespace %%NAMESPACE%%
 		return true;
 	}
 
+#ifdef _D_EDITOR
 	bool %%CLASS_NAME%%::DrawDetails(float params[])
 	{
 		bool valueChanged = false;
@@ -39,4 +43,5 @@ namespace %%NAMESPACE%%
 
 		return false;
 	}
+#endif
 }
