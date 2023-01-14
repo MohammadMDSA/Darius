@@ -1,7 +1,7 @@
 #pragma once
 #include <imgui.h>
 
-namespace Darius::Editor::Gui::Windows::Utils
+namespace Darius::Editor::Gui::Utils
 {
 
     // utility structure for realtime plot
