@@ -70,6 +70,23 @@ static INLINE std::string const GetTypeName() { return D_NAMEOF(T); }
 
 #ifdef _D_EDITOR
 
+#define D_H_RESOURCE_DRAG_DROP_DESTINATION(resourceType, handleSetter) \
+{\
+	if(ImGui::BeginDragDropTarget()) \
+    { \
+        ImGuiPayload const* imPayload = ImGui::GetDragDropPayload(); \
+        Darius::Utils::DDragDropPayload const* payload = (Darius::Utils::DDragDropPayload const*)(imPayload->Data); \
+		if(payload && payload->IsCompatible(Darius::Utils::DDragDropPayload::Type::Resource, std::to_string(resourceType::GetResourceType()))) \
+		{ \
+			if (ImGuiPayload const* payload = ImGui::AcceptDragDropPayload(D_PAYLOAD_TYPE_RESOURCE)) \
+			{ \
+				handleSetter(((Darius::Utils::DDragDropPayload const*)(imPayload->Data))->ResourcePayload.Handle); \
+			} \
+			ImGui::EndDragDropTarget(); \
+		} \
+	} \
+}
+
 #define D_H_RESOURCE_SELECTION_DRAW(resourceType, prop, placeHolder, handleFunction) \
 { \
     resourceType* currentResource = prop.Get(); \
@@ -85,34 +102,35 @@ static INLINE std::string const GetTypeName() { return D_NAMEOF(T); }
     auto availableSpace = ImGui::GetContentRegionAvail(); \
     auto selectorWidth = 20; \
     ImGui::Button(cuurrentResourceName.c_str(), ImVec2(availableSpace.x - 2 * selectorWidth - 10.f, 0)); \
-    ImGui::SameLine(availableSpace.x - selectorWidth); \
-    if (ImGui::Button(ICON_FA_ELLIPSIS_VERTICAL, ImVec2(selectorWidth, 0))) \
-    { \
-        ImGui::OpenPopup(placeHolder " Res"); \
-    } \
-     \
-    if (ImGui::BeginPopup(placeHolder " Res")) \
-    { \
-        auto resources = D_RESOURCE::GetResourcePreviews(resourceType::GetResourceType()); \
-        int idx = 0; \
-        for (auto prev : resources) \
-        { \
-            bool selected = currentResource && prev.Handle.Id == currentResource->GetId() && prev.Handle.Type == currentResource->GetType(); \
-     \
-            auto Name = STR_WSTR(prev.Name); \
-            ImGui::PushID((Name + std::to_string(idx)).c_str()); \
-            if (ImGui::Selectable(Name.c_str(), &selected)) \
-            { \
-                handleFunction(prev.Handle); \
-                valueChanged = true; \
-            } \
-            ImGui::PopID(); \
-     \
-            idx++; \
-        } \
-     \
-        ImGui::EndPopup(); \
-    } \
+    D_H_RESOURCE_DRAG_DROP_DESTINATION(resourceType, handleFunction) \
+	ImGui::SameLine(availableSpace.x - selectorWidth); \
+		if (ImGui::Button(ICON_FA_ELLIPSIS_VERTICAL, ImVec2(selectorWidth, 0))) \
+		{ \
+			ImGui::OpenPopup(placeHolder " Res"); \
+		} \
+			\
+			if (ImGui::BeginPopup(placeHolder " Res")) \
+			{ \
+				auto resources = D_RESOURCE::GetResourcePreviews(resourceType::GetResourceType()); \
+				int idx = 0; \
+				for (auto prev : resources) \
+				{ \
+					bool selected = currentResource && prev.Handle.Id == currentResource->GetId() && prev.Handle.Type == currentResource->GetType(); \
+					\
+					auto Name = STR_WSTR(prev.Name); \
+					ImGui::PushID((Name + std::to_string(idx)).c_str()); \
+					if (ImGui::Selectable(Name.c_str(), &selected)) \
+					{ \
+						handleFunction(prev.Handle); \
+						valueChanged = true; \
+					} \
+						ImGui::PopID(); \
+						\
+						idx++; \
+				} \
+					\
+						ImGui::EndPopup(); \
+			} \
 }
 #define D_H_RESOURCE_SELECTION_DRAW_SHORT(type, name, label) D_H_RESOURCE_SELECTION_DRAW(type, m##name, label, Set##name)
 #define D_H_RESOURCE_SELECTION_DRAW_DEF(type, name) D_H_RESOURCE_SELECTION_DRAW_SHORT(type, name, "Select " #name, Set##name)
@@ -138,7 +156,7 @@ ImGui::EndTable(); \
 
 struct NonCopyable
 {
-    NonCopyable() = default;
-    NonCopyable(const NonCopyable&) = delete;
-    NonCopyable& operator=(const NonCopyable&) = delete;
+	NonCopyable() = default;
+	NonCopyable(const NonCopyable&) = delete;
+	NonCopyable& operator=(const NonCopyable&) = delete;
 };
