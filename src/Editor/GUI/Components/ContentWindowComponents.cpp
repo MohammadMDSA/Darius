@@ -2,6 +2,9 @@
 
 #include "ContentWindowComponents.hpp"
 
+#include <ResourceManager/Resource.hpp>
+#include <Utils/DragDropPayload.hpp>
+
 #include <imgui.h>
 
 namespace Darius::Editor::Gui::Component
@@ -23,9 +26,25 @@ namespace Darius::Editor::Gui::Component
 
 		auto startCurPos = ImGui::GetCursorPos();
 
-		ImGui::Button("##contentElBtn", ImVec2(-1, -1));
+		selected = ImGui::Button("##contentElBtn", ImVec2(-1, -1));
 
-		selected = ImGui::IsItemClicked();
+		// Drag and drop
+		if (!data.IsDirectory)
+		{
+			if (data.Handle.IsValid() && ImGui::BeginDragDropSource(ImGuiDragDropFlags_AcceptBeforeDelivery))
+			{
+				D_UTILS::DDragDropPayload payload;
+				payload.PayloadType = D_UTILS::DDragDropPayload::Type::Resource;
+				payload.ResourcePayload.Handle = data.Handle;
+				payload.ResourcePayload.Type = std::to_string(data.Handle.Type);
+
+				ImGui::SetDragDropPayload(D_PAYLOAD_TYPE_RESOURCE, &payload, sizeof(D_UTILS::DDragDropPayload), ImGuiCond_Once);
+				ImGui::Text((data.Name + " (Resource)").c_str());
+				ImGui::EndDragDropSource();
+			}
+
+		}
+
 		doubleClicked = ImGui::IsMouseDoubleClicked(0) && ImGui::IsItemHovered();
 
 		if (ImGui::IsItemHovered())

@@ -200,10 +200,15 @@ namespace Darius::Editor::Gui::Windows
 				auto nameStr = STR_WSTR(name);
 
 				uint64_t icon = D_THUMBNAIL::GetIconTextureId(D_THUMBNAIL::CommonIcon::File);
-				if (containedResources.size() == 1)
-					icon = D_THUMBNAIL::GetResourceTextureId(containedResources[0]);
 
-				mCurrentDirectoryItems.push_back({ nameStr, path, false, icon });
+				D_RESOURCE::ResourceHandle resourceHandle = D_RESOURCE::EmptyResourceHandle;
+				if (containedResources.size() == 1)
+				{
+					icon = D_THUMBNAIL::GetResourceTextureId(containedResources[0]);
+					resourceHandle = containedResources[0];
+				}
+
+				mCurrentDirectoryItems.push_back({ nameStr, path, false, icon, resourceHandle });
 			}
 		}
 
