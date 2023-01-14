@@ -13,3 +13,6 @@
 [submodule "src/Libs/imgui_wrapper/ImGuiFileDialog"]
 	path = src/Libs/imgui_wrapper/ImGuiFileDialog
 	url = https://github.com/aiekick/ImGuiFileDialog.git
+[submodule "src/Libs/DirectXTex"]
+	path = src/Libs/DirectXTex
+	url = https://github.com/microsoft/DirectXTex

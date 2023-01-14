@@ -121,9 +121,15 @@ target_link_libraries(${PROJECT_NAME} PRIVATE IMGUIFILEDIALOG IMGUI_FLAME_GRAPH)
 
 # Adding FBX SDK
 include("cmake/AddFBXSDK.cmake")
+set(BUILD_TOOLS off)
+set(BUILD_SAMPLE off)
+set(BUILD_DX11 off)
 
 # Adding Nlohmann Json
 include_directories("src/Libs/nlohmann_json/single_include")
+
+# Adding DirectXTex
+add_subdirectory("src/Libs/DirectXTex")
 
 # Adding Boost
 set(Boost_USE_STATIC_LIBS ON)
