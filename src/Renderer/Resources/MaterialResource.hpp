@@ -45,7 +45,17 @@ namespace Darius::Graphics
 		INLINE operator CountedOwner const() {
 			return CountedOwner{ GetName(), "Material Resource", this, 0 };
 		}
+
+#define TextureSetter(type) \
+inline void Set##type##Texture(D_RESOURCE::ResourceHandle textureHandle) { SetTexture(textureHandle, k##type); }
 			
+		TextureSetter(BaseColor);
+		TextureSetter(Metallic);
+		TextureSetter(Roughness);
+		TextureSetter(Occulusion);
+		TextureSetter(Emissive);
+		TextureSetter(Normal);
+
 		D_CH_FIELD(MaterialConstants, Material);
 		D_CH_R_FIELD(Ref<D_GRAPHICS::TextureResource>, BaseColorTexture);
 		D_CH_R_FIELD(Ref<D_GRAPHICS::TextureResource>, NormalTexture);

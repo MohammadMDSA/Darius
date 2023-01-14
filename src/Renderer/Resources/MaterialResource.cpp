@@ -9,6 +9,7 @@
 #include <ResourceManager/ResourceLoader.hpp>
 #include <Core/Serialization/Json.hpp>
 #include <Utils/Common.hpp>
+#include <Utils/DragDropPayload.hpp>
 
 #include <imgui.h>
 #include <Libs/FontIcon/IconsFontAwesome6.h>
@@ -282,7 +283,7 @@ device->CopyDescriptorsSimple(1, mTexturesHeap + type * incSize, m##name##Textur
 { \
 	TextureResource* currentTexture = prop.Get(); \
  \
-	bool hasTexture = (mMaterial.TextureStatusMask & (1 << type)); \
+	bool hasTexture = (mMaterial.TextureStatusMask & (1 << k##type)); \
 	auto curName = hasTexture ? prop->GetName() : L"<None>"; \
 	const char* selectButtonName = hasTexture ? ICON_FA_IMAGE "##" #type : ICON_FA_SQUARE "##" #type; \
 	if (ImGui::Button(selectButtonName)) \
@@ -291,13 +292,14 @@ device->CopyDescriptorsSimple(1, mTexturesHeap + type * incSize, m##name##Textur
 		ImGui::OpenPopup("Select " #type); \
 		D_LOG_DEBUG("OPEN " #type); \
 	} \
+	D_H_RESOURCE_DRAG_DROP_DESTINATION(TextureResource, Set##type##Texture); \
 		 \
 	if (ImGui::BeginPopup("Select " #type)) \
 	{ \
 		bool nonSel = !prop.IsValid(); \
 		if (ImGui::Selectable("<None>", &nonSel)) \
 		{ \
-			SetTexture(EmptyResourceHandle, type); \
+			SetTexture(EmptyResourceHandle, k##type); \
 			valueChanged = true; \
 		} \
 			 \
@@ -311,7 +313,7 @@ device->CopyDescriptorsSimple(1, mTexturesHeap + type * incSize, m##name##Textur
 			ImGui::PushID((name + std::to_string(idx)).c_str()); \
 			if (ImGui::Selectable(name.c_str(), &selected)) \
 			{ \
-				SetTexture(prev.Handle, type); \
+				SetTexture(prev.Handle, k##type); \
 				valueChanged = true; \
 			} \
 			ImGui::PopID(); \
@@ -372,7 +374,7 @@ device->CopyDescriptorsSimple(1, mTexturesHeap + type * incSize, m##name##Textur
 		// Diffuse
 		ImGui::TableNextRow();
 		ImGui::TableSetColumnIndex(0);
-		DrawTexture2DHolder(mBaseColorTexture, kBaseColor);
+		DrawTexture2DHolder(mBaseColorTexture, BaseColor);
 		ImGui::SameLine();
 		ImGui::Text("Diffuse");
 		if (!(mMaterial.TextureStatusMask & (1 << kBaseColor)))
@@ -388,7 +390,7 @@ device->CopyDescriptorsSimple(1, mTexturesHeap + type * incSize, m##name##Textur
 		// Metallic
 		ImGui::TableNextRow();
 		ImGui::TableSetColumnIndex(0);
-		DrawTexture2DHolder(mMetallicTexture, kMetallic);
+		DrawTexture2DHolder(mMetallicTexture, Metallic);
 		ImGui::SameLine();
 		ImGui::Text("Metallic");
 		if (!(mMaterial.TextureStatusMask & (1 << kMetallic)))
@@ -400,7 +402,7 @@ device->CopyDescriptorsSimple(1, mTexturesHeap + type * incSize, m##name##Textur
 		// Roughness
 		ImGui::TableNextRow();
 		ImGui::TableSetColumnIndex(0);
-		DrawTexture2DHolder(mRoughnessTexture, kRoughness);
+		DrawTexture2DHolder(mRoughnessTexture, Roughness);
 		ImGui::SameLine();
 		ImGui::Text("Roughenss");
 		if (!(mMaterial.TextureStatusMask & (1 << kRoughness)))
@@ -412,7 +414,7 @@ device->CopyDescriptorsSimple(1, mTexturesHeap + type * incSize, m##name##Textur
 		// Emission
 		ImGui::TableNextRow();
 		ImGui::TableSetColumnIndex(0);
-		DrawTexture2DHolder(mEmissiveTexture, kEmissive);
+		DrawTexture2DHolder(mEmissiveTexture, Emissive);
 		ImGui::SameLine();
 		ImGui::Text("Emission");
 		if (!(mMaterial.TextureStatusMask & (1 << kEmissive)))
@@ -428,7 +430,7 @@ device->CopyDescriptorsSimple(1, mTexturesHeap + type * incSize, m##name##Textur
 		// Normal
 		ImGui::TableNextRow();
 		ImGui::TableSetColumnIndex(0);
-		DrawTexture2DHolder(mEmissiveTexture, kNormal);
+		DrawTexture2DHolder(mEmissiveTexture, Normal);
 		ImGui::SameLine();
 		ImGui::Text("Normal");
 
