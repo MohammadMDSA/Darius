@@ -285,6 +285,16 @@ namespace Darius::Editor::Gui::Windows
 			}
 
 		}
+
+		// Drawing compass
+		{
+			auto padding = ImVec2(10.f, 10.f);
+			auto compassSize = ImVec2(100.f, 100.f);
+			ImGuizmo::ViewManipulate((float*)&view, mOrbitCam.GetCurrentCloseness(), ImVec2(mPosX + min.x + +padding.x, mPosY + min.y + mHeight - compassSize.y - padding.y), compassSize, 0x10101010);
+
+
+			mCamera.SetTransform(OrthogonalTransform(view.Inverse()));
+		}
 	}
 
 	void SceneWindow::Update(float dt)

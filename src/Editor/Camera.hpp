@@ -98,6 +98,7 @@ namespace Darius::Editor
 
         INLINE void SetTargetLocationDirty() { mTargetLocationDirty = true; }
         INLINE bool IsAdjusting() { return mAdjusting; }
+        INLINE float GetCurrentCloseness() const { return mCurrentCloseness; }
 
     private:
         INLINE D_MATH::Vector3 ComputeTargetFromPosition(D_MATH::Vector3 pos)
