@@ -62,6 +62,7 @@ namespace Darius::Editor
         D_MATH::Vector3 mWorldUp;
         D_MATH::Vector3 mWorldNorth;
         D_MATH::Vector3 mWorldEast;
+
         float mHorizontalLookSensitivity;
         float mVerticalLookSensitivity;
         float mMoveSpeed;
