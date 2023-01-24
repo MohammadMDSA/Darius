@@ -97,11 +97,13 @@ namespace Darius::Editor::Gui::ThumbnailManager
 	{
 
 		// Adding existing thumbnails
-		D_FILE::VisitFilesInDirectory(GetThumbnailsDirectory(), true, [&](auto const& path)
-			{
-				auto uuid = FromWString(D_FILE::GetFileName(path));
-				AddExistingResourceThumbnail(uuid);
-			});
+		auto thumbnailDir = GetThumbnailsDirectory();
+		if (D_H_ENSURE_DIR(thumbnailDir))
+			D_FILE::VisitFilesInDirectory(thumbnailDir, true, [&](auto const& path)
+				{
+					auto uuid = FromWString(D_FILE::GetFileName(path));
+					AddExistingResourceThumbnail(uuid);
+				});
 
 		ResourceType supportedTypes[] = { TextureResource::GetResourceType() };
 
