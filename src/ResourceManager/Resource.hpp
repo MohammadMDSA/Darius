@@ -15,6 +15,13 @@
 #define D_RESOURCE Darius::ResourceManager
 #endif // !D_RESOURCE
 
+#define D_CH_RESOURCE_RW_FIELD_ACC(type, name, access) \
+public: \
+INLINE void Set##name(type const& val) { m##name = val; MakeDiskDirty(); MakeGpuDirty(); } \
+D_CH_R_FIELD_ACC(type, name, access)
+
+#define D_CH_RESOURCE_RW_FIELD(type, name) D_CH_RESOURCE_RW_FIELD_ACC(type, name, private)
+
 #define D_T_RESOURCE_ID UINT16
 
 // TODO: Better resource allocation
