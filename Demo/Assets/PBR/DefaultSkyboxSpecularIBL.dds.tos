@@ -1,1 +1,1 @@
-{"Path":"DefaultSkyboxSpecularIBL.dds","Properties":null,"Resources":[{"Name":"DefaultSkyboxSpecularIBL","Type":"Texture","Uuid":"00a51e7b-b6da-4001-9145-22f6eecd816f"}]}
+{"Path":"DefaultSkyboxSpecularIBL.dds","Properties":{"DefaultSkyboxSpecularIBL":{"SRGB":true}},"Resources":[{"Name":"DefaultSkyboxSpecularIBL","Type":"Texture","Uuid":"00a51e7b-b6da-4001-9145-22f6eecd816f"}]}
