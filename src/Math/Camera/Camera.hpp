@@ -93,10 +93,10 @@ namespace Darius::Math::Camera
         // Controls the view-to-projection matrix
         void SetPerspectiveMatrix(float verticalFovRadians, float aspectHeightOverWidth, float nearZClip, float farZClip);
         void SetFOV(float verticalFovInRadians) { m_VerticalFOV = verticalFovInRadians; UpdateProjMatrix(); }
-        void SetAspectRatio(float heightOverWidth) { m_AspectRatio = heightOverWidth; UpdateProjMatrix(); }
-        INLINE void SetViewSize(float width, float height) { m_Width = width; m_Heigh = height; }
+        INLINE void SetViewSize(float width, float height) { m_Width = width; m_Heigh = height; m_AspectRatio = height / width; }
         void SetZRange(float nearZ, float farZ) { m_NearClip = nearZ; m_FarClip = farZ; UpdateProjMatrix(); }
         void ReverseZ(bool enable) { m_ReverseZ = enable; UpdateProjMatrix(); }
+        INLINE void SetOrthographic(bool isOrthoGraphic) { m_Orthographic = isOrthoGraphic; }
 
         float GetFOV() const { return m_VerticalFOV; }
         float GetNearClip() const { return m_NearClip; }
@@ -159,6 +159,7 @@ namespace Darius::Math::Camera
         m_AspectRatio = aspectHeightOverWidth;
         m_NearClip = nearZClip;
         m_FarClip = farZClip;
+        m_Orthographic = false;
 
         UpdateProjMatrix();
 
