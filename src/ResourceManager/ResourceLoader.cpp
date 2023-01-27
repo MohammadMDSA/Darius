@@ -130,6 +130,14 @@ namespace Darius::ResourceManager
 		}
 
 		auto loaded = LoadResource(resource->GetPath());
+
+		ResourceHandle resourceHandle = *resource;
+		for (auto const& loadedHandle : loaded)
+		{
+			if (loadedHandle == resourceHandle)
+				return resourceHandle;
+		}
+
 		return loaded.size() > 0 ? loaded[0] : EmptyResourceHandle;
 
 	}
@@ -168,7 +176,7 @@ namespace Darius::ResourceManager
 
 		meta = jMeta;
 
-		if(alreadyExists)
+		if (alreadyExists)
 			return manager->mPathMap.at(path);
 
 		return CreateResourceObject(meta, manager, path.parent_path());
@@ -212,8 +220,7 @@ namespace Darius::ResourceManager
 				{
 					auto resWName = resource->GetName();
 					auto resName = STR_WSTR(resWName);
-					if (properties.contains(resName))
-						resource->ReadResourceFromFile(properties[resName]);
+					resource->ReadResourceFromFile(properties.contains(resName) ? properties[resName] : Json());
 					resource->mLoaded = true;
 				}
 
