@@ -48,5 +48,8 @@ namespace Darius::Editor::Gui::Windows
 		D_CONTAINERS::DUnorderedMap<Path, TreeFoldeEntry> mTreeViewFolderMap;
 		TreeFoldeEntry*				mSelectedTreeNode = nullptr;
 		D_GUI_COMPONENT::EditorContentWindowItem const* mSelectedItem = nullptr;
+
+		float						mTreeViewWidth;
+		float						mRightPanelWidth;
 	};
 }
