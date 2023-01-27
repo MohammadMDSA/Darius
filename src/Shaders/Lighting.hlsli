@@ -57,15 +57,12 @@ void AntiAliasSpecular(inout float3 texNormal, inout float gloss)
     gloss = exp2(lerp(0, log2(gloss), flatness));
 }
 
-// Apply fresnel to modulate the specular albedo
-void FSchlick(inout float3 specular, inout float3 diffuse, float3 lightDir, float3 halfVec)
+float FShlick(float f0, float f90, float cosine)
 {
-    float fresnel = pow(1.0 - saturate(dot(lightDir, halfVec)), 5.0);
-    specular = lerp(specular, 1, fresnel);
-    diffuse = lerp(diffuse, 0, fresnel);
+    return lerp(f0, f90, pow(1.f - cosine, 5.f));
 }
 
-float FShlick(float f0, float f90, float cosine)
+float3 FShlick(float3 f0, float3 f90, float cosine)
 {
     return lerp(f0, f90, pow(1.f - cosine, 5.f));
 }
@@ -131,8 +128,11 @@ float3 ApplyLightCommon(
 {
     float3 halfVec = normalize(lightDir - viewDir);
     float nDotH = saturate(dot(halfVec, normal));
-
-    FSchlick(diffuseColor, specularColor, lightDir, halfVec);
+    float cosine = saturate(dot(lightDir, halfVec));
+    
+    //FSchlick(diffuseColor, specularColor, lightDir, halfVec);
+    diffuseColor = FShlick(diffuseColor, 0, cosine);
+    specularColor = FShlick(specularColor, 1, cosine);
 
     float specularFactor = specularMask * pow(nDotH, max(gloss, 1.f)) * (gloss + 2) / 8;
 
@@ -299,12 +299,9 @@ float3 ApplyConeShadowedLight(
 float3 Diffuse_IBL(float3 normal, float3 toEye, float3 diffuseColor, float roughness)
 {
     float LdotH = saturate(dot(normal, normalize(normal + toEye)));
-    float fd90 = roughness * LdotH * LdotH;
-    float3 DiffuseBurley = 1.f;
-    float3 temp = float3(0.f, 0.f, 0.f);
-    FSchlick(temp, DiffuseBurley, fd90, saturate(dot(normal, toEye)));
-    DiffuseBurley *= diffuseColor;
-    return DiffuseBurley * irradianceIBLTexture.Sample(defaultSampler, normal);
+    float fd90 = 0.5f + 2.f * roughness * LdotH * LdotH;
+    float3 diffuseBurley = diffuseColor * FShlick(1, fd90, saturate(dot(normal, toEye)));
+    return diffuseBurley * irradianceIBLTexture.Sample(defaultSampler, normal);
 }
 
 // Approximate specular IBL by sampling lower mips according to roughness.  Then modulate by Fresnel. 
@@ -312,8 +309,7 @@ float3 Specular_IBL(float3 spec, float3 normal, float3 toEye, float roughness)
 {
     float lod = roughness * IBLRange + IBLBias;
     float3 specular = spec;
-    float3 temp = float3(0.f, 0.f, 0.f);
-    FSchlick(spec, temp, 1, saturate(dot(normal, toEye)));
+    specular = FShlick(specular, 1.f, saturate(dot(normal, toEye)));
     return specular * radianceIBLTexture.SampleLevel(cubeMapSampler, reflect(-toEye, normal), lod);
 }
 
