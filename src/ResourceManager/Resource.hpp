@@ -87,7 +87,7 @@ namespace Darius::ResourceManager
 		DResourceId				Id = 0;
 
 		INLINE bool IsValid() const { return Type != 0; }
-
+		INLINE bool operator== (ResourceHandle const& other) const { return other.Id == Id && other.Type == Type; }
 	};
 
 	constexpr ResourceHandle EmptyResourceHandle = { 0, 0 };
