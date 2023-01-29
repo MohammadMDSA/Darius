@@ -15,6 +15,13 @@
 #define D_RESOURCE Darius::ResourceManager
 #endif // !D_RESOURCE
 
+#define D_CH_RESOURCE_RW_FIELD_ACC(type, name, access) \
+public: \
+INLINE void Set##name(type const& val) { m##name = val; MakeDiskDirty(); MakeGpuDirty(); } \
+D_CH_R_FIELD_ACC(type, name, access)
+
+#define D_CH_RESOURCE_RW_FIELD(type, name) D_CH_RESOURCE_RW_FIELD_ACC(type, name, private)
+
 #define D_T_RESOURCE_ID UINT16
 
 // TODO: Better resource allocation
@@ -80,7 +87,7 @@ namespace Darius::ResourceManager
 		DResourceId				Id = 0;
 
 		INLINE bool IsValid() const { return Type != 0; }
-
+		INLINE bool operator== (ResourceHandle const& other) const { return other.Id == Id && other.Type == Type; }
 	};
 
 	constexpr ResourceHandle EmptyResourceHandle = { 0, 0 };

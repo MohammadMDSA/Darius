@@ -94,6 +94,7 @@ namespace Darius::Math::Camera
         void SetPerspectiveMatrix(float verticalFovRadians, float aspectHeightOverWidth, float nearZClip, float farZClip);
         void SetFOV(float verticalFovInRadians) { m_VerticalFOV = verticalFovInRadians; UpdateProjMatrix(); }
         void SetAspectRatio(float heightOverWidth) { m_AspectRatio = heightOverWidth; UpdateProjMatrix(); }
+        INLINE void SetViewSize(float width, float height) { m_Width = width; m_Heigh = height; }
         void SetZRange(float nearZ, float farZ) { m_NearClip = nearZ; m_FarClip = farZ; UpdateProjMatrix(); }
         void ReverseZ(bool enable) { m_ReverseZ = enable; UpdateProjMatrix(); }
 
@@ -112,6 +113,9 @@ namespace Darius::Math::Camera
         float m_FarClip;
         bool m_ReverseZ;		// Invert near and far clip distances so that Z=1 at the near plane
         bool m_InfiniteZ;       // Move the far plane to infinity
+        bool m_Orthographic;
+        float m_Width;          // Orthographic only
+        float m_Heigh;          // Orthographic only
     };
 
     inline void BaseCamera::SetEyeAtUp(Vector3 eye, Vector3 at, Vector3 up)
@@ -144,7 +148,7 @@ namespace Darius::Math::Camera
         m_Basis = Matrix3(m_CameraToWorld.GetRotation());
     }
 
-    inline Camera::Camera() : m_ReverseZ(true), m_InfiniteZ(false)
+    inline Camera::Camera() : m_ReverseZ(true), m_InfiniteZ(false), m_Orthographic(false)
     {
         SetPerspectiveMatrix(XM_PIDIV4, 9.0f / 16.0f, 1.0f, 1000.0f);
     }

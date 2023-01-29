@@ -15,12 +15,14 @@ using namespace D_FILE;
 
 namespace Darius::Editor::Gui::Windows
 {
-	ContentWindow::ContentWindow()
+	ContentWindow::ContentWindow() :
+		mTreeViewWidth(-1.f),
+		mRightPanelWidth(-1.f)
 	{
 		auto assetsPath = D_EDITOR_CONTEXT::GetAssetsPath();
 		SetCurrentPath(assetsPath);
 
-		mTreeViewFolderMap[assetsPath] = { assetsPath, false, assetsPath.parent_path().filename().string()};
+		mTreeViewFolderMap[assetsPath] = { assetsPath, false, assetsPath.parent_path().filename().string() };
 	}
 
 	ContentWindow::~ContentWindow()
@@ -31,12 +33,15 @@ namespace Darius::Editor::Gui::Windows
 	{
 		auto availableWidth = ImGui::GetContentRegionAvail().x;
 		auto availableHeigh = ImGui::GetContentRegionAvail().y;
-		static float treeViewWidth = availableWidth / 5;
-		static float rightPanelWidth = availableWidth - treeViewWidth - 8.f;
 
-		D_GUI_COMPONENT::Splitter(true, 8.f, &treeViewWidth, &rightPanelWidth, 50.f, 50.f, availableHeigh);
+		if (mTreeViewWidth < 0)
+			mTreeViewWidth = availableWidth / 5;
 
-		ImGui::BeginChild("##FileTreeView", ImVec2(treeViewWidth, availableHeigh));
+		mRightPanelWidth = availableWidth - mTreeViewWidth - 8.f;
+
+		D_GUI_COMPONENT::Splitter(true, 8.f, &mTreeViewWidth, &mRightPanelWidth, 50.f, 50.f, availableHeigh);
+
+		ImGui::BeginChild("##FileTreeView", ImVec2(mTreeViewWidth, availableHeigh));
 		{
 			DrawFolderTreeItem(mTreeViewFolderMap[D_EDITOR_CONTEXT::GetAssetsPath()]);
 		}
@@ -44,9 +49,9 @@ namespace Darius::Editor::Gui::Windows
 
 		ImGui::SameLine();
 
-		ImGui::BeginChild("##MainPane", ImVec2(rightPanelWidth, availableHeigh));
+		ImGui::BeginChild("##MainPane", ImVec2(mRightPanelWidth, availableHeigh));
 		{
-			ImGui::BeginChild("##ToolbarPane", ImVec2(rightPanelWidth, 40));
+			ImGui::BeginChild("##ToolbarPane", ImVec2(mRightPanelWidth, 40));
 			{
 				DrawBreadcrumb();
 			}
@@ -141,6 +146,7 @@ namespace Darius::Editor::Gui::Windows
 
 		ImGuiStyle& style = ImGui::GetStyle();
 		float window_visible_x2 = ImGui::GetWindowPos().x + ImGui::GetWindowContentRegionMax().x;
+		D_LOG_INFO(window_visible_x2);
 
 		float buttonWidth = 100;
 
@@ -151,7 +157,7 @@ namespace Darius::Editor::Gui::Windows
 			bool selected = mSelectedItem == &dirItem;
 			bool clicked;
 			D_GUI_COMPONENT::ContentWindowItemGrid(dirItem, buttonWidth, buttonWidth, selected, clicked);
-			
+
 			// Check if becomes selected
 			if (selected && mSelectedItem != &dirItem)
 				SelectEditorContentItem(&dirItem);
@@ -266,7 +272,7 @@ namespace Darius::Editor::Gui::Windows
 	void ContentWindow::SelectEditorContentItem(D_GUI_COMPONENT::EditorContentWindowItem const* item)
 	{
 		mSelectedItem = item;
-		
+
 		if (item->IsDirectory)
 			return;
 

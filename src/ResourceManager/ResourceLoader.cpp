@@ -100,6 +100,21 @@ namespace Darius::ResourceManager
 				os << jmeta;
 			os.close();
 		}
+		else
+		{
+			std::ifstream is(path);
+
+			Json jmeta;
+			is >> jmeta;
+			is.close();
+
+			auto name = resource->GetName();
+			jmeta["Properties"][STR_WSTR(name)] = resourceProps;
+
+			std::ofstream os(path);
+			os << jmeta;
+			os.close();
+		}
 
 		return true;
 	}
@@ -115,6 +130,14 @@ namespace Darius::ResourceManager
 		}
 
 		auto loaded = LoadResource(resource->GetPath());
+
+		ResourceHandle resourceHandle = *resource;
+		for (auto const& loadedHandle : loaded)
+		{
+			if (loadedHandle == resourceHandle)
+				return resourceHandle;
+		}
+
 		return loaded.size() > 0 ? loaded[0] : EmptyResourceHandle;
 
 	}
@@ -124,12 +147,14 @@ namespace Darius::ResourceManager
 		foundMeta = false;
 		auto path = _path.lexically_normal();
 
+		bool alreadyExists = false;
+
 		// If already exists
 		auto manager = D_RESOURCE::GetManager();
 		if (manager->mPathMap.contains(path))
 		{
 			foundMeta = true;
-			return manager->mPathMap.at(path);
+			alreadyExists = true;
 		}
 
 		ResourceFileMeta meta;
@@ -150,6 +175,9 @@ namespace Darius::ResourceManager
 		is.close();
 
 		meta = jMeta;
+
+		if (alreadyExists)
+			return manager->mPathMap.at(path);
 
 		return CreateResourceObject(meta, manager, path.parent_path());
 	}
@@ -190,7 +218,9 @@ namespace Darius::ResourceManager
 				// Load if not loaded and should load, do it!
 				if (!metaOnly && !resource->GetLoaded())
 				{
-					resource->ReadResourceFromFile(properties);
+					auto resWName = resource->GetName();
+					auto resName = STR_WSTR(resWName);
+					resource->ReadResourceFromFile(properties.contains(resName) ? properties[resName] : Json());
 					resource->mLoaded = true;
 				}
 

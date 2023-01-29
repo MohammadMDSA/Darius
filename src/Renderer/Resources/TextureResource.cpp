@@ -11,10 +11,12 @@ namespace Darius::Graphics
 
 	void TextureResource::WriteResourceToFile(D_SERIALIZATION::Json& json) const
 	{
+		D_H_SERIALIZE(SRGB);
 	}
 
 	void TextureResource::ReadResourceFromFile(D_SERIALIZATION::Json const& json)
 	{
+		D_H_DESERIALIZE(SRGB);
 	}
 
 	void TextureResource::CreateRaw(uint32_t color, DXGI_FORMAT format, size_t rowPitchByte, size_t width, size_t height)
@@ -34,6 +36,12 @@ namespace Darius::Graphics
 		bool valueChanged = false;
 
 		D_H_DETAILS_DRAW_BEGIN_TABLE();
+
+		D_H_DETAILS_DRAW_PROPERTY("sRGB");
+		bool val = GetSRGB();
+		if (ImGui::Checkbox("##sRGB", &val))
+			SetSRGB(val);
+
 
 		// Width
 		{
@@ -121,12 +129,12 @@ namespace Darius::Graphics
 		if (ext == ".dds")
 		{
 			auto fileData = D_FILE::ReadFileSync(path.wstring());
-			return mTexture.CreateDDSFromMemory(fileData->data(), fileData->size(), false);
+			return mTexture.CreateDDSFromMemory(fileData->data(), fileData->size(), GetSRGB());
 		}
 		else if (ext == ".tga")
 		{
 			auto fileData = D_FILE::ReadFileSync(path.wstring());
-			mTexture.CreateTGAFromMemory(fileData->data(), fileData->size(), false);
+			mTexture.CreateTGAFromMemory(fileData->data(), fileData->size(), GetSRGB());
 
 			return true;
 		}
