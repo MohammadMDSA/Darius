@@ -146,7 +146,6 @@ namespace Darius::Editor::Gui::Windows
 
 		ImGuiStyle& style = ImGui::GetStyle();
 		float window_visible_x2 = ImGui::GetWindowPos().x + ImGui::GetWindowContentRegionMax().x;
-		D_LOG_INFO(window_visible_x2);
 
 		float buttonWidth = 100;
 
