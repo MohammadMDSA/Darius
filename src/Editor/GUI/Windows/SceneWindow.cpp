@@ -32,12 +32,15 @@ namespace Darius::Editor::Gui::Windows
 		mTextureHandle = D_RENDERER::AllocateUiTexture(1);
 
 		// Setup cameras
+		D_CAMERA_MANAGER::SetActiveCamera(&mCamera);
 		mCamera.SetFOV(XM_PI / 3);
-		mCamera.SetZRange(0.01f, 1000.f);
+		mCamera.SetZRange(0.001f, 10000.f);
 		mCamera.SetPosition(Vector3(2.f, 2.f, 2.f));
 		mCamera.SetLookDirection(Vector3(-2), Vector3::Up());
+		mCamera.SetOrthographicSize(10);
+		mCamera.SetOrthographic(false);
+		ImGuizmo::SetOrthographic(mCamera.IsOrthographic());
 
-		D_CAMERA_MANAGER::SetActiveCamera(&mCamera);
 
 		// Fetch line mesh resource
 		auto lineHandle = D_GRAPHICS::GetDefaultGraphicsResource(D_GRAPHICS::DefaultResource::LineMesh);
@@ -288,10 +291,25 @@ namespace Darius::Editor::Gui::Windows
 
 		// Drawing compass
 		{
-			auto padding = ImVec2(10.f, 10.f);
+			auto padding = ImVec2(10.f, 20.f);
 			auto compassSize = ImVec2(100.f, 100.f);
-			ImGuizmo::ViewManipulate((float*)&view, mOrbitCam.GetCurrentCloseness(), ImVec2(mPosX + min.x + +padding.x, mPosY + min.y + mHeight - compassSize.y - padding.y), compassSize, 0x10101010);
+			ImGuizmo::ViewManipulate((float*)&view, mOrbitCam.GetCurrentCloseness(), ImVec2(mPosX + min.x + padding.x, mPosY + min.y + mHeight - compassSize.y - padding.y), compassSize, 0x10101010);
 
+			auto projButtonSize = ImVec2(50.f, 20.f);
+
+			ImGui::SetCursorPos(ImVec2(min.x + padding.x + (compassSize.x - projButtonSize.x) / 2,
+				min.y - 1.5 * padding.y + mHeight));
+
+			if (mCamera.IsOrthographic())
+			{
+				if (ImGui::Button(ICON_FA_BARS "ISO", projButtonSize))
+					mCamera.SetOrthographic(false);
+			}
+			else
+			{
+				if (ImGui::Button(ICON_FA_CHEVRON_LEFT "Pers", projButtonSize))
+					mCamera.SetOrthographic(true);
+			}
 
 			mCamera.SetTransform(OrthogonalTransform(view.Inverse()));
 		}
