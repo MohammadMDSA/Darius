@@ -57,9 +57,19 @@ namespace D_EDITOR
 	{
 		if (mDirtyOrientation)
 		{
-			auto angles = mTargetCamera.GetRotation().Angles();
+			auto rot = mTargetCamera.GetRotation();
+			auto angles = rot.Angles();
 			mCurrentPitch = angles.GetX();
 			mCurrentHeading = angles.GetY();
+
+			auto up = rot * Vector3::Up();
+
+			if (up.GetY() < 0.f)
+			{
+				mCurrentPitch = XM_PI - mCurrentPitch;
+				mCurrentHeading += XM_PI;
+			}
+
 			mDirtyOrientation = false;
 		}
 
@@ -69,7 +79,6 @@ namespace D_EDITOR
 			mFineMovement = !mFineMovement;
 
 		float speedScale = (mFineMovement ? 0.1f : 1.0f) * timeScale;
-		//float panScale = (m_FineRotation ? 0.5f : 1.0f) * timeScale;
 
 		float yaw = 0.f;
 		float pitch = 0.f;
@@ -98,8 +107,6 @@ namespace D_EDITOR
 		pitch = (float)D_MOUSE::GetMovement(D_MOUSE::Axis::Vertical) * mMouseSensitivityY;
 
 		mCurrentPitch -= pitch;
-		mCurrentPitch = XMMin(XM_PIDIV2, mCurrentPitch);
-		mCurrentPitch = XMMax(-XM_PIDIV2, mCurrentPitch);
 
 		mCurrentHeading -= yaw;
 		if (mCurrentHeading > XM_PI)
