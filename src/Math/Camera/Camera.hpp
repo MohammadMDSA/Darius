@@ -93,15 +93,18 @@ namespace Darius::Math::Camera
         // Controls the view-to-projection matrix
         void SetPerspectiveMatrix(float verticalFovRadians, float aspectHeightOverWidth, float nearZClip, float farZClip);
         void SetFOV(float verticalFovInRadians) { m_VerticalFOV = verticalFovInRadians; UpdateProjMatrix(); }
-        INLINE void SetViewSize(float width, float height) { m_Width = width; m_Heigh = height; m_AspectRatio = height / width; }
+        INLINE void SetAspectRatio(float heightOverWidth) { m_AspectRatio = heightOverWidth; UpdateProjMatrix(); }
         void SetZRange(float nearZ, float farZ) { m_NearClip = nearZ; m_FarClip = farZ; UpdateProjMatrix(); }
         void ReverseZ(bool enable) { m_ReverseZ = enable; UpdateProjMatrix(); }
-        INLINE void SetOrthographic(bool isOrthoGraphic) { m_Orthographic = isOrthoGraphic; }
+        INLINE void SetOrthographic(bool isOrthoGraphic) { m_Orthographic = isOrthoGraphic; UpdateProjMatrix(); }
+        INLINE void SetOrthographicSize(float size) { m_OrthographicSize = size; }
 
         float GetFOV() const { return m_VerticalFOV; }
         float GetNearClip() const { return m_NearClip; }
         float GetFarClip() const { return m_FarClip; }
         float GetClearDepth() const { return m_ReverseZ ? 0.0f : 1.0f; }
+        float GetOrthographicSize() const { return m_OrthographicSize; }
+        bool IsOrthographic() const { return m_Orthographic; }
 
     private:
 
@@ -111,11 +114,10 @@ namespace Darius::Math::Camera
         float m_AspectRatio;
         float m_NearClip;
         float m_FarClip;
+        float m_OrthographicSize;
         bool m_ReverseZ;		// Invert near and far clip distances so that Z=1 at the near plane
         bool m_InfiniteZ;       // Move the far plane to infinity
         bool m_Orthographic;
-        float m_Width;          // Orthographic only
-        float m_Heigh;          // Orthographic only
     };
 
     inline void BaseCamera::SetEyeAtUp(Vector3 eye, Vector3 at, Vector3 up)
@@ -148,7 +150,7 @@ namespace Darius::Math::Camera
         m_Basis = Matrix3(m_CameraToWorld.GetRotation());
     }
 
-    inline Camera::Camera() : m_ReverseZ(true), m_InfiniteZ(false), m_Orthographic(false)
+    inline Camera::Camera() : m_ReverseZ(true), m_InfiniteZ(false), m_Orthographic(false), m_OrthographicSize(10)
     {
         SetPerspectiveMatrix(XM_PIDIV4, 9.0f / 16.0f, 1.0f, 1000.0f);
     }

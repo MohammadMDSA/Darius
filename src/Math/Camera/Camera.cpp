@@ -56,13 +56,15 @@ namespace Darius::Math::Camera
         if (m_Orthographic)
         {
             Matrix4 projection;
+            auto orthoWidth = m_OrthographicSize * 2;
+            auto orthoHeigh = m_AspectRatio * orthoWidth;
             if (m_ReverseZ)
             {
-                SetProjMatrix(Matrix4(XMMatrixOrthographicRH(m_Width, m_Heigh, m_FarClip, m_NearClip)));
+                SetProjMatrix(Matrix4(XMMatrixOrthographicRH(m_OrthographicSize, orthoHeigh, m_FarClip, m_NearClip)));
             }
             else
             {
-                SetProjMatrix(Matrix4(XMMatrixOrthographicRH(m_Width, m_Heigh, m_NearClip, m_FarClip)));
+                SetProjMatrix(Matrix4(XMMatrixOrthographicRH(orthoWidth, orthoHeigh, m_NearClip, m_FarClip)));
             }
         }
         else
