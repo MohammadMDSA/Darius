@@ -65,6 +65,8 @@ namespace Darius::Editor::Gui::Windows
 		DVector<RenderItem>							mWindowRenderItems;
 		D_RENDERER_FRAME_RESOURCE::GlobalConstants	mSceneGlobals;
 
+		float mMouseWheelPerspectiveSensitivity;
+
 		bool										mDrawGrid;
 		bool										mDrawSkybox;
 		bool										mMovingCam;

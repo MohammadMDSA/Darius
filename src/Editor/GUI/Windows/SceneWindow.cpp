@@ -41,6 +41,8 @@ namespace Darius::Editor::Gui::Windows
 		mCamera.SetOrthographic(false);
 		ImGuizmo::SetOrthographic(mCamera.IsOrthographic());
 
+		mMouseWheelPerspectiveSensitivity = 0.1f;
+
 
 		// Fetch line mesh resource
 		auto lineHandle = D_GRAPHICS::GetDefaultGraphicsResource(D_GRAPHICS::DefaultResource::LineMesh);
@@ -321,6 +323,15 @@ namespace Darius::Editor::Gui::Windows
 		{
 			CreateBuffers();
 		}
+
+
+		if (mCamera.IsOrthographic())
+		{
+			float orthoZoom = (float)D_MOUSE::GetWheel() * mMouseWheelPerspectiveSensitivity;
+			if (orthoZoom != 0.f)
+				mCamera.SetOrthographicSize(mCamera.GetOrthographicSize() + orthoZoom);
+		}
+
 
 		if (mOrbitCam.IsAdjusting() || (D_KEYBOARD::GetKey(D_KEYBOARD::Keys::LeftAlt) && D_MOUSE::GetButton(D_MOUSE::Keys::Left) && mHovered))
 		{
