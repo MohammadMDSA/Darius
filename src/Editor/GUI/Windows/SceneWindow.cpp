@@ -39,7 +39,7 @@ namespace Darius::Editor::Gui::Windows
 		mCamera.SetLookDirection(Vector3(-2), Vector3::Up());
 		mCamera.SetOrthographicSize(10);
 		mCamera.SetOrthographic(false);
-		ImGuizmo::SetOrthographic(mCamera.IsOrthographic());
+		ImGuizmo::SetOrthographic(true);
 
 		mMouseWheelPerspectiveSensitivity = 0.1f;
 
@@ -305,12 +305,16 @@ namespace Darius::Editor::Gui::Windows
 			if (mCamera.IsOrthographic())
 			{
 				if (ImGui::Button(ICON_FA_BARS "ISO", projButtonSize))
+				{
 					mCamera.SetOrthographic(false);
+				}
 			}
 			else
 			{
 				if (ImGui::Button(ICON_FA_CHEVRON_LEFT "Pers", projButtonSize))
+				{
 					mCamera.SetOrthographic(true);
+				}
 			}
 
 			mCamera.SetTransform(OrthogonalTransform(view.Inverse()));
