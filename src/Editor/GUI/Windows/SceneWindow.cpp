@@ -157,7 +157,6 @@ namespace Darius::Editor::Gui::Windows
 		context.TransitionResource(mSceneTexture, D3D12_RESOURCE_STATE_RENDER_TARGET, true);
 		context.ClearColor(mSceneTexture);
 
-		sorter.RenderMeshes(MeshSorter::kOpaque, context, mSceneGlobals);
 
 		if (mDrawSkybox)
 			D_RENDERER::DrawSkybox(context, mCamera, mSceneTexture, mSceneDepth, viewPort, scissor);
@@ -169,7 +168,7 @@ namespace Darius::Editor::Gui::Windows
 		{
 			MeshSorter debugDrawSorter(sorter);
 			D_DEBUG_DRAW::GetRenderItems(debugDrawSorter);
-			debugDrawSorter.RenderMeshes(MeshSorter::kOpaque, context, mSceneGlobals);
+			debugDrawSorter.Sort();
 			debugDrawSorter.RenderMeshes(MeshSorter::kTransparent, context, mSceneGlobals);
 		}
 

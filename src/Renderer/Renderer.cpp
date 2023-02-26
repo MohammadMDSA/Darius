@@ -283,7 +283,63 @@ namespace Darius::Renderer
 		Psos.push_back(SkinCutoutDepthTwoSidedPSO);
 
 
-		D_ASSERT(Psos.size() == 8);
+		// Depth Only Wireframe PSOs
+
+		GraphicsPSO DepthOnlyWireframePSO(L"Renderer: Depth Only PSO Wireframe");
+		DepthOnlyWireframePSO = DepthOnlyPSO;
+		DepthOnlyWireframePSO.SetRasterizerState(RasterizerDefaultMsaaWireframe);
+		DepthOnlyWireframePSO.Finalize();
+		Psos.push_back(DepthOnlyWireframePSO);
+
+		GraphicsPSO CutoutDepthWireframePSO(L"Renderer: Cutout Depth PSO Wireframe");
+		CutoutDepthWireframePSO = CutoutDepthPSO;
+		CutoutDepthWireframePSO.SetRasterizerState(RasterizerDefaultMsaaWireframe);
+		CutoutDepthWireframePSO.Finalize();
+		Psos.push_back(CutoutDepthWireframePSO);
+
+		GraphicsPSO SkinDepthOnlyWireframePSO(L"Renderer: Depth Only PSO Skinned Wireframe");
+		SkinDepthOnlyWireframePSO = SkinDepthOnlyPSO;
+		SkinDepthOnlyWireframePSO.SetRasterizerState(RasterizerDefaultMsaaWireframe);
+		SkinDepthOnlyWireframePSO.Finalize();
+		Psos.push_back(SkinDepthOnlyWireframePSO);
+
+		GraphicsPSO SkinCutoutDepthWireframePSO(L"Renderer: Cutout Depth PSO Skinned Wireframe");
+		SkinCutoutDepthWireframePSO = SkinCutoutDepthPSO;
+		SkinCutoutDepthWireframePSO.SetRasterizerState(RasterizerDefaultMsaaWireframe);
+		SkinCutoutDepthWireframePSO.Finalize();
+		Psos.push_back(SkinCutoutDepthWireframePSO);
+
+		// Depth Only Two Sided Wireframe PSOs
+		GraphicsPSO DepthOnlyTwoSidedWireframePSO(L"Renderer: Depth Only PSO Two Sided Wireframe");
+		DepthOnlyTwoSidedWireframePSO = DepthOnlyTwoSidedPSO;
+		DepthOnlyTwoSidedWireframePSO.SetRasterizerState(RasterizerTwoSidedMsaaWireframe);
+		DepthOnlyTwoSidedWireframePSO.Finalize();
+		Psos.push_back(DepthOnlyTwoSidedWireframePSO);
+
+
+		GraphicsPSO CutoutDepthTwoSidedWireframePSO(L"Renderer: Cutout Depth PSO Two Sided Wireframe");
+		CutoutDepthTwoSidedWireframePSO = CutoutDepthTwoSidedPSO;
+		CutoutDepthTwoSidedWireframePSO.SetRasterizerState(RasterizerTwoSidedMsaaWireframe);
+		CutoutDepthTwoSidedWireframePSO.Finalize();
+		Psos.push_back(CutoutDepthTwoSidedWireframePSO);
+
+
+		GraphicsPSO SkinDepthOnlyTwoSidedWireframePSO(L"Renderer: Depth Only PSO Skinned Two Sided Wireframe");
+		SkinDepthOnlyTwoSidedWireframePSO = SkinDepthOnlyTwoSidedPSO;
+		SkinDepthOnlyTwoSidedWireframePSO.SetRasterizerState(RasterizerTwoSidedMsaaWireframe);
+		SkinDepthOnlyTwoSidedWireframePSO.Finalize();
+		Psos.push_back(SkinDepthOnlyTwoSidedWireframePSO);
+
+
+		GraphicsPSO SkinCutoutDepthTwoSidedWireframePSO(L"Renderer: Cutout Depth PSO Skinned Two Sided Wireframe");
+		SkinCutoutDepthTwoSidedWireframePSO = SkinCutoutDepthTwoSidedPSO;
+		SkinCutoutDepthTwoSidedWireframePSO.SetRasterizerState(RasterizerTwoSidedMsaaWireframe);
+		SkinCutoutDepthTwoSidedWireframePSO.Finalize();
+		Psos.push_back(SkinCutoutDepthTwoSidedWireframePSO);
+
+
+
+		D_ASSERT(Psos.size() == 16);
 
 		// Shadow PSOs
 
@@ -460,7 +516,9 @@ namespace Darius::Renderer
 		bool alphaTest = (renderItem.PsoFlags & RenderItem::AlphaTest) == RenderItem::AlphaTest;
 		bool skinned = (renderItem.PsoFlags & RenderItem::HasSkin) == RenderItem::HasSkin;
 		bool twoSided = renderItem.PsoFlags & RenderItem::TwoSided;
-		uint64_t depthPSO = (skinned ? 2 : 0) + (alphaTest ? 1 : 0) + (twoSided ? 4 : 0);
+		bool wireframed = renderItem.PsoFlags & RenderItem::Wireframe;
+		uint64_t depthPSO = (skinned ? 2 : 0) + (alphaTest ? 1 : 0) + (twoSided ? 4 : 0) + (wireframed ? 8 : 0);
+		uint64_t shadowDepthPSO = (skinned ? 2 : 0) + (alphaTest ? 1 : 0) + (twoSided ? 4 : 0);
 
 		union float_or_int { float f; uint32_t u; } dist;
 		dist.f = Max(distance, 0.0f);
@@ -471,7 +529,7 @@ namespace Darius::Renderer
 				return;
 
 			key.passID = kZPass;
-			key.psoIdx = depthPSO + 8;
+			key.psoIdx = shadowDepthPSO + 16;
 			key.key = dist.u;
 			m_SortKeys.push_back(key.value);
 			m_PassCounts[kZPass]++;
@@ -486,7 +544,6 @@ namespace Darius::Renderer
 		}
 		else if (SeparateZPass || alphaTest)
 		{
-			//D_ASSERT(false);
 			key.passID = kZPass;
 			key.psoIdx = depthPSO;
 			key.key = dist.u;
@@ -714,9 +771,9 @@ namespace Darius::Renderer
 	void InitializeGUI()
 	{
 		ImguiHeap.Create(L"Imgui Heap", D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, 4096);
-		
+
 		auto defualtHandle = ImguiHeap.Alloc(1);
-		
+
 		ImGui::CreateContext();
 		ImPlot::CreateContext();
 		ImGui_ImplWin32_Init(Resources->GetWindow());

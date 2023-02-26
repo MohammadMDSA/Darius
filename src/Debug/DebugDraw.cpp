@@ -15,7 +15,6 @@ ri.MeshCBV = MeshConstantsGPU.GetGpuVirtualAddress() + sizeof(D_RENDERER_FRAME_R
 ri.Color = color; \
 ri.PsoFlags = RenderItem::HasPosition | RenderItem::HasNormal | RenderItem::HasTangent | RenderItem::HasUV0 | RenderItem::ColorOnly | RenderItem::TwoSided | RenderItem::Wireframe; \
 ri.PsoType = D_RENDERER::GetPso(ri.PsoFlags); \
-ri.PsoFlags = D_RENDERER_FRAME_RESOURCE::RenderItem::ColorOnly | D_RENDERER_FRAME_RESOURCE::RenderItem::Wireframe; \
 DrawPending.push_back(ri); \
 if(duration > 0) \
 { \
