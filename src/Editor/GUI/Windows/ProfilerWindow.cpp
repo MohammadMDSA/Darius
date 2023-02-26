@@ -6,8 +6,9 @@
 #include <Core/TimeManager/TimeManager.hpp>
 #include <Renderer/GraphicsUtils/Profiling/Profiling.hpp>
 
-#include <implot/implot.h>
-#include <ImGuiFlameGraph/imgui_widget_flamegraph.h>
+#include <imgui.h>
+#include <implot.h>
+#include <imgui_widget_flamegraph.h>
 
 #include <Libs/FontIcon/IconsFontAwesome6.h>
 

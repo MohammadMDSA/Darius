@@ -9,5 +9,5 @@ add_library(IMGUI_FLAME_GRAPH STATIC)
 target_sources(IMGUI_FLAME_GRAPH PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/imgui_widget_flamegraph.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/imgui_widget_flamegraph.h)
-target_include_directories(IMGUI_FLAME_GRAPH PRIVATE ${IMGUI_FLAME_GRAPH_DIRECTORIES})
+target_include_directories(IMGUI_FLAME_GRAPH PUBLIC ${CMAKE_CURRENT_SOURCE_DIR} PRIVATE ${IMGUI_FLAME_GRAPH_DIRECTORIES})
 

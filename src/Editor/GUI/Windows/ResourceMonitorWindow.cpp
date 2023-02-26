@@ -5,7 +5,7 @@
 
 #include <ResourceManager/ResourceManager.hpp>
 
-#include <imgui/imgui.h>
+#include <imgui.h>
 
 using namespace D_RESOURCE;
 using namespace D_CORE;

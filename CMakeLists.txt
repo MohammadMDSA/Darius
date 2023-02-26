@@ -1,6 +1,6 @@
 cmake_minimum_required (VERSION 3.13)
 
-project ("DariusEngine"
+project ("Darius"
   DESCRIPTION "DirectX 12 3D Game engine and editor"
   LANGUAGES CXX C)
 
@@ -13,7 +13,7 @@ option(BUILD_TESTS "Build tests" ON)
 option(BUILD_EDITOR "Build target editor" ON)
 
 if(BUILD_EDITOR)
-set(PROJECT_NAME "DariusEngine")
+set(PROJECT_NAME "Darius")
 endif(BUILD_EDITOR)
 
 set(CMAKE_CXX_STANDARD 20)
@@ -88,6 +88,8 @@ if(BUILD_EDITOR)
         "src/Editor/Gui/Windows/ResourceMonitorWindow.cpp"
         "src/Editor/Gui/Windows/ProfilerWindow.hpp"
         "src/Editor/Gui/Windows/ProfilerWindow.cpp"
+        "src/Editor/Gui/Windows/SettingsWindow.hpp"
+        "src/Editor/Gui/Windows/SettingsWindow.cpp"
         "src/Editor/Gui/Utils/Buffers.hpp"
         "src/Editor/Gui/Components/ContentWindowComponents.cpp"
         "src/Editor/Gui/Components/ContentWindowComponents.hpp"
@@ -111,10 +113,11 @@ endif(BUILD_EDITOR)
 # Adding Flecs
 add_subdirectory("src/Libs/flecs")
 target_compile_options(flecs_static PRIVATE)
+include_directories("src/Libs/flecs")
 
 # Adding imgui
 add_subdirectory("src/Libs/imgui_wrapper")
-target_link_libraries(${PROJECT_NAME} PRIVATE IMGUIFILEDIALOG IMGUI_FLAME_GRAPH)
+target_link_libraries(${PROJECT_NAME} PRIVATE IMGUI_FLAME_GRAPH IMGUIFILEDIALOG)
 
 # Adding Memory Allocators
 # add_subdirectory("src/Libs/MemAll")
@@ -136,6 +139,9 @@ set(Boost_USE_STATIC_LIBS ON)
 set(Boost_USE_MULTITHREADED ON)
 set(Boost_USE_STATIC_RUNTIME OFF)
 set(Boost_ARCHITECTURE "-x64")
+
+# Adding PhysX Includes
+include_directories("src/Libs/PhysX/include")
 
 if(NOT DEFINED BOOST_ROOT)
     set(BOOST_ROOT $ENV{Boost_ROOT})
@@ -170,23 +176,9 @@ add_subdirectory("src/resourceManager")
 add_subdirectory("src/physics")
 add_subdirectory("src/debug")
 add_subdirectory("src/animation")
+add_subdirectory("src/engine")
 
-SET(DARIUS_LIBS)
-
-list(APPEND DARIUS_LIBS
-	"Utils"
-    "Core"
-    "Math"
-    "Math"
-    "Renderer"
-    "Scene"
-    "ResourceManager"
-    "Physics"
-    "Debug"
-    "Animation"
-	)
-
-target_link_libraries(${PROJECT_NAME} PUBLIC ${DARIUS_LIBS})
+target_link_libraries(${PROJECT_NAME} PUBLIC DariusEngine)
 
 ##############################
 ############ TEST ############

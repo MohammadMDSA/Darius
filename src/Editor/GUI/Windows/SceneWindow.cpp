@@ -13,8 +13,8 @@
 #include <Renderer/LightManager.hpp>
 #include <ResourceManager/ResourceManager.hpp>
 
-#include <imgui/imgui.h>
-#include <ImGuizmo/ImGuizmo.h>
+#include <imgui.h>
+#include <ImGuizmo.h>
 #include <Libs/FontIcon/IconsFontAwesome6.h>
 
 namespace Darius::Editor::Gui::Windows

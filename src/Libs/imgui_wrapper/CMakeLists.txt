@@ -2,6 +2,7 @@ set(IMGUI_DIR ${CMAKE_CURRENT_SOURCE_DIR}/imgui)
 set(IMGUIZMO_DIR ${CMAKE_CURRENT_SOURCE_DIR}/ImGuizmo)
 set(IMPLOT_DIR ${CMAKE_CURRENT_SOURCE_DIR}/implot)
 set(IMGUIFILEDIALOG_DIR ${CMAKE_CURRENT_SOURCE_DIR}/ImGuiFileDialog)
+set(IMGUI_FLAME_GRAPH_DIR ${CMAKE_CURRENT_SOURCE_DIR}/ImGuiFlameGraph)
 
 ADD_LIBRARY(IMGUIFILEDIALOG STATIC)
 
@@ -15,7 +16,7 @@ target_include_directories(IMGUIFILEDIALOG
 
 add_library(IMGUI STATIC)
 
-target_sources( IMGUI
+target_sources(IMGUI
                 PRIVATE
                     ${IMGUI_DIR}/imgui_demo.cpp
                     ${IMGUI_DIR}/imgui_draw.cpp
@@ -36,16 +37,16 @@ target_sources( IMGUI
                     ${IMGUI_DIR}/backends/imgui_impl_win32.cpp
                 )
 
-target_include_directories( IMGUI
+target_include_directories(IMGUI
                             PUBLIC
                                 ${IMGUI_DIR}
                                 ${IMGUI_DIR}/backends
                                 ${IMGUIZMO_DIR}
-                                .
+                                ${IMPLOT_DIR}
                             )
 
-target_link_libraries(IMGUIFILEDIALOG PRIVATE IMGUI)
+target_link_libraries(IMGUIFILEDIALOG PUBLIC IMGUI)
 
-add_subdirectory(ImGuiFlameGraph/)
-target_link_libraries(IMGUI_FLAME_GRAPH PRIVATE IMGUI)
+add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/ImGuiFlameGraph/)
+target_link_libraries(IMGUI_FLAME_GRAPH PUBLIC IMGUI)
 

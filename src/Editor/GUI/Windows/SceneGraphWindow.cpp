@@ -6,7 +6,7 @@
 #include <Core/Containers/List.hpp>
 #include <Scene/Scene.hpp>
 
-#include <imgui/imgui.h>
+#include <imgui.h>
 
 using namespace D_ECS;
 using namespace D_CONTAINERS;

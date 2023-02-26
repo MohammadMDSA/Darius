@@ -44,7 +44,7 @@ add_library("Math")
 target_sources("Math"
 	PRIVATE
 	${MATH_LIBS_SOURCES}
-	${MATH_LIBS_INCLUDE} "Quaternion.cpp")
+	${MATH_LIBS_INCLUDE})
 
 	
 set(Boost_USE_STATIC_LIBS ON) 

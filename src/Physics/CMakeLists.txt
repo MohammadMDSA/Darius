@@ -43,7 +43,6 @@ endif()
 
 target_include_directories("Physics"
 PUBLIC
-	"../Libs/PhysX/include"
 PRIVATE
 	".."
 	${Boost_INCLUDE_DIRS}
@@ -64,7 +63,7 @@ else()
 endif()
 
 target_link_libraries("Physics" PRIVATE ${Boost_LIBRARIES})
-target_link_libraries("Physics" PUBLIC flecs_static Utils Core Math Renderer ResourceManager Job Debug)
+target_link_libraries("Physics" PUBLIC Utils Core Math Renderer ResourceManager Job Debug)
 
 
 if(BUILD_TESTS)
