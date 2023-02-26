@@ -1,13 +1,15 @@
 #pragma once
 
-#ifndef D_SUBSYSTEM
-#define D_SUBSYSTEM Darius::Subsystem
+#include <Core/Filesystem/Path.hpp>
+
+#ifndef D_SUBSYSTEMS
+#define D_SUBSYSTEMS Darius::Subsystems
 #endif
 
-namespace Darius::Subsystem
+namespace Darius::Subsystems
 {
 	void RegisterSubsystems();
-	void InitialzieSubsystems();
+	void InitialzieSubsystems(HWND window, int width, int height, D_FILE::Path const& projectPath);
 	void ShutdownSubsystems();
 
 }

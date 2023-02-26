@@ -8,26 +8,20 @@
 #include "EditorContext.hpp"
 #include "Simulation.hpp"
 
-#include <Animation/AnimationManager.hpp>
-#include <Math/VectorMath.hpp>
+#include <Engine/SubsystemRegistry.hpp>
+
 #include <Core/Input.hpp>
-#include <Core/Filesystem/Path.hpp>
 #include <Core/Containers/Vector.hpp>
 #include <Core/TimeManager/TimeManager.hpp>
-#include <Debug/DebugDraw.hpp>
-#include <Job/Job.hpp>
-#include <Demo/MovementBehaviour.hpp>
-#include <Demo/LaserShoot.hpp>
-#include <Physics/PhysicsManager.hpp>
 #include <Scene/SceneLight.hpp>
 #include <Renderer/Renderer.hpp>
 #include <Renderer/Camera/CameraManager.hpp>
-#include <Renderer/GraphicsCore.hpp>
 #include <Renderer/CommandContext.hpp>
 #include <Renderer/GraphicsUtils/Profiling/Profiling.hpp>
-#include <ResourceManager/ResourceManager.hpp>
-#include <Scene/Scene.hpp>
 #include <Utils/Debug.hpp>
+
+#include <Demo/MovementBehaviour.hpp>
+#include <Demo/LaserShoot.hpp>
 
 #include <exception>
 
@@ -49,53 +43,20 @@ namespace Darius::Editor
 	{
 		D_SIMULATE::Shutdown();
 		D_EDITOR_CONTEXT::Shutdown();
-		D_ANIMATION::Shutdown();
-		D_PHYSICS::Shutdown();
-#ifdef _DEBUG
-		D_DEBUG_DRAW::Shutdown();
-#endif // _DEBUG
-		D_INPUT::Shutdown();
-		D_TIME::Shutdown();
-		D_JOB::Shutdown();
-		D_RENDERER::Shutdown();
-		D_RENDERER_DEVICE::Shutdown();
-		D_RESOURCE::Shutdown();
+
+		// Shuting down engine subsystems
+		D_SUBSYSTEMS::ShutdownSubsystems();
 	}
 
 	// Initialize the Direct3D resources required to run.
-	void Editor::Initialize(HWND window, int width, int height, D_FILE::Path projectPath)
+	void Editor::Initialize(HWND window, int width, int height, D_FILE::Path const& projectPath)
 	{
 #ifdef _DEBUG
 		D_DEBUG::AttachWinPixGpuCapturer();
 #endif
-		// Initializing the resource manager
-		D_RESOURCE::Initialize();
 
-		D_RENDERER_DEVICE::Initialize(window, width, height);
-		D_RENDERER::Initialize();
-
-		// Creating device and window resources
-		CreateDeviceDependentResources();
-		CreateWindowSizeDependentResources();
-
-		D_JOB::Initialize();
-
-		// Initialing the tiem manager
-		D_TIME::Initialize();
-
-		// Initializing the input manater
-		D_INPUT::Initialize(window);
-
-		// Initialize Debug Drawer
-#ifdef _DEBUG
-		D_DEBUG_DRAW::Initialize();
-#endif // _DEBUG
-
-		// Initializeing physics
-		D_PHYSICS::Initialize();
-
-		// Initializing animation
-		D_ANIMATION::Initialize();
+		// Initializing engine subsystems
+		D_SUBSYSTEMS::InitialzieSubsystems(window, width, height, projectPath);
 
 		// Initializing the editor context manager
 		D_EDITOR_CONTEXT::Initialize(projectPath);
@@ -215,8 +176,6 @@ namespace Darius::Editor
 
 	void Editor::OnWindowSizeChanged(int width, int height)
 	{
-		(width);
-		(height);
 		D_CAMERA_MANAGER::SetViewportDimansion((float)width, (float)height);
 		if (!D_DEVICE::OnWindowsSizeChanged(width, height))
 			return;

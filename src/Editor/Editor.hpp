@@ -35,7 +35,7 @@ namespace Darius::Editor
 		Editor& operator= (Editor const&) = delete;
 
 		// Initialization and management
-		void Initialize(HWND window, int width, int height, D_FILE::Path projectPath);
+		void Initialize(HWND window, int width, int height, D_FILE::Path const& projectPath);
 
 		// Basic game loop
 		void Tick();
