@@ -6,17 +6,17 @@
 #include <Utils/Detailed.hpp>
 
 #ifndef D_EDITOR_CONTEXT
-#define D_EDITOR_CONTEXT Darius::Editor::ContextManager
+#define D_EDITOR_CONTEXT Darius::Editor::Context
 #endif // !D_EDITOR_CONTEXT
 
 using namespace D_FILE;
 using namespace D_SCENE;
 
-namespace Darius::Editor::ContextManager
+namespace Darius::Editor::Context
 {
-	void Initialize(Path projectPath);
+	void Initialize();
 	void Shutdown();
-
+	void Update(float elapsedTime);
 
 	GameObject*						GetSelectedGameObject();
 	void							SetSelectedGameObject(GameObject* go);
@@ -25,6 +25,5 @@ namespace Darius::Editor::ContextManager
 
 	// Paths
 	Path							GetProjectPath();
-	Path							GetAssetsPath();
 	Path							GetEditorConfigPath();
 }

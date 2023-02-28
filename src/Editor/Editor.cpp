@@ -6,13 +6,11 @@
 #include "Editor.hpp"
 #include "Gui/GuiManager.hpp"
 #include "EditorContext.hpp"
-#include "Simulation.hpp"
-
-#include <Engine/SubsystemRegistry.hpp>
 
 #include <Core/Input.hpp>
 #include <Core/Containers/Vector.hpp>
 #include <Core/TimeManager/TimeManager.hpp>
+#include <Engine/EngineContext.hpp>
 #include <Scene/SceneLight.hpp>
 #include <Renderer/Renderer.hpp>
 #include <Renderer/Camera/CameraManager.hpp>
@@ -41,11 +39,10 @@ namespace Darius::Editor
 
 	Editor::~Editor()
 	{
-		D_SIMULATE::Shutdown();
 		D_EDITOR_CONTEXT::Shutdown();
 
-		// Shuting down engine subsystems
-		D_SUBSYSTEMS::ShutdownSubsystems();
+		// Shuting down engine
+		D_ENGINE_CONTEXT::Shutdown();
 	}
 
 	// Initialize the Direct3D resources required to run.
@@ -55,14 +52,11 @@ namespace Darius::Editor
 		D_DEBUG::AttachWinPixGpuCapturer();
 #endif
 
-		// Initializing engine subsystems
-		D_SUBSYSTEMS::InitialzieSubsystems(window, width, height, projectPath);
+		// Initializing engine
+		D_ENGINE_CONTEXT::Initialize(projectPath, window, width, height);
 
 		// Initializing the editor context manager
-		D_EDITOR_CONTEXT::Initialize(projectPath);
-
-		// Initializing the simulator
-		D_SIMULATE::Initialize();
+		D_EDITOR_CONTEXT::Initialize();
 
 		// Setting V-Sync
 		D_TIME::EnableFixedTimeStep(1.0 / 60);
@@ -102,10 +96,7 @@ namespace Darius::Editor
 			D_INPUT::Update();
 		}
 
-		D_GUI_MANAGER::Update(elapsedTime);
-
-		// Updating the simulator
-		D_SIMULATE::Update();
+		D_EDITOR_CONTEXT::Update(elapsedTime);
 
 		// Updating lights
 		{

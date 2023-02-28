@@ -2,6 +2,8 @@
 #include "SubsystemRegistry.hpp"
 
 #include <Animation/AnimationManager.hpp>
+#include <Core/Containers/List.hpp>
+#include <Core/Containers/Map.hpp>
 #include <Core/Input.hpp>
 #include <Core/TimeManager/TimeManager.hpp>
 #include <Debug/DebugDraw.hpp>
@@ -11,23 +13,52 @@
 #include <Renderer/Renderer.hpp>
 #include <ResourceManager/ResourceManager.hpp>
 #include <Scene/Scene.hpp>
-
-#include <Core/Containers/List.hpp>
 #include <Utils/Assert.hpp>
 
 #include <functional>
+
+#ifdef _D_EDITOR
+#define REGISTER_SUBSYSTEM(name,subsys) \
+{ \
+	SubsystemContainer[name] = { \
+		subsys::OptionsDrawer \
+	}; \
+}
+#else
+#define REGISTER_SUBSYSTEM(name,subsys) \
+{ \
+	_subsystemContainer[name] = { \
+	}; \
+}
+#endif
 
 using namespace std;
 
 namespace Darius::Subsystems
 {
-	bool												_initialized = false;
-	/*D_CONTAINERS::DList<function<void()>>				initializers;
-	D_CONTAINERS::DList<function<void()>>				shutdowners;*/
+
+	struct SubsystemFuncCollection
+	{
+		/*D_CONTAINERS::DList<function<void()>>						initializers;
+		D_CONTAINERS::DList<function<void()>>						shutdowners;*/
+		function<bool(D_SERIALIZATION::Json&)>						OptionsDrawer;
+	};
+
+	bool														_initialized = false;
+	D_CONTAINERS::DUnorderedMap<std::string, SubsystemFuncCollection> SubsystemContainer;
 
 	void RegisterSubsystems()
 	{
-		
+		REGISTER_SUBSYSTEM("Animation", D_ANIMATION);
+		REGISTER_SUBSYSTEM("Physics", D_PHYSICS);
+#ifdef _DEBUG
+		REGISTER_SUBSYSTEM("Debug Draw", D_DEBUG_DRAW);
+#endif // _DEBUG
+		REGISTER_SUBSYSTEM("Input", D_INPUT);
+		REGISTER_SUBSYSTEM("Time", D_TIME);
+		REGISTER_SUBSYSTEM("Job", D_JOB);
+		REGISTER_SUBSYSTEM("Renderer", D_RENDERER);
+		REGISTER_SUBSYSTEM("Resource Manager", D_RESOURCE);
 	}
 
 	void InitialzieSubsystems(HWND window, int width, int height, D_FILE::Path const& projectPath)
@@ -43,8 +74,7 @@ namespace Darius::Subsystems
 		// Initializing the resource manager
 		D_RESOURCE::Initialize();
 
-		D_RENDERER_DEVICE::Initialize(window, width, height);
-		D_RENDERER::Initialize();
+		D_RENDERER::Initialize(window, width, height);
 
 		// Creating device and window resources
 		/*CreateDeviceDependentResources();
@@ -88,8 +118,19 @@ namespace Darius::Subsystems
 		D_TIME::Shutdown();
 		D_JOB::Shutdown();
 		D_RENDERER::Shutdown();
-		D_RENDERER_DEVICE::Shutdown();
 		D_RESOURCE::Shutdown();
 	}
 
+#ifdef _D_EDITOR
+	void GetSubsystemsOptionsDrawer(D_CONTAINERS::DUnorderedMap<std::string, std::function<bool(D_SERIALIZATION::Json&)>>& systemOption)
+	{
+
+		systemOption.clear();
+
+		for (auto keyVal : SubsystemContainer)
+		{
+			systemOption[keyVal.first] = keyVal.second.OptionsDrawer;
+		}
+	}
+#endif
 }

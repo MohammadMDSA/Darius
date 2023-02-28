@@ -3,10 +3,10 @@
 
 #include "Editor/EditorContext.hpp"
 #include "Editor/GUI/Components/Common.hpp"
-
 #include "Editor/GUI/ThumbnailManager.hpp"
 
 #include <Core/Filesystem/FileUtils.hpp>
+#include <Engine/EngineContext.hpp>
 
 #include <imgui.h>
 #include <Libs/FontIcon/IconsFontAwesome6.h>
@@ -19,7 +19,7 @@ namespace Darius::Editor::Gui::Windows
 		mTreeViewWidth(-1.f),
 		mRightPanelWidth(-1.f)
 	{
-		auto assetsPath = D_EDITOR_CONTEXT::GetAssetsPath();
+		auto assetsPath = D_ENGINE_CONTEXT::GetAssetsPath();
 		SetCurrentPath(assetsPath);
 
 		mTreeViewFolderMap[assetsPath] = { assetsPath, false, assetsPath.parent_path().filename().string() };
@@ -43,7 +43,7 @@ namespace Darius::Editor::Gui::Windows
 
 		ImGui::BeginChild("##FileTreeView", ImVec2(mTreeViewWidth, availableHeigh));
 		{
-			DrawFolderTreeItem(mTreeViewFolderMap[D_EDITOR_CONTEXT::GetAssetsPath()]);
+			DrawFolderTreeItem(mTreeViewFolderMap[D_ENGINE_CONTEXT::GetAssetsPath()]);
 		}
 		ImGui::EndChild();
 
@@ -235,7 +235,7 @@ namespace Darius::Editor::Gui::Windows
 			return false;
 
 		// Checking whether it is a child of assets folder
-		auto assetsPath = D_EDITOR_CONTEXT::GetAssetsPath();
+		auto assetsPath = D_ENGINE_CONTEXT::GetAssetsPath();
 
 		auto newPath = path;
 		auto temp = newPath;

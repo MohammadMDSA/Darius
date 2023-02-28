@@ -4,16 +4,18 @@
 #include "GuiManager.hpp"
 #include "Windows/ContentWindow.hpp"
 #include "Windows/DetailsWindow.hpp"
+#include "Windows/ProfilerWindow.hpp"
 #include "Windows/SceneWindow.hpp"
 #include "Windows/SceneGraphWindow.hpp"
+#include "Windows/SettingsWindow.hpp"
 #include "Windows/ResourceMonitorWindow.hpp"
-#include "Windows/ProfilerWindow.hpp"
 #include "Editor/EditorContext.hpp"
 #include "Editor/Simulation.hpp"
 
 #include <Core/Containers/Map.hpp>
 #include <Core/TimeManager/TimeManager.hpp>
 #include <Core/TimeManager/SystemTime.hpp>
+#include <Engine/EngineContext.hpp>
 #include <Math/VectorMath.hpp>
 #include <Physics/Resources/PhysicsMaterialResource.hpp>
 #include <Renderer/Renderer.hpp>
@@ -68,6 +70,9 @@ namespace Darius::Editor::Gui::GuiManager
 		auto contentWindow = new ContentWindow();
 		Windows[contentWindow->GetName()] = contentWindow;
 
+		auto settingsWindow = new SettingsWindow();
+		Windows[settingsWindow->GetName()] = settingsWindow;
+
 		ImGuiIO& io = ImGui::GetIO();
 		// Setup docking
 		io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
@@ -96,6 +101,12 @@ namespace Darius::Editor::Gui::GuiManager
 	void Shutdown()
 	{
 		D_ASSERT(initialzied);
+
+		// Unallocating windows objects
+		for (auto keyVal : Windows)
+		{
+			delete keyVal.second;
+		}
 	}
 
 	void Update(float deltaTime)
@@ -170,7 +181,7 @@ namespace Darius::Editor::Gui::GuiManager
 		}
 
 		{
-			static bool show_demo_window = false;
+			static bool show_demo_window = true;
 			if (show_demo_window)
 				ImGui::ShowDemoWindow(&show_demo_window);
 
@@ -290,13 +301,13 @@ namespace Darius::Editor::Gui::GuiManager
 					if (D_WORLD::IsLoaded())
 						D_WORLD::Save();
 					else
-						ImGuiFileDialog::Instance()->OpenDialog("SaveScene", "Create Scene File", ".dar", D_EDITOR_CONTEXT::GetAssetsPath().string());
+						ImGuiFileDialog::Instance()->OpenDialog("SaveScene", "Create Scene File", ".dar", D_ENGINE_CONTEXT::GetAssetsPath().string());
 				}
 
 				if (ImGui::MenuItem(ICON_FA_FOLDER "  Load Scene"))
 				{
 
-					ImGuiFileDialog::Instance()->OpenDialog("LoadScene", "Choose Scene File", ".dar", D_EDITOR_CONTEXT::GetAssetsPath().string(), 1, nullptr);
+					ImGuiFileDialog::Instance()->OpenDialog("LoadScene", "Choose Scene File", ".dar", D_ENGINE_CONTEXT::GetAssetsPath().string(), 1, nullptr);
 
 				}
 
@@ -328,14 +339,14 @@ namespace Darius::Editor::Gui::GuiManager
 				{
 					if (ImGui::MenuItem("Material"))
 					{
-						ImGuiFileDialog::Instance()->OpenDialog("SaveResource", "Create Material", ".mat", D_EDITOR_CONTEXT::GetAssetsPath().string(), 1, (void*)D_GRAPHICS::MaterialResource::GetResourceType());
+						ImGuiFileDialog::Instance()->OpenDialog("SaveResource", "Create Material", ".mat", D_ENGINE_CONTEXT::GetAssetsPath().string(), 1, (void*)D_GRAPHICS::MaterialResource::GetResourceType());
 					}
 
 					ImGui::Separator();
 
 					if (ImGui::MenuItem("Physics Material"))
 					{
-						ImGuiFileDialog::Instance()->OpenDialog("SaveResource", "Create Physics Material", ".physmat", D_EDITOR_CONTEXT::GetAssetsPath().string(), 1, (void*)D_PHYSICS::PhysicsMaterialResource::GetResourceType());
+						ImGuiFileDialog::Instance()->OpenDialog("SaveResource", "Create Physics Material", ".physmat", D_ENGINE_CONTEXT::GetAssetsPath().string(), 1, (void*)D_PHYSICS::PhysicsMaterialResource::GetResourceType());
 					}
 
 					ImGui::EndMenu();

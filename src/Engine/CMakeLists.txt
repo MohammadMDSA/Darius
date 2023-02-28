@@ -5,11 +5,13 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ".")
 
 list(APPEND DARIUS_ENGINE_LIBS_INCLUDE
 	"SubsystemRegistry.hpp"
+	"EngineContext.hpp"
 	"pch.hpp"
 	)
 
 list(APPEND DARIUS_ENGINE_LIBS_SOURCES	
 	"SubsystemRegistry.cpp"
+	"EngineContext.cpp"
 	"pch.cpp"
 	)
 

@@ -6,6 +6,7 @@
 #include <Core/TimeManager/TimeManager.hpp>
 #include <Core/Input.hpp>
 #include <Debug/DebugDraw.hpp>
+#include <Engine/EngineContext.hpp>
 #include <Scene/Scene.hpp>
 #include <Scene/EntityComponentSystem/Components/MeshRendererComponent.hpp>
 #include <Scene/EntityComponentSystem/Components/SkeletalMeshRendererComponent.hpp>
@@ -60,8 +61,8 @@ namespace Darius::Editor::Gui::Windows
 		// Window padding
 		mPadding[0] = mPadding[1] = 0.f;
 
-		auto diffIBLHandle = D_RESOURCE_LOADER::LoadResource(D_EDITOR_CONTEXT::GetAssetsPath() / "PBR/DefaultSkyboxDiffuseIBL.dds");
-		auto specIBLHandle = D_RESOURCE_LOADER::LoadResource(D_EDITOR_CONTEXT::GetAssetsPath() / "PBR/DefaultSkyboxSpecularIBL.dds");
+		auto diffIBLHandle = D_RESOURCE_LOADER::LoadResource(D_ENGINE_CONTEXT::GetAssetsPath() / "PBR/DefaultSkyboxDiffuseIBL.dds");
+		auto specIBLHandle = D_RESOURCE_LOADER::LoadResource(D_ENGINE_CONTEXT::GetAssetsPath() / "PBR/DefaultSkyboxSpecularIBL.dds");
 
 		auto diffTex = D_RESOURCE::GetResource<TextureResource>(diffIBLHandle[0], this, L"Scene Window", "Editor Window");
 		auto specTex = D_RESOURCE::GetResource<TextureResource>(specIBLHandle[0], this, L"Scene Window", "Editor Window");

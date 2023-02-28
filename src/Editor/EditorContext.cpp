@@ -3,51 +3,59 @@
 
 #include "GUI/GuiManager.hpp"
 #include "GUI/ThumbnailManager.hpp"
+#include "Simulation.hpp"
 
+#include <Engine/EngineContext.hpp>
 #include <ResourceManager/ResourceLoader.hpp>
 #include <Utils/Assert.hpp>
 
 using namespace D_FILE;
 
-namespace Darius::Editor::ContextManager
+namespace Darius::Editor::Context
 {
 	bool						_initialized = false;
 
 	GameObject*					SelectedGameObject;
 	Detailed*					SelectedDetailed;
-	D_FILE::Path				ProjectPath;
 
-	void Initialize(D_FILE::Path projectPath)
+	void Initialize()
 	{
 		D_ASSERT(!_initialized);
 		_initialized = true;
 		SelectedGameObject = nullptr;
-
-		ProjectPath = projectPath;
-
-		D_ASSERT_M(D_H_ENSURE_DIR(projectPath), "Project directory is not a valid directory");
-
-		if (!D_H_ENSURE_PATH(GetAssetsPath()))
-		{
-			D_ASSERT_M(std::filesystem::create_directory(GetAssetsPath()), "Could not detect/create assets directory for project");
-		}
 
 		if (!D_H_ENSURE_PATH(GetEditorConfigPath()))
 		{
 			D_ASSERT_M(std::filesystem::create_directory(GetEditorConfigPath()), "Could not detect/create editor config directory for project");
 		}
 
-		D_RESOURCE_LOADER::VisitSubdirectory(GetAssetsPath(), true);
+		D_RESOURCE_LOADER::VisitSubdirectory(D_ENGINE_CONTEXT::GetAssetsPath(), true);
 
 		D_THUMBNAIL::Initialize();
 		D_GUI_MANAGER::Initialize();
+
+		// Initializing the simulator
+		D_SIMULATE::Initialize();
+
 	}
 
 	void Shutdown()
 	{
 		D_ASSERT(_initialized);
+
+		D_SIMULATE::Shutdown();
 		D_GUI_MANAGER::Shutdown();
 		D_THUMBNAIL::Shutdown();
+	}
+
+	void Update(float elapsedTime)
+	{
+
+		D_GUI_MANAGER::Update(elapsedTime);
+
+		// Updating the simulator
+		D_SIMULATE::Update();
+
 	}
 
 	GameObject* GetSelectedGameObject()
@@ -81,16 +89,11 @@ namespace Darius::Editor::ContextManager
 
 	Path GetProjectPath()
 	{
-		return ProjectPath;
+		return D_ENGINE_CONTEXT::GetProjectPath();
 	}
-
-	Path GetAssetsPath()
-	{
-		return Path(ProjectPath).append("Assets/");
-	}
-
+	
 	Path GetEditorConfigPath()
 	{
-		return Path(ProjectPath).append("Config/");
+		return D_ENGINE_CONTEXT::GetProjectPath().append("Config/Editor/");
 	}
 }
