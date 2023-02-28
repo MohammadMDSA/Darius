@@ -49,6 +49,7 @@ namespace Darius::Editor
 		void OnDeactivated();
 		void OnSuspending();
 		void OnResuming();
+		void OnQuit();
 		void OnWindowMoved();
 		void OnDisplayChange();
 		void OnWindowSizeChanged(int width, int height);

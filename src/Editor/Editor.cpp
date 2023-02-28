@@ -135,24 +135,29 @@ namespace Darius::Editor
 	// Message handlers
 	void Editor::OnActivated()
 	{
-		// TODO: Game is becoming active window.
+		D_EDITOR_CONTEXT::EditorActivated();
 	}
 
 	void Editor::OnDeactivated()
 	{
-		// TODO: Game is becoming background window.
+		D_EDITOR_CONTEXT::EditorDeactivated();
 	}
 
 	void Editor::OnSuspending()
 	{
-		// TODO: Game is being power-suspended (or minimized).
+		D_EDITOR_CONTEXT::EditorSuspended();
 	}
 
 	void Editor::OnResuming()
 	{
 		D_TIME::GetStepTimer()->ResetElapsedTime();
 
-		// TODO: Game is being power-resumed (or returning from minimize).
+		D_EDITOR_CONTEXT::EditorResuming();
+	}
+
+	void Editor::OnQuit()
+	{
+		D_EDITOR_CONTEXT::EditorQuitting();
 	}
 
 	void Editor::OnWindowMoved()

@@ -18,6 +18,13 @@ namespace Darius::Editor::Context
 	GameObject*					SelectedGameObject;
 	Detailed*					SelectedDetailed;
 
+	D_H_SIGNAL_DEFINITION(EditorSuspended, void());
+	D_H_SIGNAL_DEFINITION(EditorResuming, void());
+	D_H_SIGNAL_DEFINITION(EditorDeactivated, void());
+	D_H_SIGNAL_DEFINITION(EditorActivated, void());
+	D_H_SIGNAL_DEFINITION(EditorQuitting, void());
+
+
 	void Initialize()
 	{
 		D_ASSERT(!_initialized);
@@ -95,5 +102,35 @@ namespace Darius::Editor::Context
 	Path GetEditorConfigPath()
 	{
 		return D_ENGINE_CONTEXT::GetProjectPath().append("Config/Editor/");
+	}
+
+	Path GetEditorWindowsConfigPath()
+	{
+		return GetEditorConfigPath() / "Windows.json";
+	}
+
+	void EditorSuspended()
+	{
+		EditorSuspendedSignal();
+	}
+
+	void EditorResuming()
+	{
+		EditorResumingSignal();
+	}
+
+	void EditorDeactivated()
+	{
+		EditorDeactivatedSignal();
+	}
+
+	void EditorActivated()
+	{
+		EditorActivatedSignal();
+	}
+
+	void EditorQuitting()
+	{
+		EditorQuittingSignal();
 	}
 }

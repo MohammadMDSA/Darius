@@ -293,6 +293,9 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			s_fullscreen = !s_fullscreen;
 		}
 		break;
+	case WM_QUIT:
+		game->OnQuit();
+		break;
 
 	case WM_MENUCHAR:
 		// A menu is active and the user presses a key that does not correspond
