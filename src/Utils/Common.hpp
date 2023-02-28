@@ -151,6 +151,26 @@ ImGui::TableSetColumnIndex(1); \
 ImGui::EndTable(); \
 } \
 
+// Subsystems Option Components
+#define D_H_OPTION_DRAW_BEGIN() \
+float inputOffset = ImGui::GetContentRegionAvail().x * 0.4f; \
+bool settingsChanged = false;
+
+#define D_H_OPTION_DRAW_END() \
+return settingsChanged;
+
+#define D_H_OPTION_DRAW_CHECKBOX(label, tag, variable) \
+{ \
+ImGui::Text(label); \
+ImGui::SameLine(inputOffset); \
+bool value = variable; \
+if (ImGui::Checkbox("##"label, &value)) \
+{ \
+	options[tag] = variable = value; \
+	settingsChanged = true; \
+} \
+}
+
 #endif // _D_EDITOR
 
 
