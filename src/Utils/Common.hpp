@@ -171,6 +171,10 @@ if (ImGui::Checkbox("##"label, &value)) \
 } \
 }
 
+// Subsystem Settings Loader
+#define D_H_OPTIONS_LOAD_BASIC(key, variable) \
+if(settings.contains(key)) variable = settings.at(key);
+
 #endif // _D_EDITOR
 
 

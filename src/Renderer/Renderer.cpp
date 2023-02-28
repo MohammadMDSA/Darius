@@ -191,6 +191,8 @@ namespace Darius::Renderer
 		D_ASSERT(_device == nullptr);
 		D_ASSERT(Resources);
 
+		D_H_OPTIONS_LOAD_BASIC("Passes.SeparateZ", SeparateZPass);
+
 		_device = Resources->GetD3DDevice();
 
 		BuildRootSignature();
