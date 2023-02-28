@@ -83,4 +83,28 @@ namespace Darius::Core::Filesystem
 					callback(_path);
 			});
 	}
+
+	bool ReadJsonFile(Path const& filePath, D_SERIALIZATION::Json& json)
+	{
+		std::ifstream is(filePath);
+
+		if (!is)
+			return false;
+
+		is >> json;
+		is.close();
+	}
+
+	bool WriteJsonFile(Path const& filePath, D_SERIALIZATION::Json const& json)
+	{
+
+		std::ofstream os(filePath);
+
+		if (!os)
+			return false;
+
+		os << json;
+		os.close();
+	}
+
 }

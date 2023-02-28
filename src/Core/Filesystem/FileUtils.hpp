@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Path.hpp"
+#include "Core/Serialization/Json.hpp"
 
 #include <fstream>
 #include <cstddef>
@@ -36,4 +37,8 @@ namespace Darius::Core::Filesystem
 	// Calls the callback providing entry path and whether it is a directory
 	void							VisitEntriesInDirectory(Path const& path, bool recursively, std::function<void(Path const&, bool)> callback);
 	void							VisitFilesInDirectory(Path const& path, bool recursively, std::function<void(Path const&)> callback);
+
+	bool							ReadJsonFile(Path const& filePath, D_SERIALIZATION::Json& json);
+	bool							WriteJsonFile(Path const& filePath, D_SERIALIZATION::Json const& json);
+
 }
