@@ -16,7 +16,7 @@ namespace Darius::Debug
 	{
 	public:
 
-		static void Initialize();
+		static void Initialize(D_SERIALIZATION::Json const& settings);
 		static void Shutdown();
 
 #ifdef _D_EDITOR

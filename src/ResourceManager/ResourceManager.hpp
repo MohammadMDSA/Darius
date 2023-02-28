@@ -23,7 +23,7 @@ namespace Darius::ResourceManager
 	class DResourceManager;
 	class ResourceLoader;
 
-	void					Initialize();
+	void					Initialize(D_SERIALIZATION::Json const& settings);
 	void					Shutdown();
 #ifdef _D_EDITOR
 	bool					OptionsDrawer(_IN_OUT_ D_SERIALIZATION::Json& options);

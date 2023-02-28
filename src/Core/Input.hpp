@@ -19,7 +19,7 @@
 
 namespace Darius::InputManager
 {
-	void Initialize(HWND window);
+	void Initialize(HWND window, D_SERIALIZATION::Json const& settings);
 	void Shutdown();
 #ifdef _D_EDITOR
 	bool OptionsDrawer(D_SERIALIZATION::Json&);

@@ -45,7 +45,7 @@ namespace Darius::Job
 		std::atomic<int>		m_remainingTasksCount;
 	};
 
-	void Initialize()
+	void Initialize(D_SERIALIZATION::Json const& settings)
 	{
 		D_ASSERT(state == nullptr);
 		state = new State();

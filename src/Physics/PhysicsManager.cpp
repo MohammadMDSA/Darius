@@ -40,7 +40,7 @@ namespace Darius::Physics
 	void					UpdatePostPhysicsTransforms();
 	void					UpdatePrePhysicsTransform(bool simulating);
 
-	void Initialize()
+	void Initialize(D_SERIALIZATION::Json const& settings)
 	{
 		D_ASSERT(!_init);
 		_init = true;

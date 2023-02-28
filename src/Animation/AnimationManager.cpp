@@ -13,7 +13,7 @@ namespace Darius::Animation
 
 	bool								_initialized = false;
 
-	void Initialize()
+	void Initialize(D_SERIALIZATION::Json const& settings)
 	{
 		D_ASSERT(!_initialized);
 		_initialized = true;

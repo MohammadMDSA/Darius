@@ -9,7 +9,7 @@ namespace Darius::Core::TimeManager
 	std::unique_ptr<StepTimer> Timer = nullptr;
 
 
-	void Initialize()
+	void Initialize(D_SERIALIZATION::Json const& settings)
 	{
 		D_ASSERT(Timer == nullptr);
 		Timer = std::make_unique<StepTimer>();

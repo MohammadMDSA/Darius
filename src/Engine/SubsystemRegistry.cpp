@@ -1,5 +1,6 @@
 #include "pch.hpp"
 #include "SubsystemRegistry.hpp"
+#include "EngineContext.hpp"
 
 #include <Animation/AnimationManager.hpp>
 #include <Core/Containers/List.hpp>
@@ -66,38 +67,43 @@ namespace Darius::Subsystems
 		D_ASSERT(!_initialized);
 		_initialized = true;
 
+		D_SERIALIZATION::Json settings;
+
+		D_FILE::ReadJsonFile(D_ENGINE_CONTEXT::GetEngineSettingsPath(), settings);
+
+
 		/*for (auto initializer : initializers)
 		{
 			initializer();
 		}*/
 
 		// Initializing the resource manager
-		D_RESOURCE::Initialize();
+		D_RESOURCE::Initialize(settings["Resource Manager"]);
 
-		D_RENDERER::Initialize(window, width, height);
+		D_RENDERER::Initialize(window, width, height, settings["Renderer"]);
 
 		// Creating device and window resources
 		/*CreateDeviceDependentResources();
 		CreateWindowSizeDependentResources();*/
 
-		D_JOB::Initialize();
+		D_JOB::Initialize(settings["Job"]);
 
 		// Initialing the tiem manager
-		D_TIME::Initialize();
+		D_TIME::Initialize(settings["Time"]);
 
 		// Initializing the input manater
-		D_INPUT::Initialize(window);
+		D_INPUT::Initialize(window, settings["Input"]);
 
 		// Initialize Debug Drawer
 #ifdef _DEBUG
-		D_DEBUG_DRAW::Initialize();
+		D_DEBUG_DRAW::Initialize(settings["Debug Draw"]);
 #endif // _DEBUG
 
 		// Initializeing physics
-		D_PHYSICS::Initialize();
+		D_PHYSICS::Initialize(settings["Physics"]);
 
 		// Initializing animation
-		D_ANIMATION::Initialize();
+		D_ANIMATION::Initialize(settings["Animation"]);
 	}
 
 	void ShutdownSubsystems()

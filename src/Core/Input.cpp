@@ -24,7 +24,7 @@ namespace Darius::InputManager
 	int												currentY;
 	int												currentWheel;
 
-	void Initialize(HWND window)
+	void Initialize(HWND window, D_SERIALIZATION::Json const& settings)
 	{
 		D_ASSERT(_keyboard == nullptr);
 		D_ASSERT(_mouse == nullptr);

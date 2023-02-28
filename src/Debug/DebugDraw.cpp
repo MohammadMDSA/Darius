@@ -43,7 +43,7 @@ namespace Darius::Debug
 
 #endif // _DEBUG
 
-	void DebugDraw::Initialize()
+	void DebugDraw::Initialize(D_SERIALIZATION::Json const& settings)
 	{
 #ifdef _DEBUG
 		CubeMeshResource = GetResource<D_GRAPHICS::StaticMeshResource>(D_GRAPHICS::GetDefaultGraphicsResource(D_GRAPHICS::DefaultResource::BoxMesh));

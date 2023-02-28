@@ -166,7 +166,7 @@ namespace Darius::Renderer
 		D_GRAPHICS_BUFFERS::DepthBuffer* m_DSV;
 	};
 
-	void Initialize(HWND window, int width, int height);
+	void Initialize(HWND window, int width, int height, D_SERIALIZATION::Json const& settings);
 	void Shutdown();
 
 #ifdef _D_EDITOR

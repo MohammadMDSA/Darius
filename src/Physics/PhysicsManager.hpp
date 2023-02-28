@@ -11,7 +11,7 @@
 
 namespace Darius::Physics
 {
-	void					Initialize();
+	void					Initialize(D_SERIALIZATION::Json const& settings);
 	void					Shutdown();
 
 #ifdef _D_EDITOR

@@ -184,7 +184,7 @@ namespace Darius::Renderer
 	}
 
 
-	void Initialize(HWND window, int width, int height)
+	void Initialize(HWND window, int width, int height, D_SERIALIZATION::Json const& settings)
 	{
 		Device::Initialize(window, width, height);
 

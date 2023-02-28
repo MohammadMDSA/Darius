@@ -19,7 +19,7 @@ namespace Darius::ResourceManager
 
 	std::unique_ptr<DResourceManager>				_ResourceManager;
 
-	void Initialize()
+	void Initialize(D_SERIALIZATION::Json const& settings)
 	{
 		D_ASSERT(_ResourceManager == nullptr);
 
