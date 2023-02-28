@@ -30,6 +30,13 @@ namespace Darius::Animation
 		D_ASSERT(_initialized);
 	}
 
+#ifdef _D_EDITOR
+	bool OptionsDrawer(_IN_OUT_ D_SERIALIZATION::Json& options)
+	{
+		return false;
+	}
+#endif
+
 	void Update(float dt)
 	{
 		auto& world = D_WORLD::GetRegistry();

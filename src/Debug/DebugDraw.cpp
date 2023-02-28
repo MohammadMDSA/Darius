@@ -69,6 +69,13 @@ namespace Darius::Debug
 		MeshConstantsGPU.Destroy();
 	}
 
+#ifdef _D_EDITOR
+	bool DebugDraw::OptionsDrawer(_IN_OUT_ D_SERIALIZATION::Json& options)
+	{
+		return false;
+	}
+#endif
+
 	void DebugDraw::DrawCube(D_MATH::Vector3 position, D_MATH::Quaternion rotation, D_MATH::Vector3 scale, double duration, D_MATH::Color color)
 	{
 		const std::lock_guard<std::mutex> lock(AdditionMutex);

@@ -166,8 +166,12 @@ namespace Darius::Renderer
 		D_GRAPHICS_BUFFERS::DepthBuffer* m_DSV;
 	};
 
-	void Initialize();
+	void Initialize(HWND window, int width, int height);
 	void Shutdown();
+
+#ifdef _D_EDITOR
+	bool OptionsDrawer(_IN_OUT_ D_SERIALIZATION::Json& options);
+#endif
 
 #ifdef _D_EDITOR
 	DescriptorHandle		AllocateUiTexture(UINT count = 1);

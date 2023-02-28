@@ -1,5 +1,8 @@
 #pragma once
 
+#include <Core/Serialization/Json.hpp>
+#include <Utils/Common.hpp>
+
 #include "Libs/DirectXTK12/Inc/Keyboard.h"
 
 #ifndef D_INPUT
@@ -18,6 +21,11 @@ namespace Darius::InputManager
 {
 	void Initialize(HWND window);
 	void Shutdown();
+#ifdef _D_EDITOR
+	bool OptionsDrawer(D_SERIALIZATION::Json&);
+#endif
+
+
 	void Update();
 
 	void _processKeyboardMessage(UINT message, WPARAM wParam, LPARAM lParam);

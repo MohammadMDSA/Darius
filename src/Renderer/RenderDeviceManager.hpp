@@ -9,8 +9,6 @@ using namespace Darius::Renderer::DeviceResource;
 namespace Darius::Renderer::Device
 {
 	void RegisterDeviceNotify(IDeviceNotify* notify);
-	void Initialize(HWND window, int width, int height);
-	void Shutdown();
 
 	FrameResource*	GetCurrentFrameResource();
 	ID3D12Device*	GetDevice();

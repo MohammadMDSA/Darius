@@ -84,8 +84,110 @@ namespace Darius::Renderer
 
 	void Clear(D_GRAPHICS::GraphicsContext& context, D_GRAPHICS_BUFFERS::ColorBuffer& rt, D_GRAPHICS_BUFFERS::DepthBuffer& depthStencil, RECT bounds, std::wstring const& processName = L"Clear");
 
-	void Initialize()
+
+	namespace Device
 	{
+		void Initialize(HWND window, int width, int height)
+		{
+			// TODO: Provide parameters for swapchain format, depth/stencil format, and backbuffer count.
+			//   Add DX::DeviceResources::c_AllowTearing to opt-in to variable rate displays.
+			//   Add DX::DeviceResources::c_EnableHDR for HDR10 display.
+			Resources = std::make_unique<DeviceResource::DeviceResources>();
+
+			Resources->SetWindow(window, width, height);
+			Resources->CreateDeviceResources();
+			D_GRAPHICS::Initialize();
+			Resources->CreateWindowSizeDependentResources();
+			D_CAMERA_MANAGER::Initialize();
+			D_CAMERA_MANAGER::SetViewportDimansion((float)width, (float)height);
+		}
+
+		void RegisterDeviceNotify(IDeviceNotify* notify)
+		{
+			Resources->RegisterDeviceNotify(notify);
+		}
+
+		void Shutdown()
+		{
+			Resources.reset();
+			D_GRAPHICS::Shutdown();
+			D_CAMERA_MANAGER::Shutdown();
+		}
+
+		void OnWindowMoved()
+		{
+			auto const r = Resources->GetOutputSize();
+			Resources->WindowSizeChanged(r.right, r.bottom);
+		}
+
+		void OnDisplayChanged()
+		{
+			Resources->UpdateColorSpace();
+		}
+
+		bool OnWindowsSizeChanged(int width, int height)
+		{
+			return Resources->WindowSizeChanged(width, height);
+		}
+
+		void ShaderCompatibilityCheck(D3D_SHADER_MODEL shader)
+		{
+			auto device = Resources->GetD3DDevice();
+
+			// Check Shader Model 6 support
+			D3D12_FEATURE_DATA_SHADER_MODEL shaderModel = { shader };
+			if (FAILED(device->CheckFeatureSupport(D3D12_FEATURE_SHADER_MODEL, &shaderModel, sizeof(shaderModel)))
+				|| (shaderModel.HighestShaderModel < shader))
+			{
+#ifdef _DEBUG
+				OutputDebugStringA("ERROR: Shader Model 6.0 is not supported!\n");
+#endif
+				throw std::runtime_error("Shader Model 6.0 is not supported!");
+			}
+		}
+
+		FrameResource* GetCurrentFrameResource()
+		{
+			return Resources->GetFrameResource();
+		}
+
+		UINT GetCurrentResourceIndex()
+		{
+			return Resources->GetCurrentFrameResourceIndex();
+		}
+
+		ID3D12Device* GetDevice()
+		{
+			return Resources->GetD3DDevice();
+		}
+
+		FrameResource* GetFrameResourceWithIndex(int i)
+		{
+			return Resources->GetFrameResourceByIndex(i);
+		}
+
+		DXGI_FORMAT GetBackBufferFormat()
+		{
+			return Resources->GetBackBufferFormat();
+		}
+
+		DXGI_FORMAT GetDepthBufferFormat()
+		{
+			return Resources->GetDepthBufferFormat();
+		}
+
+		void WaitForGpu()
+		{
+			auto cmdManager = D_GRAPHICS::GetCommandManager();
+			cmdManager->IdleGPU();
+		}
+	}
+
+
+	void Initialize(HWND window, int width, int height)
+	{
+		Device::Initialize(window, width, height);
+
 		D_ASSERT(_device == nullptr);
 		D_ASSERT(Resources);
 
@@ -142,7 +244,21 @@ namespace Darius::Renderer
 		SamplerHeap.Destroy();
 		D_GRAPHICS_UTILS::RootSignature::DestroyAll();
 		D_GRAPHICS_UTILS::GraphicsPSO::DestroyAll();
+
+		Device::Shutdown();
 	}
+
+#ifdef _D_EDITOR
+	bool OptionsDrawer(_IN_OUT_ D_SERIALIZATION::Json& options)
+	{
+		D_H_OPTION_DRAW_BEGIN();
+
+		D_H_OPTION_DRAW_CHECKBOX("Separate Z Pass", "Passes.SeparateZ", SeparateZPass);
+
+		D_H_OPTION_DRAW_END()
+
+	}
+#endif
 
 	D_GRAPHICS_UTILS::RootSignature& GetRootSignature(RootSignatureTypes type)
 	{
@@ -782,105 +898,6 @@ namespace Darius::Renderer
 		D_GRAPHICS::GetCommandManager()->IdleGPU();
 	}
 #endif
-
-	namespace Device
-	{
-		void Initialize(HWND window, int width, int height)
-		{
-			// TODO: Provide parameters for swapchain format, depth/stencil format, and backbuffer count.
-			//   Add DX::DeviceResources::c_AllowTearing to opt-in to variable rate displays.
-			//   Add DX::DeviceResources::c_EnableHDR for HDR10 display.
-			Resources = std::make_unique<DeviceResource::DeviceResources>();
-
-			Resources->SetWindow(window, width, height);
-			Resources->CreateDeviceResources();
-			D_GRAPHICS::Initialize();
-			Resources->CreateWindowSizeDependentResources();
-			D_CAMERA_MANAGER::Initialize();
-			D_CAMERA_MANAGER::SetViewportDimansion((float)width, (float)height);
-		}
-
-		void RegisterDeviceNotify(IDeviceNotify* notify)
-		{
-			Resources->RegisterDeviceNotify(notify);
-		}
-
-		void Shutdown()
-		{
-			Resources.reset();
-			D_GRAPHICS::Shutdown();
-			D_CAMERA_MANAGER::Shutdown();
-		}
-
-		void OnWindowMoved()
-		{
-			auto const r = Resources->GetOutputSize();
-			Resources->WindowSizeChanged(r.right, r.bottom);
-		}
-
-		void OnDisplayChanged()
-		{
-			Resources->UpdateColorSpace();
-		}
-
-		bool OnWindowsSizeChanged(int width, int height)
-		{
-			return Resources->WindowSizeChanged(width, height);
-		}
-
-		void ShaderCompatibilityCheck(D3D_SHADER_MODEL shader)
-		{
-			auto device = Resources->GetD3DDevice();
-
-			// Check Shader Model 6 support
-			D3D12_FEATURE_DATA_SHADER_MODEL shaderModel = { shader };
-			if (FAILED(device->CheckFeatureSupport(D3D12_FEATURE_SHADER_MODEL, &shaderModel, sizeof(shaderModel)))
-				|| (shaderModel.HighestShaderModel < shader))
-			{
-#ifdef _DEBUG
-				OutputDebugStringA("ERROR: Shader Model 6.0 is not supported!\n");
-#endif
-				throw std::runtime_error("Shader Model 6.0 is not supported!");
-			}
-		}
-
-		FrameResource* GetCurrentFrameResource()
-		{
-			return Resources->GetFrameResource();
-		}
-
-		UINT GetCurrentResourceIndex()
-		{
-			return Resources->GetCurrentFrameResourceIndex();
-		}
-
-		ID3D12Device* GetDevice()
-		{
-			return Resources->GetD3DDevice();
-		}
-
-		FrameResource* GetFrameResourceWithIndex(int i)
-		{
-			return Resources->GetFrameResourceByIndex(i);
-		}
-
-		DXGI_FORMAT GetBackBufferFormat()
-		{
-			return Resources->GetBackBufferFormat();
-		}
-
-		DXGI_FORMAT GetDepthBufferFormat()
-		{
-			return Resources->GetDepthBufferFormat();
-		}
-
-		void WaitForGpu()
-		{
-			auto cmdManager = D_GRAPHICS::GetCommandManager();
-			cmdManager->IdleGPU();
-		}
-	}
-
 
 	uint8_t GetPso(uint16_t psoFlags)
 	{

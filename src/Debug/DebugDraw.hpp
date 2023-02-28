@@ -19,6 +19,9 @@ namespace Darius::Debug
 		static void Initialize();
 		static void Shutdown();
 
+#ifdef _D_EDITOR
+		static bool OptionsDrawer(_IN_OUT_ D_SERIALIZATION::Json& options);
+#endif
 
 #ifdef _DEBUG
 		static void FinalizeUpload();

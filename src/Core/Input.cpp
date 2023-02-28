@@ -41,6 +41,13 @@ namespace Darius::InputManager
 		_mouse.release();
 	}
 
+#ifdef _D_EDITOR
+	bool OptionsDrawer(D_SERIALIZATION::Json&)
+	{
+		return false;
+	}
+#endif
+
 	void Update()
 	{
 		currentKeyboardState = _keyboard->GetState();

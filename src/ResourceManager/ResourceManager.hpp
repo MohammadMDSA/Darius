@@ -25,6 +25,10 @@ namespace Darius::ResourceManager
 
 	void					Initialize();
 	void					Shutdown();
+#ifdef _D_EDITOR
+	bool					OptionsDrawer(_IN_OUT_ D_SERIALIZATION::Json& options);
+#endif
+
 
 	void					UpdateGPUResources();
 

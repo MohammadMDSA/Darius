@@ -104,6 +104,13 @@ namespace Darius::Physics
 		PX_RELEASE(gFoundation);
 	}
 
+#ifdef _D_EDITOR
+	bool OptionsDrawer(_IN_OUT_ D_SERIALIZATION::Json& options)
+	{
+		return false;
+	}
+#endif
+
 	void Update(bool running)
 	{
 		D_PROFILING::ScopedTimer physicsProfiler(L"Physics Update");

@@ -57,6 +57,13 @@ namespace Darius::Job
 		D_free(state);
 	}
 
+#ifdef _D_EDITOR
+	bool OptionsDrawer(_IN_OUT_ D_SERIALIZATION::Json& options)
+	{
+		return false;
+	}
+#endif
+
 	void AssignTasks(std::vector<Task> const& tasks, OnFinishCallback const& callback)
 	{
 		D_ASSERT(!tasks.empty());

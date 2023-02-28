@@ -32,6 +32,13 @@ namespace Darius::ResourceManager
 		D_ASSERT(_ResourceManager);
 	}
 
+#ifdef _D_EDITOR
+	bool OptionsDrawer(_IN_OUT_ D_SERIALIZATION::Json& options)
+	{
+		return false;
+	}
+#endif
+
 	DResourceManager* GetManager()
 	{
 		return _ResourceManager.get();
