@@ -15,7 +15,8 @@
 namespace Darius::Editor::Gui::Windows
 {
 
-	ProfilerWindow::ProfilerWindow()
+	ProfilerWindow::ProfilerWindow(D_SERIALIZATION::Json const& config) :
+		Window(config.contains(GetName()) ? config.at(GetName()) : D_SERIALIZATION::Json())
 	{
 		D_SIMULATE::SubscribeOnStop([&]()
 			{

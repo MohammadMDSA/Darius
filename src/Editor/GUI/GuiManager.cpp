@@ -51,26 +51,33 @@ namespace Darius::Editor::Gui::GuiManager
 		D_ASSERT(!initialzied);
 		initialzied = true;
 
+		D_EDITOR_CONTEXT::SubscribeOnEditorDeactivated(SaveWindowsState);
+
+		Json windowsConfig;
+		auto winConfigPath = D_EDITOR_CONTEXT::GetEditorWindowsConfigPath();
+		if (D_H_ENSURE_FILE(winConfigPath))
+			D_FILE::ReadJsonFile(winConfigPath, windowsConfig);
+
 		// TODO: Use linear allocator to allocate windows
-		auto sceneWindow = new SceneWindow();
+		auto sceneWindow = new SceneWindow(windowsConfig);
 		Windows[sceneWindow->GetName()] = sceneWindow;
 
-		auto sceneGraphWindow = new SceneGraphWindow();
+		auto sceneGraphWindow = new SceneGraphWindow(windowsConfig);
 		Windows[sceneGraphWindow->GetName()] = sceneGraphWindow;
 
-		auto detailsWindow = new DetailsWindow();
+		auto detailsWindow = new DetailsWindow(windowsConfig);
 		Windows[detailsWindow->GetName()] = detailsWindow;
 
-		auto resourceMonitorWindow = new ResourceMonitorWindow();
+		auto resourceMonitorWindow = new ResourceMonitorWindow(windowsConfig);
 		Windows[resourceMonitorWindow->GetName()] = resourceMonitorWindow;
 
-		auto profilerWindow = new ProfilerWindow();
+		auto profilerWindow = new ProfilerWindow(windowsConfig);
 		Windows[profilerWindow->GetName()] = profilerWindow;
 
-		auto contentWindow = new ContentWindow();
+		auto contentWindow = new ContentWindow(windowsConfig);
 		Windows[contentWindow->GetName()] = contentWindow;
 
-		auto settingsWindow = new SettingsWindow();
+		auto settingsWindow = new SettingsWindow(windowsConfig);
 		Windows[settingsWindow->GetName()] = settingsWindow;
 
 		ImGuiIO& io = ImGui::GetIO();
@@ -139,7 +146,8 @@ namespace Darius::Editor::Gui::GuiManager
 	{
 		auto& context = D_GRAPHICS::GraphicsContext::Begin(L"Render Windows Contents");
 		for (auto& kv : Windows)
-			kv.second->Render(context);
+			if (kv.second->GetOpened())
+				kv.second->Render(context);
 		context.Finish();
 	}
 
@@ -196,13 +204,19 @@ namespace Darius::Editor::Gui::GuiManager
 
 				ImGui::SetNextWindowBgAlpha(1.f);
 
-				if (wind->mOpen)
+				if (wind->GetOpened())
 				{
 					ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(wind->mPadding[0], wind->mPadding[1]));
-					ImGui::Begin(wind->GetName().c_str(), &wind->mOpen);
-					wind->PrepareGUI();
 
-					wind->DrawGUI();
+					bool opened = true;
+					if (ImGui::Begin(wind->GetName().c_str(), &opened))
+					{
+						wind->PrepareGUI();
+
+						wind->DrawGUI();
+					}
+					if (!opened)
+						wind->SetOpened(false);
 
 					ImGui::End();
 					ImGui::PopStyleVar();
@@ -369,7 +383,7 @@ namespace Darius::Editor::Gui::GuiManager
 				{
 					if (ImGui::MenuItem(kv.second->GetName().c_str()))
 					{
-						kv.second->mOpen = true;
+						kv.second->SetOpened(true);
 					}
 				}
 				ImGui::EndMenu();
@@ -440,4 +454,20 @@ namespace Darius::Editor::Gui::GuiManager
 		ImGui::PopStyleVar();
 	}
 
+	void SaveWindowsState()
+	{
+		D_SERIALIZATION::Json config;
+
+		for (auto const& wPair : Windows)
+		{
+			auto const& window = wPair.second;
+			D_SERIALIZATION::Json winConfig;
+
+			winConfig["Opened"] = window->GetOpened();
+
+			config.emplace(window->GetName(), winConfig);
+		}
+
+		D_FILE::WriteJsonFile(D_EDITOR_CONTEXT::GetEditorWindowsConfigPath(), config);
+	}
 }

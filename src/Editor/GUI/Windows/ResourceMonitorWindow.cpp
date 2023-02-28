@@ -12,7 +12,8 @@ using namespace D_CORE;
 
 namespace Darius::Editor::Gui::Windows
 {
-	ResourceMonitorWindow::ResourceMonitorWindow()
+	ResourceMonitorWindow::ResourceMonitorWindow(D_SERIALIZATION::Json const& config) :
+		Window(config.contains(GetName()) ? config.at(GetName()) : D_SERIALIZATION::Json())
 	{
 	}
 

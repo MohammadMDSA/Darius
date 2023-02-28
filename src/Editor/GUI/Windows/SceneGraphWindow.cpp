@@ -14,7 +14,8 @@ using namespace D_CONTAINERS;
 namespace Darius::Editor::Gui::Windows
 {
 
-	SceneGraphWindow::SceneGraphWindow()
+	SceneGraphWindow::SceneGraphWindow(D_SERIALIZATION::Json const& config) :
+		Window(config.contains(GetName()) ? config.at(GetName()) : D_SERIALIZATION::Json())
 	{
 	}
 

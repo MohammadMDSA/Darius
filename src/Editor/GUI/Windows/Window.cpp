@@ -7,7 +7,7 @@
 namespace Darius::Editor::Gui::Windows
 {
 
-	Window::Window():
+	Window::Window(D_SERIALIZATION::Json const& settings):
 		mWidth(1.f),
 		mHeight(1.f),
 		mPosX(0.f),
@@ -15,6 +15,7 @@ namespace Darius::Editor::Gui::Windows
 		mHovered(false),
 		mFocused(false)
 	{
+		D_H_OPTIONS_LOAD_BASIC_DEFAULT("Opened", mOpened, false);
 	}
 
 	void Window::PrepareGUI()

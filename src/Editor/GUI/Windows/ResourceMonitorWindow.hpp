@@ -7,12 +7,12 @@ namespace Darius::Editor::Gui::Windows
 	class ResourceMonitorWindow : public Window
 	{
 	public:
-		ResourceMonitorWindow();
+		ResourceMonitorWindow(D_SERIALIZATION::Json const& config);
 		~ResourceMonitorWindow();
 
 
 		// Inherited via Window
-		INLINE virtual std::string const GetName() override { return "ResourceMonitor"; }
+		INLINE virtual std::string GetName() const override { return "ResourceMonitor"; }
 
 		INLINE virtual void Render(D_GRAPHICS::GraphicsContext&) override {}
 

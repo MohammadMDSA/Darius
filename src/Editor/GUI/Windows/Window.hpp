@@ -16,17 +16,19 @@ namespace Darius::Editor::Gui::Windows
 	class Window
 	{
 	public:
-		Window();
+		Window(D_SERIALIZATION::Json const& config);
 		~Window() = default;
 
 		Window(Window const& other) = delete;
 
-		virtual std::string const	GetName() = 0;
+		virtual std::string 		GetName() const = 0;
 
 		virtual void				Render(D_GRAPHICS::GraphicsContext& context) = 0;
 		virtual void				Update(float dt) = 0;
 		virtual void				DrawGUI() = 0;
 		void						PrepareGUI();
+
+		D_CH_RW_FIELD_ACC(bool, Opened, protected);
 
 	protected:
 
@@ -41,7 +43,6 @@ namespace Darius::Editor::Gui::Windows
 		float						mPosX;
 		float						mPosY;
 
-		bool						mOpen = true;
 		bool						mHovered;
 		bool						mFocused;
 	};

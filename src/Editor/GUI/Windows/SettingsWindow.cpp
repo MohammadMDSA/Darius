@@ -13,7 +13,8 @@ using namespace D_FILE;
 
 namespace Darius::Editor::Gui::Windows
 {
-	SettingsWindow::SettingsWindow() :
+	SettingsWindow::SettingsWindow(D_SERIALIZATION::Json const& config) :
+		Window(config.contains(GetName()) ? config.at(GetName()) : D_SERIALIZATION::Json()),
 		mNavigatorWidth(-1.f),
 		mRightPanelWidth(-1.f)
 	{

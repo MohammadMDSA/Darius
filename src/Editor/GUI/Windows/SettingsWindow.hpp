@@ -7,11 +7,11 @@ namespace Darius::Editor::Gui::Windows
 	class SettingsWindow : public Window
 	{
 	public:
-		SettingsWindow();
+		SettingsWindow(D_SERIALIZATION::Json const& config);
 		~SettingsWindow();
 
 		// Inherited via Window
-		INLINE virtual std::string const GetName() override { return "Settings"; }
+		INLINE virtual std::string GetName() const override { return "Settings"; }
 
 		INLINE virtual void			Render(D_GRAPHICS::GraphicsContext&) override {}
 

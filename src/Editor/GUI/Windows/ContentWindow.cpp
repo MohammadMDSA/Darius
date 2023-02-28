@@ -15,7 +15,8 @@ using namespace D_FILE;
 
 namespace Darius::Editor::Gui::Windows
 {
-	ContentWindow::ContentWindow() :
+	ContentWindow::ContentWindow(D_SERIALIZATION::Json const& config) :
+		Window(config.contains(GetName()) ? config.at(GetName()) : D_SERIALIZATION::Json()),
 		mTreeViewWidth(-1.f),
 		mRightPanelWidth(-1.f)
 	{
