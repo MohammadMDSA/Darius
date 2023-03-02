@@ -10,7 +10,7 @@ namespace Darius::Editor::Gui::Windows
 {
 
 	DetailsWindow::DetailsWindow(D_SERIALIZATION::Json const& config) :
-		Window(config.contains(GetName()) ? config.at(GetName()) : D_SERIALIZATION::Json())
+		Window(config)
 	{
 	}
 

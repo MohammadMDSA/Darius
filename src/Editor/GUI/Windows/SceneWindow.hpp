@@ -24,13 +24,13 @@ namespace Darius::Editor::Gui::Windows
 {
 	class SceneWindow : public Darius::Editor::Gui::Windows::Window
 	{
+		D_CH_EDITOR_WINDOW_BODY(SceneWindow, "Scene");
 	public:
 		SceneWindow(D_SERIALIZATION::Json const& config);
 		~SceneWindow();
 
 		SceneWindow(SceneWindow const& other) = delete;
 
-		virtual inline std::string GetName() const override { return "Scene"; }
 		virtual void Render(D_GRAPHICS::GraphicsContext& context) override;
 		virtual void DrawGUI() override;
 		virtual void Update(float dt) override;

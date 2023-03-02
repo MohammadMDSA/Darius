@@ -10,12 +10,13 @@ namespace Darius::Editor::Gui::Windows
 {
 	class ContentWindow : public Window
 	{
+		D_CH_EDITOR_WINDOW_BODY(ContentWindow, "Content");
+
 	public:
 		ContentWindow(D_SERIALIZATION::Json const& config);
 		~ContentWindow();
 
 		// Inherited via Window
-		INLINE virtual std::string GetName() const override { return "Content"; }
 
 		INLINE virtual void			Render(D_GRAPHICS::GraphicsContext&) override {}
 

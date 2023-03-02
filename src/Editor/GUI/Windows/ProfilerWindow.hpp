@@ -9,12 +9,12 @@ namespace Darius::Editor::Gui::Windows
 {
 	class ProfilerWindow : public Window
 	{
+		D_CH_EDITOR_WINDOW_BODY(ProfilerWindow, "Profiler");
 	public:
 		ProfilerWindow(D_SERIALIZATION::Json const& config);
 		~ProfilerWindow();
 
 		// Inherited via Window
-		INLINE virtual std::string GetName() const override { return "Profiler"; }
 
 		INLINE virtual void Render(D_GRAPHICS::GraphicsContext&) override {}
 

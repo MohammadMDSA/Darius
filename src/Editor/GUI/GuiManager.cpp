@@ -58,27 +58,20 @@ namespace Darius::Editor::Gui::GuiManager
 		if (D_H_ENSURE_FILE(winConfigPath))
 			D_FILE::ReadJsonFile(winConfigPath, windowsConfig);
 
+#define RegisterWindow(type) \
+{ \
+	auto name = type::SGetName(); \
+	auto wind = new type(windowsConfig.contains(name) ? windowsConfig.at(name) : Json()); \
+	Windows[name] = wind; \
+}	
 		// TODO: Use linear allocator to allocate windows
-		auto sceneWindow = new SceneWindow(windowsConfig);
-		Windows[sceneWindow->GetName()] = sceneWindow;
-
-		auto sceneGraphWindow = new SceneGraphWindow(windowsConfig);
-		Windows[sceneGraphWindow->GetName()] = sceneGraphWindow;
-
-		auto detailsWindow = new DetailsWindow(windowsConfig);
-		Windows[detailsWindow->GetName()] = detailsWindow;
-
-		auto resourceMonitorWindow = new ResourceMonitorWindow(windowsConfig);
-		Windows[resourceMonitorWindow->GetName()] = resourceMonitorWindow;
-
-		auto profilerWindow = new ProfilerWindow(windowsConfig);
-		Windows[profilerWindow->GetName()] = profilerWindow;
-
-		auto contentWindow = new ContentWindow(windowsConfig);
-		Windows[contentWindow->GetName()] = contentWindow;
-
-		auto settingsWindow = new SettingsWindow(windowsConfig);
-		Windows[settingsWindow->GetName()] = settingsWindow;
+		RegisterWindow(SceneWindow);
+		RegisterWindow(SceneGraphWindow);
+		RegisterWindow(DetailsWindow);
+		RegisterWindow(ResourceMonitorWindow);
+		RegisterWindow(ProfilerWindow);
+		RegisterWindow(ContentWindow);
+		RegisterWindow(SettingsWindow);
 
 		ImGuiIO& io = ImGui::GetIO();
 		// Setup docking
@@ -93,7 +86,6 @@ namespace Darius::Editor::Gui::GuiManager
 		icons_config.MergeMode = true;
 		icons_config.PixelSnapH = true;
 		io.Fonts->AddFontFromFileTTF("EditorResources/fonts/" FONT_ICON_FILE_NAME_FAS, 12.0f, &icons_config, icons_ranges);
-
 
 		// Read layout from file
 		LayoutPath = Path(D_EDITOR_CONTEXT::GetEditorConfigPath()).append("layout.ini").string();

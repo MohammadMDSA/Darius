@@ -21,7 +21,7 @@
 namespace Darius::Editor::Gui::Windows
 {
 	SceneWindow::SceneWindow(D_SERIALIZATION::Json const& config) :
-		Window(config.contains(GetName()) ? config.at(GetName()) : D_SERIALIZATION::Json()),
+		Window(config),
 		mFlyingCam(mCamera, Vector3::Up()),
 		mOrbitCam(mCamera, D_MATH_BOUNDS::BoundingSphere(0.f, 0.f, 0.f, 5.f), Vector3::Up()),
 		mManipulateOperation(ImGuizmo::OPERATION::TRANSLATE),

@@ -12,13 +12,14 @@ namespace Darius::Editor::Gui::Windows
 {
 	class SceneGraphWindow : public Window
 	{
+		D_CH_EDITOR_WINDOW_BODY(SceneGraphWindow, "Scene Graph");
+
 	public:
 		SceneGraphWindow(D_SERIALIZATION::Json const& config);
 		~SceneGraphWindow() = default;
 
 		SceneGraphWindow(SceneGraphWindow const& other) = delete;
 
-		virtual inline std::string GetName() const override { return "Scene Graph"; }
 		virtual void Render(D_GRAPHICS::GraphicsContext& context) override;
 		virtual void Update(float dt) override;
 		virtual void DrawGUI() override;

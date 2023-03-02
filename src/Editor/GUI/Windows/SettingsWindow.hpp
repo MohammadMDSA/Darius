@@ -6,13 +6,13 @@ namespace Darius::Editor::Gui::Windows
 {
 	class SettingsWindow : public Window
 	{
+		D_CH_EDITOR_WINDOW_BODY(SettingsWindow, "Settings");
+
 	public:
 		SettingsWindow(D_SERIALIZATION::Json const& config);
 		~SettingsWindow();
 
 		// Inherited via Window
-		INLINE virtual std::string GetName() const override { return "Settings"; }
-
 		INLINE virtual void			Render(D_GRAPHICS::GraphicsContext&) override {}
 
 		INLINE virtual void			Update(float) override {}
