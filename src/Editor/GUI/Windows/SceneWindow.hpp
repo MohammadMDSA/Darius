@@ -8,7 +8,6 @@
 #include <Scene/Scene.hpp>
 #include <Renderer/Renderer.hpp>
 #include <Renderer/FrameResource.hpp>
-#include <Renderer/Camera/CameraManager.hpp>
 #include <Renderer/GraphicsUtils/Buffers/ColorBuffer.hpp>
 #include <Renderer/GraphicsUtils/Buffers/DepthBuffer.hpp>
 #include <Renderer/GraphicsUtils/Memory/DescriptorHeap.hpp>
@@ -26,9 +25,6 @@ namespace Darius::Editor::Gui::Windows
 	{
 		D_CH_EDITOR_WINDOW_BODY(SceneWindow, "Scene");
 	public:
-		SceneWindow(D_SERIALIZATION::Json const& config);
-		~SceneWindow();
-
 		SceneWindow(SceneWindow const& other) = delete;
 
 		virtual void Render(D_GRAPHICS::GraphicsContext& context) override;
@@ -66,6 +62,9 @@ namespace Darius::Editor::Gui::Windows
 		D_RENDERER_FRAME_RESOURCE::GlobalConstants	mSceneGlobals;
 
 		float mMouseWheelPerspectiveSensitivity;
+
+		float										mBufferWidth;
+		float										mBufferHeight;
 
 		bool										mDrawGrid;
 		bool										mDrawSkybox;

@@ -34,7 +34,6 @@ namespace Darius::Editor::Gui::Windows
 		mTextureHandle = D_RENDERER::AllocateUiTexture(1);
 
 		// Setup cameras
-		D_CAMERA_MANAGER::SetActiveCamera(&mCamera);
 		mCamera.SetFOV(XM_PI / 3);
 		mCamera.SetZRange(0.001f, 10000.f);
 		mCamera.SetPosition(Vector3(2.f, 2.f, 2.f));
@@ -90,8 +89,7 @@ namespace Darius::Editor::Gui::Windows
 	{
 		Matrix4 temp;
 
-		float width, height;
-		D_CAMERA_MANAGER::GetViewportDimansion(width, height);
+		float width = mWidth, height = mHeight;
 
 		auto time = *D_TIME::GetStepTimer();
 
@@ -324,7 +322,7 @@ namespace Darius::Editor::Gui::Windows
 
 	void SceneWindow::Update(float dt)
 	{
-		if (D_CAMERA_MANAGER::SetViewportDimansion(mWidth, mHeight))
+		if (mBufferHeight != mHeight || mBufferWidth != mWidth)
 		{
 			CreateBuffers();
 		}
@@ -381,8 +379,10 @@ namespace Darius::Editor::Gui::Windows
 
 	void SceneWindow::CreateBuffers()
 	{
-		mSceneTexture.Create(L"Scene Texture", (UINT)mWidth, (UINT)mHeight, 1, D_RENDERER_DEVICE::GetBackBufferFormat());
-		mSceneDepth.Create(L"Scene DepthStencil", (UINT)mWidth, (UINT)mHeight, D_RENDERER_DEVICE::GetDepthBufferFormat());
+		mBufferWidth = mWidth;
+		mBufferHeight = mHeight;
+		mSceneTexture.Create(L"Scene Texture", (UINT)mBufferWidth, (UINT)mBufferHeight, 1, D_RENDERER_DEVICE::GetBackBufferFormat());
+		mSceneDepth.Create(L"Scene DepthStencil", (UINT)mBufferWidth, (UINT)mBufferHeight, D_RENDERER_DEVICE::GetDepthBufferFormat());
 	}
 
 	void SceneWindow::CalcGridLineConstants(DVector<MeshConstants>& constants, int count)
@@ -449,9 +449,6 @@ namespace Darius::Editor::Gui::Windows
 	{
 		auto& worldReg = D_WORLD::GetRegistry();
 
-		auto cam = D_CAMERA_MANAGER::GetActiveCamera();
-		auto frustum = cam->GetViewSpaceFrustum();
-
 		// Iterating over meshes
 		worldReg.each([&](D_ECS_COMP::MeshRendererComponent& meshComp)
 			{
@@ -483,7 +480,7 @@ namespace Darius::Editor::Gui::Windows
 	{
 		auto& worldReg = D_WORLD::GetRegistry();
 
-		auto cam = D_CAMERA_MANAGER::GetActiveCamera();
+		auto cam = &mCamera;
 		auto frustum = cam->GetViewSpaceFrustum();
 
 		// Iterating over meshes

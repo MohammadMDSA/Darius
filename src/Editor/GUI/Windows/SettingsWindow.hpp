@@ -9,8 +9,6 @@ namespace Darius::Editor::Gui::Windows
 		D_CH_EDITOR_WINDOW_BODY(SettingsWindow, "Settings");
 
 	public:
-		SettingsWindow(D_SERIALIZATION::Json const& config);
-		~SettingsWindow();
 
 		// Inherited via Window
 		INLINE virtual void			Render(D_GRAPHICS::GraphicsContext&) override {}

@@ -8,9 +8,6 @@ namespace Darius::Editor::Gui::Windows
 	{
 		D_CH_EDITOR_WINDOW_BODY(ResourceMonitorWindow, "Resource Monitor");
 	public:
-		ResourceMonitorWindow(D_SERIALIZATION::Json const& config);
-		~ResourceMonitorWindow();
-
 
 		// Inherited via Window
 

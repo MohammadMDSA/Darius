@@ -9,9 +9,6 @@ namespace Darius::Editor::Gui::Windows
 		D_CH_EDITOR_WINDOW_BODY(DetailsWindow, "Details");
 
 	public:
-		DetailsWindow(D_SERIALIZATION::Json const& config);
-		~DetailsWindow();
-
 		// Inherited via Window
 
 		INLINE virtual void Render(D_GRAPHICS::GraphicsContext&) override {}

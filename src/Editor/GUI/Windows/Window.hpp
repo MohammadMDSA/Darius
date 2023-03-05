@@ -11,10 +11,16 @@ namespace Darius::Editor::Gui::GuiManager
 	void _DrawMenuBar();
 }
 
-#define D_CH_EDITOR_WINDOW_BODY(type, name) \
+#define D_CH_EDITOR_WINDOW_BODY_RAW(type, name) \
 public: \
 static INLINE std::string SGetName() { return name; } \
 INLINE virtual std::string GetName() const { return SGetName(); }
+
+#define D_CH_EDITOR_WINDOW_BODY(type, name) \
+D_CH_EDITOR_WINDOW_BODY_RAW(type, name) \
+public: \
+type(D_SERIALIZATION::Json const& config); \
+~type();
 
 namespace Darius::Editor::Gui::Windows
 {

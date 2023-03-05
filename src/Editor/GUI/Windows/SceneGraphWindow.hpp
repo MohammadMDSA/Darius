@@ -12,7 +12,7 @@ namespace Darius::Editor::Gui::Windows
 {
 	class SceneGraphWindow : public Window
 	{
-		D_CH_EDITOR_WINDOW_BODY(SceneGraphWindow, "Scene Graph");
+		D_CH_EDITOR_WINDOW_BODY_RAW(SceneGraphWindow, "Scene Graph");
 
 	public:
 		SceneGraphWindow(D_SERIALIZATION::Json const& config);

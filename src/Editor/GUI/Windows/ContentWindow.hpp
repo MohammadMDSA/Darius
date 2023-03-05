@@ -13,9 +13,6 @@ namespace Darius::Editor::Gui::Windows
 		D_CH_EDITOR_WINDOW_BODY(ContentWindow, "Content");
 
 	public:
-		ContentWindow(D_SERIALIZATION::Json const& config);
-		~ContentWindow();
-
 		// Inherited via Window
 
 		INLINE virtual void			Render(D_GRAPHICS::GraphicsContext&) override {}
