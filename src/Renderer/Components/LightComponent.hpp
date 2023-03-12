@@ -1,21 +1,17 @@
 #pragma once
 
-#include "ComponentBase.hpp"
+#include <Renderer/Light/LightManager.hpp>
+#include <Scene/EntityComponentSystem/Components/ComponentBase.hpp>
 
-#include <Renderer/LightManager.hpp>
+#ifndef D_GRAPHICS
+#define D_GRAPHICS Darius::Graphics
+#endif
 
-#ifndef D_ECS_COMP
-#define D_ECS_COMP Darius::Scene::ECS::Components
-#endif // !D_ECS_COMP
-
-using namespace D_LIGHT;
-using namespace D_SERIALIZATION;
-
-namespace Darius::Scene::ECS::Components
+namespace Darius::Graphics
 {
-	class LightComponent : public ComponentBase
+	class LightComponent : public D_ECS_COMP::ComponentBase
 	{
-		D_H_COMP_BODY(LightComponent, ComponentBase, "Rendering/Light", true);
+		D_H_COMP_BODY(LightComponent, D_ECS_COMP::ComponentBase, "Rendering/Light", true);
 
 	public:
 
@@ -38,10 +34,10 @@ namespace Darius::Scene::ECS::Components
 		virtual void					Update(float deltaTime) override;
 
 		// Data intraction
-		void							SetLightType(LightSourceType type);
+		void							SetLightType(D_LIGHT::LightSourceType type);
 
 		D_CH_R_FIELD(D_LIGHT::LightSourceType, LightType);
-		D_CH_RW_FIELD(LightData, LightData);
+		D_CH_RW_FIELD(D_LIGHT::LightData, LightData);
 		D_CH_RW_FIELD(float, ConeOuterAngle);
 		D_CH_RW_FIELD(float, ConeInnerAngle);
 		D_CH_R_FIELD(int, LightIndex);

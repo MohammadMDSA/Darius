@@ -35,6 +35,7 @@ namespace Darius::Scene
 		static GameObject*		GetGameObject(D_ECS::Entity entity);
 
 		static void				Update(float deltaTime);
+		static void				LateUpdate(float deltaTime);
 		static void				UpdateObjectsConstatns();
 
 		static bool				Create(D_FILE::Path const& path);
@@ -51,6 +52,7 @@ namespace Darius::Scene
 
 		// Don't call!
 		static void				RegisterComponentUpdater(std::function<void(float, D_ECS::ECSRegistry&)> updater);
+		static void				RegisterComponentLateUpdater(std::function<void(float, D_ECS::ECSRegistry&)> updater);
 
 		static void				SetAwake();
 

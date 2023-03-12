@@ -8,10 +8,10 @@
 #include <Debug/DebugDraw.hpp>
 #include <Engine/EngineContext.hpp>
 #include <Scene/Scene.hpp>
-#include <Scene/EntityComponentSystem/Components/MeshRendererComponent.hpp>
-#include <Scene/EntityComponentSystem/Components/SkeletalMeshRendererComponent.hpp>
+#include <Renderer/Components/MeshRendererComponent.hpp>
+#include <Renderer/Components/SkeletalMeshRendererComponent.hpp>
 #include <Renderer/Renderer.hpp>
-#include <Renderer/LightManager.hpp>
+#include <Renderer/Light/LightManager.hpp>
 #include <ResourceManager/ResourceManager.hpp>
 
 #include <imgui.h>
@@ -450,7 +450,7 @@ namespace Darius::Editor::Gui::Windows
 		auto& worldReg = D_WORLD::GetRegistry();
 
 		// Iterating over meshes
-		worldReg.each([&](D_ECS_COMP::MeshRendererComponent& meshComp)
+		worldReg.each([&](D_GRAPHICS::MeshRendererComponent& meshComp)
 			{
 				// Can't render
 				if (!meshComp.CanRender())
@@ -463,7 +463,7 @@ namespace Darius::Editor::Gui::Windows
 			});
 
 		// Iterating over meshes
-		worldReg.each([&](D_ECS_COMP::SkeletalMeshRendererComponent& meshComp)
+		worldReg.each([&](D_GRAPHICS::SkeletalMeshRendererComponent& meshComp)
 			{
 				// Can't render
 				if (!meshComp.CanRender())
@@ -484,7 +484,7 @@ namespace Darius::Editor::Gui::Windows
 		auto frustum = cam->GetViewSpaceFrustum();
 
 		// Iterating over meshes
-		worldReg.each([&](D_ECS_COMP::MeshRendererComponent& meshComp)
+		worldReg.each([&](D_GRAPHICS::MeshRendererComponent& meshComp)
 			{
 				// Can't render
 				if (!meshComp.CanRender())
@@ -501,7 +501,7 @@ namespace Darius::Editor::Gui::Windows
 			});
 
 		// Iterating over meshes
-		worldReg.each([&](D_ECS_COMP::SkeletalMeshRendererComponent& meshComp)
+		worldReg.each([&](D_GRAPHICS::SkeletalMeshRendererComponent& meshComp)
 			{
 				// Can't render
 				if (!meshComp.CanRender())

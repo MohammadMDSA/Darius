@@ -1,7 +1,7 @@
 #pragma once
 
 #include <Scene/EntityComponentSystem/Components/BehaviourComponent.hpp>
-#include <Renderer/LightManager.hpp>
+#include <Renderer/Light/LightManager.hpp>
 
 namespace Demo
 {

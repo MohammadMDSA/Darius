@@ -78,6 +78,7 @@ namespace Darius::Editor::Simulate
 
 				// World Logic
 				D_WORLD::Update(deltaTime);
+				D_WORLD::LateUpdate(deltaTime);
 
 				{
 					// Updating animations
@@ -95,8 +96,8 @@ namespace Darius::Editor::Simulate
 		}
 
 		{
-			D_PROFILING::ScopedTimer objConstProfiling(L"Update Object Constants");
-			D_WORLD::UpdateObjectsConstatns();
+			D_PROFILING::ScopedTimer objConstProfiling(L"Update Renderer");
+			D_RENDERER::Update();
 			D_DEBUG_DRAW::FinalizeUpload();
 		}
 

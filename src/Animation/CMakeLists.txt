@@ -39,7 +39,7 @@ PRIVATE
 	${FBX_INCLUDE_DIRS}
 )
 
-target_link_libraries("Animation" PRIVATE ${Boost_LIBRARIES} ${FBX_LINK_LIBS})
+target_link_libraries("Animation" PRIVATE ${Boost_LIBRARIES} ${FBX_LINK_LIBS} IMGUI)
 target_link_libraries("Animation" PUBLIC ResourceManager Debug Scene)
 
 

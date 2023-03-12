@@ -168,6 +168,7 @@ namespace Darius::Renderer
 
 	void Initialize(HWND window, int width, int height, D_SERIALIZATION::Json const& settings);
 	void Shutdown();
+	void Update();
 
 #ifdef _D_EDITOR
 	bool OptionsDrawer(_IN_OUT_ D_SERIALIZATION::Json& options);

@@ -48,7 +48,10 @@ static void StaticConstructor() \
     { \
         D_SCENE::GameObject::RegisterBehaviourComponent(comp); \
         if(receivesUpdates) \
-            D_WORLD::RegisterComponentUpdater(&ComponentUpdater);\
+        { \
+            D_WORLD::RegisterComponentUpdater(&ComponentUpdater); \
+            D_WORLD::RegisterComponentLateUpdater(&ComponentLateUpdater); \
+        } \
     } \
     sInit = true; \
 } \
@@ -114,6 +117,7 @@ namespace Darius::Scene::ECS::Components
         virtual INLINE void         OnDeactivate() {}
 
         virtual INLINE void         Update(float) { };
+        virtual INLINE void         LateUpdate(float) { };
 
         INLINE bool                 IsActive() const { return mGameObject->GetActive() && mEnabled; }
 
@@ -162,6 +166,7 @@ namespace Darius::Scene::ECS::Components
         }
 
         static void                 ComponentUpdater(float, D_ECS::ECSRegistry&) {  }
+        static void                 ComponentLateUpdater(float, D_ECS::ECSRegistry&) {  }
 
         static void                 StaticDestructor()
         {

@@ -6,13 +6,13 @@
 
 using namespace D_SERIALIZATION;
 
-namespace Darius::Scene::ECS::Components
+namespace Darius::Math
 {
 	D_H_COMP_DEF(TransformComponent);
 
-	TransformComponent::TransformComponent() : ComponentBase() {}
+	TransformComponent::TransformComponent() : D_ECS_COMP::ComponentBase() {}
 
-	TransformComponent::TransformComponent(D_CORE::Uuid uuid) : ComponentBase(uuid) {}
+	TransformComponent::TransformComponent(D_CORE::Uuid uuid) : D_ECS_COMP::ComponentBase(uuid) {}
 
 #ifdef _D_EDITOR
 	bool TransformComponent::DrawDetails(float params[])

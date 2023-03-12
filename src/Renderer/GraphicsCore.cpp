@@ -6,7 +6,7 @@
 #include "CommandContext.hpp"
 #include "GraphicsUtils/D3DUtils.hpp"
 #include "GraphicsUtils/Profiling/GpuTimeManager.hpp"
-#include "LightManager.hpp"
+#include "Light/LightManager.hpp"
 #include "GraphicsUtils/Buffers/Texture.hpp"
 #include "Resources/StaticMeshResource.hpp"
 #include "Resources/SkeletalMeshResource.hpp"

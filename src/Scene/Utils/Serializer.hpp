@@ -2,7 +2,7 @@
 
 #include <Core/Serialization/Json.hpp>
 #include <Math/VectorMath.hpp>
-#include <Renderer/LightManager.hpp>
+#include <Renderer/Light/LightManager.hpp>
 
 namespace D_MATH
 {

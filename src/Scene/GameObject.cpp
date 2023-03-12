@@ -1,5 +1,6 @@
 ﻿#include "pch.hpp"
 #include <Renderer/pch.hpp>
+
 #include "GameObject.hpp"
 #include "Scene/Utils/DetailsDrawer.hpp"
 #include "Scene.hpp"
@@ -35,7 +36,7 @@ namespace Darius::Scene
 		mParent(nullptr),
 		mAwake(false)
 	{
-		AddComponent<D_ECS_COMP::TransformComponent>();
+		AddComponent<D_MATH::TransformComponent>();
 	}
 
 	void GameObject::OnDestroy()
@@ -78,7 +79,7 @@ namespace Darius::Scene
 				if (!comp)
 					return;
 
-				bool isTransform = dynamic_cast<D_ECS_COMP::TransformComponent*>(comp);
+				bool isTransform = dynamic_cast<D_MATH::TransformComponent*>(comp);
 
 				// Styling component frame
 				ImGui::Separator();
@@ -204,12 +205,12 @@ namespace Darius::Scene
 	{
 		if (mType == Type::Static)
 			return;
-		GetComponent<Darius::Scene::ECS::Components::TransformComponent>()->SetLocalTransform(trans);
+		GetComponent<D_MATH::TransformComponent>()->SetLocalTransform(trans);
 	}
 
 	Transform const& GameObject::GetLocalTransform() const
 	{
-		return *mEntity.get<Darius::Scene::ECS::Components::TransformComponent>()->GetDataC();
+		return *mEntity.get<D_MATH::TransformComponent>()->GetDataC();
 	}
 
 	void GameObject::VisitBehaviourComponents(std::function<void(Darius::Scene::ECS::Components::BehaviourComponent*)> callback, std::function<void(D_EXCEPTION::Exception const&)> onException) const
@@ -247,11 +248,11 @@ namespace Darius::Scene
 	{
 		auto compList = DVector<ComponentBase*>();
 
-		compList.push_back(mEntity.get_mut<TransformComponent>());
+		compList.push_back(mEntity.get_mut<D_MATH::TransformComponent>());
 
 		auto& reg = D_WORLD::GetRegistry();
 
-		auto transId = reg.id<TransformComponent>();
+		auto transId = reg.id<D_MATH::TransformComponent>();
 
 		mEntity.each([&](flecs::id compId)
 			{
@@ -353,7 +354,7 @@ namespace Darius::Scene
 		auto compId = reg.component(comp->GetComponentName().c_str());
 
 		// Abort if transform
-		if (reg.id<D_ECS_COMP::TransformComponent>() == compId)
+		if (reg.id<D_MATH::TransformComponent>() == compId)
 			return;
 
 		RemoveComponentRoutine(comp);

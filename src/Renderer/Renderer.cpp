@@ -2,6 +2,9 @@
 #include "pch.hpp"
 
 #include "Camera/CameraManager.hpp"
+#include "Components/LightComponent.hpp"
+#include "Components/MeshRendererComponent.hpp"
+#include "Components/SkeletalMeshRendererComponent.hpp"
 #include "Geometry/Mesh.hpp"
 #include "FrameResource.hpp"
 #include "GraphicsCore.hpp"
@@ -11,12 +14,13 @@
 #include "GraphicsUtils/Buffers/ColorBuffer.hpp"
 #include "GraphicsUtils/VertexTypes.hpp"
 #include "GraphicsUtils/Profiling/Profiling.hpp"
-#include "LightManager.hpp"
+#include "Light/LightManager.hpp"
 #include "Resources/TextureResource.hpp"
 
-#include <ResourceManager/ResourceManager.hpp>
 #include <Core/TimeManager/TimeManager.hpp>
+#include <Job/Job.hpp>
 #include <Math/VectorMath.hpp>
+#include <ResourceManager/ResourceManager.hpp>
 #include <Utils/Assert.hpp>
 
 #include <imgui.h>
@@ -233,6 +237,11 @@ namespace Darius::Renderer
 				_device->CopyDescriptors(1, &dest, &DestCount, DestCount, SourceTextures, SourceCounts, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 			}
 		}
+
+		// Registering components
+		D_GRAPHICS::LightComponent::StaticConstructor();
+		D_GRAPHICS::MeshRendererComponent::StaticConstructor();
+		D_GRAPHICS::SkeletalMeshRendererComponent::StaticConstructor();
 	}
 
 	void Shutdown()
@@ -248,6 +257,35 @@ namespace Darius::Renderer
 		D_GRAPHICS_UTILS::GraphicsPSO::DestroyAll();
 
 		Device::Shutdown();
+	}
+
+	void Update()
+	{
+
+		auto& reg = D_WORLD::GetRegistry();
+
+		reg.each([&](D_GRAPHICS::MeshRendererComponent& meshComp)
+			{
+				D_JOB::AssignTask([&](int threadNumber, int)
+					{
+						meshComp.Update(-1);
+
+					});
+			}
+		);
+
+		reg.each([&](D_GRAPHICS::SkeletalMeshRendererComponent& meshComp)
+			{
+				D_JOB::AssignTask([&](int threadNumber, int)
+					{
+						meshComp.Update(-1);
+
+					});
+			}
+		);
+
+		if (D_JOB::IsMainThread())
+			Darius::Job::WaitForThreadsToFinish();
 	}
 
 #ifdef _D_EDITOR

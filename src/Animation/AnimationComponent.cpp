@@ -1,7 +1,7 @@
 #include "pch.hpp"
 #include "AnimationComponent.hpp"
 
-#include <Scene/EntityComponentSystem/Components/SkeletalMeshRendererComponent.hpp>
+#include <Renderer/Components/SkeletalMeshRendererComponent.hpp>
 #include <Utils/DragDropPayload.hpp>
 
 #include <imgui.h>
@@ -134,7 +134,7 @@ namespace Darius::Animation
 
 	void AnimationComponent::Update(float deltaTime)
 	{
-		if (!IsActive() || !mAnimationResource.IsValid() || !GetGameObject()->HasComponent<D_ECS_COMP::SkeletalMeshRendererComponent>())
+		if (!IsActive() || !mAnimationResource.IsValid() || !GetGameObject()->HasComponent<D_GRAPHICS::SkeletalMeshRendererComponent>())
 			return;
 
 		SkeletalMeshRendererComponent* skeletalMesh = GetGameObject()->GetComponent<SkeletalMeshRendererComponent>();

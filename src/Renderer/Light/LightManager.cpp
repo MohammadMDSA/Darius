@@ -1,11 +1,11 @@
-#include "pch.hpp"
+#include "Renderer/pch.hpp"
 #include "LightManager.hpp"
 
-#include "FrameResource.hpp"
-#include "GraphicsUtils/Buffers/ShadowBuffer.hpp"
-#include "GraphicsUtils/Buffers/GpuBuffer.hpp"
-#include "GraphicsUtils/Buffers/UploadBuffer.hpp"
-#include "RenderDeviceManager.hpp"
+#include "Renderer/FrameResource.hpp"
+#include "Renderer/GraphicsUtils/Buffers/ShadowBuffer.hpp"
+#include "Renderer/GraphicsUtils/Buffers/GpuBuffer.hpp"
+#include "Renderer/GraphicsUtils/Buffers/UploadBuffer.hpp"
+#include "Renderer/RenderDeviceManager.hpp"
 #include "Renderer/Renderer.hpp"
 
 #include <Core/Containers/Map.hpp>

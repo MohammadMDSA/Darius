@@ -1,19 +1,19 @@
-#include "Scene/pch.hpp"
+#include "Renderer/pch.hpp"
 #include "LightComponent.hpp"
 
-#include "Scene/Utils/Serializer.hpp"
-#include "Scene/Utils/DetailsDrawer.hpp"
+#include <Scene/Utils/Serializer.hpp>
+#include <Scene/Utils/DetailsDrawer.hpp>
 
 #include <imgui.h>
 
 using namespace D_LIGHT;
 
-namespace Darius::Scene::ECS::Components
+namespace Darius::Graphics
 {
 	D_H_COMP_DEF(LightComponent);
 
 	LightComponent::LightComponent() :
-		ComponentBase(),
+		D_ECS_COMP::ComponentBase(),
 		mLightType(LightSourceType::PointLight),
 		mLightIndex(-1),
 		mConeInnerAngle(D_MATH::XMConvertToRadians(30)),
@@ -23,7 +23,7 @@ namespace Darius::Scene::ECS::Components
 	}
 
 	LightComponent::LightComponent(D_CORE::Uuid uuid) :
-		ComponentBase(uuid),
+		D_ECS_COMP::ComponentBase(uuid),
 		mLightType(LightSourceType::PointLight),
 		mLightIndex(-1),
 		mConeInnerAngle(D_MATH::XMConvertToRadians(30)),

@@ -31,6 +31,10 @@ namespace Darius::Scene::ECS::Components
 {
 	class ComponentBase;
 	class BehaviourComponent;
+}
+
+namespace Darius::Math
+{
 	class TransformComponent;
 }
 
@@ -143,7 +147,7 @@ namespace Darius::Scene
 			using conv = std::is_convertible<T*, Darius::Scene::ECS::Components::ComponentBase*>;
 			D_STATIC_ASSERT(conv::value);
 
-			if (std::is_same<T, Darius::Scene::ECS::Components::TransformComponent>::value)
+			if (std::is_same<T, Darius::Math::TransformComponent>::value)
 				return;
 
 			mEntity.remove<T>();

@@ -62,7 +62,7 @@ else()
 	target_link_libraries("Physics" PRIVATE "${SOURCE_DIR}/Libs/PhysX/libs/win.x86_64.vc142/debug/PhysXPvdSDK_static_64.lib")
 endif()
 
-target_link_libraries("Physics" PRIVATE ${Boost_LIBRARIES})
+target_link_libraries("Physics" PRIVATE ${Boost_LIBRARIES} IMGUI)
 target_link_libraries("Physics" PUBLIC Utils Core Math Renderer ResourceManager Job Debug)
 
 

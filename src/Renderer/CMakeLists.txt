@@ -27,12 +27,17 @@ list(APPEND RENDERER_LIBS_INCLUDE
 	"GraphicsUtils/Buffers/DepthBuffer.hpp"
 	"GraphicsUtils/Buffers/ReadbackBuffer.hpp"
 	"GraphicsUtils/Buffers/Texture.hpp"
+	"Light/LightManager.hpp"
+	"Light/SceneLight.hpp"
 	"Resources/BatchResource.hpp"
 	"Resources/MeshResource.hpp"
 	"Resources/MaterialResource.hpp"
 	"Resources/TextureResource.hpp"
 	"Resources/SkeletalMeshResource.hpp"
 	"Resources/StaticMeshResource.hpp"
+	"Components/MeshRendererComponent.hpp"
+	"Components/SkeletalMeshRendererComponent.hpp"
+	"Components/LightComponent.hpp"
 	"Camera/CameraManager.hpp"
 	"CommandSignature.hpp"
 	"CommandContext.hpp"
@@ -44,7 +49,6 @@ list(APPEND RENDERER_LIBS_INCLUDE
 	"GraphicsCore.hpp"
 	"DeviceResources.hpp"
 	"FrameResource.hpp"
-	"LightManager.hpp"
 	"d3dx12.h"
 	)
 
@@ -72,12 +76,16 @@ list(APPEND RENDERER_LIBS_SOURCES
 	"GraphicsUtils/Buffers/ShadowBuffer.cpp"
 	"GraphicsUtils/Buffers/ReadbackBuffer.cpp"
 	"GraphicsUtils/Buffers/Texture.cpp"
+	"Light/LightManager.cpp"
 	"Resources/MeshResource.cpp"
 	"Resources/BatchResource.cpp"
 	"Resources/MaterialResource.cpp"
 	"Resources/TextureResource.cpp"
 	"Resources/SkeletalMeshResource.cpp"
 	"Resources/StaticMeshResource.cpp"
+	"Components/MeshRendererComponent.cpp"
+	"Components/SkeletalMeshRendererComponent.cpp"
+	"Components/LightComponent.cpp"
 	"Camera/CameraManager.cpp"
 	"CommandSignature.cpp"
 	"CommandContext.cpp"
@@ -88,7 +96,6 @@ list(APPEND RENDERER_LIBS_SOURCES
 	"GraphicsCore.cpp"
 	"DeviceResources.cpp"
 	"FrameResource.cpp"
-	"LightManager.cpp"
 	)
 
 
@@ -98,7 +105,6 @@ target_sources("Renderer"
 	PRIVATE
 	${RENDERER_LIBS_SOURCES}
 	${RENDERER_LIBS_INCLUDE})
-
 	
 set(Boost_USE_STATIC_LIBS ON) 
 set(Boost_USE_MULTITHREADED ON)  
@@ -122,7 +128,7 @@ PRIVATE
 	${FBX_INCLUDE_DIRS}
 )
 
-target_link_libraries("Renderer" PRIVATE ${Boost_LIBRARIES} ${FBX_LINK_LIBS} DirectXTex PUBLIC IMGUI ResourceManager)
+target_link_libraries("Renderer" PRIVATE ${Boost_LIBRARIES} ${FBX_LINK_LIBS} DirectXTex IMGUI PUBLIC ResourceManager Scene)
 
 if(BUILD_TESTS)
 	set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/../../cmake")

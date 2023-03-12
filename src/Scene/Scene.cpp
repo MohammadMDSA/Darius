@@ -6,9 +6,6 @@
 #include "EntityComponentSystem/Components/ComponentBase.hpp"
 #include "EntityComponentSystem/Components/BehaviourComponent.hpp"
 #include "EntityComponentSystem/Components/TransformComponent.hpp"
-#include "EntityComponentSystem/Components/MeshRendererComponent.hpp"
-#include "EntityComponentSystem/Components/SkeletalMeshRendererComponent.hpp"
-#include "EntityComponentSystem/Components/LightComponent.hpp"
 
 #include <Core/Filesystem/FileUtils.hpp>
 #include <Core/Memory/Memory.hpp>
@@ -34,6 +31,7 @@ namespace Darius::Scene
 	std::unique_ptr<D_CONTAINERS::DUnorderedMap<D_ECS::EntityId, GameObject*>>	EntityMap = nullptr;
 	
 	DVector<std::function<void(float, D_ECS::ECSRegistry&)>>			BehaviourUpdaterFunctions;
+	DVector<std::function<void(float, D_ECS::ECSRegistry&)>>			BehaviourLateUpdaterFunctions;
 
 	DVector<GameObject*>												ToBeDeleted;
 
@@ -56,10 +54,7 @@ namespace Darius::Scene
 		EntityMap = std::make_unique<D_CONTAINERS::DUnorderedMap<D_ECS::EntityId, GameObject*>>();
 
 		// Registering components
-		D_ECS_COMP::LightComponent::StaticConstructor();
-		D_ECS_COMP::MeshRendererComponent::StaticConstructor();
-		D_ECS_COMP::SkeletalMeshRendererComponent::StaticConstructor();
-		D_ECS_COMP::TransformComponent::StaticConstructor();
+		D_MATH::TransformComponent::StaticConstructor();
 		D_ECS_COMP::BehaviourComponent::StaticConstructor();
 
 #ifdef _DEBUG
@@ -97,32 +92,12 @@ namespace Darius::Scene
 
 	}
 
-	void SceneManager::UpdateObjectsConstatns()
+	void SceneManager::LateUpdate(float deltaTime)
 	{
 		RemoveDeleted();
-
-		World.each([&](D_ECS_COMP::MeshRendererComponent& meshComp)
-			{
-				Darius::Job::AssignTask([&](int threadNumber, int)
-					{
-						meshComp.Update(-1);
-
-					});
-			}
-		);
-
-		World.each([&](D_ECS_COMP::SkeletalMeshRendererComponent& meshComp)
-			{
-				Darius::Job::AssignTask([&](int threadNumber, int)
-					{
-						meshComp.Update(-1);
-
-					});
-			}
-		);
-
-		if (D_JOB::IsMainThread())
-			Darius::Job::WaitForThreadsToFinish();
+		
+		for (auto updater : BehaviourLateUpdaterFunctions)
+			updater(deltaTime, World);
 	}
 
 	bool SceneManager::Create(D_FILE::Path const& path)
@@ -240,7 +215,6 @@ namespace Darius::Scene
 		DVector<GameObject> rawGos;
 		for (GameObject const* go : *GOs)
 		{
-			auto bb = go->mEntity.has<D_ECS_COMP::TransformComponent>();
 			rawGos.push_back(*go);
 
 
@@ -423,5 +397,10 @@ namespace Darius::Scene
 	void SceneManager::RegisterComponentUpdater(std::function<void(float, D_ECS::ECSRegistry&)> updater)
 	{
 		BehaviourUpdaterFunctions.push_back(updater);
+	}
+
+	void SceneManager::RegisterComponentLateUpdater(std::function<void(float, D_ECS::ECSRegistry&)> updater)
+	{
+		BehaviourLateUpdaterFunctions.push_back(updater);
 	}
 }

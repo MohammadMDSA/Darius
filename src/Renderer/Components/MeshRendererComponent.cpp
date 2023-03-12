@@ -1,8 +1,8 @@
-#include "Scene/pch.hpp"
+#include "Renderer/pch.hpp"
 #include "MeshRendererComponent.hpp"
-#include "Scene/Utils/DetailsDrawer.hpp"
 
 #include <ResourceManager/ResourceManager.hpp>
+#include <Scene/Utils/DetailsDrawer.hpp>
 #include <Utils/DragDropPayload.hpp>
 
 #include <imgui.h>
@@ -12,13 +12,13 @@ using namespace D_SERIALIZATION;
 using namespace D_RESOURCE;
 using namespace D_RENDERER_FRAME_RESOURCE;
 
-namespace Darius::Scene::ECS::Components
+namespace Darius::Graphics
 {
 	D_H_COMP_DEF(MeshRendererComponent);
 
 
 	MeshRendererComponent::MeshRendererComponent() :
-		ComponentBase(),
+		D_ECS_COMP::ComponentBase(),
 		mComponentPsoFlags(0),
 		mCachedMaterialPsoFlags(0),
 		mPsoIndex(0),
@@ -27,7 +27,7 @@ namespace Darius::Scene::ECS::Components
 	}
 
 	MeshRendererComponent::MeshRendererComponent(D_CORE::Uuid uuid) :
-		ComponentBase(uuid),
+		D_ECS_COMP::ComponentBase(uuid),
 		mComponentPsoFlags(0),
 		mCachedMaterialPsoFlags(0),
 		mPsoIndex(0),
@@ -153,7 +153,7 @@ namespace Darius::Scene::ECS::Components
 			return;
 
 		// We won't update constant buffer for static objects
-		if (GetGameObject()->GetType() == GameObject::Type::Static)
+		if (GetGameObject()->GetType() == D_SCENE::GameObject::Type::Static)
 			return;
 
 		auto& context = D_GRAPHICS::GraphicsContext::Begin();

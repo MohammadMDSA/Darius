@@ -11,11 +11,12 @@
 #include <Core/Containers/Vector.hpp>
 #include <Core/TimeManager/TimeManager.hpp>
 #include <Engine/EngineContext.hpp>
-#include <Scene/SceneLight.hpp>
 #include <Renderer/Renderer.hpp>
 #include <Renderer/Camera/CameraManager.hpp>
 #include <Renderer/CommandContext.hpp>
 #include <Renderer/GraphicsUtils/Profiling/Profiling.hpp>
+#include <Renderer/Light/SceneLight.hpp>
+#include <Renderer/Light/LightManager.hpp>
 #include <Utils/Debug.hpp>
 
 #include <Demo/MovementBehaviour.hpp>
@@ -101,7 +102,7 @@ namespace Darius::Editor
 		// Updating lights
 		{
 			D_PROFILING::ScopedTimer lightProfiling(L"Update Lights");
-			::D_SCENE_LIGHT::Update(elapsedTime);
+			::D_LIGHT::Update(elapsedTime);
 		}
 
 		auto& context = D_GRAPHICS::GraphicsContext::Begin(L"Update resources");

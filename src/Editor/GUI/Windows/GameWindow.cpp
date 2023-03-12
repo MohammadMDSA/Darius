@@ -4,10 +4,10 @@
 #include <Core/TimeManager/TimeManager.hpp>
 #include <Debug/DebugDraw.hpp>
 #include <Renderer/Camera/CameraManager.hpp>
-#include <Renderer/LightManager.hpp>
+#include <Renderer/Components/MeshRendererComponent.hpp>
+#include <Renderer/Components/SkeletalMeshRendererComponent.hpp>
+#include <Renderer/Light/LightManager.hpp>
 #include <Renderer/RenderDeviceManager.hpp>
-#include <Scene/EntityComponentSystem/Components/MeshRendererComponent.hpp>
-#include <Scene/EntityComponentSystem/Components/SkeletalMeshRendererComponent.hpp>
 
 #include <imgui.h>
 #include <Libs/FontIcon/IconsFontAwesome6.h>
@@ -158,7 +158,7 @@ namespace Darius::Editor::Gui::Windows
 		auto& worldReg = D_WORLD::GetRegistry();
 
 		// Iterating over meshes
-		worldReg.each([&](D_ECS_COMP::MeshRendererComponent& meshComp)
+		worldReg.each([&](D_GRAPHICS::MeshRendererComponent& meshComp)
 			{
 				// Can't render
 				if (!meshComp.CanRender())
@@ -171,7 +171,7 @@ namespace Darius::Editor::Gui::Windows
 			});
 
 		// Iterating over meshes
-		worldReg.each([&](D_ECS_COMP::SkeletalMeshRendererComponent& meshComp)
+		worldReg.each([&](D_GRAPHICS::SkeletalMeshRendererComponent& meshComp)
 			{
 				// Can't render
 				if (!meshComp.CanRender())
@@ -191,7 +191,7 @@ namespace Darius::Editor::Gui::Windows
 		auto frustum = cam->GetViewSpaceFrustum();
 
 		// Iterating over meshes
-		worldReg.each([&](D_ECS_COMP::MeshRendererComponent& meshComp)
+		worldReg.each([&](D_GRAPHICS::MeshRendererComponent& meshComp)
 			{
 				// Can't render
 				if (!meshComp.CanRender())
@@ -208,7 +208,7 @@ namespace Darius::Editor::Gui::Windows
 			});
 
 		// Iterating over meshes
-		worldReg.each([&](D_ECS_COMP::SkeletalMeshRendererComponent& meshComp)
+		worldReg.each([&](D_GRAPHICS::SkeletalMeshRendererComponent& meshComp)
 			{
 				// Can't render
 				if (!meshComp.CanRender())

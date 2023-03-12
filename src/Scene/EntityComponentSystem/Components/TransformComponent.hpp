@@ -5,15 +5,15 @@
 #include <Core/Signal.hpp>
 #include <Math/Transform.hpp>
 
-#ifndef D_ECS_COMP
-#define D_ECS_COMP Darius::Scene::ECS::Components
-#endif // !D_ECS_COMP
+#ifndef D_MATH
+#define D_MATH Darius::Math
+#endif // !D_MATH
 
-namespace Darius::Scene::ECS::Components
+namespace Darius::Math
 {
-	class TransformComponent : public ComponentBase
+	class TransformComponent : public D_ECS_COMP::ComponentBase
 	{
-		D_H_COMP_BODY(TransformComponent, ComponentBase, "Math/Transform", true);
+		D_H_COMP_BODY(TransformComponent, D_ECS_COMP::ComponentBase, "Math/Transform", true);
 	public:
 
 		// Serialization

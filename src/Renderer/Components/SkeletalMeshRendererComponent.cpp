@@ -1,4 +1,4 @@
-#include "Scene/pch.hpp"
+#include "Renderer/pch.hpp"
 #include "SkeletalMeshRendererComponent.hpp"
 #include "Scene/Utils/DetailsDrawer.hpp"
 
@@ -17,13 +17,13 @@ using namespace D_SERIALIZATION;
 using namespace D_RESOURCE;
 using namespace D_RENDERER_FRAME_RESOURCE;
 
-namespace Darius::Scene::ECS::Components
+namespace Darius::Graphics
 {
 	D_H_COMP_DEF(SkeletalMeshRendererComponent);
 
 
 	SkeletalMeshRendererComponent::SkeletalMeshRendererComponent() :
-		ComponentBase(),
+		D_ECS_COMP::ComponentBase(),
 		mComponentPsoFlags(RenderItem::HasSkin),
 		mCachedMaterialPsoFlags(0),
 		mPsoIndex(0),
@@ -33,7 +33,7 @@ namespace Darius::Scene::ECS::Components
 	}
 
 	SkeletalMeshRendererComponent::SkeletalMeshRendererComponent(D_CORE::Uuid uuid) :
-		ComponentBase(uuid),
+		D_ECS_COMP::ComponentBase(uuid),
 		mComponentPsoFlags(RenderItem::HasSkin),
 		mCachedMaterialPsoFlags(0),
 		mPsoIndex(0),
@@ -228,7 +228,7 @@ namespace Darius::Scene::ECS::Components
 			return;
 
 		// We won't update constant buffer for static objects
-		if (GetGameObject()->GetType() == GameObject::Type::Static)
+		if (GetGameObject()->GetType() == D_SCENE::GameObject::Type::Static)
 			return;
 
 		if (!mMeshResource.IsValid())

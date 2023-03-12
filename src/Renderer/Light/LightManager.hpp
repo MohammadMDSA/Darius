@@ -1,6 +1,6 @@
 #pragma once
 
-#include "CommandContext.hpp"
+#include "Renderer/CommandContext.hpp"
 #include "Renderer/FrameResource.hpp"
 
 #include <Core/Containers/Vector.hpp>
@@ -39,7 +39,7 @@ namespace Darius::Renderer::LightManager
 		XMFLOAT3		Position = Vector3(kZero);  // Point light only
 		float			Intencity = 1.f;			// Point/Spot light only
 		float			Range = 10.f;			// Point/Spot light only
-		XMFLOAT2		SpotAngles = { 1000.f, 0.8};// Spot light only
+		XMFLOAT2		SpotAngles = { 1000.f, 0.8f};// Spot light only
 		XMFLOAT4X4		ShadowMatrix;
 		bool			CastsShadow = true;
 		XMFLOAT3		padding;

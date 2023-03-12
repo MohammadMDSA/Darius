@@ -8,14 +8,10 @@ list(APPEND SCENE_LIBS_INCLUDE
 	"Scene.hpp"
     "Utils/DetailsDrawer.hpp"
 	"Utils/Serializer.hpp"
-	"SceneLight.hpp"
 	"EntityComponentSystem/Entity.hpp"
 	"EntityComponentSystem/Components/ComponentBase.hpp"
-	"EntityComponentSystem/Components/TransformComponent.hpp"
-	"EntityComponentSystem/Components/MeshRendererComponent.hpp"
-	"EntityComponentSystem/Components/SkeletalMeshRendererComponent.hpp"
-	"EntityComponentSystem/Components/LightComponent.hpp"
 	"EntityComponentSystem/Components/BehaviourComponent.hpp"
+	"EntityComponentSystem/Components/TransformComponent.hpp"
 	"pch.hpp"
 	)
 
@@ -27,11 +23,8 @@ list(APPEND SCENE_LIBS_SOURCES
     "Utils/DetailsDrawer.cpp"
 	"Utils/Serializer.cpp"
 	"EntityComponentSystem/Components/ComponentBase.cpp"
-	"EntityComponentSystem/Components/TransformComponent.cpp"
-	"EntityComponentSystem/Components/MeshRendererComponent.cpp"
-	"EntityComponentSystem/Components/SkeletalMeshRendererComponent.cpp"
-	"EntityComponentSystem/Components/LightComponent.cpp"
 	"EntityComponentSystem/Components/BehaviourComponent.cpp"
+	"EntityComponentSystem/Components/TransformComponent.cpp"
 	)
 
 
@@ -64,8 +57,8 @@ PRIVATE
 )
 
 
-target_link_libraries("Scene" PRIVATE ${Boost_LIBRARIES} ${FBX_LINK_LIBS} IMGUI)
-target_link_libraries("Scene" PUBLIC flecs_static Utils Core Math Renderer ResourceManager Job Debug)
+target_link_libraries("Scene" PRIVATE ${Boost_LIBRARIES} IMGUI)
+target_link_libraries("Scene" PUBLIC flecs_static Utils Core Job Debug)
 
 
 if(BUILD_TESTS)
