@@ -121,58 +121,24 @@ namespace Darius::Editor::Gui::Windows
 
 		UpdateGlobalConstants(mSceneGlobals);
 
-		// Clearing depth
-		context.TransitionResource(mSceneDepth, D3D12_RESOURCE_STATE_DEPTH_WRITE, true);
-		context.ClearDepth(mSceneDepth);
-
-		// Setting up sorter
-		auto viewPort = CD3DX12_VIEWPORT(0.f, 0.f, mWidth, mHeight, D3D12_MIN_DEPTH, D3D12_MAX_DEPTH);
-		auto scissor = CD3DX12_RECT(0l, 0l, (long)mWidth, (long)mHeight);
-		MeshSorter sorter(MeshSorter::kDefault);
-		sorter.SetCamera(mCamera);
-		sorter.SetViewport(viewPort);
-		sorter.SetScissor(scissor);
-		sorter.SetDepthStencilTarget(mSceneDepth);
-		sorter.AddRenderTarget(mSceneTexture);
-
-		// Add meshes to sorter
-		AddSceneRenderItems(sorter);
-
-		{
-			// Creating shadows
-
-			DVector<RenderItem> shadowRenderItems;
-			PopulateShadowRenderItems(shadowRenderItems);
-
-			D_LIGHT::RenderShadows(shadowRenderItems);
-		}
-
-		// Draw grid
-		if (mDrawGrid)
-			AddWindowRenderItems(sorter);
-
-		sorter.Sort();
-
-		// Clearing scene color texture
-		context.TransitionResource(mSceneTexture, D3D12_RESOURCE_STATE_RENDER_TARGET, true);
-		context.ClearColor(mSceneTexture);
-
-
-		if (mDrawSkybox)
-			D_RENDERER::DrawSkybox(context, mCamera, mSceneTexture, mSceneDepth, viewPort, scissor);
-
-		sorter.RenderMeshes(MeshSorter::kTransparent, context, mSceneGlobals);
-
-		// Add debug draw items
-		if (mDrawDebug)
-		{
-			MeshSorter debugDrawSorter(sorter);
-			D_DEBUG_DRAW::GetRenderItems(debugDrawSorter);
-			debugDrawSorter.Sort();
-			debugDrawSorter.RenderMeshes(MeshSorter::kTransparent, context, mSceneGlobals);
-		}
-
-		context.TransitionResource(mSceneTexture, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, true);
+		D_RENDERER::SceneRenderContext rc = { mSceneDepth, mSceneTexture, context, mCamera, mSceneGlobals, mDrawSkybox };
+		D_RENDERER::Render(rc,
+			[&](D_RENDERER::MeshSorter& sorter)
+			{
+				// Draw grid
+				if (mDrawGrid)
+					AddWindowRenderItems(sorter);
+			},
+			[&](D_RENDERER::MeshSorter& sorter)
+			{
+				// Add debug draw items
+				if (mDrawDebug)
+				{
+					D_DEBUG_DRAW::GetRenderItems(sorter);
+					sorter.Sort();
+					sorter.RenderMeshes(MeshSorter::kTransparent, context, mSceneGlobals);
+				}
+			});
 		D_RENDERER_DEVICE::GetDevice()->CopyDescriptorsSimple(1, mTextureHandle, mSceneTexture.GetSRV(), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 	}
 

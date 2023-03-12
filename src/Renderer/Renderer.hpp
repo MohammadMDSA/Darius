@@ -166,9 +166,20 @@ namespace Darius::Renderer
 		D_GRAPHICS_BUFFERS::DepthBuffer* m_DSV;
 	};
 
+	struct SceneRenderContext
+	{
+		D_GRAPHICS_BUFFERS::DepthBuffer&			DepthBuffer;
+		D_GRAPHICS_BUFFERS::ColorBuffer&			ColorBuffer;
+		D_GRAPHICS::GraphicsContext&				GraphicsContext;
+		D_MATH_CAMERA::BaseCamera&					Camera;
+		D_RENDERER_FRAME_RESOURCE::GlobalConstants& Globals;
+		bool										DrawSkybox;
+	};
+
 	void Initialize(HWND window, int width, int height, D_SERIALIZATION::Json const& settings);
 	void Shutdown();
 	void Update();
+	void Render(SceneRenderContext& context, std::function<void(MeshSorter&)> additionalMainDraw, std::function<void(MeshSorter&)> postDraw);
 
 #ifdef _D_EDITOR
 	bool OptionsDrawer(_IN_OUT_ D_SERIALIZATION::Json& options);
@@ -190,7 +201,7 @@ namespace Darius::Renderer
 	// PSO Getter
 	uint8_t					GetPso(uint16_t psoFlags);
 
-	void					DrawSkybox(D_GRAPHICS::GraphicsContext& context, const D_MATH_CAMERA::Camera& camera, D_GRAPHICS_BUFFERS::ColorBuffer& sceneColor, D_GRAPHICS_BUFFERS::DepthBuffer& sceneDepth, const D3D12_VIEWPORT& viewport, const D3D12_RECT& scissor);
+	void					DrawSkybox(D_GRAPHICS::GraphicsContext& context, const D_MATH_CAMERA::BaseCamera& camera, D_GRAPHICS_BUFFERS::ColorBuffer& sceneColor, D_GRAPHICS_BUFFERS::DepthBuffer& sceneDepth, const D3D12_VIEWPORT& viewport, const D3D12_RECT& scissor);
 
 	DescriptorHandle		AllocateTextureDescriptor(UINT count = 1);
 }

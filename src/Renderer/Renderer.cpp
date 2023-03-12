@@ -288,6 +288,134 @@ namespace Darius::Renderer
 			Darius::Job::WaitForThreadsToFinish();
 	}
 
+	void AddRenderItems(D_RENDERER::MeshSorter& sorter, D_MATH_CAMERA::BaseCamera& cam)
+	{
+		auto& worldReg = D_WORLD::GetRegistry();
+
+		auto frustum = cam.GetViewSpaceFrustum();
+
+		// Iterating over meshes
+		worldReg.each([&](D_GRAPHICS::MeshRendererComponent& meshComp)
+			{
+				// Can't render
+				if (!meshComp.CanRender())
+					return;
+
+				// Is it in our frustum
+				auto sphereWorldSpace = meshComp.GetGameObject()->GetTransform() * meshComp.GetBounds();
+				auto sphereViewSpace = BoundingSphere(Vector3(cam.GetViewMatrix() * sphereWorldSpace.GetCenter()), sphereWorldSpace.GetRadius());
+				if (!frustum.IntersectSphere(sphereViewSpace))
+					return;
+
+				auto distance = -sphereViewSpace.GetCenter().GetZ() - sphereViewSpace.GetRadius();
+				sorter.AddMesh(meshComp.GetRenderItem(), distance);
+			});
+
+		// Iterating over meshes
+		worldReg.each([&](D_GRAPHICS::SkeletalMeshRendererComponent& meshComp)
+			{
+				// Can't render
+				if (!meshComp.CanRender())
+					return;
+
+				// Is it in our frustum
+				auto sphereWorldSpace = meshComp.GetGameObject()->GetTransform() * meshComp.GetBounds();
+				auto sphereViewSpace = BoundingSphere(Vector3(cam.GetViewMatrix() * sphereWorldSpace.GetCenter()), sphereWorldSpace.GetRadius());
+				if (!frustum.IntersectSphere(sphereViewSpace))
+					return;
+
+				auto distance = -sphereViewSpace.GetCenter().GetZ() - sphereViewSpace.GetRadius();
+				sorter.AddMesh(meshComp.GetRenderItem(), distance);
+			});
+	}
+
+	void AddShadowRenderItems(D_CONTAINERS::DVector<RenderItem>& items)
+	{
+		auto& worldReg = D_WORLD::GetRegistry();
+
+		// Iterating over meshes
+		worldReg.each([&](D_GRAPHICS::MeshRendererComponent& meshComp)
+			{
+				// Can't render
+				if (!meshComp.CanRender())
+					return;
+
+				if (!meshComp.GetCastsShadow())
+					return;
+
+				items.push_back(meshComp.GetRenderItem());
+			});
+
+		// Iterating over meshes
+		worldReg.each([&](D_GRAPHICS::SkeletalMeshRendererComponent& meshComp)
+			{
+				// Can't render
+				if (!meshComp.CanRender())
+					return;
+
+				if (!meshComp.GetCastsShadow())
+					return;
+
+				items.push_back(meshComp.GetRenderItem());
+			});
+	}
+
+	void Render(SceneRenderContext& rContext, std::function<void(MeshSorter&)> additionalMainDraw, std::function<void(MeshSorter&)> postDraw)
+	{
+		// Clearing depth
+		rContext.GraphicsContext.TransitionResource(rContext.DepthBuffer, D3D12_RESOURCE_STATE_DEPTH_WRITE, true);
+		rContext.GraphicsContext.ClearDepth(rContext.DepthBuffer);
+
+		auto width = rContext.ColorBuffer.GetWidth();
+		auto height = rContext.ColorBuffer.GetHeight();
+
+		// Setting up sorter
+		auto viewPort = CD3DX12_VIEWPORT(0.f, 0.f, width, height, D3D12_MIN_DEPTH, D3D12_MAX_DEPTH);
+		auto scissor = CD3DX12_RECT(0l, 0l, (long)width, (long)height);
+		MeshSorter sorter(MeshSorter::kDefault);
+		sorter.SetCamera(rContext.Camera);
+		sorter.SetViewport(viewPort);
+		sorter.SetScissor(scissor);
+		sorter.SetDepthStencilTarget(rContext.DepthBuffer);
+		sorter.AddRenderTarget(rContext.ColorBuffer);
+
+		// Add meshes to sorter
+		AddRenderItems(sorter, rContext.Camera);
+
+		{
+			// Creating shadows
+
+			DVector<RenderItem> shadowRenderItems;
+			AddShadowRenderItems(shadowRenderItems);
+
+			D_LIGHT::RenderShadows(shadowRenderItems);
+		}
+
+		if (additionalMainDraw)
+			additionalMainDraw(sorter);
+
+		sorter.Sort();
+
+		// Clearing scene color texture
+		rContext.GraphicsContext.TransitionResource(rContext.ColorBuffer, D3D12_RESOURCE_STATE_RENDER_TARGET, true);
+		rContext.GraphicsContext.ClearColor(rContext.ColorBuffer);
+
+
+		if (rContext.DrawSkybox)
+			D_RENDERER::DrawSkybox(rContext.GraphicsContext, rContext.Camera, rContext.ColorBuffer, rContext.DepthBuffer, viewPort, scissor);
+
+		sorter.RenderMeshes(MeshSorter::kTransparent, rContext.GraphicsContext, rContext.Globals);
+
+		if (postDraw)
+		{
+			MeshSorter additionalSorter(sorter);
+
+			postDraw(additionalSorter);
+		}
+
+		rContext.GraphicsContext.TransitionResource(rContext.ColorBuffer, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, true);
+	}
+
 #ifdef _D_EDITOR
 	bool OptionsDrawer(_IN_OUT_ D_SERIALIZATION::Json& options)
 	{
@@ -617,7 +745,7 @@ namespace Darius::Renderer
 		}
 	}
 
-	void DrawSkybox(D_GRAPHICS::GraphicsContext& context, const D_MATH_CAMERA::Camera& camera, D_GRAPHICS_BUFFERS::ColorBuffer& sceneColor, D_GRAPHICS_BUFFERS::DepthBuffer& sceneDepth, const D3D12_VIEWPORT& viewport, const D3D12_RECT& scissor)
+	void DrawSkybox(D_GRAPHICS::GraphicsContext& context, const D_MATH_CAMERA::BaseCamera& camera, D_GRAPHICS_BUFFERS::ColorBuffer& sceneColor, D_GRAPHICS_BUFFERS::DepthBuffer& sceneDepth, const D3D12_VIEWPORT& viewport, const D3D12_RECT& scissor)
 	{
 		D_PROFILING::ScopedTimer _prof(L"Draw Skybox", context);
 
