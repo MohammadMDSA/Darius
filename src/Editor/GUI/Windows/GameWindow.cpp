@@ -19,8 +19,6 @@ namespace Darius::Editor::Gui::Windows
 	{
 		CreateBuffers();
 		mTextureHandle = D_RENDERER::AllocateUiTexture();
-		D_RENDERER_DEVICE::GetDevice()->CopyDescriptorsSimple(1, mTextureHandle, mSceneTexture.GetSRV(), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-
 
 		// Window padding
 		mPadding[0] = mPadding[1] = 0.f;
@@ -35,14 +33,20 @@ namespace Darius::Editor::Gui::Windows
 
 	void GameWindow::Render(D_GRAPHICS::GraphicsContext& context)
 	{
-		// Clearing depth
-		context.TransitionResource(mSceneDepth, D3D12_RESOURCE_STATE_DEPTH_WRITE, true);
-		context.ClearDepth(mSceneDepth);
-
+		
 		auto camera = D_CAMERA_MANAGER::GetActiveCamera();
 
 		if (!camera.IsValid() || !camera->IsActive() || !UpdateGlobalConstants(mSceneGlobals))
+		{
+			// Clearing depth
+			context.TransitionResource(mSceneDepth, D3D12_RESOURCE_STATE_DEPTH_WRITE, true);
+			context.ClearDepth(mSceneDepth);
+
+			// Clear scene color
+			context.TransitionResource(mSceneTexture, D3D12_RESOURCE_STATE_RENDER_TARGET, true);
+			context.ClearColor(mSceneTexture);
 			return;
+		}
 		
 		D_MATH_CAMERA::Camera const& c = camera.Get()->GetCamera();
 
@@ -65,10 +69,13 @@ namespace Darius::Editor::Gui::Windows
 	void GameWindow::DrawGUI()
 	{
 		auto cam = D_CAMERA_MANAGER::GetActiveCamera();
-		if (!cam.IsValid())
+		if (!cam.IsValid() || !cam->IsActive())
 		{
 			ImGui::Text("No ACTIVE CAMERA IN SCENE!");
 		}
+		else
+			ImGui::Image((ImTextureID)mTextureHandle.GetGpuPtr(), ImVec2(mWidth, mHeight));
+
 	}
 
 	void GameWindow::Update(float)
@@ -85,8 +92,8 @@ namespace Darius::Editor::Gui::Windows
 	{
 		mBufferWidth = mWidth;
 		mBufferHeight = mHeight;
-		mSceneTexture.Create(L"Scene Texture", (UINT)mBufferWidth, (UINT)mBufferHeight, 1, D_RENDERER_DEVICE::GetBackBufferFormat());
-		mSceneDepth.Create(L"Scene DepthStencil", (UINT)mBufferWidth, (UINT)mBufferHeight, D_RENDERER_DEVICE::GetDepthBufferFormat());
+		mSceneTexture.Create(L"Game Scene Texture", (UINT)mBufferWidth, (UINT)mBufferHeight, 1, D_RENDERER_DEVICE::GetBackBufferFormat());
+		mSceneDepth.Create(L"Game Scene DepthStencil", (UINT)mBufferWidth, (UINT)mBufferHeight, D_RENDERER_DEVICE::GetDepthBufferFormat());
 	}
 
 	bool GameWindow::UpdateGlobalConstants(D_RENDERER_FRAME_RESOURCE::GlobalConstants& globals)
