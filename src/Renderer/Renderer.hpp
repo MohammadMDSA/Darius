@@ -168,12 +168,12 @@ namespace Darius::Renderer
 
 	struct SceneRenderContext
 	{
-		D_GRAPHICS_BUFFERS::DepthBuffer&			DepthBuffer;
-		D_GRAPHICS_BUFFERS::ColorBuffer&			ColorBuffer;
-		D_GRAPHICS::GraphicsContext&				GraphicsContext;
-		D_MATH_CAMERA::BaseCamera&					Camera;
-		D_RENDERER_FRAME_RESOURCE::GlobalConstants& Globals;
-		bool										DrawSkybox;
+		D_GRAPHICS_BUFFERS::DepthBuffer&					DepthBuffer;
+		D_GRAPHICS_BUFFERS::ColorBuffer&					ColorBuffer;
+		D_GRAPHICS::GraphicsContext&						GraphicsContext;
+		D_MATH_CAMERA::BaseCamera const&					Camera;
+		D_RENDERER_FRAME_RESOURCE::GlobalConstants&			Globals;
+		bool												DrawSkybox;
 	};
 
 	void Initialize(HWND window, int width, int height, D_SERIALIZATION::Json const& settings);

@@ -35,7 +35,7 @@ namespace Darius::Graphics
 	{
 	}
 
-	void MeshRendererComponent::Start()
+	void MeshRendererComponent::Awake()
 	{
 
 		// Initializing Mesh Constants buffers

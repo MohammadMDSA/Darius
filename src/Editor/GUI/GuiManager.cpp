@@ -4,6 +4,7 @@
 #include "GuiManager.hpp"
 #include "Windows/ContentWindow.hpp"
 #include "Windows/DetailsWindow.hpp"
+#include "Windows/GameWindow.hpp"
 #include "Windows/ProfilerWindow.hpp"
 #include "Windows/SceneWindow.hpp"
 #include "Windows/SceneGraphWindow.hpp"
@@ -72,6 +73,7 @@ namespace Darius::Editor::Gui::GuiManager
 		RegisterWindow(ProfilerWindow);
 		RegisterWindow(ContentWindow);
 		RegisterWindow(SettingsWindow);
+		RegisterWindow(GameWindow);
 
 		ImGuiIO& io = ImGui::GetIO();
 		// Setup docking

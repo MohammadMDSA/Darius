@@ -290,6 +290,7 @@ namespace Darius::Editor::Gui::Windows
 	{
 		if (mBufferHeight != mHeight || mBufferWidth != mWidth)
 		{
+			mCamera.SetAspectRatio(mHeight / mWidth);
 			CreateBuffers();
 		}
 

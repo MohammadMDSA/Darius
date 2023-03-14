@@ -9,6 +9,7 @@ list(APPEND SCENE_LIBS_INCLUDE
     "Utils/DetailsDrawer.hpp"
 	"Utils/Serializer.hpp"
 	"EntityComponentSystem/Entity.hpp"
+	"EntityComponentSystem/CompRef.hpp"
 	"EntityComponentSystem/Components/ComponentBase.hpp"
 	"EntityComponentSystem/Components/BehaviourComponent.hpp"
 	"EntityComponentSystem/Components/TransformComponent.hpp"

@@ -41,56 +41,31 @@ namespace Darius::Editor::Gui::Windows
 
 		auto camera = D_CAMERA_MANAGER::GetActiveCamera();
 
-		if (!camera || !UpdateGlobalConstants(mSceneGlobals))
+		if (!camera.IsValid() || !camera->IsActive() || !UpdateGlobalConstants(mSceneGlobals))
 			return;
+		
+		D_MATH_CAMERA::Camera const& c = camera.Get()->GetCamera();
 
-		// Setting up sorter
-		auto viewPort = CD3DX12_VIEWPORT(0.f, 0.f, mWidth, mHeight, D3D12_MIN_DEPTH, D3D12_MAX_DEPTH);
-		auto scissor = CD3DX12_RECT(0l, 0l, (long)mWidth, (long)mHeight);
-		MeshSorter sorter(MeshSorter::kDefault);
-		sorter.SetCamera(*camera);
-		sorter.SetViewport(viewPort);
-		sorter.SetScissor(scissor);
-		sorter.SetDepthStencilTarget(mSceneDepth);
-		sorter.AddRenderTarget(mSceneTexture);
-
-		// Add meshes to sorter
-		AddSceneRenderItems(sorter, camera);
-
-		{
-			// Creating shadows
-
-			DVector<RenderItem> shadowRenderItems;
-			PopulateShadowRenderItems(shadowRenderItems);
-
-			D_LIGHT::RenderShadows(shadowRenderItems);
-		}
-
-		sorter.Sort();
-
-		// Clearing scene color texture
-		context.TransitionResource(mSceneTexture, D3D12_RESOURCE_STATE_RENDER_TARGET, true);
-		context.ClearColor(mSceneTexture);
-
-
-		D_RENDERER::DrawSkybox(context, *camera, mSceneTexture, mSceneDepth, viewPort, scissor);
-
-		sorter.RenderMeshes(MeshSorter::kTransparent, context, mSceneGlobals);
-
-		// Add debug draw items
-		MeshSorter debugDrawSorter(sorter);
-		D_DEBUG_DRAW::GetRenderItems(debugDrawSorter);
-		debugDrawSorter.Sort();
-		debugDrawSorter.RenderMeshes(MeshSorter::kTransparent, context, mSceneGlobals);
-
-		context.TransitionResource(mSceneTexture, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, true);
+		D_RENDERER::SceneRenderContext rc = { mSceneDepth, mSceneTexture, context, c, mSceneGlobals, true};
+		D_RENDERER::Render(rc, nullptr,
+			[&](D_RENDERER::MeshSorter& sorter)
+			{
+				// Add debug draw items
+				if (true /*mDrawDebug*/)
+				{
+					D_DEBUG_DRAW::GetRenderItems(sorter);
+					sorter.Sort();
+					sorter.RenderMeshes(MeshSorter::kTransparent, context, mSceneGlobals);
+				}
+			});
+		D_RENDERER_DEVICE::GetDevice()->CopyDescriptorsSimple(1, mTextureHandle, mSceneTexture.GetSRV(), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 
 	}
 
 	void GameWindow::DrawGUI()
 	{
 		auto cam = D_CAMERA_MANAGER::GetActiveCamera();
-		if (!cam)
+		if (!cam.IsValid())
 		{
 			ImGui::Text("No ACTIVE CAMERA IN SCENE!");
 		}
@@ -124,10 +99,10 @@ namespace Darius::Editor::Gui::Windows
 		auto time = *D_TIME::GetStepTimer();
 
 		auto cameraP = D_CAMERA_MANAGER::GetActiveCamera();
-		if (!cameraP)
+		if (!cameraP.IsValid() || !cameraP->IsActive())
 			return false;
 
-		auto& camera = *cameraP;
+		D_MATH_CAMERA::Camera const& camera = cameraP->GetCamera();
 
 		temp = camera.GetViewMatrix(); // View
 		globals.View = temp;

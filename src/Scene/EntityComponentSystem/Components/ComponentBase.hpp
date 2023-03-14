@@ -1,7 +1,8 @@
 #pragma once
 
-#include "Scene/Scene.hpp"
+#include "Scene/EntityComponentSystem/CompRef.hpp"
 #include "Scene/GameObject.hpp"
+#include "Scene/Scene.hpp"
 
 #include <Core/Uuid.hpp>
 #include <Core/Signal.hpp>
@@ -27,6 +28,7 @@ type(D_CORE::Uuid uuid); \
 static INLINE std::string ClassName() { return D_NAMEOF(type); } \
 virtual INLINE std::string GetDisplayName() const override { return type::DisplayName; } \
 virtual INLINE std::string GetComponentName() const override { return D_NAMEOF(type); } \
+INLINE operator D_ECS::CompRef<type>() { return D_ECS::CompRef<type>(mEntity); } \
 static void StaticConstructor() \
 { \
     /* Registering component*/ \

@@ -42,7 +42,7 @@ namespace Darius::Graphics
 	{
 	}
 
-	void SkeletalMeshRendererComponent::Start()
+	void SkeletalMeshRendererComponent::Awake()
 	{
 
 		// Initializing Mesh Constants buffers

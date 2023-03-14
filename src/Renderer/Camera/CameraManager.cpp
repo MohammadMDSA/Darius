@@ -11,16 +11,11 @@ namespace Darius::Renderer::CameraManager
 	float _initialized = false;
 
 	float Width = 1, Height = 1;
-	std::array<D_MATH_CAMERA::Camera*, 10> activeCameras;
+	std::array<D_ECS::CompRef<CameraComponent>, 10> activeCameras;
 
 	void Initialize()
 	{
 		D_ASSERT(!_initialized);
-
-		for (size_t i = 0; i < activeCameras.size(); i++)
-		{
-			activeCameras[i] = nullptr;
-		}
 
 		_initialized = true;
 	}
@@ -30,14 +25,13 @@ namespace Darius::Renderer::CameraManager
 		D_ASSERT(_initialized);
 	}
 
-	void SetActiveCamera(D_MATH_CAMERA::Camera* cam, int index)
+	void SetActiveCamera(D_ECS::CompRef<CameraComponent> cam, int index)
 	{
 		activeCameras[index] = cam;
-		if (cam)
-			cam->SetAspectRatio(Height / Width);
+		(*cam.Get())->SetAspectRatio(Height / Width);
 	}
 
-	D_MATH_CAMERA::Camera* GetActiveCamera(int index)
+	D_ECS::CompRef<CameraComponent> GetActiveCamera(int index)
 	{
 		return activeCameras[index];
 	}
@@ -52,8 +46,8 @@ namespace Darius::Renderer::CameraManager
 		Height = h;
 
 		for (auto cam : activeCameras)
-			if (cam)
-				cam->SetAspectRatio(h / w);
+			if(cam.IsValid())
+			(*cam.Get())->SetAspectRatio(h / w);
 
 		return true;
 	}

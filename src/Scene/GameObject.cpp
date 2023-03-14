@@ -302,15 +302,17 @@ namespace Darius::Scene
 			return;
 		comp->mGameObject = this;
 
-		if (mStarted)
-		{
-			comp->mStarted = true;
-			comp->Start();
-		}
-
 		if (mAwake)
 		{
 			comp->Awake();
+			if (comp->IsActive())
+				comp->OnActivate();
+		}
+
+		if (mStarted && comp->IsActive())
+		{
+			comp->mStarted = true;
+			comp->Start();
 		}
 
 	}
@@ -328,6 +330,8 @@ namespace Darius::Scene
 
 		VisitComponents([](ComponentBase* comp)
 			{
+				if (!comp->IsActive())
+					return;
 				comp->mStarted = true;
 				comp->Start();
 			});
@@ -345,6 +349,8 @@ namespace Darius::Scene
 		VisitComponents([](ComponentBase* comp)
 			{
 				comp->Awake();
+				if (comp->IsActive())
+					comp->OnActivate();
 			});
 	}
 
@@ -435,9 +441,16 @@ namespace Darius::Scene
 		this->mActive = active;
 
 		if (active)
-			VisitComponents([](auto comp)
+			VisitComponents([&](auto comp)
 				{
 					comp->OnActivate();
+
+					if (comp->mStarted || !mStarted)
+						return;
+
+					comp->mStarted = true;
+					comp->Start();
+
 				});
 		else
 			VisitComponents([](auto comp)

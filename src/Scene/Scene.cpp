@@ -134,9 +134,9 @@ namespace Darius::Scene
 		EntityMap->emplace(entity, go);
 
 		if (Started)
-			go->Start();
-		if (Running)
 			go->Awake();
+		if (Running)
+			go->Start();
 
 		return go;
 	}
@@ -343,19 +343,6 @@ namespace Darius::Scene
 		return EntityMap->at(entity);
 	}
 
-	void SceneManager::StartScene()
-	{
-		if (Started)
-			return;
-
-		for (auto go : *GOs)
-		{
-			go->Start();
-		}
-
-		Started = true;
-	}
-
 	void SceneManager::RemoveDeleted()
 	{
 
@@ -384,13 +371,26 @@ namespace Darius::Scene
 		return Loaded;
 	}
 
+	void SceneManager::StartScene()
+	{
+		if (Started)
+			return;
+
+		for (auto go : *GOs)
+		{
+			go->Awake();
+		}
+
+		Started = true;
+	}
+
 	void SceneManager::SetAwake()
 	{
 		Running = true;
 
 		for (auto go : *GOs)
 		{
-			go->Awake();
+			go->Start();
 		}
 	}
 

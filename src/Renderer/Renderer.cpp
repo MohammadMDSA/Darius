@@ -5,6 +5,7 @@
 #include "Components/LightComponent.hpp"
 #include "Components/MeshRendererComponent.hpp"
 #include "Components/SkeletalMeshRendererComponent.hpp"
+#include "Components/CameraComponent.hpp"
 #include "Geometry/Mesh.hpp"
 #include "FrameResource.hpp"
 #include "GraphicsCore.hpp"
@@ -242,6 +243,7 @@ namespace Darius::Renderer
 		D_GRAPHICS::LightComponent::StaticConstructor();
 		D_GRAPHICS::MeshRendererComponent::StaticConstructor();
 		D_GRAPHICS::SkeletalMeshRendererComponent::StaticConstructor();
+		D_GRAPHICS::CameraComponent::StaticConstructor();
 	}
 
 	void Shutdown()
@@ -288,7 +290,7 @@ namespace Darius::Renderer
 			Darius::Job::WaitForThreadsToFinish();
 	}
 
-	void AddRenderItems(D_RENDERER::MeshSorter& sorter, D_MATH_CAMERA::BaseCamera& cam)
+	void AddRenderItems(D_RENDERER::MeshSorter& sorter, D_MATH_CAMERA::BaseCamera const& cam)
 	{
 		auto& worldReg = D_WORLD::GetRegistry();
 

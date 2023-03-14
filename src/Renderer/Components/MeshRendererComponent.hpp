@@ -26,7 +26,7 @@ namespace Darius::Graphics
 		virtual void						Deserialize(D_SERIALIZATION::Json const& j) override;
 
 		// States
-		virtual void						Start() override;
+		virtual void						Awake() override;
 		virtual void						Update(float dt) override;
 		virtual void						OnDestroy() override;
 
