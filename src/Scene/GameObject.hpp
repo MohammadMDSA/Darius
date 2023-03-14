@@ -1,6 +1,7 @@
 #pragma once
 
 #include "EntityComponentSystem/Entity.hpp"
+#include "EntityComponentSystem/CompRef.hpp"
 
 #include <Core/Ref.hpp>
 #include <Core/Uuid.hpp>
@@ -113,7 +114,7 @@ namespace Darius::Scene
 		}
 
 		template<class T>
-		T* AddComponent()
+		T*									AddComponent()
 		{
 			// Checking if T is a resource type
 			using conv = std::is_convertible<T*, Darius::Scene::ECS::Components::ComponentBase*>;
@@ -126,7 +127,7 @@ namespace Darius::Scene
 		}
 
 		template<class T>
-		T* AddComponent(T const& value)
+		T*									AddComponent(T const& value)
 		{
 			// Checking if T is a resource type
 			using conv = std::is_convertible<T*, Darius::Scene::ECS::Components::ComponentBase*>;
@@ -136,6 +137,12 @@ namespace Darius::Scene
 			auto ref = mEntity.get_ref<T>().get();
 			AddComponentRoutine(ref);
 			return ref;
+		}
+
+		template<class T>
+		INLINE D_ECS::CompRef<T>			GetComponentRef()
+		{
+			return D_ECS::CompRef<T>(mEntity);
 		}
 
 		Darius::Scene::ECS::Components::ComponentBase* AddComponent(std::string const& name);

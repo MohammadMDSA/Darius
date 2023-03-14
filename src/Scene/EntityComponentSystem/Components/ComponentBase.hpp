@@ -28,7 +28,7 @@ type(D_CORE::Uuid uuid); \
 static INLINE std::string ClassName() { return D_NAMEOF(type); } \
 virtual INLINE std::string GetDisplayName() const override { return type::DisplayName; } \
 virtual INLINE std::string GetComponentName() const override { return D_NAMEOF(type); } \
-INLINE operator D_ECS::CompRef<type>() { return D_ECS::CompRef<type>(mEntity); } \
+INLINE operator D_ECS::CompRef<type>() { return GetGameObject()->GetComponentRef<type>(); } \
 static void StaticConstructor() \
 { \
     /* Registering component*/ \
