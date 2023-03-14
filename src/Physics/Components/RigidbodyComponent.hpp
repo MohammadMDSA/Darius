@@ -18,7 +18,7 @@ namespace Darius::Physics
 		virtual INLINE bool				IsDisableable() const { return false; }
 
 		// Events
-		virtual void					Start() override;
+		virtual void					Awake() override;
 		virtual void					OnDestroy() override;
 		virtual void					Update(float) override;
 		virtual void					PreUpdate();

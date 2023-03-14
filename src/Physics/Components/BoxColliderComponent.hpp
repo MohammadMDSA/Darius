@@ -14,7 +14,7 @@ namespace Darius::Physics
 		
 	public:
 
-		virtual void						Start() override;
+		virtual void						Awake() override;
 
 #ifdef _D_EDITOR
 		virtual bool						DrawDetails(float params[]) override;

@@ -47,7 +47,7 @@ namespace Darius::Physics
 	}
 #endif
 
-	void ColliderComponent::Start()
+	void ColliderComponent::Awake()
 	{
 		if (!mMaterialHandle.IsValid())
 			SetMaterial(D_PHYSICS::GetDefaultMaterial());

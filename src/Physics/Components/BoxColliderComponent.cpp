@@ -14,12 +14,12 @@ namespace Darius::Physics
 	BoxColliderComponent::BoxColliderComponent(D_CORE::Uuid uuid) : \
 		ColliderComponent(uuid) {}
 
-	void BoxColliderComponent::Start()
+	void BoxColliderComponent::Awake()
 	{
 		auto scale = GetTransform().Scale;
 		mGeometry = physx::PxBoxGeometry(scale.GetX() / 2.f, scale.GetY() / 2.f, scale.GetZ() / 2.f);
 
-		ColliderComponent::Start();
+		ColliderComponent::Awake();
 	}
 
 	bool BoxColliderComponent::DrawDetails(float params[])

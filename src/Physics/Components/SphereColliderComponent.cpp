@@ -14,11 +14,11 @@ namespace Darius::Physics
 	SphereColliderComponent::SphereColliderComponent(D_CORE::Uuid uuid) : \
 		ColliderComponent(uuid) {}
 
-	void SphereColliderComponent::Start()
+	void SphereColliderComponent::Awake()
 	{
 		mGeometry = physx::PxSphereGeometry(GetRadius());
 
-		ColliderComponent::Start();
+		ColliderComponent::Awake();
 	}
 
 	bool SphereColliderComponent::DrawDetails(float params[])

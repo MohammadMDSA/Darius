@@ -19,7 +19,7 @@ namespace Darius::Physics
 	public:
 
 		// Events
-		virtual void				Start() override;
+		virtual void				Awake() override;
 		virtual void				OnDestroy() override;
 
 		virtual void				PreUpdate(bool simulating);

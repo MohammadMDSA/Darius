@@ -34,7 +34,7 @@ namespace Darius::Physics
 		ZeroMemory(mPositionConstraints, 3 * sizeof(bool));
 	}
 
-	void RigidbodyComponent::Start()
+	void RigidbodyComponent::Awake()
 	{
 		mActor = D_PHYSICS::PhysicsScene::AddDynamicActor(GetGameObject(), false);
 
