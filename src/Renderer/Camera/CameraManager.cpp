@@ -25,10 +25,18 @@ namespace Darius::Renderer::CameraManager
 		D_ASSERT(_initialized);
 	}
 
+	void Update()
+	{
+		for (auto cam : activeCameras)
+			if (cam.IsValid())
+				cam->Update(-1.f);
+	}
+
 	void SetActiveCamera(D_ECS::CompRef<CameraComponent> cam, int index)
 	{
 		activeCameras[index] = cam;
-		(*cam.Get())->SetAspectRatio(Height / Width);
+		if (cam.IsValid())
+			(*cam.Get())->SetAspectRatio(Height / Width);
 	}
 
 	D_ECS::CompRef<CameraComponent> GetActiveCamera(int index)
@@ -46,8 +54,8 @@ namespace Darius::Renderer::CameraManager
 		Height = h;
 
 		for (auto cam : activeCameras)
-			if(cam.IsValid())
-			(*cam.Get())->SetAspectRatio(h / w);
+			if (cam.IsValid())
+				(*cam.Get())->SetAspectRatio(h / w);
 
 		return true;
 	}

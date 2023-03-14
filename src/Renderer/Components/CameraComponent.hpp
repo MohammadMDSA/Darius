@@ -24,8 +24,9 @@ namespace Darius::Graphics
 		virtual void					Deserialize(Json const& j) override;
 
 		// States
-		virtual void					Awake() override { }
-		virtual void					OnDestroy() override {  }
+		virtual void					Update(float dt) override;
+		virtual void					Awake() override;
+		virtual void					OnDestroy() override;
 
 		INLINE D_MATH_CAMERA::Camera* operator->() { return &mCamera; }
 		//INLINE D_MATH_CAMERA::Camera const* operator->() const { return &mCamera; }

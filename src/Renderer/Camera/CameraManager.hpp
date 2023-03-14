@@ -13,6 +13,7 @@ namespace Darius::Renderer::CameraManager
 {
 	void Initialize();
 	void Shutdown();
+	void Update();
 
 	// Active camera functions
 	void SetActiveCamera(D_ECS::CompRef<CameraComponent> cam, int index = 0);

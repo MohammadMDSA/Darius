@@ -264,6 +264,8 @@ namespace Darius::Renderer
 	void Update()
 	{
 
+		D_CAMERA_MANAGER::Update();
+
 		auto& reg = D_WORLD::GetRegistry();
 
 		reg.each([&](D_GRAPHICS::MeshRendererComponent& meshComp)

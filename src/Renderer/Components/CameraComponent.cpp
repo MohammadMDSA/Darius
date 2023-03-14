@@ -13,7 +13,27 @@ namespace Darius::Graphics
 {
 	D_H_COMP_DEF(CameraComponent);
 
-	D_H_COMP_DEFAULT_CONSTRUCTOR_DEF(CameraComponent)
+	CameraComponent::CameraComponent() :
+		ComponentBase()
+	{
+		mCamera.SetFOV(XM_PI / 3);
+		mCamera.SetZRange(0.001f, 10000.f);
+		mCamera.SetPosition(Vector3(2.f, 2.f, 2.f));
+		mCamera.SetLookDirection(Vector3(-2), Vector3::Up());
+		mCamera.SetOrthographicSize(10);
+		mCamera.SetOrthographic(false);
+	}
+
+	CameraComponent::CameraComponent(D_CORE::Uuid uuid) :
+		ComponentBase(uuid)
+	{
+		mCamera.SetFOV(XM_PI / 3);
+		mCamera.SetZRange(0.001f, 10000.f);
+		mCamera.SetPosition(Vector3(2.f, 2.f, 2.f));
+		mCamera.SetLookDirection(Vector3(-2), Vector3::Up());
+		mCamera.SetOrthographicSize(10);
+		mCamera.SetOrthographic(false);
+	}
 
 	void CameraComponent::Awake()
 	{
@@ -26,7 +46,17 @@ namespace Darius::Graphics
 
 	void CameraComponent::OnDestroy()
 	{
+		auto actuve = D_CAMERA_MANAGER::GetActiveCamera();
+		if (actuve == *this)
+			D_CAMERA_MANAGER::SetActiveCamera(D_ECS::CompRef<CameraComponent>());
+	}
 
+	void CameraComponent::Update(float dt)
+	{
+		auto transform = GetTransform();
+		mCamera.SetPosition(transform.Translation);
+		mCamera.SetRotation(transform.Rotation);
+		mCamera.Update();
 	}
 
 #ifdef _DEBUG
