@@ -8,9 +8,12 @@
 #include <imgui.h>
 #include <Libs/FontIcon/IconsFontAwesome6.h>
 
+using namespace D_CORE;
+using namespace D_MATH;
 using namespace D_SERIALIZATION;
 using namespace D_RESOURCE;
 using namespace D_RENDERER_FRAME_RESOURCE;
+using namespace D_RENDERER_GEOMETRY;
 
 namespace Darius::Graphics
 {

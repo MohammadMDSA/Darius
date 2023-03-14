@@ -24,6 +24,7 @@ list(APPEND MATH_LIBS_INCLUDE
 	"Camera/Camera.hpp"
 	"Camera/Frustum.hpp"
 	"Camera/ShadowCamera.hpp"
+	"Serialization.hpp"
 	)
 
 list(APPEND MATH_LIBS_SOURCES
@@ -36,6 +37,7 @@ list(APPEND MATH_LIBS_SOURCES
 	"Camera/Camera.cpp"
 	"Camera/Frustum.cpp"
 	"Camera/ShadowCamera.cpp"
+	"Serialization.cpp"
 	)
 
 

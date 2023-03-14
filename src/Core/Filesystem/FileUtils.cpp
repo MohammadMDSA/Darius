@@ -5,6 +5,8 @@
 #include <Utils/Common.hpp>
 #include <Utils/Log.hpp>
 
+using namespace std;
+
 namespace Darius::Core::Filesystem
 {
 	std::wstring GetNewFileName(std::wstring const& baseName, std::wstring const& extension, Path parent)

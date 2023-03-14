@@ -18,7 +18,6 @@
 #include <mutex>
 #include <stdint.h>
 
-
 #ifndef D_GRAPHICS_UTILS
 #define D_GRAPHICS_UTILS Darius::Graphics::Utils
 #endif

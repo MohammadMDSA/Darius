@@ -149,9 +149,9 @@ namespace Darius::Scene::ECS::Components
         INLINE void                 SetLocalTransform(D_MATH::Transform const& transform) { return mGameObject->SetLocalTransform(transform); }
         INLINE void                 SetTransform(D_MATH::Transform const& transform) { return mGameObject->SetTransform(transform); }
 
-        INLINE operator CountedOwner const() {
+        INLINE operator D_CORE::CountedOwner const() {
             auto strName = GetComponentName();
-            return CountedOwner{ WSTR_STR(strName), "Game Object Component", this, 0};
+            return D_CORE::CountedOwner { WSTR_STR(strName), "Game Object Component", this, 0};
         }
 
         static INLINE std::string   GetName() { return "ComponentBase"; }

@@ -104,14 +104,14 @@ namespace Darius::Editor
     private:
         INLINE D_MATH::Vector3 ComputeTargetFromPosition(D_MATH::Vector3 pos)
         {
-            D_MATH::Matrix3 orientation = D_MATH::Matrix3(XMMatrixRotationQuaternion(mTargetCamera.GetRotation()));
+            D_MATH::Matrix3 orientation = D_MATH::Matrix3(DirectX::XMMatrixRotationQuaternion(mTargetCamera.GetRotation()));
 
             return -pos + orientation.GetZ() * (mModelBounds.GetRadius() * D_MATH::Lerp(3.0f, 1.0f, mCurrentCloseness) + mTargetCamera.GetNearClip());
         }
 
         INLINE D_MATH::Vector3 ComputePositionFromTarget(D_MATH::Vector3 target)
         {
-            D_MATH::Matrix3 orientation = D_MATH::Matrix3(XMMatrixRotationQuaternion(mTargetCamera.GetRotation()));
+            D_MATH::Matrix3 orientation = D_MATH::Matrix3(DirectX::XMMatrixRotationQuaternion(mTargetCamera.GetRotation()));
 
             return target + orientation.GetZ() * (mModelBounds.GetRadius() * D_MATH::Lerp(3.0f, 1.0f, mCurrentCloseness) + mTargetCamera.GetNearClip());
         }

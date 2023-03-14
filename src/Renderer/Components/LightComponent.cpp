@@ -1,12 +1,14 @@
 #include "Renderer/pch.hpp"
 #include "LightComponent.hpp"
 
-#include <Scene/Utils/Serializer.hpp>
+#include <Math/Serialization.hpp>
 #include <Scene/Utils/DetailsDrawer.hpp>
 
 #include <imgui.h>
 
 using namespace D_LIGHT;
+using namespace D_SERIALIZATION;
+using namespace DirectX;
 
 namespace Darius::Graphics
 {
@@ -16,8 +18,8 @@ namespace Darius::Graphics
 		D_ECS_COMP::ComponentBase(),
 		mLightType(LightSourceType::PointLight),
 		mLightIndex(-1),
-		mConeInnerAngle(D_MATH::XMConvertToRadians(30)),
-		mConeOuterAngle(D_MATH::XMConvertToRadians(45))
+		mConeInnerAngle(XMConvertToRadians(30)),
+		mConeOuterAngle(XMConvertToRadians(45))
 	{
 		UpdateAngleData();
 	}
@@ -26,8 +28,8 @@ namespace Darius::Graphics
 		D_ECS_COMP::ComponentBase(uuid),
 		mLightType(LightSourceType::PointLight),
 		mLightIndex(-1),
-		mConeInnerAngle(D_MATH::XMConvertToRadians(30)),
-		mConeOuterAngle(D_MATH::XMConvertToRadians(45))
+		mConeInnerAngle(XMConvertToRadians(30)),
+		mConeOuterAngle(XMConvertToRadians(45))
 	{
 		UpdateAngleData();
 	}
@@ -65,8 +67,8 @@ namespace Darius::Graphics
 			{
 				bool anglesChanged = false;
 
-				auto innerDeg = D_MATH::XMConvertToDegrees(mConeInnerAngle);
-				auto outerDeg = D_MATH::XMConvertToDegrees(mConeOuterAngle);
+				auto innerDeg = XMConvertToDegrees(mConeInnerAngle);
+				auto outerDeg = XMConvertToDegrees(mConeOuterAngle);
 
 				// Spot inner
 				D_H_DETAILS_DRAW_PROPERTY("Inner Half Angle");

@@ -13,10 +13,6 @@
 #define D_RENDERER_GEOMETRY Darius::Renderer::Geometry
 #endif
 
-using namespace Microsoft::WRL;
-using namespace D_MATH;
-using namespace Darius::Renderer::GraphicsUtils;
-
 namespace Darius::Renderer::Geometry
 {
 
@@ -32,11 +28,11 @@ namespace Darius::Renderer::Geometry
 
 		struct SkeletonJoint
 		{
-			Math::Matrix4			Xform;
-			Math::XMFLOAT3			Rotation;
-			Math::XMFLOAT3			Scale;
+			D_MATH::Matrix4			Xform;
+			DirectX::XMFLOAT3		Rotation;
+			DirectX::XMFLOAT3		Scale;
 			std::string				Name;
-			Matrix4					IBM;
+			D_MATH::Matrix4			IBM;
 
 			D_CONTAINERS::DVector<SkeletonJoint*> Children;
 

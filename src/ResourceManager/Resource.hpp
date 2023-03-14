@@ -54,10 +54,7 @@ public: \
 	\
 // TODO: Better resource allocation
 #define D_CH_RESOURCE_DEF(T) \
-std::shared_ptr<D_RESOURCE::Resource> T::T##Factory::Create(Uuid uuid, std::wstring const& path, std::wstring const& name, D_RESOURCE::DResourceId id, bool isDefault) const { return std::shared_ptr<D_RESOURCE::Resource>(new T(uuid, path, name, id, isDefault)); }
-
-using namespace D_CORE;
-using namespace D_FILE;
+std::shared_ptr<D_RESOURCE::Resource> T::T##Factory::Create(D_CORE::Uuid uuid, std::wstring const& path, std::wstring const& name, D_RESOURCE::DResourceId id, bool isDefault) const { return std::shared_ptr<D_RESOURCE::Resource>(new T(uuid, path, name, id, isDefault)); }
 
 namespace Darius::ResourceManager
 {
@@ -72,13 +69,13 @@ namespace Darius::ResourceManager
 	{
 		std::string					Name;
 		ResourceType				Type;
-		Uuid						Uuid;
+		D_CORE::Uuid				Uuid;
 	};
 
 	struct ResourceFileMeta
 	{
-		std::wstring				FileName;
-		DVector<ResourceDataInFile>	Resources;
+		std::wstring								FileName;
+		D_CONTAINERS::DVector<ResourceDataInFile>	Resources;
 	};
 
 	struct ResourceHandle
@@ -112,7 +109,7 @@ namespace Darius::ResourceManager
 			ResourceFactory() = default;
 			~ResourceFactory() = default;
 
-			virtual std::shared_ptr<Resource> Create(Uuid uuid, std::wstring const& path, std::wstring const& name, DResourceId id, bool isDefault) const = 0;
+			virtual std::shared_ptr<Resource> Create(D_CORE::Uuid uuid, std::wstring const& path, std::wstring const& name, DResourceId id, bool isDefault) const = 0;
 		};
 
 	public:
@@ -136,7 +133,7 @@ namespace Darius::ResourceManager
 		D_CH_RW_FIELD(std::wstring, Name);
 		D_CH_R_FIELD(D_FILE::Path, Path);
 		D_CH_R_FIELD_CONST(DResourceId, Id);
-		D_CH_R_FIELD_CONST(Uuid, Uuid);
+		D_CH_R_FIELD_CONST(D_CORE::Uuid, Uuid);
 		D_CH_R_FIELD_CONST(bool, Default);
 
 		D_CH_R_FIELD(bool, Loaded);
@@ -157,8 +154,8 @@ namespace Darius::ResourceManager
 		static INLINE ResourceFactory* GetFactoryForResourceType(ResourceType type) { return ResourceFactories.contains(type) ? ResourceFactories[type] : nullptr; }
 		static INLINE void			RegisterResourceExtension(std::string ext, ResourceType type) { auto& key = ResourceExtensionMap[ext]; key.insert(type); }
 		static INLINE D_CONTAINERS::DSet<ResourceType>	GetResourceTypeByExtension(std::string ext) { return ResourceExtensionMap.contains(ext) ? ResourceExtensionMap[ext] : D_CONTAINERS::DSet<ResourceType>(); }
-		static INLINE void			RegisterConstructionValidation(ResourceType type, std::function<DVector<ResourceDataInFile>(ResourceType, Path const&)> func) { ConstructValidationMap[type] = func; }
-		static INLINE DVector<ResourceDataInFile>	CanConstructTypeFromPath(ResourceType type, Path const& path) { return ConstructValidationMap.contains(type) ? ConstructValidationMap[type](type, path) : DVector<ResourceDataInFile>(); }
+		static INLINE void			RegisterConstructionValidation(ResourceType type, std::function<D_CONTAINERS::DVector<ResourceDataInFile>(ResourceType, D_FILE::Path const&)> func) { ConstructValidationMap[type] = func; }
+		static INLINE D_CONTAINERS::DVector<ResourceDataInFile>	CanConstructTypeFromPath(ResourceType type, D_FILE::Path const& path) { return ConstructValidationMap.contains(type) ? ConstructValidationMap[type](type, path) : D_CONTAINERS::DVector<ResourceDataInFile>(); }
 #pragma endregion
 
 		template<class R, class FAC>
@@ -188,7 +185,7 @@ namespace Darius::ResourceManager
 		friend class ResourceLoader;
 
 	protected:
-		Resource(Uuid uuid, std::wstring const& path, std::wstring const& name, DResourceId id, bool isDefault) :
+		Resource(D_CORE::Uuid uuid, std::wstring const& path, std::wstring const& name, DResourceId id, bool isDefault) :
 			mLoaded(false),
 			mPath(path),
 			mName(name),
@@ -217,13 +214,13 @@ namespace Darius::ResourceManager
 		virtual void				Unload() = 0;
 		static void					AddTypeContainer(ResourceType type);
 
-		static DVector<ResourceDataInFile> CanConstructFrom(ResourceType type, Path const& path);
+		static D_CONTAINERS::DVector<ResourceDataInFile> CanConstructFrom(ResourceType type, D_FILE::Path const& path);
 
-		static DUnorderedMap<ResourceType, std::string> ResourceTypeMap;
-		static DUnorderedMap<std::string, ResourceType> ResourceTypeMapR;
-		static DUnorderedMap<ResourceType, ResourceFactory*> ResourceFactories;
-		static DUnorderedMap<std::string, D_CONTAINERS::DSet<ResourceType>> ResourceExtensionMap;
-		static DUnorderedMap<ResourceType, std::function<DVector<ResourceDataInFile>(ResourceType type, Path const&)>> ConstructValidationMap;
+		static D_CONTAINERS::DUnorderedMap<ResourceType, std::string> ResourceTypeMap;
+		static D_CONTAINERS::DUnorderedMap<std::string, ResourceType> ResourceTypeMapR;
+		static D_CONTAINERS::DUnorderedMap<ResourceType, ResourceFactory*> ResourceFactories;
+		static D_CONTAINERS::DUnorderedMap<std::string, D_CONTAINERS::DSet<ResourceType>> ResourceExtensionMap;
+		static D_CONTAINERS::DUnorderedMap<ResourceType, std::function<D_CONTAINERS::DVector<ResourceDataInFile>(ResourceType type, D_FILE::Path const&)>> ConstructValidationMap;
 	};
 
 }

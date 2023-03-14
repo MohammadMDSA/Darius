@@ -11,6 +11,7 @@
 #include <imgui.h>
 #include <Libs/FontIcon/IconsFontAwesome6.h>
 
+using namespace D_CONTAINERS;
 using namespace D_FILE;
 
 namespace Darius::Editor::Gui::Windows

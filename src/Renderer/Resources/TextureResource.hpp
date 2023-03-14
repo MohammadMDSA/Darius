@@ -9,9 +9,6 @@
 #define D_GRAPHICS Darius::Graphics
 #endif
 
-using namespace D_CORE;
-using namespace D_GRAPHICS_BUFFERS;
-
 namespace Darius::Graphics
 {
 	class DResourceManager;
@@ -35,7 +32,7 @@ namespace Darius::Graphics
 		D_CH_RESOURCE_RW_FIELD_ACC(bool, SRGB, protected);
 
 	protected:
-		TextureResource(Uuid uuid, std::wstring const& path, std::wstring const& name, D_RESOURCE::DResourceId id, bool isDefault = false) :
+		TextureResource(D_CORE::Uuid uuid, std::wstring const& path, std::wstring const& name, D_RESOURCE::DResourceId id, bool isDefault = false) :
 			Resource(uuid, path, name, id, isDefault),
 			mSRGB(false) {}
 

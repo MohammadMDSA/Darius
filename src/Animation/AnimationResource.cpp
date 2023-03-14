@@ -7,6 +7,9 @@
 #include <fbxsdk/fileio/fbxiosettings.h>
 
 using namespace fbxsdk;
+using namespace D_CONTAINERS;
+using namespace D_FILE;
+using namespace D_RESOURCE;
 
 namespace Darius::Animation
 {

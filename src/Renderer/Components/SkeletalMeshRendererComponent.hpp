@@ -30,31 +30,32 @@ namespace Darius::Graphics
 		virtual void						Update(float dt) override;
 		virtual void						OnDestroy() override;
 
-		void								SetMesh(ResourceHandle handle);
-		void								SetMaterial(ResourceHandle handle);
+		void								SetMesh(D_RESOURCE::ResourceHandle handle);
+		void								SetMaterial(D_RESOURCE::ResourceHandle handle);
 		INLINE bool							HasAnimation() const { return true; }
 
-		RenderItem							GetRenderItem();
-		INLINE DVector<Mesh::SkeletonJoint>& GetSkeleton() { return mSkeleton; }
-		INLINE Mesh::SkeletonJoint* GetSkeletonRoot() { return mSkeletonRoot; }
+		D_RENDERER_FRAME_RESOURCE::RenderItem GetRenderItem();
+		INLINE D_CONTAINERS::DVector<D_RENDERER_GEOMETRY::Mesh::SkeletonJoint>& GetSkeleton() { return mSkeleton; }
+		INLINE D_RENDERER_GEOMETRY::Mesh::SkeletonJoint* GetSkeletonRoot() { return mSkeletonRoot; }
 
 
 		INLINE bool							CanRender() { return IsActive() && mMeshResource.IsValid(); }
-		INLINE const BoundingSphere& GetBounds() const { return mBounds; }
+		INLINE const D_MATH_BOUNDS::BoundingSphere& GetBounds() const { return mBounds; }
 
 		INLINE D3D12_GPU_VIRTUAL_ADDRESS	GetConstantsAddress() { return mMeshConstantsGPU.GetGpuVirtualAddress(); }
 
 
-		D_CH_RW_FIELD_ACC(Ref<SkeletalMeshResource>, MeshResource, protected);
+		D_CH_RW_FIELD_ACC(D_CORE::Ref<SkeletalMeshResource>, MeshResource, protected);
 		D_CH_RW_FIELD(bool,					CastsShadow);
 
-		D_CH_R_FIELD_ACC(Ref<MaterialResource>, MaterialResource, protected);
+		D_CH_R_FIELD_ACC(D_CORE::Ref<MaterialResource>, MaterialResource, protected);
 	private:
 
-		void								_SetMesh(ResourceHandle handle);
-		void								_SetMaterial(ResourceHandle handle);
+		void								_SetMesh(D_RESOURCE::ResourceHandle handle);
+		void								_SetMaterial(D_RESOURCE::ResourceHandle handle);
 		void								CreateGPUBuffers();
-		void								JointUpdateRecursion(Matrix4 const& parent, Mesh::SkeletonJoint& skeletonJoint);
+		void								JointUpdateRecursion(D_MATH::Matrix4 const& parent, D_RENDERER_GEOMETRY::Mesh::SkeletonJoint& skeletonJoint);
+
 		INLINE uint16_t						GetPsoIndex()
 		{
 			auto materialPsoFlags = mMaterialResource->GetPsoFlags();
@@ -75,14 +76,14 @@ namespace Darius::Graphics
 			return mPsoIndex;
 		}
 
-		DVector<Joint>						mJoints;
-		DVector<Mesh::SkeletonJoint>		mSkeleton;
-		Mesh::SkeletonJoint*				mSkeletonRoot;
-		BoundingSphere						mBounds;
+		D_CONTAINERS::DVector<D_RENDERER_FRAME_RESOURCE::Joint>	mJoints;
+		D_CONTAINERS::DVector<D_RENDERER_GEOMETRY::Mesh::SkeletonJoint> mSkeleton;
+		D_RENDERER_GEOMETRY::Mesh::SkeletonJoint*				mSkeletonRoot;
+		D_MATH_BOUNDS::BoundingSphere							mBounds;
 
 		// Gpu buffers
 		D_GRAPHICS_BUFFERS::UploadBuffer	mMeshConstantsCPU[D_RENDERER_FRAME_RESOURCE::gNumFrameResources];
-		ByteAddressBuffer					mMeshConstantsGPU;
+		D_GRAPHICS_BUFFERS::ByteAddressBuffer mMeshConstantsGPU;
 
 		uint16_t							mComponentPsoFlags;
 		uint16_t							mCachedMaterialPsoFlags;

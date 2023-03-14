@@ -19,8 +19,6 @@
 #define D_GRAPHICS_UTILS Darius::Graphics::Utils
 #endif
 
-using namespace D_MATH;
-
 namespace Darius::Graphics::Utils
 {
     class SamplerDesc : public D3D12_SAMPLER_DESC
@@ -53,7 +51,7 @@ namespace Darius::Graphics::Utils
             AddressW = AddressMode;
         }
 
-        void SetBorderColor(Color Border)
+        void SetBorderColor(D_MATH::Color Border)
         {
             BorderColor[0] = Border.R();
             BorderColor[1] = Border.G();

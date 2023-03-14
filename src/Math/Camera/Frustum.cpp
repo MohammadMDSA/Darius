@@ -41,12 +41,12 @@ namespace Darius::Math::Camera
 		const float NVz = -NVy * VTan;
 
 		// Define the bounding planes
-		m_FrustumPlanes[kNearPlane] = BoundingPlane(0.0f, 0.0f, -1.0f, -NearClip);
-		m_FrustumPlanes[kFarPlane] = BoundingPlane(0.0f, 0.0f, 1.0f, FarClip);
-		m_FrustumPlanes[kLeftPlane] = BoundingPlane(NHx, 0.0f, NHz, 0.0f);
-		m_FrustumPlanes[kRightPlane] = BoundingPlane(-NHx, 0.0f, NHz, 0.0f);
-		m_FrustumPlanes[kTopPlane] = BoundingPlane(0.0f, -NVy, NVz, 0.0f);
-		m_FrustumPlanes[kBottomPlane] = BoundingPlane(0.0f, NVy, NVz, 0.0f);
+		m_FrustumPlanes[kNearPlane] = D_MATH_BOUNDS::BoundingPlane(0.0f, 0.0f, -1.0f, -NearClip);
+		m_FrustumPlanes[kFarPlane] = D_MATH_BOUNDS::BoundingPlane(0.0f, 0.0f, 1.0f, FarClip);
+		m_FrustumPlanes[kLeftPlane] = D_MATH_BOUNDS::BoundingPlane(NHx, 0.0f, NHz, 0.0f);
+		m_FrustumPlanes[kRightPlane] = D_MATH_BOUNDS::BoundingPlane(-NHx, 0.0f, NHz, 0.0f);
+		m_FrustumPlanes[kTopPlane] = D_MATH_BOUNDS::BoundingPlane(0.0f, -NVy, NVz, 0.0f);
+		m_FrustumPlanes[kBottomPlane] = D_MATH_BOUNDS::BoundingPlane(0.0f, NVy, NVz, 0.0f);
 	}
 
 	void Frustum::ConstructOrthographicFrustum(float Left, float Right, float Top, float Bottom, float Front, float Back)
@@ -62,12 +62,12 @@ namespace Darius::Math::Camera
 		m_FrustumCorners[kFarUpperRight] = Vector3(Right, Top, -Back);	// Far upper right
 
 		// Define the bounding planes
-		m_FrustumPlanes[kNearPlane] = BoundingPlane(0.0f, 0.0f, -1.0f, -Front);
-		m_FrustumPlanes[kFarPlane] = BoundingPlane(0.0f, 0.0f, 1.0f, Back);
-		m_FrustumPlanes[kLeftPlane] = BoundingPlane(1.0f, 0.0f, 0.0f, -Left);
-		m_FrustumPlanes[kRightPlane] = BoundingPlane(-1.0f, 0.0f, 0.0f, Right);
-		m_FrustumPlanes[kTopPlane] = BoundingPlane(0.0f, -1.0f, 0.0f, Bottom);
-		m_FrustumPlanes[kBottomPlane] = BoundingPlane(0.0f, 1.0f, 0.0f, -Top);
+		m_FrustumPlanes[kNearPlane] = D_MATH_BOUNDS::BoundingPlane(0.0f, 0.0f, -1.0f, -Front);
+		m_FrustumPlanes[kFarPlane] = D_MATH_BOUNDS::BoundingPlane(0.0f, 0.0f, 1.0f, Back);
+		m_FrustumPlanes[kLeftPlane] = D_MATH_BOUNDS::BoundingPlane(1.0f, 0.0f, 0.0f, -Left);
+		m_FrustumPlanes[kRightPlane] = D_MATH_BOUNDS::BoundingPlane(-1.0f, 0.0f, 0.0f, Right);
+		m_FrustumPlanes[kTopPlane] = D_MATH_BOUNDS::BoundingPlane(0.0f, -1.0f, 0.0f, Bottom);
+		m_FrustumPlanes[kBottomPlane] = D_MATH_BOUNDS::BoundingPlane(0.0f, 1.0f, 0.0f, -Top);
 	}
 
 

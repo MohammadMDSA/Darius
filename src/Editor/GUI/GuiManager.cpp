@@ -33,6 +33,8 @@
 #include <imgui_impl_dx12.h>
 #include <imgui_impl_win32.h>
 
+using namespace D_FILE;
+using namespace D_SERIALIZATION;
 using namespace Darius::Editor::Gui::Windows;
 
 namespace Darius::Editor::Gui::GuiManager
@@ -265,7 +267,7 @@ namespace Darius::Editor::Gui::GuiManager
 				std::string _filePathName = ImGuiFileDialog::Instance()->GetFilePathName();
 				std::wstring filePathName = WSTR_STR(_filePathName);
 
-				ResourceType type = (ResourceType)ImGuiFileDialog::Instance()->GetUserDatas();
+				D_RESOURCE::ResourceType type = (D_RESOURCE::ResourceType)ImGuiFileDialog::Instance()->GetUserDatas();
 				D_RESOURCE::GetManager()->CreateResource(type, filePathName, D_FILE::GetFileName(filePathName));
 			}
 

@@ -4,6 +4,7 @@
 
 #include <Utils/Assert.hpp>
 
+using namespace D_GRAPHICS;
 
 namespace Darius::Renderer::CameraManager
 {
@@ -46,8 +47,8 @@ namespace Darius::Renderer::CameraManager
 
 	bool SetViewportDimansion(float w, float h)
 	{
-		w = XMMax(w, 1.f);
-		h = XMMax(h, 1.f);
+		w = std::max(w, 1.f);
+		h = std::max(h, 1.f);
 		if (w == Width && h == Height)
 			return false;
 		Width = w;

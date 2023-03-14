@@ -12,6 +12,8 @@
 #include <Utils/Assert.hpp>
 
 using namespace D_CONTAINERS;
+using namespace D_CORE;
+using namespace D_FILE;
 
 namespace Darius::ResourceManager
 {

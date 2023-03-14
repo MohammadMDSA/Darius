@@ -17,6 +17,8 @@
 #include "Renderer/GraphicsUtils/Memory/DescriptorHeap.hpp"
 #include "Renderer/RenderDeviceManager.hpp"
 
+using namespace DirectX;
+
 namespace Darius::Graphics::Utils::Buffers
 {
     void DepthBuffer::Create(const std::wstring& Name, uint32_t Width, uint32_t Height, DXGI_FORMAT Format, D3D12_GPU_VIRTUAL_ADDRESS VidMemPtr)

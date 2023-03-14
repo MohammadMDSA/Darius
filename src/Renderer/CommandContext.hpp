@@ -49,10 +49,6 @@ class ReadbackBuffer;
 #define D_GRAPHICS Darius::Graphics
 #endif
 
-using namespace D_GRAPHICS_UTILS;
-using namespace D_GRAPHICS_BUFFERS;
-using namespace D_GRAPHICS_MEMORY;
-
 namespace Darius::Graphics
 {
     struct DWParam
@@ -133,34 +129,34 @@ namespace Darius::Graphics
             return m_CommandList;
         }
 
-        void CopyBuffer(GpuResource& Dest, GpuResource& Src);
-        void CopyBufferRegion(GpuResource& Dest, size_t DestOffset, GpuResource& Src, size_t SrcOffset, size_t NumBytes);
-        void CopySubresource(GpuResource& Dest, UINT DestSubIndex, GpuResource& Src, UINT SrcSubIndex);
-        void CopyCounter(GpuResource& Dest, size_t DestOffset, StructuredBuffer& Src);
-        void CopyTextureRegion(GpuResource& Dest, UINT x, UINT y, UINT z, GpuResource& Source, RECT& rect);
-        void ResetCounter(StructuredBuffer& Buf, uint32_t Value = 0);
+        void CopyBuffer(D_GRAPHICS_UTILS::GpuResource& Dest, D_GRAPHICS_UTILS::GpuResource& Src);
+        void CopyBufferRegion(D_GRAPHICS_UTILS::GpuResource& Dest, size_t DestOffset, D_GRAPHICS_UTILS::GpuResource& Src, size_t SrcOffset, size_t NumBytes);
+        void CopySubresource(D_GRAPHICS_UTILS::GpuResource& Dest, UINT DestSubIndex, D_GRAPHICS_UTILS::GpuResource& Src, UINT SrcSubIndex);
+        void CopyCounter(D_GRAPHICS_UTILS::GpuResource& Dest, size_t DestOffset, D_GRAPHICS_BUFFERS::StructuredBuffer& Src);
+        void CopyTextureRegion(D_GRAPHICS_UTILS::GpuResource& Dest, UINT x, UINT y, UINT z, D_GRAPHICS_UTILS::GpuResource& Source, RECT& rect);
+        void ResetCounter(D_GRAPHICS_BUFFERS::StructuredBuffer& Buf, uint32_t Value = 0);
 
         // Creates a readback buffer of sufficient size, copies the texture into it,
         // and returns row pitch in bytes.
-        uint32_t ReadbackTexture(D_GRAPHICS_BUFFERS::ReadbackBuffer& DstBuffer, PixelBuffer& SrcBuffer);
+        uint32_t ReadbackTexture(D_GRAPHICS_BUFFERS::ReadbackBuffer& DstBuffer, D_GRAPHICS_BUFFERS::PixelBuffer& SrcBuffer);
 
         D_GRAPHICS_MEMORY::DynAlloc ReserveUploadMemory(size_t SizeInBytes)
         {
             return m_CpuLinearAllocator.Allocate(SizeInBytes);
         }
 
-        static void InitializeTexture(GpuResource& Dest, UINT NumSubresources, D3D12_SUBRESOURCE_DATA SubData[]);
-        static void InitializeBuffer(GpuBuffer& Dest, const void* Data, size_t NumBytes, size_t DestOffset = 0);
-        static void InitializeBuffer(GpuBuffer& Dest, const D_GRAPHICS_BUFFERS::UploadBuffer& Src, size_t SrcOffset, size_t NumBytes = -1, size_t DestOffset = 0);
-        static void InitializeTextureArraySlice(GpuResource& Dest, UINT SliceIndex, GpuResource& Src);
+        static void InitializeTexture(D_GRAPHICS_UTILS::GpuResource& Dest, UINT NumSubresources, D3D12_SUBRESOURCE_DATA SubData[]);
+        static void InitializeBuffer(D_GRAPHICS_BUFFERS::GpuBuffer& Dest, const void* Data, size_t NumBytes, size_t DestOffset = 0);
+        static void InitializeBuffer(D_GRAPHICS_BUFFERS::GpuBuffer& Dest, const D_GRAPHICS_BUFFERS::UploadBuffer& Src, size_t SrcOffset, size_t NumBytes = -1, size_t DestOffset = 0);
+        static void InitializeTextureArraySlice(D_GRAPHICS_UTILS::GpuResource& Dest, UINT SliceIndex, D_GRAPHICS_UTILS::GpuResource& Src);
 
-        void WriteBuffer(GpuResource& Dest, size_t DestOffset, const void* Data, size_t NumBytes);
-        void FillBuffer(GpuResource& Dest, size_t DestOffset, DWParam Value, size_t NumBytes);
+        void WriteBuffer(D_GRAPHICS_UTILS::GpuResource& Dest, size_t DestOffset, const void* Data, size_t NumBytes);
+        void FillBuffer(D_GRAPHICS_UTILS::GpuResource& Dest, size_t DestOffset, DWParam Value, size_t NumBytes);
 
-        void TransitionResource(GpuResource& Resource, D3D12_RESOURCE_STATES NewState, bool FlushImmediate = false);
-        void BeginResourceTransition(GpuResource& Resource, D3D12_RESOURCE_STATES NewState, bool FlushImmediate = false);
-        void InsertUAVBarrier(GpuResource& Resource, bool FlushImmediate = false);
-        void InsertAliasBarrier(GpuResource& Before, GpuResource& After, bool FlushImmediate = false);
+        void TransitionResource(D_GRAPHICS_UTILS::GpuResource& Resource, D3D12_RESOURCE_STATES NewState, bool FlushImmediate = false);
+        void BeginResourceTransition(D_GRAPHICS_UTILS::GpuResource& Resource, D3D12_RESOURCE_STATES NewState, bool FlushImmediate = false);
+        void InsertUAVBarrier(D_GRAPHICS_UTILS::GpuResource& Resource, bool FlushImmediate = false);
+        void InsertAliasBarrier(D_GRAPHICS_UTILS::GpuResource& Before, D_GRAPHICS_UTILS::GpuResource& After, bool FlushImmediate = false);
         inline void FlushResourceBarriers(void);
 
         void InsertTimeStamp(ID3D12QueryHeap* pQueryHeap, uint32_t QueryIdx);
@@ -171,7 +167,7 @@ namespace Darius::Graphics
 
         void SetDescriptorHeap(D3D12_DESCRIPTOR_HEAP_TYPE Type, ID3D12DescriptorHeap* HeapPtr);
         void SetDescriptorHeaps(UINT HeapCount, D3D12_DESCRIPTOR_HEAP_TYPE Type[], ID3D12DescriptorHeap* HeapPtrs[]);
-        void SetPipelineState(const PSO& PSO);
+        void SetPipelineState(const D_GRAPHICS_UTILS::PSO& PSO);
 
         void SetPredication(ID3D12Resource* Buffer, UINT64 BufferOffset, D3D12_PREDICATION_OP Op);
 
@@ -179,7 +175,7 @@ namespace Darius::Graphics
 
         void BindDescriptorHeaps(void);
 
-        CommandListManager* m_OwningManager;
+        D_GRAPHICS_UTILS::CommandListManager* m_OwningManager;
         ID3D12GraphicsCommandList* m_CommandList;
         ID3D12CommandAllocator* m_CurrentAllocator;
 
@@ -195,8 +191,8 @@ namespace Darius::Graphics
 
         ID3D12DescriptorHeap* m_CurrentDescriptorHeaps[D3D12_DESCRIPTOR_HEAP_TYPE_NUM_TYPES];
 
-        LinearAllocator m_CpuLinearAllocator;
-        LinearAllocator m_GpuLinearAllocator;
+        D_GRAPHICS_MEMORY::LinearAllocator m_CpuLinearAllocator;
+        D_GRAPHICS_MEMORY::LinearAllocator m_GpuLinearAllocator;
 
         std::wstring m_ID;
         void SetID(const std::wstring& ID) { m_ID = ID; }
@@ -213,7 +209,7 @@ namespace Darius::Graphics
             return CommandContext::Begin(ID).GetGraphicsContext();
         }
 
-        void ClearUAV(GpuBuffer& Target);
+        void ClearUAV(D_GRAPHICS_BUFFERS::GpuBuffer& Target);
         void ClearUAV(D_GRAPHICS_BUFFERS::ColorBuffer& Target);
         void ClearColor(D_GRAPHICS_BUFFERS::ColorBuffer& Target, D3D12_RECT* Rect = nullptr);
         void ClearColor(D_GRAPHICS_BUFFERS::ColorBuffer& Target, float Colour[4], D3D12_RECT* Rect = nullptr);
@@ -251,8 +247,8 @@ namespace Darius::Graphics
         void SetConstants(UINT RootIndex, DWParam X, DWParam Y, DWParam Z, DWParam W);
         void SetConstantBuffer(UINT RootIndex, D3D12_GPU_VIRTUAL_ADDRESS CBV);
         void SetDynamicConstantBufferView(UINT RootIndex, size_t BufferSize, const void* BufferData);
-        void SetBufferSRV(UINT RootIndex, const GpuBuffer& SRV, UINT64 Offset = 0);
-        void SetBufferUAV(UINT RootIndex, const GpuBuffer& UAV, UINT64 Offset = 0);
+        void SetBufferSRV(UINT RootIndex, const D_GRAPHICS_BUFFERS::GpuBuffer& SRV, UINT64 Offset = 0);
+        void SetBufferUAV(UINT RootIndex, const D_GRAPHICS_BUFFERS::GpuBuffer& UAV, UINT64 Offset = 0);
         void SetDescriptorTable(UINT RootIndex, D3D12_GPU_DESCRIPTOR_HANDLE FirstHandle);
 
         void SetDynamicDescriptor(UINT RootIndex, UINT Offset, D3D12_CPU_DESCRIPTOR_HANDLE Handle);
@@ -273,9 +269,9 @@ namespace Darius::Graphics
             UINT StartVertexLocation = 0, UINT StartInstanceLocation = 0);
         void DrawIndexedInstanced(UINT IndexCountPerInstance, UINT InstanceCount, UINT StartIndexLocation,
             INT BaseVertexLocation, UINT StartInstanceLocation);
-        void DrawIndirect(GpuBuffer& ArgumentBuffer, uint64_t ArgumentBufferOffset = 0);
-        void ExecuteIndirect(CommandSignature& CommandSig, GpuBuffer& ArgumentBuffer, uint64_t ArgumentStartOffset = 0,
-            uint32_t MaxCommands = 1, GpuBuffer* CommandCounterBuffer = nullptr, uint64_t CounterOffset = 0);
+        void DrawIndirect(D_GRAPHICS_BUFFERS::GpuBuffer& ArgumentBuffer, uint64_t ArgumentBufferOffset = 0);
+        void ExecuteIndirect(CommandSignature& CommandSig, D_GRAPHICS_BUFFERS::GpuBuffer& ArgumentBuffer, uint64_t ArgumentStartOffset = 0,
+            uint32_t MaxCommands = 1, D_GRAPHICS_BUFFERS::GpuBuffer* CommandCounterBuffer = nullptr, uint64_t CounterOffset = 0);
 
     private:
     };
@@ -286,7 +282,7 @@ namespace Darius::Graphics
 
         static ComputeContext& Begin(const std::wstring& ID = L"", bool Async = false);
 
-        void ClearUAV(GpuBuffer& Target);
+        void ClearUAV(D_GRAPHICS_BUFFERS::GpuBuffer& Target);
         void ClearUAV(D_GRAPHICS_BUFFERS::ColorBuffer& Target);
 
         void SetRootSignature(const D_GRAPHICS_UTILS::RootSignature& RootSig);
@@ -300,8 +296,8 @@ namespace Darius::Graphics
         void SetConstantBuffer(UINT RootIndex, D3D12_GPU_VIRTUAL_ADDRESS CBV);
         void SetDynamicConstantBufferView(UINT RootIndex, size_t BufferSize, const void* BufferData);
         void SetDynamicSRV(UINT RootIndex, size_t BufferSize, const void* BufferData);
-        void SetBufferSRV(UINT RootIndex, const GpuBuffer& SRV, UINT64 Offset = 0);
-        void SetBufferUAV(UINT RootIndex, const GpuBuffer& UAV, UINT64 Offset = 0);
+        void SetBufferSRV(UINT RootIndex, const D_GRAPHICS_BUFFERS::GpuBuffer& SRV, UINT64 Offset = 0);
+        void SetBufferUAV(UINT RootIndex, const D_GRAPHICS_BUFFERS::GpuBuffer& UAV, UINT64 Offset = 0);
         void SetDescriptorTable(UINT RootIndex, D3D12_GPU_DESCRIPTOR_HANDLE FirstHandle);
 
         void SetDynamicDescriptor(UINT RootIndex, UINT Offset, D3D12_CPU_DESCRIPTOR_HANDLE Handle);
@@ -313,9 +309,9 @@ namespace Darius::Graphics
         void Dispatch1D(size_t ThreadCountX, size_t GroupSizeX = 64);
         void Dispatch2D(size_t ThreadCountX, size_t ThreadCountY, size_t GroupSizeX = 8, size_t GroupSizeY = 8);
         void Dispatch3D(size_t ThreadCountX, size_t ThreadCountY, size_t ThreadCountZ, size_t GroupSizeX, size_t GroupSizeY, size_t GroupSizeZ);
-        void DispatchIndirect(GpuBuffer& ArgumentBuffer, uint64_t ArgumentBufferOffset = 0);
-        void ExecuteIndirect(CommandSignature& CommandSig, GpuBuffer& ArgumentBuffer, uint64_t ArgumentStartOffset = 0,
-            uint32_t MaxCommands = 1, GpuBuffer* CommandCounterBuffer = nullptr, uint64_t CounterOffset = 0);
+        void DispatchIndirect(D_GRAPHICS_BUFFERS::GpuBuffer& ArgumentBuffer, uint64_t ArgumentBufferOffset = 0);
+        void ExecuteIndirect(CommandSignature& CommandSig, D_GRAPHICS_BUFFERS::GpuBuffer& ArgumentBuffer, uint64_t ArgumentStartOffset = 0,
+            uint32_t MaxCommands = 1, D_GRAPHICS_BUFFERS::GpuBuffer* CommandCounterBuffer = nullptr, uint64_t CounterOffset = 0);
 
     private:
     };
@@ -351,7 +347,7 @@ namespace Darius::Graphics
         m_DynamicSamplerDescriptorHeap.ParseComputeRootSignature(RootSig);
     }
 
-    inline void CommandContext::SetPipelineState(const PSO& PSO)
+    inline void CommandContext::SetPipelineState(const D_GRAPHICS_UTILS::PSO& PSO)
     {
         ID3D12PipelineState* PipelineState = PSO.GetPipelineStateObject();
         if (PipelineState == m_CurPipelineState)
@@ -471,8 +467,8 @@ namespace Darius::Graphics
 
     inline void GraphicsContext::SetDynamicConstantBufferView(UINT RootIndex, size_t BufferSize, const void* BufferData)
     {
-        D_ASSERT(BufferData != nullptr && IsAligned(BufferData, 16));
-        DynAlloc cb = m_CpuLinearAllocator.Allocate(BufferSize);
+        D_ASSERT(BufferData != nullptr && D_MEMORY::IsAligned(BufferData, 16));
+        D_GRAPHICS_MEMORY::DynAlloc cb = m_CpuLinearAllocator.Allocate(BufferSize);
         //SIMDMemCopy(cb.DataPtr, BufferData, Math::AlignUp(BufferSize, 16) >> 4);
         memcpy(cb.DataPtr, BufferData, BufferSize);
         m_CommandList->SetGraphicsRootConstantBufferView(RootIndex, cb.GpuAddress);
@@ -481,7 +477,7 @@ namespace Darius::Graphics
     inline void ComputeContext::SetDynamicConstantBufferView(UINT RootIndex, size_t BufferSize, const void* BufferData)
     {
         D_ASSERT(BufferData != nullptr && D_MEMORY::IsAligned(BufferData, 16));
-        DynAlloc cb = m_CpuLinearAllocator.Allocate(BufferSize);
+        D_GRAPHICS_MEMORY::DynAlloc cb = m_CpuLinearAllocator.Allocate(BufferSize);
         //SIMDMemCopy(cb.DataPtr, BufferData, Math::AlignUp(BufferSize, 16) >> 4);
         memcpy(cb.DataPtr, BufferData, BufferSize);
         m_CommandList->SetComputeRootConstantBufferView(RootIndex, cb.GpuAddress);
@@ -492,9 +488,9 @@ namespace Darius::Graphics
         D_ASSERT(VertexData != nullptr && D_MEMORY::IsAligned(VertexData, 16));
 
         size_t BufferSize = D_MEMORY::AlignUp(NumVertices * VertexStride, 16);
-        DynAlloc vb = m_CpuLinearAllocator.Allocate(BufferSize);
+        D_GRAPHICS_MEMORY::DynAlloc vb = m_CpuLinearAllocator.Allocate(BufferSize);
 
-        SIMDMemCopy(vb.DataPtr, VertexData, BufferSize >> 4);
+        D_MEMORY::SIMDMemCopy(vb.DataPtr, VertexData, BufferSize >> 4);
 
         D3D12_VERTEX_BUFFER_VIEW VBView;
         VBView.BufferLocation = vb.GpuAddress;
@@ -506,12 +502,12 @@ namespace Darius::Graphics
 
     inline void GraphicsContext::SetDynamicIB(size_t IndexCount, const uint16_t* IndexData)
     {
-        D_ASSERT(IndexData != nullptr && IsAligned(IndexData, 16));
+        D_ASSERT(IndexData != nullptr && D_MEMORY::IsAligned(IndexData, 16));
 
         size_t BufferSize = D_MEMORY::AlignUp(IndexCount * sizeof(uint16_t), 16);
-        DynAlloc ib = m_CpuLinearAllocator.Allocate(BufferSize);
+        D_GRAPHICS_MEMORY::DynAlloc ib = m_CpuLinearAllocator.Allocate(BufferSize);
 
-        SIMDMemCopy(ib.DataPtr, IndexData, BufferSize >> 4);
+        D_MEMORY::SIMDMemCopy(ib.DataPtr, IndexData, BufferSize >> 4);
 
         D3D12_INDEX_BUFFER_VIEW IBView;
         IBView.BufferLocation = ib.GpuAddress;
@@ -524,38 +520,38 @@ namespace Darius::Graphics
     inline void GraphicsContext::SetDynamicSRV(UINT RootIndex, size_t BufferSize, const void* BufferData)
     {
         D_ASSERT(BufferData != nullptr && D_MEMORY::IsAligned(BufferData, 16));
-        DynAlloc cb = m_CpuLinearAllocator.Allocate(BufferSize);
-        SIMDMemCopy(cb.DataPtr, BufferData, D_MEMORY::AlignUp(BufferSize, 16) >> 4);
+        D_GRAPHICS_MEMORY::DynAlloc cb = m_CpuLinearAllocator.Allocate(BufferSize);
+        D_MEMORY::SIMDMemCopy(cb.DataPtr, BufferData, D_MEMORY::AlignUp(BufferSize, 16) >> 4);
         m_CommandList->SetGraphicsRootShaderResourceView(RootIndex, cb.GpuAddress);
     }
 
     inline void ComputeContext::SetDynamicSRV(UINT RootIndex, size_t BufferSize, const void* BufferData)
     {
         D_ASSERT(BufferData != nullptr && D_MEMORY::IsAligned(BufferData, 16));
-        DynAlloc cb = m_CpuLinearAllocator.Allocate(BufferSize);
-        SIMDMemCopy(cb.DataPtr, BufferData, D_MEMORY::AlignUp(BufferSize, 16) >> 4);
+        D_GRAPHICS_MEMORY::DynAlloc cb = m_CpuLinearAllocator.Allocate(BufferSize);
+        D_MEMORY::SIMDMemCopy(cb.DataPtr, BufferData, D_MEMORY::AlignUp(BufferSize, 16) >> 4);
         m_CommandList->SetComputeRootShaderResourceView(RootIndex, cb.GpuAddress);
     }
 
-    inline void GraphicsContext::SetBufferSRV(UINT RootIndex, const GpuBuffer& SRV, UINT64 Offset)
+    inline void GraphicsContext::SetBufferSRV(UINT RootIndex, const D_GRAPHICS_BUFFERS::GpuBuffer& SRV, UINT64 Offset)
     {
         D_ASSERT((SRV.mUsageState & (D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE | D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE)) != 0);
         m_CommandList->SetGraphicsRootShaderResourceView(RootIndex, SRV.GetGpuVirtualAddress() + Offset);
     }
 
-    inline void ComputeContext::SetBufferSRV(UINT RootIndex, const GpuBuffer& SRV, UINT64 Offset)
+    inline void ComputeContext::SetBufferSRV(UINT RootIndex, const D_GRAPHICS_BUFFERS::GpuBuffer& SRV, UINT64 Offset)
     {
         D_ASSERT((SRV.mUsageState & D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE) != 0);
         m_CommandList->SetComputeRootShaderResourceView(RootIndex, SRV.GetGpuVirtualAddress() + Offset);
     }
 
-    inline void GraphicsContext::SetBufferUAV(UINT RootIndex, const GpuBuffer& UAV, UINT64 Offset)
+    inline void GraphicsContext::SetBufferUAV(UINT RootIndex, const D_GRAPHICS_BUFFERS::GpuBuffer& UAV, UINT64 Offset)
     {
         D_ASSERT((UAV.mUsageState & D3D12_RESOURCE_STATE_UNORDERED_ACCESS) != 0);
         m_CommandList->SetGraphicsRootUnorderedAccessView(RootIndex, UAV.GetGpuVirtualAddress() + Offset);
     }
 
-    inline void ComputeContext::SetBufferUAV(UINT RootIndex, const GpuBuffer& UAV, UINT64 Offset)
+    inline void ComputeContext::SetBufferUAV(UINT RootIndex, const D_GRAPHICS_BUFFERS::GpuBuffer& UAV, UINT64 Offset)
     {
         D_ASSERT((UAV.mUsageState & D3D12_RESOURCE_STATE_UNORDERED_ACCESS) != 0);
         m_CommandList->SetComputeRootUnorderedAccessView(RootIndex, UAV.GetGpuVirtualAddress() + Offset);
@@ -714,8 +710,8 @@ namespace Darius::Graphics
     }
 
     inline void GraphicsContext::ExecuteIndirect(CommandSignature& CommandSig,
-        GpuBuffer& ArgumentBuffer, uint64_t ArgumentStartOffset,
-        uint32_t MaxCommands, GpuBuffer* CommandCounterBuffer, uint64_t CounterOffset)
+        D_GRAPHICS_BUFFERS::GpuBuffer& ArgumentBuffer, uint64_t ArgumentStartOffset,
+        uint32_t MaxCommands, D_GRAPHICS_BUFFERS::GpuBuffer* CommandCounterBuffer, uint64_t CounterOffset)
     {
         FlushResourceBarriers();
         m_DynamicViewDescriptorHeap.CommitGraphicsRootDescriptorTables(m_CommandList);
@@ -725,14 +721,14 @@ namespace Darius::Graphics
             CommandCounterBuffer == nullptr ? nullptr : CommandCounterBuffer->GetResource(), CounterOffset);
     }
 
-    inline void GraphicsContext::DrawIndirect(GpuBuffer& ArgumentBuffer, uint64_t ArgumentBufferOffset)
+    inline void GraphicsContext::DrawIndirect(D_GRAPHICS_BUFFERS::GpuBuffer& ArgumentBuffer, uint64_t ArgumentBufferOffset)
     {
         ExecuteIndirect(D_GRAPHICS::DrawIndirectCommandSignature, ArgumentBuffer, ArgumentBufferOffset);
     }
 
     inline void ComputeContext::ExecuteIndirect(CommandSignature& CommandSig,
-        GpuBuffer& ArgumentBuffer, uint64_t ArgumentStartOffset,
-        uint32_t MaxCommands, GpuBuffer* CommandCounterBuffer, uint64_t CounterOffset)
+        D_GRAPHICS_BUFFERS::GpuBuffer& ArgumentBuffer, uint64_t ArgumentStartOffset,
+        uint32_t MaxCommands, D_GRAPHICS_BUFFERS::GpuBuffer* CommandCounterBuffer, uint64_t CounterOffset)
     {
         FlushResourceBarriers();
         m_DynamicViewDescriptorHeap.CommitComputeRootDescriptorTables(m_CommandList);
@@ -742,12 +738,12 @@ namespace Darius::Graphics
             CommandCounterBuffer == nullptr ? nullptr : CommandCounterBuffer->GetResource(), CounterOffset);
     }
 
-    inline void ComputeContext::DispatchIndirect(GpuBuffer& ArgumentBuffer, uint64_t ArgumentBufferOffset)
+    inline void ComputeContext::DispatchIndirect(D_GRAPHICS_BUFFERS::GpuBuffer& ArgumentBuffer, uint64_t ArgumentBufferOffset)
     {
         ExecuteIndirect(D_GRAPHICS::DispatchIndirectCommandSignature, ArgumentBuffer, ArgumentBufferOffset);
     }
 
-    inline void CommandContext::CopyBuffer(GpuResource& Dest, GpuResource& Src)
+    inline void CommandContext::CopyBuffer(D_GRAPHICS_UTILS::GpuResource& Dest, D_GRAPHICS_UTILS::GpuResource& Src)
     {
         TransitionResource(Dest, D3D12_RESOURCE_STATE_COPY_DEST);
         TransitionResource(Src, D3D12_RESOURCE_STATE_COPY_SOURCE);
@@ -755,7 +751,7 @@ namespace Darius::Graphics
         m_CommandList->CopyResource(Dest.GetResource(), Src.GetResource());
     }
 
-    inline void CommandContext::CopyBufferRegion(GpuResource& Dest, size_t DestOffset, GpuResource& Src, size_t SrcOffset, size_t NumBytes)
+    inline void CommandContext::CopyBufferRegion(D_GRAPHICS_UTILS::GpuResource& Dest, size_t DestOffset, D_GRAPHICS_UTILS::GpuResource& Src, size_t SrcOffset, size_t NumBytes)
     {
         TransitionResource(Dest, D3D12_RESOURCE_STATE_COPY_DEST);
         //TransitionResource(Src, D3D12_RESOURCE_STATE_COPY_SOURCE);
@@ -763,7 +759,7 @@ namespace Darius::Graphics
         m_CommandList->CopyBufferRegion(Dest.GetResource(), DestOffset, Src.GetResource(), SrcOffset, NumBytes);
     }
 
-    inline void CommandContext::CopyCounter(GpuResource& Dest, size_t DestOffset, StructuredBuffer& Src)
+    inline void CommandContext::CopyCounter(D_GRAPHICS_UTILS::GpuResource& Dest, size_t DestOffset, D_GRAPHICS_BUFFERS::StructuredBuffer& Src)
     {
         TransitionResource(Dest, D3D12_RESOURCE_STATE_COPY_DEST);
         TransitionResource(Src.GetCounterBuffer(), D3D12_RESOURCE_STATE_COPY_SOURCE);
@@ -771,7 +767,7 @@ namespace Darius::Graphics
         m_CommandList->CopyBufferRegion(Dest.GetResource(), DestOffset, Src.GetCounterBuffer().GetResource(), 0, 4);
     }
 
-    inline void CommandContext::CopyTextureRegion(GpuResource& Dest, UINT x, UINT y, UINT z, GpuResource& Source, RECT& Rect)
+    inline void CommandContext::CopyTextureRegion(D_GRAPHICS_UTILS::GpuResource& Dest, UINT x, UINT y, UINT z, D_GRAPHICS_UTILS::GpuResource& Source, RECT& Rect)
     {
         TransitionResource(Dest, D3D12_RESOURCE_STATE_COPY_DEST);
         TransitionResource(Source, D3D12_RESOURCE_STATE_COPY_SOURCE);
@@ -790,7 +786,7 @@ namespace Darius::Graphics
         m_CommandList->CopyTextureRegion(&destLoc, x, y, z, &srcLoc, &box);
     }
 
-    inline void CommandContext::ResetCounter(StructuredBuffer& Buf, uint32_t Value)
+    inline void CommandContext::ResetCounter(D_GRAPHICS_BUFFERS::StructuredBuffer& Buf, uint32_t Value)
     {
         FillBuffer(Buf.GetCounterBuffer(), 0, Value, sizeof(uint32_t));
         TransitionResource(Buf.GetCounterBuffer(), D3D12_RESOURCE_STATE_UNORDERED_ACCESS);

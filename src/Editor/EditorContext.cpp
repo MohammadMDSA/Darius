@@ -9,7 +9,9 @@
 #include <ResourceManager/ResourceLoader.hpp>
 #include <Utils/Assert.hpp>
 
+using namespace D_CORE;
 using namespace D_FILE;
+using namespace D_SCENE;
 
 namespace Darius::Editor::Context
 {

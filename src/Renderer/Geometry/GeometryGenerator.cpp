@@ -2,6 +2,8 @@
 
 #include "GeometryGenerator.hpp"
 
+using namespace DirectX;
+
 namespace Darius::Renderer::Geometry::GeometryGenerator
 {
 	Vertex MidPoint(const Vertex& v0, const Vertex& v1)

@@ -17,6 +17,8 @@
 #include "Renderer/CommandContext.hpp"
 #include "Renderer/RenderDeviceManager.hpp"
 
+using namespace DirectX;
+
 namespace Darius::Graphics::Utils::Buffers
 {
     void ColorBuffer::CreateDerivedViews(ID3D12Device* Device, DXGI_FORMAT Format, uint32_t ArraySize, uint32_t NumMips)

@@ -10,8 +10,6 @@
 #define D_CORE Darius::Core
 #endif // !D_UTILS
 
-using namespace D_CONTAINERS;
-
 namespace Darius::Core
 {
 	template<class T>
@@ -82,7 +80,7 @@ namespace Darius::Core
 				return false;
 		}
 
-		DUnorderedMap<void*, CountedOwner>				mOwners;
+		D_CONTAINERS::DUnorderedMap<void*, CountedOwner> mOwners;
 		CountedOwner							mAnonymous;
 	};
 }

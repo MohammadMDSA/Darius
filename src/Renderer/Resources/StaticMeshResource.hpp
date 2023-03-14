@@ -10,9 +10,6 @@
 #define D_GRAPHICS Darius::Graphics
 #endif
 
-using namespace D_RENDERER_GEOMETRY;
-using namespace D_CORE;
-
 namespace Darius::Graphics
 {
 	class DResourceManager;
@@ -24,20 +21,20 @@ namespace Darius::Graphics
 
 
 	public:
-		INLINE Mesh*					ModifyMeshData() { MakeDiskDirty(); MakeGpuDirty(); return &mMesh; }
-		INLINE const Mesh*				GetMeshData() const { return &mMesh; }
-		virtual void					Create(MultiPartMeshData<VertexType> const& data) override;
+		INLINE D_RENDERER_GEOMETRY::Mesh*		ModifyMeshData() { MakeDiskDirty(); MakeGpuDirty(); return &mMesh; }
+		INLINE const D_RENDERER_GEOMETRY::Mesh*	GetMeshData() const { return &mMesh; }
+		virtual void							Create(D_RENDERER_GEOMETRY::MultiPartMeshData<VertexType> const& data) override;
 
 #ifdef _D_EDITOR
-		virtual bool					DrawDetails(float params[]) override { (params); return false; };
+		virtual bool							DrawDetails(float params[]) override { (params); return false; };
 #endif // _D_EDITOR
 
-		INLINE operator const Mesh* () const { return &mMesh; }
-		INLINE operator Mesh* () { return ModifyMeshData(); }
+		INLINE operator const D_RENDERER_GEOMETRY::Mesh* () const { return &mMesh; }
+		INLINE operator D_RENDERER_GEOMETRY::Mesh* () { return ModifyMeshData(); }
 
 	protected:
 		
-		StaticMeshResource(Uuid uuid, std::wstring const& path, std::wstring const& name, DResourceId id, bool isDefault = false) :
+		StaticMeshResource(D_CORE::Uuid uuid, std::wstring const& path, std::wstring const& name, D_RESOURCE::DResourceId id, bool isDefault = false) :
 			MeshResource(uuid, path, name, id, isDefault) {}
 	private:
 		friend class DResourceManager;

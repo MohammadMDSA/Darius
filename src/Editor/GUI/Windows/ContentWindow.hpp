@@ -43,7 +43,7 @@ namespace Darius::Editor::Gui::Windows
 
 		D_CONTAINERS::DVector<D_GUI_COMPONENT::EditorContentWindowItem>	mCurrentDirectoryItems;
 		D_CONTAINERS::DVector<D_FILE::Path> mBreadcrumbItems; // it's from child to parent
-		D_CONTAINERS::DUnorderedMap<Path, TreeFoldeEntry> mTreeViewFolderMap;
+		D_CONTAINERS::DUnorderedMap<D_FILE::Path, TreeFoldeEntry> mTreeViewFolderMap;
 		TreeFoldeEntry*				mSelectedTreeNode = nullptr;
 		D_GUI_COMPONENT::EditorContentWindowItem const* mSelectedItem = nullptr;
 

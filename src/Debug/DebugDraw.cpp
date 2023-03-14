@@ -21,6 +21,8 @@ if(duration > 0) \
 	DrawsWithDuration.insert({ D_TIME::GetTotalTime() + duration, { ri, trans } }); \
 }
 
+using namespace D_MATH;
+using namespace D_RENDERER_FRAME_RESOURCE;
 using namespace D_RESOURCE;
 
 namespace Darius::Debug
@@ -30,7 +32,7 @@ namespace Darius::Debug
 
 	// Gpu buffers
 	D_GRAPHICS_BUFFERS::UploadBuffer		MeshConstantsCPU[D_RENDERER_FRAME_RESOURCE::gNumFrameResources];
-	ByteAddressBuffer						MeshConstantsGPU;
+	D_GRAPHICS_BUFFERS::ByteAddressBuffer	MeshConstantsGPU;
 
 	std::mutex								AdditionMutex;
 
@@ -124,7 +126,7 @@ namespace Darius::Debug
 
 		auto world = trans.GetWorld();
 		cb.mWorld = Matrix4(world);
-		//cb.mWorldIT = InverseTranspose(Matrix3(world));
+		cb.mWorldIT = InverseTranspose(Matrix3(world));
 
 		currentUploadBuff.Unmap();
 

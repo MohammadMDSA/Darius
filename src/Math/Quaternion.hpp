@@ -18,19 +18,19 @@ namespace Darius::Math
     class Quaternion
     {
     public:
-        INLINE Quaternion() { m_vec = XMQuaternionIdentity(); }
-        INLINE Quaternion(const Vector3& axis, const Scalar& angle) { m_vec = XMQuaternionRotationAxis(axis, angle); } 
-        INLINE Quaternion(float pitch, float yaw, float roll) { m_vec = XMQuaternionRotationMatrix(XMMatrixRotationZ(roll) * XMMatrixRotationX(pitch) * XMMatrixRotationY(yaw)); }
-        INLINE Quaternion(float x, float y, float z, float w) { m_vec = XMVectorSet(x, y, z, w); }
-        INLINE explicit Quaternion(const XMMATRIX& matrix) { m_vec = XMQuaternionRotationMatrix(matrix); }
-        INLINE explicit Quaternion(FXMVECTOR vec) { m_vec = vec; }
-        INLINE explicit Quaternion(EIdentityTag) { m_vec = XMQuaternionIdentity(); }
+        INLINE Quaternion() { m_vec = DirectX::XMQuaternionIdentity(); }
+        INLINE Quaternion(const Vector3& axis, const Scalar& angle) { m_vec = DirectX::XMQuaternionRotationAxis(axis, angle); }
+        INLINE Quaternion(float pitch, float yaw, float roll) { m_vec = DirectX::XMQuaternionRotationMatrix(DirectX::XMMatrixRotationZ(roll) * DirectX::XMMatrixRotationX(pitch) * DirectX::XMMatrixRotationY(yaw)); }
+        INLINE Quaternion(float x, float y, float z, float w) { m_vec = DirectX::XMVectorSet(x, y, z, w); }
+        INLINE explicit Quaternion(const DirectX::XMMATRIX& matrix) { m_vec = DirectX::XMQuaternionRotationMatrix(matrix); }
+        INLINE explicit Quaternion(DirectX::FXMVECTOR vec) { m_vec = vec; }
+        INLINE explicit Quaternion(EIdentityTag) { m_vec = DirectX::XMQuaternionIdentity(); }
         
         INLINE Vector3 Angles() const
         {
             Vector3 result;
-            auto mat = XMMatrixRotationQuaternion(m_vec);
-            auto fmat = XMFLOAT4X4((float*)&mat);
+            auto mat = DirectX::XMMatrixRotationQuaternion(m_vec);
+            auto fmat = DirectX::XMFLOAT4X4((float*)&mat);
 
             if (fmat._32 < 1.f)
             {
@@ -42,47 +42,47 @@ namespace Darius::Math
                 }
                 else
                 {
-                    result.SetX(-XM_PIDIV2);
+                    result.SetX(-DirectX::XM_PIDIV2);
                     result.SetZ(-atan2f(fmat._13, fmat._11));
                     result.SetY(0.f);
                 }
             }
             else
             {
-                result.SetX(XM_PIDIV2);
+                result.SetX(DirectX::XM_PIDIV2);
                 result.SetZ(atan2f(fmat._13, fmat._11));
                 result.SetY(0.f);
             }
             return -result;
         }
-        INLINE Scalar GetX() const { return Scalar(XMVectorSplatX(m_vec)); }
-        INLINE Scalar GetY() const { return Scalar(XMVectorSplatY(m_vec)); }
-        INLINE Scalar GetZ() const { return Scalar(XMVectorSplatZ(m_vec)); }
-        INLINE Scalar GetW() const { return Scalar(XMVectorSplatW(m_vec)); }
+        INLINE Scalar GetX() const { return Scalar(DirectX::XMVectorSplatX(m_vec)); }
+        INLINE Scalar GetY() const { return Scalar(DirectX::XMVectorSplatY(m_vec)); }
+        INLINE Scalar GetZ() const { return Scalar(DirectX::XMVectorSplatZ(m_vec)); }
+        INLINE Scalar GetW() const { return Scalar(DirectX::XMVectorSplatW(m_vec)); }
 
         INLINE Vector3 GetForward() const { return *this * Vector3::Forward(); }
         INLINE Vector3 GetRight() const { return *this * Vector3::Right(); }
         INLINE Vector3 GetUp() const { return *this * Vector3::Up(); }
 
-        INLINE Quaternion operator~ (void) const { return Quaternion(XMQuaternionConjugate(m_vec)); }
-        INLINE Quaternion operator- (void) const { return Quaternion(XMVectorNegate(m_vec)); }
+        INLINE Quaternion operator~ (void) const { return Quaternion(DirectX::XMQuaternionConjugate(m_vec)); }
+        INLINE Quaternion operator- (void) const { return Quaternion(DirectX::XMVectorNegate(m_vec)); }
 
-        INLINE Quaternion operator* (Quaternion rhs) const { return Quaternion(XMQuaternionMultiply(rhs, m_vec)); }
-        INLINE Vector3 operator* (Vector3 rhs) const { return Vector3(XMVector3Rotate(rhs, m_vec)); }
+        INLINE Quaternion operator* (Quaternion rhs) const { return Quaternion(DirectX::XMQuaternionMultiply(rhs, m_vec)); }
+        INLINE Vector3 operator* (Vector3 rhs) const { return Vector3(DirectX::XMVector3Rotate(rhs, m_vec)); }
 
         INLINE Quaternion& operator= (Quaternion rhs) { m_vec = rhs; return *this; }
         INLINE Quaternion& operator*= (Quaternion rhs) { *this = *this * rhs; return *this; }
 
-        INLINE operator XMVECTOR () const { return m_vec; }
+        INLINE operator DirectX::XMVECTOR () const { return m_vec; }
         INLINE operator Vector3& () { return *(Vector3*)&m_vec; }
 
     protected:
-        XMVECTOR m_vec;
+        DirectX::XMVECTOR m_vec;
     };
 
-    INLINE Quaternion Normalize(Quaternion q) { return Quaternion(XMQuaternionNormalize(q)); }
-    INLINE Quaternion Slerp(Quaternion a, Quaternion b, float t) { return Normalize(Quaternion(XMQuaternionSlerp(a, b, t))); }
-    INLINE Quaternion Lerp(Quaternion a, Quaternion b, float t) { return Normalize(Quaternion(XMVectorLerp(a, b, t))); }
+    INLINE Quaternion Normalize(Quaternion q) { return Quaternion(DirectX::XMQuaternionNormalize(q)); }
+    INLINE Quaternion Slerp(Quaternion a, Quaternion b, float t) { return Normalize(Quaternion(DirectX::XMQuaternionSlerp(a, b, t))); }
+    INLINE Quaternion Lerp(Quaternion a, Quaternion b, float t) { return Normalize(Quaternion(DirectX::XMVectorLerp(a, b, t))); }
 
 
 #ifdef _D_EDITOR

@@ -3,6 +3,9 @@
 
 #include "ResourceManager/ResourceManager.hpp"
 
+using namespace D_CONTAINERS;
+using namespace D_FILE;
+
 namespace Darius::ResourceManager
 {
 

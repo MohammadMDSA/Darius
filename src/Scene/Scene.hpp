@@ -10,8 +10,6 @@
 #define D_WORLD Darius::Scene::SceneManager
 #endif // !D_WORLD
 
-using namespace D_CORE;
-
 namespace Darius::Scene::ECS::Components
 {
 	class BehaviourComponent;
@@ -62,12 +60,12 @@ namespace Darius::Scene
 	private:
 #endif
 		// Dumping and reloading scene for simulation
-		static void				DumpScene(Json& sceneDump);
-		static void				LoadSceneDump(Json const& sceneDump);
+		static void				DumpScene(D_SERIALIZATION::Json& sceneDump);
+		static void				LoadSceneDump(D_SERIALIZATION::Json const& sceneDump);
 
 	private:
 		static void				DeleteGameObjectData(GameObject* go);
-		static GameObject*		CreateGameObject(Uuid uuid);
+		static GameObject*		CreateGameObject(D_CORE::Uuid uuid);
 		static void				StartScene();
 		static void				RemoveDeleted();
 

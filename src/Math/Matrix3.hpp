@@ -26,8 +26,8 @@ namespace Darius::Math
         INLINE Matrix3() {}
         INLINE Matrix3(Vector3 x, Vector3 y, Vector3 z) { m_mat[0] = x; m_mat[1] = y; m_mat[2] = z; }
         INLINE Matrix3(const Matrix3& m) { m_mat[0] = m.m_mat[0]; m_mat[1] = m.m_mat[1]; m_mat[2] = m.m_mat[2]; }
-        INLINE Matrix3(Quaternion q) { *this = Matrix3(XMMatrixRotationQuaternion(q)); }
-        INLINE explicit Matrix3(const XMMATRIX& m) { m_mat[0] = Vector3(m.r[0]); m_mat[1] = Vector3(m.r[1]); m_mat[2] = Vector3(m.r[2]); }
+        INLINE Matrix3(Quaternion q) { *this = Matrix3(DirectX::XMMatrixRotationQuaternion(q)); }
+        INLINE explicit Matrix3(const DirectX::XMMATRIX& m) { m_mat[0] = Vector3(m.r[0]); m_mat[1] = Vector3(m.r[1]); m_mat[2] = Vector3(m.r[2]); }
         INLINE explicit Matrix3(EIdentityTag) { m_mat[0] = Vector3(kXUnitVector); m_mat[1] = Vector3(kYUnitVector); m_mat[2] = Vector3(kZUnitVector); }
         INLINE explicit Matrix3(EZeroTag) { m_mat[0] = m_mat[1] = m_mat[2] = Vector3(kZero); }
 
@@ -39,24 +39,24 @@ namespace Darius::Math
         INLINE Vector3 GetY() const { return m_mat[1]; }
         INLINE Vector3 GetZ() const { return m_mat[2]; }
 
-        static INLINE Matrix3 MakeXRotation(float angle) { return Matrix3(XMMatrixRotationX(angle)); }
-        static INLINE Matrix3 MakeYRotation(float angle) { return Matrix3(XMMatrixRotationY(angle)); }
-        static INLINE Matrix3 MakeZRotation(float angle) { return Matrix3(XMMatrixRotationZ(angle)); }
-        static INLINE Matrix3 MakeScale(float scale) { return Matrix3(XMMatrixScaling(scale, scale, scale)); }
-        static INLINE Matrix3 MakeScale(float sx, float sy, float sz) { return Matrix3(XMMatrixScaling(sx, sy, sz)); }
-        static INLINE Matrix3 MakeScale(const XMFLOAT3& scale) { return Matrix3(XMMatrixScaling(scale.x, scale.y, scale.z)); }
-        static INLINE Matrix3 MakeScale(Vector3 scale) { return Matrix3(XMMatrixScalingFromVector(scale)); }
-        static INLINE Matrix3 MakeLookAt(Vector3 eyePos, Vector3 target, Vector3 up) { return Matrix3(XMMatrixLookAtRH(eyePos, target, up)); }
-        static INLINE Matrix3 MakeLookToward(Vector3 eyePos, Vector3 dir, Vector3 up) { return Matrix3(XMMatrixLookToRH(eyePos, dir, up)); }
-        static INLINE Matrix3 MakeProjection(float fov, float ratio, float nearP, float farP) { return Matrix3(XMMatrixPerspectiveFovRH(fov, ratio, nearP, farP)); }
-        static INLINE Matrix3 Inverse(Matrix3 const& mat) { auto det = XMMatrixDeterminant(mat); return Matrix3(XMMatrixInverse(&det, mat)); }
+        static INLINE Matrix3 MakeXRotation(float angle) { return Matrix3(DirectX::XMMatrixRotationX(angle)); }
+        static INLINE Matrix3 MakeYRotation(float angle) { return Matrix3(DirectX::XMMatrixRotationY(angle)); }
+        static INLINE Matrix3 MakeZRotation(float angle) { return Matrix3(DirectX::XMMatrixRotationZ(angle)); }
+        static INLINE Matrix3 MakeScale(float scale) { return Matrix3(DirectX::XMMatrixScaling(scale, scale, scale)); }
+        static INLINE Matrix3 MakeScale(float sx, float sy, float sz) { return Matrix3(DirectX::XMMatrixScaling(sx, sy, sz)); }
+        static INLINE Matrix3 MakeScale(const DirectX::XMFLOAT3& scale) { return Matrix3(DirectX::XMMatrixScaling(scale.x, scale.y, scale.z)); }
+        static INLINE Matrix3 MakeScale(Vector3 scale) { return Matrix3(DirectX::XMMatrixScalingFromVector(scale)); }
+        static INLINE Matrix3 MakeLookAt(Vector3 eyePos, Vector3 target, Vector3 up) { return Matrix3(DirectX::XMMatrixLookAtRH(eyePos, target, up)); }
+        static INLINE Matrix3 MakeLookToward(Vector3 eyePos, Vector3 dir, Vector3 up) { return Matrix3(DirectX::XMMatrixLookToRH(eyePos, dir, up)); }
+        static INLINE Matrix3 MakeProjection(float fov, float ratio, float nearP, float farP) { return Matrix3(DirectX::XMMatrixPerspectiveFovRH(fov, ratio, nearP, farP)); }
+        static INLINE Matrix3 Inverse(Matrix3 const& mat) { auto det = DirectX::XMMatrixDeterminant(mat); return Matrix3(DirectX::XMMatrixInverse(&det, mat)); }
 
         // Useful for DirectXMath interaction.  WARNING:  Only the 3x3 elements are defined.
-        INLINE operator XMMATRIX() const { return XMMATRIX(m_mat[0], m_mat[1], m_mat[2], XMVectorZero()); }
-        INLINE operator XMFLOAT3X3() const { XMFLOAT3X3 result; std::memcpy(&result, &m_mat[0], 3 * sizeof(float)); std::memcpy(&result._21, &m_mat[1], 3 * sizeof(float)); std::memcpy(&result._31, &m_mat[2], 3 * sizeof(float)); return result; }
+        INLINE operator DirectX::XMMATRIX() const { return DirectX::XMMATRIX(m_mat[0], m_mat[1], m_mat[2], DirectX::XMVectorZero()); }
+        INLINE operator DirectX::XMFLOAT3X3() const { DirectX::XMFLOAT3X3 result; std::memcpy(&result, &m_mat[0], 3 * sizeof(float)); std::memcpy(&result._21, &m_mat[1], 3 * sizeof(float)); std::memcpy(&result._31, &m_mat[2], 3 * sizeof(float)); return result; }
 
         INLINE Matrix3 operator* (Scalar scl) const { return Matrix3(scl * GetX(), scl * GetY(), scl * GetZ()); }
-        INLINE Vector3 operator* (Vector3 vec) const { return Vector3(XMVector3TransformNormal(vec, *this)); }
+        INLINE Vector3 operator* (Vector3 vec) const { return Vector3(DirectX::XMVector3TransformNormal(vec, *this)); }
         INLINE Matrix3 operator* (const Matrix3& mat) const { return Matrix3(*this * mat.GetX(), *this * mat.GetY(), *this * mat.GetZ()); }
 
     private:

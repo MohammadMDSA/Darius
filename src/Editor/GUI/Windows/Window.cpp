@@ -22,8 +22,8 @@ namespace Darius::Editor::Gui::Windows
 	{
 		auto min = ImGui::GetWindowContentRegionMin();
 		auto max = ImGui::GetWindowContentRegionMax();
-		mWidth = XMMax(max.x - min.x, 1.f);
-		mHeight = XMMax(max.y - min.y, 1.f);
+		mWidth = std::max(max.x - min.x, 1.f);
+		mHeight = std::max(max.y - min.y, 1.f);
 		auto pos = ImGui::GetWindowPos();
 		mPosX = pos.x;
 		mPosY = pos.y;

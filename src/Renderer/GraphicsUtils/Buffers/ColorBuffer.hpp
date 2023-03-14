@@ -27,8 +27,6 @@ namespace Darius::Graphics
 	class CommandContext;
 }
 
-using namespace Darius::Graphics;
-
 namespace Darius::Graphics::Utils::Buffers
 {
 	class ColorBuffer : public PixelBuffer

@@ -23,7 +23,7 @@ namespace Darius::Editor::Gui::Windows
 		bool						UpdateGlobalConstants(D_RENDERER_FRAME_RESOURCE::GlobalConstants& globals);
 		void						CreateBuffers();
 		void						AddSceneRenderItems(D_RENDERER::MeshSorter& sorter, D_MATH::Camera::Camera* cam) const;
-		void						PopulateShadowRenderItems(D_CONTAINERS::DVector<RenderItem>& items) const;
+		void						PopulateShadowRenderItems(D_CONTAINERS::DVector<D_RENDERER_FRAME_RESOURCE::RenderItem>& items) const;
 
 		D_GRAPHICS_BUFFERS::ColorBuffer				mSceneTexture;
 		D_GRAPHICS_BUFFERS::DepthBuffer				mSceneDepth;

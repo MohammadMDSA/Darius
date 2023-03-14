@@ -10,9 +10,6 @@
 #define D_LIGHT Darius::Renderer::LightManager
 #endif // !D_LIGHT
 
-using namespace D_CONTAINERS;
-using namespace D_MATH;
-
 namespace Darius::Renderer
 {
 	class MeshSorter;
@@ -34,15 +31,15 @@ namespace Darius::Renderer::LightManager
 
 	struct LightData
 	{
-		XMFLOAT3		Color = Vector3(kOne);
-		XMFLOAT3		Direction = { 0.f, 0.f, -1.f };// Directional/Spot light only
-		XMFLOAT3		Position = Vector3(kZero);  // Point light only
-		float			Intencity = 1.f;			// Point/Spot light only
-		float			Range = 10.f;			// Point/Spot light only
-		XMFLOAT2		SpotAngles = { 1000.f, 0.8f};// Spot light only
-		XMFLOAT4X4		ShadowMatrix;
-		bool			CastsShadow = true;
-		XMFLOAT3		padding;
+		DirectX::XMFLOAT3	Color = D_MATH::Vector3(D_MATH::kOne);
+		DirectX::XMFLOAT3	Direction = { 0.f, 0.f, -1.f };				// Directional/Spot light only
+		DirectX::XMFLOAT3	Position = D_MATH::Vector3(D_MATH::kZero);  // Point light only
+		float				Intencity = 1.f;							// Point/Spot light only
+		float				Range = 10.f;								// Point/Spot light only
+		DirectX::XMFLOAT2	SpotAngles = { 1000.f, 0.8f };				// Spot light only
+		DirectX::XMFLOAT4X4	ShadowMatrix;
+		bool				CastsShadow = true;
+		DirectX::XMFLOAT3	padding;
 	};
 
 	void				Initialize();
@@ -63,5 +60,13 @@ namespace Darius::Renderer::LightManager
 	int					SwapLightSource(LightSourceType type, LightSourceType preType, int preIndex);
 	void				ReleaseLight(LightSourceType preType, int preIndex);
 
-	void				UpdateLight(LightSourceType type, int index, Transform const& trans, bool active, LightData const& light);
+	void				UpdateLight(LightSourceType type, int index, D_MATH::Transform const& trans, bool active, LightData const& light);
+
+
+	D_H_SERIALIZE_ENUM(LightSourceType,
+		{
+			{ LightSourceType::DirectionalLight, "DirectionalLight" },
+			{ LightSourceType::PointLight, "PointLight" },
+			{ LightSourceType::SpotLight, "SpotLight" }
+		});
 }

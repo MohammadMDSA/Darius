@@ -15,8 +15,6 @@
 
 #include "Scalar.hpp"
 
-using namespace DirectX;
-
 namespace Darius::Math
 {
     class Vector4;
@@ -27,36 +25,36 @@ namespace Darius::Math
     {
     public:
 
-        INLINE Vector3() { m_vec = XMVectorSet(0.f, 0.f, 0.f, 0.f); }
-        INLINE Vector3(float x, float y, float z) { m_vec = XMVectorSet(x, y, z, z); }
-        explicit INLINE Vector3(const float* data) : Vector3(XMFLOAT3(data)) {}
-        INLINE Vector3(const XMFLOAT3& v) { m_vec = XMLoadFloat3(&v); }
+        INLINE Vector3() { m_vec = DirectX::XMVectorSet(0.f, 0.f, 0.f, 0.f); }
+        INLINE Vector3(float x, float y, float z) { m_vec = DirectX::XMVectorSet(x, y, z, z); }
+        explicit INLINE Vector3(const float* data) : Vector3(DirectX::XMFLOAT3(data)) {}
+        INLINE Vector3(const DirectX::XMFLOAT3& v) { m_vec = DirectX::XMLoadFloat3(&v); }
         INLINE Vector3(const Vector3& v) { m_vec = v; }
         INLINE Vector3(Scalar s) { m_vec = s; }
         INLINE explicit Vector3(Vector4 vec);
-        INLINE explicit Vector3(FXMVECTOR vec) { m_vec = vec; }
+        INLINE explicit Vector3(DirectX::FXMVECTOR vec) { m_vec = vec; }
         INLINE explicit Vector3(EZeroTag) { m_vec = SplatZero(); }
         INLINE explicit Vector3(EIdentityTag) { m_vec = SplatOne(); }
         INLINE explicit Vector3(EXUnitVector) { m_vec = CreateXUnitVector(); }
         INLINE explicit Vector3(EYUnitVector) { m_vec = CreateYUnitVector(); }
         INLINE explicit Vector3(EZUnitVector) { m_vec = CreateZUnitVector(); }
 
-        INLINE operator XMVECTOR() const { return m_vec; }
-        INLINE operator XMFLOAT3() const { XMFLOAT3 dest; XMStoreFloat3(&dest, m_vec); return dest; }
+        INLINE operator DirectX::XMVECTOR() const { return m_vec; }
+        INLINE operator DirectX::XMFLOAT3() const { DirectX::XMFLOAT3 dest; DirectX::XMStoreFloat3(&dest, m_vec); return dest; }
 
-        INLINE Scalar GetX() const { return Scalar(XMVectorSplatX(m_vec)); }
-        INLINE Scalar GetY() const { return Scalar(XMVectorSplatY(m_vec)); }
-        INLINE Scalar GetZ() const { return Scalar(XMVectorSplatZ(m_vec)); }
-        INLINE void SetX(Scalar x) { m_vec = XMVectorPermute<4, 1, 2, 3>(m_vec, x); }
-        INLINE void SetY(Scalar y) { m_vec = XMVectorPermute<0, 5, 2, 3>(m_vec, y); }
-        INLINE void SetZ(Scalar z) { m_vec = XMVectorPermute<0, 1, 6, 3>(m_vec, z); }
-        INLINE Vector3 Normalize() { return Vector3(XMVector3Normalize(m_vec)); }
+        INLINE Scalar GetX() const { return Scalar(DirectX::XMVectorSplatX(m_vec)); }
+        INLINE Scalar GetY() const { return Scalar(DirectX::XMVectorSplatY(m_vec)); }
+        INLINE Scalar GetZ() const { return Scalar(DirectX::XMVectorSplatZ(m_vec)); }
+        INLINE void SetX(Scalar x) { m_vec = DirectX::XMVectorPermute<4, 1, 2, 3>(m_vec, x); }
+        INLINE void SetY(Scalar y) { m_vec = DirectX::XMVectorPermute<0, 5, 2, 3>(m_vec, y); }
+        INLINE void SetZ(Scalar z) { m_vec = DirectX::XMVectorPermute<0, 1, 6, 3>(m_vec, z); }
+        INLINE Vector3 Normalize() { return Vector3(DirectX::XMVector3Normalize(m_vec)); }
 
-        INLINE Vector3 operator- () const { return Vector3(XMVectorNegate(m_vec)); }
-        INLINE Vector3 operator+ (Vector3 v2) const { return Vector3(XMVectorAdd(m_vec, v2)); }
-        INLINE Vector3 operator- (Vector3 v2) const { return Vector3(XMVectorSubtract(m_vec, v2)); }
-        INLINE Vector3 operator* (Vector3 v2) const { return Vector3(XMVectorMultiply(m_vec, v2)); }
-        INLINE Vector3 operator/ (Vector3 v2) const { return Vector3(XMVectorDivide(m_vec, v2)); }
+        INLINE Vector3 operator- () const { return Vector3(DirectX::XMVectorNegate(m_vec)); }
+        INLINE Vector3 operator+ (Vector3 v2) const { return Vector3(DirectX::XMVectorAdd(m_vec, v2)); }
+        INLINE Vector3 operator- (Vector3 v2) const { return Vector3(DirectX::XMVectorSubtract(m_vec, v2)); }
+        INLINE Vector3 operator* (Vector3 v2) const { return Vector3(DirectX::XMVectorMultiply(m_vec, v2)); }
+        INLINE Vector3 operator/ (Vector3 v2) const { return Vector3(DirectX::XMVectorDivide(m_vec, v2)); }
         INLINE Vector3 operator* (Scalar  v2) const { return *this * Vector3(v2); }
         INLINE Vector3 operator/ (Scalar  v2) const { return *this / Vector3(v2); }
         INLINE Vector3 operator* (float  v2) const { return *this * Scalar(v2); }
@@ -67,8 +65,8 @@ namespace Darius::Math
         INLINE Vector3& operator *= (Vector3 v) { *this = *this * v; return *this; }
         INLINE Vector3& operator /= (Vector3 v) { *this = *this / v; return *this; }
 
-        INLINE operator XMVECTOR& () { return m_vec; }
-        INLINE operator XMFLOAT3& () { return *(XMFLOAT3*)&m_vec; }
+        INLINE operator DirectX::XMVECTOR& () { return m_vec; }
+        INLINE operator DirectX::XMFLOAT3& () { return *(DirectX::XMFLOAT3*)&m_vec; }
 
         INLINE friend Vector3 operator* (Scalar  v1, Vector3 v2) { return Vector3(v1) * v2; }
         INLINE friend Vector3 operator/ (Scalar  v1, Vector3 v2) { return Vector3(v1) / v2; }
@@ -83,22 +81,22 @@ namespace Darius::Math
         static INLINE Vector3 Backward() { return Vector3(0.f, 0.f, 1.f); }
 
     protected:
-        XMVECTOR m_vec;
+        DirectX::XMVECTOR m_vec;
     };
 
     // A 4-vector, completely defined.
     class Vector4
     {
     public:
-        INLINE Vector4() { m_vec = XMVectorSet(0.f, 0.f, 0.f, 0.f); }
-        INLINE Vector4(float x, float y, float z, float w) { m_vec = XMVectorSet(x, y, z, w); }
-        explicit INLINE Vector4(const float* data) : Vector4(XMFLOAT4(data)) { }
-        INLINE Vector4(const XMFLOAT4& v) { m_vec = XMLoadFloat4(&v); }
-        INLINE Vector4(Vector3 xyz, float w) { m_vec = XMVectorSetW(xyz, w); }
+        INLINE Vector4() { m_vec = DirectX::XMVectorSet(0.f, 0.f, 0.f, 0.f); }
+        INLINE Vector4(float x, float y, float z, float w) { m_vec = DirectX::XMVectorSet(x, y, z, w); }
+        explicit INLINE Vector4(const float* data) : Vector4(DirectX::XMFLOAT4(data)) { }
+        INLINE Vector4(const DirectX::XMFLOAT4& v) { m_vec = DirectX::XMLoadFloat4(&v); }
+        INLINE Vector4(Vector3 xyz, float w) { m_vec = DirectX::XMVectorSetW(xyz, w); }
         INLINE Vector4(const Vector4& v) { m_vec = v; }
         INLINE Vector4(const Scalar& s) { m_vec = s; }
         INLINE explicit Vector4(Vector3 xyz) { m_vec = SetWToOne(xyz); }
-        INLINE explicit Vector4(FXMVECTOR vec) { m_vec = vec; }
+        INLINE explicit Vector4(DirectX::FXMVECTOR vec) { m_vec = vec; }
         INLINE explicit Vector4(EZeroTag) { m_vec = SplatZero(); }
         INLINE explicit Vector4(EIdentityTag) { m_vec = SplatOne(); }
         INLINE explicit Vector4(EXUnitVector) { m_vec = CreateXUnitVector(); }
@@ -106,24 +104,24 @@ namespace Darius::Math
         INLINE explicit Vector4(EZUnitVector) { m_vec = CreateZUnitVector(); }
         INLINE explicit Vector4(EWUnitVector) { m_vec = CreateWUnitVector(); }
 
-        INLINE operator XMVECTOR() const { return m_vec; }
-        INLINE operator XMFLOAT4() const { XMFLOAT4 dest; XMStoreFloat4(&dest, m_vec); return dest; }
+        INLINE operator DirectX::XMVECTOR() const { return m_vec; }
+        INLINE operator DirectX::XMFLOAT4() const { DirectX::XMFLOAT4 dest; DirectX::XMStoreFloat4(&dest, m_vec); return dest; }
 
-        INLINE Scalar GetX() const { return Scalar(XMVectorSplatX(m_vec)); }
-        INLINE Scalar GetY() const { return Scalar(XMVectorSplatY(m_vec)); }
-        INLINE Scalar GetZ() const { return Scalar(XMVectorSplatZ(m_vec)); }
-        INLINE Scalar GetW() const { return Scalar(XMVectorSplatW(m_vec)); }
-        INLINE void SetX(Scalar x) { m_vec = XMVectorPermute<4, 1, 2, 3>(m_vec, x); }
-        INLINE void SetY(Scalar y) { m_vec = XMVectorPermute<0, 5, 2, 3>(m_vec, y); }
-        INLINE void SetZ(Scalar z) { m_vec = XMVectorPermute<0, 1, 6, 3>(m_vec, z); }
-        INLINE void SetW(Scalar w) { m_vec = XMVectorPermute<0, 1, 2, 7>(m_vec, w); }
-        INLINE void SetXYZ(Vector3 xyz) { m_vec = XMVectorPermute<0, 1, 2, 7>(xyz, m_vec); }
+        INLINE Scalar GetX() const { return Scalar(DirectX::XMVectorSplatX(m_vec)); }
+        INLINE Scalar GetY() const { return Scalar(DirectX::XMVectorSplatY(m_vec)); }
+        INLINE Scalar GetZ() const { return Scalar(DirectX::XMVectorSplatZ(m_vec)); }
+        INLINE Scalar GetW() const { return Scalar(DirectX::XMVectorSplatW(m_vec)); }
+        INLINE void SetX(Scalar x) { m_vec = DirectX::XMVectorPermute<4, 1, 2, 3>(m_vec, x); }
+        INLINE void SetY(Scalar y) { m_vec = DirectX::XMVectorPermute<0, 5, 2, 3>(m_vec, y); }
+        INLINE void SetZ(Scalar z) { m_vec = DirectX::XMVectorPermute<0, 1, 6, 3>(m_vec, z); }
+        INLINE void SetW(Scalar w) { m_vec = DirectX::XMVectorPermute<0, 1, 2, 7>(m_vec, w); }
+        INLINE void SetXYZ(Vector3 xyz) { m_vec = DirectX::XMVectorPermute<0, 1, 2, 7>(xyz, m_vec); }
 
-        INLINE Vector4 operator- () const { return Vector4(XMVectorNegate(m_vec)); }
-        INLINE Vector4 operator+ (Vector4 v2) const { return Vector4(XMVectorAdd(m_vec, v2)); }
-        INLINE Vector4 operator- (Vector4 v2) const { return Vector4(XMVectorSubtract(m_vec, v2)); }
-        INLINE Vector4 operator* (Vector4 v2) const { return Vector4(XMVectorMultiply(m_vec, v2)); }
-        INLINE Vector4 operator/ (Vector4 v2) const { return Vector4(XMVectorDivide(m_vec, v2)); }
+        INLINE Vector4 operator- () const { return Vector4(DirectX::XMVectorNegate(m_vec)); }
+        INLINE Vector4 operator+ (Vector4 v2) const { return Vector4(DirectX::XMVectorAdd(m_vec, v2)); }
+        INLINE Vector4 operator- (Vector4 v2) const { return Vector4(DirectX::XMVectorSubtract(m_vec, v2)); }
+        INLINE Vector4 operator* (Vector4 v2) const { return Vector4(DirectX::XMVectorMultiply(m_vec, v2)); }
+        INLINE Vector4 operator/ (Vector4 v2) const { return Vector4(DirectX::XMVectorDivide(m_vec, v2)); }
         INLINE Vector4 operator* (Scalar  v2) const { return *this * Vector4(v2); }
         INLINE Vector4 operator/ (Scalar  v2) const { return *this / Vector4(v2); }
         INLINE Vector4 operator* (float   v2) const { return *this * Scalar(v2); }
@@ -138,11 +136,11 @@ namespace Darius::Math
         INLINE friend Vector4 operator/ (float   v1, Vector4 v2) { return Scalar(v1) / v2; }
 
     protected:
-        XMVECTOR m_vec;
+        DirectX::XMVECTOR m_vec;
     };
 
     // Defined after Vector4 methods are declared
-    INLINE Vector3::Vector3(Vector4 vec) : m_vec((XMVECTOR)vec)
+    INLINE Vector3::Vector3(Vector4 vec) : m_vec((DirectX::XMVECTOR)vec)
     {
     }
 
@@ -150,16 +148,16 @@ namespace Darius::Math
     INLINE Vector3 MakeHomogeneous(Vector4 v)
     {
         Scalar W = v.GetW();
-        return Vector3(XMVectorSelect(XMVectorDivide(v, W), v, XMVectorEqual(W, SplatZero())));
+        return Vector3(DirectX::XMVectorSelect(DirectX::XMVectorDivide(v, W), v, DirectX::XMVectorEqual(W, SplatZero())));
     }
 
     class BoolVector
     {
     public:
-        INLINE BoolVector(FXMVECTOR vec) { m_vec = vec; }
-        INLINE operator XMVECTOR() const { return m_vec; }
+        INLINE BoolVector(DirectX::FXMVECTOR vec) { m_vec = vec; }
+        INLINE operator DirectX::XMVECTOR() const { return m_vec; }
     protected:
-        XMVECTOR m_vec;
+        DirectX::XMVECTOR m_vec;
     };
 
 #ifdef _D_EDITOR

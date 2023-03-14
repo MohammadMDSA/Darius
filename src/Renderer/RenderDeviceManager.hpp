@@ -4,22 +4,20 @@
 
 #define D_RENDERER_DEVICE Darius::Renderer::Device
 
-using namespace Darius::Renderer::DeviceResource;
-
 namespace Darius::Renderer::Device
 {
-	void RegisterDeviceNotify(IDeviceNotify* notify);
+	void										RegisterDeviceNotify(D_DEVICE_RESOURCE::IDeviceNotify* notify);
 
-	FrameResource*	GetCurrentFrameResource();
-	ID3D12Device*	GetDevice();
-	FrameResource*	GetFrameResourceWithIndex(int i);
-	DXGI_FORMAT		GetBackBufferFormat();
-	DXGI_FORMAT		GetDepthBufferFormat();
+	D_RENDERER_FRAME_RESOURCE::FrameResource*	GetCurrentFrameResource();
+	ID3D12Device*								GetDevice();
+	D_RENDERER_FRAME_RESOURCE::FrameResource*	GetFrameResourceWithIndex(int i);
+	DXGI_FORMAT									GetBackBufferFormat();
+	DXGI_FORMAT									GetDepthBufferFormat();
 
 	// Window functions
-	void OnWindowMoved();
-	void OnDisplayChanged();
-	bool OnWindowsSizeChanged(int width, int height);
-	void ShaderCompatibilityCheck(D3D_SHADER_MODEL shaderModel);
-	UINT GetCurrentResourceIndex();
+	void										OnWindowMoved();
+	void										OnDisplayChanged();
+	bool										OnWindowsSizeChanged(int width, int height);
+	void										ShaderCompatibilityCheck(D3D_SHADER_MODEL shaderModel);
+	UINT										GetCurrentResourceIndex();
 }

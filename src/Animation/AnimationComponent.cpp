@@ -7,7 +7,12 @@
 #include <imgui.h>
 #include <Libs/FontIcon/IconsFontAwesome6.h>
 
+using namespace D_CORE;
 using namespace D_ECS_COMP;
+using namespace D_GRAPHICS;
+using namespace D_MATH;
+using namespace D_RENDERER_GEOMETRY;
+using namespace D_SERIALIZATION;
 
 namespace Darius::Animation
 {
@@ -25,13 +30,13 @@ namespace Darius::Animation
 		mRootMotion(false)
 	{ }
 
-	void AnimationComponent::SetAnimation(ResourceHandle handle)
+	void AnimationComponent::SetAnimation(D_RESOURCE::ResourceHandle handle)
 	{
 		mChangeSignal();
 		_SetAnimation(handle);
 	}
 
-	void AnimationComponent::_SetAnimation(ResourceHandle handle)
+	void AnimationComponent::_SetAnimation(D_RESOURCE::ResourceHandle handle)
 	{
 		mAnimationResource = D_RESOURCE::GetResource<AnimationResource>(handle, *this);
 	}
@@ -54,14 +59,14 @@ namespace Darius::Animation
 	}
 
 	template <typename T>
-	static inline Quaternion ToQuat(const T* rot)
+	static inline D_MATH::Quaternion ToQuat(const T* rot)
 	{
 		return (Quaternion)Vector4(ToFloat(rot[0]), ToFloat(rot[1]), ToFloat(rot[2]), ToFloat(rot[3]));
 	}
 
-	static inline Quaternion ToQuat(const float* rot)
+	static inline D_MATH::Quaternion ToQuat(const float* rot)
 	{
-		return Quaternion(XMLoadFloat4((const XMFLOAT4*)rot));
+		return D_MATH::Quaternion(DirectX::XMLoadFloat4((const DirectX::XMFLOAT4*)rot));
 	}
 
 	static inline void Slerp(float* Dest, const void* Key1, const void* Key2, float T, uint32_t Format)
@@ -72,35 +77,35 @@ namespace Darius::Animation
 		{
 			const int8_t* key1 = (const int8_t*)Key1;
 			const int8_t* key2 = (const int8_t*)Key2;
-			XMStoreFloat4((XMFLOAT4*)Dest, (FXMVECTOR)Math::Slerp(ToQuat(key1), ToQuat(key2), T));
+			DirectX::XMStoreFloat4((DirectX::XMFLOAT4*)Dest, (DirectX::FXMVECTOR)D_MATH::Slerp(ToQuat(key1), ToQuat(key2), T));
 			break;
 		}
 		case AnimationCurve::kUNorm8:
 		{
 			const uint8_t* key1 = (const uint8_t*)Key1;
 			const uint8_t* key2 = (const uint8_t*)Key2;
-			XMStoreFloat4((XMFLOAT4*)Dest, (FXMVECTOR)Math::Slerp(ToQuat(key1), ToQuat(key2), T));
+			DirectX::XMStoreFloat4((DirectX::XMFLOAT4*)Dest, (DirectX::FXMVECTOR)D_MATH::Slerp(ToQuat(key1), ToQuat(key2), T));
 			break;
 		}
 		case AnimationCurve::kSNorm16:
 		{
 			const int16_t* key1 = (const int16_t*)Key1;
 			const int16_t* key2 = (const int16_t*)Key2;
-			XMStoreFloat4((XMFLOAT4*)Dest, (FXMVECTOR)Math::Slerp(ToQuat(key1), ToQuat(key2), T));
+			DirectX::XMStoreFloat4((DirectX::XMFLOAT4*)Dest, (DirectX::FXMVECTOR)Math::Slerp(ToQuat(key1), ToQuat(key2), T));
 			break;
 		}
 		case AnimationCurve::kUNorm16:
 		{
 			const uint16_t* key1 = (const uint16_t*)Key1;
 			const uint16_t* key2 = (const uint16_t*)Key2;
-			XMStoreFloat4((XMFLOAT4*)Dest, (FXMVECTOR)Math::Slerp(ToQuat(key1), ToQuat(key2), T));
+			DirectX::XMStoreFloat4((DirectX::XMFLOAT4*)Dest, (DirectX::FXMVECTOR)Math::Slerp(ToQuat(key1), ToQuat(key2), T));
 			break;
 		}
 		case AnimationCurve::kFloat:
 		{
 			const float* key1 = (const float*)Key1;
 			const float* key2 = (const float*)Key2;
-			XMStoreFloat4((XMFLOAT4*)Dest, (FXMVECTOR)Math::Slerp(ToQuat(key1), ToQuat(key2), T));
+			DirectX::XMStoreFloat4((DirectX::XMFLOAT4*)Dest, (DirectX::FXMVECTOR)Math::Slerp(ToQuat(key1), ToQuat(key2), T));
 			break;
 		}
 		default:

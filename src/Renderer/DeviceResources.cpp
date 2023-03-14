@@ -7,9 +7,9 @@
 #include "GraphicsCore.hpp"
 #include "CommandContext.hpp"
 
+using namespace D_GRAPHICS_UTILS;
+using namespace D_RENDERER_FRAME_RESOURCE;
 using namespace DirectX;
-using namespace Darius::Renderer::DeviceResource;
-using namespace Darius::Renderer::GraphicsUtils;
 
 using Microsoft::WRL::ComPtr;
 
@@ -40,6 +40,7 @@ namespace
 		return std::max(0l, std::min(ax2, bx2) - std::max(ax1, bx1)) * std::max(0l, std::min(ay2, by2) - std::max(ay1, by1));
 	}
 }
+
 namespace Darius::Renderer::DeviceResource
 {
 

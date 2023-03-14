@@ -5,7 +5,7 @@
 
 #pragma once
 
-#define D_HR_CHECK(hr) Darius::Renderer::GraphicsUtils::ThrowIfFailed(hr);
+#define D_HR_CHECK(hr) Darius::Graphics::Utils::ThrowIfFailed(hr);
 #define D_HR_SUCCEEDED(hr) SUCCEEDED(hr)
 
 #define D3D12_GPU_VIRTUAL_ADDRESS_NULL      ((D3D12_GPU_VIRTUAL_ADDRESS)0)
@@ -85,7 +85,7 @@
 // If using the DirectX Tool Kit for DX12, uncomment this line:
 //#include "GraphicsMemory.h"
 
-namespace Darius::Renderer::GraphicsUtils
+namespace Darius::Graphics::Utils
 {
     // Helper class for COM exceptions
     class com_exception : public std::exception

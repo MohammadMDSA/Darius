@@ -13,9 +13,11 @@
 #include <Math/Camera/ShadowCamera.hpp>
 #include <Job/Job.hpp>
 
-using namespace D_GRAPHICS_BUFFERS;
 using namespace D_CONTAINERS;
+using namespace D_GRAPHICS_BUFFERS;
 using namespace D_MATH;
+using namespace D_RENDERER_FRAME_RESOURCE;
+using namespace DirectX;
 
 namespace Darius::Renderer::LightManager
 {

@@ -98,8 +98,6 @@ namespace Darius::Core::Memory
 	void SIMDMemFill(void* __restrict Dest, __m128 FillVector, size_t NumQuadwords);
 }
 
-using namespace Darius::Core::Memory;
-
 // Overridden 'normal' new/delete
 //void* operator new (size_t size)
 //{

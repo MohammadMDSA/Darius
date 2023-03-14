@@ -15,10 +15,6 @@
 
 #include <iostream>
 
-using namespace D_CONTAINERS;
-using namespace D_CORE;
-using namespace D_RESOURCE;
-
 namespace Darius::Editor::Gui::Windows
 {
 	class SceneWindow : public Darius::Editor::Gui::Windows::Window
@@ -36,10 +32,10 @@ namespace Darius::Editor::Gui::Windows
 
 		void AddSceneRenderItems(D_RENDERER::MeshSorter& sorter) const;
 		void AddWindowRenderItems(D_RENDERER::MeshSorter& sorter) const;
-		void PopulateShadowRenderItems(_OUT_ D_CONTAINERS::DVector<RenderItem>& items) const;
+		void PopulateShadowRenderItems(_OUT_ D_CONTAINERS::DVector<D_RENDERER_FRAME_RESOURCE::RenderItem>& items) const;
 
-		void CreateGrid(DVector<D_RENDERER_FRAME_RESOURCE::RenderItem>& items, int count);
-		void CalcGridLineConstants(DVector<MeshConstants>& constants, int count);
+		void CreateGrid(D_CONTAINERS::DVector<D_RENDERER_FRAME_RESOURCE::RenderItem>& items, int count);
+		void CalcGridLineConstants(D_CONTAINERS::DVector<D_RENDERER_FRAME_RESOURCE::MeshConstants>& constants, int count);
 
 		void UpdateGlobalConstants(D_RENDERER_FRAME_RESOURCE::GlobalConstants& globals);
 
@@ -54,11 +50,11 @@ namespace Darius::Editor::Gui::Windows
 		D_GRAPHICS_BUFFERS::DepthBuffer				mSceneDepth;
 		D_GRAPHICS_MEMORY::DescriptorHandle			mTextureHandle;
 
-		Ref<BatchResource>							mLineMeshResource;
+		D_CORE::Ref<D_GRAPHICS::BatchResource>		mLineMeshResource;
 
-		ByteAddressBuffer							mLineConstantsGPU;
+		D_GRAPHICS_BUFFERS::ByteAddressBuffer		mLineConstantsGPU;
 
-		DVector<RenderItem>							mWindowRenderItems;
+		D_CONTAINERS::DVector<D_RENDERER_FRAME_RESOURCE::RenderItem> mWindowRenderItems;
 		D_RENDERER_FRAME_RESOURCE::GlobalConstants	mSceneGlobals;
 
 		float mMouseWheelPerspectiveSensitivity;

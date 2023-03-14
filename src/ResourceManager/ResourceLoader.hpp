@@ -9,9 +9,6 @@
 #endif // !D_RESOURCE_LOADER
 
 
-using namespace D_CORE;
-using namespace D_FILE;
-
 namespace Darius::ResourceManager
 {
 	class ResourceManager;
@@ -21,25 +18,25 @@ namespace Darius::ResourceManager
 	public:
 		static bool				SaveResource(Resource* resource);
 
-		static DVector<ResourceHandle> CreateReourceFromMeta(Path const& path, bool& foundMeta, Json& jMeta);
+		static D_CONTAINERS::DVector<ResourceHandle> CreateReourceFromMeta(D_FILE::Path const& path, bool& foundMeta, D_SERIALIZATION::Json& jMeta);
 
 		static ResourceHandle	LoadResource(Resource* resource);
-		static DVector<ResourceHandle>	LoadResource(Path const& path, bool metaOnly = false);
+		static D_CONTAINERS::DVector<ResourceHandle>	LoadResource(D_FILE::Path const& path, bool metaOnly = false);
 
-		static void				VisitSubdirectory(Path const& path, bool recursively = false);
+		static void				VisitSubdirectory(D_FILE::Path const& path, bool recursively = false);
 		static ResourceFileMeta GetResourceFileMetaFromResource(Resource* resource);
 
-		static INLINE D_FILE::Path GetPathForNewResource(std::wstring const& name, std::wstring const& ext, D_FILE::Path const& parent) { auto dir = Path(parent); return dir.append(D_FILE::GetNewFileName(name, ext, dir)); }
+		static INLINE D_FILE::Path GetPathForNewResource(std::wstring const& name, std::wstring const& ext, D_FILE::Path const& parent) { auto dir = D_FILE::Path(parent); return dir.append(D_FILE::GetNewFileName(name, ext, dir)); }
 
 	private:
 
 		friend class ResourceManager;
 
 		static bool				SaveResource(Resource* resource, bool metaOnly);
-		static DVector<ResourceHandle> CreateResourceObject(ResourceFileMeta const& meta, DResourceManager* manager, Path const& directory);
-		static DVector<ResourceHandle> CreateResourceObject(Path const& path, DResourceManager* manager);
-		static void				VisitFile(Path const& path);
-		static void				CheckDirectoryMeta(Path const& path);
+		static D_CONTAINERS::DVector<ResourceHandle> CreateResourceObject(ResourceFileMeta const& meta, DResourceManager* manager, D_FILE::Path const& directory);
+		static D_CONTAINERS::DVector<ResourceHandle> CreateResourceObject(D_FILE::Path const& path, DResourceManager* manager);
+		static void				VisitFile(D_FILE::Path const& path);
+		static void				CheckDirectoryMeta(D_FILE::Path const& path);
 	};
 
 	void to_json(D_SERIALIZATION::Json& j, const ResourceFileMeta& value);

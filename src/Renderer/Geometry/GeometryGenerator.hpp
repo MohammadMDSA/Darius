@@ -8,8 +8,6 @@
 #define D_RENDERER_GEOMETRY_GENERATOR Darius::Renderer::Geometry::GeometryGenerator
 #endif
 
-using namespace D_RENDERER_GEOMETRY;
-
 namespace
 {
 	using Vertex = D_GRAPHICS_VERTEX::VertexPositionNormalTangentTextureSkinned;

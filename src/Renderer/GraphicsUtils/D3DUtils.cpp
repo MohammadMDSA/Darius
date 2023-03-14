@@ -5,7 +5,7 @@
 
 using namespace Microsoft::WRL;
 
-namespace Darius::Renderer::GraphicsUtils
+namespace Darius::Graphics::Utils
 {
 
 	ComPtr<ID3DBlob> CompileShader(const std::wstring& filename, const D3D_SHADER_MACRO* defines, const std::string& entrypoint, const std::string& target)

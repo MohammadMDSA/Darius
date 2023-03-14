@@ -4,7 +4,6 @@
 #include "GameObject.hpp"
 #include "Scene/Utils/DetailsDrawer.hpp"
 #include "Scene.hpp"
-#include "Utils/Serializer.hpp"
 #include "EntityComponentSystem/Components/ComponentBase.hpp"
 #include "EntityComponentSystem/Components/BehaviourComponent.hpp"
 #include "EntityComponentSystem/Components/TransformComponent.hpp"
@@ -16,8 +15,11 @@
 #include <imgui.h>
 #include <Libs/FontIcon/IconsFontAwesome6.h>
 
-using namespace D_RESOURCE;
+using namespace D_CONTAINERS;
+using namespace D_CORE;
 using namespace D_ECS_COMP;
+using namespace D_MATH;
+using namespace D_RESOURCE;
 
 namespace Darius::Scene
 {
@@ -25,7 +27,7 @@ namespace Darius::Scene
 	D_CONTAINERS::DMap<std::string, GameObject::ComponentAddressNode> GameObject::RegisteredComponents = D_CONTAINERS::DMap<std::string, GameObject::ComponentAddressNode>();
 	D_CONTAINERS::DSet<D_ECS::EntityId> GameObject::RegisteredBehaviours = D_CONTAINERS::DSet<D_ECS::EntityId>();
 
-	GameObject::GameObject(Uuid uuid, D_ECS::Entity entity) :
+	GameObject::GameObject(D_CORE::Uuid uuid, D_ECS::Entity entity) :
 		mActive(true),
 		mType(Type::Movable),
 		mName("GameObject"),

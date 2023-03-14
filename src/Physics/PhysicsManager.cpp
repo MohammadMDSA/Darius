@@ -81,7 +81,7 @@ namespace Darius::Physics
 		RigidbodyComponent::StaticConstructor();
 
 		// Create default resources
-		gDefaultMaterial = D_RESOURCE::GetManager()->CreateResource<PhysicsMaterialResource>(GenerateUuidFor("Default Physics Material"), L"Default Physics Material", L"Default Physics Material", true);
+		gDefaultMaterial = D_RESOURCE::GetManager()->CreateResource<PhysicsMaterialResource>(D_CORE::GenerateUuidFor("Default Physics Material"), L"Default Physics Material", L"Default Physics Material", true);
 	}
 
 	void Shutdown()

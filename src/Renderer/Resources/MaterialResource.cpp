@@ -17,9 +17,12 @@
 #include <fstream>
 
 using namespace D_CORE;
+using namespace D_MATH;
 using namespace D_SERIALIZATION;
+using namespace D_RENDERER;
+using namespace D_RENDERER_FRAME_RESOURCE;
 using namespace D_RESOURCE;
-
+using namespace DirectX;
 
 inline uint32_t floatToHalf(float f)
 {

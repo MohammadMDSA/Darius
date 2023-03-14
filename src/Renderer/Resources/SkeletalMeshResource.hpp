@@ -21,19 +21,19 @@ namespace Darius::Graphics
 	public:
 		D_CH_RESOURCE_BODY(SkeletalMeshResource, "Skeletal Mesh", ".fbx")
 
-		virtual void					Create(MultiPartMeshData<VertexType> const& data) override;
+		virtual void					Create(D_RENDERER_GEOMETRY::MultiPartMeshData<VertexType> const& data) override;
 
 #ifdef _D_EDITOR
 		virtual bool					DrawDetails(float params[]) override;
 #endif // _D_EDITOR
 
-		D_CH_R_FIELD(DList<D_RENDERER_GEOMETRY::Mesh::SkeletonJoint>, Skeleton);
+		D_CH_R_FIELD(D_CONTAINERS::DList<D_RENDERER_GEOMETRY::Mesh::SkeletonJoint>, Skeleton);
 		D_CH_R_FIELD(D_RENDERER_GEOMETRY::Mesh::SkeletonJoint*, SkeletonRoot);
 		D_CH_R_FIELD(int, JointCount);
 
 	protected:
 
-		SkeletalMeshResource(Uuid uuid, std::wstring const& path, std::wstring const& name, DResourceId id, bool isDefault = false) :
+		SkeletalMeshResource(D_CORE::Uuid uuid, std::wstring const& path, std::wstring const& name, D_RESOURCE::DResourceId id, bool isDefault = false) :
 			MeshResource(uuid, path, name, id, isDefault),
 			mJointCount(0),
 			mSkeletonRoot(nullptr) {}

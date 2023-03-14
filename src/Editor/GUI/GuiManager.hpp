@@ -9,8 +9,6 @@
 #define D_GUI_MANAGER Darius::Editor::Gui::GuiManager
 #endif // !D_GUI_MANAGER
 
-using namespace D_GRAPHICS;
-
 namespace Darius::Editor::Gui::GuiManager
 {
 

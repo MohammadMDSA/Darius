@@ -5,9 +5,6 @@
 #include <Core/Containers/Vector.hpp>
 #include <Scene/GameObject.hpp>
 
-using namespace D_CONTAINERS;
-using namespace D_SCENE;
-
 namespace Darius::Editor::Gui::Windows
 {
 	class SceneGraphWindow : public Window
@@ -26,7 +23,7 @@ namespace Darius::Editor::Gui::Windows
 
 	private:
 
-		void DrawObject(GameObject* go, GameObject* selectedObj);
+		void DrawObject(D_SCENE::GameObject* go, D_SCENE::GameObject* selectedObj);
 	};
 
 }

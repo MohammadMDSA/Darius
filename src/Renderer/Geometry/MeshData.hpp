@@ -11,9 +11,6 @@
 #define D_RENDERER_GEOMETRY Darius::Renderer::Geometry
 #endif
 
-using namespace D_CONTAINERS;
-using namespace D_MATH_BOUNDS;
-
 namespace
 {
 	using uint16 = std::uint16_t;
@@ -34,10 +31,10 @@ namespace Darius::Renderer::Geometry
 	template<typename Vertex>
 	struct MeshData
 	{
-		DVector<Vertex>					Vertices;
-		DVector<uint32>					Indices32;
+		D_CONTAINERS::DVector<Vertex>	Vertices;
+		D_CONTAINERS::DVector<uint32>	Indices32;
 
-		DVector<uint16>& GetIndices16()
+		D_CONTAINERS::DVector<uint16>&	GetIndices16()
 		{
 			if (mIndices16.empty())
 			{
@@ -49,39 +46,39 @@ namespace Darius::Renderer::Geometry
 			return mIndices16;
 		}
 
-		BoundingSphere CalcBoundingSphere() const
+		D_MATH_BOUNDS::BoundingSphere CalcBoundingSphere() const
 		{
-			BoundingSphere res;
+			D_MATH_BOUNDS::BoundingSphere res;
 			for (auto const& vert : Vertices)
 			{
-				BoundingSphere vertBound(vert.mPosition, 0.001);
+				D_MATH_BOUNDS::BoundingSphere vertBound(vert.mPosition, 0.001);
 				res = res.Union(vertBound);
 			}
 			return res;
 		}
 
-		AxisAlignedBox CalcBoundingBox() const
+		D_MATH_BOUNDS::AxisAlignedBox CalcBoundingBox() const
 		{
-			AxisAlignedBox box;
+			D_MATH_BOUNDS::AxisAlignedBox box;
 			for (auto const& vert : Vertices)
 			{
-				box.AddBoundingBox(AxisAlignedBox(vert.mPosition, vert.mPosition));
+				box.AddBoundingBox(D_MATH_BOUNDS::AxisAlignedBox(vert.mPosition, vert.mPosition));
 			}
 
 			return box;
 		}
 
 	private:
-		DVector<uint16>		mIndices16;
+		D_CONTAINERS::DVector<uint16>	mIndices16;
 	};
 
 	template<typename Vertex>
 	struct MultiPartMeshData
 	{
-		MeshData<Vertex>	MeshData;
-		DVector<SubMesh>	SubMeshes;
+		MeshData<Vertex>				MeshData;
+		D_CONTAINERS::DVector<SubMesh>	SubMeshes;
 	};
 
 	// For each vertex, for each connected joint, index and (weight, init mat)
-	typedef DVector<DVector<std::pair<int, std::pair<float, D_MATH::Matrix4>>>> VertexBlendWeightData;
+	typedef D_CONTAINERS::DVector<D_CONTAINERS::DVector<std::pair<int, std::pair<float, D_MATH::Matrix4>>>> VertexBlendWeightData;
 }

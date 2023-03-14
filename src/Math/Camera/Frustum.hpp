@@ -19,8 +19,6 @@
 #include "Math/Bounds/BoundingSphere.hpp"
 #include "Math/Bounds/BoundingBox.hpp"
 
-using namespace D_MATH_BOUNDS;
-
 namespace Darius::Math::Camera
 {
     class Frustum
@@ -41,16 +39,16 @@ namespace Darius::Math::Camera
             kNearPlane, kFarPlane, kLeftPlane, kRightPlane, kTopPlane, kBottomPlane
         };
 
-        Vector3         GetFrustumCorner(CornerID id) const { return m_FrustumCorners[id]; }
-        BoundingPlane   GetFrustumPlane(PlaneID id) const { return m_FrustumPlanes[id]; }
+        Vector3                         GetFrustumCorner(CornerID id) const { return m_FrustumCorners[id]; }
+        D_MATH_BOUNDS::BoundingPlane    GetFrustumPlane(PlaneID id) const { return m_FrustumPlanes[id]; }
 
         // Test whether the bounding sphere intersects the frustum.  Intersection is defined as either being
         // fully contained in the frustum, or by intersecting one or more of the planes.
-        bool IntersectSphere(BoundingSphere sphere) const;
+        bool                            IntersectSphere(D_MATH_BOUNDS::BoundingSphere sphere) const;
 
         // We don't officially have a AxisAlignedBox class yet, but let's assume it's forthcoming.  (There is a
         // simple struct in the Model project.)
-        bool IntersectBoundingBox(const AxisAlignedBox& aabb) const;
+        bool                            IntersectBoundingBox(const D_MATH_BOUNDS::AxisAlignedBox& aabb) const;
 
         friend Frustum  operator* (const OrthogonalTransform& xform, const Frustum& frustum);	// Fast
         friend Frustum  operator* (const AffineTransform& xform, const Frustum& frustum);		// Slow
@@ -64,15 +62,15 @@ namespace Darius::Math::Camera
         // Orthographic frustum constructor (for box-shaped frusta)
         void ConstructOrthographicFrustum(float Left, float Right, float Top, float Bottom, float NearClip, float FarClip);
 
-        Vector3 m_FrustumCorners[8];		// the corners of the frustum
-        BoundingPlane m_FrustumPlanes[6];			// the bounding planes
+        Vector3                         m_FrustumCorners[8];		// the corners of the frustum
+        D_MATH_BOUNDS::BoundingPlane    m_FrustumPlanes[6];			// the bounding planes
     };
 
     //=======================================================================================================
     // Inline implementations
     //
 
-    inline bool Frustum::IntersectSphere(BoundingSphere sphere) const
+    inline bool Frustum::IntersectSphere(D_MATH_BOUNDS::BoundingSphere sphere) const
     {
         float radius = sphere.GetRadius();
         for (int i = 0; i < 6; ++i)
@@ -83,11 +81,11 @@ namespace Darius::Math::Camera
         return true;
     }
 
-    inline bool Frustum::IntersectBoundingBox(const AxisAlignedBox& aabb) const
+    inline bool Frustum::IntersectBoundingBox(const D_MATH_BOUNDS::AxisAlignedBox& aabb) const
     {
         for (int i = 0; i < 6; ++i)
         {
-            BoundingPlane p = m_FrustumPlanes[i];
+            D_MATH_BOUNDS::BoundingPlane p = m_FrustumPlanes[i];
             Vector3 farCorner = Select(aabb.GetMin(), aabb.GetMax(), p.GetNormal() > Vector3(kZero));
             if (p.DistanceFromPoint(farCorner) < 0.0f)
                 return false;
@@ -119,7 +117,7 @@ namespace Darius::Math::Camera
         Matrix4 XForm = Transpose(Invert(Matrix4(xform)));
 
         for (int i = 0; i < 6; ++i)
-            result.m_FrustumPlanes[i] = BoundingPlane(XForm * Vector4(frustum.m_FrustumPlanes[i]));
+            result.m_FrustumPlanes[i] = D_MATH_BOUNDS::BoundingPlane(XForm * Vector4(frustum.m_FrustumPlanes[i]));
 
         return result;
     }
@@ -134,7 +132,7 @@ namespace Darius::Math::Camera
         Matrix4 XForm = Transpose(Invert(mtx));
 
         for (int i = 0; i < 6; ++i)
-            result.m_FrustumPlanes[i] = BoundingPlane(XForm * Vector4(frustum.m_FrustumPlanes[i]));
+            result.m_FrustumPlanes[i] = D_MATH_BOUNDS::BoundingPlane(XForm * Vector4(frustum.m_FrustumPlanes[i]));
 
         return result;
     }

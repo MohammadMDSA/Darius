@@ -105,7 +105,7 @@ namespace Darius::Editor::Gui::ThumbnailManager
 					AddExistingResourceThumbnail(uuid);
 				});
 
-		ResourceType supportedTypes[] = { TextureResource::GetResourceType() };
+		ResourceType supportedTypes[] = { D_GRAPHICS::TextureResource::GetResourceType() };
 
 		for (int i = 0; i < _countof(supportedTypes); i++)
 		{
@@ -193,7 +193,7 @@ namespace Darius::Editor::Gui::ThumbnailManager
 		if (!force && ResourceTextures.contains(uuid))
 			return;
 
-		if (resourceType == TextureResource::GetResourceType())
+		if (resourceType == D_GRAPHICS::TextureResource::GetResourceType())
 		{
 			GenerateThumbnailFromDDSTexture(uuid, resource->GetPath());
 		}
@@ -212,7 +212,7 @@ namespace Darius::Editor::Gui::ThumbnailManager
 		if (!D_H_ENSURE_DIR(destinationFolder))
 			std::filesystem::create_directories(destinationFolder);
 
-		auto thumbnaildCommand = string("Utils\\texconv.exe -m 1 -w 64 -h 64 -o \"" + destinationFolder.string() + "\" \"" + path.lexically_normal().string() + "\"");
+		auto thumbnaildCommand = std::string("Utils\\texconv.exe -m 1 -w 64 -h 64 -o \"" + destinationFolder.string() + "\" \"" + path.lexically_normal().string() + "\"");
 
 		system(thumbnaildCommand.c_str());
 

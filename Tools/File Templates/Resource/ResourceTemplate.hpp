@@ -6,8 +6,6 @@
 #define %%NAMESPACE_KEY%% %%NAMESPACE%%
 #endif // !%%NAMESPACE_KEY%%
 
-using namespace D_RESOURCE;
-
 namespace %%NAMESPACE%%
 {
 	class %%CLASS_NAME%% : public D_RESOURCE::Resource

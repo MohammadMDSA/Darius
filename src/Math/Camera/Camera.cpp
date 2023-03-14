@@ -15,7 +15,7 @@
 #include "Camera.hpp"
 #include <cmath>
 
-
+using namespace DirectX;
 
 namespace Darius::Math::Camera
 {

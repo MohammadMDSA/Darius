@@ -83,7 +83,7 @@ namespace Darius::Graphics
 			// Format
 			{
 				D_H_DETAILS_DRAW_PROPERTY("Format");
-				ImGui::Text(Texture::GetFormatString(mTexture.mMetaData.Format).c_str());
+				ImGui::Text(D_GRAPHICS_BUFFERS::Texture::GetFormatString(mTexture.mMetaData.Format).c_str());
 			}
 
 			// Dimension
@@ -92,13 +92,13 @@ namespace Darius::Graphics
 				std::string val;
 				switch (mTexture.mMetaData.Dimension)
 				{
-				case Texture::TextureMeta::TEX_DIMENSION_TEXTURE1D:
+				case D_GRAPHICS_BUFFERS::Texture::TextureMeta::TEX_DIMENSION_TEXTURE1D:
 					val = "1D";
 					break;
-				case Texture::TextureMeta::TEX_DIMENSION_TEXTURE2D:
+				case D_GRAPHICS_BUFFERS::Texture::TextureMeta::TEX_DIMENSION_TEXTURE2D:
 					val = "2D";
 					break;
-				case Texture::TextureMeta::TEX_DIMENSION_TEXTURE3D:
+				case D_GRAPHICS_BUFFERS::Texture::TextureMeta::TEX_DIMENSION_TEXTURE3D:
 					val = "3D";
 					break;
 				default:

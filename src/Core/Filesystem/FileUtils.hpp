@@ -17,16 +17,14 @@
 #define D_FILE Darius::Core::Filesystem
 #endif // !D_FILE
 
-using namespace std;
-
 namespace Darius::Core::Filesystem
 {
-	typedef shared_ptr<vector<std::byte>> ByteArray;
-	static const ByteArray NullFile = std::make_shared<vector<std::byte> >(vector<std::byte>());
+	typedef std::shared_ptr<std::vector<std::byte>> ByteArray;
+	static const ByteArray NullFile = std::make_shared<std::vector<std::byte> >(std::vector<std::byte>());
 
 	std::wstring					GetNewFileName(std::wstring const& baseName, std::wstring const& extension, Path parent);
 
-	ByteArray						ReadFileHelper(const wstring& fileName);
+	ByteArray						ReadFileHelper(const std::wstring& fileName);
 
 	ByteArray						ReadFileSync(std::wstring const& path);
 

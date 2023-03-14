@@ -9,24 +9,21 @@
 #define D_EDITOR_CONTEXT Darius::Editor::Context
 #endif // !D_EDITOR_CONTEXT
 
-using namespace D_FILE;
-using namespace D_SCENE;
-
 namespace Darius::Editor::Context
 {
 	void Initialize();
 	void Shutdown();
 	void Update(float elapsedTime);
 
-	GameObject*						GetSelectedGameObject();
-	void							SetSelectedGameObject(GameObject* go);
+	D_SCENE::GameObject*			GetSelectedGameObject();
+	void							SetSelectedGameObject(D_SCENE::GameObject* go);
 	Detailed*						GetSelectedDetailed();
 	void							SetSelectedDetailed(Detailed* d);
 
 	// Paths
-	Path							GetProjectPath();
-	Path							GetEditorConfigPath();
-	Path							GetEditorWindowsConfigPath();
+	D_FILE::Path					GetProjectPath();
+	D_FILE::Path					GetEditorConfigPath();
+	D_FILE::Path					GetEditorWindowsConfigPath();
 
 	// Events
 	D_H_SIGNAL_DECL(EditorSuspended, void());

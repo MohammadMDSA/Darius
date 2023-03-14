@@ -25,8 +25,6 @@ namespace Darius::Graphics::Utils
 	class RootSignature;
 }
 
-using namespace Darius::Graphics::Utils;
-
 namespace Darius::Graphics
 {
 

@@ -17,8 +17,6 @@
 #define D_CORE Darius::Core
 #endif // !D_UTILS
 
-using namespace D_SERIALIZATION;
-
 namespace Darius::Core
 {
 	using Uuid = boost::uuids::uuid;
@@ -50,8 +48,8 @@ namespace Darius::Core
 
 	INLINE Uuid FromWString(std::wstring str) { return boost::lexical_cast<boost::uuids::uuid>(str); }
 
-	void to_json(Json& j, const D_CORE::Uuid& value);
+	void to_json(D_SERIALIZATION::Json& j, const D_CORE::Uuid& value);
 
-	void from_json(const Json& j, D_CORE::Uuid& value);
+	void from_json(const D_SERIALIZATION::Json& j, D_CORE::Uuid& value);
 
 }

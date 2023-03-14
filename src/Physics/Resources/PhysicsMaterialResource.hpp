@@ -8,8 +8,6 @@
 
 #include <Physics/PhysicsManager.hpp>
 
-using namespace D_RESOURCE;
-
 namespace Darius::Physics
 {
 	class PhysicsMaterialResource : public D_RESOURCE::Resource
@@ -35,7 +33,7 @@ namespace Darius::Physics
 		D_CH_FIELD(physx::PxMaterial*, PxData)
 
 	protected:
-		PhysicsMaterialResource(D_CORE::Uuid uuid, std::wstring const& path, std::wstring const& name, DResourceId id, bool isDefault = false);
+		PhysicsMaterialResource(D_CORE::Uuid uuid, std::wstring const& path, std::wstring const& name, D_RESOURCE::DResourceId id, bool isDefault = false);
 
 	};
 }

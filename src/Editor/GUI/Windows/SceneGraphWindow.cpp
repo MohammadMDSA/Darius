@@ -8,8 +8,9 @@
 
 #include <imgui.h>
 
-using namespace D_ECS;
 using namespace D_CONTAINERS;
+using namespace D_ECS;
+using namespace D_SCENE;
 
 namespace Darius::Editor::Gui::Windows
 {

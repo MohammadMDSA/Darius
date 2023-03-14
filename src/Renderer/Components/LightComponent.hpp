@@ -20,8 +20,8 @@ namespace Darius::Graphics
 #endif // _DEBUG
 
 		// Serialization
-		virtual void					Serialize(Json& j) const override;
-		virtual void					Deserialize(Json const& j) override;
+		virtual void					Serialize(D_SERIALIZATION::Json& j) const override;
+		virtual void					Deserialize(D_SERIALIZATION::Json const& j) override;
 
 		// States
 		virtual INLINE void				Start() override { SetLightType(mLightType); }

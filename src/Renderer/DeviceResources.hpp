@@ -16,11 +16,6 @@
 
 #define D_DEVICE_RESOURCE Darius::Renderer::DeviceResource
 
-using namespace Darius::Graphics;
-using namespace Darius::Renderer;
-using namespace Darius::Renderer::ConstantFrameResource;
-using namespace D_GRAPHICS_BUFFERS;
-
 namespace Darius::Renderer::DeviceResource
 {
     // Provides an interface for an application that owns DeviceResources to be notified of the device being lost or created.
@@ -90,8 +85,8 @@ namespace Darius::Renderer::DeviceResource
         UINT                        GetCbvSrvUavDescriptorSize() const noexcept { return m_cbvSrvUavDescriptorSize; }
         DXGI_COLOR_SPACE_TYPE       GetColorSpace() const noexcept              { return m_colorSpace; }
         unsigned int                GetDeviceOptions() const noexcept           { return m_options; }
-        FrameResource*              GetFrameResource() const noexcept           { return m_frameResources[m_currentResourceIndex].get(); }
-        FrameResource*              GetFrameResourceByIndex(int i) const noexcept { D_ASSERT(i < gNumFrameResources); return m_frameResources[i].get(); }
+        D_RENDERER_FRAME_RESOURCE::FrameResource* GetFrameResource() const noexcept           { return m_frameResources[m_currentResourceIndex].get(); }
+        D_RENDERER_FRAME_RESOURCE::FrameResource* GetFrameResourceByIndex(int i) const noexcept { D_ASSERT(i < D_RENDERER_FRAME_RESOURCE::gNumFrameResources); return m_frameResources[i].get(); }
         D_GRAPHICS_BUFFERS::ColorBuffer& GetRTBuffer() noexcept     { return m_swapChainBuffer[m_backBufferIndex]; }
         D_GRAPHICS_BUFFERS::DepthBuffer& GetDepthStencilBuffer() noexcept { return m_depthStencil; }
 
@@ -102,7 +97,7 @@ namespace Darius::Renderer::DeviceResource
 
         UINT                                                m_backBufferIndex;
         UINT                                                m_currentResourceIndex;
-        std::array<std::unique_ptr<FrameResource>, D_RENDERER_FRAME_RESOURCE::gNumFrameResources> m_frameResources;
+        std::array<std::unique_ptr<D_RENDERER_FRAME_RESOURCE::FrameResource>, D_RENDERER_FRAME_RESOURCE::gNumFrameResources> m_frameResources;
 
 
         // Direct3D objects.

@@ -4,8 +4,6 @@
 
 #define D_GRAPHICS_VERTEX Darius::Graphics::Utils::VertexTypes
 
-using namespace Darius::Math;
-
 namespace Darius::Graphics::Utils::VertexTypes
 {
 	interface IVertexType {};
@@ -20,17 +18,17 @@ namespace Darius::Graphics::Utils::VertexTypes
 		VertexPosition(VertexPosition&&) = default;
 		VertexPosition& operator=(VertexPosition&&) = default;
 
-		VertexPosition(Vector3 const& position) noexcept :
+		VertexPosition(D_MATH::Vector3 const& position) noexcept :
 			mPosition(position)
 		{
 		}
 
-		VertexPosition(Vector3 position) noexcept :
+		VertexPosition(D_MATH::Vector3 position) noexcept :
 			mPosition(position)
 		{
 		}
 
-		XMFLOAT3								mPosition;
+		DirectX::XMFLOAT3						mPosition;
 
 		static const D3D12_INPUT_LAYOUT_DESC	InputLayout;
 
@@ -49,25 +47,25 @@ namespace Darius::Graphics::Utils::VertexTypes
 		VertexPositionSkinned(VertexPositionSkinned&&) = default;
 		VertexPositionSkinned& operator=(VertexPositionSkinned&&) = default;
 
-		VertexPositionSkinned(Vector3 const& position,
-			XMUINT4 const& blendIndices = { 0, 0, 0, 0 }, XMFLOAT4 blendWeights = { 0.f, 0.f, 0.f, 0.f }) noexcept :
+		VertexPositionSkinned(D_MATH::Vector3 const& position,
+			DirectX::XMUINT4 const& blendIndices = { 0, 0, 0, 0 }, DirectX::XMFLOAT4 blendWeights = { 0.f, 0.f, 0.f, 0.f }) noexcept :
 			mPosition(position),
 			mBlendIndices(blendIndices),
 			mBlendWeights(blendWeights)
 		{
 		}
 
-		VertexPositionSkinned(Vector3 position,
-			XMUINT4 const& blendIndices = { 0, 0, 0, 0 }, XMFLOAT4 blendWeights = { 0.f, 0.f, 0.f, 0.f }) noexcept :
+		VertexPositionSkinned(D_MATH::Vector3 position,
+			DirectX::XMUINT4 const& blendIndices = { 0, 0, 0, 0 }, DirectX::XMFLOAT4 blendWeights = { 0.f, 0.f, 0.f, 0.f }) noexcept :
 			mPosition(position),
 			mBlendIndices(blendIndices),
 			mBlendWeights(blendWeights)
 		{
 		}
 
-		XMFLOAT3								mPosition;
-		XMUINT4									mBlendIndices;
-		XMFLOAT4								mBlendWeights;
+		DirectX::XMFLOAT3						mPosition;
+		DirectX::XMUINT4						mBlendIndices;
+		DirectX::XMFLOAT4						mBlendWeights;
 
 		static const D3D12_INPUT_LAYOUT_DESC	InputLayout;
 
@@ -86,20 +84,20 @@ namespace Darius::Graphics::Utils::VertexTypes
 		VertexPositionTexture(VertexPositionTexture&&) = default;
 		VertexPositionTexture& operator=(VertexPositionTexture&&) = default;
 
-		VertexPositionTexture(Vector3 const& position, float u, float v) noexcept :
+		VertexPositionTexture(D_MATH::Vector3 const& position, float u, float v) noexcept :
 			mPosition(position),
 			mUV(u, v)
 		{
 		}
 
-		VertexPositionTexture(Vector3 position, float u, float v) noexcept :
+		VertexPositionTexture(D_MATH::Vector3 position, float u, float v) noexcept :
 			mPosition(position),
 			mUV(u, v)
 		{
 		}
 
-		XMFLOAT3								mPosition;
-		XMFLOAT2								mUV;
+		DirectX::XMFLOAT3						mPosition;
+		DirectX::XMFLOAT2						mUV;
 
 		static const D3D12_INPUT_LAYOUT_DESC	InputLayout;
 
@@ -118,8 +116,8 @@ namespace Darius::Graphics::Utils::VertexTypes
 		VertexPositionTextureSkinned(VertexPositionTextureSkinned&&) = default;
 		VertexPositionTextureSkinned& operator=(VertexPositionTextureSkinned&&) = default;
 
-		VertexPositionTextureSkinned(Vector3 const& position, float u, float v,
-			XMUINT4 const& blendIndices = { 0, 0, 0, 0 }, XMFLOAT4 blendWeights = { 0.f, 0.f, 0.f, 0.f }) noexcept :
+		VertexPositionTextureSkinned(D_MATH::Vector3 const& position, float u, float v,
+			DirectX::XMUINT4 const& blendIndices = { 0, 0, 0, 0 }, DirectX::XMFLOAT4 blendWeights = { 0.f, 0.f, 0.f, 0.f }) noexcept :
 			mPosition(position),
 			mUV(u, v),
 			mBlendIndices(blendIndices),
@@ -127,8 +125,8 @@ namespace Darius::Graphics::Utils::VertexTypes
 		{
 		}
 
-		VertexPositionTextureSkinned(Vector3 position, float u, float v,
-			XMUINT4 const& blendIndices = { 0, 0, 0, 0 }, XMFLOAT4 blendWeights = { 0.f, 0.f, 0.f, 0.f }) noexcept :
+		VertexPositionTextureSkinned(D_MATH::Vector3 position, float u, float v,
+			DirectX::XMUINT4 const& blendIndices = { 0, 0, 0, 0 }, DirectX::XMFLOAT4 blendWeights = { 0.f, 0.f, 0.f, 0.f }) noexcept :
 			mPosition(position),
 			mUV(u, v),
 			mBlendIndices(blendIndices),
@@ -136,10 +134,10 @@ namespace Darius::Graphics::Utils::VertexTypes
 		{
 		}
 
-		XMFLOAT3								mPosition;
-		XMFLOAT2								mUV;
-		XMUINT4									mBlendIndices;
-		XMFLOAT4								mBlendWeights;
+		DirectX::XMFLOAT3						mPosition;
+		DirectX::XMFLOAT2						mUV;
+		DirectX::XMUINT4						mBlendIndices;
+		DirectX::XMFLOAT4						mBlendWeights;
 
 		static const D3D12_INPUT_LAYOUT_DESC	InputLayout;
 
@@ -158,14 +156,14 @@ namespace Darius::Graphics::Utils::VertexTypes
 		VertexPositionNormal(VertexPositionNormal&&) = default;
 		VertexPositionNormal& operator=(VertexPositionNormal&&) = default;
 
-		VertexPositionNormal(Vector3 const& position, Vector3 const& normal) noexcept :
+		VertexPositionNormal(D_MATH::Vector3 const& position, D_MATH::Vector3 const& normal) noexcept :
 			mPosition(position),
 			mNormal(normal)
 		{
 		}
 
-		XMFLOAT3								mPosition;
-		XMFLOAT3								mNormal;
+		DirectX::XMFLOAT3						mPosition;
+		DirectX::XMFLOAT3						mNormal;
 
 		static const D3D12_INPUT_LAYOUT_DESC	InputLayout;
 
@@ -184,16 +182,16 @@ namespace Darius::Graphics::Utils::VertexTypes
 		VertexPositionNormalTexture(VertexPositionNormalTexture&&) = default;
 		VertexPositionNormalTexture& operator=(VertexPositionNormalTexture&&) = default;
 
-		VertexPositionNormalTexture(Vector3 const& position, Vector3 const& normal, XMFLOAT2 const& tex) noexcept :
+		VertexPositionNormalTexture(D_MATH::Vector3 const& position, D_MATH::Vector3 const& normal, DirectX::XMFLOAT2 const& tex) noexcept :
 			mPosition(position),
 			mNormal(normal),
 			mTexCoord(tex)
 		{
 		}
 
-		XMFLOAT3								mPosition;
-		XMFLOAT3								mNormal;
-		XMFLOAT2								mTexCoord;
+		DirectX::XMFLOAT3						mPosition;
+		DirectX::XMFLOAT3						mNormal;
+		DirectX::XMFLOAT2						mTexCoord;
 
 		static const D3D12_INPUT_LAYOUT_DESC	InputLayout;
 
@@ -212,7 +210,7 @@ namespace Darius::Graphics::Utils::VertexTypes
 		VertexPositionNormalTextureSkinned(VertexPositionNormalTextureSkinned&&) = default;
 		VertexPositionNormalTextureSkinned& operator=(VertexPositionNormalTextureSkinned&&) = default;
 
-		VertexPositionNormalTextureSkinned(Vector3 const& position, Vector3 const& normal, XMFLOAT2 const& tex, XMUINT4 const& blendIndices, XMFLOAT4 blendWeights) noexcept :
+		VertexPositionNormalTextureSkinned(D_MATH::Vector3 const& position, D_MATH::Vector3 const& normal, DirectX::XMFLOAT2 const& tex, DirectX::XMUINT4 const& blendIndices, DirectX::XMFLOAT4 blendWeights) noexcept :
 			mPosition(position),
 			mNormal(normal),
 			mTexCoord(tex),
@@ -221,11 +219,11 @@ namespace Darius::Graphics::Utils::VertexTypes
 		{
 		}
 
-		XMFLOAT3								mPosition;
-		XMFLOAT3								mNormal;
-		XMFLOAT2								mTexCoord;
-		XMUINT4									mBlendIndices;
-		XMFLOAT4								mBlendWeights;
+		DirectX::XMFLOAT3						mPosition;
+		DirectX::XMFLOAT3						mNormal;
+		DirectX::XMFLOAT2						mTexCoord;
+		DirectX::XMUINT4						mBlendIndices;
+		DirectX::XMFLOAT4						mBlendWeights;
 
 		static const D3D12_INPUT_LAYOUT_DESC	InputLayout;
 
@@ -244,14 +242,14 @@ namespace Darius::Graphics::Utils::VertexTypes
 		VertexPositionColor(VertexPositionColor&&) = default;
 		VertexPositionColor& operator=(VertexPositionColor&&) = default;
 
-		VertexPositionColor(Vector3 const& position, Vector4 const& color) noexcept :
+		VertexPositionColor(D_MATH::Vector3 const& position, D_MATH::Vector4 const& color) noexcept :
 			mPosition(position),
 			mColor(color)
 		{
 		}
 		
-		XMFLOAT3								mPosition;
-		XMFLOAT4								mColor;
+		DirectX::XMFLOAT3						mPosition;
+		DirectX::XMFLOAT4						mColor;
 
 		static const D3D12_INPUT_LAYOUT_DESC	InputLayout;
 
@@ -270,7 +268,7 @@ namespace Darius::Graphics::Utils::VertexTypes
 		VertexPositionNormalTangentTexture(VertexPositionNormalTangentTexture&&) = default;
 		VertexPositionNormalTangentTexture& operator=(VertexPositionNormalTangentTexture&&) = default;
 
-		VertexPositionNormalTangentTexture(Vector3 const& pos, Vector3 const& norm, Vector4 const& tang, XMFLOAT2 const& uv) :
+		VertexPositionNormalTangentTexture(D_MATH::Vector3 const& pos, D_MATH::Vector3 const& norm, D_MATH::Vector4 const& tang, DirectX::XMFLOAT2 const& uv) :
 			mPosition(pos),
 			mNormal(norm),
 			mTangent(tang),
@@ -290,10 +288,10 @@ namespace Darius::Graphics::Utils::VertexTypes
 		{
 		}
 
-		XMFLOAT3								mPosition;
-		XMFLOAT3								mNormal;
-		XMFLOAT4								mTangent;
-		XMFLOAT2								mTexC;
+		DirectX::XMFLOAT3						mPosition;
+		DirectX::XMFLOAT3						mNormal;
+		DirectX::XMFLOAT4						mTangent;
+		DirectX::XMFLOAT2						mTexC;
 
 		static const D3D12_INPUT_LAYOUT_DESC	InputLayout;
 
@@ -313,8 +311,8 @@ namespace Darius::Graphics::Utils::VertexTypes
 		VertexPositionNormalTangentTextureSkinned(VertexPositionNormalTangentTextureSkinned&&) = default;
 		VertexPositionNormalTangentTextureSkinned& operator=(VertexPositionNormalTangentTextureSkinned&&) = default;
 
-		VertexPositionNormalTangentTextureSkinned(Vector3 const& pos, Vector3 const& norm, Vector4 const& tang, XMFLOAT2 const& uv,
-			XMUINT4 const& blendIndices = { 0, 0, 0, 0 }, XMFLOAT4 blendWeights = { 0.f, 0.f, 0.f, 0.f }) :
+		VertexPositionNormalTangentTextureSkinned(D_MATH::Vector3 const& pos, D_MATH::Vector3 const& norm, D_MATH::Vector4 const& tang, DirectX::XMFLOAT2 const& uv,
+			DirectX::XMUINT4 const& blendIndices = { 0, 0, 0, 0 }, DirectX::XMFLOAT4 blendWeights = { 0.f, 0.f, 0.f, 0.f }) :
 			mPosition(pos),
 			mNormal(norm),
 			mTangent(tang),
@@ -329,7 +327,7 @@ namespace Darius::Graphics::Utils::VertexTypes
 			float nx, float ny, float nz,
 			float tx, float ty, float tz, float tw,
 			float u, float v,
-			XMUINT4 const& blendIndices = { 0, 0, 0, 0 }, XMFLOAT4 blendWeights = { 0.f, 0.f, 0.f, 0.f }) :
+			DirectX::XMUINT4 const& blendIndices = { 0, 0, 0, 0 }, DirectX::XMFLOAT4 blendWeights = { 0.f, 0.f, 0.f, 0.f }) :
 			mPosition(px, py, pz),
 			mNormal(nx, ny, nz),
 			mTangent(tx, ty, tz, tw),
@@ -339,12 +337,12 @@ namespace Darius::Graphics::Utils::VertexTypes
 		{
 		}
 
-		XMFLOAT3								mPosition;
-		XMFLOAT3								mNormal;
-		XMFLOAT4								mTangent;
-		XMFLOAT2								mTexC;
-		XMUINT4									mBlendIndices;
-		XMFLOAT4								mBlendWeights;
+		DirectX::XMFLOAT3						mPosition;
+		DirectX::XMFLOAT3						mNormal;
+		DirectX::XMFLOAT4						mTangent;
+		DirectX::XMFLOAT2						mTexC;
+		DirectX::XMUINT4						mBlendIndices;
+		DirectX::XMFLOAT4						mBlendWeights;
 
 		static const D3D12_INPUT_LAYOUT_DESC	InputLayout;
 

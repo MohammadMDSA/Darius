@@ -24,10 +24,6 @@
 #define D_SCENE Darius::Scene
 #endif // !D_SCENE
 
-using namespace D_MATH;
-using namespace D_GRAPHICS_BUFFERS;
-using namespace D_CORE;
-
 namespace Darius::Scene::ECS::Components
 {
 	class ComponentBase;
@@ -59,20 +55,20 @@ namespace Darius::Scene
 	public:
 
 		// Transform helpers
-		void								SetLocalTransform(Transform const& trans);
-		Transform const& GetLocalTransform() const;
+		void								SetLocalTransform(D_MATH::Transform const& trans);
+		D_MATH::Transform const& GetLocalTransform() const;
 
-		INLINE void							SetTransform(Transform const& trans)
+		INLINE void							SetTransform(D_MATH::Transform const& trans)
 		{
 			if (mType == Type::Static)
 				return;
 			if (mParent)
-				SetLocalTransform((XMMATRIX)(trans.GetWorld() * Matrix4(mParent->GetTransform()).Inverse()));
+				SetLocalTransform((DirectX::XMMATRIX)(trans.GetWorld() * D_MATH::Matrix4(mParent->GetTransform()).Inverse()));
 			else
 				SetLocalTransform(trans);
 		}
 
-		INLINE Transform					GetTransform() const
+		INLINE D_MATH::Transform					GetTransform() const
 		{
 			if (mParent)
 				return GetLocalTransform() * mParent->GetTransform();
@@ -169,8 +165,8 @@ namespace Darius::Scene
 		bool								DrawDetails(float params[]);
 #endif // _EDITOR
 
-		INLINE operator CountedOwner const() {
-			return CountedOwner{ WSTR_STR(mName), "Game Object", this, 0 };
+		INLINE operator D_CORE::CountedOwner const() {
+			return D_CORE::CountedOwner { WSTR_STR(mName), "Game Object", this, 0 };
 		}
 
 		static void							RegisterComponent(std::string name, D_CONTAINERS::DVector<std::string>& displayName);
@@ -179,7 +175,7 @@ namespace Darius::Scene
 		D_CH_R_FIELD(bool, Active);
 		D_CH_RW_FIELD(std::string, Name);
 		D_CH_RW_FIELD(Type, Type);
-		D_CH_R_FIELD_CONST(Uuid, Uuid);
+		D_CH_R_FIELD_CONST(D_CORE::Uuid, Uuid);
 		D_CH_FIELD(D_ECS::Entity, Entity);
 		D_CH_R_FIELD(bool, Started);
 		D_CH_R_FIELD(bool, Awake);
@@ -200,7 +196,7 @@ namespace Darius::Scene
 		friend void							to_json(D_SERIALIZATION::Json& j, const GameObject& value);
 		friend void							from_json(const D_SERIALIZATION::Json& j, GameObject& value);
 
-		GameObject(Uuid uuid, D_ECS::Entity entity);
+		GameObject(D_CORE::Uuid uuid, D_ECS::Entity entity);
 
 		void								AddComponentRoutine(Darius::Scene::ECS::Components::ComponentBase*);
 		void								RemoveComponentRoutine(Darius::Scene::ECS::Components::ComponentBase*);

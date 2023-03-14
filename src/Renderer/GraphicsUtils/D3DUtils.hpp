@@ -1,12 +1,10 @@
 #pragma once
 
-using namespace Microsoft::WRL;
-
-#ifndef D_RENDERER_UTILS
-#define D_RENDERER_UTILS Darius::Renderer::GraphicsUtils
+#ifndef D_GRAPHICS_UTILS
+#define D_GRAPHICS_UTILS Darius::Graphics::Utils
 #endif
 
-namespace Darius::Renderer::GraphicsUtils
+namespace Darius::Graphics::Utils
 {
     inline UINT CalcConstantBufferByteSize(UINT byteSize)
     {
@@ -24,7 +22,7 @@ namespace Darius::Renderer::GraphicsUtils
         return (byteSize + 255) & ~255;
     }
 
-    ComPtr<ID3DBlob> CompileShader(
+    Microsoft::WRL::ComPtr<ID3DBlob> CompileShader(
         const std::wstring& filename,
         const D3D_SHADER_MACRO* defines,
         const std::string& entrypoint,

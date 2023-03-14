@@ -6,9 +6,6 @@
 #define D_GRAPHICS Darius::Graphics
 #endif
 
-using namespace D_RENDERER_GEOMETRY;
-using namespace D_CORE;
-
 namespace Darius::Graphics
 {
 	class DResourceManager;
@@ -20,7 +17,7 @@ namespace Darius::Graphics
 	private:
 		friend class DResourceManager;
 
-		BatchResource(Uuid uuid, std::wstring const& path, std::wstring const& name, DResourceId id, bool isDefault = false) :
+		BatchResource(D_CORE::Uuid uuid, std::wstring const& path, std::wstring const& name, D_RESOURCE::DResourceId id, bool isDefault = false) :
 			StaticMeshResource(uuid, path, name, id, isDefault) {}
 
 	};

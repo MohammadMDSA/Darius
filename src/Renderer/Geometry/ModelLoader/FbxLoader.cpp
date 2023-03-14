@@ -12,8 +12,10 @@
 #include <fbxsdk/fileio/fbxiosettings.h>
 
 using namespace fbxsdk;
-using namespace D_RESOURCE;
 using namespace D_CONTAINERS;
+using namespace D_MATH;
+using namespace D_RESOURCE;
+using namespace DirectX;
 
 namespace Darius::Renderer::Geometry::ModelLoader::Fbx
 {

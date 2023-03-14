@@ -5,16 +5,9 @@
 #include <Utils/Common.hpp>
 #include <Math/VectorMath.hpp>
 
-using namespace Darius::Renderer::GraphicsUtils;
-using namespace Darius::Math;
-using namespace D_RENDERER_GEOMETRY;
-
-using namespace Microsoft::WRL;
-
 #ifndef D_RENDERER_FRAME_RESOURCE
 #define D_RENDERER_FRAME_RESOURCE Darius::Renderer::ConstantFrameResource
 #endif // !D_RENDERER_FRAME_RESOURCE
-
 
 namespace Darius::Renderer::ConstantFrameResource
 {
@@ -22,14 +15,14 @@ namespace Darius::Renderer::ConstantFrameResource
 
 	ALIGN_DECL_256 struct GlobalConstants
 	{
-		XMFLOAT4X4			View;
-		XMFLOAT4X4			InvView;
-		XMFLOAT4X4			Proj;
-		XMFLOAT4X4			InvProj;
-		XMFLOAT4X4			ViewProj;
-		XMFLOAT4X4			InvViewProj;
-		XMFLOAT4			ShadowTexelSize = { 0.f, 0.f, 0.f, 0.f };
-		XMFLOAT3			CameraPos;
+		DirectX::XMFLOAT4X4	View;
+		DirectX::XMFLOAT4X4	InvView;
+		DirectX::XMFLOAT4X4	Proj;
+		DirectX::XMFLOAT4X4	InvProj;
+		DirectX::XMFLOAT4X4	ViewProj;
+		DirectX::XMFLOAT4X4	InvViewProj;
+		DirectX::XMFLOAT4	ShadowTexelSize = { 0.f, 0.f, 0.f, 0.f };
+		DirectX::XMFLOAT3	CameraPos;
 		float				cbPerObjectPad1 = 0.0f;
 		DirectX::XMFLOAT2	RenderTargetSize = { 0.0f, 0.0f };
 		DirectX::XMFLOAT2	InvRenderTargetSize = { 0.0f, 0.0f };
@@ -37,37 +30,37 @@ namespace Darius::Renderer::ConstantFrameResource
 		float				FarZ = 0.0f;
 		float				TotalTime = 0.0f;
 		float				DeltaTime = 0.0f;
-		XMFLOAT4			AmbientLight;
+		DirectX::XMFLOAT4	AmbientLight;
 		float IBLRange;
 		float IBLBias;
 	};
 
 	ALIGN_DECL_256 struct MeshConstants
 	{
-		Matrix4					mWorld;
-		Matrix3					mWorldIT;
+		D_MATH::Matrix4			mWorld;
+		D_MATH::Matrix3			mWorldIT;
 	};
 
 	struct Joint
 	{
-		XMFLOAT4X4				mWorld;
-		XMFLOAT3X3				mWorldIT;
+		DirectX::XMFLOAT4X4				mWorld;
+		DirectX::XMFLOAT3X3				mWorldIT;
 	};
 
 	// Color structure for color batches
 	ALIGN_DECL_256 struct ColorConstants
 	{
-		XMFLOAT4		Color;
+		DirectX::XMFLOAT4		Color;
 	};
 
 #pragma warning(push)
 #pragma warning(disable: 4201)
 	ALIGN_DECL_256 struct MaterialConstants
 	{
-		XMFLOAT4					DifuseAlbedo = { 1.f, 1.f, 1.f, 1.f };
-		XMFLOAT3					FresnelR0 = { 0.56f, 0.56f, 0.56f };
+		DirectX::XMFLOAT4			DifuseAlbedo = { 1.f, 1.f, 1.f, 1.f };
+		DirectX::XMFLOAT3			FresnelR0 = { 0.56f, 0.56f, 0.56f };
 		int _pad1;
-		XMFLOAT3					Emissive = { 0.f, 0.f, 0.f };
+		DirectX::XMFLOAT3			Emissive = { 0.f, 0.f, 0.f };
 		float						Metallic = 0.f;
 		float						Roughness = 0.f;
 		struct
@@ -111,12 +104,12 @@ namespace Darius::Renderer::ConstantFrameResource
 				D3D12_GPU_DESCRIPTOR_HANDLE	MaterialSRV;
 			} Material;
 
-			XMFLOAT4					Color = { 1.f, 1.f, 1.f, 1.f };
+			DirectX::XMFLOAT4			Color = { 1.f, 1.f, 1.f, 1.f };
 		};
 
 		// Geometry associated with this render-item. Note that multiple
 		// render-items can share the same goemetry.
-		Mesh const* Mesh = nullptr;
+		D_RENDERER_GEOMETRY::Mesh const* Mesh = nullptr;
 
 		// Primitive topology.
 		D3D12_PRIMITIVE_TOPOLOGY	PrimitiveType = D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
@@ -145,7 +138,7 @@ namespace Darius::Renderer::ConstantFrameResource
 
 		// We cannot reset the allocator until the GPU is done processing the
 		// commands. So each frame needs their own allocator.
-		ComPtr<ID3D12CommandAllocator>					CmdListAlloc;
+		Microsoft::WRL::ComPtr<ID3D12CommandAllocator>					CmdListAlloc;
 
 		// Fence value to mark commands up to this fence point. This lets us
 		// check if these frame resources are still in use by the GPU.

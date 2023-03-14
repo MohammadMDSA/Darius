@@ -30,23 +30,23 @@ namespace Darius::Graphics
 		virtual void						Update(float dt) override;
 		virtual void						OnDestroy() override;
 
-		void								SetMesh(ResourceHandle handle);
-		void								SetMaterial(ResourceHandle handle);
+		void								SetMesh(D_RESOURCE::ResourceHandle handle);
+		void								SetMaterial(D_RESOURCE::ResourceHandle handle);
 
-		RenderItem							GetRenderItem();
+		D_RENDERER_FRAME_RESOURCE::RenderItem GetRenderItem();
 
 
 		INLINE bool							CanRender() { return IsActive() && mMeshResource.IsValid(); }
-		INLINE const BoundingSphere&		GetBounds() const { return mMeshResource.Get()->GetMeshData()->mBoundSp; }
+		INLINE const D_MATH_BOUNDS::BoundingSphere& GetBounds() const { return mMeshResource.Get()->GetMeshData()->mBoundSp; }
 
 		INLINE D3D12_GPU_VIRTUAL_ADDRESS	GetConstantsAddress() { return mMeshConstantsGPU.GetGpuVirtualAddress(); }
 
-		D_CH_RW_FIELD(bool,					CastsShadow);
+		D_CH_RW_FIELD(bool, CastsShadow);
 
 	private:
 
-		void								_SetMesh(ResourceHandle handle);
-		void								_SetMaterial(ResourceHandle handle);
+		void								_SetMesh(D_RESOURCE::ResourceHandle handle);
+		void								_SetMaterial(D_RESOURCE::ResourceHandle handle);
 
 		INLINE uint16_t						GetPsoIndex()
 		{
@@ -69,12 +69,12 @@ namespace Darius::Graphics
 		}
 
 
-		Ref<StaticMeshResource>				mMeshResource;
-		Ref<MaterialResource>				mMaterialResource;
+		D_CORE::Ref<StaticMeshResource>		mMeshResource;
+		D_CORE::Ref<MaterialResource>		mMaterialResource;
 
 		// Gpu buffers
 		D_GRAPHICS_BUFFERS::UploadBuffer	mMeshConstantsCPU[D_RENDERER_FRAME_RESOURCE::gNumFrameResources];
-		ByteAddressBuffer					mMeshConstantsGPU;
+		D_GRAPHICS_BUFFERS::ByteAddressBuffer mMeshConstantsGPU;
 
 		uint16_t							mComponentPsoFlags;
 		uint16_t							mCachedMaterialPsoFlags;

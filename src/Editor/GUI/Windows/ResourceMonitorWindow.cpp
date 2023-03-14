@@ -7,8 +7,9 @@
 
 #include <imgui.h>
 
-using namespace D_RESOURCE;
+using namespace D_CONTAINERS;
 using namespace D_CORE;
+using namespace D_RESOURCE;
 
 namespace Darius::Editor::Gui::Windows
 {

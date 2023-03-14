@@ -19,10 +19,10 @@ namespace Darius::Core
 
 #define D_H_SIGNAL_DEFINITION(name, ...) \
 D_CORE::Signal<__VA_ARGS__> name##Signal; \
-SignalConnection SubscribeOn##name(std::function<__VA_ARGS__> callback) { return name##Signal.connect(callback); }
+D_CORE::SignalConnection SubscribeOn##name(std::function<__VA_ARGS__> callback) { return name##Signal.connect(callback); }
 
 #define D_H_SIGNAL_DECL(name, ...) \
-SignalConnection SubscribeOn##name(std::function<__VA_ARGS__> callback);
+D_CORE::SignalConnection SubscribeOn##name(std::function<__VA_ARGS__> callback);
 
 #define D_CH_SIGNAL(name, ...) \
 private: \

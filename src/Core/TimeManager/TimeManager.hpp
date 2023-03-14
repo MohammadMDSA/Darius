@@ -8,8 +8,6 @@
 #define D_TIME Darius::Core::TimeManager
 #endif // !D_TIME_MANAGER
 
-using namespace Microsoft::WRL;
-
 namespace Darius::Core::TimeManager
 {
 	void Initialize(D_SERIALIZATION::Json const& settings);

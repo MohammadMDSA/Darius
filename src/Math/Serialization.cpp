@@ -1,9 +1,11 @@
-#include "Scene/pch.hpp"
-#include "Serializer.hpp"
+#pragma once
+
+#include "Serialization.hpp"
 
 #include <Core/Containers/Vector.hpp>
 
 using namespace D_CONTAINERS;
+using namespace DirectX;
 
 namespace D_MATH
 {

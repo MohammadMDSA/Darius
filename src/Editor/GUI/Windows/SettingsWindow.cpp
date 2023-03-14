@@ -10,6 +10,7 @@
 #include <Libs/FontIcon/IconsFontAwesome6.h>
 
 using namespace D_FILE;
+using namespace D_SERIALIZATION;
 
 namespace Darius::Editor::Gui::Windows
 {

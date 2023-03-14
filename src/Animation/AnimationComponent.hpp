@@ -31,20 +31,20 @@ namespace Darius::Animation
 #endif // _D_EDITOR
 
 		// Serialization
-		virtual void					Serialize(Json& j) const override;
-		virtual void					Deserialize(Json const& j) override;
+		virtual void					Serialize(D_SERIALIZATION::Json& j) const override;
+		virtual void					Deserialize(D_SERIALIZATION::Json const& j) override;
 
 		virtual void					Update(float deltaTime) override;
 		virtual void					Awake() override;
 
-		void							SetAnimation(ResourceHandle handle);
+		void							SetAnimation(D_RESOURCE::ResourceHandle handle);
 
 		D_CH_RW_FIELD(bool, RootMotion);
 		D_CH_RW_FIELD_ACC(AnimationState, AnimState, protected);
 
 	private:
 
-		void							_SetAnimation(ResourceHandle handle);
+		void							_SetAnimation(D_RESOURCE::ResourceHandle handle);
 		void							CreateAnimationToJointIndexMap();
 
 		D_CORE::Ref<AnimationResource>			mAnimationResource;

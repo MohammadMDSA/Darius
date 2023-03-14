@@ -22,8 +22,6 @@ namespace Darius::Graphics
     class CommandContext;
 }
 
-using namespace Darius::Graphics;
-
 namespace Darius::Graphics::Utils::Profiling::GPU
 {
     void Initialize(uint32_t MaxNumTimers = 4096);

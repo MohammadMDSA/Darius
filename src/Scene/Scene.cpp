@@ -21,8 +21,11 @@
 
 #include <fstream>
 
-using namespace D_MEMORY;
+using namespace D_CONTAINERS;
 using namespace D_CORE;
+using namespace D_FILE;
+using namespace D_MEMORY;
+using namespace D_SERIALIZATION;
 
 namespace Darius::Scene
 {

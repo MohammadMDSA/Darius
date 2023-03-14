@@ -66,8 +66,8 @@ namespace D_EDITOR
 
 			if (up.GetY() < 0.f)
 			{
-				mCurrentPitch = XM_PI - mCurrentPitch;
-				mCurrentHeading += XM_PI;
+				mCurrentPitch = DirectX::XM_PI - mCurrentPitch;
+				mCurrentHeading += DirectX::XM_PI;
 			}
 
 			mDirtyOrientation = false;
@@ -109,10 +109,10 @@ namespace D_EDITOR
 		mCurrentPitch -= pitch;
 
 		mCurrentHeading -= yaw;
-		if (mCurrentHeading > XM_PI)
-			mCurrentHeading -= XM_2PI;
-		else if (mCurrentHeading <= -XM_PI)
-			mCurrentHeading += XM_2PI;
+		if (mCurrentHeading > DirectX::XM_PI)
+			mCurrentHeading -= DirectX::XM_2PI;
+		else if (mCurrentHeading <= -DirectX::XM_PI)
+			mCurrentHeading += DirectX::XM_2PI;
 
 		auto orientation = Matrix3(mWorldEast, mWorldUp, -mWorldNorth) * Matrix3::MakeYRotation(mCurrentHeading) * Matrix3::MakeXRotation(mCurrentPitch);
 
@@ -124,14 +124,14 @@ namespace D_EDITOR
 	void FlyingFPSCamera::SetHeadingPitchAndPosition(float heading, float pitch, const Vector3& position)
 	{
 		mCurrentHeading = heading;
-		if (mCurrentHeading > XM_PI)
-			mCurrentHeading -= XM_2PI;
-		else if (mCurrentHeading <= -XM_PI)
-			mCurrentHeading += XM_2PI;
+		if (mCurrentHeading > DirectX::XM_PI)
+			mCurrentHeading -= DirectX::XM_2PI;
+		else if (mCurrentHeading <= -DirectX::XM_PI)
+			mCurrentHeading += DirectX::XM_2PI;
 
 		mCurrentPitch = pitch;
-		mCurrentPitch = XMMin(XM_PIDIV2, mCurrentPitch);
-		mCurrentPitch = XMMax(-XM_PIDIV2, mCurrentPitch);
+		mCurrentPitch = DirectX::XMMin(DirectX::XM_PIDIV2, mCurrentPitch);
+		mCurrentPitch = DirectX::XMMax(-DirectX::XM_PIDIV2, mCurrentPitch);
 
 		Matrix3 orientation =
 			Matrix3(mWorldEast, mWorldUp, -mWorldNorth) *
@@ -218,14 +218,14 @@ namespace D_EDITOR
 		auto rotationAngles = mTargetCamera.GetRotation().Angles();
 
 		float mCurrentPitch = pitch + rotationAngles.GetX();
-		mCurrentPitch = XMMin(XM_PIDIV2, mCurrentPitch);
-		mCurrentPitch = XMMax(-XM_PIDIV2, mCurrentPitch);
+		mCurrentPitch = DirectX::XMMin(DirectX::XM_PIDIV2, mCurrentPitch);
+		mCurrentPitch = DirectX::XMMax(-DirectX::XM_PIDIV2, mCurrentPitch);
 
 		float mCurrentHeading = -yaw + rotationAngles.GetY();
-		if (mCurrentHeading > XM_PI)
-			mCurrentHeading -= XM_2PI;
-		else if (mCurrentHeading <= -XM_PI)
-			mCurrentHeading += XM_2PI;
+		if (mCurrentHeading > DirectX::XM_PI)
+			mCurrentHeading -= DirectX::XM_2PI;
+		else if (mCurrentHeading <= -DirectX::XM_PI)
+			mCurrentHeading += DirectX::XM_2PI;
 
 		mCurrentCloseness += closeness;
 		mCurrentCloseness = Clamp(mCurrentCloseness, 0.0f, 1.0f);

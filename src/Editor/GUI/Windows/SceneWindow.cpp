@@ -18,6 +18,15 @@
 #include <ImGuizmo.h>
 #include <Libs/FontIcon/IconsFontAwesome6.h>
 
+using namespace D_CONTAINERS;
+using namespace D_GRAPHICS;
+using namespace D_MATH;
+using namespace D_MATH_BOUNDS;
+using namespace D_RENDERER;
+using namespace D_RENDERER_FRAME_RESOURCE;
+using namespace D_RENDERER_GEOMETRY;
+using namespace DirectX;
+
 namespace Darius::Editor::Gui::Windows
 {
 	SceneWindow::SceneWindow(D_SERIALIZATION::Json const& config) :

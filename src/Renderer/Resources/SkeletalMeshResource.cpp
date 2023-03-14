@@ -17,14 +17,14 @@ namespace Darius::Graphics
 		Destroy();
 		SetName(GetName());
 
-		DVector<D_GRAPHICS_VERTEX::VertexPositionNormalTangentTextureSkinned> vertices;
-		DVector<std::uint16_t> indices;
+		D_CONTAINERS::DVector<D_GRAPHICS_VERTEX::VertexPositionNormalTangentTextureSkinned> vertices;
+		D_CONTAINERS::DVector<std::uint16_t> indices;
 
 		// Filling vertex and index data
 		for (int i = 0; i < data.MeshData.Vertices.size(); i++)
 		{
 			auto const& meshVertex = data.MeshData.Vertices[i];
-			vertices.push_back(D_GRAPHICS_VERTEX::VertexPositionNormalTangentTextureSkinned(meshVertex.mPosition, Vector3(meshVertex.mNormal).Normalize(), meshVertex.mTangent, meshVertex.mTexC, meshVertex.mBlendIndices, meshVertex.mBlendWeights));
+			vertices.push_back(D_GRAPHICS_VERTEX::VertexPositionNormalTangentTextureSkinned(meshVertex.mPosition, D_MATH::Vector3(meshVertex.mNormal).Normalize(), meshVertex.mTangent, meshVertex.mTexC, meshVertex.mBlendIndices, meshVertex.mBlendWeights));
 		}
 		for (int i = 0; i < data.MeshData.Indices32.size(); i++)
 		{

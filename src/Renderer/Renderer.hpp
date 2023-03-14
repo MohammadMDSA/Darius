@@ -14,12 +14,6 @@
 #define D_RENDERER Darius::Renderer
 #define D_DEVICE D_RENDERER_DEVICE
 
-using namespace D_MATH;
-using namespace D_MATH::Camera;
-using namespace D_RENDERER_DEVICE;
-using namespace D_GRAPHICS_BUFFERS;
-using namespace D_GRAPHICS;
-
 namespace Darius::Renderer
 {
 	extern UINT PassCbvOffset;
@@ -101,7 +95,7 @@ namespace Darius::Renderer
 
 		}
 
-		void SetCamera(const BaseCamera& camera) { m_Camera = &camera; }
+		void SetCamera(const D_MATH_CAMERA::BaseCamera& camera) { m_Camera = &camera; }
 		void SetViewport(const D3D12_VIEWPORT& viewport) { m_Viewport = viewport; }
 		void SetScissor(const D3D12_RECT& scissor) { m_Scissor = scissor; }
 		void AddRenderTarget(D_GRAPHICS_BUFFERS::ColorBuffer& RTV)
@@ -111,15 +105,15 @@ namespace Darius::Renderer
 		}
 		void SetDepthStencilTarget(D_GRAPHICS_BUFFERS::DepthBuffer& DSV) { m_DSV = &DSV; }
 
-		const Frustum& GetWorldFrustum() const { return m_Camera->GetWorldSpaceFrustum(); }
-		const Frustum& GetViewFrustum() const { return m_Camera->GetViewSpaceFrustum(); }
-		const Matrix4& GetViewMatrix() const { return m_Camera->GetViewMatrix(); }
+		const D_MATH_CAMERA::Frustum& GetWorldFrustum() const { return m_Camera->GetWorldSpaceFrustum(); }
+		const D_MATH_CAMERA::Frustum& GetViewFrustum() const { return m_Camera->GetViewSpaceFrustum(); }
+		const D_MATH::Matrix4& GetViewMatrix() const { return m_Camera->GetViewMatrix(); }
 
-		void AddMesh(RenderItem const& renderItem, float distance);
+		void AddMesh(D_RENDERER_FRAME_RESOURCE::RenderItem const& renderItem, float distance);
 
 		void Sort();
 
-		void RenderMeshes(DrawPass pass, D_GRAPHICS::GraphicsContext& context, GlobalConstants& globals);
+		void RenderMeshes(DrawPass pass, D_GRAPHICS::GraphicsContext& context, D_RENDERER_FRAME_RESOURCE::GlobalConstants& globals);
 
 		size_t CountObjects() const { return m_SortObjects.size(); }
 
@@ -148,7 +142,7 @@ namespace Darius::Renderer
 
 		struct SortObject
 		{
-			RenderItem const renderItem;
+			D_RENDERER_FRAME_RESOURCE::RenderItem const renderItem;
 		};
 
 		D_CONTAINERS::DVector<SortObject> m_SortObjects;
@@ -158,7 +152,7 @@ namespace Darius::Renderer
 		DrawPass m_CurrentPass;
 		uint32_t m_CurrentDraw;
 
-		const BaseCamera* m_Camera;
+		const D_MATH_CAMERA::BaseCamera* m_Camera;
 		D3D12_VIEWPORT m_Viewport;
 		D3D12_RECT m_Scissor;
 		uint32_t m_NumRTVs;
@@ -186,7 +180,7 @@ namespace Darius::Renderer
 #endif
 
 #ifdef _D_EDITOR
-	DescriptorHandle		AllocateUiTexture(UINT count = 1);
+	D_GRAPHICS_MEMORY::DescriptorHandle AllocateUiTexture(UINT count = 1);
 	void					RenderGui();
 #endif
 
@@ -195,7 +189,7 @@ namespace Darius::Renderer
 	D_GRAPHICS_UTILS::RootSignature& GetRootSignature(RootSignatureTypes type);
 
 	// Set IBL properties
-	void					SetIBLTextures(D_CORE::Ref<TextureResource>& diffuseIBL, D_CORE::Ref<TextureResource>& specularIBL);
+	void					SetIBLTextures(D_CORE::Ref<D_GRAPHICS::TextureResource>& diffuseIBL, D_CORE::Ref<D_GRAPHICS::TextureResource>& specularIBL);
 	void					SetIBLBias(float LODBias);
 
 	// PSO Getter
@@ -203,6 +197,6 @@ namespace Darius::Renderer
 
 	void					DrawSkybox(D_GRAPHICS::GraphicsContext& context, const D_MATH_CAMERA::BaseCamera& camera, D_GRAPHICS_BUFFERS::ColorBuffer& sceneColor, D_GRAPHICS_BUFFERS::DepthBuffer& sceneDepth, const D3D12_VIEWPORT& viewport, const D3D12_RECT& scissor);
 
-	DescriptorHandle		AllocateTextureDescriptor(UINT count = 1);
+	D_GRAPHICS_MEMORY::DescriptorHandle AllocateTextureDescriptor(UINT count = 1);
 }
 #pragma warning(pop)

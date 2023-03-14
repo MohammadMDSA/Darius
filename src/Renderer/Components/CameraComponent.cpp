@@ -2,12 +2,13 @@
 #include "CameraComponent.hpp"
 
 #include <Renderer/Camera/CameraManager.hpp>
-#include <Scene/Utils/Serializer.hpp>
 #include <Scene/Utils/DetailsDrawer.hpp>
 
 #include <imgui.h>
 
-using namespace D_LIGHT;
+using namespace D_MATH;
+using namespace D_SERIALIZATION;
+using namespace DirectX;
 
 namespace Darius::Graphics
 {

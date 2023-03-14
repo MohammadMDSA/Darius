@@ -14,10 +14,6 @@
 #define D_GRAPHICS Darius::Graphics
 #endif
 
-using namespace D_RENDERER_FRAME_RESOURCE;
-using namespace D_GRAPHICS_BUFFERS;
-using namespace D_CORE;
-
 namespace Darius::Graphics
 {
 	class DResourceManager;
@@ -27,8 +23,8 @@ namespace Darius::Graphics
 		D_CH_RESOURCE_BODY(MaterialResource, "Material", ".mat")
 		
 	public:
-		INLINE MaterialConstants*			ModifyMaterialData() { MakeDiskDirty(); MakeGpuDirty(); return &mMaterial; }
-		INLINE const MaterialConstants*		GetMaterialData() const { return &mMaterial; }
+		INLINE D_RENDERER_FRAME_RESOURCE::MaterialConstants* ModifyMaterialData() { MakeDiskDirty(); MakeGpuDirty(); return &mMaterial; }
+		INLINE const D_RENDERER_FRAME_RESOURCE::MaterialConstants* GetMaterialData() const { return &mMaterial; }
 		INLINE D3D12_GPU_DESCRIPTOR_HANDLE	GetTexturesHandle() const { return mTexturesHeap; }
 		INLINE uint16_t						GetPsoFlags() const { return mPsoFlags; }
 		void								SetTexture(D_RESOURCE::ResourceHandle textureHandle, D_RENDERER::TextureType type);
@@ -37,17 +33,17 @@ namespace Darius::Graphics
 		virtual bool						DrawDetails(float params[]) override;
 #endif // _D_EDITOR
 
-		INLINE operator const MaterialConstants* () const { return &mMaterial; }
-		INLINE operator MaterialConstants*() { ModifyMaterialData(); }
+		INLINE operator const D_RENDERER_FRAME_RESOURCE::MaterialConstants* () const { return &mMaterial; }
+		INLINE operator D_RENDERER_FRAME_RESOURCE::MaterialConstants*() { ModifyMaterialData(); }
 
 		INLINE operator D3D12_GPU_VIRTUAL_ADDRESS() const { return mMaterialConstantsGPU.GetGpuVirtualAddress(); }
 
-		INLINE operator CountedOwner const() {
-			return CountedOwner{ GetName(), "Material Resource", this, 0 };
+		INLINE operator D_CORE::CountedOwner const() {
+			return D_CORE::CountedOwner{ GetName(), "Material Resource", this, 0 };
 		}
 
 #define TextureSetter(type) \
-inline void Set##type##Texture(D_RESOURCE::ResourceHandle textureHandle) { SetTexture(textureHandle, k##type); }
+inline void Set##type##Texture(D_RESOURCE::ResourceHandle textureHandle) { SetTexture(textureHandle, D_RENDERER::k##type); }
 			
 		TextureSetter(BaseColor);
 		TextureSetter(Metallic);
@@ -56,12 +52,12 @@ inline void Set##type##Texture(D_RESOURCE::ResourceHandle textureHandle) { SetTe
 		TextureSetter(Emissive);
 		TextureSetter(Normal);
 
-		D_CH_FIELD(MaterialConstants, Material);
-		D_CH_R_FIELD(Ref<D_GRAPHICS::TextureResource>, BaseColorTexture);
-		D_CH_R_FIELD(Ref<D_GRAPHICS::TextureResource>, NormalTexture);
-		D_CH_R_FIELD(Ref<D_GRAPHICS::TextureResource>, MetallicTexture);
-		D_CH_R_FIELD(Ref<D_GRAPHICS::TextureResource>, RoughnessTexture);
-		D_CH_R_FIELD(Ref<D_GRAPHICS::TextureResource>, EmissiveTexture);
+		D_CH_FIELD(D_RENDERER_FRAME_RESOURCE::MaterialConstants, Material);
+		D_CH_R_FIELD(D_CORE::Ref<D_GRAPHICS::TextureResource>, BaseColorTexture);
+		D_CH_R_FIELD(D_CORE::Ref<D_GRAPHICS::TextureResource>, NormalTexture);
+		D_CH_R_FIELD(D_CORE::Ref<D_GRAPHICS::TextureResource>, MetallicTexture);
+		D_CH_R_FIELD(D_CORE::Ref<D_GRAPHICS::TextureResource>, RoughnessTexture);
+		D_CH_R_FIELD(D_CORE::Ref<D_GRAPHICS::TextureResource>, EmissiveTexture);
 		D_CH_R_FIELD(D_RESOURCE::ResourceHandle, BaseColorTextureHandle);
 		D_CH_R_FIELD(D_RESOURCE::ResourceHandle, NormalTextureHandle);
 		D_CH_R_FIELD(D_RESOURCE::ResourceHandle, MetallicTextureHandle);
@@ -78,12 +74,12 @@ inline void Set##type##Texture(D_RESOURCE::ResourceHandle textureHandle) { SetTe
 	private:
 		friend class DResourceManager;
 
-		MaterialResource(Uuid uuid, std::wstring const& path, std::wstring const& name, D_RESOURCE::DResourceId id, bool isDefault = false);
+		MaterialResource(D_CORE::Uuid uuid, std::wstring const& path, std::wstring const& name, D_RESOURCE::DResourceId id, bool isDefault = false);
 
 		D_GRAPHICS_BUFFERS::UploadBuffer	mMaterialConstantsCPU[D_RENDERER_FRAME_RESOURCE::gNumFrameResources];
-		ByteAddressBuffer					mMaterialConstantsGPU;
+		D_GRAPHICS_BUFFERS::ByteAddressBuffer mMaterialConstantsGPU;
 
-		DescriptorHandle					mTexturesHeap;
+		D_GRAPHICS_MEMORY::DescriptorHandle	mTexturesHeap;
 
 		uint16_t							mPsoFlags;
 

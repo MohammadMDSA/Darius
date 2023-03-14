@@ -1,5 +1,7 @@
 #include "Quaternion.hpp"
 
+using namespace DirectX;
+
 namespace Darius::Math
 {
 #ifdef _D_EDITOR

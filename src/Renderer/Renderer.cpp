@@ -31,15 +31,17 @@
 
 #include <filesystem>
 
-
-using namespace Microsoft::WRL;
-
-using namespace Darius::Math;
-using namespace Darius::Renderer::DeviceResource;
-using namespace Darius::Renderer::GraphicsUtils;
-using namespace D_RENDERER_GEOMETRY;
+using namespace D_CONTAINERS;
+using namespace D_MATH;
+using namespace D_MATH_BOUNDS;
+using namespace D_GRAPHICS;
 using namespace D_GRAPHICS_MEMORY;
 using namespace D_GRAPHICS_UTILS;
+using namespace D_RENDERER_DEVICE;
+using namespace D_RENDERER_FRAME_RESOURCE;
+using namespace D_RENDERER_GEOMETRY;
+using namespace D_RESOURCE;
+using namespace Microsoft::WRL;
 
 #define VertexData(il) il::InputLayout.NumElements, il::InputLayout.pInputElementDescs
 #define ShaderData(name) Shaders[name]->GetBufferPointer(), Shaders[name]->GetBufferSize()
@@ -107,7 +109,7 @@ namespace Darius::Renderer
 			D_CAMERA_MANAGER::SetViewportDimansion((float)width, (float)height);
 		}
 
-		void RegisterDeviceNotify(IDeviceNotify* notify)
+		void RegisterDeviceNotify(D_DEVICE_RESOURCE::IDeviceNotify* notify)
 		{
 			Resources->RegisterDeviceNotify(notify);
 		}

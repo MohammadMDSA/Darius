@@ -10,8 +10,6 @@
 #define D_ANIMATION Darius::Animation
 #endif // !D_ANIMATION
 
-using namespace D_RESOURCE;
-
 namespace Darius::Animation
 {
 	class AnimationResource : public D_RESOURCE::Resource
@@ -31,14 +29,14 @@ namespace Darius::Animation
 
 		D_CONTAINERS::DUnorderedMap<std::string, int> const& GetSkeletonNameIndexMap() const { return mSkeletonNameIndexMap; }
 
-		static DVector<ResourceDataInFile> CanConstructFrom(ResourceType type, Path const& path);
+		static D_CONTAINERS::DVector<D_RESOURCE::ResourceDataInFile> CanConstructFrom(D_RESOURCE::ResourceType type, D_FILE::Path const& path);
 
 		D_CH_R_FIELD_ACC(AnimationLayer, AnimationData, protected)
-		D_CH_R_FIELD_ACC(DVector<AnimationCurve>, CurvesData, protected)
-		D_CH_R_FIELD_ACC(DVector<Keyframe>, Keyframes, protected)
+		D_CH_R_FIELD_ACC(D_CONTAINERS::DVector<AnimationCurve>, CurvesData, protected)
+		D_CH_R_FIELD_ACC(D_CONTAINERS::DVector<Keyframe>, Keyframes, protected)
 
 	protected:
-		AnimationResource(Uuid uuid, std::wstring const& path, std::wstring const& name, DResourceId id, bool isDefault = false) :
+		AnimationResource(D_CORE::Uuid uuid, std::wstring const& path, std::wstring const& name, D_RESOURCE::DResourceId id, bool isDefault = false) :
 			Resource(uuid, path, name, id, isDefault),
 			mAnimationData() {}
 

@@ -39,7 +39,7 @@ namespace Darius::Math
 		INLINE OrthogonalTransform(const Matrix3& mat) : m_rotation(mat), m_translation(kZero) {}
 		INLINE OrthogonalTransform(const Matrix3& mat, Vector3 translate) : m_rotation(mat), m_translation(translate) {}
 		INLINE OrthogonalTransform(EIdentityTag) : m_rotation(kIdentity), m_translation(kZero) {}
-		INLINE explicit OrthogonalTransform(const XMMATRIX& mat) { *this = OrthogonalTransform(Matrix3(mat), Vector3(mat.r[3])); }
+		INLINE explicit OrthogonalTransform(const DirectX::XMMATRIX& mat) { *this = OrthogonalTransform(Matrix3(mat), Vector3(mat.r[3])); }
 
 		INLINE void SetRotation(Quaternion q) { m_rotation = q; }
 		INLINE void SetTranslation(Vector3 v) { m_translation = v; }
@@ -55,7 +55,7 @@ namespace Darius::Math
 		INLINE Vector3 operator* (Vector3 vec) const { return m_rotation * vec + m_translation; }
 		INLINE Vector4 operator* (Vector4 vec) const {
 			return
-				Vector4(SetWToZero(m_rotation * Vector3((XMVECTOR)vec))) +
+				Vector4(SetWToZero(m_rotation * Vector3((DirectX::XMVECTOR)vec))) +
 				Vector4(SetWToOne(m_translation)) * vec.GetW();
 		}
 
@@ -91,7 +91,7 @@ namespace Darius::Math
 			m_repr = Vector4(translate);
 			m_repr.SetW(scale);
 		}
-		INLINE explicit ScaleAndTranslation(const XMVECTOR& v)
+		INLINE explicit ScaleAndTranslation(const DirectX::XMVECTOR& v)
 			: m_repr(v) {}
 
 		INLINE void SetScale(Scalar s) { m_repr.SetW(s); }
@@ -166,10 +166,10 @@ namespace Darius::Math
 		}
 		INLINE AffineTransform(EIdentityTag)
 			: m_basis(kIdentity), m_translation(kZero) {}
-		INLINE explicit AffineTransform(const XMMATRIX& mat)
+		INLINE explicit AffineTransform(const DirectX::XMMATRIX& mat)
 			: m_basis(mat), m_translation(mat.r[3]) {}
 
-		INLINE operator XMMATRIX() const { return (XMMATRIX&)*this; }
+		INLINE operator DirectX::XMMATRIX() const { return (DirectX::XMMATRIX&)*this; }
 
 		INLINE void SetX(Vector3 x) { m_basis.SetX(x); }
 		INLINE void SetY(Vector3 y) { m_basis.SetY(y); }
@@ -185,9 +185,9 @@ namespace Darius::Math
 		INLINE Vector3 GetTranslation() const { return m_translation; }
 		INLINE const Matrix3& GetBasis() const { return (const Matrix3&)*this; }
 		INLINE Matrix3& GetBasis() { return m_basis; }
-		INLINE Vector3 GetScale() const { XMVECTOR tmp1, tmp2, scale; XMMatrixDecompose(&scale, &tmp1, &tmp2, m_basis); return Vector3(scale); }
-		INLINE Quaternion GetRotation() const { XMVECTOR tmp1, tmp2, quat; XMMatrixDecompose(&tmp1, &quat, &tmp2, m_basis); return Quaternion(quat); }
-		INLINE void GetComponents(Vector3& translation, Quaternion& rotation, Vector3& scale) const { XMVECTOR& scl = scale, rot = rotation; XMVECTOR tmp; translation = m_translation; XMMatrixDecompose(&scl, &rot, &tmp, m_basis); }
+		INLINE Vector3 GetScale() const { DirectX::XMVECTOR tmp1, tmp2, scale; DirectX::XMMatrixDecompose(&scale, &tmp1, &tmp2, m_basis); return Vector3(scale); }
+		INLINE Quaternion GetRotation() const { DirectX::XMVECTOR tmp1, tmp2, quat; DirectX::XMMatrixDecompose(&tmp1, &quat, &tmp2, m_basis); return Quaternion(quat); }
+		INLINE void GetComponents(Vector3& translation, Quaternion& rotation, Vector3& scale) const { DirectX::XMVECTOR& scl = scale, rot = rotation; DirectX::XMVECTOR tmp; translation = m_translation; DirectX::XMMatrixDecompose(&scl, &rot, &tmp, m_basis); }
 
 		static INLINE AffineTransform MakeXRotation(float angle) { return AffineTransform(Matrix3::MakeXRotation(angle)); }
 		static INLINE AffineTransform MakeYRotation(float angle) { return AffineTransform(Matrix3::MakeYRotation(angle)); }
@@ -210,7 +210,7 @@ namespace Darius::Math
 	struct Transform
 	{
 		Transform() :
-			Translation(kZero),
+			Translation(D_MATH::kZero),
 			Rotation(kIdentity),
 			Scale(kOne) {}
 
@@ -224,28 +224,28 @@ namespace Darius::Math
 			other.GetComponents(Translation, Rotation, Scale);
 		}
 
-		Transform(XMMATRIX world)
+		Transform(DirectX::XMMATRIX world)
 		{
 			SetWorld(world);
 		}
 
-		XMMATRIX GetWorld() const
+		DirectX::XMMATRIX GetWorld() const
 		{
-			return  XMMatrixScalingFromVector(Scale) * XMMatrixRotationQuaternion(Rotation) * XMMatrixTranslationFromVector(Translation);
+			return  DirectX::XMMatrixScalingFromVector(Scale) * DirectX::XMMatrixRotationQuaternion(Rotation) * DirectX::XMMatrixTranslationFromVector(Translation);
 		}
 
-		void SetWorld(XMMATRIX world)
+		void SetWorld(DirectX::XMMATRIX world)
 		{
-			XMVECTOR scl, rot, trans;
+			DirectX::XMVECTOR scl, rot, trans;
 			XMMatrixDecompose(&scl, &rot, &trans, world);
 			Scale = Vector3(scl);
 			Rotation = Quaternion(rot);
 			Translation = Vector3(trans);
 		}
 
-		INLINE operator XMMATRIX const() { return GetWorld(); }
+		INLINE operator DirectX::XMMATRIX const() { return GetWorld(); }
 
-		INLINE Vector3 operator* (Vector3 vec) const { return Vector3(XMVector3Transform(vec, GetWorld())); }
+		INLINE Vector3 operator* (Vector3 vec) const { return Vector3(DirectX::XMVector3Transform(vec, GetWorld())); }
 
 		INLINE Transform operator* (const Transform& mat) const {
 			return GetWorld() * mat.GetWorld();

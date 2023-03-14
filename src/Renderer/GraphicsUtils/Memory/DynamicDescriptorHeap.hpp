@@ -28,11 +28,6 @@ namespace Darius::Graphics
     class CommandContext;
 }
 
-using namespace D_GRAPHICS_UTILS;
-using namespace Darius::Graphics;
-
-using namespace DirectX;
-
 namespace Darius::Graphics::Utils::Memory
 {
     // This class is a linear allocation system for dynamically generated descriptor tables.  It internally caches

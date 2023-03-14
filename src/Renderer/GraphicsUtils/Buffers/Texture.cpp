@@ -205,7 +205,7 @@ namespace Darius::Graphics::Utils::Buffers
 			(const uint8_t*)filePtr, fileSize, 0, sRGB, &mResource, mCpuDescriptorHandle);
 
 		DirectX::TexMetadata meta;
-		DirectX::GetMetadataFromDDSMemory(filePtr, fileSize, DDS_FLAGS_NONE, meta);
+		DirectX::GetMetadataFromDDSMemory(filePtr, fileSize, DirectX::DDS_FLAGS_NONE, meta);
 
 #ifdef _D_EDITOR
 		memcpy(&mMetaData, &meta, sizeof(DirectX::TexMetadata));

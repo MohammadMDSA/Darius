@@ -19,8 +19,17 @@
 #include <ResourceManager/ResourceManager.hpp>
 #include <Utils/Assert.hpp>
 
+using namespace D_CONTAINERS;
+using namespace D_CORE;
+using namespace D_FILE;
 using namespace D_GRAPHICS_MEMORY;
 using namespace D_GRAPHICS_BUFFERS;
+using namespace D_GRAPHICS_UTILS;
+using namespace D_MATH;
+using namespace D_RENDERER_GEOMETRY;
+using namespace D_RESOURCE;
+using namespace DirectX;
+using namespace Microsoft::WRL;
 
 namespace Darius::Graphics
 {

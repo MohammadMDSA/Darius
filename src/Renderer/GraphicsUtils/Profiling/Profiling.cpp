@@ -21,6 +21,7 @@
 #include <Core/TimeManager/SystemTime.hpp>
 
 using namespace D_GRAPHICS;
+using namespace D_MATH;
 
 namespace Darius::Graphics::Utils::Profiling
 {

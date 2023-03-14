@@ -24,8 +24,6 @@
 #define D_PROFILING Darius::Graphics::Utils::Profiling
 #endif
 
-using namespace D_GRAPHICS;
-
 namespace Darius::Graphics::Utils::Profiling
 {
 	class StatHistory;
@@ -126,8 +124,8 @@ namespace Darius::Graphics::Utils::Profiling
 				{
 					++ValidCount;
 					m_Average += val;
-					m_Minimum = XMMin(val, m_Minimum);
-					m_Maximum = XMMax(val, m_Maximum);
+					m_Minimum = std::min(val, m_Minimum);
+					m_Maximum = std::max(val, m_Maximum);
 				}
 			}
 
