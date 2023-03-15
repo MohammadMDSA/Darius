@@ -27,7 +27,7 @@
 #include <Scene/EntityComponentSystem/Components/TransformComponent.hpp>
 #include <Utils/Assert.hpp>
 
-#include <ImGuiFileDialog/ImGuiFileDialog.h>
+#include <Libs/imgui_wrapper/ImGuiFileDialog/ImGuiFileDialog.h>
 #include <Libs/FontIcon/IconsFontAwesome6.h>
 #include <imgui.h>
 #include <imgui_impl_dx12.h>
