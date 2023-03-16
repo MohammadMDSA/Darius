@@ -5,29 +5,40 @@
 
 <img src="Docs/overview.png" width="100%">
 
+---
+
 ## Features
 - Resource Management
     - Default: PBR Material, Texture (DDS, TGA), Static and Skeletal Mesh (FBX), Animation (FBX), Vertex Batch Resources, and Physics Material
     - Dynamic Resource Type Registration (You can define your own types)
 - Renderer
-    - Frustum Culling
+    - DirectX 12 Vendor
     - Physics-Based Rendering (PBR) Materials
         - Diffuse, Normal, Roughness, Metallic, and Emissive Textures Mapping
         - Diffuse Albedo, Emissive, Metallic, and Roughness Components
-        - Opaque and Transparent
-    - Basic Lights (Point, Cone, and Directional)
+        - Opaque, Transparent, and Cutoff
+    - Lighting
+        - Shadow Mapping
     - Skybox
+    - Static and Skinned Mesh Rendering
+    - Optimizations
+        - Frustum Culling
+        - Separate Z Pass
+        - Pipeline Caching
     - PIX Debugging Integration
 - Debug
     - Debug Draws
 - Scene Management
     - Saving & Loading
-    - Dynamic Entity Component System
+    - Entity Component System Architecture
+    - Scene Graph and Hierarchical Transform Math
 - Physics
     - Dynamic, Static, and Kinematic Actors
     - Physics Material
-    - Collision Detection
-    - Ray Casting
+    - Collision Handling
+        - Box, and Sphere Colliders
+    - Scene Query
+        - Ray Casting
 - Editor
     - Resource Monitor
     - Ghost and Orbit Cameras
@@ -41,8 +52,30 @@
     - Framerate Metrics (Last, Max, Avg)
     - Framerate Graphs
     - CPU Frame Snapshot and Flame Graph
-- Scene Graph and Hierarchical Transform Math
 - And so much more!
+
+---
+
+### PBR Material
+<img width="49%" src="Docs/MetallicRoughness.png">
+<img width="49%" src="Docs/PBR.png">
+
+<br>
+
+### Lighting
+![](Docs/Lighting.png)
+
+<br>
+
+### Mesh Rendering (Skinned and Static)
+![](Docs/MeshRendering.png)
+
+<br>
+
+### Skinned Mesh Animation
+![](Docs/SkinnedMeshAnimation.png)
+
+---
 
 ## Installing
 
