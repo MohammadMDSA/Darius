@@ -90,6 +90,7 @@ namespace Darius::Scene
 		void								VisitChildren(std::function<void(GameObject*)> callback) const;
 		void								VisitDescendants(std::function<void(GameObject*)> callback) const;
 		UINT								CountChildren();
+		INLINE bool							IsValid() const { return !mDeleted && mEntity.is_valid(); }
 
 		template<class T>
 		T* GetComponent()

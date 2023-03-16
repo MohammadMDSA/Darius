@@ -59,9 +59,18 @@ namespace Darius::Scene
 		float lineHeight = GImGui->Font->FontSize + GImGui->Style.FramePadding.y * 2.0f;
 
 		// Drawing game object header
-		char* name = const_cast<char*>(mName.c_str());
 		ImGui::SetNextItemWidth(contentRegionAvailable.x - lineHeight * 0.5f - 10.f);
-		ImGui::InputText("##ObjectName", name, 30);
+
+		// Setting Gameobject name
+		{
+			char name[32];
+			size_t curNameSize = mName.size();
+			memcpy(name, mName.c_str(), sizeof(char) * curNameSize);
+			ZeroMemory(name + curNameSize, 32 - curNameSize);
+			if (ImGui::InputText("##ObjectName", name, 30))
+				mName = std::string(name);
+		}
+
 		bool active = mActive;
 		ImGui::SameLine(contentRegionAvailable.x - lineHeight * 0.5f);
 		if (ImGui::Checkbox("##Active", &active))
