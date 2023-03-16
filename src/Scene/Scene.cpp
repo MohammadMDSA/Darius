@@ -146,6 +146,9 @@ namespace Darius::Scene
 
 	void SceneManager::DeleteGameObject(GameObject* go)
 	{
+		if (go->mDeleted || !go->mEntity.is_valid())
+			return;
+
 		go->VisitChildren([&](GameObject* child)
 			{
 				DeleteGameObject(child);
@@ -153,6 +156,14 @@ namespace Darius::Scene
 
 		go->mDeleted = true;
 		ToBeDeleted.push_back(go);
+	}
+
+	void SceneManager::DeleteGameObjectImmediately(GameObject* go)
+	{
+		DeleteGameObject(go);
+
+		RemoveDeleted();
+		World.progress();
 	}
 
 	void SceneManager::DeleteGameObjectData(GameObject* go)
@@ -313,17 +324,10 @@ namespace Darius::Scene
 
 	void SceneManager::Unload()
 	{
-		Root.children([&](D_ECS::Entity ent)
-			{
-				DeleteGameObject((*EntityMap)[ent]);
-			});
-
-		GOs->clear();
-		World.progress();
+		ClearScene();
 		SceneName = "";
 		ScenePath = Path();
 		Loaded = false;
-		Running = false;
 	}
 
 	void SceneManager::ClearScene()
@@ -333,8 +337,8 @@ namespace Darius::Scene
 				DeleteGameObject((*EntityMap)[ent]);
 			});
 
-		GOs->clear();
 		RemoveDeleted();
+		GOs->clear();
 		World.progress();
 		Running = false;
 	}

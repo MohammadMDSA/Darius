@@ -28,6 +28,7 @@ namespace Darius::Scene
 
 		static GameObject*		CreateGameObject();
 		static void				DeleteGameObject(GameObject* go);
+		static void				DeleteGameObjectImmediately(GameObject* go);
 		static void				GetGameObjects(D_CONTAINERS::DVector<GameObject*>& container);
 		
 		static GameObject*		GetGameObject(D_ECS::Entity entity);
