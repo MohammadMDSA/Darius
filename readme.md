@@ -57,8 +57,8 @@
 ---
 
 ### PBR Material
-<img width="49%" src="Docs/MetallicRoughness.png">
-<img width="49%" src="Docs/PBR.png">
+<img width="49%" display="inline-block" src="Docs/MetallicRoughness.png">
+<img width="49%" display="inline-block" src="Docs/PBR.png">
 
 <br>
 
