@@ -80,9 +80,12 @@ namespace Darius::Editor::Gui::Windows
 
 			if (ImGui::Selectable("Delete"))
 			{
-				D_WORLD::DeleteGameObject(go);
+				D_WORLD::DeleteGameObjectImmediately(go);
 				if (selected)
 					D_EDITOR_CONTEXT::SetSelectedGameObject(nullptr);
+				ImGui::EndPopup();
+				ImGui::TreePop();
+				return;
 			}
 
 			ImGui::EndPopup();

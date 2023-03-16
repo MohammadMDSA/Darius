@@ -70,6 +70,10 @@ namespace Darius::Editor::Context
 	GameObject* GetSelectedGameObject()
 	{
 		D_ASSERT(_initialized);
+
+		if (SelectedGameObject && !SelectedGameObject->IsValid())
+			SetSelectedGameObject(nullptr);
+
 		return SelectedGameObject;
 	}
 
