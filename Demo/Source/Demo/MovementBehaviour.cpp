@@ -30,7 +30,7 @@ namespace Demo
 		auto trans = GetTransform();
 		trans.Translation = D_MATH::Vector3(0.f, D_MATH::Cos(time * 2) * 5, 0.f);
 		if (mRotate)
-			trans.Rotation = D_MATH::Quaternion(D_MATH::Vector3::Up(), time);
+			trans.Rotation = D_MATH::Quaternion(D_MATH::Vector3::Up, time);
 		SetTransform(trans);
 	}
 

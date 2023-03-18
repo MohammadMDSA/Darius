@@ -4,6 +4,20 @@
 
 namespace Darius::Math
 {
+	 const Vector3 Vector3::Up = Vector3(0.f, 1.f, 0.f);
+	 const Vector3 Vector3::Down = Vector3(0.f, -1.f, 0.f);
+	 const Vector3 Vector3::Left = Vector3(-1.f, 0.f, 0.f);
+	 const Vector3 Vector3::Right = Vector3(1.f, 0.f, 0.f);
+	 const Vector3 Vector3::Forward = Vector3(0.f, 0.f, -1.f);
+	 const Vector3 Vector3::Backward = Vector3(0.f, 0.f, 1.f);
+
+	 const Vector4 Vector4::Up = Vector4(0.f, 1.f, 0.f, 0.f);
+	 const Vector4 Vector4::Down = Vector4(0.f, -1.f, 0.f, 0.f);
+	 const Vector4 Vector4::Left = Vector4(-1.f, 0.f, 0.f, 0.f);
+	 const Vector4 Vector4::Right = Vector4(1.f, 0.f, 0.f, 0.f);
+	 const Vector4 Vector4::Forward = Vector4(0.f, 0.f, -1.f, 0.f);
+	 const Vector4 Vector4::Backward = Vector4(0.f, 0.f, 1.f, 0.f);
+
 #ifdef _D_EDITOR
 
 	bool DrawDetails(D_MATH::Vector3& elem, float params[])

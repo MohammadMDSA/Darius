@@ -60,9 +60,9 @@ namespace Darius::Math
         INLINE Scalar GetZ() const { return Scalar(DirectX::XMVectorSplatZ(m_vec)); }
         INLINE Scalar GetW() const { return Scalar(DirectX::XMVectorSplatW(m_vec)); }
 
-        INLINE Vector3 GetForward() const { return *this * Vector3::Forward(); }
-        INLINE Vector3 GetRight() const { return *this * Vector3::Right(); }
-        INLINE Vector3 GetUp() const { return *this * Vector3::Up(); }
+        INLINE Vector3 GetForward() const { return *this * Vector3::Forward; }
+        INLINE Vector3 GetRight() const { return *this * Vector3::Right; }
+        INLINE Vector3 GetUp() const { return *this * Vector3::Up; }
 
         INLINE Quaternion operator~ (void) const { return Quaternion(DirectX::XMQuaternionConjugate(m_vec)); }
         INLINE Quaternion operator- (void) const { return Quaternion(DirectX::XMVectorNegate(m_vec)); }

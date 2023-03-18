@@ -130,7 +130,7 @@ namespace Darius::Math
 		return Quaternion(Matrix3(x, y, z));
 	}
 
-	INLINE Quaternion LookAt(Vector3 const& dir) { return LookAt(dir, Vector3::Up()); }
+	INLINE Quaternion LookAt(Vector3 const& dir) { return LookAt(dir, Vector3::Up); }
 
 	INLINE Quaternion RotationOfVectors(Vector3 const& first, Vector3 const& second)
 	{

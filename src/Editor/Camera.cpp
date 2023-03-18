@@ -62,7 +62,7 @@ namespace D_EDITOR
 			mCurrentPitch = angles.GetX();
 			mCurrentHeading = angles.GetY();
 
-			auto up = rot * Vector3::Up();
+			auto up = rot * Vector3::Up;
 
 			if (up.GetY() < 0.f)
 			{

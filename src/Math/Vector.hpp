@@ -73,12 +73,12 @@ namespace Darius::Math
         INLINE friend Vector3 operator* (float   v1, Vector3 v2) { return Scalar(v1) * v2; }
         INLINE friend Vector3 operator/ (float   v1, Vector3 v2) { return Scalar(v1) / v2; }
 
-        static INLINE Vector3 Up() { return Vector3(0.f, 1.f, 0.f); }
-        static INLINE Vector3 Down() { return Vector3(0.f, -1.f, 0.f); }
-        static INLINE Vector3 Left() { return Vector3(-1.f, 0.f, 0.f); }
-        static INLINE Vector3 Right() { return Vector3(1.f, 0.f, 0.f); }
-        static INLINE Vector3 Forward() { return Vector3(0.f, 0.f, -1.f); }
-        static INLINE Vector3 Backward() { return Vector3(0.f, 0.f, 1.f); }
+        static const Vector3 Up;
+        static const Vector3 Down;
+        static const Vector3 Left;
+        static const Vector3 Right;
+        static const Vector3 Forward;
+        static const Vector3 Backward;
 
     protected:
         DirectX::XMVECTOR m_vec;
@@ -134,6 +134,13 @@ namespace Darius::Math
         INLINE friend Vector4 operator/ (Scalar  v1, Vector4 v2) { return Vector4(v1) / v2; }
         INLINE friend Vector4 operator* (float   v1, Vector4 v2) { return Scalar(v1) * v2; }
         INLINE friend Vector4 operator/ (float   v1, Vector4 v2) { return Scalar(v1) / v2; }
+
+        static const Vector4 Up;
+        static const Vector4 Down;
+        static const Vector4 Left;
+        static const Vector4 Right;
+        static const Vector4 Forward;
+        static const Vector4 Backward;
 
     protected:
         DirectX::XMVECTOR m_vec;

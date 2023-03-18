@@ -20,7 +20,7 @@ namespace Darius::Graphics
 		mCamera.SetFOV(XM_PI / 3);
 		mCamera.SetZRange(0.001f, 10000.f);
 		mCamera.SetPosition(Vector3(2.f, 2.f, 2.f));
-		mCamera.SetLookDirection(Vector3(-2), Vector3::Up());
+		mCamera.SetLookDirection(Vector3(-2), Vector3::Up);
 		mCamera.SetOrthographicSize(10);
 		mCamera.SetOrthographic(false);
 	}
@@ -31,7 +31,7 @@ namespace Darius::Graphics
 		mCamera.SetFOV(XM_PI / 3);
 		mCamera.SetZRange(0.001f, 10000.f);
 		mCamera.SetPosition(Vector3(2.f, 2.f, 2.f));
-		mCamera.SetLookDirection(Vector3(-2), Vector3::Up());
+		mCamera.SetLookDirection(Vector3(-2), Vector3::Up);
 		mCamera.SetOrthographicSize(10);
 		mCamera.SetOrthographic(false);
 	}

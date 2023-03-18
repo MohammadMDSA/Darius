@@ -34,8 +34,8 @@ namespace Darius::Editor::Gui::Windows
 {
 	SceneWindow::SceneWindow(D_SERIALIZATION::Json const& config) :
 		Window(config),
-		mFlyingCam(mCamera, Vector3::Up()),
-		mOrbitCam(mCamera, D_MATH_BOUNDS::BoundingSphere(0.f, 0.f, 0.f, 5.f), Vector3::Up()),
+		mFlyingCam(mCamera, Vector3::Up),
+		mOrbitCam(mCamera, D_MATH_BOUNDS::BoundingSphere(0.f, 0.f, 0.f, 5.f), Vector3::Up),
 		mManipulateOperation(ImGuizmo::OPERATION::TRANSLATE),
 		mManipulateMode(ImGuizmo::MODE::LOCAL),
 		mDrawGrid(true),
@@ -49,7 +49,7 @@ namespace Darius::Editor::Gui::Windows
 		mCamera.SetFOV(XM_PI / 3);
 		mCamera.SetZRange(0.001f, 10000.f);
 		mCamera.SetPosition(Vector3(2.f, 2.f, 2.f));
-		mCamera.SetLookDirection(Vector3(-2), Vector3::Up());
+		mCamera.SetLookDirection(Vector3(-2), Vector3::Up);
 		mCamera.SetOrthographicSize(10);
 		mCamera.SetOrthographic(false);
 		ImGuizmo::SetOrthographic(true);
@@ -445,7 +445,7 @@ namespace Darius::Editor::Gui::Windows
 	void SceneWindow::CalcGridLineConstants(DVector<MeshConstants>& constants, int count)
 	{
 		auto scale = Matrix4::MakeScale(count * 2);
-		auto rot = Matrix4::MakeLookAt(Vector3(kZero), Vector3(-1.f, 0.f, 0.f), Vector3::Up());
+		auto rot = Matrix4::MakeLookAt(Vector3(kZero), Vector3(-1.f, 0.f, 0.f), Vector3::Up);
 
 		for (short i = 0; i <= count; i++)
 		{
