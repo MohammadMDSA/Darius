@@ -853,7 +853,7 @@ namespace Darius::Renderer::Geometry::ModelLoader::Fbx
 		for (int i = 0; i < 4; i++)
 		{
 			if (i < blendData.size())
-				pos += Matrix4(weights[i] * blendData[i].second.second) * vertex.mPosition;
+				pos += Vector3(Matrix4(weights[i] * blendData[i].second.second) * vertex.mPosition);
 		}
 
 		vertex.mPosition = (DirectX::XMFLOAT3)pos;

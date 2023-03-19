@@ -34,7 +34,7 @@ namespace Darius::Graphics
 		for (int i = 0; i < data.MeshData.Vertices.size(); i++)
 		{
 			auto const& meshVertex = data.MeshData.Vertices[i];
-			vertices.push_back(D_GRAPHICS_VERTEX::VertexPositionNormalTangentTexture(meshVertex.mPosition, Vector3(meshVertex.mNormal).Normalize(), meshVertex.mTangent, meshVertex.mTexC));
+			vertices.push_back(D_GRAPHICS_VERTEX::VertexPositionNormalTangentTexture(meshVertex.mPosition, D_MATH::Normalize(meshVertex.mNormal), meshVertex.mTangent, meshVertex.mTexC));
 		}
 		for (int i = 0; i < data.MeshData.Indices32.size(); i++)
 		{

@@ -187,7 +187,7 @@ namespace Darius::Math
 		INLINE Matrix3& GetBasis() { return m_basis; }
 		INLINE Vector3 GetScale() const { DirectX::XMVECTOR tmp1, tmp2, scale; DirectX::XMMatrixDecompose(&scale, &tmp1, &tmp2, m_basis); return Vector3(scale); }
 		INLINE Quaternion GetRotation() const { DirectX::XMVECTOR tmp1, tmp2, quat; DirectX::XMMatrixDecompose(&tmp1, &quat, &tmp2, m_basis); return Quaternion(quat); }
-		INLINE void GetComponents(Vector3& translation, Quaternion& rotation, Vector3& scale) const { DirectX::XMVECTOR& scl = scale, rot = rotation; DirectX::XMVECTOR tmp; translation = m_translation; DirectX::XMMatrixDecompose(&scl, &rot, &tmp, m_basis); }
+		INLINE void GetComponents(Vector3& translation, Quaternion& rotation, Vector3& scale) const { DirectX::XMVECTOR scl = scale, rot = rotation; DirectX::XMVECTOR tmp; translation = m_translation; DirectX::XMMatrixDecompose(&scl, &rot, &tmp, m_basis); }
 
 		static INLINE AffineTransform MakeXRotation(float angle) { return AffineTransform(Matrix3::MakeXRotation(angle)); }
 		static INLINE AffineTransform MakeYRotation(float angle) { return AffineTransform(Matrix3::MakeYRotation(angle)); }
