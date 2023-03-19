@@ -27,6 +27,10 @@
 #define INVOKE_STATIC_CONSTRUCTOR(ClassName) \
 		INVOKE_STATIC_CONSTRUCTOR_EXPANDED(ClassName)
 
+#define STATIC_CONST_DEST() \
+STATIC_CONSTRUCTOR(); \
+STATIC_DESTRUCTOR()
+
 
 // OPTIONAL macros to help to declare the header of the static constructor/destructor:
 // place the calls to these macros inside the definition of the class/template, in a .H file

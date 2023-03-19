@@ -1,4 +1,5 @@
 #pragma once
+#include "StaticConstructor.hpp"
 
 #define INLINE __forceinline
 #define NODISCARD [[nodiscard]]
