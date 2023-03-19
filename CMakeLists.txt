@@ -145,6 +145,9 @@ set(Boost_ARCHITECTURE "-x64")
 # Adding PhysX Includes
 include_directories("src/Libs/PhysX/include")
 
+# Adding rttr
+add_subdirectory("src/Libs/rttr")
+
 if(NOT DEFINED BOOST_ROOT)
     set(BOOST_ROOT $ENV{Boost_ROOT})
 endif(NOT DEFINED BOOST_ROOT)
@@ -315,6 +318,13 @@ if(WIN32)
 endif()
 
 set_property(DIRECTORY PROPERTY VS_STARTUP_PROJECT ${PROJECT_NAME})
+
+message(sdfsdfdsf ${RTTR_FRAMEWORK_INSTALL_DIR})
+
+add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different 
+        "$<TARGET_FILE_DIR:rttr_core>/rttr_core_d.dll"
+        $<TARGET_FILE_DIR:${PROJECT_NAME}>)
 
 add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy_directory
