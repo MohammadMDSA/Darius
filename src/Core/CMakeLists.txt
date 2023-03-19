@@ -9,6 +9,7 @@ list(APPEND CORE_LIBS_INCLUDE
 	"Containers/Set.hpp"
 	"Containers/List.hpp"
 	"Serialization/Json.hpp"
+	"Serialization/TypeSerializer.hpp"
 	"Exceptions/Exception.hpp"
 	"TimeManager/StepTimer.hpp"
 	"TimeManager/TimeManager.hpp"
@@ -31,6 +32,7 @@ list(APPEND CORE_LIBS_SOURCES
 	"TimeManager/SystemTime.cpp"
 	"Containers/Containers.cpp"
 	"Serialization/Json.cpp"
+	"Serialization/TypeSerializer.cpp"
 	"Filesystem/FileUtils.cpp"
 	"Memory/Memory.cpp"
 	"Signal.cpp"
@@ -63,12 +65,14 @@ endif()
 include_directories(SYSTEM ${Boost_INCLUDE_DIRS})
 
 target_include_directories("Core"
+PUBLIC
+	"${SOURCE_DIR}/Libs/rttr/include"
 PRIVATE
 	".."
 	${Boost_INCLUDE_DIRS}
 )
 
-target_link_libraries("Core" PUBLIC Utils PRIVATE ${Boost_LIBRARIES} DirectXTK12)
+target_link_libraries("Core" PUBLIC Utils rttr_core PRIVATE ${Boost_LIBRARIES} DirectXTK12)
 
 if(BUILD_TESTS)
 	set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/../../cmake")
