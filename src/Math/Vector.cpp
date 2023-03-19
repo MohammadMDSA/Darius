@@ -2,21 +2,25 @@
 #include "imgui.h"
 #include "imgui_internal.h"
 
+#include <Core/Serialization/TypeSerializer.hpp>
+
+#include <rttr/registration.h>
+
 namespace Darius::Math
 {
-	 const Vector3 Vector3::Up = Vector3(0.f, 1.f, 0.f);
-	 const Vector3 Vector3::Down = Vector3(0.f, -1.f, 0.f);
-	 const Vector3 Vector3::Left = Vector3(-1.f, 0.f, 0.f);
-	 const Vector3 Vector3::Right = Vector3(1.f, 0.f, 0.f);
-	 const Vector3 Vector3::Forward = Vector3(0.f, 0.f, -1.f);
-	 const Vector3 Vector3::Backward = Vector3(0.f, 0.f, 1.f);
+	const Vector3 Vector3::Up = Vector3(0.f, 1.f, 0.f);
+	const Vector3 Vector3::Down = Vector3(0.f, -1.f, 0.f);
+	const Vector3 Vector3::Left = Vector3(-1.f, 0.f, 0.f);
+	const Vector3 Vector3::Right = Vector3(1.f, 0.f, 0.f);
+	const Vector3 Vector3::Forward = Vector3(0.f, 0.f, -1.f);
+	const Vector3 Vector3::Backward = Vector3(0.f, 0.f, 1.f);
 
-	 const Vector4 Vector4::Up = Vector4(0.f, 1.f, 0.f, 0.f);
-	 const Vector4 Vector4::Down = Vector4(0.f, -1.f, 0.f, 0.f);
-	 const Vector4 Vector4::Left = Vector4(-1.f, 0.f, 0.f, 0.f);
-	 const Vector4 Vector4::Right = Vector4(1.f, 0.f, 0.f, 0.f);
-	 const Vector4 Vector4::Forward = Vector4(0.f, 0.f, -1.f, 0.f);
-	 const Vector4 Vector4::Backward = Vector4(0.f, 0.f, 1.f, 0.f);
+	const Vector4 Vector4::Up = Vector4(0.f, 1.f, 0.f, 0.f);
+	const Vector4 Vector4::Down = Vector4(0.f, -1.f, 0.f, 0.f);
+	const Vector4 Vector4::Left = Vector4(-1.f, 0.f, 0.f, 0.f);
+	const Vector4 Vector4::Right = Vector4(1.f, 0.f, 0.f, 0.f);
+	const Vector4 Vector4::Forward = Vector4(0.f, 0.f, -1.f, 0.f);
+	const Vector4 Vector4::Backward = Vector4(0.f, 0.f, 1.f, 0.f);
 
 #ifdef _D_EDITOR
 
@@ -325,5 +329,34 @@ namespace Darius::Math
 	}
 
 #endif // _D_EDITOR
+
+	INVOKE_STATIC_CONSTRUCTOR(Vector3);
+
+	void Vector3::StaticConstructor()
+	{
+		rttr::registration::class_<Vector3>("Darius::Math::Vector3")
+			.property("X", &Vector3::x)
+			.property("Y", &Vector3::y)
+			.property("Z", &Vector3::z);
+	}
+
+	void Vector3::StaticDestructor()
+	{
+
+	}
+
+	void Vector4::StaticConstructor()
+	{
+		rttr::registration::class_<Vector4>("Darius::Math::Vector4")
+			.property("X", &Vector4::x)
+			.property("Y", &Vector4::y)
+			.property("Z", &Vector4::z)
+			.property("W", &Vector4::w);
+	}
+
+	void Vector4::StaticDestructor()
+	{
+
+	}
 
 }

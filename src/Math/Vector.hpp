@@ -80,6 +80,8 @@ namespace Darius::Math
 		static const Vector3 Forward;
 		static const Vector3 Backward;
 
+		STATIC_CONST_DEST();
+
 	protected:
 #pragma warning(push)
 #pragma warning(disable: 4201)
@@ -151,6 +153,8 @@ namespace Darius::Math
 		static const Vector4 Right;
 		static const Vector4 Forward;
 		static const Vector4 Backward;
+
+		STATIC_CONST_DEST();
 
 	protected:
 
