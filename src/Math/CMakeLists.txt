@@ -70,7 +70,7 @@ PRIVATE
 
 target_link_libraries("Math" PRIVATE ${Boost_LIBRARIES})
 # target_link_libraries("Math" PRIVATE DirectXTK12)
-target_link_libraries("Math" PRIVATE IMGUI PUBLIC Utils)
+target_link_libraries("Math" PRIVATE IMGUI PUBLIC Utils Core)
 
 
 if(BUILD_TESTS)
@@ -79,5 +79,5 @@ if(BUILD_TESTS)
 	add_compile_definitions(BOOST_TEST_LOG_LEVEL=all)
 	add_compile_definitions(BOOST_TEST_DETECT_MEMORY_LEAK=1)
 	add_compile_definitions(BOOST_TEST_SHOW_PROGRESS=yes)
-	# add_boost_test(SOURCE "Tests/MathTests.cpp" INCLUDE "." LINK Math PREFIX Math)
+	add_boost_test(SOURCE "Tests/MathTests.cpp" INCLUDE "." LINK Math PREFIX Math)
 endif(BUILD_TESTS)
