@@ -16,3 +16,6 @@
 [submodule "src/Libs/DirectXTex"]
 	path = src/Libs/DirectXTex
 	url = https://github.com/microsoft/DirectXTex
+[submodule "DariusHeaderTool"]
+	path = DariusHeaderTool
+	url = https://github.com/MohammadMDSA/DariusHeaderTool
