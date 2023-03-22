@@ -8,7 +8,7 @@
 #include <Core/Serialization/Json.hpp>
 #include <Core/Exceptions/Exception.hpp>
 #include <Core/Containers/Set.hpp>
-#include <Math/VectorMath.hpp>
+#include <Math/Transform.hpp>
 #include <Renderer/Geometry/Mesh.hpp>
 #include <Renderer/Geometry/Mesh.hpp>
 #include <Renderer/CommandContext.hpp>
@@ -16,9 +16,14 @@
 #include <Renderer/GraphicsUtils/Buffers/GpuBuffer.hpp>
 #include <Utils/Detailed.hpp>
 
+#include <rttr/registration.h>
+#include <rttr/registration_friend.h>
+
 #include <map>
 #include <functional>
 #include <type_traits>
+
+#include <GameObject.generated.hpp>
 
 #ifndef D_SCENE
 #define D_SCENE Darius::Scene
@@ -39,13 +44,12 @@ namespace Darius::Scene
 {
 	class SceneManager;
 	class GameObject;
-
-	void to_json(D_SERIALIZATION::Json& j, const GameObject& value);
-	void from_json(const D_SERIALIZATION::Json& j, GameObject& value);
-
-	class GameObject : public Detailed
+	
+	class DClass(Serialize) GameObject : public Detailed
 	{
 	public:
+		Darius_Scene_GameObject_GENERATED
+
 		enum class Type
 		{
 			Static,
@@ -56,7 +60,7 @@ namespace Darius::Scene
 
 		// Transform helpers
 		void								SetLocalTransform(D_MATH::Transform const& trans);
-		D_MATH::Transform const& GetLocalTransform() const;
+		D_MATH::Transform const&			GetLocalTransform() const;
 
 		INLINE void							SetTransform(D_MATH::Transform const& trans)
 		{
@@ -173,15 +177,10 @@ namespace Darius::Scene
 		static void							RegisterComponent(std::string name, D_CONTAINERS::DVector<std::string>& displayName);
 		static void							RegisterBehaviourComponent(D_ECS::EntityId componentId);
 
-		D_CH_R_FIELD(bool, Active);
 		D_CH_RW_FIELD(std::string, Name);
 		D_CH_RW_FIELD(Type, Type);
 		D_CH_R_FIELD_CONST(D_CORE::Uuid, Uuid);
 		D_CH_FIELD(D_ECS::Entity, Entity);
-		D_CH_R_FIELD(bool, Started);
-		D_CH_R_FIELD(bool, Awake);
-		D_CH_R_FIELD(bool, Deleted);
-		D_CH_R_FIELD(GameObject*, Parent);
 
 		struct ComponentAddressNode
 		{
@@ -206,6 +205,21 @@ namespace Darius::Scene
 		void								DrawComponentNameContext(D_CONTAINERS::DMap<std::string, GameObject::ComponentAddressNode> const& componentNameTree);
 #endif // _D_EDITOR
 
+		DField(Get[inline])
+		bool					mActive;
+		
+		DField(Get[inline])
+		bool					mStarted;
+		
+		DField(Get[inline])
+		bool					mAwake;
+		
+		DField(Get[inline])
+		bool					mDeleted;
+
+		DField(Get[const, inline])
+		GameObject*				mParent;
+
 
 		// Comp name and display name
 		static D_CONTAINERS::DMap<std::string, GameObject::ComponentAddressNode> RegisteredComponents;
@@ -221,3 +235,5 @@ namespace Darius::Scene
 
 	void from_json(const D_SERIALIZATION::Json& j, GameObject& value);
 }
+
+File_GameObject_GENERATED

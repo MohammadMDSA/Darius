@@ -11,6 +11,8 @@
 #include <imgui.h>
 #include <Libs/FontIcon/IconsFontAwesome6.h>
 
+#include "ContentWindow.sgenerated.hpp"
+
 using namespace D_CONTAINERS;
 using namespace D_FILE;
 

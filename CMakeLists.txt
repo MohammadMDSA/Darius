@@ -20,9 +20,9 @@ set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
-set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin/CMake")
-set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin/CMake")
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin/CMake")
+set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin/${CMAKE_BUILD_TYPE}")
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin/${CMAKE_BUILD_TYPE}")
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin/${CMAKE_BUILD_TYPE}")
 
 set(SOURCE_DIR "${CMAKE_SOURCE_DIR}/src")
 
@@ -164,6 +164,9 @@ endif()
 # Adding DirectXTK 12
 add_subdirectory("${SOURCE_DIR}/Libs/DirectXTK12" "${CMAKE_BINARY_DIR}/bin/CMake/DirectXTK12")
 
+# Adding Darius Header Tool
+add_subdirectory("${CMAKE_SOURCE_DIR}/DariusHeaderTool")
+
 # Adding fjs
 # add_subdirectory("src/Libs/fjs")
 
@@ -209,7 +212,7 @@ endif(BUILD_TESTS)
 ##############################
 
 add_subdirectory("Demo/Source")
-target_link_libraries(DEMO PRIVATE Debug Physics Scene IMGUI)
+target_link_libraries(DEMO PUBLIC DariusEngine PRIVATE IMGUI)
 target_include_directories(DEMO PRIVATE "src")
 target_link_libraries(${PROJECT_NAME} PRIVATE DEMO)
 
@@ -287,7 +290,7 @@ if ( CMAKE_CXX_COMPILER_ID MATCHES "MSVC" )
          "/wd4265" "/wd4625" "/wd4626" "/wd4986" "/wd5204" "/wd5220"
          "/wd4324"
          "/wd5026" "/wd5027" "/wd4623" "/wd5038" "/wd4244"
-         "/wd4464" "/wd4127" "/wd5205")
+         "/wd4464" "/wd4127" "/wd4371" "/wd5205" "/wd5032" "/wd5219" "/wd4868")
 
     if(ENABLE_CODE_ANALYSIS)
         target_compile_options(${PROJECT_NAME} PRIVATE /analyze)
@@ -319,8 +322,26 @@ endif()
 
 set_property(DIRECTORY PROPERTY VS_STARTUP_PROJECT ${PROJECT_NAME})
 
-message(sdfsdfdsf ${RTTR_FRAMEWORK_INSTALL_DIR})
 
+# Generating Code before compile
+get_target_property(DARIUS_INCLUDES ${PROJECT_NAME} INCLUDE_DIRECTORIES)
+add_custom_target(DariusGeneratorCommand
+                    WORKING_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}
+                    COMMAND DariusCodeGenerator ${SOURCE_DIR} ${SOURCE_DIR} ${DARIUS_INCLUDES} && DariusCodeGenerator ${CMAKE_SOURCE_DIR}/Demo/Source/Demo ${DARIUS_INCLUDES}
+                    COMMENT "Generating Darius Headers")
+
+# Defining CMAKE project dependencies
+    
+add_dependencies(DariusGeneratorCommand DariusCodeGenerator)
+foreach(DLib IN ${DARIUS_LIBS})
+    add_dependencies(${DLib} DariusGeneratorCommand)
+endforeach()
+add_dependencies(DEMO DariusGeneratorCommand)
+add_dependencies(${PROJECT_NAME} DariusGeneratorCommand)
+
+message(sdfsdfsdfdf ${CMAKE_CXX_STANDARD})
+
+# Copying rttr dll to build directory
 add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy_if_different 
         "$<TARGET_FILE_DIR:rttr_core>/rttr_core_d.dll"

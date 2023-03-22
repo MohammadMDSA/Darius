@@ -10,6 +10,8 @@
 #include <ResourceManager/Resource.hpp>
 #include <Core/Ref.hpp>
 
+#include "MaterialResource.generated.hpp"
+
 #ifndef D_GRAPHICS
 #define D_GRAPHICS Darius::Graphics
 #endif
@@ -18,11 +20,13 @@ namespace Darius::Graphics
 {
 	class DResourceManager;
 
-	class MaterialResource : public D_RESOURCE::Resource
+	class DClass(Serialize) MaterialResource : public D_RESOURCE::Resource
 	{
 		D_CH_RESOURCE_BODY(MaterialResource, "Material", ".mat")
 		
 	public:
+		Darius_Graphics_MaterialResource_GENERATED
+
 		INLINE D_RENDERER_FRAME_RESOURCE::MaterialConstants* ModifyMaterialData() { MakeDiskDirty(); MakeGpuDirty(); return &mMaterial; }
 		INLINE const D_RENDERER_FRAME_RESOURCE::MaterialConstants* GetMaterialData() const { return &mMaterial; }
 		INLINE D3D12_GPU_DESCRIPTOR_HANDLE	GetTexturesHandle() const { return mTexturesHeap; }
@@ -53,16 +57,6 @@ inline void Set##type##Texture(D_RESOURCE::ResourceHandle textureHandle) { SetTe
 		TextureSetter(Normal);
 
 		D_CH_FIELD(D_RENDERER_FRAME_RESOURCE::MaterialConstants, Material);
-		D_CH_R_FIELD(D_CORE::Ref<D_GRAPHICS::TextureResource>, BaseColorTexture);
-		D_CH_R_FIELD(D_CORE::Ref<D_GRAPHICS::TextureResource>, NormalTexture);
-		D_CH_R_FIELD(D_CORE::Ref<D_GRAPHICS::TextureResource>, MetallicTexture);
-		D_CH_R_FIELD(D_CORE::Ref<D_GRAPHICS::TextureResource>, RoughnessTexture);
-		D_CH_R_FIELD(D_CORE::Ref<D_GRAPHICS::TextureResource>, EmissiveTexture);
-		D_CH_R_FIELD(D_RESOURCE::ResourceHandle, BaseColorTextureHandle);
-		D_CH_R_FIELD(D_RESOURCE::ResourceHandle, NormalTextureHandle);
-		D_CH_R_FIELD(D_RESOURCE::ResourceHandle, MetallicTextureHandle);
-		D_CH_R_FIELD(D_RESOURCE::ResourceHandle, RoughnessTextureHandle);
-		D_CH_R_FIELD(D_RESOURCE::ResourceHandle, EmissiveTextureHandle);
 
 	protected:
 
@@ -76,6 +70,39 @@ inline void Set##type##Texture(D_RESOURCE::ResourceHandle textureHandle) { SetTe
 
 		MaterialResource(D_CORE::Uuid uuid, std::wstring const& path, std::wstring const& name, D_RESOURCE::DResourceId id, bool isDefault = false);
 
+
+		
+		DField(Get[const, &, inline])
+		D_CORE::Ref<D_GRAPHICS::TextureResource>	mBaseColorTexture;
+		
+		DField(Get[const, &, inline])
+		D_CORE::Ref<D_GRAPHICS::TextureResource>	mNormalTexture;
+		
+		DField(Get[const, &, inline])
+		D_CORE::Ref<D_GRAPHICS::TextureResource>	mMetallicTexture;
+		
+		DField(Get[const, &, inline])
+		D_CORE::Ref<D_GRAPHICS::TextureResource>	mRoughnessTexture;
+		
+		DField(Get[const, &, inline])
+		D_CORE::Ref<D_GRAPHICS::TextureResource>	mEmissiveTexture;
+		
+		DField(Get[const, &, inline])
+		D_RESOURCE::ResourceHandle					mBaseColorTextureHandle;
+		
+		DField(Get[const, &, inline])
+		D_RESOURCE::ResourceHandle					mNormalTextureHandle;
+		
+		DField(Get[const, &, inline])
+		D_RESOURCE::ResourceHandle					mMetallicTextureHandle;
+		
+		DField(Get[const, &, inline])
+		D_RESOURCE::ResourceHandle					mRoughnessTextureHandle;
+		
+		DField(Get[const, &, inline])
+		D_RESOURCE::ResourceHandle					mEmissiveTextureHandle;
+
+
 		D_GRAPHICS_BUFFERS::UploadBuffer	mMaterialConstantsCPU[D_RENDERER_FRAME_RESOURCE::gNumFrameResources];
 		D_GRAPHICS_BUFFERS::ByteAddressBuffer mMaterialConstantsGPU;
 
@@ -86,3 +113,5 @@ inline void Set##type##Texture(D_RESOURCE::ResourceHandle textureHandle) { SetTe
 		float								mCutout;
 	};
 }
+
+File_MaterialResource_GENERATED

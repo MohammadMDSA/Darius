@@ -108,7 +108,7 @@ namespace Darius::Scene
 					if (canDisable)
 					{
 						ImGui::SameLine(contentRegionAvailable.x - 2 * lineHeight);
-						auto enabled = comp->GetEnabled();
+						auto enabled = comp->IsEnabled();
 						if (ImGui::Checkbox("##Enabled", &enabled))
 						{
 							comp->SetEnabled(enabled);

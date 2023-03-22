@@ -4,6 +4,8 @@
 #include "PhysicsManager.hpp"
 #include "PhysicsScene.hpp"
 
+#include "PhysicsActor.sgenerated.hpp"
+
 using namespace physx;
 
 namespace Darius::Physics

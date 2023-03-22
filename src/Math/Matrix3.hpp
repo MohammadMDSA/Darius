@@ -14,8 +14,6 @@
 #pragma once
 #include "Quaternion.hpp"
 
-#include <string>
-
 namespace Darius::Math
 {
     // Represents a 3x3 matrix while occuping a 3x4 memory footprint.  The unused row and column are undefined but implicitly

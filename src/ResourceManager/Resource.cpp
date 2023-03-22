@@ -3,6 +3,8 @@
 
 #include "ResourceManager/ResourceManager.hpp"
 
+#include "Resource.sgenerated.hpp"
+
 using namespace D_CONTAINERS;
 using namespace D_FILE;
 

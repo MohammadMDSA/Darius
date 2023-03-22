@@ -2,13 +2,16 @@
 
 #include "Window.hpp"
 
+#include "SettingsWindow.generated.hpp"
+
 namespace Darius::Editor::Gui::Windows
 {
-	class SettingsWindow : public Window
+	class DClass(Serialize) SettingsWindow : public Window
 	{
 		D_CH_EDITOR_WINDOW_BODY(SettingsWindow, "Settings");
 
 	public:
+		Darius_Editor_Gui_Windows_SettingsWindow_GENERATED
 
 		// Inherited via Window
 		INLINE virtual void			Update(float) override {}
@@ -25,9 +28,6 @@ namespace Darius::Editor::Gui::Windows
 			mSelectedCategory = val;
 		}
 
-		D_CH_R_FIELD(std::string, SelectedCategory);
-		D_CH_R_FIELD(D_SERIALIZATION::Json, Settings);
-
 
 	private:
 
@@ -36,7 +36,15 @@ namespace Darius::Editor::Gui::Windows
 
 		D_CONTAINERS::DMap<std::string, std::function<bool(D_SERIALIZATION::Json&)>> mSubsystemsSettings;
 
+		DField(Get[inline, const, &])		
+		std::string					mSelectedCategory;
+
+		DField(Get[inline, const, &])		
+		D_SERIALIZATION::Json		mSettings;
+
 		float						mNavigatorWidth;
 		float						mRightPanelWidth;
 	};
 }
+
+File_SettingsWindow_GENERATED

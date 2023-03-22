@@ -54,6 +54,7 @@ list(APPEND DARIUS_LIBS
     "Physics"
     "Debug"
     "Animation"
+	"Job"
 	)
 
 	

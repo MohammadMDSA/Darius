@@ -6,6 +6,8 @@
 
 #include <imgui.h>
 
+#include "LightComponent.sgenerated.hpp"
+
 using namespace D_MATH;
 using namespace D_SERIALIZATION;
 using namespace DirectX;

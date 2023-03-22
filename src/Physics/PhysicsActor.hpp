@@ -6,6 +6,8 @@
 #include <Scene/GameObject.hpp>
 #include <Utils/Common.hpp>
 
+#include "PhysicsActor.generated.hpp"
+
 #ifndef D_PHYSICS
 #define D_PHYSICS Darius::Physics
 #endif // !D_PHYSICS
@@ -15,9 +17,11 @@ namespace Darius::Physics
 	class PhysicsScene;
 	class ColliderComponent;
 
-	class PhysicsActor
+	class DClass(Serialize) PhysicsActor
 	{
 	public:
+		DARIUS_PHYSICS_PhysicsActor_GENERATED
+
 		enum class PhysicsActorType
 		{
 			Dynamic,
@@ -39,17 +43,23 @@ namespace Darius::Physics
 		INLINE bool						IsKinematic() const { return mActorType == PhysicsActorType::Kinematic; }
 		INLINE bool						IsStatic() const { return mActorType == PhysicsActorType::Static; }
 
-		
-		D_CH_R_FIELD(physx::PxRigidActor*, PxActor);
-		D_CH_R_FIELD(const PhysicsActorType, ActorType);
-
 	private:
 		friend class PhysicsScene;
 
 		void							InitializeActor();
+		
+
+		
+		DField(Get[const, inline])
+		physx::PxRigidActor* mPxActor;
+
+		DField(Get[const, inline])
+		const PhysicsActorType			mActorType;
 		
 		D_SCENE::GameObject* const		mGameObject;
 		D_CONTAINERS::DSet<D_CORE::Uuid, boost::hash<D_CORE::Uuid>> mCollider;
 	};
 
 }
+
+File_PhysicsActor_GENERATED

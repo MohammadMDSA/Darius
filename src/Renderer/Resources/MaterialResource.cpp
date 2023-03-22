@@ -16,6 +16,8 @@
 
 #include <fstream>
 
+#include <MaterialResource.sgenerated.hpp>
+
 using namespace D_CORE;
 using namespace D_MATH;
 using namespace D_SERIALIZATION;

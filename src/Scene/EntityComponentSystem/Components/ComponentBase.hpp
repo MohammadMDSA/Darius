@@ -4,16 +4,20 @@
 #include "Scene/GameObject.hpp"
 #include "Scene/Scene.hpp"
 
-#include <Core/Uuid.hpp>
-#include <Core/Signal.hpp>
 #include <Core/Serialization/Json.hpp>
+#include <Core/Signal.hpp>
+#include <Core/Uuid.hpp>
 #include <Math/VectorMath.hpp>
+#include <Utils/Assert.hpp>
 #include <Utils/Common.hpp>
 #include <Utils/Log.hpp>
-#include <Utils/Assert.hpp>
 #include <Utils/StaticConstructor.hpp>
 
 #include <boost/algorithm/string.hpp>
+#include <rttr/registration_friend.h>
+#include <rttr/registration.h>
+
+#include <ComponentBase.generated.hpp>
 
 #ifndef D_ECS_COMP
 #define D_ECS_COMP Darius::Scene::ECS::Components
@@ -96,9 +100,10 @@ namespace Darius::Scene
 
 namespace Darius::Scene::ECS::Components
 {
-    class ComponentBase
+    class DClass(Serialize) ComponentBase
     {
     public:
+        Darius_Scene_ECS_Components_ComponentBase_GENERATED
 
         ComponentBase();
         ComponentBase(D_CORE::Uuid uuid);
@@ -121,7 +126,7 @@ namespace Darius::Scene::ECS::Components
         virtual INLINE void         Update(float) { };
         virtual INLINE void         LateUpdate(float) { };
 
-        INLINE bool                 IsActive() const { return mGameObject->GetActive() && mEnabled; }
+        INLINE bool                 IsActive() const { return mGameObject->IsActive() && mEnabled; }
 
         // Serialization
         virtual INLINE void         Serialize(D_SERIALIZATION::Json&) const {};
@@ -174,18 +179,30 @@ namespace Darius::Scene::ECS::Components
         {
         }
 
-        // TODO: Add awake status
-        D_CH_R_FIELD(D_CORE::Uuid, Uuid);
-        D_CH_R_FIELD(Darius::Scene::GameObject*, GameObject);
-        D_CH_R_FIELD(bool, Started);
-        D_CH_R_FIELD(bool, Enabled);
-        D_CH_R_FIELD(bool, Destroyed);
 
     private:
         friend class Darius::Scene::GameObject;
         friend class Darius::Scene::SceneManager;
 
+
+        DField(Get[const, &, inline])
+        D_CORE::Uuid                mUuid;
+        
+        DField(Get[inline])
+        Darius::Scene::GameObject*  mGameObject;
+        
+        DField(Get[inline])
+        bool                        mStarted;
+        
+        DField(Get[inline])
+        bool                        mEnabled;
+        
+        DField(Get[inline])
+        bool                        mDestroyed;
+
         static bool                 sInit;
         static std::string          DisplayName;
 	};
 }
+
+File_ComponentBase_GENERATED

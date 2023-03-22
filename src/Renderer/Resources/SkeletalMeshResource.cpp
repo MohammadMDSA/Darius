@@ -5,6 +5,8 @@
 
 #include <imgui.h>
 
+#include "SkeletalMeshResource.sgenerated.hpp"
+
 using namespace D_RENDERER_GEOMETRY;
 
 namespace Darius::Graphics

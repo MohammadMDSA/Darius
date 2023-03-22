@@ -6,17 +6,20 @@
 #include <ResourceManager/ResourceManager.hpp>
 #include <Scene/EntityComponentSystem/Components/ComponentBase.hpp>
 
+#include "ColliderComponent.generated.hpp"
+
 #ifndef D_PHYSICS
 #define D_PHYSICS Darius::Physics
 #endif // !D_PHYSICS
 
 namespace Darius::Physics
 {
-	class ColliderComponent : public D_ECS_COMP::ComponentBase
+	class DClass(Serialize) ColliderComponent : public D_ECS_COMP::ComponentBase
 	{
 		D_H_COMP_BODY(ColliderComponent, ComponentBase, "Physics/Collider", false, false);
 
 	public:
+		DARIUS_PHYSICS_ColliderComponent_GENERATED
 
 		// Events
 		virtual void				Awake() override;
@@ -40,7 +43,6 @@ namespace Darius::Physics
 		D_H_COMP_RESOURCE_REF_PROP(PhysicsMaterialResource, Material, SetPxShapeMaterial(););
 
 		D_CH_FIELD(physx::PxShape*,			Shape = nullptr);
-		D_CH_R_FIELD(bool,					Dynamic)
 
 	protected:
 		virtual INLINE physx::PxGeometry const* GetPhysicsGeometry() const { return nullptr; };
@@ -57,5 +59,10 @@ namespace Darius::Physics
 			physx::PxMaterial* mats[] = { const_cast<physx::PxMaterial*>(mMaterial.Get()->GetMaterial()) };
 			mShape->setMaterials(mats, 1);
 		}
+
+		DField(Get[const, inline])
+		bool						mDynamic;
 	};
 }
+
+File_ColliderComponent_GENERATED

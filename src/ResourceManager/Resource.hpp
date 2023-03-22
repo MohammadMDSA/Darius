@@ -1,15 +1,19 @@
 #pragma once
 
-#include <Core/Filesystem/Path.hpp>
-#include <Core/Filesystem/FileUtils.hpp>
-#include <Core/Counted.hpp>
 #include <Core/Containers/Set.hpp>
-#include <Core/Uuid.hpp>
+#include <Core/Counted.hpp>
 #include <Core/Exceptions/Exception.hpp>
+#include <Core/Filesystem/FileUtils.hpp>
+#include <Core/Filesystem/Path.hpp>
 #include <Core/Serialization/Json.hpp>
+#include <Core/Uuid.hpp>
 #include <Utils/Common.hpp>
 #include <Utils/Assert.hpp>
 #include <Utils/Detailed.hpp>
+
+#include <rttr/registration_friend.h>
+
+#include "Resource.generated.hpp"
 
 #ifndef D_RESOURCE
 #define D_RESOURCE Darius::ResourceManager
@@ -99,9 +103,10 @@ namespace Darius::ResourceManager
 	std::string ResourceTypeToString(ResourceType type);
 	ResourceType StringToResourceType(std::string type);
 
-	class Resource : public D_CORE::Counted, public Detailed
+	class DClass(Serialize) Resource : public D_CORE::Counted, public Detailed
 	{
 	public:
+		Darius_ResourceManager_Resource_GENERATED
 
 		class ResourceFactory
 		{
@@ -111,7 +116,6 @@ namespace Darius::ResourceManager
 
 			virtual std::shared_ptr<Resource> Create(D_CORE::Uuid uuid, std::wstring const& path, std::wstring const& name, DResourceId id, bool isDefault) const = 0;
 		};
-
 	public:
 
 		void Destroy()
@@ -131,15 +135,25 @@ namespace Darius::ResourceManager
 		INLINE operator ResourcePreview const() { return GetPreview(); }
 
 		D_CH_RW_FIELD(std::wstring, Name);
-		D_CH_R_FIELD(D_FILE::Path, Path);
 		D_CH_R_FIELD_CONST(DResourceId, Id);
 		D_CH_R_FIELD_CONST(D_CORE::Uuid, Uuid);
 		D_CH_R_FIELD_CONST(bool, Default);
+		
+	private:
+		DField(Get[const, &, inline])
+		D_FILE::Path		mPath;
 
-		D_CH_R_FIELD(bool, Loaded);
-		D_CH_R_FIELD(UINT, Version);
-		D_CH_R_FIELD(bool, DirtyDisk);
-		D_CH_R_FIELD(bool, DirtyGPU);
+		DField(Get[inline])
+		bool				mLoaded;
+
+		DField(Get[inline])
+		UINT				mVersion;
+
+		DField(Get[inline])
+		bool				mDirtyDisk;
+
+		DField(Get[inline])
+		bool				mDirtyGPU;
 
 	public:
 		void						UpdateGPU();
@@ -224,3 +238,5 @@ namespace Darius::ResourceManager
 	};
 
 }
+
+File_Resource_GENERATED

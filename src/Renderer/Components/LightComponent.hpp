@@ -3,17 +3,20 @@
 #include <Renderer/Light/LightManager.hpp>
 #include <Scene/EntityComponentSystem/Components/ComponentBase.hpp>
 
+#include "LightComponent.generated.hpp"
+
 #ifndef D_GRAPHICS
 #define D_GRAPHICS Darius::Graphics
 #endif
 
 namespace Darius::Graphics
 {
-	class LightComponent : public D_ECS_COMP::ComponentBase
+	class DClass(Serialize) LightComponent : public D_ECS_COMP::ComponentBase
 	{
 		D_H_COMP_BODY(LightComponent, D_ECS_COMP::ComponentBase, "Rendering/Light", true);
 
 	public:
+		Darius_Graphics_LightComponent_GENERATED
 
 #ifdef _DEBUG
 		virtual bool					DrawDetails(float params[]) override;
@@ -36,11 +39,17 @@ namespace Darius::Graphics
 		// Data intraction
 		void							SetLightType(D_LIGHT::LightSourceType type);
 
-		D_CH_R_FIELD(D_LIGHT::LightSourceType, LightType);
 		D_CH_RW_FIELD(D_LIGHT::LightData, LightData);
 		D_CH_RW_FIELD(float, ConeOuterAngle);
 		D_CH_RW_FIELD(float, ConeInnerAngle);
-		D_CH_R_FIELD(int, LightIndex);
+
+	private:
+
+		DField(Get[inline])
+		int								mLightIndex;
+
+		DField(Get[inline, const, &])
+		D_LIGHT::LightSourceType		mLightType;
 
 	protected:
 		INLINE void						UpdateAngleData()
@@ -51,3 +60,5 @@ namespace Darius::Graphics
 		}
 	};
 }
+
+File_LightComponent_GENERATED

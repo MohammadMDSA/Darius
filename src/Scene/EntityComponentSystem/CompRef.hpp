@@ -9,6 +9,8 @@
 #define D_ECS Darius::Scene::ECS
 #endif // !D_ECS
 
+#include "CompRef.generated.hpp"
+
 namespace Darius::Scene::ECS::Components
 {
 	class ComponentBase;
@@ -17,7 +19,7 @@ namespace Darius::Scene::ECS::Components
 namespace Darius::Scene::ECS
 {
 	template<class T>
-	class CompRef
+	class DClass() CompRef
 	{
 	public:
 
@@ -69,7 +71,12 @@ namespace Darius::Scene::ECS
 		}
 
 		INLINE T const* operator->() const { return Get(); }
+	private:
+		DField(Get[const, &, inline])
+			flecs::ref<T>						mRef;
 
-		D_CH_R_FIELD(flecs::ref<T>, Ref);
+		ECS_CompRef_GENERATED
 	};
+
 }
+File_CompRef_GENERATED

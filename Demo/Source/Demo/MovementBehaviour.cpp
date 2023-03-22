@@ -6,6 +6,8 @@
 
 #include <imgui.h>
 
+#include "MovementBehaviour.sgenerated.hpp"
+
 namespace Demo
 {
 	D_H_BEHAVIOUR_COMP_DEF(MovementBehaviour);

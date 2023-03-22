@@ -330,33 +330,19 @@ namespace Darius::Math
 
 #endif // _D_EDITOR
 
-	INVOKE_STATIC_CONSTRUCTOR(Vector3);
-
-	void Vector3::StaticConstructor()
-	{
-		rttr::registration::class_<Vector3>("Darius::Math::Vector3")
-			.property("X", &Vector3::x)
-			.property("Y", &Vector3::y)
-			.property("Z", &Vector3::z);
-	}
-
-	void Vector3::StaticDestructor()
-	{
-
-	}
-
-	void Vector4::StaticConstructor()
-	{
-		rttr::registration::class_<Vector4>("Darius::Math::Vector4")
-			.property("X", &Vector4::x)
-			.property("Y", &Vector4::y)
-			.property("Z", &Vector4::z)
-			.property("W", &Vector4::w);
-	}
-
-	void Vector4::StaticDestructor()
-	{
-
-	}
 
 }
+
+//RTTR_REGISTRATION
+//{
+//	rttr::registration::class_<D_MATH::Vector3>("Darius::Math::Vector3")
+//		.property("X", &D_MATH::Vector3::x)
+//		.property("Y", &D_MATH::Vector3::y)
+//		.property("Z", &D_MATH::Vector3::z);
+//
+//	rttr::registration::class_<D_MATH::Vector4>("Darius::Math::Vector4")
+//		.property("X", &D_MATH::Vector4::x)
+//		.property("Y", &D_MATH::Vector4::y)
+//		.property("Z", &D_MATH::Vector4::z)
+//		.property("W", &D_MATH::Vector4::w);
+//}

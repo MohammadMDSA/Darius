@@ -12,9 +12,12 @@
 //
 
 #pragma once
-#include <DirectXMath.h>
 #include "Common.hpp"
+
 #include <Utils/Common.hpp>
+#include <Utils/Assert.hpp>
+
+#include <DirectXMath.h>
 
 #ifndef D_MATH
 #define D_MATH Darius::Math
@@ -23,6 +26,14 @@
 
 namespace Darius::Math
 {
+
+    enum EZeroTag { kZero, kOrigin };
+    enum EIdentityTag { kOne, kIdentity };
+    enum EXUnitVector { kXUnitVector };
+    enum EYUnitVector { kYUnitVector };
+    enum EZUnitVector { kZUnitVector };
+    enum EWUnitVector { kWUnitVector };
+
     class Scalar
     {
     public:

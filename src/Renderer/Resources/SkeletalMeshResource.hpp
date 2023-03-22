@@ -8,6 +8,8 @@
 
 #include <Core/Containers/List.hpp>
 
+#include "SkeletalMeshResource.generated.hpp"
+
 #ifndef D_GRAPHICS
 #define D_GRAPHICS Darius::Graphics
 #endif
@@ -16,9 +18,11 @@ namespace Darius::Graphics
 {
 	class DResourceManager;
 
-	class SkeletalMeshResource : public MeshResource
+	class DClass(Serialize) SkeletalMeshResource : public MeshResource
 	{
 	public:
+		Darius_Graphics_SkeletalMeshResource_GENERATED
+
 		D_CH_RESOURCE_BODY(SkeletalMeshResource, "Skeletal Mesh", ".fbx")
 
 		virtual void					Create(D_RENDERER_GEOMETRY::MultiPartMeshData<VertexType> const& data) override;
@@ -27,9 +31,15 @@ namespace Darius::Graphics
 		virtual bool					DrawDetails(float params[]) override;
 #endif // _D_EDITOR
 
-		D_CH_R_FIELD(D_CONTAINERS::DList<D_RENDERER_GEOMETRY::Mesh::SkeletonJoint>, Skeleton);
-		D_CH_R_FIELD(D_RENDERER_GEOMETRY::Mesh::SkeletonJoint*, SkeletonRoot);
-		D_CH_R_FIELD(int, JointCount);
+	private:
+		DField(Get[inline, const])
+		D_CONTAINERS::DList<D_RENDERER_GEOMETRY::Mesh::SkeletonJoint> mSkeleton;
+		
+		DField(Get[inline, const])
+		D_RENDERER_GEOMETRY::Mesh::SkeletonJoint*	mSkeletonRoot;
+		
+		DField(Get[inline])
+		int											mJointCount;
 
 	protected:
 
@@ -42,3 +52,5 @@ namespace Darius::Graphics
 
 	};
 }
+
+File_SkeletalMeshResource_GENERATED

@@ -6,13 +6,17 @@
 #include <Core/Filesystem/Path.hpp>
 #include <Core/Containers/Vector.hpp>
 
+#include "ContentWindow.generated.hpp"
+
 namespace Darius::Editor::Gui::Windows
 {
-	class ContentWindow : public Window
+	class DClass(Serialize) ContentWindow : public Window
 	{
 		D_CH_EDITOR_WINDOW_BODY(ContentWindow, "Content");
 
 	public:
+		Darius_Editor_Gui_Windows_ContentWindow_GENERATED
+
 		// Inherited via Window
 
 		INLINE virtual void			Update(float) override {}
@@ -21,8 +25,6 @@ namespace Darius::Editor::Gui::Windows
 
 		void						UpdateDirectoryItems();
 		bool						SetCurrentPath(D_FILE::Path const& path);
-
-		D_CH_R_FIELD(D_FILE::Path, CurrentDirectory);
 
 	private:
 
@@ -45,7 +47,11 @@ namespace Darius::Editor::Gui::Windows
 		TreeFoldeEntry*				mSelectedTreeNode = nullptr;
 		D_GUI_COMPONENT::EditorContentWindowItem const* mSelectedItem = nullptr;
 
+		DField(Get[const, &, inline])
+		D_FILE::Path				mCurrentDirectory;
 		float						mTreeViewWidth;
 		float						mRightPanelWidth;
 	};
 }
+
+File_ContentWindow_GENERATED

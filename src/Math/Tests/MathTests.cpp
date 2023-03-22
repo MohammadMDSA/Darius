@@ -14,7 +14,6 @@ BOOST_AUTO_TEST_SUITE(MathReflection)
 
 BOOST_AUTO_TEST_CASE(Vec3GetRef)
 {
-    Vector3::StaticConstructor();
     Vector3 v(1.f, 2.f, 3.f);
     rttr::type t = rttr::type::get<Vector3>();
 
@@ -43,7 +42,6 @@ BOOST_AUTO_TEST_CASE(Vec3GetRef)
 
 BOOST_AUTO_TEST_CASE(Vec4GetRef)
 {
-    Vector4::StaticConstructor();
     Vector4 v(1.f, 2.f, 3.f, 4.f);
     rttr::type t = rttr::type::get<Vector4>();
 
@@ -79,7 +77,6 @@ BOOST_AUTO_TEST_CASE(Vec4GetRef)
 
 BOOST_AUTO_TEST_CASE(Vec3Serialization)
 {
-    Vector3::StaticConstructor();
     Vector3 v(1.f, 2.f, 3.f);
 
     D_SERIALIZATION::Json j;
@@ -96,7 +93,6 @@ BOOST_AUTO_TEST_CASE(Vec3Serialization)
 
 BOOST_AUTO_TEST_CASE(Vec4Serialization)
 {
-    Vector4::StaticConstructor();
     Vector4 v(1.f, 2.f, 3.f, 4.f);
 
     D_SERIALIZATION::Json j;

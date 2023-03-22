@@ -9,6 +9,8 @@
 #include <imgui.h>
 #include <Libs/FontIcon/IconsFontAwesome6.h>
 
+#include "SettingsWindow.sgenerated.hpp"
+
 using namespace D_FILE;
 using namespace D_SERIALIZATION;
 

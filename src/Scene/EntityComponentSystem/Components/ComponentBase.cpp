@@ -4,6 +4,8 @@
 #include "TransformComponent.hpp"
 #include "Scene/GameObject.hpp"
 
+#include "ComponentBase.sgenerated.hpp"
+
 using namespace D_CORE;
 
 namespace Darius::Scene::ECS::Components

@@ -15,6 +15,8 @@
 
 #include "Scalar.hpp"
 
+//#include <rttr/registration_friend.h>
+
 namespace Darius::Math
 {
 	class Vector4;
@@ -80,9 +82,9 @@ namespace Darius::Math
 		static const Vector3 Forward;
 		static const Vector3 Backward;
 
-		STATIC_CONST_DEST();
-
 	protected:
+		//RTTR_REGISTRATION_FRIEND;
+
 #pragma warning(push)
 #pragma warning(disable: 4201)
 		union
@@ -91,6 +93,7 @@ namespace Darius::Math
 			{
 				float x, y, z;
 			};
+
 			DirectX::XMVECTOR m_vec;
 		};
 #pragma warning(pop)
@@ -154,10 +157,9 @@ namespace Darius::Math
 		static const Vector4 Forward;
 		static const Vector4 Backward;
 
-		STATIC_CONST_DEST();
-
 	protected:
 
+		//RTTR_REGISTRATION_FRIEND;
 #pragma warning(push)
 #pragma warning(disable: 4201)
 		union
@@ -170,6 +172,9 @@ namespace Darius::Math
 		};
 #pragma warning(pop)
 	};
+
+	D_STATIC_ASSERT(sizeof(Vector3) == 16);
+	D_STATIC_ASSERT(sizeof(Vector4) == 16);
 
 	// Defined after Vector4 methods are declared
 	INLINE Vector3::Vector3(Vector4 vec) : m_vec((DirectX::XMVECTOR)vec)
@@ -190,6 +195,7 @@ namespace Darius::Math
 		INLINE operator DirectX::XMVECTOR() const { return m_vec; }
 	protected:
 		DirectX::XMVECTOR m_vec;
+
 	};
 
 #ifdef _D_EDITOR

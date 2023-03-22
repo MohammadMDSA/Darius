@@ -10,6 +10,8 @@
 #include <imgui.h>
 #include <Libs/FontIcon/IconsFontAwesome6.h>
 
+#include "ColliderComponent.sgenerated.hpp"
+
 using namespace physx;
 
 namespace Darius::Physics
