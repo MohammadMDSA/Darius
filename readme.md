@@ -96,4 +96,4 @@
     3. Install Pix and have `WinPixEventRuntime_DIR` enviroment variable pointing to its install directory. It must contain `Include/` and `bin/` as its subdirectories
 3. Configure and Build using CMake and *MSVC* compiler. (Other compilers *may* work but have not been tested)
 
-4. Run `DariusEngine` executable to run Darius Editor with Demo project.
+4. Run `Darius` executable to run Darius Editor with demo project.
