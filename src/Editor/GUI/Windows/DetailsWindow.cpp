@@ -27,7 +27,7 @@ namespace Darius::Editor::Gui::Windows
 
 		if (auto resource = dynamic_cast<Resource*>(obj); resource)
 		{
-			if (!resource->GetLoaded())
+			if (!resource->IsLoaded())
 			{
 				D_RESOURCE_LOADER::LoadResource(resource);
 				return;

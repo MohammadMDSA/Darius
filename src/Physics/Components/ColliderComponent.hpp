@@ -19,7 +19,7 @@ namespace Darius::Physics
 		D_H_COMP_BODY(ColliderComponent, ComponentBase, "Physics/Collider", false, false);
 
 	public:
-		DARIUS_PHYSICS_ColliderComponent_GENERATED
+		Darius_Physics_ColliderComponent_GENERATED
 
 		// Events
 		virtual void				Awake() override;

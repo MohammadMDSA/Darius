@@ -218,7 +218,7 @@ namespace Darius::ResourceManager
 					SaveResource(resource, true);
 
 				// Load if not loaded and should load, do it!
-				if (!metaOnly && !resource->GetLoaded())
+				if (!metaOnly && !resource->IsLoaded())
 				{
 					auto resWName = resource->GetName();
 					auto resName = STR_WSTR(resWName);

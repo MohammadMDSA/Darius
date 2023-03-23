@@ -35,8 +35,6 @@ D_CH_FIELD_CONST_ACC(type, name, access)
 
 #define D_CH_R_FIELD_CONST(type, name) D_CH_R_FIELD_CONST_ACC(type, name, private)
 
-//#define D_CH_R_FIELD(type, name) D_CH_R_FIELD_ACC(type, name, private)
-
 #define D_CH_RW_FIELD_ACC(type, name, access) \
 public: \
 inline type const& Get##name() const { return m##name; } \

@@ -15,12 +15,10 @@
 namespace Darius::Physics
 {
 	class PhysicsScene;
-	class ColliderComponent;
 
 	class DClass(Serialize) PhysicsActor
 	{
 	public:
-		DARIUS_PHYSICS_PhysicsActor_GENERATED
 
 		enum class PhysicsActorType
 		{
@@ -28,6 +26,8 @@ namespace Darius::Physics
 			Static,
 			Kinematic
 		};
+
+		Darius_Physics_PhysicsActor_GENERATED
 
 	public:
 		PhysicsActor(D_SCENE::GameObject* gameObject, PhysicsActorType type);
@@ -51,9 +51,9 @@ namespace Darius::Physics
 
 		
 		DField(Get[const, inline])
-		physx::PxRigidActor* mPxActor;
+		physx::PxRigidActor*			mPxActor;
 
-		DField(Get[const, inline])
+		DField(Get[inline])
 		const PhysicsActorType			mActorType;
 		
 		D_SCENE::GameObject* const		mGameObject;

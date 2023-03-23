@@ -49,9 +49,9 @@ namespace Darius::ResourceManager
 		auto resource = _ResourceManager->GetRawResource(uuid);
 
 		// Load resource if not loaded yet
-		if (load && !resource->GetLoaded())
+		if (load && !resource->IsLoaded())
 			D_RESOURCE_LOADER::LoadResource(resource);
-		if (load && resource->GetDirtyGPU())
+		if (load && resource->IsDirtyGPU())
 		{
 			resource->UpdateGPU();
 		}
@@ -63,9 +63,9 @@ namespace Darius::ResourceManager
 		auto resource = _ResourceManager->GetRawResource(handle);
 
 		// Load resource if not loaded yet
-		if (load && !resource->GetLoaded())
+		if (load && !resource->IsLoaded())
 			D_RESOURCE_LOADER::LoadResource(resource);
-		if (load && resource->GetDirtyGPU())
+		if (load && resource->IsDirtyGPU())
 		{
 			resource->UpdateGPU();
 		}
@@ -177,7 +177,7 @@ namespace Darius::ResourceManager
 			for (auto& res : resType.second)
 			{
 				auto resource = res.second;
-				if (resource->GetDirtyGPU() && resource->GetLoaded())
+				if (resource->IsDirtyGPU() && resource->IsLoaded())
 					resource->UpdateGPU();
 			}
 		}
@@ -218,7 +218,7 @@ namespace Darius::ResourceManager
 			for (auto& res : resType.second)
 			{
 				auto resource = res.second;
-				if (resource->GetDirtyDisk())
+				if (resource->IsDirtyDisk())
 					D_RESOURCE_LOADER::SaveResource(resource.get());
 			}
 		}

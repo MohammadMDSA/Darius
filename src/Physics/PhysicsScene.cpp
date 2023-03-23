@@ -26,7 +26,7 @@ namespace Darius::Physics
 
 			// The registered actor is a dynamic one so just return it
 			if (!actor.IsStatic())
-				return reinterpret_cast<PxRigidDynamic*>(actor.GetPxActor());
+				return reinterpret_cast<PxRigidDynamic*>(actor.mPxActor);
 
 			sActorMap.erase(go);
 		}
@@ -36,7 +36,7 @@ namespace Darius::Physics
 		sActorMap.emplace(go, PhysicsActor(go, type));
 		auto& newActor = sActorMap[go];
 		newActor.InitializeActor(); // Initialize physics actor
-		auto dynamicActor = reinterpret_cast<PxRigidDynamic*>(newActor.GetPxActor());
+		auto dynamicActor = reinterpret_cast<PxRigidDynamic*>(newActor.mPxActor);
 
 		return dynamicActor;
 
@@ -81,7 +81,7 @@ namespace Darius::Physics
 		// Check if corresponding actor is non-static
 		nonStatic = !actor.IsStatic();
 
-		auto pxActor = actor.GetPxActor();
+		auto pxActor = actor.mPxActor;
 
 		auto shape = PxRigidActorExt::createExclusiveShape(*pxActor, *collider->GetPhysicsGeometry(), *collider->GetMaterial());
 
@@ -102,7 +102,7 @@ namespace Darius::Physics
 
 		auto& actor = sActorMap[go];
 
-		auto pxActor = actor.GetPxActor();
+		auto pxActor = actor.mPxActor;
 
 		pxActor->detachShape(*collider->mShape);
 

@@ -58,7 +58,7 @@ namespace Darius::Editor::Gui::Windows
 					auto resource = resources[row];
 					auto resourceName = resource->GetName();
 					auto resNameStr = STR_WSTR(resourceName);
-					if (resource->GetDirtyDisk())
+					if (resource->IsDirtyDisk())
 						resNameStr += "*";
 
 					ImGui::TableNextRow();
@@ -82,13 +82,13 @@ namespace Darius::Editor::Gui::Windows
 					ImGui::TableSetColumnIndex(4);
 					ImGui::Text(std::to_string(resource->GetDefault()).c_str());
 					ImGui::TableSetColumnIndex(5);
-					ImGui::Text(std::to_string(resource->GetLoaded()).c_str());
+					ImGui::Text(std::to_string(resource->IsLoaded()).c_str());
 					ImGui::TableSetColumnIndex(6);
 					ImGui::Text(std::to_string(resource->GetVersion()).c_str());
 					ImGui::TableSetColumnIndex(7);
-					ImGui::Text(std::to_string(resource->GetDirtyDisk()).c_str());
+					ImGui::Text(std::to_string(resource->IsDirtyDisk()).c_str());
 					ImGui::TableSetColumnIndex(8);
-					ImGui::Text(std::to_string(resource->GetDirtyGPU()).c_str());
+					ImGui::Text(std::to_string(resource->IsDirtyGPU()).c_str());
 					ImGui::TableSetColumnIndex(9);
 					ImGui::Text(resource->GetDefault() ? " - " : resource->GetPath().string().c_str());
 

@@ -2,6 +2,8 @@
 
 #include <Math/Vector.hpp>
 
+#include <d3d12.h>
+
 #define D_GRAPHICS_VERTEX Darius::Graphics::Utils::VertexTypes
 
 namespace Darius::Graphics::Utils::VertexTypes

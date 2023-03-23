@@ -95,7 +95,6 @@ private: \
 namespace Darius::Scene
 {
     class SceneManager;
-    class GameObject;
 }
 
 namespace Darius::Scene::ECS::Components
