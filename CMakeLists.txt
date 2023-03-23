@@ -174,17 +174,30 @@ add_subdirectory("${CMAKE_SOURCE_DIR}/DariusHeaderTool")
 ############ Libs ############
 ##############################
 
-add_subdirectory("src/utils")
-add_subdirectory("src/core")
-add_subdirectory("src/math")
-add_subdirectory("src/job")
-add_subdirectory("src/renderer")
-add_subdirectory("src/scene")
-add_subdirectory("src/resourceManager")
-add_subdirectory("src/physics")
-add_subdirectory("src/debug")
-add_subdirectory("src/animation")
-add_subdirectory("src/engine")
+SET(DARIUS_LOW_LEVEL_LIBS)
+list(APPEND DARIUS_LOW_LEVEL_LIBS
+	"Utils"
+    "Core"
+    "Math"
+    "Renderer"
+    "Scene"
+    "ResourceManager"
+    "Physics"
+    "Debug"
+    "Animation"
+	"Job"
+	)
+
+SET(DARIUS_LIBS ${DARIUS_LOW_LEVEL_LIBS})
+list(APPEND DARIUS_LIBS
+    "DariusEngine")
+
+foreach(DLib ${DARIUS_LOW_LEVEL_LIBS})
+message("Adding Darius lib as subdirectory ${DLib}")
+add_subdirectory("src/${DLib}")
+endforeach()
+
+add_subdirectory("src/Engine")
 
 target_link_libraries(${PROJECT_NAME} PUBLIC DariusEngine)
 
@@ -323,23 +336,29 @@ endif()
 set_property(DIRECTORY PROPERTY VS_STARTUP_PROJECT ${PROJECT_NAME})
 
 
+SET(LIB_PATHS)
+foreach(DLib ${DARIUS_LIBS})
+    list(APPEND LIB_PATHS
+    ${SOURCE_DIR}/${DLib})
+endforeach()
+
 # Generating Code before compile
 get_target_property(DARIUS_INCLUDES ${PROJECT_NAME} INCLUDE_DIRECTORIES)
 add_custom_target(DariusGeneratorCommand
                     WORKING_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}
-                    COMMAND DariusCodeGenerator ${SOURCE_DIR} ${SOURCE_DIR} ${DARIUS_INCLUDES} && DariusCodeGenerator ${CMAKE_SOURCE_DIR}/Demo/Source/Demo ${DARIUS_INCLUDES}
+                    COMMAND DariusCodeGenerator ${SOURCE_DIR} ${SOURCE_DIR}/Generated ${SOURCE_DIR} ${DARIUS_INCLUDES} && DariusCodeGenerator ${CMAKE_SOURCE_DIR}/Demo/Source/Demo ${CMAKE_SOURCE_DIR}/Demo/Source/Demo/Generated ${DARIUS_INCLUDES}
                     COMMENT "Generating Darius Headers")
 
 # Defining CMAKE project dependencies
     
 add_dependencies(DariusGeneratorCommand DariusCodeGenerator)
-foreach(DLib IN ${DARIUS_LIBS})
+foreach(DLib ${DARIUS_LIBS})
     add_dependencies(${DLib} DariusGeneratorCommand)
+    message("Adding generator dependency to project ${DLib}")
 endforeach()
+
 add_dependencies(DEMO DariusGeneratorCommand)
 add_dependencies(${PROJECT_NAME} DariusGeneratorCommand)
-
-message(sdfsdfsdfdf ${CMAKE_CXX_STANDARD})
 
 # Copying rttr dll to build directory
 add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
