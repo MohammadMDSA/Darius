@@ -137,9 +137,6 @@ namespace Darius::ResourceManager
 		INLINE operator ResourcePreview const() { return GetPreview(); }
 
 		D_CH_RW_FIELD(std::wstring, Name);
-		D_CH_R_FIELD_CONST(DResourceId, Id);
-		D_CH_R_FIELD_CONST(D_CORE::Uuid, Uuid);
-		D_CH_R_FIELD_CONST(bool, Default);
 		
 	private:
 		DField(Get[const, &, inline])
@@ -149,13 +146,22 @@ namespace Darius::ResourceManager
 		bool				mLoaded;
 
 		DField(Get[inline])
-		UINT				mVersion;
+		unsigned int		mVersion;
 
 		DField(Get[inline])
 		bool				mDirtyDisk;
 
 		DField(Get[inline])
 		bool				mDirtyGPU;
+		
+		DField(Get[inline])
+		const DResourceId	mId;
+		
+		DField(Get[inline, &])
+		const D_CORE::Uuid	mUuid;
+		
+		DField(Get[inline])
+		const bool			mDefault;
 
 	public:
 		void						UpdateGPU();

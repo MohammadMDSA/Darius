@@ -179,7 +179,6 @@ namespace Darius::Scene
 
 		D_CH_RW_FIELD(std::string, Name);
 		D_CH_RW_FIELD(Type, Type);
-		D_CH_R_FIELD_CONST(D_CORE::Uuid, Uuid);
 		D_CH_FIELD(D_ECS::Entity, Entity);
 
 		struct ComponentAddressNode
@@ -220,6 +219,8 @@ namespace Darius::Scene
 		DField(Get[const, inline])
 		GameObject*				mParent;
 
+		DField(Get[const, &, inline])
+		const D_CORE::Uuid		mUuid;
 
 		// Comp name and display name
 		static D_CONTAINERS::DMap<std::string, GameObject::ComponentAddressNode> RegisteredComponents;
