@@ -6,6 +6,8 @@
 #include <fbxsdk.h>
 #include <fbxsdk/fileio/fbxiosettings.h>
 
+#include "AnimationResource.sgenerated.hpp"
+
 using namespace fbxsdk;
 using namespace D_CONTAINERS;
 using namespace D_FILE;

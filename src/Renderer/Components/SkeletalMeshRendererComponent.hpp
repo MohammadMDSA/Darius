@@ -5,17 +5,21 @@
 #include <Renderer/Resources/MaterialResource.hpp>
 #include <Scene/EntityComponentSystem/Components/ComponentBase.hpp>
 
+#include "SkeletalMeshRendererComponent.generated.hpp"
+
 #ifndef D_GRAPHICS
 #define D_GRAPHICS Darius::Graphics
 #endif
 
 namespace Darius::Graphics
 {
-	class SkeletalMeshRendererComponent : public D_ECS_COMP::ComponentBase
+	class DClass(Serialize) SkeletalMeshRendererComponent : public D_ECS_COMP::ComponentBase
 	{
 		D_H_COMP_BODY(SkeletalMeshRendererComponent, D_ECS_COMP::ComponentBase, "Rendering/Skeletal Mesh Renderer", true);
 
 	public:
+
+		Darius_Graphics_SkeletalMeshRendererComponent_GENERATED
 
 #ifdef _D_EDITOR
 		virtual bool						DrawDetails(float params[]) override;
@@ -48,7 +52,10 @@ namespace Darius::Graphics
 		D_CH_RW_FIELD_ACC(D_CORE::Ref<SkeletalMeshResource>, MeshResource, protected);
 		D_CH_RW_FIELD(bool,					CastsShadow);
 
-		D_CH_R_FIELD_ACC(D_CORE::Ref<MaterialResource>, MaterialResource, protected);
+	protected:
+
+		DField(Get[const, &, inline])
+		D_CORE::Ref<MaterialResource>		mMaterialResource;
 	private:
 
 		void								_SetMesh(D_RESOURCE::ResourceHandle handle);
@@ -92,3 +99,5 @@ namespace Darius::Graphics
 
 	};
 }
+
+File_SkeletalMeshRendererComponent_GENERATED

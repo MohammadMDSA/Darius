@@ -7,6 +7,8 @@
 
 #include <imgui.h>
 
+#include "TextureResource.sgenerated.hpp"
+
 namespace Darius::Graphics
 {
 	D_CH_RESOURCE_DEF(TextureResource);
@@ -40,7 +42,7 @@ namespace Darius::Graphics
 		D_H_DETAILS_DRAW_BEGIN_TABLE();
 
 		D_H_DETAILS_DRAW_PROPERTY("sRGB");
-		bool val = GetSRGB();
+		bool val = IsSRGB();
 		if (ImGui::Checkbox("##sRGB", &val))
 			SetSRGB(val);
 
@@ -129,12 +131,12 @@ namespace Darius::Graphics
 		if (ext == ".dds")
 		{
 			auto fileData = D_FILE::ReadFileSync(path.wstring());
-			return mTexture.CreateDDSFromMemory(fileData->data(), fileData->size(), GetSRGB());
+			return mTexture.CreateDDSFromMemory(fileData->data(), fileData->size(), IsSRGB());
 		}
 		else if (ext == ".tga")
 		{
 			auto fileData = D_FILE::ReadFileSync(path.wstring());
-			mTexture.CreateTGAFromMemory(fileData->data(), fileData->size(), GetSRGB());
+			mTexture.CreateTGAFromMemory(fileData->data(), fileData->size(), IsSRGB());
 
 			return true;
 		}

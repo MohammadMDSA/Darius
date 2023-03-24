@@ -5,6 +5,8 @@
 #include <ResourceManager/Resource.hpp>
 #include <Utils/Common.hpp>
 
+#include "TextureResource.generated.hpp"
+
 #ifndef D_GRAPHICS
 #define D_GRAPHICS Darius::Graphics
 #endif
@@ -13,11 +15,13 @@ namespace Darius::Graphics
 {
 	class DResourceManager;
 
-	class TextureResource : public D_RESOURCE::Resource
+	class DClass(Serialize) TextureResource : public D_RESOURCE::Resource
 	{
 		D_CH_RESOURCE_BODY(TextureResource, "Texture", ".tga", ".dds")
 
 	public:
+		Darius_Graphics_TextureResource_GENERATED
+
 		INLINE D_GRAPHICS_BUFFERS::Texture*			ModifyTextureData() { MakeDiskDirty(), MakeGpuDirty(); return &mTexture; }
 		INLINE D_GRAPHICS_BUFFERS::Texture const*	GetTextureData() const { return &mTexture; }
 
@@ -29,7 +33,8 @@ namespace Darius::Graphics
 		void										CreateCubeMap(uint32_t* color, DXGI_FORMAT format, size_t rowPitchByte, size_t width, size_t height);
 
 		D_CH_FIELD_ACC(D_GRAPHICS_BUFFERS::Texture, Texture, protected);
-		D_CH_RESOURCE_RW_FIELD_ACC(bool, SRGB, protected);
+
+		D_CH_RESOURCE_RW_FIELD_ACC(bool, SRGB, protected, Get[inline]);
 
 	protected:
 		TextureResource(D_CORE::Uuid uuid, std::wstring const& path, std::wstring const& name, D_RESOURCE::DResourceId id, bool isDefault = false) :
@@ -45,3 +50,5 @@ namespace Darius::Graphics
 		virtual void Unload() override;
 	};
 }
+
+File_TextureResource_GENERATED

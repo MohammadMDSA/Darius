@@ -12,6 +12,8 @@
 #include <fbxsdk.h>
 #include <Libs/FontIcon/IconsFontAwesome6.h>
 
+#include "SkeletalMeshRendererComponent.sgenerated.hpp"
+
 using namespace D_CORE;
 using namespace D_MATH;
 using namespace D_MATH_BOUNDS;
