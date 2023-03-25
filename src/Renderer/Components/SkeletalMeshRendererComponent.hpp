@@ -19,8 +19,6 @@ namespace Darius::Graphics
 
 	public:
 
-		Darius_Graphics_SkeletalMeshRendererComponent_GENERATED
-
 #ifdef _D_EDITOR
 		virtual bool						DrawDetails(float params[]) override;
 #endif
@@ -49,12 +47,15 @@ namespace Darius::Graphics
 		INLINE D3D12_GPU_VIRTUAL_ADDRESS	GetConstantsAddress() { return mMeshConstantsGPU.GetGpuVirtualAddress(); }
 
 
-		D_CH_RW_FIELD_ACC(D_CORE::Ref<SkeletalMeshResource>, MeshResource, protected);
 
 	protected:
 
 		DField(Get[const, &, inline])
 		D_CORE::Ref<MaterialResource>		mMaterialResource;
+
+		DField(Get[const, &, inline])
+		D_CORE::Ref<SkeletalMeshResource>	mMeshResource;
+
 	private:
 
 		void								_SetMesh(D_RESOURCE::ResourceHandle handle);
@@ -98,6 +99,9 @@ namespace Darius::Graphics
 		uint16_t							mCachedMaterialPsoFlags;
 		uint16_t							mPsoIndex;
 		bool								mPsoIndexDirty;
+
+	public:
+		Darius_Graphics_SkeletalMeshRendererComponent_GENERATED
 
 	};
 }

@@ -7,6 +7,8 @@
 #include <imgui.h>
 #include <Libs/FontIcon/IconsFontAwesome6.h>
 
+#include "AnimationComponent.sgenerated.hpp"
+
 using namespace D_CORE;
 using namespace D_ECS_COMP;
 using namespace D_GRAPHICS;

@@ -142,7 +142,7 @@ namespace Darius::Editor::Gui::GuiManager
 	{
 		auto& context = D_GRAPHICS::GraphicsContext::Begin(L"Render Windows Contents");
 		for (auto& kv : Windows)
-			if (kv.second->GetOpened())
+			if (kv.second->IsOpened())
 				kv.second->Render();
 		context.Finish();
 	}
@@ -200,7 +200,7 @@ namespace Darius::Editor::Gui::GuiManager
 
 				ImGui::SetNextWindowBgAlpha(1.f);
 
-				if (wind->GetOpened())
+				if (wind->IsOpened())
 				{
 					ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(wind->mPadding[0], wind->mPadding[1]));
 
@@ -459,7 +459,7 @@ namespace Darius::Editor::Gui::GuiManager
 			auto const& window = wPair.second;
 			D_SERIALIZATION::Json winConfig;
 
-			winConfig["Opened"] = window->GetOpened();
+			winConfig["Opened"] = window->IsOpened();
 
 			config.emplace(window->GetName(), winConfig);
 		}

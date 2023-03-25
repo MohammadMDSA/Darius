@@ -16,13 +16,6 @@ type m##name;
 
 #define D_CH_FIELD(type, name) D_CH_FIELD_ACC(type, name, private)
 
-#define D_CH_RW_FIELD_ACC(type, name, access) \
-public: \
-inline type const& Get##name() const { return m##name; } \
-inline type Get##name() { return m##name; } \
-inline void Set##name(type const& val) { this->m##name = val; } \
-D_CH_FIELD_ACC(type, name, access)
-
 #define D_CH_TYPE_NAME_GETTER(T) \
 public: \
 static INLINE std::string const GetTypeName() { return D_NAMEOF(T); }

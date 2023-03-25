@@ -3,6 +3,8 @@
 #include <Renderer/CommandContext.hpp>
 #include <Renderer/GraphicsUtils/Profiling/Profiling.hpp>
 
+#include "Window.generated.hpp"
+
 namespace Darius::Editor::Gui::GuiManager
 {
 	void DrawGUI();
@@ -22,7 +24,7 @@ type(D_SERIALIZATION::Json const& config); \
 
 namespace Darius::Editor::Gui::Windows
 {
-	class Window
+	class DClass(Serialize) Window
 	{
 	public:
 		Window(D_SERIALIZATION::Json const& config);
@@ -37,12 +39,14 @@ namespace Darius::Editor::Gui::Windows
 		virtual void				DrawGUI() = 0;
 		void						PrepareGUI();
 
-		D_CH_RW_FIELD_ACC(bool, Opened, protected);
 
 	protected:
 
 		friend void Darius::Editor::Gui::GuiManager::DrawGUI();
 		friend void Darius::Editor::Gui::GuiManager::_DrawMenuBar();
+
+		DField(Get[inline], Set[inline])
+		bool						mOpened;
 
 		float						mPadding[2] = { 8.f, 8.f };
 
@@ -54,6 +58,11 @@ namespace Darius::Editor::Gui::Windows
 
 		bool						mHovered;
 		bool						mFocused;
+
+	public:
+		Darius_Editor_Gui_Windows_Window_GENERATED
 	};
 
 }
+
+File_Window_GENERATED

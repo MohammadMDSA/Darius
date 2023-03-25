@@ -4,6 +4,8 @@
 
 #include <imgui.h>
 
+#include "Window.sgenerated.hpp"
+
 namespace Darius::Editor::Gui::Windows
 {
 
