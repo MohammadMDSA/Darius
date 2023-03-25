@@ -19,7 +19,6 @@ namespace Darius::Physics
 		D_H_COMP_BODY(ColliderComponent, ComponentBase, "Physics/Collider", false, false);
 
 	public:
-		Darius_Physics_ColliderComponent_GENERATED
 
 		// Events
 		virtual void				Awake() override;
@@ -42,8 +41,6 @@ namespace Darius::Physics
 
 		D_H_COMP_RESOURCE_REF_PROP(PhysicsMaterialResource, Material, SetPxShapeMaterial(););
 
-		D_CH_FIELD(physx::PxShape*,			Shape = nullptr);
-
 	protected:
 		virtual INLINE physx::PxGeometry const* GetPhysicsGeometry() const { return nullptr; };
 		virtual INLINE physx::PxGeometry* UpdateAndGetPhysicsGeometry(bool& changed) { changed = false; return nullptr; };
@@ -62,6 +59,13 @@ namespace Darius::Physics
 
 		DField(Get[const, inline])
 		bool						mDynamic;
+
+		physx::PxShape*				mShape = nullptr;
+
+
+	public:
+		Darius_Physics_ColliderComponent_GENERATED
+
 	};
 }
 

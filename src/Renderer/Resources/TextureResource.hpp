@@ -20,7 +20,6 @@ namespace Darius::Graphics
 		D_CH_RESOURCE_BODY(TextureResource, "Texture", ".tga", ".dds")
 
 	public:
-		Darius_Graphics_TextureResource_GENERATED
 
 		INLINE D_GRAPHICS_BUFFERS::Texture*			ModifyTextureData() { MakeDiskDirty(), MakeGpuDirty(); return &mTexture; }
 		INLINE D_GRAPHICS_BUFFERS::Texture const*	GetTextureData() const { return &mTexture; }
@@ -32,7 +31,6 @@ namespace Darius::Graphics
 		void										CreateRaw(uint32_t color, DXGI_FORMAT format, size_t rowPitchByte, size_t width, size_t height);
 		void										CreateCubeMap(uint32_t* color, DXGI_FORMAT format, size_t rowPitchByte, size_t width, size_t height);
 
-		D_CH_FIELD_ACC(D_GRAPHICS_BUFFERS::Texture, Texture, protected);
 
 		D_CH_RESOURCE_RW_FIELD_ACC(bool, SRGB, protected, Get[inline]);
 
@@ -43,11 +41,17 @@ namespace Darius::Graphics
 
 
 		// Inherited via Resource
-		virtual void WriteResourceToFile(D_SERIALIZATION::Json& j) const override;
-		virtual void ReadResourceFromFile(D_SERIALIZATION::Json const& j) override;
-		virtual bool UploadToGpu() override;
+		virtual void								WriteResourceToFile(D_SERIALIZATION::Json& j) const override;
+		virtual void								ReadResourceFromFile(D_SERIALIZATION::Json const& j) override;
+		virtual bool								UploadToGpu() override;
 
-		virtual void Unload() override;
+		virtual void								Unload() override;
+
+		D_GRAPHICS_BUFFERS::Texture					mTexture;
+
+	public:
+		Darius_Graphics_TextureResource_GENERATED
+
 	};
 }
 

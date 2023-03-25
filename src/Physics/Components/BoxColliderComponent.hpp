@@ -2,13 +2,15 @@
 
 #include "ColliderComponent.hpp"
 
+#include "BoxColliderComponent.generated.hpp"
+
 #ifndef D_PHYSICS
 #define D_PHYSICS Darius::Physics
 #endif // !D_PHYSICS
 
 namespace Darius::Physics
 {
-	class BoxColliderComponent : public ColliderComponent
+	class DClass(Serialize) BoxColliderComponent : public ColliderComponent
 	{
 		D_H_COMP_BODY(BoxColliderComponent, ColliderComponent, "Physics/Box Collider", true, false);
 		
@@ -23,11 +25,17 @@ namespace Darius::Physics
 		virtual void						Update(float dt) override;
 		virtual void						PreUpdate(bool simulating) override;
 
-		D_CH_FIELD(physx::PxBoxGeometry, Geometry);
-
 	protected:
 
-		virtual physx::PxGeometry* UpdateAndGetPhysicsGeometry(bool& changed);
-		virtual physx::PxGeometry const* GetPhysicsGeometry() const;
+		virtual physx::PxGeometry*			UpdateAndGetPhysicsGeometry(bool& changed);
+		INLINE virtual physx::PxGeometry const* GetPhysicsGeometry() const { return &mGeometry; }
+
+	private:
+		physx::PxBoxGeometry				mGeometry;
+
+
+	public:
+		Darius_Physics_BoxColliderComponent_GENERATED
 	};
 }
+File_BoxColliderComponent_GENERATED

@@ -55,8 +55,6 @@ namespace Darius::Scene
 			Movable
 		};
 
-		Darius_Scene_GameObject_GENERATED
-
 	public:
 
 		// Transform helpers
@@ -73,7 +71,7 @@ namespace Darius::Scene
 				SetLocalTransform(trans);
 		}
 
-		INLINE D_MATH::Transform					GetTransform() const
+		INLINE D_MATH::Transform			GetTransform() const
 		{
 			if (mParent)
 				return GetLocalTransform() * mParent->GetTransform();
@@ -178,8 +176,6 @@ namespace Darius::Scene
 		static void							RegisterComponent(std::string name, D_CONTAINERS::DVector<std::string>& displayName);
 		static void							RegisterBehaviourComponent(D_ECS::EntityId componentId);
 
-		D_CH_FIELD(D_ECS::Entity, Entity);
-
 		struct ComponentAddressNode
 		{
 			std::string							ComponentName;
@@ -227,10 +223,14 @@ namespace Darius::Scene
 		DField(Get[inline, const, &], Set[inline])
 		std::string				mName;
 
+		D_ECS::Entity			mEntity;
 
 		// Comp name and display name
 		static D_CONTAINERS::DMap<std::string, GameObject::ComponentAddressNode> RegisteredComponents;
 		static D_CONTAINERS::DSet<D_ECS::EntityId> RegisteredBehaviours;
+
+		public:
+			Darius_Scene_GameObject_GENERATED
 	};
 
 	D_H_SERIALIZE_ENUM(GameObject::Type, {

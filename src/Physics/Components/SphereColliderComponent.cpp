@@ -3,6 +3,8 @@
 
 #include <Debug/DebugDraw.hpp>
 
+#include "SphereColliderComponent.sgenerated.hpp"
+
 namespace Darius::Physics
 {
 

@@ -8,9 +8,11 @@
 
 #include <Physics/PhysicsManager.hpp>
 
+#include "PhysicsMaterialResource.generated.hpp"
+
 namespace Darius::Physics
 {
-	class PhysicsMaterialResource : public D_RESOURCE::Resource
+	class DClass(Serialize) PhysicsMaterialResource : public D_RESOURCE::Resource
 	{
 		D_CH_RESOURCE_BODY(PhysicsMaterialResource, "Physics Material", ".physmat");
 
@@ -30,10 +32,15 @@ namespace Darius::Physics
 
 		INLINE operator physx::PxMaterial const& () const { return *mPxData; }
 
-		D_CH_FIELD(physx::PxMaterial*, PxData)
-
 	protected:
 		PhysicsMaterialResource(D_CORE::Uuid uuid, std::wstring const& path, std::wstring const& name, D_RESOURCE::DResourceId id, bool isDefault = false);
 
+	private:
+		physx::PxMaterial*				mPxData;
+
+	public:
+		Darius_Physics_PhysicsMaterialResource_GENERATED
 	};
 }
+
+File_PhysicsMaterialResource_GENERATED

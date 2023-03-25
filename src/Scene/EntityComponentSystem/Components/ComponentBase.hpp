@@ -89,8 +89,8 @@ public: \
     /*INLINE type const* Get##name() const { return m##name.Get(); } */ \
 private: \
     INLINE void _Set##name(D_RESOURCE::ResourceHandle handle) { m##name##Handle = handle; m##name = D_RESOURCE::GetResource<type>(handle, *this); __VA_ARGS__ } \
-    D_CH_FIELD(D_CORE::Ref<type>, name); \
-    D_CH_FIELD(D_RESOURCE::ResourceHandle, name##Handle);
+    D_CORE::Ref<type>               m##name; \
+    D_RESOURCE::ResourceHandle      m##name##Handle;
 
 namespace Darius::Scene
 {

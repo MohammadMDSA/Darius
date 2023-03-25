@@ -7,6 +7,8 @@
 #include <ResourceManager/Resource.hpp>
 #include <Utils/Assert.hpp>
 
+#include "MeshResource.generated.hpp"
+
 #ifndef D_GRAPHICS
 #define D_GRAPHICS Darius::Graphics
 #endif
@@ -15,7 +17,7 @@ namespace Darius::Graphics
 {
 	class DResourceManager;
 
-	class MeshResource : public D_RESOURCE::Resource
+	class DClass(Serialize) MeshResource : public D_RESOURCE::Resource
 	{
 	public:
 		using VertexType = D_GRAPHICS_VERTEX::VertexPositionNormalTangentTextureSkinned;
@@ -33,7 +35,6 @@ namespace Darius::Graphics
 		INLINE operator const D_RENDERER_GEOMETRY::Mesh* () const { return &mMesh; }
 		INLINE operator D_RENDERER_GEOMETRY::Mesh* () { return ModifyMeshData(); }
 
-		D_CH_FIELD_ACC(D_RENDERER_GEOMETRY::Mesh, Mesh, protected);
 
 	protected:
 
@@ -46,8 +47,13 @@ namespace Darius::Graphics
 
 		INLINE virtual void				Unload() override { EvictFromGpu(); }
 
+		D_RENDERER_GEOMETRY::Mesh		mMesh;
 		
 		friend class DResourceManager;
 
+	public:
+		Darius_Graphics_MeshResource_GENERATED
 	};
 }
+
+File_MeshResource_GENERATED

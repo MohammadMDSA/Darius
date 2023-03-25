@@ -3,6 +3,8 @@
 
 #include <Debug/DebugDraw.hpp>
 
+#include "BoxColliderComponent.sgenerated.hpp"
+
 namespace Darius::Physics
 {
 
@@ -59,10 +61,5 @@ namespace Darius::Physics
 		changed = true;
 		return &mGeometry;
 
-	}
-
-	physx::PxGeometry const* BoxColliderComponent::GetPhysicsGeometry() const
-	{
-		return &mGeometry;
 	}
 }

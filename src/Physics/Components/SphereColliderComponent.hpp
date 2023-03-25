@@ -2,13 +2,15 @@
 
 #include "ColliderComponent.hpp"
 
+#include "SphereColliderComponent.generated.hpp"
+
 #ifndef D_PHYSICS
 #define D_PHYSICS Darius::Physics
 #endif // !D_PHYSICS
 
 namespace Darius::Physics
 {
-	class SphereColliderComponent : public ColliderComponent
+	class DClass(Serialize) SphereColliderComponent : public ColliderComponent
 	{
 		D_H_COMP_BODY(SphereColliderComponent, ColliderComponent, "Physics/Sphere Collider", true, false);
 		
@@ -23,8 +25,6 @@ namespace Darius::Physics
 		virtual void						Update(float dt) override;
 		virtual void						PreUpdate(bool simulating) override;
 
-		D_CH_FIELD(physx::PxSphereGeometry, Geometry);
-
 	protected:
 
 		virtual physx::PxGeometry* UpdateAndGetPhysicsGeometry(bool& changed);
@@ -35,5 +35,13 @@ namespace Darius::Physics
 			auto scale = GetTransform().Scale;
 			return std::max((float)scale.GetX(), std::max((float)scale.GetY(), (float)scale.GetZ())) / 2;
 		}
+
+	private:
+		physx::PxSphereGeometry				mGeometry;
+
+	public:
+		Darius_Physics_SphereColliderComponent_GENERATED
 	};
 }
+
+File_SphereColliderComponent_GENERATED

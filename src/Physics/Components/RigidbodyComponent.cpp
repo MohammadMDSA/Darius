@@ -7,6 +7,8 @@
 #include <imgui.h>
 #include <imgui_internal.h>
 
+#include "RigidbodyComponent.sgenerated.hpp"
+
 #define VEC3_2_PX(v) PxVec3(v.GetX(), v.GetY(), v.GetZ())
 
 using namespace physx;

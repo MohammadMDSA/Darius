@@ -3,7 +3,11 @@
 
 #include <Utils/Common.hpp>
 
+#ifdef _D_EDITOR
 #include <imgui.h>
+#endif
+
+#include "PhysicsMaterialResource.sgenerated.hpp"
 
 using namespace D_SERIALIZATION;
 
@@ -67,6 +71,7 @@ namespace Darius::Physics
 		mPxData = nullptr;
 	}
 
+#ifdef _D_EDITOR
 	bool PhysicsMaterialResource::DrawDetails(float params[])
 	{
 		bool valueChanged = false;
@@ -113,4 +118,5 @@ namespace Darius::Physics
 
 		return false;
 	}
+#endif
 }

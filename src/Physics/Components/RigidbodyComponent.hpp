@@ -4,13 +4,15 @@
 
 #include <Scene/EntityComponentSystem/Components/ComponentBase.hpp>
 
+#include "RigidbodyComponent.generated.hpp"
+
 #ifndef D_PHYSICS
 #define D_PHYSICS Darius::Physics
 #endif // !D_PHYSICS
 
 namespace Darius::Physics
 {
-	class RigidbodyComponent : public D_ECS_COMP::ComponentBase
+	class DClass(Serialize) RigidbodyComponent : public D_ECS_COMP::ComponentBase
 	{
 		D_H_COMP_BODY(RigidbodyComponent, ComponentBase, "Physics/Rigidbody", true, false);
 
@@ -66,8 +68,6 @@ namespace Darius::Physics
 		void							SetPositionConstraintsY(bool enable);
 		void							SetPositionConstraintsZ(bool enable);
 
-	protected:
-		D_CH_FIELD(physx::PxRigidDynamic*, Actor = nullptr);
 	private:
 
 #ifdef _D_EDITOR
@@ -75,10 +75,16 @@ namespace Darius::Physics
 		bool							DrawPositionConstraints();
 #endif
 
+		physx::PxRigidDynamic*			mActor = nullptr;
 		bool							mKinematic;
 		bool							mUsingGravity;
 		bool							mRotationConstraints[3];
 		bool							mPositionConstraints[3];
 
+	public:
+		Darius_Physics_RigidbodyComponent_GENERATED
+
 	};
 }
+
+File_RigidbodyComponent_GENERATED

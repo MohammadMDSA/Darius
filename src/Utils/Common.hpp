@@ -10,12 +10,6 @@
 #define D_NAMEOF(T) #T
 #define D_NAMEOF_C(T) #T.c_str()
 
-#define D_CH_FIELD_ACC(type, name, access) \
-access: \
-type m##name;
-
-#define D_CH_FIELD(type, name) D_CH_FIELD_ACC(type, name, private)
-
 #define D_CH_TYPE_NAME_GETTER(T) \
 public: \
 static INLINE std::string const GetTypeName() { return D_NAMEOF(T); }

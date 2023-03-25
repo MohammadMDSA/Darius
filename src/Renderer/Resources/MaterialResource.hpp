@@ -25,7 +25,6 @@ namespace Darius::Graphics
 		D_CH_RESOURCE_BODY(MaterialResource, "Material", ".mat")
 		
 	public:
-		Darius_Graphics_MaterialResource_GENERATED
 
 		INLINE D_RENDERER_FRAME_RESOURCE::MaterialConstants* ModifyMaterialData() { MakeDiskDirty(); MakeGpuDirty(); return &mMaterial; }
 		INLINE const D_RENDERER_FRAME_RESOURCE::MaterialConstants* GetMaterialData() const { return &mMaterial; }
@@ -55,8 +54,6 @@ inline void Set##type##Texture(D_RESOURCE::ResourceHandle textureHandle) { SetTe
 		TextureSetter(Occulusion);
 		TextureSetter(Emissive);
 		TextureSetter(Normal);
-
-		D_CH_FIELD(D_RENDERER_FRAME_RESOURCE::MaterialConstants, Material);
 
 	protected:
 
@@ -103,14 +100,19 @@ inline void Set##type##Texture(D_RESOURCE::ResourceHandle textureHandle) { SetTe
 		D_RESOURCE::ResourceHandle					mEmissiveTextureHandle;
 
 
-		D_GRAPHICS_BUFFERS::UploadBuffer	mMaterialConstantsCPU[D_RENDERER_FRAME_RESOURCE::gNumFrameResources];
-		D_GRAPHICS_BUFFERS::ByteAddressBuffer mMaterialConstantsGPU;
+		D_RENDERER_FRAME_RESOURCE::MaterialConstants mMaterial;
+		D_GRAPHICS_BUFFERS::UploadBuffer			mMaterialConstantsCPU[D_RENDERER_FRAME_RESOURCE::gNumFrameResources];
+		D_GRAPHICS_BUFFERS::ByteAddressBuffer		mMaterialConstantsGPU;
 
-		D_GRAPHICS_MEMORY::DescriptorHandle	mTexturesHeap;
+		D_GRAPHICS_MEMORY::DescriptorHandle			mTexturesHeap;
 
-		uint16_t							mPsoFlags;
+		uint16_t									mPsoFlags;
 
-		float								mCutout;
+		float										mCutout;
+
+	public:
+		Darius_Graphics_MaterialResource_GENERATED
+
 	};
 }
 
