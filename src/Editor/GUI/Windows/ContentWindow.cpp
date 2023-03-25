@@ -206,7 +206,7 @@ namespace Darius::Editor::Gui::Windows
 			{
 				auto containedResources = D_RESOURCE::ResourceLoader::LoadResource(path, true);
 				auto name = D_FILE::GetFileName(path.filename());
-				auto nameStr = STR_WSTR(name);
+				auto nameStr = WSTR2STR(name);
 
 				uint64_t icon = D_THUMBNAIL::GetIconTextureId(D_THUMBNAIL::CommonIcon::File);
 

@@ -108,7 +108,7 @@ namespace Darius::Scene
 		if (Loaded)
 			Unload();
 		auto filename = D_FILE::GetFileName(path);
-		SceneName = STR_WSTR(filename);
+		SceneName = WSTR2STR(filename);
 
 		ScenePath = path;
 

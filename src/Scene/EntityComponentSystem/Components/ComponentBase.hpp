@@ -155,7 +155,7 @@ namespace Darius::Scene::ECS::Components
 
         INLINE operator D_CORE::CountedOwner const() {
             auto strName = GetComponentName();
-            return D_CORE::CountedOwner { WSTR_STR(strName), "Game Object Component", this, 0};
+            return D_CORE::CountedOwner { STR2WSTR(strName), "Game Object Component", this, 0};
         }
 
         static INLINE std::string   GetName() { return "ComponentBase"; }

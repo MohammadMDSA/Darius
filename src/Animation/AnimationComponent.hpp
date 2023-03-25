@@ -24,7 +24,7 @@ namespace Darius::Animation
 			AnimationState() : State(kStopped), Time(0.0f) {}
 		};
 
-		D_H_COMP_BODY(AnimationComponent, D_ECS_COMP::ComponentBase, "Rendering/Animation", true, false);
+		D_H_COMP_BODY(AnimationComponent, D_ECS_COMP::ComponentBase, "Rendering/Animation", true);
 
 	public:
 

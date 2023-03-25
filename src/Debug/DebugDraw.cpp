@@ -85,7 +85,7 @@ namespace Darius::Debug
 		if (DrawPending.size() >= MAX_DEBUG_DRAWS)
 			return;
 
-		auto index = DrawPending.size();
+		auto index = (UINT)DrawPending.size();
 
 		// Upload transform
 		auto trans = D_MATH::Transform(position, rotation, scale);
@@ -100,7 +100,7 @@ namespace Darius::Debug
 		if (DrawPending.size() >= MAX_DEBUG_DRAWS)
 			return;
 
-		auto index = DrawPending.size();
+		auto index = (UINT)DrawPending.size();
 
 		auto trans = D_MATH::Transform(position, Quaternion(kIdentity), { radius, radius, radius });
 		UploadTransform(trans, index);

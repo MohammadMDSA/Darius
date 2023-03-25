@@ -14,7 +14,7 @@ namespace Darius::Physics
 {
 	class DClass(Serialize) RigidbodyComponent : public D_ECS_COMP::ComponentBase
 	{
-		D_H_COMP_BODY(RigidbodyComponent, ComponentBase, "Physics/Rigidbody", true, false);
+		D_H_COMP_BODY(RigidbodyComponent, ComponentBase, "Physics/Rigidbody", true);
 
 	public:
 		virtual INLINE bool				IsDisableable() const { return false; }

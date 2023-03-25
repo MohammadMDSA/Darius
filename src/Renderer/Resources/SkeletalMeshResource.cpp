@@ -36,7 +36,7 @@ namespace Darius::Graphics
 		mMesh.mDraw.clear();
 		if (data.SubMeshes.size() <= 0)
 		{
-			Mesh::Draw gpuDraw = { indices.size(), 0, 0 };
+			Mesh::Draw gpuDraw = { (UINT)indices.size(), 0, 0 };
 			mMesh.mDraw.push_back(gpuDraw);
 		}
 		else
@@ -49,8 +49,8 @@ namespace Darius::Graphics
 			}
 		}
 
-		mMesh.mNumTotalVertices = vertices.size();
-		mMesh.mNumTotalIndices = indices.size();
+		mMesh.mNumTotalVertices = (UINT)vertices.size();
+		mMesh.mNumTotalIndices = (UINT)indices.size();
 
 		mMesh.mBoundSp = mMesh.mBoundSp.Union(data.MeshData.CalcBoundingSphere());
 		mMesh.mBoundBox = mMesh.mBoundBox.Union(data.MeshData.CalcBoundingBox());
@@ -58,12 +58,12 @@ namespace Darius::Graphics
 		mMesh.Name = GetName();
 
 		// Create vertex buffer
-		mMesh.VertexDataGpu.Create(mMesh.Name + L" Vertex Buffer", vertices.size(), sizeof(D_GRAPHICS_VERTEX::VertexPositionNormalTangentTextureSkinned), vertices.data());
+		mMesh.VertexDataGpu.Create(mMesh.Name + L" Vertex Buffer", (UINT)vertices.size(), sizeof(D_GRAPHICS_VERTEX::VertexPositionNormalTangentTextureSkinned), vertices.data());
 
 		// Create index buffer
-		mMesh.IndexDataGpu.Create(mMesh.Name + L" Index Buffer", indices.size(), sizeof(std::uint16_t), indices.data());
+		mMesh.IndexDataGpu.Create(mMesh.Name + L" Index Buffer", (UINT)indices.size(), sizeof(std::uint16_t), indices.data());
 
-		mJointCount = mSkeleton.size();
+		mJointCount = (UINT)mSkeleton.size();
 		mSkeletonRoot = mJointCount > 0 ? &mSkeleton.front() : nullptr;
 	}
 

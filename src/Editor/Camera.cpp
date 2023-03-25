@@ -184,7 +184,7 @@ namespace D_EDITOR
 			return;
 		mAdjustmentTarget = ComputePositionFromTarget(target);
 		mAdjusting = true;
-		mAdjustmentStartTime = D_TIME::SystemTime::GetCurrentSecond();
+		mAdjustmentStartTime = (float)D_TIME::SystemTime::GetCurrentSecond();
 		mAdjustmentStartLocation = mTargetCamera.GetPosition();
 	}
 
@@ -192,7 +192,7 @@ namespace D_EDITOR
 	{
 		if (mAdjusting)
 		{
-			auto passedTime = D_TIME::SystemTime::GetCurrentSecond() - mAdjustmentStartTime;
+			auto passedTime = (float)D_TIME::SystemTime::GetCurrentSecond() - mAdjustmentStartTime;
 			if (mAdjustmentTime <= passedTime)
 			{
 				mAdjusting = false;

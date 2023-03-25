@@ -101,7 +101,7 @@ namespace Darius::ResourceManager
 		template<class T>
 		INLINE ResourceHandle		CreateResource(D_CORE::Uuid uuid, std::wstring const& path, std::wstring const& name, bool isDefault = false) {
 			if (D_H_ENSURE_DIR(path))
-				throw D_EXCEPTION::Exception(("A file with the same name already exists: " + STR_WSTR(path)).c_str());
+				throw D_EXCEPTION::Exception(("A file with the same name already exists: " + WSTR2STR(path)).c_str());
 			return CreateResource<T>(uuid, path, name, isDefault, false);
 		}
 
@@ -113,7 +113,7 @@ namespace Darius::ResourceManager
 		INLINE ResourceHandle		CreateResource(ResourceType type, std::wstring const& path, std::wstring const& name)
 		{
 			if (D_H_ENSURE_DIR(path))
-				throw D_EXCEPTION::Exception(("A file with the same name already exists: " + STR_WSTR(path)).c_str());
+				throw D_EXCEPTION::Exception(("A file with the same name already exists: " + WSTR2STR(path)).c_str());
 			return CreateResource(type, D_CORE::GenerateUuid(), path, name, false, false);
 		}
 

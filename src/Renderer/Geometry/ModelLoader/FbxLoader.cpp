@@ -42,7 +42,7 @@ namespace Darius::Renderer::Geometry::ModelLoader::Fbx
 	void TraverseNodes(FbxNode* nodeP, std::function<void(FbxNode*)> callback);
 	bool ReadMeshNode(FbxMesh* pMesh, MultiPartMeshData<D_GRAPHICS_VERTEX::VertexPositionNormalTangentTextureSkinned>& result, DUnorderedMap<int, DVector<int>>& controlPointIndexToVertexIndexMap);
 	bool ReadMeshSkin(FbxMesh* pMesh, MultiPartMeshData<D_GRAPHICS_VERTEX::VertexPositionNormalTangentTextureSkinned>& meshData, DList<D_RENDERER_GEOMETRY::Mesh::SkeletonJoint>& skeleton, DUnorderedMap<int, DVector<int>> const& controlPointIndexToVertexIndexMap);
-	void AddSkeletonChildren(FbxSkeleton const* skeletonNode, DList<Mesh::SkeletonJoint>& skeletonData, DMap<FbxSkeleton const*, int>& skeletonIndexMap);
+	void AddSkeletonChildren(FbxSkeleton const* skeletonNode, DList<Mesh::SkeletonJoint>& skeletonData, DMap<FbxSkeleton const*, UINT>& skeletonIndexMap);
 	void ReadFBXCacheVertexPositions(MultiPartMeshData<D_GRAPHICS_VERTEX::VertexPositionNormalTangentTextureSkinned>& meshDataVec, FbxMesh const* mesh, DUnorderedMap<int, DVector<int>> const& controlPointIndexToVertexIndexMap);
 	void AddJointWeightToVertices(VertexBlendWeightData const& skinData, MultiPartMeshData<D_GRAPHICS_VERTEX::VertexPositionNormalTangentTextureSkinned>& meshData, DUnorderedMap<int, DVector<int>> const& controlPointIndexToVertexIndexMap);
 
@@ -118,7 +118,7 @@ namespace Darius::Renderer::Geometry::ModelLoader::Fbx
 		float matData[16];
 		for (int row = 0; row < 4; row++)
 			for (int col = 0; col < 4; col++)
-				matData[row * 4 + col] = mat.Get(row, col);
+				matData[row * 4 + col] = (float)mat.Get(row, col);
 		return Matrix4(matData);
 	}
 
@@ -261,7 +261,7 @@ namespace Darius::Renderer::Geometry::ModelLoader::Fbx
 			{
 				auto attr = node->GetNodeAttribute();
 				auto nodeName = std::string(node->GetName());
-				if (attr && attr->GetAttributeType() == FbxNodeAttribute::eMesh && WSTR_STR(nodeName) == meshName)
+				if (attr && attr->GetAttributeType() == FbxNodeAttribute::eMesh && STR2WSTR(nodeName) == meshName)
 				{
 					targetNode = node;
 				}
@@ -770,7 +770,7 @@ namespace Darius::Renderer::Geometry::ModelLoader::Fbx
 		}
 
 		// Creating skeleton hierarchy
-		DMap<FbxSkeleton const*, int> skeletonIndexMap;
+		DMap<FbxSkeleton const*, UINT> skeletonIndexMap;
 		{
 			Mesh::SkeletonJoint sceneGraphNode;
 			sceneGraphNode.MatrixIdx = 0;
@@ -799,8 +799,8 @@ namespace Darius::Renderer::Geometry::ModelLoader::Fbx
 
 				for (size_t clusterItem = 0; clusterItem < cluster->GetControlPointIndicesCount(); clusterItem++)
 				{
-					auto controlPointIndex = controlPointIndices[clusterItem];
-					auto controlPointWeight = controlPointWeights[clusterItem];
+					auto controlPointIndex = (UINT)controlPointIndices[clusterItem];
+					auto controlPointWeight = (float)controlPointWeights[clusterItem];
 
 					auto jointSkeleton = cluster->GetLink()->GetSkeleton();
 					auto jointIndex = skeletonIndexMap[jointSkeleton];
@@ -821,7 +821,7 @@ namespace Darius::Renderer::Geometry::ModelLoader::Fbx
 		return true;
 	}
 
-	void AddBlendDataToVertex(D_GRAPHICS_VERTEX::VertexPositionNormalTangentTextureSkinned& vertex, DVector<std::pair<int, std::pair<float, D_MATH::Matrix4>>>& blendData)
+	void AddBlendDataToVertex(D_GRAPHICS_VERTEX::VertexPositionNormalTangentTextureSkinned& vertex, DVector<std::pair<UINT, std::pair<float, D_MATH::Matrix4>>>& blendData)
 	{
 		std::sort(blendData.begin(), blendData.end(),
 			[](std::pair<int, std::pair<float, D_MATH::Matrix4>> const& a, std::pair<int, std::pair<float, D_MATH::Matrix4>> const& b)
@@ -873,7 +873,7 @@ namespace Darius::Renderer::Geometry::ModelLoader::Fbx
 		}
 	}
 
-	void AddSkeletonChildren(FbxSkeleton const* skeleton, DList<Mesh::SkeletonJoint>& skeletonData, DMap<FbxSkeleton const*, int>& skeletonIndexMap)
+	void AddSkeletonChildren(FbxSkeleton const* skeleton, DList<Mesh::SkeletonJoint>& skeletonData, DMap<FbxSkeleton const*, UINT>& skeletonIndexMap)
 	{
 		auto node = skeleton->GetNode();
 
@@ -904,7 +904,7 @@ namespace Darius::Renderer::Geometry::ModelLoader::Fbx
 			auto& fbxMat = node->EvaluateGlobalTransform();
 			for (int row = 0; row < 4; row++)
 				for (int col = 0; col < 4; col++)
-					matData[row * 4 + col] = fbxMat.Get(row, col);
+					matData[row * 4 + col] = (float)fbxMat.Get(row, col);
 
 			currentSceneGraphNode.IBM = Matrix4(matData).Inverse();
 		}
@@ -951,7 +951,7 @@ namespace Darius::Renderer::Geometry::ModelLoader::Fbx
 		auto cache = deformer->GetCache();
 		int channelIndex = cache->GetChannelIndex(deformer->Channel.Get());
 		float* buffer;
-		int vertexCount = mesh->GetControlPointsCount();
+		UINT vertexCount = (UINT)mesh->GetControlPointsCount();
 
 		// If there is cache for every vertex component xyz
 		{

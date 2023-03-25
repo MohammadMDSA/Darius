@@ -111,7 +111,7 @@ namespace Darius::Animation
 			break;
 		}
 		default:
-			D_ASSERT(0, "Unexpected animation key frame data format");
+			D_ASSERT_M(0, "Unexpected animation key frame data format");
 			break;
 		}
 	}
@@ -212,7 +212,7 @@ namespace Darius::Animation
 				break;
 			default:
 			case AnimationCurve::kWeights:
-				D_ASSERT(0, "Unhandled blend shape weights in animation");
+				D_ASSERT_M(0, "Unhandled blend shape weights in animation");
 				break;
 			}
 		}

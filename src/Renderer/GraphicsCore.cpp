@@ -482,7 +482,7 @@ namespace Darius::Graphics
 		RasterizerShadow = RasterizerDefault;
 		//RasterizerShadow.CullMode = D3D12_CULL_FRONT;  // Hacked here rather than fixing the content
 		RasterizerShadow.SlopeScaledDepthBias = -1.5f;
-		RasterizerShadow.DepthBias = -100.f;
+		RasterizerShadow.DepthBias = -10;
 
 		RasterizerShadowTwoSided = RasterizerShadow;
 		RasterizerShadowTwoSided.CullMode = D3D12_CULL_MODE_NONE;
@@ -606,7 +606,7 @@ namespace Darius::Graphics
 					return;
 
 				auto shaderNameW = D_FILE::GetFileName(path);
-				auto shaderName = STR_WSTR(shaderNameW);
+				auto shaderName = WSTR2STR(shaderNameW);
 
 				Device::ShaderCompatibilityCheck(D3D_SHADER_MODEL_6_2);
 

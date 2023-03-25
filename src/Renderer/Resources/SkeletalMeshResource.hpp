@@ -39,7 +39,7 @@ namespace Darius::Graphics
 		D_RENDERER_GEOMETRY::Mesh::SkeletonJoint*	mSkeletonRoot;
 		
 		DField(Get[inline])
-		int											mJointCount;
+		UINT										mJointCount;
 
 	protected:
 

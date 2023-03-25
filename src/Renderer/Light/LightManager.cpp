@@ -86,7 +86,7 @@ namespace Darius::Renderer::LightManager
 			ActiveLightsUpload[i].Create(L"Active Light Upload", count * sizeof(UINT));
 			LightsUpload[i].Create(L"Light Upload", MaxNumLight * sizeof(LightData));
 		}
-		ActiveLightsBufferGpu.Create(L"Active Light Buffer", count, sizeof(UINT), nullptr);
+		ActiveLightsBufferGpu.Create(L"Active Light Buffer", (UINT)count, sizeof(UINT), nullptr);
 		LightsBufferGpu.Create(L"Light Buffer", MaxNumLight, sizeof(LightData));
 
 		ShadowBuffers.resize(MaxNumLight);
@@ -134,13 +134,13 @@ namespace Darius::Renderer::LightManager
 
 		bool done = false;
 
-		for (size_t i = 0; !done && i < (MaxNumLight + sizeof(UINT) * 8 - 1) / sizeof(UINT) * 8; i++)
+		for (UINT i = 0; !done && i < (MaxNumLight + sizeof(UINT) * 8 - 1) / sizeof(UINT) * 8; i++)
 		{
 			UINT activeFlags = 0;
 
-			for (size_t bitIdx = 0; bitIdx < sizeof(UINT) * 8; bitIdx++)
+			for (short bitIdx = 0; bitIdx < sizeof(UINT) * 8; bitIdx++)
 			{
-				auto lightIdx = i * sizeof(UINT) * 8 + bitIdx;
+				UINT lightIdx = i * (UINT)sizeof(UINT) * 8u + bitIdx;
 				DVector<LightData>* LightVec = nullptr;
 				DVector<Transform>* transformVec = nullptr;
 				DVector<LightStatus>* activeVec = nullptr;
@@ -393,7 +393,7 @@ namespace Darius::Renderer::LightManager
 
 		// TODO: Create sorter and input render item per light source
 		MeshSorter sorter(MeshSorter::kShadows);
-		for (auto const& ri : shadowRenderItems) sorter.AddMesh(ri, 0.1);
+		for (auto const& ri : shadowRenderItems) sorter.AddMesh(ri, 0.1f);
 
 		sorter.Sort();
 

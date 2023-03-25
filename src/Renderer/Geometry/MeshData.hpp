@@ -24,8 +24,8 @@ namespace Darius::Renderer::Geometry
 	{
 		SubMesh() : IndexOffset(0), IndexCount(0) {}
 
-		int IndexOffset;
-		int IndexCount;
+		UINT IndexOffset;
+		UINT IndexCount;
 	};
 
 	template<typename Vertex>
@@ -51,7 +51,7 @@ namespace Darius::Renderer::Geometry
 			D_MATH_BOUNDS::BoundingSphere res;
 			for (auto const& vert : Vertices)
 			{
-				D_MATH_BOUNDS::BoundingSphere vertBound(vert.mPosition, 0.001);
+				D_MATH_BOUNDS::BoundingSphere vertBound(vert.mPosition, 0.001f);
 				res = res.Union(vertBound);
 			}
 			return res;
@@ -80,5 +80,5 @@ namespace Darius::Renderer::Geometry
 	};
 
 	// For each vertex, for each connected joint, index and (weight, init mat)
-	typedef D_CONTAINERS::DVector<D_CONTAINERS::DVector<std::pair<int, std::pair<float, D_MATH::Matrix4>>>> VertexBlendWeightData;
+	typedef D_CONTAINERS::DVector<D_CONTAINERS::DVector<std::pair<UINT, std::pair<float, D_MATH::Matrix4>>>> VertexBlendWeightData;
 }

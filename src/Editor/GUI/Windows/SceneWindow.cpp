@@ -323,7 +323,7 @@ namespace Darius::Editor::Gui::Windows
 			auto projButtonSize = ImVec2(50.f, 20.f);
 
 			ImGui::SetCursorPos(ImVec2(min.x + padding.x + (compassSize.x - projButtonSize.x) / 2,
-				min.y - 1.5 * padding.y + mHeight));
+				min.y - 1.5f * padding.y + mHeight));
 
 			if (mCamera.IsOrthographic())
 			{
@@ -444,25 +444,25 @@ namespace Darius::Editor::Gui::Windows
 
 	void SceneWindow::CalcGridLineConstants(DVector<MeshConstants>& constants, int count)
 	{
-		auto scale = Matrix4::MakeScale(count * 2);
+		auto scale = Matrix4::MakeScale((float)count * 2);
 		auto rot = Matrix4::MakeLookAt(Vector3(kZero), Vector3(-1.f, 0.f, 0.f), Vector3::Up);
 
 		for (short i = 0; i <= count; i++)
 		{
 			// Along +x
-			constants.push_back({ Matrix4::MakeTranslation(i, 0.f, count) * scale });
+			constants.push_back({ Matrix4::MakeTranslation((float)i, 0.f, (float)count) * scale });
 
 			// Along +z
-			constants.push_back({ Matrix4::MakeTranslation(-count, 0.f, (float)i) * rot * scale });
+			constants.push_back({ Matrix4::MakeTranslation(-(float)count, 0.f, (float)i) * rot * scale });
 
 			if (i == 0)
 				continue;
 
 			// Along -x
-			constants.push_back({ Matrix4::MakeTranslation(-i, 0.f, count) * scale });
+			constants.push_back({ Matrix4::MakeTranslation(-(float)i, 0.f, (float)count) * scale });
 
 			// Along -z
-			constants.push_back({ Matrix4::MakeTranslation(-count, 0.f, -i) * rot * scale });
+			constants.push_back({ Matrix4::MakeTranslation(-(float)count, 0.f, -(float)i) * rot * scale });
 		}
 	}
 

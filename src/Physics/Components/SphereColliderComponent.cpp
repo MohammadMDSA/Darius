@@ -45,7 +45,7 @@ namespace Darius::Physics
 		auto transform = GetTransform();
 
 		
-		D_DEBUG_DRAW::DrawSphere(transform.Translation, GetRadius() * 2 + 0.03, 0, {0.f, 1.f, 0.f, 1.f});
+		D_DEBUG_DRAW::DrawSphere(transform.Translation, GetRadius() * 2 + 0.03f, 0, {0.f, 1.f, 0.f, 1.f});
 	}
 
 	physx::PxGeometry* SphereColliderComponent::UpdateAndGetPhysicsGeometry(bool& changed)

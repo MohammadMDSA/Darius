@@ -27,7 +27,7 @@ namespace Darius::Animation
         uint32_t    KeyFrameStride : 3 = 0;        // Number of 4-byte words for one key frame
         float       StartTime = 0;                 // Time stamp of the first key frame
         int         ChannelIndex = 0;              // Component Index 
-        D_CONTAINERS::DMap<float, int> KeyframeTimeMap = {}; // Mapping from keyframe time to index
+        D_CONTAINERS::DMap<float, UINT> KeyframeTimeMap = {}; // Mapping from keyframe time to index
     };
 
     //

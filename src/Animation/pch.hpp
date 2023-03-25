@@ -56,6 +56,9 @@
 #include <dxgidebug.h>
 #endif
 
+#include <locale>
+#include <codecvt>
+
 // If using the DirectX Tool Kit for DX12, uncomment this line:
 //#include "GraphicsMemory.h"
 

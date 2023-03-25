@@ -26,7 +26,7 @@ namespace Darius::ResourceManager
 			if (!factory)
 				continue;
 
-			auto resouceHandle = manager->CreateResource(resourceMeta.Type, resourceMeta.Uuid, directory / meta.FileName, WSTR_STR(resourceMeta.Name), false, true);
+			auto resouceHandle = manager->CreateResource(resourceMeta.Type, resourceMeta.Uuid, directory / meta.FileName, STR2WSTR(resourceMeta.Name), false, true);
 
 			if (resouceHandle.Type != 0)
 
@@ -51,7 +51,7 @@ namespace Darius::ResourceManager
 			for (auto resourceToCreate : resourcesToCreateFromProvider)
 			{
 				resourceToCreate.Uuid = GenerateUuid();
-				auto handle = manager->CreateResource(resourceToCreate.Type, resourceToCreate.Uuid, path, WSTR_STR(resourceToCreate.Name), false, true);
+				auto handle = manager->CreateResource(resourceToCreate.Type, resourceToCreate.Uuid, path, STR2WSTR(resourceToCreate.Name), false, true);
 				results.push_back(handle);
 
 			}
@@ -111,7 +111,7 @@ namespace Darius::ResourceManager
 			is.close();
 
 			auto name = resource->GetName();
-			jmeta["Properties"][STR_WSTR(name)] = resourceProps;
+			jmeta["Properties"][WSTR2STR(name)] = resourceProps;
 
 			std::ofstream os(path);
 			os << jmeta;
@@ -221,7 +221,7 @@ namespace Darius::ResourceManager
 				if (!metaOnly && !resource->IsLoaded())
 				{
 					auto resWName = resource->GetName();
-					auto resName = STR_WSTR(resWName);
+					auto resName = WSTR2STR(resWName);
 					resource->ReadResourceFromFile(properties.contains(resName) ? properties[resName] : Json());
 					resource->mLoaded = true;
 				}
@@ -264,7 +264,7 @@ namespace Darius::ResourceManager
 
 			ResourceDataInFile data;
 			auto name = resource->GetName();
-			data.Name = STR_WSTR(name);
+			data.Name = WSTR2STR(name);
 			data.Type = resource->GetType();
 			data.Uuid = resource->GetUuid();
 
@@ -311,7 +311,7 @@ namespace Darius::ResourceManager
 
 	void to_json(D_SERIALIZATION::Json& j, const ResourceFileMeta& value)
 	{
-		j["Path"] = STR_WSTR(value.FileName);
+		j["Path"] = WSTR2STR(value.FileName);
 		j["Resources"] = value.Resources;
 	}
 
@@ -325,7 +325,7 @@ namespace Darius::ResourceManager
 	void from_json(const D_SERIALIZATION::Json& j, ResourceFileMeta& value)
 	{
 		std::string fname = j["Path"];
-		value.FileName = WSTR_STR(fname);
+		value.FileName = STR2WSTR(fname);
 		value.Resources = j["Resources"];
 	}
 

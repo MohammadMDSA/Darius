@@ -296,7 +296,7 @@ namespace Darius::Graphics::Utils::Profiling
 				sm_RootScope.m_StartTick = s_lastFrameTick;
 			sm_RootScope.m_EndTick = frameTick;
 			sm_RootScope.GatherTimes(FrameIndex);
-			s_FrameDelta.RecordStat(FrameIndex, D_TIME::SystemTime::TimeBetweenTicks(s_lastFrameTick, frameTick));
+			s_FrameDelta.RecordStat(FrameIndex, (float)D_TIME::SystemTime::TimeBetweenTicks(s_lastFrameTick, frameTick));
 			D_PROFILING_GPU::EndReadBack();
 
 			float TotalCpuTime, TotalGpuTime;

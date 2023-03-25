@@ -233,7 +233,7 @@ namespace Darius::Editor::Gui::GuiManager
 				std::string filePathName = ImGuiFileDialog::Instance()->GetFilePathName();
 				D_WORLD::Unload();
 
-				if (D_WORLD::Load(WSTR_STR(filePathName)))
+				if (D_WORLD::Load(STR2WSTR(filePathName)))
 					D_EDITOR_CONTEXT::SetSelectedGameObject(nullptr);
 			}
 
@@ -247,7 +247,7 @@ namespace Darius::Editor::Gui::GuiManager
 			if (ImGuiFileDialog::Instance()->IsOk())
 			{
 				std::string filePathName = ImGuiFileDialog::Instance()->GetFilePathName();
-				if (D_WORLD::Create(WSTR_STR(filePathName)))
+				if (D_WORLD::Create(STR2WSTR(filePathName)))
 				{
 					D_WORLD::Save();
 				}
@@ -265,7 +265,7 @@ namespace Darius::Editor::Gui::GuiManager
 			if (ImGuiFileDialog::Instance()->IsOk())
 			{
 				std::string _filePathName = ImGuiFileDialog::Instance()->GetFilePathName();
-				std::wstring filePathName = WSTR_STR(_filePathName);
+				std::wstring filePathName = STR2WSTR(_filePathName);
 
 				D_RESOURCE::ResourceType type = (D_RESOURCE::ResourceType)ImGuiFileDialog::Instance()->GetUserDatas();
 				D_RESOURCE::GetManager()->CreateResource(type, filePathName, D_FILE::GetFileName(filePathName));

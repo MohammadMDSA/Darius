@@ -61,7 +61,7 @@ namespace Darius::Editor::Gui::Component
 		auto textStart = (availWidth - textWidth) / 2;
 		textStart = textStart > 0 ? textStart : 0;
 
-		ImGui::SetCursorPos(ImVec2(startCurPos.x + textStart, startCurPos.y + height - 1.5 * padding));
+		ImGui::SetCursorPos(ImVec2(startCurPos.x + textStart, startCurPos.y + height - 1.5f * padding));
 
 		ImGui::TextWrapped(nameStr);
 

@@ -152,7 +152,7 @@ namespace Darius::ResourceManager
 
 	{
 		if (!fromFile && D_H_ENSURE_FILE(path))
-			throw D_EXCEPTION::Exception(("A file with the same name already exists: " + STR_WSTR(path)).c_str());
+			throw D_EXCEPTION::Exception(("A file with the same name already exists: " + WSTR2STR(path)).c_str());
 
 		auto factory = Resource::GetFactoryForResourceType(type);
 		if (!factory)

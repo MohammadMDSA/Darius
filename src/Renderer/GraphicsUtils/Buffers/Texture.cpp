@@ -212,9 +212,9 @@ namespace Darius::Graphics::Utils::Buffers
 		mMetaData.Initialized = true;
 #endif // _D_EDITOR
 
-		mWidth = meta.width;
-		mHeight = meta.height;
-		mDepth = meta.depth;
+		mWidth = (UINT)meta.width;
+		mHeight = (UINT)meta.height;
+		mDepth = (UINT)meta.depth;
 
 		return SUCCEEDED(hr);
 	}

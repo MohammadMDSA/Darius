@@ -70,7 +70,7 @@ namespace Darius::Graphics
 		result.Material.MaterialCBV = *mMaterialResource.Get();
 		result.Material.MaterialSRV = mMaterialResource->GetTexturesHandle();
 		result.mJointData = mJoints.data();
-		result.mNumJoints = mJoints.size();
+		result.mNumJoints = (UINT)mJoints.size();
 		result.PsoType = GetPsoIndex();
 		result.PsoFlags = mComponentPsoFlags | mMaterialResource->GetPsoFlags();
 		return result;
@@ -202,7 +202,7 @@ namespace Darius::Graphics
 			auto quat = mat.GetQ();
 
 
-			skeletonJoint.Xform.Set3x3(Matrix3(Quaternion(quat.mData[0], quat.mData[1], quat.mData[2], quat.mData[3])) * Matrix3::MakeScale(skeletonJoint.Scale));
+			skeletonJoint.Xform.Set3x3(Matrix3(Quaternion((float)quat.mData[0], (float)quat.mData[1], (float)quat.mData[2], (float)quat.mData[3])) * Matrix3::MakeScale(skeletonJoint.Scale));
 		}
 
 		auto xform = skeletonJoint.Xform;

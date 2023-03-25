@@ -35,7 +35,7 @@ namespace Darius::Editor::Gui::Windows
 		if (!D_SIMULATE::IsSimulating())
 			return;
 
-		float time = D_TIME::GetStepTimer()->GetTotalSeconds();
+		float time = (float)D_TIME::GetStepTimer()->GetTotalSeconds();
 
 		mMaxGpu = D_PROFILING::GetMaxGpuTime();
 		mMaxCpu = D_PROFILING::GetMaxCpuTime();

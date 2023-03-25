@@ -57,7 +57,7 @@ namespace Darius::Editor::Gui::Windows
 				{
 					auto resource = resources[row];
 					auto resourceName = resource->GetName();
-					auto resNameStr = STR_WSTR(resourceName);
+					auto resNameStr = WSTR2STR(resourceName);
 					if (resource->IsDirtyDisk())
 						resNameStr += "*";
 

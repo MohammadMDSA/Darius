@@ -37,7 +37,7 @@ namespace Darius::Core::Containers
 		unsigned long Size() const
 		{
 			std::lock_guard<std::mutex> lock(mutex_);
-			return queue_.size();
+			return (unsigned long)queue_.size();
 		}
 
 		std::optional<T> Pop() {

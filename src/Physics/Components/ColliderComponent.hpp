@@ -16,7 +16,7 @@ namespace Darius::Physics
 {
 	class DClass(Serialize) ColliderComponent : public D_ECS_COMP::ComponentBase
 	{
-		D_H_COMP_BODY(ColliderComponent, ComponentBase, "Physics/Collider", false, false);
+		D_H_COMP_BODY(ColliderComponent, ComponentBase, "Physics/Collider", false);
 
 	public:
 

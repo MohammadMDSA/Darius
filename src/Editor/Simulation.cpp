@@ -74,7 +74,7 @@ namespace Darius::Editor::Simulate
 			Timer->Tick([]() {});
 			if (!Timer->IsPaused())
 			{
-				auto deltaTime = Timer->GetElapsedSeconds();
+				auto deltaTime = (float)Timer->GetElapsedSeconds();
 
 				// World Logic
 				D_WORLD::Update(deltaTime);

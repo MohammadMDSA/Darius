@@ -17,10 +17,10 @@ namespace Darius::Renderer
 
 namespace Darius::Renderer::LightManager
 {
-	constexpr int		MaxNumDirectionalLight = 6;
-	constexpr int		MaxNumPointLight = 125;
-	constexpr int		MaxNumSpotLight = 125;
-	constexpr int		MaxNumLight = MaxNumDirectionalLight + MaxNumPointLight + MaxNumSpotLight;
+	constexpr UINT		MaxNumDirectionalLight = 6;
+	constexpr UINT		MaxNumPointLight = 125;
+	constexpr UINT		MaxNumSpotLight = 125;
+	constexpr UINT		MaxNumLight = MaxNumDirectionalLight + MaxNumPointLight + MaxNumSpotLight;
 
 	enum class LightSourceType
 	{

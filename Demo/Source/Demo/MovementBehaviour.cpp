@@ -47,7 +47,6 @@ namespace Demo
 		// sample field
 		D_H_DETAILS_DRAW_PROPERTY("Rotate");
 
-		float val;
 		changed |= ImGui::Checkbox("##Rotate", &mRotate);
 
 		D_H_DETAILS_DRAW_END_TABLE();

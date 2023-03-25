@@ -95,6 +95,7 @@ namespace Darius::Core::Filesystem
 
 		is >> json;
 		is.close();
+		return true;
 	}
 
 	bool WriteJsonFile(Path const& filePath, D_SERIALIZATION::Json const& json)
@@ -107,6 +108,8 @@ namespace Darius::Core::Filesystem
 
 		os << json;
 		os.close();
+
+		return true;
 	}
 
 }

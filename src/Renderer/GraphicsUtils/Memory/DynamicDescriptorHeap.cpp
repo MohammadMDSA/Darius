@@ -324,7 +324,7 @@ namespace Darius::Graphics::Utils::Memory
     {
         UINT CurrentOffset = 0;
 
-        D_ASSERT(RootSign.mNumParameters <= 16, "Maybe we need to support something greater");
+        D_ASSERT_M(RootSign.mNumParameters <= 16, "Maybe we need to support something greater");
 
         mStaleRootParamsBitMap = 0;
         mRootDescriptorTablesBitMap = (Type == D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER ?
@@ -349,6 +349,6 @@ namespace Darius::Graphics::Utils::Memory
 
         mMaxCachedDescriptors = CurrentOffset;
 
-        D_ASSERT(mMaxCachedDescriptors <= kMaxNumDescriptors, "Exceeded user-supplied maximum cache size");
+        D_ASSERT_M(mMaxCachedDescriptors <= kMaxNumDescriptors, "Exceeded user-supplied maximum cache size");
     }
 }

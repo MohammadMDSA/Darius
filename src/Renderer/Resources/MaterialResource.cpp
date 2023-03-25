@@ -315,7 +315,7 @@ device->CopyDescriptorsSimple(1, mTexturesHeap + type * incSize, m##name##Textur
 		{ \
 			bool selected = currentTexture && prev.Handle.Id == currentTexture->GetId() && prev.Handle.Type == currentTexture->GetType(); \
  \
-			auto name = STR_WSTR(prev.Name); \
+			auto name = WSTR2STR(prev.Name); \
 			ImGui::PushID((name + std::to_string(idx)).c_str()); \
 			if (ImGui::Selectable(name.c_str(), &selected)) \
 			{ \

@@ -90,17 +90,17 @@ namespace Darius::Animation
 		if (!curve)
 			return false;
 
-		for (int keyIndex = 0; keyIndex < curve->KeyGetCount(); keyIndex++)
+		for (UINT keyIndex = 0; keyIndex < (UINT)curve->KeyGetCount(); keyIndex++)
 		{
 			auto curveKey = curve->KeyGet(keyIndex);
 			auto keyTime = curveKey.GetTime().GetSecondDouble();
 
 			if (keyIndex == 0)
 			{
-				animCurve.StartTime = keyTime;
+				animCurve.StartTime = (float)keyTime;
 			}
 
-			animCurve.KeyframeTimeMap.insert({ keyTime, keyIndex });
+			animCurve.KeyframeTimeMap.insert({ (float)keyTime, keyIndex });
 
 			// Increasing keyframe vector size
 			for (int i = 0; i < 4; i++) mKeyframes.push_back(0);
@@ -160,7 +160,7 @@ namespace Darius::Animation
 		{
 			FbxAnimStack* animStack = lScene->GetSrcObject<FbxAnimStack>(i);
 			std::string stackName = animStack->GetName();
-			if (GetName() == WSTR_STR(stackName))
+			if (GetName() == STR2WSTR(stackName))
 			{
 				targetAnimStack = animStack;
 				break;
@@ -170,7 +170,7 @@ namespace Darius::Animation
 		if (!targetAnimStack)
 		{
 			auto name = GetName();
-			D_LOG_WARN("Animation " << STR_WSTR(name) << " from path " << GetPath().string() << " could not be read");
+			D_LOG_WARN("Animation " << WSTR2STR(name) << " from path " << GetPath().string() << " could not be read");
 			lSdkManager->Destroy();
 			return;
 		}
@@ -217,7 +217,7 @@ namespace Darius::Animation
 			{
 				auto curveNode = node->LclTranslation.GetCurveNode(currentLayer);
 				if (curveNode)
-					for (int channelIdx = 0; channelIdx < curveNode->GetChannelsCount(); channelIdx++)
+					for (UINT channelIdx = 0; channelIdx < curveNode->GetChannelsCount(); channelIdx++)
 					{
 						AnimationCurve animCurve;
 						animCurve.TargetPath = AnimationCurve::kTranslation;
@@ -233,7 +233,7 @@ namespace Darius::Animation
 			{
 				auto curveNode = node->LclScaling.GetCurveNode(currentLayer);
 				if (curveNode)
-				for (int channelIdx = 0; channelIdx < curveNode->GetChannelsCount(); channelIdx++)
+				for (UINT channelIdx = 0; channelIdx < curveNode->GetChannelsCount(); channelIdx++)
 				{
 					AnimationCurve animCurve;
 					animCurve.TargetPath = AnimationCurve::kScale;
@@ -249,7 +249,7 @@ namespace Darius::Animation
 			{
 				auto curveNode = node->LclRotation.GetCurveNode(currentLayer);
 				if (curveNode)
-				for (int channelIdx = 0; channelIdx < curveNode->GetChannelsCount(); channelIdx++)
+				for (UINT channelIdx = 0; channelIdx < curveNode->GetChannelsCount(); channelIdx++)
 				{
 					AnimationCurve animCurve;
 					animCurve.TargetPath = AnimationCurve::kRotation;

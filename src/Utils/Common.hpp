@@ -20,8 +20,6 @@ static INLINE std::string const GetTypeName() { return D_NAMEOF(T); }
 #define _IN_OUT_
 
 ///////////////////////////// Helpers
-#define STR_WSTR(str) std::string(str.begin(), str.end())
-#define WSTR_STR(wstr) std::wstring(wstr.begin(), wstr.end())
 #define D_H_CONCAT(A, B) A##B
 #define D_H_UNIQUE_NAME(base) D_H_CONCAT(base, __COUNTER__)
 #define D_H_UNIQUE_ID __COUNTER__
@@ -58,12 +56,12 @@ static INLINE std::string const GetTypeName() { return D_NAMEOF(T); }
     if(prop.IsValid()) \
     { \
         auto nameW = prop->GetName(); \
-        cuurrentResourceName = STR_WSTR(nameW); \
+        cuurrentResourceName = WSTR2STR(nameW); \
     } \
     else \
         cuurrentResourceName = placeHolder; \
     auto availableSpace = ImGui::GetContentRegionAvail(); \
-    auto selectorWidth = 20; \
+    auto selectorWidth = 20.f; \
     ImGui::Button(cuurrentResourceName.c_str(), ImVec2(availableSpace.x - 2 * selectorWidth - 10.f, 0)); \
     D_H_RESOURCE_DRAG_DROP_DESTINATION(resourceType, handleFunction) \
 	ImGui::SameLine(availableSpace.x - selectorWidth); \
@@ -80,7 +78,7 @@ static INLINE std::string const GetTypeName() { return D_NAMEOF(T); }
 				{ \
 					bool selected = currentResource && prev.Handle.Id == currentResource->GetId() && prev.Handle.Type == currentResource->GetType(); \
 					\
-					auto Name = STR_WSTR(prev.Name); \
+					auto Name = WSTR2STR(prev.Name); \
 					ImGui::PushID((Name + std::to_string(idx)).c_str()); \
 					if (ImGui::Selectable(Name.c_str(), &selected)) \
 					{ \
@@ -96,7 +94,7 @@ static INLINE std::string const GetTypeName() { return D_NAMEOF(T); }
 			} \
 }
 #define D_H_RESOURCE_SELECTION_DRAW_SHORT(type, name, label) D_H_RESOURCE_SELECTION_DRAW(type, m##name, label, Set##name)
-#define D_H_RESOURCE_SELECTION_DRAW_DEF(type, name) D_H_RESOURCE_SELECTION_DRAW_SHORT(type, name, "Select " #name, Set##name)
+#define D_H_RESOURCE_SELECTION_DRAW_DEF(type, name) D_H_RESOURCE_SELECTION_DRAW_SHORT(type, name, "Select " #name)
 
 #define D_H_DETAILS_DRAW_BEGIN_TABLE(...) \
 if (ImGui::BeginTable((std::string("Layout" __VA_ARGS__) + ClassName()).c_str(), 2, ImGuiTableFlags_BordersInnerV | ImGuiTableFlags_PreciseWidths)) \

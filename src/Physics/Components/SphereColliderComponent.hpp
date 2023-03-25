@@ -12,7 +12,7 @@ namespace Darius::Physics
 {
 	class DClass(Serialize) SphereColliderComponent : public ColliderComponent
 	{
-		D_H_COMP_BODY(SphereColliderComponent, ColliderComponent, "Physics/Sphere Collider", true, false);
+		D_H_COMP_BODY(SphereColliderComponent, ColliderComponent, "Physics/Sphere Collider", true);
 		
 	public:
 

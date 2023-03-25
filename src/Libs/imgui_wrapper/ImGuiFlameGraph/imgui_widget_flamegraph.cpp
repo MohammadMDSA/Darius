@@ -20,6 +20,8 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
+#define _SILENCE_ALL_CXX17_DEPRECATION_WARNINGS 1
+
 #include <imgui_widget_flamegraph.h>
 
 #include "imgui.h"
@@ -28,8 +30,24 @@
 #endif
 #include "imgui_internal.h"
 
-#define STR_WSTR(str) std::string(str.begin(), str.end())
+#include <locale>
+#include <codecvt>
 
+inline std::wstring STR2WSTR(const std::string& str)
+{
+    using convert_typeX = std::codecvt_utf8<wchar_t>;
+    std::wstring_convert<convert_typeX, wchar_t> converterX;
+
+    return converterX.from_bytes(str);
+}
+
+inline std::string WSTR2STR(const std::wstring& wstr)
+{
+    using convert_typeX = std::codecvt_utf8<wchar_t>;
+    std::wstring_convert<convert_typeX, wchar_t> converterX;
+
+    return converterX.to_bytes(wstr);
+}
 
 void ImGuiWidgetFlameGraph::PlotFlame(const std::wstring label, void (*values_getter)(float* start, float* end, unsigned char* level, std::wstring* caption, const void* data, int idx), const void* data, int values_count, int values_offset, const std::wstring overlay_text, float scale_min, float scale_max, ImVec2 graph_size)
 {
@@ -49,7 +67,7 @@ void ImGuiWidgetFlameGraph::PlotFlame(const std::wstring label, void (*values_ge
         maxDepth = ImMax(maxDepth, depth);
     }
 
-    auto labelCStr = STR_WSTR(label);
+    auto labelCStr = WSTR2STR(label);
     
     const auto blockHeight = ImGui::GetTextLineHeight() + (style.FramePadding.y * 2);
     const ImVec2 label_size = ImGui::CalcTextSize(labelCStr.c_str(), NULL, true);
@@ -109,7 +127,7 @@ void ImGuiWidgetFlameGraph::PlotFlame(const std::wstring label, void (*values_ge
                 return;
             }
 
-            auto captionCStr = STR_WSTR(caption);
+            auto captionCStr = WSTR2STR(caption);
 
             auto start = stageStart - scale_min;
             auto end = stageEnd - scale_min;
@@ -145,7 +163,7 @@ void ImGuiWidgetFlameGraph::PlotFlame(const std::wstring label, void (*values_ge
 
         // Text overlay
         if (!overlay_text.empty())
-            ImGui::RenderTextClipped(ImVec2(frame_bb.Min.x, frame_bb.Min.y + style.FramePadding.y), frame_bb.Max, STR_WSTR(overlay_text).c_str(), NULL, NULL, ImVec2(0.5f, 0.0f));
+            ImGui::RenderTextClipped(ImVec2(frame_bb.Min.x, frame_bb.Min.y + style.FramePadding.y), frame_bb.Max, WSTR2STR(overlay_text).c_str(), NULL, NULL, ImVec2(0.5f, 0.0f));
 
         if (label_size.x > 0.0f)
             ImGui::RenderText(ImVec2(frame_bb.Max.x + style.ItemInnerSpacing.x, inner_bb.Min.y), labelCStr.c_str());

@@ -271,7 +271,7 @@ namespace Darius::Renderer
 		auto height = rContext.ColorBuffer.GetHeight();
 
 		// Setting up sorter
-		auto viewPort = CD3DX12_VIEWPORT(0.f, 0.f, width, height, D3D12_MIN_DEPTH, D3D12_MAX_DEPTH);
+		auto viewPort = CD3DX12_VIEWPORT(0.f, 0.f, (float)width, (float)height, D3D12_MIN_DEPTH, D3D12_MAX_DEPTH);
 		auto scissor = CD3DX12_RECT(0l, 0l, (long)width, (long)height);
 		MeshSorter sorter(MeshSorter::kDefault);
 		sorter.SetCamera(rContext.Camera);
@@ -355,7 +355,7 @@ namespace Darius::Renderer
 		// Set the viewport and scissor rect.
 		long width = bounds.right - bounds.left;
 		long height = bounds.bottom - bounds.top;
-		auto viewport = CD3DX12_VIEWPORT((float)bounds.left, (float)bounds.top, (long)width, (long)height, D3D12_MIN_DEPTH, D3D12_MAX_DEPTH);
+		auto viewport = CD3DX12_VIEWPORT((float)bounds.left, (float)bounds.top, (float)width, (float)height, D3D12_MIN_DEPTH, D3D12_MAX_DEPTH);
 		auto scissorRect = CD3DX12_RECT(bounds.left, bounds.top, (long)width, (long)height);
 
 		context.ClearColor(rt, &scissorRect);
@@ -725,7 +725,7 @@ namespace Darius::Renderer
 		{
 			key.passID = kTransparent;
 			key.psoIdx = renderItem.PsoType;
-			key.key = ~dist.u;
+			key.key = ~(uint64_t)dist.u;
 			m_SortKeys.push_back(key.value);
 			m_PassCounts[kTransparent]++;
 		}

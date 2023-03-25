@@ -61,7 +61,7 @@ namespace Darius::ResourceManager
 	{
 		ResourceDataInFile data;
 		auto name = D_FILE::GetFileName(path);
-		data.Name = STR_WSTR(name);
+		data.Name = WSTR2STR(name);
 		data.Type = type;
 		return { data };
 	}
