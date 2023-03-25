@@ -136,8 +136,6 @@ namespace Darius::ResourceManager
 		INLINE operator ResourceHandle const() { return { GetType(), mId }; }
 		INLINE operator ResourcePreview const() { return GetPreview(); }
 
-		D_CH_RW_FIELD(std::wstring, Name);
-		
 	private:
 		DField(Get[const, &, inline])
 		D_FILE::Path		mPath;
@@ -162,6 +160,10 @@ namespace Darius::ResourceManager
 		
 		DField(Get[inline])
 		const bool			mDefault;
+
+		DField(Get[inline, const, &], Set[inline])
+		std::wstring		mName;
+
 
 	public:
 		void						UpdateGPU();

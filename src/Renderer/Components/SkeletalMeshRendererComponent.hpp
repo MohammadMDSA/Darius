@@ -50,7 +50,6 @@ namespace Darius::Graphics
 
 
 		D_CH_RW_FIELD_ACC(D_CORE::Ref<SkeletalMeshResource>, MeshResource, protected);
-		D_CH_RW_FIELD(bool,					CastsShadow);
 
 	protected:
 
@@ -82,6 +81,9 @@ namespace Darius::Graphics
 			}
 			return mPsoIndex;
 		}
+
+		DField(Get[inline], Set[inline])
+		bool								mCastsShadow;
 
 		D_CONTAINERS::DVector<D_RENDERER_FRAME_RESOURCE::Joint>	mJoints;
 		D_CONTAINERS::DVector<D_RENDERER_GEOMETRY::Mesh::SkeletonJoint> mSkeleton;

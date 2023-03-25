@@ -28,7 +28,8 @@ namespace Demo
 		DField(Get, Set)
 		bool mTRotate;
 
-		D_CH_RW_FIELD(bool, Rotate);
+		DField(Get[inline], Set[inline])
+		bool							mRotate;
 
 		Demo_MovementBehaviour_GENERATED;
 	};

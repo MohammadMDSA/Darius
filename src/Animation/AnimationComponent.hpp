@@ -39,13 +39,15 @@ namespace Darius::Animation
 
 		void							SetAnimation(D_RESOURCE::ResourceHandle handle);
 
-		D_CH_RW_FIELD(bool, RootMotion);
 		D_CH_RW_FIELD_ACC(AnimationState, AnimState, protected);
 
 	private:
 
 		void							_SetAnimation(D_RESOURCE::ResourceHandle handle);
 		void							CreateAnimationToJointIndexMap();
+
+		DField(Get[inline], Set[inline])
+		bool									mRootMotion;
 
 		D_CORE::Ref<AnimationResource>			mAnimationResource;
 		D_CONTAINERS::DUnorderedMap<int, int>	mAnimationJointIndexMap; // Animation joint index to skeleton joint index

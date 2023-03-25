@@ -5,17 +5,21 @@
 #include <Renderer/Resources/MaterialResource.hpp>
 #include <Scene/EntityComponentSystem/Components/ComponentBase.hpp>
 
+#include "MeshRendererComponent.generated.hpp"
+
 #ifndef D_GRAPHICS
 #define D_GRAPHICS Darius::Graphics
 #endif
 
 namespace Darius::Graphics
 {
-	class MeshRendererComponent : public D_ECS_COMP::ComponentBase
+	class DClass(Serialize) MeshRendererComponent : public D_ECS_COMP::ComponentBase
 	{
 		D_H_COMP_BODY(MeshRendererComponent, D_ECS_COMP::ComponentBase, "Rendering/Mesh Renderer", true);
 
 	public:
+
+		Darius_Graphics_MeshRendererComponent_GENERATED
 
 #ifdef _D_EDITOR
 		virtual bool						DrawDetails(float params[]) override;
@@ -40,8 +44,6 @@ namespace Darius::Graphics
 		INLINE const D_MATH_BOUNDS::BoundingSphere& GetBounds() const { return mMeshResource.Get()->GetMeshData()->mBoundSp; }
 
 		INLINE D3D12_GPU_VIRTUAL_ADDRESS	GetConstantsAddress() { return mMeshConstantsGPU.GetGpuVirtualAddress(); }
-
-		D_CH_RW_FIELD(bool, CastsShadow);
 
 	private:
 
@@ -68,6 +70,9 @@ namespace Darius::Graphics
 			return mPsoIndex;
 		}
 
+		DField(Get[inline], Set[inline])
+		bool								mCastsShadow;
+
 
 		D_CORE::Ref<StaticMeshResource>		mMeshResource;
 		D_CORE::Ref<MaterialResource>		mMaterialResource;
@@ -83,3 +88,5 @@ namespace Darius::Graphics
 
 	};
 }
+
+File_MeshRendererComponent_GENERATED

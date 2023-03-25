@@ -236,7 +236,7 @@ namespace Darius::Renderer
 				if (!meshComp.CanRender())
 					return;
 
-				if (!meshComp.GetCastsShadow())
+				if (!meshComp.IsCastsShadow())
 					return;
 
 				items.push_back(meshComp.GetRenderItem());
@@ -249,7 +249,7 @@ namespace Darius::Renderer
 				if (!meshComp.CanRender())
 					return;
 
-				if (!meshComp.GetCastsShadow())
+				if (!meshComp.IsCastsShadow())
 					return;
 
 				items.push_back(meshComp.GetRenderItem());

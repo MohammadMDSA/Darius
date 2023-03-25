@@ -39,17 +39,22 @@ namespace Darius::Graphics
 		// Data intraction
 		void							SetLightType(D_LIGHT::LightSourceType type);
 
-		D_CH_RW_FIELD(D_LIGHT::LightData, LightData);
-		D_CH_RW_FIELD(float, ConeOuterAngle);
-		D_CH_RW_FIELD(float, ConeInnerAngle);
-
 	private:
 
 		DField(Get[inline])
 		int								mLightIndex;
 
-		DField(Get[inline, const, &])
+		DField(Get[inline])
 		D_LIGHT::LightSourceType		mLightType;
+
+		DField(Get[inline, const, &], Set[inline])
+		D_LIGHT::LightData				mLightData;
+
+		DField(Get[inline], Set[inline])
+		float							mConeOuterAngle;
+
+		DField(Get[inline], Set[inline])
+		float							mConeInnerAngle;
 
 	protected:
 		INLINE void						UpdateAngleData()

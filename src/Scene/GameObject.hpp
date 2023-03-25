@@ -48,13 +48,14 @@ namespace Darius::Scene
 	class DClass(Serialize) GameObject : public Detailed
 	{
 	public:
-		Darius_Scene_GameObject_GENERATED
 
 		enum class Type
 		{
 			Static,
 			Movable
 		};
+
+		Darius_Scene_GameObject_GENERATED
 
 	public:
 
@@ -177,8 +178,6 @@ namespace Darius::Scene
 		static void							RegisterComponent(std::string name, D_CONTAINERS::DVector<std::string>& displayName);
 		static void							RegisterBehaviourComponent(D_ECS::EntityId componentId);
 
-		D_CH_RW_FIELD(std::string, Name);
-		D_CH_RW_FIELD(Type, Type);
 		D_CH_FIELD(D_ECS::Entity, Entity);
 
 		struct ComponentAddressNode
@@ -216,11 +215,18 @@ namespace Darius::Scene
 		DField(Get[inline])
 		bool					mDeleted;
 
-		DField(Get[const, inline])
+		DField(Get[inline])
 		GameObject*				mParent;
 
 		DField(Get[const, &, inline])
 		const D_CORE::Uuid		mUuid;
+
+		DField(Get[inline], Set[inline])
+		Type					mType;
+		
+		DField(Get[inline, const, &], Set[inline])
+		std::string				mName;
+
 
 		// Comp name and display name
 		static D_CONTAINERS::DMap<std::string, GameObject::ComponentAddressNode> RegisteredComponents;

@@ -8,6 +8,8 @@
 #include <imgui.h>
 #include <Libs/FontIcon/IconsFontAwesome6.h>
 
+#include "MeshRendererComponent.sgenerated.hpp"
+
 using namespace D_CORE;
 using namespace D_MATH;
 using namespace D_SERIALIZATION;
