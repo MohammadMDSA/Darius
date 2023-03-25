@@ -205,9 +205,12 @@ namespace Darius::Graphics
 		D3D12_COMMAND_LIST_TYPE m_Type;
 	};
 
-	class GraphicsContext : public CommandContext
-	{
-	public:
+#pragma warning(push)
+#pragma warning(disable: 4623)
+
+    class GraphicsContext : public CommandContext
+    {
+    public:
 
 		static GraphicsContext& Begin(const std::wstring& ID = L"")
 		{
@@ -321,14 +324,17 @@ namespace Darius::Graphics
 	private:
 	};
 
-	inline void CommandContext::FlushResourceBarriers(void)
-	{
-		if (m_NumBarriersToFlush > 0)
-		{
-			m_CommandList->ResourceBarrier(m_NumBarriersToFlush, m_ResourceBarrierBuffer);
-			m_NumBarriersToFlush = 0;
-		}
-	}
+#pragma warning(pop)
+
+
+    inline void CommandContext::FlushResourceBarriers(void)
+    {
+        if (m_NumBarriersToFlush > 0)
+        {
+            m_CommandList->ResourceBarrier(m_NumBarriersToFlush, m_ResourceBarrierBuffer);
+            m_NumBarriersToFlush = 0;
+        }
+    }
 
 	inline void GraphicsContext::SetRootSignature(const D_GRAPHICS_UTILS::RootSignature& RootSig)
 	{
