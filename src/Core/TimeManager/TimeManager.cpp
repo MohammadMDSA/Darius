@@ -54,12 +54,12 @@ namespace Darius::Core::TimeManager
 
 	float GetDeltaTime()
 	{
-		return Timer->GetElapsedSeconds();
+		return (float)Timer->GetElapsedSeconds();
 	}
 
 	float GetTotalTime()
 	{
-		return Timer->GetTotalSeconds();
+		return (float)Timer->GetTotalSeconds();
 	}
 
 	uint32_t GetFrameCount()
