@@ -34,6 +34,8 @@ list(APPEND MATH_LIBS_SOURCES
 	"Vector.cpp"
 	"Transform.cpp"
 	"Quaternion.cpp"
+	"Matrix3.cpp"
+	"Matrix4.cpp"
 	"Camera/Camera.cpp"
 	"Camera/Frustum.cpp"
 	"Camera/ShadowCamera.cpp"

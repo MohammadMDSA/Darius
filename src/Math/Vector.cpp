@@ -6,6 +6,9 @@
 
 #include <rttr/registration.h>
 
+#include "Scalar.sgenerated.hpp"
+#include "Vector.sgenerated.hpp"
+
 namespace Darius::Math
 {
 	const Vector3 Vector3::Up = Vector3(0.f, 1.f, 0.f);
@@ -333,16 +336,21 @@ namespace Darius::Math
 
 }
 
-//RTTR_REGISTRATION
-//{
-//	rttr::registration::class_<D_MATH::Vector3>("Darius::Math::Vector3")
-//		.property("X", &D_MATH::Vector3::x)
-//		.property("Y", &D_MATH::Vector3::y)
-//		.property("Z", &D_MATH::Vector3::z);
-//
-//	rttr::registration::class_<D_MATH::Vector4>("Darius::Math::Vector4")
-//		.property("X", &D_MATH::Vector4::x)
-//		.property("Y", &D_MATH::Vector4::y)
-//		.property("Z", &D_MATH::Vector4::z)
-//		.property("W", &D_MATH::Vector4::w);
-//}
+RTTR_REGISTRATION
+{
+	rttr::registration::class_<D_MATH::Scalar>("Darius::Math::Scalar")
+		.property("Value", &D_MATH::Scalar::x);
+
+	rttr::registration::class_<D_MATH::Vector3>("Darius::Math::Vector3")
+		.property("X", &D_MATH::Vector3::GetX, &D_MATH::Vector3::SetX) ( rttr::metadata("NO_SERIALIZE", true))
+		.property("Y", &D_MATH::Vector3::GetY, &D_MATH::Vector3::SetY) (rttr::metadata("NO_SERIALIZE", true))
+		.property("Z", &D_MATH::Vector3::GetZ, &D_MATH::Vector3::SetZ) (rttr::metadata("NO_SERIALIZE", true))
+		.property("_data", &D_MATH::Vector3::GetData, &D_MATH::Vector3::SetData);
+
+	rttr::registration::class_<D_MATH::Vector4>("Darius::Math::Vector4")
+		.property("X", &D_MATH::Vector4::GetX, &D_MATH::Vector4::SetX) (rttr::metadata("NO_SERIALIZE", true))
+		.property("Y", &D_MATH::Vector4::GetY, &D_MATH::Vector4::SetY) (rttr::metadata("NO_SERIALIZE", true))
+		.property("Z", &D_MATH::Vector4::GetZ, &D_MATH::Vector4::SetZ) (rttr::metadata("NO_SERIALIZE", true))
+		.property("W", &D_MATH::Vector4::GetW, &D_MATH::Vector4::SetW) (rttr::metadata("NO_SERIALIZE", true))
+		.property("_data", &D_MATH::Vector4::GetData, &D_MATH::Vector4::SetData);
+}

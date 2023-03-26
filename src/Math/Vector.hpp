@@ -15,7 +15,9 @@
 
 #include "Scalar.hpp"
 
-//#include <rttr/registration_friend.h>
+#include <Core/Containers/Vector.hpp>
+
+#include "Vector.generated.hpp"
 
 namespace Darius::Math
 {
@@ -23,15 +25,15 @@ namespace Darius::Math
 
 	// A 3-vector with an unspecified fourth component.  Depending on the context, the W can be 0 or 1, but both are implicit.
 	// The actual value of the fourth component is undefined for performance reasons.
-	class Vector3
+	class DClass() Vector3
 	{
 	public:
 
 		INLINE Vector3() { m_vec = DirectX::XMVectorSet(0.f, 0.f, 0.f, 0.f); }
 		INLINE Vector3(float _x, float _y, float _z) { m_vec = DirectX::XMVectorSet(_x, _y, _z, _z); }
 		explicit INLINE Vector3(const float* data) : Vector3(DirectX::XMFLOAT3(data)) {}
-		INLINE Vector3(const DirectX::XMFLOAT3& v) { m_vec = DirectX::XMLoadFloat3(&v); }
-		INLINE Vector3(const Vector3& v) { m_vec = v; }
+		INLINE Vector3(const DirectX::XMFLOAT3 & v) { m_vec = DirectX::XMLoadFloat3(&v); }
+		INLINE Vector3(const Vector3 & v) { m_vec = v; }
 		INLINE Vector3(Scalar s) { m_vec = s; }
 		INLINE explicit Vector3(Vector4 vec);
 		INLINE explicit Vector3(DirectX::FXMVECTOR vec) { m_vec = vec; }
@@ -41,15 +43,16 @@ namespace Darius::Math
 		INLINE explicit Vector3(EYUnitVector) { m_vec = CreateYUnitVector(); }
 		INLINE explicit Vector3(EZUnitVector) { m_vec = CreateZUnitVector(); }
 
-		INLINE operator DirectX::XMVECTOR() const { return m_vec; }
+		INLINE operator DirectX::XMVECTOR const& () const { return m_vec; }
 		INLINE operator DirectX::XMFLOAT3() const { DirectX::XMFLOAT3 dest; DirectX::XMStoreFloat3(&dest, m_vec); return dest; }
+		INLINE bool operator ==(Vector3 const& other) const { return DirectX::XMVector3Equal(other.m_vec, m_vec); }
 
-		INLINE Scalar GetX() const { return Scalar(DirectX::XMVectorSplatX(m_vec)); }
-		INLINE Scalar GetY() const { return Scalar(DirectX::XMVectorSplatY(m_vec)); }
-		INLINE Scalar GetZ() const { return Scalar(DirectX::XMVectorSplatZ(m_vec)); }
-		INLINE void SetX(Scalar _x) { m_vec = DirectX::XMVectorPermute<4, 1, 2, 3>(m_vec, _x); }
-		INLINE void SetY(Scalar _y) { m_vec = DirectX::XMVectorPermute<0, 5, 2, 3>(m_vec, _y); }
-		INLINE void SetZ(Scalar _z) { m_vec = DirectX::XMVectorPermute<0, 1, 6, 3>(m_vec, _z); }
+		INLINE float GetX() const { return Scalar(DirectX::XMVectorSplatX(m_vec)); }
+		INLINE float GetY() const { return Scalar(DirectX::XMVectorSplatY(m_vec)); }
+		INLINE float GetZ() const { return Scalar(DirectX::XMVectorSplatZ(m_vec)); }
+		INLINE void SetX(float _x) { m_vec = DirectX::XMVectorPermute<4, 1, 2, 3>(m_vec, Scalar(_x)); }
+		INLINE void SetY(float _y) { m_vec = DirectX::XMVectorPermute<0, 5, 2, 3>(m_vec, Scalar(_y)); }
+		INLINE void SetZ(float _z) { m_vec = DirectX::XMVectorPermute<0, 1, 6, 3>(m_vec, Scalar(_z)); }
 		INLINE Vector3 Normalize() { return Vector3(DirectX::XMVector3Normalize(m_vec)); }
 
 		INLINE Vector3 operator- () const { return Vector3(DirectX::XMVectorNegate(m_vec)); }
@@ -67,7 +70,12 @@ namespace Darius::Math
 		INLINE Vector3& operator *= (Vector3 v) { *this = *this * v; return *this; }
 		INLINE Vector3& operator /= (Vector3 v) { *this = *this / v; return *this; }
 
-		INLINE operator DirectX::XMVECTOR& () { return m_vec; }
+		// Consty, don't use too often
+		INLINE D_CONTAINERS::DVector<float> GetData() const { return { GetX(), GetY(), GetZ() }; }
+		// Consty, don't use too often
+		INLINE void SetData(D_CONTAINERS::DVector<float> data) { SetX(data[0]); SetY(data[1]); SetZ(data[2]); }
+
+		INLINE operator DirectX::XMVECTOR const& () { return m_vec; }
 		INLINE operator DirectX::XMFLOAT3& () { return *(DirectX::XMFLOAT3*)&m_vec; }
 
 		INLINE friend Vector3 operator* (Scalar  v1, Vector3 v2) { return Vector3(v1) * v2; }
@@ -83,33 +91,24 @@ namespace Darius::Math
 		static const Vector3 Backward;
 
 	protected:
-		//RTTR_REGISTRATION_FRIEND;
+		RTTR_REGISTRATION_FRIEND;
+		DirectX::XMVECTOR m_vec;
 
-#pragma warning(push)
-#pragma warning(disable: 4201)
-		union
-		{
-			struct
-			{
-				float x, y, z;
-			};
-
-			DirectX::XMVECTOR m_vec;
-		};
-#pragma warning(pop)
+	public:
+		Darius_Math_Vector3_GENERATED
 	};
 
 	// A 4-vector, completely defined.
-	class Vector4
+	class DClass() Vector4
 	{
 	public:
 		INLINE Vector4() { m_vec = DirectX::XMVectorSet(0.f, 0.f, 0.f, 0.f); }
 		INLINE Vector4(float _x, float _y, float _z, float _w) { m_vec = DirectX::XMVectorSet(_x, _y, _z, _w); }
 		explicit INLINE Vector4(const float* data) : Vector4(DirectX::XMFLOAT4(data)) { }
-		INLINE Vector4(const DirectX::XMFLOAT4& v) { m_vec = DirectX::XMLoadFloat4(&v); }
+		INLINE Vector4(const DirectX::XMFLOAT4 & v) { m_vec = DirectX::XMLoadFloat4(&v); }
 		INLINE Vector4(Vector3 xyz, float w) { m_vec = DirectX::XMVectorSetW(xyz, w); }
-		INLINE Vector4(const Vector4& v) { m_vec = v; }
-		INLINE Vector4(const Scalar& s) { m_vec = s; }
+		INLINE Vector4(const Vector4 & v) { m_vec = v; }
+		INLINE Vector4(const Scalar & s) { m_vec = s; }
 		INLINE explicit Vector4(Vector3 xyz) { m_vec = SetWToOne(xyz); }
 		INLINE explicit Vector4(DirectX::FXMVECTOR vec) { m_vec = vec; }
 		INLINE explicit Vector4(EZeroTag) { m_vec = SplatZero(); }
@@ -121,16 +120,22 @@ namespace Darius::Math
 
 		INLINE operator DirectX::XMVECTOR() const { return m_vec; }
 		INLINE operator DirectX::XMFLOAT4() const { DirectX::XMFLOAT4 dest; DirectX::XMStoreFloat4(&dest, m_vec); return dest; }
+		INLINE bool operator ==(Vector4 const& other) const { return DirectX::XMVector3Equal(other.m_vec, m_vec); }
 
-		INLINE Scalar GetX() const { return Scalar(DirectX::XMVectorSplatX(m_vec)); }
-		INLINE Scalar GetY() const { return Scalar(DirectX::XMVectorSplatY(m_vec)); }
-		INLINE Scalar GetZ() const { return Scalar(DirectX::XMVectorSplatZ(m_vec)); }
-		INLINE Scalar GetW() const { return Scalar(DirectX::XMVectorSplatW(m_vec)); }
-		INLINE void SetX(Scalar _x) { m_vec = DirectX::XMVectorPermute<4, 1, 2, 3>(m_vec, _x); }
-		INLINE void SetY(Scalar _y) { m_vec = DirectX::XMVectorPermute<0, 5, 2, 3>(m_vec, _y); }
-		INLINE void SetZ(Scalar _z) { m_vec = DirectX::XMVectorPermute<0, 1, 6, 3>(m_vec, _z); }
-		INLINE void SetW(Scalar _w) { m_vec = DirectX::XMVectorPermute<0, 1, 2, 7>(m_vec, _w); }
+		INLINE float GetX() const { return Scalar(DirectX::XMVectorSplatX(m_vec)); }
+		INLINE float GetY() const { return Scalar(DirectX::XMVectorSplatY(m_vec)); }
+		INLINE float GetZ() const { return Scalar(DirectX::XMVectorSplatZ(m_vec)); }
+		INLINE float GetW() const { return Scalar(DirectX::XMVectorSplatW(m_vec)); }
+		INLINE void SetX(float _x) { m_vec = DirectX::XMVectorPermute<4, 1, 2, 3>(m_vec, Scalar(_x)); }
+		INLINE void SetY(float _y) { m_vec = DirectX::XMVectorPermute<0, 5, 2, 3>(m_vec, Scalar(_y)); }
+		INLINE void SetZ(float _z) { m_vec = DirectX::XMVectorPermute<0, 1, 6, 3>(m_vec, Scalar(_z)); }
+		INLINE void SetW(float _w) { m_vec = DirectX::XMVectorPermute<0, 1, 2, 7>(m_vec, Scalar(_w)); }
 		INLINE void SetXYZ(Vector3 xyz) { m_vec = DirectX::XMVectorPermute<0, 1, 2, 7>(xyz, m_vec); }
+
+		// Consty, don't use too often
+		INLINE D_CONTAINERS::DVector<float> GetData() const { return { GetX(), GetY(), GetZ(), GetW() }; }
+		// Consty, don't use too often
+		INLINE void SetData(D_CONTAINERS::DVector<float> data) { SetX(data[0]); SetY(data[1]); SetZ(data[2]); SetW(data[3]); }
 
 		INLINE Vector4 operator- () const { return Vector4(DirectX::XMVectorNegate(m_vec)); }
 		INLINE Vector4 operator+ (Vector4 v2) const { return Vector4(DirectX::XMVectorAdd(m_vec, v2)); }
@@ -158,19 +163,11 @@ namespace Darius::Math
 		static const Vector4 Backward;
 
 	protected:
+		RTTR_REGISTRATION_FRIEND;
+		DirectX::XMVECTOR m_vec;
 
-		//RTTR_REGISTRATION_FRIEND;
-#pragma warning(push)
-#pragma warning(disable: 4201)
-		union
-		{
-			struct
-			{
-				float x, y, z, w;
-			};
-			DirectX::XMVECTOR m_vec;
-		};
-#pragma warning(pop)
+	public:
+		Darius_Math_Vector4_GENERATED
 	};
 
 	D_STATIC_ASSERT(sizeof(Vector3) == 16);
@@ -211,3 +208,5 @@ namespace Darius::Math
 #endif // _D_EDITOR
 
 }
+
+File_Vector_GENERATED

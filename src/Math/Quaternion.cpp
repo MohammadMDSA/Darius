@@ -1,9 +1,15 @@
 #include "Quaternion.hpp"
 
+#include <rttr/registration.h>
+
+#include "Quaternion.sgenerated.hpp"
+
 using namespace DirectX;
 
 namespace Darius::Math
 {
+	const Quaternion Quaternion::Identity = Quaternion(kIdentity);
+
 #ifdef _D_EDITOR
 
 	bool DrawDetails(Quaternion& quat, float params[])
@@ -26,4 +32,14 @@ namespace Darius::Math
 
 #endif // _D_EDITOR
 
+}
+
+
+RTTR_REGISTRATION
+{
+	rttr::registration::class_<D_MATH::Quaternion>("Darius::Math::Quaternion")
+		.property("X", &D_MATH::Quaternion::GetX, &D_MATH::Quaternion::SetX)
+		.property("Y", &D_MATH::Quaternion::GetY, &D_MATH::Quaternion::SetY)
+		.property("Z", &D_MATH::Quaternion::GetZ, &D_MATH::Quaternion::SetZ)
+		.property("W", &D_MATH::Quaternion::GetW, &D_MATH::Quaternion::SetW);
 }

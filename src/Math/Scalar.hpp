@@ -17,7 +17,9 @@
 #include <Utils/Common.hpp>
 #include <Utils/Assert.hpp>
 
-#include <DirectXMath.h>
+#include <rttr/registration_friend.h>
+
+#include "Scalar.generated.hpp"
 
 #ifndef D_MATH
 #define D_MATH Darius::Math
@@ -34,7 +36,7 @@ namespace Darius::Math
     enum EZUnitVector { kZUnitVector };
     enum EWUnitVector { kWUnitVector };
 
-    class Scalar
+    class DClass() Scalar
     {
     public:
         INLINE Scalar() { m_vec = DirectX::XMVectorReplicate(0.f); }
@@ -48,7 +50,24 @@ namespace Darius::Math
         INLINE operator float() const { return DirectX::XMVectorGetX(m_vec); }
 
     private:
-        DirectX::XMVECTOR m_vec;
+
+        //RTTR_REGISTRATION_FRIEND
+
+#pragma warning(push)
+#pragma warning(disable: 4201)
+        union
+        {
+            struct
+            {
+                float x;
+            };
+
+            DirectX::XMVECTOR m_vec;
+        };
+#pragma warning(pop)
+
+    public:
+        Darius_Math_Scalar_GENERATED
     };
 
     INLINE Scalar operator- (Scalar s) { return Scalar(DirectX::XMVectorNegate(s)); }
@@ -66,3 +85,5 @@ namespace Darius::Math
     INLINE Scalar operator/ (float s1, Scalar s2) { return Scalar(s1) / s2; }
 
 }
+
+File_Scalar_GENERATED
