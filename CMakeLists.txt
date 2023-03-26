@@ -242,10 +242,6 @@ target_link_libraries(${PROJECT_NAME} PRIVATE
     runtimeobject.lib
 )
 
-target_include_directories(${PROJECT_NAME}
-PRIVATE
-    "..")
-
 if(MSVC)
     # Use max Warning Level 
     string(REPLACE "/W3 " "/Wall " CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS})
@@ -337,16 +333,25 @@ set_property(DIRECTORY PROPERTY VS_STARTUP_PROJECT ${PROJECT_NAME})
 
 
 SET(LIB_PATHS)
+SET(TOTAL_INCLUDES)
 foreach(DLib ${DARIUS_LIBS})
     list(APPEND LIB_PATHS
     ${SOURCE_DIR}/${DLib})
+
+    get_target_property(LIB_INCLUDES ${DLib} INCLUDE_DIRECTORIES)
+    list(APPEND TOTAL_INCLUDES
+    ${LIB_INCLUDES})
 endforeach()
+
 
 # Generating Code before compile
 get_target_property(DARIUS_INCLUDES ${PROJECT_NAME} INCLUDE_DIRECTORIES)
+list(APPEND TOTAL_INCLUDES
+    ${DARIUS_INCLUDES})
+
 add_custom_target(DariusGeneratorCommand
                     WORKING_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}
-                    COMMAND DariusCodeGenerator ${SOURCE_DIR} ${SOURCE_DIR}/Generated ${SOURCE_DIR} ${DARIUS_INCLUDES} && DariusCodeGenerator ${CMAKE_SOURCE_DIR}/Demo/Source/Demo ${CMAKE_SOURCE_DIR}/Demo/Source/Demo/Generated ${DARIUS_INCLUDES}
+                    COMMAND DariusCodeGenerator ${SOURCE_DIR} ${SOURCE_DIR}/Generated ${SOURCE_DIR}/Renderer/pch.hpp ${SOURCE_DIR} ${TOTAL_INCLUDES} && DariusCodeGenerator ${CMAKE_SOURCE_DIR}/Demo/Source/Demo ${CMAKE_SOURCE_DIR}/Demo/Source/Demo/Generated ${SOURCE_DIR}/Renderer/pch.hpp ${TOTAL_INCLUDES}
                     COMMENT "Generating Darius Headers")
 
 # Defining CMAKE project dependencies
@@ -359,6 +364,7 @@ endforeach()
 
 add_dependencies(DEMO DariusGeneratorCommand)
 add_dependencies(${PROJECT_NAME} DariusGeneratorCommand)
+
 
 # Copying rttr dll to build directory
 add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
