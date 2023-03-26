@@ -31,16 +31,3 @@
 #############################################
 
 add_subdirectory(rttr)
-
-if (BUILD_UNIT_TESTS)
-    # add_subdirectory(unit_tests)
-endif()
-
-if (BUILD_BENCHMARKS)
-    add_subdirectory(benchmarks)
-endif()
-
-if (BUILD_EXAMPLES)
-    # add_subdirectory(examples)
-endif()
-
