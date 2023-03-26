@@ -32,17 +32,6 @@ namespace Darius::Animation
 		mRootMotion(false)
 	{ }
 
-	void AnimationComponent::SetAnimation(D_RESOURCE::ResourceHandle handle)
-	{
-		mChangeSignal();
-		_SetAnimation(handle);
-	}
-
-	void AnimationComponent::_SetAnimation(D_RESOURCE::ResourceHandle handle)
-	{
-		mAnimationResource = D_RESOURCE::GetResource<AnimationResource>(handle, *this);
-	}
-
 	static inline float ToFloat(const int8_t x) { return Math::Max(x / 127.0f, -1.0f); }
 	static inline float ToFloat(const uint8_t x) { return x / 255.0f; }
 	static inline float ToFloat(const int16_t x) { return Math::Max(x / 32767.0f, -1.0f); }
@@ -124,7 +113,7 @@ namespace Darius::Animation
 		D_H_DETAILS_DRAW_BEGIN_TABLE();
 
 		D_H_DETAILS_DRAW_PROPERTY("Animation Clip");
-		D_H_RESOURCE_SELECTION_DRAW(AnimationResource, mAnimationResource, "Select Animation", SetAnimation);
+		D_H_RESOURCE_SELECTION_DRAW(AnimationResource, mAnimation, "Select Animation", SetAnimation);
 
 		D_H_DETAILS_DRAW_PROPERTY("Root Motion");
 		if (ImGui::Checkbox("##RootMotion", &mRootMotion))
@@ -141,7 +130,7 @@ namespace Darius::Animation
 
 	void AnimationComponent::Update(float deltaTime)
 	{
-		if (!IsActive() || !mAnimationResource.IsValid() || !GetGameObject()->HasComponent<D_GRAPHICS::SkeletalMeshRendererComponent>())
+		if (!IsActive() || !mAnimation.IsValid() || !GetGameObject()->HasComponent<D_GRAPHICS::SkeletalMeshRendererComponent>())
 			return;
 
 		SkeletalMeshRendererComponent* skeletalMesh = GetGameObject()->GetComponent<SkeletalMeshRendererComponent>();
@@ -158,7 +147,7 @@ namespace Darius::Animation
 
 		mAnimState.Time += deltaTime;
 
-		const AnimationResource& animResource = *mAnimationResource.Get();
+		const AnimationResource& animResource = *mAnimation.Get();
 
 		const AnimationLayer& animation = animResource.GetAnimationData();
 
@@ -228,7 +217,7 @@ namespace Darius::Animation
 
 	void AnimationComponent::CreateAnimationToJointIndexMap()
 	{
-		if (!mAnimationResource.IsValid())
+		if (!mAnimation.IsValid())
 			return;
 
 		if (!GetGameObject()->HasComponent<SkeletalMeshRendererComponent>())
@@ -238,7 +227,7 @@ namespace Darius::Animation
 
 		mMeshId = skeletalMeshRes->GetUuid();
 
-		auto const& anmimationNameMap = mAnimationResource->GetSkeletonNameIndexMap();
+		auto const& anmimationNameMap = mAnimation->GetSkeletonNameIndexMap();
 
 		mAnimationJointIndexMap.clear();
 
@@ -259,8 +248,8 @@ namespace Darius::Animation
 
 	void AnimationComponent::Serialize(Json& j) const
 	{
-		if (mAnimationResource.IsValid())
-			D_CORE::to_json(j["Animation"], mAnimationResource->GetUuid());
+		if (mAnimation.IsValid())
+			D_CORE::to_json(j["Animation"], mAnimation->GetUuid());
 
 		j["RootMotion"] = mRootMotion;
 	}
