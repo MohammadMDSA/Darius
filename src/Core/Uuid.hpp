@@ -40,16 +40,20 @@ namespace Darius::Core
 		return generator(name);
 	}
 
-	INLINE std::string ToString(Uuid uuid) { return boost::uuids::to_string(uuid); }
+	INLINE std::string ToString(Uuid const& uuid) { return boost::uuids::to_string(uuid); }
 
-	INLINE std::wstring ToWString(Uuid uuid) { return boost::uuids::to_wstring(uuid); }
+	INLINE std::wstring ToWString(Uuid const& uuid) { return boost::uuids::to_wstring(uuid); }
 
-	INLINE Uuid FromString(std::string str) { return boost::lexical_cast<boost::uuids::uuid>(str); }
+	INLINE Uuid FromString(std::string const& str) { return boost::lexical_cast<boost::uuids::uuid>(str); }
 
-	INLINE Uuid FromWString(std::wstring str) { return boost::lexical_cast<boost::uuids::uuid>(str); }
+	INLINE Uuid FromWString(std::wstring const& str) { return boost::lexical_cast<boost::uuids::uuid>(str); }
 
-	void to_json(D_SERIALIZATION::Json& j, const D_CORE::Uuid& value);
+	void to_json(D_SERIALIZATION::Json& j, D_CORE::Uuid const& value);
 
-	void from_json(const D_SERIALIZATION::Json& j, D_CORE::Uuid& value);
+	void from_json(D_SERIALIZATION::Json const& j, D_CORE::Uuid& value);
+
+	void UuidToJson(D_CORE::Uuid const& value, D_SERIALIZATION::Json& j);
+
+	void UuidFromJson(D_CORE::Uuid& value, D_SERIALIZATION::Json const& j);
 
 }

@@ -12,4 +12,12 @@ namespace Darius::Core
 	void from_json(const Json& j, D_CORE::Uuid& value) {
 		value = FromString(j);
 	}
+
+	void UuidToJson(const D_CORE::Uuid& value, Json& j) {
+		j = ToString(value);
+	}
+
+	void UuidFromJson(D_CORE::Uuid& value, const Json& j) {
+		value = FromString(j);
+	}
 }
