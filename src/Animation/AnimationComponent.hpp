@@ -16,6 +16,8 @@ namespace Darius::Animation
 	class DClass(Serialize) AnimationComponent : public D_ECS_COMP::ComponentBase
 	{
 
+	public:
+
 		struct AnimationState
 		{
 			enum eMode { kStopped, kPlaying, kLooping };
@@ -48,11 +50,12 @@ namespace Darius::Animation
 
 		void									CreateAnimationToJointIndexMap();
 
-		DField(Get[inline], Set[inline])
+		DField(Get[inline], Set[inline], Serialize)
 		bool									mRootMotion;
 
-		DField(Resource)
+		DField(Resource, Serialize)
 		D_CORE::Ref<AnimationResource>			mAnimation;
+
 		D_CONTAINERS::DUnorderedMap<int, int>	mAnimationJointIndexMap; // Animation joint index to skeleton joint index
 
 		D_CORE::Uuid							mMeshId;
