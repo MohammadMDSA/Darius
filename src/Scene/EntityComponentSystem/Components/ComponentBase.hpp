@@ -102,7 +102,6 @@ namespace Darius::Scene::ECS::Components
     class DClass(Serialize) ComponentBase
     {
     public:
-        Darius_Scene_ECS_Components_ComponentBase_GENERATED
 
         ComponentBase();
         ComponentBase(D_CORE::Uuid uuid);
@@ -184,8 +183,8 @@ namespace Darius::Scene::ECS::Components
         friend class Darius::Scene::SceneManager;
 
 
-        DField(Get[const, &, inline])
-        D_CORE::Uuid                mUuid;
+        DField(Get[const, &, inline], Serialize)
+        const D_CORE::Uuid          mUuid;
         
         DField(Get[inline])
         Darius::Scene::GameObject*  mGameObject;
@@ -201,6 +200,10 @@ namespace Darius::Scene::ECS::Components
 
         static bool                 sInit;
         static std::string          DisplayName;
+
+        public:
+            Darius_Scene_ECS_Components_ComponentBase_GENERATED
+
 	};
 }
 
