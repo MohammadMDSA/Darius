@@ -8,12 +8,7 @@
 #include <Core/Serialization/Json.hpp>
 #include <Core/Exceptions/Exception.hpp>
 #include <Core/Containers/Set.hpp>
-#include <Math/Transform.hpp>
-#include <Renderer/Geometry/Mesh.hpp>
-#include <Renderer/Geometry/Mesh.hpp>
-#include <Renderer/CommandContext.hpp>
-#include <Renderer/GraphicsUtils/Buffers/UploadBuffer.hpp>
-#include <Renderer/GraphicsUtils/Buffers/GpuBuffer.hpp>
+#include <Math/VectorMath.hpp>
 #include <Utils/Detailed.hpp>
 
 #include <rttr/registration.h>
