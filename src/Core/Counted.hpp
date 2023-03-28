@@ -6,6 +6,8 @@
 
 #include <Utils/Common.hpp>
 
+#include <rttr/rttr_enable.h>
+
 #ifndef D_CORE
 #define D_CORE Darius::Core
 #endif // !D_UTILS
@@ -26,6 +28,8 @@ namespace Darius::Core
 
 	class Counted : NonCopyable
 	{
+		RTTR_ENABLE()
+
 	public:
 
 		Counted() = default;
