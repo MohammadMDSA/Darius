@@ -8,8 +8,21 @@ using namespace rttr;
 
 namespace Darius::Core::Serialization
 {
-	void to_json_recursively(rttr::instance const& obj, Json& json);
+	D_CONTAINERS::DUnorderedMap<rttr::type, std::pair<std::function<void(rttr::instance const&, Json&)>, std::function<void(rttr::instance&, Json const&)>>> typeSerializers = { };
 
+	bool __RegisterSerializer(rttr::type type, std::function<void(rttr::instance const&, Json&)> serializer, std::function<void(rttr::instance&, Json const&)> deserializer)
+	{
+		if (typeSerializers.contains(type))
+			return false;
+
+		std::pair<std::function<void(rttr::instance const&, Json&)>, std::function<void(rttr::instance&, Json const&)>> serDesPair = { serializer, deserializer };
+
+		typeSerializers.emplace(type, serDesPair);
+
+		return true;
+	}
+
+	void to_json_recursively(rttr::instance const& obj, Json& json);
 
 	bool write_variant(const variant& var, Json& json);
 
@@ -138,6 +151,13 @@ namespace Darius::Core::Serialization
 		auto wrapped_type = value_type.is_wrapper() ? value_type.get_wrapped_type() : value_type;
 		bool is_wrapper = wrapped_type != value_type;
 
+		// Checking existing serializers and deserializers
+		if (typeSerializers.contains(value_type))
+		{
+			typeSerializers[value_type].first(instance(var), json);
+			return true;
+		}
+
 		if (write_atomic_types_to_json(is_wrapper ? wrapped_type : value_type,
 			is_wrapper ? var.extract_wrapped_value() : var, json))
 		{
@@ -178,6 +198,14 @@ namespace Darius::Core::Serialization
 	{
 
 		instance obj = ins.get_type().get_raw_type().is_wrapper() ? ins.get_wrapped_instance() : ins;
+
+		type t = obj.get_type();
+		// Checking existing serializers and deserializers
+		if (typeSerializers.contains(t))
+		{
+			typeSerializers[t].first(obj, json);
+			return;
+		}
 
 		auto prop_list = obj.get_derived_type().get_properties();
 		for (auto prop : prop_list)
@@ -338,6 +366,16 @@ namespace Darius::Core::Serialization
 	void fromjson_recursively(instance obj2, Json const& json_object)
 	{
 		instance obj = obj2.get_type().get_raw_type().is_wrapper() ? obj2.get_wrapped_instance() : obj2;
+
+
+		type t = obj.get_type();
+		// Checking existing serializers and deserializers
+		if (typeSerializers.contains(t))
+		{
+			typeSerializers[t].second(obj, json_object);
+			return;
+		}
+
 		const auto prop_list = obj.get_derived_type().get_properties();
 
 		for (auto prop : prop_list)
@@ -351,7 +389,13 @@ namespace Darius::Core::Serialization
 
 			const type value_t = prop.get_type();
 
-			if (json_value.is_array())
+			if (typeSerializers.contains(value_t))
+			{
+				auto ins = instance(prop.get_value(obj));
+				typeSerializers[value_t].second(ins, json_value);
+				break;
+			}
+			else if (json_value.is_array())
 			{
 				variant var;
 				if (value_t.is_sequential_container())

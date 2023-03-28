@@ -6,6 +6,7 @@
 #include <Core/Containers/List.hpp>
 #include <Core/Containers/Map.hpp>
 #include <Core/Input.hpp>
+#include <Core/Serialization/TypeSerializer.hpp>
 #include <Core/TimeManager/TimeManager.hpp>
 #include <Debug/DebugDraw.hpp>
 #include <Job/Job.hpp>
@@ -75,6 +76,9 @@ namespace Darius::Subsystems
 		{
 			initializer();
 		}*/
+
+		// Initializing Core Stuff
+		D_SERIALIZATION::RegisterSerializer<D_CORE::Uuid>(D_CORE::UuidToJson, D_CORE::UuidFromJson);
 
 		// Initializing the resource manager
 		D_RESOURCE::Initialize(settings["Resource Manager"]);
