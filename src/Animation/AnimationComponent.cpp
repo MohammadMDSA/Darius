@@ -231,7 +231,7 @@ namespace Darius::Animation
 
 		mAnimationJointIndexMap.clear();
 
-		auto skeleton = skeletalMeshRes->GetMeshResource()->GetSkeleton();
+		auto skeleton = skeletalMeshRes->GetMesh()->GetSkeleton();
 		for (auto const& joint : skeleton)
 		{
 			const int animIndex = anmimationNameMap.at(joint.Name);

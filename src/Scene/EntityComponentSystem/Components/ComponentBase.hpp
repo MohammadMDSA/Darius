@@ -184,7 +184,7 @@ namespace Darius::Scene::ECS::Components
 
 
         DField(Get[const, &, inline], Serialize)
-        const D_CORE::Uuid          mUuid;
+        D_CORE::Uuid                mUuid;
         
         DField(Get[inline])
         Darius::Scene::GameObject*  mGameObject;

@@ -53,26 +53,26 @@ namespace Darius::Graphics
 		// Initializing Mesh Constants buffers
 		CreateGPUBuffers();
 
-		if (!mMaterialResource.IsValid())
+		if (!mMaterial.IsValid())
 			_SetMaterial(D_GRAPHICS::GetDefaultGraphicsResource(DefaultResource::Material));
 	}
 
 	RenderItem SkeletalMeshRendererComponent::GetRenderItem()
 	{
 		auto result = RenderItem();
-		const Mesh* mesh = mMeshResource.Get()->GetMeshData();
+		const Mesh* mesh = mMesh.Get()->GetMeshData();
 		result.BaseVertexLocation = mesh->mDraw[0].BaseVertexLocation;
 		result.IndexCount = mesh->mNumTotalIndices;
 		result.StartIndexLocation = mesh->mDraw[0].StartIndexLocation;
 		result.Mesh = mesh;
 		result.PrimitiveType = D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
 		result.MeshCBV = GetConstantsAddress();
-		result.Material.MaterialCBV = *mMaterialResource.Get();
-		result.Material.MaterialSRV = mMaterialResource->GetTexturesHandle();
+		result.Material.MaterialCBV = *mMaterial.Get();
+		result.Material.MaterialSRV = mMaterial->GetTexturesHandle();
 		result.mJointData = mJoints.data();
 		result.mNumJoints = (UINT)mJoints.size();
 		result.PsoType = GetPsoIndex();
-		result.PsoFlags = mComponentPsoFlags | mMaterialResource->GetPsoFlags();
+		result.PsoFlags = mComponentPsoFlags | mMaterial->GetPsoFlags();
 		return result;
 	}
 
@@ -85,11 +85,11 @@ namespace Darius::Graphics
 
 		// Mesh selection
 		D_H_DETAILS_DRAW_PROPERTY("Mesh");
-		D_H_RESOURCE_SELECTION_DRAW(SkeletalMeshResource, mMeshResource, "Select Mesh", SetMesh);
+		D_H_RESOURCE_SELECTION_DRAW(SkeletalMeshResource, mMesh, "Select Mesh", SetMesh);
 
 		// Material selection
 		D_H_DETAILS_DRAW_PROPERTY("Material");
-		D_H_RESOURCE_SELECTION_DRAW(MaterialResource, mMaterialResource, "Select Material", SetMaterial);
+		D_H_RESOURCE_SELECTION_DRAW(MaterialResource, mMaterial, "Select Material", SetMaterial);
 
 		// Casting shadow
 		D_H_DETAILS_DRAW_PROPERTY("Casts Shadow");
@@ -105,31 +105,18 @@ namespace Darius::Graphics
 	}
 #endif
 
-
-	void SkeletalMeshRendererComponent::SetMesh(ResourceHandle handle)
-	{
-		mChangeSignal();
-		_SetMesh(handle);
-	}
-
-	void SkeletalMeshRendererComponent::SetMaterial(ResourceHandle handle)
-	{
-		mChangeSignal();
-		_SetMaterial(handle);
-	}
-
 	void SkeletalMeshRendererComponent::_SetMesh(ResourceHandle handle)
 	{
-		mMeshResource = D_RESOURCE::GetResource<SkeletalMeshResource>(handle, *this);
+		mMesh = D_RESOURCE::GetResource<SkeletalMeshResource>(handle, *this);
 
 		mJoints.clear();
 		mSkeleton.clear();
 		mSkeletonRoot = nullptr;
-		if (mMeshResource.IsValid())
+		if (mMesh.IsValid())
 		{
 			// Copying skeleton to component
-			mJoints.resize(mMeshResource->GetJointCount());
-			for (auto const& skeletonNode : mMeshResource->GetSkeleton())
+			mJoints.resize(mMesh->GetJointCount());
+			for (auto const& skeletonNode : mMesh->GetSkeleton())
 			{
 				mSkeleton.push_back(skeletonNode);
 			}
@@ -158,15 +145,15 @@ namespace Darius::Graphics
 	void SkeletalMeshRendererComponent::_SetMaterial(ResourceHandle handle)
 	{
 		mPsoIndexDirty = true;
-		mMaterialResource = D_RESOURCE::GetResource<MaterialResource>(handle, *this);
+		mMaterial = D_RESOURCE::GetResource<MaterialResource>(handle, *this);
 	}
 
 	void SkeletalMeshRendererComponent::Serialize(Json& j) const
 	{
-		if (mMaterialResource.IsValid())
-			D_CORE::to_json(j["Material"], mMaterialResource.Get()->GetUuid());
-		if (mMeshResource.IsValid())
-			D_CORE::to_json(j["Mesh"], mMeshResource.Get()->GetUuid());
+		if (mMaterial.IsValid())
+			D_CORE::to_json(j["Material"], mMaterial.Get()->GetUuid());
+		if (mMesh.IsValid())
+			D_CORE::to_json(j["Mesh"], mMesh.Get()->GetUuid());
 	}
 
 	void SkeletalMeshRendererComponent::Deserialize(Json const& j)
@@ -236,7 +223,7 @@ namespace Darius::Graphics
 		if (GetGameObject()->GetType() == D_SCENE::GameObject::Type::Static)
 			return;
 
-		if (!mMeshResource.IsValid())
+		if (!mMesh.IsValid())
 			return;
 
 		auto& context = D_GRAPHICS::GraphicsContext::Begin();

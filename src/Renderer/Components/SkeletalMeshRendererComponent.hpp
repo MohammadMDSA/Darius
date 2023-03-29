@@ -32,8 +32,6 @@ namespace Darius::Graphics
 		virtual void						Update(float dt) override;
 		virtual void						OnDestroy() override;
 
-		void								SetMesh(D_RESOURCE::ResourceHandle handle);
-		void								SetMaterial(D_RESOURCE::ResourceHandle handle);
 		INLINE bool							HasAnimation() const { return true; }
 
 		D_RENDERER_FRAME_RESOURCE::RenderItem GetRenderItem();
@@ -41,7 +39,7 @@ namespace Darius::Graphics
 		INLINE D_RENDERER_GEOMETRY::Mesh::SkeletonJoint* GetSkeletonRoot() { return mSkeletonRoot; }
 
 
-		INLINE bool							CanRender() { return IsActive() && mMeshResource.IsValid(); }
+		INLINE bool							CanRender() { return IsActive() && mMesh.IsValid(); }
 		INLINE const D_MATH_BOUNDS::BoundingSphere& GetBounds() const { return mBounds; }
 
 		INLINE D3D12_GPU_VIRTUAL_ADDRESS	GetConstantsAddress() { return mMeshConstantsGPU.GetGpuVirtualAddress(); }
@@ -50,11 +48,11 @@ namespace Darius::Graphics
 
 	protected:
 
-		DField(Get[const, &, inline])
-		D_CORE::Ref<MaterialResource>		mMaterialResource;
+		DField(Resource[false], Serialize)
+		D_CORE::Ref<MaterialResource>		mMaterial;
 
-		DField(Get[const, &, inline])
-		D_CORE::Ref<SkeletalMeshResource>	mMeshResource;
+		DField(Resource[false], Serialize)
+		D_CORE::Ref<SkeletalMeshResource>	mMesh;
 
 	private:
 
@@ -65,7 +63,7 @@ namespace Darius::Graphics
 
 		INLINE uint16_t						GetPsoIndex()
 		{
-			auto materialPsoFlags = mMaterialResource->GetPsoFlags();
+			auto materialPsoFlags = mMaterial->GetPsoFlags();
 			
 			// Whether resource has changed
 			if (mCachedMaterialPsoFlags != materialPsoFlags)
@@ -83,7 +81,7 @@ namespace Darius::Graphics
 			return mPsoIndex;
 		}
 
-		DField(Get[inline], Set[inline])
+		DField(Get[inline], Set[inline], Serialize)
 		bool								mCastsShadow;
 
 		D_CONTAINERS::DVector<D_RENDERER_FRAME_RESOURCE::Joint>	mJoints;
