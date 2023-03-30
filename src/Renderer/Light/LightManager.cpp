@@ -128,8 +128,6 @@ namespace Darius::Renderer::LightManager
 		auto& currentLightUpload = LightsUpload[D_RENDERER_DEVICE::GetCurrentResourceIndex()];
 
 		// Upload buffers state
-		context.TransitionResource(currentActiveLightUpload, D3D12_RESOURCE_STATE_COMMON);
-		context.TransitionResource(currentLightUpload, D3D12_RESOURCE_STATE_COMMON);
 
 		UINT* data = (UINT*)currentActiveLightUpload.Map();
 		LightData* lightUploadData = (LightData*)currentLightUpload.Map();
@@ -203,17 +201,16 @@ namespace Darius::Renderer::LightManager
 
 		context.PIXBeginEvent(L"Uploading light masks and data");
 
-		context.TransitionResource(currentActiveLightUpload, D3D12_RESOURCE_STATE_COPY_SOURCE);
-		context.TransitionResource(currentLightUpload, D3D12_RESOURCE_STATE_COPY_SOURCE);
 		context.TransitionResource(LightsBufferGpu, D3D12_RESOURCE_STATE_COPY_DEST);
 		context.TransitionResource(ActiveLightsBufferGpu, D3D12_RESOURCE_STATE_COPY_DEST, true);
+		
 		context.CopyBufferRegion(LightsBufferGpu, 0, currentLightUpload, 0, currentLightUpload.GetBufferSize());
 		context.CopyBufferRegion(ActiveLightsBufferGpu, 0, currentActiveLightUpload, 0, currentActiveLightUpload.GetBufferSize());
-		context.TransitionResource(LightsBufferGpu, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
 
-		context.PIXEndEvent();
+		context.TransitionResource(LightsBufferGpu, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
 		context.TransitionResource(ActiveLightsBufferGpu, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, true);
 
+		context.PIXEndEvent();
 	}
 
 	D3D12_CPU_DESCRIPTOR_HANDLE GetLightMaskHandle()
@@ -397,6 +394,8 @@ namespace Darius::Renderer::LightManager
 		// TODO: Create sorter and input render item per light source
 		MeshSorter sorter(MeshSorter::kShadows);
 		for (auto const& ri : shadowRenderItems) sorter.AddMesh(ri, 0.1);
+
+		sorter.Sort();
 
 		auto& shadowContext = D_GRAPHICS::GraphicsContext::Begin();
 		shadowContext.TransitionResource(ShadowTextureArrayBuffer, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
