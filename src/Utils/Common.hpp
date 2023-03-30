@@ -153,7 +153,10 @@ ImGui::EndTable(); \
 
 // Subsystems Option Components
 #define D_H_OPTION_DRAW_BEGIN() \
-float inputOffset = ImGui::GetContentRegionAvail().x * 0.4f; \
+float availX = ImGui::GetContentRegionAvail().x; \
+float colRatio = 0.4f; \
+float inputOffset = availX * colRatio; \
+float inputWidth = availX * (1.f - colRatio); \
 bool settingsChanged = false;
 
 #define D_H_OPTION_DRAW_END() \
@@ -161,15 +164,59 @@ return settingsChanged;
 
 #define D_H_OPTION_DRAW_CHECKBOX(label, tag, variable) \
 { \
-ImGui::Text(label); \
-ImGui::SameLine(inputOffset); \
-bool value = variable; \
-if (ImGui::Checkbox("##"label, &value)) \
-{ \
-	options[tag] = variable = value; \
-	settingsChanged = true; \
-} \
+	ImGui::Text(label); \
+	ImGui::SameLine(inputOffset); \
+	bool value = variable; \
+	ImGui::PushItemWidth(inputWidth); \
+	if (ImGui::Checkbox("##" label, &value)) \
+	{ \
+		options[tag] = variable = value; \
+		settingsChanged = true; \
+	} \
+	ImGui::PopItemWidth(); \
 }
+
+#define D_H_OPTION_DRAW_FLOAT(label, tag, variable, ...) \
+{ \
+	ImGui::Text(label); \
+	ImGui::SameLine(inputOffset); \
+	float value = variable; \
+	ImGui::PushItemWidth(inputWidth); \
+	if (ImGui::DragFloat("##" label, &value, __VA_ARGS__)) \
+	{ \
+		options[tag] = variable = value; \
+		settingsChanged = true; \
+	} \
+	ImGui::PopItemWidth(); \
+} \
+
+#define D_H_OPTION_DRAW_FLOAT_SLIDER(label, tag, variable, min, max) \
+{ \
+	ImGui::Text(label); \
+	ImGui::SameLine(inputOffset); \
+	float value = variable; \
+	ImGui::PushItemWidth(inputWidth); \
+	if (ImGui::SliderFloat("##" label, &value, min, max, "%.3f")) \
+	{ \
+		options[tag] = variable = value; \
+		settingsChanged = true; \
+	} \
+	ImGui::PopItemWidth(); \
+} \
+
+#define D_H_OPTION_DRAW_FLOAT_SLIDER_EXP(label, tag, variable, min, max) \
+{ \
+	ImGui::Text(label); \
+	ImGui::SameLine(inputOffset); \
+	float value = variable; \
+	ImGui::PushItemWidth(inputWidth); \
+	if (ImGui::SliderFloat("##" label, &value, min, max, "%.3f", ImGuiSliderFlags_Logarithmic)) \
+	{ \
+		options[tag] = variable = value; \
+		settingsChanged = true; \
+	} \
+	ImGui::PopItemWidth(); \
+} \
 
 // Subsystem Settings Loader
 #define D_H_OPTIONS_LOAD_BASIC(key, variable) \
