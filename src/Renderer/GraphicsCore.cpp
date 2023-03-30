@@ -10,6 +10,7 @@
 #include "GraphicsUtils/Memory/DescriptorHeap.hpp"
 #include "GraphicsUtils/Profiling/GpuTimeManager.hpp"
 #include "Light/LightManager.hpp"
+#include "PostProcessing/MotionBlur.hpp"
 #include "RenderDeviceManager.hpp"
 #include "Renderer.hpp"
 #include "Resources/BatchResource.hpp"
@@ -148,6 +149,7 @@ namespace Darius::Graphics
 
 		// Setting up AntiAliasing
 		D_GRAPHICS_AA_TEMPORAL::Initialize(settings);
+		D_GRAPHICS_PP_MOTION::Initialize(settings);
 		D_GRAPHICS_AO_SS::Initialize(settings);
 
 		D_LIGHT::Initialize();
@@ -169,6 +171,7 @@ namespace Darius::Graphics
 		D_LIGHT::Shutdown();
 
 		D_GRAPHICS_AO_SS::Shutdown();
+		D_GRAPHICS_PP_MOTION::Shutdown();
 		D_GRAPHICS_AA_TEMPORAL::Shutdown();
 
 		D_PROFILING_GPU::Shutdown();

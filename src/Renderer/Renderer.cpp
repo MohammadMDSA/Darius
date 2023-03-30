@@ -18,6 +18,7 @@
 #include "GraphicsUtils/VertexTypes.hpp"
 #include "GraphicsUtils/Profiling/Profiling.hpp"
 #include "Light/LightManager.hpp"
+#include "PostProcessing/MotionBlur.hpp"
 #include "Resources/TextureResource.hpp"
 
 #include <Core/TimeManager/TimeManager.hpp>
@@ -422,10 +423,15 @@ namespace Darius::Renderer
 		}
 
 		auto frameIdxMod2 = D_GRAPHICS_AA_TEMPORAL::GetFrameIndexMod2();
+		auto& commandContext = rContext.GraphicsContext.GetComputeContext();
 
-		D_GRAPHICS_AO_SS::LinearizeZ(rContext.GraphicsContext.GetComputeContext(), rContext.DepthBuffer, rContext.LinearDepth[frameIdxMod2], rContext.Camera);
+		D_GRAPHICS_AO_SS::LinearizeZ(commandContext, rContext.DepthBuffer, rContext.LinearDepth[frameIdxMod2], rContext.Camera);
 
-		D_GRAPHICS_AA_TEMPORAL::ResolveImage(rContext.GraphicsContext.GetComputeContext(), rContext.ColorBuffer, rContext.VelocityBuffer, rContext.TemporalColor, rContext.LinearDepth);
+		D_GRAPHICS_PP_MOTION::MotionBlurBuffers motionBuffers = { rContext.ColorBuffer, rContext.LinearDepth[frameIdxMod2], rContext.VelocityBuffer, rContext.DepthBuffer };
+
+		D_GRAPHICS_PP_MOTION::GenerateCameraVelocityBuffer(commandContext, motionBuffers, rContext.Camera);
+
+		D_GRAPHICS_AA_TEMPORAL::ResolveImage(commandContext, rContext.ColorBuffer, rContext.VelocityBuffer, rContext.TemporalColor, rContext.LinearDepth);
 
 		rContext.GraphicsContext.TransitionResource(rContext.ColorBuffer, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, true);
 	}

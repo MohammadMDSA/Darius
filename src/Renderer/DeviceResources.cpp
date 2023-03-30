@@ -101,8 +101,8 @@ namespace Darius::Renderer::DeviceResource
 			ComPtr<ID3D12Debug5> debugController;
 			if (SUCCEEDED(D3D12GetDebugInterface(IID_PPV_ARGS(debugController.GetAddressOf()))))
 			{
-				/*debugController->EnableDebugLayer();
-				debugController->SetEnableGPUBasedValidation(true);*/
+				debugController->EnableDebugLayer();
+				debugController->SetEnableGPUBasedValidation(true);
 			}
 			else
 			{
@@ -173,6 +173,7 @@ namespace Darius::Renderer::DeviceResource
 #ifdef _DEBUG
 			d3dInfoQueue->SetBreakOnSeverity(D3D12_MESSAGE_SEVERITY_CORRUPTION, true);
 			d3dInfoQueue->SetBreakOnSeverity(D3D12_MESSAGE_SEVERITY_ERROR, true);
+			d3dInfoQueue->SetBreakOnSeverity(D3D12_MESSAGE_SEVERITY_WARNING, true);
 #endif
 			D3D12_MESSAGE_ID hide[] =
 			{
