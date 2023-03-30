@@ -1,6 +1,7 @@
 #include "Renderer.hpp"
 #include "pch.hpp"
 
+#include "AntiAliasing/TemporalEffect.hpp"
 #include "Camera/CameraManager.hpp"
 #include "Components/LightComponent.hpp"
 #include "Components/MeshRendererComponent.hpp"
@@ -241,6 +242,9 @@ namespace Darius::Renderer
 			}
 		}
 
+		// Setting up AntiAliasing
+		D_GRAPHICS_AA_TEMPORAL::Initialize(settings);
+
 		// Registering components
 		D_GRAPHICS::LightComponent::StaticConstructor();
 		D_GRAPHICS::MeshRendererComponent::StaticConstructor();
@@ -251,6 +255,8 @@ namespace Darius::Renderer
 	void Shutdown()
 	{
 		D_ASSERT(_device != nullptr);
+
+		D_GRAPHICS_AA_TEMPORAL::Shutdown();
 
 #ifdef _D_EDITOR
 		ImguiHeap.Destroy();
@@ -419,6 +425,8 @@ namespace Darius::Renderer
 			postDraw(additionalSorter);
 		}
 
+		D_GRAPHICS_AA_TEMPORAL::ResolveImage(rContext.GraphicsContext.GetComputeContext(), rContext.ColorBuffer, rContext.VelocityBuffer, rContext.TemporalColor, rContext.LinearDepth);
+
 		rContext.GraphicsContext.TransitionResource(rContext.ColorBuffer, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, true);
 	}
 
@@ -428,6 +436,11 @@ namespace Darius::Renderer
 		D_H_OPTION_DRAW_BEGIN();
 
 		D_H_OPTION_DRAW_CHECKBOX("Separate Z Pass", "Passes.SeparateZ", SeparateZPass);
+
+		if (ImGui::CollapsingHeader("Temporal Anti-Aliasing"))
+		{
+			D_GRAPHICS_AA_TEMPORAL::OptionsDrawer(options);
+		}
 
 		D_H_OPTION_DRAW_END()
 
@@ -443,6 +456,8 @@ namespace Darius::Renderer
 	{
 		// Show the new frame.
 		Resources->Present();
+
+		D_GRAPHICS_AA_TEMPORAL::Update(D_GRAPHICS::GetFrameCount());
 	}
 
 	// Helper method to clear the back buffers.
