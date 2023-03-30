@@ -382,7 +382,7 @@ namespace Darius::Core::Serialization
 		{
 			auto propName = std::string(prop.get_name().data());
 
-			if (!json_object.contains(std::string(prop.get_name().data())))
+			if (!json_object.contains(propName))
 				continue;
 
 			Json const& json_value = json_object[propName];
