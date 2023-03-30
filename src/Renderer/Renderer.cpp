@@ -439,7 +439,7 @@ namespace Darius::Renderer
 
 		if (ImGui::CollapsingHeader("Temporal Anti-Aliasing"))
 		{
-			D_GRAPHICS_AA_TEMPORAL::OptionsDrawer(options);
+			settingsChanged |= D_GRAPHICS_AA_TEMPORAL::OptionsDrawer(options);
 		}
 
 		D_H_OPTION_DRAW_END()
