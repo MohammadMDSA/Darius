@@ -183,6 +183,7 @@ namespace Darius::Graphics::AntiAliasing::TemporalEffect
 		UINT32 src = FrameIndexMod2;
 		UINT32 dst = src ^ 1;
 
+		if(EnableTAA)
 		{
 			ApplyTemporalAA(context, sceneColorBuffer, velocityBuffer, temporalColor, linearDepth);
 			SharpenImage(context, sceneColorBuffer, temporalColor[dst]);
