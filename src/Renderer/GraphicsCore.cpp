@@ -394,6 +394,8 @@ namespace Darius::Graphics
 		DownsampleDepthPSO.SetPixelShader(DownsampleDepthPS, sizeof(g_pDownsampleDepthPS));
 		DownsampleDepthPSO.SetDepthTargetFormat(DXGI_FORMAT_D32_FLOAT);
 		DownsampleDepthPSO.Finalize();*/
+
+#undef CreatePSO
 	}
 
 	void DestroyCommonStates()
