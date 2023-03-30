@@ -21,10 +21,10 @@ namespace Darius::Graphics::AntiAliasing::TemporalEffect
 	bool                                _initialized;
 
 	// Psos
-	ComputePSO                          TemporalBlendCS;
-	ComputePSO                          BoundNeighborhoodCS;
-	ComputePSO                          SharpenTAACS;
-	ComputePSO                          ResolveTAACS;
+	ComputePSO                          TemporalBlendCS(L"TAA: Temporal Blend CS");
+	ComputePSO                          BoundNeighborhoodCS(L"TAA: Bound Neighborhood CS");
+	ComputePSO                          SharpenTAACS(L"TAA: Sharpen TAA CS");
+	ComputePSO                          ResolveTAACS(L"TAA: Resolve TAA CS");
 
 	// Vars
 	uint32_t                            FrameIndex = 0;
