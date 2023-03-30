@@ -17,6 +17,7 @@
 #include "Renderer/CommandContext.hpp"
 #include "Renderer/RenderDeviceManager.hpp"
 
+using namespace D_GRAPHICS;
 using namespace DirectX;
 
 namespace Darius::Graphics::Utils::Buffers

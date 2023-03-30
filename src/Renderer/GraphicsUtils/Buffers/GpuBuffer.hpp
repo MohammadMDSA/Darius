@@ -16,10 +16,6 @@
 #include "Renderer/GraphicsUtils/GpuResource.hpp"
 #include "Renderer/GraphicsUtils/Buffers/UploadBuffer.hpp"
 
-class CommandContext;
-class EsramAllocator;
-class UploadBuffer;
-
 #ifndef D_GRAPHICS_BUFFERS
 #define D_GRAPHICS_BUFFERS Darius::Graphics::Utils::Buffers
 #endif
@@ -31,6 +27,8 @@ namespace Darius::Graphics
 
 namespace Darius::Graphics::Utils::Buffers
 {
+    class UploadBuffer;
+
     class GpuBuffer : public GpuResource
     {
     public:

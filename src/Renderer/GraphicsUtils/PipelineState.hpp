@@ -13,15 +13,6 @@
 
 #pragma once
 
-class CommandContext;
-class RootSignature;
-class VertexShader;
-class GeometryShader;
-class HullShader;
-class DomainShader;
-class PixelShader;
-class ComputeShader;
-
 #include "RootSignature.hpp"
 
 #include <Utils/Assert.hpp>
@@ -30,8 +21,15 @@ class ComputeShader;
 #define D_GRAPHICS_UTILS Darius::Graphics::Utils
 #endif
 
+namespace Darius::Graphics
+{
+    class CommandContext;
+}
+
 namespace Darius::Graphics::Utils
 {
+    class RootSignature;
+
     class PSO
     {
     public:
