@@ -28,6 +28,9 @@ namespace Darius::Editor::Gui::Windows
 		D_GRAPHICS_BUFFERS::ColorBuffer				mSceneTexture;
 		D_GRAPHICS_BUFFERS::DepthBuffer				mSceneDepth;
 		D_GRAPHICS_MEMORY::DescriptorHandle			mTextureHandle;
+		D_GRAPHICS_BUFFERS::ColorBuffer				mTemporalColor[2];
+		D_GRAPHICS_BUFFERS::ColorBuffer				mVelocityBuffer;
+		D_GRAPHICS_BUFFERS::ColorBuffer				mLinearDepth[2];
 
 		D_RENDERER_FRAME_RESOURCE::GlobalConstants	mSceneGlobals;
 

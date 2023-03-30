@@ -92,6 +92,11 @@ namespace Darius::Editor::Gui::Windows
 	{
 		mSceneDepth.Destroy();
 		mSceneTexture.Destroy();
+		mTemporalColor[0].Destroy();
+		mTemporalColor[1].Destroy();
+		mVelocityBuffer.Destroy();
+		mLinearDepth[0].Destroy();
+		mLinearDepth[1].Destroy();
 	}
 
 	void SceneWindow::UpdateGlobalConstants(D_RENDERER_FRAME_RESOURCE::GlobalConstants& globals)
@@ -130,7 +135,7 @@ namespace Darius::Editor::Gui::Windows
 
 		UpdateGlobalConstants(mSceneGlobals);
 
-		D_RENDERER::SceneRenderContext rc = { mSceneDepth, mSceneTexture, context, mCamera, mSceneGlobals, mDrawSkybox };
+		D_RENDERER::SceneRenderContext rc = { mSceneDepth, mSceneTexture, mVelocityBuffer, mTemporalColor, mLinearDepth, context, mCamera, mSceneGlobals, mDrawSkybox };
 		D_RENDERER::Render(rc,
 			[&](D_RENDERER::MeshSorter& sorter)
 			{
@@ -359,6 +364,18 @@ namespace Darius::Editor::Gui::Windows
 		mBufferHeight = mHeight;
 		mSceneTexture.Create(L"Scene Texture", (UINT)mBufferWidth, (UINT)mBufferHeight, 1, D_RENDERER_DEVICE::GetBackBufferFormat());
 		mSceneDepth.Create(L"Scene DepthStencil", (UINT)mBufferWidth, (UINT)mBufferHeight, D_RENDERER_DEVICE::GetDepthBufferFormat());
+
+		// Linear Depth
+		mLinearDepth[0].Create(L"Scene Linear Depth 0", (UINT)mBufferWidth, (UINT)mBufferHeight, 1, DXGI_FORMAT_R16_UNORM);
+		mLinearDepth[1].Create(L"Scene Linear Depth 1", (UINT)mBufferWidth, (UINT)mBufferHeight, 1, DXGI_FORMAT_R16_UNORM);
+
+		// Temporal Color 
+		mTemporalColor[0].Create(L"Scene Temporal Color 0", (UINT)mBufferWidth, (UINT)mBufferHeight, 1, DXGI_FORMAT_R16G16B16A16_FLOAT);
+		mTemporalColor[1].Create(L"Scene Temporal Color 1", (UINT)mBufferWidth, (UINT)mBufferHeight, 1, DXGI_FORMAT_R16G16B16A16_FLOAT);
+
+		// Velocity Buffer
+		mVelocityBuffer.Create(L"Scene Motion Vectors", (UINT)mBufferWidth, (UINT)mBufferHeight, 1, DXGI_FORMAT_R32_UINT);
+
 	}
 
 	void SceneWindow::CalcGridLineConstants(DVector<MeshConstants>& constants, int count)
