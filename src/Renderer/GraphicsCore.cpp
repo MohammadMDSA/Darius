@@ -1,19 +1,22 @@
 #include "pch.hpp"
 #include "GraphicsCore.hpp"
-#include "GraphicsUtils/Memory/DescriptorHeap.hpp"
-#include "Renderer.hpp"
-#include "RenderDeviceManager.hpp"
+
+#include "AntiAliasing/TemporalEffect.hpp"
+#include "AmbientOcclusion/ScreenSpaceAmbientOcclusion.hpp"
 #include "CommandContext.hpp"
+#include "Geometry/GeometryGenerator.hpp"
+#include "GraphicsUtils/Buffers/Texture.hpp"
 #include "GraphicsUtils/D3DUtils.hpp"
+#include "GraphicsUtils/Memory/DescriptorHeap.hpp"
 #include "GraphicsUtils/Profiling/GpuTimeManager.hpp"
 #include "Light/LightManager.hpp"
-#include "GraphicsUtils/Buffers/Texture.hpp"
+#include "RenderDeviceManager.hpp"
+#include "Renderer.hpp"
+#include "Resources/BatchResource.hpp"
+#include "Resources/MaterialResource.hpp"
 #include "Resources/StaticMeshResource.hpp"
 #include "Resources/SkeletalMeshResource.hpp"
-#include "Resources/MaterialResource.hpp"
-#include "Resources/BatchResource.hpp"
 #include "Resources/TextureResource.hpp"
-#include "Geometry/GeometryGenerator.hpp"
 
 #include <Core/TimeManager/TimeManager.hpp>
 #include <ResourceManager/ResourceManager.hpp>
@@ -126,7 +129,7 @@ namespace Darius::Graphics
 	void BuildShaders();
 	void LoadDefaultResources();
 
-	void Initialize()
+	void Initialize(D_SERIALIZATION::Json const& settings)
 	{
 		D_ASSERT(!_initialized);
 		_initialized = true;
@@ -142,6 +145,10 @@ namespace Darius::Graphics
 
 		BuildShaders();
 		InitializeCommonStates();
+
+		// Setting up AntiAliasing
+		D_GRAPHICS_AA_TEMPORAL::Initialize(settings);
+		D_GRAPHICS_AO_SS::Initialize(settings);
 
 		D_LIGHT::Initialize();
 
@@ -160,6 +167,9 @@ namespace Darius::Graphics
 		D_ASSERT(_initialized);
 
 		D_LIGHT::Shutdown();
+
+		D_GRAPHICS_AO_SS::Shutdown();
+		D_GRAPHICS_AA_TEMPORAL::Shutdown();
 
 		D_PROFILING_GPU::Shutdown();
 
@@ -292,7 +302,7 @@ namespace Darius::Graphics
 		RasterizerShadow = RasterizerDefault;
 		//RasterizerShadow.CullMode = D3D12_CULL_FRONT;  // Hacked here rather than fixing the content
 		RasterizerShadow.SlopeScaledDepthBias = -1.5f;
-		RasterizerShadow.DepthBias = -10.f;
+		RasterizerShadow.DepthBias = -100.f;
 
 		RasterizerShadowTwoSided = RasterizerShadow;
 		RasterizerShadowTwoSided.CullMode = D3D12_CULL_MODE_NONE;

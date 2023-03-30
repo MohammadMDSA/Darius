@@ -2,6 +2,7 @@
 #include "pch.hpp"
 
 #include "AntiAliasing/TemporalEffect.hpp"
+#include "AmbientOcclusion/ScreenSpaceAmbientOcclusion.hpp"
 #include "Camera/CameraManager.hpp"
 #include "Components/LightComponent.hpp"
 #include "Components/MeshRendererComponent.hpp"
@@ -95,7 +96,7 @@ namespace Darius::Renderer
 
 	namespace Device
 	{
-		void Initialize(HWND window, int width, int height)
+		void Initialize(HWND window, int width, int height, D_SERIALIZATION::Json const& settings)
 		{
 			// TODO: Provide parameters for swapchain format, depth/stencil format, and backbuffer count.
 			//   Add DX::DeviceResources::c_AllowTearing to opt-in to variable rate displays.
@@ -104,7 +105,7 @@ namespace Darius::Renderer
 
 			Resources->SetWindow(window, width, height);
 			Resources->CreateDeviceResources();
-			D_GRAPHICS::Initialize();
+			D_GRAPHICS::Initialize(settings);
 			Resources->CreateWindowSizeDependentResources();
 			D_CAMERA_MANAGER::Initialize();
 			D_CAMERA_MANAGER::SetViewportDimansion((float)width, (float)height);
@@ -194,7 +195,7 @@ namespace Darius::Renderer
 
 	void Initialize(HWND window, int width, int height, D_SERIALIZATION::Json const& settings)
 	{
-		Device::Initialize(window, width, height);
+		Device::Initialize(window, width, height, settings);
 
 		D_ASSERT(_device == nullptr);
 		D_ASSERT(Resources);
@@ -242,9 +243,6 @@ namespace Darius::Renderer
 			}
 		}
 
-		// Setting up AntiAliasing
-		D_GRAPHICS_AA_TEMPORAL::Initialize(settings);
-
 		// Registering components
 		D_GRAPHICS::LightComponent::StaticConstructor();
 		D_GRAPHICS::MeshRendererComponent::StaticConstructor();
@@ -255,8 +253,6 @@ namespace Darius::Renderer
 	void Shutdown()
 	{
 		D_ASSERT(_device != nullptr);
-
-		D_GRAPHICS_AA_TEMPORAL::Shutdown();
 
 #ifdef _D_EDITOR
 		ImguiHeap.Destroy();
@@ -424,6 +420,10 @@ namespace Darius::Renderer
 
 			postDraw(additionalSorter);
 		}
+
+		auto frameIdxMod2 = D_GRAPHICS_AA_TEMPORAL::GetFrameIndexMod2();
+
+		D_GRAPHICS_AO_SS::LinearizeZ(rContext.GraphicsContext.GetComputeContext(), rContext.DepthBuffer, rContext.LinearDepth[frameIdxMod2], rContext.Camera);
 
 		D_GRAPHICS_AA_TEMPORAL::ResolveImage(rContext.GraphicsContext.GetComputeContext(), rContext.ColorBuffer, rContext.VelocityBuffer, rContext.TemporalColor, rContext.LinearDepth);
 
@@ -713,8 +713,8 @@ namespace Darius::Renderer
 		def[kMaterialSamplers].InitAsDescriptorRange(D3D12_DESCRIPTOR_RANGE_TYPE_SAMPLER, 0, 10, D3D12_SHADER_VISIBILITY_PIXEL);
 		def[kCommonCBV].InitAsConstantBuffer(1);
 		def[kCommonSRVs].InitAsDescriptorRange(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 10, 8, D3D12_SHADER_VISIBILITY_PIXEL);
-		def[kSkinMatrices].InitAsBufferSRV(20, D3D12_SHADER_VISIBILITY_VERTEX); \
-			def.Finalize(L"Main Root Sig", D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT);
+		def[kSkinMatrices].InitAsBufferSRV(20, D3D12_SHADER_VISIBILITY_VERTEX);
+		def.Finalize(L"Main Root Sig", D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT);
 	}
 
 	DescriptorHandle AllocateTextureDescriptor(UINT count)
@@ -1040,11 +1040,6 @@ namespace Darius::Renderer
 
 				++m_CurrentDraw;
 			}
-		}
-
-		if (m_BatchType == kShadows)
-		{
-			context.TransitionResource(*m_DSV, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
 		}
 
 		context.PIXEndEvent();

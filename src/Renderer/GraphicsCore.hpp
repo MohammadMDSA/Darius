@@ -1,11 +1,12 @@
 #pragma once
 
-#include "GraphicsUtils/CommandListManager.hpp"
 #include "CommandSignature.hpp"
-#include "GraphicsUtils/SamplerManager.hpp"
-#include "GraphicsUtils/RootSignature.hpp"
+#include "GraphicsUtils/CommandListManager.hpp"
 #include "GraphicsUtils/PipelineState.hpp"
+#include "GraphicsUtils/RootSignature.hpp"
+#include "GraphicsUtils/SamplerManager.hpp"
 
+#include <Core/Serialization/Json.hpp>
 #include <ResourceManager/Resource.hpp>
 #include <ResourceManager/ResourceManager.hpp>
 
@@ -15,7 +16,7 @@ namespace Darius::Graphics
 {
 	class ContextManager;
 
-	void Initialize();
+	void Initialize(D_SERIALIZATION::Json const& settings);
 	void Shutdown();
 
 	uint32_t GetFrameCount();

@@ -168,7 +168,7 @@ namespace Darius::Renderer
 		D_GRAPHICS_BUFFERS::ColorBuffer*					TemporalColor;
 		D_GRAPHICS_BUFFERS::ColorBuffer*					LinearDepth;
 		D_GRAPHICS::GraphicsContext&						GraphicsContext;
-		D_MATH_CAMERA::BaseCamera const&					Camera;
+		D_MATH_CAMERA::Camera const&						Camera;
 		D_RENDERER_FRAME_RESOURCE::GlobalConstants&			Globals;
 		bool												DrawSkybox;
 	};
