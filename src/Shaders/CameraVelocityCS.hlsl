@@ -11,7 +11,7 @@
 // Author:  James Stanard 
 //
 
-#include "Common.hlsli"
+#include "CommonRS.hlsli"
 #include "PixelPacking_Velocity.hlsli"
 
 // We can use the original depth buffer or a linearized one.  In this case, we use linear Z because

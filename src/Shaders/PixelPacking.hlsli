@@ -9,17 +9,14 @@
 // Developed by Minigraph
 //
 // Author:  James Stanard 
+//
 
-#include "ShaderUtility.hlsli"
-#include "CommonRS.hlsli"
+#ifndef __PIXEL_PACKING_HLSLI__
+#define __PIXEL_PACKING_HLSLI__
 
-Texture2D<float4> TemporalColor : register(t0);
-RWTexture2D<float3> OutColor : register(u0);
+#include "ColorSpaceUtility.hlsli"
+#include "PixelPacking_RGBE.hlsli"
+#include "PixelPacking_RGBM.hlsli"
+#include "PixelPacking_R11G11B10.hlsli"
 
-[RootSignature(Common_RootSig)]
-[numthreads( 8, 8, 1 )]
-void main( uint3 DTid : SV_DispatchThreadID )
-{
-    float4 Color = TemporalColor[DTid.xy];
-    OutColor[DTid.xy] = Color.rgb / max(Color.w, 1e-6);
-}
+#endif // __PIXEL_PACKING_HLSLI__

@@ -32,8 +32,8 @@ namespace Darius::Graphics::AntiAliasing::TemporalEffect
                     D_GRAPHICS::ComputeContext& commandContext,
                     D_GRAPHICS_BUFFERS::ColorBuffer& sceneColorBuffer,
                     D_GRAPHICS_BUFFERS::ColorBuffer& velocityBuffer,
-                    D_GRAPHICS_BUFFERS::ColorBuffer temporalColor[],
-                    D_GRAPHICS_BUFFERS::ColorBuffer linearDepth[]);
+                    D_GRAPHICS_BUFFERS::ColorBuffer* temporalColor,
+                    D_GRAPHICS_BUFFERS::ColorBuffer* linearDepth);
 
 
 #ifdef _D_EDITOR

@@ -46,8 +46,8 @@ namespace Darius::Graphics::AntiAliasing::TemporalEffect
 		ComputeContext& context,
 		ColorBuffer& sceneColorBuffer,
 		ColorBuffer& velocityBuffer,
-		ColorBuffer temporalColor[],
-		ColorBuffer linearDepth[]);
+		ColorBuffer* temporalColor,
+		ColorBuffer* linearDepth);
 
 	void SharpenImage(ComputeContext& context, ColorBuffer& sceneColorBuffer, ColorBuffer& temporalColor);
 
@@ -128,8 +128,8 @@ namespace Darius::Graphics::AntiAliasing::TemporalEffect
 		}
 		else
 		{
-			JitterDeltaX = JitterX = 0.5f;
-			JitterDeltaY = JitterY = 0.5f;
+			JitterDeltaX = JitterX - 0.5f;
+			JitterDeltaY = JitterY - 0.5f;
 			JitterX = 0.5f;
 			JitterY = 0.5f;
 		}
@@ -146,7 +146,7 @@ namespace Darius::Graphics::AntiAliasing::TemporalEffect
 		jitterY = JitterY;
 	}
 
-	void ClearHistory(CommandContext& context, ColorBuffer temporalColor[])
+	void ClearHistory(CommandContext& context, ColorBuffer* temporalColor)
 	{
 		if (!EnableTAA)
 			return;
@@ -164,8 +164,8 @@ namespace Darius::Graphics::AntiAliasing::TemporalEffect
 		ComputeContext& commandContext,
 		ColorBuffer& sceneColorBuffer,
 		ColorBuffer& velocityBuffer,
-		ColorBuffer temporalColor[],
-		ColorBuffer linearDepth[]
+		ColorBuffer* temporalColor,
+		ColorBuffer* linearDepth
 	)
 	{
 		D_PROFILING::ScopedTimer _prof(L"Temporal Resolve", commandContext);
@@ -194,8 +194,8 @@ namespace Darius::Graphics::AntiAliasing::TemporalEffect
 		ComputeContext& context,
 		ColorBuffer& sceneColorBuffer,
 		ColorBuffer& velocityBuffer,
-		ColorBuffer temporalColor[],
-		ColorBuffer linearDepth[]
+		ColorBuffer* temporalColor,
+		ColorBuffer* linearDepth
 		)
 	{
 		D_PROFILING::ScopedTimer _prof(L"Resolve Image", context);
