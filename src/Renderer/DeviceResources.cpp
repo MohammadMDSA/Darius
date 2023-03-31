@@ -60,9 +60,9 @@ namespace Darius::Renderer::DeviceResource
 		m_backBufferFormat(backBufferFormat),
 		m_depthBufferFormat(depthBufferFormat),
 		m_backBufferCount(backBufferCount),
-		m_d3dMinFeatureLevel(D3D_FEATURE_LEVEL_12_2),
+		m_d3dMinFeatureLevel(minFeatureLevel),
 		m_window(nullptr),
-		m_d3dFeatureLevel(D3D_FEATURE_LEVEL_11_0),
+		m_d3dFeatureLevel(D3D_FEATURE_LEVEL_12_2),
 		m_dxgiFactoryFlags(0),
 		m_outputSize{ 0, 0, 1, 1 },
 		m_colorSpace(DXGI_COLOR_SPACE_RGB_FULL_G22_NONE_P709),
@@ -101,8 +101,8 @@ namespace Darius::Renderer::DeviceResource
 			ComPtr<ID3D12Debug5> debugController;
 			if (SUCCEEDED(D3D12GetDebugInterface(IID_PPV_ARGS(debugController.GetAddressOf()))))
 			{
-				debugController->EnableDebugLayer();
-				debugController->SetEnableGPUBasedValidation(true);
+				/*debugController->EnableDebugLayer();
+				debugController->SetEnableGPUBasedValidation(true);*/
 			}
 			else
 			{
@@ -205,7 +205,7 @@ namespace Darius::Renderer::DeviceResource
 
 		D3D12_FEATURE_DATA_FEATURE_LEVELS featLevels =
 		{
-			static_cast<UINT>(std::size(s_featureLevels)), s_featureLevels, D3D_FEATURE_LEVEL_11_0
+			static_cast<UINT>(std::size(s_featureLevels)), s_featureLevels, D3D_FEATURE_LEVEL_12_2
 		};
 
 		hr = m_d3dDevice->CheckFeatureSupport(D3D12_FEATURE_FEATURE_LEVELS, &featLevels, sizeof(featLevels));
