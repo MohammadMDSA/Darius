@@ -52,6 +52,8 @@ namespace Darius::Graphics
 
 	DUnorderedMap<DefaultResource, ResourceHandle>		DefaultResourceMap;
 
+	uint32_t							FrameCount = 0;
+
 	//////////////////////////////////
 	////////// Common States /////////
 	//////////////////////////////////
@@ -201,7 +203,12 @@ namespace Darius::Graphics
 
 	uint32_t GetFrameCount()
 	{
-		return D_TIME::GetFrameCount();
+		return FrameCount;
+	}
+
+	uint32_t ProceedFrame()
+	{
+		return ++FrameCount;
 	}
 
 	D3D12_CPU_DESCRIPTOR_HANDLE AllocateDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE type, UINT count)
@@ -264,7 +271,7 @@ namespace Darius::Graphics
 		RasterizerDefault.SlopeScaledDepthBias = D3D12_DEFAULT_SLOPE_SCALED_DEPTH_BIAS;
 		RasterizerDefault.DepthClipEnable = TRUE;
 		RasterizerDefault.MultisampleEnable = FALSE;
-		RasterizerDefault.AntialiasedLineEnable = TRUE;
+		RasterizerDefault.AntialiasedLineEnable = FALSE;
 		RasterizerDefault.ForcedSampleCount = 0;
 		RasterizerDefault.ConservativeRaster = D3D12_CONSERVATIVE_RASTERIZATION_MODE_OFF;
 

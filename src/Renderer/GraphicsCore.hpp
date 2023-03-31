@@ -16,15 +16,16 @@ namespace Darius::Graphics
 {
 	class ContextManager;
 
-	void Initialize(D_SERIALIZATION::Json const& settings);
-	void Shutdown();
+	void									Initialize(D_SERIALIZATION::Json const& settings);
+	void									Shutdown();
 
-	uint32_t GetFrameCount();
+	uint32_t								GetFrameCount();
+	uint32_t								ProceedFrame();
 
-	D3D12_CPU_DESCRIPTOR_HANDLE AllocateDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE type, UINT count = 1);
+	D3D12_CPU_DESCRIPTOR_HANDLE				AllocateDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE type, UINT count = 1);
 
-	D_GRAPHICS_UTILS::CommandListManager* GetCommandManager();
-	ContextManager*		GetContextManager();
+	D_GRAPHICS_UTILS::CommandListManager*	GetCommandManager();
+	ContextManager*							GetContextManager();
 
 	enum class DefaultResource
 	{
