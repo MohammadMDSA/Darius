@@ -462,8 +462,9 @@ namespace Darius::Renderer
 	{
 		// Show the new frame.
 		Resources->Present();
-
-		D_GRAPHICS_AA_TEMPORAL::Update(D_GRAPHICS::GetFrameCount());
+		
+		auto frame = D_GRAPHICS::ProceedFrame();
+		D_GRAPHICS_AA_TEMPORAL::Update(frame);
 	}
 
 	// Helper method to clear the back buffers.
@@ -503,7 +504,7 @@ namespace Darius::Renderer
 		DefaultPso.SetVertexShader(ShaderData("DefaultVS"));
 		DefaultPso.SetPixelShader(ShaderData("DefaultPS"));
 		DefaultPso.SetRootSignature(RootSigns[(size_t)RootSignatureTypes::DefaultRootSig]);
-		DefaultPso.SetRasterizerState(D_GRAPHICS::RasterizerDefaultMsaa);
+		DefaultPso.SetRasterizerState(D_GRAPHICS::RasterizerDefault);
 		DefaultPso.SetBlendState(CD3DX12_BLEND_DESC(D3D12_DEFAULT));
 		DefaultPso.SetDepthStencilState(DepthStateReadWrite);
 		DefaultPso.SetSampleMask(UINT_MAX);
@@ -527,7 +528,7 @@ namespace Darius::Renderer
 
 		GraphicsPSO DepthOnlyPSO(L"Renderer: Depth Only PSO");
 		DepthOnlyPSO.SetRootSignature(RootSigns[(size_t)RootSignatureTypes::DefaultRootSig]);
-		DepthOnlyPSO.SetRasterizerState(RasterizerDefaultMsaa);
+		DepthOnlyPSO.SetRasterizerState(RasterizerDefault);
 		DepthOnlyPSO.SetBlendState(BlendDisable);
 		DepthOnlyPSO.SetDepthStencilState(DepthStateReadWrite);
 		DepthOnlyPSO.SetInputLayout(VertexData(D_GRAPHICS_VERTEX::VertexPositionNormalTangentTexture));
@@ -540,7 +541,7 @@ namespace Darius::Renderer
 		GraphicsPSO CutoutDepthPSO(L"Renderer: Cutout Depth PSO");
 		CutoutDepthPSO = DepthOnlyPSO;
 		CutoutDepthPSO.SetInputLayout(VertexData(D_GRAPHICS_VERTEX::VertexPositionNormalTangentTexture));
-		CutoutDepthPSO.SetRasterizerState(RasterizerDefaultMsaa);
+		CutoutDepthPSO.SetRasterizerState(RasterizerDefault);
 		CutoutDepthPSO.SetVertexShader(ShaderData("CutoutDepthVS"));
 		CutoutDepthPSO.SetPixelShader(ShaderData("CutoutDepthPS"));
 		CutoutDepthPSO.Finalize();
@@ -562,7 +563,7 @@ namespace Darius::Renderer
 
 		GraphicsPSO DepthOnlyTwoSidedPSO(L"Renderer: Depth Only PSO Two Sided");
 		DepthOnlyTwoSidedPSO.SetRootSignature(RootSigns[(size_t)RootSignatureTypes::DefaultRootSig]);
-		DepthOnlyTwoSidedPSO.SetRasterizerState(RasterizerTwoSidedMsaa);
+		DepthOnlyTwoSidedPSO.SetRasterizerState(RasterizerTwoSided);
 		DepthOnlyTwoSidedPSO.SetBlendState(BlendDisable);
 		DepthOnlyTwoSidedPSO.SetDepthStencilState(DepthStateReadWrite);
 		DepthOnlyTwoSidedPSO.SetInputLayout(VertexData(D_GRAPHICS_VERTEX::VertexPositionNormalTangentTexture));
@@ -575,7 +576,7 @@ namespace Darius::Renderer
 		GraphicsPSO CutoutDepthTwoSidedPSO(L"Renderer: Cutout Depth PSO Two Sided");
 		CutoutDepthTwoSidedPSO = DepthOnlyTwoSidedPSO;
 		CutoutDepthTwoSidedPSO.SetInputLayout(VertexData(D_GRAPHICS_VERTEX::VertexPositionNormalTangentTexture));
-		CutoutDepthTwoSidedPSO.SetRasterizerState(RasterizerTwoSidedMsaa);
+		CutoutDepthTwoSidedPSO.SetRasterizerState(RasterizerTwoSided);
 		CutoutDepthTwoSidedPSO.SetVertexShader(ShaderData("CutoutDepthVS"));
 		CutoutDepthTwoSidedPSO.SetPixelShader(ShaderData("CutoutDepthPS"));
 		CutoutDepthTwoSidedPSO.Finalize();
@@ -598,53 +599,53 @@ namespace Darius::Renderer
 
 		GraphicsPSO DepthOnlyWireframePSO(L"Renderer: Depth Only PSO Wireframe");
 		DepthOnlyWireframePSO = DepthOnlyPSO;
-		DepthOnlyWireframePSO.SetRasterizerState(RasterizerDefaultMsaaWireframe);
+		DepthOnlyWireframePSO.SetRasterizerState(RasterizerDefaultWireframe);
 		DepthOnlyWireframePSO.Finalize();
 		Psos.push_back(DepthOnlyWireframePSO);
 
 		GraphicsPSO CutoutDepthWireframePSO(L"Renderer: Cutout Depth PSO Wireframe");
 		CutoutDepthWireframePSO = CutoutDepthPSO;
-		CutoutDepthWireframePSO.SetRasterizerState(RasterizerDefaultMsaaWireframe);
+		CutoutDepthWireframePSO.SetRasterizerState(RasterizerDefaultWireframe);
 		CutoutDepthWireframePSO.Finalize();
 		Psos.push_back(CutoutDepthWireframePSO);
 
 		GraphicsPSO SkinDepthOnlyWireframePSO(L"Renderer: Depth Only PSO Skinned Wireframe");
 		SkinDepthOnlyWireframePSO = SkinDepthOnlyPSO;
-		SkinDepthOnlyWireframePSO.SetRasterizerState(RasterizerDefaultMsaaWireframe);
+		SkinDepthOnlyWireframePSO.SetRasterizerState(RasterizerDefaultWireframe);
 		SkinDepthOnlyWireframePSO.Finalize();
 		Psos.push_back(SkinDepthOnlyWireframePSO);
 
 		GraphicsPSO SkinCutoutDepthWireframePSO(L"Renderer: Cutout Depth PSO Skinned Wireframe");
 		SkinCutoutDepthWireframePSO = SkinCutoutDepthPSO;
-		SkinCutoutDepthWireframePSO.SetRasterizerState(RasterizerDefaultMsaaWireframe);
+		SkinCutoutDepthWireframePSO.SetRasterizerState(RasterizerDefaultWireframe);
 		SkinCutoutDepthWireframePSO.Finalize();
 		Psos.push_back(SkinCutoutDepthWireframePSO);
 
 		// Depth Only Two Sided Wireframe PSOs
 		GraphicsPSO DepthOnlyTwoSidedWireframePSO(L"Renderer: Depth Only PSO Two Sided Wireframe");
 		DepthOnlyTwoSidedWireframePSO = DepthOnlyTwoSidedPSO;
-		DepthOnlyTwoSidedWireframePSO.SetRasterizerState(RasterizerTwoSidedMsaaWireframe);
+		DepthOnlyTwoSidedWireframePSO.SetRasterizerState(RasterizerTwoSidedWireframe);
 		DepthOnlyTwoSidedWireframePSO.Finalize();
 		Psos.push_back(DepthOnlyTwoSidedWireframePSO);
 
 
 		GraphicsPSO CutoutDepthTwoSidedWireframePSO(L"Renderer: Cutout Depth PSO Two Sided Wireframe");
 		CutoutDepthTwoSidedWireframePSO = CutoutDepthTwoSidedPSO;
-		CutoutDepthTwoSidedWireframePSO.SetRasterizerState(RasterizerTwoSidedMsaaWireframe);
+		CutoutDepthTwoSidedWireframePSO.SetRasterizerState(RasterizerTwoSidedWireframe);
 		CutoutDepthTwoSidedWireframePSO.Finalize();
 		Psos.push_back(CutoutDepthTwoSidedWireframePSO);
 
 
 		GraphicsPSO SkinDepthOnlyTwoSidedWireframePSO(L"Renderer: Depth Only PSO Skinned Two Sided Wireframe");
 		SkinDepthOnlyTwoSidedWireframePSO = SkinDepthOnlyTwoSidedPSO;
-		SkinDepthOnlyTwoSidedWireframePSO.SetRasterizerState(RasterizerTwoSidedMsaaWireframe);
+		SkinDepthOnlyTwoSidedWireframePSO.SetRasterizerState(RasterizerTwoSidedWireframe);
 		SkinDepthOnlyTwoSidedWireframePSO.Finalize();
 		Psos.push_back(SkinDepthOnlyTwoSidedWireframePSO);
 
 
 		GraphicsPSO SkinCutoutDepthTwoSidedWireframePSO(L"Renderer: Cutout Depth PSO Skinned Two Sided Wireframe");
 		SkinCutoutDepthTwoSidedWireframePSO = SkinCutoutDepthTwoSidedPSO;
-		SkinCutoutDepthTwoSidedWireframePSO.SetRasterizerState(RasterizerTwoSidedMsaaWireframe);
+		SkinCutoutDepthTwoSidedWireframePSO.SetRasterizerState(RasterizerTwoSidedWireframe);
 		SkinCutoutDepthTwoSidedWireframePSO.Finalize();
 		Psos.push_back(SkinCutoutDepthTwoSidedWireframePSO);
 
@@ -1083,7 +1084,7 @@ namespace Darius::Renderer
 		ImGui::CreateContext();
 		ImPlot::CreateContext();
 		ImGui_ImplWin32_Init(Resources->GetWindow());
-		ImGui_ImplDX12_Init(_device, Resources->GetBackBufferCount(), DXGI_FORMAT_B8G8R8A8_UNORM, ImguiHeap.GetHeapPointer(), defualtHandle, defualtHandle);
+		ImGui_ImplDX12_Init(_device, Resources->GetBackBufferCount(), Resources->GetBackBufferFormat(), ImguiHeap.GetHeapPointer(), defualtHandle, defualtHandle);
 
 		D_GRAPHICS::GetCommandManager()->IdleGPU();
 	}
@@ -1189,16 +1190,16 @@ namespace Darius::Renderer
 		if (psoFlags & RenderItem::TwoSided)
 		{
 			if (psoFlags & RenderItem::Wireframe)
-				ColorPSO.SetRasterizerState(RasterizerTwoSidedMsaaWireframe);
+				ColorPSO.SetRasterizerState(RasterizerTwoSidedWireframe);
 			else
-				ColorPSO.SetRasterizerState(RasterizerTwoSidedMsaa);
+				ColorPSO.SetRasterizerState(RasterizerTwoSided);
 		}
 		else
 		{
 			if (psoFlags & RenderItem::Wireframe)
-				ColorPSO.SetRasterizerState(RasterizerDefaultMsaaWireframe);
+				ColorPSO.SetRasterizerState(RasterizerDefaultWireframe);
 			else
-				ColorPSO.SetRasterizerState(RasterizerDefaultMsaa);
+				ColorPSO.SetRasterizerState(RasterizerDefault);
 		}
 
 		if (psoFlags & RenderItem::LineOnly)
