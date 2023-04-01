@@ -15,4 +15,5 @@ endif()
 
 target_include_directories(DEMO
                 PUBLIC
-                ${DEMO_DIR})
+                ${DEMO_DIR}
+                ${DEMO_DIR}/Demo/Generated)
