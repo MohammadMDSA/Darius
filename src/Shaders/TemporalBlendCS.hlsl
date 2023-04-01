@@ -99,16 +99,20 @@ int2 GetClosestPixel(uint Idx, out float ClosestDepth)
 
     ClosestDepth = min(DepthO, min(min(DepthW, DepthE), min(DepthN, DepthS)));
 
+    int2 result;
+    
     if (DepthN == ClosestDepth)
-        return int2(0, -1);
+        result = int2(0, -1);
     else if (DepthS == ClosestDepth)
-        return int2(0, +1);
+        result = int2(0, +1);
     else if (DepthW == ClosestDepth)
-        return int2(-1, 0);
+        result = int2(-1, 0);
     else if (DepthE == ClosestDepth)
-        return int2(+1, 0);
-
-    return int2(0, 0);
+        result = int2(+1, 0);
+    else
+        result = int2(0, 0);
+    
+    return result;
 }
 
 void ApplyTemporalBlend(uint2 ST, uint ldsIdx, float3 BoxMin, float3 BoxMax)
