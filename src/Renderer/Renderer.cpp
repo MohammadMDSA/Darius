@@ -371,9 +371,12 @@ namespace Darius::Renderer
 
 	void Render(SceneRenderContext& rContext, std::function<void(MeshSorter&)> additionalMainDraw, std::function<void(MeshSorter&)> postDraw)
 	{
-		// Clearing depth
-		rContext.GraphicsContext.TransitionResource(rContext.DepthBuffer, D3D12_RESOURCE_STATE_DEPTH_WRITE, true);
+		// Clearing depth and scene color textures
+		rContext.GraphicsContext.TransitionResource(rContext.DepthBuffer, D3D12_RESOURCE_STATE_DEPTH_WRITE);
+		rContext.GraphicsContext.TransitionResource(rContext.ColorBuffer, D3D12_RESOURCE_STATE_RENDER_TARGET, true);
 		rContext.GraphicsContext.ClearDepth(rContext.DepthBuffer);
+		rContext.GraphicsContext.ClearColor(rContext.ColorBuffer);
+
 
 		auto width = rContext.ColorBuffer.GetWidth();
 		auto height = rContext.ColorBuffer.GetHeight();
@@ -404,11 +407,6 @@ namespace Darius::Renderer
 			additionalMainDraw(sorter);
 
 		sorter.Sort();
-
-		// Clearing scene color texture
-		rContext.GraphicsContext.TransitionResource(rContext.ColorBuffer, D3D12_RESOURCE_STATE_RENDER_TARGET, true);
-		rContext.GraphicsContext.ClearColor(rContext.ColorBuffer);
-
 
 		if (rContext.DrawSkybox)
 			D_RENDERER::DrawSkybox(rContext.GraphicsContext, rContext.Camera, rContext.ColorBuffer, rContext.DepthBuffer, viewPort, scissor);

@@ -77,7 +77,7 @@ namespace Darius::Graphics::PostProcessing::MotionBlur
             Vector4(1.0f / RcpHalfDimX, 1.0f / RcpHalfDimY, 0.0f, 1.0f));
 
 
-        DirectX::XMMATRIX CurToPrevXForm = postMult * reprojectionMatrix * preMult;
+        Matrix4 CurToPrevXForm = postMult * reprojectionMatrix * preMult;
 
         Context.SetDynamicConstantBufferView(3, sizeof(CurToPrevXForm), &CurToPrevXForm);
         Context.TransitionResource(buffers.VelocityBuffer, D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
