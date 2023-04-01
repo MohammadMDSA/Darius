@@ -35,7 +35,7 @@ namespace Darius::Renderer::DeviceResource
         static constexpr unsigned int c_AllowTearing = 0x1;
         static constexpr unsigned int c_EnableHDR = 0x2;
 
-        DeviceResources(DXGI_FORMAT backBufferFormat = DXGI_FORMAT_B8G8R8A8_UNORM,
+        DeviceResources(DXGI_FORMAT backBufferFormat = DXGI_FORMAT_R10G10B10A2_UNORM,
             DXGI_FORMAT depthBufferFormat = DXGI_FORMAT_D32_FLOAT,
             UINT backBufferCount = 2,
             D3D_FEATURE_LEVEL minFeatureLevel = D3D_FEATURE_LEVEL_11_0,

@@ -362,7 +362,7 @@ namespace Darius::Editor::Gui::Windows
 	{
 		mBufferWidth = mWidth;
 		mBufferHeight = mHeight;
-		mSceneTexture.Create(L"Scene Texture", (UINT)mBufferWidth, (UINT)mBufferHeight, 1, D_RENDERER_DEVICE::GetBackBufferFormat());
+		mSceneTexture.Create(L"Scene Texture", (UINT)mBufferWidth, (UINT)mBufferHeight, 1, DXGI_FORMAT_R11G11B10_FLOAT);
 		mSceneDepth.Create(L"Scene DepthStencil", (UINT)mBufferWidth, (UINT)mBufferHeight, D_RENDERER_DEVICE::GetDepthBufferFormat());
 
 		// Linear Depth
