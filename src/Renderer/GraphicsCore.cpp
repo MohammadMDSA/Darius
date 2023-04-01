@@ -430,7 +430,7 @@ namespace Darius::Graphics
 	void BuildShaders()
 	{
 
-		D_FILE::VisitFilesInDirectory(L"Shaders", true, [&](Path const& path)
+		D_FILE::VisitFilesInDirectory(std::filesystem::current_path() / "Shaders", true, [&](Path const& path)
 			{
 				if (path.extension() != L".hlsl")
 					return;
