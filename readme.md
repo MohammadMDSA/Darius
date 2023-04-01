@@ -13,11 +13,14 @@
     - Dynamic Resource Type Registration (You can define your own types)
 - Renderer
     - DirectX 12 Vendor
+    - Anti-Aliasing 
+        - TAA
     - Physics-Based Rendering (PBR) Materials
         - Diffuse, Normal, Roughness, Metallic, and Emissive Textures Mapping
         - Diffuse Albedo, Emissive, Metallic, and Roughness Components
         - Opaque, Transparent, and Cutoff
     - Lighting
+        - Blinn-Phong Model
         - Shadow Mapping
     - Skybox
     - Static and Skinned Mesh Rendering
@@ -45,8 +48,8 @@
     - Gizmos (Translation, Rotation, and Scale)
     - Simulation (Run, Stop, Pause, and Step)
     - Profiler Graph
-    - Game Object Property Manipulation trough GUI (including components)
-    - Resource Property Manipulation trough GUI (including saving & loading)
+    - Game Object Property Manipulation through GUI (including components)
+    - Resource Property Manipulation through GUI (including saving & loading)
 - Job System and CPU Multi-Core Utilization
 - CPU & GPU Profiling
     - Framerate Metrics (Last, Max, Avg)
@@ -88,6 +91,6 @@
     2. Install FBX SDK.
         1. Download FBX SDK 2020 from [FBX SDK website](https://autodesk.com/fbx) and install it.
         2. Have `FBXSDK_ROOT` system environment variable pointing to where you've installed FBX SDK.
-3. Configure and Build using CMake and *MSVC* compiler. (Other compilers *may* work but not tested)
+3. Configure and Build using CMake and *MSVC* compiler. (Other compilers *may* work but have not been tested)
 
 4. Run `DariusEngine` executable to run Darius Editor with demo project.
