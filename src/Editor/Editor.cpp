@@ -195,7 +195,6 @@ namespace Darius::Editor
 	// These are the resources that depend on the device.
 	void Editor::CreateDeviceDependentResources()
 	{
-		D_DEVICE::ShaderCompatibilityCheck(D3D_SHADER_MODEL_6_0);
 
 		// If using the DirectX Tool Kit for DX12, uncomment this line:
 		// m_graphicsMemory = std::make_unique<GraphicsMemory>(device);
