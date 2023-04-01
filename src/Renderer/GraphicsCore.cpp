@@ -438,17 +438,19 @@ namespace Darius::Graphics
 				auto shaderNameW = D_FILE::GetFileName(path);
 				auto shaderName = STR_WSTR(shaderNameW);
 
-				std::string compiler;
+				D_DEVICE::ShaderCompatibilityCheck(D3D_SHADER_MODEL_6_0);
+
+				std::wstring compiler;
 				if (shaderName.ends_with("VS"))
-					compiler = "vs_5_1";
+					compiler = L"vs_6_2";
 				else if (shaderName.ends_with("PS"))
-					compiler = "ps_5_1";
+					compiler = L"ps_6_2";
 				else if (shaderName.ends_with("CS"))
-					compiler = "cs_5_1";
+					compiler = L"cs_6_2";
 				else
 					return;
 
-				Shaders[shaderName] = CompileShader(path, nullptr, "main", compiler);
+				Shaders[shaderName] = CompileShader(path, L"main", compiler);
 			});
 
 	}

@@ -134,7 +134,10 @@ PRIVATE
 	".."
 	${Boost_INCLUDE_DIRS}
 	${FBX_INCLUDE_DIRS}
+	"../Libs/DirectXShaderCompiler/inc"
 )
+
+target_link_libraries("Renderer" PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/../Libs/DirectXShaderCompiler/lib/dxcompiler.lib")
 
 target_link_libraries("Renderer" PRIVATE ${Boost_LIBRARIES} ${FBX_LINK_LIBS} DirectXTex IMGUI PUBLIC ResourceManager Scene)
 
