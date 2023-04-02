@@ -743,6 +743,16 @@ namespace Darius::Graphics
 
 	}
 
+	bool									SupportsTypedUAVLoadSupport_R11G11B10_FLOAT()
+	{
+		return Resources->SupportsTypedUAVLoadSupport_R11G11B10_FLOAT();
+	}
+
+	bool									SupportsTypedUAVLoadSupport_R16G16B16A16_FLOAT()
+	{
+		return Resources->SupportsTypedUAVLoadSupport_R16G16B16A16_FLOAT();
+	}
+
 #ifdef _D_EDITOR
 	bool OptionsDrawer(_IN_OUT_ D_SERIALIZATION::Json& options)
 	{

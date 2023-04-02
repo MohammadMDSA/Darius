@@ -34,6 +34,9 @@ namespace Darius::Graphics
 
 	HWND									GetWindow();
 
+	bool									SupportsTypedUAVLoadSupport_R11G11B10_FLOAT();
+	bool									SupportsTypedUAVLoadSupport_R16G16B16A16_FLOAT();
+
 	D3D12_CPU_DESCRIPTOR_HANDLE				AllocateDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE type, UINT count = 1);
 
 	D_GRAPHICS_UTILS::CommandListManager*	GetCommandManager();

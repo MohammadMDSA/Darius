@@ -232,6 +232,36 @@ namespace Darius::Graphics::Device
 		{
 			throw std::system_error(std::error_code(static_cast<int>(GetLastError()), std::system_category()), "CreateEventEx");
 		}
+
+		// We like to do read-modify-write operations on UAVs during post processing.  To support that, we
+	// need to either have the hardware do typed UAV loads of R11G11B10_FLOAT or we need to manually
+	// decode an R32_UINT representation of the same buffer.  This code determines if we get the hardware
+	// load support.
+		D3D12_FEATURE_DATA_D3D12_OPTIONS FeatureData = {};
+		if (D_HR_SUCCEEDED(m_d3dDevice->CheckFeatureSupport(D3D12_FEATURE_D3D12_OPTIONS, &FeatureData, sizeof(FeatureData))))
+		{
+			if (FeatureData.TypedUAVLoadAdditionalFormats)
+			{
+				D3D12_FEATURE_DATA_FORMAT_SUPPORT Support =
+				{
+					DXGI_FORMAT_R11G11B10_FLOAT, D3D12_FORMAT_SUPPORT1_NONE, D3D12_FORMAT_SUPPORT2_NONE
+				};
+
+				if (D_HR_SUCCEEDED(m_d3dDevice->CheckFeatureSupport(D3D12_FEATURE_FORMAT_SUPPORT, &Support, sizeof(Support))) &&
+					(Support.Support2 & D3D12_FORMAT_SUPPORT2_UAV_TYPED_LOAD) != 0)
+				{
+					m_TypedUAVLoadSupport_R11G11B10_FLOAT = true;
+				}
+
+				Support.Format = DXGI_FORMAT_R16G16B16A16_FLOAT;
+
+				if (D_HR_SUCCEEDED(m_d3dDevice->CheckFeatureSupport(D3D12_FEATURE_FORMAT_SUPPORT, &Support, sizeof(Support))) &&
+					(Support.Support2 & D3D12_FORMAT_SUPPORT2_UAV_TYPED_LOAD) != 0)
+				{
+					m_TypedUAVLoadSupport_R16G16B16A16_FLOAT = true;
+				}
+			}
+		}
 	}
 
 	// These resources need to be recreated every time the window size is changed.

@@ -89,6 +89,10 @@ namespace Darius::Graphics::Device
         D_GRAPHICS_BUFFERS::ColorBuffer& GetRTBuffer() noexcept                 { return m_swapChainBuffer[m_backBufferIndex]; }
         D_GRAPHICS_BUFFERS::DepthBuffer& GetDepthStencilBuffer() noexcept       { return m_depthStencil; }
 
+        inline bool SupportsTypedUAVLoadSupport_R11G11B10_FLOAT() const { return m_TypedUAVLoadSupport_R11G11B10_FLOAT };
+        inline bool SupportsTypedUAVLoadSupport_R16G16B16A16_FLOAT() const { return m_TypedUAVLoadSupport_R16G16B16A16_FLOAT };
+
+
     private:
 
         void MoveToNextFrame();
@@ -136,6 +140,11 @@ namespace Darius::Graphics::Device
 
         // DeviceResources options (see flags above)
         unsigned int                                        m_options;
+
+        // Format Support
+        bool                                                m_TypedUAVLoadSupport_R11G11B10_FLOAT = false;
+        bool                                                m_TypedUAVLoadSupport_R16G16B16A16_FLOAT = false;
+
 
         // The IDeviceNotify can be held directly as it owns the DeviceResources.
         D_CORE::Signal<void()>                              m_deviceLostSignal;
