@@ -15,7 +15,7 @@
 #include "DepthBuffer.hpp"
 #include "Renderer/GraphicsCore.hpp"
 #include "Renderer/GraphicsUtils/Memory/DescriptorHeap.hpp"
-#include "Renderer/RenderDeviceManager.hpp"
+#include "Renderer/GraphicsDeviceManager.hpp"
 
 using namespace DirectX;
 
@@ -38,8 +38,8 @@ namespace Darius::Graphics::Utils::Buffers
         ClearValue.Format = Format;
         ClearValue.DepthStencil.Depth = mClearDepth;
         ClearValue.DepthStencil.Stencil = mClearStencil;
-        CreateTextureResource(D_RENDERER_DEVICE::GetDevice(), Name, ResourceDesc, ClearValue, VidMemPtr, D3D12_RESOURCE_STATE_DEPTH_WRITE);
-        CreateDerivedViews(D_RENDERER_DEVICE::GetDevice(), Format);
+        CreateTextureResource(D_GRAPHICS_DEVICE::GetDevice(), Name, ResourceDesc, ClearValue, VidMemPtr, D3D12_RESOURCE_STATE_DEPTH_WRITE);
+        CreateDerivedViews(D_GRAPHICS_DEVICE::GetDevice(), Format);
     }
 
     void DepthBuffer::CreateDerivedViews(ID3D12Device* Device, DXGI_FORMAT Format)

@@ -5,7 +5,7 @@
 #include "Renderer/GraphicsUtils/Buffers/ShadowBuffer.hpp"
 #include "Renderer/GraphicsUtils/Buffers/GpuBuffer.hpp"
 #include "Renderer/GraphicsUtils/Buffers/UploadBuffer.hpp"
-#include "Renderer/RenderDeviceManager.hpp"
+#include "Renderer/GraphicsDeviceManager.hpp"
 #include "Renderer/Renderer.hpp"
 
 #include <Core/Containers/Map.hpp>
@@ -124,8 +124,8 @@ namespace Darius::Renderer::LightManager
 
 	void UpdateBuffers(D_GRAPHICS::GraphicsContext& context)
 	{
-		auto& currentActiveLightUpload = ActiveLightsUpload[D_RENDERER_DEVICE::GetCurrentResourceIndex()];
-		auto& currentLightUpload = LightsUpload[D_RENDERER_DEVICE::GetCurrentResourceIndex()];
+		auto& currentActiveLightUpload = ActiveLightsUpload[D_GRAPHICS_DEVICE::GetCurrentFrameResourceIndex()];
+		auto& currentLightUpload = LightsUpload[D_GRAPHICS_DEVICE::GetCurrentFrameResourceIndex()];
 
 		// Upload buffers state
 

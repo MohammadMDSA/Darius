@@ -1,7 +1,5 @@
 #pragma once
 
-#include "RenderDeviceManager.hpp"
-#include "CommandContext.hpp"
 #include "CommandContext.hpp"
 #include "GraphicsUtils/Buffers/ColorBuffer.hpp"
 #include "GraphicsUtils/Buffers/DepthBuffer.hpp"
@@ -12,7 +10,6 @@
 #include <Math/Camera/Camera.hpp>
 
 #define D_RENDERER Darius::Renderer
-#define D_DEVICE D_RENDERER_DEVICE
 
 namespace Darius::Renderer
 {
@@ -173,16 +170,14 @@ namespace Darius::Renderer
 		bool												DrawSkybox;
 	};
 
-	void Initialize(HWND window, int width, int height, D_SERIALIZATION::Json const& settings);
+	void Initialize(D_SERIALIZATION::Json const& settings);
 	void Shutdown();
 	void Update();
 	void Render(SceneRenderContext& context, std::function<void(MeshSorter&)> additionalMainDraw, std::function<void(MeshSorter&)> postDraw);
 
 #ifdef _D_EDITOR
 	bool OptionsDrawer(_IN_OUT_ D_SERIALIZATION::Json& options);
-#endif
 
-#ifdef _D_EDITOR
 	D_GRAPHICS_MEMORY::DescriptorHandle AllocateUiTexture(UINT count = 1);
 	void					RenderGui();
 #endif

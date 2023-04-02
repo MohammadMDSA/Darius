@@ -16,7 +16,7 @@
 #include "LinearAllocator.hpp"
 #include "Renderer/GraphicsCore.hpp"
 #include "Renderer/GraphicsUtils/CommandListManager.hpp"
-#include "Renderer/RenderDeviceManager.hpp"
+#include "Renderer/GraphicsDeviceManager.hpp"
 
 #include <Core/Memory/Memory.hpp>
 
@@ -124,7 +124,7 @@ namespace Darius::Graphics::Utils::Memory
         }
 
         ID3D12Resource* pBuffer;
-        D_HR_CHECK(D_RENDERER_DEVICE::GetDevice()->CreateCommittedResource(&HeapProps, D3D12_HEAP_FLAG_NONE,
+        D_HR_CHECK(D_GRAPHICS_DEVICE::GetDevice()->CreateCommittedResource(&HeapProps, D3D12_HEAP_FLAG_NONE,
             &ResourceDesc, DefaultUsage, nullptr, IID_PPV_ARGS(&pBuffer)));
 
         pBuffer->SetName(L"LinearAllocator Page");

@@ -20,7 +20,7 @@ if (textureFile->size() > 0) \
 	{ \
 		auto textureHandle = D_RENDERER::AllocateUiTexture(); \
 		ResourceTypeTextureIdMap[resourceType] = textureHandle.GetGpuPtr(); \
-		D_RENDERER_DEVICE::GetDevice()->CopyDescriptorsSimple(1, textureHandle, texture.GetSRV(), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV); \
+		D_GRAPHICS_DEVICE::GetDevice()->CopyDescriptorsSimple(1, textureHandle, texture.GetSRV(), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV); \
 	} \
 	else \
 		ResourceTypeTextures.erase(resourceType); \
@@ -140,7 +140,7 @@ namespace Darius::Editor::Gui::ThumbnailManager
 
 			auto gpuHandle = D_RENDERER::AllocateUiTexture(1);
 
-			D_RENDERER_DEVICE::GetDevice()->CopyDescriptorsSimple(1, gpuHandle, tex.GetSRV(), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+			D_GRAPHICS_DEVICE::GetDevice()->CopyDescriptorsSimple(1, gpuHandle, tex.GetSRV(), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 			CommonIconTextureIdMap[(CommonIcon)i] = gpuHandle.GetGpuPtr();
 		}
 	}
@@ -180,7 +180,7 @@ namespace Darius::Editor::Gui::ThumbnailManager
 
 		auto gpuHandle = D_RENDERER::AllocateUiTexture(1);
 
-		D_RENDERER_DEVICE::GetDevice()->CopyDescriptorsSimple(1, gpuHandle, tex.GetSRV(), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+		D_GRAPHICS_DEVICE::GetDevice()->CopyDescriptorsSimple(1, gpuHandle, tex.GetSRV(), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 		ResourceTextureIdMap[uuid] = gpuHandle.GetGpuPtr();
 	}
 

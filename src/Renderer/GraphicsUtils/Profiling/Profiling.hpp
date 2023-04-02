@@ -39,8 +39,8 @@ namespace Darius::Graphics::Utils::Profiling
 	void Update();
 	void FinishFrame();
 
-	void BeginBlock(const std::wstring& name, CommandContext* Context = nullptr);
-	void EndBlock(CommandContext* Context = nullptr);
+	void BeginBlock(const std::wstring& name, D_GRAPHICS::CommandContext* Context = nullptr);
+	void EndBlock(D_GRAPHICS::CommandContext* Context = nullptr);
 
 	void Pause();
 	void Resume();
@@ -79,7 +79,7 @@ namespace Darius::Graphics::Utils::Profiling
 		{
 			D_PROFILING::BeginBlock(name);
 		}
-		ScopedTimer(const std::wstring& name, CommandContext& Context) : m_Context(&Context)
+		ScopedTimer(const std::wstring& name, D_GRAPHICS::CommandContext& Context) : m_Context(&Context)
 		{
 			D_PROFILING::BeginBlock(name, m_Context);
 		}
@@ -89,7 +89,7 @@ namespace Darius::Graphics::Utils::Profiling
 		}
 
 	private:
-		CommandContext* m_Context;
+		D_GRAPHICS::CommandContext* m_Context;
 	};
 #endif
 

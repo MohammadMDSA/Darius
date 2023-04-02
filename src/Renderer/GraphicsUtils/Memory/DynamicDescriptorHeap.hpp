@@ -36,7 +36,7 @@ namespace Darius::Graphics::Utils::Memory
     class DynamicDescriptorHeap
     {
     public:
-        DynamicDescriptorHeap(CommandContext& OwningContext, D3D12_DESCRIPTOR_HEAP_TYPE HeapType);
+        DynamicDescriptorHeap(Darius::Graphics::CommandContext& OwningContext, D3D12_DESCRIPTOR_HEAP_TYPE HeapType);
         ~DynamicDescriptorHeap();
 
         static void DestroyAll(void)

@@ -10,7 +10,6 @@
 
 #include <Core/Uuid.hpp>
 #include <ResourceManager/ResourceManager.hpp>
-#include <Renderer/RenderDeviceManager.hpp>
 
 #include <imgui.h>
 #include <Libs/FontIcon/IconsFontAwesome6.h>

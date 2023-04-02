@@ -14,7 +14,7 @@
 #include "PipelineState.hpp"
 #include "RootSignature.hpp"
 #include "Renderer/GraphicsCore.hpp"
-#include "Renderer/RenderDeviceManager.hpp"
+#include "Renderer/GraphicsDeviceManager.hpp"
 
 #include <Core/Hash.hpp>
 #include <Core/Memory/Memory.hpp>
@@ -154,7 +154,7 @@ namespace Darius::Graphics::Utils
 		if (firstCompile)
 		{
 			D_ASSERT(mPSODesc.DepthStencilState.DepthEnable != (mPSODesc.DSVFormat == DXGI_FORMAT_UNKNOWN));
-			D_HR_CHECK(D_RENDERER_DEVICE::GetDevice()->CreateGraphicsPipelineState(&mPSODesc, IID_PPV_ARGS(&mPSO)));
+			D_HR_CHECK(D_GRAPHICS_DEVICE::GetDevice()->CreateGraphicsPipelineState(&mPSODesc, IID_PPV_ARGS(&mPSO)));
 			s_GraphicsPSOHashMap[HashCode].Attach(mPSO);
 			mPSO->SetName(mName);
 		}
@@ -193,7 +193,7 @@ namespace Darius::Graphics::Utils
 
 		if (firstCompile)
 		{
-			D_HR_CHECK(D_RENDERER_DEVICE::GetDevice()->CreateComputePipelineState(&mPSODesc, IID_PPV_ARGS(&mPSO)));
+			D_HR_CHECK(D_GRAPHICS_DEVICE::GetDevice()->CreateComputePipelineState(&mPSODesc, IID_PPV_ARGS(&mPSO)));
 			s_ComputePSOHashMap[HashCode].Attach(mPSO);
 			mPSO->SetName(mName);
 		}

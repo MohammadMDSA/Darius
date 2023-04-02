@@ -2,7 +2,7 @@
 #include "DebugDraw.hpp"
 
 #include <Core/TimeManager/TimeManager.hpp>
-#include <Renderer/RenderDeviceManager.hpp>
+#include <Renderer/GraphicsDeviceManager.hpp>
 
 #include <mutex>
 
@@ -121,7 +121,7 @@ namespace Darius::Debug
 	{
 		// Updating mesh constants
 		// Mapping upload buffer
-		auto& currentUploadBuff = MeshConstantsCPU[D_RENDERER_DEVICE::GetCurrentResourceIndex()];
+		auto& currentUploadBuff = MeshConstantsCPU[D_GRAPHICS_DEVICE::GetCurrentFrameResourceIndex()];
 		MeshConstants& cb = ((MeshConstants*)currentUploadBuff.Map())[index];
 
 		auto world = trans.GetWorld();
@@ -138,7 +138,7 @@ namespace Darius::Debug
 		if (DrawPending.size() <= 0)
 			return;
 
-		auto& currentUploadBuff = MeshConstantsCPU[D_RENDERER_DEVICE::GetCurrentResourceIndex()];
+		auto& currentUploadBuff = MeshConstantsCPU[D_GRAPHICS_DEVICE::GetCurrentFrameResourceIndex()];
 
 		auto& context = D_GRAPHICS::GraphicsContext::Begin(L"Debug Mesh CBV Upload");
 		context.TransitionResource(MeshConstantsGPU, D3D12_RESOURCE_STATE_COPY_DEST, true);

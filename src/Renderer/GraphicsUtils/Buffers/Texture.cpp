@@ -16,7 +16,7 @@
 
 #include "Renderer/CommandContext.hpp"
 #include "Renderer/GraphicsUtils/DDSTextureLoader.hpp"
-#include "Renderer/RenderDeviceManager.hpp"
+#include "Renderer/GraphicsDeviceManager.hpp"
 #include "Renderer/Resources/TextureResource.hpp"
 
 #include <Utils/Common.hpp>
@@ -68,7 +68,7 @@ namespace Darius::Graphics::Utils::Buffers
 		HeapProps.CreationNodeMask = 1;
 		HeapProps.VisibleNodeMask = 1;
 
-		auto device = D_RENDERER_DEVICE::GetDevice();
+		auto device = D_GRAPHICS_DEVICE::GetDevice();
 
 		D_HR_CHECK(device->CreateCommittedResource(&HeapProps, D3D12_HEAP_FLAG_NONE, &texDesc,
 			mUsageState, nullptr, IID_PPV_ARGS(mResource.ReleaseAndGetAddressOf())));
@@ -116,7 +116,7 @@ namespace Darius::Graphics::Utils::Buffers
 		HeapProps.CreationNodeMask = 1;
 		HeapProps.VisibleNodeMask = 1;
 
-		auto device = D_RENDERER_DEVICE::GetDevice();
+		auto device = D_GRAPHICS_DEVICE::GetDevice();
 
 		D_HR_CHECK(device->CreateCommittedResource(&HeapProps, D3D12_HEAP_FLAG_NONE, &texDesc,
 			mUsageState, nullptr, IID_PPV_ARGS(mResource.ReleaseAndGetAddressOf())));
@@ -201,7 +201,7 @@ namespace Darius::Graphics::Utils::Buffers
 		if (mCpuDescriptorHandle.ptr == D3D12_GPU_VIRTUAL_ADDRESS_UNKNOWN)
 			mCpuDescriptorHandle = AllocateDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 
-		HRESULT hr = CreateDDSTextureFromMemory(D_RENDERER_DEVICE::GetDevice(),
+		HRESULT hr = CreateDDSTextureFromMemory(D_GRAPHICS_DEVICE::GetDevice(),
 			(const uint8_t*)filePtr, fileSize, 0, sRGB, &mResource, mCpuDescriptorHandle);
 
 		DirectX::TexMetadata meta;

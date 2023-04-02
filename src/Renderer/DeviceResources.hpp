@@ -3,24 +3,26 @@
 //
 
 #pragma once
-#include "./pch.hpp"
+#include "pch.hpp"
 
 #include "FrameResource.hpp"
 #include "GraphicsUtils/Memory/DescriptorHeap.hpp"
 #include "GraphicsUtils/Buffers/ColorBuffer.hpp"
 #include "GraphicsUtils/Buffers/DepthBuffer.hpp"
-#include "CommandContext.hpp"
 
 #include <Core/Signal.hpp>
 #include <Utils/Assert.hpp>
 
-#define D_DEVICE_RESOURCE Darius::Renderer::DeviceResource
+#ifndef D_GRAPHICS_DEVICE
+#define D_GRAPHICS_DEVICE Darius::Graphics::Device
+#endif // !D_GRAPHICS_DEVICE
 
-namespace Darius::Renderer::DeviceResource
+namespace Darius::Graphics::Device
 {
     // Provides an interface for an application that owns DeviceResources to be notified of the device being lost or created.
-    interface IDeviceNotify
+    class IDeviceNotify
     {
+    public:
         virtual void OnDeviceLost() = 0;
         virtual void OnDeviceRestored() = 0;
 
@@ -50,6 +52,7 @@ namespace Darius::Renderer::DeviceResource
 
         void CreateDeviceResources();
         void CreateWindowSizeDependentResources();
+
         void SetWindow(HWND window, int width, int height) noexcept;
         bool WindowSizeChanged(int width, int height);
         void HandleDeviceLost();
@@ -72,10 +75,8 @@ namespace Darius::Renderer::DeviceResource
         auto                        GetDXGIFactory() const noexcept             { return m_dxgiFactory.Get(); }
         HWND                        GetWindow() const noexcept                  { return m_window; }
         D3D_FEATURE_LEVEL           GetDeviceFeatureLevel() const noexcept      { return m_d3dFeatureLevel; }
-        ID3D12CommandAllocator* GetCommandAllocator() const noexcept            { return m_frameResources[m_currentResourceIndex]->CmdListAlloc.Get(); }
         DXGI_FORMAT                 GetBackBufferFormat() const noexcept        { return m_backBufferFormat; }
         DXGI_FORMAT                 GetDepthBufferFormat() const noexcept       { return m_depthBufferFormat; }
-        DXGI_FORMAT                 GetShadowBufferFormat() const noexcept      { return DXGI_FORMAT_D16_UNORM; }
         D3D12_VIEWPORT              GetScreenViewport() const noexcept          { return m_screenViewport; }
         D3D12_RECT                  GetScissorRect() const noexcept             { return m_scissorRect; }
         UINT                        GetCurrentFrameResourceIndex() const noexcept  { return m_currentResourceIndex; }
@@ -85,10 +86,8 @@ namespace Darius::Renderer::DeviceResource
         UINT                        GetCbvSrvUavDescriptorSize() const noexcept { return m_cbvSrvUavDescriptorSize; }
         DXGI_COLOR_SPACE_TYPE       GetColorSpace() const noexcept              { return m_colorSpace; }
         unsigned int                GetDeviceOptions() const noexcept           { return m_options; }
-        D_RENDERER_FRAME_RESOURCE::FrameResource* GetFrameResource() const noexcept           { return m_frameResources[m_currentResourceIndex].get(); }
-        D_RENDERER_FRAME_RESOURCE::FrameResource* GetFrameResourceByIndex(int i) const noexcept { D_ASSERT(i < D_RENDERER_FRAME_RESOURCE::gNumFrameResources); return m_frameResources[i].get(); }
-        D_GRAPHICS_BUFFERS::ColorBuffer& GetRTBuffer() noexcept     { return m_swapChainBuffer[m_backBufferIndex]; }
-        D_GRAPHICS_BUFFERS::DepthBuffer& GetDepthStencilBuffer() noexcept { return m_depthStencil; }
+        D_GRAPHICS_BUFFERS::ColorBuffer& GetRTBuffer() noexcept                 { return m_swapChainBuffer[m_backBufferIndex]; }
+        D_GRAPHICS_BUFFERS::DepthBuffer& GetDepthStencilBuffer() noexcept       { return m_depthStencil; }
 
     private:
 
@@ -97,8 +96,7 @@ namespace Darius::Renderer::DeviceResource
 
         UINT                                                m_backBufferIndex;
         UINT                                                m_currentResourceIndex;
-        std::array<std::unique_ptr<D_RENDERER_FRAME_RESOURCE::FrameResource>, D_RENDERER_FRAME_RESOURCE::gNumFrameResources> m_frameResources;
-
+        std::array<UINT64, D_RENDERER_FRAME_RESOURCE::gNumFrameResources> m_frameResources;
 
         // Direct3D objects.
         Microsoft::WRL::ComPtr<ID3D12Device>                m_d3dDevice;

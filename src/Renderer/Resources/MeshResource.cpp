@@ -2,7 +2,7 @@
 #include "MeshResource.hpp"
 
 #include "SkeletalMeshResource.hpp"
-#include "Renderer/RenderDeviceManager.hpp"
+#include "Renderer/GraphicsDeviceManager.hpp"
 #include "Renderer/GraphicsCore.hpp"
 #include "Renderer/Geometry/ModelLoader/FbxLoader.hpp"
 

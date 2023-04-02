@@ -6,8 +6,9 @@
 #include <Renderer/Camera/CameraManager.hpp>
 #include <Renderer/Components/MeshRendererComponent.hpp>
 #include <Renderer/Components/SkeletalMeshRendererComponent.hpp>
+#include <Renderer/GraphicsCore.hpp>
+#include <Renderer/GraphicsDeviceManager.hpp>
 #include <Renderer/Light/LightManager.hpp>
-#include <Renderer/RenderDeviceManager.hpp>
 
 #include <imgui.h>
 #include <Libs/FontIcon/IconsFontAwesome6.h>
@@ -73,7 +74,7 @@ namespace Darius::Editor::Gui::Windows
 					sorter.RenderMeshes(MeshSorter::kTransparent, context, mSceneGlobals);
 				}
 			});
-		D_RENDERER_DEVICE::GetDevice()->CopyDescriptorsSimple(1, mTextureHandle, mSceneTexture.GetSRV(), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+		D_GRAPHICS_DEVICE::GetDevice()->CopyDescriptorsSimple(1, mTextureHandle, mSceneTexture.GetSRV(), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 
 	}
 
@@ -103,8 +104,8 @@ namespace Darius::Editor::Gui::Windows
 	{
 		mBufferWidth = mWidth;
 		mBufferHeight = mHeight;
-		mSceneTexture.Create(L"Game Scene Texture", (UINT)mBufferWidth, (UINT)mBufferHeight, 1, DXGI_FORMAT_R11G11B10_FLOAT);
-		mSceneDepth.Create(L"Game Scene DepthStencil", (UINT)mBufferWidth, (UINT)mBufferHeight, D_RENDERER_DEVICE::GetDepthBufferFormat());
+		mSceneTexture.Create(L"Game Scene Texture", (UINT)mBufferWidth, (UINT)mBufferHeight, 1, D_GRAPHICS::GetColorFormat());
+		mSceneDepth.Create(L"Game Scene DepthStencil", (UINT)mBufferWidth, (UINT)mBufferHeight, D_GRAPHICS::GetDepthFormat());
 
 		// Linear Depth
 		mLinearDepth[0].Create(L"Game Linear Depth 0", (UINT)mBufferWidth, (UINT)mBufferHeight, 1, DXGI_FORMAT_R16_UNORM);

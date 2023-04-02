@@ -31,8 +31,8 @@ namespace Darius::Graphics::Utils::Profiling::GPU
     uint32_t NewTimer(void);
 
     // Write start and stop time stamps on the GPU timeline
-    void StartTimer(CommandContext& Context, uint32_t TimerIdx);
-    void StopTimer(CommandContext& Context, uint32_t TimerIdx);
+    void StartTimer(Darius::Graphics::CommandContext& Context, uint32_t TimerIdx);
+    void StopTimer(Darius::Graphics::CommandContext& Context, uint32_t TimerIdx);
 
     // Bookend all calls to GetTime() with Begin/End which correspond to Map/Unmap.  This
     // needs to happen either at the very start or very end of a frame.

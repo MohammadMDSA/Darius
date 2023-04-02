@@ -40,7 +40,6 @@ using namespace D_MATH_BOUNDS;
 using namespace D_GRAPHICS;
 using namespace D_GRAPHICS_MEMORY;
 using namespace D_GRAPHICS_UTILS;
-using namespace D_RENDERER_DEVICE;
 using namespace D_RENDERER_FRAME_RESOURCE;
 using namespace D_RENDERER_GEOMETRY;
 using namespace D_RESOURCE;
@@ -51,8 +50,7 @@ using namespace Microsoft::WRL;
 
 namespace Darius::Renderer
 {
-
-	ID3D12Device* _device = nullptr;
+	bool												_initialized = false;
 
 #ifdef _D_EDITOR
 	DescriptorHeap										ImguiHeap;
@@ -61,9 +59,6 @@ namespace Darius::Renderer
 	// Input layout and root signature
 	std::array<D_GRAPHICS_UTILS::RootSignature, (size_t)RootSignatureTypes::_numRootSig> RootSigns;
 	DVector<D_GRAPHICS_UTILS::GraphicsPSO> Psos;
-
-	// Device resource
-	std::unique_ptr<DeviceResource::DeviceResources>	Resources;
 
 	DescriptorHeap										TextureHeap;
 	DescriptorHeap										SamplerHeap;
@@ -95,115 +90,12 @@ namespace Darius::Renderer
 	void Clear(D_GRAPHICS::GraphicsContext& context, D_GRAPHICS_BUFFERS::ColorBuffer& rt, D_GRAPHICS_BUFFERS::DepthBuffer& depthStencil, RECT bounds, std::wstring const& processName = L"Clear");
 
 
-	namespace Device
+	void Initialize(D_SERIALIZATION::Json const& settings)
 	{
-		void Initialize(HWND window, int width, int height, D_SERIALIZATION::Json const& settings)
-		{
-			// TODO: Provide parameters for swapchain format, depth/stencil format, and backbuffer count.
-			//   Add DX::DeviceResources::c_AllowTearing to opt-in to variable rate displays.
-			//   Add DX::DeviceResources::c_EnableHDR for HDR10 display.
-			Resources = std::make_unique<DeviceResource::DeviceResources>();
 
-			Resources->SetWindow(window, width, height);
-			Resources->CreateDeviceResources();
-			D_GRAPHICS::Initialize(settings);
-			Resources->CreateWindowSizeDependentResources();
-			D_CAMERA_MANAGER::Initialize();
-			D_CAMERA_MANAGER::SetViewportDimansion((float)width, (float)height);
-		}
-
-		void RegisterDeviceNotify(D_DEVICE_RESOURCE::IDeviceNotify* notify)
-		{
-			Resources->RegisterDeviceNotify(notify);
-		}
-
-		void Shutdown()
-		{
-			Resources.reset();
-			D_GRAPHICS::Shutdown();
-			D_CAMERA_MANAGER::Shutdown();
-		}
-
-		void OnWindowMoved()
-		{
-			auto const r = Resources->GetOutputSize();
-			Resources->WindowSizeChanged(r.right, r.bottom);
-		}
-
-		void OnDisplayChanged()
-		{
-			Resources->UpdateColorSpace();
-		}
-
-		bool OnWindowsSizeChanged(int width, int height)
-		{
-			return Resources->WindowSizeChanged(width, height);
-		}
-
-		void ShaderCompatibilityCheck(D3D_SHADER_MODEL shader)
-		{
-			auto device = Resources->GetD3DDevice();
-
-			// Check Shader Model 6 support
-			D3D12_FEATURE_DATA_SHADER_MODEL shaderModel = { shader };
-			if (FAILED(device->CheckFeatureSupport(D3D12_FEATURE_SHADER_MODEL, &shaderModel, sizeof(shaderModel)))
-				|| (shaderModel.HighestShaderModel < shader))
-			{
-#ifdef _DEBUG
-				OutputDebugStringA("ERROR: Shader Model 6.0 is not supported!\n");
-#endif
-				throw std::runtime_error("Shader Model 6.0 is not supported!");
-			}
-		}
-
-		FrameResource* GetCurrentFrameResource()
-		{
-			return Resources->GetFrameResource();
-		}
-
-		UINT GetCurrentResourceIndex()
-		{
-			return Resources->GetCurrentFrameResourceIndex();
-		}
-
-		ID3D12Device* GetDevice()
-		{
-			return Resources->GetD3DDevice();
-		}
-
-		FrameResource* GetFrameResourceWithIndex(int i)
-		{
-			return Resources->GetFrameResourceByIndex(i);
-		}
-
-		DXGI_FORMAT GetBackBufferFormat()
-		{
-			return Resources->GetBackBufferFormat();
-		}
-
-		DXGI_FORMAT GetDepthBufferFormat()
-		{
-			return Resources->GetDepthBufferFormat();
-		}
-
-		void WaitForGpu()
-		{
-			auto cmdManager = D_GRAPHICS::GetCommandManager();
-			cmdManager->IdleGPU();
-		}
-	}
-
-
-	void Initialize(HWND window, int width, int height, D_SERIALIZATION::Json const& settings)
-	{
-		Device::Initialize(window, width, height, settings);
-
-		D_ASSERT(_device == nullptr);
-		D_ASSERT(Resources);
+		D_ASSERT(!_initialized);
 
 		D_H_OPTIONS_LOAD_BASIC("Passes.SeparateZ", SeparateZPass);
-
-		_device = Resources->GetD3DDevice();
 
 		BuildRootSignature();
 		BuildPSO();
@@ -240,9 +132,12 @@ namespace Darius::Renderer
 			{
 				DescriptorHandle dest = CommonTexture[i] + 3 * TextureHeap.GetDescriptorSize();
 
-				_device->CopyDescriptors(1, &dest, &DestCount, DestCount, SourceTextures, SourceCounts, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+				D_GRAPHICS_DEVICE::GetDevice()->CopyDescriptors(1, &dest, &DestCount, DestCount, SourceTextures, SourceCounts, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 			}
 		}
+
+		// Initializing Camera Manager
+		D_CAMERA_MANAGER::Initialize();
 
 		// Registering components
 		D_GRAPHICS::LightComponent::StaticConstructor();
@@ -253,17 +148,13 @@ namespace Darius::Renderer
 
 	void Shutdown()
 	{
-		D_ASSERT(_device != nullptr);
+		D_CAMERA_MANAGER::Shutdown();
 
 #ifdef _D_EDITOR
 		ImguiHeap.Destroy();
 #endif
 		TextureHeap.Destroy();
 		SamplerHeap.Destroy();
-		D_GRAPHICS_UTILS::RootSignature::DestroyAll();
-		D_GRAPHICS_UTILS::GraphicsPSO::DestroyAll();
-
-		Device::Shutdown();
 	}
 
 	void Update()
@@ -441,13 +332,7 @@ namespace Darius::Renderer
 
 		D_H_OPTION_DRAW_CHECKBOX("Separate Z Pass", "Passes.SeparateZ", SeparateZPass);
 
-		if (ImGui::CollapsingHeader("Temporal Anti-Aliasing"))
-		{
-			settingsChanged |= D_GRAPHICS_AA_TEMPORAL::OptionsDrawer(options);
-		}
-
-		D_H_OPTION_DRAW_END()
-
+		D_H_OPTION_DRAW_END();
 	}
 #endif
 
@@ -458,11 +343,7 @@ namespace Darius::Renderer
 
 	void Present()
 	{
-		// Show the new frame.
-		Resources->Present();
-		
-		auto frame = D_GRAPHICS::ProceedFrame();
-		D_GRAPHICS_AA_TEMPORAL::Update(frame);
+		D_GRAPHICS::Present();
 	}
 
 	// Helper method to clear the back buffers.
@@ -492,9 +373,9 @@ namespace Darius::Renderer
 	void BuildPSO()
 	{
 
-		DXGI_FORMAT ColorFormat = Resources->GetBackBufferFormat();
-		DXGI_FORMAT DepthFormat = Resources->GetDepthBufferFormat();
-		DXGI_FORMAT ShadowFormat = Resources->GetShadowBufferFormat();
+		DXGI_FORMAT ColorFormat = D_GRAPHICS::GetColorFormat();
+		DXGI_FORMAT DepthFormat = D_GRAPHICS::GetDepthFormat();
+		DXGI_FORMAT ShadowFormat = D_GRAPHICS::GetShadowFormat();
 
 		// For Opaque objects
 		DefaultPso = GraphicsPSO(L"Opaque PSO");
@@ -766,7 +647,7 @@ namespace Darius::Renderer
 		{
 			DescriptorHandle dest = CommonTexture[i] + 3 * TextureHeap.GetDescriptorSize();
 
-			_device->CopyDescriptors(1, &dest, &DestCount, DestCount, SourceTextures, SourceCounts, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+			D_GRAPHICS_DEVICE::GetDevice()->CopyDescriptors(1, &dest, &DestCount, DestCount, SourceTextures, SourceCounts, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 
 		}
 	}
@@ -805,7 +686,7 @@ namespace Darius::Renderer
 		context.SetDescriptorHeap(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, TextureHeap.GetHeapPointer());
 		context.SetDynamicConstantBufferView(kMeshConstants, sizeof(SkyboxVSCB), &skyVSCB);
 		context.SetDynamicConstantBufferView(kMaterialConstants, sizeof(SkyboxPSCB), &skyPSVB);
-		context.SetDescriptorTable(kCommonSRVs, CommonTexture[Resources->GetCurrentFrameResourceIndex()]);
+		context.SetDescriptorTable(kCommonSRVs, CommonTexture[D_GRAPHICS_DEVICE::GetCurrentFrameResourceIndex()]);
 
 		context.SetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
@@ -901,7 +782,7 @@ namespace Darius::Renderer
 		context.SetDynamicConstantBufferView(kCommonCBV, sizeof(GlobalConstants), &globals);
 
 		context.SetDescriptorHeap(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, TextureHeap.GetHeapPointer());
-		context.SetDescriptorTable(kCommonSRVs, CommonTexture[Resources->GetCurrentFrameResourceIndex()]);
+		context.SetDescriptorTable(kCommonSRVs, CommonTexture[D_GRAPHICS_DEVICE::GetCurrentFrameResourceIndex()]);
 
 		if (m_BatchType == kShadows)
 		{
@@ -935,7 +816,7 @@ namespace Darius::Renderer
 				D_LIGHT::GetLightDataHandle(),
 				D_LIGHT::GetShadowTextureArrayHandle(),
 			};
-			_device->CopyDescriptors(1, &(CommonTexture[Resources->GetCurrentFrameResourceIndex()]), &destCount, destCount, lightHandles, sourceCounts, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+			D_GRAPHICS_DEVICE::GetDevice()->CopyDescriptors(1, &(CommonTexture[D_GRAPHICS_DEVICE::GetCurrentFrameResourceIndex()]), &destCount, destCount, lightHandles, sourceCounts, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 
 			// Setup samplers
 			context.SetDescriptorHeap(D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER, SamplerHeap.GetHeapPointer());
@@ -1060,13 +941,13 @@ namespace Darius::Renderer
 	{
 		auto& context = D_GRAPHICS::GraphicsContext::Begin(L"Render Gui");
 
-		auto& viewportRt = Resources->GetRTBuffer();
-		auto& depthStencil = Resources->GetDepthStencilBuffer();
+		auto& viewportRt = D_GRAPHICS_DEVICE::GetRTBuffer();
+		auto& depthStencil = D_GRAPHICS_DEVICE::GetDepthStencilBuffer();
 		context.TransitionResource(depthStencil, D3D12_RESOURCE_STATE_DEPTH_WRITE);
 		context.TransitionResource(viewportRt, D3D12_RESOURCE_STATE_RENDER_TARGET, true);
 
 		// Clear RT
-		Clear(context, viewportRt, depthStencil, Resources->GetOutputSize());
+		Clear(context, viewportRt, depthStencil, D_GRAPHICS_DEVICE::GetOutputSize());
 
 		context.SetDescriptorHeap(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, ImguiHeap.GetHeapPointer());
 		ImGui_ImplDX12_RenderDrawData(ImGui::GetDrawData(), context.GetCommandList());
@@ -1081,8 +962,8 @@ namespace Darius::Renderer
 
 		ImGui::CreateContext();
 		ImPlot::CreateContext();
-		ImGui_ImplWin32_Init(Resources->GetWindow());
-		ImGui_ImplDX12_Init(_device, Resources->GetBackBufferCount(), Resources->GetBackBufferFormat(), ImguiHeap.GetHeapPointer(), defualtHandle, defualtHandle);
+		ImGui_ImplWin32_Init(D_GRAPHICS::GetWindow());
+		ImGui_ImplDX12_Init(D_GRAPHICS_DEVICE::GetDevice(), D_GRAPHICS_DEVICE::GetBackBufferCount(), D_GRAPHICS::SwapChainGetColorFormat(), ImguiHeap.GetHeapPointer(), defualtHandle, defualtHandle);
 
 		D_GRAPHICS::GetCommandManager()->IdleGPU();
 	}

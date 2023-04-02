@@ -1,8 +1,9 @@
 #include "Renderer/pch.hpp"
 #include "GpuTimeManager.hpp"
 
+#include "Renderer/CommandContext.hpp"
 #include "Renderer/GraphicsCore.hpp"
-#include "Renderer/RenderDeviceManager.hpp"
+#include "Renderer/GraphicsDeviceManager.hpp"
 
 #include <Utils/Assert.hpp>
 #include <Utils/Common.hpp>
@@ -48,7 +49,7 @@ namespace Darius::Graphics::Utils::Profiling::GPU
         BufferDesc.Layout = D3D12_TEXTURE_LAYOUT_ROW_MAJOR;
         BufferDesc.Flags = D3D12_RESOURCE_FLAG_NONE;
 
-        D_HR_CHECK(D_RENDERER_DEVICE::GetDevice()->CreateCommittedResource(&HeapProps, D3D12_HEAP_FLAG_NONE, &BufferDesc,
+        D_HR_CHECK(D_GRAPHICS_DEVICE::GetDevice()->CreateCommittedResource(&HeapProps, D3D12_HEAP_FLAG_NONE, &BufferDesc,
             D3D12_RESOURCE_STATE_COPY_DEST, nullptr, IID_PPV_ARGS(&sm_ReadBackBuffer)));
         sm_ReadBackBuffer->SetName(L"GpuTimeStamp Buffer");
 
@@ -56,7 +57,7 @@ namespace Darius::Graphics::Utils::Profiling::GPU
         QueryHeapDesc.Count = MaxNumTimers * 2;
         QueryHeapDesc.NodeMask = 1;
         QueryHeapDesc.Type = D3D12_QUERY_HEAP_TYPE_TIMESTAMP;
-        D_HR_CHECK(D_RENDERER_DEVICE::GetDevice()->CreateQueryHeap(&QueryHeapDesc, IID_PPV_ARGS(&sm_QueryHeap)));
+        D_HR_CHECK(D_GRAPHICS_DEVICE::GetDevice()->CreateQueryHeap(&QueryHeapDesc, IID_PPV_ARGS(&sm_QueryHeap)));
         sm_QueryHeap->SetName(L"GpuTimeStamp QueryHeap");
 
         sm_MaxNumTimers = (uint32_t)MaxNumTimers;
@@ -76,12 +77,12 @@ namespace Darius::Graphics::Utils::Profiling::GPU
         return sm_NumTimers++;
     }
 
-    void StartTimer(CommandContext& Context, uint32_t TimerIdx)
+    void StartTimer(D_GRAPHICS::CommandContext& Context, uint32_t TimerIdx)
     {
         Context.InsertTimeStamp(sm_QueryHeap, TimerIdx * 2);
     }
 
-    void StopTimer(CommandContext& Context, uint32_t TimerIdx)
+    void StopTimer(D_GRAPHICS::CommandContext& Context, uint32_t TimerIdx)
     {
         Context.InsertTimeStamp(sm_QueryHeap, TimerIdx * 2 + 1);
     }

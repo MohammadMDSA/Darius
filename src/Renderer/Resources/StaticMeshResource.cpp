@@ -1,7 +1,7 @@
 #include "Renderer/pch.hpp"
 #include "StaticMeshResource.hpp"
 
-#include "Renderer/RenderDeviceManager.hpp"
+#include "Renderer/GraphicsDeviceManager.hpp"
 #include "Renderer/GraphicsCore.hpp"
 
 #include <Core/Filesystem/Path.hpp>

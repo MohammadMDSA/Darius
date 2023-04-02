@@ -3,12 +3,11 @@
 //
 
 #include "pch.hpp"
+#include "CommandContext.hpp"
 #include "DeviceResources.hpp"
 #include "GraphicsCore.hpp"
-#include "CommandContext.hpp"
 
 using namespace D_GRAPHICS_UTILS;
-using namespace D_RENDERER_FRAME_RESOURCE;
 using namespace DirectX;
 
 using Microsoft::WRL::ComPtr;
@@ -41,7 +40,7 @@ namespace
 	}
 }
 
-namespace Darius::Renderer::DeviceResource
+namespace Darius::Graphics::Device
 {
 
 	// Constructor for DeviceResources.
@@ -68,7 +67,7 @@ namespace Darius::Renderer::DeviceResource
 		m_colorSpace(DXGI_COLOR_SPACE_RGB_FULL_G22_NONE_P709),
 		m_options(flags)
 	{
-		if (backBufferCount < 2 || backBufferCount > gNumFrameResources)
+		if (backBufferCount < 2 || backBufferCount > D_RENDERER_FRAME_RESOURCE::gNumFrameResources)
 		{
 			throw std::out_of_range("invalid backBufferCount");
 		}
@@ -218,20 +217,13 @@ namespace Darius::Renderer::DeviceResource
 			m_d3dFeatureLevel = m_d3dMinFeatureLevel;
 		}
 
-		// Initialize frame resources
-		for (int i = 0; i < gNumFrameResources; i++)
-		{
-			m_frameResources[i].reset();
-			m_frameResources[i] = std::make_unique<FrameResource>(m_d3dDevice.Get(), 1, 2);
-		}
-
 		m_rtvDescriptorSize = m_d3dDevice->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
 		m_dsvDescriptorSize = m_d3dDevice->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_DSV);
 		m_cbvSrvUavDescriptorSize = m_d3dDevice->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 
 		// Create a fence for tracking GPU execution progress.
-		ThrowIfFailed(m_d3dDevice->CreateFence(m_frameResources[m_currentResourceIndex]->Fence, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(m_fence.ReleaseAndGetAddressOf())));
-		m_frameResources[m_currentResourceIndex]->Fence++;
+		ThrowIfFailed(m_d3dDevice->CreateFence(m_frameResources[m_currentResourceIndex], D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(m_fence.ReleaseAndGetAddressOf())));
+		m_frameResources[m_currentResourceIndex]++;
 
 		m_fence->SetName(L"DeviceResources");
 
@@ -264,7 +256,7 @@ namespace Darius::Renderer::DeviceResource
 		}
 		for (UINT i = 0; i < D_RENDERER_FRAME_RESOURCE::gNumFrameResources; i++)
 		{
-			m_frameResources[i]->Fence = 0;
+			m_frameResources[i]= 0;
 		}
 
 		// Determine the render target size in pixels.
@@ -416,10 +408,6 @@ namespace Darius::Renderer::DeviceResource
 		{
 			m_swapChainBuffer[n].Destroy();
 		}
-		for (UINT i = 0; i < D_RENDERER_FRAME_RESOURCE::gNumFrameResources; i++)
-		{
-			m_frameResources[i]->CmdListAlloc.Reset();
-		}
 
 		m_depthStencil.Destroy();
 		m_fence.Reset();
@@ -457,7 +445,7 @@ namespace Darius::Renderer::DeviceResource
 		}
 
 		// Send the command list off to the GPU for processing.
-		m_frameResources[m_currentResourceIndex]->Fence = context.Finish();
+		m_frameResources[m_currentResourceIndex] = context.Finish();
 
 		HRESULT hr;
 		if (m_options & c_AllowTearing)
@@ -504,20 +492,16 @@ namespace Darius::Renderer::DeviceResource
 		auto commandManager = D_GRAPHICS::GetCommandManager();
 
 		// Schedule a Signal command in the queue.
-		const UINT64 currentFenceValue = m_frameResources[m_currentResourceIndex]->Fence;
+		const UINT64 currentFenceValue = m_frameResources[m_currentResourceIndex];
 
-		m_currentResourceIndex = (m_currentResourceIndex + 1) % gNumFrameResources;
+		m_currentResourceIndex = (m_currentResourceIndex + 1) % D_RENDERER_FRAME_RESOURCE::gNumFrameResources;
 
 		// Update the back buffer index.
 		m_backBufferIndex = m_swapChain->GetCurrentBackBufferIndex();
 
 		// If the next frame is not ready to be rendered yet, wait until it is ready.
 
-		if (!commandManager->IsFenceComplete(m_frameResources[m_currentResourceIndex]->Fence))
-		{
-			ThrowIfFailed(m_fence->SetEventOnCompletion(m_frameResources[m_currentResourceIndex]->Fence, m_fenceEvent.Get()));
-			std::ignore = WaitForSingleObjectEx(m_fenceEvent.Get(), INFINITE, FALSE);
-		}
+		commandManager->WaitForFence(m_frameResources[m_currentResourceIndex]);
 		
 	}
 

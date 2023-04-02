@@ -17,7 +17,7 @@
 #include "GraphicsUtils/Buffers/UploadBuffer.hpp"
 #include "GraphicsUtils/Memory/DescriptorHeap.hpp"
 #include "GraphicsCore.hpp"
-#include "RenderDeviceManager.hpp"
+#include "GraphicsDeviceManager.hpp"
 #include "GraphicsUtils/Profiling/Profiling.hpp"
 
 #include <Utils/Assert.hpp>
@@ -551,7 +551,7 @@ namespace Darius::Graphics
         // The footprint may depend on the device of the resource, but we assume there is only one device.
         D3D12_PLACED_SUBRESOURCE_FOOTPRINT PlacedFootprint;
         auto desc = SrcBuffer.GetResource()->GetDesc();
-        D_RENDERER_DEVICE::GetDevice()->GetCopyableFootprints(&desc, 0, 1, 0,
+        D_GRAPHICS_DEVICE::GetDevice()->GetCopyableFootprints(&desc, 0, 1, 0,
             &PlacedFootprint, nullptr, nullptr, &CopySize);
 
         DstBuffer.Create(L"Readback", (uint32_t)CopySize, 1);

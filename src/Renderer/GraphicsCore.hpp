@@ -5,27 +5,44 @@
 #include "GraphicsUtils/PipelineState.hpp"
 #include "GraphicsUtils/RootSignature.hpp"
 #include "GraphicsUtils/SamplerManager.hpp"
+#include "GraphicsDeviceManager.hpp"
 
 #include <Core/Serialization/Json.hpp>
 #include <ResourceManager/Resource.hpp>
 #include <ResourceManager/ResourceManager.hpp>
 
+#ifndef D_GRAPHICS
 #define D_GRAPHICS Darius::Graphics
+#endif // !D_GRAPHICS
 
 namespace Darius::Graphics
 {
 	class ContextManager;
 
-	void									Initialize(D_SERIALIZATION::Json const& settings);
+	void									Initialize(HWND window, int width, int height, D_SERIALIZATION::Json const& settings);
 	void									Shutdown();
 
+	void									Present();
+
 	uint32_t								GetFrameCount();
-	uint32_t								ProceedFrame();
+
+	DXGI_FORMAT								GetColorFormat();
+	DXGI_FORMAT								GetDepthFormat();
+	DXGI_FORMAT								GetShadowFormat();
+	DXGI_FORMAT								SwapChainGetColorFormat();
+	DXGI_FORMAT								SwapChainGetDepthFormat();
+
+	HWND									GetWindow();
 
 	D3D12_CPU_DESCRIPTOR_HANDLE				AllocateDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE type, UINT count = 1);
 
 	D_GRAPHICS_UTILS::CommandListManager*	GetCommandManager();
 	ContextManager*							GetContextManager();
+
+#ifdef _D_EDITOR
+	bool OptionsDrawer(_IN_OUT_ D_SERIALIZATION::Json& options);
+#endif
+
 
 	enum class DefaultResource
 	{

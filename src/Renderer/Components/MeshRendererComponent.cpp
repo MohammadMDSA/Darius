@@ -163,7 +163,7 @@ namespace Darius::Graphics
 
 		// Updating mesh constants
 		// Mapping upload buffer
-		auto& currentUploadBuff = mMeshConstantsCPU[D_RENDERER_DEVICE::GetCurrentResourceIndex()];
+		auto& currentUploadBuff = mMeshConstantsCPU[D_GRAPHICS_DEVICE::GetCurrentFrameResourceIndex()];
 		MeshConstants* cb = (MeshConstants*)currentUploadBuff.Map();
 
 		auto world = GetTransform().GetWorld();

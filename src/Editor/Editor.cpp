@@ -163,18 +163,17 @@ namespace Darius::Editor
 
 	void Editor::OnWindowMoved()
 	{
-		D_DEVICE::OnWindowMoved();
+		D_GRAPHICS_DEVICE::OnWindowMoved();
 	}
 
 	void Editor::OnDisplayChange()
 	{
-		D_DEVICE::OnDisplayChanged();
+		D_GRAPHICS_DEVICE::OnDisplayChanged();
 	}
 
 	void Editor::OnWindowSizeChanged(int width, int height)
 	{
-		D_CAMERA_MANAGER::SetViewportDimansion((float)width, (float)height);
-		if (!D_DEVICE::OnWindowsSizeChanged(width, height))
+		if (!D_GRAPHICS_DEVICE::OnWindowsSizeChanged(width, height))
 			return;
 
 		CreateWindowSizeDependentResources();

@@ -2,7 +2,7 @@
 #include "BatchResource.hpp"
 
 #include "Renderer/GraphicsUtils/VertexTypes.hpp"
-#include "Renderer/RenderDeviceManager.hpp"
+#include "Renderer/GraphicsDeviceManager.hpp"
 
 namespace Darius::Graphics
 {

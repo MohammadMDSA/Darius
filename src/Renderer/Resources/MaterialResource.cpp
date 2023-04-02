@@ -1,7 +1,7 @@
 #include "Renderer/pch.hpp"
 #include "MaterialResource.hpp"
 
-#include "Renderer/RenderDeviceManager.hpp"
+#include "Renderer/GraphicsDeviceManager.hpp"
 
 #include "Renderer/GraphicsCore.hpp"
 
@@ -181,14 +181,14 @@ namespace Darius::Graphics
 				mEmissiveTexture->GetTextureData()->GetSRV(),
 				mNormalTexture->GetTextureData()->GetSRV()
 			};
-			D_RENDERER_DEVICE::GetDevice()->CopyDescriptors(1, &mTexturesHeap, &destCount, destCount, initialTextures, sourceCounts, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+			D_GRAPHICS_DEVICE::GetDevice()->CopyDescriptors(1, &mTexturesHeap, &destCount, destCount, initialTextures, sourceCounts, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 
 			return true;
 		}
 
 		// Updating material constnats
 		// Mapping upload buffer
-		auto& currentMatUploadBuff = mMaterialConstantsCPU[D_RENDERER_DEVICE::GetCurrentResourceIndex()];
+		auto& currentMatUploadBuff = mMaterialConstantsCPU[D_GRAPHICS_DEVICE::GetCurrentFrameResourceIndex()];
 		auto matCB = (MaterialConstants*)currentMatUploadBuff.Map();
 		memcpy(matCB, &mMaterial, sizeof(MaterialConstants));
 
@@ -240,7 +240,7 @@ namespace Darius::Graphics
 			return;
 		}
 
-		auto device = D_RENDERER_DEVICE::GetDevice();
+		auto device = D_GRAPHICS_DEVICE::GetDevice();
 		auto incSize = device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 
 #define SetTex(name) \

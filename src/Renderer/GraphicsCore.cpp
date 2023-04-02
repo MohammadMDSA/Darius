@@ -11,7 +11,7 @@
 #include "GraphicsUtils/Profiling/GpuTimeManager.hpp"
 #include "Light/LightManager.hpp"
 #include "PostProcessing/MotionBlur.hpp"
-#include "RenderDeviceManager.hpp"
+#include "GraphicsDeviceManager.hpp"
 #include "Renderer.hpp"
 #include "Resources/BatchResource.hpp"
 #include "Resources/MaterialResource.hpp"
@@ -22,6 +22,9 @@
 #include <Core/TimeManager/TimeManager.hpp>
 #include <ResourceManager/ResourceManager.hpp>
 #include <Utils/Assert.hpp>
+#include <Utils/Common.hpp>
+
+#include <imgui.h>
 
 using namespace D_CONTAINERS;
 using namespace D_CORE;
@@ -52,64 +55,73 @@ namespace Darius::Graphics
 
 	DUnorderedMap<DefaultResource, ResourceHandle>		DefaultResourceMap;
 
-	uint32_t							FrameCount = 0;
+	uint32_t											FrameCount = 0;
+
+	// Formats
+	DXGI_FORMAT											ColorFormat = DXGI_FORMAT_R11G11B10_FLOAT;
+	DXGI_FORMAT											DepthFormat = DXGI_FORMAT_D32_FLOAT;
+	DXGI_FORMAT											ShadowFormat = DXGI_FORMAT_D16_UNORM;
+
+	// Device resource
+	std::unique_ptr<Device::DeviceResources>			Resources;
 
 	//////////////////////////////////
 	////////// Common States /////////
 	//////////////////////////////////
 
-	SamplerDesc SamplerLinearWrapDesc;
-	SamplerDesc SamplerAnisoWrapDesc;
-	SamplerDesc SamplerShadowDesc;
-	SamplerDesc SamplerLinearClampDesc;
-	SamplerDesc SamplerVolumeWrapDesc;
-	SamplerDesc SamplerPointClampDesc;
-	SamplerDesc SamplerPointBorderDesc;
-	SamplerDesc SamplerLinearBorderDesc;
+	SamplerDesc								SamplerLinearWrapDesc;
+	SamplerDesc								SamplerAnisoWrapDesc;
+	SamplerDesc								SamplerShadowDesc;
+	SamplerDesc								SamplerLinearClampDesc;
+	SamplerDesc								SamplerVolumeWrapDesc;
+	SamplerDesc								SamplerPointClampDesc;
+	SamplerDesc								SamplerPointBorderDesc;
+	SamplerDesc								SamplerLinearBorderDesc;
 
-	D3D12_CPU_DESCRIPTOR_HANDLE SamplerLinearWrap;
-	D3D12_CPU_DESCRIPTOR_HANDLE SamplerAnisoWrap;
-	D3D12_CPU_DESCRIPTOR_HANDLE SamplerShadow;
-	D3D12_CPU_DESCRIPTOR_HANDLE SamplerLinearClamp;
-	D3D12_CPU_DESCRIPTOR_HANDLE SamplerVolumeWrap;
-	D3D12_CPU_DESCRIPTOR_HANDLE SamplerPointClamp;
-	D3D12_CPU_DESCRIPTOR_HANDLE SamplerPointBorder;
-	D3D12_CPU_DESCRIPTOR_HANDLE SamplerLinearBorder;
+	D3D12_CPU_DESCRIPTOR_HANDLE				SamplerLinearWrap;
+	D3D12_CPU_DESCRIPTOR_HANDLE				SamplerAnisoWrap;
+	D3D12_CPU_DESCRIPTOR_HANDLE				SamplerShadow;
+	D3D12_CPU_DESCRIPTOR_HANDLE				SamplerLinearClamp;
+	D3D12_CPU_DESCRIPTOR_HANDLE				SamplerVolumeWrap;
+	D3D12_CPU_DESCRIPTOR_HANDLE				SamplerPointClamp;
+	D3D12_CPU_DESCRIPTOR_HANDLE				SamplerPointBorder;
+	D3D12_CPU_DESCRIPTOR_HANDLE				SamplerLinearBorder;
 
-	D3D12_RASTERIZER_DESC RasterizerDefault;	// Counter-clockwise
-	D3D12_RASTERIZER_DESC RasterizerDefaultWireframe;
-	D3D12_RASTERIZER_DESC RasterizerDefaultMsaa;
-	D3D12_RASTERIZER_DESC RasterizerDefaultMsaaWireframe;
-	D3D12_RASTERIZER_DESC RasterizerDefaultCw;	// Clockwise winding
-	D3D12_RASTERIZER_DESC RasterizerDefaultCwWireframe;
-	D3D12_RASTERIZER_DESC RasterizerDefaultCwMsaa;
-	D3D12_RASTERIZER_DESC RasterizerDefaultCwMsaaWireframe;
-	D3D12_RASTERIZER_DESC RasterizerTwoSided;
-	D3D12_RASTERIZER_DESC RasterizerTwoSidedWireframe;
-	D3D12_RASTERIZER_DESC RasterizerTwoSidedMsaa;
-	D3D12_RASTERIZER_DESC RasterizerTwoSidedMsaaWireframe;
-	D3D12_RASTERIZER_DESC RasterizerShadow;
-	D3D12_RASTERIZER_DESC RasterizerShadowCW;
-	D3D12_RASTERIZER_DESC RasterizerShadowTwoSided;
+	D3D12_RASTERIZER_DESC					RasterizerDefault;	// Counter-clockwise
+	D3D12_RASTERIZER_DESC					RasterizerDefaultWireframe;
+	D3D12_RASTERIZER_DESC					RasterizerDefaultMsaa;
+	D3D12_RASTERIZER_DESC					RasterizerDefaultMsaaWireframe;
+	D3D12_RASTERIZER_DESC					RasterizerDefaultCw;	// Clockwise winding
+	D3D12_RASTERIZER_DESC					RasterizerDefaultCwWireframe;
+	D3D12_RASTERIZER_DESC					RasterizerDefaultCwMsaa;
+	D3D12_RASTERIZER_DESC					RasterizerDefaultCwMsaaWireframe;
+	D3D12_RASTERIZER_DESC					RasterizerTwoSided;
+	D3D12_RASTERIZER_DESC					RasterizerTwoSidedWireframe;
+	D3D12_RASTERIZER_DESC					RasterizerTwoSidedMsaa;
+	D3D12_RASTERIZER_DESC					RasterizerTwoSidedMsaaWireframe;
+	D3D12_RASTERIZER_DESC					RasterizerShadow;
+	D3D12_RASTERIZER_DESC					RasterizerShadowCW;
+	D3D12_RASTERIZER_DESC					RasterizerShadowTwoSided;
 
-	D3D12_BLEND_DESC BlendNoColorWrite;
-	D3D12_BLEND_DESC BlendDisable;
-	D3D12_BLEND_DESC BlendPreMultiplied;
-	D3D12_BLEND_DESC BlendTraditional;
-	D3D12_BLEND_DESC BlendAdditive;
-	D3D12_BLEND_DESC BlendTraditionalAdditive;
+	D3D12_BLEND_DESC						BlendNoColorWrite;
+	D3D12_BLEND_DESC						BlendDisable;
+	D3D12_BLEND_DESC						BlendPreMultiplied;
+	D3D12_BLEND_DESC						BlendTraditional;
+	D3D12_BLEND_DESC						BlendAdditive;
+	D3D12_BLEND_DESC						BlendTraditionalAdditive;
 
-	D3D12_DEPTH_STENCIL_DESC DepthStateDisabled;
-	D3D12_DEPTH_STENCIL_DESC DepthStateReadWrite;
-	D3D12_DEPTH_STENCIL_DESC DepthStateReadOnly;
-	D3D12_DEPTH_STENCIL_DESC DepthStateReadOnlyReversed;
-	D3D12_DEPTH_STENCIL_DESC DepthStateTestEqual;
+	D3D12_DEPTH_STENCIL_DESC				DepthStateDisabled;
+	D3D12_DEPTH_STENCIL_DESC				DepthStateReadWrite;
+	D3D12_DEPTH_STENCIL_DESC				DepthStateReadOnly;
+	D3D12_DEPTH_STENCIL_DESC				DepthStateReadOnlyReversed;
+	D3D12_DEPTH_STENCIL_DESC				DepthStateTestEqual;
 
-	CommandSignature					DispatchIndirectCommandSignature(1);
-	CommandSignature					DrawIndirectCommandSignature(1);
+	CommandSignature						DispatchIndirectCommandSignature(1);
+	CommandSignature						DrawIndirectCommandSignature(1);
 
-	D_GRAPHICS_UTILS::RootSignature		CommonRS;
-	ComputePSO GenerateMipsLinearPSO[4] =
+	D_GRAPHICS_UTILS::RootSignature			CommonRS;
+
+	ComputePSO								GenerateMipsLinearPSO[4] =
 	{
 		{L"Generate Mips Linear CS"},
 		{L"Generate Mips Linear Odd X CS"},
@@ -127,16 +139,126 @@ namespace Darius::Graphics
 
 	/*GraphicsPSO DownsampleDepthPSO(L"DownsampleDepth PSO")*/;
 
+
+	namespace Device
+	{
+		void Initialize(HWND window, int width, int height, D_SERIALIZATION::Json const& settings)
+		{
+			// Initialize Device
+
+			// TODO: Provide parameters for swapchain format, depth/stencil format, and backbuffer count.
+			//   Add DX::DeviceResources::c_AllowTearing to opt-in to variable rate displays.
+			//   Add DX::DeviceResources::c_EnableHDR for HDR10 display.
+			Resources = std::make_unique<DeviceResources>();
+
+			Resources->SetWindow(window, width, height);
+			Resources->CreateDeviceResources();
+
+		}
+
+		void RegisterDeviceNotify(void* notify)
+		{
+			Resources->RegisterDeviceNotify(reinterpret_cast<IDeviceNotify*>(notify));
+		}
+
+		void Shutdown()
+		{
+			Resources.reset();
+			D_GRAPHICS::Shutdown();
+		}
+
+		void OnWindowMoved()
+		{
+			auto const r = Resources->GetOutputSize();
+			Resources->WindowSizeChanged(r.right, r.bottom);
+		}
+
+		void OnDisplayChanged()
+		{
+			Resources->UpdateColorSpace();
+		}
+
+		bool OnWindowsSizeChanged(int width, int height)
+		{
+			return Resources->WindowSizeChanged(width, height);
+		}
+
+		void ShaderCompatibilityCheck(D3D_SHADER_MODEL shader)
+		{
+			auto device = Resources->GetD3DDevice();
+
+			// Check Shader Model 6 support
+			D3D12_FEATURE_DATA_SHADER_MODEL shaderModel = { shader };
+			if (FAILED(device->CheckFeatureSupport(D3D12_FEATURE_SHADER_MODEL, &shaderModel, sizeof(shaderModel)))
+				|| (shaderModel.HighestShaderModel < shader))
+			{
+#ifdef _DEBUG
+				OutputDebugStringA("ERROR: Shader Model 6.0 is not supported!\n");
+#endif
+				throw std::runtime_error("Shader Model 6.0 is not supported!");
+			}
+		}
+
+		UINT GetCurrentFrameResourceIndex()
+		{
+			return Resources->GetCurrentFrameResourceIndex();
+		}
+
+
+		RECT GetOutputSize()
+		{
+			return Resources->GetOutputSize();
+		}
+
+		ID3D12Device* GetDevice()
+		{
+			return Resources->GetD3DDevice();
+		}
+
+		DXGI_FORMAT GetBackBufferFormat()
+		{
+			return Resources->GetBackBufferFormat();
+		}
+
+		DXGI_FORMAT GetDepthBufferFormat()
+		{
+			return Resources->GetDepthBufferFormat();
+		}
+
+		D_GRAPHICS_BUFFERS::ColorBuffer& GetRTBuffer()
+		{
+			return Resources->GetRTBuffer();
+		}
+
+		D_GRAPHICS_BUFFERS::DepthBuffer& GetDepthStencilBuffer()
+		{
+			return Resources->GetDepthStencilBuffer();
+		}
+
+		UINT GetBackBufferCount()
+		{
+			return Resources->GetBackBufferCount();
+		}
+	}
+
+
 	void InitializeCommonStates();
 	void DestroyCommonStates();
 	void BuildShaders();
 	void LoadDefaultResources();
 
-	void Initialize(D_SERIALIZATION::Json const& settings)
+	void Initialize(HWND window, int width, int height, D_SERIALIZATION::Json const& settings)
 	{
 		D_ASSERT(!_initialized);
 		_initialized = true;
-		CommandManager.Create(D_RENDERER_DEVICE::GetDevice());
+		
+		Device::Initialize(window, width, height, settings);
+		D_ASSERT(Resources);
+		D_ASSERT(Resources->GetD3DDevice());
+
+		CommandManager.Create(Device::GetDevice());
+
+		Resources->CreateWindowSizeDependentResources();
 
 		DispatchIndirectCommandSignature[0].Dispatch();
 		DispatchIndirectCommandSignature.Finalize();
@@ -164,11 +286,15 @@ namespace Darius::Graphics
 		BatchResource::Register();
 
 		LoadDefaultResources();
+
+		D_RENDERER::Initialize(settings);
 	}
 
 	void Shutdown()
 	{
 		D_ASSERT(_initialized);
+
+		D_RENDERER::Shutdown();
 
 		D_LIGHT::Shutdown();
 
@@ -183,10 +309,8 @@ namespace Darius::Graphics
 		CommandManager.Shutdown();
 
 		DescriptorAllocator::DestroyAll();
-
 		PSO::DestroyAll();
-
-		D_GRAPHICS_UTILS::RootSignature::DestroyAll();
+		RootSignature::DestroyAll();
 		DescriptorAllocator::DestroyAll();
 
 		DestroyCommonStates();
@@ -194,6 +318,46 @@ namespace Darius::Graphics
 		for (auto& kv : Shaders)
 			kv.second.Reset();
 
+		Device::Shutdown();
+	}
+
+	void Present()
+	{
+		// Show the new frame.
+		Resources->Present();
+
+		auto frame = ++FrameCount;
+		D_GRAPHICS_AA_TEMPORAL::Update(frame);
+	}
+
+	HWND GetWindow()
+	{
+		return Resources->GetWindow();
+	}
+
+	DXGI_FORMAT GetColorFormat()
+	{
+		return ColorFormat;
+	}
+
+	DXGI_FORMAT GetDepthFormat()
+	{
+		return DepthFormat;
+	}
+
+	DXGI_FORMAT GetShadowFormat()
+	{
+		return ShadowFormat;
+	}
+
+	DXGI_FORMAT SwapChainGetColorFormat()
+	{
+		return Resources->GetBackBufferFormat();
+	}
+
+	DXGI_FORMAT SwapChainGetDepthFormat()
+	{
+		return Resources->GetDepthBufferFormat();
 	}
 
 	D_RESOURCE::ResourceHandle GetDefaultGraphicsResource(DefaultResource type)
@@ -204,11 +368,6 @@ namespace Darius::Graphics
 	uint32_t GetFrameCount()
 	{
 		return FrameCount;
-	}
-
-	uint32_t ProceedFrame()
-	{
-		return ++FrameCount;
 	}
 
 	D3D12_CPU_DESCRIPTOR_HANDLE AllocateDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE type, UINT count)
@@ -438,7 +597,7 @@ namespace Darius::Graphics
 				auto shaderNameW = D_FILE::GetFileName(path);
 				auto shaderName = STR_WSTR(shaderNameW);
 
-				D_DEVICE::ShaderCompatibilityCheck(D3D_SHADER_MODEL_6_0);
+				Device::ShaderCompatibilityCheck(D3D_SHADER_MODEL_6_2);
 
 				std::wstring compiler;
 				if (shaderName.ends_with("VS"))
@@ -583,5 +742,25 @@ namespace Darius::Graphics
 		}
 
 	}
+
+#ifdef _D_EDITOR
+	bool OptionsDrawer(_IN_OUT_ D_SERIALIZATION::Json& options)
+	{
+		D_H_OPTION_DRAW_BEGIN();
+
+		if (ImGui::CollapsingHeader("Temporal Anti-Aliasing"))
+		{
+			settingsChanged |= D_GRAPHICS_AA_TEMPORAL::OptionsDrawer(options);
+		}
+
+		if (ImGui::CollapsingHeader("Renderer"))
+		{
+			settingsChanged |= D_RENDERER::OptionsDrawer(options);
+		}
+
+		D_H_OPTION_DRAW_END()
+
+	}
+#endif
 
 }

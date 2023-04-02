@@ -15,7 +15,7 @@
 #include "CommandSignature.hpp"
 #include "GraphicsUtils/RootSignature.hpp"
 #include "Renderer/GraphicsCore.hpp"
-#include "Renderer/RenderDeviceManager.hpp"
+#include "Renderer/GraphicsDeviceManager.hpp"
 
 namespace Darius::Graphics
 {
@@ -78,7 +78,7 @@ namespace Darius::Graphics
             pRootSig = nullptr;
         }
 
-        D_HR_CHECK(D_RENDERER_DEVICE::GetDevice()->CreateCommandSignature(&CommandSignatureDesc, pRootSig,
+        D_HR_CHECK(D_GRAPHICS_DEVICE::GetDevice()->CreateCommandSignature(&CommandSignatureDesc, pRootSig,
             IID_PPV_ARGS(&mSignature)));
 
         mSignature->SetName(L"CommandSignature");

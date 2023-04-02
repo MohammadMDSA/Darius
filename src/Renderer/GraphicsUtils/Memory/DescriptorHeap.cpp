@@ -13,7 +13,7 @@
 
 #include "DescriptorHeap.hpp"
 #include "Renderer/pch.hpp"
-#include "Renderer/RenderDeviceManager.hpp"
+#include "Renderer/GraphicsDeviceManager.hpp"
 
 #include <Utils/Assert.hpp>
 
@@ -41,7 +41,7 @@ namespace Darius::Graphics::Utils::Memory
 		Desc.NodeMask = 1;
 
 		Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> pHeap;
-		D_HR_CHECK(D_RENDERER_DEVICE::GetDevice()->CreateDescriptorHeap(&Desc, IID_PPV_ARGS(&pHeap)));
+		D_HR_CHECK(D_GRAPHICS_DEVICE::GetDevice()->CreateDescriptorHeap(&Desc, IID_PPV_ARGS(&pHeap)));
 		sm_DescriptorHeapPool.emplace_back(pHeap);
 		return pHeap.Get();
 	}
@@ -55,7 +55,7 @@ namespace Darius::Graphics::Utils::Memory
 			m_RemainingFreeHandles = sm_NumDescriptorsPerHeap;
 
 			if (m_DescriptorSize == 0)
-				m_DescriptorSize = D_RENDERER_DEVICE::GetDevice()->GetDescriptorHandleIncrementSize(m_Type);
+				m_DescriptorSize = D_GRAPHICS_DEVICE::GetDevice()->GetDescriptorHandleIncrementSize(m_Type);
 		}
 
 		D3D12_CPU_DESCRIPTOR_HANDLE ret = m_CurrentHandle;
@@ -74,7 +74,7 @@ namespace Darius::Graphics::Utils::Memory
 		m_HeapDesc.NumDescriptors = MaxCount;
 		m_HeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
 		m_HeapDesc.NodeMask = 1;
-		D_HR_CHECK(D_RENDERER_DEVICE::GetDevice()->CreateDescriptorHeap(&m_HeapDesc, IID_PPV_ARGS(m_Heap.ReleaseAndGetAddressOf())));
+		D_HR_CHECK(D_GRAPHICS_DEVICE::GetDevice()->CreateDescriptorHeap(&m_HeapDesc, IID_PPV_ARGS(m_Heap.ReleaseAndGetAddressOf())));
 
 #ifdef RELEASE
 		(void)Name;
@@ -82,7 +82,7 @@ namespace Darius::Graphics::Utils::Memory
 		m_Heap->SetName(Name.c_str());
 #endif
 
-		m_DescriptorSize = D_RENDERER_DEVICE::GetDevice()->GetDescriptorHandleIncrementSize(m_HeapDesc.Type);
+		m_DescriptorSize = D_GRAPHICS_DEVICE::GetDevice()->GetDescriptorHandleIncrementSize(m_HeapDesc.Type);
 		m_NumFreeDescriptors = m_HeapDesc.NumDescriptors;
 		m_FirstHandle = DescriptorHandle(
 			m_Heap->GetCPUDescriptorHandleForHeapStart(),

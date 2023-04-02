@@ -1,6 +1,5 @@
 #pragma once
 #include "Geometry/Mesh.hpp"
-#include "FrameResource.hpp"
 
 #include <Utils/Common.hpp>
 #include <Math/VectorMath.hpp>
@@ -124,27 +123,6 @@ namespace Darius::Renderer::ConstantFrameResource
 
 		uint16_t					PsoFlags = 0;
 		uint16_t					PsoType;
-	};
-
-	// Stores the resources needed for the CPU to build the command lists
-	// for a frame
-	struct FrameResource : ::NonCopyable
-	{
-	public:
-		FrameResource() = delete;
-		FrameResource(ID3D12Device* device, UINT passCount, UINT objectCount);
-		FrameResource(const FrameResource& rhs) = delete;
-		~FrameResource() = default;
-
-		// We cannot reset the allocator until the GPU is done processing the
-		// commands. So each frame needs their own allocator.
-		Microsoft::WRL::ComPtr<ID3D12CommandAllocator>					CmdListAlloc;
-
-		// Fence value to mark commands up to this fence point. This lets us
-		// check if these frame resources are still in use by the GPU.
-		UINT64											Fence = 0;
-	private:
-		UINT	mNumObjs = 0;
 	};
 
 }

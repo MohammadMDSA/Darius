@@ -13,7 +13,7 @@
 
 #include "Renderer/pch.hpp"
 #include "GpuBuffer.hpp"
-#include "Renderer/RenderDeviceManager.hpp"
+#include "Renderer/GraphicsDeviceManager.hpp"
 #include "Renderer/CommandContext.hpp"
 #include "Renderer/GraphicsCore.hpp"
 #include "Renderer/GraphicsUtils/Buffers/UploadBuffer.hpp"
@@ -42,7 +42,7 @@ namespace Darius::Graphics::Utils::Buffers
         HeapProps.CreationNodeMask = 1;
         HeapProps.VisibleNodeMask = 1;
 
-        D_HR_CHECK(D_RENDERER_DEVICE::GetDevice()->CreateCommittedResource(&HeapProps, D3D12_HEAP_FLAG_NONE,
+        D_HR_CHECK(D_GRAPHICS_DEVICE::GetDevice()->CreateCommittedResource(&HeapProps, D3D12_HEAP_FLAG_NONE,
             &ResourceDesc, mUsageState, nullptr, IID_PPV_ARGS(&mResource)));
 
         mGpuVirtualAddress = mResource->GetGPUVirtualAddress();
@@ -79,7 +79,7 @@ namespace Darius::Graphics::Utils::Buffers
         HeapProps.VisibleNodeMask = 1;
 
         D_HR_CHECK(
-            D_RENDERER_DEVICE::GetDevice()->CreateCommittedResource(&HeapProps, D3D12_HEAP_FLAG_NONE,
+            D_GRAPHICS_DEVICE::GetDevice()->CreateCommittedResource(&HeapProps, D3D12_HEAP_FLAG_NONE,
                 &ResourceDesc, mUsageState, nullptr, IID_PPV_ARGS(&mResource)));
 
         mGpuVirtualAddress = mResource->GetGPUVirtualAddress();
@@ -107,7 +107,7 @@ namespace Darius::Graphics::Utils::Buffers
 
         mUsageState = D3D12_RESOURCE_STATE_COMMON;
 
-        D_HR_CHECK(D_RENDERER_DEVICE::GetDevice()->CreatePlacedResource(pBackingHeap, HeapOffset, &ResourceDesc, mUsageState, nullptr, IID_PPV_ARGS(&mResource)));
+        D_HR_CHECK(D_GRAPHICS_DEVICE::GetDevice()->CreatePlacedResource(pBackingHeap, HeapOffset, &ResourceDesc, mUsageState, nullptr, IID_PPV_ARGS(&mResource)));
 
         mGpuVirtualAddress = mResource->GetGPUVirtualAddress();
 
@@ -135,7 +135,7 @@ namespace Darius::Graphics::Utils::Buffers
         CBVDesc.SizeInBytes = Size;
 
         D3D12_CPU_DESCRIPTOR_HANDLE hCBV = AllocateDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-        D_RENDERER_DEVICE::GetDevice()->CreateConstantBufferView(&CBVDesc, hCBV);
+        D_GRAPHICS_DEVICE::GetDevice()->CreateConstantBufferView(&CBVDesc, hCBV);
         return hCBV;
     }
 
@@ -169,7 +169,7 @@ namespace Darius::Graphics::Utils::Buffers
 
         if (mSRV.ptr == D3D12_GPU_VIRTUAL_ADDRESS_UNKNOWN)
             mSRV = AllocateDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-        D_RENDERER_DEVICE::GetDevice()->CreateShaderResourceView(mResource.Get(), &SRVDesc, mSRV);
+        D_GRAPHICS_DEVICE::GetDevice()->CreateShaderResourceView(mResource.Get(), &SRVDesc, mSRV);
 
         D3D12_UNORDERED_ACCESS_VIEW_DESC UAVDesc = {};
         UAVDesc.ViewDimension = D3D12_UAV_DIMENSION_BUFFER;
@@ -179,7 +179,7 @@ namespace Darius::Graphics::Utils::Buffers
 
         if (mUAV.ptr == D3D12_GPU_VIRTUAL_ADDRESS_UNKNOWN)
             mUAV = AllocateDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-        D_RENDERER_DEVICE::GetDevice()->CreateUnorderedAccessView(mResource.Get(), nullptr, &UAVDesc, mUAV);
+        D_GRAPHICS_DEVICE::GetDevice()->CreateUnorderedAccessView(mResource.Get(), nullptr, &UAVDesc, mUAV);
     }
 
     void StructuredBuffer::CreateDerivedViews(void)
@@ -194,7 +194,7 @@ namespace Darius::Graphics::Utils::Buffers
 
         if (mSRV.ptr == D3D12_GPU_VIRTUAL_ADDRESS_UNKNOWN)
             mSRV = AllocateDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-        D_RENDERER_DEVICE::GetDevice()->CreateShaderResourceView(mResource.Get(), &SRVDesc, mSRV);
+        D_GRAPHICS_DEVICE::GetDevice()->CreateShaderResourceView(mResource.Get(), &SRVDesc, mSRV);
 
         D3D12_UNORDERED_ACCESS_VIEW_DESC UAVDesc = {};
         UAVDesc.ViewDimension = D3D12_UAV_DIMENSION_BUFFER;
@@ -208,7 +208,7 @@ namespace Darius::Graphics::Utils::Buffers
 
         if (mUAV.ptr == D3D12_GPU_VIRTUAL_ADDRESS_UNKNOWN)
             mUAV = AllocateDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-        D_RENDERER_DEVICE::GetDevice()->CreateUnorderedAccessView(mResource.Get(), mCounterBuffer.GetResource(), &UAVDesc, mUAV);
+        D_GRAPHICS_DEVICE::GetDevice()->CreateUnorderedAccessView(mResource.Get(), mCounterBuffer.GetResource(), &UAVDesc, mUAV);
     }
 
     void TypedBuffer::CreateDerivedViews(void)
@@ -222,7 +222,7 @@ namespace Darius::Graphics::Utils::Buffers
 
         if (mSRV.ptr == D3D12_GPU_VIRTUAL_ADDRESS_UNKNOWN)
             mSRV = AllocateDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-        D_RENDERER_DEVICE::GetDevice()->CreateShaderResourceView(mResource.Get(), &SRVDesc, mSRV);
+        D_GRAPHICS_DEVICE::GetDevice()->CreateShaderResourceView(mResource.Get(), &SRVDesc, mSRV);
 
         D3D12_UNORDERED_ACCESS_VIEW_DESC UAVDesc = {};
         UAVDesc.ViewDimension = D3D12_UAV_DIMENSION_BUFFER;
@@ -232,7 +232,7 @@ namespace Darius::Graphics::Utils::Buffers
 
         if (mUAV.ptr == D3D12_GPU_VIRTUAL_ADDRESS_UNKNOWN)
             mUAV = AllocateDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-        D_RENDERER_DEVICE::GetDevice()->CreateUnorderedAccessView(mResource.Get(), nullptr, &UAVDesc, mUAV);
+        D_GRAPHICS_DEVICE::GetDevice()->CreateUnorderedAccessView(mResource.Get(), nullptr, &UAVDesc, mUAV);
     }
 
     const D3D12_CPU_DESCRIPTOR_HANDLE& StructuredBuffer::GetCounterSRV(CommandContext& Context)

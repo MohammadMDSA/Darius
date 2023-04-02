@@ -14,7 +14,7 @@
 #include "Renderer/pch.hpp"
 #include "RootSignature.hpp"
 #include "Renderer/GraphicsCore.hpp"
-#include "Renderer/RenderDeviceManager.hpp"
+#include "Renderer/GraphicsDeviceManager.hpp"
 
 #include <Core/Hash.hpp>
 #include <Utils/Assert.hpp>
@@ -167,7 +167,7 @@ namespace Darius::Graphics::Utils
             }
             D_HR_CHECK(hr);
 
-            D_HR_CHECK(D_RENDERER_DEVICE::GetDevice()->CreateRootSignature(1, pOutBlob->GetBufferPointer(), pOutBlob->GetBufferSize(),
+            D_HR_CHECK(D_GRAPHICS_DEVICE::GetDevice()->CreateRootSignature(1, pOutBlob->GetBufferPointer(), pOutBlob->GetBufferSize(),
                 IID_PPV_ARGS(&mSignature)));
 
             mSignature->SetName(name.c_str());

@@ -11,7 +11,6 @@
 #include <Job/Job.hpp>
 #include <Physics/PhysicsManager.hpp>
 #include <Renderer/GraphicsCore.hpp>
-#include <Renderer/Renderer.hpp>
 #include <ResourceManager/ResourceManager.hpp>
 #include <Scene/Scene.hpp>
 #include <Utils/Assert.hpp>
@@ -58,7 +57,7 @@ namespace Darius::Subsystems
 		REGISTER_SUBSYSTEM("Input", D_INPUT);
 		REGISTER_SUBSYSTEM("Time", D_TIME);
 		REGISTER_SUBSYSTEM("Job", D_JOB);
-		REGISTER_SUBSYSTEM("Renderer", D_RENDERER);
+		REGISTER_SUBSYSTEM("Renderer", D_GRAPHICS);
 		REGISTER_SUBSYSTEM("Resource Manager", D_RESOURCE);
 	}
 
@@ -80,7 +79,7 @@ namespace Darius::Subsystems
 		// Initializing the resource manager
 		D_RESOURCE::Initialize(settings["Resource Manager"]);
 
-		D_RENDERER::Initialize(window, width, height, settings["Renderer"]);
+		D_GRAPHICS::Initialize(window, width, height, settings["Renderer"]);
 
 		// Creating device and window resources
 		/*CreateDeviceDependentResources();

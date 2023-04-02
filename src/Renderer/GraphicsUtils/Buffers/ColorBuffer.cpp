@@ -15,7 +15,7 @@
 #include "ColorBuffer.hpp"
 #include "Renderer/GraphicsCore.hpp"
 #include "Renderer/CommandContext.hpp"
-#include "Renderer/RenderDeviceManager.hpp"
+#include "Renderer/GraphicsDeviceManager.hpp"
 
 using namespace D_GRAPHICS;
 using namespace DirectX;
@@ -104,13 +104,13 @@ namespace Darius::Graphics::Utils::Buffers
 
     void ColorBuffer::CreateFromSwapChain(const std::wstring& Name, ID3D12Resource* BaseResource)
     {
-        AssociateWithResource(D_RENDERER_DEVICE::GetDevice(), Name, BaseResource, D3D12_RESOURCE_STATE_PRESENT);
+        AssociateWithResource(D_GRAPHICS_DEVICE::GetDevice(), Name, BaseResource, D3D12_RESOURCE_STATE_PRESENT);
 
         //m_UAVHandle[0] = Graphics::AllocateDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
         //Graphics::g_Device->CreateUnorderedAccessView(m_pResource.Get(), nullptr, nullptr, m_UAVHandle[0]);
 
         mRtvHandle = Graphics::AllocateDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
-        D_RENDERER_DEVICE::GetDevice()->CreateRenderTargetView(mResource.Get(), nullptr, mRtvHandle);
+        D_GRAPHICS_DEVICE::GetDevice()->CreateRenderTargetView(mResource.Get(), nullptr, mRtvHandle);
     }
 
     void ColorBuffer::Create(const std::wstring& Name, uint32_t Width, uint32_t Height, uint32_t NumMips,
@@ -132,8 +132,8 @@ namespace Darius::Graphics::Utils::Buffers
         ClearValue.Color[2] = mClearColor.B();
         ClearValue.Color[3] = mClearColor.A();
 
-        CreateTextureResource(D_RENDERER_DEVICE::GetDevice(), Name, ResourceDesc, ClearValue, VidMem);
-        CreateDerivedViews(D_RENDERER_DEVICE::GetDevice(), Format, 1, NumMips);
+        CreateTextureResource(D_GRAPHICS_DEVICE::GetDevice(), Name, ResourceDesc, ClearValue, VidMem);
+        CreateDerivedViews(D_GRAPHICS_DEVICE::GetDevice(), Format, 1, NumMips);
     }
 
     void ColorBuffer::CreateArray(const std::wstring& Name, uint32_t Width, uint32_t Height, uint32_t ArrayCount,
@@ -149,8 +149,8 @@ namespace Darius::Graphics::Utils::Buffers
         ClearValue.Color[2] = mClearColor.B();
         ClearValue.Color[3] = mClearColor.A();
 
-        CreateTextureResource(D_RENDERER_DEVICE::GetDevice(), Name, ResourceDesc, ClearValue, VidMem);
-        CreateDerivedViews(D_RENDERER_DEVICE::GetDevice(), Format, ArrayCount, 1);
+        CreateTextureResource(D_GRAPHICS_DEVICE::GetDevice(), Name, ResourceDesc, ClearValue, VidMem);
+        CreateDerivedViews(D_GRAPHICS_DEVICE::GetDevice(), Format, ArrayCount, 1);
     }
 
     void ColorBuffer::GenerateMipMaps(CommandContext& BaseContext)

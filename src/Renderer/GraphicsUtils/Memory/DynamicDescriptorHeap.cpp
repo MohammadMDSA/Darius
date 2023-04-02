@@ -15,7 +15,7 @@
 #include "DynamicDescriptorHeap.hpp"
 #include "Renderer/CommandContext.hpp"
 #include "Renderer/GraphicsCore.hpp"
-#include "Renderer/RenderDeviceManager.hpp"
+#include "Renderer/GraphicsDeviceManager.hpp"
 #include "Renderer/GraphicsUtils/CommandListManager.hpp"
 #include "Renderer/GraphicsUtils/RootSignature.hpp"
 
@@ -62,7 +62,7 @@ namespace Darius::Graphics::Utils::Memory
             HeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
             HeapDesc.NodeMask = 1;
             Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> HeapPtr;
-            D_HR_CHECK(D_RENDERER_DEVICE::GetDevice()->CreateDescriptorHeap(&HeapDesc, IID_PPV_ARGS(&HeapPtr)));
+            D_HR_CHECK(D_GRAPHICS_DEVICE::GetDevice()->CreateDescriptorHeap(&HeapDesc, IID_PPV_ARGS(&HeapPtr)));
             sm_DescriptorHeapPool[idx].emplace_back(HeapPtr);
             return HeapPtr.Get();
         }
@@ -102,7 +102,7 @@ namespace Darius::Graphics::Utils::Memory
     {
         mCurrentHeapPtr = nullptr;
         mCurrentOffset = 0;
-        mDescriptorSize = D_RENDERER_DEVICE::GetDevice()->GetDescriptorHandleIncrementSize(HeapType);
+        mDescriptorSize = D_GRAPHICS_DEVICE::GetDevice()->GetDescriptorHandleIncrementSize(HeapType);
     }
 
     DynamicDescriptorHeap::~DynamicDescriptorHeap()
@@ -219,7 +219,7 @@ namespace Darius::Graphics::Utils::Memory
                 // If we run out of temp room, copy what we've got so far
                 if (NumSrcDescriptorRanges + DescriptorCount > kMaxDescriptorsPerCopy)
                 {
-                    D_RENDERER_DEVICE::GetDevice()->CopyDescriptors(
+                    D_GRAPHICS_DEVICE::GetDevice()->CopyDescriptors(
                         NumDestDescriptorRanges, pDestDescriptorRangeStarts, pDestDescriptorRangeSizes,
                         NumSrcDescriptorRanges, pSrcDescriptorRangeStarts, pSrcDescriptorRangeSizes,
                         Type);
@@ -247,7 +247,7 @@ namespace Darius::Graphics::Utils::Memory
             }
         }
 
-        D_RENDERER_DEVICE::GetDevice()->CopyDescriptors(
+        D_GRAPHICS_DEVICE::GetDevice()->CopyDescriptors(
             NumDestDescriptorRanges, pDestDescriptorRangeStarts, pDestDescriptorRangeSizes,
             NumSrcDescriptorRanges, pSrcDescriptorRangeStarts, pSrcDescriptorRangeSizes,
             Type);
@@ -288,7 +288,7 @@ namespace Darius::Graphics::Utils::Memory
         DescriptorHandle DestHandle = mFirstDescriptor + mCurrentOffset * mDescriptorSize;
         mCurrentOffset += 1;
 
-        D_RENDERER_DEVICE::GetDevice()->CopyDescriptorsSimple(1, DestHandle, Handle, mDescriptorType);
+        D_GRAPHICS_DEVICE::GetDevice()->CopyDescriptorsSimple(1, DestHandle, Handle, mDescriptorType);
 
         return DestHandle;
     }

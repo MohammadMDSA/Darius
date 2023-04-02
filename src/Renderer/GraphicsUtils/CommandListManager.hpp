@@ -24,12 +24,17 @@
 #define D_GRAPHICS_UTILS Darius::Graphics::Utils
 #endif
 
+namespace Darius::Graphics
+{
+    class CommandContext;
+}
+
 namespace Darius::Graphics::Utils
 {
     class CommandQueue
     {
         friend class CommandListManager;
-        friend class CommandContext;
+        friend class Darius::Graphics::CommandContext;
 
     public:
         CommandQueue(D3D12_COMMAND_LIST_TYPE Type);

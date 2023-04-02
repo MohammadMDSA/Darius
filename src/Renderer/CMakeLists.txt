@@ -61,6 +61,8 @@ list(APPEND RENDERER_LIBS_SOURCES
 	"pch.cpp"
 	"AntiAliasing/TemporalEffect.cpp"
 	"AmbientOcclusion/ScreenSpaceAmbientOcclusion.cpp"
+	"DeviceResources.cpp"
+	"GraphicsCore.cpp"
 	"GraphicsUtils/D3DUtils.cpp"
 	"GraphicsUtils/VertexTypes.cpp"
 	"GraphicsUtils/GpuResource.cpp"
@@ -103,9 +105,6 @@ list(APPEND RENDERER_LIBS_SOURCES
 	"Geometry/Mesh.cpp"
 	"Geometry/GeometryGenerator.cpp"
 	"Renderer.cpp"
-	"GraphicsCore.cpp"
-	"DeviceResources.cpp"
-	"FrameResource.cpp"
 	)
 
 

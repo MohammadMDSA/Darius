@@ -101,12 +101,12 @@ namespace Darius::Graphics::Utils::Profiling
 			m_TimerIndex = D_PROFILING_GPU::NewTimer();
 		}
 
-		void Start(CommandContext& Context)
+		void Start(D_GRAPHICS::CommandContext& Context)
 		{
 			D_PROFILING_GPU::StartTimer(Context, m_TimerIndex);
 		}
 
-		void Stop(CommandContext& Context)
+		void Stop(D_GRAPHICS::CommandContext& Context)
 		{
 			D_PROFILING_GPU::StopTimer(Context, m_TimerIndex);
 		}
@@ -221,7 +221,7 @@ namespace Darius::Graphics::Utils::Profiling
 			return nullptr;
 		}
 
-		void StartTiming(CommandContext* Context)
+		void StartTiming(D_GRAPHICS::CommandContext* Context)
 		{
 			D_ASSERT(!AwaitingUpdate);
 			m_StartTick = D_TIME::SystemTime::GetCurrentTick();
@@ -233,7 +233,7 @@ namespace Darius::Graphics::Utils::Profiling
 			Context->PIXBeginEvent(m_Name.c_str());
 		}
 
-		void StopTiming(CommandContext* Context)
+		void StopTiming(D_GRAPHICS::CommandContext* Context)
 		{
 			D_ASSERT(!AwaitingUpdate);
 			m_EndTick = D_TIME::SystemTime::GetCurrentTick();
@@ -283,8 +283,8 @@ namespace Darius::Graphics::Utils::Profiling
 			}
 		}
 
-		static void PushProfilingMarker(const std::wstring& name, CommandContext* Context);
-		static void PopProfilingMarker(CommandContext* Context);
+		static void PushProfilingMarker(const std::wstring& name, D_GRAPHICS::CommandContext* Context);
+		static void PopProfilingMarker(D_GRAPHICS::CommandContext* Context);
 		static void Update(void);
 		static void UpdateTimes(void)
 		{
@@ -429,13 +429,13 @@ namespace Darius::Graphics::Utils::Profiling
 			*caption = nestedTree.Name;
 	}
 
-	void BeginBlock(const std::wstring& name, CommandContext* Context)
+	void BeginBlock(const std::wstring& name, Darius::Graphics::CommandContext* Context)
 	{
 		if (!AwaitingUpdate)
 			NestedTimingTree::PushProfilingMarker(name, Context);
 	}
 
-	void EndBlock(CommandContext* Context)
+	void EndBlock(Darius::Graphics::CommandContext* Context)
 	{
 		if (!AwaitingUpdate)
 			NestedTimingTree::PopProfilingMarker(Context);
@@ -461,13 +461,13 @@ namespace Darius::Graphics::Utils::Profiling
 		return Paused;
 	}
 
-	void NestedTimingTree::PushProfilingMarker(const std::wstring& name, CommandContext* Context)
+	void NestedTimingTree::PushProfilingMarker(const std::wstring& name, D_GRAPHICS::CommandContext* Context)
 	{
 		sm_CurrentNode = sm_CurrentNode->GetChild(name);
 		sm_CurrentNode->StartTiming(Context);
 	}
 
-	void NestedTimingTree::PopProfilingMarker(CommandContext* Context)
+	void NestedTimingTree::PopProfilingMarker(D_GRAPHICS::CommandContext* Context)
 	{
 		sm_CurrentNode->StopTiming(Context);
 		sm_CurrentNode = sm_CurrentNode->m_Parent;

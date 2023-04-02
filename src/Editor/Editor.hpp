@@ -21,7 +21,7 @@ namespace Darius::Editor
 
 	// A basic game implementation that creates a D3D12 device and
 	// provides a game loop.
-	class Editor final : public D_DEVICE_RESOURCE::IDeviceNotify
+	class Editor final : public D_GRAPHICS_DEVICE::IDeviceNotify
 	{
 	public:
 

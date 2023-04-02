@@ -13,22 +13,20 @@
 
 #pragma once
 
-#include "GraphicsUtils/GpuResource.hpp"
-#include "GraphicsUtils/Buffers/ColorBuffer.hpp"
-#include "GraphicsUtils/Buffers/PixelBuffer.hpp"
-#include "GraphicsUtils/Buffers/GpuBuffer.hpp"
-#include "GraphicsUtils/Buffers/UploadBuffer.hpp"
-#include "GraphicsUtils/Buffers/DepthBuffer.hpp"
-#include "GraphicsUtils/Buffers/ReadbackBuffer.hpp"
-#include "GraphicsUtils/CommandListManager.hpp"
-#include "GraphicsUtils/Memory/LinearAllocator.hpp"
-#include "GraphicsUtils/Memory/DynamicDescriptorHeap.hpp"
-#include "GraphicsUtils/PipelineState.hpp"
-#include "GraphicsUtils/RootSignature.hpp"
 #include "CommandSignature.hpp"
 #include "GraphicsCore.hpp"
-
-//#include "Texture.h"
+#include "GraphicsUtils/Buffers/ColorBuffer.hpp"
+#include "GraphicsUtils/Buffers/DepthBuffer.hpp"
+#include "GraphicsUtils/Buffers/GpuBuffer.hpp"
+#include "GraphicsUtils/Buffers/PixelBuffer.hpp"
+#include "GraphicsUtils/Buffers/ReadbackBuffer.hpp"
+#include "GraphicsUtils/Buffers/UploadBuffer.hpp"
+#include "GraphicsUtils/CommandListManager.hpp"
+#include "GraphicsUtils/GpuResource.hpp"
+#include "GraphicsUtils/Memory/DynamicDescriptorHeap.hpp"
+#include "GraphicsUtils/Memory/LinearAllocator.hpp"
+#include "GraphicsUtils/PipelineState.hpp"
+#include "GraphicsUtils/RootSignature.hpp"
 
 #include <Utils/Assert.hpp>
 #include <Utils/Common.hpp>
