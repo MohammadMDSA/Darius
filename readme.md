@@ -91,6 +91,7 @@
     2. Install FBX SDK.
         1. Download FBX SDK 2020 from [FBX SDK website](https://autodesk.com/fbx) and install it.
         2. Have `FBXSDK_ROOT` system environment variable pointing to where you've installed FBX SDK.
+    3. Install Pix and have `WinPixEventRuntime_DIR` enviroment variable pointing to its install directory. It must contain `Include/` and `bin/` as its subdirectories
 3. Configure and Build using CMake and *MSVC* compiler. (Other compilers *may* work but have not been tested)
 
-4. Run `DariusEngine` executable to run Darius Editor with demo project.
+4. Run `DariusEngine` executable to run Darius Editor with Demo project.
