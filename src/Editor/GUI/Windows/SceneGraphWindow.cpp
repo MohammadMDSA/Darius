@@ -20,10 +20,6 @@ namespace Darius::Editor::Gui::Windows
 	{
 	}
 
-	void SceneGraphWindow::Render(D_GRAPHICS::GraphicsContext&)
-	{
-	}
-
 	void SceneGraphWindow::Update(float)
 	{
 	}

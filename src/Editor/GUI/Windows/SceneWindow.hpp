@@ -23,16 +23,14 @@ namespace Darius::Editor::Gui::Windows
 	public:
 		SceneWindow(SceneWindow const& other) = delete;
 
-		virtual void Render(D_GRAPHICS::GraphicsContext& context) override;
+		virtual void Render() override;
 		virtual void DrawGUI() override;
 		virtual void Update(float dt) override;
 
 	private:
 		void CreateBuffers();
 
-		void AddSceneRenderItems(D_RENDERER::MeshSorter& sorter) const;
 		void AddWindowRenderItems(D_RENDERER::MeshSorter& sorter) const;
-		void PopulateShadowRenderItems(_OUT_ D_CONTAINERS::DVector<D_RENDERER_FRAME_RESOURCE::RenderItem>& items) const;
 
 		void CreateGrid(D_CONTAINERS::DVector<D_RENDERER_FRAME_RESOURCE::RenderItem>& items, int count);
 		void CalcGridLineConstants(D_CONTAINERS::DVector<D_RENDERER_FRAME_RESOURCE::MeshConstants>& constants, int count);
@@ -46,12 +44,22 @@ namespace Darius::Editor::Gui::Windows
 		UINT										mManipulateOperation;
 		UINT										mManipulateMode;
 
+		// Main Buffers
 		D_GRAPHICS_BUFFERS::ColorBuffer				mSceneTexture;
 		D_GRAPHICS_BUFFERS::DepthBuffer				mSceneDepth;
-		D_GRAPHICS_MEMORY::DescriptorHandle			mTextureHandle;
+
+		// TAA Buffers
 		D_GRAPHICS_BUFFERS::ColorBuffer				mTemporalColor[2];
 		D_GRAPHICS_BUFFERS::ColorBuffer				mVelocityBuffer;
 		D_GRAPHICS_BUFFERS::ColorBuffer				mLinearDepth[2];
+
+		// Post Processing Buffers
+		D_GRAPHICS_BUFFERS::StructuredBuffer		mExposureBuffer;
+		D_GRAPHICS_BUFFERS::ColorBuffer				mLumaBuffer;
+		D_GRAPHICS_BUFFERS::ByteAddressBuffer		mHistogramBuffer;
+		D_GRAPHICS_BUFFERS::ColorBuffer				mPostEffectsBuffer;
+
+		D_GRAPHICS_MEMORY::DescriptorHandle			mTextureHandle;
 
 		D_CORE::Ref<D_GRAPHICS::BatchResource>		mLineMeshResource;
 

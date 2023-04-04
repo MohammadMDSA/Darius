@@ -10,6 +10,7 @@
 #include <Scene/Scene.hpp>
 #include <Renderer/Components/MeshRendererComponent.hpp>
 #include <Renderer/Components/SkeletalMeshRendererComponent.hpp>
+#include <Renderer/PostProcessing/PostProcessing.hpp>
 #include "Renderer/GraphicsCore.hpp"
 #include "Renderer/GraphicsDeviceManager.hpp"
 #include <Renderer/Renderer.hpp>
@@ -72,16 +73,16 @@ namespace Darius::Editor::Gui::Windows
 		// Window padding
 		mPadding[0] = mPadding[1] = 0.f;
 
-		auto diffIBLHandle = D_RESOURCE_LOADER::LoadResource(D_ENGINE_CONTEXT::GetAssetsPath() / "PBR/DefaultSkyboxDiffuseIBL.dds");
+		auto diffIBLHandle = D_RESOURCE_LOADER::LoadResource(D_ENGINE_CONTEXT::GetAssetsPath() / "PBR/DefaultSkyboxDiffuseIBL_HDR.dds");
 		auto specIBLHandle = D_RESOURCE_LOADER::LoadResource(D_ENGINE_CONTEXT::GetAssetsPath() / "PBR/DefaultSkyboxSpecularIBL.dds");
 
 		auto diffTex = D_RESOURCE::GetResource<TextureResource>(diffIBLHandle[0], this, L"Scene Window", "Editor Window");
 		auto specTex = D_RESOURCE::GetResource<TextureResource>(specIBLHandle[0], this, L"Scene Window", "Editor Window");
 
-		D_RENDERER::SetIBLTextures(
-			diffTex,
-			specTex
-		);
+		//D_RENDERER::SetIBLTextures(
+		//	diffTex,
+		//	specTex
+		//);
 
 		D_RENDERER::SetIBLBias(0);
 
@@ -99,6 +100,10 @@ namespace Darius::Editor::Gui::Windows
 		mVelocityBuffer.Destroy();
 		mLinearDepth[0].Destroy();
 		mLinearDepth[1].Destroy();
+		mExposureBuffer.Destroy();
+		mLumaBuffer.Destroy();
+		mHistogramBuffer.Destroy();
+		mPostEffectsBuffer.Destroy();
 	}
 
 	void SceneWindow::UpdateGlobalConstants(D_RENDERER_FRAME_RESOURCE::GlobalConstants& globals)
@@ -132,13 +137,27 @@ namespace Darius::Editor::Gui::Windows
 
 	}
 
-	void SceneWindow::Render(D_GRAPHICS::GraphicsContext& context)
+	void SceneWindow::Render()
 	{
 
 		UpdateGlobalConstants(mSceneGlobals);
 
-		D_RENDERER::SceneRenderContext rc = { mSceneDepth, mSceneTexture, mVelocityBuffer, mTemporalColor, mLinearDepth, context, mCamera, mSceneGlobals, mDrawSkybox };
-		D_RENDERER::Render(rc,
+		auto& context = GraphicsContext::Begin(L"Draw Scene Window");
+
+		D_RENDERER::SceneRenderContext rc =
+		{
+			mSceneDepth,
+			mSceneTexture,
+			mVelocityBuffer,
+			mTemporalColor,
+			mLinearDepth,
+			context,
+			mCamera,
+			mSceneGlobals,
+			mDrawSkybox
+		};
+
+		D_RENDERER::Render(L"Scene Window", rc,
 			[&](D_RENDERER::MeshSorter& sorter)
 			{
 				// Draw grid
@@ -155,6 +174,26 @@ namespace Darius::Editor::Gui::Windows
 					sorter.RenderMeshes(MeshSorter::kTransparent, context, mSceneGlobals);
 				}
 			});
+
+		context.Finish();
+
+		// Post Processing
+		D_GRAPHICS_PP::PostProcessContextBuffers postBuffers =
+		{
+			mExposureBuffer,
+			mSceneTexture,
+			mLumaBuffer,
+			mHistogramBuffer,
+			mPostEffectsBuffer,
+			L"Scene Window"
+		};
+		D_GRAPHICS_PP::Render(postBuffers);
+
+		// Copying to texture
+		auto& copyContext = CommandContext::Begin(L"Scene Window Texture Copy");
+		copyContext.TransitionResource(mSceneTexture, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, true);
+		copyContext.Finish();
+
 		D_GRAPHICS_DEVICE::GetDevice()->CopyDescriptorsSimple(1, mTextureHandle, mSceneTexture.GetSRV(), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 	}
 
@@ -378,6 +417,18 @@ namespace Darius::Editor::Gui::Windows
 		// Velocity Buffer
 		mVelocityBuffer.Create(L"Scene Motion Vectors", (UINT)mBufferWidth, (UINT)mBufferHeight, 1, DXGI_FORMAT_R32_UINT);
 
+		// Post Processing Buffers
+		float exposure = D_GRAPHICS_PP::GetExposure();
+		ALIGN_DECL_16 float initExposure[] =
+		{
+			exposure, 1.0f / exposure, exposure, 0.0f,
+			D_GRAPHICS_PP::InitialMinLog, D_GRAPHICS_PP::InitialMaxLog, D_GRAPHICS_PP::InitialMaxLog - D_GRAPHICS_PP::InitialMinLog, 1.0f / (D_GRAPHICS_PP::InitialMaxLog - D_GRAPHICS_PP::InitialMinLog)
+		};
+		mExposureBuffer.Create(L"Scene Exposure", 8, 4, initExposure);
+		mLumaBuffer.Create(L"Scene Luminance", (UINT)mBufferWidth, (UINT)mBufferHeight, 1, DXGI_FORMAT_R8_UNORM);
+		mHistogramBuffer.Create(L"Scene Histogram", 256, 4);
+		mPostEffectsBuffer.Create(L"Scene Post Effects Buffer", (UINT)mBufferWidth, (UINT)mBufferHeight, 1, DXGI_FORMAT_R32_UINT);
+
 	}
 
 	void SceneWindow::CalcGridLineConstants(DVector<MeshConstants>& constants, int count)
@@ -440,78 +491,4 @@ namespace Darius::Editor::Gui::Windows
 		}
 	}
 
-	void SceneWindow::PopulateShadowRenderItems(D_CONTAINERS::DVector<RenderItem>& items) const
-	{
-		auto& worldReg = D_WORLD::GetRegistry();
-
-		// Iterating over meshes
-		worldReg.each([&](D_GRAPHICS::MeshRendererComponent& meshComp)
-			{
-				// Can't render
-				if (!meshComp.CanRender())
-					return;
-
-				if (!meshComp.GetCastsShadow())
-					return;
-
-				items.push_back(meshComp.GetRenderItem());
-			});
-
-		// Iterating over meshes
-		worldReg.each([&](D_GRAPHICS::SkeletalMeshRendererComponent& meshComp)
-			{
-				// Can't render
-				if (!meshComp.CanRender())
-					return;
-
-				if (!meshComp.GetCastsShadow())
-					return;
-
-				items.push_back(meshComp.GetRenderItem());
-			});
-	}
-
-	void SceneWindow::AddSceneRenderItems(D_RENDERER::MeshSorter& sorter) const
-	{
-		auto& worldReg = D_WORLD::GetRegistry();
-
-		auto cam = &mCamera;
-		auto frustum = cam->GetViewSpaceFrustum();
-
-		// Iterating over meshes
-		worldReg.each([&](D_GRAPHICS::MeshRendererComponent& meshComp)
-			{
-				// Can't render
-				if (!meshComp.CanRender())
-					return;
-
-				// Is it in our frustum
-				auto sphereWorldSpace = meshComp.GetGameObject()->GetTransform() * meshComp.GetBounds();
-				auto sphereViewSpace = BoundingSphere(Vector3(cam->GetViewMatrix() * sphereWorldSpace.GetCenter()), sphereWorldSpace.GetRadius());
-				if (!frustum.IntersectSphere(sphereViewSpace))
-					return;
-
-				auto distance = -sphereViewSpace.GetCenter().GetZ() - sphereViewSpace.GetRadius();
-				sorter.AddMesh(meshComp.GetRenderItem(), distance);
-			});
-
-		// Iterating over meshes
-		worldReg.each([&](D_GRAPHICS::SkeletalMeshRendererComponent& meshComp)
-			{
-				// Can't render
-				if (!meshComp.CanRender())
-					return;
-
-				// Is it in our frustum
-				auto sphereWorldSpace = meshComp.GetGameObject()->GetTransform() * meshComp.GetBounds();
-				auto sphereViewSpace = BoundingSphere(Vector3(cam->GetViewMatrix() * sphereWorldSpace.GetCenter()), sphereWorldSpace.GetRadius());
-				if (!frustum.IntersectSphere(sphereViewSpace))
-					return;
-
-				auto distance = -sphereViewSpace.GetCenter().GetZ() - sphereViewSpace.GetRadius();
-				sorter.AddMesh(meshComp.GetRenderItem(), distance);
-			});
-
-		//D_LOG_DEBUG("Number of render items: " << sorter.CountObjects());
-	}
 }

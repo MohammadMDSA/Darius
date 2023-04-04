@@ -17,7 +17,6 @@ namespace Darius::Editor::Gui::Windows
 
 		SceneGraphWindow(SceneGraphWindow const& other) = delete;
 
-		virtual void Render(D_GRAPHICS::GraphicsContext& context) override;
 		virtual void Update(float dt) override;
 		virtual void DrawGUI() override;
 

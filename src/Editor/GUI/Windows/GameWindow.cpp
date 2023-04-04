@@ -9,12 +9,14 @@
 #include <Renderer/GraphicsCore.hpp>
 #include <Renderer/GraphicsDeviceManager.hpp>
 #include <Renderer/Light/LightManager.hpp>
+#include <Renderer/PostProcessing/PostProcessing.hpp>
 
 #include <imgui.h>
 #include <Libs/FontIcon/IconsFontAwesome6.h>
 
 using namespace D_MATH;
 using namespace D_MATH_BOUNDS;
+using namespace D_GRAPHICS;
 using namespace D_RENDERER;
 using namespace D_RENDERER_FRAME_RESOURCE;
 using namespace DirectX;
@@ -41,10 +43,16 @@ namespace Darius::Editor::Gui::Windows
 		mVelocityBuffer.Destroy();
 		mLinearDepth[0].Destroy();
 		mLinearDepth[1].Destroy();
+		mExposureBuffer.Destroy();
+		mLumaBuffer.Destroy();
+		mHistogramBuffer.Destroy();
+		mPostEffectsBuffer.Destroy();
 	}
 
-	void GameWindow::Render(D_GRAPHICS::GraphicsContext& context)
+	void GameWindow::Render()
 	{
+
+		auto& context = GraphicsContext::Begin(L"Game Window Render");
 		
 		auto camera = D_CAMERA_MANAGER::GetActiveCamera();
 
@@ -62,8 +70,20 @@ namespace Darius::Editor::Gui::Windows
 		
 		D_MATH_CAMERA::Camera const& c = camera.Get()->GetCamera();
 
-		D_RENDERER::SceneRenderContext rc = { mSceneDepth, mSceneTexture, mVelocityBuffer, mTemporalColor, mLinearDepth, context, c, mSceneGlobals, true};
-		D_RENDERER::Render(rc, nullptr,
+		D_RENDERER::SceneRenderContext rc =
+		{
+			mSceneDepth,
+			mSceneTexture,
+			mVelocityBuffer,
+			mTemporalColor,
+			mLinearDepth,
+			context,
+			c,
+			mSceneGlobals,
+			true
+		};
+
+		D_RENDERER::Render(L"Scene Window", rc, nullptr,
 			[&](D_RENDERER::MeshSorter& sorter)
 			{
 				// Add debug draw items
@@ -74,6 +94,27 @@ namespace Darius::Editor::Gui::Windows
 					sorter.RenderMeshes(MeshSorter::kTransparent, context, mSceneGlobals);
 				}
 			});
+
+
+		context.Finish();
+
+		// Post Processing
+		D_GRAPHICS_PP::PostProcessContextBuffers postBuffers =
+		{
+			mExposureBuffer,
+			mSceneTexture,
+			mLumaBuffer,
+			mHistogramBuffer,
+			mPostEffectsBuffer,
+			L"Game Window"
+		};
+		D_GRAPHICS_PP::Render(postBuffers);
+
+		// Copying to texture
+		auto& copyContext = CommandContext::Begin(L"Game Window Texture Copy");
+		copyContext.TransitionResource(mSceneTexture, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, true);
+		copyContext.Finish();
+
 		D_GRAPHICS_DEVICE::GetDevice()->CopyDescriptorsSimple(1, mTextureHandle, mSceneTexture.GetSRV(), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 
 	}
@@ -117,6 +158,19 @@ namespace Darius::Editor::Gui::Windows
 
 		// Velocity Buffer
 		mVelocityBuffer.Create(L"Game Motion Vectors", (UINT)mBufferWidth, (UINT)mBufferHeight, 1, DXGI_FORMAT_R32_UINT);
+
+		// Post Processing Buffers
+		float exposure = D_GRAPHICS_PP::GetExposure();
+		ALIGN_DECL_16 float initExposure[] =
+		{
+			exposure, 1.0f / exposure, exposure, 0.0f,
+			D_GRAPHICS_PP::InitialMinLog, D_GRAPHICS_PP::InitialMaxLog, D_GRAPHICS_PP::InitialMaxLog - D_GRAPHICS_PP::InitialMinLog, 1.0f / (D_GRAPHICS_PP::InitialMaxLog - D_GRAPHICS_PP::InitialMinLog)
+		};
+		mExposureBuffer.Create(L"Scene Exposure", 8, 4, initExposure);
+		mLumaBuffer.Create(L"Scene Luminance", (UINT)mBufferWidth, (UINT)mBufferHeight, 1, DXGI_FORMAT_R8_UNORM);
+		mHistogramBuffer.Create(L"Scene Histogram", 256, 4);
+		mPostEffectsBuffer.Create(L"Scene Post Effects Buffer", (UINT)mBufferWidth, (UINT)mBufferHeight, 1, DXGI_FORMAT_R32_UINT);
+
 	}
 
 	bool GameWindow::UpdateGlobalConstants(D_RENDERER_FRAME_RESOURCE::GlobalConstants& globals)
@@ -158,77 +212,4 @@ namespace Darius::Editor::Gui::Windows
 		return true;
 	}
 
-	void GameWindow::PopulateShadowRenderItems(D_CONTAINERS::DVector<RenderItem>& items) const
-	{
-		auto& worldReg = D_WORLD::GetRegistry();
-
-		// Iterating over meshes
-		worldReg.each([&](D_GRAPHICS::MeshRendererComponent& meshComp)
-			{
-				// Can't render
-				if (!meshComp.CanRender())
-					return;
-
-				if (!meshComp.GetCastsShadow())
-					return;
-
-				items.push_back(meshComp.GetRenderItem());
-			});
-
-		// Iterating over meshes
-		worldReg.each([&](D_GRAPHICS::SkeletalMeshRendererComponent& meshComp)
-			{
-				// Can't render
-				if (!meshComp.CanRender())
-					return;
-
-				if (!meshComp.GetCastsShadow())
-					return;
-
-				items.push_back(meshComp.GetRenderItem());
-			});
-	}
-
-	void GameWindow::AddSceneRenderItems(D_RENDERER::MeshSorter& sorter, D_MATH::Camera::Camera* cam) const
-	{
-		auto& worldReg = D_WORLD::GetRegistry();
-
-		auto frustum = cam->GetViewSpaceFrustum();
-
-		// Iterating over meshes
-		worldReg.each([&](D_GRAPHICS::MeshRendererComponent& meshComp)
-			{
-				// Can't render
-				if (!meshComp.CanRender())
-					return;
-
-				// Is it in our frustum
-				auto sphereWorldSpace = meshComp.GetGameObject()->GetTransform() * meshComp.GetBounds();
-				auto sphereViewSpace = BoundingSphere(Vector3(cam->GetViewMatrix() * sphereWorldSpace.GetCenter()), sphereWorldSpace.GetRadius());
-				if (!frustum.IntersectSphere(sphereViewSpace))
-					return;
-
-				auto distance = -sphereViewSpace.GetCenter().GetZ() - sphereViewSpace.GetRadius();
-				sorter.AddMesh(meshComp.GetRenderItem(), distance);
-			});
-
-		// Iterating over meshes
-		worldReg.each([&](D_GRAPHICS::SkeletalMeshRendererComponent& meshComp)
-			{
-				// Can't render
-				if (!meshComp.CanRender())
-					return;
-
-				// Is it in our frustum
-				auto sphereWorldSpace = meshComp.GetGameObject()->GetTransform() * meshComp.GetBounds();
-				auto sphereViewSpace = BoundingSphere(Vector3(cam->GetViewMatrix() * sphereWorldSpace.GetCenter()), sphereWorldSpace.GetRadius());
-				if (!frustum.IntersectSphere(sphereViewSpace))
-					return;
-
-				auto distance = -sphereViewSpace.GetCenter().GetZ() - sphereViewSpace.GetRadius();
-				sorter.AddMesh(meshComp.GetRenderItem(), distance);
-			});
-
-		//D_LOG_DEBUG("Number of render items: " << sorter.CountObjects());
-	}
 }

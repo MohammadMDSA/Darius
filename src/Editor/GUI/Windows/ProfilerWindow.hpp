@@ -13,8 +13,6 @@ namespace Darius::Editor::Gui::Windows
 	public:
 		// Inherited via Window
 
-		INLINE virtual void Render(D_GRAPHICS::GraphicsContext&) override {}
-
 		virtual void Update(float) override;
 
 		virtual void DrawGUI() override;

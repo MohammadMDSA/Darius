@@ -32,7 +32,7 @@ namespace Darius::Editor::Gui::Windows
 
 		virtual std::string 		GetName() const = 0;
 
-		virtual void				Render(D_GRAPHICS::GraphicsContext& context) = 0;
+		virtual INLINE void			Render() {};
 		virtual void				Update(float dt) = 0;
 		virtual void				DrawGUI() = 0;
 		void						PrepareGUI();
