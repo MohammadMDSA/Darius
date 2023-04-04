@@ -143,7 +143,7 @@ namespace Darius::Editor::Gui::GuiManager
 		auto& context = D_GRAPHICS::GraphicsContext::Begin(L"Render Windows Contents");
 		for (auto& kv : Windows)
 			if (kv.second->GetOpened())
-				kv.second->Render(context);
+				kv.second->Render();
 		context.Finish();
 	}
 
