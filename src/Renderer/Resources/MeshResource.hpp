@@ -42,7 +42,7 @@ namespace Darius::Graphics
 
 		INLINE virtual void				WriteResourceToFile(D_SERIALIZATION::Json&) const override {};
 		INLINE virtual void				ReadResourceFromFile(D_SERIALIZATION::Json const&) override {};
-		virtual bool					UploadToGpu(void* context) override;
+		virtual bool					UploadToGpu() override;
 
 		INLINE virtual void				Unload() override { EvictFromGpu(); }
 

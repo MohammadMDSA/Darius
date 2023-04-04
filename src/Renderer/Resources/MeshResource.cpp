@@ -23,7 +23,7 @@ namespace Darius::Graphics
 		return D_RENDERER_GEOMETRY_LOADER_FBX::GetMeshResourcesDataFromFile(type, path);
 	}
 
-	bool MeshResource::UploadToGpu(void* ctx)
+	bool MeshResource::UploadToGpu()
 	{
 		MultiPartMeshData<VertexType> meshData;
 

@@ -3,8 +3,6 @@
 #include "Resource.hpp"
 #include "ResourceLoader.hpp"
 
-#include <Renderer/CommandContext.hpp>
-
 #include <Core/Filesystem/Path.hpp>
 #include <Core/Filesystem/FileUtils.hpp>
 #include <Core/Containers/Map.hpp>
@@ -55,9 +53,7 @@ namespace Darius::ResourceManager
 			D_RESOURCE_LOADER::LoadResource(resource);
 		if (load && resource->GetDirtyGPU())
 		{
-			auto& context = D_GRAPHICS::GraphicsContext::Begin(L"Resource uploader");
-			resource->UpdateGPU(&context);
-			context.Finish(true);
+			resource->UpdateGPU();
 		}
 		return resource;
 	}
@@ -71,9 +67,7 @@ namespace Darius::ResourceManager
 			D_RESOURCE_LOADER::LoadResource(resource);
 		if (load && resource->GetDirtyGPU())
 		{
-			auto& context = D_GRAPHICS::GraphicsContext::Begin(L"Resource uploader");
-			resource->UpdateGPU(&context);
-			context.Finish(true);
+			resource->UpdateGPU();
 		}
 		return resource;
 	}
@@ -178,18 +172,15 @@ namespace Darius::ResourceManager
 
 	void DResourceManager::UpdateGPUResources()
 	{
-		// TODO: Paralelize gpu resource update
-		D_GRAPHICS::GraphicsContext& context = D_GRAPHICS::GraphicsContext::Begin(L"Updating GPU Resources");
 		for (auto& resType : mResourceMap)
 		{
 			for (auto& res : resType.second)
 			{
 				auto resource = res.second;
 				if (resource->GetDirtyGPU() && resource->GetLoaded())
-					resource->UpdateGPU(&context);
+					resource->UpdateGPU();
 			}
 		}
-		context.Finish();
 	}
 
 	void DResourceManager::UpdateMaps(std::shared_ptr<Resource> resource)

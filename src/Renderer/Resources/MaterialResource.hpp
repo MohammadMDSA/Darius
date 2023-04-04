@@ -68,7 +68,7 @@ inline void Set##type##Texture(D_RESOURCE::ResourceHandle textureHandle) { SetTe
 
 		virtual void						WriteResourceToFile(D_SERIALIZATION::Json& j) const override;
 		virtual void						ReadResourceFromFile(D_SERIALIZATION::Json const& j) override;
-		virtual bool						UploadToGpu(void* context) override;
+		virtual bool						UploadToGpu() override;
 		INLINE virtual void					Unload() override { EvictFromGpu(); }
 
 	private:

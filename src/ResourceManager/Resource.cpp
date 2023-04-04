@@ -1,4 +1,4 @@
-#include "Renderer/pch.hpp"
+#include "pch.hpp"
 #include "Resource.hpp"
 
 #include "ResourceManager/ResourceManager.hpp"
@@ -41,13 +41,13 @@ namespace Darius::ResourceManager
 		return Resource::GetResourceTypeFromName(name);
 	}
 
-	void Resource::UpdateGPU(void* context)
+	void Resource::UpdateGPU()
 	{
 		// Is gpu already up to date
 		if (!mDirtyGPU)
 			return;
 
-		mDirtyGPU = !UploadToGpu(context);
+		mDirtyGPU = !UploadToGpu();
 	}
 
 	void Resource::AddTypeContainer(ResourceType type)

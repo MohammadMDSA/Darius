@@ -148,9 +148,8 @@ namespace Darius::Graphics
 
 	}
 
-	bool MaterialResource::UploadToGpu(void* ctx)
+	bool MaterialResource::UploadToGpu()
 	{
-		D_GRAPHICS::GraphicsContext& context = *reinterpret_cast<D_GRAPHICS::GraphicsContext*>(ctx);
 		if (mMaterialConstantsGPU.GetGpuVirtualAddress() == D3D12_GPU_VIRTUAL_ADDRESS_NULL)
 		{
 			// Load resources
@@ -195,9 +194,11 @@ namespace Darius::Graphics
 		currentMatUploadBuff.Unmap();
 
 		// Uploading
+		auto& context = D_GRAPHICS::CommandContext::Begin(L"Resource Uploader");
 		context.TransitionResource(mMaterialConstantsGPU, D3D12_RESOURCE_STATE_COPY_DEST, true);
 		context.GetCommandList()->CopyBufferRegion(mMaterialConstantsGPU.GetResource(), 0, currentMatUploadBuff.GetResource(), 0, currentMatUploadBuff.GetBufferSize());
 		context.TransitionResource(mMaterialConstantsGPU, D3D12_RESOURCE_STATE_GENERIC_READ);
+		context.Finish(true);
 		return true;
 	}
 

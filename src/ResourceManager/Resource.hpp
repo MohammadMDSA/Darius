@@ -142,7 +142,7 @@ namespace Darius::ResourceManager
 		D_CH_R_FIELD(bool, DirtyGPU);
 
 	public:
-		void						UpdateGPU(void*);
+		void						UpdateGPU();
 
 #ifdef _D_EDITOR
 		virtual bool				DrawDetails(float params[]) = 0;
@@ -207,7 +207,7 @@ namespace Darius::ResourceManager
 		virtual void				WriteResourceToFile(D_SERIALIZATION::Json& j) const = 0;
 		virtual void				ReadResourceFromFile(D_SERIALIZATION::Json const& j) = 0;
 
-		virtual bool				UploadToGpu(void* context) = 0;
+		virtual bool				UploadToGpu() = 0;
 
 		// Unload and Evict need implementation for every resource
 		virtual void				EvictFromGpu() {}

@@ -38,7 +38,7 @@ namespace Darius::Graphics
 			mJointCount(0),
 			mSkeletonRoot(nullptr) {}
 
-		virtual bool					UploadToGpu(void* context) override;
+		virtual bool					UploadToGpu() override;
 
 	};
 }

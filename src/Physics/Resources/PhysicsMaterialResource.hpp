@@ -25,7 +25,7 @@ namespace Darius::Physics
 
 		virtual void					WriteResourceToFile(D_SERIALIZATION::Json& j) const override;
 		virtual void					ReadResourceFromFile(D_SERIALIZATION::Json const& j) override;
-		virtual bool					UploadToGpu(void* context) override;
+		INLINE virtual bool				UploadToGpu() override { return true; }
 		virtual void					Unload() override;
 
 		INLINE operator physx::PxMaterial const& () const { return *mPxData; }

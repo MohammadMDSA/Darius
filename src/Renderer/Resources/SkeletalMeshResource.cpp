@@ -65,7 +65,7 @@ namespace Darius::Graphics
 		mSkeletonRoot = mJointCount > 0 ? &mSkeleton.front() : nullptr;
 	}
 
-	bool SkeletalMeshResource::UploadToGpu(void* ctx)
+	bool SkeletalMeshResource::UploadToGpu()
 	{
 		MultiPartMeshData<VertexType> meshData;
 
