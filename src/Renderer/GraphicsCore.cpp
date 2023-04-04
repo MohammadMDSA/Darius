@@ -4,14 +4,19 @@
 #include "AntiAliasing/TemporalEffect.hpp"
 #include "AmbientOcclusion/ScreenSpaceAmbientOcclusion.hpp"
 #include "CommandContext.hpp"
+#include "Components/LightComponent.hpp"
+#include "Components/MeshRendererComponent.hpp"
+#include "Components/SkeletalMeshRendererComponent.hpp"
+#include "Components/CameraComponent.hpp"
 #include "Geometry/GeometryGenerator.hpp"
+#include "GraphicsDeviceManager.hpp"
 #include "GraphicsUtils/Buffers/Texture.hpp"
 #include "GraphicsUtils/D3DUtils.hpp"
 #include "GraphicsUtils/Memory/DescriptorHeap.hpp"
 #include "GraphicsUtils/Profiling/GpuTimeManager.hpp"
 #include "Light/LightManager.hpp"
 #include "PostProcessing/MotionBlur.hpp"
-#include "GraphicsDeviceManager.hpp"
+#include "PostProcessing/PostProcessing.hpp"
 #include "Renderer.hpp"
 #include "Resources/BatchResource.hpp"
 #include "Resources/MaterialResource.hpp"
@@ -271,13 +276,6 @@ namespace Darius::Graphics
 		BuildShaders();
 		InitializeCommonStates();
 
-		// Setting up AntiAliasing
-		D_GRAPHICS_AA_TEMPORAL::Initialize(settings);
-		D_GRAPHICS_PP_MOTION::Initialize(settings);
-		D_GRAPHICS_AO_SS::Initialize(settings);
-
-		D_LIGHT::Initialize();
-
 		// Initializing Resources
 		TextureResource::Register();
 		StaticMeshResource::Register();
@@ -287,7 +285,19 @@ namespace Darius::Graphics
 
 		LoadDefaultResources();
 
+		// Setting Main Modules
+		D_GRAPHICS_AA_TEMPORAL::Initialize(settings);
+		D_GRAPHICS_PP::Initialize(settings);
+		D_GRAPHICS_PP_MOTION::Initialize(settings);
+		D_GRAPHICS_AO_SS::Initialize(settings);
+		D_LIGHT::Initialize();
 		D_RENDERER::Initialize(settings);
+
+		// Registering components
+		D_GRAPHICS::LightComponent::StaticConstructor();
+		D_GRAPHICS::MeshRendererComponent::StaticConstructor();
+		D_GRAPHICS::SkeletalMeshRendererComponent::StaticConstructor();
+		D_GRAPHICS::CameraComponent::StaticConstructor();
 	}
 
 	void Shutdown()
@@ -300,6 +310,7 @@ namespace Darius::Graphics
 
 		D_GRAPHICS_AO_SS::Shutdown();
 		D_GRAPHICS_PP_MOTION::Shutdown();
+		D_GRAPHICS_PP::Shutdown();
 		D_GRAPHICS_AA_TEMPORAL::Shutdown();
 
 		D_PROFILING_GPU::Shutdown();
@@ -761,6 +772,11 @@ namespace Darius::Graphics
 		if (ImGui::CollapsingHeader("Temporal Anti-Aliasing"))
 		{
 			settingsChanged |= D_GRAPHICS_AA_TEMPORAL::OptionsDrawer(options);
+		}
+
+		if (ImGui::CollapsingHeader("Post Processing"))
+		{
+			settingsChanged |= D_GRAPHICS_PP::OptionsDrawer(options);
 		}
 
 		if (ImGui::CollapsingHeader("Renderer"))

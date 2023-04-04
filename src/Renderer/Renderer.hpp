@@ -173,7 +173,7 @@ namespace Darius::Renderer
 	void Initialize(D_SERIALIZATION::Json const& settings);
 	void Shutdown();
 	void Update();
-	void Render(SceneRenderContext& context, std::function<void(MeshSorter&)> additionalMainDraw, std::function<void(MeshSorter&)> postDraw);
+	void Render(std::wstring const& jobId, SceneRenderContext& rContext, std::function<void(MeshSorter&)> additionalMainDraw, std::function<void(MeshSorter&)> postDraw);
 
 #ifdef _D_EDITOR
 	bool OptionsDrawer(_IN_OUT_ D_SERIALIZATION::Json& options);

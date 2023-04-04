@@ -4,10 +4,8 @@
 #include "AntiAliasing/TemporalEffect.hpp"
 #include "AmbientOcclusion/ScreenSpaceAmbientOcclusion.hpp"
 #include "Camera/CameraManager.hpp"
-#include "Components/LightComponent.hpp"
 #include "Components/MeshRendererComponent.hpp"
 #include "Components/SkeletalMeshRendererComponent.hpp"
-#include "Components/CameraComponent.hpp"
 #include "Geometry/Mesh.hpp"
 #include "FrameResource.hpp"
 #include "GraphicsCore.hpp"
@@ -19,6 +17,7 @@
 #include "GraphicsUtils/Profiling/Profiling.hpp"
 #include "Light/LightManager.hpp"
 #include "PostProcessing/MotionBlur.hpp"
+#include "PostProcessing/PostProcessing.hpp"
 #include "Resources/TextureResource.hpp"
 
 #include <Core/TimeManager/TimeManager.hpp>
@@ -138,12 +137,6 @@ namespace Darius::Renderer
 
 		// Initializing Camera Manager
 		D_CAMERA_MANAGER::Initialize();
-
-		// Registering components
-		D_GRAPHICS::LightComponent::StaticConstructor();
-		D_GRAPHICS::MeshRendererComponent::StaticConstructor();
-		D_GRAPHICS::SkeletalMeshRendererComponent::StaticConstructor();
-		D_GRAPHICS::CameraComponent::StaticConstructor();
 	}
 
 	void Shutdown()
@@ -227,6 +220,9 @@ namespace Darius::Renderer
 				auto distance = -sphereViewSpace.GetCenter().GetZ() - sphereViewSpace.GetRadius();
 				sorter.AddMesh(meshComp.GetRenderItem(), distance);
 			});
+
+		//D_LOG_DEBUG("Number of render items: " << sorter.CountObjects());
+
 	}
 
 	void AddShadowRenderItems(D_CONTAINERS::DVector<RenderItem>& items)
@@ -260,13 +256,15 @@ namespace Darius::Renderer
 			});
 	}
 
-	void Render(SceneRenderContext& rContext, std::function<void(MeshSorter&)> additionalMainDraw, std::function<void(MeshSorter&)> postDraw)
+	void Render(std::wstring const& jobId, SceneRenderContext& rContext, std::function<void(MeshSorter&)> additionalMainDraw, std::function<void(MeshSorter&)> postDraw)
 	{
+		auto& context = rContext.GraphicsContext;
+
 		// Clearing depth and scene color textures
-		rContext.GraphicsContext.TransitionResource(rContext.DepthBuffer, D3D12_RESOURCE_STATE_DEPTH_WRITE);
-		rContext.GraphicsContext.TransitionResource(rContext.ColorBuffer, D3D12_RESOURCE_STATE_RENDER_TARGET, true);
-		rContext.GraphicsContext.ClearDepth(rContext.DepthBuffer);
-		rContext.GraphicsContext.ClearColor(rContext.ColorBuffer);
+		context.TransitionResource(rContext.DepthBuffer, D3D12_RESOURCE_STATE_DEPTH_WRITE);
+		context.TransitionResource(rContext.ColorBuffer, D3D12_RESOURCE_STATE_RENDER_TARGET, true);
+		context.ClearDepth(rContext.DepthBuffer);
+		context.ClearColor(rContext.ColorBuffer);
 
 
 		auto width = rContext.ColorBuffer.GetWidth();
@@ -300,9 +298,9 @@ namespace Darius::Renderer
 		sorter.Sort();
 
 		if (rContext.DrawSkybox)
-			D_RENDERER::DrawSkybox(rContext.GraphicsContext, rContext.Camera, rContext.ColorBuffer, rContext.DepthBuffer, viewPort, scissor);
+			D_RENDERER::DrawSkybox(context, rContext.Camera, rContext.ColorBuffer, rContext.DepthBuffer, viewPort, scissor);
 
-		sorter.RenderMeshes(MeshSorter::kTransparent, rContext.GraphicsContext, rContext.Globals);
+		sorter.RenderMeshes(MeshSorter::kTransparent, context, rContext.Globals);
 
 		if (postDraw)
 		{
@@ -312,7 +310,7 @@ namespace Darius::Renderer
 		}
 
 		auto frameIdxMod2 = D_GRAPHICS_AA_TEMPORAL::GetFrameIndexMod2();
-		auto& commandContext = rContext.GraphicsContext.GetComputeContext();
+		auto& commandContext = context.GetComputeContext();
 
 		D_GRAPHICS_AO_SS::LinearizeZ(commandContext, rContext.DepthBuffer, rContext.LinearDepth[frameIdxMod2], rContext.Camera);
 
@@ -321,8 +319,6 @@ namespace Darius::Renderer
 		D_GRAPHICS_PP_MOTION::GenerateCameraVelocityBuffer(commandContext, motionBuffers, rContext.Camera);
 
 		D_GRAPHICS_AA_TEMPORAL::ResolveImage(commandContext, rContext.ColorBuffer, rContext.VelocityBuffer, rContext.TemporalColor, rContext.LinearDepth);
-
-		rContext.GraphicsContext.TransitionResource(rContext.ColorBuffer, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, true);
 	}
 
 #ifdef _D_EDITOR
