@@ -351,7 +351,7 @@ float3 ComputeLighting(
     {
         uint masks = LightMask.Load((i / 32) * 4);
         uint idx = i - (i / 32) * 32;
-        if (!(masks & (1 << (31 - idx))))
+        if (!(masks & (1u << (31 - idx))))
             continue;
         
         Light light = LightData[i];
