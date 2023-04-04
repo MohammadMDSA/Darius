@@ -248,10 +248,11 @@ namespace Darius::ResourceManager
 
 	ResourceFileMeta ResourceLoader::GetResourceFileMetaFromResource(Resource* resource)
 	{
-		auto path = resource->GetPath();
+		auto const& path = resource->GetPath();
+		auto pathStr = path.lexically_normal().wstring();
 
 		auto manager = D_RESOURCE::GetManager();
-		auto resourceHandleVec = manager->mPathMap[path];
+		auto resourceHandleVec = manager->mPathMap[pathStr];
 
 		ResourceFileMeta result;
 
