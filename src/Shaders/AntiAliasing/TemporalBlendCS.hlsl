@@ -12,8 +12,8 @@
 //
 
 #include "CommonRS.hlsli"
-#include "ShaderUtility.hlsli"
-#include "PixelPacking_Velocity.hlsli"
+#include "../Utils/ShaderUtility.hlsli"
+#include "../Utils/PixelPacking_Velocity.hlsli"
 
 static const uint kLdsPitch = 18;
 static const uint kLdsRows = 10;

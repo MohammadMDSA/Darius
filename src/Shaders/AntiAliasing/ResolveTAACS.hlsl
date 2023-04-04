@@ -10,7 +10,7 @@
 //
 // Author:  James Stanard 
 
-#include "ShaderUtility.hlsli"
+#include "../Utils/ShaderUtility.hlsli"
 #include "CommonRS.hlsli"
 
 Texture2D<float4> TemporalColor : register(t0);
