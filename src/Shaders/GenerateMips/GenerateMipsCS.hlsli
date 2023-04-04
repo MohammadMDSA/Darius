@@ -11,7 +11,7 @@
 // Author:  James Stanard 
 //
 
-#include "CommonRS.hlsli"
+#include "../CommonRS.hlsli"
 
 #ifndef NON_POWER_OF_TWO
 #define NON_POWER_OF_TWO 0

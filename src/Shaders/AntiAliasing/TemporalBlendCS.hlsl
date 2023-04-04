@@ -11,7 +11,7 @@
 // Author:  James Stanard 
 //
 
-#include "CommonRS.hlsli"
+#include "../CommonRS.hlsli"
 #include "../Utils/ShaderUtility.hlsli"
 #include "../Utils/PixelPacking_Velocity.hlsli"
 
