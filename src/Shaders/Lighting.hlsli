@@ -196,7 +196,7 @@ float3 ApplyPointLight(
     lightDir *= invLightDist;
     
     float normalizedDist = sqrt(lightDistSq) * rsqrt(lightRadiusSq);
-    float distanceFalloff = saturate(lightIntencity / (1.0 + 25.0 * normalizedDist * normalizedDist) * saturate((1 - normalizedDist) * 5.0));
+    float distanceFalloff = lightIntencity / (1.0 + 25.0 * normalizedDist * normalizedDist) * saturate((1 - normalizedDist) * 5.0);
     //float distanceFalloff = saturate(lightIntencity * lightRadiusSq / (lightRadiusSq + (0.25 * lightDistSq)));
 
     return distanceFalloff * ApplyLightCommon(
@@ -233,7 +233,7 @@ float3 ApplyConeLight(
     lightDir *= invLightDist;
     
     float normalizedDist = sqrt(lightDistSq) * rsqrt(lightRadiusSq);
-    float distanceFalloff = saturate(lightIntencity / (1.0 + 25.0 * normalizedDist * normalizedDist) * saturate((1 - normalizedDist) * 5.0));
+    float distanceFalloff = lightIntencity / (1.0 + 25.0 * normalizedDist * normalizedDist) * saturate((1 - normalizedDist) * 5.0);
     //float distanceFalloff = saturate(lightIntencity * lightRadiusSq / (lightRadiusSq + (0.25 * lightDistSq)));
 
     float coneFalloff = dot(-lightDir, coneDir);
