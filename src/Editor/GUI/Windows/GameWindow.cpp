@@ -45,6 +45,7 @@ namespace Darius::Editor::Gui::Windows
 		mLinearDepth[1].Destroy();
 		mExposureBuffer.Destroy();
 		mLumaBuffer.Destroy();
+		mLumaLR.Destroy();
 		mHistogramBuffer.Destroy();
 		mPostEffectsBuffer.Destroy();
 	}
@@ -104,6 +105,7 @@ namespace Darius::Editor::Gui::Windows
 			mExposureBuffer,
 			mSceneTexture,
 			mLumaBuffer,
+			mLumaLR,
 			mHistogramBuffer,
 			mPostEffectsBuffer,
 			L"Game Window"
@@ -167,7 +169,8 @@ namespace Darius::Editor::Gui::Windows
 			D_GRAPHICS_PP::InitialMinLog, D_GRAPHICS_PP::InitialMaxLog, D_GRAPHICS_PP::InitialMaxLog - D_GRAPHICS_PP::InitialMinLog, 1.0f / (D_GRAPHICS_PP::InitialMaxLog - D_GRAPHICS_PP::InitialMinLog)
 		};
 		mExposureBuffer.Create(L"Scene Exposure", 8, 4, initExposure);
-		mLumaBuffer.Create(L"Scene Luminance", (UINT)mBufferWidth, (UINT)mBufferHeight, 1, DXGI_FORMAT_R8_UNORM);
+		mLumaLR.Create(L"Scene Luma Buffer", (UINT)mBufferWidth, (UINT)mBufferHeight, 1, DXGI_FORMAT_R8_UINT);
+		mLumaBuffer.Create(L"Luminance", (UINT)mBufferWidth, (UINT)mBufferHeight, 1, DXGI_FORMAT_R8_UNORM);
 		mHistogramBuffer.Create(L"Scene Histogram", 256, 4);
 		mPostEffectsBuffer.Create(L"Scene Post Effects Buffer", (UINT)mBufferWidth, (UINT)mBufferHeight, 1, DXGI_FORMAT_R32_UINT);
 

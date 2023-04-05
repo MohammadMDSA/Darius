@@ -18,6 +18,7 @@ namespace Darius::Graphics::PostProcessing
         D_GRAPHICS_BUFFERS::StructuredBuffer&				ExposureBuffer;
         D_GRAPHICS_BUFFERS::ColorBuffer&                    SceneColor;
         D_GRAPHICS_BUFFERS::ColorBuffer&                    LumaBuffer;
+        D_GRAPHICS_BUFFERS::ColorBuffer&                    LumaLR;
         D_GRAPHICS_BUFFERS::ByteAddressBuffer&              HistogramBuffer;
         D_GRAPHICS_BUFFERS::ColorBuffer&                    PostEffectsBuffer;
         std::wstring const&                                 JobId;

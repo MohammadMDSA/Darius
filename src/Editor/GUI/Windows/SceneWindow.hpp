@@ -56,6 +56,7 @@ namespace Darius::Editor::Gui::Windows
 		// Post Processing Buffers
 		D_GRAPHICS_BUFFERS::StructuredBuffer		mExposureBuffer;
 		D_GRAPHICS_BUFFERS::ColorBuffer				mLumaBuffer;
+		D_GRAPHICS_BUFFERS::ColorBuffer				mLumaLR;
 		D_GRAPHICS_BUFFERS::ByteAddressBuffer		mHistogramBuffer;
 		D_GRAPHICS_BUFFERS::ColorBuffer				mPostEffectsBuffer;
 

@@ -32,7 +32,7 @@ groupshared float gs_MaxR[TILE_PIXEL_COUNT];
 groupshared float gs_MaxG[TILE_PIXEL_COUNT];
 groupshared float gs_MaxB[TILE_PIXEL_COUNT];
 
-void ConvolveH( uint Idx )
+void ConvolveH(uint Idx)
 {
     gs_MinR[Idx] = min(min(gs_MinR[Idx - 1], gs_MinR[Idx]), gs_MinR[Idx + 1]);
     gs_MinG[Idx] = min(min(gs_MinG[Idx - 1], gs_MinG[Idx]), gs_MinG[Idx + 1]);
@@ -42,7 +42,7 @@ void ConvolveH( uint Idx )
     gs_MaxB[Idx] = max(max(gs_MaxB[Idx - 1], gs_MaxB[Idx]), gs_MaxB[Idx + 1]);
 }
 
-void ConvolveV( uint Idx, uint2 st )
+void ConvolveV(uint Idx, uint2 st)
 {
     float minR = min(min(gs_MinR[Idx - TILE_SIZE_X], gs_MinR[Idx]), gs_MinR[Idx + TILE_SIZE_X]);
     float minG = min(min(gs_MinG[Idx - TILE_SIZE_X], gs_MinG[Idx]), gs_MinG[Idx + TILE_SIZE_X]);
@@ -56,8 +56,8 @@ void ConvolveV( uint Idx, uint2 st )
 }
 
 [RootSignature(Common_RootSig)]
-[numthreads( GROUP_SIZE_X, GROUP_SIZE_Y, 1 )]
-void main( uint3 Gid : SV_GroupID, uint3 GTid : SV_GroupThreadID, uint3 DTid : SV_DispatchThreadID, uint GI : SV_GroupIndex )
+[numthreads(GROUP_SIZE_X, GROUP_SIZE_Y, 1)]
+void main(uint3 Gid : SV_GroupID, uint3 GTid : SV_GroupThreadID, uint3 DTid : SV_DispatchThreadID, uint GI : SV_GroupIndex)
 {
     // Load tile pixels
 

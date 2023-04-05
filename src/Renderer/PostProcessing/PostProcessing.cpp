@@ -131,16 +131,17 @@ namespace Darius::Graphics::PostProcessing
 	{
 		D_PROFILING::ScopedTimer _prof(L"Extract Luma", context);
 
-		context.TransitionResource(contextBuffers.LumaBuffer, D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
+		context.TransitionResource(contextBuffers.LumaLR, D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
 		context.TransitionResource(contextBuffers.ExposureBuffer, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
+		context.TransitionResource(contextBuffers.SceneColor, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
 		context.SetConstants(0,
-			1.f / contextBuffers.LumaBuffer.GetWidth(),
-			1.f / contextBuffers.LumaBuffer.GetHeight());
-		context.SetDynamicDescriptor(1, 0, contextBuffers.LumaBuffer.GetUAV());
+			1.f / contextBuffers.LumaLR.GetWidth(),
+			1.f / contextBuffers.LumaLR.GetHeight());
+		context.SetDynamicDescriptor(1, 0, contextBuffers.LumaLR.GetUAV());
 		context.SetDynamicDescriptor(2, 0, contextBuffers.SceneColor.GetSRV());
 		context.SetDynamicDescriptor(2, 1, contextBuffers.ExposureBuffer.GetSRV());
 		context.SetPipelineState(ExtractLumaCS);
-		context.Dispatch2D(contextBuffers.LumaBuffer.GetWidth(), contextBuffers.LumaBuffer.GetHeight());
+		context.Dispatch2D(contextBuffers.LumaLR.GetWidth(), contextBuffers.LumaLR.GetHeight());
 	}
 
 	void UpdateExposure(ComputeContext& context, PostProcessContextBuffers& buffers)
@@ -163,19 +164,18 @@ namespace Darius::Graphics::PostProcessing
 
 			context.WriteBuffer(buffers.ExposureBuffer, 0, initExposure, sizeof(initExposure));
 			context.TransitionResource(buffers.ExposureBuffer, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
-
 			return;
 		}
 
 		// Generate an HDR histogram
 		context.TransitionResource(buffers.HistogramBuffer, D3D12_RESOURCE_STATE_UNORDERED_ACCESS, true);
 		context.ClearUAV(buffers.HistogramBuffer);
-		context.TransitionResource(buffers.LumaBuffer, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
+		context.TransitionResource(buffers.LumaLR, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
 		context.SetDynamicDescriptor(1, 0, buffers.HistogramBuffer.GetUAV());
-		context.SetDynamicDescriptor(2, 0, buffers.LumaBuffer.GetSRV());
+		context.SetDynamicDescriptor(2, 0, buffers.LumaLR.GetSRV());
 		context.SetPipelineState(GenerateHistogramCS);
-		context.SetConstants(0, buffers.LumaBuffer.GetHeight());
-		context.Dispatch2D(buffers.LumaBuffer.GetWidth(), buffers.LumaBuffer.GetHeight(), 16, buffers.LumaBuffer.GetHeight());
+		context.SetConstants(0, buffers.LumaLR.GetHeight());
+		context.Dispatch2D(buffers.LumaLR.GetWidth(), buffers.LumaLR.GetHeight(), 16, buffers.LumaLR.GetHeight());
 
 		ALIGN_DECL_16 struct
 		{
@@ -190,8 +190,9 @@ namespace Darius::Graphics::PostProcessing
 			AdaptationRate,
 			MinExposure,
 			MaxExposure,
-			1.f * buffers.LumaBuffer.GetWidth() * buffers.LumaBuffer.GetHeight()
+			1.f * buffers.LumaLR.GetWidth() * buffers.LumaLR.GetHeight()
 		};
+
 		context.TransitionResource(buffers.HistogramBuffer, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
 		context.TransitionResource(buffers.ExposureBuffer, D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
 		context.SetDynamicDescriptor(1, 0, buffers.ExposureBuffer.GetUAV());
@@ -302,8 +303,6 @@ namespace Darius::Graphics::PostProcessing
 
 		context.SetRootSignature(PostEffectRS);
 
-		context.TransitionResource(buffers.SceneColor, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE | D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
-
 		if (EnableHDR)
 			ProcessHDR(context, buffers);
 		else
@@ -349,13 +348,13 @@ namespace Darius::Graphics::PostProcessing
 
 		D_H_OPTION_DRAW_CHECKBOX("Draw Histogram", "PostProcessing.HDR.DrawHistogram", DrawHistogram);
 
-		D_H_OPTION_DRAW_FLOAT_SLIDER_EXP("Exposure", "PostProcessing.HDR.Exposure", Exposure, 1.f / 64, 64.f);
+		D_H_OPTION_DRAW_FLOAT_SLIDER_EXP("Exposure", "PostProcessing.HDR.Exposure", Exposure, 1.f / 128, 128.f);
 
-		D_H_OPTION_DRAW_FLOAT_SLIDER_EXP("Minimum Exposure", "PostProcessing.HDR.MinExposure", MinExposure, 1.f / 64, 1.f);
+		D_H_OPTION_DRAW_FLOAT_SLIDER_EXP("Minimum Exposure", "PostProcessing.HDR.MinExposure", MinExposure, 1.f / 128, 1.f);
 
-		D_H_OPTION_DRAW_FLOAT_SLIDER_EXP("Maximum Exposure", "PostProcessing.HDR.MaxExposure", MaxExposure, 1.f, 64.f);
+		D_H_OPTION_DRAW_FLOAT_SLIDER_EXP("Maximum Exposure", "PostProcessing.HDR.MaxExposure", MaxExposure, 1.f, 128.f);
 
-		D_H_OPTION_DRAW_FLOAT_SLIDER("Target Luminance", "PostProcessing.HDR.TargetLuminance", TargetLuminance, 1.f, 64.f);
+		D_H_OPTION_DRAW_FLOAT_SLIDER("Target Luminance", "PostProcessing.HDR.TargetLuminance", TargetLuminance, 0.01f, 0.99f);
 
 		D_H_OPTION_DRAW_FLOAT_SLIDER("Adaptation Rate", "PostProcessing.HDR.AdaptationRate", AdaptationRate, 0.01f, 1.f);
 

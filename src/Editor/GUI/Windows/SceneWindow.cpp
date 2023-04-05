@@ -79,10 +79,10 @@ namespace Darius::Editor::Gui::Windows
 		auto diffTex = D_RESOURCE::GetResource<TextureResource>(diffIBLHandle[0], this, L"Scene Window", "Editor Window");
 		auto specTex = D_RESOURCE::GetResource<TextureResource>(specIBLHandle[0], this, L"Scene Window", "Editor Window");
 
-		//D_RENDERER::SetIBLTextures(
-		//	diffTex,
-		//	specTex
-		//);
+		D_RENDERER::SetIBLTextures(
+			diffTex,
+			specTex
+		);
 
 		D_RENDERER::SetIBLBias(0);
 
@@ -102,6 +102,7 @@ namespace Darius::Editor::Gui::Windows
 		mLinearDepth[1].Destroy();
 		mExposureBuffer.Destroy();
 		mLumaBuffer.Destroy();
+		mLumaLR.Destroy();
 		mHistogramBuffer.Destroy();
 		mPostEffectsBuffer.Destroy();
 	}
@@ -183,6 +184,7 @@ namespace Darius::Editor::Gui::Windows
 			mExposureBuffer,
 			mSceneTexture,
 			mLumaBuffer,
+			mLumaLR,
 			mHistogramBuffer,
 			mPostEffectsBuffer,
 			L"Scene Window"
@@ -425,7 +427,8 @@ namespace Darius::Editor::Gui::Windows
 			D_GRAPHICS_PP::InitialMinLog, D_GRAPHICS_PP::InitialMaxLog, D_GRAPHICS_PP::InitialMaxLog - D_GRAPHICS_PP::InitialMinLog, 1.0f / (D_GRAPHICS_PP::InitialMaxLog - D_GRAPHICS_PP::InitialMinLog)
 		};
 		mExposureBuffer.Create(L"Scene Exposure", 8, 4, initExposure);
-		mLumaBuffer.Create(L"Scene Luminance", (UINT)mBufferWidth, (UINT)mBufferHeight, 1, DXGI_FORMAT_R8_UNORM);
+		mLumaLR.Create(L"Scene Luma Buffer", (UINT)mBufferWidth, (UINT)mBufferHeight, 1, DXGI_FORMAT_R8_UINT);
+		mLumaBuffer.Create(L"Luminance", (UINT)mBufferWidth, (UINT)mBufferHeight, 1, DXGI_FORMAT_R8_UNORM);
 		mHistogramBuffer.Create(L"Scene Histogram", 256, 4);
 		mPostEffectsBuffer.Create(L"Scene Post Effects Buffer", (UINT)mBufferWidth, (UINT)mBufferHeight, 1, DXGI_FORMAT_R32_UINT);
 
@@ -463,7 +466,7 @@ namespace Darius::Editor::Gui::Windows
 		item.IndexCount = mesh->mDraw[0].IndexCount;
 		item.StartIndexLocation = mesh->mDraw[0].StartIndexLocation;
 		item.Mesh = mesh;
-		item.PsoFlags = RenderItem::ColorOnly | RenderItem::TwoSided | RenderItem::LineOnly;
+		item.PsoFlags = RenderItem::ColorOnly | RenderItem::TwoSided | RenderItem::LineOnly | RenderItem::AlphaBlend;
 		item.PsoType = D_RENDERER::GetPso(RenderItem::HasPosition | RenderItem::HasNormal | RenderItem::HasTangent | RenderItem::HasUV0 | item.PsoFlags);
 		item.PrimitiveType = D3D_PRIMITIVE_TOPOLOGY_LINELIST;
 		item.MeshCBV = mLineConstantsGPU.GetGpuVirtualAddress();
