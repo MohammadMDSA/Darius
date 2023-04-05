@@ -15,6 +15,8 @@
     - DirectX 12 Vendor
     - Anti-Aliasing 
         - TAA
+    - Post Processing
+        - Tone Mapping
     - Physics-Based Rendering (PBR) Materials
         - Diffuse, Normal, Roughness, Metallic, and Emissive Textures Mapping
         - Diffuse Albedo, Emissive, Metallic, and Roughness Components
