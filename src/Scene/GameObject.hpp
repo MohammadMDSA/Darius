@@ -140,7 +140,7 @@ namespace Darius::Scene
 			return D_ECS::CompRef<T>(mEntity);
 		}
 
-		Darius::Scene::ECS::Components::ComponentBase* AddComponent(std::string const& name);
+		Darius::Scene::ECS::Components::ComponentBase* AddComponent(std::string const& componentName);
 
 		template<class T>
 		void								RemoveComponent()
@@ -223,6 +223,7 @@ namespace Darius::Scene
 		// Comp name and display name
 		static D_CONTAINERS::DMap<std::string, GameObject::ComponentAddressNode> RegisteredComponents;
 		static D_CONTAINERS::DSet<D_ECS::EntityId> RegisteredBehaviours;
+		static D_CONTAINERS::DSet<std::string> RegisteredComponentNames;
 
 		public:
 			Darius_Scene_GameObject_GENERATED

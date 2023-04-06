@@ -27,6 +27,7 @@ namespace Darius::Scene
 	// Comp name and display name
 	D_CONTAINERS::DMap<std::string, GameObject::ComponentAddressNode> GameObject::RegisteredComponents = D_CONTAINERS::DMap<std::string, GameObject::ComponentAddressNode>();
 	D_CONTAINERS::DSet<D_ECS::EntityId> GameObject::RegisteredBehaviours = D_CONTAINERS::DSet<D_ECS::EntityId>();
+	D_CONTAINERS::DSet<std::string> GameObject::RegisteredComponentNames = D_CONTAINERS::DSet<std::string>();
 
 	GameObject::GameObject(D_CORE::Uuid uuid, D_ECS::Entity entity) :
 		mActive(true),
@@ -294,11 +295,12 @@ namespace Darius::Scene
 
 	D_ECS_COMP::ComponentBase* GameObject::AddComponent(std::string const& name)
 	{
+		if (!RegisteredComponentNames.contains(name))
+			return nullptr;
+
 		auto& reg = D_WORLD::GetRegistry();
 
 		auto compT = reg.component(name.c_str());
-
-		auto bb = reg.is_valid(compT);
 
 		mEntity.add(compT);
 		auto compP = mEntity.get_mut(compT);
@@ -476,7 +478,9 @@ namespace Darius::Scene
 	{
 		auto& reg = D_WORLD::GetRegistry();
 		if (!reg.is_valid(reg.component(name.c_str())))
-			throw D_EXCEPTION::Exception("found no component using provided name");
+			throw D_EXCEPTION::Exception("Found no component using provided name");
+
+		RegisteredComponentNames.insert(name);
 
 		// Add component name to names list respecting categories
 		auto currentLevel = &RegisteredComponents;
