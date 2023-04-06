@@ -22,19 +22,20 @@ namespace Darius::Core::Serialization
 	{
 		return __RegisterSerializer(
 			rttr::type::get<T>(),
-			[serializer](rttr::instance const& ins, Json& j)
+			[serializer](rttr::instance const& var, Json& j)
 				{
-					T* var = ins.try_convert<T>();
-					serializer(*var, j);
+					T* val = var.try_convert<T>();
+					serializer(*val, j);
 				},
-			[deserializer](rttr::instance& ins, Json const& j)
+			[deserializer](rttr::variant& var, Json const& j)
 				{
-					T* obj = ins.try_convert<T>();
-					deserializer(*obj, j);
+					T value;
+					deserializer(value, j);
+					var = value;
 				}
 		);
 	}
 
 	// Don't call unless you know what you're exacly doing
-	bool __RegisterSerializer(rttr::type type, std::function<void(rttr::instance const&, Json&)> serializer, std::function<void(rttr::instance&, Json const&)> deserializer);
+	bool __RegisterSerializer(rttr::type type, std::function<void(rttr::instance const&, Json&)> serializer, std::function<void(rttr::variant&, Json const&)> deserializer);
 }

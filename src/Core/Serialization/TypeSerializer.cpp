@@ -8,14 +8,14 @@ using namespace rttr;
 
 namespace Darius::Core::Serialization
 {
-	D_CONTAINERS::DUnorderedMap<rttr::type, std::pair<std::function<void(rttr::instance const&, Json&)>, std::function<void(rttr::instance&, Json const&)>>> typeSerializers = { };
+	D_CONTAINERS::DUnorderedMap<rttr::type, std::pair<std::function<void(rttr::instance const&, Json&)>, std::function<void(rttr::variant&, Json const&)>>> typeSerializers = { };
 
-	bool __RegisterSerializer(rttr::type type, std::function<void(rttr::instance const&, Json&)> serializer, std::function<void(rttr::instance&, Json const&)> deserializer)
+	bool __RegisterSerializer(rttr::type type, std::function<void(rttr::instance const&, Json&)> serializer, std::function<void(rttr::variant&, Json const&)> deserializer)
 	{
 		if (typeSerializers.contains(type))
 			return false;
 
-		std::pair<std::function<void(rttr::instance const&, Json&)>, std::function<void(rttr::instance&, Json const&)>> serDesPair = { serializer, deserializer };
+		std::pair<std::function<void(rttr::instance const&, Json&)>, std::function<void(rttr::variant&, Json const&)>> serDesPair = { serializer, deserializer };
 
 		typeSerializers.emplace(type, serDesPair);
 
@@ -372,7 +372,8 @@ namespace Darius::Core::Serialization
 		// Checking existing serializers and deserializers
 		if (typeSerializers.contains(t))
 		{
-			typeSerializers[t].second(obj, json_object);
+			rttr::variant& var = *obj.try_convert<rttr::variant>();
+			typeSerializers[t].second(var, json_object);
 			return;
 		}
 
@@ -382,7 +383,7 @@ namespace Darius::Core::Serialization
 		{
 			auto propName = std::string(prop.get_name().data());
 
-			if (!json_object.contains(propName))
+			if (!json_object.contains(propName) || prop.is_readonly())
 				continue;
 
 			Json const& json_value = json_object[propName];
@@ -391,9 +392,10 @@ namespace Darius::Core::Serialization
 
 			if (typeSerializers.contains(value_t))
 			{
-				auto ins = instance(prop.get_value(obj));
-				typeSerializers[value_t].second(ins, json_value);
-				break;
+				variant v;
+				typeSerializers[value_t].second(v, json_value);
+				prop.set_value(obj, v);
+				continue;
 			}
 			else if (json_value.is_array())
 			{
