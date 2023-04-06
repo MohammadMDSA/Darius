@@ -62,7 +62,7 @@ namespace Darius::Graphics::PostProcessing
 		D_H_OPTIONS_LOAD_BASIC_DEFAULT("PostProcessing.HDR.Adaptation", EnableAdaptation, true);
 		D_H_OPTIONS_LOAD_BASIC_DEFAULT("PostProcessing.HDR.DrawHistogram", DrawHistogram, true);
 		D_H_OPTIONS_LOAD_BASIC_DEFAULT("PostProcessing.HDR.Exposure", Exposure, 2.f);
-		D_H_OPTIONS_LOAD_BASIC_DEFAULT("PostProcessing.HDR.MinExposure", MinExposure, 1.f);
+		D_H_OPTIONS_LOAD_BASIC_DEFAULT("PostProcessing.HDR.MinExposure", MinExposure, 1.0f / 64.0f);
 		D_H_OPTIONS_LOAD_BASIC_DEFAULT("PostProcessing.HDR.MaxExposure", MaxExposure, 64.f);
 		D_H_OPTIONS_LOAD_BASIC_DEFAULT("PostProcessing.HDR.TargetLuminance", TargetLuminance, 0.08f);
 		D_H_OPTIONS_LOAD_BASIC_DEFAULT("PostProcessing.HDR.AdaptationRate", AdaptationRate, 0.05f);
@@ -201,7 +201,6 @@ namespace Darius::Graphics::PostProcessing
 		context.SetPipelineState(AdaptExposureCS);
 		context.Dispatch();
 		context.TransitionResource(buffers.ExposureBuffer, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
-
 	}
 
 	void ProcessHDR(ComputeContext& context, PostProcessContextBuffers& contextBuffers)
