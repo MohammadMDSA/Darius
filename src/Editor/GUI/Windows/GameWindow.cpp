@@ -161,6 +161,13 @@ namespace Darius::Editor::Gui::Windows
 		// Velocity Buffer
 		mVelocityBuffer.Create(L"Game Motion Vectors", (UINT)mBufferWidth, (UINT)mBufferHeight, 1, DXGI_FORMAT_R32_UINT);
 
+		// Divisible by 128 so that after dividing by 16, we still have multiples of 8x8 tiles.  The bloom
+			// dimensions must be at least 1/4 native resolution to avoid undersampling.
+			//uint32_t kBloomWidth = bufferWidth > 2560 ? Math::AlignUp(bufferWidth / 4, 128) : 640;
+			//uint32_t kBloomHeight = bufferHeight > 1440 ? Math::AlignUp(bufferHeight / 4, 128) : 384;
+		uint32_t bloomWidth = (UINT)mBufferWidth > 2560 ? 1280 : 640;
+		uint32_t bloomHeight = (UINT)mBufferHeight > 1440 ? 768 : 384;
+
 		// Post Processing Buffers
 		float exposure = D_GRAPHICS_PP::GetExposure();
 		ALIGN_DECL_16 float initExposure[] =
@@ -168,11 +175,11 @@ namespace Darius::Editor::Gui::Windows
 			exposure, 1.0f / exposure, exposure, 0.0f,
 			D_GRAPHICS_PP::InitialMinLog, D_GRAPHICS_PP::InitialMaxLog, D_GRAPHICS_PP::InitialMaxLog - D_GRAPHICS_PP::InitialMinLog, 1.0f / (D_GRAPHICS_PP::InitialMaxLog - D_GRAPHICS_PP::InitialMinLog)
 		};
-		mExposureBuffer.Create(L"Scene Exposure", 8, 4, initExposure);
-		mLumaLR.Create(L"Scene Luma Buffer", (UINT)mBufferWidth, (UINT)mBufferHeight, 1, DXGI_FORMAT_R8_UINT);
-		mLumaBuffer.Create(L"Luminance", (UINT)mBufferWidth, (UINT)mBufferHeight, 1, DXGI_FORMAT_R8_UNORM);
-		mHistogramBuffer.Create(L"Scene Histogram", 256, 4);
-		mPostEffectsBuffer.Create(L"Scene Post Effects Buffer", (UINT)mBufferWidth, (UINT)mBufferHeight, 1, DXGI_FORMAT_R32_UINT);
+		mExposureBuffer.Create(L"Game Exposure", 8, 4, initExposure);
+		mLumaLR.Create(L"Game Luma Buffer", bloomWidth, bloomHeight, 1, DXGI_FORMAT_R8_UINT);
+		mLumaBuffer.Create(L"Game Luminance", (UINT)mBufferWidth, (UINT)mBufferHeight, 1, DXGI_FORMAT_R8_UNORM);
+		mHistogramBuffer.Create(L"Game Histogram", 256, 4);
+		mPostEffectsBuffer.Create(L"Game Post Effects Buffer", (UINT)mBufferWidth, (UINT)mBufferHeight, 1, DXGI_FORMAT_R32_UINT);
 
 	}
 
