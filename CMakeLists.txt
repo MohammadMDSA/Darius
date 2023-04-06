@@ -351,11 +351,11 @@ list(APPEND TOTAL_INCLUDES
 
 add_custom_target(DariusGeneratorCommand
                     WORKING_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}
-                    COMMAND DariusCodeGenerator ${SOURCE_DIR} ${SOURCE_DIR}/Generated ${SOURCE_DIR}/Renderer/pch.hpp ${SOURCE_DIR} ${TOTAL_INCLUDES} && DariusCodeGenerator ${CMAKE_SOURCE_DIR}/Demo/Source/Demo ${CMAKE_SOURCE_DIR}/Demo/Source/Demo/Generated ${SOURCE_DIR}/Renderer/pch.hpp ${TOTAL_INCLUDES}
+                    COMMAND ${CMAKE_COMMAND} -E copy_if_different "${SOURCE_DIR}/Engine/pch.hpp" $<TARGET_FILE_DIR:DariusCodeGenerator> && DariusCodeGenerator ${SOURCE_DIR} ${SOURCE_DIR}/Generated "pch.hpp" ${SOURCE_DIR} ${TOTAL_INCLUDES} && DariusCodeGenerator ${CMAKE_SOURCE_DIR}/Demo/Source/Demo ${CMAKE_SOURCE_DIR}/Demo/Source/Demo/Generated "pch.hpp" ${TOTAL_INCLUDES}
                     COMMENT "Generating Darius Headers")
+    
 
 # Defining CMAKE project dependencies
-    
 add_dependencies(DariusGeneratorCommand DariusCodeGenerator)
 foreach(DLib ${DARIUS_LIBS})
     add_dependencies(${DLib} DariusGeneratorCommand)
