@@ -89,7 +89,7 @@ namespace Darius::Graphics
 			{
 				// Falloff Start
 				D_H_DETAILS_DRAW_PROPERTY("Intencity");
-				changed |= ImGui::DragFloat("##Intencity", &mLightData.Intencity, 0.01, 0, mLightData.Range, "%.3f");
+				changed |= ImGui::DragFloat("##Intencity", &mLightData.Intencity, 0.01, 0, FLT_MAX, "%.3f");
 
 				// Falloff End
 				D_H_DETAILS_DRAW_PROPERTY("Range");
