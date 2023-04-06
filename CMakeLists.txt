@@ -24,6 +24,7 @@ set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin/${CMAKE_BUILD_TYPE}"
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin/${CMAKE_BUILD_TYPE}")
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin/${CMAKE_BUILD_TYPE}")
 
+set(BASE_DIR ${CMAKE_SOURCE_DIR})
 set(SOURCE_DIR "${CMAKE_SOURCE_DIR}/src")
 
 if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
@@ -349,10 +350,13 @@ get_target_property(DARIUS_INCLUDES ${PROJECT_NAME} INCLUDE_DIRECTORIES)
 list(APPEND TOTAL_INCLUDES
     ${DARIUS_INCLUDES})
 
+FILE(GLOB HPP_SRC_FILES ${SOURCE_DIR}/**/*.hpp)
+
 add_custom_target(DariusGeneratorCommand
                     WORKING_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}
-                    COMMAND ${CMAKE_COMMAND} -E copy_if_different "${SOURCE_DIR}/Engine/pch.hpp" $<TARGET_FILE_DIR:DariusCodeGenerator> && DariusCodeGenerator ${SOURCE_DIR} ${SOURCE_DIR}/Generated "pch.hpp" ${SOURCE_DIR} ${TOTAL_INCLUDES} && DariusCodeGenerator ${CMAKE_SOURCE_DIR}/Demo/Source/Demo ${CMAKE_SOURCE_DIR}/Demo/Source/Demo/Generated "pch.hpp" ${TOTAL_INCLUDES}
-                    COMMENT "Generating Darius Headers")
+                    COMMAND ${CMAKE_COMMAND} -E copy_if_different "${SOURCE_DIR}/Engine/pch.hpp" $<TARGET_FILE_DIR:DariusCodeGenerator> && DariusCodeGenerator ${SOURCE_DIR} ${BASE_DIR}/Generated "pch.hpp" ${SOURCE_DIR} ${TOTAL_INCLUDES} && DariusCodeGenerator ${CMAKE_SOURCE_DIR}/Demo/Source/Demo ${CMAKE_SOURCE_DIR}/Demo/Source/Demo/Generated "pch.hpp" ${TOTAL_INCLUDES}
+                    COMMENT "Generating Darius Headers"
+                    DEPFILE ${SOURCE_DIR}/)
     
 
 # Defining CMAKE project dependencies

@@ -67,7 +67,7 @@ include_directories(SYSTEM ${Boost_INCLUDE_DIRS})
 target_include_directories("Core"
 PUBLIC
 	"${SOURCE_DIR}/Libs/rttr/src"
-	"${SOURCE_DIR}/Generated"
+	"${BASE_DIR}/Generated"
 PRIVATE
 	".."
 	${Boost_INCLUDE_DIRS}

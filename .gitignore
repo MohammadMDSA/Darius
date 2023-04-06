@@ -60,3 +60,6 @@ out/
 build/
 
 !dll/*.dll
+
+## Generated Headers
+Generated/
