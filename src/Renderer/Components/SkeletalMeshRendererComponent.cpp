@@ -2,6 +2,7 @@
 #include "SkeletalMeshRendererComponent.hpp"
 #include "Scene/Utils/DetailsDrawer.hpp"
 
+#include <Core/Serialization/TypeSerializer.hpp>
 #include <Core/TimeManager/TimeManager.hpp>
 #include <Debug/DebugDraw.hpp>
 #include <ResourceManager/ResourceManager.hpp>
@@ -150,31 +151,16 @@ namespace Darius::Graphics
 
 	void SkeletalMeshRendererComponent::Serialize(Json& j) const
 	{
-		if (mMaterial.IsValid())
+		/*if (mMaterial.IsValid())
 			D_CORE::to_json(j["Material"], mMaterial.Get()->GetUuid());
 		if (mMesh.IsValid())
-			D_CORE::to_json(j["Mesh"], mMesh.Get()->GetUuid());
+			D_CORE::to_json(j["Mesh"], mMesh.Get()->GetUuid());*/
+		D_SERIALIZATION::Serialize(*this, j);
 	}
 
 	void SkeletalMeshRendererComponent::Deserialize(Json const& j)
 	{
-		auto go = GetGameObject();
-
-		// Loading material
-		if (j.contains("Material"))
-		{
-			Uuid materialUuid;
-			D_CORE::from_json(j["Material"], materialUuid);
-			_SetMaterial(*D_RESOURCE::GetResource<MaterialResource>(materialUuid, *go));
-		}
-
-		if (j.contains("Mesh"))
-		{
-			// Loading mesh
-			Uuid meshUuid;
-			D_CORE::from_json(j["Mesh"], meshUuid);
-			_SetMesh(*D_RESOURCE::GetResource<SkeletalMeshResource>(meshUuid, *go));
-		}
+		D_SERIALIZATION::Deserialize(*this, j);
 	}
 
 	void SkeletalMeshRendererComponent::JointUpdateRecursion(Matrix4 const& parent, Mesh::SkeletonJoint& skeletonJoint)

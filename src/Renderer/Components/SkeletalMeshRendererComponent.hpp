@@ -82,21 +82,21 @@ namespace Darius::Graphics
 		}
 
 		DField(Get[inline], Set[inline], Serialize)
-		bool								mCastsShadow;
+		bool														mCastsShadow;
 
-		D_CONTAINERS::DVector<D_RENDERER_FRAME_RESOURCE::Joint>	mJoints;
+		D_CONTAINERS::DVector<D_RENDERER_FRAME_RESOURCE::Joint>		mJoints;
 		D_CONTAINERS::DVector<D_RENDERER_GEOMETRY::Mesh::SkeletonJoint> mSkeleton;
-		D_RENDERER_GEOMETRY::Mesh::SkeletonJoint*				mSkeletonRoot;
-		D_MATH_BOUNDS::BoundingSphere							mBounds;
+		D_RENDERER_GEOMETRY::Mesh::SkeletonJoint*					mSkeletonRoot;
+		D_MATH_BOUNDS::BoundingSphere								mBounds;
 
 		// Gpu buffers
-		D_GRAPHICS_BUFFERS::UploadBuffer	mMeshConstantsCPU[D_RENDERER_FRAME_RESOURCE::gNumFrameResources];
-		D_GRAPHICS_BUFFERS::ByteAddressBuffer mMeshConstantsGPU;
+		D_GRAPHICS_BUFFERS::UploadBuffer							mMeshConstantsCPU[D_RENDERER_FRAME_RESOURCE::gNumFrameResources];
+		D_GRAPHICS_BUFFERS::ByteAddressBuffer						mMeshConstantsGPU;
 
-		uint16_t							mComponentPsoFlags;
-		uint16_t							mCachedMaterialPsoFlags;
-		uint16_t							mPsoIndex;
-		bool								mPsoIndexDirty;
+		uint16_t													mComponentPsoFlags;
+		uint16_t													mCachedMaterialPsoFlags;
+		uint16_t													mPsoIndex;
+		bool														mPsoIndexDirty;
 
 	public:
 		Darius_Graphics_SkeletalMeshRendererComponent_GENERATED
