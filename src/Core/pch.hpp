@@ -37,6 +37,7 @@
 #include <wrl/client.h>
 
 #include <algorithm>
+#include <array>
 #include <cmath>
 #include <cstddef>
 #include <cstdint>
@@ -49,12 +50,28 @@
 #include <stdexcept>
 #include <system_error>
 #include <tuple>
+#include <unordered_map>
 
 #include <Libs/DirectXTK12/Inc/Keyboard.h>
 
-#ifdef _DEBUG
-#include <dxgidebug.h>
-#endif
+#include <locale>
+#include <codecvt>
+
+inline std::wstring STR2WSTR(const std::string& str)
+{
+    using convert_typeX = std::codecvt_utf8<wchar_t>;
+    std::wstring_convert<convert_typeX, wchar_t> converterX;
+
+    return converterX.from_bytes(str);
+}
+
+inline std::string WSTR2STR(const std::wstring& wstr)
+{
+    using convert_typeX = std::codecvt_utf8<wchar_t>;
+    std::wstring_convert<convert_typeX, wchar_t> converterX;
+
+    return converterX.to_bytes(wstr);
+}
 
 #ifdef __MINGW32__
 namespace Microsoft

@@ -1,12 +1,6 @@
 #pragma once
 
-#include <Math/VectorMath.hpp>
-#include <Renderer/FrameResource.hpp>
 #include <Utils/Common.hpp>
-
-#include <imgui.h>
-#include <imgui_internal.h>
-#include <iostream>
 
 #ifdef _D_EDITOR
 

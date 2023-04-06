@@ -397,7 +397,7 @@ namespace Darius::Renderer::LightManager
 
 		sorter.Sort();
 
-		auto& shadowContext = D_GRAPHICS::GraphicsContext::Begin();
+		auto& shadowContext = D_GRAPHICS::GraphicsContext::Begin(L"Rendering Shadows");
 		shadowContext.TransitionResource(ShadowTextureArrayBuffer, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
 
 		for (int i = 0; i < MaxNumLight; i++)

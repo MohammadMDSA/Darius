@@ -1,6 +1,6 @@
 #include "Editor/pch.hpp"
-#include <Renderer/pch.hpp>
 #include "SceneWindow.hpp"
+
 #include "Editor/EditorContext.hpp"
 
 #include <Core/TimeManager/TimeManager.hpp>

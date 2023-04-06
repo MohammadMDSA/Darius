@@ -77,8 +77,14 @@ namespace Darius::Editor::Simulate
 				auto deltaTime = (float)Timer->GetElapsedSeconds();
 
 				// World Logic
-				D_WORLD::Update(deltaTime);
-				D_WORLD::LateUpdate(deltaTime);
+				{
+					D_PROFILING::ScopedTimer SceneUpdateProfiling(L"Behaviour Update");
+					D_WORLD::Update(deltaTime);
+				}
+				{
+					D_PROFILING::ScopedTimer SceneUpdateProfiling(L"Behaviour Late Update");
+					D_WORLD::LateUpdate(deltaTime);
+				}
 
 				{
 					// Updating animations

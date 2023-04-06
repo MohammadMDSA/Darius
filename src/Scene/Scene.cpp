@@ -1,6 +1,6 @@
 #include "pch.hpp"
-#include <Renderer/pch.hpp>
 #include "Scene.hpp"
+
 #include "GameObject.hpp"
 
 #include "EntityComponentSystem/Components/ComponentBase.hpp"
@@ -13,8 +13,6 @@
 #include <Core/Serialization/Json.hpp>
 #include <Core/Uuid.hpp>
 #include <Job/Job.hpp>
-#include <Renderer/CommandContext.hpp>
-#include <Renderer/GraphicsUtils/Profiling/Profiling.hpp>
 #include <Utils/Assert.hpp>
 
 #include <flecs.h>
@@ -83,8 +81,6 @@ namespace Darius::Scene
 	{
 		if (!GOs)
 			return;
-
-		D_PROFILING::ScopedTimer SceneUpdateProfiling(L"Behaviour Update");
 
 		World.progress(deltaTime);
 

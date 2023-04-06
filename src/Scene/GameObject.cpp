@@ -1,5 +1,4 @@
 ﻿#include "pch.hpp"
-#include <Renderer/pch.hpp>
 
 #include "GameObject.hpp"
 #include "Scene/Utils/DetailsDrawer.hpp"
@@ -11,8 +10,11 @@
 #include <Core/Uuid.hpp>
 #include <ResourceManager/ResourceManager.hpp>
 
+#ifdef _D_EDITOR
 #include <imgui.h>
+#include <imgui_internal.h>
 #include <Libs/FontIcon/IconsFontAwesome6.h>
+#endif
 
 using namespace D_CONTAINERS;
 using namespace D_CORE;

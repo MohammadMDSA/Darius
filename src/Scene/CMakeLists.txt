@@ -57,7 +57,7 @@ PRIVATE
 
 
 target_link_libraries("Scene" PRIVATE ${Boost_LIBRARIES} IMGUI)
-target_link_libraries("Scene" PUBLIC flecs_static Utils Core Job Debug)
+target_link_libraries("Scene" PUBLIC flecs_static Utils Core Job)
 
 
 if(BUILD_TESTS)

@@ -21,8 +21,6 @@ namespace Darius::Graphics
 	class DClass(Serialize) SkeletalMeshResource : public MeshResource
 	{
 	public:
-		Darius_Graphics_SkeletalMeshResource_GENERATED
-
 		D_CH_RESOURCE_BODY(SkeletalMeshResource, "Skeletal Mesh", ".fbx")
 
 		virtual void					Create(D_RENDERER_GEOMETRY::MultiPartMeshData<VertexType> const& data) override;
@@ -50,6 +48,9 @@ namespace Darius::Graphics
 
 		virtual bool					UploadToGpu() override;
 
+
+	public:
+		Darius_Graphics_SkeletalMeshResource_GENERATED
 	};
 }
 

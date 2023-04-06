@@ -2,8 +2,6 @@
 
 #include "ComponentBase.hpp"
 
-#include <Renderer/Light/LightManager.hpp>
-
 #ifndef D_ECS_COMP
 #define D_ECS_COMP Darius::Scene::ECS::Components
 #endif // !D_ECS_COMP
