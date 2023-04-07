@@ -1,11 +1,14 @@
 #include "pch.hpp"
 #include "AnimationComponent.hpp"
 
+#include <Core/Serialization/TypeSerializer.hpp>
 #include <Renderer/Components/SkeletalMeshRendererComponent.hpp>
 #include <Utils/DragDropPayload.hpp>
 
+#ifdef _D_EDITOR
 #include <imgui.h>
 #include <Libs/FontIcon/IconsFontAwesome6.h>
+#endif
 
 #include "AnimationComponent.sgenerated.hpp"
 
@@ -248,28 +251,12 @@ namespace Darius::Animation
 
 	void AnimationComponent::Serialize(Json& j) const
 	{
-		if (mAnimation.IsValid())
-			D_CORE::to_json(j["Animation"], mAnimation->GetUuid());
-
-		j["RootMotion"] = mRootMotion;
+		D_SERIALIZATION::Serialize(*this, j);
 	}
 
 	void AnimationComponent::Deserialize(Json const& j)
 	{
-		auto go = GetGameObject();
-
-		if (j.contains("Animation"))
-		{
-			Uuid animUuid;
-			D_CORE::from_json(j["Animation"], animUuid);
-
-			_SetAnimation(*D_RESOURCE::GetResource<AnimationResource>(animUuid, *go));
-		}
-
-		if (j.contains("RootMotion"))
-		{
-			mRootMotion = j["RootMotion"];
-		}
+		D_SERIALIZATION::Deserialize(*this, j);
 	}
 
 }
