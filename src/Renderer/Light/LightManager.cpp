@@ -2,10 +2,11 @@
 #include "LightManager.hpp"
 
 #include "Renderer/FrameResource.hpp"
+#include "Renderer/GraphicsDeviceManager.hpp"
 #include "Renderer/GraphicsUtils/Buffers/ShadowBuffer.hpp"
 #include "Renderer/GraphicsUtils/Buffers/GpuBuffer.hpp"
 #include "Renderer/GraphicsUtils/Buffers/UploadBuffer.hpp"
-#include "Renderer/GraphicsDeviceManager.hpp"
+#include "Renderer/GraphicsUtils/Profiling/Profiling.hpp"
 #include "Renderer/Renderer.hpp"
 
 #include <Core/Containers/Map.hpp>
@@ -388,8 +389,10 @@ namespace Darius::Renderer::LightManager
 
 	}
 
-	void RenderShadows(D_CONTAINERS::DVector<RenderItem> const& shadowRenderItems)
+	void RenderShadows(D_CONTAINERS::DVector<RenderItem> const& shadowRenderItems, D_GRAPHICS::GraphicsContext& shadowContext)
 	{
+
+		D_PROFILING::ScopedTimer _prof(L"Rendering Shadows", shadowContext);
 
 		// TODO: Create sorter and input render item per light source
 		MeshSorter sorter(MeshSorter::kShadows);
@@ -397,7 +400,6 @@ namespace Darius::Renderer::LightManager
 
 		sorter.Sort();
 
-		auto& shadowContext = D_GRAPHICS::GraphicsContext::Begin(L"Rendering Shadows");
 		shadowContext.TransitionResource(ShadowTextureArrayBuffer, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
 
 		for (int i = 0; i < MaxNumLight; i++)
@@ -426,7 +428,6 @@ namespace Darius::Renderer::LightManager
 			//});
 			shadowContext.TransitionResource(ShadowTextureArrayBuffer, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
 		}
-		shadowContext.Finish();
 
 		//if (D_JOB::IsMainThread())
 		//	D_JOB::WaitForThreadsToFinish();
