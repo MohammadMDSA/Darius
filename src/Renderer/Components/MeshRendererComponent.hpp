@@ -19,8 +19,6 @@ namespace Darius::Graphics
 
 	public:
 
-		Darius_Graphics_MeshRendererComponent_GENERATED
-
 #ifdef _D_EDITOR
 		virtual bool						DrawDetails(float params[]) override;
 #endif
@@ -34,25 +32,19 @@ namespace Darius::Graphics
 		virtual void						Update(float dt) override;
 		virtual void						OnDestroy() override;
 
-		void								SetMesh(D_RESOURCE::ResourceHandle handle);
-		void								SetMaterial(D_RESOURCE::ResourceHandle handle);
-
 		D_RENDERER_FRAME_RESOURCE::RenderItem GetRenderItem();
 
 
-		INLINE bool							CanRender() { return IsActive() && mMeshResource.IsValid(); }
-		INLINE const D_MATH_BOUNDS::BoundingSphere& GetBounds() const { return mMeshResource.Get()->GetMeshData()->mBoundSp; }
+		INLINE bool							CanRender() { return IsActive() && mMesh.IsValid(); }
+		INLINE const D_MATH_BOUNDS::BoundingSphere& GetBounds() const { return mMesh.Get()->GetMeshData()->mBoundSp; }
 
 		INLINE D3D12_GPU_VIRTUAL_ADDRESS	GetConstantsAddress() { return mMeshConstantsGPU.GetGpuVirtualAddress(); }
 
 	private:
 
-		void								_SetMesh(D_RESOURCE::ResourceHandle handle);
-		void								_SetMaterial(D_RESOURCE::ResourceHandle handle);
-
 		INLINE uint16_t						GetPsoIndex()
 		{
-			auto materialPsoFlags = mMaterialResource->GetPsoFlags();
+			auto materialPsoFlags = mMaterial->GetPsoFlags();
 
 			// Whether resource has changed
 			if (mCachedMaterialPsoFlags != materialPsoFlags)
@@ -73,9 +65,11 @@ namespace Darius::Graphics
 		DField(Get[inline], Set[inline])
 		bool								mCastsShadow;
 
+		DField(Resource, Serialize)
+		D_CORE::Ref<StaticMeshResource>		mMesh;
 
-		D_CORE::Ref<StaticMeshResource>		mMeshResource;
-		D_CORE::Ref<MaterialResource>		mMaterialResource;
+		DField(Resource, Serialize)
+		D_CORE::Ref<MaterialResource>		mMaterial;
 
 		// Gpu buffers
 		D_GRAPHICS_BUFFERS::UploadBuffer	mMeshConstantsCPU[D_RENDERER_FRAME_RESOURCE::gNumFrameResources];
@@ -85,6 +79,9 @@ namespace Darius::Graphics
 		uint16_t							mCachedMaterialPsoFlags;
 		uint16_t							mPsoIndex;
 		bool								mPsoIndexDirty;
+
+	public:
+		Darius_Graphics_MeshRendererComponent_GENERATED
 
 	};
 }

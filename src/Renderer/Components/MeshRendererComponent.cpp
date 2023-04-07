@@ -1,12 +1,15 @@
 #include "Renderer/pch.hpp"
 #include "MeshRendererComponent.hpp"
 
+#include <Core/Serialization/TypeSerializer.hpp>
 #include <ResourceManager/ResourceManager.hpp>
 #include <Scene/Utils/DetailsDrawer.hpp>
 #include <Utils/DragDropPayload.hpp>
 
+#ifdef _D_EDITOR
 #include <imgui.h>
 #include <Libs/FontIcon/IconsFontAwesome6.h>
+#endif
 
 #include "MeshRendererComponent.sgenerated.hpp"
 
@@ -50,24 +53,24 @@ namespace Darius::Graphics
 		}
 		mMeshConstantsGPU.Create(L"Mesh Constant GPU Buffer", 1, sizeof(MeshConstants));
 
-		if (!mMaterialResource.IsValid())
+		if (!mMaterial.IsValid())
 			_SetMaterial(D_GRAPHICS::GetDefaultGraphicsResource(DefaultResource::Material));
 	}
 
 	RenderItem MeshRendererComponent::GetRenderItem()
 	{
 		auto result = RenderItem();
-		const Mesh* mesh = mMeshResource.Get()->GetMeshData();
+		const Mesh* mesh = mMesh.Get()->GetMeshData();
 		result.BaseVertexLocation = mesh->mDraw[0].BaseVertexLocation;
 		result.IndexCount = mesh->mNumTotalIndices;
 		result.StartIndexLocation = mesh->mDraw[0].StartIndexLocation;
 		result.Mesh = mesh;
 		result.PrimitiveType = D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
 		result.MeshCBV = GetConstantsAddress();
-		result.Material.MaterialCBV = *mMaterialResource.Get();
-		result.Material.MaterialSRV = mMaterialResource->GetTexturesHandle();
+		result.Material.MaterialCBV = *mMaterial.Get();
+		result.Material.MaterialSRV = mMaterial->GetTexturesHandle();
 		result.PsoType = GetPsoIndex();
-		result.PsoFlags = mComponentPsoFlags | mMaterialResource->GetPsoFlags();
+		result.PsoFlags = mComponentPsoFlags | mMaterial->GetPsoFlags();
 		return result;
 	}
 
@@ -80,12 +83,12 @@ namespace Darius::Graphics
 
 		// Mesh selection
 		D_H_DETAILS_DRAW_PROPERTY("Mesh");
-		D_H_RESOURCE_SELECTION_DRAW(StaticMeshResource, mMeshResource, "Select Mesh", SetMesh);
+		D_H_RESOURCE_SELECTION_DRAW(StaticMeshResource, mMesh, "Select Mesh", SetMesh);
 
 
 		// Material selection
 		D_H_DETAILS_DRAW_PROPERTY("Material");
-		D_H_RESOURCE_SELECTION_DRAW(MaterialResource, mMaterialResource, "Select Material", SetMaterial);
+		D_H_RESOURCE_SELECTION_DRAW(MaterialResource, mMaterial, "Select Material", SetMaterial);
 
 		// Casting shadow
 		D_H_DETAILS_DRAW_PROPERTY("Casts Shadow");
@@ -100,56 +103,14 @@ namespace Darius::Graphics
 	}
 #endif
 
-
-	void MeshRendererComponent::SetMesh(ResourceHandle handle)
-	{
-		mChangeSignal();
-		_SetMesh(handle);
-	}
-
-	void MeshRendererComponent::SetMaterial(ResourceHandle handle)
-	{
-		mChangeSignal();
-		_SetMaterial(handle);
-	}
-
-	void MeshRendererComponent::_SetMesh(ResourceHandle handle)
-	{
-		mMeshResource = D_RESOURCE::GetResource<StaticMeshResource>(handle, *this);
-	}
-
-	void MeshRendererComponent::_SetMaterial(ResourceHandle handle)
-	{
-		mMaterialResource = D_RESOURCE::GetResource<MaterialResource>(handle, *this);
-	}
-
 	void MeshRendererComponent::Serialize(Json& j) const
 	{
-		if (mMaterialResource.IsValid())
-			D_CORE::to_json(j["Material"], mMaterialResource.Get()->GetUuid());
-		if (mMeshResource.IsValid())
-			D_CORE::to_json(j["Mesh"], mMeshResource.Get()->GetUuid());
+		D_SERIALIZATION::Serialize(*this, j);
 	}
 
 	void MeshRendererComponent::Deserialize(Json const& j)
 	{
-		auto go = GetGameObject();
-
-		// Loading material
-		if (j.contains("Material"))
-		{
-			Uuid materialUuid;
-			D_CORE::from_json(j["Material"], materialUuid);
-			_SetMaterial(*D_RESOURCE::GetResource<MaterialResource>(materialUuid, *go));
-		}
-
-		if (j.contains("Mesh"))
-		{
-			// Loading mesh
-			Uuid meshUuid;
-			D_CORE::from_json(j["Mesh"], meshUuid);
-			_SetMesh(*D_RESOURCE::GetResource<StaticMeshResource>(meshUuid, *go));
-		}
+		D_SERIALIZATION::Deserialize(*this, j);
 	}
 
 	void MeshRendererComponent::Update(float dt)
