@@ -177,8 +177,6 @@ namespace Darius::Editor::Gui::Windows
 				}
 			});
 
-		context.Finish();
-
 		// Post Processing
 		D_GRAPHICS_PP::PostProcessContextBuffers postBuffers =
 		{
@@ -190,14 +188,16 @@ namespace Darius::Editor::Gui::Windows
 			mPostEffectsBuffer,
 			L"Scene Window"
 		};
-		D_GRAPHICS_PP::Render(postBuffers);
+		D_GRAPHICS_PP::Render(postBuffers, context.GetComputeContext());
 
 		// Copying to texture
-		auto& copyContext = CommandContext::Begin(L"Scene Window Texture Copy");
-		copyContext.TransitionResource(mSceneTexture, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, true);
-		copyContext.Finish();
+		context.TransitionResource(mSceneTexture, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, true);
+
+		context.Finish();
 
 		D_GRAPHICS_DEVICE::GetDevice()->CopyDescriptorsSimple(1, mTextureHandle, mSceneTexture.GetSRV(), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+		
+
 	}
 
 	void SceneWindow::DrawGUI()
@@ -404,6 +404,7 @@ namespace Darius::Editor::Gui::Windows
 
 	void SceneWindow::CreateBuffers()
 	{
+		D_GRAPHICS::GetCommandManager()->IdleGPU();
 		mBufferWidth = mWidth;
 		mBufferHeight = mHeight;
 		mSceneTexture.Create(L"Scene Texture", (UINT)mBufferWidth, (UINT)mBufferHeight, 1, D_GRAPHICS::GetColorFormat());
