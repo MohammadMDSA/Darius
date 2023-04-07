@@ -150,11 +150,7 @@ namespace Darius::Graphics
 	}
 
 	void SkeletalMeshRendererComponent::Serialize(Json& j) const
-	{
-		/*if (mMaterial.IsValid())
-			D_CORE::to_json(j["Material"], mMaterial.Get()->GetUuid());
-		if (mMesh.IsValid())
-			D_CORE::to_json(j["Mesh"], mMesh.Get()->GetUuid());*/
+	{s
 		D_SERIALIZATION::Serialize(*this, j);
 	}
 
