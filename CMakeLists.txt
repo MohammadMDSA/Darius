@@ -354,7 +354,7 @@ FILE(GLOB HPP_SRC_FILES ${SOURCE_DIR}/**/*.hpp)
 
 add_custom_target(DariusGeneratorCommand
                     WORKING_DIRECTORY $<TARGET_FILE_DIR:DariusCodeGenerator>
-                    COMMAND ${CMAKE_COMMAND} -E copy_if_different "${SOURCE_DIR}/Engine/pch.hpp" $<TARGET_FILE_DIR:DariusCodeGenerator> && DariusCodeGenerator ${SOURCE_DIR} ${BASE_DIR}/Generated "./pch.hpp" ${SOURCE_DIR} ${TOTAL_INCLUDES} && DariusCodeGenerator ${CMAKE_SOURCE_DIR}/Demo/Source/Demo ${CMAKE_SOURCE_DIR}/Demo/Source/Demo/Generated "./pch.hpp" ${TOTAL_INCLUDES}
+                    COMMAND ${CMAKE_COMMAND} -E copy_if_different "${SOURCE_DIR}/pch.h" $<TARGET_FILE_DIR:DariusCodeGenerator> && DariusCodeGenerator ${SOURCE_DIR} ${BASE_DIR}/Generated "pch.h" ${SOURCE_DIR} ${TOTAL_INCLUDES} && DariusCodeGenerator ${CMAKE_SOURCE_DIR}/Demo/Source/Demo ${CMAKE_SOURCE_DIR}/Demo/Source/Demo/Generated "pch.h" ${TOTAL_INCLUDES}
                     COMMENT "Generating Darius Headers"
                     DEPFILE ${SOURCE_DIR}/)
     
