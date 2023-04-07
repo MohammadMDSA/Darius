@@ -296,9 +296,9 @@ namespace Darius::Graphics::PostProcessing
 		context.Dispatch2D(contextBuffers.SceneColor.GetWidth(), contextBuffers.SceneColor.GetHeight());
 	}
 
-	void Render(PostProcessContextBuffers& buffers)
+	void Render(PostProcessContextBuffers& buffers, D_GRAPHICS::ComputeContext& context)
 	{
-		auto& context = ComputeContext::Begin(buffers.JobId + L" Post Processing");
+		context.PIXBeginEvent((buffers.JobId + L" Post Processing").c_str());
 
 		context.SetRootSignature(PostEffectRS);
 
@@ -318,7 +318,7 @@ namespace Darius::Graphics::PostProcessing
 		if (!D_GRAPHICS::SupportsTypedUAVLoadSupport_R11G11B10_FLOAT())
 			CopyBackPostBuffer(context, buffers);
 
-		if (DrawHistogram)
+		if (false)
 		{
 			D_PROFILING::ScopedTimer _prof(L"Draw Debug Histogram", context);
 			context.SetRootSignature(PostEffectRS);
@@ -333,7 +333,7 @@ namespace Darius::Graphics::PostProcessing
 			context.TransitionResource(buffers.SceneColor, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
 		}
 
-		context.Finish();
+		context.PIXEndEvent();
 	}
 
 #ifdef _D_EDITOR

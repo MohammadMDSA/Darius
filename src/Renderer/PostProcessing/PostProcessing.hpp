@@ -30,7 +30,7 @@ namespace Darius::Graphics::PostProcessing
     void                Initialize(D_SERIALIZATION::Json const& settings);
     void                Shutdown();
 
-    void                Render(PostProcessContextBuffers& contextBuffers);
+    void                Render(PostProcessContextBuffers& contextBuffers, D_GRAPHICS::ComputeContext& context);
 
     float               GetExposure();
 
