@@ -318,7 +318,7 @@ namespace Darius::Graphics::PostProcessing
 		if (!D_GRAPHICS::SupportsTypedUAVLoadSupport_R11G11B10_FLOAT())
 			CopyBackPostBuffer(context, buffers);
 
-		if (false)
+		if (DrawHistogram)
 		{
 			D_PROFILING::ScopedTimer _prof(L"Draw Debug Histogram", context);
 			context.SetRootSignature(PostEffectRS);

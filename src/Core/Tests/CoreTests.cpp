@@ -1,8 +1,8 @@
 #define BOOST_TEST_MODULE CoreTests
 #define BOOST_TEST_DYN_LINK
 
-#include <boost/test/included/unit_test.hpp>
 #include <Memory/Memory.hpp>
+#include <boost/test/included/unit_test.hpp>
 
 using namespace Darius::Core::Memory;
 

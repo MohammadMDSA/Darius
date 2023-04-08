@@ -150,7 +150,7 @@ namespace Darius::Graphics
 	}
 
 	void SkeletalMeshRendererComponent::Serialize(Json& j) const
-	{s
+	{
 		D_SERIALIZATION::Serialize(*this, j);
 	}
 
