@@ -18,9 +18,6 @@ namespace Darius::Animation
 	{
 		D_CH_RESOURCE_BODY(AnimationResource, "Animation", ".fbx");
 
-	public:
-		Darius_Animation_AnimationResource_GENERATED
-
 #ifdef _D_EDITOR
 		virtual bool					DrawDetails(float params[]) override { return false; }
 #endif // _D_EDITOR
@@ -52,6 +49,9 @@ namespace Darius::Animation
 
 	private:
 		bool						GetPropertyData(int jointIndex, void* propP, void* currentLayerP, AnimationCurve& animCurve, const char* channelName);
+
+	public:
+		Darius_Animation_AnimationResource_GENERATED
 
 	};
 }
