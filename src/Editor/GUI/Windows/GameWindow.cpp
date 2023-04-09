@@ -66,6 +66,8 @@ namespace Darius::Editor::Gui::Windows
 			// Clear scene color
 			context.TransitionResource(mSceneTexture, D3D12_RESOURCE_STATE_RENDER_TARGET, true);
 			context.ClearColor(mSceneTexture);
+			
+			context.Finish();
 			return;
 		}
 		
