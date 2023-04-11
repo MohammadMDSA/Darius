@@ -45,7 +45,6 @@ namespace Darius::Math
 
 		INLINE operator DirectX::XMVECTOR const& () const { return m_vec; }
 		INLINE operator DirectX::XMFLOAT3() const { DirectX::XMFLOAT3 dest; DirectX::XMStoreFloat3(&dest, m_vec); return dest; }
-		INLINE bool operator ==(Vector3 const& other) const { return DirectX::XMVector3Equal(other.m_vec, m_vec); }
 
 		INLINE float GetX() const { return Scalar(DirectX::XMVectorSplatX(m_vec)); }
 		INLINE float GetY() const { return Scalar(DirectX::XMVectorSplatY(m_vec)); }
@@ -54,6 +53,7 @@ namespace Darius::Math
 		INLINE void SetY(float _y) { m_vec = DirectX::XMVectorPermute<0, 5, 2, 3>(m_vec, Scalar(_y)); }
 		INLINE void SetZ(float _z) { m_vec = DirectX::XMVectorPermute<0, 1, 6, 3>(m_vec, Scalar(_z)); }
 		INLINE Vector3 Normalize() { return Vector3(DirectX::XMVector3Normalize(m_vec)); }
+		INLINE bool	Equals(Vector3 const& other) const { return DirectX::XMVector3Equal(m_vec, other.m_vec); }
 
 		INLINE Vector3 operator- () const { return Vector3(DirectX::XMVectorNegate(m_vec)); }
 		INLINE Vector3 operator+ (Vector3 v2) const { return Vector3(DirectX::XMVectorAdd(m_vec, v2)); }
@@ -120,7 +120,6 @@ namespace Darius::Math
 
 		INLINE operator DirectX::XMVECTOR() const { return m_vec; }
 		INLINE operator DirectX::XMFLOAT4() const { DirectX::XMFLOAT4 dest; DirectX::XMStoreFloat4(&dest, m_vec); return dest; }
-		INLINE bool operator ==(Vector4 const& other) const { return DirectX::XMVector3Equal(other.m_vec, m_vec); }
 
 		INLINE float GetX() const { return Scalar(DirectX::XMVectorSplatX(m_vec)); }
 		INLINE float GetY() const { return Scalar(DirectX::XMVectorSplatY(m_vec)); }
@@ -136,6 +135,8 @@ namespace Darius::Math
 		INLINE D_CONTAINERS::DVector<float> GetData() const { return { GetX(), GetY(), GetZ(), GetW() }; }
 		// Consty, don't use too often
 		INLINE void SetData(D_CONTAINERS::DVector<float> data) { SetX(data[0]); SetY(data[1]); SetZ(data[2]); SetW(data[3]); }
+
+		INLINE bool	Equals(Vector4 const& other) const { return DirectX::XMVector4Equal(m_vec, other.m_vec); }
 
 		INLINE Vector4 operator- () const { return Vector4(DirectX::XMVectorNegate(m_vec)); }
 		INLINE Vector4 operator+ (Vector4 v2) const { return Vector4(DirectX::XMVectorAdd(m_vec, v2)); }
@@ -189,7 +190,9 @@ namespace Darius::Math
 	{
 	public:
 		INLINE BoolVector(DirectX::FXMVECTOR vec) { m_vec = vec; }
+
 		INLINE operator DirectX::XMVECTOR() const { return m_vec; }
+		INLINE operator bool() const { return DirectX::XMVectorGetX(m_vec) && DirectX::XMVectorGetY(m_vec) && DirectX::XMVectorGetZ(m_vec) && DirectX::XMVectorGetW(m_vec); }
 	protected:
 		DirectX::XMVECTOR m_vec;
 
