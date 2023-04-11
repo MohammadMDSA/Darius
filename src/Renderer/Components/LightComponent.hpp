@@ -16,9 +16,8 @@ namespace Darius::Graphics
 		D_H_COMP_BODY(LightComponent, D_ECS_COMP::ComponentBase, "Rendering/Light", true);
 
 	public:
-		Darius_Graphics_LightComponent_GENERATED
 
-#ifdef _DEBUG
+#ifdef _D_EDITOR
 		virtual bool					DrawDetails(float params[]) override;
 #endif // _DEBUG
 
@@ -27,7 +26,7 @@ namespace Darius::Graphics
 		virtual void					Deserialize(D_SERIALIZATION::Json const& j) override;
 
 		// States
-		virtual INLINE void				Start() override { SetLightType(mLightType); }
+		virtual void					Awake() override;
 		virtual INLINE void				OnDestroy() override { D_LIGHT::ReleaseLight(mLightType, mLightIndex); }
 
 		// Gameobject events
@@ -44,16 +43,16 @@ namespace Darius::Graphics
 		DField(Get[inline])
 		int								mLightIndex;
 
-		DField(Get[inline])
+		DField(Get[inline], Serialize)
 		D_LIGHT::LightSourceType		mLightType;
 
-		DField(Get[inline, const, &], Set[inline])
+		DField(Get[inline, const, &], Set[inline], Serialize)
 		D_LIGHT::LightData				mLightData;
 
-		DField(Get[inline], Set[inline])
+		DField(Get[inline], Set[inline], Serialize)
 		float							mConeOuterAngle;
 
-		DField(Get[inline], Set[inline])
+		DField(Get[inline], Set[inline], Serialize)
 		float							mConeInnerAngle;
 
 	protected:
@@ -63,6 +62,9 @@ namespace Darius::Graphics
 			mLightData.SpotAngles.x = 1.f / (D_MATH::Cos(mConeInnerAngle) - cosOuter);
 			mLightData.SpotAngles.y = cosOuter;
 		}
+
+	public:
+		Darius_Graphics_LightComponent_GENERATED
 	};
 }
 

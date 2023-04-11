@@ -1,10 +1,13 @@
 #include "Renderer/pch.hpp"
 #include "LightComponent.hpp"
 
+#include <Core/Serialization/TypeSerializer.hpp>
 #include <Math/Serialization.hpp>
 #include <Scene/Utils/DetailsDrawer.hpp>
 
+#ifdef _D_EDITOR
 #include <imgui.h>
+#endif
 
 using namespace D_LIGHT;
 using namespace D_SERIALIZATION;
@@ -34,13 +37,19 @@ namespace Darius::Graphics
 		UpdateAngleData();
 	}
 
+	void LightComponent::Awake()
+	{
+		SetLightType(mLightType);
+		UpdateAngleData();
+	}
+
 	void LightComponent::Update(float deltaTime)
 	{
 		if (mLightIndex >= 0)
 			D_LIGHT::UpdateLight(mLightType, mLightIndex, GetTransform(), IsActive(), mLightData);
 	}
 
-#ifdef _DEBUG
+#ifdef _D_EDITOR
 	bool LightComponent::DrawDetails(float params[])
 	{
 		bool changed = false;
@@ -120,7 +129,7 @@ namespace Darius::Graphics
 
 	void LightComponent::Serialize(Json& j) const
 	{
-		j["Type"] = mLightType;
+		/*j["Type"] = mLightType;
 		if (mLightIndex >= 0)
 		{
 
@@ -129,12 +138,14 @@ namespace Darius::Graphics
 			j["Intencity"] = mLightData.Intencity;
 			j["SpotInnerAngle"] = mConeInnerAngle;
 			j["SpotOuterAngle"] = mConeOuterAngle;
-		}
+		}*/
+
+		D_SERIALIZATION::Serialize(*this, j);
 	}
 
 	void LightComponent::Deserialize(Json const& j)
 	{
-		SetLightType(j["Type"].get<LightSourceType>());
+		/*SetLightType(j["Type"].get<LightSourceType>());
 		if (mLightIndex >= 0 && j.contains("Color"))
 		{
 
@@ -147,7 +158,8 @@ namespace Darius::Graphics
 			if (j.contains("SpotOuterAngle"))
 				mConeOuterAngle = j["SpotOuterAngle"];
 		}
-		UpdateAngleData();
+		UpdateAngleData();*/
+		D_SERIALIZATION::Deserialize(*this, j);
 	}
 
 	void LightComponent::SetLightType(LightSourceType type)
