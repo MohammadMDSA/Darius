@@ -46,13 +46,12 @@ namespace Darius::Math
 	INLINE BoolVector operator<= ( TYPE lhs, TYPE rhs ) { return DirectX::XMVectorLessOrEqual(lhs, rhs); } \
 	INLINE BoolVector operator>  ( TYPE lhs, TYPE rhs ) { return DirectX::XMVectorGreater(lhs, rhs); } \
 	INLINE BoolVector operator>= ( TYPE lhs, TYPE rhs ) { return DirectX::XMVectorGreaterOrEqual(lhs, rhs); } \
-	INLINE BoolVector operator== ( TYPE lhs, TYPE rhs ) { return DirectX::XMVectorEqual(lhs, rhs); } \
-	INLINE TYPE Select( TYPE lhs, TYPE rhs, BoolVector mask ) { return TYPE(DirectX::XMVectorSelect(lhs, rhs, mask)); }
+	INLINE TYPE Select( TYPE lhs, TYPE rhs, BoolVector mask ) { return TYPE(DirectX::XMVectorSelect(lhs, rhs, mask)); } \
+	INLINE BoolVector operator== ( TYPE lhs, TYPE rhs ) { return DirectX::XMVectorEqual(lhs, rhs); }
 
-
-	CREATE_SIMD_FUNCTIONS(Scalar)
-		CREATE_SIMD_FUNCTIONS(Vector3)
-		CREATE_SIMD_FUNCTIONS(Vector4)
+	CREATE_SIMD_FUNCTIONS(Scalar);
+	CREATE_SIMD_FUNCTIONS(Vector3);
+	CREATE_SIMD_FUNCTIONS(Vector4);
 
 #undef CREATE_SIMD_FUNCTIONS
 

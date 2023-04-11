@@ -210,7 +210,8 @@ namespace Darius::Editor::Gui::Windows
 		globals.ViewProj = temp;
 		globals.InvViewProj = Matrix4::Inverse(temp);
 
-		globals.CameraPos = camera.GetPosition();
+		auto const pos = camera.GetPosition();
+		globals.CameraPos = pos;
 		globals.RenderTargetSize = XMFLOAT2(width, height);
 		globals.InvRenderTargetSize = XMFLOAT2(1.f / width, 1.f / height);
 		globals.NearZ = camera.GetNearClip();
