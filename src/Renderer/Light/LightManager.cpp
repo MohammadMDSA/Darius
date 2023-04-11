@@ -14,6 +14,8 @@
 #include <Math/Camera/ShadowCamera.hpp>
 #include <Job/Job.hpp>
 
+#include "LightManager.sgenerated.hpp"
+
 using namespace D_CONTAINERS;
 using namespace D_GRAPHICS_BUFFERS;
 using namespace D_MATH;

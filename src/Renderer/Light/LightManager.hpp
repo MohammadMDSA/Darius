@@ -6,6 +6,8 @@
 #include <Core/Containers/Vector.hpp>
 #include <Math/VectorMath.hpp>
 
+#include "LightManager.generated.hpp"
+
 #ifndef D_LIGHT
 #define D_LIGHT Darius::Renderer::LightManager
 #endif // !D_LIGHT
@@ -22,20 +24,30 @@ namespace Darius::Renderer::LightManager
 	constexpr UINT		MaxNumSpotLight = 125;
 	constexpr UINT		MaxNumLight = MaxNumDirectionalLight + MaxNumPointLight + MaxNumSpotLight;
 
-	enum class LightSourceType
+
+	enum class DEnum(Serialize) LightSourceType
 	{
 		DirectionalLight,
 		PointLight,
 		SpotLight
 	};
 
-	struct LightData
+
+	struct DStruct(Serialize) LightData
 	{
+		DField(Serialize)
 		DirectX::XMFLOAT3	Color = D_MATH::Vector3(D_MATH::kOne);
+
 		DirectX::XMFLOAT3	Direction = { 0.f, 0.f, -1.f };				// Directional/Spot light only
+
 		DirectX::XMFLOAT3	Position = D_MATH::Vector3(D_MATH::kZero);  // Point light only
+
+		DField(Serialize)
 		float				Intencity = 1.f;							// Point/Spot light only
+
+		DField(Serialize)
 		float				Range = 10.f;								// Point/Spot light only
+
 		DirectX::XMFLOAT2	SpotAngles = { 1000.f, 0.8f };				// Spot light only
 		DirectX::XMFLOAT4X4	ShadowMatrix;
 		bool				CastsShadow = true;
@@ -61,7 +73,6 @@ namespace Darius::Renderer::LightManager
 	void				ReleaseLight(LightSourceType preType, int preIndex);
 
 	void				UpdateLight(LightSourceType type, int index, D_MATH::Transform const& trans, bool active, LightData const& light);
-
 
 	D_H_SERIALIZE_ENUM(LightSourceType,
 		{
