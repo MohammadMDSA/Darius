@@ -37,6 +37,7 @@ list(APPEND MATH_LIBS_SOURCES
 	"Matrix3.cpp"
 	"Matrix4.cpp"
 	"Camera/Camera.cpp"
+	"Camera/BaseCamera.cpp"
 	"Camera/Frustum.cpp"
 	"Camera/ShadowCamera.cpp"
 	"Serialization.cpp"

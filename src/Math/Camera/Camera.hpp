@@ -16,9 +16,13 @@
 #include "Math/VectorMath.hpp"
 #include "Frustum.hpp"
 
+#include <rttr/rttr_enable.h>
+
+#include "Camera.generated.hpp"
+
 namespace Darius::Math::Camera
 {
-    class BaseCamera
+    class DClass() BaseCamera
     {
     public:
 
@@ -35,11 +39,11 @@ namespace Darius::Math::Camera
         void SetTransform(const AffineTransform& xform);
         void SetTransform(const OrthogonalTransform& xform);
 
-        const Quaternion GetRotation() const { return m_CameraToWorld.GetRotation(); }
-        const Vector3 GetRightVec() const { return m_Basis.GetX(); }
-        const Vector3 GetUpVec() const { return m_Basis.GetY(); }
-        const Vector3 GetForwardVec() const { return -m_Basis.GetZ(); }
-        const Vector3 GetPosition() const { return m_CameraToWorld.GetTranslation(); }
+        Quaternion GetRotation() const { return m_CameraToWorld.GetRotation(); }
+        Vector3 GetRightVec() const { return m_Basis.GetX(); }
+        Vector3 GetUpVec() const { return m_Basis.GetY(); }
+        Vector3 GetForwardVec() const { return -m_Basis.GetZ(); }
+        Vector3 GetPosition() const { return m_CameraToWorld.GetTranslation(); }
 
         // Accessors for reading the various matrices and frusta
         const Matrix4& GetViewMatrix() const { return m_ViewMatrix; }
@@ -83,41 +87,59 @@ namespace Darius::Math::Camera
         Frustum m_FrustumVS;		// View-space view frustum
         Frustum m_FrustumWS;		// World-space view frustum
 
+        RTTR_REGISTRATION_FRIEND;
+        RTTR_ENABLE();
+
+    public:
+        Darius_Math_Camera_BaseCamera_GENERATED;
     };
 
-    class Camera : public BaseCamera
+    class DClass(Serialize) Camera : public BaseCamera
     {
     public:
         Camera();
 
         // Controls the view-to-projection matrix
         void            SetPerspectiveMatrix(float verticalFovRadians, float aspectHeightOverWidth, float nearZClip, float farZClip);
-        void            SetFOV(float verticalFovInRadians) { m_VerticalFOV = verticalFovInRadians; UpdateProjMatrix(); }
-        INLINE void     SetAspectRatio(float heightOverWidth) { m_AspectRatio = heightOverWidth; UpdateProjMatrix(); }
-        void            SetZRange(float nearZ, float farZ) { m_NearClip = nearZ; m_FarClip = farZ; UpdateProjMatrix(); }
-        void            ReverseZ(bool enable) { m_ReverseZ = enable; UpdateProjMatrix(); }
-        INLINE void     SetOrthographic(bool isOrthoGraphic) { m_Orthographic = isOrthoGraphic; UpdateProjMatrix(); }
-        INLINE void     SetOrthographicSize(float size) { m_OrthographicSize = size; UpdateProjMatrix(); }
+        void            SetFOV(float verticalFovInRadians) { mVerticalFOV = verticalFovInRadians; UpdateProjMatrix(); }
+        INLINE void     SetAspectRatio(float heightOverWidth) { mAspectRatio = heightOverWidth; UpdateProjMatrix(); }
+        void            SetZRange(float nearZ, float farZ) { mNearClip = nearZ; mFarClip = farZ; UpdateProjMatrix(); }
+        void            ReverseZ(bool enable) { mReverseZ = enable; UpdateProjMatrix(); }
+        INLINE void     SetOrthographic(bool isOrthoGraphic) { mOrthographic = isOrthoGraphic; UpdateProjMatrix(); }
+        INLINE void     SetOrthographicSize(float size) { mOrthographicSize = size; UpdateProjMatrix(); }
 
-        float           GetFOV() const { return m_VerticalFOV; }
-        float           GetNearClip() const { return m_NearClip; }
-        float           GetFarClip() const { return m_FarClip; }
-        float           GetClearDepth() const { return m_ReverseZ ? 0.0f : 1.0f; }
-        float           GetOrthographicSize() const { return m_OrthographicSize; }
-        bool            IsOrthographic() const { return m_Orthographic; }
+        float           GetFOV() const { return mVerticalFOV; }
+        float           GetClearDepth() const { return mReverseZ ? 0.0f : 1.0f; }
 
+        void            UpdateProjMatrix();
     private:
 
-        void UpdateProjMatrix(void);
+        DField(Serialize)
+        float mVerticalFOV;	// Field of view angle in radians
 
-        float m_VerticalFOV;	// Field of view angle in radians
-        float m_AspectRatio;
-        float m_NearClip;
-        float m_FarClip;
-        float m_OrthographicSize;
-        bool m_ReverseZ;		// Invert near and far clip distances so that Z=1 at the near plane
-        bool m_InfiniteZ;       // Move the far plane to infinity
-        bool m_Orthographic;
+        DField(Get[const, inline], Serialize)
+        float mAspectRatio;
+
+        DField(Get[const, inline], Serialize)
+        float mNearClip;
+
+        DField(Get[const, inline], Serialize)
+        float mFarClip;
+
+        DField(Get[const, inline], Serialize)
+        float mOrthographicSize;
+
+        DField(Get[const, inline], Serialize)
+        bool mReverseZ;		// Invert near and far clip distances so that Z=1 at the near plane
+
+        DField(Get[const, inline], Serialize)
+        bool mInfiniteZ;       // Move the far plane to infinity
+
+        DField(Get[const, inline], Serialize)
+        bool mOrthographic;
+
+    public:
+        Darius_Math_Camera_Camera_GENERATED;
     };
 
     inline void BaseCamera::SetEyeAtUp(Vector3 eye, Vector3 at, Vector3 up)
@@ -150,18 +172,18 @@ namespace Darius::Math::Camera
         m_Basis = Matrix3(m_CameraToWorld.GetRotation());
     }
 
-    inline Camera::Camera() : m_ReverseZ(true), m_InfiniteZ(false), m_Orthographic(false), m_OrthographicSize(10)
+    inline Camera::Camera() : mReverseZ(true), mInfiniteZ(false), mOrthographic(false), mOrthographicSize(10)
     {
         SetPerspectiveMatrix(DirectX::XM_PIDIV4, 9.0f / 16.0f, 1.0f, 1000.0f);
     }
 
     inline void Camera::SetPerspectiveMatrix(float verticalFovRadians, float aspectHeightOverWidth, float nearZClip, float farZClip)
     {
-        m_VerticalFOV = verticalFovRadians;
-        m_AspectRatio = aspectHeightOverWidth;
-        m_NearClip = nearZClip;
-        m_FarClip = farZClip;
-        m_Orthographic = false;
+        mVerticalFOV = verticalFovRadians;
+        mAspectRatio = aspectHeightOverWidth;
+        mNearClip = nearZClip;
+        mFarClip = farZClip;
+        mOrthographic = false;
 
         UpdateProjMatrix();
 
@@ -169,3 +191,5 @@ namespace Darius::Math::Camera
     }
 
 } // namespace Math
+
+File_Camera_GENERATED;

@@ -13,64 +13,36 @@
 
 #include "../pch.hpp"
 #include "Camera.hpp"
+
 #include <cmath>
+
+#include "Camera.sgenerated.hpp"
 
 using namespace DirectX;
 
 namespace Darius::Math::Camera
 {
-    void BaseCamera::SetLookDirection(Vector3 forward, Vector3 up)
-    {
-        // Given, but ensure normalization
-        Scalar forwardLenSq = LengthSquare(forward);
-        forward = Select(forward * RecipSqrt(forwardLenSq), -Vector3(kZUnitVector), forwardLenSq < Scalar(0.000001f));
-
-        // Deduce a valid, orthogonal right vector
-        Vector3 right = Cross(forward, up);
-        Scalar rightLenSq = LengthSquare(right);
-        right = Select(right * RecipSqrt(rightLenSq), Quaternion(Vector3(kYUnitVector), -XM_PIDIV2) * forward, rightLenSq < Scalar(0.000001f));
-
-        // Compute actual up vector
-        up = Cross(right, forward);
-
-        // Finish constructing basis
-        m_Basis = Matrix3(right, up, -forward);
-        m_CameraToWorld.SetRotation(Quaternion(m_Basis));
-    }
-
-    void BaseCamera::Update()
-    {
-        m_PreviousViewProjMatrix = m_ViewProjMatrix;
-
-        m_ViewMatrix = Matrix4(~m_CameraToWorld);
-        m_ViewProjMatrix = m_ProjMatrix * m_ViewMatrix;
-        m_ReprojectMatrix = m_PreviousViewProjMatrix * Invert(GetViewProjMatrix());
-
-        m_FrustumVS = Frustum(m_ProjMatrix);
-        m_FrustumWS = m_CameraToWorld * m_FrustumVS;
-    }
-
 
     void Camera::UpdateProjMatrix(void)
     {
-        if (m_Orthographic)
+        if (mOrthographic)
         {
             Matrix4 projection;
-            auto orthoWidth = m_OrthographicSize * 2;
-            auto orthoHeigh = m_AspectRatio * orthoWidth;
-            if (m_ReverseZ)
+            auto orthoWidth = mOrthographicSize * 2;
+            auto orthoHeigh = mAspectRatio * orthoWidth;
+            if (mReverseZ)
             {
-                SetProjMatrix(Matrix4(XMMatrixOrthographicRH(m_OrthographicSize, orthoHeigh, m_FarClip, m_NearClip)));
+                SetProjMatrix(Matrix4(XMMatrixOrthographicRH(mOrthographicSize, orthoHeigh, mFarClip, mNearClip)));
             }
             else
             {
-                SetProjMatrix(Matrix4(XMMatrixOrthographicRH(orthoWidth, orthoHeigh, m_NearClip, m_FarClip)));
+                SetProjMatrix(Matrix4(XMMatrixOrthographicRH(orthoWidth, orthoHeigh, mNearClip, mFarClip)));
             }
         }
         else
         {
-            float Y = 1.0f / std::tanf(m_VerticalFOV * 0.5f);
-            float X = Y * m_AspectRatio;
+            float Y = 1.0f / std::tanf(mVerticalFOV * 0.5f);
+            float X = Y * mAspectRatio;
 
             float Q1, Q2;
 
@@ -78,30 +50,30 @@ namespace Darius::Math::Camera
             // actually a great idea with F32 depth buffers to redistribute precision more evenly across
             // the entire range.  It requires clearing Z to 0.0f and using a GREATER variant depth test.
             // Some care must also be done to properly reconstruct linear W in a pixel shader from hyperbolic Z.
-            if (m_ReverseZ)
+            if (mReverseZ)
             {
-                if (m_InfiniteZ)
+                if (mInfiniteZ)
                 {
                     Q1 = 0.0f;
-                    Q2 = m_NearClip;
+                    Q2 = mNearClip;
                 }
                 else
                 {
-                    Q1 = m_NearClip / (m_FarClip - m_NearClip);
-                    Q2 = Q1 * m_FarClip;
+                    Q1 = mNearClip / (mFarClip - mNearClip);
+                    Q2 = Q1 * mFarClip;
                 }
             }
             else
             {
-                if (m_InfiniteZ)
+                if (mInfiniteZ)
                 {
                     Q1 = -1.0f;
-                    Q2 = -m_NearClip;
+                    Q2 = -mNearClip;
                 }
                 else
                 {
-                    Q1 = m_FarClip / (m_NearClip - m_FarClip);
-                    Q2 = Q1 * m_NearClip;
+                    Q1 = mFarClip / (mNearClip - mFarClip);
+                    Q2 = Q1 * mNearClip;
                 }
             }
 
