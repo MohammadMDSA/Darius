@@ -414,14 +414,14 @@ namespace Darius::Core::Serialization
 				}
 
 				prop.set_value(obj, var);
-				break;
+				continue;
 			}
 			else if (json_value.is_object())
 			{
 				variant var = prop.get_value(obj);
 				fromjson_recursively(var, json_value);
 				prop.set_value(obj, var);
-				break;
+				continue;
 			}
 			else
 			{
