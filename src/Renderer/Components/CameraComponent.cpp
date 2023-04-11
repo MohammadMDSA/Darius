@@ -1,10 +1,13 @@
 #include "Renderer/pch.hpp"
 #include "CameraComponent.hpp"
 
+#include <Core/Serialization/TypeSerializer.hpp>
 #include <Renderer/Camera/CameraManager.hpp>
 #include <Scene/Utils/DetailsDrawer.hpp>
 
+#ifdef _D_EDITOR
 #include <imgui.h>
+#endif
 
 #include "LightComponent.sgenerated.hpp"
 
@@ -40,6 +43,7 @@ namespace Darius::Graphics
 
 	void CameraComponent::Awake()
 	{
+		mCamera.UpdateProjMatrix();
 		auto cam = D_CAMERA_MANAGER::GetActiveCamera();
 		if (cam.IsValid())
 			return;
@@ -62,7 +66,7 @@ namespace Darius::Graphics
 		mCamera.Update();
 	}
 
-#ifdef _DEBUG
+#ifdef _D_EDITOR
 	bool CameraComponent::DrawDetails(float params[])
 	{
 		bool changed = false;
@@ -76,11 +80,13 @@ namespace Darius::Graphics
 #endif
 
 	void CameraComponent::Serialize(Json& j) const
-	{	
+	{
+		D_SERIALIZATION::Serialize(*this, j);
 	}
 
 	void CameraComponent::Deserialize(Json const& j)
 	{
+		D_SERIALIZATION::Deserialize(*this, j);
 	}
 
 }

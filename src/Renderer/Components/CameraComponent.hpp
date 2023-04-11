@@ -18,7 +18,7 @@ namespace Darius::Graphics
 	public:
 		Darius_Graphics_CameraComponent_GENERATED
 
-#ifdef _DEBUG
+#ifdef _D_EDITOR
 		virtual bool					DrawDetails(float params[]) override;
 #endif // _DEBUG
 
