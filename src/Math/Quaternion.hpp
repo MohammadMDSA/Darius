@@ -28,6 +28,13 @@ namespace Darius::Math
 		INLINE explicit Quaternion(DirectX::FXMVECTOR vec) { m_vec = vec; }
 		INLINE explicit Quaternion(EIdentityTag) { m_vec = DirectX::XMQuaternionIdentity(); }
 
+		// Consty, don't use too often
+		INLINE D_CONTAINERS::DVector<float> GetData() const { return { GetX(), GetY(), GetZ(), GetW() }; }
+		// Consty, don't use too often
+		INLINE void SetData(D_CONTAINERS::DVector<float> data) { SetX(data[0]); SetY(data[1]); SetZ(data[2]); SetW(data[3]); }
+
+		INLINE bool Equals(Quaternion const& other) const { return DirectX::XMVector4Equal(m_vec, other); }
+
 		INLINE Vector3 Angles() const
 		{
 			Vector3 result;

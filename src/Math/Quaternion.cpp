@@ -38,8 +38,9 @@ namespace Darius::Math
 RTTR_REGISTRATION
 {
 	rttr::registration::class_<D_MATH::Quaternion>("Darius::Math::Quaternion")
-		.property("X", &D_MATH::Quaternion::GetX, &D_MATH::Quaternion::SetX)
-		.property("Y", &D_MATH::Quaternion::GetY, &D_MATH::Quaternion::SetY)
-		.property("Z", &D_MATH::Quaternion::GetZ, &D_MATH::Quaternion::SetZ)
-		.property("W", &D_MATH::Quaternion::GetW, &D_MATH::Quaternion::SetW);
+		.property("X", &D_MATH::Quaternion::GetX, &D_MATH::Quaternion::SetX) (rttr::metadata("NO_SERIALIZE", true))
+		.property("Y", &D_MATH::Quaternion::GetY, &D_MATH::Quaternion::SetY) (rttr::metadata("NO_SERIALIZE", true))
+		.property("Z", &D_MATH::Quaternion::GetZ, &D_MATH::Quaternion::SetZ) (rttr::metadata("NO_SERIALIZE", true))
+		.property("W", &D_MATH::Quaternion::GetW, &D_MATH::Quaternion::SetW) (rttr::metadata("NO_SERIALIZE", true))
+		.property("_data", &D_MATH::Quaternion::GetData, &D_MATH::Quaternion::SetData);
 }
