@@ -129,36 +129,11 @@ namespace Darius::Graphics
 
 	void LightComponent::Serialize(Json& j) const
 	{
-		/*j["Type"] = mLightType;
-		if (mLightIndex >= 0)
-		{
-
-			j["Color"] = D_MATH::Vector3(D_MATH::Vector4(mLightData.Color));
-			j["Range"] = mLightData.Range;
-			j["Intencity"] = mLightData.Intencity;
-			j["SpotInnerAngle"] = mConeInnerAngle;
-			j["SpotOuterAngle"] = mConeOuterAngle;
-		}*/
-
 		D_SERIALIZATION::Serialize(*this, j);
 	}
 
 	void LightComponent::Deserialize(Json const& j)
 	{
-		/*SetLightType(j["Type"].get<LightSourceType>());
-		if (mLightIndex >= 0 && j.contains("Color"))
-		{
-
-			mLightData.Color = (XMFLOAT3)j["Color"].get<D_MATH::Vector3>();
-			mLightData.Range = j["Range"];
-			mLightData.Intencity = j["Intencity"];
-
-			if (j.contains("SpotInnerAngle"))
-				mConeInnerAngle = j["SpotInnerAngle"];
-			if (j.contains("SpotOuterAngle"))
-				mConeOuterAngle = j["SpotOuterAngle"];
-		}
-		UpdateAngleData();*/
 		D_SERIALIZATION::Deserialize(*this, j);
 	}
 
