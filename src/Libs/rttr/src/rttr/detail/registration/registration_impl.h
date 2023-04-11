@@ -302,6 +302,21 @@ namespace                                                                       
 static const rttr__auto__register__ RTTR_CAT(auto_register__, __LINE__);            \
 static void rttr_auto_register_reflection_function_()
 
+#define RTTR_REGISTRATION_PFX(postfix)                                              \
+static void rttr_auto_register_reflection_function##postfix_();                     \
+namespace                                                                           \
+{                                                                                   \
+    struct rttr__auto__register##postfix__                                          \
+    {                                                                               \
+        rttr__auto__register##postfix__()                                           \
+        {                                                                           \
+            rttr_auto_register_reflection_function##postfix_();                     \
+        }                                                                           \
+    };                                                                              \
+}                                                                                   \
+static const rttr__auto__register##postfix__ RTTR_CAT(auto_register__, __LINE__);   \
+static void rttr_auto_register_reflection_function##postfix_()
+
 
 #if RTTR_COMPILER == RTTR_COMPILER_MSVC
 #define RTTR_PLUGIN_REGISTRATION RTTR_REGISTRATION
