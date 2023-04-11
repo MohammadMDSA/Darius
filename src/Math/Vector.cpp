@@ -347,10 +347,22 @@ RTTR_REGISTRATION
 		.property("Z", &D_MATH::Vector3::GetZ, &D_MATH::Vector3::SetZ) (rttr::metadata("NO_SERIALIZE", true))
 		.property("_data", &D_MATH::Vector3::GetData, &D_MATH::Vector3::SetData);
 
+	rttr::registration::class_<DirectX::XMFLOAT3>("DirectX::XMFLOAT3")
+		.property("X", &DirectX::XMFLOAT3::x)
+		.property("Y", &DirectX::XMFLOAT3::y)
+		.property("Z", &DirectX::XMFLOAT3::z);
+
 	rttr::registration::class_<D_MATH::Vector4>("Darius::Math::Vector4")
 		.property("X", &D_MATH::Vector4::GetX, &D_MATH::Vector4::SetX) (rttr::metadata("NO_SERIALIZE", true))
 		.property("Y", &D_MATH::Vector4::GetY, &D_MATH::Vector4::SetY) (rttr::metadata("NO_SERIALIZE", true))
 		.property("Z", &D_MATH::Vector4::GetZ, &D_MATH::Vector4::SetZ) (rttr::metadata("NO_SERIALIZE", true))
 		.property("W", &D_MATH::Vector4::GetW, &D_MATH::Vector4::SetW) (rttr::metadata("NO_SERIALIZE", true))
 		.property("_data", &D_MATH::Vector4::GetData, &D_MATH::Vector4::SetData);
+
+	rttr::registration::class_<DirectX::XMFLOAT4>("DirectX::XMFLOAT4")
+		.property("X", &DirectX::XMFLOAT4::x)
+		.property("Y", &DirectX::XMFLOAT4::y)
+		.property("Z", &DirectX::XMFLOAT4::z)
+		.property("W", &DirectX::XMFLOAT4::w);
+
 }
