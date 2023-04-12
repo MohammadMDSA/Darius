@@ -76,8 +76,8 @@ namespace Darius::Editor::Gui::Windows
 		auto diffIBLHandle = D_RESOURCE_LOADER::LoadResource(D_ENGINE_CONTEXT::GetAssetsPath() / "PBR/DefaultSkyboxDiffuseIBL_HDR.dds");
 		auto specIBLHandle = D_RESOURCE_LOADER::LoadResource(D_ENGINE_CONTEXT::GetAssetsPath() / "PBR/DefaultSkyboxSpecularIBL.dds");
 
-		//auto diffTex = D_RESOURCE::GetResource<TextureResource>(diffIBLHandle[0], this, L"Scene Window", "Editor Window");
-		auto diffTex = D_RESOURCE::GetResource<TextureResource>(D_GRAPHICS::GetDefaultGraphicsResource(D_GRAPHICS::DefaultResource::TextureCubeMapBlack), this, L"Scene Window", "Editor Window");
+		auto diffTex = D_RESOURCE::GetResource<TextureResource>(diffIBLHandle[0], this, L"Scene Window", "Editor Window");
+		//auto diffTex = D_RESOURCE::GetResource<TextureResource>(D_GRAPHICS::GetDefaultGraphicsResource(D_GRAPHICS::DefaultResource::TextureCubeMapBlack), this, L"Scene Window", "Editor Window");
 		auto specTex = D_RESOURCE::GetResource<TextureResource>(specIBLHandle[0], this, L"Scene Window", "Editor Window");
 
 		D_RENDERER::SetIBLTextures(
