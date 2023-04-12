@@ -82,16 +82,6 @@ type::type(D_CORE::Uuid uuid) : \
 
 #define D_H_COMP_DEFAULT_CONSTRUCTOR_DEF(type) D_H_COMP_DEFAULT_CONSTRUCTOR_DEF_PAR(type, ComponentBase)
 
-#define D_H_COMP_RESOURCE_REF_PROP(type, name, ...) \
-public: \
-    INLINE void Set##name(D_RESOURCE::ResourceHandle handle) { mChangeSignal(); _Set##name(handle); } \
-    INLINE type* Get##name() { return m##name.Get(); } \
-    /*INLINE type const* Get##name() const { return m##name.Get(); } */ \
-private: \
-    INLINE void _Set##name(D_RESOURCE::ResourceHandle handle) { m##name##Handle = handle; m##name = D_RESOURCE::GetResource<type>(handle, *this); __VA_ARGS__ } \
-    D_CORE::Ref<type>               m##name; \
-    D_RESOURCE::ResourceHandle      m##name##Handle;
-
 namespace Darius::Scene
 {
     class SceneManager;
