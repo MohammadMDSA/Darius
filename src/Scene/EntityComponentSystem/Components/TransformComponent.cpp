@@ -3,7 +3,10 @@
 
 #include "Scene/Utils/DetailsDrawer.hpp"
 
-#include "Math/Serialization.hpp"
+#include <Core/Serialization/TypeSerializer.hpp>
+#include <Math/Serialization.hpp>
+
+#include "TransformComponent.sgenerated.hpp"
 
 using namespace D_SERIALIZATION;
 
@@ -30,11 +33,11 @@ namespace Darius::Math
 
 	void TransformComponent::Serialize(Json& j) const
 	{
-		j = mTransform;
+		D_SERIALIZATION::Serialize(*this, j);
 	}
 
 	void TransformComponent::Deserialize(Json const& j)
 	{
-		mTransform = j;
+		D_SERIALIZATION::Deserialize(*this, j);
 	}
 }
