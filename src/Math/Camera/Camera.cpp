@@ -41,7 +41,7 @@ namespace Darius::Math::Camera
         }
         else
         {
-            float Y = 1.0f / std::tanf(mVerticalFOV * 0.5f);
+            float Y = 1.0f / std::tanf(mVerticalFoV * 0.5f);
             float X = Y * mAspectRatio;
 
             float Q1, Q2;

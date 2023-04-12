@@ -46,7 +46,7 @@ namespace Darius::Editor::Gui::Windows
 		mTextureHandle = D_RENDERER::AllocateUiTexture(1);
 
 		// Setup camera
-		mCamera.SetFOV(XM_PI / 3);
+		mCamera.SetFoV(XM_PI / 3);
 		mCamera.SetZRange(0.001f, 10000.f);
 		mCamera.SetPosition(Vector3(2.f, 2.f, 2.f));
 		mCamera.SetLookDirection(Vector3(-2), Vector3::Up);

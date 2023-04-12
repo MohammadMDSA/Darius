@@ -236,7 +236,7 @@ BOOST_AUTO_TEST_CASE(CameraRef)
 {
 	D_MATH_CAMERA::Camera cam;
 
-	cam.SetFOV(DirectX::XM_PI / 3);
+	cam.SetFoV(DirectX::XM_PI / 3);
 	cam.SetZRange(0.001f, 10000.f);
 	cam.SetPosition(Vector3(2.f, 2.f, 2.f));
 	cam.SetLookDirection(Vector3(-2.f), Vector3::Up);
@@ -293,7 +293,7 @@ BOOST_AUTO_TEST_CASE(CameraSerialization)
 {
 	D_MATH_CAMERA::Camera cam;
 
-	cam.SetFOV(DirectX::XM_PI / 3);
+	cam.SetFoV(DirectX::XM_PI / 3);
 	cam.SetZRange(0.001f, 10000.f);
 	cam.SetOrthographicSize(15.f);
 	cam.SetOrthographic(true);
@@ -315,7 +315,7 @@ BOOST_AUTO_TEST_CASE(CameraSerialization)
 
 	D_SERIALIZATION::Deserialize(dest, j);
 
-	BOOST_TEST(cam.GetFOV() == dest.GetFOV());
+	BOOST_TEST(cam.GetFoV() == dest.GetFoV());
 	BOOST_TEST(cam.GetNearClip() == dest.GetNearClip());
 	BOOST_TEST(cam.GetFarClip() == dest.GetFarClip());
 	BOOST_TEST(cam.GetOrthographicSize() == dest.GetOrthographicSize());

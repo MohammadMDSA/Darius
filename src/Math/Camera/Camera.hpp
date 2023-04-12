@@ -101,21 +101,22 @@ namespace Darius::Math::Camera
 
         // Controls the view-to-projection matrix
         void            SetPerspectiveMatrix(float verticalFovRadians, float aspectHeightOverWidth, float nearZClip, float farZClip);
-        void            SetFOV(float verticalFovInRadians) { mVerticalFOV = verticalFovInRadians; UpdateProjMatrix(); }
+        void            SetFoV(float verticalFovInRadians) { mVerticalFoV = verticalFovInRadians; UpdateProjMatrix(); }
         INLINE void     SetAspectRatio(float heightOverWidth) { mAspectRatio = heightOverWidth; UpdateProjMatrix(); }
         void            SetZRange(float nearZ, float farZ) { mNearClip = nearZ; mFarClip = farZ; UpdateProjMatrix(); }
         void            ReverseZ(bool enable) { mReverseZ = enable; UpdateProjMatrix(); }
         INLINE void     SetOrthographic(bool isOrthoGraphic) { mOrthographic = isOrthoGraphic; UpdateProjMatrix(); }
         INLINE void     SetOrthographicSize(float size) { mOrthographicSize = size; UpdateProjMatrix(); }
+        INLINE void     SetInfiniteZ(bool val) { mInfiniteZ = val; UpdateProjMatrix(); }
 
-        float           GetFOV() const { return mVerticalFOV; }
+        float           GetFoV() const { return mVerticalFoV; }
         float           GetClearDepth() const { return mReverseZ ? 0.0f : 1.0f; }
 
         void            UpdateProjMatrix();
     private:
 
         DField(Serialize)
-        float mVerticalFOV;	// Field of view angle in radians
+        float mVerticalFoV;	// Field of view angle in radians
 
         DField(Get[const, inline], Serialize)
         float mAspectRatio;
@@ -179,7 +180,7 @@ namespace Darius::Math::Camera
 
     inline void Camera::SetPerspectiveMatrix(float verticalFovRadians, float aspectHeightOverWidth, float nearZClip, float farZClip)
     {
-        mVerticalFOV = verticalFovRadians;
+        mVerticalFoV = verticalFovRadians;
         mAspectRatio = aspectHeightOverWidth;
         mNearClip = nearZClip;
         mFarClip = farZClip;
