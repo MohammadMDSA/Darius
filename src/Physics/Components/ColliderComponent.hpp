@@ -39,8 +39,6 @@ namespace Darius::Physics
 
 		INLINE physx::PxShape*		GetShape() { return mShape; }
 
-		D_H_COMP_RESOURCE_REF_PROP(PhysicsMaterialResource, Material, SetPxShapeMaterial(););
-
 	protected:
 		virtual INLINE physx::PxGeometry const* GetPhysicsGeometry() const { return nullptr; };
 		virtual INLINE physx::PxGeometry* UpdateAndGetPhysicsGeometry(bool& changed) { changed = false; return nullptr; };
@@ -49,18 +47,15 @@ namespace Darius::Physics
 		friend class PhysicsScene;
 
 		void						InvalidatePhysicsActor();
-		INLINE void					SetPxShapeMaterial()
-		{
-			if (!mShape)
-				return;
-			physx::PxMaterial* mats[] = { const_cast<physx::PxMaterial*>(mMaterial.Get()->GetMaterial()) };
-			mShape->setMaterials(mats, 1);
-		}
+		void						_SetMaterial(D_RESOURCE::ResourceHandle handle);
 
 		DField(Get[const, inline])
-		bool						mDynamic;
+		bool									mDynamic;
 
-		physx::PxShape*				mShape = nullptr;
+		DField(Resource[false], Serialize)
+		D_CORE::Ref<PhysicsMaterialResource>	mMaterial;
+
+		physx::PxShape*							mShape = nullptr;
 
 
 	public:

@@ -4,11 +4,14 @@
 #include "RigidbodyComponent.hpp"
 #include "Physics/PhysicsScene.hpp"
 
+#include <Core/Serialization/TypeSerializer.hpp>
 #include <ResourceManager/ResourceManager.hpp>
 #include <Utils/DragDropPayload.hpp>
 
+#ifdef _D_EDITOR
 #include <imgui.h>
 #include <Libs/FontIcon/IconsFontAwesome6.h>
+#endif
 
 #include "ColliderComponent.sgenerated.hpp"
 
@@ -51,10 +54,9 @@ namespace Darius::Physics
 
 	void ColliderComponent::Awake()
 	{
-		if (!mMaterialHandle.IsValid())
+		if (!mMaterial.IsValid())
 			SetMaterial(D_PHYSICS::GetDefaultMaterial());
-		else
-			SetMaterial(mMaterialHandle);
+
 		InvalidatePhysicsActor();
 	}
 
@@ -78,15 +80,17 @@ namespace Darius::Physics
 
 	}
 
-	void ColliderComponent::Serialize(D_SERIALIZATION::Json& json) const
+	void ColliderComponent::Serialize(D_SERIALIZATION::Json& j) const
 	{
-		if (mMaterial.IsValid())
-			json["Material"] = D_CORE::ToString(mMaterial->GetUuid());
+		/*if (mMaterial.IsValid())
+			json["Material"] = D_CORE::ToString(mMaterial->GetUuid());*/
+
+		D_SERIALIZATION::Serialize(*this, j);
 	}
 
-	void ColliderComponent::Deserialize(D_SERIALIZATION::Json const& json)
+	void ColliderComponent::Deserialize(D_SERIALIZATION::Json const& j)
 	{
-		D_H_DESERIALIZE_REF_PROP(Material);
+		D_SERIALIZATION::Deserialize(*this, j);
 	}
 
 	void ColliderComponent::OnDestroy()
@@ -124,4 +128,13 @@ namespace Darius::Physics
 		mShape = D_PHYSICS::PhysicsScene::AddCollider(this, mDynamic);
 	}
 
+	void ColliderComponent::_SetMaterial(D_RESOURCE::ResourceHandle handle)
+	{
+		mMaterial = D_RESOURCE::GetResource<PhysicsMaterialResource>(handle, *this);
+
+		if (!mShape)
+			return;
+		physx::PxMaterial* mats[] = { const_cast<physx::PxMaterial*>(mMaterial.Get()->GetMaterial()) };
+		mShape->setMaterials(mats, 1);
+	}
 }
