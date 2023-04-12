@@ -1,1 +1,43 @@
-{"Hierarchy":{"88c6171f-8db6-44a3-a273-898dfb63fc68":null,"d85f5002-c4f0-4c38-a545-b10764d80c3d":null},"ObjectComponent":{"88c6171f-8db6-44a3-a273-898dfb63fc68":{"SkeletalMeshRendererComponent":{"Material":"9a4e22bd-4161-5c41-b2d5-0ac5cbf22587","Mesh":"53b3960e-1b41-4801-ab4d-f5814ddf8d0c","Uuid":"029bfdb8-008d-4cd3-b4ec-9ef8289e539a"},"TransformComponent":{"Rotation":[0.7071068286895752,0.0,0.0,-0.7071067690849304],"Scale":[0.009999999776482582,0.009999999776482582,0.009999999776482582],"Translation":[0.0,0.0,0.0],"Uuid":"97093bb9-9cfb-4226-b0ec-29350e36f7af"}},"d85f5002-c4f0-4c38-a545-b10764d80c3d":{"LightComponent":{"Color":[1.0,1.0,1.0],"Range":10.0,"Intencity":1.0,"SpotPower":64.0,"Type":"DirectionalLight","Uuid":"c1a4265f-bdbc-43eb-b168-1357befb2131"},"TransformComponent":{"Rotation":[-0.38337865471839905,0.0,-0.0,0.9235912561416626],"Scale":[1.0,1.0,1.0],"Translation":[0.0,0.0,0.0],"Uuid":"5a102247-c4ba-45cd-8458-43d73d1beee2"}}},"Objects":[{"Active":true,"Name":"Humanoid\u0000t","Type":"Movable","Uuid":"88c6171f-8db6-44a3-a273-898dfb63fc68"},{"Active":true,"Name":"Light\u0000ject","Type":"Movable","Uuid":"d85f5002-c4f0-4c38-a545-b10764d80c3d"}]}
+{
+  "Hierarchy": {
+    "88c6171f-8db6-44a3-a273-898dfb63fc68": null,
+    "d85f5002-c4f0-4c38-a545-b10764d80c3d": null
+  },
+  "ObjectComponent": {
+    "88c6171f-8db6-44a3-a273-898dfb63fc68": {
+      "SkeletalMeshRendererComponent": {
+        "Material": "9a4e22bd-4161-5c41-b2d5-0ac5cbf22587",
+        "Mesh": "53b3960e-1b41-4801-ab4d-f5814ddf8d0c",
+        "Uuid": "029bfdb8-008d-4cd3-b4ec-9ef8289e539a"
+      },
+      "TransformComponent": {
+        "Rotation": [ 0.7071068286895752, 0.0, 0.0, -0.7071067690849304 ],
+        "Scale": [ 0.009999999776482582, 0.009999999776482582, 0.009999999776482582 ],
+        "Translation": [ 0.0, 0.0, 0.0 ],
+        "Uuid": "97093bb9-9cfb-4226-b0ec-29350e36f7af"
+      }
+    },
+    "d85f5002-c4f0-4c38-a545-b10764d80c3d": {
+      "TransformComponent": {
+        "Rotation": [ -0.38337865471839905, 0.0, -0.0, 0.9235912561416626 ],
+        "Scale": [ 1.0, 1.0, 1.0 ],
+        "Translation": [ 0.0, 0.0, 0.0 ],
+        "Uuid": "5a102247-c4ba-45cd-8458-43d73d1beee2"
+      }
+    }
+  },
+  "Objects": [
+    {
+      "Active": true,
+      "Name": "Humanoid\u0000t",
+      "Type": "Movable",
+      "Uuid": "88c6171f-8db6-44a3-a273-898dfb63fc68"
+    },
+    {
+      "Active": true,
+      "Name": "Light\u0000ject",
+      "Type": "Movable",
+      "Uuid": "d85f5002-c4f0-4c38-a545-b10764d80c3d"
+    }
+  ]
+}

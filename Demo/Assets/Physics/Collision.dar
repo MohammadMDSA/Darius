@@ -1,1 +1,171 @@
-{"Hierarchy":{"4dc21a0a-f579-4cb6-a76e-060501bb0a7c":null,"a1e43967-0055-44d2-bd39-d37f66564a7c":null,"a62289b1-c7be-42f3-80e6-59c4aac28591":null,"a7b43bd0-4bde-4f01-9008-5d938dd3a6a9":null,"c29ce5a9-f9c8-41e6-a179-98f5135d34f5":null,"faea3ab9-1af2-4a60-ac70-4288139d6794":null},"ObjectComponent":{"4dc21a0a-f579-4cb6-a76e-060501bb0a7c":{"LightComponent":{"Color":[1.0,1.0,1.0],"Range":10.0,"Intencity":1.0,"SpotPower":64.0,"Type":"DirectionalLight","Uuid":"b72026e7-4f7e-487d-881a-2ac0b87495de"},"TransformComponent":{"Rotation":[-0.3549465239048004,0.0,-0.0,0.934886634349823],"Scale":[1.0,1.0,1.0],"Translation":[0.0,0.0,0.0],"Uuid":"367b9cb6-2d0d-427e-8e01-d730b3ff9c29"}},"a1e43967-0055-44d2-bd39-d37f66564a7c":{"BoxColliderComponent":{"Material":"a2cb814c-2c00-514f-83fe-62bb0ad830ca","Uuid":"d7b8128a-e642-4d39-9da2-ef101fd6c178"},"MeshRendererComponent":{"Material":"9a4e22bd-4161-5c41-b2d5-0ac5cbf22587","Mesh":"aaca3873-132a-5c65-a083-eb88099d3138","Uuid":"403e1e71-7cad-4eb1-b22c-b1fbe3c74642"},"RigidbodyComponent":{"Kinematic":false,"PositionConstraints":[false,false,false],"RotationConstraints":[false,false,false],"UsingGravity":true,"Uuid":"54545a94-919e-4f12-b708-dfbd19438187"},"TransformComponent":{"Rotation":[0.17898932099342346,-0.019765304401516914,0.10796575248241425,0.9777093529701233],"Scale":[0.9999987483024597,1.0,1.0],"Translation":[0.0,4.005997657775879,0.0],"Uuid":"ee48b1dd-e8f2-4518-97b0-351d6ca70b2a"}},"a62289b1-c7be-42f3-80e6-59c4aac28591":{"MeshRendererComponent":{"Material":"694145a8-941d-4d77-9ce8-2f7fd4dc9b51","Mesh":"3541587f-e92f-5349-be60-22033ca12b59","Uuid":"3b8a84b3-dc38-4373-b213-0acf0075ae35"},"RigidbodyComponent":{"Kinematic":false,"PositionConstraints":[false,false,false],"RotationConstraints":[false,false,false],"UsingGravity":true,"Uuid":"f031c054-0428-4484-9c15-4a51bee72054"},"SphereColliderComponent":{"Material":"a2cb814c-2c00-514f-83fe-62bb0ad830ca","Uuid":"4b27617f-6777-430a-bb75-0dd17f1e8102"},"TransformComponent":{"Rotation":[-0.0,0.0,-0.0,1.0],"Scale":[1.0,1.0,1.0],"Translation":[0.0,2.7669429779052734,3.307494640350342],"Uuid":"99569aa1-8b3d-4814-8152-6d790d593f8c"}},"a7b43bd0-4bde-4f01-9008-5d938dd3a6a9":{"BoxColliderComponent":{"Material":"77d294b6-50e5-49c1-80bc-933792d92331","Uuid":"314a88c2-a6a9-4d81-948e-be4a9962f967"},"MeshRendererComponent":{"Material":"9a4e22bd-4161-5c41-b2d5-0ac5cbf22587","Mesh":"aaca3873-132a-5c65-a083-eb88099d3138","Uuid":"db2dbbf5-2ac0-481e-a351-041945273c3e"},"RigidbodyComponent":{"Kinematic":false,"PositionConstraints":[false,false,false],"RotationConstraints":[false,false,false],"UsingGravity":true,"Uuid":"2f2abce7-48eb-408b-978d-ebbcc24b5651"},"TransformComponent":{"Rotation":[0.17899328470230103,-0.019765784963965416,0.10796591639518738,0.9777085185050964],"Scale":[0.9999999403953552,1.0,1.0],"Translation":[0.714935302734375,4.00600004196167,1.7866348028182983],"Uuid":"42781d70-9649-4139-ba82-1477c7c9d4fb"}},"c29ce5a9-f9c8-41e6-a179-98f5135d34f5":{"BoxColliderComponent":{"Material":"a2cb814c-2c00-514f-83fe-62bb0ad830ca","Uuid":"54bf3d37-490c-4bb5-b581-7dcc0d0bb061"},"MeshRendererComponent":{"Material":"9a4e22bd-4161-5c41-b2d5-0ac5cbf22587","Mesh":"aaca3873-132a-5c65-a083-eb88099d3138","Uuid":"1b6e9d48-34f6-48dd-af67-01b42b7535e2"},"RigidbodyComponent":{"Kinematic":true,"PositionConstraints":[false,false,false],"RotationConstraints":[false,false,false],"UsingGravity":true,"Uuid":"69fbd6d3-1004-44c8-baf0-e08160b173c7"},"TransformComponent":{"Rotation":[-0.0,0.0,-0.38165611028671265,0.9243044257164001],"Scale":[0.7000000476837158,0.4999999701976776,0.7099999785423279],"Translation":[0.0,1.7865052223205566,0.0],"Uuid":"305e8d9b-d171-4ed0-8467-949e943a299e"}},"faea3ab9-1af2-4a60-ac70-4288139d6794":{"BoxColliderComponent":{"Material":"a2cb814c-2c00-514f-83fe-62bb0ad830ca","Uuid":"5dad6b9a-63e2-414e-bdcc-e5fcece5b602"},"MeshRendererComponent":{"Material":"9a4e22bd-4161-5c41-b2d5-0ac5cbf22587","Mesh":"aaca3873-132a-5c65-a083-eb88099d3138","Uuid":"8edade90-131f-43f1-915e-878896eb518c"},"TransformComponent":{"Rotation":[-0.0,0.0,-0.0,1.0],"Scale":[10.0,1.0,10.0],"Translation":[0.0,0.0,0.0],"Uuid":"775a6494-d877-4ecb-a8fc-5a977ed50739"}}},"Objects":[{"Active":true,"Name":"Kinematic\u0000","Type":"Movable","Uuid":"c29ce5a9-f9c8-41e6-a179-98f5135d34f5"},{"Active":true,"Name":"Ground\u0000ect","Type":"Movable","Uuid":"faea3ab9-1af2-4a60-ac70-4288139d6794"},{"Active":true,"Name":"Sphere \u0000ct","Type":"Movable","Uuid":"a62289b1-c7be-42f3-80e6-59c4aac28591"},{"Active":true,"Name":"Heavy Dyna","Type":"Movable","Uuid":"a7b43bd0-4bde-4f01-9008-5d938dd3a6a9"},{"Active":true,"Name":"Dynamic\u0000ct","Type":"Movable","Uuid":"a1e43967-0055-44d2-bd39-d37f66564a7c"},{"Active":true,"Name":"Light\u0000ject","Type":"Movable","Uuid":"4dc21a0a-f579-4cb6-a76e-060501bb0a7c"}]}
+{
+  "Hierarchy": {
+    "4dc21a0a-f579-4cb6-a76e-060501bb0a7c": null,
+    "a1e43967-0055-44d2-bd39-d37f66564a7c": null,
+    "a62289b1-c7be-42f3-80e6-59c4aac28591": null,
+    "a7b43bd0-4bde-4f01-9008-5d938dd3a6a9": null,
+    "c29ce5a9-f9c8-41e6-a179-98f5135d34f5": null,
+    "faea3ab9-1af2-4a60-ac70-4288139d6794": null
+  },
+  "ObjectComponent": {
+    "4dc21a0a-f579-4cb6-a76e-060501bb0a7c": {
+      "TransformComponent": {
+        "Rotation": [ -0.3549465239048004, 0.0, -0.0, 0.934886634349823 ],
+        "Scale": [ 1.0, 1.0, 1.0 ],
+        "Translation": [ 0.0, 0.0, 0.0 ],
+        "Uuid": "367b9cb6-2d0d-427e-8e01-d730b3ff9c29"
+      }
+    },
+    "a1e43967-0055-44d2-bd39-d37f66564a7c": {
+      "BoxColliderComponent": {
+        "Material": "a2cb814c-2c00-514f-83fe-62bb0ad830ca",
+        "Uuid": "d7b8128a-e642-4d39-9da2-ef101fd6c178"
+      },
+      "MeshRendererComponent": {
+        "Material": "9a4e22bd-4161-5c41-b2d5-0ac5cbf22587",
+        "Mesh": "aaca3873-132a-5c65-a083-eb88099d3138",
+        "Uuid": "403e1e71-7cad-4eb1-b22c-b1fbe3c74642"
+      },
+      "RigidbodyComponent": {
+        "Kinematic": false,
+        "PositionConstraints": [ false, false, false ],
+        "RotationConstraints": [ false, false, false ],
+        "UsingGravity": true,
+        "Uuid": "54545a94-919e-4f12-b708-dfbd19438187"
+      },
+      "TransformComponent": {
+        "Rotation": [ 0.17898932099342346, -0.019765304401516914, 0.10796575248241425, 0.9777093529701233 ],
+        "Scale": [ 0.9999987483024597, 1.0, 1.0 ],
+        "Translation": [ 0.0, 4.005997657775879, 0.0 ],
+        "Uuid": "ee48b1dd-e8f2-4518-97b0-351d6ca70b2a"
+      }
+    },
+    "a62289b1-c7be-42f3-80e6-59c4aac28591": {
+      "MeshRendererComponent": {
+        "Material": "694145a8-941d-4d77-9ce8-2f7fd4dc9b51",
+        "Mesh": "3541587f-e92f-5349-be60-22033ca12b59",
+        "Uuid": "3b8a84b3-dc38-4373-b213-0acf0075ae35"
+      },
+      "RigidbodyComponent": {
+        "Kinematic": false,
+        "PositionConstraints": [ false, false, false ],
+        "RotationConstraints": [ false, false, false ],
+        "UsingGravity": true,
+        "Uuid": "f031c054-0428-4484-9c15-4a51bee72054"
+      },
+      "SphereColliderComponent": {
+        "Material": "a2cb814c-2c00-514f-83fe-62bb0ad830ca",
+        "Uuid": "4b27617f-6777-430a-bb75-0dd17f1e8102"
+      },
+      "TransformComponent": {
+        "Rotation": [ -0.0, 0.0, -0.0, 1.0 ],
+        "Scale": [ 1.0, 1.0, 1.0 ],
+        "Translation": [ 0.0, 2.7669429779052734, 3.307494640350342 ],
+        "Uuid": "99569aa1-8b3d-4814-8152-6d790d593f8c"
+      }
+    },
+    "a7b43bd0-4bde-4f01-9008-5d938dd3a6a9": {
+      "BoxColliderComponent": {
+        "Material": "77d294b6-50e5-49c1-80bc-933792d92331",
+        "Uuid": "314a88c2-a6a9-4d81-948e-be4a9962f967"
+      },
+      "MeshRendererComponent": {
+        "Material": "9a4e22bd-4161-5c41-b2d5-0ac5cbf22587",
+        "Mesh": "aaca3873-132a-5c65-a083-eb88099d3138",
+        "Uuid": "db2dbbf5-2ac0-481e-a351-041945273c3e"
+      },
+      "RigidbodyComponent": {
+        "Kinematic": false,
+        "PositionConstraints": [ false, false, false ],
+        "RotationConstraints": [ false, false, false ],
+        "UsingGravity": true,
+        "Uuid": "2f2abce7-48eb-408b-978d-ebbcc24b5651"
+      },
+      "TransformComponent": {
+        "Rotation": [ 0.17899328470230103, -0.019765784963965416, 0.10796591639518738, 0.9777085185050964 ],
+        "Scale": [ 0.9999999403953552, 1.0, 1.0 ],
+        "Translation": [ 0.714935302734375, 4.00600004196167, 1.7866348028182983 ],
+        "Uuid": "42781d70-9649-4139-ba82-1477c7c9d4fb"
+      }
+    },
+    "c29ce5a9-f9c8-41e6-a179-98f5135d34f5": {
+      "BoxColliderComponent": {
+        "Material": "a2cb814c-2c00-514f-83fe-62bb0ad830ca",
+        "Uuid": "54bf3d37-490c-4bb5-b581-7dcc0d0bb061"
+      },
+      "MeshRendererComponent": {
+        "Material": "9a4e22bd-4161-5c41-b2d5-0ac5cbf22587",
+        "Mesh": "aaca3873-132a-5c65-a083-eb88099d3138",
+        "Uuid": "1b6e9d48-34f6-48dd-af67-01b42b7535e2"
+      },
+      "RigidbodyComponent": {
+        "Kinematic": true,
+        "PositionConstraints": [ false, false, false ],
+        "RotationConstraints": [ false, false, false ],
+        "UsingGravity": true,
+        "Uuid": "69fbd6d3-1004-44c8-baf0-e08160b173c7"
+      },
+      "TransformComponent": {
+        "Rotation": [ -0.0, 0.0, -0.38165611028671265, 0.9243044257164001 ],
+        "Scale": [ 0.7000000476837158, 0.4999999701976776, 0.7099999785423279 ],
+        "Translation": [ 0.0, 1.7865052223205566, 0.0 ],
+        "Uuid": "305e8d9b-d171-4ed0-8467-949e943a299e"
+      }
+    },
+    "faea3ab9-1af2-4a60-ac70-4288139d6794": {
+      "BoxColliderComponent": {
+        "Material": "a2cb814c-2c00-514f-83fe-62bb0ad830ca",
+        "Uuid": "5dad6b9a-63e2-414e-bdcc-e5fcece5b602"
+      },
+      "MeshRendererComponent": {
+        "Material": "9a4e22bd-4161-5c41-b2d5-0ac5cbf22587",
+        "Mesh": "aaca3873-132a-5c65-a083-eb88099d3138",
+        "Uuid": "8edade90-131f-43f1-915e-878896eb518c"
+      },
+      "TransformComponent": {
+        "Rotation": [ -0.0, 0.0, -0.0, 1.0 ],
+        "Scale": [ 10.0, 1.0, 10.0 ],
+        "Translation": [ 0.0, 0.0, 0.0 ],
+        "Uuid": "775a6494-d877-4ecb-a8fc-5a977ed50739"
+      }
+    }
+  },
+  "Objects": [
+    {
+      "Active": true,
+      "Name": "Kinematic\u0000",
+      "Type": "Movable",
+      "Uuid": "c29ce5a9-f9c8-41e6-a179-98f5135d34f5"
+    },
+    {
+      "Active": true,
+      "Name": "Ground\u0000ect",
+      "Type": "Movable",
+      "Uuid": "faea3ab9-1af2-4a60-ac70-4288139d6794"
+    },
+    {
+      "Active": true,
+      "Name": "Sphere \u0000ct",
+      "Type": "Movable",
+      "Uuid": "a62289b1-c7be-42f3-80e6-59c4aac28591"
+    },
+    {
+      "Active": true,
+      "Name": "Heavy Dyna",
+      "Type": "Movable",
+      "Uuid": "a7b43bd0-4bde-4f01-9008-5d938dd3a6a9"
+    },
+    {
+      "Active": true,
+      "Name": "Dynamic\u0000ct",
+      "Type": "Movable",
+      "Uuid": "a1e43967-0055-44d2-bd39-d37f66564a7c"
+    },
+    {
+      "Active": true,
+      "Name": "Light\u0000ject",
+      "Type": "Movable",
+      "Uuid": "4dc21a0a-f579-4cb6-a76e-060501bb0a7c"
+    }
+  ]
+}
