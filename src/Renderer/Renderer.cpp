@@ -312,13 +312,13 @@ namespace Darius::Renderer
 		auto frameIdxMod2 = D_GRAPHICS_AA_TEMPORAL::GetFrameIndexMod2();
 		auto& commandContext = context.GetComputeContext();
 
-		//D_GRAPHICS_AO_SS::LinearizeZ(commandContext, rContext.DepthBuffer, rContext.LinearDepth[frameIdxMod2], rContext.Camera);
+		D_GRAPHICS_AO_SS::LinearizeZ(commandContext, rContext.DepthBuffer, rContext.LinearDepth[frameIdxMod2], rContext.Camera);
 
-		//D_GRAPHICS_PP_MOTION::MotionBlurBuffers motionBuffers = { rContext.ColorBuffer, rContext.LinearDepth[frameIdxMod2], rContext.VelocityBuffer, rContext.DepthBuffer };
+		D_GRAPHICS_PP_MOTION::MotionBlurBuffers motionBuffers = { rContext.ColorBuffer, rContext.LinearDepth[frameIdxMod2], rContext.VelocityBuffer, rContext.DepthBuffer };
 
-		//D_GRAPHICS_PP_MOTION::GenerateCameraVelocityBuffer(commandContext, motionBuffers, rContext.Camera);
+		D_GRAPHICS_PP_MOTION::GenerateCameraVelocityBuffer(commandContext, motionBuffers, rContext.Camera);
 
-		//D_GRAPHICS_AA_TEMPORAL::ResolveImage(commandContext, rContext.ColorBuffer, rContext.VelocityBuffer, rContext.TemporalColor, rContext.LinearDepth);
+		D_GRAPHICS_AA_TEMPORAL::ResolveImage(commandContext, rContext.ColorBuffer, rContext.VelocityBuffer, rContext.TemporalColor, rContext.LinearDepth);
 	}
 
 #ifdef _D_EDITOR
