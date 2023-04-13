@@ -354,12 +354,13 @@ namespace Darius::Graphics::PostProcessing
 		else
 		{
 			D_H_OPTION_DRAW_FLOAT_SLIDER_EXP("Minimum Exposure", "PostProcessing.HDR.MinExposure", MinExposure, 1.f / 128, 1.f);
+
 			D_H_OPTION_DRAW_FLOAT_SLIDER_EXP("Maximum Exposure", "PostProcessing.HDR.MaxExposure", MaxExposure, 1.f, 128.f);
+
+			D_H_OPTION_DRAW_FLOAT_SLIDER("Target Luminance", "PostProcessing.HDR.TargetLuminance", TargetLuminance, 0.01f, 0.99f);
+
+			D_H_OPTION_DRAW_FLOAT_SLIDER("Adaptation Rate", "PostProcessing.HDR.AdaptationRate", AdaptationRate, 0.01f, 1.f);
 		}
-
-		D_H_OPTION_DRAW_FLOAT_SLIDER("Target Luminance", "PostProcessing.HDR.TargetLuminance", TargetLuminance, 0.01f, 0.99f);
-
-		D_H_OPTION_DRAW_FLOAT_SLIDER("Adaptation Rate", "PostProcessing.HDR.AdaptationRate", AdaptationRate, 0.01f, 1.f);
 
 		D_H_OPTION_DRAW_END()
 
