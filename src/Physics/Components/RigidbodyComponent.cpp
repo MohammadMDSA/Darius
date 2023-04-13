@@ -4,8 +4,12 @@
 #include "Physics/PhysicsManager.hpp"
 #include "Physics/PhysicsScene.hpp"
 
+#include <Core/Serialization/TypeSerializer.hpp>
+
+#ifdef _D_EDITOR
 #include <imgui.h>
 #include <imgui_internal.h>
+#endif
 
 #include "RigidbodyComponent.sgenerated.hpp"
 
@@ -39,6 +43,7 @@ namespace Darius::Physics
 	void RigidbodyComponent::Awake()
 	{
 		mActor = D_PHYSICS::PhysicsScene::AddDynamicActor(GetGameObject(), false);
+		D_ASSERT(mActor);
 
 		SetKinematic(mKinematic);
 		SetUsingGravity(mUsingGravity);
@@ -52,52 +57,12 @@ namespace Darius::Physics
 
 	void RigidbodyComponent::Serialize(D_SERIALIZATION::Json& json) const
 	{
-		json["Kinematic"] = IsKinematic();
-		json["UsingGravity"] = IsUsingGravity();
-
-		{
-			bool rotConst[3] = { GetRotationConstraintsX(), GetRotationConstraintsY(), GetRotationConstraintsZ() };
-			json["RotationConstraints"] = rotConst;
-		}
-
-		{
-			bool posConst[3] = { GetPositionConstraintsX(), GetPositionConstraintsY(), GetPositionConstraintsZ() };
-			json["PositionConstraints"] = posConst;
-		}
+		D_SERIALIZATION::Serialize(*this, json);
 	}
 
 	void RigidbodyComponent::Deserialize(D_SERIALIZATION::Json const& json)
 	{
-		D_H_DESERIALIZE(Kinematic);
-		D_H_DESERIALIZE(UsingGravity);
-
-		if (json.contains("RotationConstraints"))
-		{
-			auto& val = json["RotationConstraints"];
-			mRotationConstraints[0] = val[0];
-			mRotationConstraints[1] = val[1];
-			mRotationConstraints[2] = val[2];
-		}
-
-		if (json.contains("PositionConstraints"))
-		{
-			auto& val = json["PositionConstraints"];
-			mPositionConstraints[0] = val[0];
-			mPositionConstraints[1] = val[1];
-			mPositionConstraints[2] = val[2];
-		}
-
-		if (mActor)
-		{
-			SetKinematic(mKinematic);
-			SetUsingGravity(mUsingGravity);
-			SetRotationConstraintsX(mRotationConstraints[0]);
-			SetRotationConstraintsY(mRotationConstraints[1]);
-			SetRotationConstraintsZ(mRotationConstraints[2]);
-			SetPositionConstraintsX(mPositionConstraints[0]);
-			SetPositionConstraintsY(mPositionConstraints[1]);
-			SetPositionConstraintsZ(mPositionConstraints[2]);
-		}
+		D_SERIALIZATION::Deserialize(*this, json);
 	}
 
 	void RigidbodyComponent::OnDestroy()
@@ -121,6 +86,9 @@ namespace Darius::Physics
 
 	bool RigidbodyComponent::IsUsingGravity() const
 	{
+		if (!mActor)
+			return mUsingGravity;
+
 		auto flags = mActor->getActorFlags();
 
 		return !flags.isSet(PxActorFlag::eDISABLE_GRAVITY);
@@ -128,113 +96,169 @@ namespace Darius::Physics
 
 	void RigidbodyComponent::SetUsingGravity(bool enable)
 	{
-		mActor->setActorFlag(PxActorFlag::eDISABLE_GRAVITY, !enable);
+		if (mActor)
+			mActor->setActorFlag(PxActorFlag::eDISABLE_GRAVITY, !enable);
+
+		mUsingGravity = enable;
 		mChangeSignal();
 	}
 
 	void RigidbodyComponent::SetKinematic(bool value)
 	{
-		mActor->setRigidBodyFlag(PxRigidBodyFlag::eKINEMATIC, value);
+		if (mActor)
+			mActor->setRigidBodyFlag(PxRigidBodyFlag::eKINEMATIC, value);
+		mKinematic = value;
 		mChangeSignal();
 	}
 
 	bool RigidbodyComponent::IsKinematic() const
 	{
+		if (!mActor)
+			return mKinematic;
+
 		return mActor->getRigidBodyFlags().isSet(PxRigidBodyFlag::eKINEMATIC);
 	}
 
 	Vector3 RigidbodyComponent::GetLinearVelocity() const
 	{
+		if (!mActor)
+			return Vector3(kZero);
+
 		auto v = mActor->getLinearVelocity();
 		return Vector3(reinterpret_cast<float*>(&v));
 	}
 
 	void RigidbodyComponent::SetLinearVelocity(Vector3 const& v, bool autoWake)
 	{
+		if (!mActor)
+			return;
+
 		mActor->setLinearVelocity(VEC3_2_PX(v));
 		mChangeSignal();
 	}
 
 	Vector3 RigidbodyComponent::GetAngularVelocity() const
 	{
+		if (!mActor)
+			return Vector3(kZero);
+
 		auto v = mActor->getAngularVelocity();
 		return Vector3(reinterpret_cast<float*>(&v));
 	}
 
 	bool RigidbodyComponent::GetRotationConstraintsX() const
 	{
+		if (!mActor)
+			return mRotationConstraints[0];
+
 		auto flags = mActor->getRigidDynamicLockFlags();
 		return flags.isSet(PxRigidDynamicLockFlag::eLOCK_ANGULAR_X);
 	}
 
 	bool RigidbodyComponent::GetRotationConstraintsY() const
 	{
+		if (!mActor)
+			return mRotationConstraints[1];
+
 		auto flags = mActor->getRigidDynamicLockFlags();
 		return flags.isSet(PxRigidDynamicLockFlag::eLOCK_ANGULAR_Y);
 	}
 
 	bool RigidbodyComponent::GetRotationConstraintsZ() const
 	{
+		if (!mActor)
+			return mRotationConstraints[2];
+
 		auto flags = mActor->getRigidDynamicLockFlags();
 		return flags.isSet(PxRigidDynamicLockFlag::eLOCK_ANGULAR_Z);
 	}
 
 	void RigidbodyComponent::SetRotationConstraintsX(bool enable)
 	{
-		mActor->setRigidDynamicLockFlag(PxRigidDynamicLockFlag::eLOCK_ANGULAR_X, enable);
+		if (mActor)
+			mActor->setRigidDynamicLockFlag(PxRigidDynamicLockFlag::eLOCK_ANGULAR_X, enable);
+
+		mRotationConstraints[0] = enable;
 		mChangeSignal();
 	}
 
 	void RigidbodyComponent::SetRotationConstraintsY(bool enable)
 	{
-		mActor->setRigidDynamicLockFlag(PxRigidDynamicLockFlag::eLOCK_ANGULAR_Y, enable);
+		if (mActor)
+			mActor->setRigidDynamicLockFlag(PxRigidDynamicLockFlag::eLOCK_ANGULAR_Y, enable);
+
+		mRotationConstraints[1] = enable;
 		mChangeSignal();
 	}
 
 	void RigidbodyComponent::SetRotationConstraintsZ(bool enable)
 	{
-		mActor->setRigidDynamicLockFlag(PxRigidDynamicLockFlag::eLOCK_ANGULAR_Z, enable);
+		if (mActor)
+			mActor->setRigidDynamicLockFlag(PxRigidDynamicLockFlag::eLOCK_ANGULAR_Z, enable);
+
+		mRotationConstraints[2] = enable;
 		mChangeSignal();
 	}
 
 	bool RigidbodyComponent::GetPositionConstraintsX() const
 	{
+		if (!mActor)
+			return mPositionConstraints[0];
+
 		auto flags = mActor->getRigidDynamicLockFlags();
 		return flags.isSet(PxRigidDynamicLockFlag::eLOCK_LINEAR_X);
 	}
 
 	bool RigidbodyComponent::GetPositionConstraintsY() const
 	{
+		if (!mActor)
+			return mPositionConstraints[1];
+
 		auto flags = mActor->getRigidDynamicLockFlags();
 		return flags.isSet(PxRigidDynamicLockFlag::eLOCK_LINEAR_Y);
 	}
 
 	bool RigidbodyComponent::GetPositionConstraintsZ() const
 	{
+		if (!mActor)
+			return mPositionConstraints[2];
+
 		auto flags = mActor->getRigidDynamicLockFlags();
 		return flags.isSet(PxRigidDynamicLockFlag::eLOCK_LINEAR_Z);
 	}
 
 	void RigidbodyComponent::SetPositionConstraintsX(bool enable)
 	{
-		mActor->setRigidDynamicLockFlag(PxRigidDynamicLockFlag::eLOCK_LINEAR_X, enable);
+		if (mActor)
+			mActor->setRigidDynamicLockFlag(PxRigidDynamicLockFlag::eLOCK_LINEAR_X, enable);
+
+		mPositionConstraints[0] = enable;
 		mChangeSignal();
 	}
 
 	void RigidbodyComponent::SetPositionConstraintsY(bool enable)
 	{
-		mActor->setRigidDynamicLockFlag(PxRigidDynamicLockFlag::eLOCK_LINEAR_Y, enable);
+		if (mActor)
+			mActor->setRigidDynamicLockFlag(PxRigidDynamicLockFlag::eLOCK_LINEAR_Y, enable);
+
+		mPositionConstraints[1] = enable;
 		mChangeSignal();
 	}
 
 	void RigidbodyComponent::SetPositionConstraintsZ(bool enable)
 	{
-		mActor->setRigidDynamicLockFlag(PxRigidDynamicLockFlag::eLOCK_LINEAR_Z, enable);
+		if (mActor)
+			mActor->setRigidDynamicLockFlag(PxRigidDynamicLockFlag::eLOCK_LINEAR_Z, enable);
+
+		mPositionConstraints[2] = enable;
 		mChangeSignal();
 	}
 
 	void RigidbodyComponent::SetAngularVelocity(Vector3 const& v, bool autoWake)
 	{
+		if (!mActor)
+			return;
+
 		mActor->setAngularVelocity(VEC3_2_PX(v));
 		mChangeSignal();
 	}

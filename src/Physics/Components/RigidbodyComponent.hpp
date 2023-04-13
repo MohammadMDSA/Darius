@@ -12,7 +12,7 @@
 
 namespace Darius::Physics
 {
-	class DClass(Serialize) RigidbodyComponent : public D_ECS_COMP::ComponentBase
+	class DClass(Serialize[bKinematic, bUsingGravity, RotationConstraintsX, RotationConstraintsY, RotationConstraintsZ, PositionConstraintsX, PositionConstraintsY, PositionConstraintsZ]) RigidbodyComponent : public D_ECS_COMP::ComponentBase
 	{
 		D_H_COMP_BODY(RigidbodyComponent, ComponentBase, "Physics/Rigidbody", true);
 
@@ -27,6 +27,8 @@ namespace Darius::Physics
 
 #ifdef _D_EDITOR
 		virtual bool					DrawDetails(float[]) override;
+		bool							DrawRotationConstraints();
+		bool							DrawPositionConstraints();
 #endif
 
 		// Serialization
@@ -70,11 +72,7 @@ namespace Darius::Physics
 
 	private:
 
-#ifdef _D_EDITOR
-		bool							DrawRotationConstraints();
-		bool							DrawPositionConstraints();
-#endif
-
+		// Internals
 		physx::PxRigidDynamic*			mActor = nullptr;
 		bool							mKinematic;
 		bool							mUsingGravity;
