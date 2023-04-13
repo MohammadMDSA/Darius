@@ -4,7 +4,6 @@
 #include "RigidbodyComponent.hpp"
 #include "Physics/PhysicsScene.hpp"
 
-#include <Core/Serialization/TypeSerializer.hpp>
 #include <ResourceManager/ResourceManager.hpp>
 #include <Utils/DragDropPayload.hpp>
 
@@ -78,19 +77,6 @@ namespace Darius::Physics
 			mShape->setGeometry(*geom);
 		}
 
-	}
-
-	void ColliderComponent::Serialize(D_SERIALIZATION::Json& j) const
-	{
-		/*if (mMaterial.IsValid())
-			json["Material"] = D_CORE::ToString(mMaterial->GetUuid());*/
-
-		D_SERIALIZATION::Serialize(*this, j);
-	}
-
-	void ColliderComponent::Deserialize(D_SERIALIZATION::Json const& j)
-	{
-		D_SERIALIZATION::Deserialize(*this, j);
 	}
 
 	void ColliderComponent::OnDestroy()

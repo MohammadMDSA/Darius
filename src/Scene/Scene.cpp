@@ -7,10 +7,11 @@
 #include "EntityComponentSystem/Components/BehaviourComponent.hpp"
 #include "EntityComponentSystem/Components/TransformComponent.hpp"
 
+#include <Core/Containers/Set.hpp>
 #include <Core/Filesystem/FileUtils.hpp>
 #include <Core/Memory/Memory.hpp>
-#include <Core/Containers/Set.hpp>
 #include <Core/Serialization/Json.hpp>
+#include <Core/Serialization/TypeSerializer.hpp>
 #include <Core/Uuid.hpp>
 #include <Job/Job.hpp>
 #include <Utils/Assert.hpp>
@@ -245,7 +246,7 @@ namespace Darius::Scene
 			go->VisitComponents([&](D_ECS_COMP::ComponentBase const* comp)
 				{
 					D_SERIALIZATION::Json componentJson;
-					comp->Serialize(componentJson);
+					D_SERIALIZATION::Serialize(comp, componentJson);
 					D_CORE::to_json(componentJson["Uuid"], comp->mUuid);
 					objectComps[comp->GetComponentName()] = componentJson;
 				});
@@ -309,7 +310,7 @@ namespace Darius::Scene
 
 					gameObject->AddComponentRoutine(comp);
 
-					comp->Deserialize(compJ);
+					D_SERIALIZATION::Deserialize(comp, compJ);
 				}
 			}
 

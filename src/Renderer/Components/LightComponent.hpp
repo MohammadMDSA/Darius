@@ -21,10 +21,6 @@ namespace Darius::Graphics
 		virtual bool					DrawDetails(float params[]) override;
 #endif // _DEBUG
 
-		// Serialization
-		virtual void					Serialize(D_SERIALIZATION::Json& j) const override;
-		virtual void					Deserialize(D_SERIALIZATION::Json const& j) override;
-
 		// States
 		virtual void					Awake() override;
 		virtual INLINE void				OnDestroy() override { D_LIGHT::ReleaseLight(mLightType, mLightIndex); }

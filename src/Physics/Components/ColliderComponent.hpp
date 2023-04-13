@@ -33,10 +33,6 @@ namespace Darius::Physics
 		virtual bool				DrawDetails(float params[]) override;
 #endif
 
-		// Serialization
-		virtual void				Serialize(D_SERIALIZATION::Json& json) const override;
-		virtual void				Deserialize(D_SERIALIZATION::Json const& json) override;
-
 		INLINE physx::PxShape*		GetShape() { return mShape; }
 
 	protected:

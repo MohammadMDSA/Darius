@@ -1,7 +1,6 @@
 #include "pch.hpp"
 #include "AnimationComponent.hpp"
 
-#include <Core/Serialization/TypeSerializer.hpp>
 #include <Renderer/Components/SkeletalMeshRendererComponent.hpp>
 #include <Utils/DragDropPayload.hpp>
 
@@ -247,16 +246,6 @@ namespace Darius::Animation
 	{
 		mAnimState.Time = 0.f;
 		mAnimState.State = AnimationState::kLooping;
-	}
-
-	void AnimationComponent::Serialize(Json& j) const
-	{
-		D_SERIALIZATION::Serialize(*this, j);
-	}
-
-	void AnimationComponent::Deserialize(Json const& j)
-	{
-		D_SERIALIZATION::Deserialize(*this, j);
 	}
 
 }

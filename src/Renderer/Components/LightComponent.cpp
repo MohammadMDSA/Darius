@@ -1,7 +1,6 @@
 #include "Renderer/pch.hpp"
 #include "LightComponent.hpp"
 
-#include <Core/Serialization/TypeSerializer.hpp>
 #include <Math/Serialization.hpp>
 #include <Scene/Utils/DetailsDrawer.hpp>
 
@@ -126,16 +125,6 @@ namespace Darius::Graphics
 		return changed;
 	}
 #endif
-
-	void LightComponent::Serialize(Json& j) const
-	{
-		D_SERIALIZATION::Serialize(*this, j);
-	}
-
-	void LightComponent::Deserialize(Json const& j)
-	{
-		D_SERIALIZATION::Deserialize(*this, j);
-	}
 
 	void LightComponent::SetLightType(LightSourceType type)
 	{

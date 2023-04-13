@@ -27,6 +27,8 @@
 #include <Scene/EntityComponentSystem/Components/TransformComponent.hpp>
 #include <Utils/Assert.hpp>
 
+#include <Core/Serialization/TypeSerializer.hpp>
+
 #include <Libs/imgui_wrapper/ImGuiFileDialog/ImGuiFileDialog.h>
 #include <Libs/FontIcon/IconsFontAwesome6.h>
 #include <imgui.h>
@@ -362,11 +364,28 @@ namespace Darius::Editor::Gui::GuiManager
 
 				if (ImGui::MenuItem("Debug Button"))
 				{
-					/*for (size_t i = 0; i < 1000; i++)
-					{
-						D_WORLD::CreateGameObject();
-					}*/
 
+					D_MATH::TransformComponent* comp = nullptr;
+
+					D_WORLD::GetRegistry().each([&](D_MATH::TransformComponent& meshComp)
+						{
+							comp = &meshComp;
+						}
+					);
+
+					if (comp != nullptr)
+					{
+						D_SERIALIZATION::Json j;
+						D_SERIALIZATION::Serialize(comp, j);
+
+						auto compStr = j.dump();
+
+						auto go = D_WORLD::CreateGameObject();
+
+						D_ECS_COMP::ComponentBase* dest = go->GetComponent<D_MATH::TransformComponent>();
+
+						D_SERIALIZATION::Deserialize(dest, j);
+					}
 				}
 
 				ImGui::EndMenu();

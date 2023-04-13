@@ -1,7 +1,6 @@
 #include "Renderer/pch.hpp"
 #include "CameraComponent.hpp"
 
-#include <Core/Serialization/TypeSerializer.hpp>
 #include <Renderer/Camera/CameraManager.hpp>
 #include <Scene/Utils/DetailsDrawer.hpp>
 
@@ -78,15 +77,5 @@ namespace Darius::Graphics
 		return changed;
 	}
 #endif
-
-	void CameraComponent::Serialize(Json& j) const
-	{
-		D_SERIALIZATION::Serialize(*this, j);
-	}
-
-	void CameraComponent::Deserialize(Json const& j)
-	{
-		D_SERIALIZATION::Deserialize(*this, j);
-	}
 
 }

@@ -34,10 +34,6 @@ namespace Darius::Animation
 		virtual bool							DrawDetails(float params[]) override;
 #endif // _D_EDITOR
 
-		// Serialization
-		virtual void							Serialize(D_SERIALIZATION::Json& j) const override;
-		virtual void							Deserialize(D_SERIALIZATION::Json const& j) override;
-
 		virtual void							Update(float deltaTime) override;
 		virtual void							Awake() override;
 

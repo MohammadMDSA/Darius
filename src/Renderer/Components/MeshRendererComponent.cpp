@@ -1,7 +1,6 @@
 #include "Renderer/pch.hpp"
 #include "MeshRendererComponent.hpp"
 
-#include <Core/Serialization/TypeSerializer.hpp>
 #include <ResourceManager/ResourceManager.hpp>
 #include <Scene/Utils/DetailsDrawer.hpp>
 #include <Utils/DragDropPayload.hpp>
@@ -102,16 +101,6 @@ namespace Darius::Graphics
 
 	}
 #endif
-
-	void MeshRendererComponent::Serialize(Json& j) const
-	{
-		D_SERIALIZATION::Serialize(*this, j);
-	}
-
-	void MeshRendererComponent::Deserialize(Json const& j)
-	{
-		D_SERIALIZATION::Deserialize(*this, j);
-	}
 
 	void MeshRendererComponent::Update(float dt)
 	{

@@ -31,10 +31,6 @@ namespace Darius::Physics
 		bool							DrawPositionConstraints();
 #endif
 
-		// Serialization
-		virtual void					Serialize(D_SERIALIZATION::Json& json) const override;
-		virtual void					Deserialize(D_SERIALIZATION::Json const& json) override;
-
 		// Kinematic
 		void							SetKinematic(bool value);
 		bool							IsKinematic() const;

@@ -116,10 +116,6 @@ namespace Darius::Scene::ECS::Components
 
         INLINE bool                 IsActive() const { return mGameObject->IsActive() && mEnabled; }
 
-        // Serialization
-        virtual INLINE void         Serialize(D_SERIALIZATION::Json&) const {};
-        virtual INLINE void         Deserialize(D_SERIALIZATION::Json const&) {};
-
         virtual INLINE bool         IsDisableable() const { return true; }
         
         virtual INLINE void         SetEnabled(bool value)

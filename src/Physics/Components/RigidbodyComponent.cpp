@@ -4,8 +4,6 @@
 #include "Physics/PhysicsManager.hpp"
 #include "Physics/PhysicsScene.hpp"
 
-#include <Core/Serialization/TypeSerializer.hpp>
-
 #ifdef _D_EDITOR
 #include <imgui.h>
 #include <imgui_internal.h>
@@ -53,16 +51,6 @@ namespace Darius::Physics
 		SetPositionConstraintsX(mPositionConstraints[0]);
 		SetPositionConstraintsY(mPositionConstraints[1]);
 		SetPositionConstraintsZ(mPositionConstraints[2]);
-	}
-
-	void RigidbodyComponent::Serialize(D_SERIALIZATION::Json& json) const
-	{
-		D_SERIALIZATION::Serialize(*this, json);
-	}
-
-	void RigidbodyComponent::Deserialize(D_SERIALIZATION::Json const& json)
-	{
-		D_SERIALIZATION::Deserialize(*this, json);
 	}
 
 	void RigidbodyComponent::OnDestroy()

@@ -2,8 +2,6 @@
 #include "imgui.h"
 #include "imgui_internal.h"
 
-#include <Core/Serialization/TypeSerializer.hpp>
-
 #include <rttr/registration.h>
 
 #include "Scalar.sgenerated.hpp"

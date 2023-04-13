@@ -2,7 +2,6 @@
 #include "SkeletalMeshRendererComponent.hpp"
 #include "Scene/Utils/DetailsDrawer.hpp"
 
-#include <Core/Serialization/TypeSerializer.hpp>
 #include <Core/TimeManager/TimeManager.hpp>
 #include <Debug/DebugDraw.hpp>
 #include <ResourceManager/ResourceManager.hpp>
@@ -147,16 +146,6 @@ namespace Darius::Graphics
 	{
 		mPsoIndexDirty = true;
 		mMaterial = D_RESOURCE::GetResource<MaterialResource>(handle, *this);
-	}
-
-	void SkeletalMeshRendererComponent::Serialize(Json& j) const
-	{
-		D_SERIALIZATION::Serialize(*this, j);
-	}
-
-	void SkeletalMeshRendererComponent::Deserialize(Json const& j)
-	{
-		D_SERIALIZATION::Deserialize(*this, j);
 	}
 
 	void SkeletalMeshRendererComponent::JointUpdateRecursion(Matrix4 const& parent, Mesh::SkeletonJoint& skeletonJoint)

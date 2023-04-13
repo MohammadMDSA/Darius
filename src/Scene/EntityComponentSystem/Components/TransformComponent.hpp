@@ -18,10 +18,6 @@ namespace Darius::Math
 		D_H_COMP_BODY(TransformComponent, D_ECS_COMP::ComponentBase, "Math/Transform", true);
 	public:
 
-		// Serialization
-		virtual void						Serialize(D_SERIALIZATION::Json& j) const override;
-		virtual void						Deserialize(D_SERIALIZATION::Json const& j) override;
-
 		virtual INLINE void					SetEnabled(bool) override {}
 
 		INLINE D_MATH::Transform const* GetDataC() const { return &mTransform; }
