@@ -8,6 +8,11 @@
 ---
 
 ## Features
+- Core
+    - Runtime Type Reflection
+    - Code Generation
+        - Auto Type Reflection Registeration
+        - Auto Serialization and Deserialization
 - Resource Management
     - Default: PBR Material, Texture (DDS, TGA), Static and Skeletal Mesh (FBX), Animation (FBX), Vertex Batch Resources, and Physics Material
     - Dynamic Resource Type Registration (You can define your own types)
