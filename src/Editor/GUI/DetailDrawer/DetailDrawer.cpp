@@ -421,12 +421,14 @@ namespace Darius::Editor::Gui::DetailDrawer
 					ImGui::Indent(50.f);
 					ImGui::NewLine();
 					ImGui::BeginGroup();
+					ImGui::Separator();
 					if (DrawRecursively(propLabel, propValue, callback))
 					{
 						bool done = prop.set_value(obj, propValue);
 						(done);
 						valueChanged = true;
 					}
+					ImGui::Separator();
 					ImGui::EndGroup();
 					ImGui::Unindent(50.f);
 					POST_ITEM_DRAW();
