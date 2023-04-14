@@ -1,6 +1,7 @@
 #include "Editor/pch.hpp"
 #include "EditorContext.hpp"
 
+#include "GUI/DetailDrawer/DetailDrawer.hpp"
 #include "GUI/GuiManager.hpp"
 #include "GUI/ThumbnailManager.hpp"
 #include "Simulation.hpp"
@@ -46,12 +47,15 @@ namespace Darius::Editor::Context
 		// Initializing the simulator
 		D_SIMULATE::Initialize();
 
+		D_DETAIL_DRAWER::Initialize();
+
 	}
 
 	void Shutdown()
 	{
 		D_ASSERT(_initialized);
 
+		D_DETAIL_DRAWER::Shutdown();
 		D_SIMULATE::Shutdown();
 		D_GUI_MANAGER::Shutdown();
 		D_THUMBNAIL::Shutdown();
