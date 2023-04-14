@@ -60,7 +60,7 @@ namespace Darius::Graphics::PostProcessing
 		// Initializing options
 		D_H_OPTIONS_LOAD_BASIC_DEFAULT("PostProcessing.HDR.Enable", EnableHDR, true);
 		D_H_OPTIONS_LOAD_BASIC_DEFAULT("PostProcessing.HDR.Adaptation", EnableAdaptation, true);
-		D_H_OPTIONS_LOAD_BASIC_DEFAULT("PostProcessing.HDR.DrawHistogram", DrawHistogram, true);
+		D_H_OPTIONS_LOAD_BASIC_DEFAULT("PostProcessing.HDR.DrawHistogram", DrawHistogram, false);
 		D_H_OPTIONS_LOAD_BASIC_DEFAULT("PostProcessing.HDR.Exposure", Exposure, 2.f);
 		D_H_OPTIONS_LOAD_BASIC_DEFAULT("PostProcessing.HDR.MinExposure", MinExposure, 1.0f / 64.0f);
 		D_H_OPTIONS_LOAD_BASIC_DEFAULT("PostProcessing.HDR.MaxExposure", MaxExposure, 64.f);

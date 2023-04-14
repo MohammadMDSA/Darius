@@ -35,7 +35,7 @@ namespace Darius::Graphics::AntiAliasing::TemporalEffect
 	float                               JitterDeltaY = 0.0f;
 
 	// Options
-	bool                                EnableTAA = true;
+	bool                                EnableTAA = false;
 	float								Sharpness = 0.5f;
 	float								TemporalMaxLerp = 1.0f;
 	float								TemporalSpeedLimit = 64.0f;
@@ -58,7 +58,7 @@ namespace Darius::Graphics::AntiAliasing::TemporalEffect
 
 		TriggerReset = true;
 	
-		D_H_OPTIONS_LOAD_BASIC_DEFAULT("AntiAliasing.Temporal.Enable", EnableTAA, true);
+		D_H_OPTIONS_LOAD_BASIC_DEFAULT("AntiAliasing.Temporal.Enable", EnableTAA, false);
 		D_H_OPTIONS_LOAD_BASIC_DEFAULT("AntiAliasing.Temporal.Sharpness", Sharpness, 0.5f);
 		D_H_OPTIONS_LOAD_BASIC_DEFAULT("AntiAliasing.Temporal.MaxLerp", TemporalMaxLerp, 1.0f);
 		D_H_OPTIONS_LOAD_BASIC_DEFAULT("AntiAliasing.Temporal.SpeedLimit", TemporalSpeedLimit, 64.0f);
