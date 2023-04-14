@@ -177,7 +177,7 @@ return settingsChanged;
 	ImGui::SameLine(inputOffset); \
 	float value = variable; \
 	ImGui::PushItemWidth(inputWidth); \
-	if (ImGui::DragFloat("##" label, &value, __VA_ARGS__)) \
+	if (ImGui::DragFloat("##" label, &value, __VA_ARGS__, ImGuiSliderFlags_AlwaysClamp)) \
 	{ \
 		options[tag] = variable = value; \
 		settingsChanged = true; \
@@ -191,7 +191,7 @@ return settingsChanged;
 	ImGui::SameLine(inputOffset); \
 	float value = variable; \
 	ImGui::PushItemWidth(inputWidth); \
-	if (ImGui::SliderFloat("##" label, &value, min, max, "%.3f")) \
+	if (ImGui::SliderFloat("##" label, &value, min, max, "%.3f", ImGuiSliderFlags_AlwaysClamp)) \
 	{ \
 		options[tag] = variable = value; \
 		settingsChanged = true; \
@@ -205,7 +205,7 @@ return settingsChanged;
 	ImGui::SameLine(inputOffset); \
 	float value = variable; \
 	ImGui::PushItemWidth(inputWidth); \
-	if (ImGui::SliderFloat("##" label, &value, min, max, "%.3f", ImGuiSliderFlags_Logarithmic)) \
+	if (ImGui::SliderFloat("##" label, &value, min, max, "%.3f", ImGuiSliderFlags_Logarithmic | ImGuiSliderFlags_AlwaysClamp)) \
 	{ \
 		options[tag] = variable = value; \
 		settingsChanged = true; \
