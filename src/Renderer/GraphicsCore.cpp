@@ -2,7 +2,7 @@
 #include "GraphicsCore.hpp"
 
 #include "AntiAliasing/TemporalEffect.hpp"
-#include "AmbientOcclusion/ScreenSpaceAmbientOcclusion.hpp"
+#include "AmbientOcclusion/SuperSampleAmbientOcclusion.hpp"
 #include "CommandContext.hpp"
 #include "Components/LightComponent.hpp"
 #include "Components/MeshRendererComponent.hpp"
@@ -777,6 +777,11 @@ namespace Darius::Graphics
 		if (ImGui::CollapsingHeader("Post Processing"))
 		{
 			settingsChanged |= D_GRAPHICS_PP::OptionsDrawer(options);
+		}
+
+		if (ImGui::CollapsingHeader("SSAO"))
+		{
+			settingsChanged |= D_GRAPHICS_AO_SS::OptionsDrawer(options);
 		}
 
 		if (ImGui::CollapsingHeader("Renderer"))
