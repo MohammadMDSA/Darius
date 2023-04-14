@@ -33,7 +33,7 @@ namespace Darius::Renderer
 		kBaseColor,
 		kMetallic,
 		kRoughness,
-		kOcculusion,
+		kOcclusion,
 		kEmissive,
 		kNormal,
 
@@ -164,6 +164,26 @@ namespace Darius::Renderer
 		D_GRAPHICS_BUFFERS::ColorBuffer&					VelocityBuffer;
 		D_GRAPHICS_BUFFERS::ColorBuffer*					TemporalColor;
 		D_GRAPHICS_BUFFERS::ColorBuffer*					LinearDepth;
+		D_GRAPHICS_BUFFERS::ColorBuffer&					SSAOFullScreen;
+		D_GRAPHICS_BUFFERS::ColorBuffer&					DepthDownsize1;
+		D_GRAPHICS_BUFFERS::ColorBuffer&					DepthDownsize2;
+		D_GRAPHICS_BUFFERS::ColorBuffer&					DepthDownsize3;
+		D_GRAPHICS_BUFFERS::ColorBuffer&					DepthDownsize4;
+		D_GRAPHICS_BUFFERS::ColorBuffer&					DepthTiled1;
+		D_GRAPHICS_BUFFERS::ColorBuffer&					DepthTiled2;
+		D_GRAPHICS_BUFFERS::ColorBuffer&					DepthTiled3;
+		D_GRAPHICS_BUFFERS::ColorBuffer&					DepthTiled4;
+		D_GRAPHICS_BUFFERS::ColorBuffer&					AOMerged1;
+		D_GRAPHICS_BUFFERS::ColorBuffer&					AOMerged2;
+		D_GRAPHICS_BUFFERS::ColorBuffer&					AOMerged3;
+		D_GRAPHICS_BUFFERS::ColorBuffer&					AOMerged4;
+		D_GRAPHICS_BUFFERS::ColorBuffer&					AOSmooth1;
+		D_GRAPHICS_BUFFERS::ColorBuffer&					AOSmooth2;
+		D_GRAPHICS_BUFFERS::ColorBuffer&					AOSmooth3;
+		D_GRAPHICS_BUFFERS::ColorBuffer&					AOHighQuality1;
+		D_GRAPHICS_BUFFERS::ColorBuffer&					AOHighQuality2;
+		D_GRAPHICS_BUFFERS::ColorBuffer&					AOHighQuality3;
+		D_GRAPHICS_BUFFERS::ColorBuffer&					AOHighQuality4;
 		D_GRAPHICS::GraphicsContext&						GraphicsContext;
 		D_MATH_CAMERA::Camera const&						Camera;
 		D_RENDERER_FRAME_RESOURCE::GlobalConstants&			Globals;

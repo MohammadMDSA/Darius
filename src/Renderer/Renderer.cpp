@@ -2,7 +2,7 @@
 #include "pch.hpp"
 
 #include "AntiAliasing/TemporalEffect.hpp"
-#include "AmbientOcclusion/ScreenSpaceAmbientOcclusion.hpp"
+#include "AmbientOcclusion/SuperSampleAmbientOcclusion.hpp"
 #include "Camera/CameraManager.hpp"
 #include "Components/MeshRendererComponent.hpp"
 #include "Components/SkeletalMeshRendererComponent.hpp"
@@ -300,6 +300,39 @@ namespace Darius::Renderer
 		if (rContext.DrawSkybox)
 			D_RENDERER::DrawSkybox(context, rContext.Camera, rContext.ColorBuffer, rContext.DepthBuffer, viewPort, scissor);
 
+		// Rendering depth
+		sorter.RenderMeshes(MeshSorter::kZPass, context, rContext.Globals);
+
+		D_GRAPHICS_AO_SS::SSAORenderBuffers ssaoBuffers =
+		{
+			rContext.ColorBuffer,
+			rContext.SSAOFullScreen,
+			rContext.DepthBuffer,
+			*rContext.LinearDepth,
+			rContext.DepthDownsize1,
+			rContext.DepthDownsize2,
+			rContext.DepthDownsize3,
+			rContext.DepthDownsize4,
+			rContext.DepthTiled1,
+			rContext.DepthTiled2,
+			rContext.DepthTiled3,
+			rContext.DepthTiled4,
+			rContext.AOMerged1,
+			rContext.AOMerged2,
+			rContext.AOMerged3,
+			rContext.AOMerged4,
+			rContext.AOSmooth1,
+			rContext.AOSmooth2,
+			rContext.AOSmooth3,
+			rContext.AOHighQuality1,
+			rContext.AOHighQuality2,
+			rContext.AOHighQuality3,
+			rContext.AOHighQuality4
+		};
+
+		D_GRAPHICS_AO_SS::Render(context, ssaoBuffers, rContext.Camera);
+
+
 		sorter.RenderMeshes(MeshSorter::kTransparent, context, rContext.Globals);
 
 		if (postDraw)
@@ -311,8 +344,6 @@ namespace Darius::Renderer
 
 		auto frameIdxMod2 = D_GRAPHICS_AA_TEMPORAL::GetFrameIndexMod2();
 		auto& commandContext = context.GetComputeContext();
-
-		D_GRAPHICS_AO_SS::LinearizeZ(commandContext, rContext.DepthBuffer, rContext.LinearDepth[frameIdxMod2], rContext.Camera);
 
 		D_GRAPHICS_PP_MOTION::MotionBlurBuffers motionBuffers = { rContext.ColorBuffer, rContext.LinearDepth[frameIdxMod2], rContext.VelocityBuffer, rContext.DepthBuffer };
 
