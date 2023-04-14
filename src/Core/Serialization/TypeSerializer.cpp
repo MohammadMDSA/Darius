@@ -22,7 +22,7 @@ namespace Darius::Core::Serialization
 		return true;
 	}
 
-	void to_json_recursively(rttr::instance const& obj, Json& json);
+	void to_json_recursively(rttr::instance const obj, Json& json);
 
 	bool write_variant(const variant& var, Json& json);
 
@@ -33,7 +33,7 @@ namespace Darius::Core::Serialization
 			if (t == type::get<bool>())
 				json = var.to_bool();
 			else if (t == type::get<char>())
-				json = var.to_bool();
+				json = var.get_value<char>();
 			else if (t == type::get<int8_t>())
 				json = var.to_int8();
 			else if (t == type::get<int16_t>())
@@ -194,7 +194,7 @@ namespace Darius::Core::Serialization
 		return true;
 	}
 
-	void to_json_recursively(rttr::instance const& ins, Json& json)
+	void to_json_recursively(rttr::instance const ins, Json& json)
 	{
 
 		instance obj = ins.get_type().get_raw_type().is_wrapper() ? ins.get_wrapped_instance() : ins;
@@ -228,7 +228,7 @@ namespace Darius::Core::Serialization
 
 	}
 
-	void Serialize(rttr::instance const& obj, Json& json)
+	void Serialize(rttr::instance const obj, Json& json)
 	{
 
 		if (!obj.is_valid())

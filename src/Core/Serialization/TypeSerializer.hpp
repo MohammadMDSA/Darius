@@ -14,7 +14,7 @@
 
 namespace Darius::Core::Serialization
 {
-	void Serialize(rttr::instance const& obj, Json& json);
+	void Serialize(rttr::instance const obj, Json& json);
 	void Deserialize(rttr::instance obj, Json const& json);
 
 	template<typename T>
