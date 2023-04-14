@@ -54,6 +54,8 @@ namespace Darius::Graphics::AmbientOcclusion::SuperSample
 	float										BlurTolerance = -5.f;
 	float										UpsampleTolerance = -7.f;
 	float										NoiseFilterTolerance = -5.f;
+	float										RejectionFalloff = 2.5f;
+	float										Accentuation = 2.5f;
 	int											HierarchyDepth = 3;
 	int											QualityLevel = kSsaoQualityHigh;
 
@@ -84,6 +86,8 @@ namespace Darius::Graphics::AmbientOcclusion::SuperSample
 		D_H_OPTIONS_LOAD_BASIC_DEFAULT("AmbientOcclusion.SuperSample.BlurTolerance", BlurTolerance, -5.f);
 		D_H_OPTIONS_LOAD_BASIC_DEFAULT("AmbientOcclusion.SuperSample.UpsampleTolerance", UpsampleTolerance, -7.f);
 		D_H_OPTIONS_LOAD_BASIC_DEFAULT("AmbientOcclusion.SuperSample.NoiseFilterTolerance", NoiseFilterTolerance, -3.f);
+		D_H_OPTIONS_LOAD_BASIC_DEFAULT("AmbientOcclusion.SuperSample.RejectionFalloff", RejectionFalloff, 2.5f);
+		D_H_OPTIONS_LOAD_BASIC_DEFAULT("AmbientOcclusion.SuperSample.Accentuation", Accentuation, 0.1f);
 		D_H_OPTIONS_LOAD_BASIC_DEFAULT("AmbientOcclusion.SuperSample.HierarchyDepth", HierarchyDepth, 3);
 		D_H_OPTIONS_LOAD_BASIC_DEFAULT("AmbientOcclusion.SuperSample.QualityLevel", QualityLevel, kSsaoQualityHigh);
 
@@ -223,6 +227,11 @@ namespace Darius::Graphics::AmbientOcclusion::SuperSample
 			totalWeight += ssaoCB[i];
 		for (int i = 12; i < 24; i++)
 			ssaoCB[i] /= totalWeight;
+
+		ssaoCB[24] = 1.0f / bufferWidth;
+		ssaoCB[25] = 1.0f / bufferHeight;
+		ssaoCB[26] = 1.0f / -RejectionFalloff;
+		ssaoCB[27] = 1.0f / (1.0f + Accentuation);
 
 		context.SetDynamicConstantBufferView(1, sizeof(ssaoCB), ssaoCB);
 		context.SetDynamicDescriptor(2, 0, destination.GetUAV());
@@ -556,6 +565,9 @@ namespace Darius::Graphics::AmbientOcclusion::SuperSample
 		D_H_OPTION_DRAW_FLOAT_SLIDER("Blur Tolerance", "AmbientOcclusion.SuperSample.BlurTolerance", BlurTolerance, -8.f, -1.f);
 		D_H_OPTION_DRAW_FLOAT_SLIDER("Upsample Tolerance", "AmbientOcclusion.SuperSample.UpsampleTolerance", UpsampleTolerance, -12.f, -1.f);
 		D_H_OPTION_DRAW_FLOAT_SLIDER("Noise Filter Tolerance", "AmbientOcclusion.SuperSample.NoiseFilterTolerance", NoiseFilterTolerance, -8.f, 0.f);
+		D_H_OPTION_DRAW_FLOAT_SLIDER("Rejection Falloff (rcp)", "AmbientOcclusion.SuperSample.RejectionFalloff", RejectionFalloff, 1.f, 10.f);
+		D_H_OPTION_DRAW_FLOAT_SLIDER("Accentuation", "AmbientOcclusion.SuperSample.Accentuation", Accentuation, 0.f, 1.f);
+
 		D_H_OPTION_DRAW_INT_SLIDER("Hierarchy Depth", "AmbientOcclusion.SuperSample.HierarchyDepth", HierarchyDepth, 1, 4);
 		D_H_OPTION_DRAW_CHOICE("Quality Level", "AmbientOcclusion.SuperSample.QualityLevel", QualityLevel, QualityLabels, kNumSsaoQualitySettings);
 
