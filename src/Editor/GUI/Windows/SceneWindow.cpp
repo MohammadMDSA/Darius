@@ -156,7 +156,7 @@ namespace Darius::Editor::Gui::Windows
 		globals.FarZ = mCamera.GetFarClip();
 		globals.TotalTime = (float)time.GetTotalSeconds();
 		globals.DeltaTime = (float)time.GetElapsedSeconds();
-		globals.AmbientLight = { 0.1f, 0.1f, 0.1f, 1.0f };
+		globals.AmbientLight = { 1.f, 1.f, 1.f, 1.f };
 
 	}
 
@@ -214,7 +214,7 @@ namespace Darius::Editor::Gui::Windows
 				{
 					D_DEBUG_DRAW::GetRenderItems(sorter);
 					sorter.Sort();
-					sorter.RenderMeshes(MeshSorter::kTransparent, context, mSceneGlobals);
+					sorter.RenderMeshes(MeshSorter::kTransparent, context, nullptr, mSceneGlobals);
 				}
 			});
 

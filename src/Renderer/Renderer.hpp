@@ -33,7 +33,7 @@ namespace Darius::Renderer
 		kBaseColor,
 		kMetallic,
 		kRoughness,
-		kOcclusion,
+		kAmbientOcclusion,
 		kEmissive,
 		kNormal,
 
@@ -110,7 +110,10 @@ namespace Darius::Renderer
 
 		void Sort();
 
-		void RenderMeshes(DrawPass pass, D_GRAPHICS::GraphicsContext& context, D_RENDERER_FRAME_RESOURCE::GlobalConstants& globals);
+		void RenderMeshes(DrawPass pass,
+			D_GRAPHICS::GraphicsContext& context,
+			D_GRAPHICS_BUFFERS::ColorBuffer* ssao,
+			D_RENDERER_FRAME_RESOURCE::GlobalConstants& globals);
 
 		size_t CountObjects() const { return m_SortObjects.size(); }
 

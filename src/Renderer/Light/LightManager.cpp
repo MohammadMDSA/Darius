@@ -354,7 +354,7 @@ namespace Darius::Renderer::LightManager
 
 		sorter.SetCamera(cam);
 		sorter.SetDepthStencilTarget(shadowBuffer);
-		sorter.RenderMeshes(MeshSorter::kZPass, context, globals);
+		sorter.RenderMeshes(MeshSorter::kZPass, context, nullptr, globals);
 
 		context.TransitionResource(shadowBuffer, D3D12_RESOURCE_STATE_COPY_SOURCE);
 
@@ -381,7 +381,7 @@ namespace Darius::Renderer::LightManager
 
 		sorter.SetCamera(shadowCamera);
 		sorter.SetDepthStencilTarget(shadowBuffer);
-		sorter.RenderMeshes(MeshSorter::kZPass, context, globals);
+		sorter.RenderMeshes(MeshSorter::kZPass, context, nullptr, globals);
 
 		context.TransitionResource(shadowBuffer, D3D12_RESOURCE_STATE_COPY_SOURCE);
 

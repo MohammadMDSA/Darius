@@ -129,7 +129,7 @@ namespace Darius::Renderer
 
 			for (int i = 0; i < D_RENDERER_FRAME_RESOURCE::gNumFrameResources; i++)
 			{
-				DescriptorHandle dest = CommonTexture[i] + 3 * TextureHeap.GetDescriptorSize();
+				DescriptorHandle dest = CommonTexture[i] + 4 * TextureHeap.GetDescriptorSize();
 
 				D_GRAPHICS_DEVICE::GetDevice()->CopyDescriptors(1, &dest, &DestCount, DestCount, SourceTextures, SourceCounts, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 			}
@@ -301,7 +301,7 @@ namespace Darius::Renderer
 			D_RENDERER::DrawSkybox(context, rContext.Camera, rContext.ColorBuffer, rContext.DepthBuffer, viewPort, scissor);
 
 		// Rendering depth
-		sorter.RenderMeshes(MeshSorter::kZPass, context, rContext.Globals);
+		sorter.RenderMeshes(MeshSorter::kZPass, context, 0, rContext.Globals);
 
 		D_GRAPHICS_AO_SS::SSAORenderBuffers ssaoBuffers =
 		{
@@ -333,7 +333,7 @@ namespace Darius::Renderer
 		D_GRAPHICS_AO_SS::Render(context, ssaoBuffers, rContext.Camera);
 
 
-		sorter.RenderMeshes(MeshSorter::kTransparent, context, rContext.Globals);
+		sorter.RenderMeshes(MeshSorter::kTransparent, context, &rContext.SSAOFullScreen, rContext.Globals);
 
 		if (postDraw)
 		{
@@ -672,7 +672,7 @@ namespace Darius::Renderer
 
 		for (int i = 0; i < D_RENDERER_FRAME_RESOURCE::gNumFrameResources; i++)
 		{
-			DescriptorHandle dest = CommonTexture[i] + 3 * TextureHeap.GetDescriptorSize();
+			DescriptorHandle dest = CommonTexture[i] + 4 * TextureHeap.GetDescriptorSize();
 
 			D_GRAPHICS_DEVICE::GetDevice()->CopyDescriptors(1, &dest, &DestCount, DestCount, SourceTextures, SourceCounts, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 
@@ -781,6 +781,7 @@ namespace Darius::Renderer
 			key.key = dist.u;
 			m_SortKeys.push_back(key.value);
 			m_PassCounts[kOpaque]++;
+
 		}
 
 		SortObject object = { renderItem };
@@ -796,6 +797,7 @@ namespace Darius::Renderer
 	void MeshSorter::RenderMeshes(
 		DrawPass pass,
 		D_GRAPHICS::GraphicsContext& context,
+		D_GRAPHICS_BUFFERS::ColorBuffer* ssao,
 		GlobalConstants& globals)
 	{
 		D_ASSERT(m_DSV != nullptr);
@@ -834,16 +836,20 @@ namespace Darius::Renderer
 		}
 		else
 		{
-			// Setting up common texture (light for now)
-			UINT destCount = 3;
-			UINT sourceCounts[] = { 1, 1, 1 };
-			D3D12_CPU_DESCRIPTOR_HANDLE lightHandles[] =
+			// Copying light data
+			if (pass >= kOpaque)
 			{
-				D_LIGHT::GetLightMaskHandle(),
-				D_LIGHT::GetLightDataHandle(),
-				D_LIGHT::GetShadowTextureArrayHandle(),
-			};
-			D_GRAPHICS_DEVICE::GetDevice()->CopyDescriptors(1, &(CommonTexture[D_GRAPHICS_DEVICE::GetCurrentFrameResourceIndex()]), &destCount, destCount, lightHandles, sourceCounts, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+				UINT destCount = ssao ? 4 : 3;
+				UINT sourceCounts[] = { 1, 1, 1, 1 };
+				D3D12_CPU_DESCRIPTOR_HANDLE lightHandles[] =
+				{
+					D_LIGHT::GetLightMaskHandle(),
+					D_LIGHT::GetLightDataHandle(),
+					D_LIGHT::GetShadowTextureArrayHandle(),
+					ssao ? ssao->GetSRV() : (D3D12_CPU_DESCRIPTOR_HANDLE)0
+				};
+				D_GRAPHICS_DEVICE::GetDevice()->CopyDescriptors(1, &(CommonTexture[D_GRAPHICS_DEVICE::GetCurrentFrameResourceIndex()]), &destCount, destCount, lightHandles, sourceCounts, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+			}
 
 			// Setup samplers
 			context.SetDescriptorHeap(D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER, SamplerHeap.GetHeapPointer());

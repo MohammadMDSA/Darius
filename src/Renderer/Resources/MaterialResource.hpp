@@ -51,7 +51,7 @@ inline void Set##type##Texture(D_RESOURCE::ResourceHandle textureHandle) { SetTe
 		TextureSetter(BaseColor);
 		TextureSetter(Metallic);
 		TextureSetter(Roughness);
-		TextureSetter(Occlusion);
+		TextureSetter(AmbientOcclusion);
 		TextureSetter(Emissive);
 		TextureSetter(Normal);
 
@@ -85,6 +85,9 @@ inline void Set##type##Texture(D_RESOURCE::ResourceHandle textureHandle) { SetTe
 		D_CORE::Ref<D_GRAPHICS::TextureResource>	mEmissiveTexture;
 		
 		DField(Get[const, &, inline])
+		D_CORE::Ref<D_GRAPHICS::TextureResource>	mAmbientOcclusionTexture;
+		
+		DField(Get[const, &, inline])
 		D_RESOURCE::ResourceHandle					mBaseColorTextureHandle;
 		
 		DField(Get[const, &, inline])
@@ -98,6 +101,9 @@ inline void Set##type##Texture(D_RESOURCE::ResourceHandle textureHandle) { SetTe
 		
 		DField(Get[const, &, inline])
 		D_RESOURCE::ResourceHandle					mEmissiveTextureHandle;
+
+		DField(Get[const, &, inline])
+		D_RESOURCE::ResourceHandle					mAmbientOcclusionTextureHandle;
 
 
 		D_RENDERER_FRAME_RESOURCE::MaterialConstants mMaterial;

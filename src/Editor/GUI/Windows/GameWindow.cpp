@@ -134,7 +134,7 @@ namespace Darius::Editor::Gui::Windows
 				{
 					D_DEBUG_DRAW::GetRenderItems(sorter);
 					sorter.Sort();
-					sorter.RenderMeshes(MeshSorter::kTransparent, context, mSceneGlobals);
+					sorter.RenderMeshes(MeshSorter::kTransparent, context, nullptr, mSceneGlobals);
 				}
 			});
 

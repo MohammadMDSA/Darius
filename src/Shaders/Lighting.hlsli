@@ -42,8 +42,9 @@ struct Material
 ByteAddressBuffer       LightMask               : register(t10);
 StructuredBuffer<Light> LightData               : register(t11);
 Texture2DArray<float>   lightShadowArrayTex     : register(t12);
-TextureCube<float3>     radianceIBLTexture      : register(t13);
-TextureCube<float3>     irradianceIBLTexture    : register(t14);
+Texture2D<float>        ssaoTexture             : register(t13);
+TextureCube<float3>     radianceIBLTexture      : register(t14);
+TextureCube<float3>     irradianceIBLTexture    : register(t15);
 
 static const float3 kDielectricSpecular = float3(0.04, 0.04, 0.04);
 
@@ -393,20 +394,35 @@ float3 ComputeLighting(
     return result;
 }
 
-float3 ComputeLitColor(float3 worldPos, float3 normal, float3 toEye, float4 diffuseAlbedo, float metallic, float roughness, float3 emissive, float occlusion, float specularMask, float3 F0)
+float3 ComputeLitColor(
+    float3 worldPos,
+    uint2 screenPos,
+    float3 normal,
+    float3 toEye,
+    float4 diffuseAlbedo,
+    float metallic,
+    float roughness,
+    float3 emissive,
+    float ao,
+    float specularMask,
+    float3 F0)
 {
     const float shininess = 1.0f - roughness;
     Material mat = { diffuseAlbedo, F0, shininess, specularMask };
 
     float gloss = shininess * 256;
+    
+    float ssao = ssaoTexture[screenPos];
+    
+    ao *= ssao;
+    
     // TODO: Add specular anti-aliasing
-    
-    float3 directLight = ComputeLighting(mat, worldPos, normal, toEye, gloss, occlusion);
+    float3 directLight = ComputeLighting(mat, worldPos, normal, toEye, gloss, ao);
 
-    float3 c_diff = diffuseAlbedo.rgb * (1 - kDielectricSpecular) * (1 - metallic) * occlusion;
-    float3 c_spec = lerp(kDielectricSpecular, diffuseAlbedo.rgb, metallic) * occlusion;
+    float3 c_diff = diffuseAlbedo.rgb * (1 - kDielectricSpecular) * (1 - metallic) * ao;
+    float3 c_spec = lerp(kDielectricSpecular, diffuseAlbedo.rgb, metallic) * ao;
     
-    float3 litColor = emissive + directLight + (gAmbientLight.rgb * diffuseAlbedo.rgb);
+    float3 litColor = emissive + directLight;
 
     return litColor + Diffuse_IBL(normal, toEye, c_diff, roughness) + Specular_IBL(c_spec, normal, toEye, roughness);
 }

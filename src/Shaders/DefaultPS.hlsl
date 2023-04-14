@@ -29,7 +29,7 @@ struct VertexOut
 Texture2D<float4> texDiffuse                        : register(t0);
 Texture2D<float3> texMetallic                       : register(t1);
 Texture2D<float1> texRoughness                      : register(t2);
-Texture2D<float1> texOcculusion                     : register(t3);
+Texture2D<float1> texAmbientOcclusion               : register(t3);
 Texture2D<float3> texEmissive                       : register(t4);
 Texture2D<float3> texNormal                         : register(t5);
 
@@ -103,9 +103,15 @@ float4 main(VertexOut pin) : SV_Target
     else
         normal = pin.WorldNormal;
     
-    float3 litColor = ComputeLitColor(pin.WorldPos, normal, toEyeW,
-                            diffuseAlbedo, metallic, roughness,
-                            emissive, 1, 1, gFresnelR0);
+    float ao;
+    if(BitMasked(gTexStats, 3))
+        ao = SAMPLE_TEX(texAmbientOcclusion);
+    else
+        ao = 1;
+    
+    float3 litColor = ComputeLitColor(pin.WorldPos, uint2(pin.Pos.xy), normal,
+                            toEyeW, diffuseAlbedo, metallic, roughness,
+                            emissive, ao, 1, gFresnelR0);
     
     // Common convention to take alpha from diffuse material.
     return float4(litColor, diffuseAlbedo.a);

@@ -48,6 +48,7 @@ namespace Darius::Graphics
 		mMetallicTextureHandle = D_GRAPHICS::GetDefaultGraphicsResource(D_GRAPHICS::DefaultResource::Texture2DBlackOpaque);
 		mRoughnessTextureHandle = D_GRAPHICS::GetDefaultGraphicsResource(D_GRAPHICS::DefaultResource::Texture2DBlackOpaque);
 		mEmissiveTextureHandle = D_GRAPHICS::GetDefaultGraphicsResource(D_GRAPHICS::DefaultResource::Texture2DBlackOpaque);
+		mAmbientOcclusionTextureHandle = D_GRAPHICS::GetDefaultGraphicsResource(D_GRAPHICS::DefaultResource::Texture2DWhiteOpaque);
 	}
 
 	void MaterialResource::WriteResourceToFile(D_SERIALIZATION::Json& j) const
@@ -83,6 +84,10 @@ namespace Darius::Graphics
 		bool usedEmissionTex = mMaterial.TextureStatusMask & (1 << kEmissive);
 		if (usedEmissionTex)
 			data["EmissionTexture"] = ToString(mEmissiveTexture->GetUuid());
+
+		bool usedAmbientOcclusionTex = mMaterial.TextureStatusMask & (1 << kAmbientOcclusion);
+		if (usedAmbientOcclusionTex)
+			data["AmbientOcclusionTexture"] = ToString(mAmbientOcclusionTexture->GetUuid());
 
 		data["PsoFlags"] = mPsoFlags;
 
@@ -139,6 +144,12 @@ namespace Darius::Graphics
 			mMaterial.TextureStatusMask |= 1 << kEmissive;
 		}
 
+		if (data.contains("AmbientOcclusionTexture"))
+		{
+			mAmbientOcclusionTextureHandle = D_RESOURCE::GetResourceHandle(FromString(data["AmbientOcclusionTexture"]));
+			mMaterial.TextureStatusMask |= 1 << kAmbientOcclusion;
+		}
+
 		if (data.contains("AlphaCutout"))
 		{
 			mCutout = data["AlphaCutout"];
@@ -160,6 +171,7 @@ namespace Darius::Graphics
 			mMetallicTexture = D_RESOURCE::GetResource<TextureResource>(mMetallicTextureHandle, *this);
 			mRoughnessTexture = D_RESOURCE::GetResource<TextureResource>(mRoughnessTextureHandle, *this);
 			mEmissiveTexture = D_RESOURCE::GetResource<TextureResource>(mEmissiveTextureHandle, *this);
+			mAmbientOcclusionTexture = D_RESOURCE::GetResource<TextureResource>(mAmbientOcclusionTextureHandle, *this);
 
 			// Initializing Material Constants buffers
 			for (size_t i = 0; i < D_RENDERER_FRAME_RESOURCE::gNumFrameResources; i++)
@@ -178,7 +190,7 @@ namespace Darius::Graphics
 				mBaseColorTexture->GetTextureData()->GetSRV(),
 				mMetallicTexture->GetTextureData()->GetSRV(),
 				mRoughnessTexture->GetTextureData()->GetSRV(),
-				mMetallicTexture->GetTextureData()->GetSRV(),
+				mAmbientOcclusionTexture->GetTextureData()->GetSRV(),
 				mEmissiveTexture->GetTextureData()->GetSRV(),
 				mNormalTexture->GetTextureData()->GetSRV()
 			};
@@ -232,7 +244,10 @@ namespace Darius::Graphics
 				mEmissiveTextureHandle = EmptyResourceHandle;
 				mEmissiveTexture.Unref();
 				break;
-			case Darius::Renderer::kOcclusion:
+			case Darius::Renderer::kAmbientOcclusion:
+				mAmbientOcclusionTextureHandle = EmptyResourceHandle;
+				mAmbientOcclusionTexture.Unref();
+				break;
 			default:
 				return;
 			}
@@ -270,7 +285,8 @@ device->CopyDescriptorsSimple(1, mTexturesHeap + type * incSize, m##name##Textur
 		case Darius::Renderer::kEmissive:
 			SetTex(Emissive);
 			break;
-		case Darius::Renderer::kOcclusion:
+		case Darius::Renderer::kAmbientOcclusion:
+			SetTex(AmbientOcclusion);
 		default:
 			return;
 		}
