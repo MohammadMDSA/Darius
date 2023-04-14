@@ -232,7 +232,7 @@ namespace Darius::Graphics
 				mEmissiveTextureHandle = EmptyResourceHandle;
 				mEmissiveTexture.Unref();
 				break;
-			case Darius::Renderer::kOcculusion:
+			case Darius::Renderer::kOcclusion:
 			default:
 				return;
 			}
@@ -270,7 +270,7 @@ device->CopyDescriptorsSimple(1, mTexturesHeap + type * incSize, m##name##Textur
 		case Darius::Renderer::kEmissive:
 			SetTex(Emissive);
 			break;
-		case Darius::Renderer::kOcculusion:
+		case Darius::Renderer::kOcclusion:
 		default:
 			return;
 		}

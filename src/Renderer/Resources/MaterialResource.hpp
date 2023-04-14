@@ -51,7 +51,7 @@ inline void Set##type##Texture(D_RESOURCE::ResourceHandle textureHandle) { SetTe
 		TextureSetter(BaseColor);
 		TextureSetter(Metallic);
 		TextureSetter(Roughness);
-		TextureSetter(Occulusion);
+		TextureSetter(Occlusion);
 		TextureSetter(Emissive);
 		TextureSetter(Normal);
 
