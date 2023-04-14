@@ -9,6 +9,8 @@
 #include <Libs/FontIcon/IconsFontAwesome6.h>
 #include <rttr/enumeration.h>
 
+#include <sstream>
+
 using namespace D_CONTAINERS;
 using namespace rttr;
 
@@ -62,14 +64,17 @@ namespace Darius::Editor::Gui::DetailDrawer
 		CustomDrawers[type::get<char>()] = [](std::string const& label, variant& var, PropertyChangeCallback callback)
 		{
 			bool changed = false;
-			char c[] = { 0, 0 };
-			c[0] = var.get_value<char>();
+			int c = var.get_value<char>();
 			ImGui::PushItemWidth(-1.f);
-			if (ImGui::InputText(("##" + label).c_str(), c, 1))
+			std::stringstream ss;
+			ss << "%d (";
+			ss << (char)c;
+			ss << ")";
+			if (ImGui::SliderInt(("##" + label).c_str(), &c, 0, UCHAR_MAX, ss.str().c_str(), ImGuiSliderFlags_AlwaysClamp))
 			{
 				if (callback)
 					callback(label, var);
-				var = c[0];
+					var = (char)c;
 				changed = true;
 			}
 			ImGui::PopItemWidth();
