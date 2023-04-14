@@ -1,5 +1,5 @@
 #include "Renderer/pch.hpp"
-#include "ScreenSpaceAmbientOcclusion.hpp"
+#include "SuperSampleAmbientOcclusion.hpp"
 
 #include "Renderer/AntiAliasing/TemporalEffect.hpp"
 #include "Renderer/GraphicsCore.hpp"
@@ -10,13 +10,17 @@
 #include <Utils/Assert.hpp>
 #include <Utils/Common.hpp>
 
+#ifdef _D_EDITOR
+#include <imgui.h>
+#endif
+
 using namespace D_GRAPHICS;
 using namespace D_GRAPHICS_BUFFERS;
 using namespace D_GRAPHICS_UTILS;
 using namespace D_MATH;
 using namespace D_MATH_CAMERA;
 
-namespace Darius::Graphics::AmbientOcclusion::ScreenSpace
+namespace Darius::Graphics::AmbientOcclusion::SuperSample
 {
 
 	// High quality (and better) is barely a noticeable improvement when modulated properly with ambient light.
@@ -73,15 +77,15 @@ namespace Darius::Graphics::AmbientOcclusion::ScreenSpace
 		_initialized = true;
 
 		// Initializing settings
-		D_H_OPTIONS_LOAD_BASIC_DEFAULT("AmbientOcclusion.ScreenSpace.Enable", Enabled, true);
-		D_H_OPTIONS_LOAD_BASIC_DEFAULT("AmbientOcclusion.ScreenSpace.DebugDraw", DebugDraw, false);
-		D_H_OPTIONS_LOAD_BASIC_DEFAULT("AmbientOcclusion.ScreenSpace.AsyncCompute", AsyncCompute, false);
-		D_H_OPTIONS_LOAD_BASIC_DEFAULT("AmbientOcclusion.ScreenSpace.ComputeLinearZ", ComputeLinearZ, true);
-		D_H_OPTIONS_LOAD_BASIC_DEFAULT("AmbientOcclusion.ScreenSpace.BlurTolerance", BlurTolerance, -5.f);
-		D_H_OPTIONS_LOAD_BASIC_DEFAULT("AmbientOcclusion.ScreenSpace.UpsampleTolerance", UpsampleTolerance, -7.f);
-		D_H_OPTIONS_LOAD_BASIC_DEFAULT("AmbientOcclusion.ScreenSpace.NoiseFilterTolerance", NoiseFilterTolerance, -3.f);
-		D_H_OPTIONS_LOAD_BASIC_DEFAULT("AmbientOcclusion.ScreenSpace.HierarchyDepth", HierarchyDepth, 3);
-		D_H_OPTIONS_LOAD_BASIC_DEFAULT("AmbientOcclusion.ScreenSpace.QualityLevel", QualityLevel, kSsaoQualityHigh);
+		D_H_OPTIONS_LOAD_BASIC_DEFAULT("AmbientOcclusion.SuperSample.Enable", Enabled, true);
+		D_H_OPTIONS_LOAD_BASIC_DEFAULT("AmbientOcclusion.SuperSample.DebugDraw", DebugDraw, false);
+		D_H_OPTIONS_LOAD_BASIC_DEFAULT("AmbientOcclusion.SuperSample.AsyncCompute", AsyncCompute, false);
+		D_H_OPTIONS_LOAD_BASIC_DEFAULT("AmbientOcclusion.SuperSample.ComputeLinearZ", ComputeLinearZ, true);
+		D_H_OPTIONS_LOAD_BASIC_DEFAULT("AmbientOcclusion.SuperSample.BlurTolerance", BlurTolerance, -5.f);
+		D_H_OPTIONS_LOAD_BASIC_DEFAULT("AmbientOcclusion.SuperSample.UpsampleTolerance", UpsampleTolerance, -7.f);
+		D_H_OPTIONS_LOAD_BASIC_DEFAULT("AmbientOcclusion.SuperSample.NoiseFilterTolerance", NoiseFilterTolerance, -3.f);
+		D_H_OPTIONS_LOAD_BASIC_DEFAULT("AmbientOcclusion.SuperSample.HierarchyDepth", HierarchyDepth, 3);
+		D_H_OPTIONS_LOAD_BASIC_DEFAULT("AmbientOcclusion.SuperSample.QualityLevel", QualityLevel, kSsaoQualityHigh);
 
 		// Initializing root signature
 		RootSig.Reset(5, 2);
@@ -540,5 +544,23 @@ namespace Darius::Graphics::AmbientOcclusion::ScreenSpace
 		Render(context, buffers, camera.GetProjMatrix(), camera.GetNearClip(), camera.GetFarClip());
 	}
 
+#ifdef _D_EDITOR
+	bool OptionsDrawer(_IN_OUT_ D_SERIALIZATION::Json& options)
+	{
+		D_H_OPTION_DRAW_BEGIN();
+
+		D_H_OPTION_DRAW_CHECKBOX("Enable SSAO", "AmbientOcclusion.SuperSample.Enable", Enabled);
+		//D_H_OPTION_DRAW_CHECKBOX("Debug Draw", "AmbientOcclusion.SuperSample.DebugDraw", DebugDraw);
+		D_H_OPTION_DRAW_CHECKBOX("Async Compute", "AmbientOcclusion.SuperSample.AsyncCompute", AsyncCompute);
+		D_H_OPTION_DRAW_CHECKBOX("Compute Linear Depth", "AmbientOcclusion.SuperSample.ComputeLinearZ", ComputeLinearZ);
+		D_H_OPTION_DRAW_FLOAT_SLIDER("Blur Tolerance", "AmbientOcclusion.SuperSample.BlurTolerance", BlurTolerance, -8.f, -1.f);
+		D_H_OPTION_DRAW_FLOAT_SLIDER("Upsample Tolerance", "AmbientOcclusion.SuperSample.UpsampleTolerance", UpsampleTolerance, -12.f, -1.f);
+		D_H_OPTION_DRAW_FLOAT_SLIDER("Noise Filter Tolerance", "AmbientOcclusion.SuperSample.NoiseFilterTolerance", NoiseFilterTolerance, -8.f, 0.f);
+		D_H_OPTION_DRAW_INT_SLIDER("Hierarchy Depth", "AmbientOcclusion.SuperSample.HierarchyDepth", HierarchyDepth, 1, 4);
+		D_H_OPTION_DRAW_CHOICE("Quality Level", "AmbientOcclusion.SuperSample.QualityLevel", QualityLevel, QualityLabels, kNumSsaoQualitySettings);
+
+		D_H_OPTION_DRAW_END();
+	}
+#endif
 }
 

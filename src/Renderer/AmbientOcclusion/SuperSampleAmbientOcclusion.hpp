@@ -9,10 +9,10 @@
 #include <Math/Camera/Camera.hpp>
 
 #ifndef D_GRAPHICS_AO_SS
-#define D_GRAPHICS_AO_SS Darius::Graphics::AmbientOcclusion::ScreenSpace
+#define D_GRAPHICS_AO_SS Darius::Graphics::AmbientOcclusion::SuperSample
 #endif
 
-namespace Darius::Graphics::AmbientOcclusion::ScreenSpace
+namespace Darius::Graphics::AmbientOcclusion::SuperSample
 {
 
     struct SSAORenderBuffers
@@ -50,4 +50,7 @@ namespace Darius::Graphics::AmbientOcclusion::ScreenSpace
 
     void                        LinearizeZ(D_GRAPHICS::ComputeContext& context, D_GRAPHICS_BUFFERS::DepthBuffer& depth, D_GRAPHICS_BUFFERS::ColorBuffer& linearDepth, D_MATH_CAMERA::Camera const& camera);
 
+#ifdef _D_EDITOR
+    bool                        OptionsDrawer(_IN_OUT_ D_SERIALIZATION::Json& options);
+#endif
 }
