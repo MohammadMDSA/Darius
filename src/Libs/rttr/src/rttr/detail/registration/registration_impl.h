@@ -303,19 +303,19 @@ static const rttr__auto__register__ RTTR_CAT(auto_register__, __LINE__);        
 static void rttr_auto_register_reflection_function_()
 
 #define RTTR_REGISTRATION_PFX(postfix)                                              \
-static void rttr_auto_register_reflection_function##postfix_();                     \
+static void rttr_auto_register_reflection_function##postfix##_();                   \
 namespace                                                                           \
 {                                                                                   \
-    struct rttr__auto__register##postfix__                                          \
+    struct rttr__auto__register##postfix##__                                        \
     {                                                                               \
-        rttr__auto__register##postfix__()                                           \
+        rttr__auto__register##postfix##__()                                         \
         {                                                                           \
-            rttr_auto_register_reflection_function##postfix_();                     \
+            rttr_auto_register_reflection_function##postfix##_();                   \
         }                                                                           \
     };                                                                              \
 }                                                                                   \
-static const rttr__auto__register##postfix__ RTTR_CAT(auto_register__, __LINE__);   \
-static void rttr_auto_register_reflection_function##postfix_()
+static const rttr__auto__register##postfix##__ RTTR_CAT(auto_register__, __LINE__); \
+static void rttr_auto_register_reflection_function##postfix##_()
 
 
 #if RTTR_COMPILER == RTTR_COMPILER_MSVC
