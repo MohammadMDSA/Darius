@@ -21,6 +21,7 @@
 
 #include <Demo/MovementBehaviour.hpp>
 #include <Demo/LaserShoot.hpp>
+#include <Demo/DetailDrawTest.hpp>
 
 #include <exception>
 
@@ -63,9 +64,10 @@ namespace Darius::Editor
 		D_TIME::EnableFixedTimeStep(1.0 / 60);
 
 		// Registering components
-		// TODO:: Better component initialization
+		// TODO: Better component initialization
 		Demo::MovementBehaviour::StaticConstructor();
 		Demo::LaserShoot::StaticConstructor();
+		Demo::DetailDrawTest::StaticConstructor();
 
 		mTimer.SetFixedTimeStep(true);
 		mTimer.SetTargetElapsedSeconds(1.f / 60.f);
