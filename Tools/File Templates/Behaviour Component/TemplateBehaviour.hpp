@@ -2,9 +2,11 @@
 
 #include <Scene/EntityComponentSystem/Components/BehaviourComponent.hpp>
 
+#include "%%CLASS_NAME%%.generated.hpp"
+
 namespace %%NAMESPACE%%
 {
-	class %%CLASS_NAME%% : public D_ECS_COMP::BehaviourComponent
+	class DClass(Serialize) %%CLASS_NAME%% : public D_ECS_COMP::BehaviourComponent
 	{
 		D_H_BEHAVIOUR_COMP_BODY(%%CLASS_NAME%%, D_ECS_COMP::BehaviourComponent, "%%DISPLAY_NAME%%", true, true);
 
@@ -18,5 +20,10 @@ namespace %%NAMESPACE%%
 		virtual void					Start() override;
 
 		virtual void					Update(float deltaTime) override;
+
+	public:
+		%%CLASS_FOOTER_GENERATED%%
 	};
 }
+
+%%FILE_GENERATED%%

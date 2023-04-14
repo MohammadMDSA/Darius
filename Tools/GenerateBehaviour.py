@@ -12,6 +12,9 @@ def main():
     display_name = sys.argv[3]
     namespace = sys.argv[4]
 
+    generated_class_footer = "_".join(namespace.split("::")) + "_" + class_name + "_GENERATED"
+    generated_file_footer = "File_" + class_name + "_GENERATED"
+
     current_path = pathlib.Path(__file__).parent.resolve()
 
     cpp = ''
@@ -31,6 +34,9 @@ def main():
 
     cpp = cpp.replace("%%DISPLAY_NAME%%", display_name);
     hpp = hpp.replace("%%DISPLAY_NAME%%", display_name);
+
+    hpp = hpp.replace("%%FILE_GENERATED%%", generated_file_footer);
+    hpp = hpp.replace("%%CLASS_FOOTER_GENERATED%%", generated_class_footer);
 
     destination_directory.mkdir(parents=True, exist_ok=True)
 

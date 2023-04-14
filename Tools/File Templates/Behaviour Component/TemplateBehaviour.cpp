@@ -1,10 +1,14 @@
 #include <pch.hpp>
 #include "%%CLASS_NAME%%.hpp"
 
+#include <ResourceManager/Resource.hpp>
+
 #ifdef _D_EDITOR
 #include <Utils/DragDropPayload.hpp>
 #include <imgui.h>
 #endif
+
+#include "%%CLASS_NAME%%.sgenerated.hpp"
 
 namespace %%NAMESPACE%%
 {
