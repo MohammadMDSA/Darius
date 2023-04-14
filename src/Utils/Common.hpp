@@ -137,6 +137,40 @@ return settingsChanged;
 	ImGui::PopItemWidth(); \
 }
 
+#define D_H_OPTION_DRAW_CHOICE(label, tag, variable, choicesTexts, numOptions) \
+{ \
+	ImGui::Text(label); \
+	ImGui::SameLine(inputOffset); \
+	ImGui::PushItemWidth(inputWidth); \
+	if (ImGui::BeginCombo("##" label, choicesTexts[variable])) \
+	{ \
+		for (int i = 0; i < numOptions; i++) \
+		{ \
+			if (ImGui::Selectable(choicesTexts[i], i == variable)) \
+			{ \
+				options[tag] = variable; \
+				settingsChanged = true; \
+			} \
+		} \
+		ImGui::EndCombo(); \
+	} \
+	ImGui::PopItemWidth(); \
+} \
+
+#define D_H_OPTION_DRAW_INT_SLIDER(label, tag, variable, min, max) \
+{ \
+	ImGui::Text(label); \
+	ImGui::SameLine(inputOffset); \
+	int value = variable; \
+	ImGui::PushItemWidth(inputWidth); \
+	if (ImGui::SliderInt("##" label, &value, min, max, "%d", ImGuiSliderFlags_AlwaysClamp)) \
+	{ \
+		options[tag] = variable = value; \
+		settingsChanged = true; \
+	} \
+	ImGui::PopItemWidth(); \
+} \
+
 #define D_H_OPTION_DRAW_FLOAT(label, tag, variable, ...) \
 { \
 	ImGui::Text(label); \
