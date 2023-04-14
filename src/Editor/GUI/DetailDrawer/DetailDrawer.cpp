@@ -74,7 +74,7 @@ namespace Darius::Editor::Gui::DetailDrawer
 			{
 				if (callback)
 					callback(label, var);
-					var = (char)c;
+				var = (char)c;
 				changed = true;
 			}
 			ImGui::PopItemWidth();
@@ -419,14 +419,15 @@ namespace Darius::Editor::Gui::DetailDrawer
 				{
 					DRAW_LABEL();
 					ImGui::Indent(50.f);
-					ImGui::PushItemWidth(-50.f);
+					ImGui::NewLine();
+					ImGui::BeginGroup();
 					if (DrawRecursively(propLabel, propValue, callback))
 					{
 						bool done = prop.set_value(obj, propValue);
 						(done);
 						valueChanged = true;
 					}
-					ImGui::PopItemWidth();
+					ImGui::EndGroup();
 					ImGui::Unindent(50.f);
 					POST_ITEM_DRAW();
 				}
