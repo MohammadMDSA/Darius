@@ -106,6 +106,26 @@ namespace Darius::Editor::Gui::Windows
 		mLumaLR.Destroy();
 		mHistogramBuffer.Destroy();
 		mPostEffectsBuffer.Destroy();
+		mSSAOFullScreen.Destroy();
+		mDepthDownsize1.Destroy();
+		mDepthDownsize2.Destroy();
+		mDepthDownsize3.Destroy();
+		mDepthDownsize4.Destroy();
+		mDepthTiled1.Destroy();
+		mDepthTiled2.Destroy();
+		mDepthTiled3.Destroy();
+		mDepthTiled4.Destroy();
+		mAOMerged1.Destroy();
+		mAOMerged2.Destroy();
+		mAOMerged3.Destroy();
+		mAOMerged4.Destroy();
+		mAOSmooth1.Destroy();
+		mAOSmooth2.Destroy();
+		mAOSmooth3.Destroy();
+		mAOHighQuality1.Destroy();
+		mAOHighQuality2.Destroy();
+		mAOHighQuality3.Destroy();
+		mAOHighQuality4.Destroy();
 	}
 
 	void SceneWindow::UpdateGlobalConstants(D_RENDERER_FRAME_RESOURCE::GlobalConstants& globals)
@@ -154,6 +174,26 @@ namespace Darius::Editor::Gui::Windows
 			mVelocityBuffer,
 			mTemporalColor,
 			mLinearDepth,
+			mSSAOFullScreen,
+			mDepthDownsize1,
+			mDepthDownsize2,
+			mDepthDownsize3,
+			mDepthDownsize4,
+			mDepthTiled1,
+			mDepthTiled2,
+			mDepthTiled3,
+			mDepthTiled4,
+			mAOMerged1,
+			mAOMerged2,
+			mAOMerged3,
+			mAOMerged4,
+			mAOSmooth1,
+			mAOSmooth2,
+			mAOSmooth3,
+			mAOHighQuality1,
+			mAOHighQuality2,
+			mAOHighQuality3,
+			mAOHighQuality4,
 			context,
 			mCamera,
 			mSceneGlobals,
@@ -442,6 +482,39 @@ namespace Darius::Editor::Gui::Windows
 		mHistogramBuffer.Create(L"Scene Histogram", 256, 4);
 		mPostEffectsBuffer.Create(L"Scene Post Effects Buffer", (UINT)mBufferWidth, (UINT)mBufferHeight, 1, DXGI_FORMAT_R32_UINT);
 
+		// Ambient Occlusion Buffers
+		const uint32_t bufferWidth1 = ((UINT)mBufferWidth + 1) / 2;
+		const uint32_t bufferWidth2 = ((UINT)mBufferWidth + 3) / 4;
+		const uint32_t bufferWidth3 = ((UINT)mBufferWidth + 7) / 8;
+		const uint32_t bufferWidth4 = ((UINT)mBufferWidth + 15) / 16;
+		const uint32_t bufferWidth5 = ((UINT)mBufferWidth + 31) / 32;
+		const uint32_t bufferWidth6 = ((UINT)mBufferWidth + 63) / 64;
+		const uint32_t bufferHeight1 = ((UINT)mBufferHeight + 1) / 2;
+		const uint32_t bufferHeight2 = ((UINT)mBufferHeight + 3) / 4;
+		const uint32_t bufferHeight3 = ((UINT)mBufferHeight + 7) / 8;
+		const uint32_t bufferHeight4 = ((UINT)mBufferHeight + 15) / 16;
+		const uint32_t bufferHeight5 = ((UINT)mBufferHeight + 31) / 32;
+		const uint32_t bufferHeight6 = ((UINT)mBufferHeight + 63) / 64;
+		mSSAOFullScreen.Create(L"Scene SSAO Full Res", (UINT)mBufferWidth, (UINT)mBufferHeight	, 1, DXGI_FORMAT_R8_UNORM);
+		mDepthDownsize1.Create(L"Scene Depth Down-Sized 1", bufferWidth1, bufferHeight1, 1, DXGI_FORMAT_R32_FLOAT);
+		mDepthDownsize2.Create(L"Scene Depth Down-Sized 2", bufferWidth2, bufferHeight2, 1, DXGI_FORMAT_R32_FLOAT);
+		mDepthDownsize3.Create(L"Scene Depth Down-Sized 3", bufferWidth3, bufferHeight3, 1, DXGI_FORMAT_R32_FLOAT);
+		mDepthDownsize4.Create(L"Scene Depth Down-Sized 4", bufferWidth4, bufferHeight4, 1, DXGI_FORMAT_R32_FLOAT);
+		mDepthTiled1.CreateArray(L"Scene Depth De-Interleaved 1", bufferWidth3, bufferHeight3, 16, DXGI_FORMAT_R16_FLOAT);
+		mDepthTiled2.CreateArray(L"Scene Depth De-Interleaved 2", bufferWidth4, bufferHeight4, 16, DXGI_FORMAT_R16_FLOAT);
+		mDepthTiled3.CreateArray(L"Scene Depth De-Interleaved 3", bufferWidth5, bufferHeight5, 16, DXGI_FORMAT_R16_FLOAT);
+		mDepthTiled4.CreateArray(L"Scene Depth De-Interleaved 4", bufferWidth6, bufferHeight6, 16, DXGI_FORMAT_R16_FLOAT);
+		mAOMerged1.Create(L"Scene AO Re-Interleaved 1", bufferWidth1, bufferHeight1, 1, DXGI_FORMAT_R8_UNORM);
+		mAOMerged2.Create(L"Scene AO Re-Interleaved 2", bufferWidth2, bufferHeight2, 1, DXGI_FORMAT_R8_UNORM);
+		mAOMerged3.Create(L"Scene AO Re-Interleaved 3", bufferWidth3, bufferHeight3, 1, DXGI_FORMAT_R8_UNORM);
+		mAOMerged4.Create(L"Scene AO Re-Interleaved 4", bufferWidth4, bufferHeight4, 1, DXGI_FORMAT_R8_UNORM);
+		mAOSmooth1.Create(L"Scene AO Smoothed 1", bufferWidth1, bufferHeight1, 1, DXGI_FORMAT_R8_UNORM);
+		mAOSmooth2.Create(L"Scene AO Smoothed 2", bufferWidth2, bufferHeight2, 1, DXGI_FORMAT_R8_UNORM);
+		mAOSmooth3.Create(L"Scene AO Smoothed 3", bufferWidth3, bufferHeight3, 1, DXGI_FORMAT_R8_UNORM);
+		mAOHighQuality1.Create(L"Scene AO High Quality 1", bufferWidth1, bufferHeight1, 1, DXGI_FORMAT_R8_UNORM);
+		mAOHighQuality2.Create(L"Scene AO High Quality 2", bufferWidth2, bufferHeight2, 1, DXGI_FORMAT_R8_UNORM);
+		mAOHighQuality3.Create(L"Scene AO High Quality 3", bufferWidth3, bufferHeight3, 1, DXGI_FORMAT_R8_UNORM);
+		mAOHighQuality4.Create(L"Scene AO High Quality 4", bufferWidth4, bufferHeight4, 1, DXGI_FORMAT_R8_UNORM);
 	}
 
 	void SceneWindow::CalcGridLineConstants(DVector<MeshConstants>& constants, int count)

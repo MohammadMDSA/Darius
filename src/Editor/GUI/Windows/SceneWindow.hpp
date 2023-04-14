@@ -60,6 +60,28 @@ namespace Darius::Editor::Gui::Windows
 		D_GRAPHICS_BUFFERS::ByteAddressBuffer		mHistogramBuffer;
 		D_GRAPHICS_BUFFERS::ColorBuffer				mPostEffectsBuffer;
 
+		// Ambient Occlusion Buffers
+		D_GRAPHICS_BUFFERS::ColorBuffer				mSSAOFullScreen;
+		D_GRAPHICS_BUFFERS::ColorBuffer				mDepthDownsize1;
+		D_GRAPHICS_BUFFERS::ColorBuffer				mDepthDownsize2;
+		D_GRAPHICS_BUFFERS::ColorBuffer				mDepthDownsize3;
+		D_GRAPHICS_BUFFERS::ColorBuffer				mDepthDownsize4;
+		D_GRAPHICS_BUFFERS::ColorBuffer				mDepthTiled1;
+		D_GRAPHICS_BUFFERS::ColorBuffer				mDepthTiled2;
+		D_GRAPHICS_BUFFERS::ColorBuffer				mDepthTiled3;
+		D_GRAPHICS_BUFFERS::ColorBuffer				mDepthTiled4;
+		D_GRAPHICS_BUFFERS::ColorBuffer				mAOMerged1;
+		D_GRAPHICS_BUFFERS::ColorBuffer				mAOMerged2;
+		D_GRAPHICS_BUFFERS::ColorBuffer				mAOMerged3;
+		D_GRAPHICS_BUFFERS::ColorBuffer				mAOMerged4;
+		D_GRAPHICS_BUFFERS::ColorBuffer				mAOSmooth1;
+		D_GRAPHICS_BUFFERS::ColorBuffer				mAOSmooth2;
+		D_GRAPHICS_BUFFERS::ColorBuffer				mAOSmooth3;
+		D_GRAPHICS_BUFFERS::ColorBuffer				mAOHighQuality1;
+		D_GRAPHICS_BUFFERS::ColorBuffer				mAOHighQuality2;
+		D_GRAPHICS_BUFFERS::ColorBuffer				mAOHighQuality3;
+		D_GRAPHICS_BUFFERS::ColorBuffer				mAOHighQuality4;
+
 		D_GRAPHICS_MEMORY::DescriptorHandle			mTextureHandle;
 
 		D_CORE::Ref<D_GRAPHICS::BatchResource>		mLineMeshResource;
