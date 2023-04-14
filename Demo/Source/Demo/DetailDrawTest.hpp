@@ -1,5 +1,7 @@
 #pragma once
 
+#include "TestStruct.hpp"
+
 #include <Scene/EntityComponentSystem/Components/BehaviourComponent.hpp>
 
 #include "DetailDrawTest.generated.hpp"
@@ -65,6 +67,9 @@ namespace Demo
 
 		DField(Serialize)
 		TestEnumz						mEnum = TestEnumz::Buz;
+
+		DField(Serialize)
+		TestContainer					mContainer;
 
 	public:
 		Demo_DetailDrawTest_GENERATED
