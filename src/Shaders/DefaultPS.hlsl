@@ -33,6 +33,13 @@ Texture2D<float1> texAmbientOcclusion               : register(t3);
 Texture2D<float3> texEmissive                       : register(t4);
 Texture2D<float3> texNormal                         : register(t5);
 
+struct MRT
+{
+    float4 Color : SV_Target0;
+    float4 Normal : SV_Target1;
+};
+
+
 float3 ComputeNormal(VertexOut pin)
 {
     float3 normal = normalize(pin.WorldNormal);
@@ -58,9 +65,11 @@ float3 ComputeNormal(VertexOut pin)
 }
 
 [RootSignature(Renderer_RootSig)]
-float4 main(VertexOut pin) : SV_Target
+MRT main(VertexOut pin) : SV_Target
 {
 #define SAMPLE_TEX(texName) texName.Sample(defaultSampler, pin.UV)
+    
+    MRT mrt;
     
     // Interpolating normal can unnormalize it, so renormalize it.
     pin.WorldNormal = normalize(pin.WorldNormal);
@@ -114,5 +123,8 @@ float4 main(VertexOut pin) : SV_Target
                             emissive, ao, 1, gFresnelR0);
     
     // Common convention to take alpha from diffuse material.
-    return float4(litColor, diffuseAlbedo.a);
+    mrt.Color = float4(litColor, diffuseAlbedo.a);
+    mrt.Normal = float4(pin.WorldNormal, 1.f);
+    
+    return mrt;
 }

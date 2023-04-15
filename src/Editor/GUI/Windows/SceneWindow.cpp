@@ -40,7 +40,9 @@ namespace Darius::Editor::Gui::Windows
 		mManipulateMode(ImGuizmo::MODE::LOCAL),
 		mDrawGrid(true),
 		mDrawDebug(true),
-		mDrawSkybox(true)
+		mDrawSkybox(true),
+		mSceneNormals(D_MATH::Color(0.f, 0.f, 0.f, 1.f)),
+		mSSAOFullScreen(D_MATH::Color(1.f, 1.f, 1.f))
 	{
 		CreateBuffers();
 		mTextureHandle = D_RENDERER::AllocateUiTexture(1);
@@ -55,7 +57,6 @@ namespace Darius::Editor::Gui::Windows
 		ImGuizmo::SetOrthographic(true);
 
 		mMouseWheelPerspectiveSensitivity = 0.1f;
-
 
 		// Fetch line mesh resource
 		auto lineHandle = D_GRAPHICS::GetDefaultGraphicsResource(D_GRAPHICS::DefaultResource::LineMesh);
@@ -96,6 +97,7 @@ namespace Darius::Editor::Gui::Windows
 	{
 		mSceneDepth.Destroy();
 		mSceneTexture.Destroy();
+		mSceneNormals.Destroy();
 		mTemporalColor[0].Destroy();
 		mTemporalColor[1].Destroy();
 		mVelocityBuffer.Destroy();
@@ -171,6 +173,7 @@ namespace Darius::Editor::Gui::Windows
 		{
 			mSceneDepth,
 			mSceneTexture,
+			mSceneNormals,
 			mVelocityBuffer,
 			mTemporalColor,
 			mLinearDepth,
@@ -232,7 +235,8 @@ namespace Darius::Editor::Gui::Windows
 		D_GRAPHICS_PP::Render(postBuffers, context.GetComputeContext());
 
 		// Copying to texture
-		context.TransitionResource(mSceneTexture, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, true);
+		context.TransitionResource(mSceneTexture, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
+		context.TransitionResource(mSceneNormals, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, true);
 
 		context.Finish();
 
@@ -450,6 +454,7 @@ namespace Darius::Editor::Gui::Windows
 		mBufferHeight = mHeight;
 		mSceneTexture.Create(L"Scene Texture", (UINT)mBufferWidth, (UINT)mBufferHeight, 1, D_GRAPHICS::GetColorFormat());
 		mSceneDepth.Create(L"Scene DepthStencil", (UINT)mBufferWidth, (UINT)mBufferHeight, D_GRAPHICS::GetDepthFormat());
+		mSceneNormals.Create(L"Scene Normals", (UINT)mBufferWidth, (UINT)mBufferHeight, 1, DXGI_FORMAT_R16G16B16A16_FLOAT);
 
 		// Linear Depth
 		mLinearDepth[0].Create(L"Scene Linear Depth 0", (UINT)mBufferWidth, (UINT)mBufferHeight, 1, DXGI_FORMAT_R16_UNORM);

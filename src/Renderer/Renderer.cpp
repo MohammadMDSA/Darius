@@ -262,10 +262,11 @@ namespace Darius::Renderer
 
 		// Clearing depth and scene color textures
 		context.TransitionResource(rContext.DepthBuffer, D3D12_RESOURCE_STATE_DEPTH_WRITE);
-		context.TransitionResource(rContext.ColorBuffer, D3D12_RESOURCE_STATE_RENDER_TARGET, true);
+		context.TransitionResource(rContext.ColorBuffer, D3D12_RESOURCE_STATE_RENDER_TARGET);
+		context.TransitionResource(rContext.NormalBuffer, D3D12_RESOURCE_STATE_RENDER_TARGET, true);
 		context.ClearDepth(rContext.DepthBuffer);
 		context.ClearColor(rContext.ColorBuffer);
-
+		context.ClearColor(rContext.NormalBuffer);
 
 		auto width = rContext.ColorBuffer.GetWidth();
 		auto height = rContext.ColorBuffer.GetHeight();
@@ -279,6 +280,7 @@ namespace Darius::Renderer
 		sorter.SetScissor(scissor);
 		sorter.SetDepthStencilTarget(rContext.DepthBuffer);
 		sorter.AddRenderTarget(rContext.ColorBuffer);
+		sorter.SetNormalTarget(rContext.NormalBuffer);
 
 		// Add meshes to sorter
 		AddRenderItems(sorter, rContext.Camera);
@@ -427,7 +429,6 @@ namespace Darius::Renderer
 			SkyboxPso.SetPixelShader(ShaderData("SkyboxPS"));
 			SkyboxPso.Finalize(L"Skybox");
 		}
-
 		D_ASSERT(Psos.size() == 0);
 
 		// Depth Only PSOs
@@ -898,13 +899,18 @@ namespace Darius::Renderer
 					{
 						context.TransitionResource(*m_DSV, D3D12_RESOURCE_STATE_DEPTH_READ);
 						context.TransitionResource(*m_RTV[0], D3D12_RESOURCE_STATE_RENDER_TARGET);
-						context.SetRenderTarget(m_RTV[0]->GetRTV(), m_DSV->GetDSV_DepthReadOnly());
+						context.TransitionResource(*m_Norm, D3D12_RESOURCE_STATE_RENDER_TARGET);
+						D3D12_CPU_DESCRIPTOR_HANDLE RTs[] = { m_RTV[0]->GetRTV(), m_Norm->GetRTV() };
+						context.SetRenderTargets(2, RTs, m_DSV->GetDSV_DepthReadOnly());
 					}
 					else
 					{
 						context.TransitionResource(*m_DSV, D3D12_RESOURCE_STATE_DEPTH_WRITE);
 						context.TransitionResource(*m_RTV[0], D3D12_RESOURCE_STATE_RENDER_TARGET);
-						context.SetRenderTarget(m_RTV[0]->GetRTV(), m_DSV->GetDSV());
+						context.TransitionResource(*m_Norm, D3D12_RESOURCE_STATE_RENDER_TARGET);
+						D3D12_CPU_DESCRIPTOR_HANDLE RTs[] = { m_RTV[0]->GetRTV(), m_Norm->GetRTV() };
+						context.SetRenderTargets(2, RTs, m_DSV->GetDSV());
+						//context.SetRenderTarget(m_RTV[0]->GetRTV(), m_DSV->GetDSV());
 					}
 					break;
 				case kTransparent:

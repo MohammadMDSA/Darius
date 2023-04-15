@@ -24,7 +24,9 @@ using namespace DirectX;
 namespace Darius::Editor::Gui::Windows
 {
 	GameWindow::GameWindow(D_SERIALIZATION::Json const& config) :
-		Window(config)
+		Window(config),
+		mSceneNormals(D_MATH::Color(0.f, 0.f, 0.f, 1.f)),
+		mSSAOFullScreen(D_MATH::Color(1.f, 1.f, 1.f))
 	{
 		CreateBuffers();
 		mTextureHandle = D_RENDERER::AllocateUiTexture();
@@ -38,6 +40,7 @@ namespace Darius::Editor::Gui::Windows
 	{
 		mSceneDepth.Destroy();
 		mSceneTexture.Destroy();
+		mSceneNormals.Destroy();
 		mTemporalColor[0].Destroy();
 		mTemporalColor[1].Destroy();
 		mVelocityBuffer.Destroy();
@@ -97,6 +100,7 @@ namespace Darius::Editor::Gui::Windows
 		{
 			mSceneDepth,
 			mSceneTexture,
+			mSceneNormals,
 			mVelocityBuffer,
 			mTemporalColor,
 			mLinearDepth,
@@ -189,6 +193,7 @@ namespace Darius::Editor::Gui::Windows
 		mBufferHeight = mHeight;
 		mSceneTexture.Create(L"Game Scene Texture", (UINT)mBufferWidth, (UINT)mBufferHeight, 1, D_GRAPHICS::GetColorFormat());
 		mSceneDepth.Create(L"Game Scene DepthStencil", (UINT)mBufferWidth, (UINT)mBufferHeight, D_GRAPHICS::GetDepthFormat());
+		mSceneNormals.Create(L"Game Normals", (UINT)mBufferWidth, (UINT)mBufferHeight, 1, DXGI_FORMAT_R16G16B16A16_FLOAT);
 
 		// Linear Depth
 		mLinearDepth[0].Create(L"Game Linear Depth 0", (UINT)mBufferWidth, (UINT)mBufferHeight, 1, DXGI_FORMAT_R16_UNORM);
@@ -234,26 +239,26 @@ namespace Darius::Editor::Gui::Windows
 		const uint32_t bufferHeight4 = ((UINT)mBufferHeight + 15) / 16;
 		const uint32_t bufferHeight5 = ((UINT)mBufferHeight + 31) / 32;
 		const uint32_t bufferHeight6 = ((UINT)mBufferHeight + 63) / 64;
-		mSSAOFullScreen.Create(L"Scene SSAO Full Res", (UINT)mBufferWidth, (UINT)mBufferHeight, 1, DXGI_FORMAT_R8_UNORM);
-		mDepthDownsize1.Create(L"Scene Depth Down-Sized 1", bufferWidth1, bufferHeight1, 1, DXGI_FORMAT_R32_FLOAT);
-		mDepthDownsize2.Create(L"Scene Depth Down-Sized 2", bufferWidth2, bufferHeight2, 1, DXGI_FORMAT_R32_FLOAT);
-		mDepthDownsize3.Create(L"Scene Depth Down-Sized 3", bufferWidth3, bufferHeight3, 1, DXGI_FORMAT_R32_FLOAT);
-		mDepthDownsize4.Create(L"Scene Depth Down-Sized 4", bufferWidth4, bufferHeight4, 1, DXGI_FORMAT_R32_FLOAT);
-		mDepthTiled1.CreateArray(L"Scene Depth De-Interleaved 1", bufferWidth3, bufferHeight3, 16, DXGI_FORMAT_R16_FLOAT);
-		mDepthTiled2.CreateArray(L"Scene Depth De-Interleaved 2", bufferWidth4, bufferHeight4, 16, DXGI_FORMAT_R16_FLOAT);
-		mDepthTiled3.CreateArray(L"Scene Depth De-Interleaved 3", bufferWidth5, bufferHeight5, 16, DXGI_FORMAT_R16_FLOAT);
-		mDepthTiled4.CreateArray(L"Scene Depth De-Interleaved 4", bufferWidth6, bufferHeight6, 16, DXGI_FORMAT_R16_FLOAT);
-		mAOMerged1.Create(L"Scene AO Re-Interleaved 1", bufferWidth1, bufferHeight1, 1, DXGI_FORMAT_R8_UNORM);
-		mAOMerged2.Create(L"Scene AO Re-Interleaved 2", bufferWidth2, bufferHeight2, 1, DXGI_FORMAT_R8_UNORM);
-		mAOMerged3.Create(L"Scene AO Re-Interleaved 3", bufferWidth3, bufferHeight3, 1, DXGI_FORMAT_R8_UNORM);
-		mAOMerged4.Create(L"Scene AO Re-Interleaved 4", bufferWidth4, bufferHeight4, 1, DXGI_FORMAT_R8_UNORM);
-		mAOSmooth1.Create(L"Scene AO Smoothed 1", bufferWidth1, bufferHeight1, 1, DXGI_FORMAT_R8_UNORM);
-		mAOSmooth2.Create(L"Scene AO Smoothed 2", bufferWidth2, bufferHeight2, 1, DXGI_FORMAT_R8_UNORM);
-		mAOSmooth3.Create(L"Scene AO Smoothed 3", bufferWidth3, bufferHeight3, 1, DXGI_FORMAT_R8_UNORM);
-		mAOHighQuality1.Create(L"Scene AO High Quality 1", bufferWidth1, bufferHeight1, 1, DXGI_FORMAT_R8_UNORM);
-		mAOHighQuality2.Create(L"Scene AO High Quality 2", bufferWidth2, bufferHeight2, 1, DXGI_FORMAT_R8_UNORM);
-		mAOHighQuality3.Create(L"Scene AO High Quality 3", bufferWidth3, bufferHeight3, 1, DXGI_FORMAT_R8_UNORM);
-		mAOHighQuality4.Create(L"Scene AO High Quality 4", bufferWidth4, bufferHeight4, 1, DXGI_FORMAT_R8_UNORM);
+		mSSAOFullScreen.Create(L"Game SSAO Full Res", (UINT)mBufferWidth, (UINT)mBufferHeight, 1, DXGI_FORMAT_R8_UNORM);
+		mDepthDownsize1.Create(L"Game Depth Down-Sized 1", bufferWidth1, bufferHeight1, 1, DXGI_FORMAT_R32_FLOAT);
+		mDepthDownsize2.Create(L"Game Depth Down-Sized 2", bufferWidth2, bufferHeight2, 1, DXGI_FORMAT_R32_FLOAT);
+		mDepthDownsize3.Create(L"Game Depth Down-Sized 3", bufferWidth3, bufferHeight3, 1, DXGI_FORMAT_R32_FLOAT);
+		mDepthDownsize4.Create(L"Game Depth Down-Sized 4", bufferWidth4, bufferHeight4, 1, DXGI_FORMAT_R32_FLOAT);
+		mDepthTiled1.CreateArray(L"Game Depth De-Interleaved 1", bufferWidth3, bufferHeight3, 16, DXGI_FORMAT_R16_FLOAT);
+		mDepthTiled2.CreateArray(L"Game Depth De-Interleaved 2", bufferWidth4, bufferHeight4, 16, DXGI_FORMAT_R16_FLOAT);
+		mDepthTiled3.CreateArray(L"Game Depth De-Interleaved 3", bufferWidth5, bufferHeight5, 16, DXGI_FORMAT_R16_FLOAT);
+		mDepthTiled4.CreateArray(L"Game Depth De-Interleaved 4", bufferWidth6, bufferHeight6, 16, DXGI_FORMAT_R16_FLOAT);
+		mAOMerged1.Create(L"Game AO Re-Interleaved 1", bufferWidth1, bufferHeight1, 1, DXGI_FORMAT_R8_UNORM);
+		mAOMerged2.Create(L"Game AO Re-Interleaved 2", bufferWidth2, bufferHeight2, 1, DXGI_FORMAT_R8_UNORM);
+		mAOMerged3.Create(L"Game AO Re-Interleaved 3", bufferWidth3, bufferHeight3, 1, DXGI_FORMAT_R8_UNORM);
+		mAOMerged4.Create(L"Game AO Re-Interleaved 4", bufferWidth4, bufferHeight4, 1, DXGI_FORMAT_R8_UNORM);
+		mAOSmooth1.Create(L"Game AO Smoothed 1", bufferWidth1, bufferHeight1, 1, DXGI_FORMAT_R8_UNORM);
+		mAOSmooth2.Create(L"Game AO Smoothed 2", bufferWidth2, bufferHeight2, 1, DXGI_FORMAT_R8_UNORM);
+		mAOSmooth3.Create(L"Game AO Smoothed 3", bufferWidth3, bufferHeight3, 1, DXGI_FORMAT_R8_UNORM);
+		mAOHighQuality1.Create(L"Game AO High Quality 1", bufferWidth1, bufferHeight1, 1, DXGI_FORMAT_R8_UNORM);
+		mAOHighQuality2.Create(L"Game AO High Quality 2", bufferWidth2, bufferHeight2, 1, DXGI_FORMAT_R8_UNORM);
+		mAOHighQuality3.Create(L"Game AO High Quality 3", bufferWidth3, bufferHeight3, 1, DXGI_FORMAT_R8_UNORM);
+		mAOHighQuality4.Create(L"Game AO High Quality 4", bufferWidth4, bufferHeight4, 1, DXGI_FORMAT_R8_UNORM);
 
 	}
 

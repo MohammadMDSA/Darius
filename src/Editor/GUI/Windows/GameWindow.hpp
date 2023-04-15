@@ -26,6 +26,7 @@ namespace Darius::Editor::Gui::Windows
 		// Main Buffers
 		D_GRAPHICS_BUFFERS::ColorBuffer				mSceneTexture;
 		D_GRAPHICS_BUFFERS::DepthBuffer				mSceneDepth;
+		D_GRAPHICS_BUFFERS::ColorBuffer				mSceneNormals;
 
 		// TAA Buffers
 		D_GRAPHICS_BUFFERS::ColorBuffer				mTemporalColor[2];

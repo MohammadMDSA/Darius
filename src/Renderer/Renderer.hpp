@@ -101,6 +101,7 @@ namespace Darius::Renderer
 			m_RTV[m_NumRTVs++] = &RTV;
 		}
 		void SetDepthStencilTarget(D_GRAPHICS_BUFFERS::DepthBuffer& DSV) { m_DSV = &DSV; }
+		INLINE void SetNormalTarget(D_GRAPHICS_BUFFERS::ColorBuffer& normal) { m_Norm = &normal; }
 
 		const D_MATH_CAMERA::Frustum& GetWorldFrustum() const { return m_Camera->GetWorldSpaceFrustum(); }
 		const D_MATH_CAMERA::Frustum& GetViewFrustum() const { return m_Camera->GetViewSpaceFrustum(); }
@@ -157,6 +158,7 @@ namespace Darius::Renderer
 		D3D12_RECT m_Scissor;
 		uint32_t m_NumRTVs;
 		D_GRAPHICS_BUFFERS::ColorBuffer* m_RTV[8];
+		D_GRAPHICS_BUFFERS::ColorBuffer* m_Norm;
 		D_GRAPHICS_BUFFERS::DepthBuffer* m_DSV;
 	};
 
@@ -164,6 +166,7 @@ namespace Darius::Renderer
 	{
 		D_GRAPHICS_BUFFERS::DepthBuffer&					DepthBuffer;
 		D_GRAPHICS_BUFFERS::ColorBuffer&					ColorBuffer;
+		D_GRAPHICS_BUFFERS::ColorBuffer&					NormalBuffer;
 		D_GRAPHICS_BUFFERS::ColorBuffer&					VelocityBuffer;
 		D_GRAPHICS_BUFFERS::ColorBuffer*					TemporalColor;
 		D_GRAPHICS_BUFFERS::ColorBuffer*					LinearDepth;
