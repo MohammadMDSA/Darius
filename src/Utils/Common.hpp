@@ -148,7 +148,7 @@ return settingsChanged;
 		{ \
 			if (ImGui::Selectable(choicesTexts[i], i == variable)) \
 			{ \
-				options[tag] = variable; \
+				options[tag] = variable = i; \
 				settingsChanged = true; \
 			} \
 		} \
