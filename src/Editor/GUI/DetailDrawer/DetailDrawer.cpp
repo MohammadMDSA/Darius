@@ -8,16 +8,23 @@
 #include <imgui.h>
 #include <Libs/FontIcon/IconsFontAwesome6.h>
 #include <rttr/enumeration.h>
+#include <rttr/variant.h>
 
 #include <sstream>
 
 using namespace D_CONTAINERS;
 using namespace rttr;
 
+#define LABEL_COL_RATIO 0.4f
+
+#define DRAW_LABEL() \
+			ImGui::Text(nameStr.c_str()); \
+			ImGui::SameLine(availWidth * LABEL_COL_RATIO);\
+
 namespace Darius::Editor::Gui::DetailDrawer
 {
 	bool											_initialied = false;
-	DUnorderedMap<rttr::type, std::function<bool(std::string const& label, variant&, PropertyChangeCallback)>>	CustomDrawers;
+	DUnorderedMap<rttr::type, std::function<bool(std::string const&, instance, PropertyChangeCallback)>>	CustomDrawers;
 
 	bool DrawRecursively(std::string const& label, rttr::instance obj, PropertyChangeCallback callback = nullptr);
 
@@ -45,36 +52,38 @@ namespace Darius::Editor::Gui::DetailDrawer
 		_initialied = true;
 
 		// Bool
-		CustomDrawers[type::get<bool>()] = [](std::string const& label, variant& var, PropertyChangeCallback callback)
+		CustomDrawers[type::get<bool>()] = [](std::string const& label, instance var, PropertyChangeCallback callback)
 		{
 			bool changed = false;
-			bool value = var.to_bool();
+			auto p = var.try_convert<bool>();
+			auto value = *p;
 			ImGui::PushItemWidth(-1.f);
 			if (ImGui::Checkbox(("##" + label).c_str(), &value))
 			{
 				if (callback)
 					callback(label, var);
-				var = value;
+				*p = value;
 				changed = true;
 			}
 			return changed;
 		};
 
 		// Char
-		CustomDrawers[type::get<char>()] = [](std::string const& label, variant& var, PropertyChangeCallback callback)
+		CustomDrawers[type::get<char>()] = [](std::string const& label, instance var, PropertyChangeCallback callback)
 		{
 			bool changed = false;
-			int c = var.get_value<char>();
+			auto p = var.try_convert<char>();
+			int value = *p - CHAR_MIN;
 			ImGui::PushItemWidth(-1.f);
 			std::stringstream ss;
 			ss << "%d (";
-			ss << (char)c;
+			ss << (char)value;
 			ss << ")";
-			if (ImGui::SliderInt(("##" + label).c_str(), &c, 0, UCHAR_MAX, ss.str().c_str(), ImGuiSliderFlags_AlwaysClamp))
+			if (ImGui::SliderInt(("##" + label).c_str(), &value, 0, UCHAR_MAX, ss.str().c_str(), ImGuiSliderFlags_AlwaysClamp))
 			{
 				if (callback)
 					callback(label, var);
-				var = (char)c;
+				*p = (char)(value + CHAR_MIN);
 				changed = true;
 			}
 			ImGui::PopItemWidth();
@@ -82,16 +91,17 @@ namespace Darius::Editor::Gui::DetailDrawer
 		};
 
 		// int8_t
-		CustomDrawers[type::get<int8_t>()] = [](std::string const& label, variant& var, PropertyChangeCallback callback)
+		CustomDrawers[type::get<int8_t>()] = [](std::string const& label, instance var, PropertyChangeCallback callback)
 		{
 			bool changed = false;
-			int value = var.to_int8();
+			auto p = var.try_convert<int8_t>();
+			int value = *p;
 			ImGui::PushItemWidth(-1.f);
 			if (ImGui::DragInt(("##" + label).c_str(), &value, 1.f, INT8_MIN, INT8_MAX, "%d", ImGuiSliderFlags_AlwaysClamp))
 			{
 				if (callback)
 					callback(label, var);
-				var = (int8_t)value;
+				*p = (int8_t)value;
 				changed = true;
 			}
 			ImGui::PopItemWidth();
@@ -99,16 +109,17 @@ namespace Darius::Editor::Gui::DetailDrawer
 		};
 
 		// int16_t
-		CustomDrawers[type::get<int16_t>()] = [](std::string const& label, variant& var, PropertyChangeCallback callback)
+		CustomDrawers[type::get<int16_t>()] = [](std::string const& label, instance var, PropertyChangeCallback callback)
 		{
 			bool changed = false;
-			int value = var.to_int16();
+			auto p = var.try_convert<int16_t>();
+			int value = *p;
 			ImGui::PushItemWidth(-1.f);
 			if (ImGui::DragInt(("##" + label).c_str(), &value, 1.f, INT16_MIN, INT16_MAX, "%d", ImGuiSliderFlags_AlwaysClamp))
 			{
 				if (callback)
 					callback(label, var);
-				var = (int16_t)value;
+				*p = (int16_t)value;
 				changed = true;
 			}
 			ImGui::PopItemWidth();
@@ -116,16 +127,17 @@ namespace Darius::Editor::Gui::DetailDrawer
 		};
 
 		// int32_t
-		CustomDrawers[type::get<int32_t>()] = [](std::string const& label, variant& var, PropertyChangeCallback callback)
+		CustomDrawers[type::get<int32_t>()] = [](std::string const& label, instance var, PropertyChangeCallback callback)
 		{
 			bool changed = false;
-			int value = var.to_int32();
+			auto p = var.try_convert<int32_t>();
+			auto value = *p;
 			ImGui::PushItemWidth(-1.f);
 			if (ImGui::DragInt(("##" + label).c_str(), &value, 1.f, INT32_MIN, INT32_MAX, "%d", ImGuiSliderFlags_AlwaysClamp))
 			{
 				if (callback)
 					callback(label, var);
-				var = (int32_t)value;
+				*p = value;
 				changed = true;
 			}
 			ImGui::PopItemWidth();
@@ -133,16 +145,17 @@ namespace Darius::Editor::Gui::DetailDrawer
 		};
 
 		// int64_t
-		CustomDrawers[type::get<int64_t>()] = [](std::string const& label, variant& var, PropertyChangeCallback callback)
+		CustomDrawers[type::get<int64_t>()] = [](std::string const& label, instance var, PropertyChangeCallback callback)
 		{
 			bool changed = false;
-			int value = (int)var.to_int64();
+			auto p = var.try_convert<int64_t>();
+			auto value = (int)*p;
 			ImGui::PushItemWidth(-15.f);
 			if (ImGui::DragInt(("##" + label).c_str(), &value, 1.f, INT32_MIN, INT32_MAX, "%d", ImGuiSliderFlags_AlwaysClamp))
 			{
 				if (callback)
 					callback(label, var);
-				var = (int64_t)value;
+				*p = (int64_t)value;
 				changed = true;
 			}
 			ImGui::PopItemWidth();
@@ -152,16 +165,17 @@ namespace Darius::Editor::Gui::DetailDrawer
 		};
 
 		// uint8_t
-		CustomDrawers[type::get<uint8_t>()] = [](std::string const& label, variant& var, PropertyChangeCallback callback)
+		CustomDrawers[type::get<uint8_t>()] = [](std::string const& label, instance var, PropertyChangeCallback callback)
 		{
 			bool changed = false;
-			int value = (int)var.to_uint8();
+			auto p = var.try_convert<uint8_t>();
+			auto value = (int)*p;
 			ImGui::PushItemWidth(-1.f);
 			if (ImGui::DragInt(("##" + label).c_str(), &value, 1.f, 0, UINT8_MAX, "%d", ImGuiSliderFlags_AlwaysClamp))
 			{
 				if (callback)
 					callback(label, var);
-				var = (uint8_t)value;
+				*p = (uint8_t)value;
 				changed = true;
 			}
 			ImGui::PopItemWidth();
@@ -169,16 +183,17 @@ namespace Darius::Editor::Gui::DetailDrawer
 		};
 
 		// uint16_t
-		CustomDrawers[type::get<uint16_t>()] = [](std::string const& label, variant& var, PropertyChangeCallback callback)
+		CustomDrawers[type::get<uint16_t>()] = [](std::string const& label, instance var, PropertyChangeCallback callback)
 		{
 			bool changed = false;
-			int value = (int)var.to_uint16();
+			auto p = var.try_convert<uint16_t>();
+			auto value = (int)*p;
 			ImGui::PushItemWidth(-1.f);
 			if (ImGui::DragInt(("##" + label).c_str(), &value, 1.f, 0, UINT16_MAX, "%d", ImGuiSliderFlags_AlwaysClamp))
 			{
 				if (callback)
 					callback(label, var);
-				var = (uint16_t)value;
+				*p = (uint16_t)value;
 				changed = true;
 			}
 			ImGui::PopItemWidth();
@@ -186,16 +201,17 @@ namespace Darius::Editor::Gui::DetailDrawer
 		};
 
 		// uint32_t
-		CustomDrawers[type::get<uint32_t>()] = [](std::string const& label, variant& var, PropertyChangeCallback callback)
+		CustomDrawers[type::get<uint32_t>()] = [](std::string const& label, instance var, PropertyChangeCallback callback)
 		{
 			bool changed = false;
-			int value = (int)var.to_uint32();
+			auto p = var.try_convert<uint32_t>();
+			auto value = (int)*p;
 			ImGui::PushItemWidth(-15.f);
 			if (ImGui::DragInt(("##" + label).c_str(), &value, 1.f, 0, INT32_MAX, "%d", ImGuiSliderFlags_AlwaysClamp))
 			{
 				if (callback)
 					callback(label, var);
-				var = (uint32_t)value;
+				*p = (uint32_t)value;
 				changed = true;
 			}
 			ImGui::PopItemWidth();
@@ -205,16 +221,17 @@ namespace Darius::Editor::Gui::DetailDrawer
 		};
 
 		// uint64_t
-		CustomDrawers[type::get<uint64_t>()] = [](std::string const& label, variant& var, PropertyChangeCallback callback)
+		CustomDrawers[type::get<uint64_t>()] = [](std::string const& label, instance var, PropertyChangeCallback callback)
 		{
 			bool changed = false;
-			int value = (int)var.to_uint64();
+			auto p = var.try_convert<uint64_t>();
+			auto value = (int)*p;
 			ImGui::PushItemWidth(-15.f);
 			if (ImGui::DragInt(("##" + label).c_str(), &value, 1.f, 0, INT32_MAX, "%d", ImGuiSliderFlags_AlwaysClamp))
 			{
 				if (callback)
 					callback(label, var);
-				var = (uint64_t)value;
+				*p = (uint64_t)value;
 				changed = true;
 			}
 			ImGui::PopItemWidth();
@@ -224,16 +241,17 @@ namespace Darius::Editor::Gui::DetailDrawer
 		};
 
 		// float
-		CustomDrawers[type::get<float>()] = [](std::string const& label, variant& var, PropertyChangeCallback callback)
+		CustomDrawers[type::get<float>()] = [](std::string const& label, instance var, PropertyChangeCallback callback)
 		{
 			bool changed = false;
-			float value = var.to_float();
+			auto p = var.try_convert<float>();
+			auto value = *p;
 			ImGui::PushItemWidth(-1.f);
 			if (ImGui::DragFloat(("##" + label).c_str(), &value, 0.01f, FLT_MIN, FLT_MAX, "%.3f", ImGuiSliderFlags_AlwaysClamp))
 			{
 				if (callback)
 					callback(label, var);
-				var = value;
+				*p = (float)value;
 				changed = true;
 			}
 			ImGui::PopItemWidth();
@@ -241,16 +259,17 @@ namespace Darius::Editor::Gui::DetailDrawer
 		};
 
 		// double
-		CustomDrawers[type::get<double>()] = [](std::string const& label, variant& var, PropertyChangeCallback callback)
+		CustomDrawers[type::get<double>()] = [](std::string const& label, instance var, PropertyChangeCallback callback)
 		{
 			bool changed = false;
-			float value = (float)var.to_double();
+			auto p = var.try_convert<double>();
+			auto value = (float)*p;
 			ImGui::PushItemWidth(-15.f);
 			if (ImGui::DragFloat(("##" + label).c_str(), &value, 0.01f, FLT_MIN, FLT_MAX, "%.3f", ImGuiSliderFlags_AlwaysClamp))
 			{
 				if (callback)
 					callback(label, var);
-				var = (double)value;
+				*p = (double)value;
 				changed = true;
 			}
 			ImGui::PopItemWidth();
@@ -264,6 +283,20 @@ namespace Darius::Editor::Gui::DetailDrawer
 	void Shutdown()
 	{
 		D_ASSERT(_initialied);
+	}
+
+	bool InternalDrawDetials(std::string const& label, rttr::instance ins, rttr::type const& type, PropertyChangeCallback callback)
+	{
+		instance obj = ins.get_type().get_raw_type().is_wrapper() ? ins.get_wrapped_instance() : ins;
+
+
+		//// Checking existing serializers and deserializers
+		if (CustomDrawers.contains(type))
+		{
+			return CustomDrawers[type](label, ins, callback);
+		}
+
+		return DrawRecursively(label, ins, callback);
 	}
 
 	bool DrawAtomicTypes(std::string const& label, type const& t, variant& var, PropertyChangeCallback callback = nullptr)
@@ -333,7 +366,20 @@ namespace Darius::Editor::Gui::DetailDrawer
 
 	bool DrawAssociativeContainer(std::string const& label, variant_associative_view& view, PropertyChangeCallback callback = nullptr)
 	{
-		return false;
+		bool valueChanged = false;
+		if (view.is_key_only_type())
+		{
+			rttr::type keyType = view.get_key_type();
+			for (auto& item : view)
+			{
+				auto value = item.first.extract_wrapped_value();
+				valueChanged |= InternalDrawDetials(label, value, keyType, callback);
+			}
+		}
+		// Key-value associative containers are not supported
+		else { }
+
+		return valueChanged;
 	}
 
 	bool DrawRecursively(std::string const& label, rttr::instance ins, PropertyChangeCallback callback)
@@ -341,7 +387,6 @@ namespace Darius::Editor::Gui::DetailDrawer
 		instance obj = ins.get_type().get_raw_type().is_wrapper() ? ins.get_wrapped_instance() : ins;
 
 		auto availWidth = ImGui::GetContentRegionAvail().x;
-		auto const static labelColRatio = 0.4f;
 
 		bool valueChanged = false;
 
@@ -358,14 +403,6 @@ namespace Darius::Editor::Gui::DetailDrawer
 			const auto name = prop.get_name();
 			auto nameStr = std::string(name);
 
-#define DRAW_LABEL() \
-			ImGui::Text(nameStr.c_str()); \
-			ImGui::SameLine(availWidth * labelColRatio);\
-			//ImGui::PushItemWidth(-availWidth * labelColRatio)
-
-#define POST_ITEM_DRAW() \
-			//ImGui::PopItemWidth();
-
 			auto propLabel = label.length() > 0 ? label + "." + nameStr : nameStr;
 
 			const type valueType = prop.get_type();
@@ -376,28 +413,34 @@ namespace Darius::Editor::Gui::DetailDrawer
 				DRAW_LABEL();
 				if (CustomDrawers[valueType](propLabel, propValue, callback))
 				{
-					bool done = prop.set_value(obj, propValue);
-					(done);
-					auto ff = propValue.to_int8();
-					(ff);
+					prop.set_value(obj, propValue);
 					valueChanged = true;
 				}
-				POST_ITEM_DRAW();
 				continue;
 			}
 			// Draw sequential containers
 			else if (valueType.is_sequential_container())
 			{
 				DRAW_LABEL();
-
-				POST_ITEM_DRAW();
 			}
 			// Draw associative containers
 			else if (valueType.is_associative_container())
 			{
 				DRAW_LABEL();
+				ImGui::Indent(50.f);
+				ImGui::NewLine();
+				ImGui::BeginGroup();
+				ImGui::Separator();
 
-				POST_ITEM_DRAW();
+				auto associativeView = propValue.create_associative_view();
+				if (DrawAssociativeContainer(propLabel, associativeView))
+				{
+					prop.set_value(obj, propValue);
+				}
+
+				ImGui::Separator();
+				ImGui::EndGroup();
+				ImGui::Unindent(50.f);
 			}
 			else
 			{
@@ -411,7 +454,6 @@ namespace Darius::Editor::Gui::DetailDrawer
 						(done);
 						valueChanged = true;
 					}
-					POST_ITEM_DRAW();
 					continue;
 				}
 				// Draw object
@@ -431,7 +473,6 @@ namespace Darius::Editor::Gui::DetailDrawer
 					ImGui::Separator();
 					ImGui::EndGroup();
 					ImGui::Unindent(50.f);
-					POST_ITEM_DRAW();
 				}
 			}
 		}
@@ -445,17 +486,7 @@ namespace Darius::Editor::Gui::DetailDrawer
 
 	bool DrawDetials(rttr::instance ins, PropertyChangeCallback callback)
 	{
-		instance obj = ins.get_type().get_raw_type().is_wrapper() ? ins.get_wrapped_instance() : ins;
-
-		type t = obj.get_type();
-		// Checking existing serializers and deserializers
-		if (CustomDrawers.contains(t))
-		{
-			variant& var = *obj.try_convert<rttr::variant>();
-			return CustomDrawers[t]("", var, callback);
-		}
-
-		return DrawRecursively("", ins, callback);
+		return InternalDrawDetials("", ins, ins.get_type(), callback);
 	}
 
 }

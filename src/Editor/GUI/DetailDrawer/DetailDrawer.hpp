@@ -12,7 +12,7 @@ namespace Darius::Editor::Gui::DetailDrawer
 {
 
 	// Called with parameters: Name of the changed property, and the new value
-	using PropertyChangeCallback = std::function<void(std::string, rttr::variant const&)>;
+	using PropertyChangeCallback = std::function<void(std::string, rttr::instance const&)>;
 
 	void				Initialize();
 	void				Shutdown();
