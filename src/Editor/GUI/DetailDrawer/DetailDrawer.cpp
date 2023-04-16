@@ -287,9 +287,6 @@ namespace Darius::Editor::Gui::DetailDrawer
 
 	bool InternalDrawDetials(std::string const& label, rttr::instance ins, rttr::type const& type, PropertyChangeCallback callback)
 	{
-		instance obj = ins.get_type().get_raw_type().is_wrapper() ? ins.get_wrapped_instance() : ins;
-
-
 		//// Checking existing serializers and deserializers
 		if (CustomDrawers.contains(type))
 		{
@@ -356,30 +353,84 @@ namespace Darius::Editor::Gui::DetailDrawer
 
 	bool DrawArray(std::string const& label, variant_sequential_view& view, PropertyChangeCallback callback = nullptr)
 	{
-		return false;
-
-		/*for (auto& item : view)
-		{
-
-		}*/
-	}
-
-	bool DrawAssociativeContainer(std::string const& label, variant_associative_view& view, PropertyChangeCallback callback = nullptr)
-	{
 		bool valueChanged = false;
-		if (view.is_key_only_type())
+
+		auto availWidth = ImGui::GetContentRegionAvail().x;
+
+		auto& nameStr = label;
+		DRAW_LABEL();
+		ImGui::Indent(50.f);
+		ImGui::NewLine();
+		ImGui::BeginGroup();
+		ImGui::Separator();
+
+		int index = 0;
+		for (auto& item : view)
 		{
-			rttr::type keyType = view.get_key_type();
-			for (auto& item : view)
+			if (index > 0)
+				ImGui::Separator();
+
+			auto propLabel = label + "." + std::to_string(index);
+
+			bool elChanged = false;
+
+			variant wrappedVar = item.extract_wrapped_value();
+			type valueType = wrappedVar.get_type();
+
+			if (CustomDrawers.contains(valueType))
 			{
-				auto value = item.first.extract_wrapped_value();
-				valueChanged |= InternalDrawDetials(label, value, keyType, callback);
+				if (CustomDrawers[valueType](propLabel, wrappedVar, callback))
+				{
+					valueChanged = true;
+					elChanged = true;
+				}
 			}
+			else if (item.is_sequential_container())
+			{
+				auto arrView = item.create_sequential_view();
+				if (DrawArray(propLabel, arrView, callback))
+				{
+					valueChanged = true;
+					elChanged = true;
+				}
+			}
+			else
+			{
+				if (valueType == type::get<std::string>() || valueType.is_enumeration())
+				{
+					if (DrawAtomicTypes(propLabel, valueType, wrappedVar, callback))
+					{
+						valueChanged = true;
+						elChanged = true;
+					}
+				}
+				else // object
+				{
+					if (DrawRecursively(propLabel, wrappedVar, callback))
+					{
+						valueChanged = true;
+						elChanged = true;
+					}
+				}
+			}
+
+			if(elChanged)
+				view.set_value(index, wrappedVar);
+			index++;
 		}
-		// Key-value associative containers are not supported
-		else { }
+
+
+		ImGui::Separator();
+		ImGui::EndGroup();
+		ImGui::Unindent(50.f);
 
 		return valueChanged;
+	}
+
+	// Associative containers are not supported by default
+	bool DrawAssociativeContainer(std::string const& label, variant_associative_view& view, PropertyChangeCallback callback = nullptr)
+	{
+		return false;
 	}
 
 	bool DrawRecursively(std::string const& label, rttr::instance ins, PropertyChangeCallback callback)
@@ -421,26 +472,17 @@ namespace Darius::Editor::Gui::DetailDrawer
 			// Draw sequential containers
 			else if (valueType.is_sequential_container())
 			{
-				DRAW_LABEL();
+				auto seqView = propValue.create_sequential_view();
+				if (DrawArray(propLabel, seqView, callback))
+				{
+					prop.set_value(obj, propValue);
+				}
 			}
 			// Draw associative containers
 			else if (valueType.is_associative_container())
 			{
-				DRAW_LABEL();
-				ImGui::Indent(50.f);
-				ImGui::NewLine();
-				ImGui::BeginGroup();
-				ImGui::Separator();
-
-				auto associativeView = propValue.create_associative_view();
-				if (DrawAssociativeContainer(propLabel, associativeView))
-				{
-					prop.set_value(obj, propValue);
-				}
-
-				ImGui::Separator();
-				ImGui::EndGroup();
-				ImGui::Unindent(50.f);
+				// Not supported
+				continue;
 			}
 			else
 			{
