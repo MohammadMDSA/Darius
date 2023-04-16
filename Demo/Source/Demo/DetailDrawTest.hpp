@@ -2,6 +2,7 @@
 
 #include "TestStruct.hpp"
 
+#include <Core/Containers/Vector.hpp>
 #include <Scene/EntityComponentSystem/Components/BehaviourComponent.hpp>
 
 #include "DetailDrawTest.generated.hpp"
@@ -70,6 +71,18 @@ namespace Demo
 
 		DField(Serialize)
 		TestContainer					mContainer;
+
+		DField(Serialize)
+		D_CONTAINERS::DVector<int>		mVec = { 1, 2, 3, 4, 5 };
+		
+		DField(Serialize)
+		D_CONTAINERS::DVector<TestContainer2>	mComplexVec = { TestContainer2(), TestContainer2()};
+		
+		DField(Serialize)
+		D_CONTAINERS::DVector<std::string>		mStrinVec = { "Foo", "Bar", "Buz", "Cat", "Another String"};
+
+		DField(Serialize)
+		D_CONTAINERS::DVector<TestEnumz>		mEnumVec = { TestEnumz::Foo, TestEnumz::Foo , TestEnumz::Buz};
 
 	public:
 		Demo_DetailDrawTest_GENERATED
