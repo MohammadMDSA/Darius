@@ -355,10 +355,6 @@ namespace Darius::Editor::Gui::DetailDrawer
 	{
 		bool valueChanged = false;
 
-		auto availWidth = ImGui::GetContentRegionAvail().x;
-
-		auto& nameStr = label;
-		DRAW_LABEL();
 		ImGui::Indent(50.f);
 		ImGui::NewLine();
 		ImGui::BeginGroup();
@@ -392,6 +388,7 @@ namespace Darius::Editor::Gui::DetailDrawer
 				{
 					valueChanged = true;
 					elChanged = true;
+					view.set_value(index, item.extract_wrapped_value());
 				}
 			}
 			else
@@ -412,10 +409,10 @@ namespace Darius::Editor::Gui::DetailDrawer
 						elChanged = true;
 					}
 				}
-			}
 
-			if(elChanged)
-				view.set_value(index, wrappedVar);
+				if (elChanged)
+					view.set_value(index, wrappedVar);
+			}
 			index++;
 		}
 
@@ -472,6 +469,7 @@ namespace Darius::Editor::Gui::DetailDrawer
 			// Draw sequential containers
 			else if (valueType.is_sequential_container())
 			{
+				DRAW_LABEL();
 				auto seqView = propValue.create_sequential_view();
 				if (DrawArray(propLabel, seqView, callback))
 				{
