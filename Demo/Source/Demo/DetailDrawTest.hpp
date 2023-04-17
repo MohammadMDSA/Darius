@@ -80,9 +80,12 @@ namespace Demo
 		
 		DField(Serialize)
 		D_CONTAINERS::DVector<std::string>		mStrinVec = { "Foo", "Bar", "Buz", "Cat", "Another String"};
-
+		
 		DField(Serialize)
 		D_CONTAINERS::DVector<TestEnumz>		mEnumVec = { TestEnumz::Foo, TestEnumz::Foo , TestEnumz::Buz};
+
+		DField(Serialize)
+		D_CONTAINERS::DVector<D_CONTAINERS::DVector<int>>		mVecVec = { {1, 2, 3}, {1, 2}, {4, 5, 6, 7, 8} };
 
 	public:
 		Demo_DetailDrawTest_GENERATED
