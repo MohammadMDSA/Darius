@@ -14,7 +14,7 @@
 
 namespace Darius::Animation
 {
-	class DClass(Serialize) AnimationResource : public D_RESOURCE::Resource
+	class DClass(Serialize, Resource) AnimationResource : public D_RESOURCE::Resource
 	{
 		D_CH_RESOURCE_BODY(AnimationResource, "Animation", ".fbx");
 

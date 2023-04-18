@@ -12,7 +12,7 @@
 
 namespace Darius::Physics
 {
-	class DClass(Serialize) PhysicsMaterialResource : public D_RESOURCE::Resource
+	class DClass(Serialize, Resource) PhysicsMaterialResource : public D_RESOURCE::Resource
 	{
 		D_CH_RESOURCE_BODY(PhysicsMaterialResource, "Physics Material", ".physmat");
 

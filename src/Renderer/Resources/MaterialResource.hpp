@@ -20,7 +20,7 @@ namespace Darius::Graphics
 {
 	class DResourceManager;
 
-	class DClass(Serialize) MaterialResource : public D_RESOURCE::Resource
+	class DClass(Serialize, Resource) MaterialResource : public D_RESOURCE::Resource
 	{
 		D_CH_RESOURCE_BODY(MaterialResource, "Material", ".mat")
 		

@@ -18,7 +18,7 @@ namespace Darius::Graphics
 {
 	class DResourceManager;
 
-	class DClass(Serialize) SkeletalMeshResource : public MeshResource
+	class DClass(Serialize, Resource) SkeletalMeshResource : public MeshResource
 	{
 	public:
 		D_CH_RESOURCE_BODY(SkeletalMeshResource, "Skeletal Mesh", ".fbx")

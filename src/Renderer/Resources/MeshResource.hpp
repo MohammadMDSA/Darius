@@ -17,7 +17,7 @@ namespace Darius::Graphics
 {
 	class DResourceManager;
 
-	class DClass(Serialize) MeshResource : public D_RESOURCE::Resource
+	class DClass(Serialize, Resource) MeshResource : public D_RESOURCE::Resource
 	{
 	public:
 		using VertexType = D_GRAPHICS_VERTEX::VertexPositionNormalTangentTextureSkinned;

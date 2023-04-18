@@ -2,7 +2,7 @@
 #include "DetailDrawer.hpp"
 
 #include <Core/Containers/Map.hpp>
-#include <Core/Containers/Vector.hpp>
+#include <ResourceManager/Resource.hpp>
 #include <Utils/Assert.hpp>
 
 #include <imgui.h>
@@ -289,17 +289,7 @@ namespace Darius::Editor::Gui::DetailDrawer
 		D_ASSERT(_initialied);
 	}
 
-	bool InternalDrawDetials(std::string const& label, rttr::instance ins, rttr::type const& type, PropertyChangeCallback callback)
-	{
-		//// Checking existing serializers and deserializers
-		if (CustomDrawers.contains(type))
-		{
-			return CustomDrawers[type](label, ins, callback);
-		}
-
-		return DrawRecursively(label, ins, callback);
-	}
-
+	// Draws strings, resources, and enums
 	bool DrawAtomicTypes(std::string const& label, type const& t, variant& var, PropertyChangeCallback callback = nullptr)
 	{
 
@@ -375,7 +365,11 @@ namespace Darius::Editor::Gui::DetailDrawer
 			variant wrappedVar = item.extract_wrapped_value();
 			type valueType = wrappedVar.get_type();
 
-			if (CustomDrawers.contains(valueType))
+			if (valueType.get_metadata("RESOURCE"))
+			{
+				// TODO: Add support for drawing resource references
+			}
+			else if (!CustomDrawers.contains(valueType))
 			{
 				if (CustomDrawers[valueType](propLabel, wrappedVar, callback))
 				{
@@ -458,8 +452,12 @@ namespace Darius::Editor::Gui::DetailDrawer
 
 			const type valueType = prop.get_type();
 
+			if (valueType.get_metadata("RESOURCE"))
+			{
+				// TODO: Add support for drawing resource references
+			}
 			// Draw with custom drawer if exists
-			if (CustomDrawers.contains(valueType))
+			else if (CustomDrawers.contains(valueType))
 			{
 				DRAW_LABEL();
 				if (CustomDrawers[valueType](propLabel, propValue, callback))
@@ -538,7 +536,15 @@ namespace Darius::Editor::Gui::DetailDrawer
 
 	bool DrawDetials(rttr::instance ins, PropertyChangeCallback callback)
 	{
-		return InternalDrawDetials("", ins, ins.get_type(), callback);
+		auto type = ins.get_type();
+
+		//// Checking existing serializers and deserializers
+		if (CustomDrawers.contains(type))
+		{
+			return CustomDrawers[type]("", ins, callback);
+		}
+
+		return DrawRecursively("", ins, callback);
 	}
 
 }

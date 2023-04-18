@@ -15,7 +15,7 @@ namespace Darius::Graphics
 {
 	class DResourceManager;
 
-	class DClass(Serialize) TextureResource : public D_RESOURCE::Resource
+	class DClass(Serialize, Resource) TextureResource : public D_RESOURCE::Resource
 	{
 		D_CH_RESOURCE_BODY(TextureResource, "Texture", ".tga", ".dds")
 

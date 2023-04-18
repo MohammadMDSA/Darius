@@ -6,6 +6,8 @@
 #include "Renderer/Geometry/Mesh.hpp"
 #include "Renderer/GraphicsUtils/VertexTypes.hpp"
 
+#include "StaticMeshResource.generated.hpp"
+
 #ifndef D_GRAPHICS
 #define D_GRAPHICS Darius::Graphics
 #endif
@@ -14,7 +16,7 @@ namespace Darius::Graphics
 {
 	class DResourceManager;
 
-	class StaticMeshResource : public MeshResource
+	class DClass(Serialize, Resource) StaticMeshResource : public MeshResource
 	{
 	public:
 		D_CH_RESOURCE_BODY(StaticMeshResource, "Static Mesh", ".fbx")
@@ -38,5 +40,11 @@ namespace Darius::Graphics
 			MeshResource(uuid, path, name, id, isDefault) {}
 	private:
 		friend class DResourceManager;
+
+	public:
+		Darius_Graphics_StaticMeshResource_GENERATED
+
 	};
 }
+
+File_StaticMeshResource_GENERATED

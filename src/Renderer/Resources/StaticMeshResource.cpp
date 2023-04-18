@@ -13,6 +13,8 @@
 #include <fbxsdk.h>
 #include <fbxsdk/fileio/fbxiosettings.h>
 
+#include "StaticMeshResource.sgenerated.hpp"
+
 using namespace D_CONTAINERS;
 using namespace D_MATH;
 using namespace D_RENDERER_GEOMETRY;
