@@ -21,6 +21,10 @@ using namespace rttr;
 			ImGui::Text(nameStr.c_str()); \
 			ImGui::SameLine(availWidth * LABEL_COL_RATIO);\
 
+static int treeFlags = ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_NoTreePushOnOpen | ImGuiTreeNodeFlags_FramePadding;
+
+#define TREE_NODE_INDENTATION 21.f
+
 namespace Darius::Editor::Gui::DetailDrawer
 {
 	bool											_initialied = false;
@@ -305,8 +309,6 @@ namespace Darius::Editor::Gui::DetailDrawer
 		{
 			rttr::enumeration e = t.get_enumeration();
 
-			DVector<std::string> values;
-
 			if (ImGui::BeginCombo(("##" + label).c_str(), var.to_string().c_str()))
 			{
 				for (auto const& enumName : e.get_names())
@@ -379,6 +381,7 @@ namespace Darius::Editor::Gui::DetailDrawer
 				{
 					valueChanged = true;
 					elChanged = true;
+					view.set_value(index, wrappedVar);
 				}
 			}
 			else if (item.is_sequential_container())
@@ -469,12 +472,17 @@ namespace Darius::Editor::Gui::DetailDrawer
 			// Draw sequential containers
 			else if (valueType.is_sequential_container())
 			{
-				DRAW_LABEL();
-				auto seqView = propValue.create_sequential_view();
-				if (DrawArray(propLabel, seqView, callback))
+				
+				ImGui::Unindent(TREE_NODE_INDENTATION);
+				if (ImGui::TreeNodeEx(nameStr.c_str(), treeFlags))
 				{
-					prop.set_value(obj, propValue);
+					auto seqView = propValue.create_sequential_view();
+					if (DrawArray(propLabel, seqView, callback))
+					{
+						prop.set_value(obj, propValue);
+					}
 				}
+				ImGui::Indent(TREE_NODE_INDENTATION);
 			}
 			// Draw associative containers
 			else if (valueType.is_associative_container())
@@ -499,20 +507,24 @@ namespace Darius::Editor::Gui::DetailDrawer
 				// Draw object
 				else
 				{
-					DRAW_LABEL();
-					ImGui::Indent(50.f);
-					ImGui::NewLine();
-					ImGui::BeginGroup();
-					ImGui::Separator();
-					if (DrawRecursively(propLabel, propValue, callback))
+					ImGui::Unindent(TREE_NODE_INDENTATION);
+					if (ImGui::TreeNodeEx(nameStr.c_str(), treeFlags))
 					{
-						bool done = prop.set_value(obj, propValue);
-						(done);
-						valueChanged = true;
+						ImGui::Indent(50.f);
+						ImGui::NewLine();
+						ImGui::BeginGroup();
+						ImGui::Separator();
+						if (DrawRecursively(propLabel, propValue, callback))
+						{
+							bool done = prop.set_value(obj, propValue);
+							(done);
+							valueChanged = true;
+						}
+						ImGui::Separator();
+						ImGui::EndGroup();
+						ImGui::Unindent(50.f);
 					}
-					ImGui::Separator();
-					ImGui::EndGroup();
-					ImGui::Unindent(50.f);
+					ImGui::Indent(TREE_NODE_INDENTATION);
 				}
 			}
 		}
