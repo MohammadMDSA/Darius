@@ -31,7 +31,7 @@ namespace Darius::Math::Camera
         enum CornerID
         {
             kNearLowerLeft, kNearUpperLeft, kNearLowerRight, kNearUpperRight,
-            kFarLowerLeft, kFarUpperLeft, kFarLowerRight, kFarUpperRight
+            kFarLowerLeft, kFarUpperLeft, kFarLowerRight, kFarUpperRight, _kNumCorners
         };
 
         enum PlaneID
