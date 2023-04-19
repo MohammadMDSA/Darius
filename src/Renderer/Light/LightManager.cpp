@@ -335,12 +335,33 @@ namespace Darius::Renderer::LightManager
 		}
 	}
 
-	void RenderDirectionalShadow(D_RENDERER::MeshSorter& sorter, D_GRAPHICS::GraphicsContext& context, LightData& light, int lightGloablIndex)
+	void RenderDirectionalShadow(D_MATH_CAMERA::Camera const& viewerCamera, D_RENDERER::MeshSorter& sorter, D_GRAPHICS::GraphicsContext& context, LightData& light, int lightGloablIndex)
 	{
 
 		D_MATH_CAMERA::ShadowCamera cam;
 		auto lightDir = -Vector3(light.Direction);
-		cam.UpdateMatrix(lightDir, Vector3(0.f, 0.f, 0.f), Vector3(100, 100, 3000), ShadowBufferWidth, ShodowBufferHeight, ShadowBufferDepthPercision);
+		cam.SetLookDirection(lightDir, Vector3::Up);
+		cam.Update();
+		auto shadowView = cam.GetViewMatrix();
+
+		auto viewrFrustom = viewerCamera.GetWorldSpaceFrustum();
+
+		auto shadowSpaceAABB = D_MATH_BOUNDS::AxisAlignedBox();
+
+		for (int i = 0; i < D_MATH_CAMERA::Frustum::_kNumCorners; i++)
+		{
+			auto corner = viewrFrustom.GetFrustumCorner((D_MATH_CAMERA::Frustum::CornerID)i);
+			auto shadowSpaceCorner = shadowView * corner;
+			shadowSpaceAABB.AddPoint(Vector3(shadowSpaceCorner));
+		}
+
+		auto camWorldPos = D_MATH::Invert(shadowView) * shadowSpaceAABB.GetCenter();
+		auto dim = shadowSpaceAABB.GetDimensions();
+
+		D_LOG_DEBUG(camWorldPos.GetX() << " " << camWorldPos.GetY() << " " << camWorldPos.GetZ());
+		D_LOG_DEBUG(dim.GetX() << " " << dim.GetY() << " " << dim.GetZ());
+
+		cam.UpdateMatrix(lightDir, Vector3(camWorldPos), shadowSpaceAABB.GetDimensions(), ShadowBufferWidth, ShodowBufferHeight, ShadowBufferDepthPercision);
 
 		GlobalConstants globals;
 		globals.ViewProj = cam.GetViewProjMatrix();
@@ -391,7 +412,7 @@ namespace Darius::Renderer::LightManager
 
 	}
 
-	void RenderShadows(D_CONTAINERS::DVector<RenderItem> const& shadowRenderItems, D_GRAPHICS::GraphicsContext& shadowContext)
+	void RenderShadows(D_MATH_CAMERA::Camera const& viewerCamera, D_CONTAINERS::DVector<RenderItem> const& shadowRenderItems, D_GRAPHICS::GraphicsContext& shadowContext)
 	{
 
 		D_PROFILING::ScopedTimer _prof(L"Rendering Shadows", shadowContext);
@@ -416,7 +437,7 @@ namespace Darius::Renderer::LightManager
 				auto& light = DirectionalLights[i];
 				if (!light.CastsShadow || !ActiveDirectionalLight[i].LightActive || !ActiveDirectionalLight[i].ComponentActive)
 					continue;
-				RenderDirectionalShadow(sorter, shadowContext, light, i);
+				RenderDirectionalShadow(viewerCamera, sorter, shadowContext, light, i);
 			}
 			else if (i >= MaxNumPointLight + MaxNumDirectionalLight)
 			{

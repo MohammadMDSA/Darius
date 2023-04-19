@@ -291,7 +291,7 @@ namespace Darius::Renderer
 			DVector<RenderItem> shadowRenderItems;
 			AddShadowRenderItems(shadowRenderItems);
 
-			D_LIGHT::RenderShadows(shadowRenderItems, context);
+			D_LIGHT::RenderShadows(rContext.Camera, shadowRenderItems, context);
 		}
 
 		if (additionalMainDraw)

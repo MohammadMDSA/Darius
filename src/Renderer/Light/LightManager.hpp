@@ -5,6 +5,7 @@
 
 #include <Core/Containers/Vector.hpp>
 #include <Math/VectorMath.hpp>
+#include <Math/Camera/Camera.hpp>
 
 #include "LightManager.generated.hpp"
 
@@ -59,7 +60,7 @@ namespace Darius::Renderer::LightManager
 	void				Reset();
 
 	void				UpdateBuffers(D_GRAPHICS::GraphicsContext& context);
-	void				RenderShadows(D_CONTAINERS::DVector<D_RENDERER_FRAME_RESOURCE::RenderItem> const& shadowRenderItems, D_GRAPHICS::GraphicsContext& shadowContext);
+	void				RenderShadows(D_MATH_CAMERA::Camera const& viewerCamera, D_CONTAINERS::DVector<D_RENDERER_FRAME_RESOURCE::RenderItem> const& shadowRenderItems, D_GRAPHICS::GraphicsContext& shadowContext);
 
 	D3D12_CPU_DESCRIPTOR_HANDLE GetLightMaskHandle();
 	D3D12_CPU_DESCRIPTOR_HANDLE GetLightDataHandle();
