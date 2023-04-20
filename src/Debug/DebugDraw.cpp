@@ -8,6 +8,21 @@
 
 #define MAX_DEBUG_DRAWS 1024
 
+
+#define RENDERSETUP_LINE(meshResource) \
+D_RENDERER_FRAME_RESOURCE::RenderItem ri; \
+PopulateRenderItemFromMesh(ri, meshResource->GetMeshData()); \
+ri.MeshCBV = MeshConstantsGPU.GetGpuVirtualAddress() + sizeof(D_RENDERER_FRAME_RESOURCE::MeshConstants) * index; \
+ri.Color = color; \
+ri.PrimitiveType = D3D_PRIMITIVE_TOPOLOGY_LINELIST; \
+ri.PsoFlags = RenderItem::HasPosition | RenderItem::HasNormal | RenderItem::HasTangent | RenderItem::HasUV0 | RenderItem::ColorOnly | RenderItem::TwoSided | RenderItem::LineOnly | RenderItem::AlphaBlend; \
+ri.PsoType = D_RENDERER::GetPso(ri.PsoFlags); \
+DrawPending.push_back(ri); \
+if(duration > 0) \
+{ \
+	DrawsWithDuration.insert({ D_TIME::GetTotalTime() + duration, { ri, trans } }); \
+}
+
 #define RENDERSETUP(meshResource) \
 D_RENDERER_FRAME_RESOURCE::RenderItem ri; \
 PopulateRenderItemFromMesh(ri, meshResource->GetMeshData()); \
@@ -42,6 +57,7 @@ namespace Darius::Debug
 
 	D_CORE::Ref<D_GRAPHICS::StaticMeshResource>	DebugDraw::CubeMeshResource;
 	D_CORE::Ref<D_GRAPHICS::StaticMeshResource>	DebugDraw::SphereMeshResource;
+	D_CORE::Ref<D_GRAPHICS::BatchResource>		DebugDraw::LineMeshResource;
 
 #endif // _DEBUG
 
@@ -50,6 +66,7 @@ namespace Darius::Debug
 #ifdef _DEBUG
 		CubeMeshResource = GetResource<D_GRAPHICS::StaticMeshResource>(D_GRAPHICS::GetDefaultGraphicsResource(D_GRAPHICS::DefaultResource::BoxMesh));
 		SphereMeshResource = GetResource<D_GRAPHICS::StaticMeshResource>(D_GRAPHICS::GetDefaultGraphicsResource(D_GRAPHICS::DefaultResource::LowPolySphereMesh));
+		LineMeshResource = GetResource<D_GRAPHICS::BatchResource>(D_GRAPHICS::GetDefaultGraphicsResource(D_GRAPHICS::DefaultResource::LineMesh));
 
 		// Initializing Mesh Constants buffers
 		for (size_t i = 0; i < D_RENDERER_FRAME_RESOURCE::gNumFrameResources; i++)
@@ -78,7 +95,7 @@ namespace Darius::Debug
 	}
 #endif
 
-	void DebugDraw::DrawCube(D_MATH::Vector3 position, D_MATH::Quaternion rotation, D_MATH::Vector3 scale, double duration, D_MATH::Color color)
+	void DebugDraw::DrawCube(D_MATH::Vector3 const& position, D_MATH::Quaternion const& rotation, D_MATH::Vector3 const& scale, double duration, D_MATH::Color const& color)
 	{
 		const std::lock_guard<std::mutex> lock(AdditionMutex);
 
@@ -94,7 +111,7 @@ namespace Darius::Debug
 		RENDERSETUP(CubeMeshResource);
 	}
 
-	void DebugDraw::DrawSphere(D_MATH::Vector3 position, float radius, double duration, D_MATH::Color color)
+	void DebugDraw::DrawSphere(D_MATH::Vector3 const& position, float radius, double duration, D_MATH::Color const& color)
 	{
 		const std::lock_guard<std::mutex> lock(AdditionMutex);
 		if (DrawPending.size() >= MAX_DEBUG_DRAWS)
@@ -106,6 +123,24 @@ namespace Darius::Debug
 		UploadTransform(trans, index);
 
 		RENDERSETUP(SphereMeshResource);
+	}
+
+	void DebugDraw::DrawLine(D_MATH::Vector3 const& p1, D_MATH::Vector3 const& p2, double duration, D_MATH::Color const& color)
+	{
+		const std::lock_guard<std::mutex> lock(AdditionMutex);
+		if (DrawPending.size() >= MAX_DEBUG_DRAWS)
+			return;
+
+		auto index = (UINT)DrawPending.size();
+
+		auto difference = p2 - p1;
+
+		auto quat = Quaternion::GetShortestArcBetweenTwoVector(Vector3::Forward, p2 - p1);
+
+		auto trans = D_MATH::Transform(p1, quat, Vector3(kOne) * D_MATH::Length(difference));
+
+		UploadTransform(trans, index);
+		RENDERSETUP_LINE(LineMeshResource);
 	}
 
 	void DebugDraw::PopulateRenderItemFromMesh(D_RENDERER_FRAME_RESOURCE::RenderItem& renderItem, D_RENDERER_GEOMETRY::Mesh const* mesh)
