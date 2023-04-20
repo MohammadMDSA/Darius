@@ -424,7 +424,8 @@ class registration::bind<detail::prop, Class_Type, A, acc_level, Visitor_List> :
         template<typename... Args>
         registration_derived_t<Class_Type> operator()(Args&&... args)
         {
-            m_prop = create_custom_property(m_name, m_acc, std::move(get_metadata(std::forward<Args>(args)...)), std::forward<Args>(args)...);
+            auto meta = get_metadata(std::forward<Args>(args)...);
+            m_prop = create_custom_property(m_name, m_acc, std::move(meta), std::forward<Args>(args)...);
             return registration_derived_t<Class_Type>(m_reg_exec);
         }
 

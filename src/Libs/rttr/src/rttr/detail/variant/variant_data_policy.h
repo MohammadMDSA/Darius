@@ -735,6 +735,7 @@ struct RTTR_API variant_data_policy_void
             case variant_policy_operation::GET_PTR:
             {
                 arg.get_value<void*>() = nullptr;
+                [[fallthrough]];
             }
             case variant_policy_operation::GET_RAW_TYPE:
             {
@@ -885,6 +886,7 @@ struct RTTR_API variant_data_policy_nullptr_t
             case variant_policy_operation::GET_PTR:
             {
                 arg.get_value<void*>() = as_void_ptr(std::addressof(get_value(src_data)));
+                [[fallthrough]];
             }
             case variant_policy_operation::GET_RAW_TYPE:
             {
