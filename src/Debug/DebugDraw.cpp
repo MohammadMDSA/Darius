@@ -143,6 +143,37 @@ namespace Darius::Debug
 		RENDERSETUP_LINE(LineMeshResource);
 	}
 
+	void DebugDraw::DrawFrustum(D_MATH_CAMERA::Frustum const& frus, double duration, D_MATH::Color const& color)
+	{
+		auto NearLowerLeft = frus.GetFrustumCorner(D_MATH_CAMERA::Frustum::kNearLowerLeft);
+		auto NearUpperLeft = frus.GetFrustumCorner(D_MATH_CAMERA::Frustum::kNearUpperLeft);
+		auto NearLowerRight = frus.GetFrustumCorner(D_MATH_CAMERA::Frustum::kNearLowerRight);
+		auto NearUpperRight = frus.GetFrustumCorner(D_MATH_CAMERA::Frustum::kNearUpperRight);
+		auto FarLowerLeft = frus.GetFrustumCorner(D_MATH_CAMERA::Frustum::kFarLowerLeft);
+		auto FarUpperLeft = frus.GetFrustumCorner(D_MATH_CAMERA::Frustum::kFarUpperLeft);
+		auto FarLowerRight = frus.GetFrustumCorner(D_MATH_CAMERA::Frustum::kFarLowerRight);
+		auto FarUpperRight = frus.GetFrustumCorner(D_MATH_CAMERA::Frustum::kFarUpperRight);
+
+		// Near rect
+		DrawLine(NearLowerLeft, NearLowerRight);
+		DrawLine(NearLowerRight, NearUpperRight);
+		DrawLine(NearUpperRight, NearUpperLeft);
+		DrawLine(NearUpperLeft, NearLowerLeft);
+
+		// Far rect
+		DrawLine(FarLowerLeft, FarLowerRight);
+		DrawLine(FarLowerRight, FarUpperRight);
+		DrawLine(FarUpperRight, FarUpperLeft);
+		DrawLine(FarUpperLeft, FarLowerLeft);
+
+		// Connecting near plane and far plane
+		DrawLine(NearUpperLeft, FarUpperLeft);
+		DrawLine(NearUpperRight, FarUpperRight);
+		DrawLine(NearLowerLeft, FarLowerLeft);
+		DrawLine(NearLowerRight, FarLowerRight);
+	}
+
+
 	void DebugDraw::PopulateRenderItemFromMesh(D_RENDERER_FRAME_RESOURCE::RenderItem& renderItem, D_RENDERER_GEOMETRY::Mesh const* mesh)
 	{
 		renderItem.BaseVertexLocation = mesh->mDraw[0].BaseVertexLocation;
