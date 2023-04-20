@@ -63,6 +63,7 @@ namespace Darius::Renderer
 			m_Scissor = {};
 			m_NumRTVs = 0;
 			m_DSV = nullptr;
+			m_Norm = nullptr;
 			m_SortObjects.clear();
 			m_SortKeys.clear();
 			std::memset(m_PassCounts, 0, sizeof(m_PassCounts));
@@ -79,6 +80,7 @@ namespace Darius::Renderer
 			m_Scissor = other.m_Scissor;
 			m_NumRTVs = other.m_NumRTVs;
 			m_DSV = other.m_DSV;
+			m_Norm = other.m_Norm;
 			memcpy(m_RTV, other.m_RTV, sizeof(D_GRAPHICS_BUFFERS::ColorBuffer*) * m_NumRTVs);
 
 
