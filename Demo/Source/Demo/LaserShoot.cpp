@@ -37,7 +37,12 @@ namespace Demo
 
 		physx::PxRaycastBuffer hit;
 		if (D_PHYSICS::Raycast(trans.Translation + dir * 2, dir, 100, hit))
-			D_DEBUG_DRAW::DrawCube(D_PHYSICS::GetVec3(hit.block.position), D_MATH::LookAt(D_PHYSICS::GetVec3(hit.block.normal), D_MATH::Vector3::Up), D_MATH::Vector3(0.5f, 0.5f, 0.5f), 1, {1.f, 0.f, 0.f, 1.f});
+		{
+			auto hitPos = D_PHYSICS::GetVec3(hit.block.position);
+			D_DEBUG_DRAW::DrawCube(D_PHYSICS::GetVec3(hit.block.position), D_MATH::LookAt(D_PHYSICS::GetVec3(hit.block.normal), D_MATH::Vector3::Up), D_MATH::Vector3(0.5f, 0.5f, 0.5f), 1, { 1.f, 0.f, 0.f, 1.f });
+
+			D_DEBUG_DRAW::DrawLine(trans.Translation, hitPos);
+		}
 
 	}
 
