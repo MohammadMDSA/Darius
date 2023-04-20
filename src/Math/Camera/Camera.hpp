@@ -118,25 +118,25 @@ namespace Darius::Math::Camera
         DField(Serialize)
         float mVerticalFoV;	// Field of view angle in radians
 
-        DField(Get[const, inline], Serialize)
+        DField(Get[const, &, inline], Serialize)
         float mAspectRatio;
 
-        DField(Get[const, inline], Serialize)
+        DField(Get[const, &, inline], Serialize)
         float mNearClip;
 
-        DField(Get[const, inline], Serialize)
+        DField(Get[const, &, inline], Serialize)
         float mFarClip;
 
-        DField(Get[const, inline], Serialize)
+        DField(Get[const, &, inline], Serialize)
         float mOrthographicSize;
 
-        DField(Get[const, inline], Serialize)
+        DField(Get[const, &, inline], Serialize)
         bool mReverseZ;		// Invert near and far clip distances so that Z=1 at the near plane
 
-        DField(Get[const, inline], Serialize)
+        DField(Get[const, &, inline], Serialize)
         bool mInfiniteZ;       // Move the far plane to infinity
 
-        DField(Get[const, inline], Serialize)
+        DField(Get[const, &, inline], Serialize)
         bool mOrthographic;
 
     public:
