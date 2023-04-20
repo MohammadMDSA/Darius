@@ -89,6 +89,13 @@ namespace Darius::Math
 
 		INLINE operator DirectX::XMVECTOR const& () const { return m_vec; }
 
+		INLINE static Quaternion GetShortestArcBetweenTwoVector(Vector3 const& v1, Vector3 const& v2)
+		{
+			auto angle = DirectX::XMVectorGetX(DirectX::XMVector3AngleBetweenVectors(v1, v2));
+			
+			return Quaternion(Vector3(DirectX::XMVector3Cross(v1, v2)), angle);
+		}
+
 		static const Quaternion Identity;
 
 	protected:
