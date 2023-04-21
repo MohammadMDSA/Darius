@@ -5,7 +5,6 @@
 
 #include <Math/Serialization.hpp>
 #include <Scene/Utils/DetailsDrawer.hpp>
-
 #include <Debug/DebugDraw.hpp>
 
 #include "LightComponent.sgenerated.hpp"
@@ -99,11 +98,11 @@ namespace Darius::Graphics
 					UpdateAngleData();
 			}
 
+			D_H_DETAILS_DRAW_PROPERTY("Intencity");
+			changed |= ImGui::DragFloat("##Intencity", &mLightData.Intencity, 0.01f, 0.f, FLT_MAX, "%.3f");
+
 			if (mLightType != LightSourceType::DirectionalLight)
 			{
-				D_H_DETAILS_DRAW_PROPERTY("Intencity");
-				changed |= ImGui::DragFloat("##Intencity", &mLightData.Intencity, 0.01f, 0.f, FLT_MAX, "%.3f");
-
 				D_H_DETAILS_DRAW_PROPERTY("Range");
 				changed |= ImGui::DragFloat("##Range", &mLightData.Range, 0.01f, mLightData.Intencity, -1.f, "%.3f");
 			}
