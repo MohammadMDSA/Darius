@@ -51,7 +51,7 @@ namespace Darius::Core::Serialization
 			else if (t == type::get<uint64_t>())
 				json = var.to_uint64();
 			else if (t == type::get<float>())
-				json = var.to_double();
+				json = var.to_float();
 			else if (t == type::get<double>())
 				json = var.to_double();
 
