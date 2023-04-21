@@ -143,6 +143,39 @@ namespace Darius::Debug
 		RENDERSETUP_LINE(LineMeshResource);
 	}
 
+	void DebugDraw::DrawCubeLines(D_CONTAINERS::DVector<D_MATH::Vector3> const& vertices, double duration, D_MATH::Color const& color)
+	{
+		// Only accepting eight vertices
+		D_ASSERT(vertices.size() == 8);
+
+		auto NearLowerLeft = vertices[0];
+		auto NearUpperLeft = vertices[1];
+		auto NearLowerRight = vertices[2];
+		auto NearUpperRight = vertices[3];
+		auto FarLowerLeft = vertices[4];
+		auto FarUpperLeft = vertices[5];
+		auto FarLowerRight = vertices[6];
+		auto FarUpperRight = vertices[7];
+
+		// Near rect
+		DrawLine(NearLowerLeft, NearLowerRight);
+		DrawLine(NearLowerRight, NearUpperRight);
+		DrawLine(NearUpperRight, NearUpperLeft);
+		DrawLine(NearUpperLeft, NearLowerLeft);
+
+		// Far rect
+		DrawLine(FarLowerLeft, FarLowerRight);
+		DrawLine(FarLowerRight, FarUpperRight);
+		DrawLine(FarUpperRight, FarUpperLeft);
+		DrawLine(FarUpperLeft, FarLowerLeft);
+
+		// Connecting near plane and far plane
+		DrawLine(NearUpperLeft, FarUpperLeft);
+		DrawLine(NearUpperRight, FarUpperRight);
+		DrawLine(NearLowerLeft, FarLowerLeft);
+		DrawLine(NearLowerRight, FarLowerRight);
+	}
+
 	void DebugDraw::DrawFrustum(D_MATH_CAMERA::Frustum const& frus, double duration, D_MATH::Color const& color)
 	{
 		auto NearLowerLeft = frus.GetFrustumCorner(D_MATH_CAMERA::Frustum::kNearLowerLeft);
