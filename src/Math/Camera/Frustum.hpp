@@ -39,8 +39,8 @@ namespace Darius::Math::Camera
             kNearPlane, kFarPlane, kLeftPlane, kRightPlane, kTopPlane, kBottomPlane
         };
 
-        Vector3                         GetFrustumCorner(CornerID id) const { return m_FrustumCorners[id]; }
-        D_MATH_BOUNDS::BoundingPlane    GetFrustumPlane(PlaneID id) const { return m_FrustumPlanes[id]; }
+        Vector3 const&                  GetFrustumCorner(CornerID id) const { return m_FrustumCorners[id]; }
+        D_MATH_BOUNDS::BoundingPlane const& GetFrustumPlane(PlaneID id) const { return m_FrustumPlanes[id]; }
 
         // Test whether the bounding sphere intersects the frustum.  Intersection is defined as either being
         // fully contained in the frustum, or by intersecting one or more of the planes.

@@ -109,7 +109,7 @@ namespace Darius::Math::Camera
         INLINE void     SetOrthographicSize(float size) { mOrthographicSize = size; UpdateProjMatrix(); }
         INLINE void     SetInfiniteZ(bool val) { mInfiniteZ = val; UpdateProjMatrix(); }
 
-        float           GetFoV() const { return mVerticalFoV; }
+        float const&    GetFoV() const { return mVerticalFoV; }
         float           GetClearDepth() const { return mReverseZ ? 0.0f : 1.0f; }
 
         void            UpdateProjMatrix();
