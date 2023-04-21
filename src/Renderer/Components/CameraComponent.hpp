@@ -47,7 +47,6 @@ namespace Darius::Graphics
 		INLINE void						SetOrthographic(bool const& val) { mCamera.SetOrthographic(val); }
 
 	private:
-
 		DField(Get[const, &, inline])
 		D_MATH_CAMERA::Camera			mCamera;
 

@@ -9,7 +9,7 @@
 #include <imgui.h>
 #endif
 
-#include "LightComponent.sgenerated.hpp"
+#include "CameraComponent.sgenerated.hpp"
 
 using namespace D_MATH;
 using namespace D_SERIALIZATION;

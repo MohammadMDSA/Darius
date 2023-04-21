@@ -352,6 +352,7 @@ namespace Darius::Renderer::LightManager
 		D_MATH_CAMERA::ShadowCamera cam;
 		auto lightDir = -Vector3(light.Direction);
 		cam.SetLookDirection(lightDir, Vector3::Up);
+		cam.SetPosition(Vector3(kZero));
 		cam.Update();
 		auto shadowView = cam.GetViewMatrix();
 
