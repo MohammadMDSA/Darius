@@ -5,7 +5,7 @@ cbuffer PSConstants : register(b0)
 	float TextureLevel;
 };
 
-TextureCube<float3> radianceIBLTexture : register(t14);
+TextureCube<float3> radianceIBLTexture : register(t16);
 
 struct VSOutput
 {

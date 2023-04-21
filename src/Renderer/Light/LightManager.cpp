@@ -48,7 +48,9 @@ namespace Darius::Renderer::LightManager
 	DVector<Transform>					SpotLightTransforms;
 
 	DVector<D_GRAPHICS_BUFFERS::ShadowBuffer> ShadowBuffers;
-	D_GRAPHICS_BUFFERS::ColorBuffer		ShadowTextureArrayBuffer;
+	D_GRAPHICS_BUFFERS::ColorBuffer		DirectionalShadowTextureArrayBuffer;
+	D_GRAPHICS_BUFFERS::ColorBuffer		PointShadowTextureArrayBuffer;
+	D_GRAPHICS_BUFFERS::ColorBuffer		SpotShadowTextureArrayBuffer;
 
 	// Gpu buffers
 	D_GRAPHICS_BUFFERS::UploadBuffer	ActiveLightsUpload[D_RENDERER_FRAME_RESOURCE::gNumFrameResources];
@@ -64,8 +66,9 @@ namespace Darius::Renderer::LightManager
 	/////////////////////////////////////////////////
 	// Options
 
-	uint32_t							ShadowBufferWidth = 512;
-	uint32_t							ShodowBufferHeight = 512;
+	uint32_t							DirectionalShadowBufferWidth = 4096;
+	uint32_t							PointShadowBufferWidth = 512;
+	uint32_t							SpotShadowBufferWidth = 1024;
 	uint32_t							ShadowBufferDepthPercision = 16;
 
 	void Initialize()
@@ -97,9 +100,19 @@ namespace Darius::Renderer::LightManager
 		ShadowBuffers.resize(MaxNumLight);
 		for (int i = 0; i < ShadowBuffers.size(); i++)
 		{
-			ShadowBuffers[i].Create(std::wstring(L"Shadow Buffer " + i), ShadowBufferWidth, ShodowBufferHeight, D3D12_GPU_VIRTUAL_ADDRESS_UNKNOWN);
+			UINT width = 0u;
+			if (i < MaxNumDirectionalLight)
+				width = DirectionalShadowBufferWidth;
+			else if (i < MaxNumDirectionalLight + MaxNumPointLight)
+				width = PointShadowBufferWidth;
+			else
+				width = SpotShadowBufferWidth;
+
+			ShadowBuffers[i].Create(std::wstring(L"Shadow Buffer ") + std::to_wstring(i), width, width, D3D12_GPU_VIRTUAL_ADDRESS_UNKNOWN);
 		}
-		ShadowTextureArrayBuffer.CreateArray(L"Shadow Texture Array Buffer", ShadowBufferWidth, ShodowBufferHeight, MaxNumLight, DXGI_FORMAT_R16_UNORM);
+		DirectionalShadowTextureArrayBuffer.CreateArray(L"Directional Shadow Texture Array Buffer", DirectionalShadowBufferWidth, DirectionalShadowBufferWidth, MaxNumDirectionalLight, DXGI_FORMAT_R16_UNORM);
+		PointShadowTextureArrayBuffer.CreateArray(L"Point Shadow Texture Array Buffer", PointShadowBufferWidth, PointShadowBufferWidth, MaxNumPointLight, DXGI_FORMAT_R16_UNORM);
+		SpotShadowTextureArrayBuffer.CreateArray(L"Spot Shadow Texture Array Buffer", SpotShadowBufferWidth, SpotShadowBufferWidth, MaxNumSpotLight, DXGI_FORMAT_R16_UNORM);
 
 	}
 
@@ -217,7 +230,7 @@ namespace Darius::Renderer::LightManager
 
 		context.TransitionResource(LightsBufferGpu, D3D12_RESOURCE_STATE_COPY_DEST);
 		context.TransitionResource(ActiveLightsBufferGpu, D3D12_RESOURCE_STATE_COPY_DEST, true);
-		
+
 		context.CopyBufferRegion(LightsBufferGpu, 0, currentLightUpload, 0, currentLightUpload.GetBufferSize());
 		context.CopyBufferRegion(ActiveLightsBufferGpu, 0, currentActiveLightUpload, 0, currentActiveLightUpload.GetBufferSize());
 
@@ -237,9 +250,11 @@ namespace Darius::Renderer::LightManager
 		return LightsBufferGpu.GetSRV();
 	}
 
-	D3D12_CPU_DESCRIPTOR_HANDLE GetShadowTextureArrayHandle()
+	void GetShadowTextureArrayHandle(D3D12_CPU_DESCRIPTOR_HANDLE& directional, D3D12_CPU_DESCRIPTOR_HANDLE& point, D3D12_CPU_DESCRIPTOR_HANDLE& spot)
 	{
-		return ShadowTextureArrayBuffer.GetSRV();
+		directional = DirectionalShadowTextureArrayBuffer.GetSRV();
+		point = PointShadowTextureArrayBuffer.GetSRV();
+		spot = SpotShadowTextureArrayBuffer.GetSRV();
 	}
 
 	INLINE DVector<LightStatus>* GetAssociatedActiveLightWithType(LightSourceType type)
@@ -369,15 +384,12 @@ namespace Darius::Renderer::LightManager
 		auto camWorldPos = D_MATH::Invert(shadowView) * shadowSpaceAABB.GetCenter();
 		auto dim = shadowSpaceAABB.GetDimensions();
 
-		D_LOG_DEBUG(camWorldPos.GetX() << " " << camWorldPos.GetY() << " " << camWorldPos.GetZ());
-		D_LOG_DEBUG(dim.GetX() << " " << dim.GetY() << " " << dim.GetZ());
-
-		cam.UpdateMatrix(lightDir, Vector3(camWorldPos), shadowSpaceAABB.GetDimensions(), ShadowBufferWidth, ShodowBufferHeight, ShadowBufferDepthPercision);
+		cam.UpdateMatrix(lightDir, Vector3(camWorldPos), shadowSpaceAABB.GetDimensions(), DirectionalShadowBufferWidth, DirectionalShadowBufferWidth, ShadowBufferDepthPercision);
 
 		GlobalConstants globals;
-		globals.ViewProj = cam.GetViewProjMatrix();
+		globals.ViewProj = cam.GetShadowMatrix();
 		globals.View = cam.GetViewMatrix();
-		globals.ShadowTexelSize.x = 1.f / ShadowBufferWidth;
+		globals.ShadowTexelSize.x = 1.f / DirectionalShadowBufferWidth;
 
 		light.ShadowMatrix = cam.GetShadowMatrix();
 
@@ -390,10 +402,9 @@ namespace Darius::Renderer::LightManager
 
 		context.TransitionResource(shadowBuffer, D3D12_RESOURCE_STATE_COPY_SOURCE);
 
-		context.TransitionResource(ShadowTextureArrayBuffer, D3D12_RESOURCE_STATE_COPY_DEST, true);
+		context.TransitionResource(DirectionalShadowTextureArrayBuffer, D3D12_RESOURCE_STATE_COPY_DEST, true);
 
-		context.CopySubresource(ShadowTextureArrayBuffer, lightGloablIndex, shadowBuffer, 0);
-
+		context.CopySubresource(DirectionalShadowTextureArrayBuffer, lightGloablIndex, shadowBuffer, 0);
 	}
 
 	void RenderSpotShadow(D_RENDERER::MeshSorter& sorter, D_GRAPHICS::GraphicsContext& context, LightData& light, int lightGloablIndex)
@@ -413,13 +424,14 @@ namespace Darius::Renderer::LightManager
 
 		sorter.SetCamera(shadowCamera);
 		sorter.SetDepthStencilTarget(shadowBuffer);
+		sorter.SetViewport(D3D12_VIEWPORT());
 		sorter.RenderMeshes(MeshSorter::kZPass, context, nullptr, globals);
 
 		context.TransitionResource(shadowBuffer, D3D12_RESOURCE_STATE_COPY_SOURCE);
 
-		context.TransitionResource(ShadowTextureArrayBuffer, D3D12_RESOURCE_STATE_COPY_DEST, true);
+		context.TransitionResource(SpotShadowTextureArrayBuffer, D3D12_RESOURCE_STATE_COPY_DEST, true);
 
-		context.CopySubresource(ShadowTextureArrayBuffer, lightGloablIndex, shadowBuffer, 0);
+		context.CopySubresource(SpotShadowTextureArrayBuffer, lightGloablIndex - MaxNumDirectionalLight - MaxNumPointLight, shadowBuffer, 0);
 
 	}
 
@@ -433,8 +445,6 @@ namespace Darius::Renderer::LightManager
 		for (auto const& ri : shadowRenderItems) sorter.AddMesh(ri, 0.1f);
 
 		sorter.Sort();
-
-		shadowContext.TransitionResource(ShadowTextureArrayBuffer, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
 
 		for (int i = 0; i < MaxNumLight; i++)
 		{
@@ -460,7 +470,9 @@ namespace Darius::Renderer::LightManager
 			}
 
 			//});
-			shadowContext.TransitionResource(ShadowTextureArrayBuffer, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
+			shadowContext.TransitionResource(DirectionalShadowTextureArrayBuffer, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
+			shadowContext.TransitionResource(SpotShadowTextureArrayBuffer, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
+			shadowContext.TransitionResource(PointShadowTextureArrayBuffer, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, true);
 		}
 
 		//if (D_JOB::IsMainThread())

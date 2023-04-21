@@ -65,7 +65,7 @@ namespace Darius::Renderer::LightManager
 
 	D3D12_CPU_DESCRIPTOR_HANDLE GetLightMaskHandle();
 	D3D12_CPU_DESCRIPTOR_HANDLE GetLightDataHandle();
-	D3D12_CPU_DESCRIPTOR_HANDLE GetShadowTextureArrayHandle();
+	void GetShadowTextureArrayHandle(D3D12_CPU_DESCRIPTOR_HANDLE& directional, D3D12_CPU_DESCRIPTOR_HANDLE& point, D3D12_CPU_DESCRIPTOR_HANDLE& spot);
 
 	// Accessed by light components
 	/// O(n) Don't use too often

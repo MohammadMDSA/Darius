@@ -129,7 +129,7 @@ namespace Darius::Renderer
 
 			for (int i = 0; i < D_RENDERER_FRAME_RESOURCE::gNumFrameResources; i++)
 			{
-				DescriptorHandle dest = CommonTexture[i] + 4 * TextureHeap.GetDescriptorSize();
+				DescriptorHandle dest = CommonTexture[i] + 6 * TextureHeap.GetDescriptorSize();
 
 				D_GRAPHICS_DEVICE::GetDevice()->CopyDescriptors(1, &dest, &DestCount, DestCount, SourceTextures, SourceCounts, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 			}
@@ -677,7 +677,7 @@ namespace Darius::Renderer
 
 		for (int i = 0; i < D_RENDERER_FRAME_RESOURCE::gNumFrameResources; i++)
 		{
-			DescriptorHandle dest = CommonTexture[i] + 4 * TextureHeap.GetDescriptorSize();
+			DescriptorHandle dest = CommonTexture[i] + 6 * TextureHeap.GetDescriptorSize();
 
 			D_GRAPHICS_DEVICE::GetDevice()->CopyDescriptors(1, &dest, &DestCount, DestCount, SourceTextures, SourceCounts, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 
@@ -844,15 +844,20 @@ namespace Darius::Renderer
 			// Copying light data
 			if (pass >= kOpaque)
 			{
-				UINT destCount = ssao ? 4 : 3;
-				UINT sourceCounts[] = { 1, 1, 1, 1 };
+				UINT destCount = ssao ? 6 : 5;
+				UINT sourceCounts[] = { 1, 1, 1, 1, 1, 1 };
 				D3D12_CPU_DESCRIPTOR_HANDLE lightHandles[] =
 				{
 					D_LIGHT::GetLightMaskHandle(),
 					D_LIGHT::GetLightDataHandle(),
-					D_LIGHT::GetShadowTextureArrayHandle(),
+					(D3D12_CPU_DESCRIPTOR_HANDLE)0,
+					(D3D12_CPU_DESCRIPTOR_HANDLE)0,
+					(D3D12_CPU_DESCRIPTOR_HANDLE)0,
 					ssao ? ssao->GetSRV() : (D3D12_CPU_DESCRIPTOR_HANDLE)0
 				};
+
+				D_LIGHT::GetShadowTextureArrayHandle(lightHandles[2], lightHandles[3], lightHandles[4]);
+
 				D_GRAPHICS_DEVICE::GetDevice()->CopyDescriptors(1, &(CommonTexture[D_GRAPHICS_DEVICE::GetCurrentFrameResourceIndex()]), &destCount, destCount, lightHandles, sourceCounts, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 			}
 
