@@ -424,7 +424,6 @@ namespace Darius::Renderer::LightManager
 
 		sorter.SetCamera(shadowCamera);
 		sorter.SetDepthStencilTarget(shadowBuffer);
-		sorter.SetViewport(D3D12_VIEWPORT());
 		sorter.RenderMeshes(MeshSorter::kZPass, context, nullptr, globals);
 
 		context.TransitionResource(shadowBuffer, D3D12_RESOURCE_STATE_COPY_SOURCE);
@@ -446,34 +445,33 @@ namespace Darius::Renderer::LightManager
 
 		sorter.Sort();
 
-		for (int i = 0; i < MaxNumLight; i++)
+		for (int i = 0; i < MaxNumDirectionalLight; i++)
 		{
 
 			//D_JOB::AssignTask([&](int, int) {
 
 			sorter.Reset();
 
-			if (i < MaxNumDirectionalLight)
-			{
-				auto& light = DirectionalLights[i];
-				if (!light.CastsShadow || !ActiveDirectionalLight[i].LightActive || !ActiveDirectionalLight[i].ComponentActive)
-					continue;
-				RenderDirectionalShadow(viewerCamera, sorter, shadowContext, light, i);
-			}
-			else if (i >= MaxNumPointLight + MaxNumDirectionalLight)
-			{
-				auto idx = i - (MaxNumPointLight + MaxNumDirectionalLight);
-				auto& light = SpotLights[idx];
-				if (!light.CastsShadow || !ActiveSpotLight[idx].LightActive || !ActiveSpotLight[idx].ComponentActive)
-					continue;
-				RenderSpotShadow(sorter, shadowContext, light, i);
-			}
-
-			//});
-			shadowContext.TransitionResource(DirectionalShadowTextureArrayBuffer, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
-			shadowContext.TransitionResource(SpotShadowTextureArrayBuffer, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
-			shadowContext.TransitionResource(PointShadowTextureArrayBuffer, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, true);
+			auto& light = DirectionalLights[i];
+			if (!light.CastsShadow || !ActiveDirectionalLight[i].LightActive || !ActiveDirectionalLight[i].ComponentActive)
+				continue;
+			RenderDirectionalShadow(viewerCamera, sorter, shadowContext, light, i);
 		}
+		sorter.SetViewport(D3D12_VIEWPORT());
+		sorter.SetScissor({ 1, 1, (long)SpotShadowBufferWidth - 2l, (long)SpotShadowBufferWidth - 2l });
+		for (int i = MaxNumDirectionalLight + MaxNumPointLight; i < MaxNumLight; i++)
+		{
+			sorter.Reset();
+			auto idx = i - (MaxNumPointLight + MaxNumDirectionalLight);
+			auto& light = SpotLights[idx];
+			if (!light.CastsShadow || !ActiveSpotLight[idx].LightActive || !ActiveSpotLight[idx].ComponentActive)
+				continue;
+			RenderSpotShadow(sorter, shadowContext, light, i);
+		}
+		//});
+		shadowContext.TransitionResource(DirectionalShadowTextureArrayBuffer, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
+		shadowContext.TransitionResource(SpotShadowTextureArrayBuffer, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
+		shadowContext.TransitionResource(PointShadowTextureArrayBuffer, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, true);
 
 		//if (D_JOB::IsMainThread())
 		//	D_JOB::WaitForThreadsToFinish();
