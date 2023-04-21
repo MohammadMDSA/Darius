@@ -82,7 +82,7 @@ float GetDirectionalShadow(uint lightIndex, float3 ShadowCoord)
 
     float3 coord = float3(ShadowCoord.x / 2 + 0.5f, -ShadowCoord.y / 2 + 0.5f, lightIndex);
     //float3 coord = float3(ShadowCoord.xy, lightIndex);
-
+#define SINGLE_SAMPLE
 #ifdef SINGLE_SAMPLE
     float result = lightShadowArrayTex.SampleCmpLevelZero(shadowSampler, coord, ShadowCoord.z);
 #else
@@ -151,21 +151,22 @@ float3 ApplyDirectionalLight(
     float3 viewDir, // World-space vector from eye to point
     float3 worldPos, // World-space fragment position
     float3 lightDir, // World-space vector from point to light
-    float3 lightColor, // Radiance of directional light,
+    float3 lightColor, // Radiance of directional light
+    float lightIntencity,
     float4x4 shadowTextureMatrix,
     bool castsShadow,
 	uint lightIndex
     )
 {
     float shadow = 1.f;
-    //if (castsShadow)
-    //{
-    //    float4 shadowCoord = mul(shadowTextureMatrix, float4(worldPos, 1.0));
-    //    shadowCoord.xyz *= rcp(shadowCoord.w);
-    //    shadow = GetDirectionalShadow(lightIndex, shadowCoord.xyz);
-    //}
+    if (castsShadow)
+    {
+        float4 shadowCoord = mul(shadowTextureMatrix, float4(worldPos, 1.0));
+        shadowCoord.xyz *= rcp(shadowCoord.w);
+        shadow = GetDirectionalShadow(lightIndex, shadowCoord.xyz);
+    }
 
-    return shadow * ApplyLightCommon(
+    return shadow * lightIntencity * ApplyLightCommon(
         diffuseColor,
         specularColor,
         specularMask,
@@ -369,6 +370,7 @@ float3 ComputeLighting(
                 pos,
                 -light.Direction,
                 light.Color,
+                light.Intencity,
                 light.ShadowMatrix,
                 true,
                 i);

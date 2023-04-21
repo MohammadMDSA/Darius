@@ -350,14 +350,13 @@ namespace Darius::Renderer::LightManager
 	{
 
 		D_MATH_CAMERA::ShadowCamera cam;
-		auto lightDir = -Vector3(light.Direction);
+		auto lightDir = Vector3(light.Direction);
 		cam.SetLookDirection(lightDir, Vector3::Up);
 		cam.SetPosition(Vector3(kZero));
 		cam.Update();
 		auto shadowView = cam.GetViewMatrix();
 
-		auto viewrFrustom = viewerCamera.GetWorldSpaceFrustum();
-
+		auto const& viewrFrustom = viewerCamera.GetWorldSpaceFrustum();
 		auto shadowSpaceAABB = D_MATH_BOUNDS::AxisAlignedBox();
 
 		for (int i = 0; i < D_MATH_CAMERA::Frustum::_kNumCorners; i++)
@@ -380,7 +379,7 @@ namespace Darius::Renderer::LightManager
 		globals.View = cam.GetViewMatrix();
 		globals.ShadowTexelSize.x = 1.f / ShadowBufferWidth;
 
-		light.ShadowMatrix = Matrix4::Transpose(cam.GetShadowMatrix());
+		light.ShadowMatrix = cam.GetShadowMatrix();
 
 		auto& shadowBuffer = ShadowBuffers[lightGloablIndex];
 		shadowBuffer.BeginRendering(context);
