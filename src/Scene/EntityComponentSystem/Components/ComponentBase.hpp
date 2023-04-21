@@ -99,6 +99,7 @@ namespace Darius::Scene::ECS::Components
 
 #ifdef _D_EDITOR
         virtual INLINE bool         DrawDetails(float[]) { return false; }
+        virtual INLINE void         OnGizmo() const { }
 #endif
         virtual INLINE std::string  GetComponentName() const { return ""; }
         virtual INLINE std::string  GetDisplayName() const { return ""; }
@@ -134,7 +135,7 @@ namespace Darius::Scene::ECS::Components
         }
 
         INLINE D_MATH::Transform const& GetLocalTransform() const { return mGameObject->GetLocalTransform(); }
-        INLINE D_MATH::Transform const GetTransform() const { return mGameObject->GetTransform(); }
+        INLINE D_MATH::Transform    GetTransform() const { return mGameObject->GetTransform(); }
         INLINE void                 SetLocalTransform(D_MATH::Transform const& transform) { return mGameObject->SetLocalTransform(transform); }
         INLINE void                 SetTransform(D_MATH::Transform const& transform) { return mGameObject->SetTransform(transform); }
 

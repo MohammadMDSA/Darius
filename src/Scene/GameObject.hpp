@@ -162,6 +162,7 @@ namespace Darius::Scene
 
 #ifdef _D_EDITOR
 		bool								DrawDetails(float params[]);
+		void								OnGizmo() const;
 #endif // _EDITOR
 
 		INLINE operator D_CORE::CountedOwner const() {

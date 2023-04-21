@@ -19,6 +19,7 @@ namespace Darius::Graphics
 
 #ifdef _D_EDITOR
 		virtual bool					DrawDetails(float params[]) override;
+		virtual void					OnGizmo() const override;
 #endif // _DEBUG
 
 		// States

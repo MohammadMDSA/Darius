@@ -212,6 +212,14 @@ namespace Darius::Scene
 		}
 	}
 
+	void GameObject::OnGizmo() const
+	{
+		VisitComponents([](auto comp)
+			{
+				comp->OnGizmo();
+			});
+	}
+
 #endif // _EDITOR
 
 	void GameObject::SetLocalTransform(Transform const& trans)
