@@ -30,7 +30,6 @@ list(APPEND RENDERER_LIBS_INCLUDE
 	"GraphicsUtils/Buffers/ReadbackBuffer.hpp"
 	"GraphicsUtils/Buffers/Texture.hpp"
 	"Light/LightManager.hpp"
-	"Light/SceneLight.hpp"
 	"PostProcessing/MotionBlur.hpp"
 	"PostProcessing/PostProcessing.hpp"
 	"Resources/BatchResource.hpp"

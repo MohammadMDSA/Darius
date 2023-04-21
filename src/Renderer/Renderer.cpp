@@ -179,6 +179,10 @@ namespace Darius::Renderer
 
 		if (D_JOB::IsMainThread())
 			Darius::Job::WaitForThreadsToFinish();
+		{
+			D_PROFILING::ScopedTimer lightProfiling(L"Update Lights");
+			::D_LIGHT::Update();
+		}
 	}
 
 	void AddRenderItems(D_RENDERER::MeshSorter& sorter, D_MATH_CAMERA::BaseCamera const& cam)

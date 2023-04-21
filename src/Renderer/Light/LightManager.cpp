@@ -1,6 +1,7 @@
 #include "Renderer/pch.hpp"
 #include "LightManager.hpp"
 
+#include "Renderer/Components/LightComponent.hpp"
 #include "Renderer/FrameResource.hpp"
 #include "Renderer/GraphicsDeviceManager.hpp"
 #include "Renderer/GraphicsUtils/Buffers/ShadowBuffer.hpp"
@@ -13,6 +14,7 @@
 #include <Core/Exceptions/Exception.hpp>
 #include <Math/Camera/ShadowCamera.hpp>
 #include <Job/Job.hpp>
+#include <Scene/Scene.hpp>
 
 #include "LightManager.sgenerated.hpp"
 
@@ -123,6 +125,15 @@ namespace Darius::Renderer::LightManager
 		{
 			ActiveSpotLight[i] = { false, false };
 		}
+	}
+
+	void Update()
+	{
+		auto& reg = D_WORLD::GetRegistry();
+		reg.each([](D_GRAPHICS::LightComponent& comp)
+			{
+				comp.Update(-1);
+			});
 	}
 
 	void UpdateBuffers(D_GRAPHICS::GraphicsContext& context)

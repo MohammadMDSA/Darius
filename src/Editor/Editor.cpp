@@ -15,7 +15,6 @@
 #include <Renderer/Camera/CameraManager.hpp>
 #include <Renderer/CommandContext.hpp>
 #include <Renderer/GraphicsUtils/Profiling/Profiling.hpp>
-#include <Renderer/Light/SceneLight.hpp>
 #include <Renderer/Light/LightManager.hpp>
 #include <Utils/Debug.hpp>
 
@@ -100,12 +99,6 @@ namespace Darius::Editor
 		}
 
 		D_EDITOR_CONTEXT::Update(elapsedTime);
-
-		// Updating lights
-		{
-			D_PROFILING::ScopedTimer lightProfiling(L"Update Lights");
-			::D_LIGHT::Update(elapsedTime);
-		}
 
 		auto& context = D_GRAPHICS::GraphicsContext::Begin(L"Update resources");
 		D_LIGHT::UpdateBuffers(context);

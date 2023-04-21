@@ -58,6 +58,7 @@ namespace Darius::Renderer::LightManager
 	void				Initialize();
 	void				Shutdown();
 	void				Reset();
+	void				Update();
 
 	void				UpdateBuffers(D_GRAPHICS::GraphicsContext& context);
 	void				RenderShadows(D_MATH_CAMERA::Camera const& viewerCamera, D_CONTAINERS::DVector<D_RENDERER_FRAME_RESOURCE::RenderItem> const& shadowRenderItems, D_GRAPHICS::GraphicsContext& shadowContext);
