@@ -101,6 +101,14 @@ namespace Darius::Editor::Simulate
 
 		}
 
+		// Call on gizmo
+		{
+			auto selectedGo = D_EDITOR_CONTEXT::GetSelectedGameObject();
+			if (selectedGo)
+				selectedGo->OnGizmo();
+		}
+
+		// Update GPU and upload stuff
 		{
 			D_PROFILING::ScopedTimer objConstProfiling(L"Update Renderer");
 			D_RENDERER::Update();
