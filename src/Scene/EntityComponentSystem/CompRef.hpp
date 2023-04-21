@@ -25,7 +25,7 @@ namespace Darius::Scene::ECS
 
 		CompRef() = default;
 
-		INLINE				CompRef(Entity ent)
+		INLINE CompRef(Entity ent)
 		{
 			using conv = std::is_convertible<T*, Darius::Scene::ECS::Components::ComponentBase*>;
 			D_STATIC_ASSERT(conv::value);
@@ -36,16 +36,9 @@ namespace Darius::Scene::ECS
 				mRef = flecs::ref<T>();
 		}
 
-		INLINE				CompRef(CompRef const& other)
+		INLINE CompRef(CompRef const& other)
 		{
 			mRef = other.mRef;
-		}
-
-		INLINE T const* Get() const
-		{
-			if (!IsValid())
-				return nullptr;
-			return mRef.get();
 		}
 
 		INLINE T* Get()
@@ -55,7 +48,7 @@ namespace Darius::Scene::ECS
 			return mRef.get();
 		}
 
-		INLINE bool				IsValid() const
+		INLINE bool IsValid() const
 		{
 			auto ent = mRef.entity();
 			return ent.is_valid() && ent.has<T>();
@@ -70,7 +63,6 @@ namespace Darius::Scene::ECS
 			return mRef.entity() == other.mRef.entity();
 		}
 
-		INLINE T const* operator->() const { return Get(); }
 	private:
 		DField(Get[const, &, inline])
 			flecs::ref<T>						mRef;
