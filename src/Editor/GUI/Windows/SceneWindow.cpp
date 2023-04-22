@@ -158,7 +158,7 @@ namespace Darius::Editor::Gui::Windows
 		globals.FarZ = mCamera.GetFarClip();
 		globals.TotalTime = (float)time.GetTotalSeconds();
 		globals.DeltaTime = (float)time.GetElapsedSeconds();
-		globals.AmbientLight = { 1.f, 1.f, 1.f, 1.f };
+		globals.AmbientLight = { 0.1f, 0.1f, 0.1f, 0.1f };
 
 	}
 
