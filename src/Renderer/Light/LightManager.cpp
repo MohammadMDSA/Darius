@@ -52,6 +52,9 @@ namespace Darius::Renderer::LightManager
 	D_GRAPHICS_BUFFERS::ColorBuffer		PointShadowTextureArrayBuffer;
 	D_GRAPHICS_BUFFERS::ColorBuffer		SpotShadowTextureArrayBuffer;
 
+	DVector<D_MATH_CAMERA::ShadowCamera> DirectionalShadowCameras;
+	DVector<D_MATH_CAMERA::Camera>		SpotShadowCameras;
+
 	// Gpu buffers
 	D_GRAPHICS_BUFFERS::UploadBuffer	ActiveLightsUpload[D_RENDERER_FRAME_RESOURCE::gNumFrameResources];
 	D_GRAPHICS_BUFFERS::UploadBuffer	LightsUpload[D_RENDERER_FRAME_RESOURCE::gNumFrameResources];
@@ -70,6 +73,8 @@ namespace Darius::Renderer::LightManager
 	uint32_t							PointShadowBufferWidth = 512;
 	uint32_t							SpotShadowBufferWidth = 1024;
 	uint32_t							ShadowBufferDepthPercision = 16;
+
+	void CalculateSpotShadowCamera(LightData& light, int lightGloablIndex);
 
 	void Initialize()
 	{
@@ -114,6 +119,9 @@ namespace Darius::Renderer::LightManager
 		PointShadowTextureArrayBuffer.CreateArray(L"Point Shadow Texture Array Buffer", PointShadowBufferWidth, PointShadowBufferWidth, MaxNumPointLight, DXGI_FORMAT_R16_UNORM);
 		SpotShadowTextureArrayBuffer.CreateArray(L"Spot Shadow Texture Array Buffer", SpotShadowBufferWidth, SpotShadowBufferWidth, MaxNumSpotLight, DXGI_FORMAT_R16_UNORM);
 
+		// Create shadow cameras
+		DirectionalShadowCameras.resize(MaxNumDirectionalLight);
+		SpotShadowCameras.resize(MaxNumSpotLight);
 	}
 
 	void Shutdown()
@@ -155,9 +163,9 @@ namespace Darius::Renderer::LightManager
 		auto& currentLightUpload = LightsUpload[D_GRAPHICS_DEVICE::GetCurrentFrameResourceIndex()];
 
 		// Upload buffers state
-
 		UINT* data = (UINT*)currentActiveLightUpload.Map();
 		LightData* lightUploadData = (LightData*)currentLightUpload.Map();
+		LightSourceType lightSource;
 
 		bool done = false;
 
@@ -181,6 +189,7 @@ namespace Darius::Renderer::LightManager
 					LightVec = &DirectionalLights;
 					transformVec = &DirectionalLightTransforms;
 					activeVec = &ActiveDirectionalLight;
+					lightSource = LightSourceType::DirectionalLight;
 				}
 				else if (lightIdx < MaxNumDirectionalLight + MaxNumPointLight)
 				{
@@ -188,6 +197,7 @@ namespace Darius::Renderer::LightManager
 					LightVec = &PointLights;
 					transformVec = &PointLightTransforms;
 					activeVec = &ActivePointLight;
+					lightSource = LightSourceType::PointLight;
 				}
 				else if (lightIdx < MaxNumDirectionalLight + MaxNumPointLight + MaxNumSpotLight)
 				{
@@ -195,6 +205,7 @@ namespace Darius::Renderer::LightManager
 					LightVec = &SpotLights;
 					transformVec = &SpotLightTransforms;
 					activeVec = &ActiveSpotLight;
+					lightSource = LightSourceType::SpotLight;
 				}
 				else
 				{
@@ -211,6 +222,16 @@ namespace Darius::Renderer::LightManager
 					LightData& lightData = (*LightVec)[indexInVec];
 					lightData.Position = (XMFLOAT3)trans.Translation;
 					XMStoreFloat3(&lightData.Direction, XMVector3Rotate({ 0.f, 0.f, -1.f }, trans.Rotation));
+
+					switch (lightSource)
+					{
+					case Darius::Renderer::LightManager::LightSourceType::SpotLight:
+						CalculateSpotShadowCamera(lightData, lightIdx);
+						break;
+					default:
+						break;
+					}
+
 					activeFlags += 1;
 
 					lightUploadData[lightIdx] = lightData;
@@ -411,16 +432,21 @@ namespace Darius::Renderer::LightManager
 		context.CopySubresource(DirectionalShadowTextureArrayBuffer, lightGloablIndex, shadowBuffer, 0);
 	}
 
-	void RenderSpotShadow(D_RENDERER::MeshSorter& sorter, D_GRAPHICS::GraphicsContext& context, LightData& light, int lightGloablIndex)
+	void CalculateSpotShadowCamera(LightData& light, int lightGloablIndex)
 	{
-		D_MATH_CAMERA::Camera shadowCamera;
+		auto& shadowCamera = SpotShadowCameras[lightGloablIndex - MaxNumDirectionalLight - MaxNumPointLight];
 		shadowCamera.SetEyeAtUp(light.Position, Vector3(light.Position) + Vector3(light.Direction), Vector3(0, 1, 0));
 		shadowCamera.SetPerspectiveMatrix(D_MATH::ACos(light.SpotAngles.y) * 2, 1.0f, light.Range * .001f, light.Range * 1.0f);
 		shadowCamera.Update();
 		light.ShadowMatrix = shadowCamera.GetViewProjMatrix();
+	}
+
+	void RenderSpotShadow(D_RENDERER::MeshSorter& sorter, D_GRAPHICS::GraphicsContext& context, LightData const& light, int lightGloablIndex)
+	{
+		auto const& shadowCamera = SpotShadowCameras[lightGloablIndex - MaxNumDirectionalLight - MaxNumPointLight];
 
 		GlobalConstants globals;
-		globals.ViewProj = light.ShadowMatrix;
+		globals.ViewProj = shadowCamera.GetViewProjMatrix();
 
 		auto& shadowBuffer = ShadowBuffers[lightGloablIndex];
 
@@ -467,7 +493,7 @@ namespace Darius::Renderer::LightManager
 		{
 			sorter.Reset();
 			auto idx = i - (MaxNumPointLight + MaxNumDirectionalLight);
-			auto& light = SpotLights[idx];
+			auto const& light = SpotLights[idx];
 			if (!light.CastsShadow || !ActiveSpotLight[idx].LightActive || !ActiveSpotLight[idx].ComponentActive)
 				continue;
 			RenderSpotShadow(sorter, shadowContext, light, i);
