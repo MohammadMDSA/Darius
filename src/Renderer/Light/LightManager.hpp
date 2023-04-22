@@ -60,7 +60,7 @@ namespace Darius::Renderer::LightManager
 	void				Reset();
 	void				Update();
 
-	void				UpdateBuffers(D_GRAPHICS::GraphicsContext& context);
+	void				UpdateBuffers(D_GRAPHICS::GraphicsContext& context, D_MATH_CAMERA::Camera const* viewrCamera);
 	void				RenderShadows(D_MATH_CAMERA::Camera const& viewerCamera, D_CONTAINERS::DVector<D_RENDERER_FRAME_RESOURCE::RenderItem> const& shadowRenderItems, D_GRAPHICS::GraphicsContext& shadowContext);
 
 	D3D12_CPU_DESCRIPTOR_HANDLE GetLightMaskHandle();
