@@ -81,9 +81,7 @@ float3 ApplyAmbientLight(
 
 float GetDirectionalShadow(uint lightIndex, float3 ShadowCoord)
 {
-
-    float3 coord = float3(ShadowCoord.x / 2 + 0.5f, -ShadowCoord.y / 2 + 0.5f, lightIndex);
-    //float3 coord = float3(ShadowCoord.xy, lightIndex);
+    float3 coord = float3(ShadowCoord.xy, lightIndex);
 #define SINGLE_SAMPLE
 #ifdef SINGLE_SAMPLE
     float result = DirectioanalightShadowArrayTex.SampleCmpLevelZero(shadowSampler, coord, ShadowCoord.z);
@@ -114,7 +112,7 @@ float GetShadowConeLight(uint lightIndex, float3 shadowCoord)
 {
     float2 scrCoord = float2(shadowCoord.x, -shadowCoord.y) / 2 + 0.5f;
     float result = SpotLightShadowArrayTex.SampleCmpLevelZero(
-        shadowSampler, float3(scrCoord, lightIndex - NUM_POINT_LIGHTS - NUM_DIR_LIGHTS), shadowCoord.z);
+        shadowSampler, float3(scrCoord.xy, lightIndex - NUM_POINT_LIGHTS - NUM_DIR_LIGHTS), shadowCoord.z);
     return result * result;
 }
 

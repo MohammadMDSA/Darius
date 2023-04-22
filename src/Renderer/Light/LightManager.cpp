@@ -361,9 +361,13 @@ namespace Darius::Renderer::LightManager
 		}
 	}
 
+	void GetDirectionalShadowMatrix(D_MATH_CAMERA::Camera const& viewerCamera, LightData& light)
+	{
+		
+	}
+
 	void RenderDirectionalShadow(D_MATH_CAMERA::Camera const& viewerCamera, D_RENDERER::MeshSorter& sorter, D_GRAPHICS::GraphicsContext& context, LightData& light, int lightGloablIndex)
 	{
-
 		D_MATH_CAMERA::ShadowCamera cam;
 		auto lightDir = Vector3(light.Direction);
 		cam.SetLookDirection(lightDir, Vector3::Up);
@@ -385,9 +389,9 @@ namespace Darius::Renderer::LightManager
 		auto dim = shadowSpaceAABB.GetDimensions();
 
 		cam.UpdateMatrix(lightDir, Vector3(camWorldPos), shadowSpaceAABB.GetDimensions(), DirectionalShadowBufferWidth, DirectionalShadowBufferWidth, ShadowBufferDepthPercision);
-
+		
 		GlobalConstants globals;
-		globals.ViewProj = cam.GetShadowMatrix();
+		globals.ViewProj = cam.GetViewProjMatrix();
 		globals.View = cam.GetViewMatrix();
 		globals.ShadowTexelSize.x = 1.f / DirectionalShadowBufferWidth;
 
