@@ -31,6 +31,8 @@ namespace
 
 namespace Darius::Graphics::Utils
 {
+
+
 	D3D12_CPU_DESCRIPTOR_HANDLE SamplerDesc::CreateDescriptor()
 	{
 		size_t hashValue = D_CORE::HashState(this);
@@ -41,6 +43,8 @@ namespace Darius::Graphics::Utils
 		}
 
 		D3D12_CPU_DESCRIPTOR_HANDLE Handle = AllocateDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER);
+		s_SamplerCache.emplace(hashValue, Handle);
+
 		D_GRAPHICS_DEVICE::GetDevice()->CreateSampler(this, Handle);
 		return Handle;
 	}
@@ -48,6 +52,10 @@ namespace Darius::Graphics::Utils
 	void SamplerDesc::CreateDescriptor(D3D12_CPU_DESCRIPTOR_HANDLE Handle)
 	{
 		D_ASSERT(Handle.ptr != 0 && Handle.ptr != -1);
+
+		size_t hashValue = D_CORE::HashState(this);
+		s_SamplerCache.emplace(hashValue, Handle);
+
 		D_GRAPHICS_DEVICE::GetDevice()->CreateSampler(this, Handle);
 	}
 
