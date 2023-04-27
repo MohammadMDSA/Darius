@@ -31,13 +31,30 @@ namespace Darius::Graphics
 		void										CreateRaw(uint32_t color, DXGI_FORMAT format, size_t rowPitchByte, size_t width, size_t height);
 		void										CreateCubeMap(uint32_t* color, DXGI_FORMAT format, size_t rowPitchByte, size_t width, size_t height);
 
+		INLINE D3D12_FILTER							GetFilter() const { return (D3D12_FILTER)mFilter; }
+		INLINE void									SetFilter(D3D12_FILTER value) { mFilter = value; MakeGpuDirty(); MakeDiskDirty(); }
 
-		D_CH_RESOURCE_RW_FIELD_ACC(bool, SRGB, protected, Get[inline]);
+		INLINE D3D12_TEXTURE_ADDRESS_MODE			GetUAddressing() const { return (D3D12_TEXTURE_ADDRESS_MODE)mUAddressing; }
+		INLINE D3D12_TEXTURE_ADDRESS_MODE			GetVAddressing() const { return (D3D12_TEXTURE_ADDRESS_MODE)mVAddressing; }
+		INLINE D3D12_TEXTURE_ADDRESS_MODE			GetWAddressing() const { return (D3D12_TEXTURE_ADDRESS_MODE)mWAddressing; }
+		INLINE void									SetUAddressing(D3D12_TEXTURE_ADDRESS_MODE value) { mUAddressing = value; MakeGpuDirty(); MakeDiskDirty(); }
+		INLINE void									SetVAddressing(D3D12_TEXTURE_ADDRESS_MODE value) { mVAddressing = value; MakeGpuDirty(); MakeDiskDirty(); }
+		INLINE void									SetWAddressing(D3D12_TEXTURE_ADDRESS_MODE value) { mWAddressing = value; MakeGpuDirty(); MakeDiskDirty(); }
+
+		INLINE void									SetAnisotropicLevel(UINT value) { mAnisotropicLevel = value; MakeGpuDirty(); MakeDiskDirty(); }
+
+		D_CH_RESOURCE_RW_FIELD_ACC(bool, SRGB, protected, Get[inline], Serialize);
+
 
 	protected:
 		TextureResource(D_CORE::Uuid uuid, std::wstring const& path, std::wstring const& name, D_RESOURCE::DResourceId id, bool isDefault = false) :
 			Resource(uuid, path, name, id, isDefault),
-			mSRGB(false) {}
+			mSRGB(false),
+			mFilter(D3D12_FILTER_MIN_MAG_MIP_LINEAR),
+			mAnisotropicLevel(16),
+			mUAddressing(D3D12_TEXTURE_ADDRESS_MODE_WRAP),
+			mVAddressing(D3D12_TEXTURE_ADDRESS_MODE_WRAP),
+			mWAddressing(D3D12_TEXTURE_ADDRESS_MODE_WRAP) {}
 
 
 		// Inherited via Resource
@@ -46,6 +63,21 @@ namespace Darius::Graphics
 		virtual bool								UploadToGpu() override;
 
 		virtual void								Unload() override;
+
+		DField(Serialize)
+		UINT										mFilter;
+
+		DField(Get[inline], Serialize)
+		UINT										mAnisotropicLevel;
+		
+		DField(Serialize)
+		UINT										mUAddressing;
+
+		DField(Serialize)
+		UINT										mVAddressing;
+
+		DField(Serialize)
+		UINT										mWAddressing;
 
 		D_GRAPHICS_BUFFERS::Texture					mTexture;
 
