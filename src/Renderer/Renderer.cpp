@@ -63,7 +63,6 @@ namespace Darius::Renderer
 	DescriptorHeap										SamplerHeap;
 
 	DescriptorHandle									CommonTexture[D_RENDERER_FRAME_RESOURCE::gNumFrameResources];
-	DescriptorHandle									CommonTextureSamplers;
 
 	D_CORE::Ref<TextureResource>						RadianceCubeMap;
 	D_CORE::Ref<TextureResource>						IrradianceCubeMap;
@@ -106,7 +105,6 @@ namespace Darius::Renderer
 		{
 			CommonTexture[i] = TextureHeap.Alloc(8);
 		}
-		CommonTextureSamplers = SamplerHeap.Alloc(kNumTextures);
 
 #ifdef _D_EDITOR
 		InitializeGUI();
@@ -410,6 +408,8 @@ namespace Darius::Renderer
 		DXGI_FORMAT DepthFormat = D_GRAPHICS::GetDepthFormat();
 		DXGI_FORMAT ShadowFormat = D_GRAPHICS::GetShadowFormat();
 
+		DXGI_FORMAT rtFormats[] = { D_GRAPHICS::GetColorFormat(), DXGI_FORMAT_R16G16B16A16_FLOAT }; // Color and normal
+
 		// For Opaque objects
 		DefaultPso = GraphicsPSO(L"Opaque PSO");
 		DefaultPso.SetInputLayout(VertexData(D_GRAPHICS_VERTEX::VertexPositionNormalTangentTexture));
@@ -421,7 +421,7 @@ namespace Darius::Renderer
 		DefaultPso.SetDepthStencilState(DepthStateReadWrite);
 		DefaultPso.SetSampleMask(UINT_MAX);
 		DefaultPso.SetPrimitiveTopologyType(D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE);
-		DefaultPso.SetRenderTargetFormat(ColorFormat, DepthFormat);
+		DefaultPso.SetRenderTargetFormats(2, rtFormats, DepthFormat);
 		DefaultPso.Finalize();
 
 		// Skybox
@@ -638,6 +638,11 @@ namespace Darius::Renderer
 	DescriptorHandle AllocateTextureDescriptor(UINT count)
 	{
 		return TextureHeap.Alloc(count);
+	}
+
+	DescriptorHandle AllocateSamplerDescriptor(UINT count)
+	{
+		return SamplerHeap.Alloc(count);
 	}
 
 	void SetIBLTextures(D_CORE::Ref<TextureResource>& diffuseIBL, D_CORE::Ref<TextureResource>& specularIBL)
@@ -863,7 +868,6 @@ namespace Darius::Renderer
 
 			// Setup samplers
 			context.SetDescriptorHeap(D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER, SamplerHeap.GetHeapPointer());
-			context.SetDescriptorTable(kMaterialSamplers, CommonTextureSamplers);
 
 			for (uint32_t i = 0; i < m_NumRTVs; ++i)
 			{
@@ -944,15 +948,20 @@ namespace Darius::Renderer
 
 				context.SetConstantBuffer(kMeshConstants, ri.MeshCBV);
 
-				if (ri.PsoFlags & RenderItem::ColorOnly)
+				if (m_CurrentPass > kZPass)
 				{
-					D_RENDERER_FRAME_RESOURCE::ColorConstants color = { ri.Color };
-					context.SetDynamicConstantBufferView(kMaterialConstants, sizeof(ColorConstants), &color);
-				}
-				else
-				{
-					context.SetConstantBuffer(kMaterialConstants, ri.Material.MaterialCBV);
-					context.SetDescriptorTable(kMaterialSRVs, ri.Material.MaterialSRV);
+					if (ri.PsoFlags & RenderItem::ColorOnly)
+					{
+						D_RENDERER_FRAME_RESOURCE::ColorConstants color = { ri.Color };
+						context.SetDynamicConstantBufferView(kMaterialConstants, sizeof(ColorConstants), &color);
+					}
+					else
+					{
+						context.SetConstantBuffer(kMaterialConstants, ri.Material.MaterialCBV);
+						context.SetDescriptorTable(kMaterialSRVs, ri.Material.MaterialSRV);
+
+						context.SetDescriptorTable(kMaterialSamplers, ri.Material.SamplersSRV);
+					}
 				}
 
 				if (ri.mNumJoints > 0)
