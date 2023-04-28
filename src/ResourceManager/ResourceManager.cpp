@@ -177,7 +177,7 @@ namespace Darius::ResourceManager
 			for (auto& res : resType.second)
 			{
 				auto resource = res.second;
-				if (resource->IsDirtyGPU() && resource->IsLoaded())
+				if (resource->IsLoaded() && resource->IsDirtyGPU())
 					resource->UpdateGPU();
 			}
 		}
