@@ -9,9 +9,9 @@ cbuffer cbMaterial : register(b0)
     float4 gDiffuseAlbedo;
     float3 gFresnelR0;
     float3 gEmissive;
-    float1 gMetallic;
-    float1 gRoughness;
-    uint gTexStats;
+    float  gMetallic;
+    float  gRoughness;
+    uint   gTexStats;
 };
 
 struct VertexOut
@@ -27,11 +27,18 @@ struct VertexOut
 };
 
 Texture2D<float4> texDiffuse                        : register(t0);
-Texture2D<float3> texMetallic                       : register(t1);
-Texture2D<float1> texRoughness                      : register(t2);
-Texture2D<float1> texAmbientOcclusion               : register(t3);
+Texture2D<float> texMetallic                        : register(t1);
+Texture2D<float> texRoughness                       : register(t2);
+Texture2D<float> texAmbientOcclusion                : register(t3);
 Texture2D<float3> texEmissive                       : register(t4);
 Texture2D<float3> texNormal                         : register(t5);
+
+SamplerState DiffuseSampler                         : register(s0);
+SamplerState MetallicSampler                        : register(s1);
+SamplerState RoughnessSampler                       : register(s2);
+SamplerState OcclusionSampler                       : register(s3);
+SamplerState EmissiveSampler                        : register(s4);
+SamplerState NormalSampler                          : register(s5);
 
 struct MRT
 {
@@ -54,7 +61,7 @@ float3 ComputeNormal(VertexOut pin)
     float3x3 tangentFrame = float3x3(tangent, bitangent, normal);
 
     // Read normal map and convert to SNORM (TODO:  convert all normal maps to R8G8B8A8_SNORM?)
-    normal = texNormal.Sample(defaultSampler, pin.UV) * 2.f - 1.f;
+    normal = texNormal.Sample(NormalSampler, pin.UV) * 2.f - 1.f;
     
     // glTF spec says to normalize N before and after scaling, but that's excessive
     //normal = normalize(normal * float3(normalTextureScale, normalTextureScale, 1));
@@ -67,7 +74,7 @@ float3 ComputeNormal(VertexOut pin)
 [RootSignature(Renderer_RootSig)]
 MRT main(VertexOut pin) : SV_Target
 {
-#define SAMPLE_TEX(texName) texName.Sample(defaultSampler, pin.UV)
+#define SAMPLE_TEX(texName, sampler) texName.Sample(sampler, pin.UV)
     
     MRT mrt;
     
@@ -81,28 +88,28 @@ MRT main(VertexOut pin) : SV_Target
     
     // Diffuse Albedo
     if (BitMasked(gTexStats, 0))
-        diffuseAlbedo = SAMPLE_TEX(texDiffuse);
+        diffuseAlbedo = SAMPLE_TEX(texDiffuse, DiffuseSampler);
     else
         diffuseAlbedo = gDiffuseAlbedo;
     
     // Metallic
     float metallic;
     if (BitMasked(gTexStats, 1))
-        metallic = SAMPLE_TEX(texMetallic).x;
+        metallic = SAMPLE_TEX(texMetallic, MetallicSampler).x;
     else
         metallic = gMetallic;
     
     // Roughness
     float roughness;
     if (BitMasked(gTexStats, 2))
-        roughness = SAMPLE_TEX(texRoughness).x;
+        roughness = SAMPLE_TEX(texRoughness, RoughnessSampler);
     else
         roughness = gRoughness;
     
     // Emissive 
     float3 emissive;
     if (BitMasked(gTexStats, 4))
-        emissive = SAMPLE_TEX(texEmissive);
+        emissive = SAMPLE_TEX(texEmissive, EmissiveSampler);
     else
         emissive = gEmissive;
     
@@ -114,7 +121,7 @@ MRT main(VertexOut pin) : SV_Target
     
     float ao;
     if(BitMasked(gTexStats, 3))
-        ao = SAMPLE_TEX(texAmbientOcclusion);
+        ao = SAMPLE_TEX(texAmbientOcclusion, OcclusionSampler);
     else
         ao = 1;
     
