@@ -54,6 +54,16 @@ namespace Darius::Core
 			Unref();
 			mData = other.mData;
 			mOwnerData = other.mOwnerData;
+			mData->AddOwner(mOwnerData);
+		}
+
+		INLINE Ref<T>& operator= (Ref<T> const& other)
+		{
+			Unref();
+			mData = other.mData;
+			mOwnerData = other.mOwnerData;
+			mData->AddOwner(mOwnerData);
+			return *this;
 		}
 
 		~Ref()

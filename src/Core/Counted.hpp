@@ -65,7 +65,7 @@ namespace Darius::Core
 			}
 			else
 			{
-				owner.Count = 0;
+				owner.Count = 1;
 				mOwners.insert({ owner.Ref, owner });
 			}
 		}
