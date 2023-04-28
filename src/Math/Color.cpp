@@ -15,10 +15,19 @@
 #include "Color.hpp"
 #include "VectorMath.hpp"
 
+#include "Color.sgenerated.hpp"
+
 using DirectX::XMVECTORU32;
 
 namespace Darius::Math
 {
+	const Color Color::Red = Color(1.f, 0.f, 0.f, 1.f);
+	const Color Color::Blue = Color(0.f, 0.f, 1.f, 1.f);
+	const Color Color::Green = Color(0.f, 1.f, 0.f, 1.f);
+	const Color Color::Yellow = Color(1.f, 1.f, 0.f, 1.f);
+	const Color Color::White = Color(1.f, 1.f, 1.f, 1.f);
+	const Color Color::Black = Color(0.f, 0.f, 0.f, 1.f);
+
 	uint32_t Color::R11G11B10F(bool RoundToEven) const
 	{
 #if 1
@@ -154,3 +163,4 @@ namespace Darius::Math
 #endif
 	}
 }
+

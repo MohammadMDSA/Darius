@@ -53,10 +53,10 @@ namespace Darius::Graphics::Utils
 
         void SetBorderColor(D_MATH::Color Border)
         {
-            BorderColor[0] = Border.R();
-            BorderColor[1] = Border.G();
-            BorderColor[2] = Border.B();
-            BorderColor[3] = Border.A();
+            BorderColor[0] = Border.GetR();
+            BorderColor[1] = Border.GetG();
+            BorderColor[2] = Border.GetB();
+            BorderColor[3] = Border.GetA();
         }
 
         // Allocate new descriptor as needed; return handle to existing descriptor when possible

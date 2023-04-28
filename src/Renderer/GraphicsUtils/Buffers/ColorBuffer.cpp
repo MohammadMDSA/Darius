@@ -127,10 +127,10 @@ namespace Darius::Graphics::Utils::Buffers
 
         D3D12_CLEAR_VALUE ClearValue = {};
         ClearValue.Format = Format;
-        ClearValue.Color[0] = mClearColor.R();
-        ClearValue.Color[1] = mClearColor.G();
-        ClearValue.Color[2] = mClearColor.B();
-        ClearValue.Color[3] = mClearColor.A();
+        ClearValue.Color[0] = mClearColor.GetR();
+        ClearValue.Color[1] = mClearColor.GetG();
+        ClearValue.Color[2] = mClearColor.GetB();
+        ClearValue.Color[3] = mClearColor.GetA();
 
         CreateTextureResource(D_GRAPHICS_DEVICE::GetDevice(), Name, ResourceDesc, ClearValue, VidMem);
         CreateDerivedViews(D_GRAPHICS_DEVICE::GetDevice(), Format, 1, NumMips);
@@ -144,10 +144,10 @@ namespace Darius::Graphics::Utils::Buffers
 
         D3D12_CLEAR_VALUE ClearValue = {};
         ClearValue.Format = Format;
-        ClearValue.Color[0] = mClearColor.R();
-        ClearValue.Color[1] = mClearColor.G();
-        ClearValue.Color[2] = mClearColor.B();
-        ClearValue.Color[3] = mClearColor.A();
+        ClearValue.Color[0] = mClearColor.GetR();
+        ClearValue.Color[1] = mClearColor.GetG();
+        ClearValue.Color[2] = mClearColor.GetB();
+        ClearValue.Color[3] = mClearColor.GetA();
 
         CreateTextureResource(D_GRAPHICS_DEVICE::GetDevice(), Name, ResourceDesc, ClearValue, VidMem);
         CreateDerivedViews(D_GRAPHICS_DEVICE::GetDevice(), Format, ArrayCount, 1);

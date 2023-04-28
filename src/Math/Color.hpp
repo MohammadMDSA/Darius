@@ -15,13 +15,17 @@
 #include <Utils/Common.hpp>
 #include <DirectXMath.h>
 
+#include <rttr/rttr_enable.h>
+
+#include <Color.generated.hpp>
+
 #ifndef D_MATH
 #define D_MATH Darius::Math
 #endif
 
 namespace Darius::Math
 {
-	class Color
+	class DClass(Serialize[R, G, B, A]) Color
 	{
 	public:
 		Color() : m_value(DirectX::g_XMOne) {}
@@ -31,10 +35,10 @@ namespace Darius::Math
 		Color(uint16_t r, uint16_t g, uint16_t b, uint16_t a = 255, uint16_t bitDepth = 8);
 		explicit Color(uint32_t rgbaLittleEndian);
 
-		float R() const { return DirectX::XMVectorGetX(m_value); }
-		float G() const { return DirectX::XMVectorGetY(m_value); }
-		float B() const { return DirectX::XMVectorGetZ(m_value); }
-		float A() const { return DirectX::XMVectorGetW(m_value); }
+		float GetR() const { return DirectX::XMVectorGetX(m_value); }
+		float GetG() const { return DirectX::XMVectorGetY(m_value); }
+		float GetB() const { return DirectX::XMVectorGetZ(m_value); }
+		float GetA() const { return DirectX::XMVectorGetW(m_value); }
 
 		bool operator==(const Color& rhs) const { return DirectX::XMVector4Equal(m_value, rhs.m_value); }
 		bool operator!=(const Color& rhs) const { return !DirectX::XMVector4Equal(m_value, rhs.m_value); }
@@ -44,7 +48,7 @@ namespace Darius::Math
 		void SetB(float b) { m_value.f[2] = b; }
 		void SetA(float a) { m_value.f[3] = a; }
 
-		float* GetPtr(void) { return reinterpret_cast<float*>(this); }
+		float* GetPtr(void) { return reinterpret_cast<float*>(&m_value); }
 		float& operator[](int idx) { return GetPtr()[idx]; }
 
 		void SetRGB(float r, float g, float b) { m_value.v = DirectX::XMVectorSelect(m_value, DirectX::XMVectorSet(r, g, b, b), DirectX::g_XMMask3); }
@@ -65,8 +69,17 @@ namespace Darius::Math
 		operator DirectX::XMVECTOR() const { return m_value; }
 		operator DirectX::XMFLOAT4() const { return DirectX::XMFLOAT4(m_value); }
 
+		static const Color			Red;
+		static const Color			Blue;
+		static const Color			Green;
+		static const Color			Yellow;
+		static const Color			White;
+		static const Color			Black;
+
 	private:
 		DirectX::XMVECTORF32 m_value;
+
+		RTTR_ENABLE();
 	};
 
 	INLINE Color Max(Color a, Color b) { return Color(DirectX::XMVectorMax(a, b)); }
