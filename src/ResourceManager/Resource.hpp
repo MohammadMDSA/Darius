@@ -133,6 +133,8 @@ namespace Darius::ResourceManager
 
 		virtual ResourceType		GetType() const = 0;
 
+		INLINE virtual bool			IsDirtyGPU() const { return mDirtyGPU; }
+
 		INLINE operator ResourceHandle const() { return { GetType(), mId }; }
 		INLINE operator ResourcePreview const() { return GetPreview(); }
 
@@ -149,7 +151,6 @@ namespace Darius::ResourceManager
 		DField(Get[inline])
 		bool				mDirtyDisk;
 
-		DField(Get[inline])
 		bool				mDirtyGPU;
 		
 		DField(Get[inline])
