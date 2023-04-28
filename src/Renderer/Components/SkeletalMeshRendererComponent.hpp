@@ -35,7 +35,7 @@ namespace Darius::Graphics
 		INLINE D_RENDERER_GEOMETRY::Mesh::SkeletonJoint* GetSkeletonRoot() { return mSkeletonRoot; }
 
 
-		INLINE bool							CanRender() { return IsActive() && mMesh.IsValid(); }
+		INLINE bool							CanRender() { return IsActive() && mMesh.IsValid() && !mMaterial->IsDirtyGPU(); }
 		INLINE const D_MATH_BOUNDS::BoundingSphere& GetBounds() const { return mBounds; }
 
 		INLINE D3D12_GPU_VIRTUAL_ADDRESS	GetConstantsAddress() { return mMeshConstantsGPU.GetGpuVirtualAddress(); }

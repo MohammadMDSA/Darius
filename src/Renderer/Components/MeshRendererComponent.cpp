@@ -68,6 +68,7 @@ namespace Darius::Graphics
 		result.MeshCBV = GetConstantsAddress();
 		result.Material.MaterialCBV = *mMaterial.Get();
 		result.Material.MaterialSRV = mMaterial->GetTexturesHandle();
+		result.Material.SamplersSRV = mMaterial->GetSamplersHandle();
 		result.PsoType = GetPsoIndex();
 		result.PsoFlags = mComponentPsoFlags | mMaterial->GetPsoFlags();
 		return result;

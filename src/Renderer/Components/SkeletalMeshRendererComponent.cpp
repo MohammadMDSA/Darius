@@ -69,6 +69,7 @@ namespace Darius::Graphics
 		result.MeshCBV = GetConstantsAddress();
 		result.Material.MaterialCBV = *mMaterial.Get();
 		result.Material.MaterialSRV = mMaterial->GetTexturesHandle();
+		result.Material.SamplersSRV = mMaterial->GetSamplersHandle();
 		result.mJointData = mJoints.data();
 		result.mNumJoints = (UINT)mJoints.size();
 		result.PsoType = GetPsoIndex();

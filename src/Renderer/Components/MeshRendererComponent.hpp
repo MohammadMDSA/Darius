@@ -31,7 +31,7 @@ namespace Darius::Graphics
 		D_RENDERER_FRAME_RESOURCE::RenderItem GetRenderItem();
 
 
-		INLINE bool							CanRender() { return IsActive() && mMesh.IsValid(); }
+		INLINE bool							CanRender() { return IsActive() && mMesh.IsValid() && !mMaterial->IsDirtyGPU(); }
 		INLINE const D_MATH_BOUNDS::BoundingSphere& GetBounds() const { return mMesh.Get()->GetMeshData()->mBoundSp; }
 
 		INLINE D3D12_GPU_VIRTUAL_ADDRESS	GetConstantsAddress() { return mMeshConstantsGPU.GetGpuVirtualAddress(); }

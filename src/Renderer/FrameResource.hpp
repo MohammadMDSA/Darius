@@ -101,6 +101,7 @@ namespace Darius::Renderer::ConstantFrameResource
 			{
 				D3D12_GPU_VIRTUAL_ADDRESS	MaterialCBV;
 				D3D12_GPU_DESCRIPTOR_HANDLE	MaterialSRV;
+				D3D12_GPU_DESCRIPTOR_HANDLE SamplersSRV;
 			} Material;
 
 			DirectX::XMFLOAT4			Color = { 1.f, 1.f, 1.f, 1.f };
