@@ -295,6 +295,7 @@ namespace Darius::Graphics
 
 	bool TextureResource::UploadToGpu()
 	{
+		D_GRAPHICS::GetCommandManager()->IdleGPU();
 		auto path = GetPath();
 		auto ext = path.extension().string();
 		if (ext == ".dds")
@@ -321,22 +322,22 @@ namespace Darius::Graphics
 
 	void TextureResource::OnChange()
 	{
-		mSamplerHandle = (D3D12_CPU_DESCRIPTOR_HANDLE)0;
+		mDirtySampler = true;
 	}
 
-	D3D12_CPU_DESCRIPTOR_HANDLE TextureResource::GetSamplerHandle()
+	D_GRAPHICS_UTILS::SamplerDesc const& TextureResource::GetSamplerDesc()
 	{
-		if (mSamplerHandle.ptr != 0)
-			return mSamplerHandle;
+		if (!mDirtySampler)
+			return mSamplerDesc;
 
-		SamplerDesc samplerDesc;
-		samplerDesc.Filter = GetFilter();
-		samplerDesc.AddressU = GetUAddressing();
-		samplerDesc.AddressV = GetVAddressing();
-		samplerDesc.AddressW = GetWAddressing();
-		samplerDesc.MaxAnisotropy = GetAnisotropicLevel();
-		samplerDesc.SetBorderColor(GetBorderColor());
-
-		mSamplerHandle = samplerDesc.CreateDescriptor();
+		mSamplerDesc = SamplerDesc();
+		mSamplerDesc.Filter = GetFilter();
+		mSamplerDesc.AddressU = GetUAddressing();
+		mSamplerDesc.AddressV = GetVAddressing();
+		mSamplerDesc.AddressW = GetWAddressing();
+		mSamplerDesc.MaxAnisotropy = GetAnisotropicLevel();
+		mSamplerDesc.SetBorderColor(GetBorderColor());
+		mDirtySampler = false;
+		return mSamplerDesc;
 	}
 }

@@ -3,6 +3,7 @@
 #include "Renderer/GraphicsUtils/Buffers/Texture.hpp"
 
 #include <Math/Color.hpp>
+#include <Renderer/GraphicsUtils/SamplerManager.hpp>
 #include <ResourceManager/Resource.hpp>
 #include <Utils/Common.hpp>
 
@@ -33,18 +34,18 @@ namespace Darius::Graphics
 		void										CreateCubeMap(uint32_t* color, DXGI_FORMAT format, size_t rowPitchByte, size_t width, size_t height);
 
 		INLINE D3D12_FILTER							GetFilter() const { return (D3D12_FILTER)mFilter; }
-		INLINE void									SetFilter(D3D12_FILTER value) { mFilter = value; MakeGpuDirty(); MakeDiskDirty(); }
+		INLINE void									SetFilter(D3D12_FILTER value) { mFilter = value; MakeGpuDirty(); MakeDiskDirty(); SignalChange(); }
 
 		INLINE D3D12_TEXTURE_ADDRESS_MODE			GetUAddressing() const { return (D3D12_TEXTURE_ADDRESS_MODE)mUAddressing; }
 		INLINE D3D12_TEXTURE_ADDRESS_MODE			GetVAddressing() const { return (D3D12_TEXTURE_ADDRESS_MODE)mVAddressing; }
 		INLINE D3D12_TEXTURE_ADDRESS_MODE			GetWAddressing() const { return (D3D12_TEXTURE_ADDRESS_MODE)mWAddressing; }
-		INLINE void									SetUAddressing(D3D12_TEXTURE_ADDRESS_MODE value) { mUAddressing = value; MakeGpuDirty(); MakeDiskDirty(); }
-		INLINE void									SetVAddressing(D3D12_TEXTURE_ADDRESS_MODE value) { mVAddressing = value; MakeGpuDirty(); MakeDiskDirty(); }
-		INLINE void									SetWAddressing(D3D12_TEXTURE_ADDRESS_MODE value) { mWAddressing = value; MakeGpuDirty(); MakeDiskDirty(); }
+		INLINE void									SetUAddressing(D3D12_TEXTURE_ADDRESS_MODE value) { mUAddressing = value; MakeGpuDirty(); MakeDiskDirty(); SignalChange(); }
+		INLINE void									SetVAddressing(D3D12_TEXTURE_ADDRESS_MODE value) { mVAddressing = value; MakeGpuDirty(); MakeDiskDirty(); SignalChange(); }
+		INLINE void									SetWAddressing(D3D12_TEXTURE_ADDRESS_MODE value) { mWAddressing = value; MakeGpuDirty(); MakeDiskDirty(); SignalChange(); }
 
-		INLINE void									SetAnisotropicLevel(UINT value) { mAnisotropicLevel = value; MakeGpuDirty(); MakeDiskDirty(); }
+		INLINE void									SetAnisotropicLevel(UINT value) { mAnisotropicLevel = value; MakeGpuDirty(); MakeDiskDirty(); SignalChange(); }
 
-		D3D12_CPU_DESCRIPTOR_HANDLE					GetSamplerHandle();
+		D_GRAPHICS_UTILS::SamplerDesc const&		GetSamplerDesc();
 
 		D_CH_RESOURCE_RW_FIELD_ACC(bool, SRGB, protected, Get[inline], Serialize);
 		D_CH_RESOURCE_RW_FIELD_ACC(D_MATH::Color, BorderColor, protected, Get[inline, const, &], Serialize);
@@ -60,7 +61,8 @@ namespace Darius::Graphics
 			mVAddressing(D3D12_TEXTURE_ADDRESS_MODE_WRAP),
 			mWAddressing(D3D12_TEXTURE_ADDRESS_MODE_WRAP),
 			mBorderColor(D_MATH::Color::Black),
-			mSamplerHandle({ 0 })
+			mSamplerDesc(),
+			mDirtySampler(true)
 		{}
 
 
@@ -88,9 +90,12 @@ namespace Darius::Graphics
 		DField(Serialize)
 		UINT										mWAddressing;
 
+		DField(Get[inline])
+		bool										mDirtySampler;
+
 		D_GRAPHICS_BUFFERS::Texture					mTexture;
 
-		D3D12_CPU_DESCRIPTOR_HANDLE					mSamplerHandle;
+		D_GRAPHICS_UTILS::SamplerDesc				mSamplerDesc;
 	public:
 		Darius_Graphics_TextureResource_GENERATED
 
