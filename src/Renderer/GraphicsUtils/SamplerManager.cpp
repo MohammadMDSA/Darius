@@ -54,7 +54,6 @@ namespace Darius::Graphics::Utils
 		D_ASSERT(Handle.ptr != 0 && Handle.ptr != -1);
 
 		size_t hashValue = D_CORE::HashState(this);
-		s_SamplerCache.emplace(hashValue, Handle);
 
 		D_GRAPHICS_DEVICE::GetDevice()->CreateSampler(this, Handle);
 	}
