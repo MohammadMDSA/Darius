@@ -119,7 +119,7 @@ namespace Darius::Debug
 
 		auto index = (UINT)DrawPending.size();
 
-		auto trans = D_MATH::Transform(position, Quaternion(kIdentity), { radius, radius, radius });
+		auto trans = D_MATH::Transform(position, Quaternion(kIdentity), D_MATH::Vector3(kOne) * 2 * radius);
 		UploadTransform(trans, index);
 
 		RENDERSETUP(SphereMeshResource);
