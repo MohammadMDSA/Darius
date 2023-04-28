@@ -236,4 +236,23 @@ namespace Darius::Graphics::Utils::Buffers
 		Create2D(header.Pitch, header.Width, header.Height, header.Format, (uint8_t*)memBuffer + sizeof(Header));
 	}
 
+	bool Texture::Is1D() const
+	{
+		return mMetaData.Dimension == TextureMeta::TEX_DIMENSION_TEXTURE1D;
+	}
+
+	bool Texture::Is2D() const
+	{
+		return mMetaData.Dimension == TextureMeta::TEX_DIMENSION_TEXTURE2D;
+	}
+
+	bool Texture::Is3D() const
+	{
+		return mMetaData.Dimension == TextureMeta::TEX_DIMENSION_TEXTURE3D;
+	}
+
+	UINT Texture::ArraySize() const
+	{
+		return (UINT)mMetaData.ArraySize;
+	}
 }

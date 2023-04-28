@@ -56,6 +56,11 @@ namespace Darius::Graphics::Utils::Buffers
         uint32_t GetHeight() const { return mHeight; }
         uint32_t GetDepth() const { return mDepth; }
 
+        bool    Is1D() const;
+        bool    Is2D() const;
+        bool    Is3D() const;
+        UINT    ArraySize() const;
+
         static inline std::string GetFormatString(DXGI_FORMAT format)
         {
             switch (format)
