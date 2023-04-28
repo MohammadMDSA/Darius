@@ -177,6 +177,13 @@ namespace Darius::Editor::Gui::ThumbnailManager
 		auto fileData = D_FILE::ReadFileSync(GetResourceThumbnailPath(uuid));
 
 		tex.CreateDDSFromMemory(fileData->data(), fileData->size(), true);
+		
+		// Don't create texture if not
+		if (!tex.Is2D() || tex.ArraySize() > 1)
+		{
+			ResourceTextures.erase(uuid);
+			return;
+		}
 
 		auto gpuHandle = D_RENDERER::AllocateUiTexture(1);
 
