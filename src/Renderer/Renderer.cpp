@@ -241,7 +241,9 @@ namespace Darius::Renderer
 				if (!meshComp.IsCastsShadow())
 					return;
 
-				items.push_back(meshComp.GetRenderItem());
+				auto ri = meshComp.GetRenderItem();
+				ri.Material.SamplersSRV.ptr = 0;
+				items.push_back(ri);
 			});
 
 		// Iterating over meshes
@@ -254,7 +256,9 @@ namespace Darius::Renderer
 				if (!meshComp.IsCastsShadow())
 					return;
 
-				items.push_back(meshComp.GetRenderItem());
+				auto ri = meshComp.GetRenderItem();
+				ri.Material.SamplersSRV.ptr = 0;
+				items.push_back(ri);
 			});
 	}
 
@@ -948,20 +952,18 @@ namespace Darius::Renderer
 
 				context.SetConstantBuffer(kMeshConstants, ri.MeshCBV);
 
-				if (m_CurrentPass > kZPass)
+				if (ri.PsoFlags & RenderItem::ColorOnly)
 				{
-					if (ri.PsoFlags & RenderItem::ColorOnly)
-					{
-						D_RENDERER_FRAME_RESOURCE::ColorConstants color = { ri.Color };
-						context.SetDynamicConstantBufferView(kMaterialConstants, sizeof(ColorConstants), &color);
-					}
-					else
-					{
-						context.SetConstantBuffer(kMaterialConstants, ri.Material.MaterialCBV);
-						context.SetDescriptorTable(kMaterialSRVs, ri.Material.MaterialSRV);
+					D_RENDERER_FRAME_RESOURCE::ColorConstants color = { ri.Color };
+					context.SetDynamicConstantBufferView(kMaterialConstants, sizeof(ColorConstants), &color);
+				}
+				else
+				{
+					context.SetConstantBuffer(kMaterialConstants, ri.Material.MaterialCBV);
+					context.SetDescriptorTable(kMaterialSRVs, ri.Material.MaterialSRV);
 
+					if (ri.Material.SamplersSRV.ptr != 0)
 						context.SetDescriptorTable(kMaterialSamplers, ri.Material.SamplersSRV);
-					}
 				}
 
 				if (ri.mNumJoints > 0)
