@@ -29,8 +29,11 @@ namespace Darius::Graphics
 		INLINE D_RENDERER_FRAME_RESOURCE::MaterialConstants* ModifyMaterialData() { MakeDiskDirty(); MakeGpuDirty(); return &mMaterial; }
 		INLINE const D_RENDERER_FRAME_RESOURCE::MaterialConstants* GetMaterialData() const { return &mMaterial; }
 		INLINE D3D12_GPU_DESCRIPTOR_HANDLE	GetTexturesHandle() const { return mTexturesHeap; }
+		INLINE D3D12_GPU_DESCRIPTOR_HANDLE	GetSamplersHandle() const { return mSamplerTable; }
 		INLINE uint16_t						GetPsoFlags() const { return mPsoFlags; }
 		void								SetTexture(D_RESOURCE::ResourceHandle textureHandle, D_RENDERER::TextureType type);
+
+		virtual bool						IsDirtyGPU() const override;
 
 #ifdef _D_EDITOR
 		virtual bool						DrawDetails(float params[]) override;
@@ -54,6 +57,7 @@ inline void Set##type##Texture(D_RESOURCE::ResourceHandle textureHandle) { SetTe
 		TextureSetter(AmbientOcclusion);
 		TextureSetter(Emissive);
 		TextureSetter(Normal);
+#undef TextureSetter
 
 	protected:
 
@@ -111,6 +115,7 @@ inline void Set##type##Texture(D_RESOURCE::ResourceHandle textureHandle) { SetTe
 		D_GRAPHICS_BUFFERS::ByteAddressBuffer		mMaterialConstantsGPU;
 
 		D_GRAPHICS_MEMORY::DescriptorHandle			mTexturesHeap;
+		D_GRAPHICS_MEMORY::DescriptorHandle			mSamplerTable;
 
 		uint16_t									mPsoFlags;
 

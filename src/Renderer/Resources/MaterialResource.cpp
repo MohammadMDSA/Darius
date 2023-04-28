@@ -19,6 +19,7 @@
 #include <MaterialResource.sgenerated.hpp>
 
 using namespace D_CORE;
+using namespace D_GRAPHICS_UTILS;
 using namespace D_MATH;
 using namespace D_SERIALIZATION;
 using namespace D_RENDERER;
@@ -165,13 +166,7 @@ namespace Darius::Graphics
 	{
 		if (mMaterialConstantsGPU.GetGpuVirtualAddress() == D3D12_GPU_VIRTUAL_ADDRESS_NULL)
 		{
-			// Load resources
-			mBaseColorTexture = D_RESOURCE::GetResource<TextureResource>(mBaseColorTextureHandle, *this);
-			mNormalTexture = D_RESOURCE::GetResource<TextureResource>(mNormalTextureHandle, *this);
-			mMetallicTexture = D_RESOURCE::GetResource<TextureResource>(mMetallicTextureHandle, *this);
-			mRoughnessTexture = D_RESOURCE::GetResource<TextureResource>(mRoughnessTextureHandle, *this);
-			mEmissiveTexture = D_RESOURCE::GetResource<TextureResource>(mEmissiveTextureHandle, *this);
-			mAmbientOcclusionTexture = D_RESOURCE::GetResource<TextureResource>(mAmbientOcclusionTextureHandle, *this);
+
 
 			// Initializing Material Constants buffers
 			for (size_t i = 0; i < D_RENDERER_FRAME_RESOURCE::gNumFrameResources; i++)
@@ -182,22 +177,71 @@ namespace Darius::Graphics
 
 			// Update texture regions
 			mTexturesHeap = D_RENDERER::AllocateTextureDescriptor(kNumTextures);
-
-			UINT destCount = kNumTextures;
-			UINT sourceCounts[kNumTextures] = { 1, 1, 1, 1, 1, 1 };
-			D3D12_CPU_DESCRIPTOR_HANDLE initialTextures[kNumTextures]
-			{
-				mBaseColorTexture->GetTextureData()->GetSRV(),
-				mMetallicTexture->GetTextureData()->GetSRV(),
-				mRoughnessTexture->GetTextureData()->GetSRV(),
-				mAmbientOcclusionTexture->GetTextureData()->GetSRV(),
-				mEmissiveTexture->GetTextureData()->GetSRV(),
-				mNormalTexture->GetTextureData()->GetSRV()
-			};
-			D_GRAPHICS_DEVICE::GetDevice()->CopyDescriptors(1, &mTexturesHeap, &destCount, destCount, initialTextures, sourceCounts, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-
-			return true;
+			mSamplerTable = D_RENDERER::AllocateSamplerDescriptor(kNumTextures);
 		}
+		D_CORE::CountedOwner countedOwner = *this;
+		countedOwner.ChangeCallback = [&]()
+		{
+			MakeGpuDirty();
+		};
+
+		// Load resources
+		mBaseColorTexture = D_RESOURCE::GetResource<TextureResource>(mBaseColorTextureHandle, countedOwner);
+		mNormalTexture = D_RESOURCE::GetResource<TextureResource>(mNormalTextureHandle, countedOwner);
+		mMetallicTexture = D_RESOURCE::GetResource<TextureResource>(mMetallicTextureHandle, countedOwner);
+		mRoughnessTexture = D_RESOURCE::GetResource<TextureResource>(mRoughnessTextureHandle, countedOwner);
+		mEmissiveTexture = D_RESOURCE::GetResource<TextureResource>(mEmissiveTextureHandle, countedOwner);
+		mAmbientOcclusionTexture = D_RESOURCE::GetResource<TextureResource>(mAmbientOcclusionTextureHandle, countedOwner);
+
+		UINT destCount = kNumTextures;
+		UINT sourceCounts[kNumTextures] = { 1, 1, 1, 1, 1, 1 };
+		D3D12_CPU_DESCRIPTOR_HANDLE initialTextures[kNumTextures]
+		{
+			mBaseColorTexture->GetTextureData()->GetSRV(),
+			mMetallicTexture->GetTextureData()->GetSRV(),
+			mRoughnessTexture->GetTextureData()->GetSRV(),
+			mAmbientOcclusionTexture->GetTextureData()->GetSRV(),
+			mEmissiveTexture->GetTextureData()->GetSRV(),
+			mNormalTexture->GetTextureData()->GetSRV()
+		};
+		D_GRAPHICS_DEVICE::GetDevice()->CopyDescriptors(1, &mTexturesHeap, &destCount, destCount, initialTextures, sourceCounts, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+
+
+		// Loading samplers
+		auto incSize = D_GRAPHICS_DEVICE::GetDevice()->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+
+		SamplerDesc samplerDesc;
+		// Base Color Sampler
+		{
+			samplerDesc = mBaseColorTexture->GetSamplerDesc();
+			samplerDesc.CreateDescriptor(mSamplerTable + incSize * TextureType::kBaseColor);
+		}
+		// Metallic Sampler
+		{
+			samplerDesc = mMetallicTexture->GetSamplerDesc();
+			samplerDesc.CreateDescriptor(mSamplerTable + incSize * TextureType::kMetallic);
+		}
+		// Roughness Sampler
+		{
+			samplerDesc = mRoughnessTexture->GetSamplerDesc();
+			samplerDesc.CreateDescriptor(mSamplerTable + incSize * TextureType::kRoughness);
+		}
+		// Occlussion Sampler
+		{
+			samplerDesc = mAmbientOcclusionTexture->GetSamplerDesc();
+			samplerDesc.CreateDescriptor(mSamplerTable + incSize * TextureType::kAmbientOcclusion);
+		}
+		// Emissive Sampler
+		{
+			samplerDesc = mEmissiveTexture->GetSamplerDesc();
+			samplerDesc.CreateDescriptor(mSamplerTable + incSize * TextureType::kEmissive);
+		}
+		// Normal Sampler
+		{
+			samplerDesc = mNormalTexture->GetSamplerDesc();
+			samplerDesc.CreateDescriptor(mSamplerTable + incSize * TextureType::kNormal);
+		}
+
 
 		// Updating material constnats
 		// Mapping upload buffer
@@ -225,33 +269,27 @@ namespace Darius::Graphics
 			switch (type)
 			{
 			case Darius::Renderer::kBaseColor:
-				mBaseColorTextureHandle = EmptyResourceHandle;
-				mBaseColorTexture.Unref();
+				mBaseColorTextureHandle = D_GRAPHICS::GetDefaultGraphicsResource(D_GRAPHICS::DefaultResource::Texture2DWhiteOpaque);
 				break;
 			case Darius::Renderer::kMetallic:
-				mMetallicTextureHandle = EmptyResourceHandle;
-				mMetallicTexture.Unref();
+				mMetallicTextureHandle = D_GRAPHICS::GetDefaultGraphicsResource(D_GRAPHICS::DefaultResource::Texture2DNormalMap);
 				break;
 			case Darius::Renderer::kRoughness:
-				mRoughnessTextureHandle = EmptyResourceHandle;
-				mRoughnessTexture.Unref();
+				mRoughnessTextureHandle = D_GRAPHICS::GetDefaultGraphicsResource(D_GRAPHICS::DefaultResource::Texture2DBlackOpaque);
 				break;
 			case Darius::Renderer::kNormal:
-				mNormalTextureHandle = EmptyResourceHandle;
-				mNormalTexture.Unref();
+				mNormalTextureHandle = D_GRAPHICS::GetDefaultGraphicsResource(D_GRAPHICS::DefaultResource::Texture2DBlackOpaque);
 				break;
 			case Darius::Renderer::kEmissive:
-				mEmissiveTextureHandle = EmptyResourceHandle;
-				mEmissiveTexture.Unref();
+				mEmissiveTextureHandle = D_GRAPHICS::GetDefaultGraphicsResource(D_GRAPHICS::DefaultResource::Texture2DBlackOpaque);
 				break;
 			case Darius::Renderer::kAmbientOcclusion:
-				mAmbientOcclusionTextureHandle = EmptyResourceHandle;
-				mAmbientOcclusionTexture.Unref();
+				mAmbientOcclusionTextureHandle = D_GRAPHICS::GetDefaultGraphicsResource(D_GRAPHICS::DefaultResource::Texture2DWhiteOpaque);
 				break;
 			default:
 				return;
 			}
-
+			
 			MakeGpuDirty();
 			MakeDiskDirty();
 
@@ -261,10 +299,20 @@ namespace Darius::Graphics
 		auto device = D_GRAPHICS_DEVICE::GetDevice();
 		auto incSize = device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 
+		D_CORE::CountedOwner countedOwner = *this;
+		countedOwner.ChangeCallback = [&]()
+		{
+			MakeGpuDirty();
+		};
+
 #define SetTex(name) \
-m##name##TextureHandle = textureHandle; \
-m##name##Texture = D_RESOURCE::GetResource<TextureResource>(textureHandle, *this); \
-device->CopyDescriptorsSimple(1, mTexturesHeap + type * incSize, m##name##Texture->GetTextureData()->GetSRV(), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+{ \
+	m##name##TextureHandle = textureHandle; \
+	m##name##Texture = D_RESOURCE::GetResource<TextureResource>(textureHandle, countedOwner); \
+	device->CopyDescriptorsSimple(1, mTexturesHeap + type * incSize, m##name##Texture->GetTextureData()->GetSRV(), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV); \
+	SamplerDesc sd = m##name##Texture->GetSamplerDesc(); \
+	sd.CreateDescriptor(mSamplerTable + incSize * type); \
+}
 
 		auto& context = D_GRAPHICS::GraphicsContext::Begin(L"Set Material Texture");
 
@@ -301,6 +349,7 @@ device->CopyDescriptorsSimple(1, mTexturesHeap + type * incSize, m##name##Textur
 #ifdef _D_EDITOR
 	bool MaterialResource::DrawDetails(float params[])
 	{
+
 #define DrawTexture2DHolder(prop, type) \
 { \
 	TextureResource* currentTexture = prop.Get(); \
@@ -462,7 +511,7 @@ device->CopyDescriptorsSimple(1, mTexturesHeap + type * incSize, m##name##Textur
 			bool val = mPsoFlags & RenderItem::TwoSided;
 			D_H_DETAILS_DRAW_PROPERTY("Two Sided");
 
-			if(ImGui::Checkbox("##TwoSided", &val))
+			if (ImGui::Checkbox("##TwoSided", &val))
 			{
 				valueChanged = true;
 				if (val)
@@ -495,5 +544,16 @@ device->CopyDescriptorsSimple(1, mTexturesHeap + type * incSize, m##name##Textur
 	}
 	}
 #endif // _D_EDITOR
+
+	bool MaterialResource::IsDirtyGPU() const
+	{
+		return Resource::IsDirtyGPU() ||
+			(mBaseColorTexture.IsValid() && mBaseColorTexture->IsDirtyGPU()) ||
+			(mNormalTexture.IsValid() && mNormalTexture->IsDirtyGPU()) ||
+			(mMetallicTexture.IsValid() && mMetallicTexture->IsDirtyGPU()) ||
+			(mRoughnessTexture.IsValid() && mRoughnessTexture->IsDirtyGPU()) ||
+			(mEmissiveTexture.IsValid() && mEmissiveTexture->IsDirtyGPU()) ||
+			(mAmbientOcclusionTexture.IsValid() && mAmbientOcclusionTexture->IsDirtyGPU());
+	}
 
 }
