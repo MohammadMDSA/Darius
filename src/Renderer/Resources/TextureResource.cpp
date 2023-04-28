@@ -56,7 +56,7 @@ namespace Darius::Graphics
 
 		// UVW Addressing
 		{
-			static char const* const addressingLabels[] = { "Repeat", "Mirror", "Clamp", "Border", "Mirror Once"};
+			static char const* const addressingLabels[] = { "Repeat", "Mirror", "Clamp", "Border", "Mirror Once" };
 			static const D3D12_TEXTURE_ADDRESS_MODE addressingValues[] = { D3D12_TEXTURE_ADDRESS_MODE_WRAP, D3D12_TEXTURE_ADDRESS_MODE_MIRROR, D3D12_TEXTURE_ADDRESS_MODE_CLAMP, D3D12_TEXTURE_ADDRESS_MODE_BORDER, D3D12_TEXTURE_ADDRESS_MODE_MIRROR_ONCE };
 			constexpr int addressingValueCount = sizeof(addressingValues) / sizeof(addressingValues[0]);
 
@@ -65,9 +65,9 @@ namespace Darius::Graphics
 				D3D12_TEXTURE_ADDRESS_MODE addressing = GetUAddressing();
 				bool same = addressing == GetVAddressing() && addressing == GetWAddressing();
 
-				auto selectedIndex = -1;
-				if(same)
-					selectedIndex= std::distance(addressingValues, std::find(addressingValues, addressingValues + addressingValueCount, addressing));
+				UINT selectedIndex = 0;
+				if (same)
+					selectedIndex = (UINT)std::distance(addressingValues, std::find(addressingValues, addressingValues + addressingValueCount, addressing));
 
 				char const* selected = same ? addressingLabels[selectedIndex] : "Differen Values";
 				D_H_DETAILS_DRAW_PROPERTY("Addressing");
@@ -136,7 +136,7 @@ namespace Darius::Graphics
 			}
 
 			// W addressing
-			if(mTexture.mMetaData.Dimension >= D_GRAPHICS_BUFFERS::Texture::TextureMeta::TEX_DIMENSION_TEXTURE3D)
+			if (mTexture.mMetaData.Dimension >= D_GRAPHICS_BUFFERS::Texture::TextureMeta::TEX_DIMENSION_TEXTURE3D)
 			{
 
 				D3D12_TEXTURE_ADDRESS_MODE addressing = GetWAddressing();
@@ -156,6 +156,20 @@ namespace Darius::Graphics
 					}
 
 					ImGui::EndCombo();
+				}
+			}
+
+			// Border color
+			{
+				auto uAddressing = GetUAddressing();
+				if (GetUAddressing() == D3D12_TEXTURE_ADDRESS_MODE_BORDER || GetVAddressing() == D3D12_TEXTURE_ADDRESS_MODE_BORDER || GetWAddressing() == D3D12_TEXTURE_ADDRESS_MODE_BORDER)
+				{
+					auto color = GetBorderColor();
+					D_H_DETAILS_DRAW_PROPERTY("Border Color");
+					if (ImGui::ColorEdit4("##BorderColor", color.GetPtr()))
+					{
+						SetBorderColor(color);
+					}
 				}
 			}
 		}

@@ -2,6 +2,7 @@
 
 #include "Renderer/GraphicsUtils/Buffers/Texture.hpp"
 
+#include <Math/Color.hpp>
 #include <ResourceManager/Resource.hpp>
 #include <Utils/Common.hpp>
 
@@ -44,6 +45,7 @@ namespace Darius::Graphics
 		INLINE void									SetAnisotropicLevel(UINT value) { mAnisotropicLevel = value; MakeGpuDirty(); MakeDiskDirty(); }
 
 		D_CH_RESOURCE_RW_FIELD_ACC(bool, SRGB, protected, Get[inline], Serialize);
+		D_CH_RESOURCE_RW_FIELD_ACC(D_MATH::Color, BorderColor, protected, Get[inline, const, &], Serialize);
 
 
 	protected:
@@ -54,7 +56,9 @@ namespace Darius::Graphics
 			mAnisotropicLevel(16),
 			mUAddressing(D3D12_TEXTURE_ADDRESS_MODE_WRAP),
 			mVAddressing(D3D12_TEXTURE_ADDRESS_MODE_WRAP),
-			mWAddressing(D3D12_TEXTURE_ADDRESS_MODE_WRAP) {}
+			mWAddressing(D3D12_TEXTURE_ADDRESS_MODE_WRAP),
+			mBorderColor(D_MATH::Color::Black)
+		{}
 
 
 		// Inherited via Resource

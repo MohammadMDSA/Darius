@@ -1,1 +1,1 @@
-{"Path":"RockRoughness.dds","Resources":[{"Name":"RockRoughness","Type":"Texture","Uuid":"da137a44-cbb3-476a-86e1-53f069e03699"}]}
+{"Path":"RockRoughness.dds","Properties":{"RockRoughness":{"AnisotropicLevel":0,"BorderColor":{"A":0.6705882549285889,"B":0.4901960790157318,"G":0.5607843399047852,"R":0.25882354378700256},"Filter":20,"SRGB":true,"UAddressing":4,"VAddressing":3,"WAddressing":1}},"Resources":[{"Name":"RockRoughness","Type":"Texture","Uuid":"da137a44-cbb3-476a-86e1-53f069e03699"}]}
