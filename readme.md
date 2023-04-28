@@ -29,6 +29,7 @@
     - Lighting
         - Blinn-Phong Model
         - Shadow Mapping
+    - Texture Filtering
     - Skybox
     - Static and Skinned Mesh Rendering
     - Optimizations
