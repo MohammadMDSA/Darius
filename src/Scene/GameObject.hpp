@@ -166,7 +166,7 @@ namespace Darius::Scene
 #endif // _EDITOR
 
 		INLINE operator D_CORE::CountedOwner const() {
-			return D_CORE::CountedOwner { STR2WSTR(mName), "Game Object", this, 0 };
+			return D_CORE::CountedOwner { STR2WSTR(mName), rttr::type::get<GameObject>(), this, 0};
 		}
 
 		static void							RegisterComponent(std::string name, D_CONTAINERS::DVector<std::string>& displayName);

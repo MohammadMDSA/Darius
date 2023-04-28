@@ -57,6 +57,17 @@ namespace Darius::ResourceManager
 		D_RESOURCE::GetManager()->mResourceMap[type];
 	}
 
+	void Resource::SignalChange()
+	{
+		OnChange();
+
+		for (auto const& pOwner : GetOwners())
+		{
+			if (pOwner.second.ChangeCallback)
+				pOwner.second.ChangeCallback();
+		}
+	}
+
 	DVector<ResourceDataInFile> Resource::CanConstructFrom(ResourceType type, Path const& path)
 	{
 		ResourceDataInFile data;

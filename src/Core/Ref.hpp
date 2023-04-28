@@ -104,6 +104,6 @@ namespace Darius::Core
 
 	private:
 		CountedOwner				mOwnerData;
-		T*							mData = nullptr;
+		T* mData = nullptr;
 	};
 }

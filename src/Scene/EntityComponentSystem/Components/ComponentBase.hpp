@@ -16,6 +16,7 @@
 #include <boost/algorithm/string.hpp>
 #include <rttr/registration_friend.h>
 #include <rttr/registration.h>
+#include <rttr/type.h>
 
 #include <ComponentBase.generated.hpp>
 
@@ -25,31 +26,32 @@
 
 #define D_H_COMP_BODY(type, parent, compName, shouldRegister) D_H_COMP_BODY_RAW(type, parent, compName, shouldRegister, false, false)
 
-#define D_H_COMP_BODY_RAW(type, parent, compName, shouldRegister, isBehaviour, receivesUpdates) \
+#define D_H_COMP_BODY_RAW(T, parent, compName, shouldRegister, isBehaviour, receivesUpdates) \
 public: \
-type(); \
-type(D_CORE::Uuid uuid); \
-static INLINE std::string ClassName() { return D_NAMEOF(type); } \
-virtual INLINE std::string GetDisplayName() const override { return type::DisplayName; } \
-virtual INLINE std::string GetComponentName() const override { return D_NAMEOF(type); } \
-INLINE operator D_ECS::CompRef<type>() { return GetGameObject()->GetComponentRef<type>(); } \
+T(); \
+T(D_CORE::Uuid uuid); \
+static INLINE std::string ClassName() { return D_NAMEOF(T); } \
+virtual INLINE std::string GetDisplayName() const override { return T::DisplayName; } \
+virtual INLINE std::string GetComponentName() const override { return D_NAMEOF(T); } \
+virtual INLINE rttr::type GetComponentType() const override { return rttr::type::get<T>(); }; \
+INLINE operator D_ECS::CompRef<T>() { return GetGameObject()->GetComponentRef<T>(); } \
 static void StaticConstructor() \
 { \
     /* Registering component*/ \
     if(sInit) \
         return; \
-    D_LOG_INFO("Registering " << D_NAMEOF(type) << " child of " << D_NAMEOF(parent)); \
+    D_LOG_INFO("Registering " << D_NAMEOF(T) << " child of " << D_NAMEOF(parent)); \
     parent::StaticConstructor(); \
     auto& reg = D_WORLD::GetRegistry(); \
-    auto comp = reg.component<type>(D_NAMEOF(type)); \
+    auto comp = reg.component<T>(D_NAMEOF(T)); \
     auto parentComp = reg.component<parent>(); \
     D_ASSERT(reg.is_valid(parentComp)); \
     comp.is_a(parentComp); \
     D_CONTAINERS::DVector<std::string> splitted; \
     boost::split(splitted, compName, boost::is_any_of("/")); \
-    type::DisplayName = splitted[splitted.size() - 1]; \
+    T::DisplayName = splitted[splitted.size() - 1]; \
     if(shouldRegister) \
-        D_SCENE::GameObject::RegisterComponent(D_NAMEOF(type), splitted); \
+        D_SCENE::GameObject::RegisterComponent(D_NAMEOF(T), splitted); \
     if(isBehaviour) \
     { \
         D_SCENE::GameObject::RegisterBehaviourComponent(comp); \
@@ -103,6 +105,7 @@ namespace Darius::Scene::ECS::Components
 #endif
         virtual INLINE std::string  GetComponentName() const { return ""; }
         virtual INLINE std::string  GetDisplayName() const { return ""; }
+        virtual INLINE rttr::type   GetComponentType() const { return rttr::type::get<ComponentBase>(); };
 
         virtual INLINE void         Start() { }
         virtual INLINE void         Awake() { }
@@ -141,7 +144,7 @@ namespace Darius::Scene::ECS::Components
 
         INLINE operator D_CORE::CountedOwner const() {
             auto strName = GetComponentName();
-            return D_CORE::CountedOwner { STR2WSTR(strName), "Game Object Component", this, 0};
+            return D_CORE::CountedOwner { STR2WSTR(strName), GetComponentType(), this, 0};
         }
 
         static INLINE std::string   GetName() { return "ComponentBase"; }

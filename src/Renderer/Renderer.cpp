@@ -111,7 +111,7 @@ namespace Darius::Renderer
 #ifdef _D_EDITOR
 		InitializeGUI();
 #endif // _D_EDITOR
-		DefaultBlackCubeMap = D_RESOURCE::GetResource<TextureResource>(GetDefaultGraphicsResource(D_GRAPHICS::DefaultResource::TextureCubeMapBlack), nullptr, L"Renderer", "Engine Subsystem");
+		DefaultBlackCubeMap = D_RESOURCE::GetResource<TextureResource>(GetDefaultGraphicsResource(D_GRAPHICS::DefaultResource::TextureCubeMapBlack), nullptr, L"Renderer", rttr::type::get<void>());
 
 		// Initialize IBL Textrues on GPU
 		{

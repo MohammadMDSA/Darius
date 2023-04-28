@@ -108,7 +108,7 @@ namespace Darius::Graphics::PostProcessing
 		DefaultBlackOpaquTexture = D_RESOURCE::GetResource<TextureResource>(GetDefaultGraphicsResource(DefaultResource::Texture2DBlackOpaque),
 			D_CORE::CountedOwner{
 				L"PostProcessin Module",
-				"Subsystem Module",
+				rttr::type::get<void>(),
 				nullptr,
 				0
 			});

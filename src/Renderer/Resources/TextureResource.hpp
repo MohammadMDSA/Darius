@@ -44,6 +44,8 @@ namespace Darius::Graphics
 
 		INLINE void									SetAnisotropicLevel(UINT value) { mAnisotropicLevel = value; MakeGpuDirty(); MakeDiskDirty(); }
 
+		D3D12_CPU_DESCRIPTOR_HANDLE					GetSamplerHandle();
+
 		D_CH_RESOURCE_RW_FIELD_ACC(bool, SRGB, protected, Get[inline], Serialize);
 		D_CH_RESOURCE_RW_FIELD_ACC(D_MATH::Color, BorderColor, protected, Get[inline, const, &], Serialize);
 
@@ -57,7 +59,8 @@ namespace Darius::Graphics
 			mUAddressing(D3D12_TEXTURE_ADDRESS_MODE_WRAP),
 			mVAddressing(D3D12_TEXTURE_ADDRESS_MODE_WRAP),
 			mWAddressing(D3D12_TEXTURE_ADDRESS_MODE_WRAP),
-			mBorderColor(D_MATH::Color::Black)
+			mBorderColor(D_MATH::Color::Black),
+			mSamplerHandle({ 0 })
 		{}
 
 
@@ -67,6 +70,8 @@ namespace Darius::Graphics
 		virtual bool								UploadToGpu() override;
 
 		virtual void								Unload() override;
+		
+		virtual void								OnChange() override;
 
 		DField(Serialize)
 		UINT										mFilter;
@@ -85,6 +90,7 @@ namespace Darius::Graphics
 
 		D_GRAPHICS_BUFFERS::Texture					mTexture;
 
+		D3D12_CPU_DESCRIPTOR_HANDLE					mSamplerHandle;
 	public:
 		Darius_Graphics_TextureResource_GENERATED
 

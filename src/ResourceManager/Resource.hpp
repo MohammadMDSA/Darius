@@ -22,7 +22,7 @@
 
 #define D_CH_RESOURCE_RW_FIELD_ACC(type, name, access, ...) \
 public: \
-INLINE void Set##name(type const& val) { m##name = val; MakeDiskDirty(); MakeGpuDirty(); } \
+INLINE void Set##name(type const& val) { m##name = val; MakeDiskDirty(); MakeGpuDirty(); SignalChange(); } \
 access: \
 DField(__VA_ARGS__) \
 type m##name;
@@ -236,6 +236,11 @@ namespace Darius::ResourceManager
 		// Unload and Evict need implementation for every resource
 		virtual void				EvictFromGpu() {}
 		virtual void				Unload() = 0;
+
+		// Don't trigger change signal inside this. It'll break the whole thing!
+		virtual void				OnChange() { }
+		void						SignalChange();
+
 		static void					AddTypeContainer(ResourceType type);
 
 		static D_CONTAINERS::DVector<ResourceDataInFile> CanConstructFrom(ResourceType type, D_FILE::Path const& path);

@@ -72,9 +72,9 @@ namespace Darius::ResourceManager
 	}
 
 	template<class T>
-	D_CORE::Ref<T> GetResource(ResourceHandle handle, void* owner, std::wstring const& ownerName, std::string const& ownerType)
+	D_CORE::Ref<T> GetResource(ResourceHandle handle, void* owner, std::wstring const& ownerName, rttr::type const& ownerType, std::function<void()> changeCallback = nullptr)
 	{
-		return GetResource<T>(handle, std::optional<D_CORE::CountedOwner> { D_CORE::CountedOwner { ownerName, ownerType, owner, 0 } } );
+		return GetResource<T>(handle, std::optional<D_CORE::CountedOwner> { D_CORE::CountedOwner { ownerName, ownerType, owner, 0, changeCallback } } );
 	}
 
 	ResourceHandle GetResourceHandle(D_CORE::Uuid uuid);

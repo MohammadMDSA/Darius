@@ -42,7 +42,7 @@ namespace Darius::Graphics
 		INLINE operator D3D12_GPU_VIRTUAL_ADDRESS() const { return mMaterialConstantsGPU.GetGpuVirtualAddress(); }
 
 		INLINE operator D_CORE::CountedOwner const() {
-			return D_CORE::CountedOwner{ GetName(), "Material Resource", this, 0 };
+			return D_CORE::CountedOwner{ GetName(), rttr::type::get<MaterialResource>(), this, 0};
 		}
 
 #define TextureSetter(type) \

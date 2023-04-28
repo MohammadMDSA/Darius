@@ -7,6 +7,7 @@
 #include <Utils/Common.hpp>
 
 #include <rttr/rttr_enable.h>
+#include <rttr/type.h>
 
 #ifndef D_CORE
 #define D_CORE Darius::Core
@@ -20,9 +21,10 @@ namespace Darius::Core
 	struct CountedOwner
 	{
 		std::wstring				Name = L"";
-		std::string					Type = "";
+		rttr::type					Type = rttr::type::get<void>();
 		void*						Ref = nullptr;
 		UINT						Count = 0;
+		std::function<void()>		ChangeCallback = nullptr;
 
 	};
 
@@ -32,8 +34,18 @@ namespace Darius::Core
 
 	public:
 
-		Counted() = default;
+		INLINE Counted() :
+			mAnonymous({ L"", rttr::type::get<void>(), nullptr, 0, nullptr})
+		{
+
+		};
+
 		~Counted() = default;
+
+		D_CONTAINERS::DUnorderedMap<void*, CountedOwner> const& GetOwners() const
+		{
+			return mOwners;
+		}
 
 	private:
 		template<class T>
@@ -49,7 +61,7 @@ namespace Darius::Core
 
 			if (mOwners.contains(owner.Ref))
 			{
-				mOwners[owner.Ref].Count++;
+				mOwners.at(owner.Ref).Count++;
 			}
 			else
 			{
@@ -73,10 +85,11 @@ namespace Darius::Core
 
 			if (mOwners.contains(owner.Ref))
 			{
-				if (mOwners[owner.Ref].Count == 0)
+				auto& ownerDat = mOwners.at(owner.Ref);
+				if (ownerDat.Count == 0)
 					return false;
-				mOwners[owner.Ref].Count--;
-				if (mOwners[owner.Ref].Count <= 0)
+				ownerDat.Count--;
+				if (ownerDat.Count <= 0)
 					mOwners.erase(owner.Ref);
 				return true;
 			}
@@ -84,7 +97,7 @@ namespace Darius::Core
 				return false;
 		}
 
-		D_CONTAINERS::DUnorderedMap<void*, CountedOwner> mOwners;
-		CountedOwner							mAnonymous;
+		D_CONTAINERS::DUnorderedMap<void*, CountedOwner>	mOwners;
+		CountedOwner										mAnonymous;
 	};
 }

@@ -12,6 +12,8 @@
 
 #include "TextureResource.sgenerated.hpp"
 
+using namespace D_GRAPHICS_UTILS;
+
 namespace Darius::Graphics
 {
 	D_CH_RESOURCE_DEF(TextureResource);
@@ -317,4 +319,24 @@ namespace Darius::Graphics
 		EvictFromGpu();
 	}
 
+	void TextureResource::OnChange()
+	{
+		mSamplerHandle = (D3D12_CPU_DESCRIPTOR_HANDLE)0;
+	}
+
+	D3D12_CPU_DESCRIPTOR_HANDLE TextureResource::GetSamplerHandle()
+	{
+		if (mSamplerHandle.ptr != 0)
+			return mSamplerHandle;
+
+		SamplerDesc samplerDesc;
+		samplerDesc.Filter = GetFilter();
+		samplerDesc.AddressU = GetUAddressing();
+		samplerDesc.AddressV = GetVAddressing();
+		samplerDesc.AddressW = GetWAddressing();
+		samplerDesc.MaxAnisotropy = GetAnisotropicLevel();
+		samplerDesc.SetBorderColor(GetBorderColor());
+
+		mSamplerHandle = samplerDesc.CreateDescriptor();
+	}
 }

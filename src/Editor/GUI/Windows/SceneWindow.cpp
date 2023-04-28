@@ -60,7 +60,7 @@ namespace Darius::Editor::Gui::Windows
 
 		// Fetch line mesh resource
 		auto lineHandle = D_GRAPHICS::GetDefaultGraphicsResource(D_GRAPHICS::DefaultResource::LineMesh);
-		mLineMeshResource = D_RESOURCE::GetResource<BatchResource>(lineHandle, this, L"Scene Window", "Editor Window");
+		mLineMeshResource = D_RESOURCE::GetResource<BatchResource>(lineHandle, this, L"Scene Window", rttr::type::get<SceneWindow>());
 
 		// Initializing grid gpu constants
 		auto count = 50;
@@ -77,9 +77,9 @@ namespace Darius::Editor::Gui::Windows
 		auto diffIBLHandle = D_RESOURCE_LOADER::LoadResource(D_ENGINE_CONTEXT::GetAssetsPath() / "PBR/DefaultSkyboxDiffuseIBL_HDR.dds");
 		auto specIBLHandle = D_RESOURCE_LOADER::LoadResource(D_ENGINE_CONTEXT::GetAssetsPath() / "PBR/DefaultSkyboxSpecularIBL.dds");
 
-		auto diffTex = D_RESOURCE::GetResource<TextureResource>(diffIBLHandle[0], this, L"Scene Window", "Editor Window");
+		auto diffTex = D_RESOURCE::GetResource<TextureResource>(diffIBLHandle[0], this, L"Scene Window", rttr::type::get<SceneWindow>());
 		//auto diffTex = D_RESOURCE::GetResource<TextureResource>(D_GRAPHICS::GetDefaultGraphicsResource(D_GRAPHICS::DefaultResource::TextureCubeMapBlack), this, L"Scene Window", "Editor Window");
-		auto specTex = D_RESOURCE::GetResource<TextureResource>(specIBLHandle[0], this, L"Scene Window", "Editor Window");
+		auto specTex = D_RESOURCE::GetResource<TextureResource>(specIBLHandle[0], this, L"Scene Window", rttr::type::get<SceneWindow>());
 
 		D_RENDERER::SetIBLTextures(
 			diffTex,
