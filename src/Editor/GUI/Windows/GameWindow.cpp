@@ -130,17 +130,8 @@ namespace Darius::Editor::Gui::Windows
 			true
 		};
 
-		D_RENDERER::Render(L"Scene Window", rc, nullptr,
-			[&](D_RENDERER::MeshSorter& sorter)
-			{
-				// Add debug draw items
-				if (true /*mDrawDebug*/)
-				{
-					D_DEBUG_DRAW::GetRenderItems(sorter);
-					sorter.Sort();
-					sorter.RenderMeshes(MeshSorter::kTransparent, context, nullptr, mSceneGlobals);
-				}
-			});
+		MeshSorter sorter(MeshSorter::kDefault);
+		D_RENDERER::Render(L"Scene Window", sorter, rc);
 
 
 		// Post Processing

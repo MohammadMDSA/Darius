@@ -262,7 +262,7 @@ namespace Darius::Renderer
 			});
 	}
 
-	void Render(std::wstring const& jobId, SceneRenderContext& rContext, std::function<void(MeshSorter&)> additionalMainDraw, std::function<void(MeshSorter&)> postDraw)
+	void Render(std::wstring const& jobId, MeshSorter& sorter, SceneRenderContext& rContext)
 	{
 		auto& context = rContext.GraphicsContext;
 
@@ -280,7 +280,6 @@ namespace Darius::Renderer
 		// Setting up sorter
 		auto viewPort = CD3DX12_VIEWPORT(0.f, 0.f, (float)width, (float)height, D3D12_MIN_DEPTH, D3D12_MAX_DEPTH);
 		auto scissor = CD3DX12_RECT(0l, 0l, (long)width, (long)height);
-		MeshSorter sorter(MeshSorter::kDefault);
 		sorter.SetCamera(rContext.Camera);
 		sorter.SetViewport(viewPort);
 		sorter.SetScissor(scissor);
@@ -299,9 +298,6 @@ namespace Darius::Renderer
 
 			D_LIGHT::RenderShadows(rContext.Camera, shadowRenderItems, context);
 		}
-
-		if (additionalMainDraw)
-			additionalMainDraw(sorter);
 
 		sorter.Sort();
 
@@ -342,13 +338,6 @@ namespace Darius::Renderer
 
 
 		sorter.RenderMeshes(MeshSorter::kTransparent, context, &rContext.SSAOFullScreen, rContext.Globals);
-
-		if (postDraw)
-		{
-			MeshSorter additionalSorter(sorter);
-
-			postDraw(additionalSorter);
-		}
 
 		auto frameIdxMod2 = D_GRAPHICS_AA_TEMPORAL::GetFrameIndexMod2();
 		auto& commandContext = context.GetComputeContext();

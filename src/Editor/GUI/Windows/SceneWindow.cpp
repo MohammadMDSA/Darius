@@ -203,23 +203,8 @@ namespace Darius::Editor::Gui::Windows
 			mDrawSkybox
 		};
 
-		D_RENDERER::Render(L"Scene Window", rc,
-			[&](D_RENDERER::MeshSorter& sorter)
-			{
-				// Draw grid
-				if (mDrawGrid)
-					AddWindowRenderItems(sorter);
-			},
-			[&](D_RENDERER::MeshSorter& sorter)
-			{
-				// Add debug draw items
-				if (mDrawDebug)
-				{
-					D_DEBUG_DRAW::GetRenderItems(sorter);
-					sorter.Sort();
-					sorter.RenderMeshes(MeshSorter::kTransparent, context, nullptr, mSceneGlobals);
-				}
-			});
+		MeshSorter sorter(MeshSorter::kDefault);
+		D_RENDERER::Render(L"Scene Window", sorter, rc);
 
 		// Post Processing
 		D_GRAPHICS_PP::PostProcessContextBuffers postBuffers =
@@ -233,6 +218,21 @@ namespace Darius::Editor::Gui::Windows
 			L"Scene Window"
 		};
 		D_GRAPHICS_PP::Render(postBuffers, context.GetComputeContext());
+
+		// Drawing extra elements
+		MeshSorter additionalSorter(sorter);
+
+		// Draw grid
+		if (mDrawGrid)
+			AddWindowRenderItems(additionalSorter);
+
+		// Add debug draw items
+		if (mDrawDebug)
+		{
+			D_DEBUG_DRAW::GetRenderItems(additionalSorter);
+			additionalSorter.Sort();
+			additionalSorter.RenderMeshes(MeshSorter::kTransparent, context, nullptr, mSceneGlobals);
+		}
 
 		// Copying to texture
 		context.TransitionResource(mSceneTexture, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
