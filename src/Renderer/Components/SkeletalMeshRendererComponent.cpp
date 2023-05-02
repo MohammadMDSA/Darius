@@ -28,33 +28,17 @@ namespace Darius::Graphics
 
 
 	SkeletalMeshRendererComponent::SkeletalMeshRendererComponent() :
-		D_ECS_COMP::ComponentBase(),
-		mComponentPsoFlags(RenderItem::HasSkin),
-		mCachedMaterialPsoFlags(0),
-		mPsoIndex(0),
-		mPsoIndexDirty(true),
+		MeshRendererComponentBase(),
 		mSkeletonRoot(nullptr)
 	{
+		mComponentPsoFlags |= RenderItem::HasSkin;
 	}
 
 	SkeletalMeshRendererComponent::SkeletalMeshRendererComponent(D_CORE::Uuid uuid) :
-		D_ECS_COMP::ComponentBase(uuid),
-		mComponentPsoFlags(RenderItem::HasSkin),
-		mCachedMaterialPsoFlags(0),
-		mPsoIndex(0),
-		mPsoIndexDirty(true),
+		MeshRendererComponentBase(uuid),
 		mSkeletonRoot(nullptr)
 	{
-	}
-
-	void SkeletalMeshRendererComponent::Awake()
-	{
-
-		// Initializing Mesh Constants buffers
-		CreateGPUBuffers();
-
-		if (!mMaterial.IsValid())
-			_SetMaterial(D_GRAPHICS::GetDefaultGraphicsResource(DefaultResource::Material));
+		mComponentPsoFlags |= RenderItem::HasSkin;
 	}
 
 	bool SkeletalMeshRendererComponent::AddRenderItems(std::function<void(D_RENDERER_FRAME_RESOURCE::RenderItem const&)> appendFunction)
@@ -96,17 +80,11 @@ namespace Darius::Graphics
 
 		D_H_DETAILS_DRAW_BEGIN_TABLE();
 
+		valueChanged |= MeshRendererComponentBase::DrawDetails(params);
+
 		// Mesh selection
 		D_H_DETAILS_DRAW_PROPERTY("Mesh");
 		D_H_RESOURCE_SELECTION_DRAW(SkeletalMeshResource, mMesh, "Select Mesh", SetMesh);
-
-		// Material selection
-		D_H_DETAILS_DRAW_PROPERTY("Material");
-		D_H_RESOURCE_SELECTION_DRAW(MaterialResource, mMaterial, "Select Material", SetMaterial);
-
-		// Casting shadow
-		D_H_DETAILS_DRAW_PROPERTY("Casts Shadow");
-		valueChanged |= ImGui::Checkbox("##CastsShadow", &mCastsShadow);
 
 		D_H_DETAILS_DRAW_END_TABLE();
 
@@ -203,10 +181,6 @@ namespace Darius::Graphics
 		if (!IsActive())
 			return;
 
-		// We won't update constant buffer for static objects
-		if (GetGameObject()->GetType() == D_SCENE::GameObject::Type::Static)
-			return;
-
 		if (!mMesh.IsValid())
 			return;
 
@@ -242,21 +216,4 @@ namespace Darius::Graphics
 
 	}
 
-	void SkeletalMeshRendererComponent::OnDestroy()
-	{
-		for (size_t i = 0; i < D_RENDERER_FRAME_RESOURCE::gNumFrameResources; i++)
-		{
-			mMeshConstantsCPU[i].Destroy();
-		}
-		mMeshConstantsGPU.Destroy();
-	}
-
-	void SkeletalMeshRendererComponent::CreateGPUBuffers()
-	{
-		for (size_t i = 0; i < D_RENDERER_FRAME_RESOURCE::gNumFrameResources; i++)
-		{
-			mMeshConstantsCPU[i].Create(L"Mesh Constant Upload Buffer", sizeof(MeshConstants));
-		}
-		mMeshConstantsGPU.Create(L"Mesh Constant GPU Buffer", 1, sizeof(MeshConstants));
-	}
 }

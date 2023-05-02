@@ -1,9 +1,9 @@
 #pragma once
 
+#include "MeshRendererComponentBase.hpp"
+
 #include <Core/Ref.hpp>
 #include <Renderer/Resources/StaticMeshResource.hpp>
-#include <Renderer/Resources/MaterialResource.hpp>
-#include <Scene/EntityComponentSystem/Components/ComponentBase.hpp>
 
 #include "MeshRendererComponent.generated.hpp"
 
@@ -13,9 +13,9 @@
 
 namespace Darius::Graphics
 {
-	class DClass(Serialize) MeshRendererComponent : public D_ECS_COMP::ComponentBase
+	class DClass(Serialize) MeshRendererComponent : public MeshRendererComponentBase
 	{
-		D_H_COMP_BODY(MeshRendererComponent, D_ECS_COMP::ComponentBase, "Rendering/Mesh Renderer", true);
+		D_H_COMP_BODY(MeshRendererComponent, MeshRendererComponentBase, "Rendering/Mesh Renderer", true);
 
 	public:
 
@@ -24,56 +24,17 @@ namespace Darius::Graphics
 #endif
 
 		// States
-		virtual void						Awake() override;
 		virtual void						Update(float dt) override;
-		virtual void						OnDestroy() override;
 
 		bool								AddRenderItems(std::function<void(D_RENDERER_FRAME_RESOURCE::RenderItem const&)> appendFunction);
 
-		INLINE bool							CanRender() { return IsActive() && mMesh.IsValid() && !mMaterial->IsDirtyGPU(); }
-		INLINE const D_MATH_BOUNDS::BoundingSphere& GetBounds() const { return mMesh.Get()->GetMeshData()->mBoundSp; }
-
-		INLINE D3D12_GPU_VIRTUAL_ADDRESS	GetConstantsAddress() const { return mMeshConstantsGPU.GetGpuVirtualAddress(); }
+		INLINE virtual bool					CanRender() const override { return MeshRendererComponentBase::CanRender() && mMesh.IsValid(); }
+		INLINE virtual D_MATH_BOUNDS::BoundingSphere const& GetBounds() const override { return mMesh.Get()->GetMeshData()->mBoundSp; }
 
 	private:
 
-		INLINE uint16_t						GetPsoIndex()
-		{
-			auto materialPsoFlags = mMaterial->GetPsoFlags();
-
-			// Whether resource has changed
-			if (mCachedMaterialPsoFlags != materialPsoFlags)
-			{
-				mCachedMaterialPsoFlags = materialPsoFlags;
-				mPsoIndexDirty = true;
-			}
-
-			// Whether pso index is not compatible with current pso flags
-			if (mPsoIndexDirty)
-			{
-				mPsoIndex = D_RENDERER::GetPso(materialPsoFlags | mComponentPsoFlags);
-				mPsoIndexDirty = false;
-			}
-			return mPsoIndex;
-		}
-
-		DField(Get[inline], Set[inline])
-		bool								mCastsShadow;
-
 		DField(Resource, Serialize)
 		D_CORE::Ref<StaticMeshResource>		mMesh;
-
-		DField(Resource, Serialize)
-		D_CORE::Ref<MaterialResource>		mMaterial;
-
-		// Gpu buffers
-		D_GRAPHICS_BUFFERS::UploadBuffer	mMeshConstantsCPU[D_RENDERER_FRAME_RESOURCE::gNumFrameResources];
-		D_GRAPHICS_BUFFERS::ByteAddressBuffer mMeshConstantsGPU;
-
-		uint16_t							mComponentPsoFlags;
-		uint16_t							mCachedMaterialPsoFlags;
-		uint16_t							mPsoIndex;
-		bool								mPsoIndexDirty;
 
 	public:
 		Darius_Graphics_MeshRendererComponent_GENERATED
