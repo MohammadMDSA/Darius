@@ -57,24 +57,36 @@ namespace Darius::Graphics
 			_SetMaterial(D_GRAPHICS::GetDefaultGraphicsResource(DefaultResource::Material));
 	}
 
-	RenderItem SkeletalMeshRendererComponent::GetRenderItem()
+	bool SkeletalMeshRendererComponent::AddRenderItems(std::function<void(D_RENDERER_FRAME_RESOURCE::RenderItem const&)> appendFunction)
 	{
+		bool any = false;
 		auto result = RenderItem();
 		const Mesh* mesh = mMesh.Get()->GetMeshData();
-		result.BaseVertexLocation = mesh->mDraw[0].BaseVertexLocation;
 		result.IndexCount = mesh->mNumTotalIndices;
-		result.StartIndexLocation = mesh->mDraw[0].StartIndexLocation;
 		result.Mesh = mesh;
 		result.PrimitiveType = D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
 		result.MeshCBV = GetConstantsAddress();
-		result.Material.MaterialCBV = *mMaterial.Get();
-		result.Material.MaterialSRV = mMaterial->GetTexturesHandle();
-		result.Material.SamplersSRV = mMaterial->GetSamplersHandle();
 		result.mJointData = mJoints.data();
 		result.mNumJoints = (UINT)mJoints.size();
 		result.PsoType = GetPsoIndex();
-		result.PsoFlags = mComponentPsoFlags | mMaterial->GetPsoFlags();
-		return result;
+
+		for (auto const& draw : mesh->mDraw)
+		{
+			if (mMaterial->IsDirtyGPU())
+				continue;
+			result.Material.MaterialCBV = *mMaterial.Get();
+			result.Material.MaterialSRV = mMaterial->GetTexturesHandle();
+			result.Material.SamplersSRV = mMaterial->GetSamplersHandle();
+			result.PsoFlags = mComponentPsoFlags | mMaterial->GetPsoFlags();
+			result.BaseVertexLocation = mesh->mDraw[0].BaseVertexLocation;
+			result.StartIndexLocation = mesh->mDraw[0].StartIndexLocation;
+
+			appendFunction(result);
+
+			any = true;
+		}
+
+		return any;
 	}
 
 #ifdef _D_EDITOR

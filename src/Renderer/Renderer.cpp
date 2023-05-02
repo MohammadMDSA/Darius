@@ -203,7 +203,11 @@ namespace Darius::Renderer
 					return;
 
 				auto distance = -sphereViewSpace.GetCenter().GetZ() - sphereViewSpace.GetRadius();
-				sorter.AddMesh(meshComp.GetRenderItem(), distance);
+
+				meshComp.AddRenderItems([distance, &sorter](auto const& ri)
+					{
+						sorter.AddMesh(ri, distance);
+					});
 			});
 
 		// Iterating over meshes
@@ -220,7 +224,11 @@ namespace Darius::Renderer
 					return;
 
 				auto distance = -sphereViewSpace.GetCenter().GetZ() - sphereViewSpace.GetRadius();
-				sorter.AddMesh(meshComp.GetRenderItem(), distance);
+
+				meshComp.AddRenderItems([distance, &sorter](auto const& ri)
+					{
+						sorter.AddMesh(ri, distance);
+					});
 			});
 
 		//D_LOG_DEBUG("Number of render items: " << sorter.CountObjects());
@@ -241,9 +249,12 @@ namespace Darius::Renderer
 				if (!meshComp.IsCastsShadow())
 					return;
 
-				auto ri = meshComp.GetRenderItem();
-				ri.Material.SamplersSRV.ptr = 0;
-				items.push_back(ri);
+				meshComp.AddRenderItems([&items](auto const& ri)
+					{
+						auto item = ri;
+						item.Material.SamplersSRV.ptr = 0;
+						items.push_back(item);
+					});
 			});
 
 		// Iterating over meshes
@@ -256,9 +267,12 @@ namespace Darius::Renderer
 				if (!meshComp.IsCastsShadow())
 					return;
 
-				auto ri = meshComp.GetRenderItem();
-				ri.Material.SamplersSRV.ptr = 0;
-				items.push_back(ri);
+				meshComp.AddRenderItems([&items](auto const& ri)
+					{
+						auto item = ri;
+						item.Material.SamplersSRV.ptr = 0;
+						items.push_back(item);
+					});
 			});
 	}
 

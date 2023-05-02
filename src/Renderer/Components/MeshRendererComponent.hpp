@@ -28,13 +28,12 @@ namespace Darius::Graphics
 		virtual void						Update(float dt) override;
 		virtual void						OnDestroy() override;
 
-		D_RENDERER_FRAME_RESOURCE::RenderItem GetRenderItem();
-
+		bool								AddRenderItems(std::function<void(D_RENDERER_FRAME_RESOURCE::RenderItem const&)> appendFunction);
 
 		INLINE bool							CanRender() { return IsActive() && mMesh.IsValid() && !mMaterial->IsDirtyGPU(); }
 		INLINE const D_MATH_BOUNDS::BoundingSphere& GetBounds() const { return mMesh.Get()->GetMeshData()->mBoundSp; }
 
-		INLINE D3D12_GPU_VIRTUAL_ADDRESS	GetConstantsAddress() { return mMeshConstantsGPU.GetGpuVirtualAddress(); }
+		INLINE D3D12_GPU_VIRTUAL_ADDRESS	GetConstantsAddress() const { return mMeshConstantsGPU.GetGpuVirtualAddress(); }
 
 	private:
 

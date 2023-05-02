@@ -30,7 +30,7 @@ namespace Darius::Graphics
 
 		INLINE bool							HasAnimation() const { return true; }
 
-		D_RENDERER_FRAME_RESOURCE::RenderItem GetRenderItem();
+		bool								AddRenderItems(std::function<void(D_RENDERER_FRAME_RESOURCE::RenderItem const&)> appendFunction);
 		INLINE D_CONTAINERS::DVector<D_RENDERER_GEOMETRY::Mesh::SkeletonJoint>& GetSkeleton() { return mSkeleton; }
 		INLINE D_RENDERER_GEOMETRY::Mesh::SkeletonJoint* GetSkeletonRoot() { return mSkeletonRoot; }
 
@@ -38,7 +38,7 @@ namespace Darius::Graphics
 		INLINE bool							CanRender() { return IsActive() && mMesh.IsValid() && !mMaterial->IsDirtyGPU(); }
 		INLINE const D_MATH_BOUNDS::BoundingSphere& GetBounds() const { return mBounds; }
 
-		INLINE D3D12_GPU_VIRTUAL_ADDRESS	GetConstantsAddress() { return mMeshConstantsGPU.GetGpuVirtualAddress(); }
+		INLINE D3D12_GPU_VIRTUAL_ADDRESS	GetConstantsAddress() const { return mMeshConstantsGPU.GetGpuVirtualAddress(); }
 
 
 
