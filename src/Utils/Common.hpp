@@ -65,7 +65,7 @@ static INLINE std::string const GetTypeName() { return D_NAMEOF(T); }
     ImGui::Button(cuurrentResourceName.c_str(), ImVec2(availableSpace.x - 2 * selectorWidth - 10.f, 0)); \
     D_H_RESOURCE_DRAG_DROP_DESTINATION(resourceType, handleFunction) \
 	ImGui::SameLine(availableSpace.x - selectorWidth); \
-		if (ImGui::Button(ICON_FA_ELLIPSIS_VERTICAL, ImVec2(selectorWidth, 0))) \
+		if (ImGui::Button(ICON_FA_ELLIPSIS_VERTICAL "##" placeHolder, ImVec2(selectorWidth, 0))) \
 		{ \
 			ImGui::OpenPopup(placeHolder " Res"); \
 		} \
