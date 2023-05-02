@@ -259,6 +259,8 @@ namespace Darius::Graphics::PostProcessing
 
 			context.TransitionResource(contextBuffers.LumaBuffer, D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
 
+			context.TransitionResource(contextBuffers.SceneColor, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
+
 			// Set constants
 			context.SetConstants(0,
 				1.0f / contextBuffers.SceneColor.GetWidth(),

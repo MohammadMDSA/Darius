@@ -546,6 +546,8 @@ namespace Darius::Graphics::AmbientOcclusion::SuperSample
 			CC.SetDynamicDescriptors(3, 0, 1, &buffers.SSAOFullScreen.GetSRV());
 			CC.Dispatch2D(buffers.SSAOFullScreen.GetWidth(), buffers.SSAOFullScreen.GetHeight());
 		}
+
+		context.TransitionResource(buffers.SSAOFullScreen, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
 	}
 
 	void Render(GraphicsContext& context, SSAORenderBuffers& buffers, D_MATH_CAMERA::Camera const& camera)
