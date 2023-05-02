@@ -596,6 +596,9 @@ namespace Darius::Renderer::Geometry::ModelLoader::Fbx
 			delete subMeshes[i];
 		}
 
+		// Removing empty submeshes
+		result.SubMeshes.erase(std::remove_if(result.SubMeshes.begin(), result.SubMeshes.end(), [](auto el) { return el.IndexCount <= 0; }), result.SubMeshes.end());
+
 		subMeshes.Clear();
 
 		D_ASSERT(lNormals);
