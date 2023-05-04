@@ -44,7 +44,7 @@ namespace Darius::ResourceManager
 		return _ResourceManager.get();
 	}
 
-	Resource* _GetRawResource(Uuid uuid, bool load)
+	Resource* _GetRawResource(D_CORE::Uuid const& uuid, bool load)
 	{
 		auto resource = _ResourceManager->GetRawResource(uuid);
 
@@ -72,7 +72,7 @@ namespace Darius::ResourceManager
 		return resource;
 	}
 
-	ResourceHandle GetResourceHandle(Uuid uuid)
+	ResourceHandle GetResourceHandle(D_CORE::Uuid const& uuid)
 	{
 		return *_ResourceManager->GetRawResource(uuid);
 	}
@@ -117,7 +117,7 @@ namespace Darius::ResourceManager
 				resourcePair.second->Destroy();
 	}
 
-	Resource* DResourceManager::GetRawResource(Uuid uuid)
+	Resource* DResourceManager::GetRawResource(D_CORE::Uuid const& uuid)
 	{
 		if (!mUuidMap.contains(uuid))
 			throw D_EXCEPTION::Exception((std::string("Resource not found: uuid = ") + D_CORE::ToString(uuid)).c_str());
@@ -148,7 +148,7 @@ namespace Darius::ResourceManager
 		return res;
 	}
 
-	ResourceHandle DResourceManager::CreateResource(ResourceType type, Uuid uuid, std::wstring const& path, std::wstring const& name, bool isDefault, bool fromFile)
+	ResourceHandle DResourceManager::CreateResource(ResourceType type, Uuid const& uuid, std::wstring const& path, std::wstring const& name, bool isDefault, bool fromFile)
 
 	{
 		if (!fromFile && D_H_ENSURE_FILE(path))

@@ -32,7 +32,7 @@ namespace Darius::ResourceManager
 
 	DResourceManager*		GetManager();
 
-	Resource*				_GetRawResource(D_CORE::Uuid uuid, bool load = false);
+	Resource*				_GetRawResource(D_CORE::Uuid const& uuid, bool load = false);
 	Resource*				_GetRawResource(ResourceHandle handle, bool load = false);
 	void					SaveAll();
 
@@ -44,7 +44,7 @@ namespace Darius::ResourceManager
 #pragma region GetResource
 	// Resource retreival stuff
 	template<class T>
-	D_CORE::Ref<T> GetResource(D_CORE::Uuid uuid, std::optional<D_CORE::CountedOwner> ownerData = std::nullopt)
+	D_CORE::Ref<T> GetResource(D_CORE::Uuid const& uuid, std::optional<D_CORE::CountedOwner> ownerData)
 	{
 		// Checking if T is a resource type
 		using conv = std::is_convertible<T*, Resource*>;
@@ -62,7 +62,7 @@ namespace Darius::ResourceManager
 
 		// Requested None resource so we return nothing
 		if (handle.Type == 0)
-			return D_CORE::Ref<T>();
+			return D_CORE::Ref<T>(nullptr);
 
 		// Requested resource type must be compatible with T
 		if (handle.Type != T::GetResourceType())
@@ -77,7 +77,7 @@ namespace Darius::ResourceManager
 		return GetResource<T>(handle, std::optional<D_CORE::CountedOwner> { D_CORE::CountedOwner { ownerName, ownerType, owner, 0, changeCallback } } );
 	}
 
-	ResourceHandle GetResourceHandle(D_CORE::Uuid uuid);
+	ResourceHandle GetResourceHandle(D_CORE::Uuid const& uuid);
 
 #pragma endregion
 
@@ -91,7 +91,7 @@ namespace Darius::ResourceManager
 
 		// Retreival
 		Resource*					GetRawResource(ResourceHandle handle);
-		Resource*					GetRawResource(D_CORE::Uuid uuid);
+		Resource*					GetRawResource(D_CORE::Uuid const& uuid);
 
 		// Save resouce
 		void						SaveAllResources();
@@ -99,7 +99,7 @@ namespace Darius::ResourceManager
 		D_CONTAINERS::DVector<ResourcePreview>	GetResourcePreviews(ResourceType type);
 
 		template<class T>
-		INLINE ResourceHandle		CreateResource(D_CORE::Uuid uuid, std::wstring const& path, std::wstring const& name, bool isDefault = false) {
+		INLINE ResourceHandle		CreateResource(D_CORE::Uuid const& uuid, std::wstring const& path, std::wstring const& name, bool isDefault = false) {
 			if (D_H_ENSURE_DIR(path))
 				throw D_EXCEPTION::Exception(("A file with the same name already exists: " + WSTR2STR(path)).c_str());
 			return CreateResource<T>(uuid, path, name, isDefault, false);
@@ -128,10 +128,10 @@ namespace Darius::ResourceManager
 		friend class ResourceLoader;
 		friend class Resource;
 
-		ResourceHandle				CreateResource(ResourceType type, D_CORE::Uuid uuid, std::wstring const& path, std::wstring const& name, bool isDefault, bool fromFile);
+		ResourceHandle				CreateResource(ResourceType type, D_CORE::Uuid const& uuid, std::wstring const& path, std::wstring const& name, bool isDefault, bool fromFile);
 
 		template<class T>
-		INLINE ResourceHandle		CreateResource(D_CORE::Uuid uuid, std::wstring const& path, std::wstring const& name, bool isDefault, bool fromFile)
+		INLINE ResourceHandle		CreateResource(D_CORE::Uuid const& uuid, std::wstring const& path, std::wstring const& name, bool isDefault, bool fromFile)
 		{
 			// Checking if T is a resource type
 			using conv = std::is_convertible<T*, Resource*>;
