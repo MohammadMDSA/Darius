@@ -85,6 +85,15 @@ namespace Darius::Renderer::Geometry::ModelLoader::Fbx
 		// The file has been imported; we can get rid of the importer.
 		lImporter->Destroy();
 
+
+		// Convert Axis System to what is used in this example, if needed
+		FbxAxisSystem SceneAxisSystem = lScene->GetGlobalSettings().GetAxisSystem();
+		FbxAxisSystem OurAxisSystem(FbxAxisSystem::eYAxis, FbxAxisSystem::eParityOdd, FbxAxisSystem::eRightHanded);
+		if (SceneAxisSystem != OurAxisSystem)
+		{
+			OurAxisSystem.ConvertScene(lScene);
+		}
+
 		// Convert mesh, NURBS and patch into triangle mesh
 		FbxGeometryConverter lGeomConverter(*sdkManager);
 		try {
