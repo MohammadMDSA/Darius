@@ -5,6 +5,7 @@
 #include <Core/Exceptions/Exception.hpp>
 #include <Core/Filesystem/FileUtils.hpp>
 #include <Core/Filesystem/Path.hpp>
+#include <Core/Ref.hpp>
 #include <Core/Serialization/Json.hpp>
 #include <Core/Uuid.hpp>
 #include <Utils/Common.hpp>
@@ -41,9 +42,11 @@ public: \
 	}; \
 public: \
 	friend class Factory; \
+	virtual INLINE rttr::type GetResourceReflectionType() const override { return rttr::type::get<T>(); } \
 	static INLINE D_RESOURCE::ResourceType GetResourceType() { return D_RESOURCE::Resource::GetResourceTypeFromName(ResT); } \
 	INLINE D_RESOURCE::ResourceType GetType() const override { return D_RESOURCE::Resource::GetResourceTypeFromName(ResT); } \
 	static INLINE std::string ClassName() { return D_NAMEOF(T); } \
+	virtual INLINE std::string GetResourceTypeName() const override { return ResT; } \
 	static void Register() \
 	{ \
 		D_ASSERT_M(!D_RESOURCE::Resource::GetResourceTypeFromName(ResT), "Resource " #T " is already registered."); \
@@ -96,6 +99,9 @@ namespace Darius::ResourceManager
 
 	constexpr ResourceHandle EmptyResourceHandle = { 0, 0 };
 
+	template<class T>
+	D_CORE::Ref<T> GetResource(D_CORE::Uuid const& uuid, std::optional<D_CORE::CountedOwner> ownerData = std::nullopt);
+
 	struct ResourcePreview
 	{
 		std::wstring			Name;
@@ -132,6 +138,15 @@ namespace Darius::ResourceManager
 		}
 
 		virtual ResourceType		GetType() const = 0;
+
+		virtual INLINE rttr::type	GetResourceReflectionType() const { return rttr::type::get<Resource>(); }
+		virtual INLINE std::string	GetResourceTypeName() const = 0;
+
+		INLINE virtual D_CORE::CountedOwner	GetAsCountedOwner() const
+		{
+			auto strName = GetResourceTypeName();
+			return D_CORE::CountedOwner{ STR2WSTR(strName), GetResourceReflectionType(), (void*)this };
+		}
 
 		INLINE virtual bool			IsDirtyGPU() const { return mDirtyGPU; }
 
@@ -256,6 +271,41 @@ namespace Darius::ResourceManager
 
 	};
 
+}
+
+namespace rttr
+{
+	template<typename T>
+	struct wrapper_mapper<D_CORE::Ref<T>>
+	{
+		using wrapped_type = decltype(std::declval<T>().GetUuid());
+		using type = D_CORE::Ref<T>;
+
+		INLINE static wrapped_type get(type const& obj)
+		{
+			return obj->GetUuid();
+		}
+
+		static INLINE type create(wrapped_type const& value)
+		{
+			return D_RESOURCE::GetResource<T>(value, std::nullopt);
+		}
+
+		template<typename U>
+		static INLINE D_CORE::Ref<U> convert(type const& source, bool& ok)
+		{
+			if (auto obj = rttr_cast<U*>(source.Get()))
+			{
+				ok = true;
+				return D_CORE::Ref<U>(source.Get());
+			}
+			else
+			{
+				ok = false;
+				return D_CORE::Ref<U>(nullptr, std::nullopt);
+			}
+		}
+	};
 }
 
 File_Resource_GENERATED

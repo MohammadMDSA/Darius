@@ -151,14 +151,16 @@ namespace Darius::Core::Serialization
 		auto wrapped_type = value_type.is_wrapper() ? value_type.get_wrapped_type() : value_type;
 		bool is_wrapper = wrapped_type != value_type;
 
+		auto intendedType = is_wrapper ? wrapped_type : value_type;
+
 		// Checking existing serializers and deserializers
-		if (typeSerializers.contains(value_type))
+		if (typeSerializers.contains(intendedType))
 		{
-			typeSerializers[value_type].first(instance(var), json);
+			typeSerializers[intendedType].first(is_wrapper ? var.extract_wrapped_value() : var, json);
 			return true;
 		}
 
-		if (write_atomic_types_to_json(is_wrapper ? wrapped_type : value_type,
+		if (write_atomic_types_to_json(intendedType,
 			is_wrapper ? var.extract_wrapped_value() : var, json))
 		{
 		}
@@ -389,11 +391,15 @@ namespace Darius::Core::Serialization
 			Json const& json_value = json_object[propName];
 
 			const type value_t = prop.get_type();
+			auto wrapped_type = value_t.is_wrapper() ? value_t.get_wrapped_type() : value_t;
+			bool is_wrapper = wrapped_type != value_t;
+			auto intendedType = is_wrapper ? wrapped_type : value_t;
 
-			if (typeSerializers.contains(value_t))
+			if (typeSerializers.contains(intendedType))
 			{
 				variant v;
-				typeSerializers[value_t].second(v, json_value);
+				typeSerializers[intendedType].second(v, json_value);
+				v.convert(value_t);
 				prop.set_value(obj, v);
 				continue;
 			}
