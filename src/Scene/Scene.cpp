@@ -247,6 +247,7 @@ namespace Darius::Scene
 				{
 					D_SERIALIZATION::Json componentJson;
 					D_SERIALIZATION::Serialize(comp, componentJson);
+					comp->OnSerialized();
 					D_CORE::to_json(componentJson["Uuid"], comp->mUuid);
 					objectComps[comp->GetComponentName()] = componentJson;
 				});
@@ -311,6 +312,7 @@ namespace Darius::Scene
 					gameObject->AddComponentRoutine(comp);
 
 					D_SERIALIZATION::Deserialize(comp, compJ);
+					comp->OnDeserialized();
 				}
 			}
 

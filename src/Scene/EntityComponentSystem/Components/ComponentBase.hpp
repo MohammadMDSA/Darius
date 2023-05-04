@@ -110,6 +110,8 @@ namespace Darius::Scene::ECS::Components
         virtual INLINE void         Start() { }
         virtual INLINE void         Awake() { }
         virtual INLINE void         OnDestroy() { }
+        virtual INLINE void         OnSerialized() const { }
+        virtual INLINE void         OnDeserialized() { }
 
         // Gameobject Events
         virtual INLINE void         OnActivate() {}
@@ -142,9 +144,15 @@ namespace Darius::Scene::ECS::Components
         INLINE void                 SetLocalTransform(D_MATH::Transform const& transform) { return mGameObject->SetLocalTransform(transform); }
         INLINE void                 SetTransform(D_MATH::Transform const& transform) { return mGameObject->SetTransform(transform); }
 
-        INLINE operator D_CORE::CountedOwner const() {
+        INLINE virtual D_CORE::CountedOwner GetAsCountedOwner()
+        {
             auto strName = GetComponentName();
-            return D_CORE::CountedOwner { STR2WSTR(strName), GetComponentType(), this, 0};
+            return D_CORE::CountedOwner{ STR2WSTR(strName), GetComponentType(), this, 0 };
+        }
+
+        INLINE operator D_CORE::CountedOwner()
+        {
+            return GetAsCountedOwner();
         }
 
         static INLINE std::string   GetName() { return "ComponentBase"; }
