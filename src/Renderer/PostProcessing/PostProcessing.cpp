@@ -44,7 +44,7 @@ namespace Darius::Graphics::PostProcessing
 	// Internal
 	const float											InitialMinLog = -12.0f;
 	const float											InitialMaxLog = 4.0f;
-	D_CORE::Ref<TextureResource>						DefaultBlackOpaquTexture;
+	D_CORE::Ref<TextureResource>						DefaultBlackOpaquTexture({ L"PostProcessin Module", rttr::type::get<void>() });
 
 	// Funcs
 	void ExtractLuma(ComputeContext& context, PostProcessContextBuffers& contextBuffers);
@@ -105,13 +105,7 @@ namespace Darius::Graphics::PostProcessing
 
 #undef CreatePSO
 
-		DefaultBlackOpaquTexture = D_RESOURCE::GetResource<TextureResource>(GetDefaultGraphicsResource(DefaultResource::Texture2DBlackOpaque),
-			D_CORE::CountedOwner{
-				L"PostProcessin Module",
-				rttr::type::get<void>(),
-				nullptr,
-				0
-			});
+		DefaultBlackOpaquTexture = D_RESOURCE::GetResource<TextureResource>(GetDefaultGraphicsResource(DefaultResource::Texture2DBlackOpaque));
 
 		D_ASSERT(DefaultBlackOpaquTexture.IsValid());
 	}

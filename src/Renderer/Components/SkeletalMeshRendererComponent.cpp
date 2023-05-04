@@ -29,14 +29,16 @@ namespace Darius::Graphics
 
 	SkeletalMeshRendererComponent::SkeletalMeshRendererComponent() :
 		MeshRendererComponentBase(),
-		mSkeletonRoot(nullptr)
+		mSkeletonRoot(nullptr),
+		mMesh(GetAsCountedOwner())
 	{
 		mComponentPsoFlags |= RenderItem::HasSkin;
 	}
 
 	SkeletalMeshRendererComponent::SkeletalMeshRendererComponent(D_CORE::Uuid uuid) :
 		MeshRendererComponentBase(uuid),
-		mSkeletonRoot(nullptr)
+		mSkeletonRoot(nullptr),
+		mMesh(GetAsCountedOwner())
 	{
 		mComponentPsoFlags |= RenderItem::HasSkin;
 	}
@@ -54,10 +56,10 @@ namespace Darius::Graphics
 		result.mNumJoints = (UINT)mJoints.size();
 		result.PsoType = GetPsoIndex();
 
-		for (auto const& draw : mesh->mDraw)
+		//for (auto const& draw : mesh->mDraw)
 		{
 			if (mMaterial->IsDirtyGPU())
-				continue;
+				return false;
 			result.Material.MaterialCBV = *mMaterial.Get();
 			result.Material.MaterialSRV = mMaterial->GetTexturesHandle();
 			result.Material.SamplersSRV = mMaterial->GetSamplersHandle();
@@ -99,7 +101,11 @@ namespace Darius::Graphics
 	void SkeletalMeshRendererComponent::_SetMesh(ResourceHandle handle)
 	{
 		mMesh = D_RESOURCE::GetResource<SkeletalMeshResource>(handle, *this);
+		LoadMeshData();
+	}
 
+	void SkeletalMeshRendererComponent::LoadMeshData()
+	{
 		mJoints.clear();
 		mSkeleton.clear();
 		mSkeletonRoot = nullptr;
@@ -131,12 +137,6 @@ namespace Darius::Graphics
 				}
 			}
 		}
-	}
-
-	void SkeletalMeshRendererComponent::_SetMaterial(ResourceHandle handle)
-	{
-		mPsoIndexDirty = true;
-		mMaterial = D_RESOURCE::GetResource<MaterialResource>(handle, *this);
 	}
 
 	void SkeletalMeshRendererComponent::JointUpdateRecursion(Matrix4 const& parent, Mesh::SkeletonJoint& skeletonJoint)
@@ -214,6 +214,12 @@ namespace Darius::Graphics
 		}
 		context.Finish();
 
+	}
+
+	void SkeletalMeshRendererComponent::OnDeserialized()
+	{
+		mPsoIndexDirty = true;
+		LoadMeshData();
 	}
 
 }

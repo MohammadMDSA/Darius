@@ -25,14 +25,18 @@ namespace Darius::Animation
 	AnimationComponent::AnimationComponent() :
 		ComponentBase(),
 		mMeshId(),
-		mRootMotion(false)
-	{ }
+		mRootMotion(false),
+		mAnimation(GetAsCountedOwner())
+	{
+	}
 
 	AnimationComponent::AnimationComponent(D_CORE::Uuid uuid) :
 		ComponentBase(uuid),
 		mMeshId(),
-		mRootMotion(false)
-	{ }
+		mRootMotion(false),
+		mAnimation(GetAsCountedOwner())
+	{
+	}
 
 	static inline float ToFloat(const int8_t x) { return Math::Max(x / 127.0f, -1.0f); }
 	static inline float ToFloat(const uint8_t x) { return x / 255.0f; }

@@ -25,12 +25,14 @@ namespace Darius::Graphics
 
 
 	MeshRendererComponent::MeshRendererComponent() :
-		MeshRendererComponentBase()
+		MeshRendererComponentBase(),
+		mMesh(GetAsCountedOwner())
 	{
 	}
 
 	MeshRendererComponent::MeshRendererComponent(D_CORE::Uuid uuid) :
-		MeshRendererComponentBase(uuid)
+		MeshRendererComponentBase(uuid),
+		mMesh(GetAsCountedOwner())
 	{
 	}
 

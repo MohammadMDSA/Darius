@@ -64,9 +64,9 @@ namespace Darius::Renderer
 
 	DescriptorHandle									CommonTexture[D_RENDERER_FRAME_RESOURCE::gNumFrameResources];
 
-	D_CORE::Ref<TextureResource>						RadianceCubeMap;
-	D_CORE::Ref<TextureResource>						IrradianceCubeMap;
-	D_CORE::Ref<TextureResource>						DefaultBlackCubeMap;
+	D_CORE::Ref<TextureResource>						RadianceCubeMap({ L"Renderer" });
+	D_CORE::Ref<TextureResource>						IrradianceCubeMap({ L"Renderer" });
+	D_CORE::Ref<TextureResource>						DefaultBlackCubeMap({ L"Renderer" });
 	float												SpecularIBLRange;
 	float												SpecularIBLBias = FLT_MAX;
 

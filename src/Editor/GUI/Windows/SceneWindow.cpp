@@ -42,10 +42,13 @@ namespace Darius::Editor::Gui::Windows
 		mDrawDebug(true),
 		mDrawSkybox(true),
 		mSceneNormals(D_MATH::Color(0.f, 0.f, 0.f, 1.f)),
-		mSSAOFullScreen(D_MATH::Color(1.f, 1.f, 1.f))
+		mSSAOFullScreen(D_MATH::Color(1.f, 1.f, 1.f)),
+		mLineMeshResource({ L"Scene Window", rttr::type::get<SceneWindow>(), nullptr })
 	{
 		CreateBuffers();
 		mTextureHandle = D_RENDERER::AllocateUiTexture(1);
+
+		mLineMeshResource = D_CORE::Ref<D_GRAPHICS::BatchResource>({ L"Scene Window", rttr::type::get<SceneWindow>(), this });
 
 		// Setup camera
 		mCamera.SetFoV(XM_PI / 3);
@@ -60,7 +63,7 @@ namespace Darius::Editor::Gui::Windows
 
 		// Fetch line mesh resource
 		auto lineHandle = D_GRAPHICS::GetDefaultGraphicsResource(D_GRAPHICS::DefaultResource::LineMesh);
-		mLineMeshResource = D_RESOURCE::GetResource<BatchResource>(lineHandle, this, L"Scene Window", rttr::type::get<SceneWindow>());
+		mLineMeshResource = D_RESOURCE::GetResource<BatchResource>(lineHandle);
 
 		// Initializing grid gpu constants
 		auto count = 50;

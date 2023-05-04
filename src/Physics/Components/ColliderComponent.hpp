@@ -28,6 +28,7 @@ namespace Darius::Physics
 
 		virtual void				OnActivate() override;
 		virtual void				OnDeactivate() override;
+		virtual void				OnDeserialized() override;
 
 #ifdef _D_EDITOR
 		virtual bool				DrawDetails(float params[]) override;
@@ -44,6 +45,7 @@ namespace Darius::Physics
 
 		void						InvalidatePhysicsActor();
 		void						_SetMaterial(D_RESOURCE::ResourceHandle handle);
+		void						ReloadMaterialData();
 
 		DField(Get[const, inline])
 		bool									mDynamic;

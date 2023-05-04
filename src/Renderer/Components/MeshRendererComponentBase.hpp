@@ -35,9 +35,10 @@ namespace Darius::Graphics
 
 	protected:
 
+		void									_SetMaterial(D_RESOURCE::ResourceHandle handle);
 		uint16_t								GetPsoIndex();
 
-		DField(Resource, Serialize)
+		DField(Resource[false], Serialize)
 		D_CORE::Ref<MaterialResource>			mMaterial;
 
 		DField(Get[inline], Set[inline])

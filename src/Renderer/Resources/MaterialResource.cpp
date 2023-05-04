@@ -11,8 +11,10 @@
 #include <Utils/Common.hpp>
 #include <Utils/DragDropPayload.hpp>
 
+#ifdef _D_EDITOR
 #include <imgui.h>
 #include <Libs/FontIcon/IconsFontAwesome6.h>
+#endif
 
 #include <fstream>
 
@@ -42,8 +44,21 @@ namespace Darius::Graphics
 	MaterialResource::MaterialResource(Uuid uuid, std::wstring const& path, std::wstring const& name, DResourceId id, bool isDefault) :
 		Resource(uuid, path, name, id, isDefault),
 		mPsoFlags(RenderItem::HasPosition | RenderItem::HasNormal | RenderItem::HasTangent | RenderItem::HasUV0),
-		mCutout(0)
+		mCutout(0),
+		mBaseColorTexture(GetAsCountedOwner()),
+		mNormalTexture(GetAsCountedOwner()),
+		mMetallicTexture(GetAsCountedOwner()),
+		mRoughnessTexture(GetAsCountedOwner()),
+		mEmissiveTexture(GetAsCountedOwner()),
+		mAmbientOcclusionTexture(GetAsCountedOwner())
 	{
+		auto callback = [&]() { MakeGpuDirty(); };
+		mBaseColorTexture.SetChangeCallback(callback);
+		mNormalTexture.SetChangeCallback(callback);
+		mMetallicTexture.SetChangeCallback(callback);
+		mRoughnessTexture.SetChangeCallback(callback);
+		mEmissiveTexture.SetChangeCallback(callback);
+		mAmbientOcclusionTexture.SetChangeCallback(callback);
 		mBaseColorTextureHandle = D_GRAPHICS::GetDefaultGraphicsResource(D_GRAPHICS::DefaultResource::Texture2DWhiteOpaque);
 		mNormalTextureHandle = D_GRAPHICS::GetDefaultGraphicsResource(D_GRAPHICS::DefaultResource::Texture2DNormalMap);
 		mMetallicTextureHandle = D_GRAPHICS::GetDefaultGraphicsResource(D_GRAPHICS::DefaultResource::Texture2DBlackOpaque);
@@ -186,12 +201,12 @@ namespace Darius::Graphics
 		};
 
 		// Load resources
-		mBaseColorTexture = D_RESOURCE::GetResource<TextureResource>(mBaseColorTextureHandle, countedOwner);
-		mNormalTexture = D_RESOURCE::GetResource<TextureResource>(mNormalTextureHandle, countedOwner);
-		mMetallicTexture = D_RESOURCE::GetResource<TextureResource>(mMetallicTextureHandle, countedOwner);
-		mRoughnessTexture = D_RESOURCE::GetResource<TextureResource>(mRoughnessTextureHandle, countedOwner);
-		mEmissiveTexture = D_RESOURCE::GetResource<TextureResource>(mEmissiveTextureHandle, countedOwner);
-		mAmbientOcclusionTexture = D_RESOURCE::GetResource<TextureResource>(mAmbientOcclusionTextureHandle, countedOwner);
+		mBaseColorTexture = D_RESOURCE::GetResource<TextureResource>(mBaseColorTextureHandle);
+		mNormalTexture = D_RESOURCE::GetResource<TextureResource>(mNormalTextureHandle);
+		mMetallicTexture = D_RESOURCE::GetResource<TextureResource>(mMetallicTextureHandle);
+		mRoughnessTexture = D_RESOURCE::GetResource<TextureResource>(mRoughnessTextureHandle);
+		mEmissiveTexture = D_RESOURCE::GetResource<TextureResource>(mEmissiveTextureHandle);
+		mAmbientOcclusionTexture = D_RESOURCE::GetResource<TextureResource>(mAmbientOcclusionTextureHandle);
 
 		UINT destCount = kNumTextures;
 		UINT sourceCounts[kNumTextures] = { 1, 1, 1, 1, 1, 1 };
@@ -299,16 +314,10 @@ namespace Darius::Graphics
 		auto device = D_GRAPHICS_DEVICE::GetDevice();
 		auto incSize = device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 
-		D_CORE::CountedOwner countedOwner = *this;
-		countedOwner.ChangeCallback = [&]()
-		{
-			MakeGpuDirty();
-		};
-
 #define SetTex(name) \
 { \
 	m##name##TextureHandle = textureHandle; \
-	m##name##Texture = D_RESOURCE::GetResource<TextureResource>(textureHandle, countedOwner); \
+	m##name##Texture = D_RESOURCE::GetResource<TextureResource>(textureHandle); \
 	device->CopyDescriptorsSimple(1, mTexturesHeap + type * incSize, m##name##Texture->GetTextureData()->GetSRV(), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV); \
 	SamplerDesc sd = m##name##Texture->GetSamplerDesc(); \
 	sd.CreateDescriptor(mSamplerTable + incSize * type); \

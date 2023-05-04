@@ -19,7 +19,7 @@ namespace Darius::Core
 	{
 	public:
 
-		Ref() : Ref(nullptr) {}
+		Ref(CountedOwner ownerData) : Ref(nullptr, ownerData) {}
 
 		Ref(T* data, std::optional<CountedOwner> ownerData = std::nullopt)
 		{
@@ -28,11 +28,6 @@ namespace Darius::Core
 
 			mData = data;
 
-			if (data == nullptr)
-			{
-				return;
-			}
-
 			if (ownerData.has_value())
 			{
 				mOwnerData = ownerData.value();
@@ -40,6 +35,11 @@ namespace Darius::Core
 			else
 			{
 				mOwnerData = CountedOwner();
+			}
+
+			if (data == nullptr)
+			{
+				return;
 			}
 
 			data->AddOwner(mOwnerData);
@@ -53,16 +53,16 @@ namespace Darius::Core
 		{
 			Unref();
 			mData = other.mData;
-			mOwnerData = other.mOwnerData;
-			mData->AddOwner(mOwnerData);
+			if (other.IsValid())
+				mData->AddOwner(mOwnerData);
 		}
 
 		INLINE Ref<T>& operator= (Ref<T> const& other)
 		{
 			Unref();
 			mData = other.mData;
-			mOwnerData = other.mOwnerData;
-			mData->AddOwner(mOwnerData);
+			if (other.IsValid())
+				mData->AddOwner(mOwnerData);
 			return *this;
 		}
 
@@ -78,6 +78,12 @@ namespace Darius::Core
 				mData->RemoveOwner(mOwnerData);
 			}
 			mData = nullptr;
+		}
+
+		// The new function only works after the next assignment
+		INLINE void SetChangeCallback(std::function<void()> callback)
+		{
+			mOwnerData.ChangeCallback = callback;
 		}
 
 		INLINE T* Get()

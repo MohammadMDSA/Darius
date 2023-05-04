@@ -25,6 +25,7 @@ namespace Darius::Graphics
 
 		// States
 		virtual void						Update(float dt) override;
+		virtual void						OnDeserialized() override;
 
 		bool								AddRenderItems(std::function<void(D_RENDERER_FRAME_RESOURCE::RenderItem const&)> appendFunction);
 
@@ -44,8 +45,8 @@ namespace Darius::Graphics
 	private:
 
 		void								_SetMesh(D_RESOURCE::ResourceHandle handle);
-		void								_SetMaterial(D_RESOURCE::ResourceHandle handle);
 		void								JointUpdateRecursion(D_MATH::Matrix4 const& parent, D_RENDERER_GEOMETRY::Mesh::SkeletonJoint& skeletonJoint);
+		void								LoadMeshData();
 
 		D_CONTAINERS::DVector<D_RENDERER_FRAME_RESOURCE::Joint>		mJoints;
 		D_CONTAINERS::DVector<D_RENDERER_GEOMETRY::Mesh::SkeletonJoint> mSkeleton;

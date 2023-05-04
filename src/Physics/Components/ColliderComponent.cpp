@@ -22,13 +22,17 @@ namespace Darius::Physics
 
 	ColliderComponent::ColliderComponent() :
 		ComponentBase(),
-		mDynamic(false)
-	{}
+		mDynamic(false),
+		mMaterial(GetAsCountedOwner())
+	{
+	}
 
 	ColliderComponent::ColliderComponent(D_CORE::Uuid uuid) :
 		ComponentBase(uuid),
-		mDynamic(false)
-	{}
+		mDynamic(false),
+		mMaterial(GetAsCountedOwner())
+	{
+	}
 
 #ifdef _D_EDITOR
 	bool ColliderComponent::DrawDetails(float params[])
@@ -117,10 +121,19 @@ namespace Darius::Physics
 	void ColliderComponent::_SetMaterial(D_RESOURCE::ResourceHandle handle)
 	{
 		mMaterial = D_RESOURCE::GetResource<PhysicsMaterialResource>(handle, *this);
-
+		ReloadMaterialData();
+	}
+	
+	void ColliderComponent::ReloadMaterialData()
+	{
 		if (!mShape)
 			return;
 		physx::PxMaterial* mats[] = { const_cast<physx::PxMaterial*>(mMaterial.Get()->GetMaterial()) };
 		mShape->setMaterials(mats, 1);
+	}
+
+	void ColliderComponent::OnDeserialized()
+	{
+		ReloadMaterialData();
 	}
 }

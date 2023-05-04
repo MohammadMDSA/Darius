@@ -14,6 +14,7 @@
 
 #include "MeshRendererComponentBase.sgenerated.hpp"
 
+using namespace D_RESOURCE;
 using namespace D_RENDERER_FRAME_RESOURCE;
 
 namespace Darius::Graphics
@@ -26,7 +27,8 @@ namespace Darius::Graphics
 		mComponentPsoFlags(0),
 		mCachedMaterialPsoFlags(0),
 		mPsoIndex(0),
-		mPsoIndexDirty(true)
+		mPsoIndexDirty(true),
+		mMaterial(GetAsCountedOwner())
 	{
 	}
 
@@ -35,7 +37,8 @@ namespace Darius::Graphics
 		mComponentPsoFlags(0),
 		mCachedMaterialPsoFlags(0),
 		mPsoIndex(0),
-		mPsoIndexDirty(true)
+		mPsoIndexDirty(true),
+		mMaterial(GetAsCountedOwner())
 	{
 	}
 
@@ -50,6 +53,12 @@ namespace Darius::Graphics
 
 		if (!mMaterial.IsValid())
 			_SetMaterial(D_GRAPHICS::GetDefaultGraphicsResource(DefaultResource::Material));
+	}
+
+	void MeshRendererComponentBase::_SetMaterial(ResourceHandle handle)
+	{
+		mPsoIndexDirty = true;
+		mMaterial = D_RESOURCE::GetResource<MaterialResource>(handle, *this);
 	}
 
 	uint16_t MeshRendererComponentBase::GetPsoIndex()
