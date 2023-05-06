@@ -96,8 +96,7 @@ namespace Darius::Graphics
 
 			auto name = std::string("Material ") + std::to_string(i + 1);
 			D_H_DETAILS_DRAW_PROPERTY(name.c_str());
-			D_H_RESOURCE_SELECTION_DRAW(MaterialResource, mMaterials[i], "Select Material", setter, i);
-
+			D_H_RESOURCE_SELECTION_DRAW(MaterialResource, mMaterials[i], "Select Material", setter, std::to_string(i));
 		}
 
 		// Casting shadow
