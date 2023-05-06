@@ -22,24 +22,30 @@ namespace Darius::Graphics
 		virtual void						Awake() override;
 		virtual void						OnDestroy() override;
 
+		virtual void						OnDeserialized() override;
+
 #ifdef _D_EDITOR
 		virtual bool						DrawDetails(float params[]) override;
 #endif
 
 		bool								AddRenderItems(std::function<void(D_RENDERER_FRAME_RESOURCE::RenderItem const&)> appendFunction);
+		
+		INLINE virtual UINT					GetNumberOfSubmeshes() const { return 0; }
 
-		INLINE virtual bool					CanRender() const { return IsActive() && !mMaterial->IsDirtyGPU(); }
+		virtual bool						CanRender() const { return IsActive(); }
+
 		INLINE virtual D_MATH_BOUNDS::BoundingSphere const& GetBounds() const { return (D_MATH_BOUNDS::BoundingSphere&)*this; }
 
 		INLINE D3D12_GPU_VIRTUAL_ADDRESS	GetConstantsAddress() const { return mMeshConstantsGPU.GetGpuVirtualAddress(); }
 
 	protected:
 
-		void									_SetMaterial(D_RESOURCE::ResourceHandle handle);
-		uint16_t								GetPsoIndex();
-
-		DField(Resource[false], Serialize)
-		D_CORE::Ref<MaterialResource>			mMaterial;
+		void									_SetMaterial(UINT index, D_RESOURCE::ResourceHandle handle);
+		uint16_t								GetPsoIndex(UINT materialIndex);
+		void									OnMeshChanged();
+		
+		DField(Serialize)
+		D_CONTAINERS::DVector<D_CORE::Ref<MaterialResource>> mMaterials;
 
 		DField(Get[inline], Set[inline])
 		bool									mCastsShadow;
@@ -49,9 +55,15 @@ namespace Darius::Graphics
 		D_GRAPHICS_BUFFERS::ByteAddressBuffer	mMeshConstantsGPU;
 
 		uint16_t								mComponentPsoFlags;
-		uint16_t								mCachedMaterialPsoFlags;
-		uint16_t								mPsoIndex;
-		bool									mPsoIndexDirty;
+
+		struct MaterialPsoData
+		{
+			uint16_t								CachedMaterialPsoFlags = 0;
+			uint16_t								PsoIndex = 0;
+			bool									PsoIndexDirty = true;
+		};
+		D_CONTAINERS::DVector<MaterialPsoData>		mMaterialPsoData;
+		
 
 	public:
 		Darius_Graphics_MeshRendererComponentBase_GENERATED

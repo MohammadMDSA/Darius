@@ -41,22 +41,26 @@ namespace Darius::Graphics
 		bool any = false;
 		auto result = RenderItem();
 		const Mesh* mesh = mMesh.Get()->GetMeshData();
-		result.IndexCount = mesh->mNumTotalIndices;
 		result.Mesh = mesh;
 		result.PrimitiveType = D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
 		result.MeshCBV = GetConstantsAddress();
-		result.PsoType = GetPsoIndex();
 
-		for (auto const& draw : mesh->mDraw)
+		for (UINT i = 0; i < mesh->mDraw.size(); i++)
 		{
-			if (mMaterial->IsDirtyGPU())
+			auto const& draw = mesh->mDraw[i];
+			auto const& material = mMaterials[i];
+
+			if (!material.IsValid() || material->IsDirtyGPU())
 				continue;
-			result.Material.MaterialCBV = *mMaterial.Get();
-			result.Material.MaterialSRV = mMaterial->GetTexturesHandle();
-			result.Material.SamplersSRV = mMaterial->GetSamplersHandle();
-			result.PsoFlags = mComponentPsoFlags | mMaterial->GetPsoFlags();
-			result.BaseVertexLocation = mesh->mDraw[0].BaseVertexLocation;
-			result.StartIndexLocation = mesh->mDraw[0].StartIndexLocation;
+
+			result.PsoType = GetPsoIndex(i);
+			result.Material.MaterialCBV = *material.Get();
+			result.Material.MaterialSRV = material->GetTexturesHandle();
+			result.Material.SamplersSRV = material->GetSamplersHandle();
+			result.PsoFlags = mComponentPsoFlags | material->GetPsoFlags();
+			result.BaseVertexLocation = mesh->mDraw[i].BaseVertexLocation;
+			result.StartIndexLocation = mesh->mDraw[i].StartIndexLocation;
+			result.IndexCount = mesh->mDraw[i].IndexCount;
 
 			appendFunction(result);
 
@@ -64,6 +68,12 @@ namespace Darius::Graphics
 		}
 
 		return any;
+	}
+
+	void MeshRendererComponent::_SetMesh(D_RESOURCE::ResourceHandle handle)
+	{
+		mMesh = D_RESOURCE::GetResource<StaticMeshResource>(handle, *this);
+		OnMeshChanged();
 	}
 
 #ifdef _D_EDITOR
@@ -74,7 +84,7 @@ namespace Darius::Graphics
 		D_H_DETAILS_DRAW_BEGIN_TABLE();
 
 		valueChanged |= MeshRendererComponentBase::DrawDetails(params);
-			
+
 		// Mesh selection
 		D_H_DETAILS_DRAW_PROPERTY("Mesh");
 		D_H_RESOURCE_SELECTION_DRAW(StaticMeshResource, mMesh, "Select Mesh", SetMesh);

@@ -28,12 +28,15 @@ namespace Darius::Graphics
 
 		bool								AddRenderItems(std::function<void(D_RENDERER_FRAME_RESOURCE::RenderItem const&)> appendFunction);
 
+		INLINE virtual UINT					GetNumberOfSubmeshes() const { return mMesh.IsValid() ? (UINT)mMesh->GetMeshData()->mDraw.size() : 0u; }
 		INLINE virtual bool					CanRender() const override { return MeshRendererComponentBase::CanRender() && mMesh.IsValid(); }
 		INLINE virtual D_MATH_BOUNDS::BoundingSphere const& GetBounds() const override { return mMesh.Get()->GetMeshData()->mBoundSp; }
 
 	private:
 
-		DField(Resource, Serialize)
+		void								_SetMesh(D_RESOURCE::ResourceHandle handle);
+
+		DField(Resource[false], Serialize)
 		D_CORE::Ref<StaticMeshResource>		mMesh;
 
 	public:

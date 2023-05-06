@@ -25,20 +25,14 @@ namespace Darius::Graphics
 	MeshRendererComponentBase::MeshRendererComponentBase() :
 		D_ECS_COMP::ComponentBase(),
 		mComponentPsoFlags(0),
-		mCachedMaterialPsoFlags(0),
-		mPsoIndex(0),
-		mPsoIndexDirty(true),
-		mMaterial(GetAsCountedOwner())
+		mCastsShadow(true)
 	{
 	}
 
 	MeshRendererComponentBase::MeshRendererComponentBase(D_CORE::Uuid uuid) :
 		D_ECS_COMP::ComponentBase(uuid),
 		mComponentPsoFlags(0),
-		mCachedMaterialPsoFlags(0),
-		mPsoIndex(0),
-		mPsoIndexDirty(true),
-		mMaterial(GetAsCountedOwner())
+		mCastsShadow(true)
 	{
 	}
 
@@ -51,34 +45,38 @@ namespace Darius::Graphics
 		}
 		mMeshConstantsGPU.Create(L"Mesh Constant GPU Buffer", 1, sizeof(MeshConstants));
 
-		if (!mMaterial.IsValid())
-			_SetMaterial(D_GRAPHICS::GetDefaultGraphicsResource(DefaultResource::Material));
+		for (UINT i = 0; i < mMaterials.size(); i++)
+		{
+			auto const& material = mMaterials[i];
+			if (!material.IsValid())
+				_SetMaterial(i, D_GRAPHICS::GetDefaultGraphicsResource(DefaultResource::Material));
+		}
 	}
 
-	void MeshRendererComponentBase::_SetMaterial(ResourceHandle handle)
+	void MeshRendererComponentBase::_SetMaterial(UINT index, ResourceHandle handle)
 	{
-		mPsoIndexDirty = true;
-		mMaterial = D_RESOURCE::GetResource<MaterialResource>(handle, *this);
+		mMaterialPsoData[index].PsoIndexDirty = true;
+		mMaterials[index] = D_RESOURCE::GetResource<MaterialResource>(handle, *this);
 	}
 
-	uint16_t MeshRendererComponentBase::GetPsoIndex()
+	uint16_t MeshRendererComponentBase::GetPsoIndex(UINT materialIndex)
 	{
-		auto materialPsoFlags = mMaterial->GetPsoFlags();
+		auto materialPsoFlags = mMaterials[materialIndex]->GetPsoFlags();
 
 		// Whether resource has changed
-		if (mCachedMaterialPsoFlags != materialPsoFlags)
+		if (mMaterialPsoData[materialIndex].CachedMaterialPsoFlags != materialPsoFlags)
 		{
-			mCachedMaterialPsoFlags = materialPsoFlags;
-			mPsoIndexDirty = true;
+			mMaterialPsoData[materialIndex].CachedMaterialPsoFlags = materialPsoFlags;
+			mMaterialPsoData[materialIndex].PsoIndexDirty = true;
 		}
 
 		// Whether pso index is not compatible with current pso flags
-		if (mPsoIndexDirty)
+		if (mMaterialPsoData[materialIndex].PsoIndexDirty)
 		{
-			mPsoIndex = D_RENDERER::GetPso(materialPsoFlags | mComponentPsoFlags);
-			mPsoIndexDirty = false;
+			mMaterialPsoData[materialIndex].PsoIndex = D_RENDERER::GetPso(materialPsoFlags | mComponentPsoFlags);
+			mMaterialPsoData[materialIndex].PsoIndexDirty = false;
 		}
-		return mPsoIndex;
+		return mMaterialPsoData[materialIndex].PsoIndex;
 	}
 
 
@@ -87,9 +85,20 @@ namespace Darius::Graphics
 	{
 		auto valueChanged = false;
 
-		// Material selection
-		D_H_DETAILS_DRAW_PROPERTY("Material");
-		D_H_RESOURCE_SELECTION_DRAW(MaterialResource, mMaterial, "Select Material", SetMaterial);
+		for (UINT i = 0; i < mMaterials.size(); i++)
+		{
+			auto setter = [&](D_RESOURCE::ResourceHandle handle)
+			{
+				mChangeSignal();
+				mMaterialPsoData[i].PsoIndexDirty = true;
+				mMaterials[i] = D_RESOURCE::GetResource<MaterialResource>(handle, *this);
+			};
+
+			auto name = std::string("Material ") + std::to_string(i + 1);
+			D_H_DETAILS_DRAW_PROPERTY(name.c_str());
+			D_H_RESOURCE_SELECTION_DRAW(MaterialResource, mMaterials[i], "Select Material", setter, i);
+
+		}
 
 		// Casting shadow
 		D_H_DETAILS_DRAW_PROPERTY("Casts Shadow");
@@ -108,4 +117,17 @@ namespace Darius::Graphics
 		}
 		mMeshConstantsGPU.Destroy();
 	}
+
+	void MeshRendererComponentBase::OnDeserialized()
+	{
+		OnMeshChanged();
+	}
+
+	void MeshRendererComponentBase::OnMeshChanged()
+	{
+		auto numberOfSubmeshes = GetNumberOfSubmeshes();
+		mMaterials.resize(numberOfSubmeshes, { GetAsCountedOwner() });
+		mMaterialPsoData.resize(numberOfSubmeshes);
+	}
+
 }

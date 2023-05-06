@@ -48,24 +48,28 @@ namespace Darius::Graphics
 		bool any = false;
 		auto result = RenderItem();
 		const Mesh* mesh = mMesh.Get()->GetMeshData();
-		result.IndexCount = mesh->mNumTotalIndices;
 		result.Mesh = mesh;
 		result.PrimitiveType = D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
 		result.MeshCBV = GetConstantsAddress();
 		result.mJointData = mJoints.data();
 		result.mNumJoints = (UINT)mJoints.size();
-		result.PsoType = GetPsoIndex();
 
-		//for (auto const& draw : mesh->mDraw)
+		for (UINT i = 0; i < mesh->mDraw.size(); i++)
 		{
-			if (mMaterial->IsDirtyGPU())
-				return false;
-			result.Material.MaterialCBV = *mMaterial.Get();
-			result.Material.MaterialSRV = mMaterial->GetTexturesHandle();
-			result.Material.SamplersSRV = mMaterial->GetSamplersHandle();
-			result.PsoFlags = mComponentPsoFlags | mMaterial->GetPsoFlags();
-			result.BaseVertexLocation = mesh->mDraw[0].BaseVertexLocation;
-			result.StartIndexLocation = mesh->mDraw[0].StartIndexLocation;
+			auto const& draw = mesh->mDraw[i];
+			auto const& material = mMaterials[i];
+
+			if (!material.IsValid() || material->IsDirtyGPU())
+				continue;
+
+			result.PsoType = GetPsoIndex(i);
+			result.Material.MaterialCBV = *material.Get();
+			result.Material.MaterialSRV = material->GetTexturesHandle();
+			result.Material.SamplersSRV = material->GetSamplersHandle();
+			result.PsoFlags = mComponentPsoFlags | material->GetPsoFlags();
+			result.BaseVertexLocation = mesh->mDraw[i].BaseVertexLocation;
+			result.StartIndexLocation = mesh->mDraw[i].StartIndexLocation;
+			result.IndexCount = mesh->mDraw[i].IndexCount;
 
 			appendFunction(result);
 
@@ -106,6 +110,7 @@ namespace Darius::Graphics
 
 	void SkeletalMeshRendererComponent::LoadMeshData()
 	{
+		OnMeshChanged();
 		mJoints.clear();
 		mSkeleton.clear();
 		mSkeletonRoot = nullptr;
@@ -218,7 +223,9 @@ namespace Darius::Graphics
 
 	void SkeletalMeshRendererComponent::OnDeserialized()
 	{
-		mPsoIndexDirty = true;
+		for(UINT i = 0; i < mMaterialPsoData.size(); i++)
+			mMaterialPsoData[i].PsoIndexDirty = true;
+
 		LoadMeshData();
 	}
 

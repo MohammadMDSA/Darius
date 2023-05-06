@@ -981,9 +981,6 @@ namespace Darius::Renderer
 				context.SetVertexBuffer(0, ri.Mesh->VertexBufferView());
 				context.SetIndexBuffer(ri.Mesh->IndexBufferView());
 
-				// TODO: Render submeshes one by one
-				//for (uint32_t i = 0; i < ri.Mesh->mDraw; ++i)
-					//context.DrawIndexed(mesh.draw[i].primCount, mesh.draw[i].startIndex, mesh.draw[i].baseVertex);
 				context.DrawIndexedInstanced(ri.IndexCount, 1, ri.StartIndexLocation, ri.BaseVertexLocation, 0);
 
 				++m_CurrentDraw;
