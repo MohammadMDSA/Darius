@@ -26,6 +26,7 @@
         - Diffuse, Normal, Roughness, Metallic, and Emissive Textures Mapping
         - Diffuse Albedo, Emissive, Metallic, and Roughness Components
         - Opaque, Transparent, and Cutoff
+        - Multiple Sub-Meshes
     - Lighting
         - Blinn-Phong Model
         - Shadow Mapping
