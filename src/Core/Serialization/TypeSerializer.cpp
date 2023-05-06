@@ -100,7 +100,16 @@ namespace Darius::Core::Serialization
 			{
 				variant wrapped_var = item.extract_wrapped_value();
 				type value_type = wrapped_var.get_type();
-				if (value_type.is_arithmetic() || value_type == type::get<std::string>() || value_type.is_enumeration())
+
+				auto wrapped_type = value_type.is_wrapper() ? value_type.get_wrapped_type() : value_type;
+				bool is_wrapper = wrapped_type != value_type;
+				auto intendedType = is_wrapper ? wrapped_type : value_type;
+				// Checking existing serializers and deserializers
+				if (typeSerializers.contains(intendedType))
+				{
+					typeSerializers[intendedType].first(is_wrapper ? wrapped_var.extract_wrapped_value() : wrapped_var, el);
+				}
+				else if (value_type.is_arithmetic() || value_type == type::get<std::string>() || value_type.is_enumeration())
 				{
 					write_atomic_types_to_json(value_type, wrapped_var, el);
 				}
@@ -307,8 +316,16 @@ namespace Darius::Core::Serialization
 			}
 			else
 			{
+				const type intendedType = array_value_type.is_wrapper() ? array_value_type.get_wrapped_type() : array_value_type;
+				if (typeSerializers.contains(intendedType))
+				{
+					variant v;
+					typeSerializers[intendedType].second(v, json_index_value);
+					v.convert(array_value_type);
+					view.set_value(i, v);
+				}
 				variant extracted_value = extract_basic_types(json_index_value);
-				if (extracted_value.convert(array_value_type))
+				if (extracted_value.convert(intendedType))
 					view.set_value(i, extracted_value);
 			}
 		}

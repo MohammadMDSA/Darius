@@ -19,6 +19,8 @@ namespace Darius::Core
 	{
 	public:
 
+		Ref() : Ref(nullptr, std::nullopt) {} 
+
 		Ref(CountedOwner ownerData) : Ref(nullptr, ownerData) {}
 
 		Ref(T* data, std::optional<CountedOwner> ownerData = std::nullopt)
@@ -52,6 +54,8 @@ namespace Darius::Core
 		Ref(Ref<T> const& other)
 		{
 			Unref();
+			if (mOwnerData.Ref == nullptr)
+				mOwnerData = other.mOwnerData;
 			mData = other.mData;
 			if (other.IsValid())
 				mData->AddOwner(mOwnerData);
@@ -60,6 +64,8 @@ namespace Darius::Core
 		INLINE Ref<T>& operator= (Ref<T> const& other)
 		{
 			Unref();
+			if (mOwnerData.Ref == nullptr)
+				mOwnerData = other.mOwnerData;
 			mData = other.mData;
 			if (other.IsValid())
 				mData->AddOwner(mOwnerData);

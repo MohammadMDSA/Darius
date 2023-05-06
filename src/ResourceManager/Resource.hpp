@@ -278,11 +278,13 @@ namespace rttr
 	template<typename T>
 	struct wrapper_mapper<D_CORE::Ref<T>>
 	{
-		using wrapped_type = decltype(std::declval<T>().GetUuid());
+		using wrapped_type = D_CORE::Uuid;
 		using type = D_CORE::Ref<T>;
 
 		INLINE static wrapped_type get(type const& obj)
 		{
+			if(!obj.IsValid())
+				return D_CORE::Uuid();
 			return obj->GetUuid();
 		}
 
