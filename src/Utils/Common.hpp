@@ -48,7 +48,7 @@ static INLINE std::string const GetTypeName() { return D_NAMEOF(T); }
 	} \
 }
 
-#define D_H_RESOURCE_SELECTION_DRAW(resourceType, prop, placeHolder, handleFunction) \
+#define D_H_RESOURCE_SELECTION_DRAW(resourceType, prop, placeHolder, handleFunction, ...) \
 { \
     resourceType* currentResource = prop.Get(); \
      \
@@ -65,7 +65,7 @@ static INLINE std::string const GetTypeName() { return D_NAMEOF(T); }
     ImGui::Button(cuurrentResourceName.c_str(), ImVec2(availableSpace.x - 2 * selectorWidth - 10.f, 0)); \
     D_H_RESOURCE_DRAG_DROP_DESTINATION(resourceType, handleFunction) \
 	ImGui::SameLine(availableSpace.x - selectorWidth); \
-		if (ImGui::Button(ICON_FA_ELLIPSIS_VERTICAL "##" placeHolder, ImVec2(selectorWidth, 0))) \
+		if (ImGui::Button((std::string(ICON_FA_ELLIPSIS_VERTICAL) + ("##" placeHolder) + std::string(__VA_ARGS__)).c_str(), ImVec2(selectorWidth, 0))) \
 		{ \
 			ImGui::OpenPopup(placeHolder " Res"); \
 		} \
@@ -85,12 +85,12 @@ static INLINE std::string const GetTypeName() { return D_NAMEOF(T); }
 						handleFunction(prev.Handle); \
 						valueChanged = true; \
 					} \
-						ImGui::PopID(); \
-						\
-						idx++; \
-				} \
+					ImGui::PopID(); \
 					\
-						ImGui::EndPopup(); \
+					idx++; \
+				} \
+				\
+				ImGui::EndPopup(); \
 			} \
 }
 #define D_H_RESOURCE_SELECTION_DRAW_SHORT(type, name, label) D_H_RESOURCE_SELECTION_DRAW(type, m##name, label, Set##name)
