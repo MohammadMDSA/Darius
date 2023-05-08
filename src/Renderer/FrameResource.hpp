@@ -86,7 +86,9 @@ namespace Darius::Renderer::ConstantFrameResource
 			HasSkin = 0x100,
 			Wireframe = 0x200,
 			ColorOnly = 0x400,
-			LineOnly = 0x800
+			LineOnly = 0x800,
+			DepthOnly = 0x1000,
+			IsShadow = 0x3000,
 		};
 
 		RenderItem() = default;
@@ -123,7 +125,7 @@ namespace Darius::Renderer::ConstantFrameResource
 		int							mNumJoints = 0;
 
 		uint16_t					PsoFlags = 0;
-		uint16_t					PsoType;
+		uint32_t					PsoType;
 	};
 
 }

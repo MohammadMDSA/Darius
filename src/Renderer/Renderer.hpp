@@ -219,7 +219,7 @@ namespace Darius::Renderer
 	void					SetIBLBias(float LODBias);
 
 	// PSO Getter
-	uint8_t					GetPso(uint16_t psoFlags);
+	UINT					GetPso(uint16_t psoFlags);
 
 	void					DrawSkybox(D_GRAPHICS::GraphicsContext& context, const D_MATH_CAMERA::BaseCamera& camera, D_GRAPHICS_BUFFERS::ColorBuffer& sceneColor, D_GRAPHICS_BUFFERS::DepthBuffer& sceneDepth, const D3D12_VIEWPORT& viewport, const D3D12_RECT& scissor);
 
