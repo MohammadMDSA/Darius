@@ -54,6 +54,7 @@ namespace Darius::Graphics
 				continue;
 
 			result.PsoType = GetPsoIndex(i);
+			result.DepthPsoIndex = mMaterialPsoData[i].DepthPsoIndex;
 			result.Material.MaterialCBV = *material.Get();
 			result.Material.MaterialSRV = material->GetTexturesHandle();
 			result.Material.SamplersSRV = material->GetSamplersHandle();

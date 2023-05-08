@@ -60,6 +60,7 @@ namespace Darius::Graphics
 		{
 			uint16_t							CachedMaterialPsoFlags = 0;
 			UINT								PsoIndex = 0;
+			UINT								DepthPsoIndex = 0;
 			bool								PsoIndexDirty = true;
 		};
 		D_CONTAINERS::DVector<MaterialPsoData>	mMaterialPsoData;

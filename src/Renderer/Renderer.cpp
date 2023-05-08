@@ -442,6 +442,8 @@ namespace Darius::Renderer
 			SkyboxPso.SetPixelShader(ShaderData("SkyboxPS"));
 			SkyboxPso.Finalize(L"Skybox");
 		}
+
+		Psos.push_back(GraphicsPSO(L"Invalid PSO"));
 	}
 
 	void BuildRootSignature()
@@ -577,11 +579,6 @@ namespace Darius::Renderer
 
 		bool alphaBlend = (renderItem.PsoFlags & RenderItem::AlphaBlend) == RenderItem::AlphaBlend;
 		bool alphaTest = (renderItem.PsoFlags & RenderItem::AlphaTest) == RenderItem::AlphaTest;
-		bool skinned = (renderItem.PsoFlags & RenderItem::HasSkin) == RenderItem::HasSkin;
-		bool twoSided = renderItem.PsoFlags & RenderItem::TwoSided;
-		bool wireframed = renderItem.PsoFlags & RenderItem::Wireframe;
-		uint64_t depthPSO = GetPso(renderItem.PsoFlags | RenderItem::DepthOnly);
-		uint64_t shadowDepthPSO = GetPso(renderItem.PsoFlags | RenderItem::IsShadow);
 
 		union float_or_int { float f; uint32_t u; } dist;
 		dist.f = Max(distance, 0.0f);
@@ -590,6 +587,8 @@ namespace Darius::Renderer
 		{
 			if (alphaBlend)
 				return;
+
+			UINT shadowDepthPSO = renderItem.DepthPsoIndex > 0 ? renderItem.DepthPsoIndex + 1 : GetPso(renderItem.PsoFlags) + 1;
 
 			key.passID = kZPass;
 			key.psoIdx = shadowDepthPSO;
@@ -607,6 +606,8 @@ namespace Darius::Renderer
 		}
 		else if (SeparateZPass || alphaTest)
 		{
+			UINT depthPSO = renderItem.DepthPsoIndex > 0 ? renderItem.DepthPsoIndex : GetPso(renderItem.PsoFlags | RenderItem::DepthOnly);
+
 			key.passID = kZPass;
 			key.psoIdx = depthPSO;
 			key.key = dist.u;
@@ -858,7 +859,7 @@ namespace Darius::Renderer
 
 	UINT GetDepthOnlyPso(uint16_t psoFlags)
 	{
-		static const uint16_t relevantFlags = RenderItem::IsShadow | RenderItem::AlphaTest | RenderItem::HasSkin | RenderItem::TwoSided | RenderItem::Wireframe | RenderItem::LineOnly;
+		static const uint16_t relevantFlags = RenderItem::AlphaTest | RenderItem::HasSkin | RenderItem::TwoSided | RenderItem::Wireframe | RenderItem::LineOnly;
 
 		// Only masking relevant flags
 		psoFlags &= relevantFlags;
@@ -920,23 +921,11 @@ namespace Darius::Renderer
 			if (psoFlags & RenderItem::Wireframe)
 			{
 				name += L" Wireframe";
-				if ((psoFlags & RenderItem::IsShadow) == RenderItem::IsShadow)
-				{
-					name += L" Shadow";
-					depthPSO.SetRasterizerState(RasterizerShadowTwoSidedWireframe);
-				}
-				else
-					depthPSO.SetRasterizerState(RasterizerTwoSidedWireframe);
+				depthPSO.SetRasterizerState(RasterizerTwoSidedWireframe);
 			}
 			else // Not wireframed
 			{
-				if ((psoFlags & RenderItem::IsShadow) == RenderItem::IsShadow)
-				{
-					name += L" Shadow";
-					depthPSO.SetRasterizerState(RasterizerShadowTwoSided);
-				}
-				else
-					depthPSO.SetRasterizerState(RasterizerTwoSided);
+				depthPSO.SetRasterizerState(RasterizerTwoSided);
 			}
 		}
 		else // Not two sided
@@ -945,26 +934,14 @@ namespace Darius::Renderer
 			if (psoFlags & RenderItem::Wireframe)
 			{
 				name += L" Wireframe";
-				if ((psoFlags & RenderItem::IsShadow) == RenderItem::IsShadow)
-				{
-					name += L" Shadow";
-					depthPSO.SetRasterizerState(RasterizerShadowWireframe);
-				}
-				else
-					depthPSO.SetRasterizerState(RasterizerDefaultWireframe);
+				depthPSO.SetRasterizerState(RasterizerDefaultWireframe);
 			}
 			else // Not wireframed
 			{
-				if ((psoFlags & RenderItem::IsShadow) == RenderItem::IsShadow)
-				{
-					name += L" Shadow";
-					depthPSO.SetRasterizerState(RasterizerShadow);
-				}
-				else
-					depthPSO.SetRasterizerState(RasterizerDefault);
+				depthPSO.SetRasterizerState(RasterizerDefault);
 			}
 		}
-		
+
 		// Handling input layout
 		if (psoFlags & RenderItem::HasSkin)
 		{
@@ -987,20 +964,49 @@ namespace Darius::Renderer
 		}
 
 		// Setting render target format
-		if ((psoFlags & RenderItem::IsShadow) == RenderItem::IsShadow)
-		{
-			depthPSO.SetRenderTargetFormats(0, nullptr, D_GRAPHICS::GetShadowFormat());
-		}
-		else
-		{
-			depthPSO.SetRenderTargetFormats(0, nullptr, D_GRAPHICS::GetDepthFormat());
-		}
+		depthPSO.SetRenderTargetFormats(0, nullptr, D_GRAPHICS::GetDepthFormat());
 
 		depthPSO.Finalize(name);
 
 		Psos.push_back(depthPSO);
 
-		auto index = (UINT)Psos.size() - 1u;
+
+		// Setting up shadow one just one index ahead
+
+		depthPSO.SetRenderTargetFormats(0, nullptr, D_GRAPHICS::GetShadowFormat());
+
+		// Handling Shadow Rasterizer
+		// Is two sided
+		if (psoFlags & RenderItem::TwoSided)
+		{
+			// Is wireframed
+			if (psoFlags & RenderItem::Wireframe)
+			{
+				depthPSO.SetRasterizerState(RasterizerShadowTwoSidedWireframe);
+			}
+			else // Not wireframed
+			{
+				depthPSO.SetRasterizerState(RasterizerShadowTwoSided);
+			}
+		}
+		else // Not two sided
+		{
+			// Is wireframed
+			if (psoFlags & RenderItem::Wireframe)
+			{
+				depthPSO.SetRasterizerState(RasterizerShadowWireframe);
+			}
+			else // Not wireframed
+			{
+				depthPSO.SetRasterizerState(RasterizerShadow);
+			}
+		}
+
+		name += L" Shadow";
+		depthPSO.Finalize(name);
+		Psos.push_back(depthPSO);
+
+		auto index = (UINT)Psos.size() - 2u;
 		PSOFlagCache[psoFlags] = index;
 
 		return index;
