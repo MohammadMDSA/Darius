@@ -109,6 +109,9 @@ namespace Darius::Graphics
 	extern D3D12_RASTERIZER_DESC			RasterizerShadow;
 	extern D3D12_RASTERIZER_DESC			RasterizerShadowCW;
 	extern D3D12_RASTERIZER_DESC			RasterizerShadowTwoSided;
+	extern D3D12_RASTERIZER_DESC			RasterizerShadowWireframe;
+	extern D3D12_RASTERIZER_DESC			RasterizerShadowCWWireframe;
+	extern D3D12_RASTERIZER_DESC			RasterizerShadowTwoSidedWireframe;
 
 	extern D3D12_BLEND_DESC					BlendNoColorWrite;
 	extern D3D12_BLEND_DESC					BlendDisable;

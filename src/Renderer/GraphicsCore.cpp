@@ -107,6 +107,9 @@ namespace Darius::Graphics
 	D3D12_RASTERIZER_DESC					RasterizerShadow;
 	D3D12_RASTERIZER_DESC					RasterizerShadowCW;
 	D3D12_RASTERIZER_DESC					RasterizerShadowTwoSided;
+	D3D12_RASTERIZER_DESC					RasterizerShadowWireframe;
+	D3D12_RASTERIZER_DESC					RasterizerShadowCWWireframe;
+	D3D12_RASTERIZER_DESC					RasterizerShadowTwoSidedWireframe;
 
 	D3D12_BLEND_DESC						BlendNoColorWrite;
 	D3D12_BLEND_DESC						BlendDisable;
@@ -489,6 +492,15 @@ namespace Darius::Graphics
 
 		RasterizerShadowCW = RasterizerShadow;
 		RasterizerShadowCW.FrontCounterClockwise = FALSE;
+
+		RasterizerShadowWireframe = RasterizerShadow;
+		RasterizerShadowWireframe.FillMode = D3D12_FILL_MODE_WIREFRAME;
+
+		RasterizerShadowCWWireframe = RasterizerShadowCW;
+		RasterizerShadowCWWireframe.FillMode = D3D12_FILL_MODE_WIREFRAME;
+
+		RasterizerShadowTwoSidedWireframe = RasterizerShadowTwoSided;
+		RasterizerShadowTwoSidedWireframe.FillMode = D3D12_FILL_MODE_WIREFRAME;
 
 		DepthStateDisabled.DepthEnable = FALSE;
 		DepthStateDisabled.DepthWriteMask = D3D12_DEPTH_WRITE_MASK_ZERO;
