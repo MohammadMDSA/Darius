@@ -59,7 +59,7 @@ namespace Darius::Graphics
 		mMaterials[index] = D_RESOURCE::GetResource<MaterialResource>(handle, *this);
 	}
 
-	uint16_t MeshRendererComponentBase::GetPsoIndex(UINT materialIndex)
+	UINT MeshRendererComponentBase::GetPsoIndex(UINT materialIndex)
 	{
 		auto materialPsoFlags = mMaterials[materialIndex]->GetPsoFlags();
 
