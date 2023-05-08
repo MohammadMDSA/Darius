@@ -11,7 +11,7 @@
 - Core
     - Runtime Type Reflection
     - Code Generation
-        - Auto Type Reflection Registeration
+        - Auto Type Reflection Registration
         - Auto Serialization and Deserialization
 - Resource Management
     - Default: PBR Material, Texture (DDS, TGA), Static and Skeletal Mesh (FBX), Animation (FBX), Vertex Batch Resources, and Physics Material
