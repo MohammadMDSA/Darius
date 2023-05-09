@@ -89,6 +89,8 @@ namespace Darius::Math
 		static const Vector3 Right;
 		static const Vector3 Forward;
 		static const Vector3 Backward;
+		static const Vector3 Zero;
+		static const Vector3 One;
 
 	protected:
 		RTTR_REGISTRATION_FRIEND;
@@ -162,6 +164,8 @@ namespace Darius::Math
 		static const Vector4 Right;
 		static const Vector4 Forward;
 		static const Vector4 Backward;
+		static const Vector4 Zero;
+		static const Vector4 One;
 
 	protected:
 		RTTR_REGISTRATION_FRIEND;

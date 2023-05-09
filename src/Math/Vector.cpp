@@ -15,6 +15,8 @@ namespace Darius::Math
 	const Vector3 Vector3::Right = Vector3(1.f, 0.f, 0.f);
 	const Vector3 Vector3::Forward = Vector3(0.f, 0.f, -1.f);
 	const Vector3 Vector3::Backward = Vector3(0.f, 0.f, 1.f);
+	const Vector3 Vector3::Zero = Vector3(0.f, 0.f, 0.f);
+	const Vector3 Vector3::One = Vector3(1.f, 1.f, 1.f);
 
 	const Vector4 Vector4::Up = Vector4(0.f, 1.f, 0.f, 0.f);
 	const Vector4 Vector4::Down = Vector4(0.f, -1.f, 0.f, 0.f);
@@ -22,6 +24,8 @@ namespace Darius::Math
 	const Vector4 Vector4::Right = Vector4(1.f, 0.f, 0.f, 0.f);
 	const Vector4 Vector4::Forward = Vector4(0.f, 0.f, -1.f, 0.f);
 	const Vector4 Vector4::Backward = Vector4(0.f, 0.f, 1.f, 0.f);
+	const Vector4 Vector4::Zero = Vector4(0.f, 0.f, 0.f, 0.f);
+	const Vector4 Vector4::One = Vector4(1.f, 1.f, 1.f, 1.f);
 
 #ifdef _D_EDITOR
 
