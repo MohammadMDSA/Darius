@@ -93,6 +93,8 @@ namespace Darius::Graphics::Utils
         void SetHullShader(const D3D12_SHADER_BYTECODE& Binary) { mPSODesc.HS = Binary; }
         void SetDomainShader(const D3D12_SHADER_BYTECODE& Binary) { mPSODesc.DS = Binary; }
 
+        D3D12_GRAPHICS_PIPELINE_STATE_DESC const& GetDesc() const { return mPSODesc; }
+
         // Perform validation and compute a hash value for fast state block comparisons
         void Finalize(std::wstring nameOverride = L"");
 
