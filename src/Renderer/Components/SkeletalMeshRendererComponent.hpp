@@ -36,7 +36,7 @@ namespace Darius::Graphics
 		INLINE D_RENDERER_GEOMETRY::Mesh::SkeletonJoint* GetSkeletonRoot() { return mSkeletonRoot; }
 
 
-		INLINE virtual D_MATH_BOUNDS::BoundingSphere const& GetBounds() const override { return mBounds; }
+		INLINE virtual D_MATH_BOUNDS::BoundingSphere const& GetBounds() override { return mBounds; }
 
 
 	protected:

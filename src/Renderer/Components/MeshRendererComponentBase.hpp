@@ -36,7 +36,7 @@ namespace Darius::Graphics
 
 		virtual bool							CanRender() const override { return IsActive(); }
 
-		INLINE virtual D_MATH_BOUNDS::BoundingSphere const& GetBounds() const override { return (D_MATH_BOUNDS::BoundingSphere&)*this; }
+		INLINE virtual D_MATH_BOUNDS::BoundingSphere const& GetBounds() override { return (D_MATH_BOUNDS::BoundingSphere&)*this; }
 
 		INLINE D3D12_GPU_VIRTUAL_ADDRESS		GetConstantsAddress() const override { return mMeshConstantsGPU.GetGpuVirtualAddress(); }
 

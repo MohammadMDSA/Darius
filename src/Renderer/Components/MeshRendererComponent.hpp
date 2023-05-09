@@ -30,7 +30,7 @@ namespace Darius::Graphics
 
 		INLINE virtual UINT					GetNumberOfSubmeshes() const { return mMesh.IsValid() ? (UINT)mMesh->GetMeshData()->mDraw.size() : 0u; }
 		INLINE virtual bool					CanRender() const override { return MeshRendererComponentBase::CanRender() && mMesh.IsValid(); }
-		INLINE virtual D_MATH_BOUNDS::BoundingSphere const& GetBounds() const override { return mMesh.Get()->GetMeshData()->mBoundSp; }
+		INLINE virtual D_MATH_BOUNDS::BoundingSphere const& GetBounds() override { return mMesh.Get()->GetMeshData()->mBoundSp; }
 
 	private:
 
