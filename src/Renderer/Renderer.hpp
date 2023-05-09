@@ -198,6 +198,21 @@ namespace Darius::Renderer
 		bool												DrawSkybox;
 	};
 
+	struct PsoConfig
+	{
+		UINT16	PsoFlags : 16 = 0;
+		UINT32	VSIndex : 10 = 0;
+		UINT32	PSIndex : 10 = 0;
+		UINT32	GSIndex : 10 = 0;
+		D3D12_INPUT_LAYOUT_DESC InputLayout =
+		{
+			nullptr,
+			0
+		};
+	};
+	
+	D_STATIC_ASSERT(sizeof(PsoConfig) == 8 + sizeof(D3D12_INPUT_LAYOUT_DESC));
+
 	void Initialize(D_SERIALIZATION::Json const& settings);
 	void Shutdown();
 	void Update();
@@ -219,9 +234,8 @@ namespace Darius::Renderer
 	void					SetIBLBias(float LODBias);
 
 	// PSO Getter
-	UINT					GetPso(uint16_t psoFlags);
-	bool					AllocatePso(std::wstring const& name, D_GRAPHICS_UTILS::GraphicsPSO const& renderPso, D_GRAPHICS_UTILS::GraphicsPSO const& depthPso, _OUT_ UINT& renderPsoIndex, _OUT_ UINT& depthPsoIndex);
-
+	UINT					GetPso(PsoConfig const&);
+	
 	void					DrawSkybox(D_GRAPHICS::GraphicsContext& context, const D_MATH_CAMERA::BaseCamera& camera, D_GRAPHICS_BUFFERS::ColorBuffer& sceneColor, D_GRAPHICS_BUFFERS::DepthBuffer& sceneDepth, const D3D12_VIEWPORT& viewport, const D3D12_RECT& scissor);
 
 	D_GRAPHICS_MEMORY::DescriptorHandle AllocateTextureDescriptor(UINT count = 1);
