@@ -1,7 +1,9 @@
 #pragma once
 
+#include "IRenderable.hpp"
+#include "Renderer/Resources/MaterialResource.hpp"
+
 #include <Core/Ref.hpp>
-#include <Renderer/Resources/MaterialResource.hpp>
 #include <Scene/EntityComponentSystem/Components/ComponentBase.hpp>
 
 #include "MeshRendererComponentBase.generated.hpp"
@@ -12,7 +14,7 @@
 
 namespace Darius::Graphics
 {
-	class DClass(Serialize) MeshRendererComponentBase : public D_ECS_COMP::ComponentBase
+	class DClass(Serialize) MeshRendererComponentBase : public D_ECS_COMP::ComponentBase, public IRenderable
 	{
 		D_H_COMP_BODY(MeshRendererComponentBase, D_ECS_COMP::ComponentBase, "Rendering/Base Mesh Renderer", false);
 
@@ -28,15 +30,15 @@ namespace Darius::Graphics
 		virtual bool							DrawDetails(float params[]) override;
 #endif
 
-		bool									AddRenderItems(std::function<void(D_RENDERER_FRAME_RESOURCE::RenderItem const&)> appendFunction);
+		INLINE virtual bool						AddRenderItems(std::function<void(D_RENDERER_FRAME_RESOURCE::RenderItem const&)> appendFunction) override { return false; }
 		
 		INLINE virtual UINT						GetNumberOfSubmeshes() const { return 0; }
 
-		virtual bool							CanRender() const { return IsActive(); }
+		virtual bool							CanRender() const override { return IsActive(); }
 
-		INLINE virtual D_MATH_BOUNDS::BoundingSphere const& GetBounds() const { return (D_MATH_BOUNDS::BoundingSphere&)*this; }
+		INLINE virtual D_MATH_BOUNDS::BoundingSphere const& GetBounds() const override { return (D_MATH_BOUNDS::BoundingSphere&)*this; }
 
-		INLINE D3D12_GPU_VIRTUAL_ADDRESS		GetConstantsAddress() const { return mMeshConstantsGPU.GetGpuVirtualAddress(); }
+		INLINE D3D12_GPU_VIRTUAL_ADDRESS		GetConstantsAddress() const override { return mMeshConstantsGPU.GetGpuVirtualAddress(); }
 
 	protected:
 
