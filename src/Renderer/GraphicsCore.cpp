@@ -5,6 +5,7 @@
 #include "AmbientOcclusion/SuperSampleAmbientOcclusion.hpp"
 #include "CommandContext.hpp"
 #include "Components/LightComponent.hpp"
+#include "Components/BillboardRendererComponent.hpp"
 #include "Components/MeshRendererComponent.hpp"
 #include "Components/SkeletalMeshRendererComponent.hpp"
 #include "Components/CameraComponent.hpp"
@@ -298,6 +299,7 @@ namespace Darius::Graphics
 
 		// Registering components
 		D_GRAPHICS::LightComponent::StaticConstructor();
+		D_GRAPHICS::BillboardRendererComponent::StaticConstructor();
 		D_GRAPHICS::MeshRendererComponent::StaticConstructor();
 		D_GRAPHICS::SkeletalMeshRendererComponent::StaticConstructor();
 		D_GRAPHICS::CameraComponent::StaticConstructor();
@@ -629,6 +631,8 @@ namespace Darius::Graphics
 					compiler = L"ps_6_2";
 				else if (shaderName.ends_with("CS"))
 					compiler = L"cs_6_2";
+				else if (shaderName.ends_with("GS"))
+					compiler = L"gs_6_2";
 				else
 					return;
 
