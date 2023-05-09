@@ -32,7 +32,10 @@
         - Shadow Mapping
     - Texture Filtering
     - Skybox
-    - Static and Skinned Mesh Rendering
+    - Render Items
+        - Static Mesh
+        - Skeletal Mesh
+        - Billboard
     - Optimizations
         - Frustum Culling
         - Separate Z Pass
