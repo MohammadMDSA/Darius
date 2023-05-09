@@ -87,7 +87,8 @@ namespace Darius::Renderer::ConstantFrameResource
 			Wireframe = 0x200,
 			ColorOnly = 0x400,
 			LineOnly = 0x800,
-			DepthOnly = 0x1000
+			DepthOnly = 0x1000,
+			SkipVertexIndex = 0x2000
 		};
 
 		RenderItem() = default;

@@ -4,6 +4,7 @@
 #include "AntiAliasing/TemporalEffect.hpp"
 #include "AmbientOcclusion/SuperSampleAmbientOcclusion.hpp"
 #include "Camera/CameraManager.hpp"
+#include "Components/BillboardRendererComponent.hpp"
 #include "Components/MeshRendererComponent.hpp"
 #include "Components/SkeletalMeshRendererComponent.hpp"
 #include "Geometry/Mesh.hpp"
@@ -177,6 +178,16 @@ namespace Darius::Renderer
 			}
 		);
 
+		reg.each([&](D_GRAPHICS::BillboardRendererComponent& meshComp)
+			{
+				D_JOB::AssignTask([&](int threadNumber, int)
+					{
+						meshComp.Update(-1);
+
+					});
+			}
+		);
+
 		if (D_JOB::IsMainThread())
 			Darius::Job::WaitForThreadsToFinish();
 		{
@@ -233,6 +244,27 @@ namespace Darius::Renderer
 					});
 			});
 
+		// Iterating over meshes
+		worldReg.each([&](D_GRAPHICS::BillboardRendererComponent& meshComp)
+			{
+				// Can't render
+				if (!meshComp.CanRender())
+					return;
+
+				// Is it in our frustum
+				auto sphereWorldSpace = meshComp.GetGameObject()->GetTransform() * meshComp.GetBounds();
+				auto sphereViewSpace = BoundingSphere(Vector3(cam.GetViewMatrix() * sphereWorldSpace.GetCenter()), sphereWorldSpace.GetRadius());
+				if (!frustum.IntersectSphere(sphereViewSpace))
+					return;
+
+				auto distance = -sphereViewSpace.GetCenter().GetZ() - sphereViewSpace.GetRadius();
+
+				meshComp.AddRenderItems([distance, &sorter](auto const& ri)
+					{
+						sorter.AddMesh(ri, distance);
+					});
+			});
+
 		//D_LOG_DEBUG("Number of render items: " << sorter.CountObjects());
 
 	}
@@ -261,6 +293,24 @@ namespace Darius::Renderer
 
 		// Iterating over meshes
 		worldReg.each([&](D_GRAPHICS::SkeletalMeshRendererComponent& meshComp)
+			{
+				// Can't render
+				if (!meshComp.CanRender())
+					return;
+
+				if (!meshComp.IsCastsShadow())
+					return;
+
+				meshComp.AddRenderItems([&items](auto const& ri)
+					{
+						auto item = ri;
+						item.Material.SamplersSRV.ptr = 0;
+						items.push_back(item);
+					});
+			});
+
+		// Iterating over meshes
+		worldReg.each([&](D_GRAPHICS::BillboardRendererComponent& meshComp)
 			{
 				// Can't render
 				if (!meshComp.CanRender())
@@ -807,10 +857,16 @@ namespace Darius::Renderer
 
 				context.SetPrimitiveTopology(ri.PrimitiveType);
 
-				context.SetVertexBuffer(0, ri.Mesh->VertexBufferView());
-				context.SetIndexBuffer(ri.Mesh->IndexBufferView());
+				if (!(ri.PsoFlags & RenderItem::SkipVertexIndex))
+				{
+					context.SetVertexBuffer(0, ri.Mesh->VertexBufferView());
+					context.SetIndexBuffer(ri.Mesh->IndexBufferView());
+				}
 
-				context.DrawIndexedInstanced(ri.IndexCount, 1, ri.StartIndexLocation, ri.BaseVertexLocation, 0);
+				if (ri.PsoFlags & RenderItem::SkipVertexIndex)
+					context.DrawInstanced(ri.IndexCount, 1, ri.BaseVertexLocation, 0);
+				else
+					context.DrawIndexedInstanced(ri.IndexCount, 1, ri.StartIndexLocation, ri.BaseVertexLocation, 0);
 
 				++m_CurrentDraw;
 			}
@@ -1165,4 +1221,72 @@ namespace Darius::Renderer
 		else
 			return GetRenderPso(psoFlags);
 	}
+
+	bool AllocatePso(std::wstring const& name, D_GRAPHICS_UTILS::GraphicsPSO const& renderPso, D_GRAPHICS_UTILS::GraphicsPSO const& depthPso, _OUT_ UINT& renderPsoIndex, _OUT_ UINT& depthPsoIndex)
+	{
+
+		// Registering render pso
+		GraphicsPSO render = renderPso;
+
+
+		DXGI_FORMAT rtFormats[] = { D_GRAPHICS::GetColorFormat(), DXGI_FORMAT_R16G16B16A16_FLOAT }; // Color and normal
+		render.SetRootSignature(D_RENDERER::GetRootSignature(D_RENDERER::DefaultRootSig));
+		render.SetRenderTargetFormats(2, rtFormats, D_GRAPHICS::GetDepthFormat());
+
+		render.Finalize(name);
+		Psos.push_back(render);
+
+		// Separate Z
+		render.SetDepthStencilState(DepthStateTestEqual);
+		render.Finalize(name);
+		Psos.push_back(render);
+		renderPsoIndex = (UINT)Psos.size() - 2u;
+
+
+		// Registering depth pso
+		GraphicsPSO depth = depthPso;
+		depth.SetRenderTargetFormats(0, nullptr, D_GRAPHICS::GetDepthFormat());
+		depth.SetRootSignature(D_RENDERER::GetRootSignature(D_RENDERER::DefaultRootSig));
+		depth.Finalize(name + L" Depth");
+
+		Psos.push_back(depth);
+		// Shadow
+		depth.SetRenderTargetFormats(0, nullptr, D_GRAPHICS::GetShadowFormat());
+
+		// Handling Shadow Rasterizer
+		auto depthDesc = depth.GetDesc();
+		// Is two sided
+		if (depthDesc.RasterizerState.CullMode == D3D12_CULL_MODE_NONE)
+		{
+			// Is wireframed
+			if (depthDesc.RasterizerState.FillMode == D3D12_FILL_MODE_WIREFRAME)
+			{
+				depth.SetRasterizerState(RasterizerShadowTwoSidedWireframe);
+			}
+			else // Not wireframed
+			{
+				depth.SetRasterizerState(RasterizerShadowTwoSided);
+			}
+		}
+		else // Not two sided
+		{
+			// Is wireframed
+			if (depthDesc.RasterizerState.FillMode == D3D12_FILL_MODE_WIREFRAME)
+			{
+				depth.SetRasterizerState(RasterizerShadowWireframe);
+			}
+			else // Not wireframed
+			{
+				depth.SetRasterizerState(RasterizerShadow);
+			}
+		}
+
+		depth.Finalize(name + L" Shadow");
+		Psos.push_back(depth);
+
+		depthPsoIndex = (UINT)Psos.size() - 2u;
+
+		return true;
+	}
+
 }

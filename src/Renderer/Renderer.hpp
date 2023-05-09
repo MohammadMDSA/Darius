@@ -220,6 +220,7 @@ namespace Darius::Renderer
 
 	// PSO Getter
 	UINT					GetPso(uint16_t psoFlags);
+	bool					AllocatePso(std::wstring const& name, D_GRAPHICS_UTILS::GraphicsPSO const& renderPso, D_GRAPHICS_UTILS::GraphicsPSO const& depthPso, _OUT_ UINT& renderPsoIndex, _OUT_ UINT& depthPsoIndex);
 
 	void					DrawSkybox(D_GRAPHICS::GraphicsContext& context, const D_MATH_CAMERA::BaseCamera& camera, D_GRAPHICS_BUFFERS::ColorBuffer& sceneColor, D_GRAPHICS_BUFFERS::DepthBuffer& sceneDepth, const D3D12_VIEWPORT& viewport, const D3D12_RECT& scissor);
 
