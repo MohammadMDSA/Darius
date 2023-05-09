@@ -20,9 +20,10 @@ namespace Darius::Graphics
 	{
 	public:
 		virtual bool						CanRender() const = 0;
-		virtual D_MATH_BOUNDS::BoundingSphere const& GetBounds() const = 0;
+		virtual D_MATH_BOUNDS::BoundingSphere const& GetBounds() = 0;
 		virtual D3D12_GPU_VIRTUAL_ADDRESS	GetConstantsAddress() const = 0;
 		virtual bool						AddRenderItems(std::function<void(D_RENDERER_FRAME_RESOURCE::RenderItem const&)> appendFunction) = 0;
+		virtual bool						IsCastsShadow() const = 0;
 
 		Darius_Graphics_IRenderable_GENERATED
 	};
