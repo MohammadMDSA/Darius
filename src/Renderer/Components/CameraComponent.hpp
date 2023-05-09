@@ -16,7 +16,6 @@ namespace Darius::Graphics
 		D_H_COMP_BODY(CameraComponent, D_ECS_COMP::ComponentBase, "Rendering/Camera", true);
 
 	public:
-		Darius_Graphics_CameraComponent_GENERATED
 
 #ifdef _D_EDITOR
 		virtual bool					DrawDetails(float params[]) override;
@@ -49,6 +48,9 @@ namespace Darius::Graphics
 	private:
 		DField(Get[const, &, inline])
 		D_MATH_CAMERA::Camera			mCamera;
+
+	public:
+		Darius_Graphics_CameraComponent_GENERATED
 
 	};
 }
