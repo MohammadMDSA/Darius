@@ -42,6 +42,11 @@ namespace Darius::Graphics
 	D_GRAPHICS_UTILS::CommandListManager*	GetCommandManager();
 	ContextManager*							GetContextManager();
 
+	Microsoft::WRL::ComPtr<ID3DBlob>		GetShaderByIndex(UINT32 index);
+	Microsoft::WRL::ComPtr<ID3DBlob>		GetShaderByName(std::string const& shaderName);
+	UINT32									GetShaderIndex(std::string const& shaderName);
+
+
 #ifdef _D_EDITOR
 	bool OptionsDrawer(_IN_OUT_ D_SERIALIZATION::Json& options);
 #endif
@@ -73,8 +78,6 @@ namespace Darius::Graphics
 	};
 
 	D_RESOURCE::ResourceHandle GetDefaultGraphicsResource(DefaultResource type);
-
-	extern std::unordered_map<std::string, Microsoft::WRL::ComPtr<ID3DBlob>>	Shaders;
 
 	extern D_GRAPHICS_UTILS::SamplerDesc	SamplerLinearWrapDesc;
 	extern D_GRAPHICS_UTILS::SamplerDesc	SamplerAnisoWrapDesc;

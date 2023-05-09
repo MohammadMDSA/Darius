@@ -73,8 +73,8 @@ namespace Darius::Graphics
 		// Whether pso index is not compatible with current pso flags
 		if (mMaterialPsoData[materialIndex].PsoIndexDirty)
 		{
-			mMaterialPsoData[materialIndex].PsoIndex = D_RENDERER::GetPso(materialPsoFlags | mComponentPsoFlags);
-			mMaterialPsoData[materialIndex].DepthPsoIndex = D_RENDERER::GetPso(materialPsoFlags | mComponentPsoFlags | RenderItem::DepthOnly);
+			mMaterialPsoData[materialIndex].PsoIndex = D_RENDERER::GetPso({ (UINT16)(materialPsoFlags | mComponentPsoFlags) });
+			mMaterialPsoData[materialIndex].DepthPsoIndex = D_RENDERER::GetPso({ (UINT16)(materialPsoFlags | mComponentPsoFlags | RenderItem::DepthOnly) });
 
 			mMaterialPsoData[materialIndex].PsoIndexDirty = false;
 		}

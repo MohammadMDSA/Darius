@@ -30,7 +30,11 @@
 #include <Utils/Assert.hpp>
 #include <Utils/Common.hpp>
 
+#include <dxcapi.h>
+
+#ifdef _D_EDITOR
 #include <imgui.h>
+#endif
 
 using namespace D_CONTAINERS;
 using namespace D_CORE;
@@ -57,7 +61,8 @@ namespace Darius::Graphics
 		D3D12_DESCRIPTOR_HEAP_TYPE_DSV
 	};
 
-	std::unordered_map<std::string, ComPtr<ID3DBlob>>	Shaders;
+	std::vector<ComPtr<ID3DBlob>>						Shaders;
+	std::unordered_map<std::string, UINT32>				ShaderNameMap;
 
 	DUnorderedMap<DefaultResource, ResourceHandle>		DefaultResourceMap;
 
@@ -332,7 +337,7 @@ namespace Darius::Graphics
 		DestroyCommonStates();
 
 		for (auto& kv : Shaders)
-			kv.second.Reset();
+			kv.Reset();
 
 		Device::Shutdown();
 	}
@@ -574,9 +579,12 @@ namespace Darius::Graphics
 		CommonRS.Finalize(L"GraphicsCommonRS");
 
 #define CreatePSO(ObjName, name ) \
-		ObjName.SetRootSignature(CommonRS); \
-		ObjName.SetComputeShader(Shaders[#name]->GetBufferPointer(), Shaders[#name]->GetBufferSize() ); \
-		ObjName.Finalize();
+		{ \
+			ObjName.SetRootSignature(CommonRS); \
+			auto shader = GetShaderByName(#name); \
+			ObjName.SetComputeShader(shader->GetBufferPointer(), shader->GetBufferSize() ); \
+			ObjName.Finalize(); \
+		}
 
 		CreatePSO(GenerateMipsLinearPSO[0], GenerateMipsLinearCS);
 		CreatePSO(GenerateMipsLinearPSO[1], GenerateMipsLinearOddXCS);
@@ -614,6 +622,8 @@ namespace Darius::Graphics
 	void BuildShaders()
 	{
 
+		Shaders.push_back(ComPtr<ID3DBlob>());
+
 		D_FILE::VisitFilesInDirectory(std::filesystem::current_path() / "Shaders", true, [&](Path const& path)
 			{
 				if (path.extension() != L".hlsl")
@@ -636,7 +646,8 @@ namespace Darius::Graphics
 				else
 					return;
 
-				Shaders[shaderName] = CompileShader(path, L"main", compiler);
+				Shaders.push_back(CompileShader(path, L"main", compiler));
+				ShaderNameMap[shaderName] = (UINT32)Shaders.size() - 1;
 			});
 
 	}
@@ -810,4 +821,18 @@ namespace Darius::Graphics
 	}
 #endif
 
+	Microsoft::WRL::ComPtr<ID3DBlob>		GetShaderByIndex(UINT32 index)
+	{
+		return Shaders[index];
+	}
+
+	Microsoft::WRL::ComPtr<ID3DBlob>		GetShaderByName(std::string const& shaderName)
+	{
+		return Shaders[ShaderNameMap[shaderName]];
+	}
+
+	UINT32									GetShaderIndex(std::string const& shaderName)
+	{
+		return ShaderNameMap[shaderName];
+	}
 }

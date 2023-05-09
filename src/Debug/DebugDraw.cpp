@@ -16,8 +16,8 @@ ri.MeshCBV = MeshConstantsGPU.GetGpuVirtualAddress() + sizeof(D_RENDERER_FRAME_R
 ri.Color = color; \
 ri.PrimitiveType = D3D_PRIMITIVE_TOPOLOGY_LINELIST; \
 ri.PsoFlags = RenderItem::HasPosition | RenderItem::HasNormal | RenderItem::HasTangent | RenderItem::HasUV0 | RenderItem::ColorOnly | RenderItem::TwoSided | RenderItem::LineOnly | RenderItem::AlphaBlend; \
-ri.PsoType = D_RENDERER::GetPso(ri.PsoFlags); \
-ri.DepthPsoIndex = D_RENDERER::GetPso(ri.PsoFlags | RenderItem::DepthOnly); \
+ri.PsoType = D_RENDERER::GetPso({ ri.PsoFlags }); \
+ri.DepthPsoIndex = D_RENDERER::GetPso({ (UINT16)(ri.PsoFlags | RenderItem::DepthOnly) }); \
 DrawPending.push_back(ri); \
 if(duration > 0) \
 { \
@@ -30,8 +30,8 @@ PopulateRenderItemFromMesh(ri, meshResource->GetMeshData()); \
 ri.MeshCBV = MeshConstantsGPU.GetGpuVirtualAddress() + sizeof(D_RENDERER_FRAME_RESOURCE::MeshConstants) * index; \
 ri.Color = color; \
 ri.PsoFlags = RenderItem::HasPosition | RenderItem::HasNormal | RenderItem::HasTangent | RenderItem::HasUV0 | RenderItem::ColorOnly | RenderItem::TwoSided | RenderItem::Wireframe; \
-ri.PsoType = D_RENDERER::GetPso(ri.PsoFlags); \
-ri.DepthPsoIndex = D_RENDERER::GetPso(ri.PsoFlags | RenderItem::DepthOnly); \
+ri.PsoType = D_RENDERER::GetPso({ ri.PsoFlags }); \
+ri.DepthPsoIndex = D_RENDERER::GetPso({ (UINT16)(ri.PsoFlags | RenderItem::DepthOnly) }); \
 DrawPending.push_back(ri); \
 if(duration > 0) \
 { \
@@ -266,7 +266,7 @@ namespace Darius::Debug
 
 		if (clearCache)
 			DrawsWithDuration.clear();
-		
+
 		auto now = D_TIME::GetTotalTime();
 
 		int index = 0;

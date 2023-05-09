@@ -106,7 +106,7 @@ namespace Darius::Graphics::AmbientOcclusion::SuperSample
 #define CreatePSO(ObjName, ShaderName) \
     { \
         ObjName.SetRootSignature(RootSig); \
-        auto& shaderData = D_GRAPHICS::Shaders[#ShaderName]; \
+        auto shaderData = D_GRAPHICS::GetShaderByName(#ShaderName); \
         ObjName.SetComputeShader(shaderData->GetBufferPointer(), shaderData->GetBufferSize()); \
         ObjName.Finalize(); \
     }

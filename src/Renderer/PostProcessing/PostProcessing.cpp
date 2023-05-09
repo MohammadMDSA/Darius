@@ -82,7 +82,7 @@ namespace Darius::Graphics::PostProcessing
 #define CreatePSO(ObjName, ShaderName) \
     { \
         ObjName.SetRootSignature(PostEffectRS); \
-        auto& shaderData = D_GRAPHICS::Shaders[#ShaderName]; \
+        auto shaderData = D_GRAPHICS::GetShaderByName(#ShaderName); \
         ObjName.SetComputeShader(shaderData->GetBufferPointer(), shaderData->GetBufferSize()); \
         ObjName.Finalize(); \
     }
