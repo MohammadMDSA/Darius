@@ -87,14 +87,15 @@ namespace Darius::Renderer::ConstantFrameResource
 			Wireframe = 0x200,
 			ColorOnly = 0x400,
 			LineOnly = 0x800,
-			DepthOnly = 0x1000,
-			SkipVertexIndex = 0x2000
+			PointOnly = 0x1000,
+			DepthOnly = 0x2000,
+			SkipVertexIndex = 0x4000
 		};
 
 		RenderItem() = default;
 
 		// Mesh constants GPU Address
-		D3D12_GPU_VIRTUAL_ADDRESS		MeshCBV;
+		D3D12_GPU_VIRTUAL_ADDRESS		MeshCBV = D3D12_GPU_VIRTUAL_ADDRESS_UNKNOWN;
 
 		// Material or color
 		union

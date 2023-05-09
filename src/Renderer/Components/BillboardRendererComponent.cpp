@@ -2,6 +2,7 @@
 #include "BillboardRendererComponent.hpp"
 
 #include "Renderer/Resources/MaterialResource.hpp"
+#include "Renderer/GraphicsUtils/VertexTypes.hpp"
 
 #include <Utils/DragDropPayload.hpp>
 
@@ -15,6 +16,7 @@
 using namespace D_GRAPHICS;
 using namespace D_GRAPHICS_UTILS;
 using namespace D_MATH;
+using namespace D_RENDERER;
 using namespace D_RENDERER_FRAME_RESOURCE;
 
 namespace Darius::Graphics
@@ -113,7 +115,7 @@ namespace Darius::Graphics
 		if (RenderPsoIndex == 0 || DepthPsoIndex == 0)
 			UpdatePso();
 
-		static const uint16_t psoFlags = RenderItem::AlphaBlend | RenderItem::SkipVertexIndex;
+		static const uint16_t psoFlags = mMaterial->GetPsoFlags() | RenderItem::SkipVertexIndex | RenderItem::PointOnly;
 
 		RenderItem ri;
 		ri.PrimitiveType = D3D_PRIMITIVE_TOPOLOGY_POINTLIST;
@@ -135,26 +137,22 @@ namespace Darius::Graphics
 	void BillboardRendererComponent::UpdatePso()
 	{
 
-#define ShaderData(name) Shaders[name]->GetBufferPointer(), Shaders[name]->GetBufferSize()
+#define ShaderData(name) GetShaderByName(name)->GetBufferPointer(), Shaders[name]->GetBufferSize()
 
 		GraphicsPSO renderPso;
-		renderPso.SetInputLayout(0, nullptr);
-		renderPso.SetVertexShader(ShaderData("BillboardVS"));
-		renderPso.SetGeometryShader(ShaderData("BillboardGS"));
-		renderPso.SetPixelShader(ShaderData("BillboardPS"));
-		renderPso.SetRasterizerState(D_GRAPHICS::RasterizerDefault);
-		renderPso.SetBlendState(D_GRAPHICS::BlendTraditional);
-		renderPso.SetDepthStencilState(D_GRAPHICS::DepthStateReadOnly);
-		renderPso.SetSampleMask(UINT_MAX);
-		renderPso.SetPrimitiveTopologyType(D3D12_PRIMITIVE_TOPOLOGY_TYPE_POINT);
 
-		GraphicsPSO depthPso = renderPso;
-		depthPso.SetBlendState(BlendDisable);
-		depthPso.SetPixelShader(nullptr, 0);
+		PsoConfig config;
+		config.PsoFlags = mMaterial->GetPsoFlags() | RenderItem::SkipVertexIndex | RenderItem::PointOnly;
 
-		D_RENDERER::AllocatePso(L"Billboard PSO", renderPso, depthPso, BillboardRendererComponent::RenderPsoIndex, BillboardRendererComponent::DepthPsoIndex);
+		config.PSIndex = GetShaderIndex("BillboardPS");
+		config.VSIndex = GetShaderIndex("BillboardVS");
+		config.GSIndex = GetShaderIndex("BillboardGS");
+		
+		BillboardRendererComponent::RenderPsoIndex = D_RENDERER::GetPso(config);
+		config.PsoFlags |= RenderItem::DepthOnly;
+		config.PSIndex = 0;
+		BillboardRendererComponent::DepthPsoIndex = D_RENDERER::GetPso(config);
 
-#undef ShaderData
 	}
 
 #ifdef _D_EDITOR
