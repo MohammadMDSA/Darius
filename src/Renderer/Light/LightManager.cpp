@@ -421,6 +421,7 @@ namespace Darius::Renderer::LightManager
 
 		GlobalConstants globals;
 		globals.ViewProj = cam.GetViewProjMatrix();
+		globals.CameraPos = (DirectX::XMFLOAT3)cam.GetPosition();
 		globals.ShadowTexelSize.x = 1.f / DirectionalShadowBufferWidth;
 
 		auto& shadowBuffer = ShadowBuffers[lightGloablIndex];
@@ -452,6 +453,7 @@ namespace Darius::Renderer::LightManager
 
 		GlobalConstants globals;
 		globals.ViewProj = shadowCamera.GetViewProjMatrix();
+		globals.CameraPos = (DirectX::XMFLOAT3)shadowCamera.GetPosition();
 
 		auto& shadowBuffer = ShadowBuffers[lightGloablIndex];
 
