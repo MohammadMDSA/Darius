@@ -255,6 +255,45 @@ namespace Darius::Scene
 		}
 	}
 
+	void SceneManager::DumpGameObject(GameObject const* go, _OUT_ D_SERIALIZATION::Json& json)
+	{
+		D_ASSERT(go);
+
+		DVector<GameObject> toBeSerialized;
+		
+		D_CORE::UuidToJson(go->GetUuid(), json["Root"]);
+		
+		toBeSerialized.push_back(*go);
+		go->VisitDescendants([&toBeSerialized](auto go)
+			{
+				toBeSerialized.push_back(*go);
+			});
+
+		for (GameObject const& go : toBeSerialized)
+		{
+			// Serialize hierarchy
+			Json& goContext = json["Hierarchy"][ToString(go.GetUuid())];
+			go.VisitChildren([&](GameObject const* child)
+				{
+					goContext.push_back(ToString(child->GetUuid()));
+
+				});
+
+			// Serializing components
+			D_SERIALIZATION::Json objectComps;
+			go.VisitComponents([&](D_ECS_COMP::ComponentBase const* comp)
+				{
+					D_SERIALIZATION::Json componentJson;
+					D_SERIALIZATION::Serialize(comp, componentJson);
+					comp->OnSerialized();
+					D_CORE::to_json(componentJson["Uuid"], comp->mUuid);
+					objectComps[comp->GetComponentName()] = componentJson;
+				});
+			json["ObjectComponent"][ToString(go.GetUuid())] = objectComps;
+		}
+		json["Objects"] = toBeSerialized;
+	}
+
 	void SceneManager::LoadSceneDump(Json const& sceneJson)
 	{
 		Started = false;

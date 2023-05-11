@@ -32,6 +32,7 @@ namespace Darius::Scene
 		static void				GetGameObjects(D_CONTAINERS::DVector<GameObject*>& container);
 		
 		static GameObject*		GetGameObject(D_ECS::Entity entity);
+		static void				DumpGameObject(GameObject const* go, _OUT_ D_SERIALIZATION::Json& json);
 
 		static void				Update(float deltaTime);
 		static void				LateUpdate(float deltaTime);
