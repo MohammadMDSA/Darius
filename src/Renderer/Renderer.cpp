@@ -1118,7 +1118,7 @@ namespace Darius::Renderer
 		D_ASSERT_M(!(psoConfig.PsoFlags & RenderItem::HasUV1), "Higher level UV sets are not supported yet");
 
 		// Setting input layout
-		if (psoConfig.InputLayout.NumElements == 0 && (psoConfig.PsoFlags & RenderItem::SkipVertexIndex) != 0)
+		if (psoConfig.InputLayout.NumElements == 0 && (psoConfig.PsoFlags & RenderItem::SkipVertexIndex) == 0)
 		{
 			if (psoConfig.PsoFlags & RenderItem::HasSkin)
 				ColorPSO.SetInputLayout(VertexData(D_GRAPHICS_VERTEX::VertexPositionNormalTangentTextureSkinned));
