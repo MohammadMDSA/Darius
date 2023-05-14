@@ -23,7 +23,7 @@ namespace %%NAMESPACE%%
 		
 	}
 
-	bool %%CLASS_NAME%%::UploadToGpu(void* context)
+	bool %%CLASS_NAME%%::UploadToGpu()
 	{
 		return true;
 	}

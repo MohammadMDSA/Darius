@@ -1,6 +1,6 @@
 #pragma once
 
-#include <ResourceManager/ResourceTypes/Resource.hpp>
+#include <ResourceManager/Resource.hpp>
 
 #ifndef %%NAMESPACE_KEY%%
 #define %%NAMESPACE_KEY%% %%NAMESPACE%%
@@ -18,13 +18,15 @@ namespace %%NAMESPACE%%
 		virtual bool					DrawDetails(float params[]) override;
 #endif // _D_EDITOR
 
+	protected:
+
 		virtual void					WriteResourceToFile(D_SERIALIZATION::Json& j) const override;
 		virtual void					ReadResourceFromFile(D_SERIALIZATION::Json const& j) override;
-		virtual bool					UploadToGpu(void* context) override;
+		virtual bool					UploadToGpu() override;
 		virtual INLINE void				Unload() override { EvictFromGpu(); }
 
-	protected:
-		%%CLASS_NAME%%(D_CORE::Uuid uuid, std::wstring const& path, std::wstring const& name, DResourceId id, bool isDefault = false) :
+	private:
+		%%CLASS_NAME%%(D_CORE::Uuid uuid, std::wstring const& path, std::wstring const& name, D_RESOUCE::DResourceId id, bool isDefault = false) :
 			Resource(uuid, path, name, id, isDefault) {}
 
 	};
