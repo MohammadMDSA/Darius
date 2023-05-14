@@ -33,6 +33,7 @@ namespace Darius::Scene
 		
 		static GameObject*		GetGameObject(D_ECS::Entity entity);
 		static void				DumpGameObject(GameObject const* go, _OUT_ D_SERIALIZATION::Json& json);
+		static void				LoadGameObject(D_SERIALIZATION::Json const& json, _OUT_ GameObject** go);
 
 		static void				Update(float deltaTime);
 		static void				LateUpdate(float deltaTime);
@@ -70,6 +71,8 @@ namespace Darius::Scene
 		static GameObject*		CreateGameObject(D_CORE::Uuid uuid);
 		static void				StartScene();
 		static void				RemoveDeleted();
+
+		static GameObject*		AddGameObject(D_CORE::Uuid const& uuid);
 
 		static D_ECS::Entity	Root;
 		static D_ECS::ECSRegistry World;
