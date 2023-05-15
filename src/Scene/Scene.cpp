@@ -394,7 +394,7 @@ namespace Darius::Scene
 				go->AddComponentRoutine(comp);
 
 				D_SERIALIZATION::Deserialize(comp, compJson);
-				comp->OnSerialized();
+				comp->OnDeserialized();
 			}
 		}
 
