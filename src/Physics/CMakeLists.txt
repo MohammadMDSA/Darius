@@ -33,8 +33,8 @@ add_library("Physics")
 target_sources("Physics"
 	PRIVATE
 	${PHYSICS_LIBS_SOURCES}
-	${PHYSICS_LIBS_INCLUDE} "PhysicsScene.cpp")
-
+	${PHYSICS_LIBS_INCLUDE})
+		
 set_target_properties("Physics" PROPERTIES LINKER_LANGUAGE CXX)
 
 if ((${CMAKE_VERSION} VERSION_GREATER_EQUAL "3.16") AND (NOT MINGW))
