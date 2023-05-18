@@ -59,7 +59,7 @@ namespace Darius::Graphics
 		DField(Serialize, Get[inline])
 		float								mWidth;
 
-		DField(Serialzie, Get[inline])
+		DField(Serialize, Get[inline])
 		float								mHeight;
 
 		DField(Get[inline], Set[inline])
