@@ -92,12 +92,7 @@ namespace Darius::Core
 			mOwnerData.ChangeCallback = callback;
 		}
 
-		INLINE T* Get()
-		{
-			return mData;
-		}
-
-		INLINE const T* Get() const
+		INLINE T* Get() const
 		{
 			return mData;
 		}
@@ -107,19 +102,13 @@ namespace Darius::Core
 			return mData != nullptr;
 		}
 
-		INLINE const T* operator->() const
+		INLINE T* operator->() const
 		{
 			if (!IsValid()) throw D_EXCEPTION::NullPointerException();
 			return mData;
 		}
 
-		INLINE T* operator->()
-		{
-			if (!IsValid()) throw D_EXCEPTION::NullPointerException();
-			return mData;
-		}
-
-		INLINE T& operator*()
+		INLINE T& operator*() const
 		{
 			return *mData;
 		}
