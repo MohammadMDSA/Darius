@@ -44,7 +44,7 @@ namespace Darius::Graphics::PostProcessing
 	// Internal
 	const float											InitialMinLog = -12.0f;
 	const float											InitialMaxLog = 4.0f;
-	D_CORE::Ref<TextureResource>						DefaultBlackOpaquTexture({ L"PostProcessin Module", rttr::type::get<void>() });
+	D_RESOURCE::ResourceRef<TextureResource>			DefaultBlackOpaquTexture({ L"PostProcessin Module", rttr::type::get<void>() });
 
 	// Funcs
 	void ExtractLuma(ComputeContext& context, PostProcessContextBuffers& contextBuffers);

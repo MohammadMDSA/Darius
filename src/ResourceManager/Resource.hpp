@@ -38,7 +38,7 @@ public: \
 	class T##Factory : public D_RESOURCE::Resource::ResourceFactory \
 	{ \
 	public: \
-		virtual std::shared_ptr<D_RESOURCE::Resource> Create(D_CORE::Uuid uuid, std::wstring const& path, std::wstring const& name, D_RESOURCE::DResourceId id, bool isDefault) const; \
+		virtual std::shared_ptr<D_RESOURCE::Resource> Create(D_CORE::Uuid uuid, std::wstring const& path, std::wstring const& name, D_RESOURCE::DResourceId id, bool isDefaultz) const; \
 	}; \
 public: \
 	friend class Factory; \
@@ -98,9 +98,6 @@ namespace Darius::ResourceManager
 	};
 
 	constexpr ResourceHandle EmptyResourceHandle = { 0, 0 };
-
-	template<class T>
-	D_CORE::Ref<T> GetResource(D_CORE::Uuid const& uuid, std::optional<D_CORE::CountedOwner> ownerData = std::nullopt);
 
 	struct ResourcePreview
 	{
@@ -271,43 +268,6 @@ namespace Darius::ResourceManager
 
 	};
 
-}
-
-namespace rttr
-{
-	template<typename T>
-	struct wrapper_mapper<D_CORE::Ref<T>>
-	{
-		using wrapped_type = D_CORE::Uuid;
-		using type = D_CORE::Ref<T>;
-
-		INLINE static wrapped_type get(type const& obj)
-		{
-			if(!obj.IsValid())
-				return D_CORE::Uuid();
-			return obj->GetUuid();
-		}
-
-		static INLINE type create(wrapped_type const& value)
-		{
-			return D_RESOURCE::GetResource<T>(value, std::nullopt);
-		}
-
-		template<typename U>
-		static INLINE D_CORE::Ref<U> convert(type const& source, bool& ok)
-		{
-			if (auto obj = rttr_cast<U*>(source.Get()))
-			{
-				ok = true;
-				return D_CORE::Ref<U>(source.Get());
-			}
-			else
-			{
-				ok = false;
-				return D_CORE::Ref<U>(nullptr, std::nullopt);
-			}
-		}
-	};
 }
 
 File_Resource_GENERATED

@@ -37,7 +37,7 @@ namespace Darius::Graphics
 		void								_SetMesh(D_RESOURCE::ResourceHandle handle);
 
 		DField(Resource[false], Serialize)
-		D_CORE::Ref<StaticMeshResource>		mMesh;
+		D_RESOURCE::ResourceRef<StaticMeshResource> mMesh;
 
 	public:
 		Darius_Graphics_MeshRendererComponent_GENERATED

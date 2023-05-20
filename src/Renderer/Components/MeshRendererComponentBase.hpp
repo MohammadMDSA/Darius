@@ -47,7 +47,7 @@ namespace Darius::Graphics
 		void									OnMeshChanged();
 		
 		DField(Serialize)
-		D_CONTAINERS::DVector<D_CORE::Ref<MaterialResource>> mMaterials;
+		D_CONTAINERS::DVector<D_RESOURCE::ResourceRef<MaterialResource>> mMaterials;
 
 		DField(Get[inline], Set[inline])
 		bool									mCastsShadow;

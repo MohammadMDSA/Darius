@@ -2,6 +2,7 @@
 
 #include "Resource.hpp"
 #include "ResourceLoader.hpp"
+#include "ResourceRef.hpp"
 
 #include <Core/Ref.hpp>
 #include <Core/Uuid.hpp>
@@ -44,17 +45,17 @@ namespace Darius::ResourceManager
 #pragma region GetResource
 	// Resource retreival stuff
 	template<class T>
-	D_CORE::Ref<T> GetResource(D_CORE::Uuid const& uuid, std::optional<D_CORE::CountedOwner> ownerData)
+	ResourceRef<T> GetResource(D_CORE::Uuid const& uuid, std::optional<D_CORE::CountedOwner> ownerData)
 	{
 		// Checking if T is a resource type
 		using conv = std::is_convertible<T*, Resource*>;
 		D_STATIC_ASSERT(conv::value);
 
-		return D_CORE::Ref(dynamic_cast<T*>(_GetRawResource(uuid, true)), ownerData);
+		return ResourceRef(dynamic_cast<T*>(_GetRawResource(uuid, true)), ownerData);
 	}
 
 	template<class T>
-	D_CORE::Ref<T> GetResource(ResourceHandle handle, std::optional<D_CORE::CountedOwner> ownerData = std::nullopt)
+	ResourceRef<T> GetResource(ResourceHandle handle, std::optional<D_CORE::CountedOwner> ownerData = std::nullopt)
 	{
 		// Checking if T is a resource type
 		using conv = std::is_convertible<T*, Resource*>;
@@ -62,17 +63,17 @@ namespace Darius::ResourceManager
 
 		// Requested None resource so we return nothing
 		if (handle.Type == 0)
-			return D_CORE::Ref<T>(nullptr);
+			return ResourceRef<T>(nullptr);
 
 		// Requested resource type must be compatible with T
 		if (handle.Type != T::GetResourceType())
 			throw D_EXCEPTION::Exception("Requested type and handle type are not compatible");
 
-		return D_CORE::Ref(dynamic_cast<T*>(_GetRawResource(handle, true)), ownerData);
+		return ResourceRef(dynamic_cast<T*>(_GetRawResource(handle, true)), ownerData);
 	}
 
 	template<class T>
-	D_CORE::Ref<T> GetResource(ResourceHandle handle, void* owner, std::wstring const& ownerName, rttr::type const& ownerType, std::function<void()> changeCallback = nullptr)
+	ResourceRef<T> GetResource(ResourceHandle handle, void* owner, std::wstring const& ownerName, rttr::type const& ownerType, std::function<void()> changeCallback = nullptr)
 	{
 		return GetResource<T>(handle, std::optional<D_CORE::CountedOwner> { D_CORE::CountedOwner { ownerName, ownerType, owner, 0, changeCallback } } );
 	}

@@ -21,39 +21,39 @@ namespace Darius::Physics
 	public:
 
 		// Events
-		virtual void				Awake() override;
-		virtual void				OnDestroy() override;
+		virtual void										Awake() override;
+		virtual void										OnDestroy() override;
 
-		virtual void				PreUpdate(bool simulating);
+		virtual void										PreUpdate(bool simulating);
 
-		virtual void				OnActivate() override;
-		virtual void				OnDeactivate() override;
-		virtual void				OnDeserialized() override;
+		virtual void										OnActivate() override;
+		virtual void										OnDeactivate() override;
+		virtual void										OnDeserialized() override;
 
 #ifdef _D_EDITOR
-		virtual bool				DrawDetails(float params[]) override;
+		virtual bool										DrawDetails(float params[]) override;
 #endif
 
-		INLINE physx::PxShape*		GetShape() { return mShape; }
+		INLINE physx::PxShape*								GetShape() { return mShape; }
 
 	protected:
-		virtual INLINE physx::PxGeometry const* GetPhysicsGeometry() const { return nullptr; };
-		virtual INLINE physx::PxGeometry* UpdateAndGetPhysicsGeometry(bool& changed) { changed = false; return nullptr; };
+		virtual INLINE physx::PxGeometry const*				GetPhysicsGeometry() const { return nullptr; };
+		virtual INLINE physx::PxGeometry*					UpdateAndGetPhysicsGeometry(bool& changed) { changed = false; return nullptr; };
 
 	private:
 		friend class PhysicsScene;
 
-		void						InvalidatePhysicsActor();
-		void						_SetMaterial(D_RESOURCE::ResourceHandle handle);
-		void						ReloadMaterialData();
+		void												InvalidatePhysicsActor();
+		void												_SetMaterial(D_RESOURCE::ResourceHandle handle);
+		void												ReloadMaterialData();
 
 		DField(Get[const, inline])
-		bool									mDynamic;
+		bool												mDynamic;
 
 		DField(Resource[false], Serialize)
-		D_CORE::Ref<PhysicsMaterialResource>	mMaterial;
+		D_RESOURCE::ResourceRef<PhysicsMaterialResource>	mMaterial;
 
-		physx::PxShape*							mShape = nullptr;
+		physx::PxShape*										mShape = nullptr;
 
 
 	public:

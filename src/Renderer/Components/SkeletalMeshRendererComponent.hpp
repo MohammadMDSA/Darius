@@ -42,7 +42,7 @@ namespace Darius::Graphics
 	protected:
 
 		DField(Resource[false], Serialize)
-		D_CORE::Ref<SkeletalMeshResource>	mMesh;
+		D_RESOURCE::ResourceRef<SkeletalMeshResource>				mMesh;
 
 	private:
 

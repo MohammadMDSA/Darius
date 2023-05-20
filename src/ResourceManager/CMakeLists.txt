@@ -7,6 +7,7 @@ list(APPEND RESOUCE_MANAGER_LIBS_INCLUDE
 	"ResourceManager.hpp"
 	"Resource.hpp"
 	"ResourceLoader.hpp"
+	"ResourceRef.hpp"
 	"pch.hpp"
 	)
 

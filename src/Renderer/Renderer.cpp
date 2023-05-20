@@ -65,9 +65,9 @@ namespace Darius::Renderer
 
 	DescriptorHandle									CommonTexture[D_RENDERER_FRAME_RESOURCE::gNumFrameResources];
 
-	D_CORE::Ref<TextureResource>						RadianceCubeMap({ L"Renderer" });
-	D_CORE::Ref<TextureResource>						IrradianceCubeMap({ L"Renderer" });
-	D_CORE::Ref<TextureResource>						DefaultBlackCubeMap({ L"Renderer" });
+	D_RESOURCE::ResourceRef<TextureResource>			RadianceCubeMap({ L"Renderer" });
+	D_RESOURCE::ResourceRef<TextureResource>			IrradianceCubeMap({ L"Renderer" });
+	D_RESOURCE::ResourceRef<TextureResource>			DefaultBlackCubeMap({ L"Renderer" });
 	float												SpecularIBLRange;
 	float												SpecularIBLBias = FLT_MAX;
 
@@ -530,7 +530,7 @@ namespace Darius::Renderer
 		return SamplerHeap.Alloc(count);
 	}
 
-	void SetIBLTextures(D_CORE::Ref<TextureResource>& diffuseIBL, D_CORE::Ref<TextureResource>& specularIBL)
+	void SetIBLTextures(D_RESOURCE::ResourceRef<TextureResource>& diffuseIBL, D_RESOURCE::ResourceRef<TextureResource>& specularIBL)
 	{
 		RadianceCubeMap = specularIBL;
 		IrradianceCubeMap = diffuseIBL;

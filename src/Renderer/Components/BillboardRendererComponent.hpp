@@ -50,7 +50,7 @@ namespace Darius::Graphics
 		void								UpdatePso();
 
 		DField(Serialize, Resource)
-		D_CORE::Ref<MaterialResource>		mMaterial;
+		D_RESOURCE::ResourceRef<MaterialResource> mMaterial;
 
 	private:
 		

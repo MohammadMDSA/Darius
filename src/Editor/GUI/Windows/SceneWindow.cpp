@@ -48,7 +48,7 @@ namespace Darius::Editor::Gui::Windows
 		CreateBuffers();
 		mTextureHandle = D_RENDERER::AllocateUiTexture(1);
 
-		mLineMeshResource = D_CORE::Ref<D_GRAPHICS::BatchResource>({ L"Scene Window", rttr::type::get<SceneWindow>(), this });
+		mLineMeshResource = D_RESOURCE::ResourceRef<D_GRAPHICS::BatchResource>({ L"Scene Window", rttr::type::get<SceneWindow>(), this });
 
 		// Setup camera
 		mCamera.SetFoV(XM_PI / 3);

@@ -59,9 +59,9 @@ namespace Darius::Debug
 		static void PopulateRenderItemFromMesh(D_RENDERER_FRAME_RESOURCE::RenderItem& renderItem, D_RENDERER_GEOMETRY::Mesh const* mesh);
 		static void UploadTransform(D_MATH::Transform const& trans, UINT index);
 
-		static D_CORE::Ref<D_GRAPHICS::StaticMeshResource>	CubeMeshResource;
-		static D_CORE::Ref<D_GRAPHICS::StaticMeshResource>	SphereMeshResource;
-		static D_CORE::Ref<D_GRAPHICS::BatchResource>		LineMeshResource;
+		static D_RESOURCE::ResourceRef<D_GRAPHICS::StaticMeshResource>	CubeMeshResource;
+		static D_RESOURCE::ResourceRef<D_GRAPHICS::StaticMeshResource>	SphereMeshResource;
+		static D_RESOURCE::ResourceRef<D_GRAPHICS::BatchResource>		LineMeshResource;
 
 #else
 		static INLINE void PopulateRenderItemFromMesh(D_RENDERER_FRAME_RESOURCE::RenderItem& renderItem, D_RENDERER_GEOMETRY::Mesh const* mesh) {}

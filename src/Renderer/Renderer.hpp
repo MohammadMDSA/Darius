@@ -230,7 +230,7 @@ namespace Darius::Renderer
 	D_GRAPHICS_UTILS::RootSignature& GetRootSignature(RootSignatureTypes type);
 
 	// Set IBL properties
-	void					SetIBLTextures(D_CORE::Ref<D_GRAPHICS::TextureResource>& diffuseIBL, D_CORE::Ref<D_GRAPHICS::TextureResource>& specularIBL);
+	void					SetIBLTextures(D_RESOURCE::ResourceRef<D_GRAPHICS::TextureResource>& diffuseIBL, D_RESOURCE::ResourceRef<D_GRAPHICS::TextureResource>& specularIBL);
 	void					SetIBLBias(float LODBias);
 
 	// PSO Getter

@@ -57,9 +57,9 @@ namespace Darius::Debug
 
 	D_CONTAINERS::DUnorderedMap<double, std::pair<D_RENDERER_FRAME_RESOURCE::RenderItem, D_MATH::Transform>> DrawsWithDuration;
 
-	D_CORE::Ref<D_GRAPHICS::StaticMeshResource>	DebugDraw::CubeMeshResource({ L"Debug Drawer" });
-	D_CORE::Ref<D_GRAPHICS::StaticMeshResource>	DebugDraw::SphereMeshResource({ L"Debug Drawer" });
-	D_CORE::Ref<D_GRAPHICS::BatchResource>		DebugDraw::LineMeshResource({ L"Debug Drawer" });
+	D_RESOURCE::ResourceRef<D_GRAPHICS::StaticMeshResource>	DebugDraw::CubeMeshResource({ L"Debug Drawer" });
+	D_RESOURCE::ResourceRef<D_GRAPHICS::StaticMeshResource>	DebugDraw::SphereMeshResource({ L"Debug Drawer" });
+	D_RESOURCE::ResourceRef<D_GRAPHICS::BatchResource>		DebugDraw::LineMeshResource({ L"Debug Drawer" });
 
 #endif // _DEBUG
 

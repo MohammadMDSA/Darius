@@ -74,22 +74,22 @@ inline void Set##type##Texture(D_RESOURCE::ResourceHandle textureHandle) { SetTe
 
 		
 		DField(Get[const, &, inline])
-		D_CORE::Ref<D_GRAPHICS::TextureResource>	mBaseColorTexture;
+		D_RESOURCE::ResourceRef<D_GRAPHICS::TextureResource>	mBaseColorTexture;
 		
 		DField(Get[const, &, inline])
-		D_CORE::Ref<D_GRAPHICS::TextureResource>	mNormalTexture;
+		D_RESOURCE::ResourceRef<D_GRAPHICS::TextureResource>	mNormalTexture;
 		
 		DField(Get[const, &, inline])
-		D_CORE::Ref<D_GRAPHICS::TextureResource>	mMetallicTexture;
+		D_RESOURCE::ResourceRef<D_GRAPHICS::TextureResource>	mMetallicTexture;
 		
 		DField(Get[const, &, inline])
-		D_CORE::Ref<D_GRAPHICS::TextureResource>	mRoughnessTexture;
+		D_RESOURCE::ResourceRef<D_GRAPHICS::TextureResource>	mRoughnessTexture;
 		
 		DField(Get[const, &, inline])
-		D_CORE::Ref<D_GRAPHICS::TextureResource>	mEmissiveTexture;
+		D_RESOURCE::ResourceRef<D_GRAPHICS::TextureResource>	mEmissiveTexture;
 		
 		DField(Get[const, &, inline])
-		D_CORE::Ref<D_GRAPHICS::TextureResource>	mAmbientOcclusionTexture;
+		D_RESOURCE::ResourceRef<D_GRAPHICS::TextureResource>	mAmbientOcclusionTexture;
 		
 		DField(Get[const, &, inline])
 		D_RESOURCE::ResourceHandle					mBaseColorTextureHandle;

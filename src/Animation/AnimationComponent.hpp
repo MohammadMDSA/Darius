@@ -50,7 +50,7 @@ namespace Darius::Animation
 		bool									mRootMotion;
 
 		DField(Resource, Serialize)
-		D_CORE::Ref<AnimationResource>			mAnimation;
+		D_RESOURCE::ResourceRef<AnimationResource>			mAnimation;
 
 		D_CONTAINERS::DUnorderedMap<int, int>	mAnimationJointIndexMap; // Animation joint index to skeleton joint index
 
