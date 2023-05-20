@@ -47,6 +47,17 @@ namespace Darius::Core
 			return mOwners;
 		}
 
+		INLINE UINT GetNamedOwnersCount() const
+		{
+			UINT result = 0;
+			for (auto [_, ownerData] : mOwners)
+			{
+				result += ownerData.Count;
+			}
+			
+			return result;
+		}
+
 	private:
 		template<class T>
 		friend class Ref;

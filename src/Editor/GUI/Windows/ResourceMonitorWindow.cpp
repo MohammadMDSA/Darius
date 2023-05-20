@@ -31,7 +31,7 @@ namespace Darius::Editor::Gui::Windows
 
 		auto flags = ImGuiTableFlags_ScrollY | ImGuiTableFlags_RowBg | ImGuiTableFlags_BordersOuter | ImGuiTableFlags_BordersV | ImGuiTableFlags_Resizable | ImGuiTableFlags_Reorderable | ImGuiTableFlags_Hideable | ImGuiTableFlags_ScrollY;
 
-		if (ImGui::BeginTable("Resource Table", 10, flags))
+		if (ImGui::BeginTable("Resource Table", 11, flags))
 		{
 			ImGui::TableSetupScrollFreeze(0, 1);
 			ImGui::TableSetupColumn("Id");
@@ -44,6 +44,7 @@ namespace Darius::Editor::Gui::Windows
 			ImGui::TableSetupColumn("Disk Dirty");
 			ImGui::TableSetupColumn("Gpu Dirty");
 			ImGui::TableSetupColumn("Path");
+			ImGui::TableSetupColumn("Owners");
 
 			ImGui::TableHeadersRow();
 
@@ -91,6 +92,8 @@ namespace Darius::Editor::Gui::Windows
 					ImGui::Text(std::to_string(resource->IsDirtyGPU()).c_str());
 					ImGui::TableSetColumnIndex(9);
 					ImGui::Text(resource->GetDefault() ? " - " : resource->GetPath().string().c_str());
+					ImGui::TableSetColumnIndex(10);
+					ImGui::Text(std::to_string(resource->GetNamedOwnersCount()).c_str());
 
 				}
 			}
