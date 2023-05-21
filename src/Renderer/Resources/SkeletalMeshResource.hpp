@@ -7,6 +7,7 @@
 #include "Renderer/GraphicsUtils/VertexTypes.hpp"
 
 #include <Core/Containers/List.hpp>
+#include <ResourceManager/ResourceRef.hpp>
 
 #include "SkeletalMeshResource.generated.hpp"
 
@@ -51,6 +52,7 @@ namespace Darius::Graphics
 
 	public:
 		Darius_Graphics_SkeletalMeshResource_GENERATED
+
 	};
 }
 

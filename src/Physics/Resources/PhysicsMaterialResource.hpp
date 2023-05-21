@@ -1,6 +1,6 @@
 #pragma once
 
-#include <ResourceManager/Resource.hpp>
+#include <ResourceManager/ResourceRef.hpp>
 
 #ifndef D_PHYSICS
 #define D_PHYSICS Darius::Physics
