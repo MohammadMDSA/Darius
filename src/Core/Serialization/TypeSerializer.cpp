@@ -5,28 +5,45 @@
 #include <Utils/Log.hpp>
 
 using namespace rttr;
+using namespace D_CONTAINERS;
+using namespace D_CORE;
 
 namespace Darius::Core::Serialization
 {
-	D_CONTAINERS::DUnorderedMap<rttr::type, std::pair<std::function<void(rttr::instance const&, Json&)>, std::function<void(rttr::variant&, Json const&)>>> typeSerializers = { };
+	D_CONTAINERS::DUnorderedMap<rttr::type, std::function<void(rttr::instance const&, Json&)>> typeSerializers = { };
+	D_CONTAINERS::DUnorderedMap<rttr::type, std::function<void(rttr::variant&, Json const&)>> typeDeserializers = { };
 
 	bool __RegisterSerializer(rttr::type type, std::function<void(rttr::instance const&, Json&)> serializer, std::function<void(rttr::variant&, Json const&)> deserializer)
 	{
-		if (typeSerializers.contains(type))
-			return false;
 
-		std::pair<std::function<void(rttr::instance const&, Json&)>, std::function<void(rttr::variant&, Json const&)>> serDesPair = { serializer, deserializer };
+		bool any = false;
+		if (serializer != nullptr)
+		{
+			if (!typeSerializers.contains(type))
+			{
+				typeSerializers.emplace(type, serializer);
+				any = true;
+			}
+			
+		}
 
-		typeSerializers.emplace(type, serDesPair);
+		if (deserializer != nullptr)
+		{
+			if (!typeDeserializers.contains(type))
+			{
+				typeDeserializers.emplace(type, deserializer);
+				any = true;
+			}
+		}
 
-		return true;
+		return any;
 	}
 
-	void to_json_recursively(rttr::instance const obj, Json& json);
+	void to_json_recursively(rttr::instance const obj, Json& json, SerializationContext const& reference);
 
-	bool write_variant(const variant& var, Json& json);
+	bool write_variant(const variant& var, Json& json, SerializationContext const& reference);
 
-	bool write_atomic_types_to_json(type const& t, variant const& var, Json& json)
+	bool write_atomic_types_to_json(type const& t, variant const& var, Json& json, SerializationContext const& context)
 	{
 		if (t.is_arithmetic())
 		{
@@ -82,11 +99,41 @@ namespace Darius::Core::Serialization
 			json = var.to_string();
 			return true;
 		}
+		else if (t == type::get<Uuid>())
+		{
+			Uuid uuid = var.convert<Uuid>();
+
+			// No need to rereference
+			if (!context.Rereference)
+			{
+				D_CORE::UuidToJson(uuid, json);
+				return true;
+			}
+
+			// Have to rereference. Check if key exists.
+			if (context.ReferenceMap.contains(uuid))
+			{
+				// Replace new reference
+				D_CORE::UuidToJson(context.ReferenceMap.at(uuid), json);
+			}
+			else if (context.MaintainExternalReferences)
+			{
+				// Key doesn't exist. Keep the current reference.
+				D_CORE::UuidToJson(uuid, json);
+			}
+			else
+			{
+				// Neither can replace nor keep the current. So put null.
+				json = nullptr;
+			}
+			return true;
+		}
+
 
 		return false;
 	}
 
-	void write_array(variant_sequential_view const& view, Json& json)
+	void write_array(variant_sequential_view const& view, Json& json, SerializationContext const& context)
 	{
 		for (const auto& item : view)
 		{
@@ -94,7 +141,7 @@ namespace Darius::Core::Serialization
 			auto& el = json.back();
 			if (item.is_sequential_container())
 			{
-				write_array(item.create_sequential_view(), el);
+				write_array(item.create_sequential_view(), el, context);
 			}
 			else
 			{
@@ -107,15 +154,15 @@ namespace Darius::Core::Serialization
 				// Checking existing serializers and deserializers
 				if (typeSerializers.contains(intendedType))
 				{
-					typeSerializers[intendedType].first(is_wrapper ? wrapped_var.extract_wrapped_value() : wrapped_var, el);
+					typeSerializers[intendedType](is_wrapper ? wrapped_var.extract_wrapped_value() : wrapped_var, el);
 				}
-				else if (value_type.is_arithmetic() || value_type == type::get<std::string>() || value_type.is_enumeration())
+				else if (intendedType.is_arithmetic() || intendedType == type::get<std::string>() || intendedType.is_enumeration() || intendedType == type::get<Uuid>())
 				{
-					write_atomic_types_to_json(value_type, wrapped_var, el);
+					write_atomic_types_to_json(intendedType, wrapped_var, el, context);
 				}
 				else // object
 				{
-					to_json_recursively(wrapped_var, el);
+					to_json_recursively(wrapped_var, el, context);
 				}
 			}
 		}
@@ -124,7 +171,7 @@ namespace Darius::Core::Serialization
 
 	/////////////////////////////////////////////////////////////////////////////////////////
 
-	void write_associative_container(variant_associative_view const& view, Json& json)
+	void write_associative_container(variant_associative_view const& view, Json& json, SerializationContext const& context)
 	{
 		static const string_view key_name("key");
 		static const string_view value_name("value");
@@ -135,7 +182,7 @@ namespace Darius::Core::Serialization
 			for (auto& item : view)
 			{
 				json.push_back(Json());
-				write_variant(item.first, json.back());
+				write_variant(item.first, json.back(), context);
 			}
 		}
 		else
@@ -146,15 +193,15 @@ namespace Darius::Core::Serialization
 				auto& obj = json.back();
 
 				auto keyNameStr = std::string(key_name.data());
-				write_variant(item.first, obj[keyNameStr]);
+				write_variant(item.first, obj[keyNameStr], context);
 
 				auto valueNameStr = std::string(value_name.data());
-				write_variant(item.second, obj[valueNameStr]);
+				write_variant(item.second, obj[valueNameStr], context);
 			}
 		}
 	}
 
-	bool write_variant(variant const& var, Json& json)
+	bool write_variant(variant const& var, Json& json, SerializationContext const& context)
 	{
 		auto value_type = var.get_type();
 		auto wrapped_type = value_type.is_wrapper() ? value_type.get_wrapped_type() : value_type;
@@ -165,28 +212,28 @@ namespace Darius::Core::Serialization
 		// Checking existing serializers and deserializers
 		if (typeSerializers.contains(intendedType))
 		{
-			typeSerializers[intendedType].first(is_wrapper ? var.extract_wrapped_value() : var, json);
+			typeSerializers[intendedType](is_wrapper ? var.extract_wrapped_value() : var, json);
 			return true;
 		}
 
 		if (write_atomic_types_to_json(intendedType,
-			is_wrapper ? var.extract_wrapped_value() : var, json))
+			is_wrapper ? var.extract_wrapped_value() : var, json, context))
 		{
 		}
 		else if (var.is_sequential_container())
 		{
-			write_array(var.create_sequential_view(), json);
+			write_array(var.create_sequential_view(), json, context);
 		}
 		else if (var.is_associative_container())
 		{
-			write_associative_container(var.create_associative_view(), json);
+			write_associative_container(var.create_associative_view(), json, context);
 		}
 		else
 		{
 			auto child_props = is_wrapper ? wrapped_type.get_properties() : value_type.get_properties();
 			if (!child_props.empty())
 			{
-				to_json_recursively(var, json);
+				to_json_recursively(var, json, context);
 			}
 			else
 			{
@@ -205,18 +252,10 @@ namespace Darius::Core::Serialization
 		return true;
 	}
 
-	void to_json_recursively(rttr::instance const ins, Json& json)
+	void to_json_recursively(rttr::instance const ins, Json& json, SerializationContext const& context)
 	{
 
 		instance obj = ins.get_type().get_raw_type().is_wrapper() ? ins.get_wrapped_instance() : ins;
-
-		type t = obj.get_type();
-		// Checking existing serializers and deserializers
-		if (typeSerializers.contains(t))
-		{
-			typeSerializers[t].first(obj, json);
-			return;
-		}
 
 		auto prop_list = obj.get_derived_type().get_properties();
 		for (auto prop : prop_list)
@@ -231,7 +270,7 @@ namespace Darius::Core::Serialization
 			const auto name = prop.get_name();
 			auto nameStr = std::string(name);
 
-			if (!write_variant(prop_value, json[nameStr]))
+			if (!write_variant(prop_value, json[nameStr], context))
 			{
 				D_LOG_ERROR("cannot serialize property: " << name);
 			}
@@ -239,13 +278,17 @@ namespace Darius::Core::Serialization
 
 	}
 
-	void Serialize(rttr::instance const obj, Json& json)
+	void Serialize(rttr::instance const obj, Json& json, SerializationContext const& context)
 	{
-
 		if (!obj.is_valid())
 			return;
 
-		to_json_recursively(obj, json);
+		to_json_recursively(obj, json, context);
+	}
+
+	void Serialize(rttr::instance const obj, Json& json)
+	{
+		Serialize(obj, json, { false, true, {} });
 	}
 
 	void SerializeSequentialContainer(rttr::variant const& var, Json& json)
@@ -253,7 +296,7 @@ namespace Darius::Core::Serialization
 		if (!var.is_sequential_container())
 			return;
 
-		write_array(var.create_sequential_view(), json);
+		write_array(var.create_sequential_view(), json, { false, true, {} });
 	}
 
 	/////////////////////////////////////////////////////////////////////////////////////////
@@ -325,10 +368,10 @@ namespace Darius::Core::Serialization
 			else
 			{
 				const type intendedType = array_value_type.is_wrapper() ? array_value_type.get_wrapped_type() : array_value_type;
-				if (typeSerializers.contains(intendedType))
+				if (typeDeserializers.contains(intendedType))
 				{
 					variant v;
-					typeSerializers[intendedType].second(v, json_index_value);
+					typeDeserializers[intendedType](v, json_index_value);
 					v.convert(array_value_type);
 					view.set_value(i, v);
 				}
@@ -397,10 +440,10 @@ namespace Darius::Core::Serialization
 
 		type t = obj.get_type();
 		// Checking existing serializers and deserializers
-		if (typeSerializers.contains(t))
+		if (typeDeserializers.contains(t))
 		{
 			rttr::variant& var = *obj.try_convert<rttr::variant>();
-			typeSerializers[t].second(var, json_object);
+			typeDeserializers[t](var, json_object);
 			return;
 		}
 
@@ -420,10 +463,10 @@ namespace Darius::Core::Serialization
 			bool is_wrapper = wrapped_type != value_t;
 			auto intendedType = is_wrapper ? wrapped_type : value_t;
 
-			if (typeSerializers.contains(intendedType))
+			if (typeDeserializers.contains(intendedType))
 			{
 				variant v;
-				typeSerializers[intendedType].second(v, json_value);
+				typeDeserializers[intendedType](v, json_value);
 				v.convert(value_t);
 				prop.set_value(obj, v);
 				continue;
