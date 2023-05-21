@@ -31,6 +31,24 @@ static INLINE std::string const GetTypeName() { return D_NAMEOF(T); }
 
 #ifdef _D_EDITOR
 
+#define D_H_GAMEOBJECT_DRAG_DROP_DESTINATION(setter) \
+{ \
+	if (ImGui::BeginDragDropTarget()) \
+	{ \
+		ImGuiPayload const* imPayload = ImGui::GetDragDropPayload(); \
+		auto payload = reinterpret_cast<Darius::Utils::BaseDragDropPayloadContent const*>(imPayload->Data); \
+		if (payload && payload->IsCompatible(D_UTILS::BaseDragDropPayloadContent::Type::GameObject, "GameObject")) \
+		{ \
+			if (ImGuiPayload const* acceptedPayload = ImGui::AcceptDragDropPayload(D_PAYLOAD_TYPE_GAMEOBJECT)) \
+			{ \
+				auto gameObject = reinterpret_cast<D_SCENE::GameObjectDragDropPayloadContent const*>(acceptedPayload->Data)->GameObject; \
+				setter(gameObject); \
+			} \
+		} \
+		ImGui::EndDragDropTarget(); \
+	} \
+}
+
 #define D_H_RESOURCE_DRAG_DROP_DESTINATION(resourceType, handleSetter) \
 {\
 	if(ImGui::BeginDragDropTarget()) \
@@ -46,6 +64,25 @@ static INLINE std::string const GetTypeName() { return D_NAMEOF(T); }
 		} \
 		ImGui::EndDragDropTarget(); \
 	} \
+}
+
+#define D_H_GAMEOBJECT_SELECTION_DRAW(prop, setter) \
+{ \
+	bool isMissing; \
+	std::string displayText; \
+	if (prop.IsValid(isMissing)) \
+		displayText = prop->GetName(); \
+	else if (isMissing) \
+		displayText = "Missing (Game Object)"; \
+	else \
+		displayText = "<None>"; \
+	\
+	auto availableSpalce = ImGui::GetContentRegionAvail(); \
+	auto selectionWidth = 20.f; \
+	\
+	ImGui::Button(displayText.c_str(), ImVec2(availableSpalce.x - 2 * selectionWidth - 10.f, 0)); \
+	\
+	D_H_GAMEOBJECT_DRAG_DROP_DESTINATION(setter); \
 }
 
 #define D_H_RESOURCE_SELECTION_DRAW(resourceType, prop, placeHolder, handleFunction, ...) \

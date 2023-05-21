@@ -57,35 +57,7 @@ namespace Demo
 		{
 			D_H_DETAILS_DRAW_PROPERTY("Target");
 
-			bool isMissing;
-			std::string displayText;
-			if (mTargetObject.IsValid(isMissing))
-				displayText = mTargetObject->GetName();
-			else if (isMissing)
-				displayText = "Missing (Game Object)";
-			else
-				displayText = "<None>";
-
-			auto availableSpalce = ImGui::GetContentRegionAvail();
-			auto selectionWidth = 20.f;
-
-			ImGui::Button(displayText.c_str(), ImVec2(availableSpalce.x - 2 * selectionWidth - 10.f, 0));
-
-			// DragDrop
-			if (ImGui::BeginDragDropTarget())
-			{
-				ImGuiPayload const* imPayload = ImGui::GetDragDropPayload();
-				auto payload = reinterpret_cast<Darius::Utils::BaseDragDropPayloadContent const*>(imPayload->Data);
-				if (payload && payload->IsCompatible(D_UTILS::BaseDragDropPayloadContent::Type::GameObject, "GameObject"))
-				{
-					if (ImGuiPayload const* acceptedPayload = ImGui::AcceptDragDropPayload(D_PAYLOAD_TYPE_GAMEOBJECT))
-					{
-						auto gameObject = reinterpret_cast<D_SCENE::GameObjectDragDropPayloadContent const*>(acceptedPayload->Data)->GameObject;
-						SetTarget(gameObject);
-					}
-				}
-				ImGui::EndDragDropTarget();
-			}
+			D_H_GAMEOBJECT_SELECTION_DRAW(mTargetObject, SetTarget);
 		}
 
 
