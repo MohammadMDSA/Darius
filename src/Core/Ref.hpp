@@ -56,7 +56,7 @@ namespace Darius::Core
 			Unref();
 			if (mOwnerData.Ref == nullptr)
 				mOwnerData = other.mOwnerData;
-			mData = other.mData;
+			SetData(other.mData);
 			if (other.IsValid())
 				mData->AddOwner(mOwnerData);
 		}
@@ -66,7 +66,7 @@ namespace Darius::Core
 			Unref();
 			if (mOwnerData.Ref == nullptr)
 				mOwnerData = other.mOwnerData;
-			mData = other.mData;
+			SetData(other.mData);
 			if (other.IsValid())
 				mData->AddOwner(mOwnerData);
 			return *this;
@@ -83,7 +83,7 @@ namespace Darius::Core
 			{
 				mData->RemoveOwner(mOwnerData);
 			}
-			mData = nullptr;
+			SetData(nullptr);
 		}
 
 		// The new function only works after the next assignment
@@ -97,7 +97,7 @@ namespace Darius::Core
 			return mData;
 		}
 
-		INLINE bool IsValid() const
+		INLINE virtual bool IsValid() const
 		{
 			return mData != nullptr;
 		}
@@ -111,6 +111,12 @@ namespace Darius::Core
 		INLINE T& operator*() const
 		{
 			return *mData;
+		}
+
+	protected:
+		INLINE virtual void SetData(T* data)
+		{
+			mData = data;
 		}
 
 	private:
