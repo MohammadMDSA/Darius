@@ -54,8 +54,8 @@ namespace Darius::Renderer::Geometry
 		// Mesh name
 		std::wstring Name;
 
-		D_GRAPHICS_BUFFERS::ByteAddressBuffer	VertexDataGpu;
-		D_GRAPHICS_BUFFERS::ByteAddressBuffer	IndexDataGpu;
+		D_GRAPHICS_BUFFERS::StructuredBuffer	VertexDataGpu;
+		D_GRAPHICS_BUFFERS::StructuredBuffer	IndexDataGpu;
 
 		// Submesh
 		std::vector<Draw>				mDraw;
