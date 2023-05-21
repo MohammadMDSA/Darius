@@ -81,6 +81,8 @@ static INLINE std::string const GetTypeName() { return D_NAMEOF(T); }
 	auto selectionWidth = 20.f; \
 	\
 	ImGui::Button(displayText.c_str(), ImVec2(availableSpalce.x - 2 * selectionWidth - 10.f, 0)); \
+	if(ImGui::IsItemClicked(ImGuiMouseButton_Right)) \
+		setter(nullptr); \
 	\
 	D_H_GAMEOBJECT_DRAG_DROP_DESTINATION(setter); \
 }
