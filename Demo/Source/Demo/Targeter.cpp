@@ -34,6 +34,9 @@ namespace Demo
 
 	void Targeter::Update(float deltaTime)
 	{
+		if (!mTargetObject.IsValid())
+			return;
+
 		auto trans = GetTransform();
 		trans.Rotation = D_MATH::LookAt(trans.Translation, mTargetObject->GetTransform().Translation);
 		SetTransform(trans);
@@ -50,14 +53,11 @@ namespace Demo
 		// sample field
 		D_H_DETAILS_DRAW_PROPERTY("field");
 
-		float val;
-		valueChanged |= ImGui::InputFloat("##val", &val);
-
-
 		{
 			D_H_DETAILS_DRAW_PROPERTY("Target");
 
 			D_H_GAMEOBJECT_SELECTION_DRAW(mTargetObject, SetTarget);
+			
 		}
 
 
