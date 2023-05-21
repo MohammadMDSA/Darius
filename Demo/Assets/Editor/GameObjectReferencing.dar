@@ -42,15 +42,15 @@
   "Objects": [
     {
       "Active": true,
-      "Name": "Targeter",
-      "Type": "Movable",
-      "Uuid": "1e421438-b764-41e4-9110-912ac1cc1720"
-    },
-    {
-      "Active": true,
       "Name": "Target",
       "Type": "Movable",
       "Uuid": "ce9d855a-219f-455c-bcbc-6e311bf36104"
+    },
+    {
+      "Active": true,
+      "Name": "Targeter",
+      "Type": "Movable",
+      "Uuid": "1e421438-b764-41e4-9110-912ac1cc1720"
     },
     {
       "Active": true,
