@@ -77,8 +77,7 @@ namespace Darius::Subsystems
 			initializer();
 		}*/
 
-		// Initializing Core Stuff
-		D_SERIALIZATION::RegisterSerializer<D_CORE::Uuid>(D_CORE::UuidToJson, D_CORE::UuidFromJson);
+		D_SERIALIZATION::RegisterSerializer<D_CORE::Uuid>(nullptr, D_CORE::UuidFromJson);
 
 		// Initializing the resource manager
 		D_RESOURCE::Initialize(settings["Resource Manager"]);
