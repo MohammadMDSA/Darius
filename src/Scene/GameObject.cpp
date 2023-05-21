@@ -16,6 +16,8 @@
 #include <Libs/FontIcon/IconsFontAwesome6.h>
 #endif
 
+#include <GameObject.sgenerated.hpp>
+
 using namespace D_CONTAINERS;
 using namespace D_CORE;
 using namespace D_ECS_COMP;
@@ -38,7 +40,23 @@ namespace Darius::Scene
 		mStarted(false),
 		mDeleted(false),
 		mParent(nullptr),
-		mAwake(false)
+		mAwake(false),
+		mPrefab(nullptr)
+	{
+		AddComponent<D_MATH::TransformComponent>();
+	}
+
+	GameObject::GameObject(D_CORE::Uuid uuid, D_ECS::Entity entity, GameObject const& other) :
+		mActive(other.IsActive()),
+		mType(other.GetType()),
+		mName(other.GetName()),
+		mUuid(uuid),
+		mEntity(entity),
+		mStarted(false),
+		mDeleted(false),
+		mParent(nullptr),
+		mAwake(false),
+		mPrefab(nullptr)
 	{
 		AddComponent<D_MATH::TransformComponent>();
 	}
@@ -280,7 +298,7 @@ namespace Darius::Scene
 				if (!reg.is_valid(compId))
 					return;
 
-				if (transId == compId)
+				if (transId == compId || !mEntity.has(compId))
 					return;
 
 				auto compP = mEntity.get_mut(compId);

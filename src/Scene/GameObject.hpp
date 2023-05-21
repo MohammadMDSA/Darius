@@ -3,7 +3,7 @@
 #include "EntityComponentSystem/Entity.hpp"
 #include "EntityComponentSystem/CompRef.hpp"
 
-#include <Core/Ref.hpp>
+#include <Core/Counted.hpp>
 #include <Core/Uuid.hpp>
 #include <Core/Serialization/Json.hpp>
 #include <Core/Exceptions/Exception.hpp>
@@ -40,11 +40,11 @@ namespace Darius::Scene
 	class SceneManager;
 	class GameObject;
 	
-	class DClass(Serialize) GameObject : public Detailed
+	class DClass(Serialize) GameObject : public Detailed, public D_CORE::Counted
 	{
 	public:
 
-		enum class Type
+		enum class DEnum(Serialize) Type
 		{
 			Static,
 			Movable
@@ -187,6 +187,7 @@ namespace Darius::Scene
 		friend void							from_json(const D_SERIALIZATION::Json& j, GameObject& value);
 
 		GameObject(D_CORE::Uuid uuid, D_ECS::Entity entity);
+		GameObject(D_CORE::Uuid uuid, D_ECS::Entity entity, GameObject const& other);
 
 		void								AddComponentRoutine(Darius::Scene::ECS::Components::ComponentBase*);
 		void								RemoveComponentRoutine(Darius::Scene::ECS::Components::ComponentBase*);
@@ -195,7 +196,7 @@ namespace Darius::Scene
 		void								DrawComponentNameContext(D_CONTAINERS::DMap<std::string, GameObject::ComponentAddressNode> const& componentNameTree);
 #endif // _D_EDITOR
 
-		DField(Get[inline])
+		DField(Get[inline], Serialize)
 		bool					mActive;
 		
 		DField(Get[inline])
@@ -210,14 +211,17 @@ namespace Darius::Scene
 		DField(Get[inline])
 		GameObject*				mParent;
 
-		DField(Get[const, &, inline])
+		DField(Get[const, &, inline], Serialize)
 		const D_CORE::Uuid		mUuid;
 
-		DField(Get[inline], Set[inline])
+		DField(Get[inline], Set[inline], Serialize)
 		Type					mType;
 		
-		DField(Get[inline, const, &], Set[inline])
+		DField(Get[inline, const, &], Set[inline], Serialize)
 		std::string				mName;
+
+		DField(Get[inline])
+		GameObject*				mPrefab;
 
 		D_ECS::Entity			mEntity;
 

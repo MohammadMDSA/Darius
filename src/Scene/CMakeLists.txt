@@ -4,26 +4,28 @@ set(SCENE_LIBS_INCLUDE)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ".")
 
 list(APPEND SCENE_LIBS_INCLUDE
-	"GameObject.hpp"
-	"Scene.hpp"
-    "Utils/DetailsDrawer.hpp"
 	"EntityComponentSystem/Entity.hpp"
 	"EntityComponentSystem/CompRef.hpp"
 	"EntityComponentSystem/Components/ComponentBase.hpp"
 	"EntityComponentSystem/Components/BehaviourComponent.hpp"
 	"EntityComponentSystem/Components/TransformComponent.hpp"
+	"GameObject.hpp"
+	"GameObjectRef.hpp"
+	"Resources/PrefabResource.hpp"
+	"Scene.hpp"
+    "Utils/DetailsDrawer.hpp"
 	"pch.hpp"
 	)
 
 list(APPEND SCENE_LIBS_SOURCES
-	"GameObject.cpp"
-	"Scene.cpp"
-	"pch.cpp"
-    "Utils/Utils.cpp"
-    "Utils/DetailsDrawer.cpp"
 	"EntityComponentSystem/Components/ComponentBase.cpp"
 	"EntityComponentSystem/Components/BehaviourComponent.cpp"
 	"EntityComponentSystem/Components/TransformComponent.cpp"
+	"GameObject.cpp"
+	"Resources/PrefabResource.cpp"
+	"Scene.cpp"
+    "Utils/DetailsDrawer.cpp"
+	"pch.cpp"
 	)
 
 
@@ -57,7 +59,7 @@ PRIVATE
 
 
 target_link_libraries("Scene" PRIVATE ${Boost_LIBRARIES} IMGUI)
-target_link_libraries("Scene" PUBLIC flecs_static Utils Core Job)
+target_link_libraries("Scene" PUBLIC flecs_static ResourceManager Job)
 
 
 if(BUILD_TESTS)
