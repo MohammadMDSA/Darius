@@ -118,7 +118,7 @@ namespace Darius::Math
 	INLINE Matrix4 Invert(const Matrix4& mat) { return Matrix4(DirectX::XMMatrixInverse(nullptr, mat)); }
 	
 
-	INLINE Quaternion LookAt(Vector3 const& dir, Vector3 const& up)
+	INLINE Quaternion LookTowards(Vector3 const& dir, Vector3 const& up)
 	{
 		auto z = Normalize(dir);
 		auto x = Normalize(Cross(up, dir));
@@ -129,7 +129,17 @@ namespace Darius::Math
 		return Quaternion(Matrix3(x, y, z));
 	}
 
-	INLINE Quaternion LookAt(Vector3 const& dir) { return LookAt(dir, Vector3::Up); }
+	INLINE Quaternion LookTowards(Vector3 const& dir) { return LookTowards(dir, Vector3::Up); }
+
+	INLINE Quaternion LookAt(Vector3 const& eyePos, Vector3 const& target, Vector3 const& up)
+	{
+		return LookTowards(target - eyePos, up);
+	}
+
+	INLINE Quaternion LookAt(Vector3 const& eyePos, Vector3 const& target)
+	{
+		return LookTowards(target - eyePos);
+	}
 
 	INLINE Quaternion RotationOfVectors(Vector3 const& first, Vector3 const& second)
 	{

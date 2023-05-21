@@ -6,6 +6,7 @@
 #include "EntityComponentSystem/Components/ComponentBase.hpp"
 #include "EntityComponentSystem/Components/BehaviourComponent.hpp"
 #include "EntityComponentSystem/Components/TransformComponent.hpp"
+#include "Resources/PrefabResource.hpp"
 
 #include <Core/Containers/Set.hpp>
 #include <Core/Filesystem/FileUtils.hpp>
@@ -31,12 +32,13 @@ namespace Darius::Scene
 	std::unique_ptr<D_CONTAINERS::DSet<GameObject*>>					GOs = nullptr;
 	std::unique_ptr<D_CONTAINERS::DUnorderedMap<Uuid, GameObject*, UuidHasher>>	UuidMap = nullptr;
 	std::unique_ptr<D_CONTAINERS::DUnorderedMap<D_ECS::EntityId, GameObject*>>	EntityMap = nullptr;
-	
+
 	DVector<std::function<void(float, D_ECS::ECSRegistry&)>>			BehaviourUpdaterFunctions;
 	DVector<std::function<void(float, D_ECS::ECSRegistry&)>>			BehaviourLateUpdaterFunctions;
 
 	DVector<GameObject*>												ToBeDeleted;
 	DVector<GameObject*>												ToBeStarted;
+	DSet<GameObject*>													DeletedObjects;
 
 	std::string															SceneName;
 	D_FILE::Path														ScenePath;
@@ -63,6 +65,8 @@ namespace Darius::Scene
 #ifdef _DEBUG
 		World.set<flecs::Rest>({});
 #endif // _DEBUG
+
+		PrefabResource::Register();
 
 		Root = World.entity("Root");
 
@@ -102,7 +106,7 @@ namespace Darius::Scene
 	void SceneManager::LateUpdate(float deltaTime)
 	{
 		RemoveDeleted();
-		
+
 		for (auto updater : BehaviourLateUpdaterFunctions)
 			updater(deltaTime, World);
 	}
@@ -120,14 +124,21 @@ namespace Darius::Scene
 		return true;
 	}
 
-	GameObject* SceneManager::AddGameObject(D_CORE::Uuid const& uuid)
+	GameObject* SceneManager::AddGameObject(D_CORE::Uuid const& uuid, bool addToScene)
 	{
-		auto entity = World.entity().child_of(Root);
+		D_ECS::Entity entity;
+
+		if (addToScene)
+			entity = World.entity().child_of(Root);
+		else
+			entity = World.prefab();
+
 		D_LOG_DEBUG("Created entity: " << entity.id());
 
 		// TODO: Better allocation
 		auto go = new GameObject(uuid, entity);
-		GOs->insert(go);
+		if (addToScene)
+			GOs->insert(go);
 
 		// Update maps
 		UuidMap->emplace(uuid, go);
@@ -182,15 +193,25 @@ namespace Darius::Scene
 		UuidMap->erase(go->GetUuid());
 		EntityMap->erase(go->mEntity);
 		go->mEntity.destruct();
-		delete go;
+		DeletedObjects.insert(go);
+	}
+
+	void SceneManager::RemoveDeletedPointers()
+	{
+		for (GameObject* go : DeletedObjects)
+			delete go;
+
+		DeletedObjects.clear();
 	}
 
 	// Slow function
 	void SceneManager::GetGameObjects(D_CONTAINERS::DVector<GameObject*>& container)
 	{
+		UINT index = 0;
+		container.resize(GOs->size());
 		for (auto& go : *GOs)
 		{
-			container.push_back(go);
+			container[index++] = go;
 		}
 	}
 
@@ -236,10 +257,10 @@ namespace Darius::Scene
 	void SceneManager::DumpScene(Json& sceneJson)
 	{
 		// Serializing objects and hierarchy
-		DVector<GameObject> rawGos;
+		DVector<GameObject const*> rawGos;
 		for (GameObject const* go : *GOs)
 		{
-			rawGos.push_back(*go);
+			rawGos.push_back(go);
 
 
 			// Serialize hierarchy
@@ -250,7 +271,8 @@ namespace Darius::Scene
 
 				});
 		}
-		sceneJson["Objects"] = rawGos;
+
+		D_SERIALIZATION::SerializeSequentialContainer(rawGos, sceneJson["Objects"]);
 
 		// Serializing components
 		for (GameObject const* go : *GOs)
@@ -334,7 +356,7 @@ namespace Darius::Scene
 		StartScene();
 	}
 
-	void SceneManager::LoadGameObject(Json const& json, GameObject** go)
+	void SceneManager::LoadGameObject(Json const& json, GameObject** go, bool addToScene)
 	{
 
 		D_ASSERT(json.contains("Root"));
@@ -354,7 +376,7 @@ namespace Darius::Scene
 
 			Uuid objUuid;
 			D_CORE::UuidFromJson(objUuid, objJson["Uuid"]);
-			auto obj = AddGameObject(objUuid);
+			auto obj = AddGameObject(objUuid, addToScene);
 
 			from_json(objJson, *obj);
 			addedObjs[objUuid] = obj;
@@ -372,7 +394,7 @@ namespace Darius::Scene
 				childObj->SetParent(parentGo);
 			}
 		}
-		
+
 		// Loading Components
 		for (auto const& [objUuidStr, objCompsJson] : json["ObjectComponent"].items())
 		{
@@ -385,6 +407,7 @@ namespace Darius::Scene
 				auto compId = World.id(compR);
 
 				// Adding component to entity
+				go->mEntity.add(compR);
 				auto compP = go->mEntity.get_mut(compId);
 
 				// Get component pointer
@@ -411,21 +434,21 @@ namespace Darius::Scene
 	{
 		D_ASSERT(go);
 
-		DVector<GameObject> toBeSerialized;
-		
+		DVector<GameObject const*> toBeSerialized;
+
 		D_CORE::UuidToJson(go->GetUuid(), json["Root"]);
-		
-		toBeSerialized.push_back(*go);
+
+		toBeSerialized.push_back(go);
 		go->VisitDescendants([&toBeSerialized](auto go)
 			{
-				toBeSerialized.push_back(*go);
+				toBeSerialized.push_back(go);
 			});
 
-		for (GameObject const& go : toBeSerialized)
+		for (GameObject const* go : toBeSerialized)
 		{
 			// Serialize hierarchy
-			Json& goContext = json["Hierarchy"][ToString(go.GetUuid())];
-			go.VisitChildren([&](GameObject const* child)
+			Json& goContext = json["Hierarchy"][ToString(go->GetUuid())];
+			go->VisitChildren([&](GameObject const* child)
 				{
 					goContext.push_back(ToString(child->GetUuid()));
 
@@ -433,7 +456,7 @@ namespace Darius::Scene
 
 			// Serializing components
 			D_SERIALIZATION::Json objectComps;
-			go.VisitComponents([&](D_ECS_COMP::ComponentBase const* comp)
+			go->VisitComponents([&](D_ECS_COMP::ComponentBase const* comp)
 				{
 					D_SERIALIZATION::Json componentJson;
 					D_SERIALIZATION::Serialize(comp, componentJson);
@@ -441,9 +464,11 @@ namespace Darius::Scene
 					D_CORE::UuidToJson(comp->mUuid, componentJson["Uuid"]);
 					objectComps[comp->GetComponentName()] = componentJson;
 				});
-			json["ObjectComponent"][ToString(go.GetUuid())] = objectComps;
+			json["ObjectComponent"][ToString(go->GetUuid())] = objectComps;
 		}
-		json["Objects"] = toBeSerialized;
+
+		D_SERIALIZATION::SerializeSequentialContainer(toBeSerialized, json["Objects"]);
+
 	}
 
 	void SceneManager::Unload()
@@ -474,6 +499,14 @@ namespace Darius::Scene
 		return EntityMap->at(entity);
 	}
 
+	GameObject* SceneManager::GetGameObject(D_CORE::Uuid const& uuid)
+	{
+		if (!UuidMap->contains(uuid))
+			return nullptr;
+
+		return UuidMap->at(uuid);
+	}
+
 	void SceneManager::RemoveDeleted()
 	{
 
@@ -485,6 +518,7 @@ namespace Darius::Scene
 		}
 
 		ToBeDeleted.clear();
+		RemoveDeletedPointers();
 	}
 
 	D_FILE::Path SceneManager::GetPath()
@@ -507,12 +541,12 @@ namespace Darius::Scene
 		if (Started)
 			return;
 
-		for (auto go : *GOs)
+		Started = true;
+
+		for (auto& [_, go] : *UuidMap)
 		{
 			go->Awake();
 		}
-
-		Started = true;
 	}
 
 	void SceneManager::SetAwake()

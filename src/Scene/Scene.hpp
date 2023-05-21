@@ -30,10 +30,11 @@ namespace Darius::Scene
 		static void				DeleteGameObject(GameObject* go);
 		static void				DeleteGameObjectImmediately(GameObject* go);
 		static void				GetGameObjects(D_CONTAINERS::DVector<GameObject*>& container);
-		
+		static GameObject*		GetGameObject(D_CORE::Uuid const& uuid);
 		static GameObject*		GetGameObject(D_ECS::Entity entity);
+
 		static void				DumpGameObject(GameObject const* go, _OUT_ D_SERIALIZATION::Json& json);
-		static void				LoadGameObject(D_SERIALIZATION::Json const& json, _OUT_ GameObject** go);
+		static void				LoadGameObject(D_SERIALIZATION::Json const& json, _OUT_ GameObject** go, bool addToScene = true);
 
 		static void				Update(float deltaTime);
 		static void				LateUpdate(float deltaTime);
@@ -68,11 +69,12 @@ namespace Darius::Scene
 
 	private:
 		static void				DeleteGameObjectData(GameObject* go);
+		static void				RemoveDeletedPointers();
 		static GameObject*		CreateGameObject(D_CORE::Uuid uuid);
 		static void				StartScene();
 		static void				RemoveDeleted();
 
-		static GameObject*		AddGameObject(D_CORE::Uuid const& uuid);
+		static GameObject*		AddGameObject(D_CORE::Uuid const& uuid, bool addToScene = true);
 
 		static D_ECS::Entity	Root;
 		static D_ECS::ECSRegistry World;

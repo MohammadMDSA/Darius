@@ -18,9 +18,10 @@
 #include <Renderer/Light/LightManager.hpp>
 #include <Utils/Debug.hpp>
 
+#include <Demo/DetailDrawTest.hpp>
 #include <Demo/MovementBehaviour.hpp>
 #include <Demo/LaserShoot.hpp>
-#include <Demo/DetailDrawTest.hpp>
+#include <Demo/Targeter.hpp>
 
 #include <exception>
 
@@ -67,6 +68,7 @@ namespace Darius::Editor
 		Demo::MovementBehaviour::StaticConstructor();
 		Demo::LaserShoot::StaticConstructor();
 		Demo::DetailDrawTest::StaticConstructor();
+		Demo::Targeter::StaticConstructor();
 
 		mTimer.SetFixedTimeStep(true);
 		mTimer.SetTargetElapsedSeconds(1.f / 60.f);
