@@ -30,8 +30,10 @@ namespace Darius::Scene
 
 		INLINE virtual bool IsValid() const override
 		{
+			if (!D_CORE::Ref<GameObject>::IsValid())
+				return false;
 			auto sceneObj = D_WORLD::GetGameObject(mUuid);
-			return D_CORE::Ref<GameObject>::IsValid() && sceneObj && sceneObj->IsValid();
+			return sceneObj && sceneObj->IsValid();
 		}
 
 		INLINE bool IsValid(_OUT_ bool& isMissing) const
