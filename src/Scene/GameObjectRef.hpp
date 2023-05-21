@@ -22,7 +22,7 @@ namespace Darius::Scene
 		GameObjectRef(GameObject* data, std::optional<D_CORE::CountedOwner> ownerData = std::nullopt) :
 			D_CORE::Ref<GameObject>(data, ownerData)
 		{
-			if (data)
+			if (data != nullptr)
 				mUuid = data->GetUuid();
 			else
 				mUuid = D_CORE::Uuid();
@@ -31,6 +31,13 @@ namespace Darius::Scene
 		INLINE virtual bool IsValid() const override
 		{
 			auto sceneObj = D_WORLD::GetGameObject(mUuid);
+			return D_CORE::Ref<GameObject>::IsValid() && sceneObj && sceneObj->IsValid();
+		}
+
+		INLINE bool IsValid(_OUT_ bool& isMissing) const
+		{
+			auto sceneObj = D_WORLD::GetGameObject(mUuid);
+			isMissing = !mUuid.is_nil() && sceneObj == nullptr;
 			return D_CORE::Ref<GameObject>::IsValid() && sceneObj && sceneObj->IsValid();
 		}
 

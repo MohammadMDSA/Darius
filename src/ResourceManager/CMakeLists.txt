@@ -6,6 +6,7 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ".")
 list(APPEND RESOUCE_MANAGER_LIBS_INCLUDE
 	"ResourceManager.hpp"
 	"Resource.hpp"
+	"ResourceDragDropPayload.hpp"
 	"ResourceLoader.hpp"
 	"ResourceRef.hpp"
 	"pch.hpp"

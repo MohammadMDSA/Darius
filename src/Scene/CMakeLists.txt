@@ -14,6 +14,7 @@ list(APPEND SCENE_LIBS_INCLUDE
 	"Resources/PrefabResource.hpp"
 	"Scene.hpp"
     "Utils/DetailsDrawer.hpp"
+    "Utils/GameObjectDragDropPayload.hpp"
 	"pch.hpp"
 	)
 

@@ -3,7 +3,7 @@
 #include "ContentWindowComponents.hpp"
 
 #include <ResourceManager/Resource.hpp>
-#include <Utils/DragDropPayload.hpp>
+#include <ResourceManager/ResourceDragDropPayload.hpp>
 
 #include <imgui.h>
 
@@ -33,12 +33,11 @@ namespace Darius::Editor::Gui::Component
 		{
 			if (data.Handle.IsValid() && ImGui::BeginDragDropSource(ImGuiDragDropFlags_AcceptBeforeDelivery))
 			{
-				D_UTILS::DDragDropPayload payload;
-				payload.PayloadType = D_UTILS::DDragDropPayload::Type::Resource;
-				payload.ResourcePayload.Handle = data.Handle;
-				payload.ResourcePayload.Type = std::to_string(data.Handle.Type);
+				D_RESOURCE::ResourceDragDropPayloadContent payload;
+				payload.Handle = data.Handle;
+				payload.Type = std::to_string(data.Handle.Type);
 
-				ImGui::SetDragDropPayload(D_PAYLOAD_TYPE_RESOURCE, &payload, sizeof(D_UTILS::DDragDropPayload), ImGuiCond_Once);
+				ImGui::SetDragDropPayload(D_PAYLOAD_TYPE_RESOURCE, &payload, sizeof(D_RESOURCE::ResourceDragDropPayloadContent), ImGuiCond_Once);
 				ImGui::Text((data.Name + " (Resource)").c_str());
 				ImGui::EndDragDropSource();
 			}

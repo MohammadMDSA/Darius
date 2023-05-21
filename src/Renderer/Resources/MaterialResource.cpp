@@ -9,11 +9,12 @@
 #include <ResourceManager/ResourceLoader.hpp>
 #include <Core/Serialization/Json.hpp>
 #include <Utils/Common.hpp>
-#include <Utils/DragDropPayload.hpp>
 
 #ifdef _D_EDITOR
-#include <imgui.h>
+#include <ResourceManager/ResourceDragDropPayload.hpp>
 #include <Libs/FontIcon/IconsFontAwesome6.h>
+
+#include <imgui.h>
 #endif
 
 #include <fstream>

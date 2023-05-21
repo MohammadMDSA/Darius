@@ -7,47 +7,24 @@
 namespace Darius::Utils
 {
 
-#define	D_PAYLOAD_TYPE_RESOURCE "$PAYLOAD$$RESOURCE$"
+#ifdef _D_EDITOR
 
 	struct BaseDragDropPayloadContent
 	{
-		virtual bool IsCompatible(std::string const& type) const = 0;
-	};
-
-	struct ResourceDragDropPayloadContent : public BaseDragDropPayloadContent
-	{
-		std::string Type;
-		D_RESOURCE::ResourceHandle Handle;
-
-		virtual inline bool IsCompatible(std::string const& type) const
-		{
-			return type == Type;
-		}
-	};
-
-	struct DDragDropPayload
-	{
 		enum class Type
 		{
-			Resource
+			Resource,
+			GameObject
 		};
 
-		Type PayloadType;
+		BaseDragDropPayloadContent(Type type) :
+			PayloadType(type)
+		{ }
 
-		ResourceDragDropPayloadContent ResourcePayload;
-
-		inline bool IsCompatible(Type type, std::string dataType) const
-		{
-			if (PayloadType != type)
-				return false;
-			switch (type)
-			{
-			case Type::Resource:
-				return ResourcePayload.IsCompatible(dataType);
-			default:
-				return false;
-			}
-		}
+		Type const PayloadType;
+		virtual bool IsCompatible(Type payloadType, std::string const& type) const = 0;
 	};
+
+#endif
 
 }

@@ -4,11 +4,12 @@
 #include "Renderer/Resources/MaterialResource.hpp"
 #include "Renderer/GraphicsUtils/VertexTypes.hpp"
 
-#include <Utils/DragDropPayload.hpp>
 
 #ifdef _D_EDITOR
-#include <imgui.h>
 #include <Libs/FontIcon/IconsFontAwesome6.h>
+#include <ResourceManager/ResourceDragDropPayload.hpp>
+
+#include <imgui.h>
 #endif // _D_EIDITOR
 
 #include "BillboardRendererComponent.sgenerated.hpp"

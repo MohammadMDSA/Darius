@@ -36,15 +36,15 @@ static INLINE std::string const GetTypeName() { return D_NAMEOF(T); }
 	if(ImGui::BeginDragDropTarget()) \
     { \
         ImGuiPayload const* imPayload = ImGui::GetDragDropPayload(); \
-        Darius::Utils::DDragDropPayload const* payload = (Darius::Utils::DDragDropPayload const*)(imPayload->Data); \
-		if(payload && payload->IsCompatible(Darius::Utils::DDragDropPayload::Type::Resource, std::to_string(resourceType::GetResourceType()))) \
+        D_UTILS::BaseDragDropPayloadContent const* payload = (D_UTILS::BaseDragDropPayloadContent const*)(imPayload->Data); \
+		if(payload && payload->IsCompatible(Darius::Utils::BaseDragDropPayloadContent::Type::Resource, std::to_string(resourceType::GetResourceType()))) \
 		{ \
 			if (ImGuiPayload const* payload = ImGui::AcceptDragDropPayload(D_PAYLOAD_TYPE_RESOURCE)) \
 			{ \
-				handleSetter(((Darius::Utils::DDragDropPayload const*)(imPayload->Data))->ResourcePayload.Handle); \
+				handleSetter(((D_RESOURCE::ResourceDragDropPayloadContent const*)(imPayload->Data))->Handle); \
 			} \
-			ImGui::EndDragDropTarget(); \
 		} \
+		ImGui::EndDragDropTarget(); \
 	} \
 }
 

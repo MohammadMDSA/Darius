@@ -4,7 +4,9 @@
 #include <ResourceManager/Resource.hpp>
 
 #ifdef _D_EDITOR
-#include <Utils/DragDropPayload.hpp>
+#include <Scene/Utils/GameObjectDragDropPayload.hpp>
+#include <ResourceManager/ResourceDragDropPayload.hpp>
+
 #include <imgui.h>
 #endif
 

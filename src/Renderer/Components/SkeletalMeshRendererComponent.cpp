@@ -5,12 +5,16 @@
 #include <Core/TimeManager/TimeManager.hpp>
 #include <Debug/DebugDraw.hpp>
 #include <ResourceManager/ResourceManager.hpp>
-#include <Utils/DragDropPayload.hpp>
 
-#include <imgui.h>
 #define FBXSDK_SHARED
 #include <fbxsdk.h>
+
+#ifdef _D_EDITOR
 #include <Libs/FontIcon/IconsFontAwesome6.h>
+#include <ResourceManager/ResourceDragDropPayload.hpp>
+
+#include <imgui.h>
+#endif
 
 #include "SkeletalMeshRendererComponent.sgenerated.hpp"
 

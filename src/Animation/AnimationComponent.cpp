@@ -2,11 +2,12 @@
 #include "AnimationComponent.hpp"
 
 #include <Renderer/Components/SkeletalMeshRendererComponent.hpp>
-#include <Utils/DragDropPayload.hpp>
 
 #ifdef _D_EDITOR
-#include <imgui.h>
 #include <Libs/FontIcon/IconsFontAwesome6.h>
+#include <ResourceManager/ResourceDragDropPayload.hpp>
+
+#include <imgui.h>
 #endif
 
 #include "AnimationComponent.sgenerated.hpp"
