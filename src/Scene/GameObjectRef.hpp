@@ -4,6 +4,7 @@
 #include "Scene.hpp"
 
 #include <Core/Ref.hpp>
+#include <Core/Serialization/TypeSerializer.hpp>
 
 #ifndef D_SCENE
 #define D_SCENE Darius::Scene
@@ -60,19 +61,19 @@ namespace rttr
 	template<>
 	struct wrapper_mapper<D_SCENE::GameObjectRef>
 	{
-		using wrapped_type = D_CORE::Uuid;
+		using wrapped_type = D_SERIALIZATION::UuidWrapper;
 		using type = D_SCENE::GameObjectRef;
 
 		INLINE static wrapped_type get(type const& obj)
 		{
 			if (!obj.IsValid())
-				return D_CORE::Uuid();
-			return obj->GetUuid();
+				return { D_CORE::Uuid(), D_SERIALIZATION_UUID_PARAM_GAMEOBJECT };
+			return { obj->GetUuid(), D_SERIALIZATION_UUID_PARAM_GAMEOBJECT };
 		}
 
 		static INLINE type create(wrapped_type const& value)
 		{
-			return D_SCENE::GameObjectRef(D_WORLD::GetGameObject(value));
+			return D_SCENE::GameObjectRef(D_WORLD::GetGameObject(value.Uuid));
 		}
 	};
 }

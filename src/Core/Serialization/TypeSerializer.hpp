@@ -20,13 +20,29 @@ namespace Darius::Core::Serialization
 	{
 		bool							Rereference = false;
 		bool							MaintainExternalReferences = true;
-		D_CONTAINERS::DUnorderedMap<D_CORE::Uuid, D_CORE::Uuid, D_CORE::UuidHasher>	ReferenceMap;
+		D_CONTAINERS::DUnorderedMap<D_CORE::Uuid, D_CORE::Uuid, D_CORE::UuidHasher> const&	ReferenceMap;
 	};
+
+#define D_SERIALIZATION_UUID_PARAM_GAMEOBJECT 423843029
+	struct UuidWrapper
+	{
+		Uuid							Uuid;
+		int								Param;
+	};
+
+	void Initialize();
+	void Shutdown();
 
 	void Serialize(rttr::instance const obj, Json& json, SerializationContext const& context);
 	void Serialize(rttr::instance const obj, Json& json);
+	void SerializeSequentialContainer(rttr::variant const& var, Json& json, SerializationContext const& context);
 	void SerializeSequentialContainer(rttr::variant const& var, Json& json);
 	void Deserialize(rttr::instance obj, Json const& json);
+
+	INLINE void DeserializeUuidWrapper(UuidWrapper& wrapper, Json const& json)
+	{
+		UuidFromJson(wrapper.Uuid, json);
+	}
 
 	// Don't call unless you know what you're exacly doing
 	bool __RegisterSerializer(rttr::type type, std::function<void(rttr::instance const&, Json&)> serializer, std::function<void(rttr::variant&, Json const&)> deserializer);

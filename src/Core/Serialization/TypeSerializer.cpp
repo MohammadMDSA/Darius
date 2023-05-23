@@ -3,6 +3,7 @@
 #include "TypeSerializer.hpp"
 
 #include <Utils/Log.hpp>
+#include <Utils/Assert.hpp>
 
 using namespace rttr;
 using namespace D_CONTAINERS;
@@ -12,6 +13,23 @@ namespace Darius::Core::Serialization
 {
 	D_CONTAINERS::DUnorderedMap<rttr::type, std::function<void(rttr::instance const&, Json&)>> typeSerializers = { };
 	D_CONTAINERS::DUnorderedMap<rttr::type, std::function<void(rttr::variant&, Json const&)>> typeDeserializers = { };
+
+	bool												_initialized = false;
+
+	void Initialize()
+	{
+		D_ASSERT(!_initialized);
+		_initialized = true;
+
+		D_SERIALIZATION::RegisterSerializer<D_CORE::Uuid>(D_CORE::UuidToJson, D_CORE::UuidFromJson);
+		D_SERIALIZATION::RegisterSerializer<UuidWrapper>(nullptr, DeserializeUuidWrapper);
+	}
+
+	void Shutdown()
+	{
+		D_ASSERT(_initialized);
+	}
+
 
 	bool __RegisterSerializer(rttr::type type, std::function<void(rttr::instance const&, Json&)> serializer, std::function<void(rttr::variant&, Json const&)> deserializer)
 	{
@@ -99,12 +117,13 @@ namespace Darius::Core::Serialization
 			json = var.to_string();
 			return true;
 		}
-		else if (t == type::get<Uuid>())
+		else if (t == type::get<UuidWrapper>())
 		{
-			Uuid uuid = var.convert<Uuid>();
+			UuidWrapper uuidWrapper = var.convert<UuidWrapper>();
+			auto& uuid = uuidWrapper.Uuid;
 
 			// No need to rereference
-			if (!context.Rereference)
+			if (uuidWrapper.Param != D_SERIALIZATION_UUID_PARAM_GAMEOBJECT || !context.Rereference)
 			{
 				D_CORE::UuidToJson(uuid, json);
 				return true;
@@ -124,7 +143,7 @@ namespace Darius::Core::Serialization
 			else
 			{
 				// Neither can replace nor keep the current. So put null.
-				json = nullptr;
+				D_CORE::UuidToJson(Uuid(), json);
 			}
 			return true;
 		}
@@ -156,7 +175,7 @@ namespace Darius::Core::Serialization
 				{
 					typeSerializers[intendedType](is_wrapper ? wrapped_var.extract_wrapped_value() : wrapped_var, el);
 				}
-				else if (intendedType.is_arithmetic() || intendedType == type::get<std::string>() || intendedType.is_enumeration() || intendedType == type::get<Uuid>())
+				else if (intendedType.is_arithmetic() || intendedType == type::get<std::string>() || intendedType.is_enumeration() || intendedType == type::get<UuidWrapper>())
 				{
 					write_atomic_types_to_json(intendedType, wrapped_var, el, context);
 				}
@@ -296,7 +315,15 @@ namespace Darius::Core::Serialization
 		if (!var.is_sequential_container())
 			return;
 
-		write_array(var.create_sequential_view(), json, { false, true, {} });
+		SerializeSequentialContainer(var, json, { false, true, {} });
+	}
+
+	void SerializeSequentialContainer(rttr::variant const& var, Json& json, SerializationContext const& context)
+	{
+		if (!var.is_sequential_container())
+			return;
+
+		write_array(var.create_sequential_view(), json, context);
 	}
 
 	/////////////////////////////////////////////////////////////////////////////////////////
@@ -404,7 +431,7 @@ namespace Darius::Core::Serialization
 		return extracted_value;
 	}
 
-	static void write_associative_view_recursively(variant_associative_view& view, Json const& json_array_value)
+	void write_associative_view_recursively(variant_associative_view& view, Json const& json_array_value)
 	{
 		for (size_t i = 0; i < json_array_value.size(); ++i)
 		{
