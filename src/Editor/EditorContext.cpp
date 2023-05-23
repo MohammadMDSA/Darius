@@ -8,6 +8,7 @@
 
 #include <Engine/EngineContext.hpp>
 #include <ResourceManager/ResourceLoader.hpp>
+#include <Scene/Scene.hpp>
 #include <Utils/Assert.hpp>
 
 using namespace D_CORE;
@@ -38,6 +39,8 @@ namespace Darius::Editor::Context
 		{
 			D_ASSERT_M(std::filesystem::create_directory(GetEditorConfigPath()), "Could not detect/create editor config directory for project");
 		}
+
+		D_WORLD::Initialize();
 
 		D_RESOURCE_LOADER::VisitSubdirectory(D_ENGINE_CONTEXT::GetAssetsPath(), true);
 

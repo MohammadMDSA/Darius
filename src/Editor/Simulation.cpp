@@ -32,7 +32,6 @@ namespace Darius::Editor::Simulate
 	{
 		D_ASSERT(!_Initialized);
 
-		D_WORLD::Initialize();
 		Timer = D_TIME::GetStepTimer();
 		Timer->SetFixedTimeStep(false);
 
