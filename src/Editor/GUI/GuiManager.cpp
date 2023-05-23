@@ -25,6 +25,7 @@
 #include <ResourceManager/ResourceManager.hpp>
 #include <ResourceManager/ResourceLoader.hpp>
 #include <Scene/EntityComponentSystem/Components/TransformComponent.hpp>
+#include <Scene/Resources/PrefabResource.hpp>
 #include <Utils/Assert.hpp>
 
 #include <Core/Serialization/TypeSerializer.hpp>
@@ -185,7 +186,7 @@ namespace Darius::Editor::Gui::GuiManager
 		}
 
 		{
-			static bool show_demo_window = false;
+			static bool show_demo_window = true;
 			if (show_demo_window)
 				ImGui::ShowDemoWindow(&show_demo_window);
 
@@ -271,7 +272,27 @@ namespace Darius::Editor::Gui::GuiManager
 				D_RESOURCE::GetManager()->CreateResource(type, filePathName, D_FILE::GetFileName(filePathName));
 			}
 
-			// close
+			// Close
+			ImGuiFileDialog::Instance()->Close();
+		}
+
+		if (ImGuiFileDialog::Instance()->Display("SavePrefab"))
+		{
+			if (ImGuiFileDialog::Instance()->IsOk())
+			{
+				std::string _filePath = ImGuiFileDialog::Instance()->GetFilePathName();
+				std::wstring filePath = STR2WSTR(_filePath);
+
+				
+				auto prefabResHandle = D_RESOURCE::GetManager()->CreateResource<D_SCENE::PrefabResource>(filePath, D_FILE::GetFileName(filePath));
+
+				auto refGameObject = reinterpret_cast<D_SCENE::GameObject*>(ImGuiFileDialog::Instance()->GetUserDatas());
+
+				auto prefabRes = D_RESOURCE::GetResource<D_SCENE::PrefabResource>(prefabResHandle);
+				prefabRes->CreateFromGameObject(refGameObject);
+			}
+
+			// Close
 			ImGuiFileDialog::Instance()->Close();
 		}
 #pragma warning(pop)
@@ -364,27 +385,15 @@ namespace Darius::Editor::Gui::GuiManager
 
 				if (ImGui::MenuItem("Debug Button"))
 				{
-
-					D_MATH::TransformComponent* comp = nullptr;
-
-					D_WORLD::GetRegistry().each([&](D_MATH::TransformComponent& meshComp)
-						{
-							comp = &meshComp;
-						}
-					);
-
-					if (comp != nullptr)
+					D_SERIALIZATION::Json json;
+					auto selected = D_EDITOR_CONTEXT::GetSelectedGameObject();
+					if (selected)
 					{
-						D_SERIALIZATION::Json j;
-						D_SERIALIZATION::Serialize(comp, j);
+						D_WORLD::DumpGameObject(selected, json, true);
+						auto jsonStr = json.dump();
 
-						auto compStr = j.dump();
-
-						auto go = D_WORLD::CreateGameObject();
-
-						D_ECS_COMP::ComponentBase* dest = go->GetComponent<D_MATH::TransformComponent>();
-
-						D_SERIALIZATION::Deserialize(dest, j);
+						D_SCENE::GameObject* res;
+						D_WORLD::LoadGameObject(json, &res);
 					}
 				}
 
