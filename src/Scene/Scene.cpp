@@ -134,12 +134,12 @@ namespace Darius::Scene
 		if (addToScene)
 			entity = World.entity().child_of(Root);
 		else
-			entity = World.prefab();
+			entity = World.entity();
 
 		D_LOG_DEBUG("Created entity: " << entity.id());
 
 		// TODO: Better allocation
-		auto go = new GameObject(uuid, entity);
+		auto go = new GameObject(uuid, entity, addToScene);
 		if (addToScene)
 			GOs->insert(go);
 
@@ -148,6 +148,16 @@ namespace Darius::Scene
 		EntityMap->emplace(entity, go);
 
 		return go;
+	}
+
+	GameObject* SceneManager::InstantiateGameObject(GameObject* go, bool maintainContext)
+	{
+		Json refGoJson;
+		GameObject* result;
+		DumpGameObject(go, refGoJson, maintainContext);
+		LoadGameObject(refGoJson, &result, true);
+
+		return result;
 	}
 
 	GameObject* SceneManager::CreateGameObject()
@@ -402,7 +412,7 @@ namespace Darius::Scene
 		for (auto const& [objUuidStr, objCompsJson] : json["ObjectComponent"].items())
 		{
 			Uuid objUuid = D_CORE::FromString(objUuidStr);
-			auto go = addedObjs[objUuid];
+			auto gameObject = addedObjs[objUuid];
 
 			for (auto const& [compName, compJson] : objCompsJson.items())
 			{
@@ -410,14 +420,14 @@ namespace Darius::Scene
 				auto compId = World.id(compR);
 
 				// Adding component to entity
-				go->mEntity.add(compR);
-				auto compP = go->mEntity.get_mut(compId);
+				gameObject->mEntity.add(compR);
+				auto compP = gameObject->mEntity.get_mut(compId);
 
 				// Get component pointer
 				auto comp = reinterpret_cast<D_ECS_COMP::ComponentBase*>(compP);
 
 				D_CORE::UuidFromJson(comp->mUuid, compJson["Uuid"]);
-				go->AddComponentRoutine(comp);
+				gameObject->AddComponentRoutine(comp);
 
 				D_SERIALIZATION::Deserialize(comp, compJson);
 				comp->OnDeserialized();

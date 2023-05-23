@@ -186,8 +186,7 @@ namespace Darius::Scene
 		friend void							to_json(D_SERIALIZATION::Json& j, const GameObject& value);
 		friend void							from_json(const D_SERIALIZATION::Json& j, GameObject& value);
 
-		GameObject(D_CORE::Uuid uuid, D_ECS::Entity entity);
-		GameObject(D_CORE::Uuid uuid, D_ECS::Entity entity, GameObject const& other);
+		GameObject(D_CORE::Uuid uuid, D_ECS::Entity entity, bool inScene = true);
 
 		void								AddComponentRoutine(Darius::Scene::ECS::Components::ComponentBase*);
 		void								RemoveComponentRoutine(Darius::Scene::ECS::Components::ComponentBase*);
@@ -224,6 +223,9 @@ namespace Darius::Scene
 		GameObject*				mPrefab;
 
 		D_ECS::Entity			mEntity;
+
+		DField(Get[inline])
+		const bool				mInScene;
 
 		// Comp name and display name
 		static D_CONTAINERS::DMap<std::string, GameObject::ComponentAddressNode> RegisteredComponents;

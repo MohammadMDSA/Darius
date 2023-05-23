@@ -31,7 +31,7 @@ namespace Darius::Scene
 	D_CONTAINERS::DSet<D_ECS::EntityId> GameObject::RegisteredBehaviours = D_CONTAINERS::DSet<D_ECS::EntityId>();
 	D_CONTAINERS::DSet<std::string> GameObject::RegisteredComponentNames = D_CONTAINERS::DSet<std::string>();
 
-	GameObject::GameObject(D_CORE::Uuid uuid, D_ECS::Entity entity) :
+	GameObject::GameObject(D_CORE::Uuid uuid, D_ECS::Entity entity, bool inScene) :
 		mActive(true),
 		mType(Type::Movable),
 		mName("GameObject"),
@@ -41,22 +41,8 @@ namespace Darius::Scene
 		mDeleted(false),
 		mParent(nullptr),
 		mAwake(false),
-		mPrefab(nullptr)
-	{
-		AddComponent<D_MATH::TransformComponent>();
-	}
-
-	GameObject::GameObject(D_CORE::Uuid uuid, D_ECS::Entity entity, GameObject const& other) :
-		mActive(other.IsActive()),
-		mType(other.GetType()),
-		mName(other.GetName()),
-		mUuid(uuid),
-		mEntity(entity),
-		mStarted(false),
-		mDeleted(false),
-		mParent(nullptr),
-		mAwake(false),
-		mPrefab(nullptr)
+		mPrefab(nullptr),
+		mInScene(inScene)
 	{
 		AddComponent<D_MATH::TransformComponent>();
 	}

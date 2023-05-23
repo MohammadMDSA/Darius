@@ -27,6 +27,7 @@ namespace Darius::Scene
 		static void				Shutdown();
 
 		static GameObject*		CreateGameObject();
+		static GameObject*		InstantiateGameObject(GameObject* go, bool maintainContext = true);
 		static void				DeleteGameObject(GameObject* go);
 		static void				DeleteGameObjectImmediately(GameObject* go);
 		static void				GetGameObjects(D_CONTAINERS::DVector<GameObject*>& container);
