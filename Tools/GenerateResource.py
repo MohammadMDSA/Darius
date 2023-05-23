@@ -16,6 +16,9 @@ def main():
 
     current_path = pathlib.Path(__file__).parent.resolve()
     project_path = current_path.parent.resolve()
+    
+    generated_class_footer = "_".join(namespace.split("::")) + "_" + class_name + "_GENERATED"
+    generated_file_footer = "File_" + class_name + "_GENERATED"
 
     cpp = ''
     hpp = ''
@@ -42,6 +45,9 @@ def main():
 
     cpp = cpp.replace("%%SUPPORTED_EXT%%", ext);
     hpp = hpp.replace("%%SUPPORTED_EXT%%", ext);
+    
+    hpp = hpp.replace("%%FILE_GENERATED%%", generated_file_footer);
+    hpp = hpp.replace("%%CLASS_FOOTER_GENERATED%%", generated_class_footer);
 
     destination_directory = project_path.joinpath(path)
     destination_directory.mkdir(parents=True, exist_ok=True)

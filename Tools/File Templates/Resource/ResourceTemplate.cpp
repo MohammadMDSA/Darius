@@ -8,6 +8,8 @@
 #include <imgui.h>
 #endif
 
+#include "%%CLASS_NAME%%.sgenerated.hpp"
+
 namespace %%NAMESPACE%%
 {
 

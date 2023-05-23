@@ -1,6 +1,9 @@
 #pragma once
 
 #include <ResourceManager/Resource.hpp>
+#include <ResourceManager/ResourceRef.hpp>
+
+#include "%%CLASS_NAME%%.generated.hpp"
 
 #ifndef %%NAMESPACE_KEY%%
 #define %%NAMESPACE_KEY%% %%NAMESPACE%%
@@ -8,7 +11,7 @@
 
 namespace %%NAMESPACE%%
 {
-	class %%CLASS_NAME%% : public D_RESOURCE::Resource
+	class DClass(Serialize, Resource) %%CLASS_NAME%% : public D_RESOURCE::Resource
 	{
 		D_CH_RESOURCE_BODY(%%CLASS_NAME%%, %%RESOURCE_NAME%%, %%SUPPORTED_EXT%%);
 
@@ -29,5 +32,9 @@ namespace %%NAMESPACE%%
 		%%CLASS_NAME%%(D_CORE::Uuid uuid, std::wstring const& path, std::wstring const& name, D_RESOUCE::DResourceId id, bool isDefault = false) :
 			Resource(uuid, path, name, id, isDefault) {}
 
+	public:
+		%%CLASS_FOOTER_GENERATED%%
 	};
 }
+
+%%FILE_GENERATED%%
