@@ -77,7 +77,7 @@ namespace Darius::Subsystems
 			initializer();
 		}*/
 
-		D_SERIALIZATION::RegisterSerializer<D_CORE::Uuid>(nullptr, D_CORE::UuidFromJson);
+		D_SERIALIZATION::Initialize();
 
 		// Initializing the resource manager
 		D_RESOURCE::Initialize(settings["Resource Manager"]);
@@ -127,6 +127,7 @@ namespace Darius::Subsystems
 		D_JOB::Shutdown();
 		D_RENDERER::Shutdown();
 		D_RESOURCE::Shutdown();
+		D_SERIALIZATION::Shutdown();
 	}
 
 #ifdef _D_EDITOR

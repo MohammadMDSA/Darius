@@ -126,6 +126,9 @@ namespace Darius::Scene
 
 	GameObject* SceneManager::AddGameObject(D_CORE::Uuid const& uuid, bool addToScene)
 	{
+		// Uuid must not already exist
+		D_ASSERT(!UuidMap->contains(uuid));
+
 		D_ECS::Entity entity;
 
 		if (addToScene)
@@ -430,13 +433,16 @@ namespace Darius::Scene
 		*go = addedObjs[rootUuid];
 	}
 
-	void SceneManager::DumpGameObject(GameObject const* go, _OUT_ D_SERIALIZATION::Json& json)
+	void SceneManager::DumpGameObject(GameObject const* go, _OUT_ D_SERIALIZATION::Json& json, bool maintainContext)
 	{
 		D_ASSERT(go);
 
 		DVector<GameObject const*> toBeSerialized;
 
-		D_CORE::UuidToJson(go->GetUuid(), json["Root"]);
+		DUnorderedMap<Uuid, Uuid, UuidHasher> newReferenceMap;
+#define NEW_UUID(gameObject) newReferenceMap.at(gameObject->GetUuid())
+
+		Serialization::SerializationContext serializationContext = { true, maintainContext, newReferenceMap };
 
 		toBeSerialized.push_back(go);
 		go->VisitDescendants([&toBeSerialized](auto go)
@@ -444,13 +450,22 @@ namespace Darius::Scene
 				toBeSerialized.push_back(go);
 			});
 
+		// Create uuid maps for rereferencing
+		for (GameObject const* go : toBeSerialized)
+		{
+			auto goUuid = D_CORE::GenerateUuid();
+			newReferenceMap[go->GetUuid()] = goUuid;
+		}
+
+		D_CORE::UuidToJson(NEW_UUID(go), json["Root"]);
+
 		for (GameObject const* go : toBeSerialized)
 		{
 			// Serialize hierarchy
-			Json& goContext = json["Hierarchy"][ToString(go->GetUuid())];
+			Json& goContext = json["Hierarchy"][ToString(NEW_UUID(go))];
 			go->VisitChildren([&](GameObject const* child)
 				{
-					goContext.push_back(ToString(child->GetUuid()));
+					goContext.push_back(ToString(NEW_UUID(child)));
 
 				});
 
@@ -458,17 +473,29 @@ namespace Darius::Scene
 			D_SERIALIZATION::Json objectComps;
 			go->VisitComponents([&](D_ECS_COMP::ComponentBase const* comp)
 				{
+					auto newCompUuid = D_CORE::GenerateUuid();
+					newReferenceMap[comp->mUuid] = newCompUuid;
+
 					D_SERIALIZATION::Json componentJson;
-					D_SERIALIZATION::Serialize(comp, componentJson);
+					D_SERIALIZATION::Serialize(comp, componentJson, serializationContext);
 					comp->OnSerialized();
-					D_CORE::UuidToJson(comp->mUuid, componentJson["Uuid"]);
+					D_CORE::UuidToJson(newCompUuid, componentJson["Uuid"]);
 					objectComps[comp->GetComponentName()] = componentJson;
 				});
-			json["ObjectComponent"][ToString(go->GetUuid())] = objectComps;
+			json["ObjectComponent"][ToString(NEW_UUID(go))] = objectComps;
 		}
 
-		D_SERIALIZATION::SerializeSequentialContainer(toBeSerialized, json["Objects"]);
+		D_SERIALIZATION::SerializeSequentialContainer(toBeSerialized, json["Objects"], serializationContext);
 
+		// Replacing objects uuid with the new ones
+		for (int i = 0; i < json["Objects"].size(); i++)
+		{
+			Uuid currentUuid;
+			D_CORE::UuidFromJson(currentUuid, json["Objects"][i]["Uuid"]);
+			D_CORE::UuidToJson(newReferenceMap[currentUuid], json["Objects"][i]["Uuid"]);
+		}
+
+#undef NEW_UUID
 	}
 
 	void SceneManager::Unload()
