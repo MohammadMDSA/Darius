@@ -157,6 +157,9 @@ namespace Darius::Scene
 		DumpGameObject(go, refGoJson, maintainContext);
 		LoadGameObject(refGoJson, &result, true);
 
+		if(go->GetInScene())
+			result->mPrefab = go;
+
 		return result;
 	}
 
@@ -376,6 +379,8 @@ namespace Darius::Scene
 		D_ASSERT(json.contains("Hierarchy"));
 		D_ASSERT(json.contains("ObjectComponent"));
 		D_ASSERT(json.contains("Objects"));
+		D_ASSERT(json.contains("Type"));
+		D_ASSERT(json.at("Type") == "GameObject");
 
 		Uuid rootUuid;
 		D_CORE::UuidFromJson(rootUuid, json["Root"]);
@@ -504,6 +509,8 @@ namespace Darius::Scene
 			D_CORE::UuidFromJson(currentUuid, json["Objects"][i]["Uuid"]);
 			D_CORE::UuidToJson(newReferenceMap[currentUuid], json["Objects"][i]["Uuid"]);
 		}
+
+		json["Type"] = "GameObject";
 
 #undef NEW_UUID
 	}

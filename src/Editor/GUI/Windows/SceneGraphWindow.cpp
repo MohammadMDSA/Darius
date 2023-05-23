@@ -91,6 +91,30 @@ namespace Darius::Editor::Gui::Windows
 				ImGui::TreePop();
 				return;
 			}
+			else if (ImGui::Selectable("Copy"))
+			{
+				D_SERIALIZATION::Json goJson;
+				D_WORLD::DumpGameObject(go, goJson, true);
+				D_EDITOR_CONTEXT::SetClipboardJson(goJson);
+			}
+
+			{
+				bool pasteEnable = D_EDITOR_CONTEXT::IsGameObjectInClipboard();
+
+				if (!pasteEnable)
+					ImGui::BeginDisabled();
+				if (ImGui::Selectable("Paste"))
+				{
+					if (D_EDITOR_CONTEXT::IsGameObjectInClipboard())
+					{
+						GameObject* pastedGo;
+						D_WORLD::LoadGameObject(D_EDITOR_CONTEXT::GetClipboardJson(), &pastedGo, true);
+						pastedGo->SetParent(go);
+					}
+				}
+				if (!pasteEnable)
+					ImGui::EndDisabled();
+			}
 
 			if (!go->GetPrefab())
 				if (ImGui::Selectable("Create Prefab"))

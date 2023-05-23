@@ -14,6 +14,7 @@
 using namespace D_CORE;
 using namespace D_FILE;
 using namespace D_SCENE;
+using namespace D_SERIALIZATION;
 
 namespace Darius::Editor::Context
 {
@@ -21,6 +22,7 @@ namespace Darius::Editor::Context
 
 	GameObject*					SelectedGameObject;
 	Detailed*					SelectedDetailed;
+	Json						Clipboard;
 
 	D_H_SIGNAL_DEFINITION(EditorSuspended, void());
 	D_H_SIGNAL_DEFINITION(EditorResuming, void());
@@ -73,6 +75,22 @@ namespace Darius::Editor::Context
 		D_SIMULATE::Update();
 
 	}
+
+	void SetClipboardJson(Json const& data)
+	{
+		Clipboard = data;
+	}
+
+	D_SERIALIZATION::Json const& GetClipboardJson()
+	{
+		return Clipboard;
+	}
+
+	bool IsGameObjectInClipboard()
+	{
+		return Clipboard.contains("Type") && Clipboard.at("Type") == "GameObject";
+	}
+
 
 	GameObject* GetSelectedGameObject()
 	{
