@@ -47,6 +47,8 @@
     - Saving & Loading
     - Entity Component System Architecture
     - Scene Graph and Hierarchical Transform Math
+    - Prefab Creation
+    - Game Object Instantiation
 - Physics
     - Dynamic, Static, and Kinematic Actors
     - Physics Material
