@@ -120,7 +120,7 @@ namespace Darius::Scene::ECS::Components
         virtual INLINE void         Update(float) { };
         virtual INLINE void         LateUpdate(float) { };
 
-        INLINE bool                 IsActive() const { return mGameObject->IsActive() && mEnabled; }
+        INLINE bool                 IsActive() const { return mGameObject->IsActive() && mGameObject->GetInScene() && mEnabled; }
 
         virtual INLINE bool         IsDisableable() const { return true; }
         
