@@ -1,6 +1,7 @@
 ﻿#include "pch.hpp"
 
 #include "GameObject.hpp"
+#include "GameObjectRef.hpp"
 #include "Scene/Utils/DetailsDrawer.hpp"
 #include "Scene.hpp"
 #include "EntityComponentSystem/Components/ComponentBase.hpp"
@@ -41,7 +42,7 @@ namespace Darius::Scene
 		mDeleted(false),
 		mParent(nullptr),
 		mAwake(false),
-		mPrefab(nullptr),
+		mPrefab(Uuid()),
 		mInScene(inScene)
 	{
 		AddComponent<D_MATH::TransformComponent>();
@@ -86,8 +87,19 @@ namespace Darius::Scene
 		}
 		ImGui::Spacing();
 
-		// Drawing components
+		// Show parent prefab
+		if (!mPrefab.is_nil() && mPrefab != mUuid)
+		{
 
+			ImGui::Text("Prefab:");
+			ImGui::SameLine(0, 50.f);
+			auto prefabGo = D_WORLD::GetGameObject(mPrefab);
+			ImGui::Button(prefabGo->GetName().c_str());
+
+			ImGui::Spacing();
+		}
+
+		// Drawing components
 		const ImGuiTreeNodeFlags treeNodeFlags = ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_Framed | ImGuiTreeNodeFlags_SpanAvailWidth | ImGuiTreeNodeFlags_AllowItemOverlap | ImGuiTreeNodeFlags_FramePadding;
 
 		// Drawing components
@@ -522,19 +534,6 @@ namespace Darius::Scene
 	void GameObject::RegisterBehaviourComponent(D_ECS::EntityId compId)
 	{
 		RegisteredBehaviours.insert(compId);
-	}
-
-	void to_json(D_SERIALIZATION::Json& j, const GameObject& value) {
-		D_H_SERIALIZE_VALUE(Active);
-		D_H_SERIALIZE_VALUE(Name);
-		D_H_SERIALIZE_VALUE(Type);
-		D_CORE::to_json(j["Uuid"], value.mUuid);
-	}
-
-	void from_json(const D_SERIALIZATION::Json& j, GameObject& value) {
-		D_H_DESERIALIZE_VALUE(Active);
-		D_H_DESERIALIZE_VALUE(Name);
-		D_H_DESERIALIZE_VALUE(Type);
 	}
 
 }

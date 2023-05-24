@@ -183,9 +183,6 @@ namespace Darius::Scene
 		friend class D_SCENE::SceneManager;
 		friend class Darius::Scene::ECS::Components::ComponentBase;
 
-		friend void							to_json(D_SERIALIZATION::Json& j, const GameObject& value);
-		friend void							from_json(const D_SERIALIZATION::Json& j, GameObject& value);
-
 		GameObject(D_CORE::Uuid uuid, D_ECS::Entity entity, bool inScene = true);
 
 		void								AddComponentRoutine(Darius::Scene::ECS::Components::ComponentBase*);
@@ -219,8 +216,8 @@ namespace Darius::Scene
 		DField(Get[inline, const, &], Set[inline], Serialize)
 		std::string				mName;
 
-		DField(Get[inline])
-		GameObject*				mPrefab;
+		DField(Get[inline], Serialize)
+		D_CORE::Uuid			mPrefab;
 
 		D_ECS::Entity			mEntity;
 
@@ -241,9 +238,6 @@ namespace Darius::Scene
 		{ GameObject::Type::Movable, "Movable" }
 		});
 
-	void to_json(D_SERIALIZATION::Json& j, const GameObject& value);
-
-	void from_json(const D_SERIALIZATION::Json& j, GameObject& value);
 }
 
 File_GameObject_GENERATED

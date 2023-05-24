@@ -140,8 +140,11 @@ namespace Darius::Scene
 
 		// TODO: Better allocation
 		auto go = new GameObject(uuid, entity, addToScene);
+
 		if (addToScene)
 			GOs->insert(go);
+		else
+			go->mPrefab = uuid;
 
 		// Update maps
 		UuidMap->emplace(uuid, go);
@@ -157,8 +160,8 @@ namespace Darius::Scene
 		DumpGameObject(go, refGoJson, maintainContext);
 		LoadGameObject(refGoJson, &result, true);
 
-		if(go->GetInScene())
-			result->mPrefab = go;
+		if(!go->GetInScene())
+			result->mPrefab = go->GetUuid();
 
 		return result;
 	}
@@ -321,7 +324,7 @@ namespace Darius::Scene
 				D_CORE::from_json(jObj["Uuid"], uuid);
 				auto obj = CreateGameObject(uuid);
 
-				from_json(jObj, *obj);
+				D_SERIALIZATION::Deserialize(obj, jObj);
 			}
 
 		// Loading hierarchy
@@ -396,7 +399,7 @@ namespace Darius::Scene
 			D_CORE::UuidFromJson(objUuid, objJson["Uuid"]);
 			auto obj = AddGameObject(objUuid, addToScene);
 
-			from_json(objJson, *obj);
+			D_SERIALIZATION::Deserialize(obj, objJson);
 			addedObjs[objUuid] = obj;
 		}
 
