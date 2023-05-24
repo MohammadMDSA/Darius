@@ -143,8 +143,6 @@ namespace Darius::Scene
 
 		if (addToScene)
 			GOs->insert(go);
-		else
-			go->mPrefab = uuid;
 
 		// Update maps
 		UuidMap->emplace(uuid, go);
@@ -160,7 +158,7 @@ namespace Darius::Scene
 		DumpGameObject(go, refGoJson, maintainContext);
 		LoadGameObject(refGoJson, &result, true);
 
-		if(!go->GetInScene())
+		if (!go->GetInScene())
 			result->mPrefab = go->GetUuid();
 
 		return result;
@@ -448,7 +446,12 @@ namespace Darius::Scene
 			ToBeStarted.push_back(go);
 		}
 
-		*go = addedObjs[rootUuid];
+		auto rootGameObject = addedObjs[rootUuid];
+
+		if (!addToScene)
+			rootGameObject->mPrefab = rootUuid;
+
+		*go = rootGameObject;
 	}
 
 	void SceneManager::DumpGameObject(GameObject const* go, _OUT_ D_SERIALIZATION::Json& json, bool maintainContext)
