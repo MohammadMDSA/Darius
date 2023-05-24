@@ -37,7 +37,7 @@ static INLINE std::string const GetTypeName() { return D_NAMEOF(T); }
 	{ \
 		ImGuiPayload const* imPayload = ImGui::GetDragDropPayload(); \
 		auto payload = reinterpret_cast<Darius::Utils::BaseDragDropPayloadContent const*>(imPayload->Data); \
-		if (payload && payload->IsCompatible(D_UTILS::BaseDragDropPayloadContent::Type::GameObject, "GameObject")) \
+		if (payload && payload->PayloadType != D_UTILS::BaseDragDropPayloadContent::Type::Invalid && payload->IsCompatible(D_UTILS::BaseDragDropPayloadContent::Type::GameObject, "GameObject")) \
 		{ \
 			if (ImGuiPayload const* acceptedPayload = ImGui::AcceptDragDropPayload(D_PAYLOAD_TYPE_GAMEOBJECT)) \
 			{ \
@@ -55,7 +55,7 @@ static INLINE std::string const GetTypeName() { return D_NAMEOF(T); }
     { \
         ImGuiPayload const* imPayload = ImGui::GetDragDropPayload(); \
         D_UTILS::BaseDragDropPayloadContent const* payload = (D_UTILS::BaseDragDropPayloadContent const*)(imPayload->Data); \
-		if(payload && payload->IsCompatible(Darius::Utils::BaseDragDropPayloadContent::Type::Resource, std::to_string(resourceType::GetResourceType()))) \
+		if(payload && payload->PayloadType != D_UTILS::BaseDragDropPayloadContent::Type::Invalid && payload->IsCompatible(Darius::Utils::BaseDragDropPayloadContent::Type::Resource, std::to_string(resourceType::GetResourceType()))) \
 		{ \
 			if (ImGuiPayload const* payload = ImGui::AcceptDragDropPayload(D_PAYLOAD_TYPE_RESOURCE)) \
 			{ \

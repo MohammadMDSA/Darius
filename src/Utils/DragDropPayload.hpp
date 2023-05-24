@@ -13,6 +13,7 @@ namespace Darius::Utils
 	{
 		enum class Type
 		{
+			Invalid = 0,
 			Resource,
 			GameObject
 		};
@@ -21,7 +22,7 @@ namespace Darius::Utils
 			PayloadType(type)
 		{ }
 
-		Type const PayloadType;
+		Type const PayloadType = Type::Invalid;
 		virtual bool IsCompatible(Type payloadType, std::string const& type) const = 0;
 	};
 

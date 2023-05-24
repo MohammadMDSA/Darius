@@ -69,7 +69,7 @@ namespace Darius::Editor::Gui::Windows
 		if (selected)
 			baseFlag |= ImGuiTreeNodeFlags_Selected;
 
-		auto objName = (go->GetPrefab() ? ICON_FA_BOX : ICON_FA_OBJECT_UNGROUP) + (" " + go->GetName());
+		auto objName = (go->GetPrefab().is_nil() ? ICON_FA_OBJECT_UNGROUP : ICON_FA_BOX) + (" " + go->GetName());
 		auto nodeOpen = ImGui::TreeNodeEx((void*)(go), baseFlag, objName.c_str());
 
 		if (ImGui::BeginPopupContextItem())
@@ -116,11 +116,10 @@ namespace Darius::Editor::Gui::Windows
 					ImGui::EndDisabled();
 			}
 
-			if (!go->GetPrefab())
-				if (ImGui::Selectable("Create Prefab"))
-				{
-					ImGuiFileDialog::Instance()->OpenDialog("SavePrefab", "Create Prefab", ".prefab", D_ENGINE_CONTEXT::GetAssetsPath().string(), 1, go);
-				}
+			if (ImGui::Selectable("Create Prefab"))
+			{
+				ImGuiFileDialog::Instance()->OpenDialog("SavePrefab", "Create Prefab", ".prefab", D_ENGINE_CONTEXT::GetAssetsPath().string(), 1, go);
+			}
 
 
 			ImGui::EndPopup();
@@ -147,7 +146,7 @@ namespace Darius::Editor::Gui::Windows
 			auto payload = reinterpret_cast<D_UTILS::BaseDragDropPayloadContent const*>(imPayload->Data);
 
 			// In case it is a prefab resource
-			if (payload && payload->IsCompatible(D_UTILS::BaseDragDropPayloadContent::Type::Resource, std::to_string(D_SCENE::PrefabResource::GetResourceType())))
+			if (payload && payload->PayloadType != D_UTILS::BaseDragDropPayloadContent::Type::Invalid && payload->IsCompatible(D_UTILS::BaseDragDropPayloadContent::Type::Resource, std::to_string(D_SCENE::PrefabResource::GetResourceType())))
 			{
 				auto payloadData = reinterpret_cast<D_RESOURCE::ResourceDragDropPayloadContent const*>(imPayload->Data);
 				auto prefabResource = D_RESOURCE::GetResource<PrefabResource>(payloadData->Handle);
