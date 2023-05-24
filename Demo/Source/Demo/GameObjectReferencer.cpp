@@ -47,7 +47,7 @@ namespace Demo
 
 
 		// sample field
-		D_H_DETAILS_DRAW_PROPERTY("field");
+		D_H_DETAILS_DRAW_PROPERTY("Reference");
 
 		D_H_GAMEOBJECT_SELECTION_DRAW(mReference, SetReference);
 

@@ -50,9 +50,6 @@ namespace Demo
 		D_H_DETAILS_DRAW_BEGIN_TABLE();
 
 
-		// sample field
-		D_H_DETAILS_DRAW_PROPERTY("field");
-
 		{
 			D_H_DETAILS_DRAW_PROPERTY("Target");
 
