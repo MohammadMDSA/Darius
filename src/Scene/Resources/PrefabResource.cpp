@@ -77,7 +77,14 @@ namespace Darius::Scene
 		if (!mPrefabGameObject)
 			return false;
 
-		return mPrefabGameObject->DrawDetails(params);
+		auto valueChanged = false;
+
+		valueChanged |= mPrefabGameObject->DrawDetails(params);
+		
+		if (valueChanged)
+			MakeDiskDirty();
+
+		return valueChanged;
 	}
 #endif
 }
