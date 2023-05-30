@@ -22,8 +22,6 @@ using namespace D_RENDERER_FRAME_RESOURCE;
 
 namespace Darius::Graphics
 {
-	UINT BillboardRendererComponent::RenderPsoIndex = 0u;
-	UINT BillboardRendererComponent::DepthPsoIndex = 0u;
 
 	D_H_COMP_DEF(BillboardRendererComponent);
 
@@ -110,19 +108,18 @@ namespace Darius::Graphics
 	bool BillboardRendererComponent::AddRenderItems(std::function<void(D_RENDERER_FRAME_RESOURCE::RenderItem const&)> appendFunction)
 	{
 
-		if (!mMaterial.IsValid())
+		if (!mMaterial.IsValid() || mMaterial->IsDirtyGPU())
 			return false;
 
-		if (RenderPsoIndex == 0 || DepthPsoIndex == 0)
-			UpdatePso();
+		UpdatePsoIndex();
 
 		static const uint16_t psoFlags = mMaterial->GetPsoFlags() | RenderItem::SkipVertexIndex | RenderItem::PointOnly;
 
 		RenderItem ri;
 		ri.PrimitiveType = D3D_PRIMITIVE_TOPOLOGY_POINTLIST;
 		ri.MeshCBV = GetConstantsAddress();
-		ri.PsoType = BillboardRendererComponent::RenderPsoIndex;
-		ri.DepthPsoIndex = BillboardRendererComponent::DepthPsoIndex;
+		ri.PsoType = mMaterialPsoData.PsoIndex;
+		ri.DepthPsoIndex = mMaterialPsoData.DepthPsoIndex;
 		ri.Material.MaterialCBV = *mMaterial.Get();
 		ri.Material.MaterialSRV = mMaterial->GetTexturesHandle();
 		ri.Material.SamplersSRV = mMaterial->GetSamplersHandle();
@@ -135,24 +132,37 @@ namespace Darius::Graphics
 		return true;
 	}
 
-	void BillboardRendererComponent::UpdatePso()
+	void BillboardRendererComponent::UpdatePsoIndex()
 	{
 
 #define ShaderData(name) GetShaderByName(name)->GetBufferPointer(), Shaders[name]->GetBufferSize()
 
-		GraphicsPSO renderPso;
+		auto materialPsoFlags = mMaterial->GetPsoFlags();
 
-		PsoConfig config;
-		config.PsoFlags = mMaterial->GetPsoFlags() | RenderItem::SkipVertexIndex | RenderItem::PointOnly;
+		// Whether resource has changed
+		if (mMaterialPsoData.CachedMaterialPsoFlags != materialPsoFlags)
+		{
+			mMaterialPsoData.CachedMaterialPsoFlags = materialPsoFlags;
+			mMaterialPsoData.PsoIndexDirty = true;
+		}
 
-		config.PSIndex = GetShaderIndex("BillboardPS");
-		config.VSIndex = GetShaderIndex("BillboardVS");
-		config.GSIndex = GetShaderIndex("BillboardGS");
-		
-		BillboardRendererComponent::RenderPsoIndex = D_RENDERER::GetPso(config);
-		config.PsoFlags |= RenderItem::DepthOnly;
-		config.PSIndex = 0;
-		BillboardRendererComponent::DepthPsoIndex = D_RENDERER::GetPso(config);
+		// Whether pso index is not compatible with current pso flags
+		if (mMaterialPsoData.PsoIndexDirty)
+		{
+			PsoConfig config;
+			config.PsoFlags = mMaterial->GetPsoFlags() | RenderItem::SkipVertexIndex | RenderItem::PointOnly;
+
+			config.PSIndex = GetShaderIndex("BillboardPS");
+			config.VSIndex = GetShaderIndex("BillboardVS");
+			config.GSIndex = GetShaderIndex("BillboardGS");
+
+			mMaterialPsoData.PsoIndex = D_RENDERER::GetPso(config);
+			config.PsoFlags |= RenderItem::DepthOnly;
+			config.PSIndex = 0;
+			mMaterialPsoData.DepthPsoIndex = D_RENDERER::GetPso(config);
+			mMaterialPsoData.PsoIndexDirty = false;
+
+		}
 
 	}
 

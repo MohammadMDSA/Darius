@@ -47,7 +47,7 @@ namespace Darius::Graphics
 		void								SetHeight(float const& value);
 
 	protected:
-		void								UpdatePso();
+		void								UpdatePsoIndex();
 
 		DField(Serialize, Resource)
 		D_RESOURCE::ResourceRef<MaterialResource> mMaterial;
@@ -74,8 +74,7 @@ namespace Darius::Graphics
 		D_GRAPHICS_BUFFERS::ByteAddressBuffer	mMeshConstantsGPU;
 
 
-		static UINT							RenderPsoIndex;
-		static UINT							DepthPsoIndex;
+		MaterialPsoData						mMaterialPsoData;
 	
 
 	public:

@@ -27,6 +27,14 @@ namespace Darius::Graphics
 
 		Darius_Graphics_IRenderable_GENERATED
 	};
+
+	struct MaterialPsoData
+	{
+		uint16_t							CachedMaterialPsoFlags = 0;
+		UINT								PsoIndex = 0;
+		UINT								DepthPsoIndex = 0;
+		bool								PsoIndexDirty = true;
+	};
 }
 
 File_IRenderable_GENERATED
