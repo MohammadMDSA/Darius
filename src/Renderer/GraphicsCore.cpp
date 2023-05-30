@@ -816,6 +816,55 @@ namespace Darius::Graphics
 			settingsChanged |= D_RENDERER::OptionsDrawer(options);
 		}
 
+		if (ImGui::CollapsingHeader("Info"))
+		{
+			ImGui::BeginGroup();
+
+			if (ImGui::CollapsingHeader("Active Pipelines"))
+			{
+				auto& psos = D_RENDERER::GetPsos();
+
+				ImGui::Text("Size: ");
+				ImGui::SameLine();
+				ImGui::PushStyleColor(ImGuiCol_Text, { 0.f, 1.f, 0.f, 1.f });
+				ImGui::Text(std::to_string(psos.size()).c_str());
+				ImGui::PopStyleColor();
+
+				auto flags = ImGuiTableFlags_ScrollY | ImGuiTableFlags_RowBg | ImGuiTableFlags_BordersOuter | ImGuiTableFlags_BordersV | ImGuiTableFlags_Hideable;
+
+				if (ImGui::BeginTable("Psos", 2, flags))
+				{
+					ImGui::TableSetupScrollFreeze(0, 1);
+					ImGui::TableSetupColumn("Index");
+					ImGui::TableSetupColumn("Name");
+					ImGui::TableHeadersRow();
+
+					ImGuiListClipper clipper;
+					clipper.Begin(200);
+					while (clipper.Step())
+					{
+						for (int row = clipper.DisplayStart; row < (int)psos.size() && row < clipper.DisplayEnd; row++)
+						{
+							auto& pso = psos[row];
+
+							ImGui::TableNextRow();
+
+							ImGui::TableSetColumnIndex(0);
+							ImGui::Text(std::to_string(row).c_str());
+							ImGui::TableSetColumnIndex(1);
+							auto name = pso.GetName();
+							ImGui::Text(WSTR2STR(name).c_str());
+						}
+					}
+
+					ImGui::EndTable();
+				}
+			}
+
+			ImGui::EndGroup();
+
+		}
+
 		D_H_OPTION_DRAW_END()
 
 	}

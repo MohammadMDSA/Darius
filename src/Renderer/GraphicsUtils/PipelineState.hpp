@@ -51,6 +51,11 @@ namespace Darius::Graphics::Utils
 
         ID3D12PipelineState* GetPipelineStateObject(void) const { return mPSO; }
 
+        wchar_t const* GetName() const
+        {
+            return mName;
+        }
+
     protected:
 
         const wchar_t* mName;
