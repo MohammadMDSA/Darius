@@ -659,7 +659,12 @@ namespace Darius::Graphics
 			auto box = D_RENDERER_GEOMETRY_GENERATOR::CreateBox(1.f, 1.f, 1.f, 0);
 			auto cylinder = D_RENDERER_GEOMETRY_GENERATOR::CreateCylinder(0.5f, 0.5f, 1, 40, 20);
 			auto geosphere = D_RENDERER_GEOMETRY_GENERATOR::CreateGeosphere(0.5f, 40);
-			auto grid = D_RENDERER_GEOMETRY_GENERATOR::CreateGrid(100.f, 100.f, 100, 100);
+			auto grid1 = D_RENDERER_GEOMETRY_GENERATOR::CreateGrid(1.f, 1.f, 100, 100);
+			auto grid2 = D_RENDERER_GEOMETRY_GENERATOR::CreateGrid(2.f, 2.f, 100, 100);
+			auto grid4 = D_RENDERER_GEOMETRY_GENERATOR::CreateGrid(4.f, 4.f, 100, 100);
+			auto grid8 = D_RENDERER_GEOMETRY_GENERATOR::CreateGrid(8.f, 8.f, 100, 100);
+			auto grid16 = D_RENDERER_GEOMETRY_GENERATOR::CreateGrid(16.f, 16.f, 100, 100);
+			auto grid100 = D_RENDERER_GEOMETRY_GENERATOR::CreateGrid(100.f, 100.f, 100, 100);
 			auto quad = D_RENDERER_GEOMETRY_GENERATOR::CreateQuad(0.f, 0.f, 1.f, 1.f, 0.f);
 			auto sphere = D_RENDERER_GEOMETRY_GENERATOR::CreateSphere(0.5f, 40, 40);
 			auto lowSphere = D_RENDERER_GEOMETRY_GENERATOR::CreateSphere(0.5f, 10, 6);
@@ -689,14 +694,56 @@ namespace Darius::Graphics
 			res->MakeDiskClean();
 			((StaticMeshResource*)res)->Create(meshData);
 			DefaultResourceMap.insert({ DefaultResource::GeosphereMesh, { StaticMeshResource::GetResourceType(), res->GetId() } });
+			
+			{
+				resHandle = D_RESOURCE::GetManager()->CreateResource<StaticMeshResource>(GenerateUuidFor("Grid 1x1 Mesh"), L"Grid 1x1 Mesh", L"Grid 1x1 Mesh", true);
+				meshData.MeshData = grid1;
+				res = D_RESOURCE::GetManager()->GetRawResource(resHandle);
+				res->MakeGpuClean();
+				res->MakeDiskClean();
+				((StaticMeshResource*)res)->Create(meshData);
+				DefaultResourceMap.insert({ DefaultResource::Grid1x1Mesh, { StaticMeshResource::GetResourceType(), res->GetId() } });
 
-			resHandle = D_RESOURCE::GetManager()->CreateResource<StaticMeshResource>(GenerateUuidFor("Grid Mesh"), L"Grid Mesh", L"Grid Mesh", true);
-			meshData.MeshData = grid;
-			res = D_RESOURCE::GetManager()->GetRawResource(resHandle);
-			res->MakeGpuClean();
-			res->MakeDiskClean();
-			((StaticMeshResource*)res)->Create(meshData);
-			DefaultResourceMap.insert({ DefaultResource::GridMesh, { StaticMeshResource::GetResourceType(), res->GetId() } });
+				resHandle = D_RESOURCE::GetManager()->CreateResource<StaticMeshResource>(GenerateUuidFor("Grid 2x2 Mesh"), L"Grid 2x2 Mesh", L"Grid 2x2 Mesh", true);
+				meshData.MeshData = grid2;
+				res = D_RESOURCE::GetManager()->GetRawResource(resHandle);
+				res->MakeGpuClean();
+				res->MakeDiskClean();
+				((StaticMeshResource*)res)->Create(meshData);
+				DefaultResourceMap.insert({ DefaultResource::Grid2x2Mesh, { StaticMeshResource::GetResourceType(), res->GetId() } });
+
+				resHandle = D_RESOURCE::GetManager()->CreateResource<StaticMeshResource>(GenerateUuidFor("Grid 4x4 Mesh"), L"Grid 4x4 Mesh", L"Grid 4x4 Mesh", true);
+				meshData.MeshData = grid4;
+				res = D_RESOURCE::GetManager()->GetRawResource(resHandle);
+				res->MakeGpuClean();
+				res->MakeDiskClean();
+				((StaticMeshResource*)res)->Create(meshData);
+				DefaultResourceMap.insert({ DefaultResource::Grid4x4Mesh, { StaticMeshResource::GetResourceType(), res->GetId() } });
+
+				resHandle = D_RESOURCE::GetManager()->CreateResource<StaticMeshResource>(GenerateUuidFor("Grid 8x8 Mesh"), L"Grid 8x8 Mesh", L"Grid 8x8 Mesh", true);
+				meshData.MeshData = grid8;
+				res = D_RESOURCE::GetManager()->GetRawResource(resHandle);
+				res->MakeGpuClean();
+				res->MakeDiskClean();
+				((StaticMeshResource*)res)->Create(meshData);
+				DefaultResourceMap.insert({ DefaultResource::Grid8x8Mesh, { StaticMeshResource::GetResourceType(), res->GetId() } });
+
+				resHandle = D_RESOURCE::GetManager()->CreateResource<StaticMeshResource>(GenerateUuidFor("Grid 16x16 Mesh"), L"Grid 16x16 Mesh", L"Grid 16x16 Mesh", true);
+				meshData.MeshData = grid16;
+				res = D_RESOURCE::GetManager()->GetRawResource(resHandle);
+				res->MakeGpuClean();
+				res->MakeDiskClean();
+				((StaticMeshResource*)res)->Create(meshData);
+				DefaultResourceMap.insert({ DefaultResource::Grid16x16Mesh, { StaticMeshResource::GetResourceType(), res->GetId() } });
+
+				resHandle = D_RESOURCE::GetManager()->CreateResource<StaticMeshResource>(GenerateUuidFor("Grid 100x100 Mesh"), L"Grid 100x100 Mesh", L"Grid 100x100 Mesh", true);
+				meshData.MeshData = grid100;
+				res = D_RESOURCE::GetManager()->GetRawResource(resHandle);
+				res->MakeGpuClean();
+				res->MakeDiskClean();
+				((StaticMeshResource*)res)->Create(meshData);
+				DefaultResourceMap.insert({ DefaultResource::Grid100x100Mesh, { StaticMeshResource::GetResourceType(), res->GetId() } });
+			}
 
 			resHandle = D_RESOURCE::GetManager()->CreateResource<StaticMeshResource>(GenerateUuidFor("Quad Mesh"), L"Quad Mesh", L"Quad Mesh", true);
 			meshData.MeshData = quad;

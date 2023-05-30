@@ -58,11 +58,16 @@ namespace Darius::Graphics
 		BoxMesh,
 		CylinderMesh,
 		GeosphereMesh,
-		GridMesh,
 		QuadMesh,
 		SphereMesh,
 		LowPolySphereMesh,
 		LineMesh,
+		Grid1x1Mesh,
+		Grid2x2Mesh,
+		Grid4x4Mesh,
+		Grid8x8Mesh,
+		Grid16x16Mesh,
+		Grid100x100Mesh,
 
 		// Materials
 		Material,
