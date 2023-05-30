@@ -202,8 +202,10 @@ namespace Darius::Renderer
 	{
 		UINT16	PsoFlags : 16 = 0;
 		UINT32	VSIndex : 10 = 0;
-		UINT32	PSIndex : 10 = 0;
+		UINT32	PSIndex : 12 = 0;
 		UINT32	GSIndex : 10 = 0;
+		UINT32	HSIndex : 10 = 0;
+		UINT32	DSIndex : 10 = 0;
 		D3D12_INPUT_LAYOUT_DESC InputLayout =
 		{
 			nullptr,

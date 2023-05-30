@@ -984,6 +984,18 @@ namespace Darius::Renderer
 			depthPSO.SetGeometryShader(gShader->GetBufferPointer(), gShader->GetBufferSize());
 		}
 
+		if (psoConfig.HSIndex > 0)
+		{
+			auto gShader = GetShaderByIndex(psoConfig.HSIndex);
+			depthPSO.SetHullShader(gShader->GetBufferPointer(), gShader->GetBufferSize());
+		}
+
+		if (psoConfig.DSIndex > 0)
+		{
+			auto gShader = GetShaderByIndex(psoConfig.DSIndex);
+			depthPSO.SetDomainShader(gShader->GetBufferPointer(), gShader->GetBufferSize());
+		}
+
 		// Handling Rasterizer
 
 		// Is two sided
@@ -1223,6 +1235,22 @@ namespace Darius::Renderer
 			ColorPSO.SetGeometryShader(gShader->GetBufferPointer(), gShader->GetBufferSize());
 
 			psoName += L"Geometry:" + std::to_wstring(psoConfig.GSIndex);
+		}
+
+		if (psoConfig.HSIndex > 0)
+		{
+			auto gShader = GetShaderByIndex(psoConfig.HSIndex);
+			ColorPSO.SetHullShader(gShader->GetBufferPointer(), gShader->GetBufferSize());
+
+			psoName += L"Hull:" + std::to_wstring(psoConfig.HSIndex);
+		}
+
+		if (psoConfig.DSIndex > 0)
+		{
+			auto gShader = GetShaderByIndex(psoConfig.DSIndex);
+			ColorPSO.SetDomainShader(gShader->GetBufferPointer(), gShader->GetBufferSize());
+
+			psoName += L"Domain:" + std::to_wstring(psoConfig.DSIndex);
 		}
 
 		if (psoConfig.PsoFlags & RenderItem::AlphaBlend)
