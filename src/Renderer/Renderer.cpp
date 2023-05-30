@@ -1117,11 +1117,15 @@ namespace Darius::Renderer
 		D_ASSERT((psoConfig.PsoFlags & Requirements) == Requirements);
 		D_ASSERT_M(!(psoConfig.PsoFlags & RenderItem::HasUV1), "Higher level UV sets are not supported yet");
 
+		std::wstring psoName;
+
 		// Setting input layout
 		if (psoConfig.InputLayout.NumElements == 0 && (psoConfig.PsoFlags & RenderItem::SkipVertexIndex) == 0)
 		{
 			if (psoConfig.PsoFlags & RenderItem::HasSkin)
+			{
 				ColorPSO.SetInputLayout(VertexData(D_GRAPHICS_VERTEX::VertexPositionNormalTangentTextureSkinned));
+			}
 			else
 				ColorPSO.SetInputLayout(VertexData(D_GRAPHICS_VERTEX::VertexPositionNormalTangentTexture));
 		}
@@ -1134,6 +1138,8 @@ namespace Darius::Renderer
 			{
 				ColorPSO.SetVertexShader(ShaderData("ColorVS"));
 				ColorPSO.SetPixelShader(ShaderData("ColorPS"));
+
+				psoName += L"Color Only ";
 			}
 			else
 			{
@@ -1165,6 +1171,7 @@ namespace Darius::Renderer
 							ColorPSO.SetPixelShader(ShaderData("DefaultPS"));
 						}
 					}
+					psoName += L"Skinned ";
 				}
 				else
 				{
@@ -1214,35 +1221,55 @@ namespace Darius::Renderer
 		{
 			auto gShader = GetShaderByIndex(psoConfig.GSIndex);
 			ColorPSO.SetGeometryShader(gShader->GetBufferPointer(), gShader->GetBufferSize());
+
+			psoName += L"Geometry:" + std::to_wstring(psoConfig.GSIndex);
 		}
 
 		if (psoConfig.PsoFlags & RenderItem::AlphaBlend)
 		{
 			ColorPSO.SetBlendState(BlendTraditional);
 			ColorPSO.SetDepthStencilState(DepthStateReadOnly);
+			psoName += L"AlphaBlended ";
 		}
 		if (psoConfig.PsoFlags & RenderItem::TwoSided)
 		{
 			if (psoConfig.PsoFlags & RenderItem::Wireframe)
+			{
 				ColorPSO.SetRasterizerState(RasterizerTwoSidedWireframe);
+				psoName += L"Wireframed ";
+			}
 			else
 				ColorPSO.SetRasterizerState(RasterizerTwoSided);
+
+			psoName += L"TwoSided ";
 		}
 		else
 		{
 			if (psoConfig.PsoFlags & RenderItem::Wireframe)
+			{
 				ColorPSO.SetRasterizerState(RasterizerDefaultWireframe);
+				psoName += L"Wireframed ";
+			}
 			else
 				ColorPSO.SetRasterizerState(RasterizerDefault);
 		}
 
 		if (psoConfig.PsoFlags & RenderItem::LineOnly)
+		{
 			ColorPSO.SetPrimitiveTopologyType(D3D12_PRIMITIVE_TOPOLOGY_TYPE_LINE);
+			psoName += L"Line ";
+		}
 		else if (psoConfig.PsoFlags & RenderItem::PointOnly)
+		{
 			ColorPSO.SetPrimitiveTopologyType(D3D12_PRIMITIVE_TOPOLOGY_TYPE_POINT);
+			psoName += L"Point ";
+		}
 		else
+		{
 			ColorPSO.SetPrimitiveTopologyType(D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE);
-		ColorPSO.Finalize();
+			psoName += L"Triangle ";
+		}
+		ColorPSO.Finalize(psoName);
 
 		// Look for an existing PSO
 		for (uint32_t i = 0; i < Psos.size(); ++i)
@@ -1278,6 +1305,11 @@ namespace Darius::Renderer
 			return GetDepthOnlyPso(psoConfig);
 		else
 			return GetRenderPso(psoConfig);
+	}
+
+	D_CONTAINERS::DVector<D_GRAPHICS_UTILS::GraphicsPSO> const& GetPsos()
+	{
+		return Psos;
 	}
 
 }
