@@ -25,7 +25,6 @@ namespace Darius::Graphics
 			Cells4x4,
 			Cells8x8,
 			Cells16x16,
-			Cells100x100
 		};
 
 
@@ -63,8 +62,6 @@ namespace Darius::Graphics
 				return "Cells 8x8";
 			case Darius::Graphics::TerrainRendererComponent::TerrainGridSize::Cells16x16:
 				return "Cells 16x16";
-			case Darius::Graphics::TerrainRendererComponent::TerrainGridSize::Cells100x100:
-				return "Cells 100x100";
 			default:
 				D_ASSERT_M(false, "Bad grid size");
 				return "";

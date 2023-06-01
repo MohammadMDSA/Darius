@@ -30,7 +30,8 @@ namespace Darius::Graphics
 		mMaterial(GetAsCountedOwner()),
 		mGridMesh(GetAsCountedOwner()),
 		mHeightMap(GetAsCountedOwner()),
-		mGridSize(TerrainGridSize::Cells8x8)
+		mGridSize(TerrainGridSize::Cells8x8),
+		mCastsShadow(true)
 	{
 	}
 
@@ -39,7 +40,8 @@ namespace Darius::Graphics
 		mMaterial(GetAsCountedOwner()),
 		mGridMesh(GetAsCountedOwner()),
 		mHeightMap(GetAsCountedOwner()),
-		mGridSize(TerrainGridSize::Cells8x8)
+		mGridSize(TerrainGridSize::Cells8x8),
+		mCastsShadow(true)
 	{
 	}
 
@@ -61,34 +63,27 @@ namespace Darius::Graphics
 		if (!IsActive())
 			return;
 
-		if (!mMaterial.IsValid())
+		if (!mMaterial.IsValid() || mMaterial->IsDirtyGPU())
 			return;
 
-		//auto& context = D_GRAPHICS::GraphicsContext::Begin();
+		auto& context = D_GRAPHICS::GraphicsContext::Begin();
 
-		//// Updating mesh constants
-		//// Mapping upload buffer
-		//auto& currentUploadBuff = mMeshConstantsCPU[D_GRAPHICS_DEVICE::GetCurrentFrameResourceIndex()];
+		// Updating mesh constants
+		// Mapping upload buffer
+		auto& currentUploadBuff = mMeshConstantsCPU[D_GRAPHICS_DEVICE::GetCurrentFrameResourceIndex()];
 
-		//ALIGN_DECL_256 struct BillboardConstants
-		//{
-		//	DirectX::XMFLOAT4X4		world;
-		//	DirectX::XMFLOAT2		size;
-		//};
+		MeshConstants* cb = reinterpret_cast<MeshConstants*>(currentUploadBuff.Map());
+		Matrix4 world = Matrix4(GetTransform().GetWorld());
+		cb->mWorld = Matrix4(world);
+		cb->mWorldIT = InverseTranspose(world.Get3x3());
+		currentUploadBuff.Unmap();
 
+		// Uploading
+		context.TransitionResource(mMeshConstantsGPU, D3D12_RESOURCE_STATE_COPY_DEST, true);
+		context.CopyBufferRegion(mMeshConstantsGPU, 0, currentUploadBuff, 0, currentUploadBuff.GetBufferSize());
+		context.TransitionResource(mMeshConstantsGPU, D3D12_RESOURCE_STATE_GENERIC_READ);
 
-		//BillboardConstants* cb = reinterpret_cast<BillboardConstants*>(currentUploadBuff.Map());
-		//auto world = GetTransform().GetWorld();
-		//cb->world = Matrix4(world);
-		//cb->size = { mWidth, mHeight };
-		//currentUploadBuff.Unmap();
-
-		//// Uploading
-		//context.TransitionResource(mMeshConstantsGPU, D3D12_RESOURCE_STATE_COPY_DEST, true);
-		//context.CopyBufferRegion(mMeshConstantsGPU, 0, currentUploadBuff, 0, currentUploadBuff.GetBufferSize());
-		//context.TransitionResource(mMeshConstantsGPU, D3D12_RESOURCE_STATE_GENERIC_READ);
-
-		//context.Finish();
+		context.Finish();
 	}
 
 	bool TerrainRendererComponent::AddRenderItems(std::function<void(D_RENDERER_FRAME_RESOURCE::RenderItem const&)> appendFunction)
@@ -99,11 +94,15 @@ namespace Darius::Graphics
 
 		UpdatePsoIndex();
 
-		static const uint16_t psoFlags = mMaterial->GetPsoFlags() | RenderItem::SkipVertexIndex | RenderItem::PointOnly;
+		static const uint16_t psoFlags = mMaterial->GetPsoFlags() | RenderItem::PointOnly | RenderItem::LineOnly;
+
+		static auto incSize = D_GRAPHICS_DEVICE::GetDevice()->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 
 		RenderItem ri;
-		ri.PrimitiveType = D3D_PRIMITIVE_TOPOLOGY_POINTLIST;
-		ri.MeshCBV = GetConstantsAddress();
+		ri.Mesh = mGridMesh->GetMeshData();
+		ri.PrimitiveType = D3D_PRIMITIVE_TOPOLOGY_4_CONTROL_POINT_PATCHLIST;
+		ri.MeshHsCBV = GetConstantsAddress();
+		ri.MeshDsCBV = GetConstantsAddress();
 		ri.PsoType = mMaterialPsoData.PsoIndex;
 		ri.DepthPsoIndex = mMaterialPsoData.DepthPsoIndex;
 		ri.Material.MaterialCBV = *mMaterial.Get();
@@ -111,14 +110,18 @@ namespace Darius::Graphics
 		ri.Material.SamplersSRV = mMaterial->GetSamplersHandle();
 		ri.PsoFlags = psoFlags;
 		ri.BaseVertexLocation = 0;
-		ri.IndexCount = 1;
+		ri.StartIndexLocation = 0;
+
+		ri.TextureDomainSRV = { incSize * (UINT)D_RENDERER::TextureType::kWorldDisplacement + ri.Material.MaterialSRV.ptr };
+		ri.TextureDomainSampler = { incSize * (UINT)D_RENDERER::TextureType::kWorldDisplacement + ri.Material.SamplersSRV.ptr };
+		ri.IndexCount = ri.Mesh->mNumTotalIndices;
 
 		appendFunction(ri);
 
 		return true;
 	}
 
-	void TerrainRendererComponent::UpdatePsoIndex()
+			void TerrainRendererComponent::UpdatePsoIndex()
 	{
 
 #define ShaderData(name) GetShaderByName(name)->GetBufferPointer(), Shaders[name]->GetBufferSize()
@@ -136,11 +139,12 @@ namespace Darius::Graphics
 		if (mMaterialPsoData.PsoIndexDirty)
 		{
 			PsoConfig config;
-			config.PsoFlags = mMaterial->GetPsoFlags() | RenderItem::SkipVertexIndex | RenderItem::PointOnly;
+			config.PsoFlags = mMaterial->GetPsoFlags() | RenderItem::PointOnly | RenderItem::LineOnly;
 
-			config.PSIndex = GetShaderIndex("BillboardPS");
-			config.VSIndex = GetShaderIndex("BillboardVS");
-			config.GSIndex = GetShaderIndex("BillboardGS");
+			config.PSIndex = GetShaderIndex("DefaultPS");
+			config.VSIndex = GetShaderIndex("TerrainVS");
+			config.HSIndex = GetShaderIndex("TerrainHS");
+			config.DSIndex = GetShaderIndex("TerrainDS");
 
 			mMaterialPsoData.PsoIndex = D_RENDERER::GetPso(config);
 			config.PsoFlags |= RenderItem::DepthOnly;
@@ -164,26 +168,23 @@ namespace Darius::Graphics
 		switch (mGridSize)
 		{
 		case Darius::Graphics::TerrainRendererComponent::TerrainGridSize::Cells1x1:
-			defaultResourceType = D_GRAPHICS::DefaultResource::Grid1x1Mesh;
+			defaultResourceType = D_GRAPHICS::DefaultResource::GridPatch1x1Mesh;
 			break;
 		case Darius::Graphics::TerrainRendererComponent::TerrainGridSize::Cells2x2:
-			defaultResourceType = D_GRAPHICS::DefaultResource::Grid2x2Mesh;
+			defaultResourceType = D_GRAPHICS::DefaultResource::GridPatch2x2Mesh;
 			break;
 		case Darius::Graphics::TerrainRendererComponent::TerrainGridSize::Cells4x4:
-			defaultResourceType = D_GRAPHICS::DefaultResource::Grid4x4Mesh;
+			defaultResourceType = D_GRAPHICS::DefaultResource::GridPatch4x4Mesh;
 			break;
 		case Darius::Graphics::TerrainRendererComponent::TerrainGridSize::Cells8x8:
-			defaultResourceType = D_GRAPHICS::DefaultResource::Grid8x8Mesh;
+			defaultResourceType = D_GRAPHICS::DefaultResource::GridPatch8x8Mesh;
 			break;
 		case Darius::Graphics::TerrainRendererComponent::TerrainGridSize::Cells16x16:
-			defaultResourceType = D_GRAPHICS::DefaultResource::Grid16x16Mesh;
-			break;
-		case Darius::Graphics::TerrainRendererComponent::TerrainGridSize::Cells100x100:
-			defaultResourceType = D_GRAPHICS::DefaultResource::Grid100x100Mesh;
+			defaultResourceType = D_GRAPHICS::DefaultResource::GridPatch16x16Mesh;
 			break;
 		default:
 			D_ASSERT_M(false, "Bad gird size");
-			defaultResourceType = D_GRAPHICS::DefaultResource::Grid1x1Mesh;
+			defaultResourceType = D_GRAPHICS::DefaultResource::GridPatch1x1Mesh;
 		}
 
 		mGridMesh = D_RESOURCE::GetResource<D_GRAPHICS::StaticMeshResource>(D_GRAPHICS::GetDefaultGraphicsResource(defaultResourceType), GetAsCountedOwner());
@@ -232,12 +233,6 @@ namespace Darius::Graphics
 					SetGridSize(TerrainGridSize::Cells16x16);
 				}
 
-				if (ImGui::Selectable("100x100", mGridSize == TerrainGridSize::Cells100x100))
-				{
-					SetGridSize(TerrainGridSize::Cells100x100);
-				}
-
-
 				ImGui::EndCombo();
 			}
 		}
@@ -247,4 +242,4 @@ namespace Darius::Graphics
 		return valueChanged;
 	}
 #endif 
-}
+	}
