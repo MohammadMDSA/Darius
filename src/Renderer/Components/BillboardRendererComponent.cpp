@@ -192,6 +192,15 @@ namespace Darius::Graphics
 			SetHeight(height);
 		}
 
+		{
+			D_H_DETAILS_DRAW_PROPERTY("Casts Shadow");
+			auto casts = IsCastsShadow();
+			if (ImGui::Checkbox("##CastsShadow", &casts))
+			{
+				SetCastsShadow(casts);
+			}
+		}
+
 		D_H_DETAILS_DRAW_END_TABLE();
 
 		return valueChanged;
