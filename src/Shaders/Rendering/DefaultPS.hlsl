@@ -32,6 +32,7 @@ Texture2D<float> texRoughness                       : register(t2);
 Texture2D<float> texAmbientOcclusion                : register(t3);
 Texture2D<float3> texEmissive                       : register(t4);
 Texture2D<float3> texNormal                         : register(t5);
+Texture2D<float> texWorldDisplacement               : register(t6);
 
 SamplerState DiffuseSampler                         : register(s0);
 SamplerState MetallicSampler                        : register(s1);
@@ -39,6 +40,7 @@ SamplerState RoughnessSampler                       : register(s2);
 SamplerState OcclusionSampler                       : register(s3);
 SamplerState EmissiveSampler                        : register(s4);
 SamplerState NormalSampler                          : register(s5);
+SamplerState WorldDisplacementSampler               : register(s6);
 
 struct MRT
 {
