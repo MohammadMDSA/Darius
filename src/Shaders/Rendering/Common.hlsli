@@ -4,7 +4,11 @@
 #define Renderer_RootSig \
     "RootFlags(ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT), " \
     "CBV(b0, visibility = SHADER_VISIBILITY_VERTEX), " \
+    "CBV(b0, visibility = SHADER_VISIBILITY_HULL), " \
+    "CBV(b0, visibility = SHADER_VISIBILITY_DOMAIN), " \
     "CBV(b0, visibility = SHADER_VISIBILITY_PIXEL), " \
+    "DescriptorTable(SRV(t0, numDescriptors = 10), visibility = SHADER_VISIBILITY_DOMAIN)," \
+    "DescriptorTable(Sampler(s0, numDescriptors = 10), visibility = SHADER_VISIBILITY_DOMAIN)," \
     "DescriptorTable(SRV(t0, numDescriptors = 10), visibility = SHADER_VISIBILITY_PIXEL)," \
     "DescriptorTable(Sampler(s0, numDescriptors = 10), visibility = SHADER_VISIBILITY_PIXEL)," \
     "DescriptorTable(SRV(t10, numDescriptors = 10), visibility = SHADER_VISIBILITY_PIXEL)," \

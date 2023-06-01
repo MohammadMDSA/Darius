@@ -12,7 +12,7 @@
 #define RENDERSETUP_LINE(meshResource) \
 D_RENDERER_FRAME_RESOURCE::RenderItem ri; \
 PopulateRenderItemFromMesh(ri, meshResource->GetMeshData()); \
-ri.MeshCBV = MeshConstantsGPU.GetGpuVirtualAddress() + sizeof(D_RENDERER_FRAME_RESOURCE::MeshConstants) * index; \
+ri.MeshVsCBV = MeshConstantsGPU.GetGpuVirtualAddress() + sizeof(D_RENDERER_FRAME_RESOURCE::MeshConstants) * index; \
 ri.Color = color; \
 ri.PrimitiveType = D3D_PRIMITIVE_TOPOLOGY_LINELIST; \
 ri.PsoFlags = RenderItem::HasPosition | RenderItem::HasNormal | RenderItem::HasTangent | RenderItem::HasUV0 | RenderItem::ColorOnly | RenderItem::TwoSided | RenderItem::LineOnly | RenderItem::AlphaBlend; \
@@ -27,7 +27,7 @@ if(duration > 0) \
 #define RENDERSETUP(meshResource) \
 D_RENDERER_FRAME_RESOURCE::RenderItem ri; \
 PopulateRenderItemFromMesh(ri, meshResource->GetMeshData()); \
-ri.MeshCBV = MeshConstantsGPU.GetGpuVirtualAddress() + sizeof(D_RENDERER_FRAME_RESOURCE::MeshConstants) * index; \
+ri.MeshVsCBV = MeshConstantsGPU.GetGpuVirtualAddress() + sizeof(D_RENDERER_FRAME_RESOURCE::MeshConstants) * index; \
 ri.Color = color; \
 ri.PsoFlags = RenderItem::HasPosition | RenderItem::HasNormal | RenderItem::HasTangent | RenderItem::HasUV0 | RenderItem::ColorOnly | RenderItem::TwoSided | RenderItem::Wireframe; \
 ri.PsoType = D_RENDERER::GetPso({ ri.PsoFlags }); \
@@ -279,7 +279,7 @@ namespace Darius::Debug
 			{
 				UploadTransform(it->second.second, index);
 				auto& ri = it->second.first;
-				ri.MeshCBV = MeshConstantsGPU.GetGpuVirtualAddress() + sizeof(D_RENDERER_FRAME_RESOURCE::MeshConstants) * index;
+				ri.MeshVsCBV = MeshConstantsGPU.GetGpuVirtualAddress() + sizeof(D_RENDERER_FRAME_RESOURCE::MeshConstants) * index;
 				DrawPending.push_back(ri);
 				index++;
 				it++;

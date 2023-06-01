@@ -20,6 +20,15 @@ using namespace D_MATH;
 using namespace D_RENDERER;
 using namespace D_RENDERER_FRAME_RESOURCE;
 
+namespace
+{
+	ALIGN_DECL_256 struct BillboardConstants
+	{
+		DirectX::XMFLOAT4X4		world;
+		DirectX::XMFLOAT2		size;
+	};
+}
+
 namespace Darius::Graphics
 {
 
@@ -48,9 +57,9 @@ namespace Darius::Graphics
 		// Initializing Mesh Constants buffers
 		for (size_t i = 0; i < D_RENDERER_FRAME_RESOURCE::gNumFrameResources; i++)
 		{
-			mMeshConstantsCPU[i].Create(L"Mesh Constant Upload Buffer", sizeof(MeshConstants));
+			mMeshConstantsCPU[i].Create(L"Mesh Constant Upload Buffer", sizeof(BillboardConstants));
 		}
-		mMeshConstantsGPU.Create(L"Mesh Constant GPU Buffer", 1, sizeof(MeshConstants));
+		mMeshConstantsGPU.Create(L"Mesh Constant GPU Buffer", 1, sizeof(BillboardConstants));
 
 	}
 
@@ -59,7 +68,7 @@ namespace Darius::Graphics
 		if (!IsActive())
 			return;
 
-		if (!mMaterial.IsValid())
+		if (!mMaterial.IsValid() || mMaterial->IsDirtyGPU())
 			return;
 
 		auto& context = D_GRAPHICS::GraphicsContext::Begin();
@@ -67,13 +76,6 @@ namespace Darius::Graphics
 		// Updating mesh constants
 		// Mapping upload buffer
 		auto& currentUploadBuff = mMeshConstantsCPU[D_GRAPHICS_DEVICE::GetCurrentFrameResourceIndex()];
-
-		ALIGN_DECL_256 struct BillboardConstants
-		{
-			DirectX::XMFLOAT4X4		world;
-			DirectX::XMFLOAT2		size;
-		};
-
 
 		BillboardConstants* cb = reinterpret_cast<BillboardConstants*>(currentUploadBuff.Map());
 		auto world = GetTransform().GetWorld();
@@ -117,7 +119,7 @@ namespace Darius::Graphics
 
 		RenderItem ri;
 		ri.PrimitiveType = D3D_PRIMITIVE_TOPOLOGY_POINTLIST;
-		ri.MeshCBV = GetConstantsAddress();
+		ri.MeshVsCBV = GetConstantsAddress();
 		ri.PsoType = mMaterialPsoData.PsoIndex;
 		ri.DepthPsoIndex = mMaterialPsoData.DepthPsoIndex;
 		ri.Material.MaterialCBV = *mMaterial.Get();

@@ -95,7 +95,9 @@ namespace Darius::Renderer::ConstantFrameResource
 		RenderItem() = default;
 
 		// Mesh constants GPU Address
-		D3D12_GPU_VIRTUAL_ADDRESS		MeshCBV = D3D12_GPU_VIRTUAL_ADDRESS_UNKNOWN;
+		D3D12_GPU_VIRTUAL_ADDRESS		MeshVsCBV = D3D12_GPU_VIRTUAL_ADDRESS_UNKNOWN;
+		D3D12_GPU_VIRTUAL_ADDRESS		MeshHsCBV = D3D12_GPU_VIRTUAL_ADDRESS_UNKNOWN;
+		D3D12_GPU_VIRTUAL_ADDRESS		MeshDsCBV = D3D12_GPU_VIRTUAL_ADDRESS_UNKNOWN;
 
 		// Material or color
 		union
@@ -109,6 +111,10 @@ namespace Darius::Renderer::ConstantFrameResource
 
 			DirectX::XMFLOAT4			Color = { 1.f, 1.f, 1.f, 1.f };
 		};
+
+		// Domain Shader Textures
+		D3D12_GPU_DESCRIPTOR_HANDLE	TextureDomainSRV = { 0 };
+		D3D12_GPU_DESCRIPTOR_HANDLE	TextureDomainSampler { 0 };
 
 		// Geometry associated with this render-item. Note that multiple
 		// render-items can share the same goemetry.

@@ -45,7 +45,7 @@ namespace Darius::Graphics
 		const Mesh* mesh = mMesh.Get()->GetMeshData();
 		result.Mesh = mesh;
 		result.PrimitiveType = D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
-		result.MeshCBV = GetConstantsAddress();
+		result.MeshVsCBV = GetConstantsAddress();
 
 		for (UINT i = 0; i < mesh->mDraw.size(); i++)
 		{
