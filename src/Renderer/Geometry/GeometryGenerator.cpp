@@ -617,6 +617,68 @@ namespace Darius::Renderer::Geometry::GeometryGenerator
 		return meshData;
 	}
 
+	MeshData<Vertex> CreateGridQuadPatch(float width, float depth, uint32 m, uint32 n)
+	{
+		MeshData<Vertex> meshData;
+
+		uint32 vertexCount = m * n;
+		uint32 faceCount = (m - 1) * (n - 1);
+
+		//
+		// Create the vertices.
+		//
+
+		float halfWidth = 0.5f * width;
+		float halfDepth = 0.5f * depth;
+
+		float dx = width / (n - 1);
+		float dz = depth / (m - 1);
+
+		float du = 1.0f / (n - 1);
+		float dv = 1.0f / (m - 1);
+
+		meshData.Vertices.resize(vertexCount);
+		for (uint32 i = 0; i < m; ++i)
+		{
+			float z = halfDepth - i * dz;
+			for (uint32 j = 0; j < n; ++j)
+			{
+				float x = -halfWidth + j * dx;
+
+				meshData.Vertices[i * n + j].mPosition = XMFLOAT3(x, 0.0f, z);
+				meshData.Vertices[i * n + j].mNormal = XMFLOAT3(0.0f, 1.0f, 0.0f);
+				meshData.Vertices[i * n + j].mTangent = XMFLOAT4(1.0f, 0.0f, 0.0f, 1.f);
+
+				// Stretch texture over grid.
+				meshData.Vertices[i * n + j].mTexC.x = j * du;
+				meshData.Vertices[i * n + j].mTexC.y = i * dv;
+			}
+		}
+
+		//
+		// Create the indices.
+		//
+
+		meshData.Indices32.resize(faceCount * 4); // 4 indices per face
+
+		// Iterate over each quad and compute indices.
+		uint32 k = 0;
+		for (uint32 i = 0; i < m - 1; ++i)
+		{
+			for (uint32 j = 0; j < n - 1; ++j)
+			{
+				meshData.Indices32[k] = i * n + j;
+				meshData.Indices32[k + 1] = i * n + j + 1;
+				meshData.Indices32[k + 3] = (i + 1) * n + j + 1;
+				meshData.Indices32[k + 2] = (i + 1) * n + j;
+
+				k += 4; // next quad
+			}
+		}
+
+		return meshData;
+	}
+
 	MeshData<Vertex> CreateQuad(float x, float y, float w, float h, float depth)
 	{
 		MeshData<Vertex> meshData;

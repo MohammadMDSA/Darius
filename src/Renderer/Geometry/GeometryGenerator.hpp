@@ -22,6 +22,7 @@ namespace Darius::Renderer::Geometry::GeometryGenerator
 	MeshData<Vertex> CreateGeosphere(float radius, uint32 numSubdivisions);
 	MeshData<Vertex> CreateCylinder(float bottomRadius, float topRadius, float height, uint32 sliceCount, uint32 stackCount);
 	MeshData<Vertex> CreateGrid(float width, float depth, uint32 m, uint32 n);
+	MeshData<Vertex> CreateGridQuadPatch(float width, float depth, uint32 m, uint32 n);
 	MeshData<Vertex> CreateQuad(float x, float y, float w, float h, float depth);
 	MeshData<Vertex> CreateLine(float x1, float y1, float z1, float x2, float y2, float z2);
 
