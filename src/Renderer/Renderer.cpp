@@ -7,6 +7,7 @@
 #include "Components/BillboardRendererComponent.hpp"
 #include "Components/MeshRendererComponent.hpp"
 #include "Components/SkeletalMeshRendererComponent.hpp"
+#include "Components/TerrainRendererComponent.hpp"
 #include "Geometry/Mesh.hpp"
 #include "FrameResource.hpp"
 #include "GraphicsCore.hpp"
@@ -74,6 +75,8 @@ namespace Darius::Renderer
 	GraphicsPSO											DefaultPso;
 	GraphicsPSO											SkyboxPso;
 
+	UINT16												ForcedPsoFlags;
+
 	//////////////////////////////////////////////////////
 	// Options
 	bool												SeparateZPass = true;
@@ -136,6 +139,8 @@ namespace Darius::Renderer
 
 		// Initializing Camera Manager
 		D_CAMERA_MANAGER::Initialize();
+
+		ForcedPsoFlags = 0u;
 	}
 
 	void Shutdown()
@@ -186,6 +191,16 @@ namespace Darius::Renderer
 			}
 		);
 
+		reg.each([&](D_GRAPHICS::TerrainRendererComponent& meshComp)
+			{
+				D_JOB::AssignTask([&](int threadNumber, int)
+					{
+						meshComp.Update(-1);
+
+					});
+			}
+		);
+
 		if (D_JOB::IsMainThread())
 			Darius::Job::WaitForThreadsToFinish();
 		{
@@ -200,7 +215,7 @@ namespace Darius::Renderer
 
 		auto frustum = cam.GetViewSpaceFrustum();
 
-		// Iterating over meshes
+		// Iterating over static meshes
 		worldReg.each([&](D_GRAPHICS::MeshRendererComponent& meshComp)
 			{
 				// Can't render
@@ -221,7 +236,7 @@ namespace Darius::Renderer
 					});
 			});
 
-		// Iterating over meshes
+		// Iterating over skeletal meshes
 		worldReg.each([&](D_GRAPHICS::SkeletalMeshRendererComponent& meshComp)
 			{
 				// Can't render
@@ -242,8 +257,29 @@ namespace Darius::Renderer
 					});
 			});
 
-		// Iterating over meshes
+		// Iterating over billboards
 		worldReg.each([&](D_GRAPHICS::BillboardRendererComponent& meshComp)
+			{
+				// Can't render
+				if (!meshComp.CanRender())
+					return;
+
+				// Is it in our frustum
+				auto sphereWorldSpace = meshComp.GetGameObject()->GetTransform() * meshComp.GetBounds();
+				auto sphereViewSpace = BoundingSphere(Vector3(cam.GetViewMatrix() * sphereWorldSpace.GetCenter()), sphereWorldSpace.GetRadius());
+				if (!frustum.IntersectSphere(sphereViewSpace))
+					return;
+
+				auto distance = -sphereViewSpace.GetCenter().GetZ() - sphereViewSpace.GetRadius();
+
+				meshComp.AddRenderItems([distance, &sorter](auto const& ri)
+					{
+						sorter.AddMesh(ri, distance);
+					});
+			});
+
+		// Iterating over terrains
+		worldReg.each([&](D_GRAPHICS::TerrainRendererComponent& meshComp)
 			{
 				// Can't render
 				if (!meshComp.CanRender())
@@ -309,6 +345,24 @@ namespace Darius::Renderer
 
 		// Iterating over meshes
 		worldReg.each([&](D_GRAPHICS::BillboardRendererComponent& meshComp)
+			{
+				// Can't render
+				if (!meshComp.CanRender())
+					return;
+
+				if (!meshComp.IsCastsShadow())
+					return;
+
+				meshComp.AddRenderItems([&items](auto const& ri)
+					{
+						auto item = ri;
+						item.Material.SamplersSRV.ptr = 0;
+						items.push_back(item);
+					});
+			});
+
+		// Iterating over meshes
+		worldReg.each([&](D_GRAPHICS::TerrainRendererComponent& meshComp)
 			{
 				// Can't render
 				if (!meshComp.CanRender())
@@ -510,8 +564,12 @@ namespace Darius::Renderer
 		def.InitStaticSampler(13, SamplerLinearWrapDesc, D3D12_SHADER_VISIBILITY_PIXEL);
 
 		// Create root CBVs.
-		def[kMeshConstants].InitAsConstantBuffer(0, D3D12_SHADER_VISIBILITY_VERTEX);
+		def[kMeshConstantsVS].InitAsConstantBuffer(0, D3D12_SHADER_VISIBILITY_VERTEX);
+		def[kMeshConstantsHS].InitAsConstantBuffer(0, D3D12_SHADER_VISIBILITY_HULL);
+		def[kMeshConstantsDS].InitAsConstantBuffer(0, D3D12_SHADER_VISIBILITY_DOMAIN);
 		def[kMaterialConstants].InitAsConstantBuffer(0, D3D12_SHADER_VISIBILITY_PIXEL);
+		def[kTextureDsSRVs].InitAsDescriptorRange(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 0, 10, D3D12_SHADER_VISIBILITY_DOMAIN);
+		def[kTextureDsSamplers].InitAsDescriptorRange(D3D12_DESCRIPTOR_RANGE_TYPE_SAMPLER, 0, 10, D3D12_SHADER_VISIBILITY_DOMAIN);
 		def[kMaterialSRVs].InitAsDescriptorRange(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 0, 10, D3D12_SHADER_VISIBILITY_PIXEL);
 		def[kMaterialSamplers].InitAsDescriptorRange(D3D12_DESCRIPTOR_RANGE_TYPE_SAMPLER, 0, 10, D3D12_SHADER_VISIBILITY_PIXEL);
 		def[kCommonCBV].InitAsConstantBuffer(1);
@@ -606,7 +664,7 @@ namespace Darius::Renderer
 
 		// Bind pipeline resources
 		context.SetDescriptorHeap(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, TextureHeap.GetHeapPointer());
-		context.SetDynamicConstantBufferView(kMeshConstants, sizeof(SkyboxVSCB), &skyVSCB);
+		context.SetDynamicConstantBufferView(kMeshConstantsVS, sizeof(SkyboxVSCB), &skyVSCB);
 		context.SetDynamicConstantBufferView(kMaterialConstants, sizeof(SkyboxPSCB), &skyPSVB);
 		context.SetDescriptorTable(kCommonSRVs, CommonTexture[D_GRAPHICS_DEVICE::GetCurrentFrameResourceIndex()]);
 
@@ -831,7 +889,14 @@ namespace Darius::Renderer
 				const SortObject& object = m_SortObjects[key.objectIdx];
 				RenderItem const& ri = object.renderItem;
 
-				context.SetConstantBuffer(kMeshConstants, ri.MeshCBV);
+				if (ri.MeshVsCBV != D3D12_GPU_VIRTUAL_ADDRESS_UNKNOWN)
+					context.SetConstantBuffer(kMeshConstantsVS, ri.MeshVsCBV);
+
+				if (ri.MeshHsCBV != D3D12_GPU_VIRTUAL_ADDRESS_UNKNOWN)
+					context.SetConstantBuffer(kMeshConstantsHS, ri.MeshHsCBV);
+
+				if (ri.MeshDsCBV != D3D12_GPU_VIRTUAL_ADDRESS_UNKNOWN)
+					context.SetConstantBuffer(kMeshConstantsDS, ri.MeshDsCBV);
 
 				if (ri.PsoFlags & RenderItem::ColorOnly)
 				{
@@ -845,6 +910,12 @@ namespace Darius::Renderer
 
 					if (ri.Material.SamplersSRV.ptr != 0)
 						context.SetDescriptorTable(kMaterialSamplers, ri.Material.SamplersSRV);
+				}
+
+				if (ri.TextureDomainSRV.ptr != 0)
+				{
+					context.SetDescriptorTable(kTextureDsSRVs, ri.TextureDomainSRV);
+					context.SetDescriptorTable(kTextureDsSamplers, ri.TextureDomainSampler);
 				}
 
 				if (ri.mNumJoints > 0)
@@ -910,6 +981,22 @@ namespace Darius::Renderer
 
 		D_GRAPHICS::GetCommandManager()->IdleGPU();
 	}
+
+
+	UINT16 const& GetForcedPsoFlags()
+	{
+		return ForcedPsoFlags;
+	}
+
+	void SetForceWireframe(bool val)
+	{
+		if (val)
+			ForcedPsoFlags |= RenderItem::Wireframe;
+		else
+			ForcedPsoFlags &= ~RenderItem::Wireframe;
+
+	}
+
 #endif
 
 	UINT GetDepthOnlyPso(PsoConfig const& _psoConfig)
@@ -1045,7 +1132,12 @@ namespace Darius::Renderer
 		}
 
 		// Setting primitive topology (line / triangle)
-		if (psoConfig.PsoFlags & RenderItem::LineOnly)
+		if (psoConfig.PsoFlags & RenderItem::LineOnly && psoConfig.PsoFlags & RenderItem::PointOnly)
+		{
+			name += L" Patch";
+			depthPSO.SetPrimitiveTopologyType(D3D12_PRIMITIVE_TOPOLOGY_TYPE_PATCH);
+		}
+		else if (psoConfig.PsoFlags & RenderItem::LineOnly)
 		{
 			name += L" Line";
 			depthPSO.SetPrimitiveTopologyType(D3D12_PRIMITIVE_TOPOLOGY_TYPE_LINE);
@@ -1282,7 +1374,13 @@ namespace Darius::Renderer
 				ColorPSO.SetRasterizerState(RasterizerDefault);
 		}
 
-		if (psoConfig.PsoFlags & RenderItem::LineOnly)
+		// Setting primitive topology (line / triangle)
+		if (psoConfig.PsoFlags & RenderItem::LineOnly && psoConfig.PsoFlags & RenderItem::PointOnly)
+		{
+			ColorPSO.SetPrimitiveTopologyType(D3D12_PRIMITIVE_TOPOLOGY_TYPE_PATCH);
+			psoName += L" Patch";
+		}
+		else if (psoConfig.PsoFlags & RenderItem::LineOnly)
 		{
 			ColorPSO.SetPrimitiveTopologyType(D3D12_PRIMITIVE_TOPOLOGY_TYPE_LINE);
 			psoName += L"Line ";

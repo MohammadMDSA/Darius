@@ -244,7 +244,7 @@ namespace Darius::Editor::Gui::Windows
 		context.Finish();
 
 		D_GRAPHICS_DEVICE::GetDevice()->CopyDescriptorsSimple(1, mTextureHandle, mSceneTexture.GetSRV(), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-		
+
 
 	}
 
@@ -358,6 +358,28 @@ namespace Darius::Editor::Gui::Windows
 				}
 				if (preDrawSkybox)
 					ImGui::PopStyleColor();
+			}
+
+			ImGui::SameLine();
+			// Options drop down
+			{
+				if (ImGui::BeginCombo("##SceneWindowOptionsDropDown", "Options", ImGuiComboFlags_HeightLarge))
+				{
+					// Wireframe
+					{
+						static char const* const selectedValue = ICON_FA_SQUARE_CHECK " Wireframe";
+						static char const* const unselectedValue = ICON_FA_SQUARE " Wireframe";
+						if (ImGui::Selectable(mForceWireframe ? selectedValue : unselectedValue, false, 0))
+						{
+							mForceWireframe = !mForceWireframe;
+							D_RENDERER::SetForceWireframe(mForceWireframe);
+						}
+
+					}
+
+
+					ImGui::EndCombo();
+				}
 			}
 
 		}
@@ -503,7 +525,7 @@ namespace Darius::Editor::Gui::Windows
 		const uint32_t bufferHeight4 = ((UINT)mBufferHeight + 15) / 16;
 		const uint32_t bufferHeight5 = ((UINT)mBufferHeight + 31) / 32;
 		const uint32_t bufferHeight6 = ((UINT)mBufferHeight + 63) / 64;
-		mSSAOFullScreen.Create(L"Scene SSAO Full Res", (UINT)mBufferWidth, (UINT)mBufferHeight	, 1, DXGI_FORMAT_R8_UNORM);
+		mSSAOFullScreen.Create(L"Scene SSAO Full Res", (UINT)mBufferWidth, (UINT)mBufferHeight, 1, DXGI_FORMAT_R8_UNORM);
 		mDepthDownsize1.Create(L"Scene Depth Down-Sized 1", bufferWidth1, bufferHeight1, 1, DXGI_FORMAT_R32_FLOAT);
 		mDepthDownsize2.Create(L"Scene Depth Down-Sized 2", bufferWidth2, bufferHeight2, 1, DXGI_FORMAT_R32_FLOAT);
 		mDepthDownsize3.Create(L"Scene Depth Down-Sized 3", bufferWidth3, bufferHeight3, 1, DXGI_FORMAT_R32_FLOAT);
@@ -561,7 +583,7 @@ namespace Darius::Editor::Gui::Windows
 		item.PsoType = D_RENDERER::GetPso({ item.PsoFlags });
 		item.DepthPsoIndex = D_RENDERER::GetPso({ (UINT16)(item.PsoFlags | RenderItem::DepthOnly) });
 		item.PrimitiveType = D3D_PRIMITIVE_TOPOLOGY_LINELIST;
-		item.MeshCBV = mLineConstantsGPU.GetGpuVirtualAddress();
+		item.MeshVsCBV = mLineConstantsGPU.GetGpuVirtualAddress();
 
 		for (int i = 0; i < count; i++)
 		{
@@ -573,7 +595,7 @@ namespace Darius::Editor::Gui::Windows
 				item.Color = { 0.3f, 0.3f, 0.3f, 0.8f };
 
 			items.push_back(item);
-			item.MeshCBV += sizeof(MeshConstants);
+			item.MeshVsCBV += sizeof(MeshConstants);
 		}
 
 	}

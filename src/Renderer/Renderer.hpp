@@ -17,8 +17,12 @@ namespace Darius::Renderer
 
 	enum RootBindings
 	{
-		kMeshConstants,			// Holds mesh constants only in VS
+		kMeshConstantsVS,		// Holds mesh constants only in Vertex Shader
+		kMeshConstantsHS,		// Holds mesh constants only in Hull Shader
+		kMeshConstantsDS,		// Holds mesh constants only in Domain Shader
 		kMaterialConstants,		// Holds material constants only in PS
+		kTextureDsSRVs,			// Domain shader texture resources
+		kTextureDsSamplers,		// Domain shader texture samplers
 		kMaterialSRVs,
 		kMaterialSamplers,
 		kCommonCBV,				// Holds global constants in all shaders
@@ -36,6 +40,7 @@ namespace Darius::Renderer
 		kAmbientOcclusion,
 		kEmissive,
 		kNormal,
+		kWorldDisplacement,
 
 		kNumTextures
 	};
@@ -200,12 +205,12 @@ namespace Darius::Renderer
 
 	struct PsoConfig
 	{
-		UINT16	PsoFlags : 16 = 0;
-		UINT32	VSIndex : 10 = 0;
-		UINT32	PSIndex : 12 = 0;
-		UINT32	GSIndex : 10 = 0;
-		UINT32	HSIndex : 10 = 0;
-		UINT32	DSIndex : 10 = 0;
+		UINT32	PsoFlags : 16 = 0u;
+		UINT32	HSIndex : 8 = 0u;
+		UINT32	DSIndex : 8 = 0u;
+		UINT32	VSIndex : 10 = 0u;
+		UINT32	PSIndex : 12 = 0u;
+		UINT32	GSIndex : 10 = 0u;
 		D3D12_INPUT_LAYOUT_DESC InputLayout =
 		{
 			nullptr,
@@ -213,7 +218,7 @@ namespace Darius::Renderer
 		};
 	};
 	
-	D_STATIC_ASSERT(sizeof(PsoConfig) == 8 + sizeof(D3D12_INPUT_LAYOUT_DESC));
+	D_STATIC_ASSERT(sizeof(PsoConfig) == 8u + sizeof(D3D12_INPUT_LAYOUT_DESC));
 
 	void Initialize(D_SERIALIZATION::Json const& settings);
 	void Shutdown();
@@ -225,6 +230,9 @@ namespace Darius::Renderer
 
 	D_GRAPHICS_MEMORY::DescriptorHandle AllocateUiTexture(UINT count = 1);
 	void					RenderGui();
+
+	UINT16 const&			GetForcedPsoFlags();
+	void					SetForceWireframe(bool val);
 #endif
 
 	void					Present();

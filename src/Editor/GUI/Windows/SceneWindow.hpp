@@ -101,6 +101,7 @@ namespace Darius::Editor::Gui::Windows
 		bool										mDrawSkybox;
 		bool										mMovingCam;
 		bool										mDrawDebug;
+		bool										mForceWireframe;
 	};
 
 }
