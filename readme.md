@@ -35,6 +35,7 @@
     - Render Items
         - Static Mesh
         - Skeletal Mesh
+        - Terrain
         - Billboard
     - Optimizations
         - Frustum Culling
