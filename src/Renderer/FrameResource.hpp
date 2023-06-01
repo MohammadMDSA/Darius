@@ -62,10 +62,11 @@ namespace Darius::Renderer::ConstantFrameResource
 		DirectX::XMFLOAT3			Emissive = { 0.f, 0.f, 0.f };
 		float						Metallic = 0.f;
 		float						Roughness = 0.f;
+		float						DisplacementAmount = 0.01f;
 		struct
 		{
-			UINT						TextureStatusMask : 16 = 0;
-			UINT						AlphaCutout : 16 = 0;
+			UINT					TextureStatusMask : 16 = 0;
+			UINT					AlphaCutout : 16 = 0;
 		};
 	};
 #pragma warning(pop)

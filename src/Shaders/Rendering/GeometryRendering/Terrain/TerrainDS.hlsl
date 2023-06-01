@@ -6,6 +6,17 @@ cbuffer cbPerObject : register(b0)
     float3x3 gWorldIT;
 };
 
+cbuffer cbMaterial : register(b2)
+{
+    float4 gDiffuseAlbedo;
+    float3 gFresnelR0;
+    float3 gEmissive;
+    float  gMetallic;
+    float  gRoughness;
+    float  gDisplacementAmount;
+    uint   gTexStats;
+};
+
 Texture2D<float> texWorldDisplacement : register(t0);
 SamplerState WorldDisplacementSampler : register(s0);
 
@@ -27,11 +38,9 @@ DomainOut main(PatchTess patchTess,
     // UV
     dout.UV = ResolveParam(UV);
 
-    // World Pos
-    const float MaxHeight = 10.f;
-    
+    // World Pos    
     float displacementNorm = texWorldDisplacement.SampleLevel(WorldDisplacementSampler, dout.UV, 0.f).r;
-    float3 displacement = normal * (displacementNorm * MaxHeight);
+    float3 displacement = normal * (displacementNorm * gDisplacementAmount);
     float3 posL = ResolveParam(Pos);
     posL += displacement;
     dout.WorldPos = mul(gWorld, float4(posL, 1.f)).xyz;

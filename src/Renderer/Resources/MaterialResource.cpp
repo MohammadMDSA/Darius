@@ -82,7 +82,8 @@ namespace Darius::Graphics
 			{ "Roughness", mMaterial.Roughness },
 			{ "Metallic", mMaterial.Metallic },
 			{ "Emission", std::vector<float>(ems, ems + 3) },
-			{ "AlphaCutout", mCutout }
+			{ "AlphaCutout", mCutout },
+			{ "DisplacementAmount", mMaterial.DisplacementAmount }
 		};
 
 		bool usedBaseColorTex = mMaterial.TextureStatusMask & (1 << kBaseColor);
@@ -184,6 +185,11 @@ namespace Darius::Graphics
 		{
 			mCutout = data["AlphaCutout"];
 			mMaterial.AlphaCutout = floatToHalf(mCutout);
+		}
+
+		if (data.contains("DisplacementAmount"))
+		{
+			mMaterial.DisplacementAmount = data["DisplacementAmount"];
 		}
 
 		mPsoFlags = data.contains("PsoFlags") ? data["PsoFlags"].get<uint16_t>() : 0u;
@@ -327,7 +333,7 @@ namespace Darius::Graphics
 			default:
 				return;
 			}
-			
+
 			MakeGpuDirty();
 			MakeDiskDirty();
 
@@ -548,6 +554,15 @@ namespace Darius::Graphics
 			DrawTexture2DHolder(mWorldDisplacementTexture, WorldDisplacement);
 			ImGui::SameLine();
 			ImGui::Text("World Displacement");
+
+			if ((mMaterial.TextureStatusMask & (1 << kWorldDisplacement)))
+			{
+				ImGui::TableSetColumnIndex(1);
+				if (ImGui::DragFloat("##DisplacementAmount", &mMaterial.DisplacementAmount, 0.05f, 0.f))
+				{
+					valueChanged = true;
+				}
+			}
 		}
 
 		// Two sided

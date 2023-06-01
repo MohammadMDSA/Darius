@@ -567,7 +567,8 @@ namespace Darius::Renderer
 		def[kMeshConstantsVS].InitAsConstantBuffer(0, D3D12_SHADER_VISIBILITY_VERTEX);
 		def[kMeshConstantsHS].InitAsConstantBuffer(0, D3D12_SHADER_VISIBILITY_HULL);
 		def[kMeshConstantsDS].InitAsConstantBuffer(0, D3D12_SHADER_VISIBILITY_DOMAIN);
-		def[kMaterialConstants].InitAsConstantBuffer(0, D3D12_SHADER_VISIBILITY_PIXEL);
+		def[kMaterialConstantsDs].InitAsConstantBuffer(2, D3D12_SHADER_VISIBILITY_DOMAIN);
+		def[kMaterialConstantsPs].InitAsConstantBuffer(0, D3D12_SHADER_VISIBILITY_PIXEL);
 		def[kTextureDsSRVs].InitAsDescriptorRange(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 0, 10, D3D12_SHADER_VISIBILITY_DOMAIN);
 		def[kTextureDsSamplers].InitAsDescriptorRange(D3D12_DESCRIPTOR_RANGE_TYPE_SAMPLER, 0, 10, D3D12_SHADER_VISIBILITY_DOMAIN);
 		def[kMaterialSRVs].InitAsDescriptorRange(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 0, 10, D3D12_SHADER_VISIBILITY_PIXEL);
@@ -665,7 +666,7 @@ namespace Darius::Renderer
 		// Bind pipeline resources
 		context.SetDescriptorHeap(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, TextureHeap.GetHeapPointer());
 		context.SetDynamicConstantBufferView(kMeshConstantsVS, sizeof(SkyboxVSCB), &skyVSCB);
-		context.SetDynamicConstantBufferView(kMaterialConstants, sizeof(SkyboxPSCB), &skyPSVB);
+		context.SetDynamicConstantBufferView(kMaterialConstantsPs, sizeof(SkyboxPSCB), &skyPSVB);
 		context.SetDescriptorTable(kCommonSRVs, CommonTexture[D_GRAPHICS_DEVICE::GetCurrentFrameResourceIndex()]);
 
 		context.SetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
@@ -901,11 +902,12 @@ namespace Darius::Renderer
 				if (ri.PsoFlags & RenderItem::ColorOnly)
 				{
 					D_RENDERER_FRAME_RESOURCE::ColorConstants color = { ri.Color };
-					context.SetDynamicConstantBufferView(kMaterialConstants, sizeof(ColorConstants), &color);
+					context.SetDynamicConstantBufferView(kMaterialConstantsPs, sizeof(ColorConstants), &color);
 				}
 				else
 				{
-					context.SetConstantBuffer(kMaterialConstants, ri.Material.MaterialCBV);
+					context.SetConstantBuffer(kMaterialConstantsPs, ri.Material.MaterialCBV);
+					context.SetConstantBuffer(kMaterialConstantsDs, ri.Material.MaterialCBV);
 					context.SetDescriptorTable(kMaterialSRVs, ri.Material.MaterialSRV);
 
 					if (ri.Material.SamplersSRV.ptr != 0)

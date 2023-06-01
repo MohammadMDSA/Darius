@@ -11,7 +11,9 @@ cbuffer cbMaterial : register(b0)
     float3 gEmissive;
     float  gMetallic;
     float  gRoughness;
+    float  gDisplacementAmount;
     uint   gTexStats;
+    
 };
 
 struct VertexOut

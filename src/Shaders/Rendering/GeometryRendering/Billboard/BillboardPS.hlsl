@@ -2,14 +2,16 @@
 
 #define BitMasked(value, bitIdx) value & (1 << bitIdx)
 
+
 cbuffer cbMaterial : register(b0)
 {
     float4 gDiffuseAlbedo;
     float3 gFresnelR0;
     float3 gEmissive;
-    float gMetallic;
-    float gRoughness;
-    uint gTexStats;
+    float  gMetallic;
+    float  gRoughness;
+    float  gDisplacementAmount;
+    uint   gTexStats;
 };
 
 Texture2D<float4> texDiffuse : register(t0);
