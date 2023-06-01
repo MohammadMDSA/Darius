@@ -30,7 +30,14 @@ namespace Darius::Graphics
 		INLINE const D_RENDERER_FRAME_RESOURCE::MaterialConstants* GetMaterialData() const { return &mMaterial; }
 		INLINE D3D12_GPU_DESCRIPTOR_HANDLE	GetTexturesHandle() const { return mTexturesHeap; }
 		INLINE D3D12_GPU_DESCRIPTOR_HANDLE	GetSamplersHandle() const { return mSamplerTable; }
-		INLINE uint16_t						GetPsoFlags() const { return mPsoFlags; }
+		INLINE uint16_t						GetPsoFlags() const
+		{
+			return mPsoFlags
+#ifdef _D_EDITOR
+				| D_RENDERER::GetForcedPsoFlags()
+#endif
+				;
+		}
 		void								SetTexture(D_RESOURCE::ResourceHandle textureHandle, D_RENDERER::TextureType type);
 
 		virtual bool						IsDirtyGPU() const override;
@@ -57,6 +64,7 @@ inline void Set##type##Texture(D_RESOURCE::ResourceHandle textureHandle) { SetTe
 		TextureSetter(AmbientOcclusion);
 		TextureSetter(Emissive);
 		TextureSetter(Normal);
+		TextureSetter(WorldDisplacement);
 #undef TextureSetter
 
 	protected:
@@ -92,6 +100,9 @@ inline void Set##type##Texture(D_RESOURCE::ResourceHandle textureHandle) { SetTe
 		D_RESOURCE::ResourceRef<D_GRAPHICS::TextureResource>	mAmbientOcclusionTexture;
 		
 		DField(Get[const, &, inline])
+		D_RESOURCE::ResourceRef<D_GRAPHICS::TextureResource>	mWorldDisplacementTexture;
+		
+		DField(Get[const, &, inline])
 		D_RESOURCE::ResourceHandle					mBaseColorTextureHandle;
 		
 		DField(Get[const, &, inline])
@@ -105,9 +116,12 @@ inline void Set##type##Texture(D_RESOURCE::ResourceHandle textureHandle) { SetTe
 		
 		DField(Get[const, &, inline])
 		D_RESOURCE::ResourceHandle					mEmissiveTextureHandle;
-
+		
 		DField(Get[const, &, inline])
 		D_RESOURCE::ResourceHandle					mAmbientOcclusionTextureHandle;
+
+		DField(Get[const, &, inline])
+		D_RESOURCE::ResourceHandle					mWorldDisplacementTextureHandle;
 
 
 		D_RENDERER_FRAME_RESOURCE::MaterialConstants mMaterial;

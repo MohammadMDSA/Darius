@@ -51,7 +51,8 @@ namespace Darius::Graphics
 		mMetallicTexture(GetAsCountedOwner()),
 		mRoughnessTexture(GetAsCountedOwner()),
 		mEmissiveTexture(GetAsCountedOwner()),
-		mAmbientOcclusionTexture(GetAsCountedOwner())
+		mAmbientOcclusionTexture(GetAsCountedOwner()),
+		mWorldDisplacementTexture(GetAsCountedOwner())
 	{
 		auto callback = [&]() { MakeGpuDirty(); };
 		mBaseColorTexture.SetChangeCallback(callback);
@@ -60,12 +61,14 @@ namespace Darius::Graphics
 		mRoughnessTexture.SetChangeCallback(callback);
 		mEmissiveTexture.SetChangeCallback(callback);
 		mAmbientOcclusionTexture.SetChangeCallback(callback);
+		mWorldDisplacementTexture.SetChangeCallback(callback);
 		mBaseColorTextureHandle = D_GRAPHICS::GetDefaultGraphicsResource(D_GRAPHICS::DefaultResource::Texture2DWhiteOpaque);
 		mNormalTextureHandle = D_GRAPHICS::GetDefaultGraphicsResource(D_GRAPHICS::DefaultResource::Texture2DNormalMap);
 		mMetallicTextureHandle = D_GRAPHICS::GetDefaultGraphicsResource(D_GRAPHICS::DefaultResource::Texture2DBlackOpaque);
 		mRoughnessTextureHandle = D_GRAPHICS::GetDefaultGraphicsResource(D_GRAPHICS::DefaultResource::Texture2DBlackOpaque);
 		mEmissiveTextureHandle = D_GRAPHICS::GetDefaultGraphicsResource(D_GRAPHICS::DefaultResource::Texture2DBlackOpaque);
 		mAmbientOcclusionTextureHandle = D_GRAPHICS::GetDefaultGraphicsResource(D_GRAPHICS::DefaultResource::Texture2DWhiteOpaque);
+		mWorldDisplacementTextureHandle = D_GRAPHICS::GetDefaultGraphicsResource(D_GRAPHICS::DefaultResource::Texture2DBlackOpaque);
 	}
 
 	void MaterialResource::WriteResourceToFile(D_SERIALIZATION::Json& j) const
@@ -105,6 +108,10 @@ namespace Darius::Graphics
 		bool usedAmbientOcclusionTex = mMaterial.TextureStatusMask & (1 << kAmbientOcclusion);
 		if (usedAmbientOcclusionTex)
 			data["AmbientOcclusionTexture"] = ToString(mAmbientOcclusionTexture->GetUuid());
+
+		bool usedWorldDisplacementTex = mMaterial.TextureStatusMask & (1 << kWorldDisplacement);
+		if (usedWorldDisplacementTex)
+			data["WorldDisplacementTexture"] = ToString(mWorldDisplacementTexture->GetUuid());
 
 		data["PsoFlags"] = mPsoFlags;
 
@@ -167,6 +174,12 @@ namespace Darius::Graphics
 			mMaterial.TextureStatusMask |= 1 << kAmbientOcclusion;
 		}
 
+		if (data.contains("WorldDisplacementTexture"))
+		{
+			mWorldDisplacementTextureHandle = D_RESOURCE::GetResourceHandle(FromString(data["WorldDisplacementTexture"]));
+			mMaterial.TextureStatusMask |= 1 << kWorldDisplacement;
+		}
+
 		if (data.contains("AlphaCutout"))
 		{
 			mCutout = data["AlphaCutout"];
@@ -208,9 +221,10 @@ namespace Darius::Graphics
 		mRoughnessTexture = D_RESOURCE::GetResource<TextureResource>(mRoughnessTextureHandle);
 		mEmissiveTexture = D_RESOURCE::GetResource<TextureResource>(mEmissiveTextureHandle);
 		mAmbientOcclusionTexture = D_RESOURCE::GetResource<TextureResource>(mAmbientOcclusionTextureHandle);
+		mWorldDisplacementTexture = D_RESOURCE::GetResource<TextureResource>(mWorldDisplacementTextureHandle);
 
 		UINT destCount = kNumTextures;
-		UINT sourceCounts[kNumTextures] = { 1, 1, 1, 1, 1, 1 };
+		UINT sourceCounts[kNumTextures] = { 1, 1, 1, 1, 1, 1, 1 };
 		D3D12_CPU_DESCRIPTOR_HANDLE initialTextures[kNumTextures]
 		{
 			mBaseColorTexture->GetTextureData()->GetSRV(),
@@ -218,7 +232,8 @@ namespace Darius::Graphics
 			mRoughnessTexture->GetTextureData()->GetSRV(),
 			mAmbientOcclusionTexture->GetTextureData()->GetSRV(),
 			mEmissiveTexture->GetTextureData()->GetSRV(),
-			mNormalTexture->GetTextureData()->GetSRV()
+			mNormalTexture->GetTextureData()->GetSRV(),
+			mWorldDisplacementTexture->GetTextureData()->GetSRV()
 		};
 		D_GRAPHICS_DEVICE::GetDevice()->CopyDescriptors(1, &mTexturesHeap, &destCount, destCount, initialTextures, sourceCounts, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 
@@ -256,6 +271,11 @@ namespace Darius::Graphics
 		{
 			samplerDesc = mNormalTexture->GetSamplerDesc();
 			samplerDesc.CreateDescriptor(mSamplerTable + incSize * TextureType::kNormal);
+		}
+		// World Displacement
+		{
+			samplerDesc = mWorldDisplacementTexture->GetSamplerDesc();
+			samplerDesc.CreateDescriptor(mSamplerTable + incSize * TextureType::kWorldDisplacement);
 		}
 
 
@@ -302,6 +322,8 @@ namespace Darius::Graphics
 			case Darius::Renderer::kAmbientOcclusion:
 				mAmbientOcclusionTextureHandle = D_GRAPHICS::GetDefaultGraphicsResource(D_GRAPHICS::DefaultResource::Texture2DWhiteOpaque);
 				break;
+			case Darius::Renderer::kWorldDisplacement:
+				mWorldDisplacementTextureHandle = D_GRAPHICS::GetDefaultGraphicsResource(D_GRAPHICS::DefaultResource::Texture2DBlackOpaque);
 			default:
 				return;
 			}
@@ -345,6 +367,10 @@ namespace Darius::Graphics
 			break;
 		case Darius::Renderer::kAmbientOcclusion:
 			SetTex(AmbientOcclusion);
+			break;
+		case Darius::Renderer::kWorldDisplacement:
+			SetTex(WorldDisplacement);
+			break;
 		default:
 			return;
 		}
@@ -515,6 +541,14 @@ namespace Darius::Graphics
 		ImGui::SameLine();
 		ImGui::Text("Normal");
 
+		// World Displacement
+		{
+			ImGui::TableNextRow();
+			ImGui::TableSetColumnIndex(0);
+			DrawTexture2DHolder(mWorldDisplacementTexture, WorldDisplacement);
+			ImGui::SameLine();
+			ImGui::Text("World Displacement");
+		}
 
 		// Two sided
 		{
@@ -563,6 +597,7 @@ namespace Darius::Graphics
 			(mMetallicTexture.IsValid() && mMetallicTexture->IsDirtyGPU()) ||
 			(mRoughnessTexture.IsValid() && mRoughnessTexture->IsDirtyGPU()) ||
 			(mEmissiveTexture.IsValid() && mEmissiveTexture->IsDirtyGPU()) ||
+			(mWorldDisplacementTexture.IsValid() && mWorldDisplacementTexture->IsDirtyGPU()) ||
 			(mAmbientOcclusionTexture.IsValid() && mAmbientOcclusionTexture->IsDirtyGPU());
 	}
 
