@@ -80,13 +80,12 @@ namespace Darius::Editor::Gui::Windows
 		auto diffIBLHandle = D_RESOURCE_LOADER::LoadResource(D_ENGINE_CONTEXT::GetAssetsPath() / "PBR/DefaultSkyboxDiffuseIBL_HDR.dds");
 		auto specIBLHandle = D_RESOURCE_LOADER::LoadResource(D_ENGINE_CONTEXT::GetAssetsPath() / "PBR/DefaultSkyboxSpecularIBL.dds");
 
-		auto diffTex = D_RESOURCE::GetResource<TextureResource>(diffIBLHandle[0], this, L"Scene Window", rttr::type::get<SceneWindow>());
-		//auto diffTex = D_RESOURCE::GetResource<TextureResource>(D_GRAPHICS::GetDefaultGraphicsResource(D_GRAPHICS::DefaultResource::TextureCubeMapBlack), this, L"Scene Window", "Editor Window");
-		auto specTex = D_RESOURCE::GetResource<TextureResource>(specIBLHandle[0], this, L"Scene Window", rttr::type::get<SceneWindow>());
+		mSkyboxDiff = D_RESOURCE::GetResource<TextureResource>(diffIBLHandle[0], this, L"Scene Window", rttr::type::get<SceneWindow>());
+		mSkyboxSpec = D_RESOURCE::GetResource<TextureResource>(specIBLHandle[0], this, L"Scene Window", rttr::type::get<SceneWindow>());
 
 		D_RENDERER::SetIBLTextures(
-			diffTex,
-			specTex
+			mSkyboxDiff,
+			mSkyboxSpec
 		);
 
 		D_RENDERER::SetIBLBias(0);
@@ -355,6 +354,15 @@ namespace Darius::Editor::Gui::Windows
 				if (ImGui::Button(ICON_FA_MOUNTAIN_SUN))
 				{
 					mDrawSkybox = !mDrawSkybox;
+					if (!mDrawSkybox)
+					{
+						auto invTex = D_RESOURCE::ResourceRef<TextureResource>();
+						D_RENDERER::SetIBLTextures(invTex, invTex);
+					}
+					else
+					{
+						D_RENDERER::SetIBLTextures(mSkyboxDiff, mSkyboxSpec);
+					}
 				}
 				if (preDrawSkybox)
 					ImGui::PopStyleColor();

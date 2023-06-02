@@ -86,6 +86,8 @@ namespace Darius::Editor::Gui::Windows
 		D_GRAPHICS_MEMORY::DescriptorHandle			mTextureHandle;
 
 		D_RESOURCE::ResourceRef<D_GRAPHICS::BatchResource> mLineMeshResource;
+		D_RESOURCE::ResourceRef<D_GRAPHICS::TextureResource> mSkyboxDiff;
+		D_RESOURCE::ResourceRef<D_GRAPHICS::TextureResource> mSkyboxSpec;
 
 		D_GRAPHICS_BUFFERS::ByteAddressBuffer		mLineConstantsGPU;
 
