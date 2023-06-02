@@ -19,8 +19,8 @@ PatchTess ConstantHS(InputPatch<VertexOut, 4> patch,
 	// the tessellation is 0 if d >= d1 and 64 if d <= d0.  The interval
 	// [d0, d1] defines the range we tessellate in.
 	
-    const float d0 = 20.0f;
-    const float d1 = 100.0f;
+    const float d0 = 600.0f;
+    const float d1 = 1000.0f;
     float tess = 64 * saturate((d1 - d) / (d1 - d0));
     tess = clamp(tess, 1.f, 64.f);
     
