@@ -62,7 +62,6 @@ namespace Darius::Graphics
 		SphereMesh,
 		LowPolySphereMesh,
 		LineMesh,
-		GridPatch1x1Mesh,
 		GridPatch2x2Mesh,
 		GridPatch4x4Mesh,
 		GridPatch8x8Mesh,

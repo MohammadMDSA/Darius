@@ -29,7 +29,7 @@ namespace Darius::Graphics
 		ComponentBase(),
 		mMaterial(GetAsCountedOwner()),
 		mGridMesh(GetAsCountedOwner()),
-		mHeightMap(GetAsCountedOwner()),
+		//mHeightMap(GetAsCountedOwner()),
 		mGridSize(TerrainGridSize::Cells8x8),
 		mCastsShadow(true)
 	{
@@ -39,7 +39,7 @@ namespace Darius::Graphics
 		ComponentBase(uuid),
 		mMaterial(GetAsCountedOwner()),
 		mGridMesh(GetAsCountedOwner()),
-		mHeightMap(GetAsCountedOwner()),
+		//mHeightMap(GetAsCountedOwner()),
 		mGridSize(TerrainGridSize::Cells8x8),
 		mCastsShadow(true)
 	{
@@ -167,9 +167,6 @@ namespace Darius::Graphics
 		D_GRAPHICS::DefaultResource defaultResourceType;
 		switch (mGridSize)
 		{
-		case Darius::Graphics::TerrainRendererComponent::TerrainGridSize::Cells1x1:
-			defaultResourceType = D_GRAPHICS::DefaultResource::GridPatch1x1Mesh;
-			break;
 		case Darius::Graphics::TerrainRendererComponent::TerrainGridSize::Cells2x2:
 			defaultResourceType = D_GRAPHICS::DefaultResource::GridPatch2x2Mesh;
 			break;
@@ -184,7 +181,7 @@ namespace Darius::Graphics
 			break;
 		default:
 			D_ASSERT_M(false, "Bad gird size");
-			defaultResourceType = D_GRAPHICS::DefaultResource::GridPatch1x1Mesh;
+			defaultResourceType = D_GRAPHICS::DefaultResource::GridPatch2x2Mesh;
 		}
 
 		mGridMesh = D_RESOURCE::GetResource<D_GRAPHICS::StaticMeshResource>(D_GRAPHICS::GetDefaultGraphicsResource(defaultResourceType), GetAsCountedOwner());
@@ -207,11 +204,6 @@ namespace Darius::Graphics
 			D_H_DETAILS_DRAW_PROPERTY("Grid Division Size");
 			if (ImGui::BeginCombo("##GridDivisionSize", TerrainRendererComponent::GetTerrainSizeName(GetGridSize()).c_str()))
 			{
-
-				if (ImGui::Selectable("1x1", mGridSize == TerrainGridSize::Cells1x1))
-				{
-					SetGridSize(TerrainGridSize::Cells1x1);
-				}
 
 				if (ImGui::Selectable("2x2", mGridSize == TerrainGridSize::Cells2x2))
 				{

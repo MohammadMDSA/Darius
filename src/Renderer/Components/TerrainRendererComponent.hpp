@@ -20,7 +20,6 @@ namespace Darius::Graphics
 	public:
 		enum class DEnum(Serialize) TerrainGridSize
 		{
-			Cells1x1 = 0,
 			Cells2x2,
 			Cells4x4,
 			Cells8x8,
@@ -52,8 +51,6 @@ namespace Darius::Graphics
 		{
 			switch (size)
 			{
-			case Darius::Graphics::TerrainRendererComponent::TerrainGridSize::Cells1x1:
-				return "Cells 1x1";
 			case Darius::Graphics::TerrainRendererComponent::TerrainGridSize::Cells2x2:
 				return "Cells 2x2";
 			case Darius::Graphics::TerrainRendererComponent::TerrainGridSize::Cells4x4:
@@ -83,8 +80,8 @@ namespace Darius::Graphics
 		DField(Get[inline], Serialize)
 		TerrainGridSize						mGridSize;
 
-		DField(Serialize, Resource)
-		D_RESOURCE::ResourceRef<D_GRAPHICS::TextureResource> mHeightMap;
+		//DField(Serialize, Resource)
+		//D_RESOURCE::ResourceRef<D_GRAPHICS::TextureResource> mHeightMap;
 		
 		// Gpu buffers
 		D_GRAPHICS_BUFFERS::UploadBuffer		mMeshConstantsCPU[D_RENDERER_FRAME_RESOURCE::gNumFrameResources];
