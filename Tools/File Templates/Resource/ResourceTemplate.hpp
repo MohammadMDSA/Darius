@@ -29,7 +29,7 @@ namespace %%NAMESPACE%%
 		virtual INLINE void				Unload() override { EvictFromGpu(); }
 
 	private:
-		%%CLASS_NAME%%(D_CORE::Uuid uuid, std::wstring const& path, std::wstring const& name, D_RESOUCE::DResourceId id, bool isDefault = false) :
+		%%CLASS_NAME%%(D_CORE::Uuid uuid, std::wstring const& path, std::wstring const& name, D_RESOURCE::DResourceId id, bool isDefault = false) :
 			Resource(uuid, path, name, id, isDefault) {}
 
 	public:

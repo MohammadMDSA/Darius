@@ -43,7 +43,13 @@ namespace %%NAMESPACE%%
 
 		D_H_DETAILS_DRAW_END_TABLE();
 
-		return false;
+		if (valueChanged)
+		{
+			MakeDiskDirty();
+			MakeGpuDirty();
+		}
+
+		return valueChanged;
 	}
 #endif
 }
