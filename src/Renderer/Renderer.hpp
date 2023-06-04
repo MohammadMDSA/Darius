@@ -20,10 +20,9 @@ namespace Darius::Renderer
 		kMeshConstantsVS,		// Holds mesh constants only in Vertex Shader
 		kMeshConstantsHS,		// Holds mesh constants only in Hull Shader
 		kMeshConstantsDS,		// Holds mesh constants only in Domain Shader
-		kMaterialConstantsDs,	// Holds material constants only in DS
+		kDomainConstantsDs,		// Holds material constants only in DS
 		kMaterialConstantsPs,	// Holds material constants only in PS
 		kTextureDsSRVs,			// Domain shader texture resources
-		kTextureDsSamplers,		// Domain shader texture samplers
 		kMaterialSRVs,
 		kMaterialSamplers,
 		kCommonCBV,				// Holds global constants in all shaders

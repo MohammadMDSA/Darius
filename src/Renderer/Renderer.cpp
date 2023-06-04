@@ -561,16 +561,15 @@ namespace Darius::Renderer
 		def.InitStaticSampler(10, defaultSamplerDesc, D3D12_SHADER_VISIBILITY_PIXEL);
 		def.InitStaticSampler(11, SamplerShadowDesc, D3D12_SHADER_VISIBILITY_PIXEL);
 		def.InitStaticSampler(12, cubeMapSamplerDesc, D3D12_SHADER_VISIBILITY_PIXEL);
-		def.InitStaticSampler(13, SamplerLinearWrapDesc, D3D12_SHADER_VISIBILITY_PIXEL);
+		def.InitStaticSampler(13, SamplerLinearWrapDesc);
 
 		// Create root CBVs.
 		def[kMeshConstantsVS].InitAsConstantBuffer(0, D3D12_SHADER_VISIBILITY_VERTEX);
 		def[kMeshConstantsHS].InitAsConstantBuffer(0, D3D12_SHADER_VISIBILITY_HULL);
 		def[kMeshConstantsDS].InitAsConstantBuffer(0, D3D12_SHADER_VISIBILITY_DOMAIN);
-		def[kMaterialConstantsDs].InitAsConstantBuffer(2, D3D12_SHADER_VISIBILITY_DOMAIN);
+		def[kDomainConstantsDs].InitAsConstantBuffer(2, D3D12_SHADER_VISIBILITY_DOMAIN);
 		def[kMaterialConstantsPs].InitAsConstantBuffer(0, D3D12_SHADER_VISIBILITY_PIXEL);
 		def[kTextureDsSRVs].InitAsDescriptorRange(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 0, 10, D3D12_SHADER_VISIBILITY_DOMAIN);
-		def[kTextureDsSamplers].InitAsDescriptorRange(D3D12_DESCRIPTOR_RANGE_TYPE_SAMPLER, 0, 10, D3D12_SHADER_VISIBILITY_DOMAIN);
 		def[kMaterialSRVs].InitAsDescriptorRange(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 0, 10, D3D12_SHADER_VISIBILITY_PIXEL);
 		def[kMaterialSamplers].InitAsDescriptorRange(D3D12_DESCRIPTOR_RANGE_TYPE_SAMPLER, 0, 10, D3D12_SHADER_VISIBILITY_PIXEL);
 		def[kCommonCBV].InitAsConstantBuffer(1);
@@ -899,6 +898,9 @@ namespace Darius::Renderer
 				if (ri.MeshDsCBV != D3D12_GPU_VIRTUAL_ADDRESS_UNKNOWN)
 					context.SetConstantBuffer(kMeshConstantsDS, ri.MeshDsCBV);
 
+				if (ri.ParamsDsCBV != D3D12_GPU_VIRTUAL_ADDRESS_UNKNOWN)
+					context.SetConstantBuffer(kDomainConstantsDs, ri.ParamsDsCBV);
+
 				if (ri.PsoFlags & RenderItem::ColorOnly)
 				{
 					D_RENDERER_FRAME_RESOURCE::ColorConstants color = { ri.Color };
@@ -907,7 +909,6 @@ namespace Darius::Renderer
 				else
 				{
 					context.SetConstantBuffer(kMaterialConstantsPs, ri.Material.MaterialCBV);
-					context.SetConstantBuffer(kMaterialConstantsDs, ri.Material.MaterialCBV);
 					context.SetDescriptorTable(kMaterialSRVs, ri.Material.MaterialSRV);
 
 					if (ri.Material.SamplersSRV.ptr != 0)
@@ -917,7 +918,6 @@ namespace Darius::Renderer
 				if (ri.TextureDomainSRV.ptr != 0)
 				{
 					context.SetDescriptorTable(kTextureDsSRVs, ri.TextureDomainSRV);
-					context.SetDescriptorTable(kTextureDsSamplers, ri.TextureDomainSampler);
 				}
 
 				if (ri.mNumJoints > 0)

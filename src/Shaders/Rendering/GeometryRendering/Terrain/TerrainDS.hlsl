@@ -8,17 +8,10 @@ cbuffer cbPerObject : register(b0)
 
 cbuffer cbMaterial : register(b2)
 {
-    float4 gDiffuseAlbedo;
-    float3 gFresnelR0;
-    float3 gEmissive;
-    float  gMetallic;
-    float  gRoughness;
     float  gDisplacementAmount;
-    uint   gTexStats;
 };
 
 Texture2D<float> texWorldDisplacement : register(t0);
-SamplerState WorldDisplacementSampler : register(s0);
 
 #define ResolveParam(param) lerp(lerp(quad[0].param, quad[1].param, uv.x),lerp(quad[2].param, quad[3].param, uv.x),uv.y);
 
@@ -39,7 +32,7 @@ DomainOut main(PatchTess patchTess,
     dout.UV = ResolveParam(UV);
 
     // World Pos    
-    float displacementNorm = texWorldDisplacement.SampleLevel(WorldDisplacementSampler, dout.UV, 0.f).r;
+    float displacementNorm = texWorldDisplacement.SampleLevel(linearWrap, dout.UV, 0.f).r;
     float3 displacement = normal * (displacementNorm * gDisplacementAmount);
     float3 posL = ResolveParam(Pos);
     posL += displacement;

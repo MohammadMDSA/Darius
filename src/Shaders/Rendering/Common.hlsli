@@ -6,10 +6,9 @@
     "CBV(b0, visibility = SHADER_VISIBILITY_VERTEX), " \
     "CBV(b0, visibility = SHADER_VISIBILITY_HULL), " \
     "CBV(b0, visibility = SHADER_VISIBILITY_DOMAIN), " \
-    "CBV(b0, visibility = SHADER_VISIBILITY_PIXEL), " \
     "CBV(b2, visibility = SHADER_VISIBILITY_DOMAIN), " \
+    "CBV(b0, visibility = SHADER_VISIBILITY_PIXEL), " \
     "DescriptorTable(SRV(t0, numDescriptors = 10), visibility = SHADER_VISIBILITY_DOMAIN)," \
-    "DescriptorTable(Sampler(s0, numDescriptors = 10), visibility = SHADER_VISIBILITY_DOMAIN)," \
     "DescriptorTable(SRV(t0, numDescriptors = 10), visibility = SHADER_VISIBILITY_PIXEL)," \
     "DescriptorTable(Sampler(s0, numDescriptors = 10), visibility = SHADER_VISIBILITY_PIXEL)," \
     "DescriptorTable(SRV(t10, numDescriptors = 10), visibility = SHADER_VISIBILITY_PIXEL)," \
@@ -23,7 +22,7 @@
         "comparisonFunc = COMPARISON_GREATER_EQUAL," \
         "filter = FILTER_MIN_MAG_LINEAR_MIP_POINT)," \
     "StaticSampler(s12, maxAnisotropy = 8, visibility = SHADER_VISIBILITY_PIXEL)," \
-    "StaticSampler(s13, maxAnisotropy = 16, visibility = SHADER_VISIBILITY_PIXEL)"
+    "StaticSampler(s13, maxAnisotropy = 16)"
 
 // Common (static) samplers
 SamplerState defaultSampler : register(s10);
