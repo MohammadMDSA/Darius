@@ -24,6 +24,7 @@
 #include "Resources/MaterialResource.hpp"
 #include "Resources/StaticMeshResource.hpp"
 #include "Resources/SkeletalMeshResource.hpp"
+#include "Resources/TerrainResource.hpp"
 #include "Resources/TextureResource.hpp"
 
 #include <Core/TimeManager/TimeManager.hpp>
@@ -292,6 +293,7 @@ namespace Darius::Graphics
 		SkeletalMeshResource::Register();
 		MaterialResource::Register();
 		BatchResource::Register();
+		TerrainResource::Register();
 
 		LoadDefaultResources();
 
