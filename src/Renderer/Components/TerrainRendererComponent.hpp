@@ -4,6 +4,7 @@
 
 #include "Renderer/Resources/MaterialResource.hpp"
 #include "Renderer/Resources/StaticMeshResource.hpp"
+#include "Renderer/Resources/TerrainResource.hpp"
 
 #include <Scene/EntityComponentSystem/Components/ComponentBase.hpp>
 
@@ -80,8 +81,8 @@ namespace Darius::Graphics
 		DField(Get[inline], Serialize)
 		TerrainGridSize						mGridSize;
 
-		//DField(Serialize, Resource)
-		//D_RESOURCE::ResourceRef<D_GRAPHICS::TextureResource> mHeightMap;
+		DField(Serialize, Resource)
+		D_RESOURCE::ResourceRef<D_GRAPHICS::TerrainResource> mTerrainData;
 		
 		// Gpu buffers
 		D_GRAPHICS_BUFFERS::UploadBuffer		mMeshConstantsCPU[D_RENDERER_FRAME_RESOURCE::gNumFrameResources];

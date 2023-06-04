@@ -89,7 +89,7 @@ namespace Darius::Graphics
 	bool TerrainRendererComponent::AddRenderItems(std::function<void(D_RENDERER_FRAME_RESOURCE::RenderItem const&)> appendFunction)
 	{
 
-		if (!mMaterial.IsValid() || mMaterial->IsDirtyGPU())
+		if (!mTerrainData.IsValid() || !mMaterial.IsValid() || mMaterial->IsDirtyGPU())
 			return false;
 
 		UpdatePsoIndex();
@@ -103,6 +103,7 @@ namespace Darius::Graphics
 		ri.PrimitiveType = D3D_PRIMITIVE_TOPOLOGY_4_CONTROL_POINT_PATCHLIST;
 		ri.MeshHsCBV = GetConstantsAddress();
 		ri.MeshDsCBV = GetConstantsAddress();
+		ri.ParamsDsCBV = mTerrainData->GetParamsConstantsAddress();
 		ri.PsoType = mMaterialPsoData.PsoIndex;
 		ri.DepthPsoIndex = mMaterialPsoData.DepthPsoIndex;
 		ri.Material.MaterialCBV = *mMaterial.Get();
@@ -112,8 +113,7 @@ namespace Darius::Graphics
 		ri.BaseVertexLocation = 0;
 		ri.StartIndexLocation = 0;
 
-		ri.TextureDomainSRV = { incSize * (UINT)D_RENDERER::TextureType::kWorldDisplacement + ri.Material.MaterialSRV.ptr };
-		ri.TextureDomainSampler = { incSize * (UINT)D_RENDERER::TextureType::kWorldDisplacement + ri.Material.SamplersSRV.ptr };
+		ri.TextureDomainSRV = mTerrainData->GetTexturesHandle();
 		ri.IndexCount = ri.Mesh->mNumTotalIndices;
 
 		appendFunction(ri);
@@ -194,6 +194,11 @@ namespace Darius::Graphics
 		bool valueChanged = false;
 
 		D_H_DETAILS_DRAW_BEGIN_TABLE("Terrain Details");
+
+		{
+			D_H_DETAILS_DRAW_PROPERTY("Data");
+			D_H_RESOURCE_SELECTION_DRAW(TerrainResource, mTerrainData, "Select Terrain Data", SetTerrainData);
+		}
 
 		{
 			D_H_DETAILS_DRAW_PROPERTY("Material");
