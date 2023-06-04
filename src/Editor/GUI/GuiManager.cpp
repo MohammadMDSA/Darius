@@ -22,6 +22,7 @@
 #include <Renderer/Renderer.hpp>
 #include <Renderer/GraphicsUtils/Profiling/Profiling.hpp>
 #include <Renderer/Resources/MaterialResource.hpp>
+#include <Renderer/Resources/TerrainResource.hpp>
 #include <ResourceManager/ResourceManager.hpp>
 #include <ResourceManager/ResourceLoader.hpp>
 #include <Scene/EntityComponentSystem/Components/TransformComponent.hpp>
@@ -371,6 +372,11 @@ namespace Darius::Editor::Gui::GuiManager
 					if (ImGui::MenuItem("Material"))
 					{
 						ImGuiFileDialog::Instance()->OpenDialog("SaveResource", "Create Material", ".mat", D_ENGINE_CONTEXT::GetAssetsPath().string(), 1, (void*)D_GRAPHICS::MaterialResource::GetResourceType());
+					}
+
+					if (ImGui::MenuItem("Terrain"))
+					{
+						ImGuiFileDialog::Instance()->OpenDialog("SaveResource", "Create Terrain", ".terrain", D_ENGINE_CONTEXT::GetAssetsPath().string(), 1, (void*)D_GRAPHICS::TerrainResource::GetResourceType());
 					}
 
 					ImGui::Separator();
