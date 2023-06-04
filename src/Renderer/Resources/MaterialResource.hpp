@@ -3,8 +3,8 @@
 #include "TextureResource.hpp"
 #include "Renderer/FrameResource.hpp"
 #include "Renderer/Renderer.hpp"
-#include "Renderer/GraphicsUtils/Buffers/UploadBuffer.hpp"
 #include "Renderer/GraphicsUtils/Buffers/GpuBuffer.hpp"
+#include "Renderer/GraphicsUtils/Buffers/UploadBuffer.hpp"
 #include "Renderer/Resources/TextureResource.hpp"
 
 #include <ResourceManager/Resource.hpp>

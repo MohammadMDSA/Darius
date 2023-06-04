@@ -118,6 +118,7 @@ namespace Darius::Graphics
 
 		std::ofstream os(GetPath());
 		os << data;
+		os.close();
 	}
 
 	void MaterialResource::ReadResourceFromFile(D_SERIALIZATION::Json const& j)
@@ -201,8 +202,6 @@ namespace Darius::Graphics
 	{
 		if (mMaterialConstantsGPU.GetGpuVirtualAddress() == D3D12_GPU_VIRTUAL_ADDRESS_NULL)
 		{
-
-
 			// Initializing Material Constants buffers
 			for (size_t i = 0; i < D_RENDERER_FRAME_RESOURCE::gNumFrameResources; i++)
 			{
