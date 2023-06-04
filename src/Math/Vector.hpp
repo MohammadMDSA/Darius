@@ -120,7 +120,7 @@ namespace Darius::Math
 		INLINE explicit Vector4(EZUnitVector) { m_vec = CreateZUnitVector(); }
 		INLINE explicit Vector4(EWUnitVector) { m_vec = CreateWUnitVector(); }
 
-		INLINE operator DirectX::XMVECTOR() const { return m_vec; }
+		INLINE operator DirectX::XMVECTOR const&() const { return m_vec; }
 		INLINE operator DirectX::XMFLOAT4() const { DirectX::XMFLOAT4 dest; DirectX::XMStoreFloat4(&dest, m_vec); return dest; }
 
 		INLINE float GetX() const { return Scalar(DirectX::XMVectorSplatX(m_vec)); }

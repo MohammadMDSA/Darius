@@ -162,6 +162,13 @@ namespace Darius::Editor::Gui::Windows
 		globals.DeltaTime = (float)time.GetElapsedSeconds();
 		globals.AmbientLight = { 0.1f, 0.1f, 0.1f, 0.1f };
 
+		auto const& frustum = mCamera.GetWorldSpaceFrustum();
+
+		for (int i = 0; i < 6; i++)
+		{
+			globals.FrustumPlanes[i] = (Vector4)frustum.GetFrustumPlane((D_MATH_CAMERA::Frustum::PlaneID)i);
+		}
+
 	}
 
 	void SceneWindow::Render()

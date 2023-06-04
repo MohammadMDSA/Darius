@@ -423,6 +423,9 @@ namespace Darius::Renderer::LightManager
 		globals.ViewProj = cam.GetViewProjMatrix();
 		globals.CameraPos = (DirectX::XMFLOAT3)cam.GetPosition();
 		globals.ShadowTexelSize.x = 1.f / DirectionalShadowBufferWidth;
+		auto const& frustum = cam.GetWorldSpaceFrustum();
+		for (int i = 0; i < 6; i++)
+			globals.FrustumPlanes[i] = (Vector4)frustum.GetFrustumPlane((D_MATH_CAMERA::Frustum::PlaneID)i);
 
 		auto& shadowBuffer = ShadowBuffers[lightGloablIndex];
 		shadowBuffer.BeginRendering(context);
@@ -451,9 +454,13 @@ namespace Darius::Renderer::LightManager
 	{
 		auto const& shadowCamera = SpotShadowCameras[lightGloablIndex - MaxNumDirectionalLight - MaxNumPointLight];
 
+
 		GlobalConstants globals;
 		globals.ViewProj = shadowCamera.GetViewProjMatrix();
 		globals.CameraPos = (DirectX::XMFLOAT3)shadowCamera.GetPosition();
+		auto const& frustum = shadowCamera.GetWorldSpaceFrustum();
+		for (int i = 0; i < 6; i++)
+			globals.FrustumPlanes[i] = (Vector4)frustum.GetFrustumPlane((D_MATH_CAMERA::Frustum::PlaneID)i);
 
 		auto& shadowBuffer = ShadowBuffers[lightGloablIndex];
 

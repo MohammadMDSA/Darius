@@ -20,6 +20,7 @@ namespace Darius::Renderer::ConstantFrameResource
 		DirectX::XMFLOAT4X4	InvProj;
 		DirectX::XMFLOAT4X4	ViewProj;
 		DirectX::XMFLOAT4X4	InvViewProj;
+		DirectX::XMFLOAT4	FrustumPlanes[6];
 		DirectX::XMFLOAT4	ShadowTexelSize = { 0.f, 0.f, 0.f, 0.f };
 		DirectX::XMFLOAT3	CameraPos;
 		float				cbPerObjectPad1 = 0.0f;
@@ -30,8 +31,8 @@ namespace Darius::Renderer::ConstantFrameResource
 		float				TotalTime = 0.0f;
 		float				DeltaTime = 0.0f;
 		DirectX::XMFLOAT4	AmbientLight;
-		float IBLRange;
-		float IBLBias;
+		float				IBLRange;
+		float				IBLBias;
 	};
 
 	ALIGN_DECL_256 struct MeshConstants
