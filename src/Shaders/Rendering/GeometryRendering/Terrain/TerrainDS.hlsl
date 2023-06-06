@@ -13,7 +13,7 @@ cbuffer cbMaterial : register(b2)
 
 Texture2D<float> texWorldDisplacement : register(t0);
 
-#define ResolveParam(param) lerp(lerp(quad[0].param, quad[1].param, uv.x),lerp(quad[2].param, quad[3].param, uv.x),uv.y);
+#define ResolveParam(param) lerp(lerp(quad[0].param, quad[1].param, uv.x),lerp(quad[2].param, quad[3].param, uv.x),uv.y)
 
 [domain("quad")]
 [RootSignature(Renderer_RootSig)]
@@ -24,7 +24,7 @@ DomainOut main(PatchTess patchTess,
     DomainOut dout;
     
     // Normal
-    float3 normal = ResolveParam(Normal);
+    float3 normal = normalize(ResolveParam(Normal));
     float3x3 wit = (float3x3) gWorldIT;
     dout.WorldNormal = mul(wit, normal);
     

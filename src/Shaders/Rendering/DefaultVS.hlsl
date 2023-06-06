@@ -34,9 +34,14 @@ struct VertexIn
 
 struct VertexOut
 {
+#ifndef WORLD_DISPLACEMENT
     float4 Pos :            SV_POSITION;
     float3 WorldPos :       POSITION;
     float3 WorldNormal :    NORMAL;
+#else
+    float3 LocalPos :       POSITION;
+    float3 Normal :         NORMAL;
+#endif
 #ifndef NO_TANGENT_FRAME
     float4 Tangent :        TANGENT;
 #endif
@@ -80,6 +85,7 @@ VertexOut main(VertexIn vin)
     
 #endif
     
+#ifndef WORLD_DISPLACEMENT
     vout.WorldPos = mul(gWorld, position).xyz;
     
     float3x3 wit = (float3x3) gWorldIT;
@@ -88,7 +94,11 @@ VertexOut main(VertexIn vin)
     
     // Transform to homogeneous clip space.
     vout.Pos = mul(gViewProj, float4(vout.WorldPos, 1.f));
-
+#else
+    vout.LocalPos = position;
+    vout.Normal = normal;
+#endif
+    
 #ifndef NO_TANGENT_FRAME
     vout.Tangent = float4(mul(gWorldIT, tangent.xyz), tangent.w);
 #endif
