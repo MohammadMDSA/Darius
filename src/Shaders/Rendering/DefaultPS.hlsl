@@ -82,9 +82,6 @@ MRT main(VertexOut pin) : SV_Target
     
     MRT mrt;
     
-    // Interpolating normal can unnormalize it, so renormalize it.
-    pin.WorldNormal = normalize(pin.WorldNormal);
-
     // Vector from point being lit to eye. 
     float3 toEyeW = normalize(gCameraPosW - pin.WorldPos);
 
@@ -121,7 +118,7 @@ MRT main(VertexOut pin) : SV_Target
     if (BitMasked(gTexStats, 5))
         normal = ComputeNormal(pin);
     else
-        normal = pin.WorldNormal;
+        normal = normalize(pin.WorldNormal);
     
     float ao;
     if(BitMasked(gTexStats, 3))
@@ -135,7 +132,7 @@ MRT main(VertexOut pin) : SV_Target
     
     // Common convention to take alpha from diffuse material.
     mrt.Color = float4(litColor, diffuseAlbedo.a);
-    mrt.Normal = float4(pin.WorldNormal, 1.f);
+    mrt.Normal = float4(normal / 2 + 0.5, 1.f);
     
     return mrt;
 }
