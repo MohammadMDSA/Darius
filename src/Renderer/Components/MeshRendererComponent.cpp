@@ -44,8 +44,9 @@ namespace Darius::Graphics
 		auto result = RenderItem();
 		const Mesh* mesh = mMesh.Get()->GetMeshData();
 		result.Mesh = mesh;
-		result.PrimitiveType = D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
 		result.MeshVsCBV = GetConstantsAddress();
+
+		static auto incSize = D_GRAPHICS_DEVICE::GetDevice()->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 
 		for (UINT i = 0; i < mesh->mDraw.size(); i++)
 		{
@@ -60,17 +61,63 @@ namespace Darius::Graphics
 			result.Material.MaterialCBV = *material.Get();
 			result.Material.MaterialSRV = material->GetTexturesHandle();
 			result.Material.SamplersSRV = material->GetSamplersHandle();
+
+			if (material->HasDisplacement())
+			{
+				result.PrimitiveType = D3D_PRIMITIVE_TOPOLOGY_3_CONTROL_POINT_PATCHLIST;
+				result.ParamsDsCBV = *material.Get();
+				result.MeshHsCBV = GetConstantsAddress();
+				result.MeshDsCBV = GetConstantsAddress();
+				result.TextureDomainSRV = { result.Material.MaterialSRV.ptr + (incSize * D_RENDERER::kWorldDisplacement) };
+			}
+			else
+				result.PrimitiveType = D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
+
 			result.PsoFlags = mComponentPsoFlags | material->GetPsoFlags();
 			result.BaseVertexLocation = mesh->mDraw[i].BaseVertexLocation;
 			result.StartIndexLocation = mesh->mDraw[i].StartIndexLocation;
 			result.IndexCount = mesh->mDraw[i].IndexCount;
 
 			appendFunction(result);
-
 			any = true;
 		}
 
 		return any;
+	}
+
+	UINT MeshRendererComponent::GetPsoIndex(UINT materialIndex)
+	{
+		auto materialPsoFlags = mMaterials[materialIndex]->GetPsoFlags();
+
+		// Whether resource has changed
+		if (mMaterialPsoData[materialIndex].CachedMaterialPsoFlags != materialPsoFlags)
+		{
+			mMaterialPsoData[materialIndex].CachedMaterialPsoFlags = materialPsoFlags;
+			mMaterialPsoData[materialIndex].PsoIndexDirty = true;
+		}
+
+		// Whether pso index is not compatible with current pso flags
+		if (mMaterialPsoData[materialIndex].PsoIndexDirty)
+		{
+			D_RENDERER::PsoConfig config;
+			config.PsoFlags = materialPsoFlags | mComponentPsoFlags;
+			if (mMaterials[materialIndex]->HasDisplacement())
+			{
+				config.PsoFlags |= RenderItem::PointOnly | RenderItem::LineOnly; // Means patch
+				config.VSIndex = D_GRAPHICS::GetShaderIndex("WorldDisplacementVS");
+				config.HSIndex = D_GRAPHICS::GetShaderIndex("WorldDisplacementHS");
+				config.DSIndex = D_GRAPHICS::GetShaderIndex("WorldDisplacementDS");
+				config.PSIndex = D_GRAPHICS::GetShaderIndex("DefaultPS");
+			}
+
+			mMaterialPsoData[materialIndex].PsoIndex = D_RENDERER::GetPso(config);
+
+			config.PsoFlags |= RenderItem::DepthOnly;
+			mMaterialPsoData[materialIndex].DepthPsoIndex = D_RENDERER::GetPso(config);
+
+			mMaterialPsoData[materialIndex].PsoIndexDirty = false;
+		}
+		return mMaterialPsoData[materialIndex].PsoIndex;
 	}
 
 	void MeshRendererComponent::_SetMesh(D_RESOURCE::ResourceHandle handle)

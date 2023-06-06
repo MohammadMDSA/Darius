@@ -96,8 +96,6 @@ namespace Darius::Graphics
 
 		static const uint16_t psoFlags = mMaterial->GetPsoFlags() | RenderItem::PointOnly | RenderItem::LineOnly;
 
-		static auto incSize = D_GRAPHICS_DEVICE::GetDevice()->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-
 		RenderItem ri;
 		ri.Mesh = mGridMesh->GetMeshData();
 		ri.PrimitiveType = D3D_PRIMITIVE_TOPOLOGY_4_CONTROL_POINT_PATCHLIST;
@@ -151,7 +149,6 @@ namespace Darius::Graphics
 			config.PSIndex = 0;
 			mMaterialPsoData.DepthPsoIndex = D_RENDERER::GetPso(config);
 			mMaterialPsoData.PsoIndexDirty = false;
-
 		}
 
 	}

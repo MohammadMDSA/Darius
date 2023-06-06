@@ -43,7 +43,7 @@ namespace Darius::Graphics
 	protected:
 
 		void									_SetMaterial(UINT index, D_RESOURCE::ResourceHandle handle);
-		UINT									GetPsoIndex(UINT materialIndex);
+		virtual UINT							GetPsoIndex(UINT materialIndex);
 		void									OnMeshChanged();
 		
 		DField(Serialize)

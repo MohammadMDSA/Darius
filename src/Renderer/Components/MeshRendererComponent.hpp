@@ -32,6 +32,9 @@ namespace Darius::Graphics
 		INLINE virtual bool					CanRender() const override { return MeshRendererComponentBase::CanRender() && mMesh.IsValid(); }
 		INLINE virtual D_MATH_BOUNDS::BoundingSphere const& GetBounds() override { return mMesh.Get()->GetMeshData()->mBoundSp; }
 
+	protected:
+		virtual UINT						GetPsoIndex(UINT materialIndex) override;
+
 	private:
 
 		void								_SetMesh(D_RESOURCE::ResourceHandle handle);
