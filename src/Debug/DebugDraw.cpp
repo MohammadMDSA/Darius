@@ -190,24 +190,43 @@ namespace Darius::Debug
 		auto FarUpperRight = frus.GetFrustumCorner(D_MATH_CAMERA::Frustum::kFarUpperRight);
 
 		// Near rect
-		DrawLine(NearLowerLeft, NearLowerRight);
-		DrawLine(NearLowerRight, NearUpperRight);
-		DrawLine(NearUpperRight, NearUpperLeft);
-		DrawLine(NearUpperLeft, NearLowerLeft);
+		DrawLine(NearLowerLeft, NearLowerRight, duration, color);
+		DrawLine(NearLowerRight, NearUpperRight, duration, color);
+		DrawLine(NearUpperRight, NearUpperLeft, duration, color);
+		DrawLine(NearUpperLeft, NearLowerLeft, duration, color);
 
 		// Far rect
-		DrawLine(FarLowerLeft, FarLowerRight);
-		DrawLine(FarLowerRight, FarUpperRight);
-		DrawLine(FarUpperRight, FarUpperLeft);
-		DrawLine(FarUpperLeft, FarLowerLeft);
+		DrawLine(FarLowerLeft, FarLowerRight, duration, color);
+		DrawLine(FarLowerRight, FarUpperRight, duration, color);
+		DrawLine(FarUpperRight, FarUpperLeft, duration, color);
+		DrawLine(FarUpperLeft, FarLowerLeft, duration, color);
 
 		// Connecting near plane and far plane
-		DrawLine(NearUpperLeft, FarUpperLeft);
-		DrawLine(NearUpperRight, FarUpperRight);
-		DrawLine(NearLowerLeft, FarLowerLeft);
-		DrawLine(NearLowerRight, FarLowerRight);
+		DrawLine(NearUpperLeft, FarUpperLeft, duration, color);
+		DrawLine(NearUpperRight, FarUpperRight, duration, color);
+		DrawLine(NearLowerLeft, FarLowerLeft, duration, color);
+		DrawLine(NearLowerRight, FarLowerRight, duration, color);
 	}
 
+	void DebugDraw::DrawConeLines(D_MATH::Vector3 const& tipLocation, D_MATH::Vector3 const& tipToBaseDirection, float height, float baseRadius, double duration, D_MATH::Color const& color)
+	{
+		Vector3 tipToBaseNorm = D_MATH::Normalize(tipToBaseDirection);
+		Vector3 tipToBase = tipToBaseNorm * height;
+		Vector3 baseCenter = tipLocation + tipToBase;
+		Vector3 temp = D_MATH::Normalize(tipToBaseNorm + Vector3(0.f, 1.f, 0.f));
+		if ((bool)(temp == tipToBaseNorm))
+			temp = tipToBaseNorm + Vector3(1.f, 0.f, 0.f);
+
+		Vector3 n = D_MATH::Normalize(D_MATH::Cross(temp, tipToBaseNorm)); // A normal vector on base
+		Vector3 m = D_MATH::Cross(n, tipToBaseNorm); // Another normal vec on base and perpendicular to n
+
+		for (int i = 0; i < 12; i++) // Per point on base perimeter
+		{
+			Vector3 pointOnBase = ((m * D_MATH::Sin(DirectX::XM_2PI * (float)i / 12.f)) + (n * D_MATH::Cos(DirectX::XM_2PI * (float)i / 12.f))) * baseRadius + baseCenter;
+
+			DrawLine(tipLocation, pointOnBase, duration, color);
+		}
+	}
 
 	void DebugDraw::PopulateRenderItemFromMesh(D_RENDERER_FRAME_RESOURCE::RenderItem& renderItem, D_RENDERER_GEOMETRY::Mesh const* mesh)
 	{

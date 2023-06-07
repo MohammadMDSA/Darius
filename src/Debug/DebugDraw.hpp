@@ -38,6 +38,8 @@ namespace Darius::Debug
 		// Only accepting 8 vertices, order by near to out, left to right, lower to top
 		static void DrawCubeLines(D_CONTAINERS::DVector<D_MATH::Vector3> const& vertices, double duration = 0.f, D_MATH::Color const& color = { 1.f, 1.f, 1.f, 1.f });
 
+		static void DrawConeLines(D_MATH::Vector3 const& tipLocation, D_MATH::Vector3 const& tipToBaseDirection, float height, float baseRadius, double duration = 0., D_MATH::Color const& color = { 1.f, 1.f, 1.f, 1.f });
+
 #else
 		static INLINE void FinalizeUpload() {}
 		static INLINE void Clear(bool clearCache = false) {}
@@ -49,6 +51,8 @@ namespace Darius::Debug
 		static INLINE void DrawLine(D_MATH::Vector3 const& p1, D_MATH::Vector3 const& p2, double duration = 0.f, D_MATH::Color const& color = { 1.f, 1.f, 1.f, 1.f }) {}
 		static INLINE void DrawFrustum(D_MATH_CAMERA::Frustum const& frus, double duration = 0.f, D_MATH::Color const& color = { 1.f, 1.f, 1.f, 1.f }) {}
 		static INLINE void DrawCubeLines(D_CONTAINERS::DVector<D_MATH::Vector3> const& vertices, double duration = 0.f, D_MATH::Color const& color = { 1.f, 1.f, 1.f, 1.f }) {}
+		static INLINE void DrawConeLines(D_MATH::Vector3 const& tipLocation, D_MATH::Vector3 const& tipToBaseDirection, float height, float baseRadius, double duration = 0., D_MATH::Color const& color = { 1.f, 1.f, 1.f, 1.f }) {}
+
 
 
 #endif // _DEBUG
