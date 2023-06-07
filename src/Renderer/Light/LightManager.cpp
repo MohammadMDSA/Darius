@@ -39,14 +39,6 @@ namespace Darius::Renderer::LightManager
 	DVector<LightData>					PointLights;
 	DVector<LightData>					SpotLights;
 
-	DVector<LightStatus>				ActiveDirectionalLight;
-	DVector<LightStatus>				ActivePointLight;
-	DVector<LightStatus>				ActiveSpotLight;
-
-	DVector<Transform>					DirectionalLightTransforms;
-	DVector<Transform>					PointLightTransforms;
-	DVector<Transform>					SpotLightTransforms;
-
 	DVector<D_GRAPHICS_BUFFERS::ShadowBuffer> ShadowBuffers;
 	D_GRAPHICS_BUFFERS::ColorBuffer		DirectionalShadowTextureArrayBuffer;
 	D_GRAPHICS_BUFFERS::ColorBuffer		PointShadowTextureArrayBuffer;
@@ -60,11 +52,6 @@ namespace Darius::Renderer::LightManager
 	D_GRAPHICS_BUFFERS::UploadBuffer	LightsUpload[D_RENDERER_FRAME_RESOURCE::gNumFrameResources];
 	ByteAddressBuffer					ActiveLightsBufferGpu;
 	StructuredBuffer					LightsBufferGpu;
-
-	INLINE DVector<LightStatus>* GetAssociatedActiveLightWithType(LightSourceType type);
-	INLINE DVector<LightData>* GetAssociatedLightsWithType(LightSourceType type);
-	INLINE DVector<Transform>* GetAssociatedLightTransformsWithType(LightSourceType type);
-
 
 	/////////////////////////////////////////////////
 	// Options
@@ -81,17 +68,6 @@ namespace Darius::Renderer::LightManager
 	void Initialize()
 	{
 		D_ASSERT(!_initialized);
-		DirectionalLights.resize(MaxNumDirectionalLight);
-		ActiveDirectionalLight.resize(MaxNumDirectionalLight);
-		DirectionalLightTransforms.resize(MaxNumDirectionalLight);
-		PointLights.resize(MaxNumPointLight);
-		ActivePointLight.resize(MaxNumPointLight);
-		PointLightTransforms.resize(MaxNumPointLight);
-		SpotLights.resize(MaxNumSpotLight);
-		ActiveSpotLight.resize(MaxNumSpotLight);
-		SpotLightTransforms.resize(MaxNumSpotLight);
-
-		Reset();
 
 		// Initializing buffers
 		size_t elemSize = sizeof(UINT) * 8;
@@ -131,35 +107,39 @@ namespace Darius::Renderer::LightManager
 		D_ASSERT(_initialized);
 	}
 
-	void Reset()
-	{
-
-		for (size_t i = 0; i < MaxNumDirectionalLight; i++)
-		{
-			ActiveDirectionalLight[i] = { false, false };
-		}
-
-		for (size_t i = 0; i < MaxNumPointLight; i++)
-		{
-			ActivePointLight[i] = { false, false };
-		}
-
-		for (size_t i = 0; i < MaxNumSpotLight; i++)
-		{
-			ActiveSpotLight[i] = { false, false };
-		}
-	}
-
 	void Update()
 	{
+		DirectionalLights.clear();
+		PointLights.clear();
+		SpotLights.clear();
+
 		auto& reg = D_WORLD::GetRegistry();
 		reg.each([](D_GRAPHICS::LightComponent& comp)
 			{
-				comp.Update(-1);
+				if (!comp.IsActive())
+					return;
+
+				auto lightData = comp.GetLightData();
+				auto trans = comp.GetTransform();
+				lightData.Position = (DirectX::XMFLOAT3)trans.Translation;
+				lightData.Direction = (DirectX::XMFLOAT3)trans.Rotation.GetForward();
+
+				switch (comp.GetLightType())
+				{
+				case D_LIGHT::LightSourceType::DirectionalLight:
+					DirectionalLights.push_back(lightData);
+					break;
+				case D_LIGHT::LightSourceType::PointLight:
+					PointLights.push_back(lightData);
+					break;
+				case D_LIGHT::LightSourceType::SpotLight:
+					SpotLights.push_back(lightData);
+					break;
+				}
 			});
 	}
 
-	void UpdateBuffers(D_GRAPHICS::GraphicsContext& context, D_MATH_CAMERA::Camera const* viewrCamera)
+	void UpdateBuffers(D_GRAPHICS::GraphicsContext& context, D_MATH_CAMERA::Camera const* viewerCamera)
 	{
 		auto& currentActiveLightUpload = ActiveLightsUpload[D_GRAPHICS_DEVICE::GetCurrentFrameResourceIndex()];
 		auto& currentLightUpload = LightsUpload[D_GRAPHICS_DEVICE::GetCurrentFrameResourceIndex()];
@@ -179,8 +159,6 @@ namespace Darius::Renderer::LightManager
 			{
 				UINT lightIdx = i * (UINT)sizeof(UINT) * 8u + bitIdx;
 				DVector<LightData>* LightVec = nullptr;
-				DVector<Transform>* transformVec = nullptr;
-				DVector<LightStatus>* activeVec = nullptr;
 				int indexInVec = -1;
 
 				// Setting light status
@@ -189,24 +167,18 @@ namespace Darius::Renderer::LightManager
 				{
 					indexInVec = lightIdx;
 					LightVec = &DirectionalLights;
-					transformVec = &DirectionalLightTransforms;
-					activeVec = &ActiveDirectionalLight;
 					lightSource = LightSourceType::DirectionalLight;
 				}
 				else if (lightIdx < MaxNumDirectionalLight + MaxNumPointLight)
 				{
 					indexInVec = lightIdx - MaxNumDirectionalLight;
 					LightVec = &PointLights;
-					transformVec = &PointLightTransforms;
-					activeVec = &ActivePointLight;
 					lightSource = LightSourceType::PointLight;
 				}
 				else if (lightIdx < MaxNumDirectionalLight + MaxNumPointLight + MaxNumSpotLight)
 				{
 					indexInVec = lightIdx - MaxNumDirectionalLight - MaxNumPointLight;
 					LightVec = &SpotLights;
-					transformVec = &SpotLightTransforms;
-					activeVec = &ActiveSpotLight;
 					lightSource = LightSourceType::SpotLight;
 				}
 				else
@@ -215,15 +187,12 @@ namespace Darius::Renderer::LightManager
 					break;
 				}
 
-				lightStatus = (*activeVec)[indexInVec].LightActive && (*activeVec)[indexInVec].ComponentActive;
+				lightStatus = indexInVec < LightVec->size();
 
 				if (lightStatus)
 				{
 					// Setting location and direction
-					auto trans = (*transformVec)[indexInVec];
 					LightData& lightData = (*LightVec)[indexInVec];
-					lightData.Position = (XMFLOAT3)trans.Translation;
-					XMStoreFloat3(&lightData.Direction, XMVector3Rotate({ 0.f, 0.f, -1.f }, trans.Rotation));
 
 					switch (lightSource)
 					{
@@ -231,8 +200,8 @@ namespace Darius::Renderer::LightManager
 						CalculateSpotShadowCamera(lightData, lightIdx);
 						break;
 					case Darius::Renderer::LightManager::LightSourceType::DirectionalLight:
-						if (viewrCamera)
-							CalculateDirectionalShadowCamera(*viewrCamera, lightData, lightIdx);
+						if (viewerCamera)
+							CalculateDirectionalShadowCamera(*viewerCamera, lightData, lightIdx);
 						break;
 					default:
 						break;
@@ -282,110 +251,6 @@ namespace Darius::Renderer::LightManager
 		directional = DirectionalShadowTextureArrayBuffer.GetSRV();
 		point = PointShadowTextureArrayBuffer.GetSRV();
 		spot = SpotShadowTextureArrayBuffer.GetSRV();
-	}
-
-	INLINE DVector<LightStatus>* GetAssociatedActiveLightWithType(LightSourceType type)
-	{
-		switch (type)
-		{
-		case LightSourceType::DirectionalLight:
-			return &ActiveDirectionalLight;
-		case LightSourceType::PointLight:
-			return &ActivePointLight;
-		case LightSourceType::SpotLight:
-			return &ActiveSpotLight;
-		}
-		return nullptr;
-	}
-
-	INLINE DVector<Transform>* GetAssociatedLightTransformsWithType(LightSourceType type)
-	{
-		switch (type)
-		{
-		case LightSourceType::DirectionalLight:
-			return &DirectionalLightTransforms;
-		case LightSourceType::PointLight:
-			return &PointLightTransforms;
-		case LightSourceType::SpotLight:
-			return &SpotLightTransforms;
-		}
-
-		return nullptr;
-	}
-
-	INLINE DVector<LightData>* GetAssociatedLightsWithType(LightSourceType type)
-	{
-		switch (type)
-		{
-		case LightSourceType::DirectionalLight:
-			return &DirectionalLights;
-		case LightSourceType::PointLight:
-			return &PointLights;
-		case LightSourceType::SpotLight:
-			return &SpotLights;
-		}
-		return nullptr;
-	}
-
-	int AccuireLightSource(LightSourceType type)
-	{
-		auto typeOwners = GetAssociatedActiveLightWithType(type);
-
-		// Finding an index in light sources array that is no one is using
-		int emptyIndex = -1;
-		for (int i = 0; i < typeOwners->size(); i++)
-		{
-			if (!typeOwners->at(i).LightActive)
-			{
-				emptyIndex = i;
-				break;
-			}
-		}
-
-		// No light source of specified type is available
-		if (emptyIndex == -1)
-			return -1;
-
-		(*typeOwners)[emptyIndex].LightActive = true;
-
-		return emptyIndex;
-	}
-
-	int SwapLightSource(LightSourceType type, LightSourceType preType, int preIndex)
-	{
-
-		auto preTypeLights = GetAssociatedLightsWithType(preType);
-
-		// Requesting the same type, so return what requester already own
-		if (preType == type)
-			return preIndex;
-
-		// Removing owner data to accuire new light
-		ReleaseLight(preType, preIndex);
-
-		auto newLight = AccuireLightSource(type);
-
-		return newLight;
-	}
-
-	void ReleaseLight(LightSourceType preType, int preIndex)
-	{
-		(*GetAssociatedActiveLightWithType(preType))[preIndex].LightActive = false;
-	}
-
-	INLINE int GetGlobalLightIndex(LightSourceType type, int typeIndex)
-	{
-		switch (type)
-		{
-		case Darius::Renderer::LightManager::LightSourceType::DirectionalLight:
-			return typeIndex;
-		case Darius::Renderer::LightManager::LightSourceType::PointLight:
-			return MaxNumDirectionalLight + typeIndex;
-		case Darius::Renderer::LightManager::LightSourceType::SpotLight:
-			return MaxNumDirectionalLight + MaxNumPointLight + typeIndex;
-		default:
-			return -1;
-		}
 	}
 
 	void CalculateDirectionalShadowCamera(D_MATH_CAMERA::Camera const& viewerCamera, LightData& light, int lightGloablIndex)
@@ -489,52 +354,36 @@ namespace Darius::Renderer::LightManager
 
 		sorter.Sort();
 
-		for (int i = 0; i < MaxNumDirectionalLight; i++)
+		for (int i = 0; i < DirectionalLights.size(); i++)
 		{
-
-			//D_JOB::AssignTask([&](int, int) {
 
 			sorter.Reset();
 
 			auto const& light = DirectionalLights[i];
-			if (!light.CastsShadow || !ActiveDirectionalLight[i].LightActive || !ActiveDirectionalLight[i].ComponentActive)
+			if (!light.CastsShadow)
 				continue;
+
 			RenderDirectionalShadow(viewerCamera, sorter, shadowContext, light, i);
 		}
 		sorter.SetViewport(D3D12_VIEWPORT());
 		sorter.SetScissor({ 1, 1, (long)SpotShadowBufferWidth - 2l, (long)SpotShadowBufferWidth - 2l });
 		for (int i = MaxNumDirectionalLight + MaxNumPointLight; i < MaxNumLight; i++)
 		{
-			sorter.Reset();
 			auto idx = i - (MaxNumPointLight + MaxNumDirectionalLight);
+			if (idx >= SpotLights.size())
+				break;
+
+			sorter.Reset();
 			auto const& light = SpotLights[idx];
-			if (!light.CastsShadow || !ActiveSpotLight[idx].LightActive || !ActiveSpotLight[idx].ComponentActive)
+			if (!light.CastsShadow)
 				continue;
+
 			RenderSpotShadow(sorter, shadowContext, light, i);
 		}
-		//});
+
 		shadowContext.TransitionResource(DirectionalShadowTextureArrayBuffer, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
 		shadowContext.TransitionResource(SpotShadowTextureArrayBuffer, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
 		shadowContext.TransitionResource(PointShadowTextureArrayBuffer, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, true);
-
-		//if (D_JOB::IsMainThread())
-		//	D_JOB::WaitForThreadsToFinish();
-	}
-
-	void UpdateLight(LightSourceType type, int index, Transform const& trans, bool active, LightData const& light)
-	{
-		auto& lightStat = GetAssociatedActiveLightWithType(type)->at(index);
-		lightStat.ComponentActive = active;
-
-		if (!active)
-			return;
-
-		GetAssociatedLightTransformsWithType(type)->at(index) = trans;
-
-		auto preLight = GetAssociatedLightsWithType(type)->at(index);
-		LightData newLight = light;
-		newLight.ShadowMatrix = preLight.ShadowMatrix;
-		GetAssociatedLightsWithType(type)->at(index) = newLight;
 
 	}
 

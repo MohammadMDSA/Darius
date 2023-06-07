@@ -67,15 +67,6 @@ namespace Darius::Renderer::LightManager
 	D3D12_CPU_DESCRIPTOR_HANDLE GetLightDataHandle();
 	void GetShadowTextureArrayHandle(D3D12_CPU_DESCRIPTOR_HANDLE& directional, D3D12_CPU_DESCRIPTOR_HANDLE& point, D3D12_CPU_DESCRIPTOR_HANDLE& spot);
 
-	// Accessed by light components
-	/// O(n) Don't use too often
-	int					AccuireLightSource(LightSourceType type);
-	/// O(n) Don't use too often
-	int					SwapLightSource(LightSourceType type, LightSourceType preType, int preIndex);
-	void				ReleaseLight(LightSourceType preType, int preIndex);
-
-	void				UpdateLight(LightSourceType type, int index, D_MATH::Transform const& trans, bool active, LightData const& light);
-
 	D_H_SERIALIZE_ENUM(LightSourceType,
 		{
 			{ LightSourceType::DirectionalLight, "DirectionalLight" },
