@@ -210,6 +210,8 @@ namespace Darius::Debug
 
 	void DebugDraw::DrawConeLines(D_MATH::Vector3 const& tipLocation, D_MATH::Vector3 const& tipToBaseDirection, float height, float baseRadius, double duration, D_MATH::Color const& color)
 	{
+#define ConeBasePoints 12
+
 		Vector3 tipToBaseNorm = D_MATH::Normalize(tipToBaseDirection);
 		Vector3 tipToBase = tipToBaseNorm * height;
 		Vector3 baseCenter = tipLocation + tipToBase;
@@ -220,11 +222,17 @@ namespace Darius::Debug
 		Vector3 n = D_MATH::Normalize(D_MATH::Cross(temp, tipToBaseNorm)); // A normal vector on base
 		Vector3 m = D_MATH::Cross(n, tipToBaseNorm); // Another normal vec on base and perpendicular to n
 
-		for (int i = 0; i < 12; i++) // Per point on base perimeter
-		{
-			Vector3 pointOnBase = ((m * D_MATH::Sin(DirectX::XM_2PI * (float)i / 12.f)) + (n * D_MATH::Cos(DirectX::XM_2PI * (float)i / 12.f))) * baseRadius + baseCenter;
+		Vector3 vec[ConeBasePoints];
 
-			DrawLine(tipLocation, pointOnBase, duration, color);
+		for (int i = 0; i < ConeBasePoints; i++) // Per point on base perimeter
+		{
+			vec[i] = ((m * D_MATH::Sin(DirectX::XM_2PI * (float)i / 12.f)) + (n * D_MATH::Cos(DirectX::XM_2PI * (float)i / ConeBasePoints))) * baseRadius + baseCenter;
+		}
+
+		for (int i = 0; i < ConeBasePoints; i++)
+		{
+			DrawLine(tipLocation, vec[i], duration, color);
+			DrawLine(vec[(i + 1) % ConeBasePoints], vec[i], duration, color);
 		}
 	}
 
