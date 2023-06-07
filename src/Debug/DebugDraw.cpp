@@ -226,8 +226,8 @@ namespace Darius::Debug
 		MeshConstants& cb = ((MeshConstants*)currentUploadBuff.Map())[index];
 
 		auto world = trans.GetWorld();
-		cb.mWorld = Matrix4(world);
-		cb.mWorldIT = InverseTranspose(Matrix3(world));
+		cb.World = Matrix4(world);
+		cb.WorldIT = InverseTranspose(Matrix3(world));
 
 		currentUploadBuff.Unmap();
 

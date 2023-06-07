@@ -4,6 +4,7 @@ cbuffer cbPerObject : register(b0)
 {
     float4x4 gWorld;
     float3x3 gWorldIT;
+    float4   gLoD;
 };
 
 struct VertexOut
@@ -40,10 +41,10 @@ PatchTess ConstantHS(InputPatch<VertexOut, 3> patch,
 
     float d = distance(centerW, gCameraPosW);
     
-    const float d0 = 10.0f;
-    const float d1 = 20.0f;
-    float tess = 4 * saturate((d1 - d) / (d1 - d0));
-    tess = clamp(tess, 1.f, 4.f);
+    const float d0 = 100.0f;
+    const float d1 = 200.0f;
+    float tess = gLoD[0] * saturate((d1 - d) / (d1 - d0));
+    tess = clamp(tess, 1.f, gLoD[0]);
     
     // Uniform tessellation
     pt.EdgeTess[0] = tess;

@@ -25,14 +25,16 @@ namespace Darius::Graphics
 	MeshRendererComponentBase::MeshRendererComponentBase() :
 		D_ECS_COMP::ComponentBase(),
 		mComponentPsoFlags(0),
-		mCastsShadow(true)
+		mCastsShadow(true),
+		mLoD(1.f)
 	{
 	}
 
 	MeshRendererComponentBase::MeshRendererComponentBase(D_CORE::Uuid uuid) :
 		D_ECS_COMP::ComponentBase(uuid),
 		mComponentPsoFlags(0),
-		mCastsShadow(true)
+		mCastsShadow(true),
+		mLoD(1.f)
 	{
 	}
 
@@ -104,6 +106,17 @@ namespace Darius::Graphics
 		// Casting shadow
 		D_H_DETAILS_DRAW_PROPERTY("Casts Shadow");
 		valueChanged |= ImGui::Checkbox("##CastsShadow", &mCastsShadow);
+
+		// LoD
+		{
+			D_H_DETAILS_DRAW_PROPERTY("LoD");
+			float lod = GetLoD();
+			if (ImGui::SliderFloat("##lod", &lod, 1.f, 64.f))
+			{
+				SetLoD(lod);
+				valueChanged = true;
+			}
+		}
 
 		return valueChanged;
 

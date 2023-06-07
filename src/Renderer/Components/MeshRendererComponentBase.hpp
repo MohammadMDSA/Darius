@@ -52,6 +52,9 @@ namespace Darius::Graphics
 		DField(Get[inline], Set[inline])
 		bool									mCastsShadow;
 
+		DField(Get[inline], Set[inline])
+		float									mLoD;
+
 		// Gpu buffers
 		D_GRAPHICS_BUFFERS::UploadBuffer		mMeshConstantsCPU[D_RENDERER_FRAME_RESOURCE::gNumFrameResources];
 		D_GRAPHICS_BUFFERS::ByteAddressBuffer	mMeshConstantsGPU;

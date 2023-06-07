@@ -37,8 +37,9 @@ namespace Darius::Renderer::ConstantFrameResource
 
 	ALIGN_DECL_256 struct MeshConstants
 	{
-		D_MATH::Matrix4			mWorld;
-		D_MATH::Matrix3			mWorldIT;
+		D_MATH::Matrix4			World;
+		D_MATH::Matrix3			WorldIT;
+		float					Lod = 1.f;
 	};
 
 	struct Joint

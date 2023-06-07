@@ -164,8 +164,10 @@ namespace Darius::Graphics
 		MeshConstants* cb = (MeshConstants*)currentUploadBuff.Map();
 
 		auto world = GetTransform().GetWorld();
-		cb->mWorld = Matrix4(world);
-		cb->mWorldIT = InverseTranspose(Matrix3(world));
+		cb->World = Matrix4(world);
+		cb->WorldIT = InverseTranspose(Matrix3(world));
+		cb->Lod = mLoD;
+
 
 		currentUploadBuff.Unmap();
 

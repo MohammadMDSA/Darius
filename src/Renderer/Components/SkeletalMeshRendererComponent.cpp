@@ -203,8 +203,9 @@ namespace Darius::Graphics
 
 
 		Matrix4 world = Matrix4(GetTransform().GetWorld());
-		cb->mWorld = world;
-		cb->mWorldIT = InverseTranspose(world.Get3x3());
+		cb->World = world;
+		cb->WorldIT = InverseTranspose(world.Get3x3());
+		cb->Lod = mLoD;
 
 		// Updating joints matrices on gpu
 		if (mSkeletonRoot)
