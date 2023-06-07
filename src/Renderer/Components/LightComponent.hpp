@@ -24,23 +24,10 @@ namespace Darius::Graphics
 
 		// States
 		virtual void					Awake() override;
-		virtual INLINE void				OnDestroy() override { D_LIGHT::ReleaseLight(mLightType, mLightIndex); }
-
-		// Gameobject events
-		virtual void					OnActivate() override;
-		virtual void					OnDeactivate() override;
-
-		virtual void					Update(float deltaTime) override;
-
-		// Data intraction
-		void							SetLightType(D_LIGHT::LightSourceType type);
 
 	private:
 
-		DField(Get[inline])
-		int								mLightIndex;
-
-		DField(Get[inline], Serialize)
+		DField(Get[inline], Set[inline], Serialize)
 		D_LIGHT::LightSourceType		mLightType;
 
 		DField(Get[inline, const, &], Set[inline], Serialize)

@@ -24,7 +24,6 @@ namespace Darius::Graphics
 	LightComponent::LightComponent() :
 		D_ECS_COMP::ComponentBase(),
 		mLightType(LightSourceType::PointLight),
-		mLightIndex(-1),
 		mConeInnerAngle(XMConvertToRadians(30)),
 		mConeOuterAngle(XMConvertToRadians(45))
 	{
@@ -34,7 +33,6 @@ namespace Darius::Graphics
 	LightComponent::LightComponent(D_CORE::Uuid uuid) :
 		D_ECS_COMP::ComponentBase(uuid),
 		mLightType(LightSourceType::PointLight),
-		mLightIndex(-1),
 		mConeInnerAngle(XMConvertToRadians(30)),
 		mConeOuterAngle(XMConvertToRadians(45))
 	{
@@ -43,14 +41,7 @@ namespace Darius::Graphics
 
 	void LightComponent::Awake()
 	{
-		SetLightType(mLightType);
 		UpdateAngleData();
-	}
-
-	void LightComponent::Update(float deltaTime)
-	{
-		if (mLightIndex >= 0)
-			D_LIGHT::UpdateLight(mLightType, mLightIndex, GetTransform(), IsActive(), mLightData);
 	}
 
 #ifdef _D_EDITOR
@@ -69,59 +60,50 @@ namespace Darius::Graphics
 			changed = true;
 		}
 
-		if (mLightIndex >= 0)
+		// Light type
+		D_H_DETAILS_DRAW_PROPERTY("Color");
+		float defC[] = D_H_DRAW_DETAILS_MAKE_VEC_PARAM_COLOR;
+		changed |= D_MATH::DrawDetails(*(D_MATH::Vector3*)&mLightData.Color, defC);
+
+		if (mLightType == LightSourceType::SpotLight)
 		{
-			// Light type
-			D_H_DETAILS_DRAW_PROPERTY("Color");
-			float defC[] = D_H_DRAW_DETAILS_MAKE_VEC_PARAM_COLOR;
-			changed |= D_MATH::DrawDetails(*(D_MATH::Vector3*)&mLightData.Color, defC);
+			bool anglesChanged = false;
 
-			if (mLightType == LightSourceType::SpotLight)
+			auto innerDeg = XMConvertToDegrees(mConeInnerAngle);
+			auto outerDeg = XMConvertToDegrees(mConeOuterAngle);
+
+			// Spot inner
+			D_H_DETAILS_DRAW_PROPERTY("Inner Half Angle");
+			if (ImGui::SliderAngle("##SpotInnerAngle", &mConeInnerAngle, 0, outerDeg))
 			{
-				bool anglesChanged = false;
-
-				auto innerDeg = XMConvertToDegrees(mConeInnerAngle);
-				auto outerDeg = XMConvertToDegrees(mConeOuterAngle);
-
-				// Spot inner
-				D_H_DETAILS_DRAW_PROPERTY("Inner Half Angle");
-				if (ImGui::SliderAngle("##SpotInnerAngle", &mConeInnerAngle, 0, outerDeg))
-				{
-					changed = anglesChanged = true;
-				}
-
-				D_H_DETAILS_DRAW_PROPERTY("Outer Half Angle");
-				if (ImGui::SliderAngle("##SpotOuterAngle", &mConeOuterAngle, innerDeg, 79.f))
-					changed = anglesChanged = true;
-
-				if (anglesChanged)
-					UpdateAngleData();
+				changed = anglesChanged = true;
 			}
 
-			D_H_DETAILS_DRAW_PROPERTY("Intencity");
-			changed |= ImGui::DragFloat("##Intencity", &mLightData.Intencity, 0.01f, 0.f, FLT_MAX, "%.3f");
+			D_H_DETAILS_DRAW_PROPERTY("Outer Half Angle");
+			if (ImGui::SliderAngle("##SpotOuterAngle", &mConeOuterAngle, innerDeg, 79.f))
+				changed = anglesChanged = true;
 
-			if (mLightType != LightSourceType::DirectionalLight)
-			{
-				D_H_DETAILS_DRAW_PROPERTY("Range");
-				changed |= ImGui::DragFloat("##Range", &mLightData.Range, 0.01f, mLightData.Intencity, -1.f, "%.3f");
-			}
-
-			D_H_DETAILS_DRAW_PROPERTY("Casts Shadow");
-			bool val = mLightData.CastsShadow;
-			if (ImGui::Checkbox("##CastsShadow", &val))
-			{
-				mLightData.CastsShadow = val ? 1 : 0;
-				changed = true;
-			}
+			if (anglesChanged)
+				UpdateAngleData();
 		}
-		else
+
+		D_H_DETAILS_DRAW_PROPERTY("Intencity");
+		changed |= ImGui::DragFloat("##Intencity", &mLightData.Intencity, 0.01f, 0.f, FLT_MAX, "%.3f");
+
+		if (mLightType != LightSourceType::DirectionalLight)
 		{
-			ImGui::TextColored(ImVec4(1.f, 0.f, 0.f, 1.f), "Light with requested type was not accuired successfully. Change Type or request again.");
-
-			if (ImGui::Button("Retry"))
-				SetLightType(mLightType);
+			D_H_DETAILS_DRAW_PROPERTY("Range");
+			changed |= ImGui::DragFloat("##Range", &mLightData.Range, 0.01f, mLightData.Intencity, -1.f, "%.3f");
 		}
+
+		D_H_DETAILS_DRAW_PROPERTY("Casts Shadow");
+		bool val = mLightData.CastsShadow;
+		if (ImGui::Checkbox("##CastsShadow", &val))
+		{
+			mLightData.CastsShadow = val ? 1 : 0;
+			changed = true;
+		}
+
 
 		D_H_DETAILS_DRAW_END_TABLE();
 
@@ -183,34 +165,16 @@ namespace Darius::Graphics
 			break;
 		}
 		case Darius::Renderer::LightManager::LightSourceType::SpotLight:
-			break;
-		default:
+			auto innerAng = mConeInnerAngle == 0 ? 0.001f : mConeInnerAngle;
+			auto outerAng = mConeOuterAngle == 0 ? 0.001f : mConeOuterAngle;
+			// Drawing outer cone
+			D_DEBUG_DRAW::DrawConeLines(trans.Translation, trans.Rotation.GetForward(), D_MATH::Cos(outerAng) * mLightData.Range, D_MATH::Sin(outerAng) * mLightData.Range, 0.f, D_MATH::Color(mLightData.Color.x, mLightData.Color.y, mLightData.Color.z, 0.6f));
+			// Drawing inner cone
+			D_DEBUG_DRAW::DrawConeLines(trans.Translation, trans.Rotation.GetForward(), D_MATH::Cos(innerAng) * mLightData.Range, D_MATH::Sin(innerAng) * mLightData.Range, 0.f, D_MATH::Color(mLightData.Color.x, mLightData.Color.y, mLightData.Color.z));
 			break;
 		}
 	}
 
 #endif
-
-	void LightComponent::SetLightType(LightSourceType type)
-	{
-		if (mLightIndex >= 0)
-			mLightIndex = D_LIGHT::SwapLightSource(type, mLightType, mLightIndex);
-		else
-			mLightIndex = D_LIGHT::AccuireLightSource(type);
-
-		mLightType = type;
-	}
-
-	void LightComponent::OnActivate()
-	{
-		if (mLightIndex >= 0)
-			D_LIGHT::UpdateLight(mLightType, mLightIndex, GetTransform(), IsActive(), mLightData);
-	}
-
-	void LightComponent::OnDeactivate()
-	{
-		if (mLightIndex >= 0)
-			D_LIGHT::UpdateLight(mLightType, mLightIndex, GetTransform(), IsActive(), mLightData);
-	}
 
 }
