@@ -781,10 +781,10 @@ namespace Darius::Renderer
 				m_Viewport.MaxDepth = 1.0f;
 				m_Viewport.MinDepth = 0.0f;
 
-				m_Scissor.left = 1;
-				m_Scissor.right = m_DSV->GetWidth() - 2;
-				m_Scissor.top = 1;
-				m_Scissor.bottom = m_DSV->GetHeight() - 2;
+				m_Scissor.left = 0;
+				m_Scissor.right = m_DSV->GetWidth();
+				m_Scissor.top = 0;
+				m_Scissor.bottom = m_DSV->GetHeight();
 			}
 		}
 		else

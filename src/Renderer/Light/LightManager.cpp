@@ -39,13 +39,16 @@ namespace Darius::Renderer::LightManager
 	DVector<LightData>					PointLights;
 	DVector<LightData>					SpotLights;
 
-	DVector<D_GRAPHICS_BUFFERS::ShadowBuffer> ShadowBuffers;
+	DVector<D_GRAPHICS_BUFFERS::ShadowBuffer> ShadowBuffersDirectional;
+	DVector<D_GRAPHICS_BUFFERS::ShadowBuffer> ShadowBuffersSpot;
+	DVector<D_GRAPHICS_BUFFERS::ShadowBuffer> ShadowBuffersPoint;
 	D_GRAPHICS_BUFFERS::ColorBuffer		DirectionalShadowTextureArrayBuffer;
 	D_GRAPHICS_BUFFERS::ColorBuffer		PointShadowTextureArrayBuffer;
 	D_GRAPHICS_BUFFERS::ColorBuffer		SpotShadowTextureArrayBuffer;
 
 	DVector<D_MATH_CAMERA::ShadowCamera> DirectionalShadowCameras;
 	DVector<D_MATH_CAMERA::Camera>		SpotShadowCameras;
+	DVector<D_MATH_CAMERA::Camera>		PointShadowCameras;
 
 	// Gpu buffers
 	D_GRAPHICS_BUFFERS::UploadBuffer	ActiveLightsUpload[D_RENDERER_FRAME_RESOURCE::gNumFrameResources];
@@ -61,9 +64,9 @@ namespace Darius::Renderer::LightManager
 	uint32_t							SpotShadowBufferWidth = 1024;
 	uint32_t							ShadowBufferDepthPercision = 16;
 
-	void CalculateSpotShadowCamera(LightData& light, int lightGloablIndex);
-	void CalculateDirectionalShadowCamera(D_MATH_CAMERA::Camera const& viewerCamera, LightData& light, int lightGloablIndex);
-
+	void CalculateSpotShadowCamera(LightData& light, int spotLightIndex);
+	void CalculateDirectionalShadowCamera(D_MATH_CAMERA::Camera const& viewerCamera, LightData& light, int directionalIndex);
+	void CalculatePointShadowCamera(LightData& light, int pointLightIndex);
 
 	void Initialize()
 	{
@@ -80,26 +83,28 @@ namespace Darius::Renderer::LightManager
 		ActiveLightsBufferGpu.Create(L"Active Light Buffer", (UINT)count, sizeof(UINT), nullptr);
 		LightsBufferGpu.Create(L"Light Buffer", MaxNumLight, sizeof(LightData));
 
-		ShadowBuffers.resize(MaxNumLight);
-		for (int i = 0; i < ShadowBuffers.size(); i++)
-		{
-			UINT width = 0u;
-			if (i < MaxNumDirectionalLight)
-				width = DirectionalShadowBufferWidth;
-			else if (i < MaxNumDirectionalLight + MaxNumPointLight)
-				width = PointShadowBufferWidth;
-			else
-				width = SpotShadowBufferWidth;
+		ShadowBuffersDirectional.resize(MaxNumDirectionalLight);
+		ShadowBuffersPoint.resize(MaxNumPointLight * 6);
+		ShadowBuffersSpot.resize(MaxNumSpotLight);
 
-			ShadowBuffers[i].Create(std::wstring(L"Shadow Buffer ") + std::to_wstring(i), width, width, D3D12_GPU_VIRTUAL_ADDRESS_UNKNOWN);
-		}
+		for (int i = 0; i < ShadowBuffersDirectional.size(); i++)
+			ShadowBuffersDirectional[i].Create(std::wstring(L"Directional Shadow Buffer ") + std::to_wstring(i), DirectionalShadowBufferWidth, DirectionalShadowBufferWidth, D3D12_GPU_VIRTUAL_ADDRESS_UNKNOWN);
+
+		for (int i = 0; i < ShadowBuffersPoint.size(); i++)
+			ShadowBuffersPoint[i].Create(std::wstring(L"Point Shadow Buffer ") + std::to_wstring(i % 6) + L"/6 " + std::to_wstring(i / 6), PointShadowBufferWidth, PointShadowBufferWidth, D3D12_GPU_VIRTUAL_ADDRESS_UNKNOWN);
+		for (int i = 0; i < ShadowBuffersSpot.size(); i++)
+			ShadowBuffersSpot[i].Create(std::wstring(L"Spot Shadow Buffer ") + std::to_wstring(i), SpotShadowBufferWidth, SpotShadowBufferWidth, D3D12_GPU_VIRTUAL_ADDRESS_UNKNOWN);
+
+		// Initializing main shadow buffers
+		auto shadowBufferFormat = D_GRAPHICS::GetShadowFormat();
 		DirectionalShadowTextureArrayBuffer.CreateArray(L"Directional Shadow Texture Array Buffer", DirectionalShadowBufferWidth, DirectionalShadowBufferWidth, MaxNumDirectionalLight, DXGI_FORMAT_R16_UNORM);
-		PointShadowTextureArrayBuffer.CreateArray(L"Point Shadow Texture Array Buffer", PointShadowBufferWidth, PointShadowBufferWidth, MaxNumPointLight, DXGI_FORMAT_R16_UNORM);
+		PointShadowTextureArrayBuffer.CreateArray(L"Point Shadow Texture Array Buffer", PointShadowBufferWidth, PointShadowBufferWidth, 6 * MaxNumPointLight, DXGI_FORMAT_R16_UNORM, true);
 		SpotShadowTextureArrayBuffer.CreateArray(L"Spot Shadow Texture Array Buffer", SpotShadowBufferWidth, SpotShadowBufferWidth, MaxNumSpotLight, DXGI_FORMAT_R16_UNORM);
 
 		// Create shadow cameras
 		DirectionalShadowCameras.resize(MaxNumDirectionalLight);
 		SpotShadowCameras.resize(MaxNumSpotLight);
+		PointShadowCameras.resize(MaxNumPointLight * 6);
 	}
 
 	void Shutdown()
@@ -197,11 +202,14 @@ namespace Darius::Renderer::LightManager
 					switch (lightSource)
 					{
 					case Darius::Renderer::LightManager::LightSourceType::SpotLight:
-						CalculateSpotShadowCamera(lightData, lightIdx);
+						CalculateSpotShadowCamera(lightData, indexInVec);
+						break;
+					case Darius::Renderer::LightManager::LightSourceType::PointLight:
+						CalculatePointShadowCamera(lightData, indexInVec);
 						break;
 					case Darius::Renderer::LightManager::LightSourceType::DirectionalLight:
 						if (viewerCamera)
-							CalculateDirectionalShadowCamera(*viewerCamera, lightData, lightIdx);
+							CalculateDirectionalShadowCamera(*viewerCamera, lightData, indexInVec);
 						break;
 					default:
 						break;
@@ -253,9 +261,9 @@ namespace Darius::Renderer::LightManager
 		spot = SpotShadowTextureArrayBuffer.GetSRV();
 	}
 
-	void CalculateDirectionalShadowCamera(D_MATH_CAMERA::Camera const& viewerCamera, LightData& light, int lightGloablIndex)
+	void CalculateDirectionalShadowCamera(D_MATH_CAMERA::Camera const& viewerCamera, LightData& light, int directionalIndex)
 	{
-		auto& cam = DirectionalShadowCameras[lightGloablIndex];
+		auto& cam = DirectionalShadowCameras[directionalIndex];
 		auto lightDir = Vector3(light.Direction);
 		cam.SetLookDirection(lightDir, Vector3::Up);
 		cam.SetPosition(Vector3(kZero));
@@ -265,6 +273,7 @@ namespace Darius::Renderer::LightManager
 		auto const& viewrFrustom = viewerCamera.GetWorldSpaceFrustum();
 		auto shadowSpaceAABB = D_MATH_BOUNDS::AxisAlignedBox();
 
+		// Finding frustum aabb in shadow space
 		for (int i = 0; i < D_MATH_CAMERA::Frustum::_kNumCorners; i++)
 		{
 			auto corner = viewrFrustom.GetFrustumCorner((D_MATH_CAMERA::Frustum::CornerID)i);
@@ -275,14 +284,15 @@ namespace Darius::Renderer::LightManager
 		auto camWorldPos = D_MATH::Invert(shadowView) * shadowSpaceAABB.GetCenter();
 		auto dim = shadowSpaceAABB.GetDimensions();
 
-		cam.UpdateMatrix(lightDir, Vector3(camWorldPos), shadowSpaceAABB.GetDimensions(), DirectionalShadowBufferWidth, DirectionalShadowBufferWidth, ShadowBufferDepthPercision);
+		// Fitting directional light bounds to the frustom... With extra Z
+		cam.UpdateMatrix(lightDir, Vector3(camWorldPos), dim, DirectionalShadowBufferWidth, DirectionalShadowBufferWidth, ShadowBufferDepthPercision);
 
 		light.ShadowMatrix = cam.GetShadowMatrix();
 	}
 
-	void RenderDirectionalShadow(D_MATH_CAMERA::Camera const& viewerCamera, D_RENDERER::MeshSorter& sorter, D_GRAPHICS::GraphicsContext& context, LightData const& light, int lightGloablIndex)
+	void RenderDirectionalShadow(D_MATH_CAMERA::Camera const& viewerCamera, D_RENDERER::MeshSorter& sorter, D_GRAPHICS::GraphicsContext& context, LightData const& light, int directionalIndex)
 	{
-		auto const& cam = DirectionalShadowCameras[lightGloablIndex];
+		auto const& cam = DirectionalShadowCameras[directionalIndex];
 
 		GlobalConstants globals;
 		globals.ViewProj = cam.GetViewProjMatrix();
@@ -292,7 +302,7 @@ namespace Darius::Renderer::LightManager
 		for (int i = 0; i < 6; i++)
 			globals.FrustumPlanes[i] = (Vector4)frustum.GetFrustumPlane((D_MATH_CAMERA::Frustum::PlaneID)i);
 
-		auto& shadowBuffer = ShadowBuffers[lightGloablIndex];
+		auto& shadowBuffer = ShadowBuffersDirectional[directionalIndex];
 		shadowBuffer.BeginRendering(context);
 
 		sorter.SetCamera(cam);
@@ -301,24 +311,21 @@ namespace Darius::Renderer::LightManager
 
 		context.TransitionResource(shadowBuffer, D3D12_RESOURCE_STATE_COPY_SOURCE);
 
-		context.TransitionResource(DirectionalShadowTextureArrayBuffer, D3D12_RESOURCE_STATE_COPY_DEST, true);
-
-		context.CopySubresource(DirectionalShadowTextureArrayBuffer, lightGloablIndex, shadowBuffer, 0);
+		context.CopySubresource(DirectionalShadowTextureArrayBuffer, directionalIndex, shadowBuffer, 0);
 	}
 
-	void CalculateSpotShadowCamera(LightData& light, int lightGloablIndex)
+	void CalculateSpotShadowCamera(LightData& light, int spotLightIndex)
 	{
-		auto& shadowCamera = SpotShadowCameras[lightGloablIndex - MaxNumDirectionalLight - MaxNumPointLight];
-		shadowCamera.SetEyeAtUp(light.Position, Vector3(light.Position) + Vector3(light.Direction), Vector3(0, 1, 0));
+		auto& shadowCamera = SpotShadowCameras[spotLightIndex];
+		shadowCamera.SetEyeAtUp(light.Position, Vector3(light.Position) + Vector3(light.Direction), Vector3::Up);
 		shadowCamera.SetPerspectiveMatrix(D_MATH::ACos(light.SpotAngles.y) * 2, 1.0f, light.Range * .001f, light.Range * 1.0f);
 		shadowCamera.Update();
 		light.ShadowMatrix = shadowCamera.GetViewProjMatrix();
 	}
 
-	void RenderSpotShadow(D_RENDERER::MeshSorter& sorter, D_GRAPHICS::GraphicsContext& context, LightData const& light, int lightGloablIndex)
+	void RenderSpotShadow(D_RENDERER::MeshSorter& sorter, D_GRAPHICS::GraphicsContext& context, LightData const& light, int spotLightIndex)
 	{
-		auto const& shadowCamera = SpotShadowCameras[lightGloablIndex - MaxNumDirectionalLight - MaxNumPointLight];
-
+		auto const& shadowCamera = SpotShadowCameras[spotLightIndex];
 
 		GlobalConstants globals;
 		globals.ViewProj = shadowCamera.GetViewProjMatrix();
@@ -327,7 +334,7 @@ namespace Darius::Renderer::LightManager
 		for (int i = 0; i < 6; i++)
 			globals.FrustumPlanes[i] = (Vector4)frustum.GetFrustumPlane((D_MATH_CAMERA::Frustum::PlaneID)i);
 
-		auto& shadowBuffer = ShadowBuffers[lightGloablIndex];
+		auto& shadowBuffer = ShadowBuffersSpot[spotLightIndex];
 
 		shadowBuffer.BeginRendering(context);
 
@@ -337,10 +344,98 @@ namespace Darius::Renderer::LightManager
 
 		context.TransitionResource(shadowBuffer, D3D12_RESOURCE_STATE_COPY_SOURCE);
 
-		context.TransitionResource(SpotShadowTextureArrayBuffer, D3D12_RESOURCE_STATE_COPY_DEST, true);
+		context.CopySubresource(SpotShadowTextureArrayBuffer, spotLightIndex, shadowBuffer, 0);
+	}
 
-		context.CopySubresource(SpotShadowTextureArrayBuffer, lightGloablIndex - MaxNumDirectionalLight - MaxNumPointLight, shadowBuffer, 0);
+	void CalculatePointShadowCamera(LightData& light, int pointLightIndex)
+	{
+		static const float nearDist = 0.05f;
+		// Left
+		{
+			auto& shadowCamera = PointShadowCameras[pointLightIndex * 6];
+			shadowCamera.SetPosition(light.Position);
+			shadowCamera.SetLookDirection(Vector3::Left, Vector3::Up);
+			shadowCamera.SetPerspectiveMatrix(DirectX::XM_PIDIV2, 1.0f, nearDist, light.Range);
+			shadowCamera.Update();
+			light.ShadowMatrix = shadowCamera.GetProjMatrix();
+		}
 
+		// Right
+		{
+			auto& shadowCamera = PointShadowCameras[pointLightIndex * 6 + 1];
+			shadowCamera.SetPosition(light.Position);
+			shadowCamera.SetLookDirection(Vector3::Right, Vector3::Up);
+			shadowCamera.SetPerspectiveMatrix(DirectX::XM_PIDIV2, 1.0f, nearDist, light.Range);
+			shadowCamera.Update();
+		}
+
+		// Top
+		{
+			auto& shadowCamera = PointShadowCameras[pointLightIndex * 6 + 2];
+			shadowCamera.SetPosition(light.Position);
+			shadowCamera.SetLookDirection(Vector3::Up, Vector3::Forward);
+			shadowCamera.SetPerspectiveMatrix(DirectX::XM_PIDIV2, 1.0f, nearDist, light.Range);
+			shadowCamera.Update();
+		}
+
+		// Bottom
+		{
+			auto& shadowCamera = PointShadowCameras[pointLightIndex * 6 + 3];
+			shadowCamera.SetPosition(light.Position);
+			shadowCamera.SetLookDirection(Vector3::Down, Vector3::Backward);
+			shadowCamera.SetPerspectiveMatrix(DirectX::XM_PIDIV2, 1.0f, nearDist, light.Range);
+			shadowCamera.Update();
+		}
+
+		// Back
+		{
+			auto& shadowCamera = PointShadowCameras[pointLightIndex * 6 + 4];
+			shadowCamera.SetPosition(light.Position);
+			shadowCamera.SetLookDirection(Vector3::Backward, Vector3::Up);
+			shadowCamera.SetPerspectiveMatrix(DirectX::XM_PIDIV2, 1.0f, nearDist, light.Range);
+			shadowCamera.Update();
+		}
+
+		// Front
+		{
+			auto& shadowCamera = PointShadowCameras[pointLightIndex * 6 + 5];
+			shadowCamera.SetPosition(light.Position);
+			shadowCamera.SetLookDirection(Vector3::Forward, Vector3::Up);
+			shadowCamera.SetPerspectiveMatrix(DirectX::XM_PIDIV2, 1.0f, nearDist, light.Range);
+			shadowCamera.Update();
+		}
+
+	}
+
+	void RenderPointShadow(D_RENDERER::MeshSorter& sorter, D_GRAPHICS::GraphicsContext& context, LightData const& light, int pointLightIndex)
+	{
+		GlobalConstants globals;
+		{
+			auto& refCam = PointShadowCameras[pointLightIndex * 6];
+			globals.CameraPos = (DirectX::XMFLOAT3)refCam.GetPosition();
+			globals.Proj = refCam.GetProjMatrix();
+		}
+
+		for (int i = 0; i < 6; i++)
+		{
+			auto const& shadowCamera = PointShadowCameras[pointLightIndex * 6 + i];
+
+			globals.ViewProj = shadowCamera.GetViewProjMatrix();
+			auto const& frustum = shadowCamera.GetWorldSpaceFrustum();
+			for (int j = 0; j < 6; j++)
+				globals.FrustumPlanes[j] = (Vector4)frustum.GetFrustumPlane((D_MATH_CAMERA::Frustum::PlaneID)j);
+
+			auto& shadowBuffer = ShadowBuffersPoint[pointLightIndex * 6 + i];
+
+			shadowBuffer.BeginRendering(context);
+			sorter.Reset();
+			sorter.SetCamera(shadowCamera);
+			sorter.SetDepthStencilTarget(shadowBuffer);
+			sorter.RenderMeshes(MeshSorter::kZPass, context, nullptr, globals);
+			context.TransitionResource(shadowBuffer, D3D12_RESOURCE_STATE_COPY_SOURCE);
+
+			context.CopySubresource(PointShadowTextureArrayBuffer, pointLightIndex * 6 + i, shadowBuffer, 0);
+		}
 	}
 
 	void RenderShadows(D_MATH_CAMERA::Camera const& viewerCamera, D_CONTAINERS::DVector<RenderItem> const& shadowRenderItems, D_GRAPHICS::GraphicsContext& shadowContext)
@@ -354,6 +449,11 @@ namespace Darius::Renderer::LightManager
 
 		sorter.Sort();
 
+		shadowContext.TransitionResource(DirectionalShadowTextureArrayBuffer, D3D12_RESOURCE_STATE_COPY_DEST);
+		shadowContext.TransitionResource(SpotShadowTextureArrayBuffer, D3D12_RESOURCE_STATE_COPY_DEST);
+		shadowContext.TransitionResource(PointShadowTextureArrayBuffer, D3D12_RESOURCE_STATE_COPY_DEST, true);
+
+		// Rendering directional
 		for (int i = 0; i < DirectionalLights.size(); i++)
 		{
 
@@ -367,9 +467,10 @@ namespace Darius::Renderer::LightManager
 		}
 		sorter.SetViewport(D3D12_VIEWPORT());
 		sorter.SetScissor({ 1, 1, (long)SpotShadowBufferWidth - 2l, (long)SpotShadowBufferWidth - 2l });
-		for (int i = MaxNumDirectionalLight + MaxNumPointLight; i < MaxNumLight; i++)
+
+		// Rendering spot
+		for (int idx = 0; idx < MaxNumSpotLight; idx++)
 		{
-			auto idx = i - (MaxNumPointLight + MaxNumDirectionalLight);
 			if (idx >= SpotLights.size())
 				break;
 
@@ -378,7 +479,23 @@ namespace Darius::Renderer::LightManager
 			if (!light.CastsShadow)
 				continue;
 
-			RenderSpotShadow(sorter, shadowContext, light, i);
+			RenderSpotShadow(sorter, shadowContext, light, idx);
+		}
+		sorter.SetViewport(D3D12_VIEWPORT());
+		sorter.SetScissor({ 0l, 0l, (long)PointShadowBufferWidth, (long)PointShadowBufferWidth });
+
+		// Rendering point
+		for (int idx = 0; idx < MaxNumPointLight; idx++)
+		{
+			if (idx >= PointLights.size())
+				break;
+
+			sorter.Reset();
+			auto const& light = PointLights[idx];
+			if (!light.CastsShadow)
+				continue;
+
+			RenderPointShadow(sorter, shadowContext, light, idx);
 		}
 
 		shadowContext.TransitionResource(DirectionalShadowTextureArrayBuffer, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);

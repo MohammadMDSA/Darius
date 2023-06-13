@@ -42,7 +42,7 @@ struct Material
 ByteAddressBuffer       LightMask                           : register(t10);
 StructuredBuffer<Light> LightData                           : register(t11);
 Texture2DArray<float>   DirectioanalightShadowArrayTex      : register(t12);
-Texture2DArray<float>   PointLightShadowArrayTex            : register(t13);
+TextureCubeArray<float> PointLightShadowArrayTex            : register(t13);
 Texture2DArray<float>   SpotLightShadowArrayTex             : register(t14);
 Texture2D<float>        ssaoTexture                         : register(t15);
 TextureCube<float3>     radianceIBLTexture                  : register(t16);
@@ -108,11 +108,26 @@ float GetDirectionalShadow(uint lightIndex, float3 ShadowCoord)
     return result * result;
 }
 
-float GetShadowConeLight(uint lightIndex, float3 shadowCoord)
+float GetShadowConeLight(uint lightIndex, float3 shadowCoord, float3 wPos)
 {
     float2 scrCoord = float2(shadowCoord.x, -shadowCoord.y) / 2 + 0.5f;
     float result = SpotLightShadowArrayTex.SampleCmpLevelZero(
         shadowSampler, float3(scrCoord.xy, lightIndex - NUM_POINT_LIGHTS - NUM_DIR_LIGHTS), shadowCoord.z);
+    return result * result;
+}
+
+float GetShadowPointLight(uint lightIndex, float3 lightToPos)
+{
+    float4x4 shadow = LightData[lightIndex].ShadowMatrix;
+    
+    float3 absToPixel = abs(lightToPos);
+    float Z = -max(absToPixel.z, max(absToPixel.x, absToPixel.y));
+    float2 params = float2(shadow[2][2], shadow[2][3]);
+    float depth = (params.y + params.x * Z) / (-Z);
+    
+    lightToPos = normalize(lightToPos);
+    
+    float result = PointLightShadowArrayTex.SampleCmpLevelZero(shadowSampler, float4(-lightToPos.x, lightToPos.y, lightToPos.z, lightIndex - NUM_DIR_LIGHTS), depth);
     return result * result;
 }
 
@@ -189,19 +204,22 @@ float3 ApplyPointLight(
     float3 lightPos, // World-space light position
     float lightRadiusSq,
     float3 lightColor, // Radiance of directional light
-    float lightIntencity
+    float lightIntencity,
+    uint lightIndex
     )
 {
     float3 lightDir = lightPos - worldPos;
+    
+    float shadow = GetShadowPointLight(lightIndex, -lightDir);
+    
     float lightDistSq = dot(lightDir, lightDir);
     float invLightDist = rsqrt(lightDistSq);
     lightDir *= invLightDist;
     
     float normalizedDist = sqrt(lightDistSq) * rsqrt(lightRadiusSq);
     float distanceFalloff = lightIntencity / (1.0 + 25.0 * normalizedDist * normalizedDist) * saturate((1 - normalizedDist) * 5.0);
-    //float distanceFalloff = saturate(lightIntencity * lightRadiusSq / (lightRadiusSq + (0.25 * lightDistSq)));
-
-    return distanceFalloff * ApplyLightCommon(
+    
+    return shadow * distanceFalloff * ApplyLightCommon(
         diffuseColor,
         specularColor,
         specularMask,
@@ -225,6 +243,7 @@ float3 ApplyConeLight(
     float lightRadiusSq,
     float3 lightColor, // Radiance of directional light
     float lightIntencity,
+    uint lightIndex,
     float3 coneDir,
     float2 coneAngles
     )
@@ -265,10 +284,10 @@ float3 ApplyConeShadowedLight(
     float lightRadiusSq,
     float3 lightColor, // Radiance of directional light
     float lightIntencity,
+    uint lightIndex,
     float3 coneDir,
     float2 coneAngles,
     float4x4 shadowTextureMatrix,
-    uint lightIndex,
     bool castsShadow
     )
 {
@@ -277,7 +296,7 @@ float3 ApplyConeShadowedLight(
     {
         float4 shadowCoord = mul(shadowTextureMatrix, float4(worldPos, 1.0));
         shadowCoord.xyz *= rcp(shadowCoord.w);
-        shadow = GetShadowConeLight(lightIndex, shadowCoord.xyz);
+        shadow = GetShadowConeLight(lightIndex, shadowCoord.xyz, worldPos);
     }
 
     return shadow * ApplyConeLight(
@@ -292,6 +311,7 @@ float3 ApplyConeShadowedLight(
         lightRadiusSq,
         lightColor,
         lightIntencity,
+        lightIndex,
         coneDir,
         coneAngles
         );
@@ -336,7 +356,8 @@ float3 ComputeLighting(
     light.Position, \
     lightRadiusSq, \
     light.Color, \
-    light.Intencity
+    light.Intencity, \
+    i
 
 #define CONE_LIGHT_ARGS \
     POINT_LIGHT_ARGS, \
@@ -346,7 +367,6 @@ float3 ComputeLighting(
 #define SHADOWED_LIGHT_ARGS \
     CONE_LIGHT_ARGS, \
     light.ShadowMatrix, \
-    i, \
     light.CastsShadow
     
     for (uint i = 0; i < NUM_DIR_LIGHTS + NUM_POINT_LIGHTS + NUM_SPOT_LIGHTS; ++i)
@@ -426,7 +446,9 @@ float3 ComputeLitColor(
     
     float3 litColor = emissive + directLight;
 
-    return litColor + Diffuse_IBL(normal, toEye, c_diff, roughness) + Specular_IBL(c_spec, normal, toEye, roughness);
+    float3 diffIbl = Diffuse_IBL(normal, toEye, c_diff, roughness);
+    float3 specIbl = Specular_IBL(c_spec, normal, toEye, roughness);
+    return litColor + diffIbl + specIbl;
 }
 
 #endif
