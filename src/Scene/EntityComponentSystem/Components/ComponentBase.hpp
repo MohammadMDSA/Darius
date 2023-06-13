@@ -190,7 +190,7 @@ namespace Darius::Scene::ECS::Components
         DField(Get[inline])
         bool                        mStarted;
         
-        DField(Get[inline])
+        DField(Get[inline], Serialize)
         bool                        mEnabled;
         
         DField(Get[inline])
