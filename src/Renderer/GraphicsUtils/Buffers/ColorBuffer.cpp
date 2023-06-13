@@ -22,7 +22,7 @@ using namespace DirectX;
 
 namespace Darius::Graphics::Utils::Buffers
 {
-    void ColorBuffer::CreateDerivedViews(ID3D12Device* Device, DXGI_FORMAT Format, uint32_t ArraySize, uint32_t NumMips)
+    void ColorBuffer::CreateDerivedViews(ID3D12Device* Device, DXGI_FORMAT Format, uint32_t ArraySize, uint32_t NumMips, bool cube)
     {
         D_ASSERT_M(ArraySize == 1 || NumMips == 1, "We don't support auto-mips on texture arrays");
 
@@ -37,7 +37,27 @@ namespace Darius::Graphics::Utils::Buffers
         SRVDesc.Format = Format;
         SRVDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
 
-        if (ArraySize > 1)
+        if (ArraySize > 1 && cube)
+        {
+            D_ASSERT_M(ArraySize % 6 == 0, "The array size should be a multiple of 6");
+            RTVDesc.ViewDimension = D3D12_RTV_DIMENSION_TEXTURE2DARRAY;
+            RTVDesc.Texture2DArray.MipSlice = 0;
+            RTVDesc.Texture2DArray.FirstArraySlice = 0;
+            RTVDesc.Texture2DArray.ArraySize = (UINT)ArraySize;
+
+            UAVDesc.ViewDimension = D3D12_UAV_DIMENSION_TEXTURE2DARRAY;
+            UAVDesc.Texture2DArray.MipSlice = 0;
+            UAVDesc.Texture2DArray.FirstArraySlice = 0;
+            UAVDesc.Texture2DArray.ArraySize = (UINT)ArraySize;
+
+            SRVDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURECUBEARRAY;
+            SRVDesc.TextureCubeArray.MipLevels = NumMips;
+            SRVDesc.TextureCubeArray.MostDetailedMip = 0;
+            SRVDesc.TextureCubeArray.First2DArrayFace = 0;
+            SRVDesc.TextureCubeArray.NumCubes = (UINT)ArraySize / 6u;
+            SRVDesc.TextureCubeArray.ResourceMinLODClamp = 0.f;
+        }
+        else if (ArraySize > 1)
         {
             RTVDesc.ViewDimension = D3D12_RTV_DIMENSION_TEXTURE2DARRAY;
             RTVDesc.Texture2DArray.MipSlice = 0;
@@ -137,7 +157,7 @@ namespace Darius::Graphics::Utils::Buffers
     }
 
     void ColorBuffer::CreateArray(const std::wstring& Name, uint32_t Width, uint32_t Height, uint32_t ArrayCount,
-        DXGI_FORMAT Format, D3D12_GPU_VIRTUAL_ADDRESS VidMem)
+        DXGI_FORMAT Format, bool cube, D3D12_GPU_VIRTUAL_ADDRESS VidMem)
     {
         D3D12_RESOURCE_FLAGS Flags = CombineResourceFlags();
         D3D12_RESOURCE_DESC ResourceDesc = DescribeTex2D(Width, Height, ArrayCount, 1, Format, Flags);
@@ -150,7 +170,7 @@ namespace Darius::Graphics::Utils::Buffers
         ClearValue.Color[3] = mClearColor.GetA();
 
         CreateTextureResource(D_GRAPHICS_DEVICE::GetDevice(), Name, ResourceDesc, ClearValue, VidMem);
-        CreateDerivedViews(D_GRAPHICS_DEVICE::GetDevice(), Format, ArrayCount, 1);
+        CreateDerivedViews(D_GRAPHICS_DEVICE::GetDevice(), Format, ArrayCount, 1, cube);
     }
 
     void ColorBuffer::GenerateMipMaps(CommandContext& BaseContext)
