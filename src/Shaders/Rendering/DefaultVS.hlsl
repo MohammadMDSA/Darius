@@ -95,7 +95,7 @@ VertexOut main(VertexIn vin)
     // Transform to homogeneous clip space.
     vout.Pos = mul(gViewProj, float4(vout.WorldPos, 1.f));
 #else
-    vout.LocalPos = position;
+    vout.LocalPos = position.xyz;
     vout.Normal = normal;
 #endif
     
