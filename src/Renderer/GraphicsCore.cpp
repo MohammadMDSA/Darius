@@ -496,7 +496,7 @@ namespace Darius::Graphics
 		RasterizerShadow = RasterizerDefault;
 		//RasterizerShadow.CullMode = D3D12_CULL_FRONT;  // Hacked here rather than fixing the content
 		RasterizerShadow.SlopeScaledDepthBias = -1.5f;
-		RasterizerShadow.DepthBias = -10;
+		RasterizerShadow.DepthBias = -50;
 
 		RasterizerShadowTwoSided = RasterizerShadow;
 		RasterizerShadowTwoSided.CullMode = D3D12_CULL_MODE_NONE;
