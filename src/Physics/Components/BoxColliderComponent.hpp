@@ -20,10 +20,8 @@ namespace Darius::Physics
 
 #ifdef _D_EDITOR
 		virtual bool						DrawDetails(float params[]) override;
+		virtual void						OnGizmo() const override;
 #endif
-
-		virtual void						Update(float dt) override;
-		virtual void						PreUpdate(bool simulating) override;
 
 	protected:
 

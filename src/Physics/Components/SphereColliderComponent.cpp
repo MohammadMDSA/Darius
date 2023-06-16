@@ -32,20 +32,10 @@ namespace Darius::Physics
 		return valueChanged;
 	}
 
-	void SphereColliderComponent::Update(float dt)
+	void SphereColliderComponent::OnGizmo() const
 	{
-		ColliderComponent::Update(dt);
-
-	}
-
-	void SphereColliderComponent::PreUpdate(bool simulating)
-	{
-		ColliderComponent::PreUpdate(simulating);
-
 		auto transform = GetTransform();
-
-		
-		D_DEBUG_DRAW::DrawSphere(transform->GetPosition(), GetRadius() + 0.03f, 0, {0.f, 1.f, 0.f, 1.f});
+		D_DEBUG_DRAW::DrawSphere(transform->GetPosition(), GetRadius() + 0.03f, 0, { 0.f, 1.f, 0.f, 1.f });
 	}
 
 	physx::PxGeometry* SphereColliderComponent::UpdateAndGetPhysicsGeometry(bool& changed)

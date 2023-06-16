@@ -33,18 +33,10 @@ namespace Darius::Physics
 		return valueChanged;
 	}
 
-	void BoxColliderComponent::Update(float dt)
+	void BoxColliderComponent::OnGizmo() const
 	{
-		ColliderComponent::Update(dt);
-
-	}
-
-	void BoxColliderComponent::PreUpdate(bool simulating)
-	{
-		ColliderComponent::PreUpdate(simulating);
-
 		auto transform = GetTransform();
-		D_DEBUG_DRAW::DrawCube(transform->GetPosition(), transform->GetRotation(), transform->GetScale(), 0, {0.f, 1.f, 0.f, 1.f});
+		D_DEBUG_DRAW::DrawCube(transform->GetPosition(), transform->GetRotation(), transform->GetScale(), 0, { 0.f, 1.f, 0.f, 1.f });
 	}
 
 	physx::PxGeometry* BoxColliderComponent::UpdateAndGetPhysicsGeometry(bool& changed)
