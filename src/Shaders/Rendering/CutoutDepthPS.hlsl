@@ -27,9 +27,10 @@ cbuffer cbMaterial : register(b0)
     float4 gDiffuseAlbedo;
     float3 gFresnelR0;
     float3 gEmissive;
-    float1 gMetallic;
-    float1 gRoughness;
-    uint gTexStats;
+    float  gMetallic;
+    float  gRoughness;
+    float  gDisplacementAmount;
+    uint   gTexStats;
 }
 
 #define BitMasked(value, bitIdx) value & (1 << bitIdx)
