@@ -238,18 +238,6 @@ namespace Darius::Scene
 
 #endif // _EDITOR
 
-	void GameObject::SetLocalTransform(Transform const& trans)
-	{
-		if (mType == Type::Static)
-			return;
-		GetComponent<D_MATH::TransformComponent>()->SetLocalTransform(trans);
-	}
-
-	Transform const& GameObject::GetLocalTransform() const
-	{
-		return *mEntity.get<D_MATH::TransformComponent>()->GetDataC();
-	}
-
 	void GameObject::VisitBehaviourComponents(std::function<void(Darius::Scene::ECS::Components::BehaviourComponent*)> callback, std::function<void(D_EXCEPTION::Exception const&)> onException) const
 	{
 		auto& reg = D_WORLD::GetRegistry();

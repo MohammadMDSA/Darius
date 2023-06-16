@@ -202,7 +202,7 @@ namespace Darius::Graphics
 		MeshConstants* cb = (MeshConstants*)currentUploadBuff.Map();
 
 
-		Matrix4 world = Matrix4(GetTransform().GetWorld());
+		Matrix4 world = GetTransform()->GetWorld();
 		cb->World = world;
 		cb->WorldIT = InverseTranspose(world.Get3x3());
 		cb->Lod = mLoD;

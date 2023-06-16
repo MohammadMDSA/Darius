@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Scene/GameObject.hpp"
+#include "Scene/EntityComponentSystem/Components/TransformComponent.hpp"
 
 #include <ResourceManager/ResourceRef.hpp>
 #include <ResourceManager/ResourceManager.hpp>

@@ -73,7 +73,7 @@ namespace Darius::Graphics
 		auto& currentUploadBuff = mMeshConstantsCPU[D_GRAPHICS_DEVICE::GetCurrentFrameResourceIndex()];
 
 		MeshConstants* cb = reinterpret_cast<MeshConstants*>(currentUploadBuff.Map());
-		Matrix4 world = Matrix4(GetTransform().GetWorld());
+		Matrix4 world = GetTransform()->GetWorld();
 		cb->World = Matrix4(world);
 		cb->WorldIT = InverseTranspose(world.Get3x3());
 		currentUploadBuff.Unmap();

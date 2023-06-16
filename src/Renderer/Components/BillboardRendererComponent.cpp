@@ -78,8 +78,8 @@ namespace Darius::Graphics
 		auto& currentUploadBuff = mMeshConstantsCPU[D_GRAPHICS_DEVICE::GetCurrentFrameResourceIndex()];
 
 		BillboardConstants* cb = reinterpret_cast<BillboardConstants*>(currentUploadBuff.Map());
-		auto world = GetTransform().GetWorld();
-		cb->world = Matrix4(world);
+		auto world = GetTransform()->GetWorld();
+		cb->world = world;
 		cb->size = { mWidth, mHeight };
 		currentUploadBuff.Unmap();
 

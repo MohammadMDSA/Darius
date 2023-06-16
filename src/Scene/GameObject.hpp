@@ -52,25 +52,9 @@ namespace Darius::Scene
 
 	public:
 
-		// Transform helpers
-		void								SetLocalTransform(D_MATH::Transform const& trans);
-		D_MATH::Transform const&			GetLocalTransform() const;
-
-		INLINE void							SetTransform(D_MATH::Transform const& trans)
+		INLINE ECS::CompRef<D_MATH::TransformComponent>	GetTransform() const
 		{
-			if (mType == Type::Static)
-				return;
-			if (mParent)
-				SetLocalTransform((DirectX::XMMATRIX)(trans.GetWorld() * D_MATH::Matrix4(mParent->GetTransform()).Inverse()));
-			else
-				SetLocalTransform(trans);
-		}
-
-		INLINE D_MATH::Transform			GetTransform() const
-		{
-			if (mParent)
-				return GetLocalTransform() * mParent->GetTransform();
-			return GetLocalTransform();
+			return GetComponentRef<D_MATH::TransformComponent>();
 		}
 
 		void								SetParent(GameObject* newParent);
@@ -135,7 +119,7 @@ namespace Darius::Scene
 		}
 
 		template<class T>
-		INLINE D_ECS::CompRef<T>			GetComponentRef()
+		INLINE D_ECS::CompRef<T>			GetComponentRef() const
 		{
 			return D_ECS::CompRef<T>(mEntity);
 		}

@@ -38,8 +38,7 @@ namespace Demo
 			return;
 
 		auto trans = GetTransform();
-		trans.Rotation = D_MATH::LookAt(trans.Translation, mTargetObject->GetTransform().Translation);
-		SetTransform(trans);
+			trans->SetRotation(D_MATH::LookAt(trans->GetPosition(), mTargetObject->GetTransform()->GetPosition()));
 	}
 
 #ifdef _D_EDITOR

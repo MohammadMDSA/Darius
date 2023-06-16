@@ -61,8 +61,8 @@ namespace Darius::Graphics
 	void CameraComponent::Update(float dt)
 	{
 		auto transform = GetTransform();
-		mCamera.SetPosition(transform.Translation);
-		mCamera.SetRotation(transform.Rotation);
+		mCamera.SetPosition(transform->GetPosition());
+		mCamera.SetRotation(transform->GetRotation());
 		mCamera.Update();
 
 		D_DEBUG_DRAW::DrawFrustum(mCamera.GetWorldSpaceFrustum());

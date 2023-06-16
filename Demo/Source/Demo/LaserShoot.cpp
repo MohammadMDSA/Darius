@@ -31,17 +31,17 @@ namespace Demo
 		auto frame = D_TIME::GetFrameCount();
 
 		auto trans = GetTransform();
-		auto dir = trans.Rotation.GetForward();
+		auto dir = trans->GetRotation().GetForward();
 
-		D_DEBUG_DRAW::DrawSphere(trans.Translation + dir * 3, 0.5, 0, { 0.f, 1.f, 0.f, 1.f });
+		D_DEBUG_DRAW::DrawSphere(trans->GetPosition() + dir * 3, 0.5, 0, { 0.f, 1.f, 0.f, 1.f });
 
 		physx::PxRaycastBuffer hit;
-		if (D_PHYSICS::Raycast(trans.Translation + dir * 2, dir, 100, hit))
+		if (D_PHYSICS::Raycast(trans->GetPosition() + dir * 2, dir, 100, hit))
 		{
 			auto hitPos = D_PHYSICS::GetVec3(hit.block.position);
 			D_DEBUG_DRAW::DrawCube(D_PHYSICS::GetVec3(hit.block.position), D_MATH::LookAt(D_PHYSICS::GetVec3(hit.block.normal), D_MATH::Vector3::Up), D_MATH::Vector3(0.5f, 0.5f, 0.5f), 1, { 1.f, 0.f, 0.f, 1.f });
 
-			D_DEBUG_DRAW::DrawLine(trans.Translation, hitPos);
+			D_DEBUG_DRAW::DrawLine(trans->GetPosition(), hitPos);
 		}
 
 	}

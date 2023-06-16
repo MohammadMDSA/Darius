@@ -270,10 +270,10 @@ namespace Darius::Editor::Gui::Windows
 
 		if (selectedObj)
 		{
-			auto world = selectedObj->GetTransform().GetWorld();
+			auto world = selectedObj->GetTransform()->GetWorld();
 			if (ImGuizmo::Manipulate((float*)&view, (float*)&proj, (ImGuizmo::OPERATION)mManipulateOperation, (ImGuizmo::MODE)mManipulateMode, (float*)&world))
 			{
-				selectedObj->SetTransform(world);
+				selectedObj->GetTransform()->SetWorld(world);
 			}
 		}
 
@@ -476,7 +476,7 @@ namespace Darius::Editor::Gui::Windows
 		auto selectedGameObject = D_EDITOR_CONTEXT::GetSelectedGameObject();
 		if (D_KEYBOARD::IsKeyDown(D_KEYBOARD::Keys::F) && selectedGameObject)
 		{
-			mOrbitCam.SetTarget(selectedGameObject->GetTransform().Translation);
+			mOrbitCam.SetTarget(selectedGameObject->GetTransform()->GetPosition());
 		}
 
 		if (D_KEYBOARD::IsKeyDown(D_KEYBOARD::Keys::W))

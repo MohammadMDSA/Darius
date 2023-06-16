@@ -618,4 +618,9 @@ namespace Darius::Scene
 	{
 		BehaviourLateUpdaterFunctions.push_back(updater);
 	}
+
+	bool SceneManager::IsRunning()
+	{
+		return Running;
+	}
 }

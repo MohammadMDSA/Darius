@@ -32,7 +32,7 @@ namespace Darius::Physics
 
 		INLINE float						GetRadius() const
 		{
-			auto scale = GetTransform().Scale;
+			auto scale = GetTransform()->GetScale();
 			return std::max((float)scale.GetX(), std::max((float)scale.GetY(), (float)scale.GetZ())) / 2;
 		}
 

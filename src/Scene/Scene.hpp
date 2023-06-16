@@ -48,6 +48,7 @@ namespace Darius::Scene
 		static D_FILE::Path		GetPath();
 		static void				SetPath(D_FILE::Path path);
 		static bool				IsLoaded();
+		static bool				IsRunning();
 
 		static INLINE D_ECS::Entity	GetRoot() { return Root; }
 		static INLINE D_ECS::ECSRegistry& GetRegistry() { return World; }

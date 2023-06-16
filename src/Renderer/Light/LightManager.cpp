@@ -126,8 +126,8 @@ namespace Darius::Renderer::LightManager
 
 				auto lightData = comp.GetLightData();
 				auto trans = comp.GetTransform();
-				lightData.Position = (DirectX::XMFLOAT3)trans.Translation;
-				lightData.Direction = (DirectX::XMFLOAT3)trans.Rotation.GetForward();
+				lightData.Position = (DirectX::XMFLOAT3)trans->GetPosition();
+				lightData.Direction = (DirectX::XMFLOAT3)trans->GetRotation().GetForward();
 
 				switch (comp.GetLightType())
 				{

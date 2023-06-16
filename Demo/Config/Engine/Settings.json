@@ -1,1 +1,1 @@
-{"Renderer":{"AmbientOcclusion.SuperSample.Enable":true,"AmbientOcclusion.SuperSample.HierarchyDepth":3}}
+{"Renderer":{"AmbientOcclusion.SuperSample.Enable":false,"AmbientOcclusion.SuperSample.HierarchyDepth":3,"PostProcessing.HDR.Adaptation":false,"PostProcessing.HDR.DrawHistogram":false,"PostProcessing.HDR.Exposure":0.3790000081062317}}

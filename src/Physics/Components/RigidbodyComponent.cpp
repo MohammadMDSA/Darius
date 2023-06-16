@@ -62,14 +62,14 @@ namespace Darius::Physics
 	{
 		auto preTrans = GetTransform();
 		D_MATH::Transform physicsTrans = D_PHYSICS::GetTransform(mActor->getGlobalPose());
-		preTrans.Translation = physicsTrans.Translation;
-		preTrans.Rotation = physicsTrans.Rotation;
-		SetTransform(preTrans);
+
+		physicsTrans.Scale = preTrans->GetScale();
+		GetTransform()->SetWorld(Matrix4(physicsTrans.GetWorld()));
 	}
 
 	void RigidbodyComponent::PreUpdate()
 	{
-		mActor->setGlobalPose(D_PHYSICS::GetTransform(GetTransform()));
+		mActor->setGlobalPose(D_PHYSICS::GetTransform(GetTransform()->GetTransformData()));
 	}
 
 	bool RigidbodyComponent::IsUsingGravity() const

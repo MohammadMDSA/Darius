@@ -30,10 +30,9 @@ namespace Demo
 		auto time = D_TIME::GetTotalTime();
 
 		auto trans = GetTransform();
-		trans.Translation = D_MATH::Vector3(0.f, D_MATH::Cos(time * 2) * 5, 0.f);
+		trans->SetPosition(D_MATH::Vector3(0.f, D_MATH::Cos(time * 2) * 5, 0.f));
 		if (mRotate)
-			trans.Rotation = D_MATH::Quaternion(D_MATH::Vector3::Up, time);
-		SetTransform(trans);
+			trans->SetRotation(D_MATH::Quaternion(D_MATH::Vector3::Up, time));
 	}
 
 #ifdef _D_EDITOR

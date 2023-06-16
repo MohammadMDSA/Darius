@@ -123,7 +123,6 @@ namespace Darius::Graphics
 
 	void MaterialResource::ReadResourceFromFile(D_SERIALIZATION::Json const& j)
 	{
-
 		Json data;
 		std::ifstream is(GetPath());
 		is >> data;

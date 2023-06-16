@@ -20,17 +20,27 @@ namespace Darius::Math
 
 		virtual INLINE void					SetEnabled(bool) override {}
 
-		INLINE D_MATH::Transform const* GetDataC() const { return &mTransform; }
-		INLINE D_MATH::Transform			GetData() const { return mTransform; }
-		INLINE void							SetLocalTransform(D_MATH::Transform const& trans) { mTransform = trans; mChangeSignal(); }
+		void								SetWorld(Matrix4 const& mat);
+		void								SetLocalWorld(Matrix4 const& mat);
 
-		INLINE void							SetLocalPosition(Vector3 const& value) { mTransform.Translation = value; }
-		INLINE void							SetLocalRotation(Quaternion const& val) { mTransform.Rotation = val; }
-		INLINE void							SetLocalScale(Vector3 const& val) { mTransform.Scale = val; }
+		void								SetLocalPosition(Vector3 const& value);
+		void								SetLocalRotation(Quaternion const& val);
+		void								SetLocalScale(Vector3 const& val);
+		void								SetPosition(Vector3 const& val);
+		void								SetRotation(Quaternion const& val);
 
-		INLINE Vector3 const&				GetLocalPosition() const { return mTransform.Translation; }
-		INLINE Quaternion const&			GetLocalRotation() const { return mTransform.Rotation; }
-		INLINE Vector3 const&				GetLocalScale() const { return mTransform.Scale; }
+		Matrix4 const&						GetWorld();
+		INLINE Vector3 const&				GetLocalPosition() const { return mTransformMath.Translation; }
+		INLINE Quaternion const&			GetLocalRotation() const { return mTransformMath.Rotation; }
+		INLINE Vector3 const&				GetLocalScale() const { return mTransformMath.Scale; }
+		Vector3								GetPosition();
+		Quaternion							GetRotation();
+		Vector3								GetScale();
+		INLINE Transform const&				GetTransformData() const { return mTransformMath; }
+
+		void								SetDirty();
+		INLINE bool							IsDirty() const { return mDirty; }
+		bool								CanChange() const;
 
 #ifdef _D_EDITOR
 		virtual bool						DrawDetails(float params[]) override;
@@ -38,14 +48,129 @@ namespace Darius::Math
 
 		INLINE virtual bool					IsDisableable() const { return false; }
 
-		INLINE operator D_MATH::Transform const* () const { return &mTransform; }
-
 	private:
-		D_MATH::Transform					mTransform;
+		bool								IsWorldDirty() const;
+
+		D_MATH::Transform					mTransformMath;
+		D_MATH::Matrix4						mWorldMatrix;
+
+		bool								mDirty;
+		bool								mWorldDirty;
 
 	public:
 		Darius_Math_TransformComponent_GENERATED
 	};
+
+	INLINE bool TransformComponent::IsWorldDirty() const
+	{
+		if (mWorldDirty)
+			return true;
+
+		auto parent = GetGameObject()->GetParent();
+
+		if (parent != nullptr && parent->GetTransform()->IsDirty())
+			return true;
+		return false;
+	}
+
+	INLINE Matrix4 const& TransformComponent::GetWorld()
+	{
+		// Should update world first
+		if (IsWorldDirty())
+		{
+			auto parent = GetGameObject()->GetParent();
+
+			mWorldMatrix = Matrix4(mTransformMath.GetWorld());
+
+			// If has parent, should apply their world too
+			if (parent != nullptr)
+				mWorldMatrix = parent->GetTransform()->GetWorld() * mWorldMatrix;
+
+			mWorldDirty = false;
+		}
+
+		return mWorldMatrix;
+	}
+
+	INLINE void TransformComponent::SetLocalPosition(Vector3 const& value)
+	{
+		if (!CanChange())
+			return;
+		mTransformMath.Translation = value;
+		SetDirty();
+	}
+
+	INLINE void TransformComponent::SetLocalRotation(Quaternion const& val)
+	{
+		if (!CanChange())
+			return;
+		mTransformMath.Rotation = val;
+		SetDirty();
+	}
+
+	INLINE void TransformComponent::SetLocalScale(Vector3 const& val)
+	{
+		if (!CanChange())
+			return;
+		mTransformMath.Scale = val;
+		SetDirty();
+	}
+
+	INLINE void TransformComponent::SetPosition(Vector3 const& val)
+	{
+		if (!CanChange())
+			return;
+		auto world = Transform(GetWorld());
+		world.Translation = val;
+		SetWorld(Matrix4(world.GetWorld()));
+		SetDirty();
+	}
+
+	INLINE void TransformComponent::SetRotation(Quaternion const& val)
+	{
+		if (!CanChange())
+			return;
+		auto world = Transform(GetWorld());
+		world.Rotation = val;
+		SetWorld(Matrix4(world.GetWorld()));
+		SetDirty();
+	}
+
+	INLINE Vector3 TransformComponent::GetPosition()
+	{
+		auto world = Transform(GetWorld());
+		return world.Translation;
+	}
+
+	INLINE Quaternion TransformComponent::GetRotation()
+	{
+		auto world = Transform(GetWorld());
+		return world.Rotation;
+	}
+
+	INLINE Vector3 TransformComponent::GetScale()
+	{
+		auto world = Transform(GetWorld());
+		return world.Scale;
+	}
+
+	INLINE void TransformComponent::SetDirty()
+	{
+		if (CanChange())
+			mDirty = true;
+	}
+
+	INLINE bool TransformComponent::CanChange() const
+	{
+#ifdef _D_EDITOR
+		if (!D_WORLD::IsRunning() || GetGameObject()->GetType() != D_SCENE::GameObject::Type::Static)
+#else
+		if (GetGameObject()->GetType() != D_SCENE::GameObject::Type::Static)
+#endif
+			return true;
+		return false;
+	}
+
 }
 
 File_TransformComponent_GENERATED

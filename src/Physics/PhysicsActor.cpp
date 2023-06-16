@@ -36,7 +36,7 @@ namespace Darius::Physics
 		auto physics = D_PHYSICS::GetCore();
 
 		// Create actor initial transform
-		auto mainTransform = mGameObject->GetTransform();
+		auto mainTransform = mGameObject->GetTransform()->GetTransformData();
 		auto transform = D_PHYSICS::GetTransform(mainTransform);
 
 		// Create proper actor if doesn't exist

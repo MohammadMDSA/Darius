@@ -139,10 +139,7 @@ namespace Darius::Scene::ECS::Components
                 OnDeactivate();
         }
 
-        INLINE D_MATH::Transform const& GetLocalTransform() const { return mGameObject->GetLocalTransform(); }
-        INLINE D_MATH::Transform    GetTransform() const { return mGameObject->GetTransform(); }
-        INLINE void                 SetLocalTransform(D_MATH::Transform const& transform) { return mGameObject->SetLocalTransform(transform); }
-        INLINE void                 SetTransform(D_MATH::Transform const& transform) { return mGameObject->SetTransform(transform); }
+        INLINE CompRef<D_MATH::TransformComponent> GetTransform() const { return mGameObject->GetTransform(); }
 
         INLINE virtual D_CORE::CountedOwner GetAsCountedOwner()
         {

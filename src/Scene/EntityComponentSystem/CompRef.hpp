@@ -16,6 +16,11 @@ namespace Darius::Scene::ECS::Components
 	class ComponentBase;
 }
 
+namespace Darius::Math
+{
+	class TransformComponent;
+}
+
 namespace Darius::Scene::ECS
 {
 	template<class T>
@@ -28,7 +33,8 @@ namespace Darius::Scene::ECS
 		INLINE CompRef(Entity ent)
 		{
 			using conv = std::is_convertible<T*, Darius::Scene::ECS::Components::ComponentBase*>;
-			D_STATIC_ASSERT(conv::value);
+			using transCheck = std::is_same<T, Darius::Math::TransformComponent>;
+			D_STATIC_ASSERT(conv::value || transCheck::value);
 
 			if (ent.has<T>())
 				mRef = ent.get_ref<T>();

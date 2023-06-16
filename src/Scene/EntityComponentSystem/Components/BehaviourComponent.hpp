@@ -2,6 +2,7 @@
 
 #include "ComponentBase.hpp"
 #include "Scene/GameObjectRef.hpp"
+#include "TransformComponent.hpp"
 
 #ifndef D_ECS_COMP
 #define D_ECS_COMP Darius::Scene::ECS::Components

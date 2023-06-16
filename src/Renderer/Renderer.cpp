@@ -223,7 +223,7 @@ namespace Darius::Renderer
 					return;
 
 				// Is it in our frustum
-				auto sphereWorldSpace = meshComp.GetGameObject()->GetTransform() * meshComp.GetBounds();
+				auto sphereWorldSpace = AffineTransform(meshComp.GetTransform()->GetWorld()) * meshComp.GetBounds();
 				auto sphereViewSpace = BoundingSphere(Vector3(cam.GetViewMatrix() * sphereWorldSpace.GetCenter()), sphereWorldSpace.GetRadius());
 				if (!frustum.IntersectSphere(sphereViewSpace))
 					return;
@@ -244,7 +244,7 @@ namespace Darius::Renderer
 					return;
 
 				// Is it in our frustum
-				auto sphereWorldSpace = meshComp.GetGameObject()->GetTransform() * meshComp.GetBounds();
+				auto sphereWorldSpace = AffineTransform(meshComp.GetTransform()->GetWorld()) * meshComp.GetBounds();
 				auto sphereViewSpace = BoundingSphere(Vector3(cam.GetViewMatrix() * sphereWorldSpace.GetCenter()), sphereWorldSpace.GetRadius());
 				if (!frustum.IntersectSphere(sphereViewSpace))
 					return;
@@ -265,7 +265,7 @@ namespace Darius::Renderer
 					return;
 
 				// Is it in our frustum
-				auto sphereWorldSpace = meshComp.GetGameObject()->GetTransform() * meshComp.GetBounds();
+				auto sphereWorldSpace = AffineTransform(meshComp.GetTransform()->GetWorld()) * meshComp.GetBounds();
 				auto sphereViewSpace = BoundingSphere(Vector3(cam.GetViewMatrix() * sphereWorldSpace.GetCenter()), sphereWorldSpace.GetRadius());
 				if (!frustum.IntersectSphere(sphereViewSpace))
 					return;
@@ -286,7 +286,7 @@ namespace Darius::Renderer
 					return;
 
 				// Is it in our frustum
-				auto sphereWorldSpace = meshComp.GetGameObject()->GetTransform() * meshComp.GetBounds();
+				auto sphereWorldSpace = AffineTransform(meshComp.GetTransform()->GetWorld()) * meshComp.GetBounds();
 				auto sphereViewSpace = BoundingSphere(Vector3(cam.GetViewMatrix() * sphereWorldSpace.GetCenter()), sphereWorldSpace.GetRadius());
 				if (!frustum.IntersectSphere(sphereViewSpace))
 					return;

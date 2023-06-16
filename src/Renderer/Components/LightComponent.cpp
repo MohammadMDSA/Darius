@@ -126,7 +126,7 @@ namespace Darius::Graphics
 			auto const& frustom = activeCam->GetCamera().GetWorldSpaceFrustum();
 
 			// Creating view mat regardless of its position
-			auto invLightViewMat = D_MATH::OrthogonalTransform(trans.Rotation, D_MATH::Vector3(D_MATH::kZero));
+			auto invLightViewMat = D_MATH::OrthogonalTransform(trans->GetRotation(), D_MATH::Vector3(D_MATH::kZero));
 			auto lightViewMat = D_MATH::Invert(invLightViewMat);
 
 			// Creating shadow aabb
@@ -161,16 +161,16 @@ namespace Darius::Graphics
 		}
 		case Darius::Renderer::LightManager::LightSourceType::PointLight:
 		{
-			D_DEBUG_DRAW::DrawSphere(trans.Translation, mLightData.Range, 0.f, D_MATH::Color(mLightData.Color.x, mLightData.Color.y, mLightData.Color.z));
+			D_DEBUG_DRAW::DrawSphere(trans->GetPosition(), mLightData.Range, 0.f, D_MATH::Color(mLightData.Color.x, mLightData.Color.y, mLightData.Color.z));
 			break;
 		}
 		case Darius::Renderer::LightManager::LightSourceType::SpotLight:
 			auto innerAng = mConeInnerAngle == 0 ? 0.001f : mConeInnerAngle;
 			auto outerAng = mConeOuterAngle == 0 ? 0.001f : mConeOuterAngle;
 			// Drawing outer cone
-			D_DEBUG_DRAW::DrawConeLines(trans.Translation, trans.Rotation.GetForward(), D_MATH::Cos(outerAng) * mLightData.Range, D_MATH::Sin(outerAng) * mLightData.Range, 0.f, D_MATH::Color(mLightData.Color.x, mLightData.Color.y, mLightData.Color.z, 0.6f));
+			D_DEBUG_DRAW::DrawConeLines(trans->GetPosition(), trans->GetRotation().GetForward(), D_MATH::Cos(outerAng) * mLightData.Range, D_MATH::Sin(outerAng) * mLightData.Range, 0.f, D_MATH::Color(mLightData.Color.x, mLightData.Color.y, mLightData.Color.z, 0.6f));
 			// Drawing inner cone
-			D_DEBUG_DRAW::DrawConeLines(trans.Translation, trans.Rotation.GetForward(), D_MATH::Cos(innerAng) * mLightData.Range, D_MATH::Sin(innerAng) * mLightData.Range, 0.f, D_MATH::Color(mLightData.Color.x, mLightData.Color.y, mLightData.Color.z));
+			D_DEBUG_DRAW::DrawConeLines(trans->GetPosition(), trans->GetRotation().GetForward(), D_MATH::Cos(innerAng) * mLightData.Range, D_MATH::Sin(innerAng) * mLightData.Range, 0.f, D_MATH::Color(mLightData.Color.x, mLightData.Color.y, mLightData.Color.z));
 			break;
 		}
 	}
