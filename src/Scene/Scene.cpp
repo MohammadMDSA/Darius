@@ -83,6 +83,14 @@ namespace Darius::Scene
 		UuidMap.reset();
 	}
 
+	void SceneManager::FrameInitialization()
+	{
+		World.each([&](D_MATH::TransformComponent& trans)
+			{
+				trans.SetClean();
+			});
+	}
+
 	void SceneManager::Update(float deltaTime)
 	{
 		if (!GOs)

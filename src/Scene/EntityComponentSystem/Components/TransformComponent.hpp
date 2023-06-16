@@ -11,6 +11,11 @@
 #define D_MATH Darius::Math
 #endif // !D_MATH
 
+namespace Darius::Scene
+{
+	class SceneManager;
+}
+
 namespace Darius::Math
 {
 	class DClass(Serialize[LocalPosition, LocalRotation, LocalScale]) TransformComponent : public D_ECS_COMP::ComponentBase
@@ -49,7 +54,10 @@ namespace Darius::Math
 		INLINE virtual bool					IsDisableable() const { return false; }
 
 	private:
+		friend class Darius::Scene::SceneManager;
+
 		bool								IsWorldDirty() const;
+		INLINE void							SetClean() { mDirty = false; }
 
 		D_MATH::Transform					mTransformMath;
 		D_MATH::Matrix4						mWorldMatrix;

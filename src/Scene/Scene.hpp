@@ -37,6 +37,7 @@ namespace Darius::Scene
 		static void				DumpGameObject(GameObject const* go, _OUT_ D_SERIALIZATION::Json& json, bool maintainContext = false);
 		static void				LoadGameObject(D_SERIALIZATION::Json const& json, _OUT_ GameObject** go, bool addToScene = true);
 
+		static void				FrameInitialization();
 		static void				Update(float deltaTime);
 		static void				LateUpdate(float deltaTime);
 
