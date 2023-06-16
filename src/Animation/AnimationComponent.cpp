@@ -220,6 +220,8 @@ namespace Darius::Animation
 			root->Scale = { 1.f, 1.f, 1.f };
 			root->Xform.SetW({ 0.f, 0.f, 0.f, 1.f });
 		}
+
+		skeletalMesh->SetDirty();
 	}
 
 	void AnimationComponent::CreateAnimationToJointIndexMap()

@@ -64,12 +64,6 @@ namespace Darius::Editor::Simulate
 		{
 			D_PROFILING::ScopedTimer simProfiler(L"Update Simulation");
 
-			// Scene Initialization for frame
-			{
-				D_PROFILING::ScopedTimer _prof(L"Scene Initialization");
-				D_WORLD::FrameInitialization();
-			}
-
 			// Physics
 			{
 				D_PROFILING::ScopedTimer simPhysProf(L"Update Physics");

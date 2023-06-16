@@ -46,6 +46,8 @@ namespace Darius::Graphics
 		INLINE virtual D3D12_GPU_VIRTUAL_ADDRESS GetConstantsAddress() const override { return mMeshConstantsGPU.GetGpuVirtualAddress(); }
 		INLINE virtual D_MATH_BOUNDS::BoundingSphere const& GetBounds() override { return mGridMesh->GetMeshData()->mBoundSp; }
 
+		INLINE virtual bool					IsDirty() const override { return D_ECS_COMP::ComponentBase::IsDirty() || GetTransform()->IsDirty(); }
+
 		void								SetGridSize(TerrainGridSize size);
 
 		static INLINE std::string			GetTerrainSizeName(TerrainGridSize size)

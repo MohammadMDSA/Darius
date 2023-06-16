@@ -17,7 +17,8 @@ namespace Darius::Scene::ECS::Components
 		mStarted(false),
 		mEnabled(true),
 		mGameObject(nullptr),
-		mDestroyed(false)
+		mDestroyed(false),
+		mDirty(false)
 	{}
 
 	ComponentBase::ComponentBase(Uuid uuid) :
@@ -25,7 +26,8 @@ namespace Darius::Scene::ECS::Components
 		mStarted(false),
 		mEnabled(true),
 		mGameObject(nullptr),
-		mDestroyed(false)
+		mDestroyed(false),
+		mDirty(false)
 	{}
 
 }

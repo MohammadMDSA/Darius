@@ -60,7 +60,7 @@ namespace Darius::Graphics
 
 	void TerrainRendererComponent::Update(float dt)
 	{
-		if (!IsActive())
+		if (!IsDirty() || !IsActive())
 			return;
 
 		if (!mMaterial.IsValid() || mMaterial->IsDirtyGPU())
@@ -84,6 +84,7 @@ namespace Darius::Graphics
 		context.TransitionResource(mMeshConstantsGPU, D3D12_RESOURCE_STATE_GENERIC_READ);
 
 		context.Finish();
+		SetClean();
 	}
 
 	bool TerrainRendererComponent::AddRenderItems(std::function<void(D_RENDERER_FRAME_RESOURCE::RenderItem const&)> appendFunction)

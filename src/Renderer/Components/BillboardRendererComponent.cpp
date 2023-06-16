@@ -65,7 +65,7 @@ namespace Darius::Graphics
 
 	void BillboardRendererComponent::Update(float dt)
 	{
-		if (!IsActive())
+		if (!IsDirty() || !IsActive())
 			return;
 
 		if (!mMaterial.IsValid() || mMaterial->IsDirtyGPU())
@@ -89,22 +89,33 @@ namespace Darius::Graphics
 		context.TransitionResource(mMeshConstantsGPU, D3D12_RESOURCE_STATE_GENERIC_READ);
 
 		context.Finish();
+		SetClean();
 	}
 
 	void BillboardRendererComponent::SetWidth(float const& value)
 	{
+		if (!CanChange())
+			return;
+
 		if (value < 0)
 			return;
 
 		this->mWidth = value;
+
+		SetDirty();
 	}
 
 	void BillboardRendererComponent::SetHeight(float const& value)
 	{
+		if (!CanChange())
+			return;
+
 		if (value < 0)
 			return;
 
 		this->mHeight = value;
+
+		SetDirty();
 	}
 
 	bool BillboardRendererComponent::AddRenderItems(std::function<void(D_RENDERER_FRAME_RESOURCE::RenderItem const&)> appendFunction)

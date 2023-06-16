@@ -7,6 +7,7 @@
 #include "Simulation.hpp"
 
 #include <Engine/EngineContext.hpp>
+#include <Renderer/GraphicsUtils/Profiling/Profiling.hpp>
 #include <ResourceManager/ResourceLoader.hpp>
 #include <Scene/Scene.hpp>
 #include <Utils/Assert.hpp>
@@ -68,6 +69,12 @@ namespace Darius::Editor::Context
 
 	void Update(float elapsedTime)
 	{
+
+		// Scene Initialization for frame
+		{
+			D_PROFILING::ScopedTimer _prof(L"Scene Initialization");
+			D_WORLD::FrameInitialization();
+		}
 
 		D_GUI_MANAGER::Update(elapsedTime);
 

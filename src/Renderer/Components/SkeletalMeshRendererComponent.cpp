@@ -188,7 +188,7 @@ namespace Darius::Graphics
 
 	void SkeletalMeshRendererComponent::Update(float dt)
 	{
-		if (!IsActive())
+		if (!IsDirty() || !IsActive())
 			return;
 
 		if (!mMesh.IsValid())
@@ -224,7 +224,7 @@ namespace Darius::Graphics
 			context.TransitionResource(mMeshConstantsGPU, D3D12_RESOURCE_STATE_GENERIC_READ);
 		}
 		context.Finish();
-
+		SetClean();
 	}
 
 	void SkeletalMeshRendererComponent::OnDeserialized()

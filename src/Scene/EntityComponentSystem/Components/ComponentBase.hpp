@@ -120,6 +120,11 @@ namespace Darius::Scene::ECS::Components
         virtual INLINE void         Update(float) { };
         virtual INLINE void         LateUpdate(float) { };
 
+
+        void						SetDirty();
+        virtual INLINE bool			IsDirty() const { return mDirty; }
+        bool						CanChange() const;
+
         INLINE bool                 IsActive() const { return mGameObject->IsActive() && mGameObject->GetInScene() && mEnabled; }
 
         virtual INLINE bool         IsDisableable() const { return true; }
@@ -180,6 +185,10 @@ namespace Darius::Scene::ECS::Components
         {
         }
 
+    protected:
+
+        void                        SetClean() { mDirty = false; }
+
 
     private:
         friend class Darius::Scene::GameObject;
@@ -201,6 +210,8 @@ namespace Darius::Scene::ECS::Components
         DField(Get[inline])
         bool                        mDestroyed;
 
+        bool						mDirty;
+
         static bool                 sInit;
         static std::string          DisplayName;
 
@@ -208,6 +219,25 @@ namespace Darius::Scene::ECS::Components
             Darius_Scene_ECS_Components_ComponentBase_GENERATED
 
 	};
+
+
+    INLINE void ComponentBase::SetDirty()
+    {
+        if (CanChange())
+            mDirty = true;
+    }
+
+    INLINE bool ComponentBase::CanChange() const
+    {
+#ifdef _D_EDITOR
+        if (!D_WORLD::IsRunning() || GetGameObject()->GetType() != D_SCENE::GameObject::Type::Static)
+#else
+        if (GetGameObject()->GetType() != D_SCENE::GameObject::Type::Static)
+#endif
+            return true;
+        return false;
+    }
+
 }
 
 File_ComponentBase_GENERATED

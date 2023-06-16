@@ -11,11 +11,6 @@
 #define D_MATH Darius::Math
 #endif // !D_MATH
 
-namespace Darius::Scene
-{
-	class SceneManager;
-}
-
 namespace Darius::Math
 {
 	class DClass(Serialize[LocalPosition, LocalRotation, LocalScale]) TransformComponent : public D_ECS_COMP::ComponentBase
@@ -43,10 +38,6 @@ namespace Darius::Math
 		Vector3								GetScale();
 		INLINE Transform const&				GetTransformData() const { return mTransformMath; }
 
-		void								SetDirty();
-		INLINE bool							IsDirty() const { return mDirty; }
-		bool								CanChange() const;
-
 #ifdef _D_EDITOR
 		virtual bool						DrawDetails(float params[]) override;
 #endif
@@ -54,15 +45,11 @@ namespace Darius::Math
 		INLINE virtual bool					IsDisableable() const { return false; }
 
 	private:
-		friend class Darius::Scene::SceneManager;
-
 		bool								IsWorldDirty() const;
-		INLINE void							SetClean() { mDirty = false; }
 
 		D_MATH::Transform					mTransformMath;
 		D_MATH::Matrix4						mWorldMatrix;
 
-		bool								mDirty;
 		bool								mWorldDirty;
 
 	public:
@@ -160,23 +147,6 @@ namespace Darius::Math
 	{
 		auto world = Transform(GetWorld());
 		return world.Scale;
-	}
-
-	INLINE void TransformComponent::SetDirty()
-	{
-		if (CanChange())
-			mDirty = true;
-	}
-
-	INLINE bool TransformComponent::CanChange() const
-	{
-#ifdef _D_EDITOR
-		if (!D_WORLD::IsRunning() || GetGameObject()->GetType() != D_SCENE::GameObject::Type::Static)
-#else
-		if (GetGameObject()->GetType() != D_SCENE::GameObject::Type::Static)
-#endif
-			return true;
-		return false;
 	}
 
 }

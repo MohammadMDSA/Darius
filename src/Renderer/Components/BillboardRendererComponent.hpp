@@ -46,6 +46,8 @@ namespace Darius::Graphics
 		void								SetWidth(float const& value);
 		void								SetHeight(float const& value);
 
+		INLINE virtual bool					IsDirty() const override { return D_ECS_COMP::ComponentBase::IsDirty() || GetTransform()->IsDirty(); }
+
 	protected:
 		void								UpdatePsoIndex();
 

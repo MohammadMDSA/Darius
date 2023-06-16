@@ -40,6 +40,9 @@ namespace Darius::Graphics
 
 		INLINE D3D12_GPU_VIRTUAL_ADDRESS		GetConstantsAddress() const override { return mMeshConstantsGPU.GetGpuVirtualAddress(); }
 
+		INLINE virtual bool						IsDirty() const override { return D_ECS_COMP::ComponentBase::IsDirty() || GetTransform()->IsDirty(); }
+
+
 	protected:
 
 		void									_SetMaterial(UINT index, D_RESOURCE::ResourceHandle handle);
@@ -52,7 +55,7 @@ namespace Darius::Graphics
 		DField(Get[inline], Set[inline])
 		bool									mCastsShadow;
 
-		DField(Get[inline], Set[inline])
+		DField(Get[inline], Set[inline, dirty])
 		float									mLoD;
 
 		// Gpu buffers
@@ -63,7 +66,6 @@ namespace Darius::Graphics
 
 		D_CONTAINERS::DVector<MaterialPsoData>	mMaterialPsoData;
 		
-
 	public:
 		Darius_Graphics_MeshRendererComponentBase_GENERATED
 	};

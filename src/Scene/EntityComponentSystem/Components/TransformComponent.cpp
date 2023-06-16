@@ -17,7 +17,6 @@ namespace Darius::Math
 		D_ECS_COMP::ComponentBase(),
 		mTransformMath(Vector3::Zero, Quaternion::Identity, Vector3::One),
 		mWorldMatrix(kZero),
-		mDirty(false),
 		mWorldDirty(true)
 	{
 		SetDirty();
@@ -27,7 +26,6 @@ namespace Darius::Math
 		D_ECS_COMP::ComponentBase(uuid),
 		mTransformMath(Vector3::Zero, Quaternion::Identity, Vector3::One),
 		mWorldMatrix(kZero),
-		mDirty(false),
 		mWorldDirty(true)
 	{
 		SetDirty();
