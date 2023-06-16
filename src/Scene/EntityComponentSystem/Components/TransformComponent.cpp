@@ -33,6 +33,9 @@ namespace Darius::Math
 
 	void TransformComponent::SetWorld(Matrix4 const& mat)
 	{
+		if (!CanChange())
+			return;
+
 		mWorldMatrix = mat;
 		mWorldDirty = false;
 		SetDirty();
