@@ -137,6 +137,14 @@ namespace Darius::Scene::ECS::Components
                 OnActivate();
             else
                 OnDeactivate();
+
+
+            if (!mStarted && IsActive())
+            {
+                mStarted = true;
+                Start();
+            }
+
         }
 
         INLINE CompRef<D_MATH::TransformComponent> GetTransform() const { return mGameObject->GetTransform(); }
