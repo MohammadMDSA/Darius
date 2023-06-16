@@ -85,6 +85,14 @@ namespace Darius::Scene
 			SetActive(active);
 			changeValue = true;
 		}
+
+		bool isStatic = GetType() == Type::Static;
+		if(ImGui::Checkbox("Static", &isStatic))
+		{
+			SetType(isStatic ? Type::Static : Type::Movable);
+			changeValue = true;
+		}
+
 		ImGui::Spacing();
 
 		// Show parent prefab
