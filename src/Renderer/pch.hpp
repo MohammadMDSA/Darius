@@ -4,6 +4,7 @@
 //
 
 #pragma once
+
 #define NOMINMAX
 
 #define D_HR_CHECK(hr) Darius::Graphics::Utils::ThrowIfFailed(hr);

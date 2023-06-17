@@ -135,10 +135,6 @@ namespace Microsoft
 #include <dxgidebug.h>
 #endif
 
-#include <Core/pch.hpp>
-#include <ResourceManager/pch.hpp>
-#include <Scene/EntityComponentSystem/Components/TransformComponent.hpp>
-#include <Scene/pch.hpp>
 #include <Utils/Log.hpp>
 
 #undef min
