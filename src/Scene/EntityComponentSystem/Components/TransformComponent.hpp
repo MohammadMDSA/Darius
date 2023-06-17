@@ -42,7 +42,7 @@ namespace Darius::Math
 		virtual bool						DrawDetails(float params[]) override;
 #endif
 
-		INLINE virtual bool					IsDisableable() const { return false; }
+		INLINE virtual bool					IsDisableable() const override { return false; }
 
 	private:
 		bool								IsWorldDirty() const;
