@@ -15,12 +15,21 @@ namespace Darius::Graphics::PostProcessing
 
     struct PostProcessContextBuffers
     {
+        // HDR Tone Mapping
         D_GRAPHICS_BUFFERS::StructuredBuffer&				ExposureBuffer;
         D_GRAPHICS_BUFFERS::ColorBuffer&                    SceneColor;
         D_GRAPHICS_BUFFERS::ColorBuffer&                    LumaBuffer;
         D_GRAPHICS_BUFFERS::ColorBuffer&                    LumaLR;
         D_GRAPHICS_BUFFERS::ByteAddressBuffer&              HistogramBuffer;
         D_GRAPHICS_BUFFERS::ColorBuffer&                    PostEffectsBuffer;
+
+        // Bloom
+        D_GRAPHICS_BUFFERS::ColorBuffer*                     BloomUAV1;
+        D_GRAPHICS_BUFFERS::ColorBuffer*                     BloomUAV2;
+        D_GRAPHICS_BUFFERS::ColorBuffer*                     BloomUAV3;
+        D_GRAPHICS_BUFFERS::ColorBuffer*                     BloomUAV4;
+        D_GRAPHICS_BUFFERS::ColorBuffer*                     BloomUAV5;
+
         std::wstring const&                                 JobId;
     };
 
