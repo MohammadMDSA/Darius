@@ -19,8 +19,9 @@
 #include <Engine/EngineContext.hpp>
 #include <Math/VectorMath.hpp>
 #include <Physics/Resources/PhysicsMaterialResource.hpp>
-#include <Renderer/Renderer.hpp>
+#include <Renderer/Geometry/ModelLoader/FbxLoader.hpp>
 #include <Renderer/GraphicsUtils/Profiling/Profiling.hpp>
+#include <Renderer/Renderer.hpp>
 #include <Renderer/Resources/MaterialResource.hpp>
 #include <Renderer/Resources/TerrainResource.hpp>
 #include <ResourceManager/ResourceManager.hpp>
@@ -391,16 +392,9 @@ namespace Darius::Editor::Gui::GuiManager
 
 				if (ImGui::MenuItem("Debug Button"))
 				{
-					D_SERIALIZATION::Json json;
-					auto selected = D_EDITOR_CONTEXT::GetSelectedGameObject();
-					if (selected)
-					{
-						D_WORLD::DumpGameObject(selected, json, true);
-						auto jsonStr = json.dump();
-
-						D_SCENE::GameObject* res;
-						D_WORLD::LoadGameObject(json, &res);
-					}
+					auto res = (D_RESOURCE::Resource*)D_EDITOR_CONTEXT::GetSelectedDetailed();
+					auto go = D_RENDERER_GEOMETRY_LOADER_FBX::LoadScene(res->GetPath());
+					D_WORLD::InstantiateGameObject(go, true);
 				}
 
 				ImGui::EndMenu();
