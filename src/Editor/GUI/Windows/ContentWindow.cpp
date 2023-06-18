@@ -281,7 +281,7 @@ namespace Darius::Editor::Gui::Windows
 
 		auto containedResources = D_RESOURCE::ResourceLoader::LoadResource(item->Path, true);
 
-		if (containedResources.size() != 1)
+		if (containedResources.size() == 0)
 		{
 			D_EDITOR_CONTEXT::SetSelectedDetailed(nullptr);
 			return;
