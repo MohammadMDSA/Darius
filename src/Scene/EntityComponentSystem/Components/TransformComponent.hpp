@@ -44,6 +44,8 @@ namespace Darius::Math
 
 		INLINE virtual bool					IsDisableable() const override { return false; }
 
+		INLINE virtual bool					IsDirty() const override { auto parent = GetGameObject()->GetParent(); return parent ? ComponentBase::IsDirty() || parent->GetTransform()->IsDirty() : ComponentBase::IsDirty(); }
+
 	private:
 		bool								IsWorldDirty() const;
 
@@ -92,6 +94,7 @@ namespace Darius::Math
 		if (!CanChange())
 			return;
 		mTransformMath.Translation = value;
+		mWorldDirty = true;
 		SetDirty();
 	}
 
@@ -100,6 +103,7 @@ namespace Darius::Math
 		if (!CanChange())
 			return;
 		mTransformMath.Rotation = val;
+		mWorldDirty = true;
 		SetDirty();
 	}
 
@@ -108,6 +112,7 @@ namespace Darius::Math
 		if (!CanChange())
 			return;
 		mTransformMath.Scale = val;
+		mWorldDirty = true;
 		SetDirty();
 	}
 
