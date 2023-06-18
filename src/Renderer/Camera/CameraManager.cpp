@@ -29,7 +29,7 @@ namespace Darius::Renderer::CameraManager
 	void Update()
 	{
 		for (auto cam : activeCameras)
-			if (cam.IsValid())
+			if (cam.IsValid() && cam->IsActive())
 				cam->Update(-1.f);
 	}
 
