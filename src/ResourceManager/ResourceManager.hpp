@@ -54,6 +54,16 @@ namespace Darius::ResourceManager
 		return ResourceRef(dynamic_cast<T*>(_GetRawResource(uuid, true)), ownerData);
 	}
 
+	// Untyped version
+	INLINE Resource* GetUncountedResource(ResourceHandle handle, std::optional<D_CORE::CountedOwner> ownerData = std::nullopt)
+	{
+		// Requested None resource so we return nothing
+		if (handle.Type == 0)
+			return nullptr;
+
+		return _GetRawResource(handle, true);
+	}
+
 	template<class T>
 	ResourceRef<T> GetResource(ResourceHandle handle, std::optional<D_CORE::CountedOwner> ownerData = std::nullopt)
 	{
