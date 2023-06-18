@@ -51,6 +51,16 @@ namespace Darius::Editor::Gui::Windows
 		mLumaLR.Destroy();
 		mHistogramBuffer.Destroy();
 		mPostEffectsBuffer.Destroy();
+		BloomUAV1[0].Destroy();
+		BloomUAV1[1].Destroy();
+		BloomUAV2[0].Destroy();
+		BloomUAV2[1].Destroy();
+		BloomUAV3[0].Destroy();
+		BloomUAV3[1].Destroy();
+		BloomUAV4[0].Destroy();
+		BloomUAV4[1].Destroy();
+		BloomUAV5[0].Destroy();
+		BloomUAV5[1].Destroy();
 		mSSAOFullScreen.Destroy();
 		mDepthDownsize1.Destroy();
 		mDepthDownsize2.Destroy();
@@ -143,6 +153,11 @@ namespace Darius::Editor::Gui::Windows
 			mLumaLR,
 			mHistogramBuffer,
 			mPostEffectsBuffer,
+			BloomUAV1,
+			BloomUAV2,
+			BloomUAV3,
+			BloomUAV4,
+			BloomUAV5,
 			L"Game Window"
 		};
 		D_GRAPHICS_PP::Render(postBuffers, context.GetComputeContext());
@@ -213,6 +228,16 @@ namespace Darius::Editor::Gui::Windows
 		};
 		mExposureBuffer.Create(L"Game Exposure", 8, 4, initExposure);
 		mLumaLR.Create(L"Game Luma Buffer", bloomWidth, bloomHeight, 1, DXGI_FORMAT_R8_UINT);
+		BloomUAV1[0].Create(L"Scene Bloom Buffer 1a", bloomWidth, bloomHeight, 1, D_GRAPHICS::GetColorFormat());
+		BloomUAV1[1].Create(L"Scene Bloom Buffer 1b", bloomWidth, bloomHeight, 1, D_GRAPHICS::GetColorFormat());
+		BloomUAV2[0].Create(L"Scene Bloom Buffer 2a", bloomWidth / 2, bloomHeight / 2, 1, D_GRAPHICS::GetColorFormat());
+		BloomUAV2[1].Create(L"Scene Bloom Buffer 2b", bloomWidth / 2, bloomHeight / 2, 1, D_GRAPHICS::GetColorFormat());
+		BloomUAV3[0].Create(L"Scene Bloom Buffer 3a", bloomWidth / 4, bloomHeight / 4, 1, D_GRAPHICS::GetColorFormat());
+		BloomUAV3[1].Create(L"Scene Bloom Buffer 3b", bloomWidth / 4, bloomHeight / 4, 1, D_GRAPHICS::GetColorFormat());
+		BloomUAV4[0].Create(L"Scene Bloom Buffer 4a", bloomWidth / 8, bloomHeight / 8, 1, D_GRAPHICS::GetColorFormat());
+		BloomUAV4[1].Create(L"Scene Bloom Buffer 4b", bloomWidth / 8, bloomHeight / 8, 1, D_GRAPHICS::GetColorFormat());
+		BloomUAV5[0].Create(L"Scene Bloom Buffer 5a", bloomWidth / 16, bloomHeight / 16, 1, D_GRAPHICS::GetColorFormat());
+		BloomUAV5[1].Create(L"Scene Bloom Buffer 5b", bloomWidth / 16, bloomHeight / 16, 1, D_GRAPHICS::GetColorFormat());
 		mLumaBuffer.Create(L"Game Luminance", (UINT)mBufferWidth, (UINT)mBufferHeight, 1, DXGI_FORMAT_R8_UNORM);
 		mHistogramBuffer.Create(L"Game Histogram", 256, 4);
 		mPostEffectsBuffer.Create(L"Game Post Effects Buffer", (UINT)mBufferWidth, (UINT)mBufferHeight, 1, DXGI_FORMAT_R32_UINT);

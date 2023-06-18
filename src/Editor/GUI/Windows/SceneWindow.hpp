@@ -55,11 +55,18 @@ namespace Darius::Editor::Gui::Windows
 		D_GRAPHICS_BUFFERS::ColorBuffer				mLinearDepth[2];
 
 		// Post Processing Buffers
+		// HDR ToneMapping
 		D_GRAPHICS_BUFFERS::StructuredBuffer		mExposureBuffer;
 		D_GRAPHICS_BUFFERS::ColorBuffer				mLumaBuffer;
 		D_GRAPHICS_BUFFERS::ColorBuffer				mLumaLR;
 		D_GRAPHICS_BUFFERS::ByteAddressBuffer		mHistogramBuffer;
 		D_GRAPHICS_BUFFERS::ColorBuffer				mPostEffectsBuffer;
+		// Bloom
+		D_GRAPHICS_BUFFERS::ColorBuffer             BloomUAV1[2];
+		D_GRAPHICS_BUFFERS::ColorBuffer             BloomUAV2[2];
+		D_GRAPHICS_BUFFERS::ColorBuffer             BloomUAV3[2];
+		D_GRAPHICS_BUFFERS::ColorBuffer             BloomUAV4[2];
+		D_GRAPHICS_BUFFERS::ColorBuffer             BloomUAV5[2];
 
 		// Ambient Occlusion Buffers
 		D_GRAPHICS_BUFFERS::ColorBuffer				mSSAOFullScreen;
