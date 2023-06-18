@@ -48,11 +48,11 @@ namespace Darius::Graphics
 		{
 			auto const& material = mMaterials[i];
 			if (!material.IsValid())
-				_SetMaterial(i, D_GRAPHICS::GetDefaultGraphicsResource(DefaultResource::Material));
+				SetMaterial(i, D_GRAPHICS::GetDefaultGraphicsResource(DefaultResource::Material));
 		}
 	}
 
-	void MeshRendererComponentBase::_SetMaterial(UINT index, ResourceHandle handle)
+	void MeshRendererComponentBase::SetMaterial(UINT index, ResourceHandle handle)
 	{
 		mMaterialPsoData[index].PsoIndexDirty = true;
 		mMaterials[index] = D_RESOURCE::GetResource<MaterialResource>(handle, *this);

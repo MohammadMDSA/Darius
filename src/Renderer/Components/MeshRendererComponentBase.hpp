@@ -42,10 +42,10 @@ namespace Darius::Graphics
 
 		INLINE virtual bool						IsDirty() const override { return D_ECS_COMP::ComponentBase::IsDirty() || GetTransform()->IsDirty(); }
 
+		void									SetMaterial(UINT index, D_RESOURCE::ResourceHandle handle);
 
 	protected:
 
-		void									_SetMaterial(UINT index, D_RESOURCE::ResourceHandle handle);
 		virtual UINT							GetPsoIndex(UINT materialIndex);
 		void									OnMeshChanged();
 		
