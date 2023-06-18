@@ -1,7 +1,16 @@
 #include "Renderer/pch.hpp"
 #include "FbxLoader.hpp"
 
+#include "Renderer/Components/CameraComponent.hpp"
+#include "Renderer/Components/LightComponent.hpp"
+#include "Renderer/Components/MeshRendererComponent.hpp"
+#include "Renderer/Components/SkeletalMeshRendererComponent.hpp"
 #include "Renderer/Resources/SkeletalMeshResource.hpp"
+#include "Renderer/Resources/StaticMeshResource.hpp"
+
+#include <ResourceManager/ResourceManager.hpp>
+#include <ResourceManager/ResourceLoader.hpp>
+
 
 #include <Utils/Assert.hpp>
 
@@ -15,6 +24,7 @@ using namespace fbxsdk;
 using namespace D_CONTAINERS;
 using namespace D_MATH;
 using namespace D_RESOURCE;
+using namespace D_SCENE;
 using namespace DirectX;
 
 namespace Darius::Renderer::Geometry::ModelLoader::Fbx
@@ -618,7 +628,7 @@ namespace Darius::Renderer::Geometry::ModelLoader::Fbx
 		{
 			float* vert = &lVertices[i * VERTEX_STRIDE];
 			float* norm = &lNormals[i * NORMAL_STRIDE];
-			
+
 			float* tang;
 			if (mHasTangent)
 				tang = &lTangents[i * TANGENT_STRIDE];
@@ -1002,4 +1012,208 @@ namespace Darius::Renderer::Geometry::ModelLoader::Fbx
 	}
 
 #pragma endregion Skinned Mesh
+
+#pragma region Scene
+
+	void AddSkeletalMesh(FbxNode* node, GameObject* go, DUnorderedMap<std::string, Resource const*> const& resourceDic);
+	void AddStaticMesh(FbxNode* node, GameObject* go, DUnorderedMap<std::string, Resource const*> const& resourceDic);
+	void AddCamera(FbxNode* node, GameObject* go);
+	void AddLight(FbxNode* node, GameObject* go);
+	GameObject* IterateSceneNodes(FbxScene* pScene, DUnorderedMap<std::string, Resource const*> const& resourceDic);
+	void ProcessSceneNode(FbxNode* pNode, GameObject* parentGo, DUnorderedMap<std::string, Resource const*> const& resourceDic);
+
+	GameObject* LoadScene(D_FILE::Path const& path)
+	{
+		FbxManager* sdkManager = nullptr;
+		FbxNode* rootNode = nullptr;
+
+		if (!InitializeFbxScene(path, &rootNode, &sdkManager))
+		{
+			sdkManager->Destroy();
+			return nullptr;
+		}
+
+		GameObject* result;
+
+		// Fetching resources
+		DUnorderedMap<std::string, Resource const*> resourceMap;
+		{
+			auto handles = D_RESOURCE_LOADER::LoadResource(path);
+			for (auto const& handle : handles)
+			{
+				auto resource = D_RESOURCE::GetUncountedResource(handle);
+				auto name = WSTR2STR(resource->GetName());
+				resourceMap[name] = resource;
+			}
+		}
+
+		result = IterateSceneNodes(rootNode->GetScene(), resourceMap);
+
+		sdkManager->Destroy();
+		return result;
+
+	}
+
+	GameObject* IterateSceneNodes(FbxScene* pScene, DUnorderedMap<std::string, Resource const*> const& resourceDic)
+	{
+		int i;
+		FbxNode* lNode = pScene->GetRootNode();
+
+		GameObject* rootGo = nullptr;
+
+
+		if (lNode)
+		{
+			rootGo = D_WORLD::CreateGameObject(false);
+			rootGo->SetName(lNode->GetName());
+
+			for (i = 0; i < lNode->GetChildCount(); i++)
+			{
+
+				ProcessSceneNode(lNode->GetChild(i), rootGo, resourceDic);
+			}
+		}
+
+		return rootGo;
+	}
+
+
+	void ProcessSceneNode(FbxNode* pNode, GameObject* parentGo, DUnorderedMap<std::string, Resource const*> const& resourceDic)
+	{
+		FbxNodeAttribute::EType lAttributeType;
+
+		auto go = D_WORLD::CreateGameObject(false);
+		go->SetParent(parentGo);
+		go->SetName(pNode->GetName());
+
+		bool skipChildren = false;
+
+		if (pNode->GetNodeAttribute() != NULL)
+		{
+			lAttributeType = (pNode->GetNodeAttribute()->GetAttributeType());
+
+			// Only processing skeletal mesh, static mesh, camera, and light
+			switch (lAttributeType)
+			{
+			default:
+				break;
+			case FbxNodeAttribute::eSkeleton:
+				// We don't create the skeleton hierarchy
+				skipChildren = true;
+				break;
+
+			case FbxNodeAttribute::eMesh:
+			{
+				auto mesh = pNode->GetMesh();
+
+				// Skeletal or static mesh?
+				if (mesh->GetDeformerCount(FbxDeformer::eSkin) > 0)
+					AddSkeletalMesh(pNode, go, resourceDic);
+				else
+					AddStaticMesh(pNode, go, resourceDic);
+				break;
+			}
+			case FbxNodeAttribute::eCamera:
+				AddCamera(pNode, go);
+				break;
+
+			case FbxNodeAttribute::eLight:
+				AddLight(pNode, go);
+				break;
+
+			}
+		}
+
+		// Setting the transform
+		auto localWorld = pNode->EvaluateLocalTransform();
+		go->GetTransform()->SetLocalWorld(GetMat4(localWorld));
+
+
+		if (!skipChildren)
+			for (int i = 0; i < pNode->GetChildCount(); i++)
+			{
+				ProcessSceneNode(pNode->GetChild(i), go, resourceDic);
+			}
+	}
+
+	template<class T>
+	ResourceHandle FindRes(std::string const& name, DUnorderedMap<std::string, Resource const*> const& resourceDic)
+	{
+		// Checking if T is a resource type
+		using conv = std::is_convertible<T*, Resource*>;
+		D_STATIC_ASSERT(conv::value);
+
+		if (!resourceDic.contains(name))
+		{
+			D_LOG_WARN("Resource with given name: " + name + ", was not found in the resource file");
+			return EmptyResourceHandle;
+		}
+
+		Resource const* res = resourceDic.at(name);
+
+		if (T::GetResourceType() != res->GetType())
+		{
+			D_LOG_WARN("Resource type mismatch with what expected");
+			return EmptyResourceHandle;
+		}
+
+		return (ResourceHandle)(*res);
+	}
+
+	void AddSkeletalMesh(FbxNode* node, GameObject* go, DUnorderedMap<std::string, Resource const*> const& resourceDic)
+	{
+		auto comp = go->AddComponent<D_GRAPHICS::SkeletalMeshRendererComponent>();
+		comp->SetMesh(FindRes<D_GRAPHICS::SkeletalMeshResource>(node->GetName(), resourceDic));
+	}
+
+	void AddStaticMesh(FbxNode* node, GameObject* go, DUnorderedMap<std::string, Resource const*> const& resourceDic)
+	{
+		auto comp = go->AddComponent<D_GRAPHICS::MeshRendererComponent>();
+		comp->SetMesh(FindRes<D_GRAPHICS::StaticMeshResource>(node->GetName(), resourceDic));
+	}
+
+	void AddCamera(FbxNode* node, GameObject* go)
+	{
+		auto cam = node->GetCamera();
+		auto comp = go->AddComponent<D_GRAPHICS::CameraComponent>();
+		comp->SetNearClip((float)cam->GetNearPlane());
+		comp->SetFarClip((float)cam->GetFarPlane());
+		comp->SetFoV(DirectX::XMConvertToRadians((float)cam->FieldOfView.Get()));
+		comp->SetOrthographic(cam->ProjectionType.Get() == FbxCamera::EProjectionType::eOrthogonal);
+		comp->SetOrthographicSize((float)cam->OrthoZoom.Get());
+	}
+
+	void AddLight(FbxNode* node, GameObject* go)
+	{
+		auto light = node->GetLight();
+		auto comp = go->AddComponent<D_GRAPHICS::LightComponent>();
+
+		auto color = light->Color.Get();
+
+		comp->SetColor(D_MATH::Color((float)color.mData[0], (float)color.mData[1], (float)color.mData[2]));
+
+		switch (light->LightType.Get())
+		{
+		case FbxLight::eDirectional:
+		{
+			comp->SetLightType(D_LIGHT::LightSourceType::DirectionalLight);
+			break;
+		}
+		case FbxLight::eSpot:
+		{
+			comp->SetLightType(D_LIGHT::LightSourceType::SpotLight);
+			comp->SetConeInnerAngle(DirectX::XMConvertToRadians((float)light->InnerAngle.Get()));
+			comp->SetConeOuterAngle(DirectX::XMConvertToRadians((float)light->OuterAngle.Get()));
+			break;
+		}
+		case FbxLight::ePoint:
+		default:
+		{
+			comp->SetLightType(D_LIGHT::LightSourceType::PointLight);
+			break;
+		}
+		}
+	}
+
+#pragma endregion Scene
 }
