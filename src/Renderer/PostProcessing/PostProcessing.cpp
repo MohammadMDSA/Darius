@@ -21,7 +21,7 @@ namespace Darius::Graphics::PostProcessing
 
 	bool                                                _initialized = false;
 
-	// Options
+	// Options HDR
 	bool                                                EnableHDR;
 	bool                                                EnableAdaptation;
 	bool												DrawHistogram;
@@ -30,6 +30,13 @@ namespace Darius::Graphics::PostProcessing
 	float												MaxExposure;
 	float												TargetLuminance;
 	float												AdaptationRate;
+
+	// Options Bloom
+	bool												EnableBloom;			// Whether enable
+	float												BloomThreshold;			// Above this, pixels start to bloom
+	float												BloomStrength;			// Controlling how much bloom is added back into the image
+	float												BloomUpsampleFactor;	// Controls the focus of the blur. High values spread out more causing a haze.
+	bool												HighQualityBloom;		// High quality blurs 5 octaves of bloom; low quality only blurs 3.
 
 	// PSOs
 	RootSignature										PostEffectRS;
@@ -40,6 +47,10 @@ namespace Darius::Graphics::PostProcessing
 	ComputePSO											ExtractLumaCS(L"Post Effects: Extract Luma CS");
 	ComputePSO											CopyBackPostBufferCS(L"Post Effects: Copy Back Post Buffer CS");
 	ComputePSO											ApplyBloomCS(L"Post Effects: Apply Bloom CS");
+	ComputePSO											DownsampleBloom2CS(L"Post Effect: Downsample Bloom 2 CS");
+	ComputePSO											DownsampleBloom4CS(L"Post Effect: Downsample Bloom 4 CS");
+    ComputePSO											BloomExtractAndDownsampleHdrCS(L"Post Effects: Bloom Extract and Downsample HDR CS");
+    ComputePSO											BloomExtractAndDownsampleLdrCS(L"Post Effects: Bloom Extract and Downsample LDR CS");
 
 	// Internal
 	const float											InitialMinLog = -12.0f;
@@ -51,6 +62,7 @@ namespace Darius::Graphics::PostProcessing
 	void UpdateExposure(ComputeContext& context, PostProcessContextBuffers& contextBuffers);
 	void ProcessHDR(ComputeContext&, PostProcessContextBuffers& contextBuffers);
 	void ProcessLDR(ComputeContext&, PostProcessContextBuffers& contextBuffers);
+	void GenerateBloom(ComputeContext&, PostProcessContextBuffers& contextBuffers);
 
 	void Initialize(D_SERIALIZATION::Json const& settings)
 	{
@@ -66,6 +78,12 @@ namespace Darius::Graphics::PostProcessing
 		D_H_OPTIONS_LOAD_BASIC_DEFAULT("PostProcessing.HDR.MaxExposure", MaxExposure, 64.f);
 		D_H_OPTIONS_LOAD_BASIC_DEFAULT("PostProcessing.HDR.TargetLuminance", TargetLuminance, 0.08f);
 		D_H_OPTIONS_LOAD_BASIC_DEFAULT("PostProcessing.HDR.AdaptationRate", AdaptationRate, 0.05f);
+
+		D_H_OPTIONS_LOAD_BASIC_DEFAULT("PostProcessing.Bloom.Enable", EnableBloom, true);
+		D_H_OPTIONS_LOAD_BASIC_DEFAULT("PostProcessing.Bloom.Threshold", BloomThreshold, 4.f);
+		D_H_OPTIONS_LOAD_BASIC_DEFAULT("PostProcessing.Bloom.Strength", BloomStrength, 0.1f);
+		D_H_OPTIONS_LOAD_BASIC_DEFAULT("PostProcessing.Bloom.Scatter", BloomUpsampleFactor, 0.65f);
+		D_H_OPTIONS_LOAD_BASIC_DEFAULT("PostProcessing.Bloom.HighQuality", HighQualityBloom, true);
 
 		// Initializing Root Signature
 		PostEffectRS.Reset(4, 2);
@@ -102,6 +120,11 @@ namespace Darius::Graphics::PostProcessing
 		CreatePSO(AdaptExposureCS, AdaptExposureCS);
 		CreatePSO(ExtractLumaCS, ExtractLumaCS);
 		CreatePSO(CopyBackPostBufferCS, CopyBackPostBufferCS);
+		CreatePSO(DownsampleBloom2CS, DownsampleBloomCS);
+		CreatePSO(DownsampleBloom4CS, DownsampleBloomAllCS);
+		CreatePSO(BloomExtractAndDownsampleHdrCS, BloomExtractAndDownsampleHdrCS);
+		CreatePSO(BloomExtractAndDownsampleLdrCS, BloomExtractAndDownsampleLdrCS);
+
 
 #undef CreatePSO
 
@@ -337,6 +360,9 @@ namespace Darius::Graphics::PostProcessing
 	{
 		D_H_OPTION_DRAW_BEGIN();
 
+		ImGui::Text("HDR Tone Mapping");
+		ImGui::Separator();
+
 		D_H_OPTION_DRAW_CHECKBOX("Enable HDR", "PostProcessing.HDR.Enable", EnableHDR);
 
 		D_H_OPTION_DRAW_CHECKBOX("Adaptive Exposure", "PostProcessing.HDR.Adaptation", EnableAdaptation);
@@ -357,6 +383,23 @@ namespace Darius::Graphics::PostProcessing
 
 			D_H_OPTION_DRAW_FLOAT_SLIDER("Adaptation Rate", "PostProcessing.HDR.AdaptationRate", AdaptationRate, 0.01f, 1.f);
 		}
+		
+		ImGui::Spacing();
+
+		ImGui::Text("Bloom");
+		ImGui::Separator();
+
+		D_H_OPTION_DRAW_CHECKBOX("Enable Bloom", "PostProcessing.Bloom.Enable", EnableBloom);
+
+		D_H_OPTION_DRAW_FLOAT_SLIDER("Bloom Threshold", "PostProcessing.Bloom.Threshold", BloomThreshold, 0.f, 8.f);
+
+		D_H_OPTION_DRAW_FLOAT_SLIDER("Bloom Strength", "PostProcessing.Bloom.Strength", BloomStrength, 0.f, 2.f);
+
+		D_H_OPTION_DRAW_FLOAT_SLIDER("Bloom Scatter", "PostProcessing.Bloom.Scatter", BloomUpsampleFactor, 0.f, 1.f);
+
+		D_H_OPTION_DRAW_CHECKBOX("Bloom High Quality", "PostProcessing.Bloom.HighQuality", HighQualityBloom);
+
+		ImGui::Spacing();
 
 		D_H_OPTION_DRAW_END()
 
