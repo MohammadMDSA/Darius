@@ -1019,10 +1019,10 @@ namespace Darius::Renderer::Geometry::ModelLoader::Fbx
 	void AddStaticMesh(FbxNode* node, GameObject* go, DUnorderedMap<std::string, Resource const*> const& resourceDic);
 	void AddCamera(FbxNode* node, GameObject* go);
 	void AddLight(FbxNode* node, GameObject* go);
-	GameObject* IterateSceneNodes(FbxScene* pScene, DUnorderedMap<std::string, Resource const*> const& resourceDic);
+	GameObject* IterateSceneNodes(FbxScene* pScene, D_CORE::Uuid const& rootUuid, DUnorderedMap<std::string, Resource const*> const& resourceDic);
 	void ProcessSceneNode(FbxNode* pNode, GameObject* parentGo, DUnorderedMap<std::string, Resource const*> const& resourceDic);
 
-	GameObject* LoadScene(D_FILE::Path const& path)
+	GameObject* LoadScene(D_FILE::Path const& path, D_CORE::Uuid const& rootUuid)
 	{
 		FbxManager* sdkManager = nullptr;
 		FbxNode* rootNode = nullptr;
@@ -1047,14 +1047,14 @@ namespace Darius::Renderer::Geometry::ModelLoader::Fbx
 			}
 		}
 
-		result = IterateSceneNodes(rootNode->GetScene(), resourceMap);
+		result = IterateSceneNodes(rootNode->GetScene(), rootUuid, resourceMap);
 
 		sdkManager->Destroy();
 		return result;
 
 	}
 
-	GameObject* IterateSceneNodes(FbxScene* pScene, DUnorderedMap<std::string, Resource const*> const& resourceDic)
+	GameObject* IterateSceneNodes(FbxScene* pScene, D_CORE::Uuid const& rootUuid, DUnorderedMap<std::string, Resource const*> const& resourceDic)
 	{
 		int i;
 		FbxNode* lNode = pScene->GetRootNode();
@@ -1064,8 +1064,8 @@ namespace Darius::Renderer::Geometry::ModelLoader::Fbx
 
 		if (lNode)
 		{
-			rootGo = D_WORLD::CreateGameObject(false);
-			rootGo->SetName(lNode->GetName());
+			rootGo = D_WORLD::CreateGameObject(rootUuid, false);
+			rootGo->SetName(pScene->GetName());
 
 			for (i = 0; i < lNode->GetChildCount(); i++)
 			{
