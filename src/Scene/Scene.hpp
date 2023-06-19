@@ -27,6 +27,7 @@ namespace Darius::Scene
 		static void				Shutdown();
 
 		static GameObject*		CreateGameObject(bool addToScene = true);
+		static GameObject*		CreateGameObject(D_CORE::Uuid uuid, bool addToScene = true);
 		static GameObject*		InstantiateGameObject(GameObject* go, bool maintainContext = true);
 		static void				DeleteGameObject(GameObject* go);
 		static void				DeleteGameObjectImmediately(GameObject* go);
@@ -72,7 +73,6 @@ namespace Darius::Scene
 	private:
 		static void				DeleteGameObjectData(GameObject* go);
 		static void				RemoveDeletedPointers();
-		static GameObject*		CreateGameObject(D_CORE::Uuid uuid, bool addToScene = true);
 		static void				StartScene();
 		static void				RemoveDeleted();
 
