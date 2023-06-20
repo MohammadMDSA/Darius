@@ -93,6 +93,7 @@ namespace Darius::ResourceManager
 #pragma endregion
 
 	D_CONTAINERS::DVector<ResourcePreview> GetResourcePreviews(ResourceType type);
+	ResourcePreview					GetResourcePreview(ResourceHandle const& handle);
 	
 	class DResourceManager : NonCopyable
 	{
@@ -108,6 +109,7 @@ namespace Darius::ResourceManager
 		void						SaveAllResources();
 
 		D_CONTAINERS::DVector<ResourcePreview>	GetResourcePreviews(ResourceType type);
+		ResourcePreview				GetResourcePreview(ResourceHandle const& handle);
 
 		template<class T>
 		INLINE ResourceHandle		CreateResource(D_CORE::Uuid const& uuid, std::wstring const& path, std::wstring const& name, bool isDefault = false) {
@@ -150,6 +152,8 @@ namespace Darius::ResourceManager
 
 			return CreateResource(T::GetResourceType(), uuid, path, name, isDefault, fromFile);
 		}
+
+		Resource*					GetRawResourceSafe(ResourceHandle handle);
 
 		void						UpdateMaps(std::shared_ptr<Resource> resuorce);
 
