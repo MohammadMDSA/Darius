@@ -392,9 +392,6 @@ namespace Darius::Editor::Gui::GuiManager
 
 				if (ImGui::MenuItem("Debug Button"))
 				{
-					auto res = (D_RESOURCE::Resource*)D_EDITOR_CONTEXT::GetSelectedDetailed();
-					auto go = D_RENDERER_GEOMETRY_LOADER_FBX::LoadScene(res->GetPath());
-					D_WORLD::InstantiateGameObject(go, true);
 				}
 
 				ImGui::EndMenu();
