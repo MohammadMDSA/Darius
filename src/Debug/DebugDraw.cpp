@@ -131,7 +131,7 @@ namespace Darius::Debug
 
 		auto difference = p2 - p1;
 
-		auto quat = Quaternion::GetShortestArcBetweenTwoVector(Vector3::Forward, p2 - p1);
+		auto quat = Quaternion::GetShortestArcBetweenTwoVector(Vector3::Forward, difference);
 
 		auto trans = D_MATH::Transform(p1, quat, Vector3(kOne) * D_MATH::Length(difference));
 
