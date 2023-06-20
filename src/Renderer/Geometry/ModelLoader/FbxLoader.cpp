@@ -1038,7 +1038,7 @@ namespace Darius::Renderer::Geometry::ModelLoader::Fbx
 		// Fetching resources
 		DUnorderedMap<std::string, Resource const*> resourceMap;
 		{
-			auto handles = D_RESOURCE_LOADER::LoadResource(path);
+			auto handles = D_RESOURCE_LOADER::LoadResource(path, true);
 			for (auto const& handle : handles)
 			{
 				auto resource = D_RESOURCE::GetUncountedResource(handle);
@@ -1065,7 +1065,7 @@ namespace Darius::Renderer::Geometry::ModelLoader::Fbx
 		if (lNode)
 		{
 			rootGo = D_WORLD::CreateGameObject(rootUuid, false);
-			rootGo->SetName(pScene->GetName());
+			rootGo->SetName(lNode->GetName());
 
 			for (i = 0; i < lNode->GetChildCount(); i++)
 			{
