@@ -7,6 +7,7 @@
 
 #include <Core/Filesystem/FileUtils.hpp>
 #include <Engine/EngineContext.hpp>
+#include <Renderer/Resources/FBXPrefabResource.hpp>
 
 #include <imgui.h>
 #include <Libs/FontIcon/IconsFontAwesome6.h>
@@ -158,12 +159,13 @@ namespace Darius::Editor::Gui::Windows
 		for (auto& dirItem : mCurrentDirectoryItems)
 		{
 			bool selected = mSelectedItem == &dirItem;
+			D_RESOURCE::ResourceHandle selectedHandle = D_RESOURCE::EmptyResourceHandle;
 			bool clicked;
-			D_GUI_COMPONENT::ContentWindowItemGrid(dirItem, buttonWidth, buttonWidth, selected, clicked);
+			D_GUI_COMPONENT::ContentWindowItemGrid(dirItem, buttonWidth, buttonWidth, selected, clicked, selectedHandle);
 
 			// Check if becomes selected
 			if (selected && mSelectedItem != &dirItem)
-				SelectEditorContentItem(&dirItem);
+				SelectEditorContentItem(&dirItem, selectedHandle);
 
 			if (clicked && dirItem.IsDirectory)
 				newContext = dirItem.Path;
@@ -218,6 +220,20 @@ namespace Darius::Editor::Gui::Windows
 				}
 
 				mCurrentDirectoryItems.push_back({ nameStr, path, false, icon, resourceHandle });
+				auto& lastItem = mCurrentDirectoryItems[mCurrentDirectoryItems.size() - 1];
+
+				for (auto const& handle : containedResources)
+				{
+					if (handle.Type == D_GRAPHICS::FBXPrefabResource::GetResourceType())
+					{
+						lastItem.MainHandle = handle;
+						lastItem.IconId = D_THUMBNAIL::GetResourceTextureId(handle);
+					}
+					else
+					{
+						lastItem.ChildResources.push_back(handle);
+					}
+				}
 			}
 		}
 
@@ -272,7 +288,7 @@ namespace Darius::Editor::Gui::Windows
 		return true;
 	}
 
-	void ContentWindow::SelectEditorContentItem(D_GUI_COMPONENT::EditorContentWindowItem const* item)
+	void ContentWindow::SelectEditorContentItem(D_GUI_COMPONENT::EditorContentWindowItem const* item, D_RESOURCE::ResourceHandle const& selectedHandle)
 	{
 		mSelectedItem = item;
 
@@ -287,7 +303,7 @@ namespace Darius::Editor::Gui::Windows
 			return;
 		}
 
-		auto resource = D_RESOURCE::_GetRawResource(containedResources[0]);
+		auto resource = D_RESOURCE::_GetRawResource(selectedHandle);
 		D_EDITOR_CONTEXT::SetSelectedDetailed(resource);
 	}
 
