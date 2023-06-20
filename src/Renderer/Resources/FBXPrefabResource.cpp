@@ -38,10 +38,14 @@ namespace Darius::Graphics
 
 	void FBXPrefabResource::ReadResourceFromFile(D_SERIALIZATION::Json const& j)
 	{
+		D_CORE::Uuid prefabGoUuid;
 
-		D_CORE::Uuid prefabGoUuid = D_CORE::FromString(j["PrefabUuid"]);
+		if (j.contains("PrefabUuid"))
+			prefabGoUuid = D_CORE::FromString(j["PrefabUuid"]);
+		else
+			prefabGoUuid = D_CORE::GenerateUuid();
 
-		D_RENDERER_GEOMETRY_LOADER_FBX::LoadScene(GetPath(), prefabGoUuid);
+		mPrefabGameObject = D_RENDERER_GEOMETRY_LOADER_FBX::LoadScene(GetPath(), prefabGoUuid);
 	}
 
 	bool FBXPrefabResource::UploadToGpu()
