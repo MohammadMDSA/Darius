@@ -30,10 +30,6 @@ namespace Darius::Graphics
 			return;
 
 		j["PrefabUuid"] = D_CORE::ToString(mPrefabGameObject->GetUuid());
-
-		Json dataJson;
-		D_WORLD::DumpGameObject(mPrefabGameObject, dataJson);
-		D_FILE::WriteJsonFile(GetPath(), dataJson);
 	}
 
 	void FBXPrefabResource::ReadResourceFromFile(D_SERIALIZATION::Json const& j)
@@ -43,7 +39,10 @@ namespace Darius::Graphics
 		if (j.contains("PrefabUuid"))
 			prefabGoUuid = D_CORE::FromString(j["PrefabUuid"]);
 		else
+		{
 			prefabGoUuid = D_CORE::GenerateUuid();
+			MakeDiskDirty();
+		}
 
 		mPrefabGameObject = D_RENDERER_GEOMETRY_LOADER_FBX::LoadScene(GetPath(), prefabGoUuid);
 	}
