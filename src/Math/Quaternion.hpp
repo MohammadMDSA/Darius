@@ -92,8 +92,11 @@ namespace Darius::Math
 		INLINE static Quaternion GetShortestArcBetweenTwoVector(Vector3 const& v1, Vector3 const& v2)
 		{
 			auto angle = DirectX::XMVectorGetX(DirectX::XMVector3AngleBetweenVectors(v1, v2));
-			
-			return Quaternion(Vector3(DirectX::XMVector3Cross(v1, v2)), angle);
+			auto cross = Vector3(DirectX::XMVector3Cross(v1, v2));
+			if (DirectX::XMVector3Equal(cross, { 0.f, 0.f, 0.f }))
+				return Quaternion();
+
+			return Quaternion(cross, angle);
 		}
 
 		static const Quaternion Identity;
@@ -101,7 +104,7 @@ namespace Darius::Math
 	protected:
 		RTTR_REGISTRATION_FRIEND
 
-		DirectX::XMVECTOR m_vec;
+			DirectX::XMVECTOR m_vec;
 
 	public:
 		Darius_Math_Quaternion_GENERATED
