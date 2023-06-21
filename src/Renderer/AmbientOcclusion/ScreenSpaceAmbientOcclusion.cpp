@@ -1,5 +1,5 @@
 #include "Renderer/pch.hpp"
-#include "SuperSampleAmbientOcclusion.hpp"
+#include "ScreenSpaceAmbientOcclusion.hpp"
 
 #include "Renderer/AntiAliasing/TemporalEffect.hpp"
 #include "Renderer/GraphicsCore.hpp"
@@ -20,7 +20,7 @@ using namespace D_GRAPHICS_UTILS;
 using namespace D_MATH;
 using namespace D_MATH_CAMERA;
 
-namespace Darius::Graphics::AmbientOcclusion::SuperSample
+namespace Darius::Graphics::AmbientOcclusion::ScreenSpace
 {
 
 	// High quality (and better) is barely a noticeable improvement when modulated properly with ambient light.

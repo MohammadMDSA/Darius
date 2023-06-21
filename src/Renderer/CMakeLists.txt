@@ -6,7 +6,7 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ".")
 list(APPEND RENDERER_LIBS_INCLUDE
 	"pch.hpp"
 	"AntiAliasing/TemporalEffect.hpp"
-	"AmbientOcclusion/SuperSampleAmbientOcclusion.hpp"
+	"AmbientOcclusion/ScreenSpaceAmbientOcclusion.hpp"
 	"GraphicsUtils/D3DUtils.hpp"
 	"GraphicsUtils/VertexTypes.hpp"
 	"GraphicsUtils/GpuResource.hpp"
@@ -64,7 +64,7 @@ list(APPEND RENDERER_LIBS_INCLUDE
 list(APPEND RENDERER_LIBS_SOURCES
 	"pch.cpp"
 	"AntiAliasing/TemporalEffect.cpp"
-	"AmbientOcclusion/SuperSampleAmbientOcclusion.cpp"
+	"AmbientOcclusion/ScreenSpaceAmbientOcclusion.cpp"
 	"DeviceResources.cpp"
 	"GraphicsCore.cpp"
 	"GraphicsUtils/D3DUtils.cpp"

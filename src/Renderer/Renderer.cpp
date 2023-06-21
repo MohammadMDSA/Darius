@@ -2,7 +2,7 @@
 #include "pch.hpp"
 
 #include "AntiAliasing/TemporalEffect.hpp"
-#include "AmbientOcclusion/SuperSampleAmbientOcclusion.hpp"
+#include "AmbientOcclusion/ScreenSpaceAmbientOcclusion.hpp"
 #include "Camera/CameraManager.hpp"
 #include "Components/BillboardRendererComponent.hpp"
 #include "Components/MeshRendererComponent.hpp"

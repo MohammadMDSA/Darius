@@ -2,7 +2,7 @@
 #include "GraphicsCore.hpp"
 
 #include "AntiAliasing/TemporalEffect.hpp"
-#include "AmbientOcclusion/SuperSampleAmbientOcclusion.hpp"
+#include "AmbientOcclusion/ScreenSpaceAmbientOcclusion.hpp"
 #include "CommandContext.hpp"
 #include "Components/LightComponent.hpp"
 #include "Components/BillboardRendererComponent.hpp"

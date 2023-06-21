@@ -9,10 +9,10 @@
 #include <Math/Camera/Camera.hpp>
 
 #ifndef D_GRAPHICS_AO_SS
-#define D_GRAPHICS_AO_SS Darius::Graphics::AmbientOcclusion::SuperSample
+#define D_GRAPHICS_AO_SS Darius::Graphics::AmbientOcclusion::ScreenSpace
 #endif
 
-namespace Darius::Graphics::AmbientOcclusion::SuperSample
+namespace Darius::Graphics::AmbientOcclusion::ScreenSpace
 {
 
     struct SSAORenderBuffers
