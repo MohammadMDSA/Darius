@@ -198,8 +198,7 @@ namespace Darius::Graphics
 
 		// Updating mesh constants
 		// Mapping upload buffer
-		auto& currentUploadBuff = mMeshConstantsCPU[D_GRAPHICS_DEVICE::GetCurrentFrameResourceIndex()];
-		MeshConstants* cb = (MeshConstants*)currentUploadBuff.Map();
+		MeshConstants* cb = (MeshConstants*)mMeshConstantsCPU.Map();
 
 
 		Matrix4 world = GetTransform()->GetWorld();
@@ -216,11 +215,11 @@ namespace Darius::Graphics
 
 		// Copy to gpu
 		{
-			currentUploadBuff.Unmap();
+			mMeshConstantsCPU.Unmap();
 
 			// Uploading
 			context.TransitionResource(mMeshConstantsGPU, D3D12_RESOURCE_STATE_COPY_DEST, true);
-			context.GetCommandList()->CopyBufferRegion(mMeshConstantsGPU.GetResource(), 0, currentUploadBuff.GetResource(), 0, currentUploadBuff.GetBufferSize());
+			context.GetCommandList()->CopyBufferRegion(mMeshConstantsGPU.GetResource(), 0, mMeshConstantsCPU.GetResource(), 0, mMeshConstantsCPU.GetBufferSize());
 			context.TransitionResource(mMeshConstantsGPU, D3D12_RESOURCE_STATE_GENERIC_READ);
 		}
 		context.Finish();

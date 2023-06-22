@@ -51,8 +51,8 @@ namespace Darius::Renderer::LightManager
 	DVector<D_MATH_CAMERA::Camera>		PointShadowCameras;
 
 	// Gpu buffers
-	D_GRAPHICS_BUFFERS::UploadBuffer	ActiveLightsUpload[D_RENDERER_FRAME_RESOURCE::gNumFrameResources];
-	D_GRAPHICS_BUFFERS::UploadBuffer	LightsUpload[D_RENDERER_FRAME_RESOURCE::gNumFrameResources];
+	D_GRAPHICS_BUFFERS::UploadBuffer	ActiveLightsUpload;
+	D_GRAPHICS_BUFFERS::UploadBuffer	LightsUpload;
 	ByteAddressBuffer					ActiveLightsBufferGpu;
 	StructuredBuffer					LightsBufferGpu;
 
@@ -75,11 +75,8 @@ namespace Darius::Renderer::LightManager
 		// Initializing buffers
 		size_t elemSize = sizeof(UINT) * 8;
 		size_t count = (MaxNumLight + elemSize - 1) / elemSize;
-		for (size_t i = 0; i < D_RENDERER_FRAME_RESOURCE::gNumFrameResources; i++)
-		{
-			ActiveLightsUpload[i].Create(L"Active Light Upload", count * sizeof(UINT));
-			LightsUpload[i].Create(L"Light Upload", MaxNumLight * sizeof(LightData));
-		}
+		ActiveLightsUpload.Create(L"Active Light Upload", count * sizeof(UINT));
+		LightsUpload.Create(L"Light Upload", MaxNumLight * sizeof(LightData));
 		ActiveLightsBufferGpu.Create(L"Active Light Buffer", (UINT)count, sizeof(UINT), nullptr);
 		LightsBufferGpu.Create(L"Light Buffer", MaxNumLight, sizeof(LightData));
 
@@ -110,6 +107,22 @@ namespace Darius::Renderer::LightManager
 	void Shutdown()
 	{
 		D_ASSERT(_initialized);
+
+		DirectionalShadowTextureArrayBuffer.Destroy();
+		PointShadowTextureArrayBuffer.Destroy();
+		SpotShadowTextureArrayBuffer.Destroy();
+
+		for (int i = 0; i < ShadowBuffersDirectional.size(); i++)
+			ShadowBuffersDirectional[i].Destroy();
+		for (int i = 0; i < ShadowBuffersPoint.size(); i++)
+			ShadowBuffersPoint[i].Destroy();
+		for (int i = 0; i < ShadowBuffersSpot.size(); i++)
+			ShadowBuffersSpot[i].Destroy();
+
+		ActiveLightsUpload.Destroy();
+		LightsUpload.Destroy();
+		ActiveLightsBufferGpu.Destroy();
+		LightsBufferGpu.Destroy();
 	}
 
 	void Update()
@@ -146,12 +159,9 @@ namespace Darius::Renderer::LightManager
 
 	void UpdateBuffers(D_GRAPHICS::GraphicsContext& context, D_MATH_CAMERA::Camera const* viewerCamera)
 	{
-		auto& currentActiveLightUpload = ActiveLightsUpload[D_GRAPHICS_DEVICE::GetCurrentFrameResourceIndex()];
-		auto& currentLightUpload = LightsUpload[D_GRAPHICS_DEVICE::GetCurrentFrameResourceIndex()];
-
 		// Upload buffers state
-		UINT* data = (UINT*)currentActiveLightUpload.Map();
-		LightData* lightUploadData = (LightData*)currentLightUpload.Map();
+		UINT* data = (UINT*)ActiveLightsUpload.Map();
+		LightData* lightUploadData = (LightData*)LightsUpload.Map();
 		LightSourceType lightSource;
 
 		bool done = false;
@@ -225,8 +235,8 @@ namespace Darius::Renderer::LightManager
 			data[i] = activeFlags;
 		}
 
-		currentActiveLightUpload.Unmap();
-		currentLightUpload.Unmap();
+		ActiveLightsUpload.Unmap();
+		LightsUpload.Unmap();
 
 		// Uploading...
 
@@ -235,8 +245,8 @@ namespace Darius::Renderer::LightManager
 		context.TransitionResource(LightsBufferGpu, D3D12_RESOURCE_STATE_COPY_DEST);
 		context.TransitionResource(ActiveLightsBufferGpu, D3D12_RESOURCE_STATE_COPY_DEST, true);
 
-		context.CopyBufferRegion(LightsBufferGpu, 0, currentLightUpload, 0, currentLightUpload.GetBufferSize());
-		context.CopyBufferRegion(ActiveLightsBufferGpu, 0, currentActiveLightUpload, 0, currentActiveLightUpload.GetBufferSize());
+		context.CopyBufferRegion(LightsBufferGpu, 0, LightsUpload, 0, LightsUpload.GetBufferSize());
+		context.CopyBufferRegion(ActiveLightsBufferGpu, 0, ActiveLightsUpload, 0, ActiveLightsUpload.GetBufferSize());
 
 		context.TransitionResource(LightsBufferGpu, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
 		context.TransitionResource(ActiveLightsBufferGpu, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, true);

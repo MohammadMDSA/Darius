@@ -160,8 +160,7 @@ namespace Darius::Graphics
 
 		// Updating mesh constants
 		// Mapping upload buffer
-		auto& currentUploadBuff = mMeshConstantsCPU[D_GRAPHICS_DEVICE::GetCurrentFrameResourceIndex()];
-		MeshConstants* cb = (MeshConstants*)currentUploadBuff.Map();
+		MeshConstants* cb = (MeshConstants*)mMeshConstantsCPU.Map();
 
 		auto world = GetTransform()->GetWorld();
 		cb->World = world;
@@ -169,11 +168,11 @@ namespace Darius::Graphics
 		cb->Lod = mLoD;
 
 
-		currentUploadBuff.Unmap();
+		mMeshConstantsCPU.Unmap();
 
 		// Uploading
 		context.TransitionResource(mMeshConstantsGPU, D3D12_RESOURCE_STATE_COPY_DEST, true);
-		context.CopyBufferRegion(mMeshConstantsGPU, 0, currentUploadBuff, 0, currentUploadBuff.GetBufferSize());
+		context.CopyBufferRegion(mMeshConstantsGPU, 0, mMeshConstantsCPU, 0, mMeshConstantsCPU.GetBufferSize());
 		context.TransitionResource(mMeshConstantsGPU, D3D12_RESOURCE_STATE_GENERIC_READ);
 
 		context.Finish();

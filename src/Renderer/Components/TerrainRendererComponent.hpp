@@ -87,7 +87,7 @@ namespace Darius::Graphics
 		D_RESOURCE::ResourceRef<D_GRAPHICS::TerrainResource> mTerrainData;
 		
 		// Gpu buffers
-		D_GRAPHICS_BUFFERS::UploadBuffer		mMeshConstantsCPU[D_RENDERER_FRAME_RESOURCE::gNumFrameResources];
+		D_GRAPHICS_BUFFERS::UploadBuffer		mMeshConstantsCPU;
 		D_GRAPHICS_BUFFERS::ByteAddressBuffer	mMeshConstantsGPU;
 
 

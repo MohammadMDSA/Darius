@@ -48,7 +48,7 @@ namespace Darius::Debug
 #ifdef _DEBUG
 
 	// Gpu buffers
-	D_GRAPHICS_BUFFERS::UploadBuffer		MeshConstantsCPU[D_RENDERER_FRAME_RESOURCE::gNumFrameResources];
+	D_GRAPHICS_BUFFERS::UploadBuffer		MeshConstantsCPU;
 	D_GRAPHICS_BUFFERS::ByteAddressBuffer	MeshConstantsGPU;
 
 	std::mutex								AdditionMutex;
@@ -71,10 +71,7 @@ namespace Darius::Debug
 		LineMeshResource = GetResource<D_GRAPHICS::BatchResource>(D_GRAPHICS::GetDefaultGraphicsResource(D_GRAPHICS::DefaultResource::LineMesh));
 
 		// Initializing Mesh Constants buffers
-		for (size_t i = 0; i < D_RENDERER_FRAME_RESOURCE::gNumFrameResources; i++)
-		{
-			MeshConstantsCPU[i].Create(L"Debug Mesh Constant Upload Buffer", sizeof(D_RENDERER_FRAME_RESOURCE::MeshConstants) * MAX_DEBUG_DRAWS);
-		}
+		MeshConstantsCPU.Create(L"Debug Mesh Constant Upload Buffer", sizeof(D_RENDERER_FRAME_RESOURCE::MeshConstants) * MAX_DEBUG_DRAWS);
 		MeshConstantsGPU.Create(L"Debug Mesh Constant GPU Buffer", MAX_DEBUG_DRAWS, sizeof(D_RENDERER_FRAME_RESOURCE::MeshConstants));
 
 #endif // _DEBUG
@@ -83,10 +80,7 @@ namespace Darius::Debug
 
 	void DebugDraw::Shutdown()
 	{
-		for (size_t i = 0; i < D_RENDERER_FRAME_RESOURCE::gNumFrameResources; i++)
-		{
-			MeshConstantsCPU[i].Destroy();
-		}
+		MeshConstantsCPU.Destroy();
 		MeshConstantsGPU.Destroy();
 	}
 
@@ -249,14 +243,13 @@ namespace Darius::Debug
 	{
 		// Updating mesh constants
 		// Mapping upload buffer
-		auto& currentUploadBuff = MeshConstantsCPU[D_GRAPHICS_DEVICE::GetCurrentFrameResourceIndex()];
-		MeshConstants& cb = ((MeshConstants*)currentUploadBuff.Map())[index];
+		MeshConstants& cb = ((MeshConstants*)MeshConstantsCPU.Map())[index];
 
 		auto world = trans.GetWorld();
 		cb.World = Matrix4(world);
 		cb.WorldIT = InverseTranspose(Matrix3(world));
 
-		currentUploadBuff.Unmap();
+		MeshConstantsCPU.Unmap();
 
 	}
 
@@ -266,11 +259,9 @@ namespace Darius::Debug
 		if (DrawPending.size() <= 0)
 			return;
 
-		auto& currentUploadBuff = MeshConstantsCPU[D_GRAPHICS_DEVICE::GetCurrentFrameResourceIndex()];
-
 		auto& context = D_GRAPHICS::GraphicsContext::Begin(L"Debug Mesh CBV Upload");
 		context.TransitionResource(MeshConstantsGPU, D3D12_RESOURCE_STATE_COPY_DEST, true);
-		context.GetCommandList()->CopyBufferRegion(MeshConstantsGPU.GetResource(), 0, currentUploadBuff.GetResource(), 0, sizeof(D_RENDERER_FRAME_RESOURCE::MeshConstants) * DrawPending.size());
+		context.GetCommandList()->CopyBufferRegion(MeshConstantsGPU.GetResource(), 0, MeshConstantsCPU.GetResource(), 0, sizeof(D_RENDERER_FRAME_RESOURCE::MeshConstants) * DrawPending.size());
 		context.TransitionResource(MeshConstantsGPU, D3D12_RESOURCE_STATE_GENERIC_READ);
 
 		context.Finish();

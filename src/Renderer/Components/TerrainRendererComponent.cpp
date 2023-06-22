@@ -48,10 +48,7 @@ namespace Darius::Graphics
 	void TerrainRendererComponent::Awake()
 	{
 		// Initializing Mesh Constants buffers
-		for (size_t i = 0; i < D_RENDERER_FRAME_RESOURCE::gNumFrameResources; i++)
-		{
-			mMeshConstantsCPU[i].Create(L"Mesh Constant Upload Buffer", sizeof(MeshConstants));
-		}
+		mMeshConstantsCPU.Create(L"Mesh Constant Upload Buffer", sizeof(MeshConstants));
 		mMeshConstantsGPU.Create(L"Mesh Constant GPU Buffer", 1, sizeof(MeshConstants));
 
 		UpdateGridMesh();
@@ -70,17 +67,15 @@ namespace Darius::Graphics
 
 		// Updating mesh constants
 		// Mapping upload buffer
-		auto& currentUploadBuff = mMeshConstantsCPU[D_GRAPHICS_DEVICE::GetCurrentFrameResourceIndex()];
-
-		MeshConstants* cb = reinterpret_cast<MeshConstants*>(currentUploadBuff.Map());
+		MeshConstants* cb = reinterpret_cast<MeshConstants*>(mMeshConstantsCPU.Map());
 		Matrix4 world = GetTransform()->GetWorld();
 		cb->World = Matrix4(world);
 		cb->WorldIT = InverseTranspose(world.Get3x3());
-		currentUploadBuff.Unmap();
+		mMeshConstantsCPU.Unmap();
 
 		// Uploading
 		context.TransitionResource(mMeshConstantsGPU, D3D12_RESOURCE_STATE_COPY_DEST, true);
-		context.CopyBufferRegion(mMeshConstantsGPU, 0, currentUploadBuff, 0, currentUploadBuff.GetBufferSize());
+		context.CopyBufferRegion(mMeshConstantsGPU, 0, mMeshConstantsCPU, 0, mMeshConstantsCPU.GetBufferSize());
 		context.TransitionResource(mMeshConstantsGPU, D3D12_RESOURCE_STATE_GENERIC_READ);
 
 		context.Finish();
@@ -120,7 +115,7 @@ namespace Darius::Graphics
 		return true;
 	}
 
-			void TerrainRendererComponent::UpdatePsoIndex()
+	void TerrainRendererComponent::UpdatePsoIndex()
 	{
 
 #define ShaderData(name) GetShaderByName(name)->GetBufferPointer(), Shaders[name]->GetBufferSize()
@@ -237,4 +232,4 @@ namespace Darius::Graphics
 		return valueChanged;
 	}
 #endif 
-	}
+}

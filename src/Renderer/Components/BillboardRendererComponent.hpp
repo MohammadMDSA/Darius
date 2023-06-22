@@ -72,7 +72,7 @@ namespace Darius::Graphics
 
 
 		// Gpu buffers
-		D_GRAPHICS_BUFFERS::UploadBuffer		mMeshConstantsCPU[D_RENDERER_FRAME_RESOURCE::gNumFrameResources];
+		D_GRAPHICS_BUFFERS::UploadBuffer		mMeshConstantsCPU;
 		D_GRAPHICS_BUFFERS::ByteAddressBuffer	mMeshConstantsGPU;
 
 

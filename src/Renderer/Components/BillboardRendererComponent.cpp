@@ -55,10 +55,7 @@ namespace Darius::Graphics
 	void BillboardRendererComponent::Awake()
 	{
 		// Initializing Mesh Constants buffers
-		for (size_t i = 0; i < D_RENDERER_FRAME_RESOURCE::gNumFrameResources; i++)
-		{
-			mMeshConstantsCPU[i].Create(L"Mesh Constant Upload Buffer", sizeof(BillboardConstants));
-		}
+		mMeshConstantsCPU.Create(L"Mesh Constant Upload Buffer", sizeof(BillboardConstants));
 		mMeshConstantsGPU.Create(L"Mesh Constant GPU Buffer", 1, sizeof(BillboardConstants));
 
 	}
@@ -75,17 +72,15 @@ namespace Darius::Graphics
 
 		// Updating mesh constants
 		// Mapping upload buffer
-		auto& currentUploadBuff = mMeshConstantsCPU[D_GRAPHICS_DEVICE::GetCurrentFrameResourceIndex()];
-
-		BillboardConstants* cb = reinterpret_cast<BillboardConstants*>(currentUploadBuff.Map());
+		BillboardConstants* cb = reinterpret_cast<BillboardConstants*>(mMeshConstantsCPU.Map());
 		auto world = GetTransform()->GetWorld();
 		cb->world = world;
 		cb->size = { mWidth, mHeight };
-		currentUploadBuff.Unmap();
+		mMeshConstantsCPU.Unmap();
 
 		// Uploading
 		context.TransitionResource(mMeshConstantsGPU, D3D12_RESOURCE_STATE_COPY_DEST, true);
-		context.CopyBufferRegion(mMeshConstantsGPU, 0, currentUploadBuff, 0, currentUploadBuff.GetBufferSize());
+		context.CopyBufferRegion(mMeshConstantsGPU, 0, mMeshConstantsCPU, 0, mMeshConstantsCPU.GetBufferSize());
 		context.TransitionResource(mMeshConstantsGPU, D3D12_RESOURCE_STATE_GENERIC_READ);
 
 		context.Finish();

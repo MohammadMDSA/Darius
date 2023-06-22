@@ -59,10 +59,7 @@ namespace Darius::Graphics
 		if (mParametersConstantsGPU.GetGpuVirtualAddress() == D3D12_GPU_VIRTUAL_ADDRESS_NULL)
 		{
 			// Initializing patameters constants buffers
-			for (size_t i = 0; i < D_RENDERER_FRAME_RESOURCE::gNumFrameResources; i++)
-			{
-				mParametersConstantsCPU[i].Create(L"Terrain Parameter Constants Buffer: " + GetName(), sizeof(TerrainParametersConstants));
-			}
+			mParametersConstantsCPU.Create(L"Terrain Parameter Constants Buffer: " + GetName(), sizeof(TerrainParametersConstants));
 			mParametersConstantsGPU.Create(L"Terrain Parameter Constants Buffer: " + GetName(), 1, sizeof(TerrainParametersConstants));
 
 			mTexturesHeap = D_RENDERER::AllocateTextureDescriptor(1);
@@ -80,15 +77,14 @@ namespace Darius::Graphics
 		D_GRAPHICS_DEVICE::GetDevice()->CopyDescriptors(1, &mTexturesHeap, &destCount, destCount, initializeTextures, srcCount, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 
 		// Updating parameter constants
-		auto& currentParamBuff = mParametersConstantsCPU[D_GRAPHICS_DEVICE::GetCurrentFrameResourceIndex()];
-		auto paramCB = reinterpret_cast<TerrainParametersConstants*>(currentParamBuff.Map());
+		auto paramCB = reinterpret_cast<TerrainParametersConstants*>(mParametersConstantsCPU.Map());
 		paramCB->HeightFactor = mHeightFactor;
-		currentParamBuff.Unmap();
+		mParametersConstantsCPU.Unmap();
 
 		// Uploading
 		auto& context = D_GRAPHICS::CommandContext::Begin(L"Terrain Params Uploadier");
 		context.TransitionResource(mParametersConstantsGPU, D3D12_RESOURCE_STATE_COPY_DEST, true);
-		context.CopyBufferRegion(mParametersConstantsGPU, 0, currentParamBuff, 0, currentParamBuff.GetBufferSize());
+		context.CopyBufferRegion(mParametersConstantsGPU, 0, mParametersConstantsCPU, 0, mParametersConstantsCPU.GetBufferSize());
 		context.TransitionResource(mParametersConstantsGPU, D3D12_RESOURCE_STATE_GENERIC_READ);
 		context.Finish(true);
 

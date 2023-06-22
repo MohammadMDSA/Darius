@@ -41,10 +41,7 @@ namespace Darius::Graphics
 	void MeshRendererComponentBase::Awake()
 	{
 		// Initializing Mesh Constants buffers
-		for (size_t i = 0; i < D_RENDERER_FRAME_RESOURCE::gNumFrameResources; i++)
-		{
-			mMeshConstantsCPU[i].Create(L"Mesh Constant Upload Buffer", sizeof(MeshConstants));
-		}
+		mMeshConstantsCPU.Create(L"Mesh Constant Upload Buffer", sizeof(MeshConstants));
 		mMeshConstantsGPU.Create(L"Mesh Constant GPU Buffer", 1, sizeof(MeshConstants));
 
 		for (UINT i = 0; i < mMaterials.size(); i++)
@@ -125,10 +122,7 @@ namespace Darius::Graphics
 
 	void MeshRendererComponentBase::OnDestroy()
 	{
-		for (size_t i = 0; i < D_RENDERER_FRAME_RESOURCE::gNumFrameResources; i++)
-		{
-			mMeshConstantsCPU[i].Destroy();
-		}
+		mMeshConstantsCPU.Destroy();
 		mMeshConstantsGPU.Destroy();
 	}
 

@@ -127,7 +127,7 @@ inline void Set##type##Texture(D_RESOURCE::ResourceHandle textureHandle) { SetTe
 
 
 		D_RENDERER_FRAME_RESOURCE::MaterialConstants mMaterial;
-		D_GRAPHICS_BUFFERS::UploadBuffer			mMaterialConstantsCPU[D_RENDERER_FRAME_RESOURCE::gNumFrameResources];
+		D_GRAPHICS_BUFFERS::UploadBuffer			mMaterialConstantsCPU;
 		D_GRAPHICS_BUFFERS::ByteAddressBuffer		mMaterialConstantsGPU;
 
 		D_GRAPHICS_MEMORY::DescriptorHandle			mTexturesHeap;

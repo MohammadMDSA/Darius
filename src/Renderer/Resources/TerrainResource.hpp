@@ -67,7 +67,7 @@ namespace Darius::Graphics
 		DField(Get[const, &, inline])
 		float											mHeightFactor;
 
-		D_GRAPHICS_BUFFERS::UploadBuffer				mParametersConstantsCPU[D_RENDERER_FRAME_RESOURCE::gNumFrameResources];
+		D_GRAPHICS_BUFFERS::UploadBuffer				mParametersConstantsCPU;
 		D_GRAPHICS_BUFFERS::ByteAddressBuffer			mParametersConstantsGPU;
 
 		D_GRAPHICS_MEMORY::DescriptorHandle				mTexturesHeap;

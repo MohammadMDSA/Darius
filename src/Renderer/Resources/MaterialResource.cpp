@@ -202,10 +202,7 @@ namespace Darius::Graphics
 		if (mMaterialConstantsGPU.GetGpuVirtualAddress() == D3D12_GPU_VIRTUAL_ADDRESS_NULL)
 		{
 			// Initializing Material Constants buffers
-			for (size_t i = 0; i < D_RENDERER_FRAME_RESOURCE::gNumFrameResources; i++)
-			{
-				mMaterialConstantsCPU[i].Create(L"Material Constatns Upload Buffer: " + GetName(), sizeof(MaterialConstants));
-			}
+			mMaterialConstantsCPU.Create(L"Material Constatns Upload Buffer: " + GetName(), sizeof(MaterialConstants));
 			mMaterialConstantsGPU.Create(L"Material Constants GPU Buffer: " + GetName(), 1, sizeof(MaterialConstants), &mMaterial);
 
 			// Update texture regions
@@ -285,16 +282,15 @@ namespace Darius::Graphics
 
 		// Updating material constnats
 		// Mapping upload buffer
-		auto& currentMatUploadBuff = mMaterialConstantsCPU[D_GRAPHICS_DEVICE::GetCurrentFrameResourceIndex()];
-		auto matCB = (MaterialConstants*)currentMatUploadBuff.Map();
+		auto matCB = (MaterialConstants*)mMaterialConstantsCPU.Map();
 		memcpy(matCB, &mMaterial, sizeof(MaterialConstants));
 
-		currentMatUploadBuff.Unmap();
+		mMaterialConstantsCPU.Unmap();
 
 		// Uploading
 		auto& context = D_GRAPHICS::CommandContext::Begin(L"Resource Uploader");
 		context.TransitionResource(mMaterialConstantsGPU, D3D12_RESOURCE_STATE_COPY_DEST, true);
-		context.GetCommandList()->CopyBufferRegion(mMaterialConstantsGPU.GetResource(), 0, currentMatUploadBuff.GetResource(), 0, currentMatUploadBuff.GetBufferSize());
+		context.GetCommandList()->CopyBufferRegion(mMaterialConstantsGPU.GetResource(), 0, mMaterialConstantsCPU.GetResource(), 0, mMaterialConstantsCPU.GetBufferSize());
 		context.TransitionResource(mMaterialConstantsGPU, D3D12_RESOURCE_STATE_GENERIC_READ);
 		context.Finish(true);
 		return true;
