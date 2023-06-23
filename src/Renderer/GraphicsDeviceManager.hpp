@@ -18,6 +18,12 @@ namespace Darius::Graphics::Device
 	D_GRAPHICS_BUFFERS::DepthBuffer&			GetDepthStencilBuffer();
 	RECT										GetOutputSize();
 
+	// Support Check
+	bool										SupportsTypedUAVLoadSupport_R11G11B10_FLOAT();
+	bool										SupportsTypedUAVLoadSupport_R16G16B16A16_FLOAT();
+	bool										SupportsRaytracing();
+
+
 	// Window functions
 	void										OnWindowMoved();
 	void										OnDisplayChanged();

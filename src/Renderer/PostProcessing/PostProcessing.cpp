@@ -108,7 +108,7 @@ namespace Darius::Graphics::PostProcessing
         ObjName.Finalize(); \
     }
 
-		if (D_GRAPHICS::SupportsTypedUAVLoadSupport_R11G11B10_FLOAT())
+		if (D_GRAPHICS_DEVICE::SupportsTypedUAVLoadSupport_R11G11B10_FLOAT())
 		{
 			CreatePSO(ToneMapCS, ToneMap2CS);
 			CreatePSO(ApplyBloomCS, ApplyBloom2CS);
@@ -353,7 +353,7 @@ namespace Darius::Graphics::PostProcessing
 		else if (EnableAdaptation)
 			ExtractLuma(context, contextBuffers);
 
-		if (D_GRAPHICS::SupportsTypedUAVLoadSupport_R11G11B10_FLOAT())
+		if (D_GRAPHICS_DEVICE::SupportsTypedUAVLoadSupport_R11G11B10_FLOAT())
 			context.TransitionResource(contextBuffers.SceneColor, D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
 		else
 			context.TransitionResource(contextBuffers.PostEffectsBuffer, D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
@@ -373,7 +373,7 @@ namespace Darius::Graphics::PostProcessing
 		context.SetConstant(0, 4, 1000.f);
 
 		// Separaate out SDR result from its perceived luminance
-		if (D_GRAPHICS::SupportsTypedUAVLoadSupport_R11G11B10_FLOAT())
+		if (D_GRAPHICS_DEVICE::SupportsTypedUAVLoadSupport_R11G11B10_FLOAT())
 			context.SetDynamicDescriptor(1, 0, contextBuffers.SceneColor.GetUAV());
 		else
 		{
@@ -399,7 +399,7 @@ namespace Darius::Graphics::PostProcessing
 		if (EnableBloom)
 			GenerateBloom(context, contextBuffers);
 
-		bool supportR11G11B10 = D_GRAPHICS::SupportsTypedUAVLoadSupport_R11G11B10_FLOAT();
+		bool supportR11G11B10 = D_GRAPHICS_DEVICE::SupportsTypedUAVLoadSupport_R11G11B10_FLOAT();
 
 		if (EnableBloom || !supportR11G11B10)
 		{
@@ -470,7 +470,7 @@ namespace Darius::Graphics::PostProcessing
 	// changed, and some of them rely on texture filtering, which won't work with UINT.  Since this
 	// is only to support legacy hardware and a single buffer copy isn't that big of a deal, this
 	// is the most economical solution.
-		if (!D_GRAPHICS::SupportsTypedUAVLoadSupport_R11G11B10_FLOAT())
+		if (!D_GRAPHICS_DEVICE::SupportsTypedUAVLoadSupport_R11G11B10_FLOAT())
 			CopyBackPostBuffer(context, buffers);
 
 		if (DrawHistogram)

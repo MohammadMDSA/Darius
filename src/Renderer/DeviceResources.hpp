@@ -91,7 +91,7 @@ namespace Darius::Graphics::Device
 
         inline bool SupportsTypedUAVLoadSupport_R11G11B10_FLOAT() const { return m_TypedUAVLoadSupport_R11G11B10_FLOAT; };
         inline bool SupportsTypedUAVLoadSupport_R16G16B16A16_FLOAT() const { return m_TypedUAVLoadSupport_R16G16B16A16_FLOAT; };
-
+        inline bool SupportsRaytracing() const { return m_RaytracingSupport; }
 
     private:
 
@@ -141,9 +141,10 @@ namespace Darius::Graphics::Device
         // DeviceResources options (see flags above)
         unsigned int                                        m_options;
 
-        // Format Support
+        // Feature Support
         bool                                                m_TypedUAVLoadSupport_R11G11B10_FLOAT = false;
         bool                                                m_TypedUAVLoadSupport_R16G16B16A16_FLOAT = false;
+        bool                                                m_RaytracingSupport = false;
 
 
         // The IDeviceNotify can be held directly as it owns the DeviceResources.

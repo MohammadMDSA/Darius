@@ -255,6 +255,22 @@ namespace Darius::Graphics
 		{
 			return Resources->GetBackBufferCount();
 		}
+
+		bool SupportsTypedUAVLoadSupport_R11G11B10_FLOAT()
+		{
+			return Resources->SupportsTypedUAVLoadSupport_R11G11B10_FLOAT();
+		}
+
+		bool SupportsTypedUAVLoadSupport_R16G16B16A16_FLOAT()
+		{
+			return Resources->SupportsTypedUAVLoadSupport_R16G16B16A16_FLOAT();
+		}
+
+		bool SupportsRaytracing()
+		{
+			return Resources->SupportsRaytracing();
+		}
+
 	}
 
 
@@ -825,16 +841,6 @@ namespace Darius::Graphics
 			DefaultResourceMap.insert({ DefaultResource::Material, { MaterialResource::GetResourceType(), materialRes->GetId() } });
 		}
 
-	}
-
-	bool									SupportsTypedUAVLoadSupport_R11G11B10_FLOAT()
-	{
-		return Resources->SupportsTypedUAVLoadSupport_R11G11B10_FLOAT();
-	}
-
-	bool									SupportsTypedUAVLoadSupport_R16G16B16A16_FLOAT()
-	{
-		return Resources->SupportsTypedUAVLoadSupport_R16G16B16A16_FLOAT();
 	}
 
 #ifdef _D_EDITOR

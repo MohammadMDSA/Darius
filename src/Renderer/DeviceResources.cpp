@@ -262,6 +262,13 @@ namespace Darius::Graphics::Device
 				}
 			}
 		}
+
+		D3D12_FEATURE_DATA_D3D12_OPTIONS5 FeatureData5 = {};
+		if (D_HR_SUCCEEDED(m_d3dDevice->CheckFeatureSupport(D3D12_FEATURE_D3D12_OPTIONS5, &FeatureData5, sizeof(FeatureData5))))
+		{
+			if (FeatureData5.RaytracingTier != D3D12_RAYTRACING_TIER_NOT_SUPPORTED)
+				m_RaytracingSupport = true;
+		}
 	}
 
 	// These resources need to be recreated every time the window size is changed.
