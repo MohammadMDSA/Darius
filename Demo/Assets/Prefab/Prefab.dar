@@ -1,0 +1,76 @@
+{
+  "Hierarchy": {
+    "355f774f-0e9d-45ac-8643-42c58286ec6c": null,
+    "b623485d-681d-4e5b-a6a0-b4084887fdfb": [ "355f774f-0e9d-45ac-8643-42c58286ec6c" ],
+    "b775f4cd-ee83-4212-beb8-a8dbad14ef55": [ "b623485d-681d-4e5b-a6a0-b4084887fdfb" ]
+  },
+  "ObjectComponent": {
+    "355f774f-0e9d-45ac-8643-42c58286ec6c": {
+      "GameObjectReferencer": {
+        "Reference": "b623485d-681d-4e5b-a6a0-b4084887fdfb",
+        "Uuid": "ae7b150e-020d-4182-99f2-ddabe1c67d70"
+      },
+      "MeshRendererComponent": {
+        "Enabled": true,
+        "Materials": [ "9a4e22bd-4161-5c41-b2d5-0ac5cbf22587" ],
+        "Mesh": "f2765995-608a-5d7a-981a-0c893421f9e4",
+        "Uuid": "5b23aea3-3414-495c-9cb8-933ac41ecd6e"
+      },
+      "TransformComponent": {
+        "Enabled": true,
+        "LocalPosition": { "_data": [ 0.0, 5.7971817568613915e-08, 0.4736180901527405 ] },
+        "LocalRotation": { "_data": [ 0.7071067690849304, 0.0, -0.0, 0.7071067690849304 ] },
+        "LocalScale": { "_data": [ 1.0, 0.9999802112579346, 0.9999802112579346 ] },
+        "Uuid": "92cc8d70-cee1-49fe-88e2-eca39b829a16"
+      }
+    },
+    "b623485d-681d-4e5b-a6a0-b4084887fdfb": {
+      "Targeter": {
+        "TargetObject": "00000000-0000-0000-0000-000000000000",
+        "Uuid": "4ef3e724-2248-49fd-951d-a8d39f01a461"
+      },
+      "TransformComponent": {
+        "Enabled": true,
+        "LocalPosition": { "_data": [ 0.0, 0.0, 0.0 ] },
+        "LocalRotation": { "_data": [ -0.0, 0.0, -0.0, 1.0 ] },
+        "LocalScale": { "_data": [ 1.0, 1.0, 1.0 ] },
+        "Uuid": "803a5645-0c64-4603-b6a8-ded6123c174f"
+      }
+    },
+    "b775f4cd-ee83-4212-beb8-a8dbad14ef55": {
+      "TransformComponent": {
+        "Enabled": true,
+        "LocalPosition": { "_data": [ 0.0, 0.0, 0.0 ] },
+        "LocalRotation": { "_data": [ 0.0, 0.0, 0.0, 1.0 ] },
+        "LocalScale": { "_data": [ 1.0, 1.0, 1.0 ] },
+        "Uuid": "80fa9311-4adc-4ca9-ad67-96cc78a39ede"
+      }
+    }
+  },
+  "Objects": [
+    {
+      "Active": true,
+      "InScene": true,
+      "Name": "Targeter",
+      "Prefab": "8153ab25-b380-4bd2-bf05-22078fa98b11",
+      "Type": "Movable",
+      "Uuid": "b623485d-681d-4e5b-a6a0-b4084887fdfb"
+    },
+    {
+      "Active": true,
+      "InScene": true,
+      "Name": "GameObject",
+      "Prefab": "00000000-0000-0000-0000-000000000000",
+      "Type": "Movable",
+      "Uuid": "b775f4cd-ee83-4212-beb8-a8dbad14ef55"
+    },
+    {
+      "Active": true,
+      "InScene": true,
+      "Name": "Mesh",
+      "Prefab": "00000000-0000-0000-0000-000000000000",
+      "Type": "Movable",
+      "Uuid": "355f774f-0e9d-45ac-8643-42c58286ec6c"
+    }
+  ]
+}

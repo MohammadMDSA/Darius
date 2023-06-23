@@ -25,6 +25,23 @@ namespace Darius::Graphics
 		// States
 		virtual void					Awake() override;
 
+		INLINE void						SetColor(D_MATH::Color const& value)
+		{
+			mLightData.Color = (DirectX::XMFLOAT3)D_MATH::Vector3(value);
+		}
+
+		INLINE D_MATH::Color const&		GetColor() const
+		{
+			return D_MATH::Color(D_MATH::Vector3(mLightData.Color));
+		}
+
+		INLINE void						SetRenge(float const& value) { mLightData.Range = value; }
+		INLINE float const&				GetRange() const { return mLightData.Range; }
+
+		INLINE void						SetConeOuterAngle(float const& val) { mConeOuterAngle = val; UpdateAngleData(); }
+		INLINE void						SetConeInnerAngle(float const& val) { mConeInnerAngle = val; UpdateAngleData(); }
+
+
 	private:
 
 		DField(Get[inline], Set[inline], Serialize)
@@ -33,10 +50,10 @@ namespace Darius::Graphics
 		DField(Get[inline, const, &], Set[inline], Serialize)
 		D_LIGHT::LightData				mLightData;
 
-		DField(Get[inline], Set[inline], Serialize)
+		DField(Get[inline], Serialize)
 		float							mConeOuterAngle;
 
-		DField(Get[inline], Set[inline], Serialize)
+		DField(Get[inline], Serialize)
 		float							mConeInnerAngle;
 
 	protected:

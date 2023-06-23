@@ -39,7 +39,7 @@ namespace Darius::Editor::Gui::Windows
 		void						DrawMainItems();
 		void						DrawBreadcrumb();
 		void						DrawFolderTreeItem(TreeFoldeEntry& entry);
-		void						SelectEditorContentItem(D_GUI_COMPONENT::EditorContentWindowItem const* item);
+		void						SelectEditorContentItem(D_GUI_COMPONENT::EditorContentWindowItem const* item, D_RESOURCE::ResourceHandle const& selectedHandle);
 
 		D_CONTAINERS::DVector<D_GUI_COMPONENT::EditorContentWindowItem>	mCurrentDirectoryItems;
 		D_CONTAINERS::DVector<D_FILE::Path> mBreadcrumbItems; // it's from child to parent

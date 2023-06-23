@@ -54,6 +54,16 @@ namespace Darius::ResourceManager
 		return ResourceRef(dynamic_cast<T*>(_GetRawResource(uuid, true)), ownerData);
 	}
 
+	// Untyped version of resource getter. Doesn't load resources
+	INLINE Resource* GetUncountedResource(ResourceHandle handle, std::optional<D_CORE::CountedOwner> ownerData = std::nullopt)
+	{
+		// Requested None resource so we return nothing
+		if (handle.Type == 0)
+			return nullptr;
+
+		return _GetRawResource(handle, false);
+	}
+
 	template<class T>
 	ResourceRef<T> GetResource(ResourceHandle handle, std::optional<D_CORE::CountedOwner> ownerData = std::nullopt)
 	{
@@ -83,6 +93,7 @@ namespace Darius::ResourceManager
 #pragma endregion
 
 	D_CONTAINERS::DVector<ResourcePreview> GetResourcePreviews(ResourceType type);
+	ResourcePreview					GetResourcePreview(ResourceHandle const& handle);
 	
 	class DResourceManager : NonCopyable
 	{
@@ -98,6 +109,7 @@ namespace Darius::ResourceManager
 		void						SaveAllResources();
 
 		D_CONTAINERS::DVector<ResourcePreview>	GetResourcePreviews(ResourceType type);
+		ResourcePreview				GetResourcePreview(ResourceHandle const& handle);
 
 		template<class T>
 		INLINE ResourceHandle		CreateResource(D_CORE::Uuid const& uuid, std::wstring const& path, std::wstring const& name, bool isDefault = false) {
@@ -140,6 +152,8 @@ namespace Darius::ResourceManager
 
 			return CreateResource(T::GetResourceType(), uuid, path, name, isDefault, fromFile);
 		}
+
+		Resource*					GetRawResourceSafe(ResourceHandle handle);
 
 		void						UpdateMaps(std::shared_ptr<Resource> resuorce);
 

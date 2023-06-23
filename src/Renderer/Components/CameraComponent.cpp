@@ -44,9 +44,6 @@ namespace Darius::Graphics
 	void CameraComponent::Awake()
 	{
 		mCamera.UpdateProjMatrix();
-		auto cam = D_CAMERA_MANAGER::GetActiveCamera();
-		if (cam.IsValid())
-			return;
 
 		D_CAMERA_MANAGER::SetActiveCamera(*this);
 	}

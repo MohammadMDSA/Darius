@@ -2,15 +2,17 @@
 
 #include "ContentWindowComponents.hpp"
 
+#include <ResourceManager/ResourceManager.hpp>
 #include <ResourceManager/Resource.hpp>
 #include <ResourceManager/ResourceDragDropPayload.hpp>
 
 #include <imgui.h>
+#include <Libs/FontIcon/IconsFontAwesome6.h>
 
 namespace Darius::Editor::Gui::Component
 {
 
-	void ContentWindowItemGrid(EditorContentWindowItem& data, float width, float height, bool& selected, bool& doubleClicked)
+	void ContentWindowItemGrid(EditorContentWindowItem& data, float width, float height, bool& selected, bool& doubleClicked, D_RESOURCE::ResourceHandle& selectedResource)
 	{
 
 		auto pathStr = data.Path.c_str();
@@ -27,15 +29,17 @@ namespace Darius::Editor::Gui::Component
 		auto startCurPos = ImGui::GetCursorPos();
 
 		selected = ImGui::Button("##contentElBtn", ImVec2(-1, -1));
+		if (selected)
+			selectedResource = data.MainHandle;
 
 		// Drag and drop
 		if (!data.IsDirectory)
 		{
-			if (data.Handle.IsValid() && ImGui::BeginDragDropSource(ImGuiDragDropFlags_AcceptBeforeDelivery))
+			if (data.MainHandle.IsValid() && ImGui::BeginDragDropSource(ImGuiDragDropFlags_AcceptBeforeDelivery))
 			{
 				D_RESOURCE::ResourceDragDropPayloadContent payload;
-				payload.Handle = data.Handle;
-				payload.Type = std::to_string(data.Handle.Type);
+				payload.Handle = data.MainHandle;
+				payload.Type = std::to_string(data.MainHandle.Type);
 
 				ImGui::SetDragDropPayload(D_PAYLOAD_TYPE_RESOURCE, &payload, sizeof(D_RESOURCE::ResourceDragDropPayloadContent), ImGuiCond_Once);
 				ImGui::Text((data.Name + " (Resource)").c_str());
@@ -63,6 +67,45 @@ namespace Darius::Editor::Gui::Component
 		ImGui::SetCursorPos(ImVec2(startCurPos.x + textStart, startCurPos.y + height - 1.5f * padding));
 
 		ImGui::TextWrapped(nameStr);
+
+		if (data.ChildResources.size() > 1)
+		{
+			// Showing child elements
+			ImGui::SetCursorPos(ImVec2((availWidth - size.x) / 2 + startCurPos.x + size.x, startCurPos.y + 5));
+			
+			if (ImGui::Button(ICON_FA_CHEVRON_DOWN))
+				ImGui::OpenPopup("ChildResourcesInContentWindowComponent");
+
+			if (ImGui::BeginPopup("ChildResourcesInContentWindowComponent"))
+			{
+				for (auto const& handle : data.ChildResources)
+				{
+					auto prev = D_RESOURCE::GetResourcePreview(handle);
+					auto name = WSTR2STR(prev.Name);
+					if (ImGui::Selectable((name + " (" + D_RESOURCE::Resource::GetResourceName(handle.Type) + ")").c_str()))
+					{
+						selected = true;
+						selectedResource = handle;
+					}
+					
+					// Drag and drop source
+					if (handle.IsValid() && ImGui::BeginDragDropSource(ImGuiDragDropFlags_AcceptBeforeDelivery))
+					{
+						D_RESOURCE::ResourceDragDropPayloadContent payload;
+						payload.Handle = handle;
+						payload.Type = std::to_string(handle.Type);
+
+						ImGui::SetDragDropPayload(D_PAYLOAD_TYPE_RESOURCE, &payload, sizeof(D_RESOURCE::ResourceDragDropPayloadContent), ImGuiCond_Once);
+						ImGui::Text((name + " (Resource)").c_str());
+						ImGui::EndDragDropSource();
+					}
+
+				}
+
+				ImGui::EndPopup();
+			}
+		}
+		
 
 		ImGui::EndChildFrame();
 

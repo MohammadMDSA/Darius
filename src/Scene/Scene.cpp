@@ -172,15 +172,15 @@ namespace Darius::Scene
 		return result;
 	}
 
-	GameObject* SceneManager::CreateGameObject()
+	GameObject* SceneManager::CreateGameObject(bool addToScene)
 	{
 		auto uuid = GenerateUuid();
-		return CreateGameObject(uuid);
+		return CreateGameObject(uuid, addToScene);
 	}
 
-	GameObject* SceneManager::CreateGameObject(Uuid uuid)
+	GameObject* SceneManager::CreateGameObject(Uuid uuid, bool addToScene)
 	{
-		auto go = AddGameObject(uuid);
+		auto go = AddGameObject(uuid, addToScene);
 
 		if (Started)
 			go->Awake();

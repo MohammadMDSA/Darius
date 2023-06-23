@@ -53,6 +53,7 @@
     - Entity Component System Architecture
     - Scene Graph and Hierarchical Transform Math
     - Prefab Creation
+    - FBX Scene Loading
     - Game Object Instantiation
 - Physics
     - Dynamic, Static, and Kinematic Actors
@@ -97,6 +98,10 @@
 ### Skinned Mesh Animation
 ![](Docs/SkinnedMeshAnimation.png)
 
+---
+
+## Known Braking Issues
+- Prefab and FBX resources must be loaded. Either manually or through the usage of its contained resources.
 ---
 
 ## Installing

@@ -147,8 +147,8 @@ namespace Darius::ResourceManager
 
 		INLINE virtual bool			IsDirtyGPU() const { return mDirtyGPU; }
 
-		INLINE operator ResourceHandle const() { return { GetType(), mId }; }
-		INLINE operator ResourcePreview const() { return GetPreview(); }
+		INLINE operator ResourceHandle() const { return { GetType(), mId }; }
+		INLINE operator ResourcePreview() const { return GetPreview(); }
 
 	private:
 		DField(Get[const, &, inline])

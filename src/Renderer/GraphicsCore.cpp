@@ -21,6 +21,7 @@
 #include "PostProcessing/PostProcessing.hpp"
 #include "Renderer.hpp"
 #include "Resources/BatchResource.hpp"
+#include "Resources/FBXPrefabResource.hpp"
 #include "Resources/MaterialResource.hpp"
 #include "Resources/StaticMeshResource.hpp"
 #include "Resources/SkeletalMeshResource.hpp"
@@ -310,6 +311,7 @@ namespace Darius::Graphics
 		MaterialResource::Register();
 		BatchResource::Register();
 		TerrainResource::Register();
+		FBXPrefabResource::Register();
 
 		LoadDefaultResources();
 

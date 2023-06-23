@@ -53,6 +53,9 @@ namespace Darius::Math
 
 	void TransformComponent::SetLocalWorld(Matrix4 const& mat)
 	{
+		if (!CanChange())
+			return;
+
 		mTransformMath = Transform(mat);
 		mWorldDirty = true;
 		SetDirty();

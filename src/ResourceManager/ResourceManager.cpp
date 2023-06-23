@@ -82,6 +82,11 @@ namespace Darius::ResourceManager
 		return _ResourceManager->GetResourcePreviews(type);
 	}
 
+	ResourcePreview GetResourcePreview(ResourceHandle const& handle)
+	{
+		return _ResourceManager->GetResourcePreview(handle);
+	}
+
 	void UpdateGPUResources()
 	{
 		_ResourceManager->UpdateGPUResources();
@@ -131,9 +136,22 @@ namespace Darius::ResourceManager
 
 		if (!mResourceMap.contains(handle.Type))
 			throw D_EXCEPTION::Exception("Type not found");
-		auto typeClass = mResourceMap[handle.Type];
+		auto& typeClass = mResourceMap[handle.Type];
 		if (!typeClass.contains(handle.Id))
 			throw D_EXCEPTION::Exception("Resource with given id not found");
+		return typeClass[handle.Id].get();
+	}
+
+	Resource* DResourceManager::GetRawResourceSafe(ResourceHandle handle)
+	{
+		if (handle.Type == 0)
+			return nullptr;
+
+		if (!mResourceMap.contains(handle.Type))
+			return nullptr;
+		auto& typeClass = mResourceMap[handle.Type];
+		if (!typeClass.contains(handle.Id))
+			return nullptr;
 		return typeClass[handle.Id].get();
 	}
 
@@ -146,6 +164,15 @@ namespace Darius::ResourceManager
 		}
 
 		return res;
+	}
+
+	ResourcePreview DResourceManager::GetResourcePreview(ResourceHandle const& handle)
+	{
+		auto res = GetRawResourceSafe(handle);
+		if (res == nullptr)
+			return { L"", D_FILE::Path(), EmptyResourceHandle};
+
+		return *res;
 	}
 
 	ResourceHandle DResourceManager::CreateResource(ResourceType type, Uuid const& uuid, std::wstring const& path, std::wstring const& name, bool isDefault, bool fromFile)

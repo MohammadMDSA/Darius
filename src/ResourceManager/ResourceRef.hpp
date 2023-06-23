@@ -49,6 +49,8 @@ namespace rttr
 
 		static INLINE type create(wrapped_type const& value)
 		{
+			if (value.is_nil())
+				return D_RESOURCE::ResourceRef<T>(nullptr);
 			return D_RESOURCE::GetResource<T>(value, std::nullopt);
 		}
 
