@@ -67,7 +67,7 @@ namespace Darius::Graphics::Device
 		m_colorSpace(DXGI_COLOR_SPACE_RGB_FULL_G22_NONE_P709),
 		m_options(flags)
 	{
-		if (backBufferCount < 2 || backBufferCount > D_RENDERER_FRAME_RESOURCE::gNumFrameResources)
+		if (backBufferCount < 2 || backBufferCount > gNumFrameResources)
 		{
 			throw std::out_of_range("invalid backBufferCount");
 		}
@@ -291,7 +291,7 @@ namespace Darius::Graphics::Device
 		{
 			m_swapChainBuffer[n].Destroy();
 		}
-		for (UINT i = 0; i < D_RENDERER_FRAME_RESOURCE::gNumFrameResources; i++)
+		for (UINT i = 0; i < gNumFrameResources; i++)
 		{
 			m_frameResources[i]= 0;
 		}
@@ -531,7 +531,7 @@ namespace Darius::Graphics::Device
 		// Schedule a Signal command in the queue.
 		const UINT64 currentFenceValue = m_frameResources[m_currentResourceIndex];
 
-		m_currentResourceIndex = (m_currentResourceIndex + 1) % D_RENDERER_FRAME_RESOURCE::gNumFrameResources;
+		m_currentResourceIndex = (m_currentResourceIndex + 1) % gNumFrameResources;
 
 		// Update the back buffer index.
 		m_backBufferIndex = m_swapChain->GetCurrentBackBufferIndex();

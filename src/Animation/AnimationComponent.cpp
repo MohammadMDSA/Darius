@@ -1,7 +1,7 @@
 #include "pch.hpp"
 #include "AnimationComponent.hpp"
 
-#include <Graphics/Components/SkeletalMeshRendererComponent.hpp>
+#include <Renderer/Components/SkeletalMeshRendererComponent.hpp>
 
 #ifdef _D_EDITOR
 #include <Libs/FontIcon/IconsFontAwesome6.h>
@@ -137,10 +137,10 @@ namespace Darius::Animation
 
 	void AnimationComponent::Update(float deltaTime)
 	{
-		if (!IsActive() || !mAnimation.IsValid() || !GetGameObject()->HasComponent<D_GRAPHICS::SkeletalMeshRendererComponent>())
+		if (!IsActive() || !mAnimation.IsValid() || !GetGameObject()->HasComponent<D_RENDERER::SkeletalMeshRendererComponent>())
 			return;
 
-		SkeletalMeshRendererComponent* skeletalMesh = GetGameObject()->GetComponent<SkeletalMeshRendererComponent>();
+		D_RENDERER::SkeletalMeshRendererComponent* skeletalMesh = GetGameObject()->GetComponent<D_RENDERER::SkeletalMeshRendererComponent>();
 		auto meshId = skeletalMesh->GetUuid();
 
 		// If the skeletal mesh we are animating is changed, we have to update our indices
@@ -229,10 +229,10 @@ namespace Darius::Animation
 		if (!mAnimation.IsValid())
 			return;
 
-		if (!GetGameObject()->HasComponent<SkeletalMeshRendererComponent>())
+		if (!GetGameObject()->HasComponent<D_RENDERER::SkeletalMeshRendererComponent>())
 			return;
 
-		SkeletalMeshRendererComponent const* skeletalMeshRes = GetGameObject()->GetComponent<SkeletalMeshRendererComponent>();
+		D_RENDERER::SkeletalMeshRendererComponent const* skeletalMeshRes = GetGameObject()->GetComponent<D_RENDERER::SkeletalMeshRendererComponent>();
 
 		mMeshId = skeletalMeshRes->GetUuid();
 

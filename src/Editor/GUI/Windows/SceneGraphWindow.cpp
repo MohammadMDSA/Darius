@@ -5,7 +5,7 @@
 #include <Core/Input.hpp>
 #include <Core/Containers/List.hpp>
 #include <Engine/EngineContext.hpp>
-#include <Graphics/Resources/FBXPrefabResource.hpp>
+#include <Renderer/Resources/FBXPrefabResource.hpp>
 #include <ResourceManager/ResourceDragDropPayload.hpp>
 #include <ResourceManager/ResourceManager.hpp>
 #include <Scene/Scene.hpp>
@@ -163,10 +163,10 @@ namespace Darius::Editor::Gui::Windows
 				}
 
 				// In case it is a fbx prefab resource
-				else if (payload->IsCompatible(D_UTILS::BaseDragDropPayloadContent::Type::Resource, std::to_string(D_GRAPHICS::FBXPrefabResource::GetResourceType())))
+				else if (payload->IsCompatible(D_UTILS::BaseDragDropPayloadContent::Type::Resource, std::to_string(D_RENDERER::FBXPrefabResource::GetResourceType())))
 				{
 					auto payloadData = reinterpret_cast<D_RESOURCE::ResourceDragDropPayloadContent const*>(imPayload->Data);
-					auto prefabResource = D_RESOURCE::GetResource<D_GRAPHICS::FBXPrefabResource>(payloadData->Handle);
+					auto prefabResource = D_RESOURCE::GetResource<D_RENDERER::FBXPrefabResource>(payloadData->Handle);
 
 					if (prefabResource.IsValid() && prefabResource->GetPrefabGameObject() && prefabResource->GetPrefabGameObject()->IsValid() && ImGui::AcceptDragDropPayload(D_PAYLOAD_TYPE_RESOURCE))
 					{

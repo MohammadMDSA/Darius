@@ -7,13 +7,14 @@
 #include <Core/Input.hpp>
 #include <Debug/DebugDraw.hpp>
 #include <Engine/EngineContext.hpp>
-#include <Graphics/Components/MeshRendererComponent.hpp>
-#include <Graphics/Components/SkeletalMeshRendererComponent.hpp>
 #include <Graphics/PostProcessing/PostProcessing.hpp>
 #include <Graphics/GraphicsCore.hpp>
 #include <Graphics/GraphicsDeviceManager.hpp>
-#include <Graphics/Rasterization/Renderer.hpp>
-#include <Graphics/Light/LightManager.hpp>
+#include <Renderer/Components/MeshRendererComponent.hpp>
+#include <Renderer/Components/SkeletalMeshRendererComponent.hpp>
+#include <Renderer/RendererManager.hpp>
+#include <Renderer/Rasterization/Renderer.hpp>
+#include <Renderer/Rasterization/Light/LightManager.hpp>
 #include <ResourceManager/ResourceManager.hpp>
 #include <Scene/Scene.hpp>
 
@@ -48,7 +49,7 @@ namespace Darius::Editor::Gui::Windows
 		CreateBuffers();
 		mTextureHandle = D_RENDERER_RAST::AllocateUiTexture(1);
 
-		mLineMeshResource = D_RESOURCE::ResourceRef<D_GRAPHICS::BatchResource>({ L"Scene Window", rttr::type::get<SceneWindow>(), this });
+		mLineMeshResource = D_RESOURCE::ResourceRef<D_RENDERER::BatchResource>({ L"Scene Window", rttr::type::get<SceneWindow>(), this });
 
 		// Setup camera
 		mCamera.SetFoV(XM_PI / 3);
@@ -62,8 +63,8 @@ namespace Darius::Editor::Gui::Windows
 		mMouseWheelPerspectiveSensitivity = 0.1f;
 
 		// Fetch line mesh resource
-		auto lineHandle = D_GRAPHICS::GetDefaultGraphicsResource(D_GRAPHICS::DefaultResource::LineMesh);
-		mLineMeshResource = D_RESOURCE::GetResource<BatchResource>(lineHandle);
+		auto lineHandle = D_RENDERER::GetDefaultGraphicsResource(D_RENDERER::DefaultResource::LineMesh);
+		mLineMeshResource = D_RESOURCE::GetResource<D_RENDERER::BatchResource>(lineHandle);
 
 		// Initializing grid gpu constants
 		auto count = 50;
@@ -80,8 +81,8 @@ namespace Darius::Editor::Gui::Windows
 		auto diffIBLHandle = D_RESOURCE_LOADER::LoadResource(D_ENGINE_CONTEXT::GetAssetsPath() / "PBR/DefaultSkyboxDiffuseIBL_HDR.dds");
 		auto specIBLHandle = D_RESOURCE_LOADER::LoadResource(D_ENGINE_CONTEXT::GetAssetsPath() / "PBR/DefaultSkyboxSpecularIBL.dds");
 
-		mSkyboxDiff = D_RESOURCE::GetResource<TextureResource>(diffIBLHandle[0], this, L"Scene Window", rttr::type::get<SceneWindow>());
-		mSkyboxSpec = D_RESOURCE::GetResource<TextureResource>(specIBLHandle[0], this, L"Scene Window", rttr::type::get<SceneWindow>());
+		mSkyboxDiff = D_RESOURCE::GetResource<D_RENDERER::TextureResource>(diffIBLHandle[0], this, L"Scene Window", rttr::type::get<SceneWindow>());
+		mSkyboxSpec = D_RESOURCE::GetResource<D_RENDERER::TextureResource>(specIBLHandle[0], this, L"Scene Window", rttr::type::get<SceneWindow>());
 
 		D_RENDERER_RAST::SetIBLTextures(
 			mSkyboxDiff,
@@ -378,7 +379,7 @@ namespace Darius::Editor::Gui::Windows
 					mDrawSkybox = !mDrawSkybox;
 					if (!mDrawSkybox)
 					{
-						auto invTex = D_RESOURCE::ResourceRef<TextureResource>();
+						auto invTex = D_RESOURCE::ResourceRef<D_RENDERER::TextureResource>();
 						D_RENDERER_RAST::SetIBLTextures(invTex, invTex);
 					}
 					else

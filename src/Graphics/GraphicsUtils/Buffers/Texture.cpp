@@ -4,7 +4,6 @@
 #include "Graphics/CommandContext.hpp"
 #include "Graphics/GraphicsUtils/DDSTextureLoader.hpp"
 #include "Graphics/GraphicsDeviceManager.hpp"
-#include "Graphics/Resources/TextureResource.hpp"
 
 #include <Utils/Common.hpp>
 

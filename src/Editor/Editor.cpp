@@ -11,11 +11,11 @@
 #include <Core/Containers/Vector.hpp>
 #include <Core/TimeManager/TimeManager.hpp>
 #include <Engine/EngineContext.hpp>
-#include <Graphics/Rasterization/Renderer.hpp>
-#include <Graphics/Camera/CameraManager.hpp>
 #include <Graphics/CommandContext.hpp>
 #include <Graphics/GraphicsUtils/Profiling/Profiling.hpp>
-#include <Graphics/Light/LightManager.hpp>
+#include <Renderer/Rasterization/Light/LightManager.hpp>
+#include <Renderer/Rasterization/Renderer.hpp>
+#include <Renderer/Camera/CameraManager.hpp>
 #include <Utils/Debug.hpp>
 
 #include <Demo/DetailDrawTest.hpp>
@@ -109,7 +109,7 @@ namespace Darius::Editor
 		// TODO: Hacking accuiring cam input of update light buffers. Needs to be fixed ASAP!
 		auto cam = D_CAMERA_MANAGER::GetActiveCamera();
 		auto mathCam = cam.IsValid() ? &cam->GetCamera() : nullptr;
-		D_LIGHT::UpdateBuffers(context, mathCam);
+		D_LIGHT_RAST::UpdateBuffers(context, mathCam);
 		D_RESOURCE::UpdateGPUResources();
 		context.Finish();
 

@@ -12,6 +12,7 @@
 #include <Graphics/GraphicsCore.hpp>
 #include <Job/Job.hpp>
 #include <Physics/PhysicsManager.hpp>
+#include <Renderer/RendererManager.hpp>
 #include <ResourceManager/ResourceManager.hpp>
 #include <Scene/Scene.hpp>
 #include <Utils/Assert.hpp>
@@ -58,7 +59,8 @@ namespace Darius::Subsystems
 		REGISTER_SUBSYSTEM("Input", D_INPUT);
 		REGISTER_SUBSYSTEM("Time", D_TIME);
 		REGISTER_SUBSYSTEM("Job", D_JOB);
-		REGISTER_SUBSYSTEM("Renderer", D_GRAPHICS);
+		REGISTER_SUBSYSTEM("Renderer", D_RENDERER);
+		REGISTER_SUBSYSTEM("Graphics", D_GRAPHICS);
 		REGISTER_SUBSYSTEM("Resource Manager", D_RESOURCE);
 	}
 
@@ -82,7 +84,9 @@ namespace Darius::Subsystems
 		// Initializing the resource manager
 		D_RESOURCE::Initialize(settings["Resource Manager"]);
 
-		D_GRAPHICS::Initialize(window, width, height, settings["Renderer"]);
+		D_GRAPHICS::Initialize(window, width, height, settings["Graphics"]);
+
+		D_RENDERER::Initialize(settings["Renderer"]);
 
 		// Creating device and window resources
 		/*CreateDeviceDependentResources();
@@ -125,7 +129,8 @@ namespace Darius::Subsystems
 		D_INPUT::Shutdown();
 		D_TIME::Shutdown();
 		D_JOB::Shutdown();
-		D_RENDERER_RAST::Shutdown();
+		D_RENDERER::Shutdown();
+		D_GRAPHICS::Shutdown();
 		D_RESOURCE::Shutdown();
 		D_SERIALIZATION::Shutdown();
 	}

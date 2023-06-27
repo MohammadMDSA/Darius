@@ -3,6 +3,7 @@
 
 #include <Core/TimeManager/TimeManager.hpp>
 #include <Graphics/GraphicsDeviceManager.hpp>
+#include <Renderer/RendererManager.hpp>
 
 #include <mutex>
 
@@ -57,18 +58,18 @@ namespace Darius::Debug
 
 	D_CONTAINERS::DUnorderedMap<double, std::pair<D_RENDERER_FRAME_RESOURCE::RenderItem, D_MATH::Transform>> DrawsWithDuration;
 
-	D_RESOURCE::ResourceRef<D_GRAPHICS::StaticMeshResource>	DebugDraw::CubeMeshResource({ L"Debug Drawer" });
-	D_RESOURCE::ResourceRef<D_GRAPHICS::StaticMeshResource>	DebugDraw::SphereMeshResource({ L"Debug Drawer" });
-	D_RESOURCE::ResourceRef<D_GRAPHICS::BatchResource>		DebugDraw::LineMeshResource({ L"Debug Drawer" });
+	D_RESOURCE::ResourceRef<D_RENDERER::StaticMeshResource>	DebugDraw::CubeMeshResource({ L"Debug Drawer" });
+	D_RESOURCE::ResourceRef<D_RENDERER::StaticMeshResource>	DebugDraw::SphereMeshResource({ L"Debug Drawer" });
+	D_RESOURCE::ResourceRef<D_RENDERER::BatchResource>		DebugDraw::LineMeshResource({ L"Debug Drawer" });
 
 #endif // _DEBUG
 
 	void DebugDraw::Initialize(D_SERIALIZATION::Json const& settings)
 	{
 #ifdef _DEBUG
-		CubeMeshResource = GetResource<D_GRAPHICS::StaticMeshResource>(D_GRAPHICS::GetDefaultGraphicsResource(D_GRAPHICS::DefaultResource::BoxMesh));
-		SphereMeshResource = GetResource<D_GRAPHICS::StaticMeshResource>(D_GRAPHICS::GetDefaultGraphicsResource(D_GRAPHICS::DefaultResource::LowPolySphereMesh));
-		LineMeshResource = GetResource<D_GRAPHICS::BatchResource>(D_GRAPHICS::GetDefaultGraphicsResource(D_GRAPHICS::DefaultResource::LineMesh));
+		CubeMeshResource = GetResource<D_RENDERER::StaticMeshResource>(D_RENDERER::GetDefaultGraphicsResource(D_RENDERER::DefaultResource::BoxMesh));
+		SphereMeshResource = GetResource<D_RENDERER::StaticMeshResource>(D_RENDERER::GetDefaultGraphicsResource(D_RENDERER::DefaultResource::LowPolySphereMesh));
+		LineMeshResource = GetResource<D_RENDERER::BatchResource>(D_RENDERER::GetDefaultGraphicsResource(D_RENDERER::DefaultResource::LineMesh));
 
 		// Initializing Mesh Constants buffers
 		MeshConstantsCPU.Create(L"Debug Mesh Constant Upload Buffer", sizeof(D_RENDERER_FRAME_RESOURCE::MeshConstants) * MAX_DEBUG_DRAWS);

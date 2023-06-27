@@ -18,11 +18,11 @@
 #include <Engine/EngineContext.hpp>
 #include <Math/VectorMath.hpp>
 #include <Physics/Resources/PhysicsMaterialResource.hpp>
-#include <Graphics/Geometry/ModelLoader/FbxLoader.hpp>
 #include <Graphics/GraphicsUtils/Profiling/Profiling.hpp>
-#include <Graphics/Rasterization/Renderer.hpp>
-#include <Graphics/Resources/MaterialResource.hpp>
-#include <Graphics/Resources/TerrainResource.hpp>
+#include <Renderer/Geometry/ModelLoader/FbxLoader.hpp>
+#include <Renderer/Rasterization/Renderer.hpp>
+#include <Renderer/Resources/MaterialResource.hpp>
+#include <Renderer/Resources/TerrainResource.hpp>
 #include <ResourceManager/ResourceManager.hpp>
 #include <ResourceManager/ResourceLoader.hpp>
 #include <Scene/EntityComponentSystem/Components/TransformComponent.hpp>
@@ -371,12 +371,12 @@ namespace Darius::Editor::Gui::GuiManager
 				{
 					if (ImGui::MenuItem("Material"))
 					{
-						ImGuiFileDialog::Instance()->OpenDialog("SaveResource", "Create Material", ".mat", D_ENGINE_CONTEXT::GetAssetsPath().string(), 1, (void*)D_GRAPHICS::MaterialResource::GetResourceType());
+						ImGuiFileDialog::Instance()->OpenDialog("SaveResource", "Create Material", ".mat", D_ENGINE_CONTEXT::GetAssetsPath().string(), 1, (void*)D_RENDERER::MaterialResource::GetResourceType());
 					}
 
 					if (ImGui::MenuItem("Terrain"))
 					{
-						ImGuiFileDialog::Instance()->OpenDialog("SaveResource", "Create Terrain", ".terrain", D_ENGINE_CONTEXT::GetAssetsPath().string(), 1, (void*)D_GRAPHICS::TerrainResource::GetResourceType());
+						ImGuiFileDialog::Instance()->OpenDialog("SaveResource", "Create Terrain", ".terrain", D_ENGINE_CONTEXT::GetAssetsPath().string(), 1, (void*)D_RENDERER::TerrainResource::GetResourceType());
 					}
 
 					ImGui::Separator();

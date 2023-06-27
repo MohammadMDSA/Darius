@@ -5,12 +5,12 @@
 
 #include <Core/Containers/Vector.hpp>
 #include <Core/Ref.hpp>
-#include <Graphics/Rasterization/Renderer.hpp>
-#include <Graphics/FrameResource.hpp>
 #include <Graphics/GraphicsUtils/Buffers/ColorBuffer.hpp>
 #include <Graphics/GraphicsUtils/Buffers/DepthBuffer.hpp>
 #include <Graphics/GraphicsUtils/Memory/DescriptorHeap.hpp>
-#include <Graphics/Resources/BatchResource.hpp>
+#include <Renderer/FrameResource.hpp>
+#include <Renderer/Rasterization/Renderer.hpp>
+#include <Renderer/Resources/BatchResource.hpp>
 #include <Scene/Scene.hpp>
 
 #include <iostream>
@@ -92,9 +92,9 @@ namespace Darius::Editor::Gui::Windows
 
 		D_GRAPHICS_MEMORY::DescriptorHandle			mTextureHandle;
 
-		D_RESOURCE::ResourceRef<D_GRAPHICS::BatchResource> mLineMeshResource;
-		D_RESOURCE::ResourceRef<D_GRAPHICS::TextureResource> mSkyboxDiff;
-		D_RESOURCE::ResourceRef<D_GRAPHICS::TextureResource> mSkyboxSpec;
+		D_RESOURCE::ResourceRef<D_RENDERER::BatchResource> mLineMeshResource;
+		D_RESOURCE::ResourceRef<D_RENDERER::TextureResource> mSkyboxDiff;
+		D_RESOURCE::ResourceRef<D_RENDERER::TextureResource> mSkyboxSpec;
 
 		D_GRAPHICS_BUFFERS::ByteAddressBuffer		mLineConstantsGPU;
 

@@ -4,7 +4,7 @@
 #include "Editor/EditorContext.hpp"
 
 #include <Core/Containers/Map.hpp>
-#include <Graphics/Resources/MaterialResource.hpp>
+#include <Renderer/Resources/MaterialResource.hpp>
 
 #include <Utils/Assert.hpp>
 
@@ -89,7 +89,7 @@ namespace Darius::Editor::Gui::ThumbnailManager
 
 	void RegisterResourceTypeTextures()
 	{
-		REGISTER_RESOURCE_TYPE_TEXTURE(D_GRAPHICS::MaterialResource, "material.dds");
+		REGISTER_RESOURCE_TYPE_TEXTURE(D_RENDERER::MaterialResource, "material.dds");
 
 	}
 
@@ -105,7 +105,7 @@ namespace Darius::Editor::Gui::ThumbnailManager
 					AddExistingResourceThumbnail(uuid);
 				});
 
-		ResourceType supportedTypes[] = { D_GRAPHICS::TextureResource::GetResourceType() };
+		ResourceType supportedTypes[] = { D_RENDERER::TextureResource::GetResourceType() };
 
 		for (int i = 0; i < _countof(supportedTypes); i++)
 		{
@@ -200,7 +200,7 @@ namespace Darius::Editor::Gui::ThumbnailManager
 		if (!force && ResourceTextures.contains(uuid))
 			return;
 
-		if (resourceType == D_GRAPHICS::TextureResource::GetResourceType())
+		if (resourceType == D_RENDERER::TextureResource::GetResourceType())
 		{
 			GenerateThumbnailFromDDSTexture(uuid, resource->GetPath());
 		}

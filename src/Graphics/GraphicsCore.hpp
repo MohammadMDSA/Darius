@@ -43,42 +43,9 @@ namespace Darius::Graphics
 	Microsoft::WRL::ComPtr<ID3DBlob>		GetShaderByName(std::string const& shaderName);
 	UINT32									GetShaderIndex(std::string const& shaderName);
 
-
 #ifdef _D_EDITOR
 	bool OptionsDrawer(_IN_OUT_ D_SERIALIZATION::Json& options);
 #endif
-
-
-	enum class DefaultResource
-	{
-		// Meshes
-		BoxMesh,
-		CylinderMesh,
-		GeosphereMesh,
-		QuadMesh,
-		SphereMesh,
-		LowPolySphereMesh,
-		LineMesh,
-		GridPatch2x2Mesh,
-		GridPatch4x4Mesh,
-		GridPatch8x8Mesh,
-		GridPatch16x16Mesh,
-		Grid100x100Mesh,
-
-		// Materials
-		Material,
-
-		// Textures
-		Texture2DMagenta,
-		Texture2DBlackOpaque,
-		Texture2DBlackTransparent,
-		Texture2DWhiteOpaque,
-		Texture2DWhiteTransparent,
-		Texture2DNormalMap,
-		TextureCubeMapBlack
-	};
-
-	D_RESOURCE::ResourceHandle GetDefaultGraphicsResource(DefaultResource type);
 
 	extern D_GRAPHICS_UTILS::SamplerDesc	SamplerLinearWrapDesc;
 	extern D_GRAPHICS_UTILS::SamplerDesc	SamplerAnisoWrapDesc;

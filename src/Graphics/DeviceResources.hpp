@@ -5,7 +5,6 @@
 #pragma once
 #include "pch.hpp"
 
-#include "FrameResource.hpp"
 #include "GraphicsUtils/Memory/DescriptorHeap.hpp"
 #include "GraphicsUtils/Buffers/ColorBuffer.hpp"
 #include "GraphicsUtils/Buffers/DepthBuffer.hpp"
@@ -19,6 +18,9 @@
 
 namespace Darius::Graphics::Device
 {
+
+    static constexpr size_t gNumFrameResources = 3;
+
     // Provides an interface for an application that owns DeviceResources to be notified of the device being lost or created.
     class IDeviceNotify
     {
@@ -100,7 +102,7 @@ namespace Darius::Graphics::Device
 
         UINT                                                m_backBufferIndex;
         UINT                                                m_currentResourceIndex;
-        std::array<UINT64, D_RENDERER_FRAME_RESOURCE::gNumFrameResources> m_frameResources;
+        std::array<UINT64, gNumFrameResources>              m_frameResources;
 
         // Direct3D objects.
         Microsoft::WRL::ComPtr<ID3D12Device>                m_d3dDevice;

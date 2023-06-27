@@ -5,7 +5,7 @@
 #include "Graphics/GraphicsCore.hpp"
 #include "Graphics/GraphicsUtils/PipelineState.hpp"
 #include "Graphics/GraphicsUtils/Profiling/Profiling.hpp"
-#include "Graphics/Resources/TextureResource.hpp"
+#include "Graphics/GraphicsUtils/Buffers/Texture.hpp"
 
 #include <Utils/Assert.hpp>
 #include <Utils/Common.hpp>
@@ -57,7 +57,7 @@ namespace Darius::Graphics::PostProcessing
 	// Internal
 	const float											InitialMinLog = -12.0f;
 	const float											InitialMaxLog = 4.0f;
-	D_RESOURCE::ResourceRef<TextureResource>			DefaultBlackOpaquTexture({ L"PostProcessin Module", rttr::type::get<void>() });
+	Texture												DefaultBlackOpaquTexture;
 
 	// Funcs
 	void ExtractLuma(ComputeContext& context, PostProcessContextBuffers& contextBuffers);
@@ -133,9 +133,8 @@ namespace Darius::Graphics::PostProcessing
 
 #undef CreatePSO
 
-		DefaultBlackOpaquTexture = D_RESOURCE::GetResource<TextureResource>(GetDefaultGraphicsResource(DefaultResource::Texture2DBlackOpaque));
-
-		D_ASSERT(DefaultBlackOpaquTexture.IsValid());
+		uint32_t blackColor = 0xFF000000;
+		DefaultBlackOpaquTexture.Create2D(4, 1, 1, DXGI_FORMAT_R8G8B8A8_UNORM, &blackColor);
 	}
 
 	void Shutdown()
@@ -384,7 +383,7 @@ namespace Darius::Graphics::PostProcessing
 
 		// Read in original HDR value and blurred bloom buffer
 		context.SetDynamicDescriptor(2, 0, contextBuffers.ExposureBuffer.GetSRV());
-		context.SetDynamicDescriptor(2, 1, EnableBloom ? contextBuffers.BloomUAV1[1].GetSRV() : DefaultBlackOpaquTexture->GetTextureData()->GetSRV());
+		context.SetDynamicDescriptor(2, 1, EnableBloom ? contextBuffers.BloomUAV1[1].GetSRV() : DefaultBlackOpaquTexture.GetSRV());
 
 		context.Dispatch2D(contextBuffers.SceneColor.GetWidth(), contextBuffers.SceneColor.GetHeight());
 
@@ -428,7 +427,7 @@ namespace Darius::Graphics::PostProcessing
 			context.SetDynamicDescriptor(1, 1, contextBuffers.LumaBuffer.GetUAV());
 
 			// Read in original SDR value and blurred bloom buffer
-			context.SetDynamicDescriptor(2, 0, EnableBloom ? contextBuffers.BloomUAV1[1].GetSRV() : DefaultBlackOpaquTexture->GetTextureData()->GetSRV());
+			context.SetDynamicDescriptor(2, 0, EnableBloom ? contextBuffers.BloomUAV1[1].GetSRV() : DefaultBlackOpaquTexture.GetSRV());
 
 			context.SetPipelineState(ApplyBloomCS);
 			context.Dispatch2D(contextBuffers.SceneColor.GetWidth(), contextBuffers.SceneColor.GetHeight());

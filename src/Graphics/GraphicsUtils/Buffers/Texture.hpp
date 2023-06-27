@@ -6,17 +6,11 @@
 #define D_GRAPHICS_BUFFERS Darius::Graphics::Utils::Buffers
 #endif
 
-namespace Darius::Graphics
-{
-    class TextureResource;
-}
-
 namespace Darius::Graphics::Utils::Buffers
 {
     class Texture : public GpuResource
     {
         friend class CommandContext;
-        friend class TextureResource;
 
     public:
 
@@ -47,6 +41,32 @@ namespace Darius::Graphics::Utils::Buffers
         bool    Is2D() const;
         bool    Is3D() const;
         UINT    ArraySize() const;
+
+
+#ifdef _D_EDITOR
+        struct TextureMeta
+        {
+            size_t          Width;
+            size_t          Height;     // Should be 1 for 1D textures
+            size_t          Depth;      // Should be 1 for 1D or 2D textures
+            size_t          ArraySize;  // For cubemap, this is a multiple of 6
+            size_t          MipLevels;
+            uint32_t        MiscFlags;
+            uint32_t        MiscFlags2;
+            DXGI_FORMAT     Format;
+            enum
+                // Subset here matches D3D10_RESOURCE_DIMENSION and D3D11_RESOURCE_DIMENSION
+            {
+                TEX_DIMENSION_TEXTURE1D = 2,
+                TEX_DIMENSION_TEXTURE2D = 3,
+                TEX_DIMENSION_TEXTURE3D = 4,
+            } Dimension;
+            bool            Initialized = false;
+        };
+
+        TextureMeta const& GetMeta() const { return mMetaData; }
+
+#endif // _D_EDITOR
 
         static inline std::string GetFormatString(DXGI_FORMAT format)
         {
@@ -301,10 +321,6 @@ namespace Darius::Graphics::Utils::Buffers
             }
         }
 
-#ifdef _D_EDITOR
-        
-#endif // _D_EDITOR
-
 
     protected:
 
@@ -312,28 +328,7 @@ namespace Darius::Graphics::Utils::Buffers
         uint32_t mHeight;
         uint32_t mDepth;
 
-#ifdef _D_EDITOR
-        struct TextureMeta
-        {
-            size_t          Width;
-            size_t          Height;     // Should be 1 for 1D textures
-            size_t          Depth;      // Should be 1 for 1D or 2D textures
-            size_t          ArraySize;  // For cubemap, this is a multiple of 6
-            size_t          MipLevels;
-            uint32_t        MiscFlags;
-            uint32_t        MiscFlags2;
-            DXGI_FORMAT     Format;
-            enum
-                // Subset here matches D3D10_RESOURCE_DIMENSION and D3D11_RESOURCE_DIMENSION
-            {
-                TEX_DIMENSION_TEXTURE1D = 2,
-                TEX_DIMENSION_TEXTURE2D = 3,
-                TEX_DIMENSION_TEXTURE3D = 4,
-            } Dimension;
-            bool            Initialized = false;
-        } mMetaData;
-#endif // _D_EDITOR
-
+        TextureMeta mMetaData;
 
         D3D12_CPU_DESCRIPTOR_HANDLE mCpuDescriptorHandle;
     };

@@ -1,9 +1,9 @@
 #pragma once
 
-#include <Graphics/FrameResource.hpp>
-#include <Graphics/Rasterization/Renderer.hpp>
-#include <Graphics/Resources/StaticMeshResource.hpp>
-#include <Graphics/Resources/BatchResource.hpp>
+#include <Renderer/FrameResource.hpp>
+#include <Renderer/Rasterization/Renderer.hpp>
+#include <Renderer/Resources/StaticMeshResource.hpp>
+#include <Renderer/Resources/BatchResource.hpp>
 #include <ResourceManager/ResourceManager.hpp>
 #include <Utils/Common.hpp>
 
@@ -63,9 +63,9 @@ namespace Darius::Debug
 		static void PopulateRenderItemFromMesh(D_RENDERER_FRAME_RESOURCE::RenderItem& renderItem, D_RENDERER_GEOMETRY::Mesh const* mesh);
 		static void UploadTransform(D_MATH::Transform const& trans, UINT index);
 
-		static D_RESOURCE::ResourceRef<D_GRAPHICS::StaticMeshResource>	CubeMeshResource;
-		static D_RESOURCE::ResourceRef<D_GRAPHICS::StaticMeshResource>	SphereMeshResource;
-		static D_RESOURCE::ResourceRef<D_GRAPHICS::BatchResource>		LineMeshResource;
+		static D_RESOURCE::ResourceRef<D_RENDERER::StaticMeshResource>	CubeMeshResource;
+		static D_RESOURCE::ResourceRef<D_RENDERER::StaticMeshResource>	SphereMeshResource;
+		static D_RESOURCE::ResourceRef<D_RENDERER::BatchResource>		LineMeshResource;
 
 #else
 		static INLINE void PopulateRenderItemFromMesh(D_RENDERER_FRAME_RESOURCE::RenderItem& renderItem, D_RENDERER_GEOMETRY::Mesh const* mesh) {}

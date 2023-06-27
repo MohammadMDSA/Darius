@@ -7,7 +7,7 @@
 
 #include <Core/Filesystem/FileUtils.hpp>
 #include <Engine/EngineContext.hpp>
-#include <Graphics/Resources/FBXPrefabResource.hpp>
+#include <Renderer/Resources/FBXPrefabResource.hpp>
 
 #include <imgui.h>
 #include <Libs/FontIcon/IconsFontAwesome6.h>
@@ -224,7 +224,7 @@ namespace Darius::Editor::Gui::Windows
 
 				for (auto const& handle : containedResources)
 				{
-					if (handle.Type == D_GRAPHICS::FBXPrefabResource::GetResourceType())
+					if (handle.Type == D_RENDERER::FBXPrefabResource::GetResourceType())
 					{
 						lastItem.MainHandle = handle;
 						lastItem.IconId = D_THUMBNAIL::GetResourceTextureId(handle);

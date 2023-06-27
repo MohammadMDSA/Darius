@@ -3,13 +3,13 @@
 
 #include <Core/TimeManager/TimeManager.hpp>
 #include <Debug/DebugDraw.hpp>
-#include <Graphics/Camera/CameraManager.hpp>
-#include <Graphics/Components/MeshRendererComponent.hpp>
-#include <Graphics/Components/SkeletalMeshRendererComponent.hpp>
+#include <Renderer/Camera/CameraManager.hpp>
 #include <Graphics/GraphicsCore.hpp>
 #include <Graphics/GraphicsDeviceManager.hpp>
-#include <Graphics/Light/LightManager.hpp>
 #include <Graphics/PostProcessing/PostProcessing.hpp>
+#include <Renderer/Components/SkeletalMeshRendererComponent.hpp>
+#include <Renderer/Components/MeshRendererComponent.hpp>
+#include <Renderer/Rasterization/Light/LightManager.hpp>
 
 #include <imgui.h>
 #include <Libs/FontIcon/IconsFontAwesome6.h>
