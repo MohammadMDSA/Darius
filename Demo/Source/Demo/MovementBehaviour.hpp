@@ -1,7 +1,6 @@
 #pragma once
 
 #include <Scene/EntityComponentSystem/Components/BehaviourComponent.hpp>
-#include <Renderer/Light/LightManager.hpp>
 
 #include "MovementBehaviour.generated.hpp"
 

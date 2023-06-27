@@ -7,7 +7,7 @@
 #include "Simulation.hpp"
 
 #include <Engine/EngineContext.hpp>
-#include <Renderer/GraphicsUtils/Profiling/Profiling.hpp>
+#include <Graphics/GraphicsUtils/Profiling/Profiling.hpp>
 #include <ResourceManager/ResourceLoader.hpp>
 #include <Scene/Scene.hpp>
 #include <Utils/Assert.hpp>

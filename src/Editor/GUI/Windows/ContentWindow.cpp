@@ -7,7 +7,7 @@
 
 #include <Core/Filesystem/FileUtils.hpp>
 #include <Engine/EngineContext.hpp>
-#include <Renderer/Resources/FBXPrefabResource.hpp>
+#include <Graphics/Resources/FBXPrefabResource.hpp>
 
 #include <imgui.h>
 #include <Libs/FontIcon/IconsFontAwesome6.h>

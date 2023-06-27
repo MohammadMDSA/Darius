@@ -7,10 +7,10 @@
 #include "Resources/PhysicsMaterialResource.hpp"
 
 #include <Core/TimeManager/TimeManager.hpp>
+#include <Graphics/GraphicsUtils/Profiling/Profiling.hpp>
 #include <Job/Job.hpp>
 #include <ResourceManager/ResourceManager.hpp>
 #include <Scene/Scene.hpp>
-#include <Renderer/GraphicsUtils/Profiling/Profiling.hpp>
 #include <Utils/Assert.hpp>
 
 #include <PxPhysics.h>

@@ -1,5 +1,4 @@
 #include "Editor/pch.hpp"
-#include <Renderer/pch.hpp>
 
 #include "GuiManager.hpp"
 #include "Windows/ContentWindow.hpp"
@@ -19,11 +18,11 @@
 #include <Engine/EngineContext.hpp>
 #include <Math/VectorMath.hpp>
 #include <Physics/Resources/PhysicsMaterialResource.hpp>
-#include <Renderer/Geometry/ModelLoader/FbxLoader.hpp>
-#include <Renderer/GraphicsUtils/Profiling/Profiling.hpp>
-#include <Renderer/Renderer.hpp>
-#include <Renderer/Resources/MaterialResource.hpp>
-#include <Renderer/Resources/TerrainResource.hpp>
+#include <Graphics/Geometry/ModelLoader/FbxLoader.hpp>
+#include <Graphics/GraphicsUtils/Profiling/Profiling.hpp>
+#include <Graphics/Rasterization/Renderer.hpp>
+#include <Graphics/Resources/MaterialResource.hpp>
+#include <Graphics/Resources/TerrainResource.hpp>
 #include <ResourceManager/ResourceManager.hpp>
 #include <ResourceManager/ResourceLoader.hpp>
 #include <Scene/EntityComponentSystem/Components/TransformComponent.hpp>

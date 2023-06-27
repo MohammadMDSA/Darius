@@ -5,11 +5,11 @@
 
 #pragma once
 
+#include <Animation/pch.hpp>
 #include <Core/pch.hpp>
+#include <Debug/pch.hpp>
+#include <Graphics/pch.hpp>
 #include <Math/pch.hpp>
-#include <Renderer/pch.hpp>
+#include <Physics/pch.hpp>
 #include <Scene/pch.hpp>
 #include <ResourceManager/pch.hpp>
-#include <Physics/pch.hpp>
-#include <Debug/pch.hpp>
-#include <Animation/pch.hpp>

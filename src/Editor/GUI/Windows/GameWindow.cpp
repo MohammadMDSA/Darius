@@ -3,13 +3,13 @@
 
 #include <Core/TimeManager/TimeManager.hpp>
 #include <Debug/DebugDraw.hpp>
-#include <Renderer/Camera/CameraManager.hpp>
-#include <Renderer/Components/MeshRendererComponent.hpp>
-#include <Renderer/Components/SkeletalMeshRendererComponent.hpp>
-#include <Renderer/GraphicsCore.hpp>
-#include <Renderer/GraphicsDeviceManager.hpp>
-#include <Renderer/Light/LightManager.hpp>
-#include <Renderer/PostProcessing/PostProcessing.hpp>
+#include <Graphics/Camera/CameraManager.hpp>
+#include <Graphics/Components/MeshRendererComponent.hpp>
+#include <Graphics/Components/SkeletalMeshRendererComponent.hpp>
+#include <Graphics/GraphicsCore.hpp>
+#include <Graphics/GraphicsDeviceManager.hpp>
+#include <Graphics/Light/LightManager.hpp>
+#include <Graphics/PostProcessing/PostProcessing.hpp>
 
 #include <imgui.h>
 #include <Libs/FontIcon/IconsFontAwesome6.h>
@@ -17,7 +17,7 @@
 using namespace D_MATH;
 using namespace D_MATH_BOUNDS;
 using namespace D_GRAPHICS;
-using namespace D_RENDERER;
+using namespace D_RENDERER_RAST;
 using namespace D_RENDERER_FRAME_RESOURCE;
 using namespace DirectX;
 
@@ -29,7 +29,7 @@ namespace Darius::Editor::Gui::Windows
 		mSSAOFullScreen(D_MATH::Color(1.f, 1.f, 1.f))
 	{
 		CreateBuffers();
-		mTextureHandle = D_RENDERER::AllocateUiTexture();
+		mTextureHandle = D_RENDERER_RAST::AllocateUiTexture();
 
 		// Window padding
 		mPadding[0] = mPadding[1] = 0.f;
@@ -106,7 +106,7 @@ namespace Darius::Editor::Gui::Windows
 		
 		D_MATH_CAMERA::Camera const& c = camera.Get()->GetCamera();
 
-		D_RENDERER::SceneRenderContext rc =
+		D_RENDERER_RAST::SceneRenderContext rc =
 		{
 			mSceneDepth,
 			mSceneTexture,
@@ -141,7 +141,7 @@ namespace Darius::Editor::Gui::Windows
 		};
 
 		MeshSorter sorter(MeshSorter::kDefault);
-		D_RENDERER::Render(L"Scene Window", sorter, rc);
+		D_RENDERER_RAST::Render(L"Scene Window", sorter, rc);
 
 
 		// Post Processing

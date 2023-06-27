@@ -11,11 +11,11 @@
 #include <Core/Containers/Vector.hpp>
 #include <Core/TimeManager/TimeManager.hpp>
 #include <Engine/EngineContext.hpp>
-#include <Renderer/Renderer.hpp>
-#include <Renderer/Camera/CameraManager.hpp>
-#include <Renderer/CommandContext.hpp>
-#include <Renderer/GraphicsUtils/Profiling/Profiling.hpp>
-#include <Renderer/Light/LightManager.hpp>
+#include <Graphics/Rasterization/Renderer.hpp>
+#include <Graphics/Camera/CameraManager.hpp>
+#include <Graphics/CommandContext.hpp>
+#include <Graphics/GraphicsUtils/Profiling/Profiling.hpp>
+#include <Graphics/Light/LightManager.hpp>
 #include <Utils/Debug.hpp>
 
 #include <Demo/DetailDrawTest.hpp>
@@ -129,8 +129,8 @@ namespace Darius::Editor
 		}
 
 		D_GUI_MANAGER::Render();
-		D_RENDERER::RenderGui();
-		D_RENDERER::Present();
+		D_RENDERER_RAST::RenderGui();
+		D_RENDERER_RAST::Present();
 
 	}
 #pragma endregion

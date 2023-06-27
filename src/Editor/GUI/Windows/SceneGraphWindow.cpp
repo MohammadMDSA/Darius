@@ -5,12 +5,12 @@
 #include <Core/Input.hpp>
 #include <Core/Containers/List.hpp>
 #include <Engine/EngineContext.hpp>
+#include <Graphics/Resources/FBXPrefabResource.hpp>
+#include <ResourceManager/ResourceDragDropPayload.hpp>
+#include <ResourceManager/ResourceManager.hpp>
 #include <Scene/Scene.hpp>
 #include <Scene/Resources/PrefabResource.hpp>
 #include <Scene/Utils/GameObjectDragDropPayload.hpp>
-#include <Renderer/Resources/FBXPrefabResource.hpp>
-#include <ResourceManager/ResourceDragDropPayload.hpp>
-#include <ResourceManager/ResourceManager.hpp>
 
 #include <imgui.h>
 #include <Libs/FontIcon/IconsFontAwesome6.h>

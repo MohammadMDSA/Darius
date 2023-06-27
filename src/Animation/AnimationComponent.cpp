@@ -1,7 +1,7 @@
 #include "pch.hpp"
 #include "AnimationComponent.hpp"
 
-#include <Renderer/Components/SkeletalMeshRendererComponent.hpp>
+#include <Graphics/Components/SkeletalMeshRendererComponent.hpp>
 
 #ifdef _D_EDITOR
 #include <Libs/FontIcon/IconsFontAwesome6.h>

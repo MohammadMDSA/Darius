@@ -7,5 +7,5 @@
 
 #include <Core/pch.hpp>
 #include <Math/pch.hpp>
-#include <Renderer/pch.hpp>
+#include <Graphics/pch.hpp>
 #include <ResourceManager/pch.hpp>

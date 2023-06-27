@@ -1,8 +1,8 @@
 #pragma once
 
 #include <Core/Containers/Vector.hpp>
-#include <Renderer/CommandContext.hpp>
-#include <Renderer/FrameResource.hpp>
+#include <Graphics/CommandContext.hpp>
+#include <Graphics/FrameResource.hpp>
 #include <Scene/GameObject.hpp>
 
 #ifndef D_GUI_MANAGER

@@ -6,8 +6,8 @@
 
 #include <Core/Filesystem/Path.hpp>
 #include <Core/TimeManager/StepTimer.hpp>
-#include <Renderer/DeviceResources.hpp>
-#include <Renderer/FrameResource.hpp>
+#include <Graphics/DeviceResources.hpp>
+#include <Graphics/FrameResource.hpp>
 
 #include <filesystem>
 

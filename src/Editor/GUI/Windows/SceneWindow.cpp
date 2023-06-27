@@ -7,15 +7,15 @@
 #include <Core/Input.hpp>
 #include <Debug/DebugDraw.hpp>
 #include <Engine/EngineContext.hpp>
-#include <Scene/Scene.hpp>
-#include <Renderer/Components/MeshRendererComponent.hpp>
-#include <Renderer/Components/SkeletalMeshRendererComponent.hpp>
-#include <Renderer/PostProcessing/PostProcessing.hpp>
-#include "Renderer/GraphicsCore.hpp"
-#include "Renderer/GraphicsDeviceManager.hpp"
-#include <Renderer/Renderer.hpp>
-#include <Renderer/Light/LightManager.hpp>
+#include <Graphics/Components/MeshRendererComponent.hpp>
+#include <Graphics/Components/SkeletalMeshRendererComponent.hpp>
+#include <Graphics/PostProcessing/PostProcessing.hpp>
+#include <Graphics/GraphicsCore.hpp>
+#include <Graphics/GraphicsDeviceManager.hpp>
+#include <Graphics/Rasterization/Renderer.hpp>
+#include <Graphics/Light/LightManager.hpp>
 #include <ResourceManager/ResourceManager.hpp>
+#include <Scene/Scene.hpp>
 
 #include <imgui.h>
 #include <ImGuizmo.h>
@@ -25,7 +25,7 @@ using namespace D_CONTAINERS;
 using namespace D_GRAPHICS;
 using namespace D_MATH;
 using namespace D_MATH_BOUNDS;
-using namespace D_RENDERER;
+using namespace D_RENDERER_RAST;
 using namespace D_RENDERER_FRAME_RESOURCE;
 using namespace D_RENDERER_GEOMETRY;
 using namespace DirectX;
@@ -46,7 +46,7 @@ namespace Darius::Editor::Gui::Windows
 		mLineMeshResource({ L"Scene Window", rttr::type::get<SceneWindow>(), nullptr })
 	{
 		CreateBuffers();
-		mTextureHandle = D_RENDERER::AllocateUiTexture(1);
+		mTextureHandle = D_RENDERER_RAST::AllocateUiTexture(1);
 
 		mLineMeshResource = D_RESOURCE::ResourceRef<D_GRAPHICS::BatchResource>({ L"Scene Window", rttr::type::get<SceneWindow>(), this });
 
@@ -83,12 +83,12 @@ namespace Darius::Editor::Gui::Windows
 		mSkyboxDiff = D_RESOURCE::GetResource<TextureResource>(diffIBLHandle[0], this, L"Scene Window", rttr::type::get<SceneWindow>());
 		mSkyboxSpec = D_RESOURCE::GetResource<TextureResource>(specIBLHandle[0], this, L"Scene Window", rttr::type::get<SceneWindow>());
 
-		D_RENDERER::SetIBLTextures(
+		D_RENDERER_RAST::SetIBLTextures(
 			mSkyboxDiff,
 			mSkyboxSpec
 		);
 
-		D_RENDERER::SetIBLBias(0);
+		D_RENDERER_RAST::SetIBLBias(0);
 
 
 		// Styling the gizmo
@@ -188,7 +188,7 @@ namespace Darius::Editor::Gui::Windows
 
 		auto& context = GraphicsContext::Begin(L"Draw Scene Window");
 
-		D_RENDERER::SceneRenderContext rc =
+		D_RENDERER_RAST::SceneRenderContext rc =
 		{
 			mSceneDepth,
 			mSceneTexture,
@@ -223,7 +223,7 @@ namespace Darius::Editor::Gui::Windows
 		};
 
 		MeshSorter sorter(MeshSorter::kDefault);
-		D_RENDERER::Render(L"Scene Window", sorter, rc);
+		D_RENDERER_RAST::Render(L"Scene Window", sorter, rc);
 
 		// Post Processing
 		D_GRAPHICS_PP::PostProcessContextBuffers postBuffers =
@@ -379,11 +379,11 @@ namespace Darius::Editor::Gui::Windows
 					if (!mDrawSkybox)
 					{
 						auto invTex = D_RESOURCE::ResourceRef<TextureResource>();
-						D_RENDERER::SetIBLTextures(invTex, invTex);
+						D_RENDERER_RAST::SetIBLTextures(invTex, invTex);
 					}
 					else
 					{
-						D_RENDERER::SetIBLTextures(mSkyboxDiff, mSkyboxSpec);
+						D_RENDERER_RAST::SetIBLTextures(mSkyboxDiff, mSkyboxSpec);
 					}
 				}
 				if (preDrawSkybox)
@@ -402,7 +402,7 @@ namespace Darius::Editor::Gui::Windows
 						if (ImGui::Selectable(mForceWireframe ? selectedValue : unselectedValue, false, 0))
 						{
 							mForceWireframe = !mForceWireframe;
-							D_RENDERER::SetForceWireframe(mForceWireframe);
+							D_RENDERER_RAST::SetForceWireframe(mForceWireframe);
 						}
 
 					}
@@ -620,8 +620,8 @@ namespace Darius::Editor::Gui::Windows
 		item.StartIndexLocation = mesh->mDraw[0].StartIndexLocation;
 		item.Mesh = mesh;
 		item.PsoFlags = RenderItem::HasPosition | RenderItem::HasNormal | RenderItem::HasTangent | RenderItem::HasUV0 | RenderItem::ColorOnly | RenderItem::TwoSided | RenderItem::LineOnly | RenderItem::AlphaBlend;
-		item.PsoType = D_RENDERER::GetPso({ item.PsoFlags });
-		item.DepthPsoIndex = D_RENDERER::GetPso({ (UINT16)(item.PsoFlags | RenderItem::DepthOnly) });
+		item.PsoType = D_RENDERER_RAST::GetPso({ item.PsoFlags });
+		item.DepthPsoIndex = D_RENDERER_RAST::GetPso({ (UINT16)(item.PsoFlags | RenderItem::DepthOnly) });
 		item.PrimitiveType = D3D_PRIMITIVE_TOPOLOGY_LINELIST;
 		item.MeshVsCBV = mLineConstantsGPU.GetGpuVirtualAddress();
 
@@ -640,7 +640,7 @@ namespace Darius::Editor::Gui::Windows
 
 	}
 
-	void SceneWindow::AddWindowRenderItems(D_RENDERER::MeshSorter& sorter) const
+	void SceneWindow::AddWindowRenderItems(D_RENDERER_RAST::MeshSorter& sorter) const
 	{
 		for (auto& item : mWindowRenderItems)
 		{

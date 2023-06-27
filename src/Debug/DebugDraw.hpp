@@ -1,9 +1,9 @@
 #pragma once
 
-#include <Renderer/FrameResource.hpp>
-#include <Renderer/Renderer.hpp>
-#include <Renderer/Resources/StaticMeshResource.hpp>
-#include <Renderer/Resources/BatchResource.hpp>
+#include <Graphics/FrameResource.hpp>
+#include <Graphics/Rasterization/Renderer.hpp>
+#include <Graphics/Resources/StaticMeshResource.hpp>
+#include <Graphics/Resources/BatchResource.hpp>
 #include <ResourceManager/ResourceManager.hpp>
 #include <Utils/Common.hpp>
 
@@ -28,7 +28,7 @@ namespace Darius::Debug
 		static void FinalizeUpload();
 		static void Clear(bool clearCache = false);
 
-		static void GetRenderItems(D_RENDERER::MeshSorter& sorter);
+		static void GetRenderItems(D_RENDERER_RAST::MeshSorter& sorter);
 
 		static void DrawCube(D_MATH::Vector3 const& position, D_MATH::Quaternion const& rotation, D_MATH::Vector3 const& scale, double duration = 0.f, D_MATH::Color const& color = { 1.f, 1.f, 1.f, 1.f });
 		static void DrawSphere(D_MATH::Vector3 const& position, float radius, double duration = 0.f, D_MATH::Color const& color = { 1.f, 1.f, 1.f, 1.f });
@@ -44,7 +44,7 @@ namespace Darius::Debug
 		static INLINE void FinalizeUpload() {}
 		static INLINE void Clear(bool clearCache = false) {}
 
-		static INLINE void GetRenderItems(D_RENDERER::MeshSorter& sorter) {}
+		static INLINE void GetRenderItems(D_RENDERER_RAST::MeshSorter& sorter) {}
 
 		static INLINE void DrawCube(D_MATH::Vector3 const& position, D_MATH::Quaternion const& rotation, D_MATH::Vector3 const& scale, double duration = 0.f, D_MATH::Color const& color = { 1.f, 1.f, 1.f, 1.f }) {}
 		static INLINE void DrawCube(D_MATH::Vector3 const& position, float radius, double duration = 0.f, D_MATH::Color const& color = { 1.f, 1.f, 1.f, 1.f }) {}

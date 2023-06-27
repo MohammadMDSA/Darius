@@ -6,9 +6,9 @@
 #include <Core/TimeManager/TimeManager.hpp>
 #include <Core/Signal.hpp>
 #include <Debug/DebugDraw.hpp>
+#include <Graphics/GraphicsUtils/Profiling/Profiling.hpp>
+#include <Graphics/GraphicsUtils/Profiling/Profiling.hpp>
 #include <Physics/PhysicsManager.hpp>
-#include <Renderer/GraphicsUtils/Profiling/Profiling.hpp>
-#include <Renderer/GraphicsUtils/Profiling/Profiling.hpp>
 #include <Scene/Scene.hpp>
 #include <Utils/Assert.hpp>
 
@@ -110,7 +110,7 @@ namespace Darius::Editor::Simulate
 		// Update GPU and upload stuff
 		{
 			D_PROFILING::ScopedTimer objConstProfiling(L"Update Renderer");
-			D_RENDERER::Update();
+			D_RENDERER_RAST::Update();
 			D_DEBUG_DRAW::FinalizeUpload();
 		}
 

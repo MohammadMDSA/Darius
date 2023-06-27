@@ -9,9 +9,9 @@
 #include <Core/Serialization/TypeSerializer.hpp>
 #include <Core/TimeManager/TimeManager.hpp>
 #include <Debug/DebugDraw.hpp>
+#include <Graphics/GraphicsCore.hpp>
 #include <Job/Job.hpp>
 #include <Physics/PhysicsManager.hpp>
-#include <Renderer/GraphicsCore.hpp>
 #include <ResourceManager/ResourceManager.hpp>
 #include <Scene/Scene.hpp>
 #include <Utils/Assert.hpp>
@@ -125,7 +125,7 @@ namespace Darius::Subsystems
 		D_INPUT::Shutdown();
 		D_TIME::Shutdown();
 		D_JOB::Shutdown();
-		D_RENDERER::Shutdown();
+		D_RENDERER_RAST::Shutdown();
 		D_RESOURCE::Shutdown();
 		D_SERIALIZATION::Shutdown();
 	}

@@ -1,7 +1,7 @@
 #pragma once
 
-#include <Renderer/CommandContext.hpp>
-#include <Renderer/GraphicsUtils/Profiling/Profiling.hpp>
+#include <Graphics/CommandContext.hpp>
+#include <Graphics/GraphicsUtils/Profiling/Profiling.hpp>
 
 #include "Window.generated.hpp"
 

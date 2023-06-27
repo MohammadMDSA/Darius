@@ -4,7 +4,7 @@
 #include "Editor/Simulation.hpp"
 
 #include <Core/TimeManager/TimeManager.hpp>
-#include <Renderer/GraphicsUtils/Profiling/Profiling.hpp>
+#include <Graphics/GraphicsUtils/Profiling/Profiling.hpp>
 
 #include <imgui.h>
 #include <implot.h>

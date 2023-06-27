@@ -2,7 +2,7 @@
 #include "DebugDraw.hpp"
 
 #include <Core/TimeManager/TimeManager.hpp>
-#include <Renderer/GraphicsDeviceManager.hpp>
+#include <Graphics/GraphicsDeviceManager.hpp>
 
 #include <mutex>
 
@@ -16,8 +16,8 @@ ri.MeshVsCBV = MeshConstantsGPU.GetGpuVirtualAddress() + sizeof(D_RENDERER_FRAME
 ri.Color = color; \
 ri.PrimitiveType = D3D_PRIMITIVE_TOPOLOGY_LINELIST; \
 ri.PsoFlags = RenderItem::HasPosition | RenderItem::HasNormal | RenderItem::HasTangent | RenderItem::HasUV0 | RenderItem::ColorOnly | RenderItem::TwoSided | RenderItem::LineOnly | RenderItem::AlphaBlend; \
-ri.PsoType = D_RENDERER::GetPso({ ri.PsoFlags }); \
-ri.DepthPsoIndex = D_RENDERER::GetPso({ (UINT16)(ri.PsoFlags | RenderItem::DepthOnly) }); \
+ri.PsoType = D_RENDERER_RAST::GetPso({ ri.PsoFlags }); \
+ri.DepthPsoIndex = D_RENDERER_RAST::GetPso({ (UINT16)(ri.PsoFlags | RenderItem::DepthOnly) }); \
 DrawPending.push_back(ri); \
 if(duration > 0) \
 { \
@@ -30,8 +30,8 @@ PopulateRenderItemFromMesh(ri, meshResource->GetMeshData()); \
 ri.MeshVsCBV = MeshConstantsGPU.GetGpuVirtualAddress() + sizeof(D_RENDERER_FRAME_RESOURCE::MeshConstants) * index; \
 ri.Color = color; \
 ri.PsoFlags = RenderItem::HasPosition | RenderItem::HasNormal | RenderItem::HasTangent | RenderItem::HasUV0 | RenderItem::ColorOnly | RenderItem::TwoSided | RenderItem::Wireframe; \
-ri.PsoType = D_RENDERER::GetPso({ ri.PsoFlags }); \
-ri.DepthPsoIndex = D_RENDERER::GetPso({ (UINT16)(ri.PsoFlags | RenderItem::DepthOnly) }); \
+ri.PsoType = D_RENDERER_RAST::GetPso({ ri.PsoFlags }); \
+ri.DepthPsoIndex = D_RENDERER_RAST::GetPso({ (UINT16)(ri.PsoFlags | RenderItem::DepthOnly) }); \
 DrawPending.push_back(ri); \
 if(duration > 0) \
 { \
@@ -267,7 +267,7 @@ namespace Darius::Debug
 		context.Finish();
 	}
 
-	void DebugDraw::GetRenderItems(D_RENDERER::MeshSorter& sorter)
+	void DebugDraw::GetRenderItems(D_RENDERER_RAST::MeshSorter& sorter)
 	{
 		//D_LOG_DEBUG(DrawPending.size());
 		const std::lock_guard<std::mutex> lock(AdditionMutex);

@@ -5,13 +5,13 @@
 
 #include <Core/Containers/Vector.hpp>
 #include <Core/Ref.hpp>
+#include <Graphics/Rasterization/Renderer.hpp>
+#include <Graphics/FrameResource.hpp>
+#include <Graphics/GraphicsUtils/Buffers/ColorBuffer.hpp>
+#include <Graphics/GraphicsUtils/Buffers/DepthBuffer.hpp>
+#include <Graphics/GraphicsUtils/Memory/DescriptorHeap.hpp>
+#include <Graphics/Resources/BatchResource.hpp>
 #include <Scene/Scene.hpp>
-#include <Renderer/Renderer.hpp>
-#include <Renderer/FrameResource.hpp>
-#include <Renderer/GraphicsUtils/Buffers/ColorBuffer.hpp>
-#include <Renderer/GraphicsUtils/Buffers/DepthBuffer.hpp>
-#include <Renderer/GraphicsUtils/Memory/DescriptorHeap.hpp>
-#include <Renderer/Resources/BatchResource.hpp>
 
 #include <iostream>
 
@@ -30,7 +30,7 @@ namespace Darius::Editor::Gui::Windows
 	private:
 		void CreateBuffers();
 
-		void AddWindowRenderItems(D_RENDERER::MeshSorter& sorter) const;
+		void AddWindowRenderItems(D_RENDERER_RAST::MeshSorter& sorter) const;
 
 		void CreateGrid(D_CONTAINERS::DVector<D_RENDERER_FRAME_RESOURCE::RenderItem>& items, int count);
 		void CalcGridLineConstants(D_CONTAINERS::DVector<D_RENDERER_FRAME_RESOURCE::MeshConstants>& constants, int count);

@@ -35,7 +35,7 @@ PRIVATE
 )
 
 target_link_libraries("Debug" PRIVATE ${Boost_LIBRARIES})
-target_link_libraries("Debug" PUBLIC Utils Core Math Renderer ResourceManager Job)
+target_link_libraries("Debug" PUBLIC Utils Core Math Graphics ResourceManager Job)
 
 
 if(BUILD_TESTS)

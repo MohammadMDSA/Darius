@@ -2,10 +2,10 @@
 
 #include "Window.hpp"
 
-#include <Renderer/FrameResource.hpp>
-#include <Renderer/GraphicsUtils/Buffers/ColorBuffer.hpp>
-#include <Renderer/GraphicsUtils/Buffers/DepthBuffer.hpp>
-#include <Renderer/Renderer.hpp>
+#include <Graphics/FrameResource.hpp>
+#include <Graphics/GraphicsUtils/Buffers/ColorBuffer.hpp>
+#include <Graphics/GraphicsUtils/Buffers/DepthBuffer.hpp>
+#include <Graphics/Rasterization/Renderer.hpp>
 
 namespace Darius::Editor::Gui::Windows
 {
