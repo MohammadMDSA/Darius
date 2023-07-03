@@ -8,6 +8,8 @@
 #define NOMINMAX
 
 #define D_HR_CHECK(hr) Darius::Graphics::Utils::ThrowIfFailed(hr);
+#define D_HR_FORCE(cond) D_HR_CHECK(cond ? S_OK : E_FAIL)
+#define D_HR_FORCE(cond, msg) Darius::Graphics::Utils::ThrowIfFailed(cond ? S_OK : E_FAIL, msg)
 #define D_HR_SUCCEEDED(hr) SUCCEEDED(hr)
 
 #define D3D12_GPU_VIRTUAL_ADDRESS_NULL      ((D3D12_GPU_VIRTUAL_ADDRESS)0)
@@ -69,8 +71,22 @@ namespace Darius::Graphics::Utils
         {
             auto exp = com_exception(hr);
             auto message = exp.what();
-            (message);
+            DebugBreak();
             D_LOG_ERROR(message);
+            throw exp;
+        }
+    }
+
+    // Helper utility converts D3D API failures into exceptions.
+    inline void ThrowIfFailed(HRESULT hr, const wchar_t* msg)
+    {
+        if (FAILED(hr))
+        {
+            auto exp = com_exception(hr);
+            auto message = exp.what();
+            DebugBreak();
+            D_LOG_ERROR(message);
+            OutputDebugStringW(msg);
             throw exp;
         }
     }

@@ -176,6 +176,8 @@ namespace Darius::Graphics
 
 		void SetPredication(ID3D12Resource* Buffer, UINT64 BufferOffset, D3D12_PREDICATION_OP Op);
 
+		INLINE D3D12_COMMAND_LIST_TYPE GetType() const { return m_Type; }
+
 	protected:
 
 		void BindDescriptorHeaps(void);
