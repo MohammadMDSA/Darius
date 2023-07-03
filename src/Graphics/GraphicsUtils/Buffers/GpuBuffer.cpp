@@ -11,7 +11,7 @@ using namespace D_GRAPHICS;
 namespace Darius::Graphics::Utils::Buffers
 {
 
-    void GpuBuffer::Create(const std::wstring& name, uint32_t NumElements, uint32_t ElementSize, const void* initialData)
+    void GpuBuffer::Create(const std::wstring& name, uint32_t NumElements, uint32_t ElementSize, const void* initialData, D3D12_RESOURCE_STATES initialState)
     {
         Destroy();
 
@@ -21,7 +21,7 @@ namespace Darius::Graphics::Utils::Buffers
 
         D3D12_RESOURCE_DESC ResourceDesc = DescribeBuffer();
 
-        mUsageState = D3D12_RESOURCE_STATE_COMMON;
+        mUsageState = initialState;
 
         D3D12_HEAP_PROPERTIES HeapProps;
         HeapProps.Type = D3D12_HEAP_TYPE_DEFAULT;

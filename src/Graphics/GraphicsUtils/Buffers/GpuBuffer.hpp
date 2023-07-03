@@ -22,7 +22,7 @@ namespace Darius::Graphics::Utils::Buffers
         virtual ~GpuBuffer() { Destroy(); }
 
         // Create a buffer.  If initial data is provided, it will be copied into the buffer using the default command context.
-        void Create(const std::wstring& name, uint32_t NumElements, uint32_t ElementSize, const void* initialData = nullptr);
+        void Create(const std::wstring& name, uint32_t NumElements, uint32_t ElementSize, const void* initialData = nullptr, D3D12_RESOURCE_STATES initialState = D3D12_RESOURCE_STATE_COMMON);
 
         void Create(const std::wstring& name, uint32_t NumElements, uint32_t ElementSize, const UploadBuffer& srcData, uint32_t srcOffset = 0);
 
@@ -125,6 +125,57 @@ namespace Darius::Graphics::Utils::Buffers
 
     private:
         ByteAddressBuffer mCounterBuffer;
+    };
+
+    template <class T>
+    class TypedStructuredBuffer : public UploadBuffer
+    {
+        T* m_mappedBuffers;
+        std::vector<T> m_staging;
+        UINT m_numInstances;
+
+    public:
+        // Performance tip: Align structures on sizeof(float4) boundary.
+        // Ref: https://developer.nvidia.com/content/understanding-structured-buffer-performance
+        static_assert(sizeof(T) % 16 == 0, "Align structure buffers on 16 byte boundary for performance reasons.");
+
+        TypedStructuredBuffer() : m_mappedBuffers(nullptr), m_numInstances(0) {}
+        ~TypedStructuredBuffer()
+        {
+            if (m_mappedBuffers != nullptr)
+                Unmap();
+        }
+
+        void Create(ID3D12Device5* device, UINT numElements, UINT numInstances = 1, LPCWSTR resourceName = nullptr)
+        {
+            m_numInstances = numInstances;
+            m_staging.resize(numElements);
+            UINT bufferSize = numInstances * numElements * sizeof(T);
+            Allocate(device, bufferSize, resourceName);
+            m_mappedBuffers = reinterpret_cast<T*>(Map());
+        }
+
+        void CopyStagingToGpu(UINT instanceIndex = 0)
+        {
+            memcpy(m_mappedBuffers + instanceIndex * NumElements(), &m_staging[0], InstanceSize());
+        }
+
+        auto begin() { return m_staging.begin(); }
+        auto end() { return m_staging.end(); }
+        auto begin() const { return m_staging.begin(); }
+        auto end() const { return m_staging.end(); }
+
+        // Accessors
+        T& operator[](UINT elementIndex) { return m_staging[elementIndex]; }
+        const T& operator[](UINT elementIndex) const { return m_staging[elementIndex]; }
+        size_t NumElements() const { return m_staging.size(); }
+        UINT ElementSize() const { return sizeof(T); }
+        UINT NumInstances() const { return m_numInstances; }
+        size_t InstanceSize() const { return NumElements() * ElementSize(); }
+        D3D12_GPU_VIRTUAL_ADDRESS GpuVirtualAddress(UINT instanceIndex = 0, UINT elementIndex = 0) const
+        {
+            return m_resource->GetGPUVirtualAddress() + instanceIndex * InstanceSize() + elementIndex * ElementSize();
+        }
     };
 
     class TypedBuffer : public GpuBuffer
