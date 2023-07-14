@@ -65,6 +65,9 @@ namespace Darius::Renderer::Geometry
 
 		UINT							mNumTotalVertices;
 		UINT							mNumTotalIndices;
+
+		static constexpr DXGI_FORMAT IndexFormat = DXGI_FORMAT_R16_UINT;
+
 	};
 
 }
