@@ -32,7 +32,7 @@ namespace Darius::Renderer
 		}
 		for (int i = 0; i < data.MeshData.Indices32.size(); i++)
 		{
-			indices.push_back(data.MeshData.Indices32[i]);
+			indices.push_back(static_cast<std::uint16_t>(data.MeshData.Indices32[i]));
 		}
 
 		mMesh.mDraw.clear();
