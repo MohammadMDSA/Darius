@@ -172,9 +172,9 @@ namespace Darius::Graphics::Utils::Buffers
         UINT ElementSize() const { return sizeof(T); }
         UINT NumInstances() const { return m_numInstances; }
         size_t InstanceSize() const { return NumElements() * ElementSize(); }
-        D3D12_GPU_VIRTUAL_ADDRESS GpuVirtualAddress(UINT instanceIndex = 0, UINT elementIndex = 0) const
+        D3D12_GPU_VIRTUAL_ADDRESS GetGpuVirtualAddress(UINT instanceIndex = 0, UINT elementIndex = 0) const
         {
-            return m_resource->GetGPUVirtualAddress() + instanceIndex * InstanceSize() + elementIndex * ElementSize();
+            return GetGpuVirtualAddress() + instanceIndex * InstanceSize() + elementIndex * ElementSize();
         }
     };
 
