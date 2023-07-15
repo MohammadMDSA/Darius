@@ -18,10 +18,11 @@
 
 namespace Darius::Graphics::Utils::Buffers
 {
-    void UploadBuffer::Create(const std::wstring& name, size_t BufferSize)
+    void UploadBuffer::Create(std::wstring const& name, size_t BufferSize, UINT numInstances)
     {
         Destroy();
 
+        mNumInstances = numInstances;
         mBufferSize = BufferSize;
 
         // Create an upload buffer.  This is CPU-visible, but it's write combined memory, so
@@ -36,7 +37,7 @@ namespace Darius::Graphics::Utils::Buffers
         // Upload buffers must be 1-dimensional
         D3D12_RESOURCE_DESC ResourceDesc = {};
         ResourceDesc.Dimension = D3D12_RESOURCE_DIMENSION_BUFFER;
-        ResourceDesc.Width = mBufferSize;
+        ResourceDesc.Width = GetTotalBufferSize();
         ResourceDesc.Height = 1;
         ResourceDesc.DepthOrArraySize = 1;
         ResourceDesc.MipLevels = 1;
@@ -62,14 +63,14 @@ namespace Darius::Graphics::Utils::Buffers
     void* UploadBuffer::Map(void)
     {
         void* Memory;
-        auto range = CD3DX12_RANGE(0, mBufferSize);
+        auto range = CD3DX12_RANGE(0, GetTotalBufferSize());
         mResource->Map(0, &range, &Memory);
         return Memory;
     }
 
     void UploadBuffer::Unmap(size_t begin, size_t end)
     {
-        auto range = CD3DX12_RANGE(begin, std::min(end, mBufferSize));
+        auto range = CD3DX12_RANGE(begin, std::min(end, GetTotalBufferSize()));
         mResource->Unmap(0, &range);
     }
 }
