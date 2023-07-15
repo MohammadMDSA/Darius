@@ -61,11 +61,12 @@ namespace Darius::Renderer::RayTracing::Utils
     {
         D3D12_RAYTRACING_GEOMETRY_DESC geometryDescTemplate = {};
         geometryDescTemplate.Type = D3D12_RAYTRACING_GEOMETRY_TYPE_TRIANGLES;
-        geometryDescTemplate.Triangles.IndexFormat = bottomLevelASGeometry.m_indexFormat;
-        geometryDescTemplate.Triangles.VertexFormat = bottomLevelASGeometry.m_vertexFormat;
-        mGeometryDescs.reserve(bottomLevelASGeometry.m_geometryInstances.size());
-
-        for (auto& geometry : bottomLevelASGeometry.m_geometryInstances)
+        geometryDescTemplate.Triangles.IndexFormat = D_RENDERER_GEOMETRY::Mesh::IndexFormat;
+        geometryDescTemplate.Triangles.VertexFormat = D_RENDERER_GEOMETRY::Mesh::VertexFormat;
+        
+        // TODO: Multiple geometries per buttom level acceleration buffer
+        //mGeometryDescs.reserve(bottomLevelASGeometry.m_geometryInstances.size());
+        /*for (auto& geometry : bottomLevelASGeometry.m_geometryInstances)
         {
             auto& geometryDesc = geometryDescTemplate;
             geometryDescTemplate.Flags = geometry.geometryFlags;
@@ -76,10 +77,16 @@ namespace Darius::Renderer::RayTracing::Utils
             geometryDesc.Triangles.Transform3x4 = geometry.transform;
 
             mGeometryDescs.push_back(geometryDesc);
-        }
+        }*/
+
+        geometryDescTemplate.Flags = bottomLevelASGeometry.Flags;
+        geometryDescTemplate.Triangles.IndexBuffer = bottomLevelASGeometry.Mesh.IndexDataGpu.GetGpuVirtualAddress();
+        geometryDescTemplate.Triangles.IndexCount = bottomLevelASGeometry.Mesh.mNumTotalIndices;
+        geometryDescTemplate.Triangles.VertexBuffer = bottomLevelASGeometry.Mesh.VertexDataGpu.GetGpuVirtualAddressAndStride();
+        geometryDescTemplate.Triangles.VertexCount = bottomLevelASGeometry.Mesh.mNumTotalVertices;
     }
 
-    void BottomLevelAccelerationStructure::ComputePrebuildInfo(ID3D12Device5* device)
+    void BottomLevelAccelerationStructure::ComputePrebuildInfo()
     {
         // Get the size requirements for the scratch and AS buffers.
         D3D12_BUILD_RAYTRACING_ACCELERATION_STRUCTURE_DESC bottomLevelBuildDesc = {};
@@ -90,12 +97,13 @@ namespace Darius::Renderer::RayTracing::Utils
         bottomLevelInputs.NumDescs = static_cast<UINT>(mGeometryDescs.size());
         bottomLevelInputs.pGeometryDescs = mGeometryDescs.data();
 
+        auto device = D_GRAPHICS_DEVICE::GetDevice5();
+
         device->GetRaytracingAccelerationStructurePrebuildInfo(&bottomLevelInputs, &mPrebuildInfo);
         D_HR_CHECK(mPrebuildInfo.ResultDataMaxSizeInBytes > 0);
     }
 
     void BottomLevelAccelerationStructure::Initialize(
-        ID3D12Device5* device,
         D3D12_RAYTRACING_ACCELERATION_STRUCTURE_BUILD_FLAGS buildFlags,
         BottomLevelAccelerationStructureGeometry const& bottomLevelASGeometry,
         bool allowUpdate,
@@ -105,7 +113,7 @@ namespace Darius::Renderer::RayTracing::Utils
         mUpdateOnBuild = bUpdateOnBuild;
 
         mBuildFlags = buildFlags;
-        mName = bottomLevelASGeometry.GetName();
+        mUuid = bottomLevelASGeometry.Uuid;
 
         if (allowUpdate)
         {
@@ -113,7 +121,7 @@ namespace Darius::Renderer::RayTracing::Utils
         }
 
         BuildGeometryDescs(bottomLevelASGeometry);
-        ComputePrebuildInfo(device);
+        ComputePrebuildInfo();
         CreateAccelerationStructure();
 
         mIsDirty = true;
@@ -144,7 +152,7 @@ namespace Darius::Renderer::RayTracing::Utils
         mIsBuilt = true;
     }
 
-    void TopLevelAccelerationStructure::ComputePrebuildInfo(ID3D12Device5* device, UINT numBottomLevelASInstanceDescs)
+    void TopLevelAccelerationStructure::ComputePrebuildInfo(UINT numBottomLevelASInstanceDescs)
     {
         // Get the size requirements for the scratch and AS buffers.
         D3D12_BUILD_RAYTRACING_ACCELERATION_STRUCTURE_DESC topLevelBuildDesc = {};
@@ -154,12 +162,12 @@ namespace Darius::Renderer::RayTracing::Utils
         topLevelInputs.Flags = mBuildFlags;
         topLevelInputs.NumDescs = numBottomLevelASInstanceDescs;
 
+        auto device = D_GRAPHICS_DEVICE::GetDevice5();
         device->GetRaytracingAccelerationStructurePrebuildInfo(&topLevelInputs, &mPrebuildInfo);
         D_HR_CHECK(mPrebuildInfo.ResultDataMaxSizeInBytes > 0);
     }
 
     void TopLevelAccelerationStructure::Initialize(
-        ID3D12Device5* device,
         UINT numBottomLevelASInstanceDescs,
         D3D12_RAYTRACING_ACCELERATION_STRUCTURE_BUILD_FLAGS buildFlags,
         bool allowUpdate,
@@ -176,60 +184,59 @@ namespace Darius::Renderer::RayTracing::Utils
             mBuildFlags |= D3D12_RAYTRACING_ACCELERATION_STRUCTURE_BUILD_FLAG_ALLOW_UPDATE;
         }
 
-        ComputePrebuildInfo(device, numBottomLevelASInstanceDescs);
+        ComputePrebuildInfo(numBottomLevelASInstanceDescs);
         CreateAccelerationStructure();
 
         mIsDirty = true;
         mIsBuilt = false;
     }
 
-    void TopLevelAccelerationStructure::Build(Darius::Renderer::RayTracing::RayTracingCommandContext& commandList, UINT numBottomLevelASInstanceDescs, TypedStructuredBuffer<BottomLevelAccelerationStructureInstanceDesc> const& bottomLevelASnstanceDescs, UINT frameIndex, D_GRAPHICS_BUFFERS::GpuBuffer const& scratch, bool bUpdate)
+    void TopLevelAccelerationStructure::Build(Darius::Renderer::RayTracing::RayTracingCommandContext& commandList, UINT numBottomLevelASInstanceDescs, D_GRAPHICS_BUFFERS::StructuredUploadBuffer <BottomLevelAccelerationStructureInstanceDesc> const& bottomLevelASnstanceDescs, UINT frameIndex, D_GRAPHICS_BUFFERS::GpuBuffer const& scratch, bool bUpdate)
     {
         commandList.BuildRaytracingTopLevelAccelerationStructure(*this, numBottomLevelASInstanceDescs, scratch, bottomLevelASnstanceDescs.GetGpuVirtualAddress(frameIndex), mBuildFlags, mIsBuilt && mAllowUpdate && mUpdateOnBuild && bUpdate);
         mIsDirty = false;
         mIsBuilt = true;
     }
 
-    RaytracingAccelerationStructureManager::RaytracingAccelerationStructureManager(ID3D12Device5* device, UINT numBottomLevelInstances, UINT frameCount)
+    RaytracingAccelerationStructureManager::RaytracingAccelerationStructureManager(UINT numBottomLevelInstances, UINT frameCount)
     {
-        mBottomLevelASInstanceDescs.Create(device, numBottomLevelInstances, frameCount, L"Bottom-Level Acceleration Structure Instance descs.");
+        mBottomLevelASInstanceDescs.Create(L"Bottom-Level Acceleration Structure Instance descs", numBottomLevelInstances, frameCount);
     }
 
     // Adds a bottom-level Acceleration Structure.
     // The passed in bottom-level AS geometry must have a unique name.
     // Requires a corresponding 1 or more AddBottomLevelASInstance() calls to be added to the top-level AS for the bottom-level AS to be included.
     void RaytracingAccelerationStructureManager::AddBottomLevelAS(
-        ID3D12Device5* device,
         D3D12_RAYTRACING_ACCELERATION_STRUCTURE_BUILD_FLAGS buildFlags,
         BottomLevelAccelerationStructureGeometry& bottomLevelASGeometry,
         bool allowUpdate,
         bool performUpdateOnBuild)
     {
-        D_HR_FORCE(mVBottomLevelAS.find(bottomLevelASGeometry.GetName()) == mVBottomLevelAS.end(),
+        D_ASSERT_M(mVBottomLevelAS.find(bottomLevelASGeometry.Uuid) == mVBottomLevelAS.end(),
             L"A bottom level acceleration structure with that name already exists.");
 
-        auto& bottomLevelAS = mVBottomLevelAS[bottomLevelASGeometry.GetName()];
+        auto& bottomLevelAS = mVBottomLevelAS[bottomLevelASGeometry.Uuid];
 
-        bottomLevelAS.Initialize(device, buildFlags, bottomLevelASGeometry, allowUpdate);
+        bottomLevelAS.Initialize(buildFlags, bottomLevelASGeometry, allowUpdate);
 
         mASmemoryFootprint += bottomLevelAS.RequiredResultDataSizeInBytes();
         mScratchResourceSize = std::max(bottomLevelAS.RequiredScratchSize(), mScratchResourceSize);
 
-        mVBottomLevelAS[bottomLevelAS.GetName()] = bottomLevelAS;
+        mVBottomLevelAS[bottomLevelAS.GetUuid()] = bottomLevelAS;
     }
 
     // Adds an instance of a bottom-level Acceleration Structure.
     // Requires a call InitializeTopLevelAS() call to be added to top-level AS.
     UINT RaytracingAccelerationStructureManager::AddBottomLevelASInstance(
-        const std::wstring& bottomLevelASname,
+        D_CORE::Uuid const& bottomLevelASUuid,
         UINT instanceContributionToHitGroupIndex,
         D_MATH::Matrix4 const& transform,
         BYTE instanceMask)
     {
-        D_HR_FORCE(mNumBottomLevelASInstances < mBottomLevelASInstanceDescs.NumElements(), L"Not enough instance desc buffer size.");
+        D_ASSERT_M(mNumBottomLevelASInstances < mBottomLevelASInstanceDescs.GetNumElements(), L"Not enough instance desc buffer size.");
 
         UINT instanceIndex = mNumBottomLevelASInstances++;
-        auto& bottomLevelAS = mVBottomLevelAS[bottomLevelASname];
+        auto& bottomLevelAS = mVBottomLevelAS[bottomLevelASUuid];
 
         auto& instanceDesc = mBottomLevelASInstanceDescs[instanceIndex];
         instanceDesc.InstanceMask = instanceMask;
@@ -253,13 +260,12 @@ namespace Darius::Renderer::RayTracing::Utils
 
     // Initializes the top-level Acceleration Structure.
     void RaytracingAccelerationStructureManager::InitializeTopLevelAS(
-        ID3D12Device5* device,
         D3D12_RAYTRACING_ACCELERATION_STRUCTURE_BUILD_FLAGS buildFlags,
         bool allowUpdate,
         bool performUpdateOnBuild,
         const wchar_t* resourceName)
     {
-        mTopLevelAS.Initialize(device, GetNumberOfBottomLevelASInstances(), buildFlags, allowUpdate, performUpdateOnBuild, resourceName);
+        mTopLevelAS.Initialize(GetNumberOfBottomLevelASInstances(), buildFlags, allowUpdate, performUpdateOnBuild, resourceName);
 
         mASmemoryFootprint += mTopLevelAS.RequiredResultDataSizeInBytes();
         mScratchResourceSize = std::max(mTopLevelAS.RequiredScratchSize(), mScratchResourceSize);

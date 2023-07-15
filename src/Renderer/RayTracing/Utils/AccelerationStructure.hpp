@@ -2,9 +2,11 @@
 
 #include "Renderer/Geometry/Mesh.hpp"
 
+#include <Core/Containers/Map.hpp>
 #include <Core/Uuid.hpp>
 #include <Graphics/CommandContext.hpp>
 #include <Graphics/GraphicsUtils/Buffers/GpuBuffer.hpp>
+#include <Graphics/GraphicsUtils/Buffers/UploadBuffer.hpp>
 #include <Graphics/GraphicsUtils/Memory/DescriptorHeap.hpp>
 #include <Math/VectorMath.hpp>
 
@@ -37,7 +39,8 @@ namespace Darius::Renderer::RayTracing::Utils
         INLINE UINT64                   RequiredScratchSize() const { return std::max(mPrebuildInfo.ScratchDataSizeInBytes, mPrebuildInfo.UpdateScratchDataSizeInBytes); }
         INLINE UINT64                   RequiredResultDataSizeInBytes() const { return mPrebuildInfo.ResultDataMaxSizeInBytes; }
         INLINE D3D12_RAYTRACING_ACCELERATION_STRUCTURE_PREBUILD_INFO const& PrebuildInfo() const { return mPrebuildInfo; }
-        INLINE std::wstring const&      GetName() { return mName; }
+        INLINE D_CORE::Uuid const&      GetUuid() const { return mUuid; }
+        INLINE std::wstring const&      GetName() const { return mName; }
 
         INLINE void                     SetDirty(bool isDirty) { mIsDirty = isDirty; }
         INLINE bool                     IsDirty() const { return mIsDirty; }
@@ -50,21 +53,22 @@ namespace Darius::Renderer::RayTracing::Utils
     protected:
         D3D12_RAYTRACING_ACCELERATION_STRUCTURE_BUILD_FLAGS mBuildFlags = D3D12_RAYTRACING_ACCELERATION_STRUCTURE_BUILD_FLAG_NONE;
         D3D12_RAYTRACING_ACCELERATION_STRUCTURE_PREBUILD_INFO mPrebuildInfo = {};
-        std::wstring mName;
+        D_CORE::Uuid            mUuid;
+        std::wstring            mName;
 
-        bool mIsBuilt = false; // whether the AS has been built at least once.
-        bool mIsDirty = true; // whether the AS has been modified and needs to be rebuilt.
-        bool mUpdateOnBuild = false;
-        bool mAllowUpdate = false;
+        bool                    mIsBuilt = false; // whether the AS has been built at least once.
+        bool                    mIsDirty = true; // whether the AS has been modified and needs to be rebuilt.
+        bool                    mUpdateOnBuild = false;
+        bool                    mAllowUpdate = false;
         
     };
 
-    class BottomLevelAccelerationStructureGeometry
+    struct BottomLevelAccelerationStructureGeometry
     {
-    public:
-        D_RENDERER_GEOMETRY::Mesh const&    mMesh;
+        D_RENDERER_GEOMETRY::Mesh const&    Mesh;
 
-        D_CORE::Uuid const                  mUuid;
+        D_CORE::Uuid const                  Uuid;
+        D3D12_RAYTRACING_GEOMETRY_FLAGS     Flags;
     };
 
     struct BottomLevelAccelerationStructureInstanceDesc : public D3D12_RAYTRACING_INSTANCE_DESC
@@ -80,7 +84,7 @@ namespace Darius::Renderer::RayTracing::Utils
         BottomLevelAccelerationStructure() {};
         ~BottomLevelAccelerationStructure() {}
 
-        void                            Initialize(ID3D12Device5* device, D3D12_RAYTRACING_ACCELERATION_STRUCTURE_BUILD_FLAGS buildFlags, BottomLevelAccelerationStructureGeometry const& bottomLevelASGeometry, bool allowUpdate = false, bool bUpdateOnBuild = false);
+        void                            Initialize(D3D12_RAYTRACING_ACCELERATION_STRUCTURE_BUILD_FLAGS buildFlags, BottomLevelAccelerationStructureGeometry const& bottomLevelASGeometry, bool allowUpdate = false, bool bUpdateOnBuild = false);
         void                            Build(Darius::Renderer::RayTracing::RayTracingCommandContext& commandList, D_GRAPHICS_BUFFERS::GpuBuffer const& scratch, D3D12_GPU_VIRTUAL_ADDRESS baseGeometryTransformGPUAddress = 0);
 
         void                            UpdateGeometryDescsTransform(D3D12_GPU_VIRTUAL_ADDRESS baseGeometryTransformGPUAddress);
@@ -99,7 +103,7 @@ namespace Darius::Renderer::RayTracing::Utils
         UINT                                        mInstanceContributionToHitGroupIndex = 0;
 
         void                            BuildGeometryDescs(BottomLevelAccelerationStructureGeometry const& bottomLevelASGeometry);
-        void                            ComputePrebuildInfo(ID3D12Device5* device);
+        void                            ComputePrebuildInfo();
     };
 
     class TopLevelAccelerationStructure : public AccelerationStructure
@@ -108,36 +112,36 @@ namespace Darius::Renderer::RayTracing::Utils
         TopLevelAccelerationStructure() {}
         ~TopLevelAccelerationStructure() {}
 
-        void                            Initialize(ID3D12Device5* device, UINT numBottomLevelASInstanceDescs, D3D12_RAYTRACING_ACCELERATION_STRUCTURE_BUILD_FLAGS buildFlags, bool allowUpdate = false, bool bUpdateOnBuild = false, const wchar_t* resourceName = nullptr);
-        void                            Build(Darius::Renderer::RayTracing::RayTracingCommandContext& commandList, UINT numInstanceDescs, Darius::Graphics::Utils::Buffers::TypedStructuredBuffer<BottomLevelAccelerationStructureInstanceDesc> const& InstanceDescs, UINT frameIndex, D_GRAPHICS_BUFFERS::GpuBuffer const& scratch, bool bUpdate = false);
+        void                            Initialize(UINT numBottomLevelASInstanceDescs, D3D12_RAYTRACING_ACCELERATION_STRUCTURE_BUILD_FLAGS buildFlags, bool allowUpdate = false, bool bUpdateOnBuild = false, const wchar_t* resourceName = nullptr);
+        void                            Build(Darius::Renderer::RayTracing::RayTracingCommandContext& commandList, UINT numBottomLevelASInstanceDescs, D_GRAPHICS_BUFFERS::StructuredUploadBuffer<BottomLevelAccelerationStructureInstanceDesc> const& InstanceDescs, UINT frameIndex, D_GRAPHICS_BUFFERS::GpuBuffer const& scratch, bool bUpdate = false);
 
     private:
-        void                            ComputePrebuildInfo(ID3D12Device5* device, UINT numBottomLevelASInstanceDescs);
+        void                            ComputePrebuildInfo(UINT numBottomLevelASInstanceDescs);
     };
 
     class RaytracingAccelerationStructureManager
     {
     public:
-        RaytracingAccelerationStructureManager(ID3D12Device5* device, UINT numBottomLevelInstances, UINT frameCount);
+        RaytracingAccelerationStructureManager(UINT numBottomLevelInstances, UINT frameCount);
         ~RaytracingAccelerationStructureManager() {}
 
-        void                            AddBottomLevelAS(ID3D12Device5* device, D3D12_RAYTRACING_ACCELERATION_STRUCTURE_BUILD_FLAGS buildFlags, BottomLevelAccelerationStructureGeometry& bottomLevelASGeometry, bool allowUpdate = false, bool performUpdateOnBuild = false);
-        UINT                            AddBottomLevelASInstance(const std::wstring& bottomLevelASname, UINT instanceContributionToHitGroupIndex = UINT_MAX, D_MATH::Matrix4 const& transform = D_MATH::Matrix4::Identity, BYTE InstanceMask = 1);
-        void                            InitializeTopLevelAS(ID3D12Device5* device, D3D12_RAYTRACING_ACCELERATION_STRUCTURE_BUILD_FLAGS buildFlags, bool allowUpdate = false, bool performUpdateOnBuild = false, const wchar_t* resourceName = nullptr);
+        void                            AddBottomLevelAS(D3D12_RAYTRACING_ACCELERATION_STRUCTURE_BUILD_FLAGS buildFlags, BottomLevelAccelerationStructureGeometry& bottomLevelASGeometry, bool allowUpdate = false, bool performUpdateOnBuild = false);
+        UINT                            AddBottomLevelASInstance(D_CORE::Uuid const& bottomLevelASUuid, UINT instanceContributionToHitGroupIndex = UINT_MAX, D_MATH::Matrix4 const& transform = D_MATH::Matrix4::Identity, BYTE InstanceMask = 1);
+        void                            InitializeTopLevelAS(D3D12_RAYTRACING_ACCELERATION_STRUCTURE_BUILD_FLAGS buildFlags, bool allowUpdate = false, bool performUpdateOnBuild = false, const wchar_t* resourceName = nullptr);
         void                            Build(RayTracingCommandContext& commandList, ID3D12DescriptorHeap* descriptorHeap, UINT frameIndex, bool bForceBuild = false);
         INLINE BottomLevelAccelerationStructureInstanceDesc const& GetBottomLevelASInstance(UINT bottomLevelASinstanceIndex) const { return mBottomLevelASInstanceDescs[bottomLevelASinstanceIndex]; }
-        D_GRAPHICS_BUFFERS::TypedStructuredBuffer<BottomLevelAccelerationStructureInstanceDesc> const& GetBottomLevelASInstancesBuffer() const { return mBottomLevelASInstanceDescs; }
+        D_GRAPHICS_BUFFERS::StructuredUploadBuffer<BottomLevelAccelerationStructureInstanceDesc> const& GetBottomLevelASInstancesBuffer() const { return mBottomLevelASInstanceDescs; }
 
-        INLINE BottomLevelAccelerationStructure const& GetBottomLevelAS(const std::wstring& name) const { return mVBottomLevelAS.at(name); }
+        INLINE BottomLevelAccelerationStructure const& GetBottomLevelAS(D_CORE::Uuid const& uuid) const { return mVBottomLevelAS.at(uuid); }
         INLINE TopLevelAccelerationStructure const& GetTopLevelAS() const { return mTopLevelAS; }
         UINT64                          GetASMemoryFootprint() const { return mASmemoryFootprint; }
-        UINT                            GetNumberOfBottomLevelASInstances() const { return static_cast<UINT>(mBottomLevelASInstanceDescs.NumElements()); }
+        UINT                            GetNumberOfBottomLevelASInstances() const { return static_cast<UINT>(mBottomLevelASInstanceDescs.GetNumElements()); }
         UINT                            GetMaxInstanceContributionToHitGroupIndex() const;
 
     private:
         TopLevelAccelerationStructure               mTopLevelAS;
-        std::map<std::wstring, BottomLevelAccelerationStructure> mVBottomLevelAS;
-        D_GRAPHICS_BUFFERS::TypedStructuredBuffer<BottomLevelAccelerationStructureInstanceDesc> mBottomLevelASInstanceDescs;
+        D_CONTAINERS::DMap<D_CORE::Uuid, BottomLevelAccelerationStructure> mVBottomLevelAS;
+        D_GRAPHICS_BUFFERS::StructuredUploadBuffer<BottomLevelAccelerationStructureInstanceDesc> mBottomLevelASInstanceDescs;
         UINT                                        mNumBottomLevelASInstances = 0;
         D_GRAPHICS_BUFFERS::ByteAddressBuffer       mAccelerationStructureScratch;
         UINT64                                      mScratchResourceSize = 0;

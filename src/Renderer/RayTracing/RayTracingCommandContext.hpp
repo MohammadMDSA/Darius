@@ -19,10 +19,7 @@ namespace Darius::Renderer::RayTracing
 		static RayTracingCommandContext& Begin(std::wstring const& ID = L"")
 		{
 			auto& context = D_GRAPHICS::CommandContext::Begin(ID);
-
-			D_ASSERT_M(context.GetType() != D3D12_COMMAND_LIST_TYPE_COMPUTE, "Cannot convert async compute context to graphics");
-			
-			return reinterpret_cast<RayTracingCommandContext&>(context);
+			return static_cast<RayTracingCommandContext&>(context);
 		}
 
 	public:
