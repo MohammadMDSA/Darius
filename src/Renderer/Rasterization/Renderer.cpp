@@ -99,7 +99,7 @@ namespace Darius::Renderer::Rasterization
 
 		D_ASSERT(!_initialized);
 
-		D_H_OPTIONS_LOAD_BASIC("Passes.SeparateZ", SeparateZPass);
+		D_H_OPTIONS_LOAD_BASIC("Rasterization.Passes.SeparateZ", SeparateZPass);
 
 		BuildRootSignature();
 		BuildDefaultPSOs();
@@ -471,7 +471,7 @@ namespace Darius::Renderer::Rasterization
 	{
 		D_H_OPTION_DRAW_BEGIN();
 
-		D_H_OPTION_DRAW_CHECKBOX("Separate Z Pass", "Passes.SeparateZ", SeparateZPass);
+		D_H_OPTION_DRAW_CHECKBOX("Separate Z Pass", "Rasterization.Passes.SeparateZ", SeparateZPass);
 
 		D_H_OPTION_DRAW_END();
 	}

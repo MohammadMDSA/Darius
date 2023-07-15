@@ -14,8 +14,6 @@
 
 namespace Darius::Renderer::Rasterization
 {
-	extern UINT PassCbvOffset;
-
 	enum RootBindings
 	{
 		kMeshConstantsVS,		// Holds mesh constants only in Vertex Shader
