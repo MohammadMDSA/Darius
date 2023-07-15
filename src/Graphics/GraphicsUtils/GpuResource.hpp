@@ -58,17 +58,17 @@ namespace Darius::Graphics::Utils
 			mVersionID++;
 		}
 
-		ID3D12Resource* operator->() { return mResource.Get(); }
-		const ID3D12Resource* operator->() const { return mResource.Get(); }
+		INLINE ID3D12Resource* operator->() { return mResource.Get(); }
+		INLINE const ID3D12Resource* operator->() const { return mResource.Get(); }
 
-		ID3D12Resource* GetResource() { return mResource.Get(); }
-		const ID3D12Resource* GetResource() const { return mResource.Get(); }
+		INLINE ID3D12Resource* GetResource() { return mResource.Get(); }
+		INLINE const ID3D12Resource* GetResource() const { return mResource.Get(); }
 
-		ID3D12Resource** GetAddressOf() { return mResource.GetAddressOf(); }
+		INLINE ID3D12Resource** GetAddressOf() { return mResource.GetAddressOf(); }
 
-		D3D12_GPU_VIRTUAL_ADDRESS GetGpuVirtualAddress() const { return mGpuVirtualAddress; }
+		INLINE D3D12_GPU_VIRTUAL_ADDRESS GetGpuVirtualAddress() const { return mGpuVirtualAddress; }
 
-		uint32_t GetVersionID() const { return mVersionID; }
+		INLINE uint32_t GetVersionID() const { return mVersionID; }
 
 	protected:
 		Microsoft::WRL::ComPtr<ID3D12Resource>		mResource;
