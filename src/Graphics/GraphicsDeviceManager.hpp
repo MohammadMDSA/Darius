@@ -11,6 +11,7 @@ namespace Darius::Graphics::Device
 	void										RegisterDeviceNotify(void*);
 
 	ID3D12Device*								GetDevice();
+	ID3D12Device5*								GetDevice5();
 	UINT										GetCurrentFrameResourceIndex();
 
 	UINT										GetBackBufferCount();

@@ -213,6 +213,12 @@ namespace Darius::Graphics
 			return Resources->GetD3DDevice();
 		}
 
+		ID3D12Device5* GetDevice5()
+		{
+			D_ASSERT(D_GRAPHICS_DEVICE::SupportsRaytracing());
+			return reinterpret_cast<ID3D12Device5*>(Resources->GetD3DDevice());
+		}
+
 		DXGI_FORMAT GetBackBufferFormat()
 		{
 			return Resources->GetBackBufferFormat();
