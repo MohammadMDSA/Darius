@@ -35,6 +35,8 @@ namespace Darius::Physics
 
 	void BoxColliderComponent::OnGizmo() const
 	{
+		if (!IsActive())
+			return;
 		auto transform = GetTransform();
 		D_DEBUG_DRAW::DrawCube(transform->GetPosition(), transform->GetRotation(), transform->GetScale(), 0, { 0.f, 1.f, 0.f, 1.f });
 	}
