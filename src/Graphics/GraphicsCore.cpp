@@ -625,6 +625,8 @@ namespace Darius::Graphics
 					compiler = L"ds_6_2";
 				else if (shaderName.ends_with("HS"))
 					compiler = L"hs_6_2";
+				else if (shaderName.ends_with("Lib"))
+					compiler = L"lib_6_2";
 				else
 					return;
 

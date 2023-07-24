@@ -35,7 +35,7 @@ namespace Darius::Graphics::Utils
         //
         auto pdbName = filename + L".pdb";
 
-        LPCWSTR pszArgs[] =
+        std::vector<LPCWSTR> pszArgs =
         {
             filename.c_str(),            // Optional shader source file name for error reporting
             // and for PIX shader source view.  
@@ -50,6 +50,9 @@ namespace Darius::Graphics::Utils
             //L"-Zs",                      // Enable debug information (slim format)
 #endif
         };
+
+        if (target.starts_with(L"lib"))
+            pszArgs.push_back(L"-Vd");
 
 
         //
@@ -69,8 +72,8 @@ namespace Darius::Graphics::Utils
         ComPtr<IDxcResult> pResults;
         pCompiler->Compile(
             &Source,                // Source buffer.
-            pszArgs,                // Array of pointers to arguments.
-            _countof(pszArgs),      // Number of arguments.
+            pszArgs.data(),                // Array of pointers to arguments.
+            pszArgs.size(),      // Number of arguments.
             pIncludeHandler.Get(),        // User-provided interface to handle #include directives (optional).
             IID_PPV_ARGS(&pResults) // Compiler output status, buffer, and errors.
         );
