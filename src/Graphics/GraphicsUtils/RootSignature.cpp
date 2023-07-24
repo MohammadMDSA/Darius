@@ -17,6 +17,15 @@ using Microsoft::WRL::ComPtr;
 
 static std::map< size_t, ComPtr<ID3D12RootSignature> > s_RootSignatureHashMap;
 
+namespace
+{
+    // Root parameter costs in DWORDs as described here: https://docs.microsoft.com/en-us/windows/desktop/direct3d12/root-signature-limits
+    static const UINT32 RootDescriptorTableCostGlobal = 1; // Descriptor tables cost 1 DWORD
+    static const UINT32 RootDescriptorTableCostLocal = 2; // Local root signature descriptor tables cost 2 DWORDs -- undocumented as of 2018-11-12
+    static const UINT32 RootConstantCost = 1; // Each root constant is 1 DWORD
+    static const UINT32 RootDescriptorCost = 2; // Root descriptor is 64-bit GPU virtual address, 2 DWORDs
+}
+
 namespace Darius::Graphics::Utils
 {
     void RootSignature::DestroyAll(void)
@@ -80,7 +89,7 @@ namespace Darius::Graphics::Utils
         }
     }
 
-    void RootSignature::Finalize(const std::wstring& name, D3D12_ROOT_SIGNATURE_FLAGS Flags)
+    void RootSignature::Finalize(const std::wstring& name, D3D12_ROOT_SIGNATURE_FLAGS Flags, bool build)
     {
         if (mFinalized)
             return;
@@ -125,6 +134,11 @@ namespace Darius::Graphics::Utils
                 HashCode = D_CORE::HashState(&RootParam, 1, HashCode);
         }
 
+        // Calculating root parameters size
+        {
+            mTotalRootSignatureSizeInDWORDs = CalculateTotalRootSignatureSizeInDWORDs(RootDesc);
+        }
+
         ID3D12RootSignature** RSRef = nullptr;
         bool firstCompile = false;
         {
@@ -142,34 +156,69 @@ namespace Darius::Graphics::Utils
                 RSRef = iter->second.GetAddressOf();
         }
 
-        if (firstCompile)
+        if (build)
         {
-            ComPtr<ID3DBlob> pOutBlob, pErrorBlob;
-
-            auto hr = D3D12SerializeRootSignature(&RootDesc, D3D_ROOT_SIGNATURE_VERSION_1,
-                pOutBlob.GetAddressOf(), pErrorBlob.GetAddressOf());
-
-            if (pErrorBlob != nullptr)
+            if (firstCompile)
             {
-                D_LOG_FATAL((char*)pErrorBlob->GetBufferPointer());
+                ComPtr<ID3DBlob> pOutBlob, pErrorBlob;
+
+                auto hr = D3D12SerializeRootSignature(&RootDesc, D3D_ROOT_SIGNATURE_VERSION_1,
+                    pOutBlob.GetAddressOf(), pErrorBlob.GetAddressOf());
+
+                if (pErrorBlob != nullptr)
+                {
+                    D_LOG_FATAL((char*)pErrorBlob->GetBufferPointer());
+                }
+                D_HR_CHECK(hr);
+
+                D_HR_CHECK(D_GRAPHICS_DEVICE::GetDevice()->CreateRootSignature(1, pOutBlob->GetBufferPointer(), pOutBlob->GetBufferSize(),
+                    IID_PPV_ARGS(&mSignature)));
+
+                mSignature->SetName(name.c_str());
+
+                s_RootSignatureHashMap[HashCode].Attach(mSignature);
+                D_ASSERT(*RSRef == mSignature);
             }
-            D_HR_CHECK(hr);
-
-            D_HR_CHECK(D_GRAPHICS_DEVICE::GetDevice()->CreateRootSignature(1, pOutBlob->GetBufferPointer(), pOutBlob->GetBufferSize(),
-                IID_PPV_ARGS(&mSignature)));
-
-            mSignature->SetName(name.c_str());
-
-            s_RootSignatureHashMap[HashCode].Attach(mSignature);
-            D_ASSERT(*RSRef == mSignature);
+            else
+            {
+                while (*RSRef == nullptr)
+                    this_thread::yield();
+                mSignature = *RSRef;
+            }
+            mFinalized = TRUE;
         }
-        else
-        {
-            while (*RSRef == nullptr)
-                this_thread::yield();
-            mSignature = *RSRef;
-        }
-
-        mFinalized = TRUE;
     }
+
+    UINT8 RootSignature::CalculateTotalRootSignatureSizeInDWORDs(D3D12_ROOT_SIGNATURE_DESC RootDesc)
+    {
+        const UINT32 RootDescriptorTableCost = (RootDesc.Flags & D3D12_ROOT_SIGNATURE_FLAG_LOCAL_ROOT_SIGNATURE) ? RootDescriptorTableCostLocal : RootDescriptorTableCostGlobal;
+
+        UINT8 size = 0u;
+
+        // Loop through each root parameter and add its size to the total
+        for (UINT i = 0; i < RootDesc.NumParameters; i++)
+        {
+            const D3D12_ROOT_PARAMETER& param = RootDesc.pParameters[i];
+
+            switch (param.ParameterType)
+            {
+            case D3D12_ROOT_PARAMETER_TYPE_32BIT_CONSTANTS:
+                break;
+                size += RootConstantCost * param.Constants.Num32BitValues;
+            case D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE:
+                size += RootDescriptorTableCost;
+                break;
+            case D3D12_ROOT_PARAMETER_TYPE_CBV:
+            case D3D12_ROOT_PARAMETER_TYPE_UAV:
+            case D3D12_ROOT_PARAMETER_TYPE_SRV:
+                size += RootDescriptorCost;
+                break;
+            default:
+                break;
+            }
+        }
+
+        return size;
+    }
+
 }

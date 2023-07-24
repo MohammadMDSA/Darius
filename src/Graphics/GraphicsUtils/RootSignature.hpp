@@ -1,16 +1,3 @@
-//
-// Copyright (c) Microsoft. All rights reserved.
-// This code is licensed under the MIT License (MIT).
-// THIS CODE IS PROVIDED *AS IS* WITHOUT WARRANTY OF
-// ANY KIND, EITHER EXPRESS OR IMPLIED, INCLUDING ANY
-// IMPLIED WARRANTIES OF FITNESS FOR A PARTICULAR
-// PURPOSE, MERCHANTABILITY, OR NON-INFRINGEMENT.
-//
-// Developed by Minigraph
-//
-// Author:  James Stanard 
-//
-
 #pragma once
 
 #include <Utils/Assert.hpp>
@@ -116,18 +103,13 @@ namespace Darius::Graphics::Utils
         D3D12_ROOT_PARAMETER m_RootParam;
     };
 
-    // Maximum 64 DWORDS divied up amongst all root parameters.
-    // Root constants = 1 DWORD * NumConstants
-    // Root descriptor (CBV, SRV, or UAV) = 2 DWORDs each
-    // Descriptor table pointer = 1 DWORD
-    // Static samplers = 0 DWORDS (compiled into shader)
     class RootSignature
     {
         friend class Darius::Graphics::Utils::Memory::DynamicDescriptorHeap;
 
     public:
 
-        RootSignature(UINT NumRootParams = 0, UINT NumStaticSamplers = 0) : mFinalized(FALSE), mNumParameters(NumRootParams)
+        RootSignature(UINT NumRootParams = 0, UINT NumStaticSamplers = 0) : mFinalized(FALSE), mNumParameters(NumRootParams), mTotalRootSignatureSizeInDWORDs(0u)
         {
             Reset(NumRootParams, NumStaticSamplers);
         }
@@ -137,6 +119,8 @@ namespace Darius::Graphics::Utils
         }
 
         static void DestroyAll(void);
+
+        static UINT8 CalculateTotalRootSignatureSizeInDWORDs(D3D12_ROOT_SIGNATURE_DESC rtDesc);
 
         void Reset(UINT NumRootParams, UINT NumStaticSamplers = 0)
         {
@@ -169,21 +153,22 @@ namespace Darius::Graphics::Utils
         void InitStaticSampler(UINT Register, const D3D12_SAMPLER_DESC& NonStaticSamplerDesc,
             D3D12_SHADER_VISIBILITY Visibility = D3D12_SHADER_VISIBILITY_ALL);
 
-        void Finalize(const std::wstring& name, D3D12_ROOT_SIGNATURE_FLAGS Flags = D3D12_ROOT_SIGNATURE_FLAG_NONE);
+        void Finalize(const std::wstring& name, D3D12_ROOT_SIGNATURE_FLAGS Flags = D3D12_ROOT_SIGNATURE_FLAG_NONE, bool build = true);
 
         ID3D12RootSignature* GetSignature() const { return mSignature; }
 
     protected:
 
-        BOOL mFinalized;
-        UINT mNumParameters;
-        UINT mNumSamplers;
-        UINT mNumInitializedStaticSamplers;
-        uint32_t mDescriptorTableBitMap;		// One bit is set for root parameters that are non-sampler descriptor tables
-        uint32_t mSamplerTableBitMap;			// One bit is set for root parameters that are sampler descriptor tables
-        uint32_t mDescriptorTableSize[16];		// Non-sampler descriptor tables need to know their descriptor count
+        BOOL                            mFinalized;
+        UINT                            mNumParameters;
+        UINT                            mNumSamplers;
+        UINT                            mNumInitializedStaticSamplers;
+        uint32_t                        mDescriptorTableBitMap; // One bit is set for root parameters that are non-sampler descriptor tables
+        uint32_t                        mSamplerTableBitMap; // One bit is set for root parameters that are sampler descriptor tables
+        uint32_t                        mDescriptorTableSize[16]; // Non-sampler descriptor tables need to know their descriptor count
         std::unique_ptr<RootParameter[]> mParamArray;
         std::unique_ptr<D3D12_STATIC_SAMPLER_DESC[]> mSamplerArray;
-        ID3D12RootSignature* mSignature;
+        ID3D12RootSignature*            mSignature;
+        UINT8                           mTotalRootSignatureSizeInDWORDs;
     };
 }
