@@ -1,16 +1,3 @@
-//
-// Copyright (c) Microsoft. All rights reserved.
-// This code is licensed under the MIT License (MIT).
-// THIS CODE IS PROVIDED *AS IS* WITHOUT WARRANTY OF
-// ANY KIND, EITHER EXPRESS OR IMPLIED, INCLUDING ANY
-// IMPLIED WARRANTIES OF FITNESS FOR A PARTICULAR
-// PURPOSE, MERCHANTABILITY, OR NON-INFRINGEMENT.
-//
-// Developed by Minigraph
-//
-// Author:  James Stanard 
-//
-
 #include "pch.hpp"
 #include "CommandContext.hpp"
 #include "GraphicsUtils/Buffers/ColorBuffer.hpp"
@@ -29,7 +16,6 @@ using namespace D_MEMORY;
 
 namespace Darius::Graphics
 {
-
 
     void ContextManager::DestroyAllContexts(void)
     {
