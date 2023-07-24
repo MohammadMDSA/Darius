@@ -39,7 +39,7 @@ namespace Darius::Renderer::RayTracing::Utils
     void AccelerationStructure::CreateAccelerationStructure()
     {
 
-        Create(mName, 1, mPrebuildInfo.ResultDataMaxSizeInBytes, nullptr, D3D12_RESOURCE_STATE_RAYTRACING_ACCELERATION_STRUCTURE);
+        Create(mName, 1, (UINT32)mPrebuildInfo.ResultDataMaxSizeInBytes, nullptr, D3D12_RESOURCE_STATE_RAYTRACING_ACCELERATION_STRUCTURE);
     }
 
     void BottomLevelAccelerationStructure::UpdateGeometryDescsTransform(D3D12_GPU_VIRTUAL_ADDRESS baseGeometryTransformGPUAddress)
@@ -270,7 +270,7 @@ namespace Darius::Renderer::RayTracing::Utils
         mASmemoryFootprint += mTopLevelAS.RequiredResultDataSizeInBytes();
         mScratchResourceSize = std::max(mTopLevelAS.RequiredScratchSize(), mScratchResourceSize);
 
-        mAccelerationStructureScratch.Create(L"Acceleration structure scratch resource", 1, mScratchResourceSize);
+        mAccelerationStructureScratch.Create(L"Acceleration structure scratch resource", 1, (UINT32)mScratchResourceSize);
     }
 
     // Builds all bottom-level and top-level Acceleration Structures.
