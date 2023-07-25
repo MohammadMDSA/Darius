@@ -8,7 +8,8 @@
 #include "Components/SkeletalMeshRendererComponent.hpp"
 #include "Components/TerrainRendererComponent.hpp"
 #include "Geometry/GeometryGenerator.hpp"
-#include "Renderer/Rasterization/Renderer.hpp"
+#include "RayTracing/Renderer.hpp"
+#include "Rasterization/Renderer.hpp"
 #include "Resources/BatchResource.hpp"
 #include "Resources/FBXPrefabResource.hpp"
 #include "Resources/MaterialResource.hpp"
@@ -59,6 +60,7 @@ namespace Darius::Renderer
 
 		D_LIGHT_RAST::Initialize();
 		D_RENDERER_RAST::Initialize(settings);
+		D_RENDERER_RT::Initialize(settings);
 
 		// Registering components
 		BillboardRendererComponent::StaticConstructor();
@@ -72,6 +74,8 @@ namespace Darius::Renderer
 	void Shutdown()
 	{
 		D_ASSERT(_initialized);
+
+		D_RENDERER_RT::Shutdown();
 
 		D_RENDERER_RAST::Shutdown();
 

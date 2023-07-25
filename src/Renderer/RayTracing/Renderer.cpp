@@ -1,6 +1,7 @@
 #include "Renderer/pch.hpp"
 #include "Renderer.hpp"
 
+#include "Pipelines/SimpleRayTracingRenderer.hpp"
 #include "Utils/AccelerationStructure.hpp"
 
 #ifdef _D_EDITOR
@@ -13,14 +14,16 @@ namespace Darius::Renderer::RayTracing
 {
 
 	// Settings
-	UINT										MaxNumBottomLevelAS;
+	UINT													MaxNumBottomLevelAS;
 
 	// Buffers
-	RaytracingAccelerationStructureManager		AccelerationStructureManager;
+	std::unique_ptr<RaytracingAccelerationStructureManager>	AccelerationStructureManager;
+
+	// Renderers
+	std::unique_ptr<Pipeline::SimpleRayTracingPipeline>		SimpleRayTracingRenderer;
 
 	// Internal
-	bool										_initialized;
-
+	bool													_initialized;
 
 	void Initialize(D_SERIALIZATION::Json const& settings)
 	{
@@ -28,14 +31,21 @@ namespace Darius::Renderer::RayTracing
 		_initialized = true;
 
 		// Loading Settings
-		D_H_OPTIONS_LOAD_BASIC("RayTracing.MaxNumBottomLevelAS", MaxNumBottomLevelAS);
+		D_H_OPTIONS_LOAD_BASIC_DEFAULT("RayTracing.MaxNumBottomLevelAS", MaxNumBottomLevelAS, 100000);
 
-		AccelerationStructureManager = RaytracingAccelerationStructureManager(MaxNumBottomLevelAS, D_GRAPHICS_DEVICE::gNumFrameResources);
+		AccelerationStructureManager = std::make_unique<RaytracingAccelerationStructureManager>(MaxNumBottomLevelAS, (UINT)D_GRAPHICS_DEVICE::gNumFrameResources);
+		AccelerationStructureManager->InitializeTopLevelAS(D3D12_RAYTRACING_ACCELERATION_STRUCTURE_BUILD_FLAG_PREFER_FAST_TRACE, false, false, L"Top-Level Acceleration Structure");
+
+		SimpleRayTracingRenderer = std::make_unique<Pipeline::SimpleRayTracingPipeline>();
+		SimpleRayTracingRenderer->Initialize(settings);
 	}
 
 	void Shutdown()
 	{
 		D_ASSERT(_initialized);
+
+		AccelerationStructureManager.reset();
+		SimpleRayTracingRenderer.reset();
 	}
 
 	void Update()
@@ -53,7 +63,7 @@ namespace Darius::Renderer::RayTracing
 	{
 		D_H_OPTION_DRAW_BEGIN();
 
-		D_H_OPTION_DRAW_INT_SLIDER("Max Number of Buttom Level AS", "RayTracing.MaxNumBottomLevelAS", MaxNumBottomLevelAS, 10, 10000000);
+		D_H_OPTION_DRAW_INT_SLIDER("Max Number of Buttom Level AS", "RayTracing.MaxNumBottomLevelAS", MaxNumBottomLevelAS, 10, 1000000);
 
 		D_H_OPTION_DRAW_END();
 	}

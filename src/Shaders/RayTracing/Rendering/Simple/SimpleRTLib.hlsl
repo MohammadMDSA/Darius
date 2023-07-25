@@ -20,11 +20,6 @@ float3 linearToSrgb(float3 c)
     return srgb;
 }
 
-struct RayPayload
-{
-    float3 color;
-};
-
 [shader("raygeneration")]
 void rayGen()
 {
@@ -44,20 +39,20 @@ void rayGen()
     ray.TMin = 0;
     ray.TMax = 100000;
 
-    RayPayload payload;
+    Payload payload;
     TraceRay(gRtScene, 0 /*rayFlags*/, 0xFF, 0 /* ray index*/, 0, 0, ray, payload);
     float3 col = linearToSrgb(payload.color);
     gOutput[launchIndex.xy] = float4(col, 1);
 }
 
 [shader("miss")]
-void miss(inout RayPayload payload)
+void miss(inout Payload payload)
 {
     payload.color = float3(0.4, 0.6, 0.2);
 }
 
 [shader("closesthit")]
-void chs(inout RayPayload payload, in BuiltInTriangleIntersectionAttributes attribs)
+void chs(inout Payload payload, in BuiltInTriangleIntersectionAttributes attribs)
 {
     float3 barycentrics = float3(1.0 - attribs.barycentrics.x - attribs.barycentrics.y, attribs.barycentrics.x, attribs.barycentrics.y);
     payload.color = A[0] * barycentrics.x + A[1] * barycentrics.y + A[2] * barycentrics.z;
