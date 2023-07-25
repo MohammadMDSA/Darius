@@ -29,7 +29,7 @@ namespace Darius::Renderer::RayTracing::Utils
         UAVDesc.Buffer.CounterOffsetInBytes = 0;
         UAVDesc.Buffer.NumElements = mElementCount;
         UAVDesc.Buffer.StructureByteStride = mElementSize;
-        UAVDesc.Buffer.Flags = D3D12_BUFFER_UAV_FLAG_RAW;
+        UAVDesc.Buffer.Flags = D3D12_BUFFER_UAV_FLAG_NONE;
 
         if (mUAV.ptr == D3D12_GPU_VIRTUAL_ADDRESS_UNKNOWN)
             mUAV = D_GRAPHICS::AllocateDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
@@ -200,6 +200,7 @@ namespace Darius::Renderer::RayTracing::Utils
 
     RaytracingAccelerationStructureManager::RaytracingAccelerationStructureManager(UINT numBottomLevelInstances, UINT frameCount)
     {
+        D_ASSERT(numBottomLevelInstances > 0);
         mBottomLevelASInstanceDescs.Create(L"Bottom-Level Acceleration Structure Instance descs", numBottomLevelInstances, frameCount);
     }
 
