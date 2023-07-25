@@ -270,7 +270,7 @@ namespace Darius::Graphics
 	{
 		D_ASSERT(!_initialized);
 		_initialized = true;
-		
+
 		Device::Initialize(window, width, height, settings);
 		D_ASSERT(Resources);
 		D_ASSERT(Resources->GetD3DDevice());
@@ -626,11 +626,21 @@ namespace Darius::Graphics
 				else if (shaderName.ends_with("HS"))
 					compiler = L"hs_6_2";
 				else if (shaderName.ends_with("Lib"))
-					compiler = L"lib_6_2";
+					compiler = L"lib_6_3";
 				else
 					return;
 
-				Shaders.push_back(CompileShader(path, L"main", compiler));
+
+				ComPtr<ID3DBlob> compiledShader;
+				if (compiler.starts_with(L"lib"))
+					compiledShader = CompileLibrary(path, compiler);
+				else
+					compiledShader = CompileShader(path, L"main", compiler);
+
+				D_ASSERT(compiledShader);
+
+				Shaders.push_back(compiledShader);
+
 				ShaderNameMap[shaderName] = (UINT32)Shaders.size() - 1;
 			});
 
