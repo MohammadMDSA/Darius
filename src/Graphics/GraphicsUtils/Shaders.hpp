@@ -87,57 +87,71 @@ namespace Darius::Graphics::Utils::Shaders
 	class RayTracingShader : public Shader
 	{
 	public:
-		INLINE D3D12_ROOT_SIGNATURE_DESC	GetLocalRootSignatureDesc() const { return mLocalRootDesc; }
+		INLINE std::shared_ptr<RootSignature> GetLocalRootSignature() const { return mLocalRootDesc; }
 		INLINE UINT32						GetRootParametersSizeInBytes() const { return mLocalRootParametersSizeInDWORDs * 4; }
 		INLINE UINT8						GetRootParametersSizeInDWORDs() const { return mLocalRootParametersSizeInDWORDs; }
+		INLINE std::wstring const&			GetLibraryName() const { return mLibraryName; }
 
 	protected:
-		RayTracingShader(D3D12_ROOT_SIGNATURE_DESC localRT, Type::EShaderType type, std::wstring const& name) :
+		RayTracingShader(std::shared_ptr<RootSignature> localRT, Type::EShaderType type, std::wstring const& name, std::wstring libraryName) :
 			Shader(type, name),
-			mLocalRootDesc(localRT)
+			mLocalRootDesc(localRT),
+			mLibraryName(libraryName)
 		{
 			D_ASSERT(type | Type::RayTracingShader);
-			mLocalRootParametersSizeInDWORDs = RootSignature::CalculateTotalRootSignatureSizeInDWORDs(localRT);
+			D_ASSERT(localRT->IsFinalized());
+			mLocalRootParametersSizeInDWORDs = mLocalRootDesc->GetRootParametersSizeInDWORDs();
 		}
 
 	private:
-		D3D12_ROOT_SIGNATURE_DESC		mLocalRootDesc;
+		std::shared_ptr<RootSignature>	mLocalRootDesc;
 		UINT8							mLocalRootParametersSizeInDWORDs;
+		std::wstring					mLibraryName;
 	};
 
 	class RayGenerationShader : public RayTracingShader
 	{
 	public:
 
-		RayGenerationShader(std::wstring const& name, D3D12_ROOT_SIGNATURE_DESC localRT) : RayTracingShader(localRT, Type::RayGeneration, name) {}
+		RayGenerationShader(std::wstring const& name, std::wstring libraryName, std::shared_ptr<RootSignature> localRT) : RayTracingShader(localRT, Type::RayGeneration, name, libraryName) {}
 	};
 
 	class MissShader : public RayTracingShader
 	{
 	public:
 
-		MissShader(std::wstring const& name, D3D12_ROOT_SIGNATURE_DESC localRT) : RayTracingShader(localRT, Type::Miss, name) {}
+		MissShader(std::wstring const& name, std::wstring libraryName, std::shared_ptr<RootSignature> localRT) : RayTracingShader(localRT, Type::Miss, name, libraryName) {}
 	};
 
 	class ClosestHitShader : public RayTracingShader
 	{
 	public:
 
-		ClosestHitShader(std::wstring const& name, D3D12_ROOT_SIGNATURE_DESC localRT) : RayTracingShader(localRT, Type::ClosestHit, name) {}
+		ClosestHitShader(std::wstring const& name, std::wstring libraryName, std::shared_ptr<RootSignature> localRT) : RayTracingShader(localRT, Type::ClosestHit, name, libraryName) {}
 	};
 
 	class AnyHitShader : public RayTracingShader
 	{
 	public:
 
-		AnyHitShader(std::wstring const& name, D3D12_ROOT_SIGNATURE_DESC localRT) : RayTracingShader(localRT, Type::AnyHit, name) {}
+		AnyHitShader(std::wstring const& name, std::wstring libraryName, std::shared_ptr<RootSignature> localRT) : RayTracingShader(localRT, Type::AnyHit, name, libraryName) {}
 	};
 
 	class IntersectionShader : public RayTracingShader
 	{
 	public:
 
-		IntersectionShader(std::wstring const& name, D3D12_ROOT_SIGNATURE_DESC localRT) : RayTracingShader(localRT, Type::Intersection, name) {}
+		IntersectionShader(std::wstring const& name, std::wstring libraryName, std::shared_ptr<RootSignature> localRT) : RayTracingShader(localRT, Type::Intersection, name, libraryName) {}
+	};
+
+	struct RayTracingHitGroup
+	{
+		D3D12_HIT_GROUP_TYPE			Type = D3D12_HIT_GROUP_TYPE_TRIANGLES;
+		std::wstring					Name = L"";
+
+		ClosestHitShader*				ClosestHitShader = nullptr;
+		IntersectionShader*				IntersectionShader = nullptr;
+		AnyHitShader*					AnyHitShader = nullptr;
 	};
 
 }
