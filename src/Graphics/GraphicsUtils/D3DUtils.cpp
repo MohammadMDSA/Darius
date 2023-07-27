@@ -291,7 +291,6 @@ namespace Darius::Graphics::Utils
         D_HR_CHECK(DxcCreateInstance(CLSID_DxcUtils, IID_PPV_ARGS(&pUtils)));
         D_HR_CHECK(gDxcDllHelper.CreateInstance(CLSID_DxcCompiler, pCompiler.GetAddressOf()));
         D_HR_CHECK(gDxcDllHelper.CreateInstance(CLSID_DxcLibrary, pLibrary.GetAddressOf()));
-        pReflection->
 
         ComPtr<IDxcIncludeHandler> pIncludeHandler;
         pUtils->CreateDefaultIncludeHandler(&pIncludeHandler);

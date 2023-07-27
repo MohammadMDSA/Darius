@@ -96,8 +96,6 @@ namespace Darius::Math
 		RTTR_REGISTRATION_FRIEND;
 		DirectX::XMVECTOR m_vec;
 
-	public:
-		Darius_Math_Vector3_GENERATED
 	};
 
 	// A 4-vector, completely defined.
@@ -170,9 +168,6 @@ namespace Darius::Math
 	protected:
 		RTTR_REGISTRATION_FRIEND;
 		DirectX::XMVECTOR m_vec;
-
-	public:
-		Darius_Math_Vector4_GENERATED
 	};
 
 	D_STATIC_ASSERT(sizeof(Vector3) == 16);
