@@ -84,6 +84,38 @@ namespace Darius::Graphics::Utils::Shaders
 		PixelShader(std::wstring const& name) : Shader(Type::Pixel, name) {}
 	};
 
+	struct ShaderIdentifier
+	{
+		UINT64 Data[4] = { ~0ull, ~0ull, ~0ull, ~0ull };
+
+		// No shader is executed if a shader table record with null identifier is encountered.
+		static const ShaderIdentifier Null;
+
+		bool operator == (const ShaderIdentifier& other) const
+		{
+			return Data[0] == other.Data[0]
+				&& Data[1] == other.Data[1]
+				&& Data[2] == other.Data[2]
+				&& Data[3] == other.Data[3];
+		}
+
+		bool operator != (const ShaderIdentifier& other) const
+		{
+			return !(*this == other);
+		}
+
+		bool IsValid() const
+		{
+			return *this != ShaderIdentifier();
+		}
+
+		void SetData(const void* inData)
+		{
+			std::memcpy(Data, inData, sizeof(Data));
+		}
+	};
+
+
 	class RayTracingShader : public Shader
 	{
 	public:
