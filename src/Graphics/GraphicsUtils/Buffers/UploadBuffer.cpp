@@ -1,18 +1,6 @@
-//
-// Copyright (c) Microsoft. All rights reserved.
-// This code is licensed under the MIT License (MIT).
-// THIS CODE IS PROVIDED *AS IS* WITHOUT WARRANTY OF
-// ANY KIND, EITHER EXPRESS OR IMPLIED, INCLUDING ANY
-// IMPLIED WARRANTIES OF FITNESS FOR A PARTICULAR
-// PURPOSE, MERCHANTABILITY, OR NON-INFRINGEMENT.
-//
-// Developed by Minigraph
-//
-// Author:  James Stanard 
-//
-
 #include "Graphics/pch.hpp"
 #include "UploadBuffer.hpp"
+
 #include "Graphics/GraphicsCore.hpp"
 #include "Graphics/GraphicsDeviceManager.hpp"
 
@@ -60,11 +48,15 @@ namespace Darius::Graphics::Utils::Buffers
     }
 
 
-    void* UploadBuffer::Map(void)
+    void* UploadBuffer::Map(bool fillZero)
     {
         void* Memory;
         auto range = CD3DX12_RANGE(0, GetTotalBufferSize());
         mResource->Map(0, &range, &Memory);
+
+        if (fillZero)
+            ZeroMemory(Memory, range.End);
+
         return Memory;
     }
 

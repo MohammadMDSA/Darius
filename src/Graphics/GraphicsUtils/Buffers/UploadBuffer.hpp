@@ -20,7 +20,7 @@ namespace Darius::Graphics::Utils::Buffers
 
         void Create(std::wstring const& name, size_t BufferSize, UINT numInstances = 1);
 
-        void* Map(void);
+        void* Map(bool fillZero = false);
         void Unmap(size_t begin = 0, size_t end = -1);
 
         INLINE size_t GetBufferSize() const { return mBufferSize; }
