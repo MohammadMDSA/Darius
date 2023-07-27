@@ -2,7 +2,7 @@
 #include "Renderer.hpp"
 
 #include "Pipelines/SimpleRayTracingRenderer.hpp"
-#include "Utils/AccelerationStructure.hpp"
+#include "RayTracingScene.hpp"
 
 #ifdef _D_EDITOR
 #include <imgui.h>
@@ -16,8 +16,8 @@ namespace Darius::Renderer::RayTracing
 	// Settings
 	UINT													MaxNumBottomLevelAS;
 
-	// Buffers
-	std::unique_ptr<RaytracingAccelerationStructureManager>	AccelerationStructureManager;
+	// Scene
+	std::unique_ptr<RayTracingScene>						RTScene;
 
 	// Renderers
 	std::unique_ptr<Pipeline::SimpleRayTracingPipeline>		SimpleRayTracingRenderer;
@@ -33,8 +33,7 @@ namespace Darius::Renderer::RayTracing
 		// Loading Settings
 		D_H_OPTIONS_LOAD_BASIC_DEFAULT("RayTracing.MaxNumBottomLevelAS", MaxNumBottomLevelAS, 100000);
 
-		AccelerationStructureManager = std::make_unique<RaytracingAccelerationStructureManager>(MaxNumBottomLevelAS, (UINT)D_GRAPHICS_DEVICE::gNumFrameResources);
-		AccelerationStructureManager->InitializeTopLevelAS(D3D12_RAYTRACING_ACCELERATION_STRUCTURE_BUILD_FLAG_PREFER_FAST_TRACE, false, false, L"Top-Level Acceleration Structure");
+		RTScene = std::make_unique<RayTracingScene>(MaxNumBottomLevelAS);
 
 		SimpleRayTracingRenderer = std::make_unique<Pipeline::SimpleRayTracingPipeline>();
 		SimpleRayTracingRenderer->Initialize(settings);
@@ -44,7 +43,7 @@ namespace Darius::Renderer::RayTracing
 	{
 		D_ASSERT(_initialized);
 
-		AccelerationStructureManager.reset();
+		RTScene.reset();
 		SimpleRayTracingRenderer.reset();
 	}
 
