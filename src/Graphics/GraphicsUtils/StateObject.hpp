@@ -124,6 +124,7 @@ namespace Darius::Graphics::Utils
 
 		D_CONTAINERS::DVector<std::shared_ptr<Shaders::RayGenerationShader>> mRayGenerationShaders;
 		D_CONTAINERS::DVector<std::shared_ptr<Shaders::MissShader>> mMissShaders;
+		D_CONTAINERS::DVector<std::shared_ptr<Shaders::MissShader>> mCallableShaders;
 		D_CONTAINERS::DVector<Shaders::RayTracingHitGroup> mHitGroups;
 	};
 }

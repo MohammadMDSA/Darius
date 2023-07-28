@@ -158,7 +158,7 @@ namespace Darius::Graphics::Utils
 			result->SetRootSignature(rootSignature);
 
 			mRootSignatureSubObjectMap.emplace(rootSignature, result);
-			
+
 			mCurrentIndex++; // For local root signature sub object
 		}
 
@@ -197,6 +197,28 @@ namespace Darius::Graphics::Utils
 
 	void RayTracingStateObject::CleanUp()
 	{
+		// Gathering all shader identifiers
+		{
+			ComPtr<ID3D12StateObjectProperties> stateObjectProperties;
+			GetStateObject()->QueryInterface(IID_PPV_ARGS(&stateObjectProperties));
+
+			// Miss shaders
+			for (auto miss : mMissShaders)
+				miss->Identifier.SetData(stateObjectProperties->GetShaderIdentifier(miss->GetName().c_str()));
+
+			// Callable shaders
+			for (auto callable : mCallableShaders)
+				callable->Identifier.SetData(stateObjectProperties->GetShaderIdentifier(callable->GetName().c_str()));
+
+			// Ray generation shaders
+			for (auto rayGen : mRayGenerationShaders)
+				rayGen->Identifier.SetData(stateObjectProperties->GetShaderIdentifier(rayGen->GetName().c_str()));
+
+			// Hit groups
+			for (auto hitGroup : mHitGroups)
+				hitGroup.Identifier.SetData(stateObjectProperties->GetShaderIdentifier(hitGroup.Name.c_str()));
+		}
+
 		// Clearing maps
 		mRootSignatureSubObjectMap.clear();
 		mLibraryExportNamesMap.clear();
