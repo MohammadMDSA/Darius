@@ -178,12 +178,12 @@ namespace Darius::Graphics::Utils::Shaders
 
 	struct RayTracingHitGroup
 	{
-		D3D12_HIT_GROUP_TYPE			Type = D3D12_HIT_GROUP_TYPE_TRIANGLES;
-		std::wstring					Name = L"";
+		D3D12_HIT_GROUP_TYPE				Type = D3D12_HIT_GROUP_TYPE_TRIANGLES;
+		std::wstring						Name = L"";
 
-		ClosestHitShader*				ClosestHitShader = nullptr;
-		IntersectionShader*				IntersectionShader = nullptr;
-		AnyHitShader*					AnyHitShader = nullptr;
+		std::shared_ptr<ClosestHitShader>	ClosestHitShader = nullptr;
+		std::shared_ptr<IntersectionShader>	IntersectionShader = nullptr;
+		std::shared_ptr<AnyHitShader>		AnyHitShader = nullptr;
 	};
 
 }
