@@ -70,17 +70,19 @@ namespace Darius::Graphics::Utils
 		CleanUp();
 	}
 
-	void RayTracingStateObject::AddMissShader(Shaders::MissShader* missShader)
+	void RayTracingStateObject::AddMissShader(std::shared_ptr<Shaders::MissShader> missShader)
 	{
-		ProcessShader(missShader);
+		ProcessShader(missShader.get());
+		mMissShaders.push_back(missShader);
 	}
 
-	void RayTracingStateObject::AddRayGenerationShader(Shaders::RayGenerationShader* rayGenerationShader)
+	void RayTracingStateObject::AddRayGenerationShader(std::shared_ptr<Shaders::RayGenerationShader> rayGenerationShader)
 	{
-		ProcessShader(rayGenerationShader);
+		ProcessShader(rayGenerationShader.get());
+		mRayGenerationShaders.push_back(rayGenerationShader);
 	}
 
-	void RayTracingStateObject::AddHitGroup(Shaders::RayTracingHitGroup const& hitGroup)
+	void RayTracingStateObject::AddHitGroup(Shaders::RayTracingHitGroup const& hitGroup, bool isDefault)
 	{
 		// Add hit group sub object
 		auto hitGroupSubObj = mPipelineDesc.CreateSubobject<CD3DX12_HIT_GROUP_SUBOBJECT>();
@@ -93,21 +95,37 @@ namespace Darius::Graphics::Utils
 		if (hitGroup.ClosestHitShader)
 		{
 			hitGroupSubObj->SetClosestHitShaderImport(hitGroup.ClosestHitShader->GetName().c_str());
-			ProcessShader(hitGroup.ClosestHitShader);
+			ProcessShader(hitGroup.ClosestHitShader.get());
 		}
 
 		if (hitGroup.IntersectionShader)
 		{
 			hitGroupSubObj->SetIntersectionShaderImport(hitGroup.IntersectionShader->GetName().c_str());
-			ProcessShader(hitGroup.IntersectionShader);
+			ProcessShader(hitGroup.IntersectionShader.get());
 		}
 
 		if (hitGroup.AnyHitShader)
 		{
 			hitGroupSubObj->SetAnyHitShaderImport(hitGroup.AnyHitShader->GetName().c_str());
-			ProcessShader(hitGroup.AnyHitShader);
+			ProcessShader(hitGroup.AnyHitShader.get());
 		}
 
+		// Forcing the hit group to be at the first position to imply being the default hit group
+		if (isDefault)
+		{
+			// First position (default) is already filled
+			if (mHitGroups.size() > 0)
+			{
+				auto firstEl = mHitGroups.front();
+				mHitGroups.push_back(firstEl);
+				mHitGroups[0] = hitGroup;
+			}
+			// No need to move anything around
+			else
+				mHitGroups.push_back(hitGroup);
+		}
+		else
+			mHitGroups.push_back(hitGroup);
 	}
 
 

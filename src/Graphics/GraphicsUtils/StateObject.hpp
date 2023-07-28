@@ -73,9 +73,9 @@ namespace Darius::Graphics::Utils
 			mCurrentIndex++; // For global root signature
 		}
 
-		void									AddMissShader(Shaders::MissShader* missShader);
-		void									AddRayGenerationShader(Shaders::RayGenerationShader* rayGenerationShader);
-		void									AddHitGroup(Shaders::RayTracingHitGroup const& hitGroup);
+		void									AddMissShader(std::shared_ptr<Shaders::MissShader> missShader);
+		void									AddRayGenerationShader(std::shared_ptr < Shaders::RayGenerationShader> rayGenerationShader);
+		void									AddHitGroup(Shaders::RayTracingHitGroup const& hitGroup, bool isDefault = false);
 
 		void									ResolveDXILLibraries();
 
@@ -90,6 +90,10 @@ namespace Darius::Graphics::Utils
 		UINT									GetMaxTraceRecursionDepth() const { return mMaxTraceRecursionDepth; }
 		ID3D12RootSignature*					GetGlobalRootSignature() const { return mGlobalRootSignature; }
 		UINT									GetCurrentIndex() const { return mCurrentIndex; }
+
+		INLINE D_CONTAINERS::DVector<std::shared_ptr<Shaders::RayGenerationShader>> const& GetRayGenerationShaders() const { return mRayGenerationShaders; }
+		INLINE D_CONTAINERS::DVector<std::shared_ptr<Shaders::MissShader>> const& GetMissShaders() const { return mMissShaders; }
+		INLINE D_CONTAINERS::DVector<Shaders::RayTracingHitGroup> const& GetHitGroups() const { return mHitGroups; }
 
 	protected:
 		virtual void							CleanUp() override;
@@ -117,5 +121,9 @@ namespace Darius::Graphics::Utils
 		D_CONTAINERS::DMap<ID3D12RootSignature*, CD3DX12_LOCAL_ROOT_SIGNATURE_SUBOBJECT*> mRootSignatureSubObjectMap;
 		D_CONTAINERS::DMap<std::wstring, D_CONTAINERS::DVector<std::wstring>> mLibraryExportNamesMap;
 		D_CONTAINERS::DSet<std::shared_ptr<D3D12_SHADER_BYTECODE>> mShaderByteCodes;
+
+		D_CONTAINERS::DVector<std::shared_ptr<Shaders::RayGenerationShader>> mRayGenerationShaders;
+		D_CONTAINERS::DVector<std::shared_ptr<Shaders::MissShader>> mMissShaders;
+		D_CONTAINERS::DVector<Shaders::RayTracingHitGroup> mHitGroups;
 	};
 }
