@@ -93,7 +93,8 @@ namespace Darius::Renderer::RayTracing::Utils
         INLINE void                     SetInstanceContributionToHitGroupIndex(UINT index) { mInstanceContributionToHitGroupIndex = index; }
 
         INLINE D_MATH::Matrix4 const&   GetTransform() const { return mTransform; }
-        std::vector<D3D12_RAYTRACING_GEOMETRY_DESC> const& GetGeometryDescs() const { return mGeometryDescs; }
+        INLINE std::vector<D3D12_RAYTRACING_GEOMETRY_DESC> const& GetGeometryDescs() const { return mGeometryDescs; }
+        INLINE UINT                     GetNumGeometries() const { (UINT)mGeometryDescs.size(); }
 
     private:
         std::vector<D3D12_RAYTRACING_GEOMETRY_DESC> mGeometryDescs;
@@ -112,40 +113,12 @@ namespace Darius::Renderer::RayTracing::Utils
         TopLevelAccelerationStructure() {}
         ~TopLevelAccelerationStructure() {}
 
-        void                            Initialize(UINT numBottomLevelASInstanceDescs, D3D12_RAYTRACING_ACCELERATION_STRUCTURE_BUILD_FLAGS buildFlags, bool allowUpdate = false, bool bUpdateOnBuild = false, const wchar_t* resourceName = nullptr);
+        // Initialization must be performed every time the max number of BLASes is changed
+        void                            Initialize(UINT maxNumBottomLevelASInstanceDescs, D3D12_RAYTRACING_ACCELERATION_STRUCTURE_BUILD_FLAGS buildFlags, bool allowUpdate = false, bool bUpdateOnBuild = false, const wchar_t* resourceName = nullptr);
         void                            Build(Darius::Renderer::RayTracing::RayTracingCommandContext& commandList, UINT numBottomLevelASInstanceDescs, D_GRAPHICS_BUFFERS::StructuredUploadBuffer<BottomLevelAccelerationStructureInstanceDesc> const& InstanceDescs, UINT frameIndex, D_GRAPHICS_BUFFERS::GpuBuffer const& scratch, bool bUpdate = false);
 
     private:
         void                            ComputePrebuildInfo(UINT numBottomLevelASInstanceDescs);
-    };
-
-    class RaytracingAccelerationStructureManager
-    {
-    public:
-        RaytracingAccelerationStructureManager(UINT numBottomLevelInstances, UINT frameCount);
-        ~RaytracingAccelerationStructureManager() {}
-
-        void                            AddBottomLevelAS(D3D12_RAYTRACING_ACCELERATION_STRUCTURE_BUILD_FLAGS buildFlags, BottomLevelAccelerationStructureGeometry& bottomLevelASGeometry, bool allowUpdate = false, bool performUpdateOnBuild = false);
-        UINT                            AddBottomLevelASInstance(D_CORE::Uuid const& bottomLevelASUuid, UINT instanceContributionToHitGroupIndex = UINT_MAX, D_MATH::Matrix4 const& transform = D_MATH::Matrix4::Identity, BYTE InstanceMask = 1);
-        void                            InitializeTopLevelAS(D3D12_RAYTRACING_ACCELERATION_STRUCTURE_BUILD_FLAGS buildFlags, bool allowUpdate = false, bool performUpdateOnBuild = false, const wchar_t* resourceName = nullptr);
-        void                            Build(RayTracingCommandContext& commandList, ID3D12DescriptorHeap* descriptorHeap, UINT frameIndex, bool bForceBuild = false);
-        INLINE BottomLevelAccelerationStructureInstanceDesc const& GetBottomLevelASInstance(UINT bottomLevelASinstanceIndex) const { return mBottomLevelASInstanceDescs[bottomLevelASinstanceIndex]; }
-        D_GRAPHICS_BUFFERS::StructuredUploadBuffer<BottomLevelAccelerationStructureInstanceDesc> const& GetBottomLevelASInstancesBuffer() const { return mBottomLevelASInstanceDescs; }
-
-        INLINE BottomLevelAccelerationStructure const& GetBottomLevelAS(D_CORE::Uuid const& uuid) const { return mVBottomLevelAS.at(uuid); }
-        INLINE TopLevelAccelerationStructure const& GetTopLevelAS() const { return mTopLevelAS; }
-        UINT64                          GetASMemoryFootprint() const { return mASmemoryFootprint; }
-        UINT                            GetNumberOfBottomLevelASInstances() const { return static_cast<UINT>(mBottomLevelASInstanceDescs.GetNumElements()); }
-        UINT                            GetMaxInstanceContributionToHitGroupIndex() const;
-
-    private:
-        TopLevelAccelerationStructure               mTopLevelAS;
-        D_CONTAINERS::DMap<D_CORE::Uuid, BottomLevelAccelerationStructure> mVBottomLevelAS;
-        D_GRAPHICS_BUFFERS::StructuredUploadBuffer<BottomLevelAccelerationStructureInstanceDesc> mBottomLevelASInstanceDescs;
-        UINT                                        mNumBottomLevelASInstances = 0;
-        D_GRAPHICS_BUFFERS::ByteAddressBuffer       mAccelerationStructureScratch;
-        UINT64                                      mScratchResourceSize = 0;
-        UINT64                                      mASmemoryFootprint = 0;
     };
 
 }
