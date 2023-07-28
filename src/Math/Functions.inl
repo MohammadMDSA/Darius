@@ -367,5 +367,33 @@ namespace Darius::Math
 		float postFix = a * pow(2, -10 * (t -= 1));
 		return 1 - (postFix * sin((t * d - s) * (2 * DirectX::XM_PI) / p) * .5f + c + b);
 	}
+
+	INLINE UINT CountTrailingZeros(UINT value)
+	{
+		// return 32 if value was 0
+		unsigned long bitIndex;	// 0-based, where the LSB is 0 and MSB is 31
+		return _BitScanForward(&bitIndex, value) ? bitIndex : 32;
+	}
+
+	INLINE UINT CountLeadingZeros(UINT value)
+	{
+		// return 32 if value is zero
+		unsigned long bitIndex;
+		if (!_BitScanReverse(&bitIndex, value)) bitIndex = -1;
+		return 31 - bitIndex;
+	}
+
+	INLINE UINT CeilLogTwo(UINT arg)
+	{
+		// if Arg is 0, change it to 1 so that we return 0
+		arg = arg ? arg : 1;
+		return 32 - CountLeadingZeros(arg - 1);
+	}
+
+	INLINE UINT RoundUpToPowerOfTwo(UINT arg)
+	{
+		return 1 << CeilLogTwo(arg);
+	}
+
 }
 #pragma warning(pop)
