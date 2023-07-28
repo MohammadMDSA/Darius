@@ -90,6 +90,7 @@ namespace Darius::Graphics::Utils
 		UINT									GetMaxTraceRecursionDepth() const { return mMaxTraceRecursionDepth; }
 		ID3D12RootSignature*					GetGlobalRootSignature() const { return mGlobalRootSignature; }
 		UINT									GetCurrentIndex() const { return mCurrentIndex; }
+		UINT									GetMaxLocalRootSignatureSize() const { return mMaxLocalRootSignatureSize; }
 
 		INLINE D_CONTAINERS::DVector<std::shared_ptr<Shaders::RayGenerationShader>> const& GetRayGenerationShaders() const { return mRayGenerationShaders; }
 		INLINE D_CONTAINERS::DVector<std::shared_ptr<Shaders::MissShader>> const& GetMissShaders() const { return mMissShaders; }
