@@ -26,7 +26,6 @@ namespace Darius::Renderer::RayTracing::Utils
 			UINT		NumHitRecords = 0;
 			UINT		NumCallableRecords = 0;
 			UINT		LocalRootDataSize = 0;
-			UINT		MaxViewDescriptorsPerRecord = 0;
 		};
 
 		ShaderTable() :
@@ -92,9 +91,9 @@ namespace Darius::Renderer::RayTracing::Utils
 
 		void SetRayGenIdentifiers(D_CONTAINERS::DVector<D_GRAPHICS_SHADERS::ShaderIdentifier> const& identifiers);
 
-		void SetDefaultMissshaderIdentifier(D_GRAPHICS_SHADERS::ShaderIdentifier const& shaderIdentifier);
+		void SetDefaultMissShaderIdentifier(D_GRAPHICS_SHADERS::ShaderIdentifier const& shaderIdentifier);
 
-		void SetDefaultCallableshaderIdentifier(D_GRAPHICS_SHADERS::ShaderIdentifier const& shaderIdentifier);
+		void SetDefaultCallableShaderIdentifier(D_GRAPHICS_SHADERS::ShaderIdentifier const& shaderIdentifier);
 
 		void CopyToGpu(Darius::Renderer::RayTracing::RayTracingCommandContext& context);
 

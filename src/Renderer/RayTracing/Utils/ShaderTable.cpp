@@ -49,6 +49,11 @@ namespace Darius::Renderer::RayTracing::Utils
 		ZeroMemory(mTableData.data(), totalDataSize);
 
 		mDefaultMissShaderSet = false;
+
+		SetRayGenIdentifiers(rayGenIdentifiers);
+		SetDefaultHitGroupIdentifier(defaultHitGroupIdentifier);
+		SetDefaultMissShaderIdentifier(ShaderIdentifier::Null);
+		SetDefaultCallableShaderIdentifier(ShaderIdentifier::Null);
 	}
 
 	void ShaderTable::WriteData(UINT offset, void const* data, UINT dataSize)
@@ -144,7 +149,7 @@ namespace Darius::Renderer::RayTracing::Utils
 		}
 	}
 
-	void ShaderTable::SetDefaultMissshaderIdentifier(D_GRAPHICS_SHADERS::ShaderIdentifier const& shaderIdentifier)
+	void ShaderTable::SetDefaultMissShaderIdentifier(D_GRAPHICS_SHADERS::ShaderIdentifier const& shaderIdentifier)
 	{
 		// Set all slots to the same default
 		for (UINT Index = 0; Index < mNumMissRecords; ++Index)
@@ -155,7 +160,7 @@ namespace Darius::Renderer::RayTracing::Utils
 		mDefaultMissShaderSet = false;
 	}
 
-	void ShaderTable::SetDefaultCallableshaderIdentifier(D_GRAPHICS_SHADERS::ShaderIdentifier const& shaderIdentifier)
+	void ShaderTable::SetDefaultCallableShaderIdentifier(D_GRAPHICS_SHADERS::ShaderIdentifier const& shaderIdentifier)
 	{
 		for (UINT Index = 0; Index < mNumCallableRecords; ++Index)
 		{
