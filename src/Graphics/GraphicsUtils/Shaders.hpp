@@ -28,7 +28,8 @@ namespace Darius::Graphics::Utils::Shaders
 			ClosestHit			= 0x80,
 			AnyHit				= 0x100,
 			Intersection		= 0x200,
-			RayTracingShader	= RayGeneration | Miss | ClosestHit | AnyHit | Intersection
+			Callable			= 0x400,
+			RayTracingShader	= RayGeneration | Miss | ClosestHit | AnyHit | Intersection | Callable
 
 		};
 	}
@@ -141,14 +142,20 @@ namespace Darius::Graphics::Utils::Shaders
 		std::wstring					mLibraryName;
 	};
 
-	class RayGenerationShader : public RayTracingShader
+	struct IdentifierOwner
+	{
+	public:
+		ShaderIdentifier				Identifier;
+	};
+
+	class RayGenerationShader : public RayTracingShader, public IdentifierOwner
 	{
 	public:
 
 		RayGenerationShader(std::wstring const& name, std::wstring libraryName, std::shared_ptr<RootSignature> localRT) : RayTracingShader(localRT, Type::RayGeneration, name, libraryName) {}
 	};
 
-	class MissShader : public RayTracingShader
+	class MissShader : public RayTracingShader, public IdentifierOwner
 	{
 	public:
 
@@ -176,7 +183,13 @@ namespace Darius::Graphics::Utils::Shaders
 		IntersectionShader(std::wstring const& name, std::wstring libraryName, std::shared_ptr<RootSignature> localRT) : RayTracingShader(localRT, Type::Intersection, name, libraryName) {}
 	};
 
-	struct RayTracingHitGroup
+	class CallableShader : public RayTracingShader, public IdentifierOwner
+	{
+	public:
+		CallableShader(std::wstring const& name, std::wstring libraryName, std::shared_ptr<RootSignature> localRT) : RayTracingShader(localRT, Type::Callable, name, libraryName) {}
+	};
+
+	struct RayTracingHitGroup : public IdentifierOwner
 	{
 		D3D12_HIT_GROUP_TYPE				Type = D3D12_HIT_GROUP_TYPE_TRIANGLES;
 		std::wstring						Name = L"";
