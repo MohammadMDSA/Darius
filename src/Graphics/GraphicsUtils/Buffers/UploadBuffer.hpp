@@ -52,6 +52,14 @@ namespace Darius::Graphics::Utils::Buffers
 
         INLINE void Create(std::wstring const& name, UINT numElements, UINT numInstances = 1)
         {
+            // Already initialized and size is fine
+            if (mMappedBuffers != nullptr && (UINT)mStaging.size() >= numElements)
+                return;
+
+            // It should be created, unmap if already mapped
+            if (mMappedBuffers != nullptr)
+                Unmap();
+
             mStaging.resize(numElements);
             size_t bufferSize = numElements * sizeof(T);
             UploadBuffer::Create(name, bufferSize, numInstances);
