@@ -15,16 +15,17 @@ namespace Darius::Renderer::RayTracing::Pipeline
 	public:
 		SimpleRayTracingPipeline();
 
-		virtual void	Initialize(D_SERIALIZATION::Json const& settings) override;
-		virtual void	Shutdown() override;
-		virtual void	Update() override;
-		virtual void	Render(std::wstring const& jobId, RayTracingCommandContext& context) override;
+		virtual void				Initialize(D_SERIALIZATION::Json const& settings) override;
+		virtual void				Shutdown() override;
+		INLINE virtual D_GRAPHICS_UTILS::RayTracingStateObject const* GetStateObject() const override { return mRTSO.get(); };
+
 
 	private:
 
-		void			CreateRaytracingPipelineStateObject();
+		void						CreateRaytracingPipelineStateObject();
 
 		bool											mInitialized;
 		std::unique_ptr<D_GRAPHICS_UTILS::RayTracingStateObject> mRTSO;
+
 	};
 }

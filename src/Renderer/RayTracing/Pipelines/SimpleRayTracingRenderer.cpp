@@ -25,15 +25,16 @@ namespace
 namespace Darius::Renderer::RayTracing::Pipeline
 {
 	SimpleRayTracingPipeline::SimpleRayTracingPipeline() :
-		mInitialized(false),
-		mRTSO(nullptr)
+		mRTSO(nullptr),
+		mInitialized(false)
 	{}
 
 	void SimpleRayTracingPipeline::Initialize(D_SERIALIZATION::Json const& settings)
 	{
 		D_ASSERT(!mInitialized);
-		
+
 		CreateRaytracingPipelineStateObject();
+
 
 		mInitialized = true;
 	}
@@ -45,16 +46,6 @@ namespace Darius::Renderer::RayTracing::Pipeline
 		mRTSO.reset();
 	}
 
-	void SimpleRayTracingPipeline::Update()
-	{
-
-	}
-
-	void SimpleRayTracingPipeline::Render(std::wstring const& jobId, RayTracingCommandContext& context)
-	{
-
-	}
-
 	void SimpleRayTracingPipeline::CreateRaytracingPipelineStateObject()
 	{
 		mRTSO = std::make_unique<RayTracingStateObject>();
@@ -62,14 +53,17 @@ namespace Darius::Renderer::RayTracing::Pipeline
 		// Miss Shader
 		std::shared_ptr<RootSignature> missRootSig = std::make_shared<RootSignature>();
 		missRootSig->Finalize(L"Simple RayTracing Pipeling Miss Root Sig", D3D12_ROOT_SIGNATURE_FLAG_LOCAL_ROOT_SIGNATURE);
-		MissShader missShader(c_missShaderName, c_libName, missRootSig);
+		std::shared_ptr<MissShader> missShader = std::make_shared<MissShader>(c_missShaderName, c_libName, missRootSig);
 
 		// Closest Hit Shader
 		std::shared_ptr<RootSignature> chRootSig = std::make_shared<RootSignature>(1);
 		(*chRootSig)[0].InitAsConstantBuffer(0, D3D12_SHADER_VISIBILITY_ALL, 0);
 		chRootSig->Finalize(L"Simple RayTracing Pipeling CH Root Sig", D3D12_ROOT_SIGNATURE_FLAG_LOCAL_ROOT_SIGNATURE);
-		ClosestHitShader chShader(c_closestHitShaderName, c_libName, chRootSig);
-		RayTracingHitGroup hitGroup = { D3D12_HIT_GROUP_TYPE_TRIANGLES, c_hitGroupName, &chShader};
+		std::shared_ptr<ClosestHitShader> chShader = std::make_shared<ClosestHitShader>(c_closestHitShaderName, c_libName, chRootSig);
+		RayTracingHitGroup hitGroup;
+		hitGroup.Type = D3D12_HIT_GROUP_TYPE_TRIANGLES;
+		hitGroup.Name = c_hitGroupName;
+		hitGroup.ClosestHitShader = chShader;
 
 		// Ray Generation Shader
 		std::shared_ptr<RootSignature> rayGenRootSig = std::make_shared<RootSignature>(1);
@@ -77,7 +71,7 @@ namespace Darius::Renderer::RayTracing::Pipeline
 		(*rayGenRootSig)[0].SetTableRange(0, D3D12_DESCRIPTOR_RANGE_TYPE_UAV, 0, 1, 0);
 		(*rayGenRootSig)[0].SetTableRange(1, D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 0, 1, 0);
 		rayGenRootSig->Finalize(L"Simple RayTracing Pipeling RayGen Root Sig", D3D12_ROOT_SIGNATURE_FLAG_LOCAL_ROOT_SIGNATURE);
-		RayGenerationShader rayGenShader(c_raygenShaderName, c_libName, rayGenRootSig);
+		std::shared_ptr<RayGenerationShader> rayGenShader = std::make_shared<RayGenerationShader>(c_raygenShaderName, c_libName, rayGenRootSig);
 
 		// Adding shader config
 		mRTSO->SetShaderConfig<Payload>();
@@ -86,10 +80,10 @@ namespace Darius::Renderer::RayTracing::Pipeline
 		mRTSO->AddHitGroup(hitGroup);
 
 		// Adding miss shader
-		mRTSO->AddMissShader(&missShader);
+		mRTSO->AddMissShader(missShader);
 
 		// Adding ray generation shader
-		mRTSO->AddRayGenerationShader(&rayGenShader);
+		mRTSO->AddRayGenerationShader(rayGenShader);
 
 		// Adding global root signature
 		RootSignature globalRootSig;
