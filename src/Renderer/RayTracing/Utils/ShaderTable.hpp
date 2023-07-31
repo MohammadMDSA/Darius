@@ -67,6 +67,13 @@ namespace Darius::Renderer::RayTracing::Utils
 		}
 
 		template <typename T>
+		void SetHitGroupParameters(UINT recordIndex, UINT inOffsetWithingRootSignature, T const& parameters)
+		{
+			const UINT shaderTableOffset = mHitGroupShaderTableOffset;
+			WriteLocalShaderRecord(shaderTableOffset, recordIndex, ShaderIdentifierSize + inOffsetWithingRootSignature, &parameters, sizeof(parameters));
+		}
+
+		template <typename T>
 		void SetCallableShaderParameters(UINT recordIndex, UINT inOffsetWithinRootSignature, const T& parameters)
 		{
 			const UINT shaderTableOffset = mCallableShaderTableOffset;
@@ -77,7 +84,7 @@ namespace Darius::Renderer::RayTracing::Utils
 
 		void CopyLocalShaderParameters(UINT inshaderTableOffset, UINT inDestrecordIndex, UINT inSourcerecordIndex, UINT inOffsetWithinRootSignature);
 
-		void CopyHitGroupParameters(UINT inDestrecordIndex, UINT inSourcerecordIndex, UINT inOffsetWithinRootSignature);
+		void CopyHitGroupParameters(UINT recordIndex, UINT inSourcerecordIndex, UINT inOffsetWithinRootSignature);
 
 		void SetRayGenIdentifier(UINT recordIndex, D_GRAPHICS_SHADERS::ShaderIdentifier const& shaderIdentifier);
 
@@ -96,6 +103,15 @@ namespace Darius::Renderer::RayTracing::Utils
 		void SetDefaultCallableShaderIdentifier(D_GRAPHICS_SHADERS::ShaderIdentifier const& shaderIdentifier);
 
 		void CopyToGpu(Darius::Renderer::RayTracing::RayTracingCommandContext& context);
+
+		INLINE  D3D12_GPU_VIRTUAL_ADDRESS GetShaderTableAddress() const
+		{
+			D_ASSERT_M(!mIsDirty, "Shader table update is pending, therefore GPU address is not available. Use CopyToGPU() to upload data and acquire a valid GPU buffer address.");
+			return mTableBufferResource.GetGpuVirtualAddress();
+		}
+
+
+		D3D12_DISPATCH_RAYS_DESC GetDispatchRaysDesc(UINT rayGenShaderIndex, bool allowHitGroupIndexing) const;
 
 		static constexpr UINT			ShaderIdentifierSize = D3D12_SHADER_IDENTIFIER_SIZE_IN_BYTES;
 		static constexpr UINT			RayGenRecordStride = D3D12_RAYTRACING_SHADER_TABLE_BYTE_ALIGNMENT;

@@ -168,6 +168,43 @@ namespace Darius::Renderer::RayTracing::Utils
 		}
 	}
 
+	D3D12_DISPATCH_RAYS_DESC ShaderTable::GetDispatchRaysDesc(UINT rayGenShaderIndex, bool allowHitGroupIndexing) const
+	{
+		D3D12_GPU_VIRTUAL_ADDRESS ShaderTableAddress = GetShaderTableAddress();
+
+		D3D12_DISPATCH_RAYS_DESC Desc = {};
+
+		Desc.RayGenerationShaderRecord.StartAddress = ShaderTableAddress + mRayGenShaderTableOffset + rayGenShaderIndex * RayGenRecordStride;
+		Desc.RayGenerationShaderRecord.SizeInBytes = RayGenRecordStride;
+
+		Desc.MissShaderTable.StartAddress = ShaderTableAddress + mMissShaderTableOffset;
+		Desc.MissShaderTable.StrideInBytes = mLocalRecordStride;
+		Desc.MissShaderTable.SizeInBytes = mLocalRecordStride * mNumMissRecords;
+
+
+		if (mNumCallableRecords)
+		{
+			Desc.CallableShaderTable.StartAddress = ShaderTableAddress + mCallableShaderTableOffset;
+			Desc.CallableShaderTable.StrideInBytes = mLocalRecordStride;
+			Desc.CallableShaderTable.SizeInBytes = mNumCallableRecords * mLocalRecordStride;
+		}
+
+		if (allowHitGroupIndexing)
+		{
+			Desc.HitGroupTable.StartAddress = ShaderTableAddress + mHitGroupShaderTableOffset;
+			Desc.HitGroupTable.StrideInBytes = mLocalRecordStride;
+			Desc.HitGroupTable.SizeInBytes = mNumHitRecords * mLocalRecordStride;
+		}
+		else
+		{
+			Desc.HitGroupTable.StartAddress = ShaderTableAddress + mDefaultHitGroupShaderTableOffset;
+			Desc.HitGroupTable.StrideInBytes = 0; // Zero stride effectively disables SBT indexing
+			Desc.HitGroupTable.SizeInBytes = D3D12_RAYTRACING_SHADER_TABLE_BYTE_ALIGNMENT; // Minimal table with only one record
+		}
+
+		return Desc;
+	}
+
 	void ShaderTable::CopyToGpu(RayTracingCommandContext& context)
 	{
 		D_PROFILING::ScopedTimer _prof(L"Shader Table Buffer Creation");
