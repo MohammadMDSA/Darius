@@ -132,7 +132,7 @@ namespace Darius::Physics
 	void UpdatePostPhysicsTransforms()
 	{
 		D_PROFILING::ScopedTimer physicsProfiler(L"Physics Post Update");
-		D_WORLD::GetRegistry().each([&](RigidbodyComponent& colliderComp)
+		D_WORLD::IterateComponents<RigidbodyComponent>([&](RigidbodyComponent& colliderComp)
 			{
 				D_JOB::AssignTask([&](int threadNumber, int)
 					{
@@ -149,21 +149,20 @@ namespace Darius::Physics
 	void UpdatePrePhysicsTransform(bool simulating)
 	{
 		D_PROFILING::ScopedTimer physicsProfiler(L"Physics Post Update");
-		auto& reg = D_WORLD::GetRegistry();
 
-		reg.each([&](BoxColliderComponent& colliderComp)
+		D_WORLD::IterateComponents<BoxColliderComponent>([&](BoxColliderComponent& colliderComp)
 			{
 				colliderComp.PreUpdate(simulating);
 			}
 		);
 
-		reg.each([&](SphereColliderComponent& colliderComp)
+		D_WORLD::IterateComponents<SphereColliderComponent>([&](SphereColliderComponent& colliderComp)
 			{
 				colliderComp.PreUpdate(simulating);
 			}
 		);
 
-		reg.each([&](RigidbodyComponent& rigidbodyComp)
+		D_WORLD::IterateComponents<RigidbodyComponent>([&](RigidbodyComponent& rigidbodyComp)
 			{
 				rigidbodyComp.PreUpdate();
 			}

@@ -5,6 +5,9 @@
 #include <Core/Uuid.hpp>
 #include <Core/Containers/Vector.hpp>
 #include <Core/Filesystem/Path.hpp>
+#include <Utils/Assert.hpp>
+
+#include <functional>
 
 #ifndef D_WORLD
 #define D_WORLD Darius::Scene::SceneManager
@@ -53,7 +56,45 @@ namespace Darius::Scene
 		static bool				IsRunning();
 
 		static INLINE D_ECS::Entity	GetRoot() { return Root; }
-		static INLINE D_ECS::ECSRegistry& GetRegistry() { return World; }
+		
+		template<typename COMP>
+		static INLINE void		IterateComponents(std::function<void(COMP&)> callback)
+		{
+			World.each(FLECS_MOV(callback));
+		}
+
+		template<typename T>
+		static INLINE D_ECS::ECSId GetTypeId()
+		{
+			return World.id<T>();
+		}
+
+		static INLINE bool		IsIdValid(D_ECS::ECSId id)
+		{
+			return World.is_valid(id);
+		}
+
+		static INLINE D_ECS::ComponentEntry GetComponentEntity(std::string const& compName)
+		{
+			return World.component(compName.c_str());
+		}
+
+		template<class COMP, class PARENT>
+		static INLINE D_ECS::EntityId RegisterComponent()
+		{
+			auto comp = World.component<COMP>(D_NAMEOF(COMP));
+			auto parentComp = World.component<PARENT>();
+			D_ASSERT(World.is_valid(parentComp));
+			comp.is_a(parentComp);
+			return comp;
+		}
+
+		template<class COMP>
+		static INLINE D_ECS::EntityId RegisterComponent()
+		{
+			return World.component<COMP>(D_NAMEOF(COMP));
+
+		}
 
 		// Don't call!
 		static void				RegisterComponentUpdater(std::function<void(float, D_ECS::ECSRegistry&)> updater);

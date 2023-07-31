@@ -42,11 +42,7 @@ static void StaticConstructor() \
         return; \
     D_LOG_INFO("Registering " << D_NAMEOF(T) << " child of " << D_NAMEOF(parent)); \
     parent::StaticConstructor(); \
-    auto& reg = D_WORLD::GetRegistry(); \
-    auto comp = reg.component<T>(D_NAMEOF(T)); \
-    auto parentComp = reg.component<parent>(); \
-    D_ASSERT(reg.is_valid(parentComp)); \
-    comp.is_a(parentComp); \
+    auto comp = D_WORLD::RegisterComponent<T, parent>(); \
     D_CONTAINERS::DVector<std::string> splitted; \
     boost::split(splitted, compName, boost::is_any_of("/")); \
     T::DisplayName = splitted[splitted.size() - 1]; \
@@ -172,9 +168,7 @@ namespace Darius::Scene::ECS::Components
             if (sInit)
                 return;
 
-            auto& reg = D_WORLD::GetRegistry();
-
-            auto comp = reg.component<ComponentBase>("ComponentBase");
+            D_WORLD::RegisterComponent<ComponentBase>();
             sInit = true;
         }
 

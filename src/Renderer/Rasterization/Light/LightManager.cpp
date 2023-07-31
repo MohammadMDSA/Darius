@@ -132,8 +132,7 @@ namespace Darius::Renderer::Rasterization::LightManager
 		PointLights.clear();
 		SpotLights.clear();
 
-		auto& reg = D_WORLD::GetRegistry();
-		reg.each([](D_RENDERER::LightComponent& comp)
+		D_WORLD::IterateComponents<LightComponent>([](D_RENDERER::LightComponent& comp)
 			{
 				if (!comp.IsActive())
 					return;

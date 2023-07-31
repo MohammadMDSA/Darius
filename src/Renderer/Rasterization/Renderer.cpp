@@ -27,6 +27,7 @@
 #include <Job/Job.hpp>
 #include <Math/VectorMath.hpp>
 #include <ResourceManager/ResourceManager.hpp>
+#include <Scene/Scene.hpp>
 #include <Utils/Assert.hpp>
 
 #include <imgui.h>
@@ -158,9 +159,7 @@ namespace Darius::Renderer::Rasterization
 
 		D_CAMERA_MANAGER::Update();
 
-		auto& reg = D_WORLD::GetRegistry();
-
-		reg.each([&](D_RENDERER::MeshRendererComponent& meshComp)
+		D_WORLD::IterateComponents<MeshRendererComponent>([&](D_RENDERER::MeshRendererComponent& meshComp)
 			{
 				D_JOB::AssignTask([&](int threadNumber, int)
 					{
@@ -170,7 +169,7 @@ namespace Darius::Renderer::Rasterization
 			}
 		);
 
-		reg.each([&](D_RENDERER::SkeletalMeshRendererComponent& meshComp)
+		D_WORLD::IterateComponents<SkeletalMeshRendererComponent>([&](D_RENDERER::SkeletalMeshRendererComponent& meshComp)
 			{
 				D_JOB::AssignTask([&](int threadNumber, int)
 					{
@@ -180,7 +179,7 @@ namespace Darius::Renderer::Rasterization
 			}
 		);
 
-		reg.each([&](D_RENDERER::BillboardRendererComponent& meshComp)
+		D_WORLD::IterateComponents<BillboardRendererComponent>([&](D_RENDERER::BillboardRendererComponent& meshComp)
 			{
 				D_JOB::AssignTask([&](int threadNumber, int)
 					{
@@ -190,7 +189,7 @@ namespace Darius::Renderer::Rasterization
 			}
 		);
 
-		reg.each([&](D_RENDERER::TerrainRendererComponent& meshComp)
+		D_WORLD::IterateComponents<TerrainRendererComponent>([&](D_RENDERER::TerrainRendererComponent& meshComp)
 			{
 				D_JOB::AssignTask([&](int threadNumber, int)
 					{
@@ -210,12 +209,10 @@ namespace Darius::Renderer::Rasterization
 
 	void AddRenderItems(D_RENDERER_RAST::MeshSorter& sorter, D_MATH_CAMERA::BaseCamera const& cam)
 	{
-		auto& worldReg = D_WORLD::GetRegistry();
-
 		auto frustum = cam.GetViewSpaceFrustum();
 
 		// Iterating over static meshes
-		worldReg.each([&](D_RENDERER::MeshRendererComponent& meshComp)
+		D_WORLD::IterateComponents<MeshRendererComponent>([&](D_RENDERER::MeshRendererComponent& meshComp)
 			{
 				// Can't render
 				if (!meshComp.CanRender())
@@ -236,7 +233,7 @@ namespace Darius::Renderer::Rasterization
 			});
 
 		// Iterating over skeletal meshes
-		worldReg.each([&](D_RENDERER::SkeletalMeshRendererComponent& meshComp)
+		D_WORLD::IterateComponents<SkeletalMeshRendererComponent>([&](D_RENDERER::SkeletalMeshRendererComponent& meshComp)
 			{
 				// Can't render
 				if (!meshComp.CanRender())
@@ -257,7 +254,7 @@ namespace Darius::Renderer::Rasterization
 			});
 
 		// Iterating over billboards
-		worldReg.each([&](D_RENDERER::BillboardRendererComponent& meshComp)
+		D_WORLD::IterateComponents<BillboardRendererComponent>([&](D_RENDERER::BillboardRendererComponent& meshComp)
 			{
 				// Can't render
 				if (!meshComp.CanRender())
@@ -278,7 +275,7 @@ namespace Darius::Renderer::Rasterization
 			});
 
 		// Iterating over terrains
-		worldReg.each([&](D_RENDERER::TerrainRendererComponent& meshComp)
+		D_WORLD::IterateComponents<TerrainRendererComponent>([&](D_RENDERER::TerrainRendererComponent& meshComp)
 			{
 				// Can't render
 				if (!meshComp.CanRender())
@@ -304,10 +301,8 @@ namespace Darius::Renderer::Rasterization
 
 	void AddShadowRenderItems(D_CONTAINERS::DVector<RenderItem>& items)
 	{
-		auto& worldReg = D_WORLD::GetRegistry();
-
 		// Iterating over meshes
-		worldReg.each([&](D_RENDERER::MeshRendererComponent& meshComp)
+		D_WORLD::IterateComponents<MeshRendererComponent>([&](D_RENDERER::MeshRendererComponent& meshComp)
 			{
 				// Can't render
 				if (!meshComp.CanRender())
@@ -325,7 +320,7 @@ namespace Darius::Renderer::Rasterization
 			});
 
 		// Iterating over meshes
-		worldReg.each([&](D_RENDERER::SkeletalMeshRendererComponent& meshComp)
+		D_WORLD::IterateComponents<SkeletalMeshRendererComponent>([&](D_RENDERER::SkeletalMeshRendererComponent& meshComp)
 			{
 				// Can't render
 				if (!meshComp.CanRender())
@@ -343,7 +338,7 @@ namespace Darius::Renderer::Rasterization
 			});
 
 		// Iterating over meshes
-		worldReg.each([&](D_RENDERER::BillboardRendererComponent& meshComp)
+		D_WORLD::IterateComponents<BillboardRendererComponent>([&](D_RENDERER::BillboardRendererComponent& meshComp)
 			{
 				// Can't render
 				if (!meshComp.CanRender())
@@ -361,7 +356,7 @@ namespace Darius::Renderer::Rasterization
 			});
 
 		// Iterating over meshes
-		worldReg.each([&](D_RENDERER::TerrainRendererComponent& meshComp)
+		D_WORLD::IterateComponents<TerrainRendererComponent>([&](D_RENDERER::TerrainRendererComponent& meshComp)
 			{
 				// Can't render
 				if (!meshComp.CanRender())

@@ -206,7 +206,6 @@ namespace Darius::Scene
 
 	void GameObject::DrawComponentNameContext(D_CONTAINERS::DMap<std::string, ComponentAddressNode> const& componentNameTree)
 	{
-		auto& reg = D_WORLD::GetRegistry();
 
 		for (auto const& [compDisplay, compGroup] : componentNameTree)
 		{
@@ -222,8 +221,8 @@ namespace Darius::Scene
 				continue;
 			}
 
-			auto compGeneric = reg.component(compGroup.ComponentName.c_str());
-			if (!reg.is_valid(compGeneric))
+			auto compGeneric = D_WORLD::GetComponentEntity(compGroup.ComponentName.c_str());
+			if (!D_WORLD::IsIdValid(compGeneric))
 				continue;
 
 			if (mEntity.has(compGeneric))
@@ -248,12 +247,10 @@ namespace Darius::Scene
 
 	void GameObject::VisitBehaviourComponents(std::function<void(Darius::Scene::ECS::Components::BehaviourComponent*)> callback, std::function<void(D_EXCEPTION::Exception const&)> onException) const
 	{
-		auto& reg = D_WORLD::GetRegistry();
-
 		auto compList = DVector<BehaviourComponent*>();
 		mEntity.each([&](flecs::id compId)
 			{
-				if (!reg.is_valid(compId))
+				if (!D_WORLD::IsIdValid(compId))
 					return;
 
 				if (!RegisteredBehaviours.contains(compId))
@@ -283,13 +280,11 @@ namespace Darius::Scene
 
 		compList.push_back(mEntity.get_mut<D_MATH::TransformComponent>());
 
-		auto& reg = D_WORLD::GetRegistry();
-
-		auto transId = reg.id<D_MATH::TransformComponent>();
+		auto transId = D_WORLD::GetTypeId<D_MATH::TransformComponent>();
 
 		mEntity.each([&](flecs::id compId)
 			{
-				if (!reg.is_valid(compId))
+				if (!D_WORLD::IsIdValid(compId))
 					return;
 
 				if (transId == compId || !mEntity.has(compId))
@@ -318,9 +313,7 @@ namespace Darius::Scene
 		if (!RegisteredComponentNames.contains(name))
 			return nullptr;
 
-		auto& reg = D_WORLD::GetRegistry();
-
-		auto compT = reg.component(name.c_str());
+		auto compT = D_WORLD::GetComponentEntity(name.c_str());
 
 		mEntity.add(compT);
 		auto compP = mEntity.get_mut(compT);
@@ -390,11 +383,10 @@ namespace Darius::Scene
 
 	void GameObject::RemoveComponent(D_ECS_COMP::ComponentBase* comp)
 	{
-		auto& reg = D_WORLD::GetRegistry();
-		auto compId = reg.component(comp->GetComponentName().c_str());
+		auto compId = D_WORLD::GetComponentEntity(comp->GetComponentName().c_str());
 
 		// Abort if transform
-		if (reg.id<D_MATH::TransformComponent>() == compId)
+		if (D_WORLD::GetTypeId<D_MATH::TransformComponent>() == compId)
 			return;
 
 		RemoveComponentRoutine(comp);
@@ -403,7 +395,6 @@ namespace Darius::Scene
 
 	void GameObject::SetParent(GameObject* newParent)
 	{
-		auto& reg = D_WORLD::GetRegistry();
 
 		if (!newParent) // Unparent
 		{
@@ -496,8 +487,7 @@ namespace Darius::Scene
 
 	void GameObject::RegisterComponent(std::string name, D_CONTAINERS::DVector<std::string>& displayName)
 	{
-		auto& reg = D_WORLD::GetRegistry();
-		if (!reg.is_valid(reg.component(name.c_str())))
+		if (!D_WORLD::IsIdValid(D_WORLD::GetComponentEntity(name.c_str())))
 			throw D_EXCEPTION::Exception("Found no component using provided name");
 
 		RegisteredComponentNames.insert(name);
