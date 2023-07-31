@@ -11,13 +11,18 @@ using namespace D_PROFILING;
 
 namespace Darius::Renderer::RayTracing
 {
-	RayTracingScene::RayTracingScene(UINT initialNumBLAS) :
-		mTLASSizeDirty(true)
+	RayTracingScene::RayTracingScene(UINT initialNumBLAS, UINT numShaderSlotPerGeometry) :
+		mTLASSizeDirty(true),
+		mNumShaderSlotPerGeometrySegment(numShaderSlotPerGeometry)
 	{
 		D_ASSERT(initialNumBLAS > 0);
+		D_ASSERT_M(numShaderSlotPerGeometry > 0, "Every geom requires at least one slot");
 
 		mBottomLevelASInstanceDescs.Create(L"Bottom-Level Acceleration Structure Instance descs", initialNumBLAS, D_GRAPHICS_DEVICE::gNumFrameResources);
 		mInstancesUuid.resize(initialNumBLAS);
+		// One more for the default hit group
+		mCumulativeNumInstanceGeom.resize(initialNumBLAS + 1);
+
 
 		InitializeTopLevelAS(D3D12_RAYTRACING_ACCELERATION_STRUCTURE_BUILD_FLAG_PREFER_FAST_TRACE, false, false, L"Top Level Acceleration Structure");
 	}
@@ -53,7 +58,6 @@ namespace Darius::Renderer::RayTracing
 	// Requires a call InitializeTopLevelAS() call to be added to top-level AS.
 	UINT RayTracingScene::AddBottomLevelASInstance(
 		D_CORE::Uuid const& bottomLevelASUuid,
-		UINT instanceContributionToHitGroupIndex,
 		D_MATH::Matrix4 const& transform,
 		BYTE instanceMask)
 	{
@@ -65,6 +69,8 @@ namespace Darius::Renderer::RayTracing
 			auto newSize = D_MATH::RoundUpToPowerOfTwo(instanceIndex);
 			mBottomLevelASInstanceDescs.Create(L"Bottom - Level Acceleration Structure Instance descs", newSize, D_GRAPHICS_DEVICE::gNumFrameResources);
 			mInstancesUuid.resize(newSize);
+			// One more for the default hit group
+			mCumulativeNumInstanceGeom.resize(newSize + 1);
 			mTLASSizeDirty = true;
 		}
 
@@ -73,8 +79,14 @@ namespace Darius::Renderer::RayTracing
 		auto& instanceDesc = mBottomLevelASInstanceDescs[instanceIndex];
 		mInstancesUuid[instanceIndex] = bottomLevelASUuid;
 
+		// Calculating contribute to hit group index
+		UINT totalNumGeoms = mCumulativeNumInstanceGeom[instanceIndex]; // One index ahead for the default hit group
+		totalNumGeoms *= bottomLevelAS.GetNumGeometries();
+		mCumulativeNumInstanceGeom[instanceIndex + 1] = totalNumGeoms;
+		UINT instanceContributionToHitGroupIndex = totalNumGeoms * mNumShaderSlotPerGeometrySegment;
+
 		instanceDesc.InstanceMask = instanceMask;
-		instanceDesc.InstanceContributionToHitGroupIndex = instanceContributionToHitGroupIndex != UINT_MAX ? instanceContributionToHitGroupIndex : bottomLevelAS.GetInstanceContributionToHitGroupIndex();
+		instanceDesc.InstanceContributionToHitGroupIndex = instanceContributionToHitGroupIndex;
 		instanceDesc.AccelerationStructure = bottomLevelAS.GetResource()->GetGPUVirtualAddress();
 		XMStoreFloat3x4(reinterpret_cast<DirectX::XMFLOAT3X4*>(instanceDesc.Transform), transform);
 
@@ -100,7 +112,7 @@ namespace Darius::Renderer::RayTracing
 		const wchar_t* resourceName)
 	{
 		// Initialize with current max number of BLASes instances
-		mTLAS.Initialize(mBottomLevelASInstanceDescs.GetNumElements(), buildFlags, allowUpdate, performUpdateOnBuild, resourceName);
+		mTLAS.Initialize((UINT)mBottomLevelASInstanceDescs.GetNumElements() /* AKA max num BLAS instances */, buildFlags, allowUpdate, performUpdateOnBuild, resourceName);
 
 		mASmemoryFootprint += mTLAS.RequiredResultDataSizeInBytes();
 		mScratchResourceSize = std::max(mTLAS.RequiredScratchSize(), mScratchResourceSize);
@@ -126,11 +138,11 @@ namespace Darius::Renderer::RayTracing
 		ShaderTable* createdShaderTable = new ShaderTable();
 		auto device = D_GRAPHICS_DEVICE::GetDevice5();
 
-		const UINT numHitGroupSlots = mNumTotalSegments * mNumShaderSlotPerGeometrySegment;
+		const UINT numHitGroupSlots = GetTotalNumberOfGeometrySegments() * mNumShaderSlotPerGeometrySegment;
 
 		ShaderTable::Initializer initializer = {};
-		initializer.NumRayGenShaders = stateObject->GetRayGenerationShaders().size();
-		initializer.NumMissShaders = stateObject->GetMissShaders().size();
+		initializer.NumRayGenShaders = (UINT)stateObject->GetRayGenerationShaders().size();
+		initializer.NumMissShaders = (UINT)stateObject->GetMissShaders().size();
 		initializer.NumMissRecords = NumMissShaderSlots;
 		initializer.NumHitRecords = numHitGroupSlots;
 		initializer.NumCallableRecords = NumCallableShaderSlots;
@@ -152,7 +164,6 @@ namespace Darius::Renderer::RayTracing
 
 	// Builds all bottom-level and top-level Acceleration Structures.
 	void RayTracingScene::Build(
-		UINT numShaderSlotPerGeometry,
 		RayTracingCommandContext& commandList,
 		ID3D12DescriptorHeap* descriptorHeap,
 		UINT frameIndex,
@@ -160,15 +171,6 @@ namespace Darius::Renderer::RayTracing
 	{
 		ScopedTimer _prof(L"Acceleration Structure build", commandList);
 		
-		{
-			mNumShaderSlotPerGeometrySegment = numShaderSlotPerGeometry;
-			mNumTotalSegments = 0u;
-			for (auto const& instanceUuid : mInstancesUuid)
-			{
-				mNumTotalSegments += mVBottomLevelAS[instanceUuid].GetNumGeometries();
-			}
-		}
-
 		mBottomLevelASInstanceDescs.CopyStagingToGpu(frameIndex);
 
 		// Build all bottom-level AS.
