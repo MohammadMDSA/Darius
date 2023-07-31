@@ -68,6 +68,7 @@ list(APPEND GRAPHICS_LIBS_SOURCES
 	"GraphicsUtils/Profiling/Profiling.cpp"
 	"GraphicsUtils/RootSignature.cpp"
 	"GraphicsUtils/SamplerManager.cpp"
+	"GraphicsUtils/Shaders.cpp"
 	"GraphicsUtils/StateObject.cpp"
 	"PostProcessing/MotionBlur.cpp"
 	"PostProcessing/PostProcessing.cpp"
@@ -108,7 +109,7 @@ include("../../cmake/FindWinPixEventRuntime.cmake")
 
 target_link_libraries("Graphics" PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/../Libs/DirectXShaderCompiler/lib/dxcompiler.lib")
 
-target_link_libraries("Graphics" PRIVATE ${Boost_LIBRARIES} ${FBX_LINK_LIBS} DirectXTex IMGUI PUBLIC ResourceManager Scene PIX::WinPixEventRuntime)
+target_link_libraries("Graphics" PRIVATE ${Boost_LIBRARIES} ${FBX_LINK_LIBS} DirectXTex IMGUI PUBLIC ResourceManager PIX::WinPixEventRuntime)
 
 if(BUILD_TESTS)
 	set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/../../cmake")
