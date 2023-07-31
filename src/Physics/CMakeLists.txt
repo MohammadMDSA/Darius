@@ -63,7 +63,7 @@ else()
 endif()
 
 target_link_libraries("Physics" PRIVATE ${Boost_LIBRARIES} IMGUI)
-target_link_libraries("Physics" PUBLIC Utils Core Math Renderer ResourceManager Job Debug)
+target_link_libraries("Physics" PUBLIC Job Debug)
 
 
 if(BUILD_TESTS)
