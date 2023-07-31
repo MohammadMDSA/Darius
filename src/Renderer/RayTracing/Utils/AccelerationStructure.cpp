@@ -84,6 +84,7 @@ namespace Darius::Renderer::RayTracing::Utils
         geometryDescTemplate.Triangles.IndexCount = bottomLevelASGeometry.Mesh.mNumTotalIndices;
         geometryDescTemplate.Triangles.VertexBuffer = bottomLevelASGeometry.Mesh.VertexDataGpu.GetGpuVirtualAddressAndStride();
         geometryDescTemplate.Triangles.VertexCount = bottomLevelASGeometry.Mesh.mNumTotalVertices;
+        mGeometryDescs.push_back(geometryDescTemplate);
     }
 
     void BottomLevelAccelerationStructure::ComputePrebuildInfo()

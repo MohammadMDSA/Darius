@@ -94,12 +94,12 @@ namespace Darius::Renderer::RayTracing::Utils
 
         INLINE D_MATH::Matrix4 const&   GetTransform() const { return mTransform; }
         INLINE std::vector<D3D12_RAYTRACING_GEOMETRY_DESC> const& GetGeometryDescs() const { return mGeometryDescs; }
-        INLINE UINT                     GetNumGeometries() const { (UINT)mGeometryDescs.size(); }
+        INLINE UINT                     GetNumGeometries() const { return (UINT)mGeometryDescs.size(); }
 
     private:
         std::vector<D3D12_RAYTRACING_GEOMETRY_DESC> mGeometryDescs;
         UINT                                        currentID = 0;
-        std::vector<D3D12_RAYTRACING_GEOMETRY_DESC> mCacheGeometryDescs[3];
+        std::vector<D3D12_RAYTRACING_GEOMETRY_DESC> mCacheGeometryDescs[D_GRAPHICS_DEVICE::gNumFrameResources];
         D_MATH::Matrix4                             mTransform;
         UINT                                        mInstanceContributionToHitGroupIndex = 0;
 
