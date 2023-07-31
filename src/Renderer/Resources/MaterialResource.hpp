@@ -42,7 +42,7 @@ namespace Darius::Graphics
 
 		virtual bool						IsDirtyGPU() const override;
 
-		INLINE bool							HasDisplacement() const { return (mMaterial.TextureStatusMask & D_RENDERER::kWorldDisplacement) != 0; }
+		INLINE bool							HasDisplacement() const { return (mMaterial.TextureStatusMask & (1 << D_RENDERER::kWorldDisplacement)) != 0; }
 
 #ifdef _D_EDITOR
 		virtual bool						DrawDetails(float params[]) override;
