@@ -28,6 +28,7 @@ namespace Darius::Graphics
 		mCastsShadow(true),
 		mLoD(1.f)
 	{
+		SetDirty();
 	}
 
 	MeshRendererComponentBase::MeshRendererComponentBase(D_CORE::Uuid uuid) :
@@ -36,6 +37,7 @@ namespace Darius::Graphics
 		mCastsShadow(true),
 		mLoD(1.f)
 	{
+		SetDirty();
 	}
 
 	void MeshRendererComponentBase::Awake()
