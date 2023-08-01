@@ -92,7 +92,8 @@ namespace Darius::Renderer::ConstantFrameResource
 			LineOnly = 0x800,
 			PointOnly = 0x1000,
 			DepthOnly = 0x2000,
-			SkipVertexIndex = 0x4000
+			SkipVertexIndex = 0x4000,
+			HasDisplacement = 0x8000
 		};
 
 		RenderItem() = default;

@@ -139,6 +139,11 @@ namespace Darius::Graphics
 
 		mMaterial.TextureStatusMask = 0;
 
+
+		mPsoFlags = data.contains("PsoFlags") ? data["PsoFlags"].get<uint16_t>() : 0u;
+		mPsoFlags = mPsoFlags | RenderItem::HasPosition | RenderItem::HasNormal | RenderItem::HasTangent | RenderItem::HasUV0;
+
+
 		if (data.contains("BaseColorTexture"))
 		{
 			mBaseColorTextureHandle = D_RESOURCE::GetResourceHandle(FromString(data["BaseColorTexture"]));
@@ -179,6 +184,7 @@ namespace Darius::Graphics
 		{
 			mWorldDisplacementTextureHandle = D_RESOURCE::GetResourceHandle(FromString(data["WorldDisplacementTexture"]));
 			mMaterial.TextureStatusMask |= 1 << kWorldDisplacement;
+			mPsoFlags |= RenderItem::HasDisplacement;
 		}
 
 		if (data.contains("AlphaCutout"))
@@ -191,9 +197,6 @@ namespace Darius::Graphics
 		{
 			mMaterial.DisplacementAmount = data["DisplacementAmount"];
 		}
-
-		mPsoFlags = data.contains("PsoFlags") ? data["PsoFlags"].get<uint16_t>() : 0u;
-		mPsoFlags = mPsoFlags | RenderItem::HasPosition | RenderItem::HasNormal | RenderItem::HasTangent | RenderItem::HasUV0;
 
 	}
 
@@ -299,6 +302,8 @@ namespace Darius::Graphics
 	void MaterialResource::SetTexture(ResourceHandle textureHandle, D_RENDERER::TextureType type)
 	{
 
+		mPsoFlags &= ~RenderItem::HasDisplacement;
+
 		if (textureHandle.Type != TextureResource::GetResourceType())
 		{
 			mMaterial.TextureStatusMask &= ~(1 << type);
@@ -327,6 +332,8 @@ namespace Darius::Graphics
 			default:
 				return;
 			}
+
+			mPsoFlags |= RenderItem::HasDisplacement;
 
 			MakeGpuDirty();
 			MakeDiskDirty();
@@ -376,6 +383,8 @@ namespace Darius::Graphics
 		}
 
 		mMaterial.TextureStatusMask |= 1 << type;
+		mPsoFlags |= RenderItem::HasDisplacement;
+
 		MakeGpuDirty();
 		MakeDiskDirty();
 
