@@ -161,7 +161,7 @@ namespace Darius::Scene::ECS::Components
             return GetAsCountedOwner();
         }
 
-        static INLINE std::string   GetName() { return "ComponentBase"; }
+        static INLINE std::string   ClassName() { return "ComponentBase"; }
 
         static void                 StaticConstructor()
         {

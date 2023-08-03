@@ -82,7 +82,7 @@ namespace Darius::Scene
 		template<class COMP, class PARENT>
 		static INLINE D_ECS::EntityId RegisterComponent()
 		{
-			auto comp = World.component<COMP>(D_NAMEOF(COMP));
+			auto comp = World.component<COMP>(COMP::ClassName().c_str());
 			auto parentComp = World.component<PARENT>();
 			D_ASSERT(World.is_valid(parentComp));
 			comp.is_a(parentComp);
@@ -92,7 +92,7 @@ namespace Darius::Scene
 		template<class COMP>
 		static INLINE D_ECS::EntityId RegisterComponent()
 		{
-			return World.component<COMP>(D_NAMEOF(COMP));
+			return World.component<COMP>(COMP::ClassName().c_str());
 
 		}
 
