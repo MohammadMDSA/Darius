@@ -86,9 +86,9 @@ namespace Darius::Renderer::RayTracing::Pipeline
 		mRTSO->AddRayGenerationShader(rayGenShader);
 
 		// Adding global root signature
-		RootSignature globalRootSig;
-		globalRootSig.Finalize(L"Simple RayTracing Pipeling Globl Root Sig", D3D12_ROOT_SIGNATURE_FLAG_NONE);
-		mRTSO->SetGlobalRootSignature(globalRootSig.GetSignature());
+		std::shared_ptr<RootSignature> globalRootSig = std::make_shared<RootSignature>();
+		globalRootSig->Finalize(L"Simple RayTracing Pipeling Globl Root Sig", D3D12_ROOT_SIGNATURE_FLAG_NONE);
+		mRTSO->SetGlobalRootSignature(globalRootSig);
 
 		// Adding pipeline config
 		mRTSO->SetPipelineConfig(1u);

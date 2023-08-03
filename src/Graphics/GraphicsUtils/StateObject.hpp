@@ -1,5 +1,6 @@
 #pragma once
 
+#include "RootSignature.hpp"
 #include "Shaders.hpp"
 
 #ifndef D_GRAPHICS_UTILS
@@ -66,9 +67,10 @@ namespace Darius::Graphics::Utils
 			mCurrentIndex++; // For pipeline config 
 		}
 
-		INLINE void								SetGlobalRootSignature(ID3D12RootSignature* globalRT)
+		INLINE void								SetGlobalRootSignature(std::shared_ptr<RootSignature> globalRT)
 		{
-			mPipelineDesc.CreateSubobject<CD3DX12_GLOBAL_ROOT_SIGNATURE_SUBOBJECT>()->SetRootSignature(globalRT);
+			D_ASSERT(globalRT->IsFinalized());
+			mPipelineDesc.CreateSubobject<CD3DX12_GLOBAL_ROOT_SIGNATURE_SUBOBJECT>()->SetRootSignature(globalRT.get()->GetSignature());
 
 			mCurrentIndex++; // For global root signature
 		}
@@ -88,7 +90,7 @@ namespace Darius::Graphics::Utils
 		UINT									GetMaxAttributeSizeInBytes() const { return mMaxAttributeSizeInBytes; }
 		UINT									GetMaxPayloadSizeInBytes() const { return mMaxPayloadSizeInBytes; }
 		UINT									GetMaxTraceRecursionDepth() const { return mMaxTraceRecursionDepth; }
-		ID3D12RootSignature*					GetGlobalRootSignature() const { return mGlobalRootSignature; }
+		RootSignature const*					GetGlobalRootSignature() const { return mGlobalRootSignature.get(); }
 		UINT									GetCurrentIndex() const { return mCurrentIndex; }
 		UINT									GetMaxLocalRootSignatureSize() const { return mMaxLocalRootSignatureSize; }
 
@@ -112,7 +114,7 @@ namespace Darius::Graphics::Utils
 		// Pipeline Config
 		UINT									mMaxTraceRecursionDepth;
 
-		ID3D12RootSignature*					mGlobalRootSignature;
+		std::shared_ptr<RootSignature>			mGlobalRootSignature;
 
 		UINT									mCurrentIndex;
 		UINT									mMaxLocalRootSignatureSize;

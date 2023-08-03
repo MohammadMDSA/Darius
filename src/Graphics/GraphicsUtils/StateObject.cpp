@@ -131,7 +131,9 @@ namespace Darius::Graphics::Utils
 
 	void RayTracingStateObject::ProcessShader(Shaders::RayTracingShader* shader)
 	{
+		D_ASSERT(shader->GetLocalRootSignature()->IsFinalized());
 		auto localRootSig = shader->GetLocalRootSignature()->GetSignature();
+
 		mMaxLocalRootSignatureSize = std::max(mMaxLocalRootSignatureSize, shader->GetRootParametersSizeInBytes());
 
 		// Adding the shader name to associated library to create the lib later
