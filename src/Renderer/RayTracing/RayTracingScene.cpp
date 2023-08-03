@@ -140,6 +140,8 @@ namespace Darius::Renderer::RayTracing
 
 		const UINT numHitGroupSlots = GetTotalNumberOfGeometrySegments() * mNumShaderSlotPerGeometrySegment;
 
+		D_ASSERT_M(stateObject->GetMaxLocalRootSignatureSize() >= sizeof(HitGroupSystemParameters), "All local root signatures are expected to contain ray tracing system root parameters");
+
 		ShaderTable::Initializer initializer = {};
 		initializer.NumRayGenShaders = (UINT)stateObject->GetRayGenerationShaders().size();
 		initializer.NumMissShaders = (UINT)stateObject->GetMissShaders().size();
@@ -147,7 +149,7 @@ namespace Darius::Renderer::RayTracing
 		initializer.NumHitRecords = numHitGroupSlots;
 		initializer.NumCallableRecords = NumCallableShaderSlots;
 		initializer.LocalRootDataSize = stateObject->GetMaxLocalRootSignatureSize();
-		
+
 		D_CONTAINERS::DVector<Shaders::ShaderIdentifier> rayGenIdentifiers;
 
 		auto const& rayGenShaders = stateObject->GetRayGenerationShaders();
@@ -155,7 +157,12 @@ namespace Darius::Renderer::RayTracing
 		std::transform(rayGenShaders.begin(), rayGenShaders.end(), std::back_inserter(rayGenIdentifiers), [](auto& rayGenShader) { return rayGenShader->Identifier; });
 
 		createdShaderTable->Init(initializer, device, rayGenIdentifiers, stateObject->GetHitGroups().front().Identifier);
-		
+
+		for (UINT i = 0u; i < initializer.NumRayGenShaders; i++)
+		{
+			createdShaderTable->SetRayGenSystemParameters(i, { mTLAS.GetGpuVirtualAddress() });
+		}
+
 		mShaderTables[stateObject] = createdShaderTable;
 
 		return createdShaderTable;
@@ -170,7 +177,7 @@ namespace Darius::Renderer::RayTracing
 		bool bForceBuild)
 	{
 		ScopedTimer _prof(L"Acceleration Structure build", commandList);
-		
+
 		mBottomLevelASInstanceDescs.CopyStagingToGpu(frameIndex);
 
 		// Build all bottom-level AS.

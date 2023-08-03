@@ -27,5 +27,18 @@ namespace Darius::Renderer::RayTracing
 
 		void BuildRaytracingBottomLevelAccelerationStructure(D_RENDERER_RT_UTILS::BottomLevelAccelerationStructure const& blas, D_GRAPHICS_BUFFERS::GpuBuffer const& scratch, D_CONTAINERS::DVector<D3D12_RAYTRACING_GEOMETRY_DESC> const& geometries, D3D12_RAYTRACING_ACCELERATION_STRUCTURE_BUILD_FLAGS buildFlags = D3D12_RAYTRACING_ACCELERATION_STRUCTURE_BUILD_FLAG_NONE, bool update = false);
 
+		INLINE void SetRootSignature(D_GRAPHICS_UTILS::RootSignature const& RootSig);
+
 	};
+
+	INLINE void RayTracingCommandContext::SetRootSignature(D_GRAPHICS_UTILS::RootSignature const& RootSig)
+	{
+		if (RootSig.GetSignature() == m_CurComputeRootSignature)
+			return;
+
+		m_CommandList->SetComputeRootSignature(m_CurComputeRootSignature = RootSig.GetSignature());
+
+		m_DynamicViewDescriptorHeap.ParseComputeRootSignature(RootSig);
+		m_DynamicSamplerDescriptorHeap.ParseComputeRootSignature(RootSig);
+	}
 }

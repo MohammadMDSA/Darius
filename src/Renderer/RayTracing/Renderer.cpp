@@ -139,7 +139,7 @@ namespace Darius::Renderer::RayTracing
 		rayTracingDesc.Height = renderTarget.GetHeight();
 		rayTracingDesc.Depth = 1u;
 
-		//context.GetComputeContext().SetRootSignature()
+		context.GetComputeContext().SetRootSignature(*SimpleRayTracingRenderer->GetStateObject()->GetGlobalRootSignature());
 	}
 
 #ifdef _D_EDITOR
