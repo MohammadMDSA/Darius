@@ -11,9 +11,9 @@
 
 
 #define RENDERSETUP_LINE(meshResource) \
-D_RENDERER_FRAME_RESOURCE::RenderItem ri; \
+D_RENDERER::RenderItem ri; \
 PopulateRenderItemFromMesh(ri, meshResource->GetMeshData()); \
-ri.MeshVsCBV = MeshConstantsGPU.GetGpuVirtualAddress() + sizeof(D_RENDERER_FRAME_RESOURCE::MeshConstants) * index; \
+ri.MeshVsCBV = MeshConstantsGPU.GetGpuVirtualAddress() + sizeof(D_RENDERER::MeshConstants) * index; \
 ri.Color = color; \
 ri.PrimitiveType = D3D_PRIMITIVE_TOPOLOGY_LINELIST; \
 ri.PsoFlags = RenderItem::HasPosition | RenderItem::HasNormal | RenderItem::HasTangent | RenderItem::HasUV0 | RenderItem::ColorOnly | RenderItem::TwoSided | RenderItem::LineOnly | RenderItem::AlphaBlend; \
@@ -26,9 +26,9 @@ if(duration > 0) \
 }
 
 #define RENDERSETUP(meshResource) \
-D_RENDERER_FRAME_RESOURCE::RenderItem ri; \
+D_RENDERER::RenderItem ri; \
 PopulateRenderItemFromMesh(ri, meshResource->GetMeshData()); \
-ri.MeshVsCBV = MeshConstantsGPU.GetGpuVirtualAddress() + sizeof(D_RENDERER_FRAME_RESOURCE::MeshConstants) * index; \
+ri.MeshVsCBV = MeshConstantsGPU.GetGpuVirtualAddress() + sizeof(D_RENDERER::MeshConstants) * index; \
 ri.Color = color; \
 ri.PsoFlags = RenderItem::HasPosition | RenderItem::HasNormal | RenderItem::HasTangent | RenderItem::HasUV0 | RenderItem::ColorOnly | RenderItem::TwoSided | RenderItem::Wireframe; \
 ri.PsoType = D_RENDERER_RAST::GetPso({ ri.PsoFlags }); \
@@ -40,7 +40,7 @@ if(duration > 0) \
 }
 
 using namespace D_MATH;
-using namespace D_RENDERER_FRAME_RESOURCE;
+using namespace D_RENDERER;
 using namespace D_RESOURCE;
 
 namespace Darius::Debug
@@ -54,9 +54,9 @@ namespace Darius::Debug
 
 	std::mutex								AdditionMutex;
 
-	D_CONTAINERS::DVector<D_RENDERER_FRAME_RESOURCE::RenderItem> DrawPending;
+	D_CONTAINERS::DVector<D_RENDERER::RenderItem> DrawPending;
 
-	D_CONTAINERS::DUnorderedMap<double, std::pair<D_RENDERER_FRAME_RESOURCE::RenderItem, D_MATH::Transform>> DrawsWithDuration;
+	D_CONTAINERS::DUnorderedMap<double, std::pair<D_RENDERER::RenderItem, D_MATH::Transform>> DrawsWithDuration;
 
 	D_RESOURCE::ResourceRef<D_RENDERER::StaticMeshResource>	DebugDraw::CubeMeshResource({ L"Debug Drawer" });
 	D_RESOURCE::ResourceRef<D_RENDERER::StaticMeshResource>	DebugDraw::SphereMeshResource({ L"Debug Drawer" });
@@ -72,8 +72,8 @@ namespace Darius::Debug
 		LineMeshResource = GetResource<D_RENDERER::BatchResource>(D_RENDERER::GetDefaultGraphicsResource(D_RENDERER::DefaultResource::LineMesh));
 
 		// Initializing Mesh Constants buffers
-		MeshConstantsCPU.Create(L"Debug Mesh Constant Upload Buffer", sizeof(D_RENDERER_FRAME_RESOURCE::MeshConstants) * MAX_DEBUG_DRAWS);
-		MeshConstantsGPU.Create(L"Debug Mesh Constant GPU Buffer", MAX_DEBUG_DRAWS, sizeof(D_RENDERER_FRAME_RESOURCE::MeshConstants));
+		MeshConstantsCPU.Create(L"Debug Mesh Constant Upload Buffer", sizeof(D_RENDERER::MeshConstants) * MAX_DEBUG_DRAWS);
+		MeshConstantsGPU.Create(L"Debug Mesh Constant GPU Buffer", MAX_DEBUG_DRAWS, sizeof(D_RENDERER::MeshConstants));
 
 #endif // _DEBUG
 
@@ -231,7 +231,7 @@ namespace Darius::Debug
 		}
 	}
 
-	void DebugDraw::PopulateRenderItemFromMesh(D_RENDERER_FRAME_RESOURCE::RenderItem& renderItem, D_RENDERER_GEOMETRY::Mesh const* mesh)
+	void DebugDraw::PopulateRenderItemFromMesh(D_RENDERER::RenderItem& renderItem, D_RENDERER_GEOMETRY::Mesh const* mesh)
 	{
 		renderItem.BaseVertexLocation = mesh->mDraw[0].BaseVertexLocation;
 		renderItem.IndexCount = mesh->mNumTotalIndices;
@@ -262,7 +262,7 @@ namespace Darius::Debug
 
 		auto& context = D_GRAPHICS::GraphicsContext::Begin(L"Debug Mesh CBV Upload");
 		context.TransitionResource(MeshConstantsGPU, D3D12_RESOURCE_STATE_COPY_DEST, true);
-		context.GetCommandList()->CopyBufferRegion(MeshConstantsGPU.GetResource(), 0, MeshConstantsCPU.GetResource(), 0, sizeof(D_RENDERER_FRAME_RESOURCE::MeshConstants) * DrawPending.size());
+		context.GetCommandList()->CopyBufferRegion(MeshConstantsGPU.GetResource(), 0, MeshConstantsCPU.GetResource(), 0, sizeof(D_RENDERER::MeshConstants) * DrawPending.size());
 		context.TransitionResource(MeshConstantsGPU, D3D12_RESOURCE_STATE_GENERIC_READ);
 
 		context.Finish();
@@ -298,7 +298,7 @@ namespace Darius::Debug
 			{
 				UploadTransform(it->second.second, index);
 				auto& ri = it->second.first;
-				ri.MeshVsCBV = MeshConstantsGPU.GetGpuVirtualAddress() + sizeof(D_RENDERER_FRAME_RESOURCE::MeshConstants) * index;
+				ri.MeshVsCBV = MeshConstantsGPU.GetGpuVirtualAddress() + sizeof(D_RENDERER::MeshConstants) * index;
 				DrawPending.push_back(ri);
 				index++;
 				it++;

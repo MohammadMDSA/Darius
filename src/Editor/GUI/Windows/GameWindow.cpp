@@ -19,8 +19,8 @@
 using namespace D_MATH;
 using namespace D_MATH_BOUNDS;
 using namespace D_GRAPHICS;
+using namespace D_RENDERER;
 using namespace D_RENDERER_RAST;
-using namespace D_RENDERER_FRAME_RESOURCE;
 using namespace DirectX;
 
 namespace Darius::Editor::Gui::Windows
@@ -108,7 +108,7 @@ namespace Darius::Editor::Gui::Windows
 		
 		D_MATH_CAMERA::Camera const& c = camera.Get()->GetCamera();
 
-		D_RENDERER_RAST::SceneRenderContext rc =
+		SceneRenderContext rc =
 		{
 			mSceneDepth,
 			mSceneTexture,
@@ -280,7 +280,7 @@ namespace Darius::Editor::Gui::Windows
 
 	}
 
-	bool GameWindow::UpdateGlobalConstants(D_RENDERER_FRAME_RESOURCE::GlobalConstants& globals)
+	bool GameWindow::UpdateGlobalConstants(GlobalConstants& globals)
 	{
 		Matrix4 temp;
 

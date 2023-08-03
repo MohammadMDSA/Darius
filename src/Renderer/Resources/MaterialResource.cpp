@@ -25,8 +25,8 @@ using namespace D_CORE;
 using namespace D_GRAPHICS_UTILS;
 using namespace D_MATH;
 using namespace D_SERIALIZATION;
+using namespace D_RENDERER;
 using namespace D_RENDERER_RAST;
-using namespace D_RENDERER_FRAME_RESOURCE;
 using namespace D_RESOURCE;
 using namespace DirectX;
 

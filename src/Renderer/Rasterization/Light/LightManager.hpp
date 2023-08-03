@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Renderer/FrameResource.hpp"
+#include "Renderer/RendererCommon.hpp"
 
 #include <Core/Containers/Vector.hpp>
 #include <Graphics/CommandContext.hpp>
@@ -56,7 +56,7 @@ namespace Darius::Renderer::Rasterization::LightManager
 	void				Update();
 
 	void				UpdateBuffers(D_GRAPHICS::GraphicsContext& context, D_MATH_CAMERA::Camera const* viewrCamera);
-	void				RenderShadows(D_MATH_CAMERA::Camera const& viewerCamera, D_CONTAINERS::DVector<D_RENDERER_FRAME_RESOURCE::RenderItem> const& shadowRenderItems, D_GRAPHICS::GraphicsContext& shadowContext);
+	void				RenderShadows(D_MATH_CAMERA::Camera const& viewerCamera, D_CONTAINERS::DVector<D_RENDERER::RenderItem> const& shadowRenderItems, D_GRAPHICS::GraphicsContext& shadowContext);
 
 	D3D12_CPU_DESCRIPTOR_HANDLE GetLightMaskHandle();
 	D3D12_CPU_DESCRIPTOR_HANDLE GetLightDataHandle();

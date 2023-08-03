@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Renderer/FrameResource.hpp"
+#include "Renderer/RendererCommon.hpp"
 
 #include <Math/Bounds/BoundingSphere.hpp>
 
@@ -22,7 +22,7 @@ namespace Darius::Renderer
 		virtual bool						CanRender() const = 0;
 		virtual D_MATH_BOUNDS::BoundingSphere const& GetBounds() = 0;
 		virtual D3D12_GPU_VIRTUAL_ADDRESS	GetConstantsAddress() const = 0;
-		virtual bool						AddRenderItems(std::function<void(D_RENDERER_FRAME_RESOURCE::RenderItem const&)> appendFunction) = 0;
+		virtual bool						AddRenderItems(std::function<void(D_RENDERER::RenderItem const&)> appendFunction) = 0;
 		virtual bool						IsCastsShadow() const = 0;
 
 		Darius_Renderer_IRenderable_GENERATED

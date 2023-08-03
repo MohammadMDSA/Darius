@@ -1,6 +1,5 @@
 #pragma once
 
-#include "Renderer/FrameResource.hpp"
 #include "TextureResource.hpp"
 
 #include <Graphics/GraphicsUtils/Memory/DescriptorHeap.hpp>

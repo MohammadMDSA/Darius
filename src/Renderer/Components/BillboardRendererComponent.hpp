@@ -29,7 +29,7 @@ namespace Darius::Renderer
 #endif // _D_EDITOR
 
 
-		virtual bool						AddRenderItems(std::function<void(D_RENDERER_FRAME_RESOURCE::RenderItem const&)> appendFunction);
+		virtual bool						AddRenderItems(std::function<void(D_RENDERER::RenderItem const&)> appendFunction);
 
 		INLINE virtual bool					CanRender() const { return IsActive(); }
 		INLINE virtual D3D12_GPU_VIRTUAL_ADDRESS GetConstantsAddress() const override { return mMeshConstantsGPU.GetGpuVirtualAddress(); }

@@ -2,7 +2,6 @@
 
 #include <Core/Containers/Vector.hpp>
 #include <Graphics/CommandContext.hpp>
-#include <Renderer/FrameResource.hpp>
 #include <Scene/GameObject.hpp>
 
 #ifndef D_GUI_MANAGER

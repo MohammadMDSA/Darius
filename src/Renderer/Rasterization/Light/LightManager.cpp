@@ -2,7 +2,6 @@
 #include "LightManager.hpp"
 
 #include "Renderer/Components/LightComponent.hpp"
-#include "Renderer/FrameResource.hpp"
 #include "Renderer/Rasterization/Renderer.hpp"
 
 #include <Core/Containers/Map.hpp>
@@ -21,7 +20,7 @@
 using namespace D_CONTAINERS;
 using namespace D_GRAPHICS_BUFFERS;
 using namespace D_MATH;
-using namespace D_RENDERER_FRAME_RESOURCE;
+using namespace D_RENDERER;
 using namespace D_RENDERER_RAST;
 using namespace DirectX;
 

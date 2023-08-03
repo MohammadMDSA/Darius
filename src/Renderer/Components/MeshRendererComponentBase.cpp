@@ -1,7 +1,6 @@
 #include "Renderer/pch.hpp"
 #include "MeshRendererComponentBase.hpp"
 
-#include "Renderer/FrameResource.hpp"
 #include "Renderer/RendererManager.hpp"
 
 #include <ResourceManager/ResourceManager.hpp>
@@ -15,8 +14,8 @@
 
 #include "MeshRendererComponentBase.sgenerated.hpp"
 
+using namespace D_RENDERER;
 using namespace D_RESOURCE;
-using namespace D_RENDERER_FRAME_RESOURCE;
 
 namespace Darius::Renderer
 {

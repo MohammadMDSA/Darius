@@ -5,8 +5,7 @@
 #include "Renderer/Components/BillboardRendererComponent.hpp"
 #include "Renderer/Components/MeshRendererComponent.hpp"
 #include "Renderer/Components/SkeletalMeshRendererComponent.hpp"
-#include "Renderer/Components/TerrainRendererComponent.hpp"
-#include "Renderer/FrameResource.hpp"
+#include "Renderer/Components/TerrainRendererComponent.hpp"\
 #include "Renderer/Geometry/Mesh.hpp"
 #include "Renderer/Rasterization/Light/LightManager.hpp"
 #include "Renderer/RendererManager.hpp"
@@ -44,7 +43,6 @@ using namespace D_GRAPHICS;
 using namespace D_GRAPHICS_MEMORY;
 using namespace D_GRAPHICS_UTILS;
 using namespace D_RENDERER;
-using namespace D_RENDERER_FRAME_RESOURCE;
 using namespace D_RENDERER_GEOMETRY;
 using namespace D_RESOURCE;
 using namespace Microsoft::WRL;
@@ -874,7 +872,7 @@ namespace Darius::Renderer::Rasterization
 
 				if (ri.PsoFlags & RenderItem::ColorOnly)
 				{
-					D_RENDERER_FRAME_RESOURCE::ColorConstants color = { ri.Color };
+					D_RENDERER::ColorConstants color = { ri.Color };
 					context.SetDynamicConstantBufferView(kMaterialConstantsPs, sizeof(ColorConstants), &color);
 				}
 				else
@@ -945,7 +943,6 @@ namespace Darius::Renderer::Rasterization
 		psoConfig.PsoFlags &= relevantFlags;
 
 		GraphicsPSO depthPSO = GraphicsPSO();
-		using namespace D_RENDERER_FRAME_RESOURCE;
 
 		std::wstring name = L"DepthPSO";
 
@@ -1149,7 +1146,6 @@ namespace Darius::Renderer::Rasterization
 	UINT GetRenderPso(PsoConfig const& psoConfig)
 	{
 		GraphicsPSO ColorPSO = DefaultPso;
-		using namespace D_RENDERER_FRAME_RESOURCE;
 		uint16_t Requirements = RenderItem::HasPosition | RenderItem::HasNormal | RenderItem::HasTangent | RenderItem::HasUV0;
 
 		// Checking requirements and supported features

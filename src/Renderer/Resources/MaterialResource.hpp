@@ -1,7 +1,7 @@
 #pragma once
 
-#include "Renderer/FrameResource.hpp"
 #include "Renderer/Rasterization/Renderer.hpp"
+#include "Renderer/RendererCommon.hpp"
 #include "TextureResource.hpp"
 
 #include <Graphics/GraphicsUtils/Buffers/GpuBuffer.hpp>
@@ -25,8 +25,8 @@ namespace Darius::Renderer
 		
 	public:
 
-		INLINE D_RENDERER_FRAME_RESOURCE::MaterialConstants* ModifyMaterialData() { MakeDiskDirty(); MakeGpuDirty(); return &mMaterial; }
-		INLINE const D_RENDERER_FRAME_RESOURCE::MaterialConstants* GetMaterialData() const { return &mMaterial; }
+		INLINE D_RENDERER::MaterialConstants* ModifyMaterialData() { MakeDiskDirty(); MakeGpuDirty(); return &mMaterial; }
+		INLINE const D_RENDERER::MaterialConstants* GetMaterialData() const { return &mMaterial; }
 		INLINE D3D12_GPU_DESCRIPTOR_HANDLE	GetTexturesHandle() const { return mTexturesHeap; }
 		INLINE D3D12_GPU_DESCRIPTOR_HANDLE	GetSamplersHandle() const { return mSamplerTable; }
 		INLINE uint16_t						GetPsoFlags() const
@@ -47,8 +47,8 @@ namespace Darius::Renderer
 		virtual bool						DrawDetails(float params[]) override;
 #endif // _D_EDITOR
 
-		INLINE operator const D_RENDERER_FRAME_RESOURCE::MaterialConstants* () const { return &mMaterial; }
-		INLINE operator D_RENDERER_FRAME_RESOURCE::MaterialConstants*() { ModifyMaterialData(); }
+		INLINE operator const D_RENDERER::MaterialConstants* () const { return &mMaterial; }
+		INLINE operator D_RENDERER::MaterialConstants*() { ModifyMaterialData(); }
 
 		INLINE operator D3D12_GPU_VIRTUAL_ADDRESS() const { return mMaterialConstantsGPU.GetGpuVirtualAddress(); }
 
@@ -125,7 +125,7 @@ inline void Set##type##Texture(D_RESOURCE::ResourceHandle textureHandle) { SetTe
 		D_RESOURCE::ResourceHandle					mWorldDisplacementTextureHandle;
 
 
-		D_RENDERER_FRAME_RESOURCE::MaterialConstants mMaterial;
+		D_RENDERER::MaterialConstants				mMaterial;
 		D_GRAPHICS_BUFFERS::UploadBuffer			mMaterialConstantsCPU;
 		D_GRAPHICS_BUFFERS::ByteAddressBuffer		mMaterialConstantsGPU;
 

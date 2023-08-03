@@ -30,7 +30,7 @@ namespace Darius::Renderer
 		virtual bool							DrawDetails(float params[]) override;
 #endif
 
-		INLINE virtual bool						AddRenderItems(std::function<void(D_RENDERER_FRAME_RESOURCE::RenderItem const&)> appendFunction) override { return false; }
+		INLINE virtual bool						AddRenderItems(std::function<void(D_RENDERER::RenderItem const&)> appendFunction) override { return false; }
 		
 		INLINE virtual UINT						GetNumberOfSubmeshes() const { return 0; }
 

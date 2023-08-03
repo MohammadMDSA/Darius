@@ -5,7 +5,7 @@
 #include <Graphics/GraphicsUtils/Buffers/ColorBuffer.hpp>
 #include <Graphics/GraphicsUtils/Buffers/DepthBuffer.hpp>
 #include <Renderer/Rasterization/Renderer.hpp>
-#include <Renderer/FrameResource.hpp>
+#include <Renderer/RendererCommon.hpp>
 
 namespace Darius::Editor::Gui::Windows
 {
@@ -20,7 +20,7 @@ namespace Darius::Editor::Gui::Windows
 		virtual void				DrawGUI() override;
 
 	private:
-		bool						UpdateGlobalConstants(D_RENDERER_FRAME_RESOURCE::GlobalConstants& globals);
+		bool						UpdateGlobalConstants(D_RENDERER::GlobalConstants& globals);
 		void						CreateBuffers();
 
 		// Main Buffers
@@ -71,7 +71,7 @@ namespace Darius::Editor::Gui::Windows
 
 		D_GRAPHICS_MEMORY::DescriptorHandle			mTextureHandle;
 
-		D_RENDERER_FRAME_RESOURCE::GlobalConstants	mSceneGlobals;
+		D_RENDERER::GlobalConstants					mSceneGlobals;
 
 		float										mBufferWidth;
 		float										mBufferHeight;

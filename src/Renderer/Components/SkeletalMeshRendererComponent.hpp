@@ -28,7 +28,7 @@ namespace Darius::Renderer
 		virtual void						Update(float dt) override;
 		virtual void						OnDeserialized() override;
 
-		virtual bool						AddRenderItems(std::function<void(D_RENDERER_FRAME_RESOURCE::RenderItem const&)> appendFunction) override;
+		virtual bool						AddRenderItems(std::function<void(D_RENDERER::RenderItem const&)> appendFunction) override;
 
 		INLINE virtual UINT					GetNumberOfSubmeshes() const { return mMesh.IsValid() ? (UINT)mMesh->GetMeshData()->mDraw.size() : 0u; }
 
@@ -51,7 +51,7 @@ namespace Darius::Renderer
 		void								JointUpdateRecursion(D_MATH::Matrix4 const& parent, D_RENDERER_GEOMETRY::Mesh::SkeletonJoint& skeletonJoint);
 		void								LoadMeshData();
 
-		D_CONTAINERS::DVector<D_RENDERER_FRAME_RESOURCE::Joint>		mJoints;
+		D_CONTAINERS::DVector<D_RENDERER::Joint>					mJoints;
 		D_CONTAINERS::DVector<D_RENDERER_GEOMETRY::Mesh::SkeletonJoint> mSkeleton;
 		D_RENDERER_GEOMETRY::Mesh::SkeletonJoint*					mSkeletonRoot;
 		D_MATH_BOUNDS::BoundingSphere								mBounds;

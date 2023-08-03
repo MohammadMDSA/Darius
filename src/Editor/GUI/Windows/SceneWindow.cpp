@@ -27,8 +27,8 @@ using namespace D_CONTAINERS;
 using namespace D_GRAPHICS;
 using namespace D_MATH;
 using namespace D_MATH_BOUNDS;
+using namespace D_RENDERER;
 using namespace D_RENDERER_RAST;
-using namespace D_RENDERER_FRAME_RESOURCE;
 using namespace D_RENDERER_GEOMETRY;
 using namespace DirectX;
 
@@ -144,7 +144,7 @@ namespace Darius::Editor::Gui::Windows
 		mAOHighQuality4.Destroy();
 	}
 
-	void SceneWindow::UpdateGlobalConstants(D_RENDERER_FRAME_RESOURCE::GlobalConstants& globals)
+	void SceneWindow::UpdateGlobalConstants(GlobalConstants& globals)
 	{
 		Matrix4 temp;
 
@@ -190,7 +190,7 @@ namespace Darius::Editor::Gui::Windows
 
 		auto& context = GraphicsContext::Begin(L"Draw Scene Window");
 
-		D_RENDERER_RAST::SceneRenderContext rc =
+		SceneRenderContext rc =
 		{
 			mSceneDepth,
 			mSceneTexture,
@@ -613,7 +613,7 @@ namespace Darius::Editor::Gui::Windows
 		}
 	}
 
-	void SceneWindow::CreateGrid(DVector<D_RENDERER_FRAME_RESOURCE::RenderItem>& items, int count)
+	void SceneWindow::CreateGrid(DVector<RenderItem>& items, int count)
 	{
 		RenderItem item;
 		const Mesh* mesh = mLineMeshResource->GetMeshData();

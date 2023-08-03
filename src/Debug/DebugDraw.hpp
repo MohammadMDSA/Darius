@@ -1,6 +1,5 @@
 #pragma once
 
-#include <Renderer/FrameResource.hpp>
 #include <Renderer/Rasterization/Renderer.hpp>
 #include <Renderer/Resources/StaticMeshResource.hpp>
 #include <Renderer/Resources/BatchResource.hpp>
@@ -60,7 +59,7 @@ namespace Darius::Debug
 
 	private:
 #ifdef _DEBUG
-		static void PopulateRenderItemFromMesh(D_RENDERER_FRAME_RESOURCE::RenderItem& renderItem, D_RENDERER_GEOMETRY::Mesh const* mesh);
+		static void PopulateRenderItemFromMesh(D_RENDERER::RenderItem& renderItem, D_RENDERER_GEOMETRY::Mesh const* mesh);
 		static void UploadTransform(D_MATH::Transform const& trans, UINT index);
 
 		static D_RESOURCE::ResourceRef<D_RENDERER::StaticMeshResource>	CubeMeshResource;
@@ -68,7 +67,7 @@ namespace Darius::Debug
 		static D_RESOURCE::ResourceRef<D_RENDERER::BatchResource>		LineMeshResource;
 
 #else
-		static INLINE void PopulateRenderItemFromMesh(D_RENDERER_FRAME_RESOURCE::RenderItem& renderItem, D_RENDERER_GEOMETRY::Mesh const* mesh) {}
+		static INLINE void PopulateRenderItemFromMesh(D_RENDERER::RenderItem& renderItem, D_RENDERER_GEOMETRY::Mesh const* mesh) {}
 		static INLINE void UploadTransform(D_MATH::Transform const& trans, UINT index) {}
 
 #endif // _DEBUG

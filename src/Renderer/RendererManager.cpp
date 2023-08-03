@@ -29,6 +29,7 @@
 
 using namespace D_CONTAINERS;
 using namespace D_CORE;
+using namespace D_GRAPHICS_MEMORY;
 using namespace D_MATH;
 using namespace D_RENDERER_GEOMETRY;
 using namespace D_RESOURCE;
@@ -36,11 +37,11 @@ using namespace D_RESOURCE;
 namespace Darius::Renderer
 {
 
-	bool											_initialized = false;
+	bool												_initialized = false;
 
 	DUnorderedMap<DefaultResource, ResourceHandle>		DefaultResourceMap;
 
-	void LoadDefaultResources();
+	void												LoadDefaultResources();
 
 	void Initialize(D_SERIALIZATION::Json const& settings)
 	{
@@ -253,6 +254,30 @@ namespace Darius::Renderer
 			DefaultResourceMap.insert({ DefaultResource::Material, { MaterialResource::GetResourceType(), materialRes->GetId() } });
 		}
 
+	}
+
+	// Helper method to clear the back buffers.
+	void Clear(D_GRAPHICS::GraphicsContext& context, D_GRAPHICS_BUFFERS::ColorBuffer& rt, D_GRAPHICS_BUFFERS::DepthBuffer& depthStencil, RECT bounds, std::wstring const& processName)
+	{
+
+		PIXBeginEvent(context.GetCommandList(), PIX_COLOR_DEFAULT, processName.c_str());
+
+		// Clear the views.
+		auto const rtvDescriptor = rt.GetRTV();
+		auto const dsvDescriptor = depthStencil.GetDSV();
+
+		// Set the viewport and scissor rect.
+		long width = bounds.right - bounds.left;
+		long height = bounds.bottom - bounds.top;
+		auto viewport = CD3DX12_VIEWPORT((float)bounds.left, (float)bounds.top, (float)width, (float)height, D3D12_MIN_DEPTH, D3D12_MAX_DEPTH);
+		auto scissorRect = CD3DX12_RECT(bounds.left, bounds.top, (long)width, (long)height);
+
+		context.ClearColor(rt, &scissorRect);
+		context.ClearDepth(depthStencil);
+		context.SetRenderTarget(rtvDescriptor, dsvDescriptor);
+		context.SetViewportAndScissor(viewport, scissorRect);
+
+		PIXEndEvent(context.GetCommandList());
 	}
 
 #ifdef _D_EDITOR

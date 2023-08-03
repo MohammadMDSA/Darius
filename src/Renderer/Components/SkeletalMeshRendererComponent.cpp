@@ -21,10 +21,10 @@
 using namespace D_CORE;
 using namespace D_MATH;
 using namespace D_MATH_BOUNDS;
-using namespace D_SERIALIZATION;
+using namespace D_RENDERER;
 using namespace D_RENDERER_GEOMETRY;
 using namespace D_RESOURCE;
-using namespace D_RENDERER_FRAME_RESOURCE;
+using namespace D_SERIALIZATION;
 
 namespace Darius::Renderer
 {
@@ -47,7 +47,7 @@ namespace Darius::Renderer
 		mComponentPsoFlags |= RenderItem::HasSkin;
 	}
 
-	bool SkeletalMeshRendererComponent::AddRenderItems(std::function<void(D_RENDERER_FRAME_RESOURCE::RenderItem const&)> appendFunction)
+	bool SkeletalMeshRendererComponent::AddRenderItems(std::function<void(D_RENDERER::RenderItem const&)> appendFunction)
 	{
 		bool any = false;
 		auto result = RenderItem();

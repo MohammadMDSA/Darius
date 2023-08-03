@@ -1,14 +1,17 @@
 #pragma once
+
 #include "Renderer/Geometry/Mesh.hpp"
 
-#include <Utils/Common.hpp>
-#include <Math/VectorMath.hpp>
+#include <Graphics/CommandContext.hpp>
+#include <Graphics/GraphicsUtils/Buffers/ColorBuffer.hpp>
+#include <Graphics/GraphicsUtils/Buffers/DepthBuffer.hpp>
+#include <Math/Camera/Camera.hpp>
 
-#ifndef D_RENDERER_FRAME_RESOURCE
-#define D_RENDERER_FRAME_RESOURCE Darius::Renderer::ConstantFrameResource
-#endif // !D_RENDERER_FRAME_RESOURCE
+#ifndef D_RENDERER
+#define D_RENDERER Darius::Renderer
+#endif // !D_RENDERER
 
-namespace Darius::Renderer::ConstantFrameResource
+namespace Darius::Renderer
 {
 	ALIGN_DECL_256 struct GlobalConstants
 	{
@@ -138,4 +141,37 @@ namespace Darius::Renderer::ConstantFrameResource
 		UINT						DepthPsoIndex = 0;
 	};
 
+	struct SceneRenderContext
+	{
+		D_GRAPHICS_BUFFERS::DepthBuffer&	DepthBuffer;
+		D_GRAPHICS_BUFFERS::ColorBuffer&	ColorBuffer;
+		D_GRAPHICS_BUFFERS::ColorBuffer&	NormalBuffer;
+		D_GRAPHICS_BUFFERS::ColorBuffer&	VelocityBuffer;
+		D_GRAPHICS_BUFFERS::ColorBuffer*	TemporalColor;
+		D_GRAPHICS_BUFFERS::ColorBuffer*	LinearDepth;
+		D_GRAPHICS_BUFFERS::ColorBuffer&	SSAOFullScreen;
+		D_GRAPHICS_BUFFERS::ColorBuffer&	DepthDownsize1;
+		D_GRAPHICS_BUFFERS::ColorBuffer&	DepthDownsize2;
+		D_GRAPHICS_BUFFERS::ColorBuffer&	DepthDownsize3;
+		D_GRAPHICS_BUFFERS::ColorBuffer&	DepthDownsize4;
+		D_GRAPHICS_BUFFERS::ColorBuffer&	DepthTiled1;
+		D_GRAPHICS_BUFFERS::ColorBuffer&	DepthTiled2;
+		D_GRAPHICS_BUFFERS::ColorBuffer&	DepthTiled3;
+		D_GRAPHICS_BUFFERS::ColorBuffer&	DepthTiled4;
+		D_GRAPHICS_BUFFERS::ColorBuffer&	AOMerged1;
+		D_GRAPHICS_BUFFERS::ColorBuffer&	AOMerged2;
+		D_GRAPHICS_BUFFERS::ColorBuffer&	AOMerged3;
+		D_GRAPHICS_BUFFERS::ColorBuffer&	AOMerged4;
+		D_GRAPHICS_BUFFERS::ColorBuffer&	AOSmooth1;
+		D_GRAPHICS_BUFFERS::ColorBuffer&	AOSmooth2;
+		D_GRAPHICS_BUFFERS::ColorBuffer&	AOSmooth3;
+		D_GRAPHICS_BUFFERS::ColorBuffer&	AOHighQuality1;
+		D_GRAPHICS_BUFFERS::ColorBuffer&	AOHighQuality2;
+		D_GRAPHICS_BUFFERS::ColorBuffer&	AOHighQuality3;
+		D_GRAPHICS_BUFFERS::ColorBuffer&	AOHighQuality4;
+		D_GRAPHICS::GraphicsContext&		GraphicsContext;
+		D_MATH_CAMERA::Camera const&		Camera;
+		GlobalConstants&					Globals;
+		bool								DrawSkybox;
+	};
 }

@@ -1,5 +1,7 @@
 #pragma once
 
+#include "Renderer/RendererCommon.hpp"
+
 #include <Core/Serialization/Json.hpp>
 #include <ResourceManager/Resource.hpp>
 

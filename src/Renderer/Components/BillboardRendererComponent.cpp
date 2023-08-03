@@ -16,8 +16,8 @@
 using namespace D_GRAPHICS;
 using namespace D_GRAPHICS_UTILS;
 using namespace D_MATH;
+using namespace D_RENDERER;
 using namespace D_RENDERER_RAST;
-using namespace D_RENDERER_FRAME_RESOURCE;
 
 namespace
 {
@@ -112,7 +112,7 @@ namespace Darius::Renderer
 		SetDirty();
 	}
 
-	bool BillboardRendererComponent::AddRenderItems(std::function<void(D_RENDERER_FRAME_RESOURCE::RenderItem const&)> appendFunction)
+	bool BillboardRendererComponent::AddRenderItems(std::function<void(D_RENDERER::RenderItem const&)> appendFunction)
 	{
 
 		if (!mMaterial.IsValid() || mMaterial->IsDirtyGPU())
