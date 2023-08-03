@@ -75,6 +75,8 @@ if(BUILD_EDITOR)
         "src/Editor/Gui/GuiManager.cpp"
         "src/Editor/Gui/DetailDrawer/DetailDrawer.hpp"
         "src/Editor/Gui/DetailDrawer/DetailDrawer.cpp"
+        "src/Editor/Gui/GuiRenderer.hpp"
+        "src/Editor/Gui/GuiRenderer.cpp"
         "src/Editor/Gui/ThumbnailManager.hpp"
         "src/Editor/Gui/ThumbnailManager.cpp"
         "src/Editor/Gui/Windows/Window.hpp"

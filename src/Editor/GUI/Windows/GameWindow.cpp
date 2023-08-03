@@ -1,6 +1,8 @@
 #include "Editor/pch.hpp"
 #include "GameWindow.hpp"
 
+#include "Editor/GUI/GuiRenderer.hpp"
+
 #include <Core/TimeManager/TimeManager.hpp>
 #include <Debug/DebugDraw.hpp>
 #include <Renderer/Camera/CameraManager.hpp>
@@ -29,7 +31,7 @@ namespace Darius::Editor::Gui::Windows
 		mSSAOFullScreen(D_MATH::Color(1.f, 1.f, 1.f))
 	{
 		CreateBuffers();
-		mTextureHandle = D_RENDERER_RAST::AllocateUiTexture();
+		mTextureHandle = D_GUI_RENDERER::AllocateUiTexture();
 
 		// Window padding
 		mPadding[0] = mPadding[1] = 0.f;

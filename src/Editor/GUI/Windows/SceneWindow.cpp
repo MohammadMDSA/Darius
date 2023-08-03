@@ -2,6 +2,7 @@
 #include "SceneWindow.hpp"
 
 #include "Editor/EditorContext.hpp"
+#include "Editor/GUI/GuiRenderer.hpp"
 
 #include <Core/TimeManager/TimeManager.hpp>
 #include <Core/Input.hpp>
@@ -47,7 +48,7 @@ namespace Darius::Editor::Gui::Windows
 		mLineMeshResource({ L"Scene Window", rttr::type::get<SceneWindow>(), nullptr })
 	{
 		CreateBuffers();
-		mTextureHandle = D_RENDERER_RAST::AllocateUiTexture(1);
+		mTextureHandle = D_GUI_RENDERER::AllocateUiTexture(1);
 
 		mLineMeshResource = D_RESOURCE::ResourceRef<D_RENDERER::BatchResource>({ L"Scene Window", rttr::type::get<SceneWindow>(), this });
 

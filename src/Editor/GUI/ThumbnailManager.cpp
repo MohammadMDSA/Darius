@@ -2,6 +2,7 @@
 #include "ThumbnailManager.hpp"
 
 #include "Editor/EditorContext.hpp"
+#include "GuiRenderer.hpp"
 
 #include <Core/Containers/Map.hpp>
 #include <Renderer/Resources/MaterialResource.hpp>
@@ -18,7 +19,7 @@ if (textureFile->size() > 0) \
 	auto& texture = ResourceTypeTextures[resourceType]; \
 	if (texture.CreateDDSFromMemory(textureFile->data(), textureFile->size(), true)) \
 	{ \
-		auto textureHandle = D_RENDERER_RAST::AllocateUiTexture(); \
+		auto textureHandle = D_GUI_RENDERER::AllocateUiTexture(); \
 		ResourceTypeTextureIdMap[resourceType] = textureHandle.GetGpuPtr(); \
 		D_GRAPHICS_DEVICE::GetDevice()->CopyDescriptorsSimple(1, textureHandle, texture.GetSRV(), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV); \
 	} \
@@ -138,7 +139,7 @@ namespace Darius::Editor::Gui::ThumbnailManager
 
 			tex.CreateDDSFromMemory(fileData->data(), fileData->size(), true);
 
-			auto gpuHandle = D_RENDERER_RAST::AllocateUiTexture(1);
+			auto gpuHandle = D_GUI_RENDERER::AllocateUiTexture(1);
 
 			D_GRAPHICS_DEVICE::GetDevice()->CopyDescriptorsSimple(1, gpuHandle, tex.GetSRV(), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 			CommonIconTextureIdMap[(CommonIcon)i] = gpuHandle.GetGpuPtr();
@@ -185,7 +186,7 @@ namespace Darius::Editor::Gui::ThumbnailManager
 			return;
 		}
 
-		auto gpuHandle = D_RENDERER_RAST::AllocateUiTexture(1);
+		auto gpuHandle = D_GUI_RENDERER::AllocateUiTexture(1);
 
 		D_GRAPHICS_DEVICE::GetDevice()->CopyDescriptorsSimple(1, gpuHandle, tex.GetSRV(), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 		ResourceTextureIdMap[uuid] = gpuHandle.GetGpuPtr();

@@ -3,6 +3,7 @@
 
 #include "GUI/DetailDrawer/DetailDrawer.hpp"
 #include "GUI/GuiManager.hpp"
+#include "GUI/GuiRenderer.hpp"
 #include "GUI/ThumbnailManager.hpp"
 #include "Simulation.hpp"
 
@@ -43,6 +44,8 @@ namespace Darius::Editor::Context
 			D_ASSERT_M(std::filesystem::create_directory(GetEditorConfigPath()), "Could not detect/create editor config directory for project");
 		}
 
+		D_GUI_RENDERER::Initialize();
+
 		D_WORLD::Initialize();
 
 		D_RESOURCE_LOADER::VisitSubdirectory(D_ENGINE_CONTEXT::GetAssetsPath(), true);
@@ -65,6 +68,7 @@ namespace Darius::Editor::Context
 		D_SIMULATE::Shutdown();
 		D_GUI_MANAGER::Shutdown();
 		D_THUMBNAIL::Shutdown();
+		D_GUI_RENDERER::Shutdown();
 	}
 
 	void Update(float elapsedTime)

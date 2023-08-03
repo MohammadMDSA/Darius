@@ -227,14 +227,9 @@ namespace Darius::Renderer::Rasterization
 #ifdef _D_EDITOR
 	bool OptionsDrawer(_IN_OUT_ D_SERIALIZATION::Json& options);
 
-	D_GRAPHICS_MEMORY::DescriptorHandle AllocateUiTexture(UINT count = 1);
-	void					RenderGui();
-
 	UINT16 const&			GetForcedPsoFlags();
 	void					SetForceWireframe(bool val);
 #endif
-
-	void					Present();
 
 	D_GRAPHICS_UTILS::RootSignature& GetRootSignature(RootSignatureTypes type);
 

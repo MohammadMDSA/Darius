@@ -30,10 +30,10 @@
 #include <Scene/Scene.hpp>
 #include <Utils/Assert.hpp>
 
+#ifdef _D_EDITOR
 #include <imgui.h>
-#include <implot.h>
-#include <imgui_impl_dx12.h>
-#include <imgui_impl_win32.h>
+
+#endif // _D_EDITOR
 
 #include <filesystem>
 
@@ -55,10 +55,6 @@ using namespace Microsoft::WRL;
 namespace Darius::Renderer::Rasterization
 {
 	bool												_initialized = false;
-
-#ifdef _D_EDITOR
-	DescriptorHeap										ImguiHeap;
-#endif
 
 	// Input layout and root signature
 	std::array<D_GRAPHICS_UTILS::RootSignature, (size_t)RootSignatureTypes::_numRootSig> RootSigns;
@@ -86,9 +82,6 @@ namespace Darius::Renderer::Rasterization
 
 	//////////////////////////////////////////////////////
 	// Functions
-#ifdef _D_EDITOR
-	void InitializeGUI();
-#endif
 	void BuildDefaultPSOs();
 	void BuildRootSignature();
 
@@ -110,9 +103,6 @@ namespace Darius::Renderer::Rasterization
 
 		CommonTexture = TextureHeap.Alloc(8);
 
-#ifdef _D_EDITOR
-		InitializeGUI();
-#endif // _D_EDITOR
 		DefaultBlackCubeMap = D_RESOURCE::GetResource<TextureResource>(GetDefaultGraphicsResource(D_RENDERER::DefaultResource::TextureCubeMapBlack), nullptr, L"Renderer", rttr::type::get<void>());
 
 		// Initialize IBL Textrues on GPU
@@ -147,9 +137,6 @@ namespace Darius::Renderer::Rasterization
 	{
 		D_CAMERA_MANAGER::Shutdown();
 
-#ifdef _D_EDITOR
-		ImguiHeap.Destroy();
-#endif
 		TextureHeap.Destroy();
 		SamplerHeap.Destroy();
 	}
@@ -475,11 +462,6 @@ namespace Darius::Renderer::Rasterization
 	D_GRAPHICS_UTILS::RootSignature& GetRootSignature(RootSignatureTypes type)
 	{
 		return RootSigns[(size_t)type];
-	}
-
-	void Present()
-	{
-		D_GRAPHICS::Present();
 	}
 
 	// Helper method to clear the back buffers.
@@ -937,42 +919,6 @@ namespace Darius::Renderer::Rasterization
 	}
 
 #ifdef _D_EDITOR
-	DescriptorHandle	AllocateUiTexture(UINT count)
-	{
-		return ImguiHeap.Alloc(count);
-	}
-
-	void RenderGui()
-	{
-		auto& context = D_GRAPHICS::GraphicsContext::Begin(L"Render Gui");
-
-		auto& viewportRt = D_GRAPHICS_DEVICE::GetRTBuffer();
-		auto& depthStencil = D_GRAPHICS_DEVICE::GetDepthStencilBuffer();
-		context.TransitionResource(depthStencil, D3D12_RESOURCE_STATE_DEPTH_WRITE);
-		context.TransitionResource(viewportRt, D3D12_RESOURCE_STATE_RENDER_TARGET, true);
-
-		// Clear RT
-		Clear(context, viewportRt, depthStencil, D_GRAPHICS_DEVICE::GetOutputSize());
-
-		context.SetDescriptorHeap(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, ImguiHeap.GetHeapPointer());
-		ImGui_ImplDX12_RenderDrawData(ImGui::GetDrawData(), context.GetCommandList());
-		context.Finish();
-	}
-
-	void InitializeGUI()
-	{
-		ImguiHeap.Create(L"Imgui Heap", D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, 4096);
-
-		auto defualtHandle = ImguiHeap.Alloc(1);
-
-		ImGui::CreateContext();
-		ImPlot::CreateContext();
-		ImGui_ImplWin32_Init(D_GRAPHICS::GetWindow());
-		ImGui_ImplDX12_Init(D_GRAPHICS_DEVICE::GetDevice(), D_GRAPHICS_DEVICE::GetBackBufferCount(), D_GRAPHICS::SwapChainGetColorFormat(), ImguiHeap.GetHeapPointer(), defualtHandle, defualtHandle);
-
-		D_GRAPHICS::GetCommandManager()->IdleGPU();
-	}
-
 
 	UINT16 const& GetForcedPsoFlags()
 	{

@@ -4,8 +4,10 @@
 
 #include "pch.hpp"
 #include "Editor.hpp"
-#include "Gui/GuiManager.hpp"
+
 #include "EditorContext.hpp"
+#include "GUI/GuiManager.hpp"
+#include "GUI/GuiRenderer.hpp"
 
 #include <Core/Input.hpp>
 #include <Core/Containers/Vector.hpp>
@@ -129,8 +131,8 @@ namespace Darius::Editor
 		}
 
 		D_GUI_MANAGER::Render();
-		D_RENDERER_RAST::RenderGui();
-		D_RENDERER_RAST::Present();
+		D_GUI_RENDERER::Render();
+		D_GRAPHICS::Present();
 
 	}
 #pragma endregion
