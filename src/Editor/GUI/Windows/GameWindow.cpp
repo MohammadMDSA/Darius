@@ -139,12 +139,9 @@ namespace Darius::Editor::Gui::Windows
 			context,
 			c,
 			mSceneGlobals,
+			{},
 			true
 		};
-
-		MeshSorter sorter(MeshSorter::kDefault);
-		D_RENDERER_RAST::Render(L"Scene Window", sorter, rc);
-
 
 		// Post Processing
 		D_GRAPHICS_PP::PostProcessContextBuffers postBuffers =
@@ -162,7 +159,11 @@ namespace Darius::Editor::Gui::Windows
 			BloomUAV5,
 			L"Game Window"
 		};
-		D_GRAPHICS_PP::Render(postBuffers, context.GetComputeContext());
+
+		D_RENDERER_RAST::Render(L"Scene Window", rc, [context = &context, buffers = &postBuffers]()
+			{
+				D_GRAPHICS_PP::Render(*buffers, (*context).GetComputeContext());
+			});
 
 		context.TransitionResource(mSceneTexture, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
 

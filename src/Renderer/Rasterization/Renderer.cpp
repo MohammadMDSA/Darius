@@ -5,7 +5,7 @@
 #include "Renderer/Components/BillboardRendererComponent.hpp"
 #include "Renderer/Components/MeshRendererComponent.hpp"
 #include "Renderer/Components/SkeletalMeshRendererComponent.hpp"
-#include "Renderer/Components/TerrainRendererComponent.hpp"\
+#include "Renderer/Components/TerrainRendererComponent.hpp"
 #include "Renderer/Geometry/Mesh.hpp"
 #include "Renderer/Rasterization/Light/LightManager.hpp"
 #include "Renderer/RendererManager.hpp"
@@ -91,7 +91,7 @@ namespace Darius::Renderer::Rasterization
 
 		D_ASSERT(!_initialized);
 
-		D_H_OPTIONS_LOAD_BASIC("Rasterization.Passes.SeparateZ", SeparateZPass);
+		D_H_OPTIONS_LOAD_BASIC("Renderer.Rasterization.Passes.SeparateZ", SeparateZPass);
 
 		BuildRootSignature();
 		BuildDefaultPSOs();
@@ -359,9 +359,10 @@ namespace Darius::Renderer::Rasterization
 			});
 	}
 
-	void Render(std::wstring const& jobId, MeshSorter& sorter, SceneRenderContext& rContext)
+	void Render(std::wstring const& jobId, SceneRenderContext& rContext, std::function<void()> postAntiAliasing)
 	{
 		auto& context = rContext.GraphicsContext;
+		MeshSorter sorter(MeshSorter::kDefault);
 
 		// Clearing depth and scene color textures
 		context.TransitionResource(rContext.DepthBuffer, D3D12_RESOURCE_STATE_DEPTH_WRITE);
@@ -444,6 +445,31 @@ namespace Darius::Renderer::Rasterization
 		D_GRAPHICS_PP_MOTION::GenerateCameraVelocityBuffer(commandContext, motionBuffers, rContext.Camera);
 
 		D_GRAPHICS_AA_TEMPORAL::ResolveImage(commandContext, rContext.ColorBuffer, rContext.VelocityBuffer, rContext.TemporalColor, rContext.LinearDepth);
+
+		
+		// Calling post anti-aliasing callback
+		if (postAntiAliasing)
+			postAntiAliasing();
+
+		// Additional renders
+		if(rContext.AdditionalRenderItems.size() > 0)
+		{
+			context.TransitionResource(rContext.ColorBuffer, D3D12_RESOURCE_STATE_RENDER_TARGET, true);
+
+			MeshSorter additionalRenderSorter(sorter);
+
+			for (auto const& additionalItemsVec : rContext.AdditionalRenderItems)
+			{
+				for (auto& ri : *additionalItemsVec)
+				{
+					additionalRenderSorter.AddMesh(ri, -1);
+				}
+			}
+
+			additionalRenderSorter.Sort();
+
+			additionalRenderSorter.RenderMeshes(MeshSorter::kTransparent, context, nullptr, rContext.Globals);
+		}
 	}
 
 #ifdef _D_EDITOR
@@ -451,7 +477,7 @@ namespace Darius::Renderer::Rasterization
 	{
 		D_H_OPTION_DRAW_BEGIN();
 
-		D_H_OPTION_DRAW_CHECKBOX("Separate Z Pass", "Rasterization.Passes.SeparateZ", SeparateZPass);
+		D_H_OPTION_DRAW_CHECKBOX("Separate Z Pass", "Renderer.Rasterization.Passes.SeparateZ", SeparateZPass);
 
 		D_H_OPTION_DRAW_END();
 	}

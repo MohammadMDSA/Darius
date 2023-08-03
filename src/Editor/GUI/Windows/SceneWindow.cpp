@@ -190,6 +190,16 @@ namespace Darius::Editor::Gui::Windows
 
 		auto& context = GraphicsContext::Begin(L"Draw Scene Window");
 
+		DVector<DVector<RenderItem> const*> additional;
+		
+		// Draw grid
+		if (mDrawGrid)
+			additional.push_back(&mWindowRenderItems);
+
+		// Add debug draw items
+		if (mDrawDebug)
+			additional.push_back(&D_DEBUG_DRAW::GetRenderItems());
+
 		SceneRenderContext rc =
 		{
 			mSceneDepth,
@@ -221,12 +231,10 @@ namespace Darius::Editor::Gui::Windows
 			context,
 			mCamera,
 			mSceneGlobals,
+			additional,
 			mDrawSkybox
 		};
-
-		MeshSorter sorter(MeshSorter::kDefault);
-		D_RENDERER_RAST::Render(L"Scene Window", sorter, rc);
-
+		
 		// Post Processing
 		D_GRAPHICS_PP::PostProcessContextBuffers postBuffers =
 		{
@@ -243,22 +251,12 @@ namespace Darius::Editor::Gui::Windows
 			BloomUAV5,
 			L"Scene Window"
 		};
-		D_GRAPHICS_PP::Render(postBuffers, context.GetComputeContext());
+		
 
-		// Drawing extra elements
-		MeshSorter additionalSorter(sorter);
-
-		// Draw grid
-		if (mDrawGrid)
-			AddWindowRenderItems(additionalSorter);
-
-		// Add debug draw items
-		if (mDrawDebug)
-		{
-			D_DEBUG_DRAW::GetRenderItems(additionalSorter);
-			additionalSorter.Sort();
-			additionalSorter.RenderMeshes(MeshSorter::kTransparent, context, nullptr, mSceneGlobals);
-		}
+		D_RENDERER_RAST::Render(L"Scene Window", rc, [context = &context, buffers = &postBuffers]()
+			{
+				D_GRAPHICS_PP::Render(*buffers, (*context).GetComputeContext());
+			});
 
 		// Copying to texture
 		context.TransitionResource(mSceneTexture, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);

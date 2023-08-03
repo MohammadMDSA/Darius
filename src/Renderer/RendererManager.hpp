@@ -12,13 +12,11 @@
 
 namespace Darius::Renderer
 {
-
-	void Initialize(D_SERIALIZATION::Json const& settings);
-	void Shutdown();
-
-#ifdef _D_EDITOR
-	bool OptionsDrawer(_IN_OUT_ D_SERIALIZATION::Json& options);
-#endif
+	enum class RendererType
+	{
+		Rasterization,
+		RayTracing
+	};
 
 	enum class DefaultResource
 	{
@@ -49,6 +47,16 @@ namespace Darius::Renderer
 		TextureCubeMapBlack
 	};
 
-	D_RESOURCE::ResourceHandle GetDefaultGraphicsResource(DefaultResource type);
+	void						Initialize(D_SERIALIZATION::Json const& settings);
+	void						Shutdown();
+
+#ifdef _D_EDITOR
+	bool						OptionsDrawer(_IN_OUT_ D_SERIALIZATION::Json& options);
+#endif
+
+	RendererType				GetActiveRendererType();
+
+	
+	D_RESOURCE::ResourceHandle	GetDefaultGraphicsResource(DefaultResource type);
 
 }

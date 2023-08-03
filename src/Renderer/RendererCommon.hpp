@@ -2,6 +2,7 @@
 
 #include "Renderer/Geometry/Mesh.hpp"
 
+#include <Core/Containers/List.hpp>
 #include <Graphics/CommandContext.hpp>
 #include <Graphics/GraphicsUtils/Buffers/ColorBuffer.hpp>
 #include <Graphics/GraphicsUtils/Buffers/DepthBuffer.hpp>
@@ -172,6 +173,8 @@ namespace Darius::Renderer
 		D_GRAPHICS::GraphicsContext&		GraphicsContext;
 		D_MATH_CAMERA::Camera const&		Camera;
 		GlobalConstants&					Globals;
+		D_CONTAINERS::DVector<D_CONTAINERS::DVector<RenderItem> const*> const& AdditionalRenderItems;
+
 		bool								DrawSkybox;
 	};
 }

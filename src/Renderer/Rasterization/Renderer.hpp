@@ -188,7 +188,7 @@ namespace Darius::Renderer::Rasterization
 	void Initialize(D_SERIALIZATION::Json const& settings);
 	void Shutdown();
 	void Update();
-	void Render(std::wstring const& jobId, MeshSorter& sorter, SceneRenderContext& rContext);
+	void Render(std::wstring const& jobId, SceneRenderContext& rContext, std::function<void()> postAntiAliasing = nullptr);
 
 #ifdef _D_EDITOR
 	bool OptionsDrawer(_IN_OUT_ D_SERIALIZATION::Json& options);

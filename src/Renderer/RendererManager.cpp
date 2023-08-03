@@ -38,6 +38,10 @@ namespace Darius::Renderer
 {
 
 	bool												_initialized = false;
+	RendererType										ActiveRendererType;
+
+	// Settings
+	bool												HardwareRayTracing;
 
 	DUnorderedMap<DefaultResource, ResourceHandle>		DefaultResourceMap;
 
@@ -47,6 +51,8 @@ namespace Darius::Renderer
 	{
 		D_ASSERT(!_initialized);
 		_initialized = true;
+
+		D_H_OPTIONS_LOAD_BASIC_DEFAULT("Renderer.HardwareRayTracing", HardwareRayTracing, false);
 
 		// Initializing Resources
 		TextureResource::Register();
@@ -59,9 +65,14 @@ namespace Darius::Renderer
 
 		LoadDefaultResources();
 
+		ActiveRendererType = HardwareRayTracing ? RendererType::RayTracing : RendererType::Rasterization;
+
 		D_LIGHT_RAST::Initialize();
-		D_RENDERER_RAST::Initialize(settings);
-		D_RENDERER_RT::Initialize(settings);
+
+		if (ActiveRendererType == RendererType::Rasterization)
+			D_RENDERER_RAST::Initialize(settings);
+		else
+			D_RENDERER_RT::Initialize(settings);
 
 		// Registering components
 		BillboardRendererComponent::StaticConstructor();
@@ -76,9 +87,10 @@ namespace Darius::Renderer
 	{
 		D_ASSERT(_initialized);
 
-		D_RENDERER_RT::Shutdown();
-
-		D_RENDERER_RAST::Shutdown();
+		if (ActiveRendererType == RendererType::Rasterization)
+			D_RENDERER_RAST::Shutdown();
+		else
+			D_RENDERER_RT::Shutdown();
 
 		D_LIGHT_RAST::Shutdown();
 	}
@@ -256,34 +268,19 @@ namespace Darius::Renderer
 
 	}
 
-	// Helper method to clear the back buffers.
-	void Clear(D_GRAPHICS::GraphicsContext& context, D_GRAPHICS_BUFFERS::ColorBuffer& rt, D_GRAPHICS_BUFFERS::DepthBuffer& depthStencil, RECT bounds, std::wstring const& processName)
+	RendererType				GetActiveRendererType()
 	{
-
-		PIXBeginEvent(context.GetCommandList(), PIX_COLOR_DEFAULT, processName.c_str());
-
-		// Clear the views.
-		auto const rtvDescriptor = rt.GetRTV();
-		auto const dsvDescriptor = depthStencil.GetDSV();
-
-		// Set the viewport and scissor rect.
-		long width = bounds.right - bounds.left;
-		long height = bounds.bottom - bounds.top;
-		auto viewport = CD3DX12_VIEWPORT((float)bounds.left, (float)bounds.top, (float)width, (float)height, D3D12_MIN_DEPTH, D3D12_MAX_DEPTH);
-		auto scissorRect = CD3DX12_RECT(bounds.left, bounds.top, (long)width, (long)height);
-
-		context.ClearColor(rt, &scissorRect);
-		context.ClearDepth(depthStencil);
-		context.SetRenderTarget(rtvDescriptor, dsvDescriptor);
-		context.SetViewportAndScissor(viewport, scissorRect);
-
-		PIXEndEvent(context.GetCommandList());
+		return ActiveRendererType;
 	}
 
 #ifdef _D_EDITOR
 	bool OptionsDrawer(_IN_OUT_ D_SERIALIZATION::Json& options)
 	{
 		D_H_OPTION_DRAW_BEGIN();
+
+		D_H_OPTION_DRAW_CHECKBOX("Hardware Ray Tracing", "Renderer.HardwareRayTracing", HardwareRayTracing);
+
+		ImGui::Separator();
 
 		if (ImGui::CollapsingHeader("Rasterization"))
 		{

@@ -27,7 +27,7 @@ namespace Darius::Debug
 		static void FinalizeUpload();
 		static void Clear(bool clearCache = false);
 
-		static void GetRenderItems(D_RENDERER_RAST::MeshSorter& sorter);
+		static D_CONTAINERS::DVector<D_RENDERER::RenderItem> const& GetRenderItems();
 
 		static void DrawCube(D_MATH::Vector3 const& position, D_MATH::Quaternion const& rotation, D_MATH::Vector3 const& scale, double duration = 0.f, D_MATH::Color const& color = { 1.f, 1.f, 1.f, 1.f });
 		static void DrawSphere(D_MATH::Vector3 const& position, float radius, double duration = 0.f, D_MATH::Color const& color = { 1.f, 1.f, 1.f, 1.f });
@@ -43,7 +43,7 @@ namespace Darius::Debug
 		static INLINE void FinalizeUpload() {}
 		static INLINE void Clear(bool clearCache = false) {}
 
-		static INLINE void GetRenderItems(D_RENDERER_RAST::MeshSorter& sorter) {}
+		static INLINE D_CONTAINERS::DVector<D_RENDERER::RenderItem> const& GetRenderItems() { return {}; }
 
 		static INLINE void DrawCube(D_MATH::Vector3 const& position, D_MATH::Quaternion const& rotation, D_MATH::Vector3 const& scale, double duration = 0.f, D_MATH::Color const& color = { 1.f, 1.f, 1.f, 1.f }) {}
 		static INLINE void DrawCube(D_MATH::Vector3 const& position, float radius, double duration = 0.f, D_MATH::Color const& color = { 1.f, 1.f, 1.f, 1.f }) {}

@@ -75,6 +75,8 @@ namespace Darius::Debug
 		MeshConstantsCPU.Create(L"Debug Mesh Constant Upload Buffer", sizeof(D_RENDERER::MeshConstants) * MAX_DEBUG_DRAWS);
 		MeshConstantsGPU.Create(L"Debug Mesh Constant GPU Buffer", MAX_DEBUG_DRAWS, sizeof(D_RENDERER::MeshConstants));
 
+		DrawPending.reserve(500);
+
 #endif // _DEBUG
 
 	}
@@ -268,14 +270,12 @@ namespace Darius::Debug
 		context.Finish();
 	}
 
-	void DebugDraw::GetRenderItems(D_RENDERER_RAST::MeshSorter& sorter)
+	D_CONTAINERS::DVector<D_RENDERER::RenderItem> const& DebugDraw::GetRenderItems()
 	{
 		//D_LOG_DEBUG(DrawPending.size());
 		const std::lock_guard<std::mutex> lock(AdditionMutex);
-		for (auto const& item : DrawPending)
-		{
-			sorter.AddMesh(item, -1);
-		}
+		
+		return DrawPending;
 	}
 
 	void DebugDraw::Clear(bool clearCache)
