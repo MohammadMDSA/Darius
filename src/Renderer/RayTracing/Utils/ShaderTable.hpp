@@ -15,6 +15,17 @@ namespace Darius::Renderer::RayTracing
 
 namespace Darius::Renderer::RayTracing::Utils
 {
+	struct HitGroupSystemParameters
+	{
+		//D3D12_GPU_VIRTUAL_ADDRESS IndexBuffer;
+		//D3D12_GPU_VIRTUAL_ADDRESS VertexBuffer;
+	};
+
+	struct RayGenerationSystemParameters
+	{
+		D3D12_GPU_VIRTUAL_ADDRESS	AccelerationStructureBuffer;
+	};
+
 	class ShaderTable
 	{
 	public:
@@ -74,6 +85,13 @@ namespace Darius::Renderer::RayTracing::Utils
 		}
 
 		template <typename T>
+		void SetRayGenerationShaderParameters(UINT recordIndex, UINT offsetWithinRootSignature, T const& parameters)
+		{
+			const UINT shaderTableOffset = mRayGenShaderTableOffset;
+			WriteLocalShaderRecord(mRayGenShaderTableOffset, recordIndex, offsetWithinRootSignature, &parameters, sizeof(parameters));
+		}
+
+		template <typename T>
 		void SetCallableShaderParameters(UINT recordIndex, UINT inOffsetWithinRootSignature, const T& parameters)
 		{
 			const UINT shaderTableOffset = mCallableShaderTableOffset;
@@ -96,7 +114,11 @@ namespace Darius::Renderer::RayTracing::Utils
 
 		void SetHitGroupIdentifier(UINT recordIndex, D_GRAPHICS_SHADERS::ShaderIdentifier const& shaderIdentifier);
 
+		void SetHitGroupSystemParameters(UINT recordIndex, HitGroupSystemParameters const& params);
+
 		void SetRayGenIdentifiers(D_CONTAINERS::DVector<D_GRAPHICS_SHADERS::ShaderIdentifier> const& identifiers);
+
+		void SetRayGenSystemParameters(UINT recordIndex, RayGenerationSystemParameters const& params);
 
 		void SetDefaultMissShaderIdentifier(D_GRAPHICS_SHADERS::ShaderIdentifier const& shaderIdentifier);
 

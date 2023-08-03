@@ -140,6 +140,13 @@ namespace Darius::Renderer::RayTracing::Utils
 		WriteData(writeOffset, shaderIdentifier.Data, ShaderIdentifierSize);
 	}
 
+	void ShaderTable::SetHitGroupSystemParameters(UINT recordIndex, HitGroupSystemParameters const& params)
+	{
+		const UINT offsetWithinRootSignature = 0; // System parameters are always first in the RS.
+		const UINT shaderTableOffset = mHitGroupShaderTableOffset;
+		SetLocalShaderParameters(shaderTableOffset, recordIndex, offsetWithinRootSignature, params);
+	}
+
 	void ShaderTable::SetRayGenIdentifiers(D_CONTAINERS::DVector<D_GRAPHICS_SHADERS::ShaderIdentifier> const& identifiers)
 	{
 		D_ASSERT((UINT)identifiers.size() == mNumRayGenShaders);
@@ -147,6 +154,13 @@ namespace Darius::Renderer::RayTracing::Utils
 		{
 			SetRayGenIdentifier(Index, identifiers[Index]);
 		}
+	}
+
+	void ShaderTable::SetRayGenSystemParameters(UINT recordIndex, RayGenerationSystemParameters const& params)
+	{
+		const UINT offsetWithinRootSignature = 0; // System parameters are always first in the RS.
+		const UINT shaderTableOffset = mRayGenShaderTableOffset;
+		SetLocalShaderParameters(shaderTableOffset, recordIndex, offsetWithinRootSignature, params);
 	}
 
 	void ShaderTable::SetDefaultMissShaderIdentifier(D_GRAPHICS_SHADERS::ShaderIdentifier const& shaderIdentifier)
