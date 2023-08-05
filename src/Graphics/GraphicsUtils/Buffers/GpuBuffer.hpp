@@ -61,6 +61,13 @@ namespace Darius::Graphics::Utils::Buffers
         INLINE uint32_t GetElementSize() const { return mElementSize; }
 
     protected:
+        GpuBuffer(D3D12_RESOURCE_FLAGS flags) :
+            mResourceFlags(flags), mBufferSize(0), mElementCount(0), mElementSize(0)
+        {
+            mUAV.ptr = D3D12_GPU_VIRTUAL_ADDRESS_UNKNOWN;
+            mSRV.ptr = D3D12_GPU_VIRTUAL_ADDRESS_UNKNOWN;
+        }
+
         GpuBuffer(void) : mBufferSize(0), mElementCount(0), mElementSize(0)
         {
             mResourceFlags = D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS;
@@ -101,6 +108,9 @@ namespace Darius::Graphics::Utils::Buffers
     class ByteAddressBuffer : public GpuBuffer
     {
     public:
+        ByteAddressBuffer() : GpuBuffer() {}
+        ByteAddressBuffer(D3D12_RESOURCE_FLAGS flags) : GpuBuffer(flags) {}
+
         virtual void CreateDerivedViews(void) override;
     };
 

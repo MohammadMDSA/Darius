@@ -165,9 +165,12 @@ namespace Darius::Graphics::Utils::Buffers
         UAVDesc.Buffer.NumElements = (UINT)mBufferSize / 4;
         UAVDesc.Buffer.Flags = D3D12_BUFFER_UAV_FLAG_RAW;
 
-        if (mUAV.ptr == D3D12_GPU_VIRTUAL_ADDRESS_UNKNOWN)
-            mUAV = AllocateDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-        D_GRAPHICS_DEVICE::GetDevice()->CreateUnorderedAccessView(mResource.Get(), nullptr, &UAVDesc, mUAV);
+        if (mResourceFlags & D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS)
+        {
+            if (mUAV.ptr == D3D12_GPU_VIRTUAL_ADDRESS_UNKNOWN)
+                mUAV = AllocateDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+            D_GRAPHICS_DEVICE::GetDevice()->CreateUnorderedAccessView(mResource.Get(), nullptr, &UAVDesc, mUAV);
+        }
     }
 
     void StructuredBuffer::CreateDerivedViews(void)
