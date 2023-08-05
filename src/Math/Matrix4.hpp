@@ -117,7 +117,7 @@ namespace Darius::Math
 		static INLINE Matrix4 MakeProjection(float fov, float ratio, float nearP, float farP) { return Matrix4(DirectX::XMMatrixPerspectiveFovRH(fov, ratio, nearP, farP)); }
 		static INLINE Matrix4 MakeTranslation(Vector3 trans) { return Matrix4(DirectX::XMMatrixTranslationFromVector(trans)); }
 		static INLINE Matrix4 MakeTranslation(float x, float y, float z) { return Matrix4(DirectX::XMMatrixTranslation(x, y, z)); }
-		static INLINE Matrix4 Inverse(Matrix4 const& mat) { auto det = DirectX::XMMatrixDeterminant(mat); return Matrix4(DirectX::XMMatrixInverse(&det, mat)); }
+		static INLINE Matrix4 Inverse(Matrix4 const& mat) { return Matrix4(DirectX::XMMatrixInverse(nullptr, mat)); }
 		static INLINE Matrix4 Transpose(Matrix4 const& mat) { return Matrix4(DirectX::XMMatrixTranspose(mat.m_mat)); }
 
 		static const Matrix4 Identity;
