@@ -217,7 +217,7 @@ namespace Darius::Graphics::Utils
 				rayGen->Identifier.SetData(stateObjectProperties->GetShaderIdentifier(rayGen->GetName().c_str()));
 
 			// Hit groups
-			for (auto hitGroup : mHitGroups)
+			for (auto& hitGroup : mHitGroups)
 				hitGroup.Identifier.SetData(stateObjectProperties->GetShaderIdentifier(hitGroup.Name.c_str()));
 		}
 

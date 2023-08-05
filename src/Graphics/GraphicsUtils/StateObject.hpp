@@ -72,6 +72,8 @@ namespace Darius::Graphics::Utils
 			D_ASSERT(globalRT->IsFinalized());
 			mPipelineDesc.CreateSubobject<CD3DX12_GLOBAL_ROOT_SIGNATURE_SUBOBJECT>()->SetRootSignature(globalRT.get()->GetSignature());
 
+			mGlobalRootSignature = globalRT;
+
 			mCurrentIndex++; // For global root signature
 		}
 
