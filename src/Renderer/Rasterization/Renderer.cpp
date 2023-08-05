@@ -58,9 +58,6 @@ namespace Darius::Renderer::Rasterization
 	std::array<D_GRAPHICS_UTILS::RootSignature, (size_t)RootSignatureTypes::_numRootSig> RootSigns;
 	DVector<D_GRAPHICS_UTILS::GraphicsPSO> Psos;
 
-	DescriptorHeap										TextureHeap;
-	DescriptorHeap										SamplerHeap;
-
 	DescriptorHandle									CommonTexture;
 
 	D_RESOURCE::ResourceRef<TextureResource>			RadianceCubeMap({ L"Renderer" });
@@ -74,6 +71,10 @@ namespace Darius::Renderer::Rasterization
 
 	UINT16												ForcedPsoFlags;
 
+	// Heaps
+	DescriptorHeap										TextureHeap;
+	DescriptorHeap										SamplerHeap;
+
 	//////////////////////////////////////////////////////
 	// Options
 	bool												SeparateZPass = true;
@@ -82,6 +83,8 @@ namespace Darius::Renderer::Rasterization
 	// Functions
 	void BuildDefaultPSOs();
 	void BuildRootSignature();
+	void DrawSkybox(D_GRAPHICS::GraphicsContext& context, const D_MATH_CAMERA::BaseCamera& camera, D_GRAPHICS_BUFFERS::ColorBuffer& sceneColor, D_GRAPHICS_BUFFERS::DepthBuffer& sceneDepth, const D3D12_VIEWPORT& viewport, const D3D12_RECT& scissor);
+
 
 	void Clear(D_GRAPHICS::GraphicsContext& context, D_GRAPHICS_BUFFERS::ColorBuffer& rt, D_GRAPHICS_BUFFERS::DepthBuffer& depthStencil, RECT bounds, std::wstring const& processName = L"Clear");
 
@@ -96,8 +99,9 @@ namespace Darius::Renderer::Rasterization
 		BuildRootSignature();
 		BuildDefaultPSOs();
 
-		TextureHeap.Create(L"Scene Texture Descriptors", D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, 4096);
-		SamplerHeap.Create(L"Scene Sampler Descriptors", D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER, 2048);
+		// Creating heaps
+		TextureHeap.Create(L"Rasterization SRV, UAV, CBV  Descriptor Heap", D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, 4096);
+		SamplerHeap.Create(L"Rasterization Sampler  Descriptor Heap", D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER, 2048);
 
 		CommonTexture = TextureHeap.Alloc(8);
 
@@ -361,7 +365,7 @@ namespace Darius::Renderer::Rasterization
 
 	void Render(std::wstring const& jobId, SceneRenderContext& rContext, std::function<void()> postAntiAliasing)
 	{
-		auto& context = rContext.GraphicsContext;
+		auto& context = rContext.CommandContext.GetGraphicsContext();
 		MeshSorter sorter(MeshSorter::kDefault);
 
 		// Clearing depth and scene color textures
@@ -400,7 +404,7 @@ namespace Darius::Renderer::Rasterization
 		sorter.Sort();
 
 		if (rContext.DrawSkybox)
-			D_RENDERER_RAST::DrawSkybox(context, rContext.Camera, rContext.ColorBuffer, rContext.DepthBuffer, viewPort, scissor);
+			DrawSkybox(context, rContext.Camera, rContext.ColorBuffer, rContext.DepthBuffer, viewPort, scissor);
 
 		// Rendering depth
 		sorter.RenderMeshes(MeshSorter::kZPass, context, 0, rContext.Globals);
@@ -576,16 +580,6 @@ namespace Darius::Renderer::Rasterization
 		def[kCommonSRVs].InitAsDescriptorRange(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 10, 8, D3D12_SHADER_VISIBILITY_PIXEL);
 		def[kSkinMatrices].InitAsBufferSRV(20, D3D12_SHADER_VISIBILITY_VERTEX);
 		def.Finalize(L"Main Root Sig", D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT);
-	}
-
-	DescriptorHandle AllocateTextureDescriptor(UINT count)
-	{
-		return TextureHeap.Alloc(count);
-	}
-
-	DescriptorHandle AllocateSamplerDescriptor(UINT count)
-	{
-		return SamplerHeap.Alloc(count);
 	}
 
 	void SetIBLTextures(D_RESOURCE::ResourceRef<TextureResource>& diffuseIBL, D_RESOURCE::ResourceRef<TextureResource>& specularIBL)
@@ -1385,6 +1379,8 @@ namespace Darius::Renderer::Rasterization
 
 	UINT GetPso(PsoConfig const& psoConfig)
 	{
+		if (D_RENDERER::GetActiveRendererType() != D_RENDERER::RendererType::Rasterization)
+			return UINT_MAX;
 
 		if (psoConfig.PsoFlags & RenderItem::DepthOnly)
 			return GetDepthOnlyPso(psoConfig);
@@ -1395,6 +1391,16 @@ namespace Darius::Renderer::Rasterization
 	D_CONTAINERS::DVector<D_GRAPHICS_UTILS::GraphicsPSO> const& GetPsos()
 	{
 		return Psos;
+	}
+
+	DescriptorHandle AllocateTextureDescriptor(UINT count)
+	{
+		return TextureHeap.Alloc(count);
+	}
+
+	DescriptorHandle AllocateSamplerDescriptor(UINT count)
+	{
+		return SamplerHeap.Alloc(count);
 	}
 
 }
