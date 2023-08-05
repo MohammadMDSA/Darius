@@ -45,7 +45,7 @@ namespace Darius::Renderer::RayTracing::Utils
 		totalDataSize += initializer.NumMissRecords * mLocalRecordStride;
 		totalDataSize = D_MEMORY::AlignUp(totalDataSize, D3D12_RAYTRACING_SHADER_TABLE_BYTE_ALIGNMENT);
 
-		mTableData.reserve(totalDataSize);
+		mTableData.resize(totalDataSize);
 		ZeroMemory(mTableData.data(), totalDataSize);
 
 		mDefaultMissShaderSet = false;
@@ -225,8 +225,10 @@ namespace Darius::Renderer::RayTracing::Utils
 
 		D_ASSERT_M(mTableData.size(), "Shader table is expected to be initialized before copying to GPU.");
 
-		mTableBufferResource.Create(L"Shader Table", 1, (UINT)mTableData.size(), mTableData.data(), D3D12_RESOURCE_STATE_COPY_DEST);
+		mTableBufferResource.Create(L"Shader Table", 1, (UINT)mTableData.size(), mTableData.data());
 
-		context.TransitionResource(mTableBufferResource, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE, true);
+		context.TransitionResource(mTableBufferResource, D3D12_RESOURCE_STATE_GENERIC_READ, true);
+
+		mIsDirty = false;
 	}
 }

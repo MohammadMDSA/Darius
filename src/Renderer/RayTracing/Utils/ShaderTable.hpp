@@ -52,7 +52,8 @@ namespace Darius::Renderer::RayTracing::Utils
 			mHitGroupShaderTableOffset(0u),
 			mCallableShaderTableOffset(0u),
 			mDefaultMissShaderSet(0u),
-			mTableData(0)
+			mTableData(0),
+			mTableBufferResource(D3D12_RESOURCE_FLAG_NONE)
 		{
 		}
 
@@ -88,7 +89,7 @@ namespace Darius::Renderer::RayTracing::Utils
 		void SetRayGenerationShaderParameters(UINT recordIndex, UINT offsetWithinRootSignature, T const& parameters)
 		{
 			const UINT shaderTableOffset = mRayGenShaderTableOffset;
-			WriteLocalShaderRecord(mRayGenShaderTableOffset, recordIndex, offsetWithinRootSignature, &parameters, sizeof(parameters));
+			WriteLocalShaderRecord(mRayGenShaderTableOffset, recordIndex, ShaderIdentifierSize + offsetWithinRootSignature, &parameters, sizeof(parameters));
 		}
 
 		template <typename T>
