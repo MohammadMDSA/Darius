@@ -18,6 +18,8 @@ constexpr D3D12_RAYTRACING_ACCELERATION_STRUCTURE_BUILD_FLAGS StaticBLASBuildFla
 D3D12_RAYTRACING_ACCELERATION_STRUCTURE_BUILD_FLAG_PREFER_FAST_TRACE |
 D3D12_RAYTRACING_ACCELERATION_STRUCTURE_BUILD_FLAG_ALLOW_COMPACTION;
 
+using namespace D_GRAPHICS_BUFFERS;
+using namespace D_GRAPHICS_MEMORY;
 using namespace D_RENDERER_RT_UTILS;
 
 namespace Darius::Renderer::RayTracing
@@ -29,12 +31,17 @@ namespace Darius::Renderer::RayTracing
 	// Scene
 	std::unique_ptr<RayTracingScene>						RTScene;
 
-	// Renderers
+	// Pipelines
 	std::unique_ptr<Pipeline::SimpleRayTracingPipeline>		SimpleRayTracingRenderer;
+
+	// Heaps
+	DescriptorHeap											TextureHeap;
+	DescriptorHeap											SamplerHeap;
 
 	// Internal
 	bool													_initialized;
 	D_GRAPHICS_BUFFERS::ByteAddressBuffer					ColorCBV;
+	DescriptorHandle										SceneColorTextureDescriptor;
 
 	ALIGN_DECL_256 struct MeshConstants
 	{
@@ -49,6 +56,9 @@ namespace Darius::Renderer::RayTracing
 		// Loading Settings
 		D_H_OPTIONS_LOAD_BASIC_DEFAULT("RayTracing.MaxNumBottomLevelAS", MaxNumBottomLevelAS, 100000);
 
+		TextureHeap.Create(L"Ray Tracing SRV, UAV, CBV  Descriptor Heap", D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, 16384);
+		SamplerHeap.Create(L"Ray Tracing Sampler  Descriptor Heap", D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER, 1024);
+
 		RTScene = std::make_unique<RayTracingScene>(MaxNumBottomLevelAS, (UINT)RayTypes::Count);
 
 		SimpleRayTracingRenderer = std::make_unique<Pipeline::SimpleRayTracingPipeline>();
@@ -56,6 +66,8 @@ namespace Darius::Renderer::RayTracing
 
 		MeshConstants color = { { {1.f, 0.f, 0.f}, {0.f, 1.f, 0.f}, {0.f, 0.f, 1.f} } };
 		ColorCBV.Create(L"Simple Ray Tracing Color CBV", 1, sizeof(MeshConstants), &color);
+
+		SceneColorTextureDescriptor = TextureHeap.Alloc(1);
 	}
 
 	void Shutdown()
@@ -66,6 +78,9 @@ namespace Darius::Renderer::RayTracing
 
 		RTScene.reset();
 		SimpleRayTracingRenderer.reset();
+
+		TextureHeap.Destroy();
+		SamplerHeap.Destroy();
 	}
 
 	void Update()
@@ -100,7 +115,7 @@ namespace Darius::Renderer::RayTracing
 		}
 	}
 
-	void CreateFrameBindings(RayTracingCommandContext& context)
+	void CreateFrameBindings(RayTracingCommandContext& context, ColorBuffer& sceneColor)
 	{
 		D_PROFILING::ScopedTimer _prof(L"Create Frame Bindings");
 		auto const* stateObj = SimpleRayTracingRenderer->GetStateObject();
@@ -114,21 +129,28 @@ namespace Darius::Renderer::RayTracing
 			shaderTable->SetHitGroupParameters(i, 0, ColorCBV.GetGpuVirtualAddress());
 		}
 
-		shaderTable->CopyToGpu(context);
+		auto rayGenShader = SimpleRayTracingRenderer->GetStateObject()->GetRayGenerationShaders()[0];
 		
+		D_GRAPHICS_DEVICE::GetDevice()->CopyDescriptorsSimple(1u, SceneColorTextureDescriptor, sceneColor.GetUAV(), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+
+		shaderTable->SetRayGenerationShaderParameters(0, rayGenShader->GetLocalRootSignature()->GetRootParameterOffset(1), SceneColorTextureDescriptor.GetGpuPtr());
+
+		shaderTable->CopyToGpu(context);	
 	}
 
-	void Render(std::wstring const& jobId, SceneRenderContext& renderContext)
+	void Render(std::wstring const& jobId, SceneRenderContext& renderContext, std::function<void()> postAntiAliasing)
 	{
-		auto& context = renderContext.RayTracingContext;
+		RayTracingCommandContext& context = static_cast<RayTracingCommandContext&>(renderContext.CommandContext);
 		auto& renderTarget = renderContext.ColorBuffer;
 		auto const& camera = renderContext.Camera;
 
-		D_PROFILING::ScopedTimer _prof(L"Simple Ray Tracing Render");
+		D_PROFILING::ScopedTimer _prof(L"Simple Ray Tracing Render", context);
 
-		CreateFrameBindings(context);
+		RTScene->Build(context, nullptr, D_GRAPHICS_DEVICE::GetCurrentFrameResourceIndex(), false);
 
-		context.TransitionResource(renderTarget, D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
+		CreateFrameBindings(context, renderTarget);
+
+		context.TransitionResource(renderTarget, D3D12_RESOURCE_STATE_UNORDERED_ACCESS, true);
 
 		auto shaderTable = RTScene->FindExistingShaderTable(SimpleRayTracingRenderer->GetStateObject());
 		D_ASSERT(shaderTable);
@@ -140,6 +162,18 @@ namespace Darius::Renderer::RayTracing
 		rayTracingDesc.Depth = 1u;
 
 		context.GetComputeContext().SetRootSignature(*SimpleRayTracingRenderer->GetStateObject()->GetGlobalRootSignature());
+
+		context.SetDynamicConstantBufferView(0, sizeof(renderContext.Globals), &renderContext.Globals);
+
+		context.SetDescriptorHeap(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, TextureHeap.GetHeapPointer());
+		context.SetDescriptorHeap(D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER, SamplerHeap.GetHeapPointer());
+		context.SetPipelineState(*SimpleRayTracingRenderer->GetStateObject());
+
+		context.DispatchRays(&rayTracingDesc);
+
+
+		//if (postAntiAliasing)
+			//postAntiAliasing();
 	}
 
 #ifdef _D_EDITOR
@@ -152,5 +186,15 @@ namespace Darius::Renderer::RayTracing
 		D_H_OPTION_DRAW_END();
 	}
 #endif
+
+	DescriptorHandle AllocateTextureDescriptor(UINT count)
+	{
+		return TextureHeap.Alloc(count);
+	}
+
+	DescriptorHandle AllocateSamplerDescriptor(UINT count)
+	{
+		return SamplerHeap.Alloc(count);
+	}
 
 }
