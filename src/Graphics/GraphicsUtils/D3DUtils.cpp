@@ -175,20 +175,23 @@ namespace Darius::Graphics::Utils
 		if (isShaderLibrary)
 		{
 			//pszArgs.push_back(L"-Vd");
-			pszArgs.push_back(L"-Zi");						// Enable debug information
+			pszArgs.push_back(L"-Zpc");						// Enable debug information
 		}
 		else
 		{
 			pszArgs.push_back(L"-E");
 			pszArgs.push_back(entrypoint.c_str());			// Marking entrypoint
-			pszArgs.push_back(L"-Zpc");
+			pszArgs.push_back(L"-Zpc");						// Pack matrices in column-major order
 
 #ifdef _DEBUG
 			pszArgs.push_back(L"-Od");						// Disable optimizations
-			pszArgs.push_back(L"-Zi");						// Enable debug information
-			//pszArgs.push_back(L"-Zs");					// Enable debug information (slim format)
 #endif
 		}
+
+#ifdef _DEBUG
+		pszArgs.push_back(L"-Zi");							// Enable debug information
+		//pszArgs.push_back(L"-Zs");						// Enable debug information (slim format)
+#endif
 
 
 		//
@@ -349,11 +352,11 @@ namespace Darius::Graphics::Utils
 			//L"-Zpc",
 		};
 
-			//pszArgs.push_back(L"-Vd");
+		//pszArgs.push_back(L"-Vd");
 #ifdef _DEBUG
-			pszArgs.push_back(L"-Zi");				// Enable debug information
-			pszArgs.push_back(L"-Fd");						
-			pszArgs.push_back(pdbName.c_str());		// The file name of the pdb. This must either be supplied
+		pszArgs.push_back(L"-Zi");				// Enable debug information
+		pszArgs.push_back(L"-Fd");
+		pszArgs.push_back(pdbName.c_str());		// The file name of the pdb. This must either be supplied
 #endif
 
 		// Compile
