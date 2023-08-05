@@ -161,6 +161,8 @@ namespace Darius::Graphics::Utils
 
         ID3D12RootSignature* GetSignature() const { return mSignature; }
 
+        INLINE UINT                     GetRootParameterOffset(size_t index) const { return mRootParameterOffset[index] * 4; } // DWORD to byte
+
     protected:
 
         BOOL                            mFinalized;
@@ -170,6 +172,7 @@ namespace Darius::Graphics::Utils
         uint32_t                        mDescriptorTableBitMap; // One bit is set for root parameters that are non-sampler descriptor tables
         uint32_t                        mSamplerTableBitMap; // One bit is set for root parameters that are sampler descriptor tables
         uint32_t                        mDescriptorTableSize[16]; // Non-sampler descriptor tables need to know their descriptor count
+        UINT32                          mRootParameterOffset[16];
         std::unique_ptr<RootParameter[]> mParamArray;
         std::unique_ptr<D3D12_STATIC_SAMPLER_DESC[]> mSamplerArray;
         ID3D12RootSignature*            mSignature;

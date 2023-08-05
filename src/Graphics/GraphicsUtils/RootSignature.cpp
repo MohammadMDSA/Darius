@@ -136,7 +136,35 @@ namespace Darius::Graphics::Utils
 
 		// Calculating root parameters size
 		{
-			mTotalRootSignatureSizeInDWORDs = CalculateTotalRootSignatureSizeInDWORDs(RootDesc);
+			const UINT32 RootDescriptorTableCost = (RootDesc.Flags & D3D12_ROOT_SIGNATURE_FLAG_LOCAL_ROOT_SIGNATURE) ? RootDescriptorTableCostLocal : RootDescriptorTableCostGlobal;
+
+			UINT8 size = 0u;
+
+			// Loop through each root parameter and add its size to the total
+			for (UINT i = 0; i < RootDesc.NumParameters; i++)
+			{
+				mRootParameterOffset[i] = size;
+
+				const D3D12_ROOT_PARAMETER& param = RootDesc.pParameters[i];
+
+				switch (param.ParameterType)
+				{
+				case D3D12_ROOT_PARAMETER_TYPE_32BIT_CONSTANTS:
+					break;
+					size += RootConstantCost * param.Constants.Num32BitValues;
+				case D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE:
+					size += RootDescriptorTableCost;
+					break;
+				case D3D12_ROOT_PARAMETER_TYPE_CBV:
+				case D3D12_ROOT_PARAMETER_TYPE_UAV:
+				case D3D12_ROOT_PARAMETER_TYPE_SRV:
+					size += RootDescriptorCost;
+					break;
+				default:
+					break;
+				}
+			}
+			mTotalRootSignatureSizeInDWORDs = size;
 		}
 
 		ID3D12RootSignature** RSRef = nullptr;
