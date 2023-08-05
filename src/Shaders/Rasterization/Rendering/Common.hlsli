@@ -39,6 +39,7 @@ cbuffer cbPass : register(b1)
     float4x4 gInvProj;
     float4x4 gViewProj;
     float4x4 gInvViewProj;
+    float4x4 gInvViewProjEyeCenter;
     float4 gFrustumPlanes[6];
     float4 gShadowTexelSize;
     float3 gCameraPosW;
