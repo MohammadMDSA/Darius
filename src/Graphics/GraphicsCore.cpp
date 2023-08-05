@@ -374,6 +374,8 @@ namespace Darius::Graphics
 		return DescriptorAllocators[type].Allocate(count);
 	}
 
+
+
 	CommandListManager* GetCommandManager()
 	{
 		D_ASSERT(_initialized);
@@ -626,14 +628,14 @@ namespace Darius::Graphics
 				else if (shaderName.ends_with("HS"))
 					compiler = L"hs_6_2";
 				else if (shaderName.ends_with("Lib"))
-					compiler = L"lib_6_3";
+					compiler = L"lib_6_6";
 				else
 					return;
 
 
 				ComPtr<ID3DBlob> compiledShader;
 				if (compiler.starts_with(L"lib"))
-					compiledShader = CompileLibrary(path, compiler);
+					compiledShader = CompileShader(path, L"", compiler);
 				else
 					compiledShader = CompileShader(path, L"main", compiler);
 
