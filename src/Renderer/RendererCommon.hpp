@@ -22,6 +22,7 @@ namespace Darius::Renderer
 		DirectX::XMFLOAT4X4	InvProj;
 		DirectX::XMFLOAT4X4	ViewProj;
 		DirectX::XMFLOAT4X4	InvViewProj;
+		DirectX::XMFLOAT4X4 InvViewProjEyeCenter;
 		DirectX::XMFLOAT4	FrustumPlanes[6];
 		DirectX::XMFLOAT4	ShadowTexelSize = { 0.f, 0.f, 0.f, 0.f };
 		DirectX::XMFLOAT3	CameraPos;
@@ -170,7 +171,7 @@ namespace Darius::Renderer
 		D_GRAPHICS_BUFFERS::ColorBuffer&	AOHighQuality2;
 		D_GRAPHICS_BUFFERS::ColorBuffer&	AOHighQuality3;
 		D_GRAPHICS_BUFFERS::ColorBuffer&	AOHighQuality4;
-		D_GRAPHICS::GraphicsContext&		GraphicsContext;
+		D_GRAPHICS::CommandContext&			CommandContext;
 		D_MATH_CAMERA::Camera const&		Camera;
 		GlobalConstants&					Globals;
 		D_CONTAINERS::DVector<D_CONTAINERS::DVector<RenderItem> const*> const& AdditionalRenderItems;
