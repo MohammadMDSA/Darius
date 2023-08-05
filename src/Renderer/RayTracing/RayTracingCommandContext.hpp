@@ -5,6 +5,7 @@
 #include <Core/Containers/Vector.hpp>
 #include <Graphics/CommandContext.hpp>
 #include <Graphics/GraphicsUtils/Memory/DescriptorHeap.hpp>
+#include <Graphics/GraphicsUtils/StateObject.hpp>
 
 #ifndef D_RENDERER_RT
 #define D_RENDERER_RT Darius::Renderer::RayTracing
@@ -27,7 +28,22 @@ namespace Darius::Renderer::RayTracing
 
 		void BuildRaytracingBottomLevelAccelerationStructure(D_RENDERER_RT_UTILS::BottomLevelAccelerationStructure const& blas, D_GRAPHICS_BUFFERS::GpuBuffer const& scratch, D_CONTAINERS::DVector<D3D12_RAYTRACING_GEOMETRY_DESC> const& geometries, D3D12_RAYTRACING_ACCELERATION_STRUCTURE_BUILD_FLAGS buildFlags = D3D12_RAYTRACING_ACCELERATION_STRUCTURE_BUILD_FLAG_NONE, bool update = false);
 
-		INLINE void SetRootSignature(D_GRAPHICS_UTILS::RootSignature const& RootSig);
+		void SetRootSignature(D_GRAPHICS_UTILS::RootSignature const& RootSig);
+		void SetDynamicConstantBufferView(UINT RootIndex, size_t BufferSize, const void* BufferData);
+
+		INLINE void SetPipelineState(D_GRAPHICS_UTILS::StateObject const& stateObject)
+		{
+			reinterpret_cast<ID3D12GraphicsCommandList4*>(m_CommandList)->SetPipelineState1(stateObject.GetStateObject());
+
+		}
+
+		INLINE void DispatchRays(D3D12_DISPATCH_RAYS_DESC const* desc)
+		{
+			FlushResourceBarriers();
+			m_DynamicViewDescriptorHeap.CommitComputeRootDescriptorTables(m_CommandList);
+			m_DynamicSamplerDescriptorHeap.CommitComputeRootDescriptorTables(m_CommandList);
+			reinterpret_cast<ID3D12GraphicsCommandList4*>(m_CommandList)->DispatchRays(desc);
+		}
 
 	};
 
@@ -41,4 +57,15 @@ namespace Darius::Renderer::RayTracing
 		m_DynamicViewDescriptorHeap.ParseComputeRootSignature(RootSig);
 		m_DynamicSamplerDescriptorHeap.ParseComputeRootSignature(RootSig);
 	}
+
+
+	INLINE void RayTracingCommandContext::SetDynamicConstantBufferView(UINT RootIndex, size_t BufferSize, const void* BufferData)
+	{
+		D_ASSERT(BufferData != nullptr && D_MEMORY::IsAligned(BufferData, 16));
+		D_GRAPHICS_MEMORY::DynAlloc cb = m_CpuLinearAllocator.Allocate(BufferSize);
+		//SIMDMemCopy(cb.DataPtr, BufferData, Math::AlignUp(BufferSize, 16) >> 4);
+		memcpy(cb.DataPtr, BufferData, BufferSize);
+		m_CommandList->SetComputeRootConstantBufferView(RootIndex, cb.GpuAddress);
+	}
+
 }
