@@ -3,6 +3,8 @@
 
 #include "RayTracingCommandContext.hpp"
 
+#include "Renderer.hpp"
+
 #include <Graphics/GraphicsUtils/Profiling/Profiling.hpp>
 
 using namespace D_GRAPHICS_UTILS;
@@ -22,9 +24,13 @@ namespace Darius::Renderer::RayTracing
 		mInstancesUuid.resize(initialNumBLAS);
 		// One more for the default hit group
 		mCumulativeNumInstanceGeom.resize(initialNumBLAS + 1);
+		mCumulativeNumInstanceGeom[0] = 1;
 
-
-		InitializeTopLevelAS(D3D12_RAYTRACING_ACCELERATION_STRUCTURE_BUILD_FLAG_PREFER_FAST_TRACE, false, false, L"Top Level Acceleration Structure");
+		// Initializing TLAS
+		{
+			mTLASDescriptor = D_RENDERER_RT::AllocateTextureDescriptor(1);
+			InitializeTopLevelAS(D3D12_RAYTRACING_ACCELERATION_STRUCTURE_BUILD_FLAG_PREFER_FAST_TRACE, false, false, L"Top Level Acceleration Structure");
+		}
 	}
 
 	RayTracingScene::~RayTracingScene()
@@ -80,10 +86,10 @@ namespace Darius::Renderer::RayTracing
 		mInstancesUuid[instanceIndex] = bottomLevelASUuid;
 
 		// Calculating contribute to hit group index
-		UINT totalNumGeoms = mCumulativeNumInstanceGeom[instanceIndex]; // One index ahead for the default hit group
-		totalNumGeoms *= bottomLevelAS.GetNumGeometries();
+		UINT totalNumGeomsSoFar = mCumulativeNumInstanceGeom[instanceIndex]; // One index ahead for the default hit group
+		UINT totalNumGeoms = totalNumGeomsSoFar + bottomLevelAS.GetNumGeometries();
 		mCumulativeNumInstanceGeom[instanceIndex + 1] = totalNumGeoms;
-		UINT instanceContributionToHitGroupIndex = totalNumGeoms * mNumShaderSlotPerGeometrySegment;
+		UINT instanceContributionToHitGroupIndex = totalNumGeomsSoFar * mNumShaderSlotPerGeometrySegment;
 
 		instanceDesc.InstanceMask = instanceMask;
 		instanceDesc.InstanceContributionToHitGroupIndex = instanceContributionToHitGroupIndex;
@@ -118,14 +124,19 @@ namespace Darius::Renderer::RayTracing
 		mScratchResourceSize = std::max(mTLAS.RequiredScratchSize(), mScratchResourceSize);
 
 		mAccelerationStructureScratch.Create(L"Acceleration structure scratch resource", 1, (UINT32)mScratchResourceSize);
+
+		// Copying descriptor
+		D_GRAPHICS_DEVICE::GetDevice()->CopyDescriptorsSimple(1, mTLASDescriptor, mTLAS.GetSRV(), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+
 		mTLASSizeDirty = false;
 	}
 
 	ShaderTable* RayTracingScene::FindExistingShaderTable(RayTracingStateObject const* stateObject) const
 	{
-		auto foundShaderTable = mShaderTables.find(stateObject);
+		auto& tables = mShaderTables[D_GRAPHICS_DEVICE::GetCurrentFrameResourceIndex()];
+		auto foundShaderTable = tables.find(stateObject);
 
-		if (foundShaderTable == mShaderTables.end())
+		if (foundShaderTable == tables.end())
 			return nullptr;
 
 		return foundShaderTable->second;
@@ -160,10 +171,16 @@ namespace Darius::Renderer::RayTracing
 
 		for (UINT i = 0u; i < initializer.NumRayGenShaders; i++)
 		{
-			createdShaderTable->SetRayGenSystemParameters(i, { mTLAS.GetGpuVirtualAddress() });
+			createdShaderTable->SetRayGenSystemParameters(i, { mTLASDescriptor.GetGpuPtr() });
 		}
 
-		mShaderTables[stateObject] = createdShaderTable;
+		auto const& missShaders = stateObject->GetMissShaders();
+		for (UINT i = 0; i < initializer.NumMissRecords; i++)
+		{
+			createdShaderTable->SetMissIdentifier(i, missShaders.at(i)->Identifier);
+		}
+
+		mShaderTables[D_GRAPHICS_DEVICE::GetCurrentFrameResourceIndex()][stateObject] = createdShaderTable;
 
 		return createdShaderTable;
 	}
@@ -195,7 +212,7 @@ namespace Darius::Renderer::RayTracing
 
 					// Since a single scratch resource is reused, put a barrier in-between each call.
 					// PEFORMANCE tip: use separate scratch memory per BLAS build to allow a GPU driver to overlap build calls.
-					commandList.TransitionResource(bottomLevelAS, D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
+					commandList.InsertUAVBarrier(bottomLevelAS, true);
 				}
 			}
 		}
@@ -203,6 +220,7 @@ namespace Darius::Renderer::RayTracing
 		// Initialize TLAS again if necessary
 		if (mTLASSizeDirty)
 		{
+			D_GRAPHICS::GetCommandManager()->IdleGPU();
 			InitializeTopLevelAS(D3D12_RAYTRACING_ACCELERATION_STRUCTURE_BUILD_FLAG_PREFER_FAST_TRACE, false, false, L"Top Level Acceleration Structure");
 		}
 
@@ -212,8 +230,7 @@ namespace Darius::Renderer::RayTracing
 
 			bool performUpdate = false; // Always rebuild top-level Acceleration Structure.
 			mTLAS.Build(commandList, GetNumberOfBottomLevelASInstances(), mBottomLevelASInstanceDescs, frameIndex, mAccelerationStructureScratch, performUpdate);
-
-			commandList.TransitionResource(mTLAS, D3D12_RESOURCE_STATE_UNORDERED_ACCESS, true);
+			commandList.InsertUAVBarrier(mTLAS, true);
 		}
 	}
 
@@ -223,9 +240,9 @@ namespace Darius::Renderer::RayTracing
 		NumCallableShaderSlots = 0;
 		mNumBottomLevelASInstances = 0;
 
-		for (auto& table : mShaderTables)
+		for (auto& table : mShaderTables[D_GRAPHICS_DEVICE::GetCurrentFrameResourceIndex()])
 			delete table.second;
 
-		mShaderTables.clear();
+		mShaderTables[D_GRAPHICS_DEVICE::GetCurrentFrameResourceIndex()].clear();
 	}
 }

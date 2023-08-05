@@ -4,6 +4,7 @@
 #include "Utils/ShaderTable.hpp"
 
 #include <Graphics/GraphicsUtils/StateObject.hpp>
+#include <Graphics/GraphicsUtils/Memory/DescriptorHeap.hpp>
 
 #ifndef D_RENDERER_RT
 #define D_RENDERER_RT Darius::Renderer::RayTracing
@@ -45,6 +46,7 @@ namespace Darius::Renderer::RayTracing
 	private:
 
 		D_RENDERER_RT_UTILS::TopLevelAccelerationStructure mTLAS;
+		D_GRAPHICS_MEMORY::DescriptorHandle			mTLASDescriptor;
 		D_CONTAINERS::DMap<D_CORE::Uuid, D_RENDERER_RT_UTILS::BottomLevelAccelerationStructure> mVBottomLevelAS;
 		D_GRAPHICS_BUFFERS::StructuredUploadBuffer<D_RENDERER_RT_UTILS::BottomLevelAccelerationStructureInstanceDesc> mBottomLevelASInstanceDescs;
 		D_CONTAINERS::DVector<D_CORE::Uuid>			mInstancesUuid;
@@ -58,7 +60,7 @@ namespace Darius::Renderer::RayTracing
 		// for ith index, number of total geometries for each instance so far including ith
 		D_CONTAINERS::DVector<UINT>					mCumulativeNumInstanceGeom;
 
-		D_CONTAINERS::DUnorderedMap<D_GRAPHICS_UTILS::RayTracingStateObject const*, Utils::ShaderTable*> mShaderTables;
+		D_CONTAINERS::DUnorderedMap<D_GRAPHICS_UTILS::RayTracingStateObject const*, Utils::ShaderTable*> mShaderTables[D_GRAPHICS_DEVICE::gNumFrameResources];
 
 		bool										mTLASSizeDirty;
 	};
