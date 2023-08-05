@@ -19,7 +19,6 @@ using namespace D_GRAPHICS;
 using namespace D_GRAPHICS_UTILS;
 using namespace D_MATH;
 using namespace D_RENDERER;
-using namespace D_RENDERER_RAST;
 
 namespace Darius::Renderer
 {
@@ -135,7 +134,7 @@ namespace Darius::Renderer
 		// Whether pso index is not compatible with current pso flags
 		if (mMaterialPsoData.PsoIndexDirty)
 		{
-			PsoConfig config;
+			D_RENDERER_RAST::PsoConfig config;
 			config.PsoFlags = mMaterial->GetPsoFlags() | RenderItem::PointOnly | RenderItem::LineOnly;
 
 			config.PSIndex = GetShaderIndex("DefaultPS");

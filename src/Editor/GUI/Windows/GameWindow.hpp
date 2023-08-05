@@ -4,7 +4,7 @@
 
 #include <Graphics/GraphicsUtils/Buffers/ColorBuffer.hpp>
 #include <Graphics/GraphicsUtils/Buffers/DepthBuffer.hpp>
-#include <Renderer/Rasterization/Renderer.hpp>
+#include <Renderer/RendererManager.hpp>
 #include <Renderer/RendererCommon.hpp>
 
 namespace Darius::Editor::Gui::Windows

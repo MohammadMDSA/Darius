@@ -8,9 +8,10 @@
 #include <Graphics/GraphicsUtils/Buffers/ColorBuffer.hpp>
 #include <Graphics/GraphicsUtils/Buffers/DepthBuffer.hpp>
 #include <Graphics/GraphicsUtils/Memory/DescriptorHeap.hpp>
-#include <Renderer/Rasterization/Renderer.hpp>
+#include <Renderer/RendererManager.hpp>
 #include <Renderer/RendererCommon.hpp>
 #include <Renderer/Resources/BatchResource.hpp>
+#include <Renderer/Resources/TextureResource.hpp>
 #include <Scene/Scene.hpp>
 
 #include <iostream>
@@ -29,8 +30,6 @@ namespace Darius::Editor::Gui::Windows
 
 	private:
 		void CreateBuffers();
-
-		void AddWindowRenderItems(D_RENDERER_RAST::MeshSorter& sorter) const;
 
 		void CreateGrid(D_CONTAINERS::DVector<D_RENDERER::RenderItem>& items, int count);
 		void CalcGridLineConstants(D_CONTAINERS::DVector<D_RENDERER::MeshConstants>& constants, int count);

@@ -43,6 +43,7 @@ namespace Darius::Renderer
 	// Settings
 	bool												HardwareRayTracing;
 
+
 	DUnorderedMap<DefaultResource, ResourceHandle>		DefaultResourceMap;
 
 	void												LoadDefaultResources();
@@ -95,6 +96,35 @@ namespace Darius::Renderer
 		D_LIGHT_RAST::Shutdown();
 	}
 
+	void Update()
+	{
+		switch (ActiveRendererType)
+		{
+		case Darius::Renderer::RendererType::Rasterization:
+			D_RENDERER_RAST::Update();
+			break;
+		case Darius::Renderer::RendererType::RayTracing:
+			D_RENDERER_RT::Update();
+			break;
+		default:
+			D_ASSERT_M(true, "Update method not been implemented for this renderer type");
+		}
+	}
+
+	void Render(std::wstring const& jobId, SceneRenderContext& renderContext, std::function<void()> postAntiAliasing)
+	{
+		switch (ActiveRendererType)
+		{
+		case Darius::Renderer::RendererType::Rasterization:
+			D_RENDERER_RAST::Render(jobId, renderContext, postAntiAliasing);
+			break;
+		case Darius::Renderer::RendererType::RayTracing:
+			D_RENDERER_RT::Render(jobId, renderContext, postAntiAliasing);
+			break;
+		default:
+			D_ASSERT_M(true, "Render method not been implemented for this renderer type");
+		}
+	}
 
 	D_RESOURCE::ResourceHandle GetDefaultGraphicsResource(DefaultResource type)
 	{
@@ -272,6 +302,81 @@ namespace Darius::Renderer
 	{
 		return ActiveRendererType;
 	}
+
+	void SetIBLTextures(D_RESOURCE::ResourceRef<D_RENDERER::TextureResource>& diffuseIBL, D_RESOURCE::ResourceRef<D_RENDERER::TextureResource>& specularIBL)
+	{
+		switch (ActiveRendererType)
+		{
+		case Darius::Renderer::RendererType::Rasterization:
+			D_RENDERER_RAST::SetIBLTextures(diffuseIBL, specularIBL);
+			break;
+		case Darius::Renderer::RendererType::RayTracing:
+			break;
+		default:
+			D_ASSERT_M(true, "Set IBL Texture method not been implemented for this renderer type");
+		}
+	}
+
+	void SetIBLBias(float LODBias)
+	{
+		switch (ActiveRendererType)
+		{
+		case Darius::Renderer::RendererType::Rasterization:
+			D_RENDERER_RAST::SetIBLBias(LODBias);
+			break;
+		case Darius::Renderer::RendererType::RayTracing:
+			break;
+		default:
+			D_ASSERT_M(true, "Set IBL Bias method not been implemented for this renderer type");
+		}
+	}
+
+	void SetForceWireframe(bool val)
+	{
+		switch (ActiveRendererType)
+		{
+		case Darius::Renderer::RendererType::Rasterization:
+			D_RENDERER_RAST::SetForceWireframe(val);
+			break;
+		case Darius::Renderer::RendererType::RayTracing:
+			break;
+		default:
+			D_ASSERT_M(true, "Set IBL Bias method not been implemented for this renderer type");
+		}
+	}
+
+	DescriptorHandle AllocateTextureDescriptor(UINT count)
+	{
+		switch (ActiveRendererType)
+		{
+		case Darius::Renderer::RendererType::Rasterization:
+			return D_RENDERER_RAST::AllocateTextureDescriptor(count);
+			break;
+		case Darius::Renderer::RendererType::RayTracing:
+			return D_RENDERER_RT::AllocateTextureDescriptor(count);
+			break;
+		default:
+			D_ASSERT_M(true, "Allocate Texture Descriptor method not been implemented for this renderer type");
+			return DescriptorHandle();
+		}
+	}
+
+	DescriptorHandle AllocateSamplerDescriptor(UINT count)
+	{
+		switch (ActiveRendererType)
+		{
+		case Darius::Renderer::RendererType::Rasterization:
+			return D_RENDERER_RAST::AllocateSamplerDescriptor(count);
+			break;
+		case Darius::Renderer::RendererType::RayTracing:
+			return D_RENDERER_RT::AllocateSamplerDescriptor(count);
+			break;
+		default:
+			D_ASSERT_M(true, "Allocate Texture Descriptor method not been implemented for this renderer type");
+			return DescriptorHandle();
+		}
+	}
+
 
 #ifdef _D_EDITOR
 	bool OptionsDrawer(_IN_OUT_ D_SERIALIZATION::Json& options)

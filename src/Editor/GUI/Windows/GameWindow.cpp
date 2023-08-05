@@ -20,7 +20,6 @@ using namespace D_MATH;
 using namespace D_MATH_BOUNDS;
 using namespace D_GRAPHICS;
 using namespace D_RENDERER;
-using namespace D_RENDERER_RAST;
 using namespace DirectX;
 
 namespace Darius::Editor::Gui::Windows
@@ -160,7 +159,7 @@ namespace Darius::Editor::Gui::Windows
 			L"Game Window"
 		};
 
-		D_RENDERER_RAST::Render(L"Scene Window", rc, [context = &context, buffers = &postBuffers]()
+		D_RENDERER::Render(L"Scene Window", rc, [context = &context, buffers = &postBuffers]()
 			{
 				D_GRAPHICS_PP::Render(*buffers, (*context).GetComputeContext());
 			});
@@ -303,6 +302,8 @@ namespace Darius::Editor::Gui::Windows
 		temp = camera.GetProjMatrix(); // Proj
 		globals.Proj = temp;
 		globals.InvProj = Matrix4::Inverse(temp);
+		auto viewProjEyeCenter = temp * Matrix4::MakeLookToward(Vector3::Zero, camera.GetForwardVec(), camera.GetUpVec());
+		globals.InvViewProjEyeCenter = Matrix4::Transpose(Matrix4::Inverse(viewProjEyeCenter));
 
 		temp = camera.GetViewProjMatrix(); // View proj
 		globals.ViewProj = temp;

@@ -1,6 +1,6 @@
 #pragma once
 
-#include <Renderer/Rasterization/Renderer.hpp>
+#include <Renderer/RendererCommon.hpp>
 #include <Renderer/Resources/StaticMeshResource.hpp>
 #include <Renderer/Resources/BatchResource.hpp>
 #include <ResourceManager/ResourceManager.hpp>

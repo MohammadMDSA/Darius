@@ -28,7 +28,6 @@ using namespace D_GRAPHICS;
 using namespace D_MATH;
 using namespace D_MATH_BOUNDS;
 using namespace D_RENDERER;
-using namespace D_RENDERER_RAST;
 using namespace D_RENDERER_GEOMETRY;
 using namespace DirectX;
 
@@ -85,12 +84,12 @@ namespace Darius::Editor::Gui::Windows
 		mSkyboxDiff = D_RESOURCE::GetResource<D_RENDERER::TextureResource>(diffIBLHandle[0], this, L"Scene Window", rttr::type::get<SceneWindow>());
 		mSkyboxSpec = D_RESOURCE::GetResource<D_RENDERER::TextureResource>(specIBLHandle[0], this, L"Scene Window", rttr::type::get<SceneWindow>());
 
-		D_RENDERER_RAST::SetIBLTextures(
+		D_RENDERER::SetIBLTextures(
 			mSkyboxDiff,
 			mSkyboxSpec
 		);
 
-		D_RENDERER_RAST::SetIBLBias(0);
+		D_RENDERER::SetIBLBias(0);
 
 
 		// Styling the gizmo
@@ -159,6 +158,8 @@ namespace Darius::Editor::Gui::Windows
 		temp = mCamera.GetProjMatrix(); // Proj
 		globals.Proj = temp;
 		globals.InvProj = Matrix4::Inverse(temp);
+		auto viewProjEyeCenter = temp * Matrix4::MakeLookToward(Vector3::Zero, mCamera.GetForwardVec(), mCamera.GetUpVec());
+		globals.InvViewProjEyeCenter = Matrix4::Transpose(Matrix4::Inverse(viewProjEyeCenter));
 
 		temp = mCamera.GetViewProjMatrix(); // View proj
 		globals.ViewProj = temp;
@@ -191,7 +192,7 @@ namespace Darius::Editor::Gui::Windows
 		auto& context = GraphicsContext::Begin(L"Draw Scene Window");
 
 		DVector<DVector<RenderItem> const*> additional;
-		
+
 		// Draw grid
 		if (mDrawGrid)
 			additional.push_back(&mWindowRenderItems);
@@ -234,7 +235,7 @@ namespace Darius::Editor::Gui::Windows
 			additional,
 			mDrawSkybox
 		};
-		
+
 		// Post Processing
 		D_GRAPHICS_PP::PostProcessContextBuffers postBuffers =
 		{
@@ -251,9 +252,9 @@ namespace Darius::Editor::Gui::Windows
 			BloomUAV5,
 			L"Scene Window"
 		};
-		
 
-		D_RENDERER_RAST::Render(L"Scene Window", rc, [context = &context, buffers = &postBuffers]()
+
+		D_RENDERER::Render(L"Scene Window", rc, [context = &context, buffers = &postBuffers]()
 			{
 				D_GRAPHICS_PP::Render(*buffers, (*context).GetComputeContext());
 			});
@@ -379,11 +380,11 @@ namespace Darius::Editor::Gui::Windows
 					if (!mDrawSkybox)
 					{
 						auto invTex = D_RESOURCE::ResourceRef<D_RENDERER::TextureResource>();
-						D_RENDERER_RAST::SetIBLTextures(invTex, invTex);
+						D_RENDERER::SetIBLTextures(invTex, invTex);
 					}
 					else
 					{
-						D_RENDERER_RAST::SetIBLTextures(mSkyboxDiff, mSkyboxSpec);
+						D_RENDERER::SetIBLTextures(mSkyboxDiff, mSkyboxSpec);
 					}
 				}
 				if (preDrawSkybox)
@@ -402,7 +403,7 @@ namespace Darius::Editor::Gui::Windows
 						if (ImGui::Selectable(mForceWireframe ? selectedValue : unselectedValue, false, 0))
 						{
 							mForceWireframe = !mForceWireframe;
-							D_RENDERER_RAST::SetForceWireframe(mForceWireframe);
+							D_RENDERER::SetForceWireframe(mForceWireframe);
 						}
 
 					}
@@ -638,14 +639,6 @@ namespace Darius::Editor::Gui::Windows
 			item.MeshVsCBV += sizeof(MeshConstants);
 		}
 
-	}
-
-	void SceneWindow::AddWindowRenderItems(D_RENDERER_RAST::MeshSorter& sorter) const
-	{
-		for (auto& item : mWindowRenderItems)
-		{
-			sorter.AddMesh(item, 1);
-		}
 	}
 
 }

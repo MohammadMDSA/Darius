@@ -1,6 +1,7 @@
 #pragma once
 
-#include "Renderer/RendererCommon.hpp"
+#include "RendererCommon.hpp"
+#include "Resources/TextureResource.hpp"
 
 #include <Core/Serialization/Json.hpp>
 #include <ResourceManager/Resource.hpp>
@@ -49,6 +50,8 @@ namespace Darius::Renderer
 
 	void						Initialize(D_SERIALIZATION::Json const& settings);
 	void						Shutdown();
+	void						Update();
+	void						Render(std::wstring const& jobId, SceneRenderContext& renderContext, std::function<void()> postAntiAliasing = nullptr);
 
 #ifdef _D_EDITOR
 	bool						OptionsDrawer(_IN_OUT_ D_SERIALIZATION::Json& options);
@@ -56,7 +59,18 @@ namespace Darius::Renderer
 
 	RendererType				GetActiveRendererType();
 
-	
+	// Allocating from heaps
+	D_GRAPHICS_MEMORY::DescriptorHandle AllocateTextureDescriptor(UINT count = 1);
+	D_GRAPHICS_MEMORY::DescriptorHandle AllocateSamplerDescriptor(UINT count = 1);
+
+	// Set IBL properties
+	void						SetIBLTextures(D_RESOURCE::ResourceRef<D_RENDERER::TextureResource>& diffuseIBL, D_RESOURCE::ResourceRef<D_RENDERER::TextureResource>& specularIBL);
+	void						SetIBLBias(float LODBias);
+
+	// Set render options
+	void						SetForceWireframe(bool val);
+
+
 	D_RESOURCE::ResourceHandle	GetDefaultGraphicsResource(DefaultResource type);
 
 }

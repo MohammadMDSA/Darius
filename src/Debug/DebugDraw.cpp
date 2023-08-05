@@ -4,6 +4,7 @@
 #include <Core/TimeManager/TimeManager.hpp>
 #include <Graphics/GraphicsDeviceManager.hpp>
 #include <Renderer/RendererManager.hpp>
+#include <Renderer/Rasterization/Renderer.hpp>
 
 #include <mutex>
 

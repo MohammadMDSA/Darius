@@ -63,7 +63,7 @@ namespace Darius::Renderer
 			mParametersConstantsCPU.Create(L"Terrain Parameter Constants Buffer: " + GetName(), sizeof(TerrainParametersConstants));
 			mParametersConstantsGPU.Create(L"Terrain Parameter Constants Buffer: " + GetName(), 1, sizeof(TerrainParametersConstants));
 
-			mTexturesHeap = D_RENDERER_RAST::AllocateTextureDescriptor(1);
+			mTexturesHeap = D_RENDERER::AllocateTextureDescriptor(1);
 		}
 
 		if (!mHeightMap.IsValid())

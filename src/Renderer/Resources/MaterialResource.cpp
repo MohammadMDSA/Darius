@@ -209,8 +209,8 @@ namespace Darius::Renderer
 			mMaterialConstantsGPU.Create(L"Material Constants GPU Buffer: " + GetName(), 1, sizeof(MaterialConstants), &mMaterial);
 
 			// Update texture regions
-			mTexturesHeap = D_RENDERER_RAST::AllocateTextureDescriptor(kNumTextures);
-			mSamplerTable = D_RENDERER_RAST::AllocateSamplerDescriptor(kNumTextures);
+			mTexturesHeap = D_RENDERER::AllocateTextureDescriptor(kNumTextures);
+			mSamplerTable = D_RENDERER::AllocateSamplerDescriptor(kNumTextures);
 		}
 		D_CORE::CountedOwner countedOwner = *this;
 		countedOwner.ChangeCallback = [&]()

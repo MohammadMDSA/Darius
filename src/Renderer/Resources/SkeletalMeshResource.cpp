@@ -24,6 +24,9 @@ namespace Darius::Renderer
 		D_CONTAINERS::DVector<D_RENDERER_VERTEX::VertexPositionNormalTangentTextureSkinned> vertices;
 		D_CONTAINERS::DVector<std::uint16_t> indices;
 
+		vertices.reserve(data.MeshData.Vertices.size());
+		indices.reserve(data.MeshData.Indices32.size());
+
 		// Filling vertex and index data
 		for (int i = 0; i < data.MeshData.Vertices.size(); i++)
 		{
