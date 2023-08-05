@@ -71,6 +71,11 @@ namespace Darius::Renderer::RayTracing::Utils
         D3D12_RAYTRACING_GEOMETRY_FLAGS     Flags;
     };
 
+    struct GeometryVertexIndexViews
+    {
+        D_GRAPHICS_MEMORY::DescriptorHandle IndexVertexBufferSRV;
+    };
+
     struct BottomLevelAccelerationStructureInstanceDesc : public D3D12_RAYTRACING_INSTANCE_DESC
     {
         void                            SetTransform(D_MATH::Matrix4 const& transform);
@@ -98,6 +103,7 @@ namespace Darius::Renderer::RayTracing::Utils
 
     private:
         std::vector<D3D12_RAYTRACING_GEOMETRY_DESC> mGeometryDescs;
+        std::vector<GeometryVertexIndexViews>       mGeometryMeshViews;
         UINT                                        currentID = 0;
         std::vector<D3D12_RAYTRACING_GEOMETRY_DESC> mCacheGeometryDescs[D_GRAPHICS_DEVICE::gNumFrameResources];
         D_MATH::Matrix4                             mTransform;

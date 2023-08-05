@@ -2,6 +2,7 @@
 #include "AccelerationStructure.hpp"
 
 #include "Renderer/RayTracing/RayTracingCommandContext.hpp"
+#include "Renderer/RayTracing/Renderer.hpp"
 
 #include <Graphics/GraphicsUtils/Profiling/Profiling.hpp>
 
@@ -12,200 +13,225 @@ using namespace D_RENDERER_RT_UTILS;
 
 namespace Darius::Renderer::RayTracing::Utils
 {
-    void AccelerationStructure::CreateDerivedViews()
-    {
-        // Allocate resource for acceleration structures.
-        // Acceleration structures can only be placed in resources that are created in the default heap (or custom heap equivalent). 
-        // Default heap is OK since the application doesn’t need CPU read/write access to them. 
-        // The resources that will contain acceleration structures must be created in the state D3D12_RESOURCE_STATE_RAYTRACING_ACCELERATION_STRUCTURE, 
-        // and must have resource flag D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS. The ALLOW_UNORDERED_ACCESS requirement simply acknowledges both: 
-        //  - the system will be doing this type of access in its implementation of acceleration structure builds behind the scenes.
-        //  - from the app point of view, synchronization of writes/reads to acceleration structures is accomplished using UAV barriers.
-        // Buffer resources must have 64KB alignment which satisfies the AS resource requirement to have alignment of 256 (D3D12_RAYTRACING_ACCELERATION_STRUCTURE_BYTE_ALIGNMENT).
+	void AccelerationStructure::CreateDerivedViews()
+	{
+		// Allocate resource for acceleration structures.
+		// Acceleration structures can only be placed in resources that are created in the default heap (or custom heap equivalent). 
+		// Default heap is OK since the application doesn’t need CPU read/write access to them. 
+		// The resources that will contain acceleration structures must be created in the state D3D12_RESOURCE_STATE_RAYTRACING_ACCELERATION_STRUCTURE, 
+		// and must have resource flag D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS. The ALLOW_UNORDERED_ACCESS requirement simply acknowledges both: 
+		//  - the system will be doing this type of access in its implementation of acceleration structure builds behind the scenes.
+		//  - from the app point of view, synchronization of writes/reads to acceleration structures is accomplished using UAV barriers.
+		// Buffer resources must have 64KB alignment which satisfies the AS resource requirement to have alignment of 256 (D3D12_RAYTRACING_ACCELERATION_STRUCTURE_BYTE_ALIGNMENT).
 
-        D3D12_UNORDERED_ACCESS_VIEW_DESC UAVDesc = {};
-        UAVDesc.ViewDimension = D3D12_UAV_DIMENSION_BUFFER;
-        UAVDesc.Format = DXGI_FORMAT_UNKNOWN;
-        UAVDesc.Buffer.CounterOffsetInBytes = 0;
-        UAVDesc.Buffer.NumElements = mElementCount;
-        UAVDesc.Buffer.StructureByteStride = mElementSize;
-        UAVDesc.Buffer.Flags = D3D12_BUFFER_UAV_FLAG_NONE;
+		auto device = D_GRAPHICS_DEVICE::GetDevice();
 
-        if (mUAV.ptr == D3D12_GPU_VIRTUAL_ADDRESS_UNKNOWN)
-            mUAV = D_GRAPHICS::AllocateDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-        D_GRAPHICS_DEVICE::GetDevice()->CreateUnorderedAccessView(mResource.Get(), nullptr, &UAVDesc, mUAV);
-    }
+		D3D12_UNORDERED_ACCESS_VIEW_DESC UAVDesc = {};
+		UAVDesc.ViewDimension = D3D12_UAV_DIMENSION_BUFFER;
+		UAVDesc.Format = DXGI_FORMAT_UNKNOWN;
+		UAVDesc.Buffer.CounterOffsetInBytes = 0;
+		UAVDesc.Buffer.NumElements = mElementCount;
+		UAVDesc.Buffer.StructureByteStride = mElementSize;
+		UAVDesc.Buffer.Flags = D3D12_BUFFER_UAV_FLAG_NONE;
 
-    void AccelerationStructure::CreateAccelerationStructure()
-    {
+		if (mUAV.ptr == D3D12_GPU_VIRTUAL_ADDRESS_UNKNOWN)
+			mUAV = D_GRAPHICS::AllocateDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+		device->CreateUnorderedAccessView(mResource.Get(), nullptr, &UAVDesc, mUAV);
 
-        Create(mName, 1, (UINT32)mPrebuildInfo.ResultDataMaxSizeInBytes, nullptr, D3D12_RESOURCE_STATE_RAYTRACING_ACCELERATION_STRUCTURE);
-    }
+		D3D12_SHADER_RESOURCE_VIEW_DESC SRVDesc = {};
+		SRVDesc.ViewDimension = D3D12_SRV_DIMENSION_RAYTRACING_ACCELERATION_STRUCTURE;
+		SRVDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
+		SRVDesc.RaytracingAccelerationStructure.Location = GetGpuVirtualAddress();
 
-    void BottomLevelAccelerationStructure::UpdateGeometryDescsTransform(D3D12_GPU_VIRTUAL_ADDRESS baseGeometryTransformGPUAddress)
-    {
-        struct alignas(16) AlignedGeometryTransform3x4
-        {
-            float transform3x4[12];
-        };
+		if (mSRV.ptr == D3D12_GPU_VIRTUAL_ADDRESS_UNKNOWN)
+			mSRV = AllocateDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+		device->CreateShaderResourceView(nullptr, &SRVDesc, mSRV);
+	}
 
-        for (UINT i = 0; i < mGeometryDescs.size(); i++)
-        {
-            auto& geometryDesc = mGeometryDescs[i];
-            geometryDesc.Triangles.Transform3x4 = baseGeometryTransformGPUAddress + i * sizeof(AlignedGeometryTransform3x4);
-        }
-    }
+	void AccelerationStructure::CreateAccelerationStructure()
+	{
 
-    // Build geometry descs for bottom-level AS.
-    void BottomLevelAccelerationStructure::BuildGeometryDescs(BottomLevelAccelerationStructureGeometry const& bottomLevelASGeometry)
-    {
-        D3D12_RAYTRACING_GEOMETRY_DESC geometryDescTemplate = {};
-        geometryDescTemplate.Type = D3D12_RAYTRACING_GEOMETRY_TYPE_TRIANGLES;
-        geometryDescTemplate.Triangles.IndexFormat = D_RENDERER_GEOMETRY::Mesh::IndexFormat;
-        geometryDescTemplate.Triangles.VertexFormat = D_RENDERER_GEOMETRY::Mesh::VertexFormat;
-        
-        // TODO: Multiple geometries per buttom level acceleration buffer
-        //mGeometryDescs.reserve(bottomLevelASGeometry.m_geometryInstances.size());
-        /*for (auto& geometry : bottomLevelASGeometry.m_geometryInstances)
-        {
-            auto& geometryDesc = geometryDescTemplate;
-            geometryDescTemplate.Flags = geometry.geometryFlags;
-            geometryDesc.Triangles.IndexBuffer = geometry.ib.indexBuffer;
-            geometryDesc.Triangles.IndexCount = geometry.ib.count;
-            geometryDesc.Triangles.VertexBuffer = geometry.vb.vertexBuffer;
-            geometryDesc.Triangles.VertexCount = geometry.vb.count;
-            geometryDesc.Triangles.Transform3x4 = geometry.transform;
+		Create(mName, 1, (UINT32)mPrebuildInfo.ResultDataMaxSizeInBytes, nullptr, D3D12_RESOURCE_STATE_RAYTRACING_ACCELERATION_STRUCTURE);
+	}
 
-            mGeometryDescs.push_back(geometryDesc);
-        }*/
+	void BottomLevelAccelerationStructure::UpdateGeometryDescsTransform(D3D12_GPU_VIRTUAL_ADDRESS baseGeometryTransformGPUAddress)
+	{
+		struct alignas(16) AlignedGeometryTransform3x4
+		{
+			float transform3x4[12];
+		};
 
-        geometryDescTemplate.Flags = bottomLevelASGeometry.Flags;
-        geometryDescTemplate.Triangles.IndexBuffer = bottomLevelASGeometry.Mesh.IndexDataGpu.GetGpuVirtualAddress();
-        geometryDescTemplate.Triangles.IndexCount = bottomLevelASGeometry.Mesh.mNumTotalIndices;
-        geometryDescTemplate.Triangles.VertexBuffer = bottomLevelASGeometry.Mesh.VertexDataGpu.GetGpuVirtualAddressAndStride();
-        geometryDescTemplate.Triangles.VertexCount = bottomLevelASGeometry.Mesh.mNumTotalVertices;
-        mGeometryDescs.push_back(geometryDescTemplate);
-    }
+		for (UINT i = 0; i < mGeometryDescs.size(); i++)
+		{
+			auto& geometryDesc = mGeometryDescs[i];
+			geometryDesc.Triangles.Transform3x4 = baseGeometryTransformGPUAddress + i * sizeof(AlignedGeometryTransform3x4);
+		}
+	}
 
-    void BottomLevelAccelerationStructure::ComputePrebuildInfo()
-    {
-        // Get the size requirements for the scratch and AS buffers.
-        D3D12_BUILD_RAYTRACING_ACCELERATION_STRUCTURE_DESC bottomLevelBuildDesc = {};
-        D3D12_BUILD_RAYTRACING_ACCELERATION_STRUCTURE_INPUTS& bottomLevelInputs = bottomLevelBuildDesc.Inputs;
-        bottomLevelInputs.Type = D3D12_RAYTRACING_ACCELERATION_STRUCTURE_TYPE_BOTTOM_LEVEL;
-        bottomLevelInputs.DescsLayout = D3D12_ELEMENTS_LAYOUT_ARRAY;
-        bottomLevelInputs.Flags = mBuildFlags;
-        bottomLevelInputs.NumDescs = static_cast<UINT>(mGeometryDescs.size());
-        bottomLevelInputs.pGeometryDescs = mGeometryDescs.data();
+	// Build geometry descs for bottom-level AS.
+	void BottomLevelAccelerationStructure::BuildGeometryDescs(BottomLevelAccelerationStructureGeometry const& bottomLevelASGeometry)
+	{
+		D3D12_RAYTRACING_GEOMETRY_DESC geometryDescTemplate = {};
+		geometryDescTemplate.Type = D3D12_RAYTRACING_GEOMETRY_TYPE_TRIANGLES;
+		geometryDescTemplate.Triangles.IndexFormat = D_RENDERER_GEOMETRY::Mesh::IndexFormat;
+		geometryDescTemplate.Triangles.VertexFormat = D_RENDERER_GEOMETRY::Mesh::VertexFormat;
 
-        auto device = D_GRAPHICS_DEVICE::GetDevice5();
+		// TODO: Multiple geometries per buttom level acceleration buffer
+		//mGeometryDescs.reserve(bottomLevelASGeometry.m_geometryInstances.size());
+		/*for (auto& geometry : bottomLevelASGeometry.m_geometryInstances)
+		{
+			auto& geometryDesc = geometryDescTemplate;
+			geometryDescTemplate.Flags = geometry.geometryFlags;
+			geometryDesc.Triangles.IndexBuffer = geometry.ib.indexBuffer;
+			geometryDesc.Triangles.IndexCount = geometry.ib.count;
+			geometryDesc.Triangles.VertexBuffer = geometry.vb.vertexBuffer;
+			geometryDesc.Triangles.VertexCount = geometry.vb.count;
+			geometryDesc.Triangles.Transform3x4 = geometry.transform;
 
-        device->GetRaytracingAccelerationStructurePrebuildInfo(&bottomLevelInputs, &mPrebuildInfo);
-        D_HR_CHECK(mPrebuildInfo.ResultDataMaxSizeInBytes > 0);
-    }
+			mGeometryDescs.push_back(geometryDesc);
+		}*/
 
-    void BottomLevelAccelerationStructure::Initialize(
-        D3D12_RAYTRACING_ACCELERATION_STRUCTURE_BUILD_FLAGS buildFlags,
-        BottomLevelAccelerationStructureGeometry const& bottomLevelASGeometry,
-        bool allowUpdate,
-        bool bUpdateOnBuild)
-    {
-        mAllowUpdate = allowUpdate;
-        mUpdateOnBuild = bUpdateOnBuild;
+		GeometryVertexIndexViews gviv;
+		{
+			geometryDescTemplate.Flags = bottomLevelASGeometry.Flags;
+			geometryDescTemplate.Triangles.IndexBuffer = bottomLevelASGeometry.Mesh.IndexDataGpu.GetGpuVirtualAddress();
+			geometryDescTemplate.Triangles.IndexCount = bottomLevelASGeometry.Mesh.mNumTotalIndices;
+			geometryDescTemplate.Triangles.VertexBuffer = bottomLevelASGeometry.Mesh.VertexDataGpu.GetGpuVirtualAddressAndStride();
+			geometryDescTemplate.Triangles.VertexCount = bottomLevelASGeometry.Mesh.mNumTotalVertices;
 
-        mBuildFlags = buildFlags;
-        mUuid = bottomLevelASGeometry.Uuid;
+			// Allocating SRV for vertex and index buffer
+			gviv = { D_RENDERER_RT::AllocateTextureDescriptor(2) };
 
-        if (allowUpdate)
-        {
-            mBuildFlags |= D3D12_RAYTRACING_ACCELERATION_STRUCTURE_BUILD_FLAG_ALLOW_UPDATE;
-        }
+			UINT srcCount[] = { 1u, 1u };
+			UINT destCount = 2u;
 
-        BuildGeometryDescs(bottomLevelASGeometry);
-        ComputePrebuildInfo();
-        CreateAccelerationStructure();
+			D3D12_CPU_DESCRIPTOR_HANDLE srcDescriptors[] = { bottomLevelASGeometry.Mesh.IndexDataGpu.GetSRV(), bottomLevelASGeometry.Mesh.VertexDataGpu.GetSRV() };
 
-        mIsDirty = true;
-        mIsBuilt = false;
-    }
+			D_GRAPHICS_DEVICE::GetDevice()->CopyDescriptors(1, &gviv.IndexVertexBufferSRV, &destCount, 2, srcDescriptors, srcCount, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+		}
+		mGeometryDescs.push_back(geometryDescTemplate);
+		mGeometryMeshViews.push_back(gviv);
+	}
 
-    // The caller must add a UAV barrier before using the resource.
-    void BottomLevelAccelerationStructure::Build(
-        RayTracingCommandContext& commandList,
-        D_GRAPHICS_BUFFERS::GpuBuffer const& scratch,
-        D3D12_GPU_VIRTUAL_ADDRESS baseGeometryTransformGPUAddress)
-    {
-        D_HR_FORCE(mPrebuildInfo.ScratchDataSizeInBytes <= scratch.GetBufferSize(), L"Insufficient scratch buffer size provided!");
+	void BottomLevelAccelerationStructure::ComputePrebuildInfo()
+	{
+		// Get the size requirements for the scratch and AS buffers.
+		D3D12_BUILD_RAYTRACING_ACCELERATION_STRUCTURE_DESC bottomLevelBuildDesc = {};
+		D3D12_BUILD_RAYTRACING_ACCELERATION_STRUCTURE_INPUTS& bottomLevelInputs = bottomLevelBuildDesc.Inputs;
+		bottomLevelInputs.Type = D3D12_RAYTRACING_ACCELERATION_STRUCTURE_TYPE_BOTTOM_LEVEL;
+		bottomLevelInputs.DescsLayout = D3D12_ELEMENTS_LAYOUT_ARRAY;
+		bottomLevelInputs.Flags = mBuildFlags;
+		bottomLevelInputs.NumDescs = static_cast<UINT>(mGeometryDescs.size());
+		bottomLevelInputs.pGeometryDescs = mGeometryDescs.data();
 
-        if (baseGeometryTransformGPUAddress > 0)
-        {
-            UpdateGeometryDescsTransform(baseGeometryTransformGPUAddress);
-        }
+		auto device = D_GRAPHICS_DEVICE::GetDevice5();
 
-        currentID = (currentID + 1) % D_GRAPHICS_DEVICE::gNumFrameResources;
-        mCacheGeometryDescs[currentID].clear();
-        mCacheGeometryDescs[currentID].resize(mGeometryDescs.size());
-        copy(mGeometryDescs.begin(), mGeometryDescs.end(), mCacheGeometryDescs[currentID].begin());
+		device->GetRaytracingAccelerationStructurePrebuildInfo(&bottomLevelInputs, &mPrebuildInfo);
+		D_HR_CHECK(mPrebuildInfo.ResultDataMaxSizeInBytes > 0);
+	}
 
-        commandList.BuildRaytracingBottomLevelAccelerationStructure(*this, scratch, mCacheGeometryDescs[currentID], mBuildFlags, mIsBuilt && mAllowUpdate && mUpdateOnBuild);
+	void BottomLevelAccelerationStructure::Initialize(
+		D3D12_RAYTRACING_ACCELERATION_STRUCTURE_BUILD_FLAGS buildFlags,
+		BottomLevelAccelerationStructureGeometry const& bottomLevelASGeometry,
+		bool allowUpdate,
+		bool bUpdateOnBuild)
+	{
+		mAllowUpdate = allowUpdate;
+		mUpdateOnBuild = bUpdateOnBuild;
 
-        mIsDirty = false;
-        mIsBuilt = true;
-    }
+		mBuildFlags = buildFlags;
+		mUuid = bottomLevelASGeometry.Uuid;
 
-    void TopLevelAccelerationStructure::ComputePrebuildInfo(UINT numBottomLevelASInstanceDescs)
-    {
-        // Get the size requirements for the scratch and AS buffers.
-        D3D12_BUILD_RAYTRACING_ACCELERATION_STRUCTURE_DESC topLevelBuildDesc = {};
-        D3D12_BUILD_RAYTRACING_ACCELERATION_STRUCTURE_INPUTS& topLevelInputs = topLevelBuildDesc.Inputs;
-        topLevelInputs.Type = D3D12_RAYTRACING_ACCELERATION_STRUCTURE_TYPE_TOP_LEVEL;
-        topLevelInputs.DescsLayout = D3D12_ELEMENTS_LAYOUT_ARRAY;
-        topLevelInputs.Flags = mBuildFlags;
-        topLevelInputs.NumDescs = numBottomLevelASInstanceDescs;
+		if (allowUpdate)
+		{
+			mBuildFlags |= D3D12_RAYTRACING_ACCELERATION_STRUCTURE_BUILD_FLAG_ALLOW_UPDATE;
+		}
 
-        auto device = D_GRAPHICS_DEVICE::GetDevice5();
-        device->GetRaytracingAccelerationStructurePrebuildInfo(&topLevelInputs, &mPrebuildInfo);
-        D_HR_CHECK(mPrebuildInfo.ResultDataMaxSizeInBytes > 0);
-    }
+		BuildGeometryDescs(bottomLevelASGeometry);
+		ComputePrebuildInfo();
+		CreateAccelerationStructure();
 
-    void TopLevelAccelerationStructure::Initialize(
-        UINT maxNumBottomLevelASInstanceDescs,
-        D3D12_RAYTRACING_ACCELERATION_STRUCTURE_BUILD_FLAGS buildFlags,
-        bool allowUpdate,
-        bool bUpdateOnBuild,
-        const wchar_t* resourceName)
-    {
-        mAllowUpdate = allowUpdate;
-        mUpdateOnBuild = bUpdateOnBuild;
-        mBuildFlags = buildFlags;
-        mName = resourceName;
+		mIsDirty = true;
+		mIsBuilt = false;
+	}
 
-        if (allowUpdate)
-        {
-            mBuildFlags |= D3D12_RAYTRACING_ACCELERATION_STRUCTURE_BUILD_FLAG_ALLOW_UPDATE;
-        }
+	// The caller must add a UAV barrier before using the resource.
+	void BottomLevelAccelerationStructure::Build(
+		RayTracingCommandContext& commandList,
+		D_GRAPHICS_BUFFERS::GpuBuffer const& scratch,
+		D3D12_GPU_VIRTUAL_ADDRESS baseGeometryTransformGPUAddress)
+	{
+		D_HR_FORCE(mPrebuildInfo.ScratchDataSizeInBytes <= scratch.GetBufferSize(), L"Insufficient scratch buffer size provided!");
 
-        ComputePrebuildInfo(maxNumBottomLevelASInstanceDescs);
-        CreateAccelerationStructure();
+		if (baseGeometryTransformGPUAddress > 0)
+		{
+			UpdateGeometryDescsTransform(baseGeometryTransformGPUAddress);
+		}
 
-        mIsDirty = true;
-        mIsBuilt = false;
-    }
+		currentID = (currentID + 1) % D_GRAPHICS_DEVICE::gNumFrameResources;
+		mCacheGeometryDescs[currentID].clear();
+		mCacheGeometryDescs[currentID].resize(mGeometryDescs.size());
+		copy(mGeometryDescs.begin(), mGeometryDescs.end(), mCacheGeometryDescs[currentID].begin());
 
-    void TopLevelAccelerationStructure::Build(Darius::Renderer::RayTracing::RayTracingCommandContext& commandList, UINT numBottomLevelASInstanceDescs, D_GRAPHICS_BUFFERS::StructuredUploadBuffer <BottomLevelAccelerationStructureInstanceDesc> const& bottomLevelASnstanceDescs, UINT frameIndex, D_GRAPHICS_BUFFERS::GpuBuffer const& scratch, bool bUpdate)
-    {
-        commandList.BuildRaytracingTopLevelAccelerationStructure(*this, numBottomLevelASInstanceDescs, scratch, bottomLevelASnstanceDescs.GetGpuVirtualAddress(frameIndex), mBuildFlags, mIsBuilt && mAllowUpdate && mUpdateOnBuild && bUpdate);
-        mIsDirty = false;
-        mIsBuilt = true;
-    }
+		commandList.BuildRaytracingBottomLevelAccelerationStructure(*this, scratch, mCacheGeometryDescs[currentID], mBuildFlags, mIsBuilt && mAllowUpdate && mUpdateOnBuild);
 
-    void BottomLevelAccelerationStructureInstanceDesc::SetTransform(D_MATH::Matrix4 const& transform)
-    {
-        XMStoreFloat3x4(reinterpret_cast<DirectX::XMFLOAT3X4*>(Transform), transform);
-    }
+		mIsDirty = false;
+		mIsBuilt = true;
+	}
 
-    void BottomLevelAccelerationStructureInstanceDesc::GetTransform(D_MATH::Matrix4& transform) const
-    {
-        transform = D_MATH::Matrix4(XMLoadFloat3x4(reinterpret_cast<DirectX::XMFLOAT3X4 const*>(Transform)));
-    }
+	void TopLevelAccelerationStructure::ComputePrebuildInfo(UINT numBottomLevelASInstanceDescs)
+	{
+		// Get the size requirements for the scratch and AS buffers.
+		D3D12_BUILD_RAYTRACING_ACCELERATION_STRUCTURE_DESC topLevelBuildDesc = {};
+		D3D12_BUILD_RAYTRACING_ACCELERATION_STRUCTURE_INPUTS& topLevelInputs = topLevelBuildDesc.Inputs;
+		topLevelInputs.Type = D3D12_RAYTRACING_ACCELERATION_STRUCTURE_TYPE_TOP_LEVEL;
+		topLevelInputs.DescsLayout = D3D12_ELEMENTS_LAYOUT_ARRAY;
+		topLevelInputs.Flags = mBuildFlags;
+		topLevelInputs.NumDescs = numBottomLevelASInstanceDescs;
+
+		auto device = D_GRAPHICS_DEVICE::GetDevice5();
+		device->GetRaytracingAccelerationStructurePrebuildInfo(&topLevelInputs, &mPrebuildInfo);
+		D_HR_CHECK(mPrebuildInfo.ResultDataMaxSizeInBytes > 0);
+	}
+
+	void TopLevelAccelerationStructure::Initialize(
+		UINT maxNumBottomLevelASInstanceDescs,
+		D3D12_RAYTRACING_ACCELERATION_STRUCTURE_BUILD_FLAGS buildFlags,
+		bool allowUpdate,
+		bool bUpdateOnBuild,
+		const wchar_t* resourceName)
+	{
+		mAllowUpdate = allowUpdate;
+		mUpdateOnBuild = bUpdateOnBuild;
+		mBuildFlags = buildFlags;
+		mName = resourceName;
+
+		if (allowUpdate)
+		{
+			mBuildFlags |= D3D12_RAYTRACING_ACCELERATION_STRUCTURE_BUILD_FLAG_ALLOW_UPDATE;
+		}
+
+		ComputePrebuildInfo(maxNumBottomLevelASInstanceDescs);
+		CreateAccelerationStructure();
+
+		mIsDirty = true;
+		mIsBuilt = false;
+	}
+
+	void TopLevelAccelerationStructure::Build(Darius::Renderer::RayTracing::RayTracingCommandContext& commandList, UINT numBottomLevelASInstanceDescs, D_GRAPHICS_BUFFERS::StructuredUploadBuffer <BottomLevelAccelerationStructureInstanceDesc> const& bottomLevelASnstanceDescs, UINT frameIndex, D_GRAPHICS_BUFFERS::GpuBuffer const& scratch, bool bUpdate)
+	{
+		commandList.BuildRaytracingTopLevelAccelerationStructure(*this, numBottomLevelASInstanceDescs, scratch, bottomLevelASnstanceDescs.GetGpuVirtualAddress(frameIndex), mBuildFlags, mIsBuilt && mAllowUpdate && mUpdateOnBuild && bUpdate);
+		mIsDirty = false;
+		mIsBuilt = true;
+	}
+
+	void BottomLevelAccelerationStructureInstanceDesc::SetTransform(D_MATH::Matrix4 const& transform)
+	{
+		XMStoreFloat3x4(reinterpret_cast<DirectX::XMFLOAT3X4*>(Transform), transform);
+	}
+
+	void BottomLevelAccelerationStructureInstanceDesc::GetTransform(D_MATH::Matrix4& transform) const
+	{
+		transform = D_MATH::Matrix4(XMLoadFloat3x4(reinterpret_cast<DirectX::XMFLOAT3X4 const*>(Transform)));
+	}
 }
