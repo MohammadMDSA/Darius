@@ -1,7 +1,7 @@
 #include "Renderer/pch.hpp"
 #include "Renderer.hpp"
 
-#include "Pipelines/SimpleRayTracingRenderer.hpp"
+#include "Pipelines/PathTracingPipeline.hpp"
 #include "RayTracingScene.hpp"
 #include "Renderer/Components/MeshRendererComponent.hpp"
 
@@ -37,7 +37,7 @@ namespace Darius::Renderer::RayTracing
 	std::unique_ptr<RayTracingScene>						RTScene;
 
 	// Pipelines
-	std::unique_ptr<Pipeline::SimpleRayTracingPipeline>		SimpleRayTracingRenderer;
+	std::unique_ptr<Pipeline::PathTracingPipeline>			MainRenderPipeline;
 
 	// Heaps
 	DescriptorHeap											TextureHeap;
@@ -68,8 +68,8 @@ namespace Darius::Renderer::RayTracing
 
 		RTScene = std::make_unique<RayTracingScene>(MaxNumBottomLevelAS, (UINT)RayTypes::Count);
 
-		SimpleRayTracingRenderer = std::make_unique<Pipeline::SimpleRayTracingPipeline>();
-		SimpleRayTracingRenderer->Initialize(settings);
+		MainRenderPipeline = std::make_unique<Pipeline::PathTracingPipeline>();
+		MainRenderPipeline->Initialize(settings);
 
 		MeshConstants color;
 		color.colors[0] = { 1.f, 0.f, 0.f, 1.f };
@@ -90,10 +90,10 @@ namespace Darius::Renderer::RayTracing
 	{
 		D_ASSERT(_initialized);
 
-		SimpleRayTracingRenderer->Shutdown();
+		MainRenderPipeline->Shutdown();
 
 		RTScene.reset();
-		SimpleRayTracingRenderer.reset();
+		MainRenderPipeline.reset();
 
 		TextureHeap.Destroy();
 		SamplerHeap.Destroy();
@@ -138,13 +138,13 @@ namespace Darius::Renderer::RayTracing
 	void CreateGlobalBindings(RayTracingCommandContext& context, SceneRenderContext& renderContext, ShaderTable* shaderTable)
 	{
 		// System bindings
-		context.SetPipelineState(*SimpleRayTracingRenderer->GetStateObject());	context.SetRootSignature(*SimpleRayTracingRenderer->GetStateObject()->GetGlobalRootSignature());
+		context.SetPipelineState(*MainRenderPipeline->GetStateObject());	context.SetRootSignature(*MainRenderPipeline->GetStateObject()->GetGlobalRootSignature());
 		context.SetDescriptorHeap(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, TextureHeap.GetHeapPointer());
 		context.SetDescriptorHeap(D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER, SamplerHeap.GetHeapPointer());
 
 		// Resource bindings
 
-		context.SetDynamicConstantBufferView(SimpleRayTracing::GlobalRootSignatureBindings::GlobalConstants, sizeof(renderContext.Globals), &renderContext.Globals);
+		context.SetDynamicConstantBufferView(PathTracing::GlobalRootSignatureBindings::GlobalConstants, sizeof(renderContext.Globals), &renderContext.Globals);
 
 		// SRVs
 		DVector<D3D12_CPU_DESCRIPTOR_HANDLE> srvHandles;
@@ -164,20 +164,20 @@ namespace Darius::Renderer::RayTracing
 		UINT srvDestCount = 3;
 
 		D_GRAPHICS_DEVICE::GetDevice()->CopyDescriptors(1, &PathTracingCommonSRVs[D_GRAPHICS_DEVICE::GetCurrentFrameResourceIndex()], &srvDestCount, (UINT)srvHandles.size(), srvHandles.data(), srvSrcCount, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-		context.SetDescriptorTable(SimpleRayTracing::GlobalRootSignatureBindings::GlobalSRVTable, PathTracingCommonSRVs[D_GRAPHICS_DEVICE::GetCurrentFrameResourceIndex()]);
+		context.SetDescriptorTable(PathTracing::GlobalRootSignatureBindings::GlobalSRVTable, PathTracingCommonSRVs[D_GRAPHICS_DEVICE::GetCurrentFrameResourceIndex()]);
 	}
 
 	void CreateLocalBindings(RayTracingCommandContext& context, SceneRenderContext& renderContext, ShaderTable* shaderTable)
 	{
 		
 		// Ray Generation
-		auto rayGenShader = SimpleRayTracingRenderer->GetStateObject()->GetRayGenerationShaders()[0];
+		auto rayGenShader = MainRenderPipeline->GetStateObject()->GetRayGenerationShaders()[0];
 		D_GRAPHICS_DEVICE::GetDevice()->CopyDescriptorsSimple(1u, RayGenUAVs[D_GRAPHICS_DEVICE::GetCurrentFrameResourceIndex()], renderContext.ColorBuffer.GetUAV(), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 		shaderTable->SetRayGenerationShaderParameters(0, rayGenShader->GetLocalRootSignature()->GetRootParameterOffset(1), RayGenUAVs[D_GRAPHICS_DEVICE::GetCurrentFrameResourceIndex()].GetGpuPtr());
 
 
 		// Hit groups
-		auto hitGroup = SimpleRayTracingRenderer->GetStateObject()->GetHitGroups()[0];
+		auto hitGroup = MainRenderPipeline->GetStateObject()->GetHitGroups()[0];
 		for (UINT i = 0; i < RTScene->GetTotalNumberOfGeometrySegments() * (UINT)RayTypes::Count; i++)
 		{
 			shaderTable->SetHitGroupIdentifier(i, hitGroup.Identifier);
@@ -189,7 +189,7 @@ namespace Darius::Renderer::RayTracing
 	void CreateFrameBindings(RayTracingCommandContext& context, SceneRenderContext& renderContext)
 	{
 		D_PROFILING::ScopedTimer _prof(L"Create Frame Bindings");
-		auto const* stateObj = SimpleRayTracingRenderer->GetStateObject();
+		auto const* stateObj = MainRenderPipeline->GetStateObject();
 		auto shaderTable = RTScene->FindOrCreateShaderTable(stateObj);
 
 		CreateGlobalBindings(context, renderContext, shaderTable);
@@ -213,7 +213,7 @@ namespace Darius::Renderer::RayTracing
 
 		context.TransitionResource(renderTarget, D3D12_RESOURCE_STATE_UNORDERED_ACCESS, true);
 
-		auto shaderTable = RTScene->FindExistingShaderTable(SimpleRayTracingRenderer->GetStateObject());
+		auto shaderTable = RTScene->FindExistingShaderTable(MainRenderPipeline->GetStateObject());
 		D_ASSERT(shaderTable);
 
 		D3D12_DISPATCH_RAYS_DESC rayTracingDesc = shaderTable->GetDispatchRaysDesc(0u, true);
