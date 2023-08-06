@@ -19,3 +19,9 @@ struct Payload
 {
     XMFLOAT3 color;
 };
+
+#ifdef HLSL
+typedef uint NormalDepthTexFormat;
+#else
+#define COMPACT_NORMAL_DEPTH_DXGI_FORMAT DXGI_FORMAT_R32_UINT
+#endif

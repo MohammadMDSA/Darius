@@ -7,7 +7,7 @@
 #include <Graphics/GraphicsDeviceManager.hpp>
 #include <Graphics/GraphicsUtils/RootSignature.hpp>
 #include <Graphics/GraphicsUtils/Shaders.hpp>
-#include <Shaders/RayTracing/Rendering/Simple/RaytracingHlslCompat.h>
+#include <Shaders/RayTracing/RaytracingHlslCompat.h>
 
 using namespace D_GRAPHICS_UTILS;
 using namespace D_GRAPHICS_SHADERS;

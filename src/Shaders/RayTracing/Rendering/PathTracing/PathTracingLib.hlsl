@@ -1,6 +1,6 @@
 #define HLSL
 
-#include "./RaytracingHlslCompat.h"
+#include "../../RaytracingHlslCompat.h"
 
 // Common (static) samplers
 SamplerState        defaultSampler  : register(s10);
@@ -126,7 +126,7 @@ void MainRenderRayGen()
 [shader("miss")]
 void MainRenderMiss(inout Payload payload)
 {
-    payload.color = g_RadianceIBLTexture.SampleLevel(cubeMapSampler, WorldRayDirection(), 0), 1;
+    payload.color = g_RadianceIBLTexture.SampleLevel(cubeMapSampler, WorldRayDirection(), 0);
 }
 
 [shader("closesthit")]
