@@ -384,6 +384,11 @@ namespace Darius::Renderer
 		D_H_OPTION_DRAW_BEGIN();
 
 		D_H_OPTION_DRAW_CHECKBOX("Hardware Ray Tracing", "Renderer.HardwareRayTracing", HardwareRayTracing);
+		if ((HardwareRayTracing && ActiveRendererType != RendererType::RayTracing) || (!HardwareRayTracing && ActiveRendererType == RendererType::RayTracing))
+		{
+			ImGui::SameLine();
+			ImGui::TextColored({ 1.f, 1.f, 0.f, 1.f }, "You have to restart the engine for this option to take effect!");
+		}
 
 		ImGui::Separator();
 
