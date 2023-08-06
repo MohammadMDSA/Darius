@@ -28,7 +28,6 @@ namespace Darius::Renderer::RayTracing
 
 		// Initializing TLAS
 		{
-			mTLASDescriptor = D_RENDERER_RT::AllocateTextureDescriptor(1);
 			InitializeTopLevelAS(D3D12_RAYTRACING_ACCELERATION_STRUCTURE_BUILD_FLAG_PREFER_FAST_TRACE, false, false, L"Top Level Acceleration Structure");
 		}
 	}
@@ -125,9 +124,6 @@ namespace Darius::Renderer::RayTracing
 
 		mAccelerationStructureScratch.Create(L"Acceleration structure scratch resource", 1, (UINT32)mScratchResourceSize);
 
-		// Copying descriptor
-		D_GRAPHICS_DEVICE::GetDevice()->CopyDescriptorsSimple(1, mTLASDescriptor, mTLAS.GetSRV(), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-
 		mTLASSizeDirty = false;
 	}
 
@@ -168,11 +164,6 @@ namespace Darius::Renderer::RayTracing
 		std::transform(rayGenShaders.begin(), rayGenShaders.end(), std::back_inserter(rayGenIdentifiers), [](auto& rayGenShader) { return rayGenShader->Identifier; });
 
 		createdShaderTable->Init(initializer, device, rayGenIdentifiers, stateObject->GetHitGroups().front().Identifier);
-
-		for (UINT i = 0u; i < initializer.NumRayGenShaders; i++)
-		{
-			createdShaderTable->SetRayGenSystemParameters(i, { mTLASDescriptor.GetGpuPtr() });
-		}
 
 		auto const& missShaders = stateObject->GetMissShaders();
 		for (UINT i = 0; i < initializer.NumMissRecords; i++)

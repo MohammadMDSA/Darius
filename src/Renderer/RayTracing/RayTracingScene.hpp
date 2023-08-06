@@ -36,7 +36,7 @@ namespace Darius::Renderer::RayTracing
 		INLINE UINT64                   GetASMemoryFootprint() const { return mASmemoryFootprint; }
 		INLINE UINT                     GetNumberOfBottomLevelASInstances() const { return mNumBottomLevelASInstances; }
 		INLINE UINT						GetTotalNumberOfGeometrySegments() const { return mCumulativeNumInstanceGeom[mNumBottomLevelASInstances]; }
-		
+
 		UINT                            GetMaxInstanceContributionToHitGroupIndex() const;
 		void							Reset();
 
@@ -46,7 +46,6 @@ namespace Darius::Renderer::RayTracing
 	private:
 
 		D_RENDERER_RT_UTILS::TopLevelAccelerationStructure mTLAS;
-		D_GRAPHICS_MEMORY::DescriptorHandle			mTLASDescriptor;
 		D_CONTAINERS::DMap<D_CORE::Uuid, D_RENDERER_RT_UTILS::BottomLevelAccelerationStructure> mVBottomLevelAS;
 		D_GRAPHICS_BUFFERS::StructuredUploadBuffer<D_RENDERER_RT_UTILS::BottomLevelAccelerationStructureInstanceDesc> mBottomLevelASInstanceDescs;
 		D_CONTAINERS::DVector<D_CORE::Uuid>			mInstancesUuid;

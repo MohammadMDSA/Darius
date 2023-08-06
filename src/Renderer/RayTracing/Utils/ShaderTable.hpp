@@ -21,11 +21,6 @@ namespace Darius::Renderer::RayTracing::Utils
 		//D3D12_GPU_VIRTUAL_ADDRESS VertexBuffer;
 	};
 
-	struct RayGenerationSystemParameters
-	{
-		D3D12_GPU_VIRTUAL_ADDRESS	AccelerationStructureBuffer;
-	};
-
 	class ShaderTable
 	{
 	public:
@@ -52,8 +47,10 @@ namespace Darius::Renderer::RayTracing::Utils
 			mHitGroupShaderTableOffset(0u),
 			mCallableShaderTableOffset(0u),
 			mDefaultMissShaderSet(0u),
+			mLocalRecordStride(0u),
 			mTableData(0),
-			mTableBufferResource(D3D12_RESOURCE_FLAG_NONE)
+			mTableBufferResource(D3D12_RESOURCE_FLAG_NONE),
+			mIsDirty(true)
 		{
 		}
 
@@ -118,8 +115,6 @@ namespace Darius::Renderer::RayTracing::Utils
 		void SetHitGroupSystemParameters(UINT recordIndex, HitGroupSystemParameters const& params);
 
 		void SetRayGenIdentifiers(D_CONTAINERS::DVector<D_GRAPHICS_SHADERS::ShaderIdentifier> const& identifiers);
-
-		void SetRayGenSystemParameters(UINT recordIndex, RayGenerationSystemParameters const& params);
 
 		void SetDefaultMissShaderIdentifier(D_GRAPHICS_SHADERS::ShaderIdentifier const& shaderIdentifier);
 

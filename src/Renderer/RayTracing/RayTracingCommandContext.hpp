@@ -30,6 +30,14 @@ namespace Darius::Renderer::RayTracing
 
 		void SetRootSignature(D_GRAPHICS_UTILS::RootSignature const& RootSig);
 		void SetDynamicConstantBufferView(UINT RootIndex, size_t BufferSize, const void* BufferData);
+		void SetBufferSRV(UINT RootIndex, const D_GRAPHICS_BUFFERS::GpuBuffer& SRV, UINT64 Offset = 0);
+		void SetBufferUAV(UINT RootIndex, const D_GRAPHICS_BUFFERS::GpuBuffer& UAV, UINT64 Offset = 0);
+		void SetDescriptorTable(UINT RootIndex, D3D12_GPU_DESCRIPTOR_HANDLE FirstHandle);
+		void SetDynamicDescriptor(UINT RootIndex, UINT Offset, D3D12_CPU_DESCRIPTOR_HANDLE Handle);
+		void SetDynamicDescriptors(UINT RootIndex, UINT Offset, UINT Count, const D3D12_CPU_DESCRIPTOR_HANDLE Handles[]);
+		void SetDynamicSampler(UINT RootIndex, UINT Offset, D3D12_CPU_DESCRIPTOR_HANDLE Handle);
+		void SetDynamicSamplers(UINT RootIndex, UINT Offset, UINT Count, const D3D12_CPU_DESCRIPTOR_HANDLE Handles[]);
+		void SetDynamicSRV(UINT RootIndex, size_t BufferSize, const void* BufferData);
 
 		INLINE void SetPipelineState(D_GRAPHICS_UTILS::StateObject const& stateObject)
 		{
@@ -58,7 +66,6 @@ namespace Darius::Renderer::RayTracing
 		m_DynamicSamplerDescriptorHeap.ParseComputeRootSignature(RootSig);
 	}
 
-
 	INLINE void RayTracingCommandContext::SetDynamicConstantBufferView(UINT RootIndex, size_t BufferSize, const void* BufferData)
 	{
 		D_ASSERT(BufferData != nullptr && D_MEMORY::IsAligned(BufferData, 16));
@@ -66,6 +73,51 @@ namespace Darius::Renderer::RayTracing
 		//SIMDMemCopy(cb.DataPtr, BufferData, Math::AlignUp(BufferSize, 16) >> 4);
 		memcpy(cb.DataPtr, BufferData, BufferSize);
 		m_CommandList->SetComputeRootConstantBufferView(RootIndex, cb.GpuAddress);
+	}
+
+	INLINE void RayTracingCommandContext::SetBufferSRV(UINT RootIndex, const D_GRAPHICS_BUFFERS::GpuBuffer& SRV, UINT64 Offset)
+	{
+		D_ASSERT((SRV.GetUsageState() & D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE) != 0);
+		m_CommandList->SetComputeRootShaderResourceView(RootIndex, SRV.GetGpuVirtualAddress() + Offset);
+	}
+
+	INLINE void RayTracingCommandContext::SetBufferUAV(UINT RootIndex, const D_GRAPHICS_BUFFERS::GpuBuffer& UAV, UINT64 Offset)
+	{
+		D_ASSERT((UAV.GetUsageState() & D3D12_RESOURCE_STATE_UNORDERED_ACCESS) != 0);
+		m_CommandList->SetComputeRootUnorderedAccessView(RootIndex, UAV.GetGpuVirtualAddress() + Offset);
+	}
+
+	INLINE void RayTracingCommandContext::SetDescriptorTable(UINT RootIndex, D3D12_GPU_DESCRIPTOR_HANDLE FirstHandle)
+	{
+		m_CommandList->SetComputeRootDescriptorTable(RootIndex, FirstHandle);
+	}
+
+	INLINE void RayTracingCommandContext::SetDynamicDescriptor(UINT RootIndex, UINT Offset, D3D12_CPU_DESCRIPTOR_HANDLE Handle)
+	{
+		SetDynamicDescriptors(RootIndex, Offset, 1, &Handle);
+	}
+
+	INLINE void RayTracingCommandContext::SetDynamicDescriptors(UINT RootIndex, UINT Offset, UINT Count, const D3D12_CPU_DESCRIPTOR_HANDLE Handles[])
+	{
+		m_DynamicViewDescriptorHeap.SetComputeDescriptorHandles(RootIndex, Offset, Count, Handles);
+	}
+
+	INLINE void RayTracingCommandContext::SetDynamicSampler(UINT RootIndex, UINT Offset, D3D12_CPU_DESCRIPTOR_HANDLE Handle)
+	{
+		SetDynamicSamplers(RootIndex, Offset, 1, &Handle);
+	}
+
+	INLINE void RayTracingCommandContext::SetDynamicSamplers(UINT RootIndex, UINT Offset, UINT Count, const D3D12_CPU_DESCRIPTOR_HANDLE Handles[])
+	{
+		m_DynamicSamplerDescriptorHeap.SetComputeDescriptorHandles(RootIndex, Offset, Count, Handles);
+	}
+
+	INLINE void RayTracingCommandContext::SetDynamicSRV(UINT RootIndex, size_t BufferSize, const void* BufferData)
+	{
+		D_ASSERT(BufferData != nullptr && D_MEMORY::IsAligned(BufferData, 16));
+		D_GRAPHICS_MEMORY::DynAlloc cb = m_CpuLinearAllocator.Allocate(BufferSize);
+		D_MEMORY::SIMDMemCopy(cb.DataPtr, BufferData, D_MEMORY::AlignUp(BufferSize, 16) >> 4);
+		m_CommandList->SetComputeRootShaderResourceView(RootIndex, cb.GpuAddress);
 	}
 
 }

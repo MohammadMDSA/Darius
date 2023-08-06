@@ -28,4 +28,20 @@ namespace Darius::Renderer::RayTracing::Pipeline
 		std::unique_ptr<D_GRAPHICS_UTILS::RayTracingStateObject> mRTSO;
 
 	};
+
+	namespace SimpleRayTracing::GlobalRootSignatureBindings
+	{
+		enum slot : UINT
+		{
+			GlobalConstants = 0,
+			GlobalSRVTable,
+			// 0: TLAS
+			// 1: -
+			// 2: -
+			// 3: -
+			// 4: -
+
+			Count
+		};
+	}
 }

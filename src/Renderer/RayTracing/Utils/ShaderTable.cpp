@@ -156,13 +156,6 @@ namespace Darius::Renderer::RayTracing::Utils
 		}
 	}
 
-	void ShaderTable::SetRayGenSystemParameters(UINT recordIndex, RayGenerationSystemParameters const& params)
-	{
-		const UINT offsetWithinRootSignature = 0; // System parameters are always first in the RS.
-		const UINT shaderTableOffset = mRayGenShaderTableOffset;
-		SetLocalShaderParameters(shaderTableOffset, recordIndex, offsetWithinRootSignature, params);
-	}
-
 	void ShaderTable::SetDefaultMissShaderIdentifier(D_GRAPHICS_SHADERS::ShaderIdentifier const& shaderIdentifier)
 	{
 		// Set all slots to the same default

@@ -233,6 +233,8 @@ namespace Darius::Editor::Gui::Windows
 			mCamera,
 			mSceneGlobals,
 			additional,
+			mSkyboxSpec->GetTextureData(),
+			mSkyboxDiff->GetTextureData(),
 			mDrawSkybox
 		};
 

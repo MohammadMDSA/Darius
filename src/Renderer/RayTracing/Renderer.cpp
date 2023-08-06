@@ -6,8 +6,11 @@
 #include "Renderer/Components/MeshRendererComponent.hpp"
 
 #include <Core/Uuid.hpp>
+#include <Graphics/GraphicsUtils/Buffers/GpuBuffer.hpp>
+#include <Graphics/GraphicsUtils/Buffers/Texture.hpp>
 #include <Graphics/GraphicsUtils/Profiling/Profiling.hpp>
 #include <Renderer/Camera/CameraManager.hpp>
+#include <Renderer/RendererManager.hpp>
 #include <ResourceManager/ResourceManager.hpp>
 
 #ifdef _D_EDITOR
@@ -18,8 +21,10 @@ constexpr D3D12_RAYTRACING_ACCELERATION_STRUCTURE_BUILD_FLAGS StaticBLASBuildFla
 D3D12_RAYTRACING_ACCELERATION_STRUCTURE_BUILD_FLAG_PREFER_FAST_TRACE |
 D3D12_RAYTRACING_ACCELERATION_STRUCTURE_BUILD_FLAG_ALLOW_COMPACTION;
 
+using namespace D_CONTAINERS;
 using namespace D_GRAPHICS_BUFFERS;
 using namespace D_GRAPHICS_MEMORY;
+using namespace D_RENDERER_RT_PIPELINE;
 using namespace D_RENDERER_RT_UTILS;
 
 namespace Darius::Renderer::RayTracing
@@ -41,11 +46,13 @@ namespace Darius::Renderer::RayTracing
 	// Internal
 	bool													_initialized;
 	D_GRAPHICS_BUFFERS::ByteAddressBuffer					ColorCBV;
-	DescriptorHandle										SceneColorTextureDescriptor;
+	DescriptorHandle										PathTracingCommonSRVs[D_GRAPHICS_DEVICE::gNumFrameResources]; // 0: TLAS, 1: RadIBL, 2: IrradIBL
+	DescriptorHandle										RayGenUAVs[D_GRAPHICS_DEVICE::gNumFrameResources]; // 0: Color Render target
+	D_RESOURCE::ResourceRef<TextureResource>				BlackCubeTextureRes({ L"Rasterization Renderer" });
 
 	ALIGN_DECL_256 struct MeshConstants
 	{
-		DirectX::XMFLOAT3		colors[3];
+		DirectX::XMFLOAT4		colors[3];
 	};
 
 	void Initialize(D_SERIALIZATION::Json const& settings)
@@ -64,10 +71,19 @@ namespace Darius::Renderer::RayTracing
 		SimpleRayTracingRenderer = std::make_unique<Pipeline::SimpleRayTracingPipeline>();
 		SimpleRayTracingRenderer->Initialize(settings);
 
-		MeshConstants color = { { {1.f, 0.f, 0.f}, {0.f, 1.f, 0.f}, {0.f, 0.f, 1.f} } };
+		MeshConstants color;
+		color.colors[0] = { 1.f, 0.f, 0.f, 1.f };
+		color.colors[1] = { 0.f, 1.f, 0.f, 1.f };
+		color.colors[2] = { 0.f, 0.f, 1.f, 1.f };
 		ColorCBV.Create(L"Simple Ray Tracing Color CBV", 1, sizeof(MeshConstants), &color);
 
-		SceneColorTextureDescriptor = TextureHeap.Alloc(1);
+		for (int i = 0; i < D_GRAPHICS_DEVICE::gNumFrameResources; i++)
+		{
+			PathTracingCommonSRVs[i] = TextureHeap.Alloc(3);
+			RayGenUAVs[i] = TextureHeap.Alloc(3);
+		}
+		
+		BlackCubeTextureRes = D_RESOURCE::GetResource<TextureResource>(D_RENDERER::GetDefaultGraphicsResource(D_RENDERER::DefaultResource::TextureCubeMapBlack));
 	}
 
 	void Shutdown()
@@ -100,6 +116,10 @@ namespace Darius::Renderer::RayTracing
 			D_WORLD::IterateComponents<MeshRendererComponent>([scene = RTScene.get(), createBlasFunc = createStaticMeshBlas](D_RENDERER::MeshRendererComponent& comp)
 				{
 					auto const* meshRes = comp.GetMesh();
+
+					if (!meshRes)
+						return;
+
 					auto uuid = meshRes->GetUuid();
 					auto const* blas = scene->GetBottomLevelAS(uuid);
 
@@ -115,27 +135,68 @@ namespace Darius::Renderer::RayTracing
 		}
 	}
 
-	void CreateFrameBindings(RayTracingCommandContext& context, ColorBuffer& sceneColor)
+	void CreateGlobalBindings(RayTracingCommandContext& context, SceneRenderContext& renderContext, ShaderTable* shaderTable)
 	{
-		D_PROFILING::ScopedTimer _prof(L"Create Frame Bindings");
-		auto const* stateObj = SimpleRayTracingRenderer->GetStateObject();
-		auto shaderTable = RTScene->FindOrCreateShaderTable(stateObj);
-		
-		auto hitGroup = stateObj->GetHitGroups()[0];
+		// System bindings
+		context.SetPipelineState(*SimpleRayTracingRenderer->GetStateObject());	context.SetRootSignature(*SimpleRayTracingRenderer->GetStateObject()->GetGlobalRootSignature());
+		context.SetDescriptorHeap(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, TextureHeap.GetHeapPointer());
+		context.SetDescriptorHeap(D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER, SamplerHeap.GetHeapPointer());
 
+		// Resource bindings
+
+		context.SetDynamicConstantBufferView(SimpleRayTracing::GlobalRootSignatureBindings::GlobalConstants, sizeof(renderContext.Globals), &renderContext.Globals);
+
+		// SRVs
+		DVector<D3D12_CPU_DESCRIPTOR_HANDLE> srvHandles;
+		srvHandles.reserve(3);
+		srvHandles.push_back(RTScene->GetTopLevelAS().GetSRV());
+		if (renderContext.IrradianceIBL != nullptr && renderContext.RadianceIBL != nullptr)
+		{
+			srvHandles.push_back(renderContext.RadianceIBL->GetSRV());
+			srvHandles.push_back(renderContext.IrradianceIBL->GetSRV());
+		}
+		else
+		{
+			srvHandles.push_back(BlackCubeTextureRes->GetTextureData()->GetSRV());
+			srvHandles.push_back(BlackCubeTextureRes->GetTextureData()->GetSRV());
+		}
+		UINT srvSrcCount[] = { 1, 1, 1 };
+		UINT srvDestCount = 3;
+
+		D_GRAPHICS_DEVICE::GetDevice()->CopyDescriptors(1, &PathTracingCommonSRVs[D_GRAPHICS_DEVICE::GetCurrentFrameResourceIndex()], &srvDestCount, (UINT)srvHandles.size(), srvHandles.data(), srvSrcCount, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+		context.SetDescriptorTable(SimpleRayTracing::GlobalRootSignatureBindings::GlobalSRVTable, PathTracingCommonSRVs[D_GRAPHICS_DEVICE::GetCurrentFrameResourceIndex()]);
+	}
+
+	void CreateLocalBindings(RayTracingCommandContext& context, SceneRenderContext& renderContext, ShaderTable* shaderTable)
+	{
+		
+		// Ray Generation
+		auto rayGenShader = SimpleRayTracingRenderer->GetStateObject()->GetRayGenerationShaders()[0];
+		D_GRAPHICS_DEVICE::GetDevice()->CopyDescriptorsSimple(1u, RayGenUAVs[D_GRAPHICS_DEVICE::GetCurrentFrameResourceIndex()], renderContext.ColorBuffer.GetUAV(), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+		shaderTable->SetRayGenerationShaderParameters(0, rayGenShader->GetLocalRootSignature()->GetRootParameterOffset(1), RayGenUAVs[D_GRAPHICS_DEVICE::GetCurrentFrameResourceIndex()].GetGpuPtr());
+
+
+		// Hit groups
+		auto hitGroup = SimpleRayTracingRenderer->GetStateObject()->GetHitGroups()[0];
 		for (UINT i = 0; i < RTScene->GetTotalNumberOfGeometrySegments() * (UINT)RayTypes::Count; i++)
 		{
 			shaderTable->SetHitGroupIdentifier(i, hitGroup.Identifier);
 			shaderTable->SetHitGroupParameters(i, 0, ColorCBV.GetGpuVirtualAddress());
 		}
 
-		auto rayGenShader = SimpleRayTracingRenderer->GetStateObject()->GetRayGenerationShaders()[0];
-		
-		D_GRAPHICS_DEVICE::GetDevice()->CopyDescriptorsSimple(1u, SceneColorTextureDescriptor, sceneColor.GetUAV(), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+	}
 
-		shaderTable->SetRayGenerationShaderParameters(0, rayGenShader->GetLocalRootSignature()->GetRootParameterOffset(1), SceneColorTextureDescriptor.GetGpuPtr());
+	void CreateFrameBindings(RayTracingCommandContext& context, SceneRenderContext& renderContext)
+	{
+		D_PROFILING::ScopedTimer _prof(L"Create Frame Bindings");
+		auto const* stateObj = SimpleRayTracingRenderer->GetStateObject();
+		auto shaderTable = RTScene->FindOrCreateShaderTable(stateObj);
 
-		shaderTable->CopyToGpu(context);	
+		CreateGlobalBindings(context, renderContext, shaderTable);
+
+		CreateLocalBindings(context, renderContext, shaderTable);
+
+		shaderTable->CopyToGpu(context);
 	}
 
 	void Render(std::wstring const& jobId, SceneRenderContext& renderContext, std::function<void()> postAntiAliasing)
@@ -148,7 +209,7 @@ namespace Darius::Renderer::RayTracing
 
 		RTScene->Build(context, nullptr, D_GRAPHICS_DEVICE::GetCurrentFrameResourceIndex(), false);
 
-		CreateFrameBindings(context, renderTarget);
+		CreateFrameBindings(context, renderContext);
 
 		context.TransitionResource(renderTarget, D3D12_RESOURCE_STATE_UNORDERED_ACCESS, true);
 
@@ -160,14 +221,6 @@ namespace Darius::Renderer::RayTracing
 		rayTracingDesc.Width = renderTarget.GetWidth();
 		rayTracingDesc.Height = renderTarget.GetHeight();
 		rayTracingDesc.Depth = 1u;
-
-		context.GetComputeContext().SetRootSignature(*SimpleRayTracingRenderer->GetStateObject()->GetGlobalRootSignature());
-
-		context.SetDynamicConstantBufferView(0, sizeof(renderContext.Globals), &renderContext.Globals);
-
-		context.SetDescriptorHeap(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, TextureHeap.GetHeapPointer());
-		context.SetDescriptorHeap(D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER, SamplerHeap.GetHeapPointer());
-		context.SetPipelineState(*SimpleRayTracingRenderer->GetStateObject());
 
 		context.DispatchRays(&rayTracingDesc);
 

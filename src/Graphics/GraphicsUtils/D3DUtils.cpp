@@ -182,13 +182,11 @@ namespace Darius::Graphics::Utils
 			pszArgs.push_back(L"-E");
 			pszArgs.push_back(entrypoint.c_str());			// Marking entrypoint
 			pszArgs.push_back(L"-Zpc");						// Pack matrices in column-major order
-
-#ifdef _DEBUG
-			pszArgs.push_back(L"-Od");						// Disable optimizations
-#endif
 		}
 
 #ifdef _DEBUG
+		pszArgs.push_back(L"-Od");						// Disable optimizations
+
 		pszArgs.push_back(L"-Zi");							// Enable debug information
 		//pszArgs.push_back(L"-Zs");						// Enable debug information (slim format)
 #endif

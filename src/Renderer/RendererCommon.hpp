@@ -1,11 +1,13 @@
 #pragma once
 
 #include "Renderer/Geometry/Mesh.hpp"
+#include "Renderer/Resources/TextureResource.hpp"
 
 #include <Core/Containers/List.hpp>
 #include <Graphics/CommandContext.hpp>
 #include <Graphics/GraphicsUtils/Buffers/ColorBuffer.hpp>
 #include <Graphics/GraphicsUtils/Buffers/DepthBuffer.hpp>
+#include <Graphics/GraphicsUtils/Buffers/Texture.hpp>
 #include <Math/Camera/Camera.hpp>
 
 #ifndef D_RENDERER
@@ -175,6 +177,8 @@ namespace Darius::Renderer
 		D_MATH_CAMERA::Camera const&		Camera;
 		GlobalConstants&					Globals;
 		D_CONTAINERS::DVector<D_CONTAINERS::DVector<RenderItem> const*> const& AdditionalRenderItems;
+		D_GRAPHICS_BUFFERS::Texture const*	RadianceIBL;
+		D_GRAPHICS_BUFFERS::Texture const*	IrradianceIBL;
 
 		bool								DrawSkybox;
 	};

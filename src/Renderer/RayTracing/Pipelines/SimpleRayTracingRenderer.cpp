@@ -57,7 +57,7 @@ namespace Darius::Renderer::RayTracing::Pipeline
 
 		// Closest Hit Shader
 		std::shared_ptr<RootSignature> chRootSig = std::make_shared<RootSignature>(1);
-		(*chRootSig)[0].InitAsConstantBuffer(1, D3D12_SHADER_VISIBILITY_ALL);
+		(*chRootSig)[0].InitAsConstantBuffer(0, D3D12_SHADER_VISIBILITY_ALL, 2);
 		chRootSig->Finalize(L"Simple RayTracing Pipeling CH Root Sig", D3D12_ROOT_SIGNATURE_FLAG_LOCAL_ROOT_SIGNATURE);
 		std::shared_ptr<ClosestHitShader> chShader = std::make_shared<ClosestHitShader>(c_closestHitShaderName, c_libName, chRootSig);
 		RayTracingHitGroup hitGroup;
@@ -67,8 +67,8 @@ namespace Darius::Renderer::RayTracing::Pipeline
 
 		// Ray Generation Shader
 		std::shared_ptr<RootSignature> rayGenRootSig = std::make_shared<RootSignature>(2);
-		(*rayGenRootSig)[0].InitAsDescriptorRange(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 0, 5);
-		(*rayGenRootSig)[1].InitAsDescriptorRange(D3D12_DESCRIPTOR_RANGE_TYPE_UAV, 0, 5);
+		(*rayGenRootSig)[0].InitAsDescriptorRange(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 0, 5, D3D12_SHADER_VISIBILITY_ALL, 1);
+		(*rayGenRootSig)[1].InitAsDescriptorRange(D3D12_DESCRIPTOR_RANGE_TYPE_UAV, 0, 5, D3D12_SHADER_VISIBILITY_ALL, 1);
 		rayGenRootSig->Finalize(L"Simple RayTracing Pipeling RayGen Root Sig", D3D12_ROOT_SIGNATURE_FLAG_LOCAL_ROOT_SIGNATURE);
 		std::shared_ptr<RayGenerationShader> rayGenShader = std::make_shared<RayGenerationShader>(c_raygenShaderName, c_libName, rayGenRootSig);
 
@@ -85,8 +85,13 @@ namespace Darius::Renderer::RayTracing::Pipeline
 		mRTSO->AddRayGenerationShader(rayGenShader);
 
 		// Adding global root signature
-		std::shared_ptr<RootSignature> globalRootSig = std::make_shared<RootSignature>(1);
-		(*globalRootSig)[0].InitAsConstantBuffer(0);
+		std::shared_ptr<RootSignature> globalRootSig = std::make_shared<RootSignature>(SimpleRayTracing::GlobalRootSignatureBindings::Count, 3);
+		SamplerDesc defaultSamplerDesc;
+		globalRootSig->InitStaticSampler(10, defaultSamplerDesc); // Default sampler
+		globalRootSig->InitStaticSampler(11, defaultSamplerDesc); // Cube map sampler
+		globalRootSig->InitStaticSampler(12, D_GRAPHICS::SamplerLinearWrapDesc); // Linear wrap sampler
+		(*globalRootSig)[SimpleRayTracing::GlobalRootSignatureBindings::GlobalConstants].InitAsConstantBuffer(0, D3D12_SHADER_VISIBILITY_ALL, 0);
+		(*globalRootSig)[SimpleRayTracing::GlobalRootSignatureBindings::GlobalSRVTable].InitAsDescriptorRange(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 0, 5, D3D12_SHADER_VISIBILITY_ALL, 0);
 		globalRootSig->Finalize(L"Simple RayTracing Pipeling Globl Root Sig", D3D12_ROOT_SIGNATURE_FLAG_NONE);
 		mRTSO->SetGlobalRootSignature(globalRootSig);
 

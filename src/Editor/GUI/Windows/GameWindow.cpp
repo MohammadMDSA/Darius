@@ -139,6 +139,8 @@ namespace Darius::Editor::Gui::Windows
 			c,
 			mSceneGlobals,
 			{},
+			nullptr,
+			nullptr,
 			true
 		};
 

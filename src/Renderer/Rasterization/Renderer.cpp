@@ -60,9 +60,9 @@ namespace Darius::Renderer::Rasterization
 
 	DescriptorHandle									CommonTexture;
 
-	D_RESOURCE::ResourceRef<TextureResource>			RadianceCubeMap({ L"Renderer" });
-	D_RESOURCE::ResourceRef<TextureResource>			IrradianceCubeMap({ L"Renderer" });
-	D_RESOURCE::ResourceRef<TextureResource>			DefaultBlackCubeMap({ L"Renderer" });
+	D_RESOURCE::ResourceRef<TextureResource>			RadianceCubeMap({ L"Rasterization Renderer" });
+	D_RESOURCE::ResourceRef<TextureResource>			IrradianceCubeMap({ L"Rasterization Renderer" });
+	D_RESOURCE::ResourceRef<TextureResource>			DefaultBlackCubeMap({ L"Rasterization Renderer" });
 	float												SpecularIBLRange;
 	float												SpecularIBLBias = FLT_MAX;
 
