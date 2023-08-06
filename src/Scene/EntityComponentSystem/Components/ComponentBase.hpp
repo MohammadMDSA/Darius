@@ -224,9 +224,9 @@ namespace Darius::Scene::ECS::Components
     INLINE bool ComponentBase::CanChange() const
     {
 #ifdef _D_EDITOR
-        if (!D_WORLD::IsRunning() || GetGameObject()->GetType() != D_SCENE::GameObject::Type::Static)
+        if (!D_WORLD::IsRunning() || (GetGameObject() && GetGameObject()->GetType() != D_SCENE::GameObject::Type::Static))
 #else
-        if (GetGameObject()->GetType() != D_SCENE::GameObject::Type::Static)
+        if (GetGameObject() && GetGameObject()->GetType() != D_SCENE::GameObject::Type::Static)
 #endif
             return true;
         return false;
