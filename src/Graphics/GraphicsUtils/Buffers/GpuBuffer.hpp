@@ -35,7 +35,7 @@ namespace Darius::Graphics::Utils::Buffers
 
         INLINE D3D12_GPU_VIRTUAL_ADDRESS RootConstantBufferView(void) const { return mGpuVirtualAddress; }
 
-        INLINE D3D12_CPU_DESCRIPTOR_HANDLE CreateConstantBufferView(uint32_t Offset, uint32_t Size) const;
+        D3D12_CPU_DESCRIPTOR_HANDLE CreateConstantBufferView(uint32_t Offset, uint32_t Size, D3D12_CPU_DESCRIPTOR_HANDLE* handle = nullptr) const;
 
         INLINE D3D12_GPU_VIRTUAL_ADDRESS_AND_STRIDE GetGpuVirtualAddressAndStride() const
         {

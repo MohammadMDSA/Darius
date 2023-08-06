@@ -112,7 +112,7 @@ namespace Darius::Graphics::Utils::Buffers
 
     }
 
-    D3D12_CPU_DESCRIPTOR_HANDLE GpuBuffer::CreateConstantBufferView(uint32_t Offset, uint32_t Size) const
+    D3D12_CPU_DESCRIPTOR_HANDLE GpuBuffer::CreateConstantBufferView(uint32_t Offset, uint32_t Size, D3D12_CPU_DESCRIPTOR_HANDLE* handle) const
     {
         D_ASSERT(Offset + Size <= mBufferSize);
 
@@ -122,7 +122,12 @@ namespace Darius::Graphics::Utils::Buffers
         CBVDesc.BufferLocation = mGpuVirtualAddress + (size_t)Offset;
         CBVDesc.SizeInBytes = Size;
 
-        D3D12_CPU_DESCRIPTOR_HANDLE hCBV = AllocateDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+        D3D12_CPU_DESCRIPTOR_HANDLE hCBV;
+        if (handle == nullptr)
+            hCBV = AllocateDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+        else
+            hCBV = *handle;
+
         D_GRAPHICS_DEVICE::GetDevice()->CreateConstantBufferView(&CBVDesc, hCBV);
         return hCBV;
     }
