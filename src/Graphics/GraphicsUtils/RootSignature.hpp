@@ -161,7 +161,7 @@ namespace Darius::Graphics::Utils
 
         ID3D12RootSignature* GetSignature() const { return mSignature; }
 
-        INLINE UINT                     GetRootParameterOffset(size_t index) const { return mRootParameterOffset[index] * 4; } // DWORD to byte
+        INLINE UINT                     GetRootParameterOffset(UINT index) const { D_ASSERT(index < mNumParameters); return mRootParameterOffset[index] * 4; } // DWORD to byte
 
     protected:
 
