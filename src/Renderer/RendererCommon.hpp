@@ -68,8 +68,8 @@ namespace Darius::Renderer
 		int _pad1;
 		DirectX::XMFLOAT3			Emissive = { 0.f, 0.f, 0.f };
 		float						Metallic = 0.f;
-		float						Roughness = 0.f;
-		float						DisplacementAmount = 0.01f;
+		float						Roughness = 1.f;
+		float						DisplacementAmount = 0.f;
 		struct
 		{
 			UINT					TextureStatusMask : 16 = 0;
@@ -173,6 +173,8 @@ namespace Darius::Renderer
 		D_GRAPHICS_BUFFERS::ColorBuffer&	AOHighQuality2;
 		D_GRAPHICS_BUFFERS::ColorBuffer&	AOHighQuality3;
 		D_GRAPHICS_BUFFERS::ColorBuffer&	AOHighQuality4;
+		D_GRAPHICS_BUFFERS::ColorBuffer&	WorldPos;
+		D_GRAPHICS_BUFFERS::ColorBuffer&	NormalDepth;
 		D_GRAPHICS::CommandContext&			CommandContext;
 		D_MATH_CAMERA::Camera const&		Camera;
 		GlobalConstants&					Globals;

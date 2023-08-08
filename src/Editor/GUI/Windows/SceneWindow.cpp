@@ -141,6 +141,9 @@ namespace Darius::Editor::Gui::Windows
 		mAOHighQuality2.Destroy();
 		mAOHighQuality3.Destroy();
 		mAOHighQuality4.Destroy();
+
+		mWorldPos.Destroy();
+		mNormalDepth.Destroy();
 	}
 
 	void SceneWindow::UpdateGlobalConstants(GlobalConstants& globals)
@@ -229,6 +232,8 @@ namespace Darius::Editor::Gui::Windows
 			mAOHighQuality2,
 			mAOHighQuality3,
 			mAOHighQuality4,
+			mWorldPos,
+			mNormalDepth,
 			context,
 			mCamera,
 			mSceneGlobals,
@@ -588,6 +593,9 @@ namespace Darius::Editor::Gui::Windows
 		mAOHighQuality2.Create(L"Scene AO High Quality 2", bufferWidth2, bufferHeight2, 1, DXGI_FORMAT_R8_UNORM);
 		mAOHighQuality3.Create(L"Scene AO High Quality 3", bufferWidth3, bufferHeight3, 1, DXGI_FORMAT_R8_UNORM);
 		mAOHighQuality4.Create(L"Scene AO High Quality 4", bufferWidth4, bufferHeight4, 1, DXGI_FORMAT_R8_UNORM);
+
+		mWorldPos.Create(L"Scene World Pos", (UINT)mBufferWidth, (UINT)mBufferHeight, 1u, DXGI_FORMAT_R32G32B32A32_FLOAT);
+		mNormalDepth.Create(L"Scene Normal Depth", (UINT)mBufferWidth, (UINT)mBufferHeight, 1u, DXGI_FORMAT_R32_UINT);
 	}
 
 	void SceneWindow::CalcGridLineConstants(DVector<MeshConstants>& constants, int count)

@@ -89,6 +89,9 @@ namespace Darius::Editor::Gui::Windows
 		D_GRAPHICS_BUFFERS::ColorBuffer				mAOHighQuality3;
 		D_GRAPHICS_BUFFERS::ColorBuffer				mAOHighQuality4;
 
+		D_GRAPHICS_BUFFERS::ColorBuffer				mWorldPos;
+		D_GRAPHICS_BUFFERS::ColorBuffer				mNormalDepth;
+
 		D_GRAPHICS_MEMORY::DescriptorHandle			mTextureHandle;
 
 		D_RESOURCE::ResourceRef<D_RENDERER::BatchResource> mLineMeshResource;

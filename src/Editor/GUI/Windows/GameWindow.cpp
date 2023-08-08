@@ -82,6 +82,8 @@ namespace Darius::Editor::Gui::Windows
 		mAOHighQuality2.Destroy();
 		mAOHighQuality3.Destroy();
 		mAOHighQuality4.Destroy();
+		mWorldPos.Destroy();
+		mNormalDepth.Destroy();
 	}
 
 	void GameWindow::Render()
@@ -135,6 +137,8 @@ namespace Darius::Editor::Gui::Windows
 			mAOHighQuality2,
 			mAOHighQuality3,
 			mAOHighQuality4,
+			mWorldPos,
+			mNormalDepth,
 			context,
 			c,
 			mSceneGlobals,
@@ -280,6 +284,8 @@ namespace Darius::Editor::Gui::Windows
 		mAOHighQuality3.Create(L"Game AO High Quality 3", bufferWidth3, bufferHeight3, 1, DXGI_FORMAT_R8_UNORM);
 		mAOHighQuality4.Create(L"Game AO High Quality 4", bufferWidth4, bufferHeight4, 1, DXGI_FORMAT_R8_UNORM);
 
+		mWorldPos.Create(L"Game World Pos", (UINT)mBufferWidth, (UINT)mBufferHeight, 1u, DXGI_FORMAT_R32G32B32A32_FLOAT);
+		mNormalDepth.Create(L"Game Normal Depth", (UINT)mBufferWidth, (UINT)mBufferHeight, 1u, DXGI_FORMAT_R32_UINT);
 	}
 
 	bool GameWindow::UpdateGlobalConstants(GlobalConstants& globals)
