@@ -71,10 +71,10 @@ namespace Darius::Graphics::Utils::Buffers
             memcpy(mMappedBuffers + instanceIndex * GetNumElements(), &mStaging[0], GetBufferSize());
         }
 
-        auto Begin() { return mStaging.begin(); }
-        auto End() { return mStaging.end(); }
-        auto Begin() const { return mStaging.begin(); }
-        auto End() const { return mStaging.end(); }
+        auto begin() { return mStaging.begin(); }
+        auto end() { return mStaging.end(); }
+        auto begin() const { return mStaging.begin(); }
+        auto end() const { return mStaging.end(); }
 
         INLINE size_t GetNumElements() const { return mStaging.size(); }
         T& operator[](UINT elementIndex) { return mStaging[elementIndex]; }
