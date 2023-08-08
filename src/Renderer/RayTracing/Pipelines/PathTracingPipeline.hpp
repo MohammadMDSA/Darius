@@ -34,6 +34,7 @@ namespace Darius::Renderer::RayTracing::Pipeline
 		enum slot : UINT
 		{
 			GlobalConstants = 0,
+			GlobalRayTracingConstants,
 			GlobalSRVTable,
 			// 0: TLAS
 			// 1: -

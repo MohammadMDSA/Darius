@@ -51,12 +51,6 @@ cbuffer PerFrame : register(b0, space2)
     float3 A[3];
 }
 
-struct Ray
-{
-    float3 origin;
-    float3 direction;
-};
-
 inline Ray GenerateCameraRay(uint2 index, in float3 cameraPosition, in float4x4 projectionToWorldWithCameraAtOrigin, float2 jitter = float2(0, 0))
 {
     float2 xy = index + 0.5f; // center in the middle of the pixel.
@@ -70,10 +64,10 @@ inline Ray GenerateCameraRay(uint2 index, in float3 cameraPosition, in float4x4 
     float4 world = mul(float4(screenPos, 0, 1), projectionToWorldWithCameraAtOrigin);
 
     Ray ray;
-    ray.origin = cameraPosition;
+    ray.Origin = cameraPosition;
 	// Since the camera's eye was at 0,0,0 in projectionToWorldWithCameraAtOrigin 
 	// the world.xyz is the direction.
-    ray.direction = normalize(world.xyz);
+    ray.Direction = normalize(world.xyz);
 
     return ray;
 }
@@ -110,13 +104,13 @@ void rayGen()
     Ray ray = GenerateCameraRay(launchIndex.xy, g_CameraPosW, g_InvViewProjEyeCenter);
     
     RayDesc rayDesc;
-    rayDesc.Origin = ray.origin;
-    rayDesc.Direction = ray.direction;
+    rayDesc.Origin = ray.Origin;
+    rayDesc.Direction = ray.Direction;
 
     rayDesc.TMin = g_NearZ;
     rayDesc.TMax = g_FarZ;
 
-    Payload payload;
+    SimplePayload payload;
     TraceRay(g_RtScene, 0 /*rayFlags*/, 0xFF, 0 /* ray index*/, 0, 0, rayDesc, payload);
     float3 col = LinearToSrgb(payload.color);
     l_ColorOutput[launchIndex.xy] = float4(col, 1);
@@ -124,13 +118,13 @@ void rayGen()
 }
 
 [shader("miss")]
-void miss(inout Payload payload)
+void miss(inout SimplePayload payload)
 {
     payload.color = g_RadianceIBLTexture.SampleLevel(cubeMapSampler, WorldRayDirection(), 0);
 }
 
 [shader("closesthit")]
-void chs(inout Payload payload, in BuiltInTriangleIntersectionAttributes attribs)
+void chs(inout SimplePayload payload, in BuiltInTriangleIntersectionAttributes attribs)
 {
     payload.color = HitAttribute(A, attribs);
 }

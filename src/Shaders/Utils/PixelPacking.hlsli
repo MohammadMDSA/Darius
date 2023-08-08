@@ -18,5 +18,6 @@
 #include "PixelPacking_RGBE.hlsli"
 #include "PixelPacking_RGBM.hlsli"
 #include "PixelPacking_R11G11B10.hlsli"
+#include "PixelPacking_NormalDepth.hlsli"
 
 #endif // __PIXEL_PACKING_HLSLI__

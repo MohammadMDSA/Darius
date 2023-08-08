@@ -73,7 +73,7 @@ namespace Darius::Renderer::RayTracing::Pipeline
 		std::shared_ptr<RayGenerationShader> rayGenShader = std::make_shared<RayGenerationShader>(c_raygenShaderName, c_libName, rayGenRootSig);
 
 		// Adding shader config
-		mRTSO->SetShaderConfig<Payload>();
+		mRTSO->SetShaderConfig<SimplePayload>();
 
 		// Adding hit groupd
 		mRTSO->AddHitGroup(hitGroup);

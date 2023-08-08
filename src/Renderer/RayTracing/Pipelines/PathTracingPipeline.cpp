@@ -52,13 +52,17 @@ namespace Darius::Renderer::RayTracing::Pipeline
 
 		// Miss Shader
 		std::shared_ptr<RootSignature> missRootSig = std::make_shared<RootSignature>();
-		missRootSig->Finalize(L"Simple RayTracing Pipeling Miss Root Sig", D3D12_ROOT_SIGNATURE_FLAG_LOCAL_ROOT_SIGNATURE);
+		missRootSig->Finalize(L"Path Tracing Pipeling Miss Root Sig", D3D12_ROOT_SIGNATURE_FLAG_LOCAL_ROOT_SIGNATURE);
 		std::shared_ptr<MissShader> missShader = std::make_shared<MissShader>(c_missShaderName, c_libName, missRootSig);
 
 		// Closest Hit Shader
-		std::shared_ptr<RootSignature> chRootSig = std::make_shared<RootSignature>(1);
-		(*chRootSig)[0].InitAsConstantBuffer(0, D3D12_SHADER_VISIBILITY_ALL, 2);
-		chRootSig->Finalize(L"Simple RayTracing Pipeling CH Root Sig", D3D12_ROOT_SIGNATURE_FLAG_LOCAL_ROOT_SIGNATURE);
+		std::shared_ptr<RootSignature> chRootSig = std::make_shared<RootSignature>(5);
+		(*chRootSig)[0].InitAsDescriptorRange(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 10, 2, D3D12_SHADER_VISIBILITY_ALL, 2);				// Mesh Vertices Data
+		(*chRootSig)[1].InitAsConstantBuffer(0, D3D12_SHADER_VISIBILITY_ALL, 2);													// Mesh Constants
+		(*chRootSig)[2].InitAsConstantBuffer(1, D3D12_SHADER_VISIBILITY_ALL, 2);													// Material Constants
+		(*chRootSig)[3].InitAsDescriptorRange(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 0, 10, D3D12_SHADER_VISIBILITY_ALL, 2);				// Material Textures
+		(*chRootSig)[4].InitAsDescriptorRange(D3D12_DESCRIPTOR_RANGE_TYPE_SAMPLER, 0, 10, D3D12_SHADER_VISIBILITY_ALL, 2);			// Material Texture Samplers
+		chRootSig->Finalize(L"Path Tracing Pipeling CH Root Sig", D3D12_ROOT_SIGNATURE_FLAG_LOCAL_ROOT_SIGNATURE);
 		std::shared_ptr<ClosestHitShader> chShader = std::make_shared<ClosestHitShader>(c_closestHitShaderName, c_libName, chRootSig);
 		RayTracingHitGroup hitGroup;
 		hitGroup.Type = D3D12_HIT_GROUP_TYPE_TRIANGLES;
@@ -66,14 +70,13 @@ namespace Darius::Renderer::RayTracing::Pipeline
 		hitGroup.ClosestHitShader = chShader;
 
 		// Ray Generation Shader
-		std::shared_ptr<RootSignature> rayGenRootSig = std::make_shared<RootSignature>(2);
-		(*rayGenRootSig)[0].InitAsDescriptorRange(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 0, 5, D3D12_SHADER_VISIBILITY_ALL, 1);
-		(*rayGenRootSig)[1].InitAsDescriptorRange(D3D12_DESCRIPTOR_RANGE_TYPE_UAV, 0, 5, D3D12_SHADER_VISIBILITY_ALL, 1);
-		rayGenRootSig->Finalize(L"Simple RayTracing Pipeling RayGen Root Sig", D3D12_ROOT_SIGNATURE_FLAG_LOCAL_ROOT_SIGNATURE);
+		std::shared_ptr<RootSignature> rayGenRootSig = std::make_shared<RootSignature>(1);
+		(*rayGenRootSig)[0].InitAsDescriptorRange(D3D12_DESCRIPTOR_RANGE_TYPE_UAV, 0, 5, D3D12_SHADER_VISIBILITY_ALL, 1);							// Outputs and Gbuffers
+		rayGenRootSig->Finalize(L"Path Tracing Pipeling RayGen Root Sig", D3D12_ROOT_SIGNATURE_FLAG_LOCAL_ROOT_SIGNATURE);
 		std::shared_ptr<RayGenerationShader> rayGenShader = std::make_shared<RayGenerationShader>(c_raygenShaderName, c_libName, rayGenRootSig);
 
 		// Adding shader config
-		mRTSO->SetShaderConfig<Payload>();
+		mRTSO->SetShaderConfig<PathTracerRayPayload>();
 
 		// Adding hit groupd
 		mRTSO->AddHitGroup(hitGroup);
@@ -91,12 +94,13 @@ namespace Darius::Renderer::RayTracing::Pipeline
 		globalRootSig->InitStaticSampler(11, defaultSamplerDesc); // Cube map sampler
 		globalRootSig->InitStaticSampler(12, D_GRAPHICS::SamplerLinearWrapDesc); // Linear wrap sampler
 		(*globalRootSig)[PathTracing::GlobalRootSignatureBindings::GlobalConstants].InitAsConstantBuffer(0, D3D12_SHADER_VISIBILITY_ALL, 0);
+		(*globalRootSig)[PathTracing::GlobalRootSignatureBindings::GlobalRayTracingConstants].InitAsConstantBuffer(1, D3D12_SHADER_VISIBILITY_ALL, 0);
 		(*globalRootSig)[PathTracing::GlobalRootSignatureBindings::GlobalSRVTable].InitAsDescriptorRange(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 0, 5, D3D12_SHADER_VISIBILITY_ALL, 0);
-		globalRootSig->Finalize(L"Simple RayTracing Pipeling Globl Root Sig", D3D12_ROOT_SIGNATURE_FLAG_NONE);
+		globalRootSig->Finalize(L"Path Tracing Pipeling Globl Root Sig", D3D12_ROOT_SIGNATURE_FLAG_NONE);
 		mRTSO->SetGlobalRootSignature(globalRootSig);
 
 		// Adding pipeline config
-		mRTSO->SetPipelineConfig(1u);
+		mRTSO->SetPipelineConfig(2u);
 
 		// Adding DXIL Libraries
 		mRTSO->ResolveDXILLibraries();
