@@ -17,8 +17,7 @@ namespace Darius::Renderer::RayTracing::Utils
 {
 	struct HitGroupSystemParameters
 	{
-		//D3D12_GPU_VIRTUAL_ADDRESS IndexBuffer;
-		//D3D12_GPU_VIRTUAL_ADDRESS VertexBuffer;
+		D3D12_GPU_DESCRIPTOR_HANDLE IndexVertexTableHandle;
 	};
 
 	class ShaderTable

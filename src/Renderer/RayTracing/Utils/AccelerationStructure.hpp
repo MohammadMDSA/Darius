@@ -100,6 +100,8 @@ namespace Darius::Renderer::RayTracing::Utils
         INLINE D_MATH::Matrix4 const&   GetTransform() const { return mTransform; }
         INLINE std::vector<D3D12_RAYTRACING_GEOMETRY_DESC> const& GetGeometryDescs() const { return mGeometryDescs; }
         INLINE UINT                     GetNumGeometries() const { return (UINT)mGeometryDescs.size(); }
+        INLINE std::vector<GeometryVertexIndexViews> const& GetGeometryMeshViews() const { return mGeometryMeshViews; }
+        INLINE GeometryVertexIndexViews const& GetGeometryMeshViewsByIndex(UINT index) const { return mGeometryMeshViews[index]; }
 
     private:
         std::vector<D3D12_RAYTRACING_GEOMETRY_DESC> mGeometryDescs;
