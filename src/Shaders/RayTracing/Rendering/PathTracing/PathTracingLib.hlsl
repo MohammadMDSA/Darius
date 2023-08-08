@@ -148,7 +148,7 @@ float3 TraceRefractedGBufferRay(in float3 hitPosition, in float3 wt, in float3 N
 
     Ray ray = { adjustedHitPosition,  wt };
 
-    float tMin = 0; 
+    float tMin = 0.01; 
     float tMax = TMax; 
 
     // TRADEOFF: Performance vs visual quality
@@ -183,7 +183,7 @@ float3 TraceReflectedGBufferRay(in float3 hitPosition, in float3 wi, in float3 N
 
     Ray ray = { adjustedHitPosition,  wi };
 
-    float tMin = 0; 
+    float tMin = 0.01; 
     float tMax = TMax;
 
     rayPayload = TraceRadianceRay(ray, rayPayload.RayRecursionDepth, tMin, tMax);
@@ -268,18 +268,18 @@ float3 Shade(
 
     if (isReflective || isTransmissive)
     {
-        if (isReflective 
-            && (BxDF::Specular::Reflection::IsTotalInternalReflection(V, N) 
-                || material.Type == MaterialType::Mirror))
-        {
-            PathTracerRayPayload reflectedRayPayLoad = rayPayload;
-            float3 wi = reflect(-V, N);
+        //if (isReflective 
+        //    && (BxDF::Specular::Reflection::IsTotalInternalReflection(V, N) 
+        //        || material.Type == MaterialType::Mirror))
+        //{
+        //    PathTracerRayPayload reflectedRayPayLoad = rayPayload;
+        //    float3 wi = reflect(-V, N);
                 
-            L += Kr * TraceReflectedGBufferRay(hitPosition, wi, N, objectNormal, reflectedRayPayLoad);
-            UpdateGBufferOnLargerDiffuseComponent(rayPayload, reflectedRayPayLoad, Kr);
-        }
-        else // No total internal reflection
-        {
+        //    L += Kr * TraceReflectedGBufferRay(hitPosition, wi, N, objectNormal, reflectedRayPayLoad);
+        //    UpdateGBufferOnLargerDiffuseComponent(rayPayload, reflectedRayPayLoad, Kr);
+        //}
+        //else // No total internal reflection
+        //{
             float3 Fo = Ks;
             if (isReflective)
             {
@@ -304,7 +304,7 @@ float3 Shade(
                 L += Ft * TraceRefractedGBufferRay(hitPosition, wt, N, objectNormal, refractedRayPayLoad);
                 UpdateGBufferOnLargerDiffuseComponent(rayPayload, refractedRayPayLoad, Ft);
             }
-        }
+        //}
     }
 
     return L;

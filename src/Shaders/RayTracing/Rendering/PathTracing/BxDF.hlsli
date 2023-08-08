@@ -122,7 +122,7 @@ namespace BxDF
                 in float3 V,
                 in float3 normal)
             {
-                float ior = 1;
+                float ior = 0.5f;
                 float eta = ior;
                 float cos_thetai = dot(normal, V); // Incident angle
 
@@ -141,8 +141,8 @@ namespace BxDF
             // so as to nullify the cos term in the rendering equation. Therefore the caller should skip the cos term in the rendering equation.
             float3 Sample_Ft(in float3 V, out float3 wt, in float3 N, in float3 Fo)
             {
-                float ior = 1;
-                wt = -V; // TODO: refract(-V, N, ior);
+                float ior = 0.5;
+                wt = refract(-V, N, ior);
                 float cos_thetai = dot(V, N);
                 float3 Kr = Fresnel(Fo, cos_thetai);
 
