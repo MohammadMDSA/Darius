@@ -148,7 +148,7 @@ float3 TraceRefractedGBufferRay(in float3 hitPosition, in float3 wt, in float3 N
 
     Ray ray = { adjustedHitPosition,  wt };
 
-    float tMin = 0.01; 
+    float tMin = 0.f; 
     float tMax = TMax; 
 
     // TRADEOFF: Performance vs visual quality
@@ -183,7 +183,7 @@ float3 TraceReflectedGBufferRay(in float3 hitPosition, in float3 wi, in float3 N
 
     Ray ray = { adjustedHitPosition,  wi };
 
-    float tMin = 0.01; 
+    float tMin = 0.f; 
     float tMax = TMax;
 
     rayPayload = TraceRadianceRay(ray, rayPayload.RayRecursionDepth, tMin, tMax);
@@ -264,7 +264,7 @@ float3 Shade(
     // Handle cases where ray is coming from behind due to imprecision,
     // don't cast reflection rays in that case.
     float smallValue = 1e-6f;
-    isReflective = dot(V, N) > smallValue ? isReflective : false;
+    //isReflective = dot(V, N) > smallValue ? isReflective : false;
 
     if (isReflective || isTransmissive)
     {
@@ -340,8 +340,8 @@ void MainRenderRayGen()
         float3 cameraDirection = GenerateForwardCameraRayDirection(g_InvViewProjEyeCenter);
         float linearDepth = rayLength * dot(ray.Direction, cameraDirection);
 
-        l_GBufferNormalDepth[DTid] = EncodeNormalDepth(DecodeNormal(rayPayload.GBuffer.EncodedNormal), linearDepth);
-        l_GBufferDepth[DTid] = linearDepth;
+        //l_GBufferNormalDepth[DTid] = EncodeNormalDepth(DecodeNormal(rayPayload.GBuffer.EncodedNormal), linearDepth);
+        //l_GBufferDepth[DTid] = linearDepth;
     }
     else // No geometry hit.
     {
@@ -416,6 +416,7 @@ void MainRenderCHS(inout PathTracerRayPayload rayPayload, in BuiltInTriangleInte
     if (BitMasked(l_TexStats, MaterialTextureType::Normal))
     {
         normal = NormalMap(normal, texCoord, vertices, attr);
+        normal = normalize(normal);
     }
 
     if (BitMasked(l_TexStats, MaterialTextureType::Diffuse))

@@ -143,7 +143,7 @@ namespace BxDF
             {
                 float ior = 0.5;
                 wt = refract(-V, N, ior);
-                float cos_thetai = dot(V, N);
+                float cos_thetai = saturate(dot(V, N));
                 float3 Kr = Fresnel(Fo, cos_thetai);
 
                 return (1 - Kr);
