@@ -43,6 +43,8 @@ namespace Darius::Renderer
 		INLINE virtual bool						IsDirty() const override { return D_ECS_COMP::ComponentBase::IsDirty() || GetTransform()->IsDirty(); }
 
 		void									SetMaterial(UINT index, D_RESOURCE::ResourceHandle handle);
+		D_CONTAINERS::DVector<D_RESOURCE::ResourceRef<MaterialResource>> const& GetMaterials() const { return mMaterials; }
+		D_RESOURCE::ResourceRef<MaterialResource> GetMaterial(UINT index) const { D_ASSERT(index < (UINT)mMaterials.size()); return mMaterials[index]; }
 
 	protected:
 
