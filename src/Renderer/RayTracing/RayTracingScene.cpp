@@ -121,7 +121,7 @@ namespace Darius::Renderer::RayTracing
 		UINT instanceContributionToHitGroupIndex = totalNumGeomsSoFar * mNumShaderSlotPerGeometrySegment;
 
 		instanceDesc.InstanceMask = instanceMask;
-		instanceDesc.Flags = D3D12_RAYTRACING_INSTANCE_FLAG_TRIANGLE_CULL_DISABLE;
+		instanceDesc.Flags = geometryMaterials[0].IsValid() && geometryMaterials[0]->IsTwoSided() ? D3D12_RAYTRACING_INSTANCE_FLAG_TRIANGLE_CULL_DISABLE : D3D12_RAYTRACING_INSTANCE_FLAG_NONE;
 		instanceDesc.InstanceContributionToHitGroupIndex = instanceContributionToHitGroupIndex;
 		instanceDesc.AccelerationStructure = bottomLevelAS.GetResource()->GetGPUVirtualAddress();
 		XMStoreFloat3x4(reinterpret_cast<DirectX::XMFLOAT3X4*>(instanceDesc.Transform), transform);

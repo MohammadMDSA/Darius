@@ -122,7 +122,8 @@ PathTracerRayPayload TraceRadianceRay(in Ray ray, in UINT currentRayRecursionDep
     rayDesc.TMin = tMin;
     rayDesc.TMax = tMax;
 
-    UINT rayFlags = (cullNonOpaque ? RAY_FLAG_CULL_NON_OPAQUE : 0); 
+    UINT rayFlags = (cullNonOpaque ? RAY_FLAG_CULL_NON_OPAQUE : 0);
+    rayFlags |= RAY_FLAG_CULL_BACK_FACING_TRIANGLES;
 
 	TraceRay(g_RtScene,
         rayFlags,

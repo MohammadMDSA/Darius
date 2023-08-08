@@ -43,6 +43,7 @@ namespace Darius::Renderer
 		virtual bool						IsDirtyGPU() const override;
 
 		INLINE bool							HasDisplacement() const { return (mMaterial.TextureStatusMask & (1 << D_RENDERER_RAST::kWorldDisplacement)) != 0; }
+		INLINE bool							IsTwoSided() const { return mPsoFlags & RenderItem::TwoSided; }
 
 #ifdef _D_EDITOR
 		virtual bool						DrawDetails(float params[]) override;
