@@ -3,12 +3,16 @@
 
 #include "Pipelines/PathTracingPipeline.hpp"
 #include "RayTracingScene.hpp"
+#include "Renderer/Components/BillboardRendererComponent.hpp"
 #include "Renderer/Components/MeshRendererComponent.hpp"
+#include "Renderer/Components/SkeletalMeshRendererComponent.hpp"
+#include "Renderer/Components/TerrainRendererComponent.hpp"
 
 #include <Core/Uuid.hpp>
 #include <Graphics/GraphicsUtils/Buffers/GpuBuffer.hpp>
 #include <Graphics/GraphicsUtils/Buffers/Texture.hpp>
 #include <Graphics/GraphicsUtils/Profiling/Profiling.hpp>
+#include <Job/Job.hpp>
 #include <Renderer/Camera/CameraManager.hpp>
 #include <Renderer/RendererManager.hpp>
 #include <ResourceManager/ResourceManager.hpp>
@@ -45,7 +49,6 @@ namespace Darius::Renderer::RayTracing
 
 	// Internal
 	bool													_initialized;
-	D_GRAPHICS_BUFFERS::ByteAddressBuffer					ColorCBV;
 	DescriptorHandle										PathTracingCommonSRVs[D_GRAPHICS_DEVICE::gNumFrameResources]; // 0: TLAS, 1: RadIBL, 2: IrradIBL
 	DescriptorHandle										RayGenUAVs[D_GRAPHICS_DEVICE::gNumFrameResources]; // 0: Color Render target
 	D_RESOURCE::ResourceRef<TextureResource>				BlackCubeTextureRes({ L"Rasterization Renderer" });
@@ -71,12 +74,6 @@ namespace Darius::Renderer::RayTracing
 		MainRenderPipeline = std::make_unique<Pipeline::PathTracingPipeline>();
 		MainRenderPipeline->Initialize(settings);
 
-		MeshConstants color;
-		color.colors[0] = { 1.f, 0.f, 0.f, 1.f };
-		color.colors[1] = { 0.f, 1.f, 0.f, 1.f };
-		color.colors[2] = { 0.f, 0.f, 1.f, 1.f };
-		ColorCBV.Create(L"Simple Ray Tracing Color CBV", 1, sizeof(MeshConstants), &color);
-
 		for (int i = 0; i < D_GRAPHICS_DEVICE::gNumFrameResources; i++)
 		{
 			PathTracingCommonSRVs[i] = TextureHeap.Alloc(3);
@@ -84,6 +81,7 @@ namespace Darius::Renderer::RayTracing
 		}
 		
 		BlackCubeTextureRes = D_RESOURCE::GetResource<TextureResource>(D_RENDERER::GetDefaultGraphicsResource(D_RENDERER::DefaultResource::TextureCubeMapBlack));
+
 	}
 
 	void Shutdown()
@@ -99,10 +97,65 @@ namespace Darius::Renderer::RayTracing
 		SamplerHeap.Destroy();
 	}
 
+	void UpdateRendererComponents()
+	{
+		D_CAMERA_MANAGER::Update();
+
+		D_WORLD::IterateComponents<MeshRendererComponent>([&](D_RENDERER::MeshRendererComponent& meshComp)
+			{
+				D_JOB::AssignTask([&](int threadNumber, int)
+					{
+						meshComp.Update(-1);
+
+					});
+			}
+		);
+
+		D_WORLD::IterateComponents<SkeletalMeshRendererComponent>([&](D_RENDERER::SkeletalMeshRendererComponent& meshComp)
+			{
+				D_JOB::AssignTask([&](int threadNumber, int)
+					{
+						meshComp.Update(-1);
+
+					});
+			}
+		);
+
+		D_WORLD::IterateComponents<BillboardRendererComponent>([&](D_RENDERER::BillboardRendererComponent& meshComp)
+			{
+				D_JOB::AssignTask([&](int threadNumber, int)
+					{
+						meshComp.Update(-1);
+
+					});
+			}
+		);
+
+		D_WORLD::IterateComponents<TerrainRendererComponent>([&](D_RENDERER::TerrainRendererComponent& meshComp)
+			{
+				D_JOB::AssignTask([&](int threadNumber, int)
+					{
+						meshComp.Update(-1);
+
+					});
+			}
+		);
+
+		if (D_JOB::IsMainThread())
+			D_JOB::WaitForThreadsToFinish();
+		/*{
+			D_PROFILING::ScopedTimer lightProfiling(L"Update Lights");
+			D_LIGHT_RAST::Update();
+		}*/
+	}
+
 	void Update()
 	{
 
 		RTScene->Reset();
+
+		// Updating Components
+		UpdateRendererComponents();
 
 		// Updating BLASes
 		{
@@ -120,6 +173,8 @@ namespace Darius::Renderer::RayTracing
 					if (!meshRes)
 						return;
 
+					auto const& mats = comp.GetMaterials();
+
 					auto uuid = meshRes->GetUuid();
 					auto const* blas = scene->GetBottomLevelAS(uuid);
 
@@ -129,7 +184,8 @@ namespace Darius::Renderer::RayTracing
 						createBlasFunc(*meshRes->GetMeshData(), uuid);
 					}
 
-					scene->AddBottomLevelASInstance(uuid, comp.GetTransform()->GetWorld());
+					// Submit BLAS instance with all associated data
+					scene->AddBottomLevelASInstance(uuid, mats, comp.GetConstantsAddress(), comp.GetTransform()->GetWorld());
 				});
 
 		}
@@ -143,8 +199,15 @@ namespace Darius::Renderer::RayTracing
 		context.SetDescriptorHeap(D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER, SamplerHeap.GetHeapPointer());
 
 		// Resource bindings
-
 		context.SetDynamicConstantBufferView(PathTracing::GlobalRootSignatureBindings::GlobalConstants, sizeof(renderContext.Globals), &renderContext.Globals);
+
+		ALIGN_DECL_256 struct GlobalRTConstants
+		{
+			UINT		MaxRadianceRayRecursionDepth = 2u;
+		} RTCB;
+
+		context.SetDynamicConstantBufferView(PathTracing::GlobalRootSignatureBindings::GlobalRayTracingConstants, sizeof(RTCB), &RTCB);
+
 
 		// SRVs
 		DVector<D3D12_CPU_DESCRIPTOR_HANDLE> srvHandles;
@@ -160,8 +223,8 @@ namespace Darius::Renderer::RayTracing
 			srvHandles.push_back(BlackCubeTextureRes->GetTextureData()->GetSRV());
 			srvHandles.push_back(BlackCubeTextureRes->GetTextureData()->GetSRV());
 		}
-		UINT srvSrcCount[] = { 1, 1, 1 };
-		UINT srvDestCount = 3;
+		UINT srvSrcCount[] = { 1u, 1u, 1u };
+		UINT srvDestCount = 3u;
 
 		D_GRAPHICS_DEVICE::GetDevice()->CopyDescriptors(1, &PathTracingCommonSRVs[D_GRAPHICS_DEVICE::GetCurrentFrameResourceIndex()], &srvDestCount, (UINT)srvHandles.size(), srvHandles.data(), srvSrcCount, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 		context.SetDescriptorTable(PathTracing::GlobalRootSignatureBindings::GlobalSRVTable, PathTracingCommonSRVs[D_GRAPHICS_DEVICE::GetCurrentFrameResourceIndex()]);
@@ -172,16 +235,57 @@ namespace Darius::Renderer::RayTracing
 		
 		// Ray Generation
 		auto rayGenShader = MainRenderPipeline->GetStateObject()->GetRayGenerationShaders()[0];
-		D_GRAPHICS_DEVICE::GetDevice()->CopyDescriptorsSimple(1u, RayGenUAVs[D_GRAPHICS_DEVICE::GetCurrentFrameResourceIndex()], renderContext.ColorBuffer.GetUAV(), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-		shaderTable->SetRayGenerationShaderParameters(0, rayGenShader->GetLocalRootSignature()->GetRootParameterOffset(1), RayGenUAVs[D_GRAPHICS_DEVICE::GetCurrentFrameResourceIndex()].GetGpuPtr());
+		UINT rayGenUavSrcCount[] = { 1u, 1u, 1u, 1u };
+		UINT rayGenUavDestCount = 4;
+		D3D12_CPU_DESCRIPTOR_HANDLE rayGenUavSrcs[] = { renderContext.ColorBuffer.GetUAV(), renderContext.WorldPos.GetUAV(), renderContext.NormalDepth.GetUAV(), renderContext.LinearDepth->GetUAV() };
+		D_GRAPHICS_DEVICE::GetDevice()->CopyDescriptors(1, &RayGenUAVs[D_GRAPHICS_DEVICE::GetCurrentFrameResourceIndex()], &rayGenUavDestCount, 4, rayGenUavSrcs, rayGenUavSrcCount, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+		shaderTable->SetRayGenerationShaderParameters(0, rayGenShader->GetLocalRootSignature()->GetRootParameterOffset(0), RayGenUAVs[D_GRAPHICS_DEVICE::GetCurrentFrameResourceIndex()].GetGpuPtr());
 
 
 		// Hit groups
 		auto hitGroup = MainRenderPipeline->GetStateObject()->GetHitGroups()[0];
-		for (UINT i = 0; i < RTScene->GetTotalNumberOfGeometrySegments() * (UINT)RayTypes::Count; i++)
+		auto CHSRS = hitGroup.ClosestHitShader->GetLocalRootSignature();
+		// For each instance
+		for (UINT instanceIndex = 0u; instanceIndex < RTScene->GetNumberOfBottomLevelASInstances(); instanceIndex++)
 		{
-			shaderTable->SetHitGroupIdentifier(i, hitGroup.Identifier);
-			shaderTable->SetHitGroupParameters(i, 0, ColorCBV.GetGpuVirtualAddress());
+			auto const* blas = RTScene->GetBLASByInstanceIndex(instanceIndex);
+			auto const& inst = RTScene->GetBottomLevelASInstance(instanceIndex);
+
+			auto const& instanceData = RTScene->GetInstanceData(instanceIndex);
+			auto const& materials = instanceData.GeometriesMaterial;
+			auto meshConstantsAddress = instanceData.MeshConstantsAddress;
+
+			// For each geom in instance
+			for (UINT geomIndex = 0u; geomIndex < blas->GetNumGeometries(); geomIndex++)
+			{
+				auto const& meshVertViews = blas->GetGeometryMeshViewsByIndex(geomIndex);
+				
+				// For now, no settings for shadow
+				for (UINT geomSlot = 0; geomSlot < (UINT)RayTypes::Shadow; geomSlot++)
+				{
+					UINT hitGroupIndex = (RTScene->GetTotalNumberOfPriorGeometrySegmets(instanceIndex) + geomIndex) * (UINT)RayTypes::Count + geomSlot;
+
+					shaderTable->SetHitGroupIdentifier(hitGroupIndex, hitGroup.Identifier);
+					
+
+					// Settting mesh vertices data		RootIndex 0
+					shaderTable->SetHitGroupSystemParameters(hitGroupIndex, { meshVertViews.IndexVertexBufferSRV });
+
+					// Setting mesh constants			RootIndex 1
+					shaderTable->SetHitGroupParameters(hitGroupIndex, CHSRS->GetRootParameterOffset(1), meshConstantsAddress);
+
+					// Setting material constans		RootIndex 2
+					shaderTable->SetHitGroupParameters(hitGroupIndex, CHSRS->GetRootParameterOffset(2), materials[geomIndex].MaterialConstants);
+
+					// Setting material textures		RootIndex 3
+					shaderTable->SetHitGroupParameters(hitGroupIndex, CHSRS->GetRootParameterOffset(3), materials[geomIndex].TextureTableHandle);
+
+					// Setting material samplers		RootIndex 4
+					shaderTable->SetHitGroupParameters(hitGroupIndex, CHSRS->GetRootParameterOffset(4), materials[geomIndex].SamplerTableHandle);
+
+				}
+
+			}
 		}
 
 	}
