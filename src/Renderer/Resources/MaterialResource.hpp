@@ -29,6 +29,7 @@ namespace Darius::Renderer
 		INLINE const D_RENDERER::MaterialConstants* GetMaterialData() const { return &mMaterial; }
 		INLINE D3D12_GPU_DESCRIPTOR_HANDLE	GetTexturesHandle() const { return mTexturesHeap; }
 		INLINE D3D12_GPU_DESCRIPTOR_HANDLE	GetSamplersHandle() const { return mSamplerTable; }
+		INLINE D3D12_GPU_VIRTUAL_ADDRESS	GetConstantsGpuAddress() const { return mMaterialConstantsGPU.GetGpuVirtualAddress(); }
 		INLINE uint16_t						GetPsoFlags() const
 		{
 			return mPsoFlags

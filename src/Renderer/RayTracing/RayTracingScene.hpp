@@ -1,5 +1,7 @@
 #pragma once
 
+#include "Renderer/RendererCommon.hpp"
+#include "Renderer/Resources/MaterialResource.hpp"
 #include "Utils/AccelerationStructure.hpp"
 #include "Utils/ShaderTable.hpp"
 
@@ -12,6 +14,21 @@
 
 namespace Darius::Renderer::RayTracing
 {
+
+	struct GeometryMaterialData
+	{
+		D3D12_GPU_DESCRIPTOR_HANDLE				TextureTableHandle;
+		D3D12_GPU_DESCRIPTOR_HANDLE				SamplerTableHandle;
+		D3D12_GPU_VIRTUAL_ADDRESS				MaterialConstants;
+	};
+
+	struct BottomLevelASInstanceData
+	{
+		D_CONTAINERS::DVector<GeometryMaterialData>		GeometriesMaterial;
+		D3D12_GPU_VIRTUAL_ADDRESS						MeshConstantsAddress;
+		D_CORE::Uuid									BLASUuid;
+	};
+
 	class RayTracingScene
 	{
 	public:
@@ -19,7 +36,12 @@ namespace Darius::Renderer::RayTracing
 		~RayTracingScene();
 
 		void                            AddBottomLevelAS(D3D12_RAYTRACING_ACCELERATION_STRUCTURE_BUILD_FLAGS buildFlags, D_RENDERER_RT_UTILS::BottomLevelAccelerationStructureGeometry const& bottomLevelASGeometry, bool allowUpdate = false, bool performUpdateOnBuild = false);
-		UINT                            AddBottomLevelASInstance(D_CORE::Uuid const& bottomLevelASUuid, D_MATH::Matrix4 const& transform = D_MATH::Matrix4::Identity, BYTE InstanceMask = 1);
+		UINT                            AddBottomLevelASInstance(
+			D_CORE::Uuid const& bottomLevelASUuid,
+			D_CONTAINERS::DVector<D_RESOURCE::ResourceRef<MaterialResource>> const& geometryMaterials,
+			D3D12_GPU_VIRTUAL_ADDRESS constantsAddress,
+			D_MATH::Matrix4 const& transform = D_MATH::Matrix4::Identity,
+			BYTE InstanceMask = 1);
 		void                            InitializeTopLevelAS(D3D12_RAYTRACING_ACCELERATION_STRUCTURE_BUILD_FLAGS buildFlags, bool allowUpdate = false, bool performUpdateOnBuild = false, const wchar_t* resourceName = nullptr);
 
 		// Call every frame to build acceleration structures
@@ -29,6 +51,12 @@ namespace Darius::Renderer::RayTracing
 		// Shader Table Funcs
 		D_RENDERER_RT_UTILS::ShaderTable* FindExistingShaderTable(D_GRAPHICS_UTILS::RayTracingStateObject const* stateObject) const;
 		D_RENDERER_RT_UTILS::ShaderTable* FindOrCreateShaderTable(D_GRAPHICS_UTILS::RayTracingStateObject const* stateObject);
+
+		INLINE D_RENDERER_RT_UTILS::BottomLevelAccelerationStructure const* GetBLASByInstanceIndex(UINT index) const
+		{
+			D_ASSERT(index < mNumBottomLevelASInstances);
+			return GetBottomLevelAS(mInstancesData[index].BLASUuid);
+		}
 		D_GRAPHICS_BUFFERS::StructuredUploadBuffer<D_RENDERER_RT_UTILS::BottomLevelAccelerationStructureInstanceDesc> const& GetBottomLevelASInstancesBuffer() const { return mBottomLevelASInstanceDescs; }
 
 		INLINE D_RENDERER_RT_UTILS::BottomLevelAccelerationStructure const* GetBottomLevelAS(D_CORE::Uuid const& uuid) const { auto result = mVBottomLevelAS.find(uuid); return result == mVBottomLevelAS.end() ? nullptr : &result->second; }
@@ -36,6 +64,9 @@ namespace Darius::Renderer::RayTracing
 		INLINE UINT64                   GetASMemoryFootprint() const { return mASmemoryFootprint; }
 		INLINE UINT                     GetNumberOfBottomLevelASInstances() const { return mNumBottomLevelASInstances; }
 		INLINE UINT						GetTotalNumberOfGeometrySegments() const { return mCumulativeNumInstanceGeom[mNumBottomLevelASInstances]; }
+		INLINE UINT						GetTotalNumberOfPriorGeometrySegmets(UINT index) const { D_ASSERT(mCumulativeNumInstanceGeom.size() > index); return mCumulativeNumInstanceGeom[index]; }
+		INLINE D_CONTAINERS::DVector<GeometryMaterialData> const& GetInstanceGeometryMaterials(UINT instanceIndex) const { D_ASSERT(instanceIndex < mNumBottomLevelASInstances); return mInstancesData[instanceIndex].GeometriesMaterial; }
+		INLINE BottomLevelASInstanceData const& GetInstanceData(UINT instanceIndex) const { D_ASSERT(instanceIndex < mNumBottomLevelASInstances); return mInstancesData[instanceIndex]; }
 
 		UINT                            GetMaxInstanceContributionToHitGroupIndex() const;
 		void							Reset();
@@ -43,12 +74,13 @@ namespace Darius::Renderer::RayTracing
 		// Num miss and callabale shaders should be configured from the owning module
 		UINT							NumMissShaderSlots = 1u;
 		UINT							NumCallableShaderSlots = 0u;
+
 	private:
 
 		D_RENDERER_RT_UTILS::TopLevelAccelerationStructure mTLAS;
 		D_CONTAINERS::DMap<D_CORE::Uuid, D_RENDERER_RT_UTILS::BottomLevelAccelerationStructure> mVBottomLevelAS;
 		D_GRAPHICS_BUFFERS::StructuredUploadBuffer<D_RENDERER_RT_UTILS::BottomLevelAccelerationStructureInstanceDesc> mBottomLevelASInstanceDescs;
-		D_CONTAINERS::DVector<D_CORE::Uuid>			mInstancesUuid;
+		D_CONTAINERS::DVector<BottomLevelASInstanceData> mInstancesData;
 		UINT                                        mNumBottomLevelASInstances = 0;
 		D_GRAPHICS_BUFFERS::ByteAddressBuffer       mAccelerationStructureScratch;
 		UINT64                                      mScratchResourceSize = 0;

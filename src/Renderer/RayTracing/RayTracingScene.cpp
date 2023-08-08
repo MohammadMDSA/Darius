@@ -2,14 +2,24 @@
 #include "RayTracingScene.hpp"
 
 #include "RayTracingCommandContext.hpp"
-
+#include "Renderer/RendererManager.hpp"
 #include "Renderer.hpp"
 
 #include <Graphics/GraphicsUtils/Profiling/Profiling.hpp>
 
+#include <ranges>
+
+
+using namespace D_CONTAINERS;
+using namespace D_GRAPHICS_MEMORY;
 using namespace D_GRAPHICS_UTILS;
-using namespace D_RENDERER_RT_UTILS;
 using namespace D_PROFILING;
+using namespace D_RENDERER_RT_UTILS;
+
+namespace
+{
+	D_RESOURCE::ResourceRef<D_RENDERER::MaterialResource>		DefaultMaterial({ L"Ray Tracing Scene" });
+}
 
 namespace Darius::Renderer::RayTracing
 {
@@ -21,7 +31,7 @@ namespace Darius::Renderer::RayTracing
 		D_ASSERT_M(numShaderSlotPerGeometry > 0, "Every geom requires at least one slot");
 
 		mBottomLevelASInstanceDescs.Create(L"Bottom-Level Acceleration Structure Instance descs", initialNumBLAS, D_GRAPHICS_DEVICE::gNumFrameResources);
-		mInstancesUuid.resize(initialNumBLAS);
+		mInstancesData.resize(initialNumBLAS);
 		// One more for the default hit group
 		mCumulativeNumInstanceGeom.resize(initialNumBLAS + 1);
 		mCumulativeNumInstanceGeom[0] = 1;
@@ -30,6 +40,8 @@ namespace Darius::Renderer::RayTracing
 		{
 			InitializeTopLevelAS(D3D12_RAYTRACING_ACCELERATION_STRUCTURE_BUILD_FLAG_PREFER_FAST_TRACE, false, false, L"Top Level Acceleration Structure");
 		}
+
+		DefaultMaterial = D_RESOURCE::GetResource<MaterialResource>(D_RENDERER::GetDefaultGraphicsResource(D_RENDERER::DefaultResource::Material));
 	}
 
 	RayTracingScene::~RayTracingScene()
@@ -63,9 +75,12 @@ namespace Darius::Renderer::RayTracing
 	// Requires a call InitializeTopLevelAS() call to be added to top-level AS.
 	UINT RayTracingScene::AddBottomLevelASInstance(
 		D_CORE::Uuid const& bottomLevelASUuid,
+		DVector<D_RESOURCE::ResourceRef<MaterialResource>> const& geometryMaterials,
+		D3D12_GPU_VIRTUAL_ADDRESS constantsAddress,
 		D_MATH::Matrix4 const& transform,
 		BYTE instanceMask)
 	{
+
 		UINT instanceIndex = mNumBottomLevelASInstances++;
 
 		if (mNumBottomLevelASInstances > mBottomLevelASInstanceDescs.GetNumElements())
@@ -73,16 +88,31 @@ namespace Darius::Renderer::RayTracing
 			// Resizing to next power of two to avoid frequent resizes
 			auto newSize = D_MATH::RoundUpToPowerOfTwo(instanceIndex);
 			mBottomLevelASInstanceDescs.Create(L"Bottom - Level Acceleration Structure Instance descs", newSize, D_GRAPHICS_DEVICE::gNumFrameResources);
-			mInstancesUuid.resize(newSize);
+			mInstancesData.resize(newSize);
 			// One more for the default hit group
 			mCumulativeNumInstanceGeom.resize(newSize + 1);
 			mTLASSizeDirty = true;
 		}
 
 		auto& bottomLevelAS = mVBottomLevelAS[bottomLevelASUuid];
+		D_ASSERT((UINT)geometryMaterials.size() == bottomLevelAS.GetNumGeometries());
 
+		// Transforming materials
+		auto transformedRange = geometryMaterials | std::views::transform([](D_RESOURCE::ResourceRef<MaterialResource> const& materialRes) {
+			MaterialResource const* mat;
+			if (!materialRes.IsValid())
+				mat = DefaultMaterial.Get();
+			else
+				mat = materialRes.Get();
+
+			return GeometryMaterialData{ mat->GetTexturesHandle(), mat->GetSamplersHandle(), mat->GetConstantsGpuAddress() };
+
+			});
 		auto& instanceDesc = mBottomLevelASInstanceDescs[instanceIndex];
-		mInstancesUuid[instanceIndex] = bottomLevelASUuid;
+		D_CONTAINERS::DVector<GeometryMaterialData> transformedMatData(transformedRange.begin(), transformedRange.end());
+
+		// Setting instance data
+		mInstancesData[instanceIndex] = { transformedMatData, constantsAddress, bottomLevelASUuid };
 
 		// Calculating contribute to hit group index
 		UINT totalNumGeomsSoFar = mCumulativeNumInstanceGeom[instanceIndex]; // One index ahead for the default hit group
@@ -91,6 +121,7 @@ namespace Darius::Renderer::RayTracing
 		UINT instanceContributionToHitGroupIndex = totalNumGeomsSoFar * mNumShaderSlotPerGeometrySegment;
 
 		instanceDesc.InstanceMask = instanceMask;
+		instanceDesc.Flags = D3D12_RAYTRACING_INSTANCE_FLAG_TRIANGLE_CULL_DISABLE;
 		instanceDesc.InstanceContributionToHitGroupIndex = instanceContributionToHitGroupIndex;
 		instanceDesc.AccelerationStructure = bottomLevelAS.GetResource()->GetGPUVirtualAddress();
 		XMStoreFloat3x4(reinterpret_cast<DirectX::XMFLOAT3X4*>(instanceDesc.Transform), transform);
