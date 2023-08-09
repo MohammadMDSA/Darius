@@ -1,42 +1,8 @@
-#ifndef __RT_MATERIAL_HLSLI__
-#define __RT_MATERIAL_HLSLI__
+#ifndef __RT_MATERIAL_BINDINGS_HLSLI__
+#define __RT_MATERIAL_BINDINGS_HLSLI__
 
-namespace MaterialTextureType
-{
-    enum TextureType
-	{
-		Diffuse = 0,
-		Metallic,
-		Roughness,
-		AmbientOcclusion,
-		Emissive,
-		Normal,
-		WorldDisplacement,
 
-		NumTextures
-	};
-}
-    
-namespace MaterialType {
-    enum Type {
-        Default,
-        Matte,      // Lambertian scattering
-        Mirror,     // Specular reflector that isn't modified by the Fresnel equations.
-    };
-}
-        
-struct PrimitiveMaterialBuffer
-{
-    XMFLOAT3                Albedo;
-    XMFLOAT3                Specular;
-    XMFLOAT3                Metallic;
-    XMFLOAT3                Transmissivity;
-    XMFLOAT3                Emission;
-    XMFLOAT3                Opacity;
-    XMFLOAT3                Eta;
-    float                   Rroughness;
-    MaterialType::Type      Type;
-};
+#include "RayTracingMaterial.hlsli"
 
 cbuffer                             l_MaterialConstants         : register(b1, space2)
 {

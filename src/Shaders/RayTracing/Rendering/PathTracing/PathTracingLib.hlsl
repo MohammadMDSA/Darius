@@ -1,7 +1,7 @@
 #define HLSL
 
 #include "../../RaytracingHlslCompat.h"
-#include "../../Material.hlsli"
+#include "../RayTracingMaterialBindings.hlsli"
 #include "BxDF.hlsli"
 #include "../../RayTracingCommon.hlsli"
 #include "../../Utils/RayTracingUtils.hlsli"
@@ -230,7 +230,7 @@ float3 Shade(
     const float3 Ks = material.Specular;
     const float3 Kr = material.Metallic;
     const float3 Kt = material.Transmissivity;
-    const float roughness = material.Rroughness;
+    const float roughness = material.Roughness;
 
      // Direct illumination
     rayPayload.GBuffer.DiffuseByte3 = NormalizedFloat3ToByte3(Kd);
@@ -451,10 +451,10 @@ void MainRenderCHS(inout PathTracerRayPayload rayPayload, in BuiltInTriangleInte
     if (BitMasked(l_TexStats, MaterialTextureType::Roughness))
     {
         float texSample = l_TexRoughness.SampleLevel(l_RoughnessSampler, texCoord, 0);
-        material.Rroughness = texSample;
+        material.Roughness = texSample;
     }
     else
-        material.Rroughness = l_Roughness;
+        material.Roughness = l_Roughness;
             
     material.Type = MaterialType::Default;
         

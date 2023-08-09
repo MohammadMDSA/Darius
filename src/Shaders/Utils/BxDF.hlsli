@@ -33,10 +33,12 @@
 // T - transmission scale factor (aka transmission color)
 // thetai - incident angle
 
-#ifndef BXDF_HLSL
-#define BXDF_HLSL
+#ifndef __BXDF_HLSLI__
+#define __BXDF_HLSLI__
 
-#include "../../../Utils/Fresnel.hlsli"
+#include "MaterialCommon.hlsli"
+#include "Fresnel.hlsli"
+
 
 namespace BxDF
 {
@@ -114,7 +116,7 @@ namespace BxDF
             
             // Calculate whether a total reflection occurs at a given V and a normal
             // Ref: eq 27.5, Ray Tracing from the Ground Up
-            BOOL IsTotalInternalReflection(
+            bool IsTotalInternalReflection(
                 in float3 V,
                 in float3 normal)
             {
@@ -200,17 +202,18 @@ namespace BxDF
             in MaterialType::Type materialType,
             in float3 Albedo,
             in float3 Fo,
+            in float SpecularMask,
             in float3 Radiance,
-            in bool inShadow,
             in float Roughness,
             in float3 N,
             in float3 V,
             in float3 L)
         {
             float3 directLighting = 0;
-            
+            Roughness = max(0.001, Roughness);
             float NoL = dot(N, L);
-            if (!inShadow && NoL > 0)
+            
+            if (NoL > 0)
             {
                 float3 directDiffuse = 0;
                 if (!IsBlack(Albedo))
@@ -218,7 +221,7 @@ namespace BxDF
                     if (materialType == MaterialType::Default)
                     {
                         directDiffuse = BxDF::Diffuse::Hammon::F(Albedo, Roughness, N, V, L, Fo);
-                    }
+                            }
                     else
                     {
                         directDiffuse = BxDF::Diffuse::Lambert::F(Albedo);
@@ -228,7 +231,7 @@ namespace BxDF
                 float3 directSpecular = 0;
                 if (materialType == MaterialType::Default)
                 {
-                    directSpecular = BxDF::Specular::GGX::F(Roughness, N, V, L, Fo);
+                    directSpecular = SpecularMask * BxDF::Specular::GGX::F(Roughness, N, V, L, Fo);
                 }
 
                 directLighting = NoL * Radiance * (directDiffuse + directSpecular);
@@ -243,6 +246,7 @@ namespace BxDF
         in MaterialType::Type materialType,
         in float3 Albedo,
         in float3 Fo,
+        in float specularMask,
         in float3 Radiance,
         in bool isInShadow,
         in float3 AmbientLight,
@@ -252,7 +256,7 @@ namespace BxDF
         in float3 L)
     {
         float NoL = dot(N, L);
-        Roughness = max(0.1, Roughness);
+        Roughness = max(0.001, Roughness);
         float3 directLighting = 0;
 
         if (!isInShadow && NoL > 0)
@@ -274,7 +278,7 @@ namespace BxDF
 
             if (materialType == MaterialType::Default)
             {
-                directSpecular = BxDF::Specular::GGX::F(Roughness, N, V, L, Fo);
+                directSpecular = specularMask * BxDF::Specular::GGX::F(Roughness, N, V, L, Fo);
             }
 
             directLighting = NoL * Radiance * (directDiffuse + directSpecular);

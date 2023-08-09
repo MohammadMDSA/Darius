@@ -38,7 +38,7 @@ struct Material
 {
     float4              DiffuseAlbedo;
     float3              FresnelR0;
-    float               Shininess;
+    float               Roughness;
     float               SpecularMask;
 };
 
@@ -169,19 +169,12 @@ float3 ApplyPointShadowedLight(
     bool castsShadow
     )
 {
-    float3 lightDir = lightPos - worldPos;
+    float3 toLight = lightPos - worldPos;
     
     float shadow = 1.f;
     
     if(castsShadow)
-        shadow = GetShadowPointLight(lightIndex, -lightDir);
-    
-    float lightDistSq = dot(lightDir, lightDir);
-    float invLightDist = rsqrt(lightDistSq);
-    lightDir *= invLightDist;
-    
-    float normalizedDist = sqrt(lightDistSq) * rsqrt(lightRadiusSq);
-    float distanceFalloff = lightIntencity / (1.0 + 25.0 * normalizedDist * normalizedDist) * saturate((1 - normalizedDist) * 5.0);
+        shadow = GetShadowPointLight(lightIndex, -toLight);
     
     return shadow * ApplyPointLight(
         diffuseColor,
@@ -190,7 +183,7 @@ float3 ApplyPointShadowedLight(
         gloss,
         normal,
         viewDir,
-        lightDir,
+        toLight,
         lightRadiusSq,
         lightColor,
         lightIntencity
@@ -264,7 +257,6 @@ float3 ComputeLighting(
     float3 pos,
     float3 normal,
     float3 toEye,
-    float gloss,
     float ao)
 {
     float3 result = 0.0f;
@@ -273,7 +265,7 @@ float3 ComputeLighting(
     mat.DiffuseAlbedo.rgb, \
     mat.FresnelR0, \
     mat.SpecularMask, \
-    gloss, \
+    mat.Roughness, \
     normal, \
     -toEye, \
     pos, \
@@ -308,7 +300,7 @@ float3 ComputeLighting(
                 mat.DiffuseAlbedo.rgb,
                 mat.FresnelR0,
                 mat.SpecularMask,
-                gloss,
+                mat.Roughness,
                 normal,
                 -toEye,
                 pos,
@@ -353,17 +345,15 @@ float3 ComputeLitColor(
     float specularMask,
     float3 F0)
 {
-    const float shininess = 1.0f - roughness;
-    Material mat = { diffuseAlbedo, F0, shininess, specularMask };
-
-    float gloss = shininess * 256;
+    
+    Material mat = { diffuseAlbedo, F0, roughness, specularMask };
     
     float ssao = ssaoTexture[screenPos];
     
     ao *= ssao;
     
     // TODO: Add specular anti-aliasing
-    float3 directLight = ComputeLighting(mat, worldPos, normal, toEye, gloss, ao);
+    float3 directLight = ComputeLighting(mat, worldPos, normal, toEye, ao);
 
     float3 c_diff = diffuseAlbedo.rgb * (1 - kDielectricSpecular) * (1 - metallic) * ao;
     float3 c_spec = lerp(kDielectricSpecular, diffuseAlbedo.rgb, metallic) * ao;
