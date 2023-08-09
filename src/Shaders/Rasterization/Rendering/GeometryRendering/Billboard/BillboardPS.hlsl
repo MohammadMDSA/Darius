@@ -1,6 +1,8 @@
 #include "../../Lighting.hlsli"
 
-#define BitMasked(value, bitIdx) value & (1 << bitIdx)
+#include "../../../../Utils/MaterialCommon.hlsli"
+
+#define BitMasked(value, bitIdx) value & (1u << bitIdx)
 
 
 cbuffer cbMaterial : register(b0)
@@ -86,40 +88,40 @@ MRT main(GSOutput gout) : SV_Target
     float4 diffuseAlbedo;
     
     // Diffuse Albedo
-    if (BitMasked(gTexStats, 0))
+    if (BitMasked(gTexStats, MaterialTextureType::Diffuse))
         diffuseAlbedo = SAMPLE_TEX(texDiffuse, DiffuseSampler);
     else
         diffuseAlbedo = gDiffuseAlbedo;
     
     // Metallic
     float metallic;
-    if (BitMasked(gTexStats, 1))
+    if (BitMasked(gTexStats, MaterialTextureType::Metallic))
         metallic = SAMPLE_TEX(texMetallic, MetallicSampler).x;
     else
         metallic = gMetallic;
     
     // Roughness
     float roughness;
-    if (BitMasked(gTexStats, 2))
+    if (BitMasked(gTexStats, MaterialTextureType::Roughness))
         roughness = SAMPLE_TEX(texRoughness, RoughnessSampler);
     else
         roughness = gRoughness;
     
     // Emissive 
     float3 emissive;
-    if (BitMasked(gTexStats, 4))
+    if (BitMasked(gTexStats, MaterialTextureType::Emissive))
         emissive = SAMPLE_TEX(texEmissive, EmissiveSampler);
     else
         emissive = gEmissive;
     
     float3 normal;
-    if (BitMasked(gTexStats, 5))
+    if (BitMasked(gTexStats, MaterialTextureType::Normal))
         normal = ComputeNormal(gout);
     else
         normal = gout.WorldNormal;
     
     float ao;
-    if (BitMasked(gTexStats, 3))
+    if (BitMasked(gTexStats, MaterialTextureType::AmbientOcclusion))
         ao = SAMPLE_TEX(texAmbientOcclusion, OcclusionSampler);
     else
         ao = 1;
