@@ -36,6 +36,8 @@
 #ifndef BXDF_HLSL
 #define BXDF_HLSL
 
+#include "../../../Utils/Fresnel.hlsli"
+
 namespace BxDF
 {
 
@@ -91,13 +93,7 @@ namespace BxDF
             }
         }
     }
-
-    // Fresnel reflectance - schlick approximation.
-    float3 Fresnel(in float3 F0, in float cos_thetai)
-    {
-        return F0 + (1 - F0) * pow(1 - cos_thetai, 5);
-    }
-
+    
     namespace Specular
     {
 
@@ -113,7 +109,7 @@ namespace BxDF
             {
                 L = reflect(-V, N);
                 float cos_thetai = dot(N, L);
-                return Fresnel(Fo, cos_thetai);
+                return FresnelSchlickNormalRange(Fo, cos_thetai);
             }
             
             // Calculate whether a total reflection occurs at a given V and a normal
@@ -144,7 +140,7 @@ namespace BxDF
                 float ior = 0.5;
                 wt = refract(-V, N, ior);
                 float cos_thetai = saturate(dot(V, N));
-                float3 Kr = Fresnel(Fo, cos_thetai);
+                float3 Kr = FresnelSchlickNormalRange(Fo, cos_thetai);
 
                 return (1 - Kr);
             }
@@ -178,7 +174,7 @@ namespace BxDF
                     // F
                     // Fresnel reflectance - Schlick approximation for F(h,l)
                     // Ref: 9.16, RTR
-                    float3 F = Fresnel(Fo, HoL);
+                    float3 F = FresnelSchlickNormalRange(Fo, HoL);
 
                     // G
                     // Visibility due to shadowing/masking of a microfacet.

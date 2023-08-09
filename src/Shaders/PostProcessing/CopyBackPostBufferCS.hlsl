@@ -12,7 +12,7 @@
 //
 
 #include "PostEffectsRS.hlsli"
-#include "../Utils/PixelPacking.hlsli"
+#include "../Utils/PixelPacking/PixelPacking.hlsli"
 
 RWTexture2D<float3> SceneColor : register( u0 );
 Texture2D<uint> PostBuffer : register( t0 );

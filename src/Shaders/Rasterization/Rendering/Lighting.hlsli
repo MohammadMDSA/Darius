@@ -1,5 +1,8 @@
 #include "Common.hlsli"
 
+#include "../../Utils/Fresnel.hlsli"
+#include "../../Utils/LightHelpers.hlsli"
+
 #ifndef __LIGHTING_HLSLI__
 #define __LIGHTING_HLSLI__
 
@@ -60,25 +63,6 @@ void AntiAliasSpecular(inout float3 texNormal, inout float gloss)
     gloss = exp2(lerp(0, log2(gloss), flatness));
 }
 
-float FShlick(float f0, float f90, float cosine)
-{
-    return lerp(f0, f90, pow(1.f - cosine, 5.f));
-}
-
-float3 FShlick(float3 f0, float3 f90, float cosine)
-{
-    return lerp(f0, f90, pow(1.f - cosine, 5.f));
-}
-
-float3 ApplyAmbientLight(
-    float3 diffuse, // Diffuse albedo
-    float ao, // Pre-computed ambient-occlusion
-    float3 lightColor // Radiance of ambient light
-    )
-{
-    return ao * diffuse * lightColor;
-}
-
 float GetDirectionalShadow(uint lightIndex, float3 ShadowCoord)
 {
     float3 coord = float3(ShadowCoord.xy, lightIndex);
@@ -131,33 +115,7 @@ float GetShadowPointLight(uint lightIndex, float3 lightToPos)
     return result * result;
 }
 
-float3 ApplyLightCommon(
-    float3 diffuseColor, // Diffuse albedo
-    float3 specularColor, // Specular albedo
-    float specularMask, // Where is it shiny or dingy?
-    float gloss, // Specular power
-    float3 normal, // World-space normal
-    float3 viewDir, // World-space vector from eye to point
-    float3 lightDir, // World-space vector from point to light
-    float3 lightColor // Radiance of directional light
-    )
-{
-    float3 halfVec = normalize(lightDir - viewDir);
-    float nDotH = saturate(dot(halfVec, normal));
-    float cosine = saturate(dot(lightDir, halfVec));
-    
-    //FSchlick(diffuseColor, specularColor, lightDir, halfVec);
-    diffuseColor = FShlick(diffuseColor, 0, cosine);
-    specularColor = FShlick(specularColor, 1, cosine);
-
-    float specularFactor = specularMask * pow(nDotH, max(gloss, 1.f)) * (gloss + 2) / 8;
-
-    float nDotL = saturate(dot(normal, lightDir));
-
-    return nDotL * lightColor * (diffuseColor + specularFactor * specularColor);
-}
-
-float3 ApplyDirectionalLight(
+float3 ApplyDirectionalShadowedLight(
     float3 diffuseColor, // Diffuse albedo
     float3 specularColor, // Specular albedo
     float specularMask, // Where is it shiny or dingy?
@@ -181,57 +139,21 @@ float3 ApplyDirectionalLight(
         shadow = GetDirectionalShadow(lightIndex, shadowCoord.xyz);
     }
 
-    return shadow * lightIntencity * ApplyLightCommon(
+    return shadow * ApplyDirectionalLight(
         diffuseColor,
         specularColor,
         specularMask,
         gloss,
         normal,
         viewDir,
+        worldPos,
         lightDir,
-        lightColor
+        lightColor,
+        lightIntencity
         );
 }
 
-float3 ApplyPointLight(
-    float3 diffuseColor, // Diffuse albedo
-    float3 specularColor, // Specular albedo
-    float specularMask, // Where is it shiny or dingy?
-    float gloss, // Specular power
-    float3 normal, // World-space normal
-    float3 viewDir, // World-space vector from eye to point
-    float3 worldPos, // World-space fragment position
-    float3 lightPos, // World-space light position
-    float lightRadiusSq,
-    float3 lightColor, // Radiance of directional light
-    float lightIntencity,
-    uint lightIndex
-    )
-{
-    float3 lightDir = lightPos - worldPos;
-    
-    float shadow = GetShadowPointLight(lightIndex, -lightDir);
-    
-    float lightDistSq = dot(lightDir, lightDir);
-    float invLightDist = rsqrt(lightDistSq);
-    lightDir *= invLightDist;
-    
-    float normalizedDist = sqrt(lightDistSq) * rsqrt(lightRadiusSq);
-    float distanceFalloff = lightIntencity / (1.0 + 25.0 * normalizedDist * normalizedDist) * saturate((1 - normalizedDist) * 5.0);
-    
-    return shadow * distanceFalloff * ApplyLightCommon(
-        diffuseColor,
-        specularColor,
-        specularMask,
-        gloss,
-        normal,
-        viewDir,
-        lightDir,
-        lightColor
-        );
-}
-
-float3 ApplyConeLight(
+float3 ApplyPointShadowedLight(
     float3 diffuseColor, // Diffuse albedo
     float3 specularColor, // Specular albedo
     float specularMask, // Where is it shiny or dingy?
@@ -244,23 +166,24 @@ float3 ApplyConeLight(
     float3 lightColor, // Radiance of directional light
     float lightIntencity,
     uint lightIndex,
-    float3 coneDir,
-    float2 coneAngles
+    bool castsShadow
     )
 {
     float3 lightDir = lightPos - worldPos;
+    
+    float shadow = 1.f;
+    
+    if(castsShadow)
+        shadow = GetShadowPointLight(lightIndex, -lightDir);
+    
     float lightDistSq = dot(lightDir, lightDir);
     float invLightDist = rsqrt(lightDistSq);
     lightDir *= invLightDist;
     
     float normalizedDist = sqrt(lightDistSq) * rsqrt(lightRadiusSq);
     float distanceFalloff = lightIntencity / (1.0 + 25.0 * normalizedDist * normalizedDist) * saturate((1 - normalizedDist) * 5.0);
-    //float distanceFalloff = saturate(lightIntencity * lightRadiusSq / (lightRadiusSq + (0.25 * lightDistSq)));
-
-    float coneFalloff = dot(-lightDir, coneDir);
-    coneFalloff = saturate((coneFalloff - coneAngles.y) * coneAngles.x);
-
-    return (coneFalloff * distanceFalloff) * ApplyLightCommon(
+    
+    return shadow * ApplyPointLight(
         diffuseColor,
         specularColor,
         specularMask,
@@ -268,7 +191,9 @@ float3 ApplyConeLight(
         normal,
         viewDir,
         lightDir,
-        lightColor
+        lightRadiusSq,
+        lightColor,
+        lightIntencity
         );
 }
 
@@ -311,7 +236,6 @@ float3 ApplyConeShadowedLight(
         lightRadiusSq,
         lightColor,
         lightIntencity,
-        lightIndex,
         coneDir,
         coneAngles
         );
@@ -322,7 +246,7 @@ float3 Diffuse_IBL(float3 normal, float3 toEye, float3 diffuseColor, float rough
 {
     float LdotH = saturate(dot(normal, normalize(normal + toEye)));
     float fd90 = 0.5f + 2.f * roughness * LdotH * LdotH;
-    float3 diffuseBurley = diffuseColor * FShlick(1, fd90, saturate(dot(normal, toEye)));
+    float3 diffuseBurley = diffuseColor * FresnelSchlick(1, fd90, saturate(dot(normal, toEye)));
     return diffuseBurley * irradianceIBLTexture.Sample(defaultSampler, normal);
 }
 
@@ -331,7 +255,7 @@ float3 Specular_IBL(float3 spec, float3 normal, float3 toEye, float roughness)
 {
     float lod = roughness * IBLRange + IBLBias;
     float3 specular = spec;
-    specular = FShlick(specular, 1.f, saturate(dot(normal, toEye)));
+    specular = FresnelSchlick(specular, 1.f, saturate(dot(normal, toEye)));
     return specular * radianceIBLTexture.SampleLevel(cubeMapSampler, reflect(-toEye, normal), lod);
 }
 
@@ -380,7 +304,7 @@ float3 ComputeLighting(
 
         if (i < NUM_DIR_LIGHTS)
         {
-            result += ApplyDirectionalLight(
+            result += ApplyDirectionalShadowedLight(
                 mat.DiffuseAlbedo.rgb,
                 mat.FresnelR0,
                 mat.SpecularMask,
@@ -406,7 +330,7 @@ float3 ComputeLighting(
             continue;
         
         if (i < NUM_DIR_LIGHTS + NUM_POINT_LIGHTS)
-            result += ApplyPointLight(POINT_LIGHT_ARGS);
+            result += ApplyPointShadowedLight(POINT_LIGHT_ARGS, true);
         else
             //result += ApplyConeLight(CONE_LIGHT_ARGS);
             result += ApplyConeShadowedLight(SHADOWED_LIGHT_ARGS);

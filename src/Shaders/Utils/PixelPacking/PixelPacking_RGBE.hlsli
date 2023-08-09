@@ -14,7 +14,7 @@
 #ifndef __PIXEL_PACKING_RGBE_HLSLI__
 #define __PIXEL_PACKING_RGBE_HLSLI__
 
-#include "ColorSpaceUtility.hlsli"
+#include "../ColorSpaceUtility.hlsli"
 
 // RGBE, aka R9G9B9E5_SHAREDEXP, is an unsigned float HDR pixel format where red, green,
 // and blue all share the same exponent.  The color channels store a 9-bit value ranging

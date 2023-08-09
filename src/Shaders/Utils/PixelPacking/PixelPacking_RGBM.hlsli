@@ -14,7 +14,7 @@
 #ifndef __PIXEL_PACKING_RGBM_HLSLI__
 #define __PIXEL_PACKING_RGBM_HLSLI__
 
-#include "ColorSpaceUtility.hlsli"
+#include "../ColorSpaceUtility.hlsli"
 
 float4 ToRGBM( float3 rgb, float PeakValue = 255.0 / 16.0 )
 {

@@ -13,7 +13,7 @@
 
 #include "../Utils/ShaderUtility.hlsli"
 #include "PostEffectsRS.hlsli"
-#include "../Utils/PixelPacking.hlsli"
+#include "../Utils/PixelPacking/PixelPacking.hlsli"
 
 Texture2D<float3> Bloom : register( t0 );
 #if SUPPORT_TYPED_UAV_LOADS

@@ -5,7 +5,7 @@
 #include "BxDF.hlsli"
 #include "../../RayTracingCommon.hlsli"
 #include "../../Utils/RayTracingUtils.hlsli"
-#include "../../../Utils/PixelPacking.hlsli"
+#include "../../../Utils/PixelPacking/PixelPacking.hlsli"
 #include "../../../Utils/ShaderUtility.hlsli"
 
 // Common (static) samplers

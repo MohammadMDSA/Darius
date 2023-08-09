@@ -13,7 +13,7 @@
 
 #include "ToneMappingUtility.hlsli"
 #include "PostEffectsRS.hlsli"
-#include "../Utils/PixelPacking.hlsli"
+#include "../Utils/PixelPacking/PixelPacking.hlsli"
 
 StructuredBuffer<float> Exposure : register( t0 );
 Texture2D<float3> Bloom : register( t1 );

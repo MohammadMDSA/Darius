@@ -14,7 +14,7 @@
 #ifndef __PIXEL_PACKING_R11G11B10_HLSLI__
 #define __PIXEL_PACKING_R11G11B10_HLSLI__
 
-#include "ColorSpaceUtility.hlsli"
+#include "../ColorSpaceUtility.hlsli"
 
 // The standard 32-bit HDR color format.  Each float has a 5-bit exponent and no sign bit.
 uint Pack_R11G11B10_FLOAT( float3 rgb )
