@@ -1,6 +1,8 @@
 
 # Darius Engine
 
+[![Codacy Badge](https://api.codacy.com/project/badge/Grade/7da83de5c5d1452ea66017d67f0d6afb)](https://app.codacy.com/gh/MohammadMDSA/Darius?utm_source=github.com&utm_medium=referral&utm_content=MohammadMDSA/Darius&utm_campaign=Badge_Grade)
+
 ## First Look
 
 <img src="Docs/overview.png" width="100%">
