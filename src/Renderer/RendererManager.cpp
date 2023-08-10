@@ -29,6 +29,7 @@
 
 using namespace D_CONTAINERS;
 using namespace D_CORE;
+using namespace D_GRAPHICS;
 using namespace D_GRAPHICS_MEMORY;
 using namespace D_MATH;
 using namespace D_RENDERER_GEOMETRY;
@@ -68,8 +69,6 @@ namespace Darius::Renderer
 
 		ActiveRendererType = HardwareRayTracing ? RendererType::RayTracing : RendererType::Rasterization;
 
-		D_LIGHT_RAST::Initialize();
-
 		if (ActiveRendererType == RendererType::Rasterization)
 			D_RENDERER_RAST::Initialize(settings);
 		else
@@ -92,23 +91,25 @@ namespace Darius::Renderer
 			D_RENDERER_RAST::Shutdown();
 		else
 			D_RENDERER_RT::Shutdown();
-
-		D_LIGHT_RAST::Shutdown();
 	}
 
 	void Update()
 	{
+		auto& context = D_GRAPHICS::GraphicsContext::Begin(L"Update Renderer");
+
 		switch (ActiveRendererType)
 		{
 		case Darius::Renderer::RendererType::Rasterization:
-			D_RENDERER_RAST::Update();
+			D_RENDERER_RAST::Update(context);
 			break;
 		case Darius::Renderer::RendererType::RayTracing:
-			D_RENDERER_RT::Update();
+			D_RENDERER_RT::Update(context);
 			break;
 		default:
 			D_ASSERT_M(true, "Update method not been implemented for this renderer type");
 		}
+
+		context.Finish();
 	}
 
 	void Render(std::wstring const& jobId, SceneRenderContext& renderContext, std::function<void()> postAntiAliasing)

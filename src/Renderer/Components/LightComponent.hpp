@@ -1,6 +1,8 @@
 #pragma once
 
-#include <Renderer/Rasterization/Light/LightManager.hpp>
+#include "Renderer/Light/LightCommon.hpp"
+
+#include <Math/Color.hpp>
 #include <Scene/EntityComponentSystem/Components/ComponentBase.hpp>
 
 #include "LightComponent.generated.hpp"
@@ -45,10 +47,10 @@ namespace Darius::Renderer
 	private:
 
 		DField(Get[inline], Set[inline], Serialize)
-		D_LIGHT_RAST::LightSourceType		mLightType;
+		D_RENDERER_LIGHT::LightSourceType mLightType;
 
 		DField(Get[inline, const, &], Set[inline], Serialize)
-		D_LIGHT_RAST::LightData				mLightData;
+		D_RENDERER_LIGHT::LightData		mLightData;
 
 		DField(Get[inline], Serialize)
 		float							mConeOuterAngle;

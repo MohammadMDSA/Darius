@@ -7,7 +7,7 @@
 #include "Renderer/Components/SkeletalMeshRendererComponent.hpp"
 #include "Renderer/Components/TerrainRendererComponent.hpp"
 #include "Renderer/Geometry/Mesh.hpp"
-#include "Renderer/Rasterization/Light/LightManager.hpp"
+#include "Renderer/Rasterization/Light/ShadowedLightContext.hpp"
 #include "Renderer/RendererManager.hpp"
 #include "Renderer/Resources/TextureResource.hpp"
 #include "Renderer/VertexTypes.hpp"
@@ -75,6 +75,8 @@ namespace Darius::Renderer::Rasterization
 	DescriptorHeap										TextureHeap;
 	DescriptorHeap										SamplerHeap;
 
+	std::unique_ptr<D_RENDERER_RAST_LIGHT::RasterizationShadowedLightContext> LightContext;
+
 	//////////////////////////////////////////////////////
 	// Options
 	bool												SeparateZPass = true;
@@ -132,67 +134,71 @@ namespace Darius::Renderer::Rasterization
 		// Initializing Camera Manager
 		D_CAMERA_MANAGER::Initialize();
 
+		LightContext = std::make_unique<D_RENDERER_RAST_LIGHT::RasterizationShadowedLightContext>();
+
 		ForcedPsoFlags = 0u;
 	}
 
 	void Shutdown()
 	{
+		LightContext.reset();
+
 		D_CAMERA_MANAGER::Shutdown();
 
 		TextureHeap.Destroy();
 		SamplerHeap.Destroy();
 	}
 
-	void Update()
+	void Update(D_GRAPHICS::CommandContext& context)
 	{
 
-		D_CAMERA_MANAGER::Update();
-
-		D_WORLD::IterateComponents<MeshRendererComponent>([&](D_RENDERER::MeshRendererComponent& meshComp)
-			{
-				D_JOB::AssignTask([&](int threadNumber, int)
-					{
-						meshComp.Update(-1);
-
-					});
-			}
-		);
-
-		D_WORLD::IterateComponents<SkeletalMeshRendererComponent>([&](D_RENDERER::SkeletalMeshRendererComponent& meshComp)
-			{
-				D_JOB::AssignTask([&](int threadNumber, int)
-					{
-						meshComp.Update(-1);
-
-					});
-			}
-		);
-
-		D_WORLD::IterateComponents<BillboardRendererComponent>([&](D_RENDERER::BillboardRendererComponent& meshComp)
-			{
-				D_JOB::AssignTask([&](int threadNumber, int)
-					{
-						meshComp.Update(-1);
-
-					});
-			}
-		);
-
-		D_WORLD::IterateComponents<TerrainRendererComponent>([&](D_RENDERER::TerrainRendererComponent& meshComp)
-			{
-				D_JOB::AssignTask([&](int threadNumber, int)
-					{
-						meshComp.Update(-1);
-
-					});
-			}
-		);
-
-		if (D_JOB::IsMainThread())
-			D_JOB::WaitForThreadsToFinish();
 		{
-			D_PROFILING::ScopedTimer lightProfiling(L"Update Lights");
-			D_LIGHT_RAST::Update();
+			D_PROFILING::ScopedTimer _prof(L"Update Renderer Components", context);
+
+			D_CAMERA_MANAGER::Update();
+
+			D_WORLD::IterateComponents<MeshRendererComponent>([&](D_RENDERER::MeshRendererComponent& meshComp)
+				{
+					D_JOB::AssignTask([&](int threadNumber, int)
+						{
+							meshComp.Update(-1);
+
+						});
+				}
+			);
+
+			D_WORLD::IterateComponents<SkeletalMeshRendererComponent>([&](D_RENDERER::SkeletalMeshRendererComponent& meshComp)
+				{
+					D_JOB::AssignTask([&](int threadNumber, int)
+						{
+							meshComp.Update(-1);
+
+						});
+				}
+			);
+
+			D_WORLD::IterateComponents<BillboardRendererComponent>([&](D_RENDERER::BillboardRendererComponent& meshComp)
+				{
+					D_JOB::AssignTask([&](int threadNumber, int)
+						{
+							meshComp.Update(-1);
+
+						});
+				}
+			);
+
+			D_WORLD::IterateComponents<TerrainRendererComponent>([&](D_RENDERER::TerrainRendererComponent& meshComp)
+				{
+					D_JOB::AssignTask([&](int threadNumber, int)
+						{
+							meshComp.Update(-1);
+
+						});
+				}
+			);
+
+			if (D_JOB::IsMainThread())
+				D_JOB::WaitForThreadsToFinish();
 		}
 	}
 
@@ -366,6 +372,20 @@ namespace Darius::Renderer::Rasterization
 	void Render(std::wstring const& jobId, SceneRenderContext& rContext, std::function<void()> postAntiAliasing)
 	{
 		auto& context = rContext.CommandContext.GetGraphicsContext();
+
+		// Update Lights
+		{
+
+			D_PROFILING::ScopedTimer _prof(L"Update Shadowed Light Context", context);
+
+			// TODO: Hacking accuiring cam input of update light buffers. Needs to be fixed ASAP!
+			auto cam = D_CAMERA_MANAGER::GetActiveCamera();
+			auto mathCam = cam.IsValid() ? &cam->GetCamera() : nullptr;
+			LightContext->Update(rContext.Camera);
+
+			LightContext->UpdateBuffers(context, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
+		}
+
 		MeshSorter sorter(MeshSorter::kDefault);
 
 		// Clearing depth and scene color textures
@@ -398,7 +418,7 @@ namespace Darius::Renderer::Rasterization
 			DVector<RenderItem> shadowRenderItems;
 			AddShadowRenderItems(shadowRenderItems);
 
-			D_LIGHT_RAST::RenderShadows(rContext.Camera, shadowRenderItems, context);
+			LightContext->RenderShadows(shadowRenderItems, context);
 		}
 
 		sorter.Sort();
@@ -450,13 +470,13 @@ namespace Darius::Renderer::Rasterization
 
 		D_GRAPHICS_AA_TEMPORAL::ResolveImage(commandContext, rContext.ColorBuffer, rContext.VelocityBuffer, rContext.TemporalColor, rContext.LinearDepth);
 
-		
+
 		// Calling post anti-aliasing callback
 		if (postAntiAliasing)
 			postAntiAliasing();
 
 		// Additional renders
-		if(rContext.AdditionalRenderItems.size() > 0)
+		if (rContext.AdditionalRenderItems.size() > 0)
 		{
 			context.TransitionResource(rContext.ColorBuffer, D3D12_RESOURCE_STATE_RENDER_TARGET, true);
 
@@ -785,15 +805,15 @@ namespace Darius::Renderer::Rasterization
 				UINT sourceCounts[] = { 1, 1, 1, 1, 1, 1 };
 				D3D12_CPU_DESCRIPTOR_HANDLE lightHandles[] =
 				{
-					D_LIGHT_RAST::GetLightMaskHandle(),
-					D_LIGHT_RAST::GetLightDataHandle(),
+					LightContext->GetLightsStatusBufferDescriptor(),
+					LightContext->GetLightsDataBufferDescriptor(),
 					(D3D12_CPU_DESCRIPTOR_HANDLE)0,
 					(D3D12_CPU_DESCRIPTOR_HANDLE)0,
 					(D3D12_CPU_DESCRIPTOR_HANDLE)0,
 					ssao ? ssao->GetSRV() : (D3D12_CPU_DESCRIPTOR_HANDLE)0
 				};
 
-				D_LIGHT_RAST::GetShadowTextureArrayHandle(lightHandles[2], lightHandles[3], lightHandles[4]);
+				LightContext->GetShadowTextureArraysHandles(lightHandles[2], lightHandles[3], lightHandles[4]);
 
 				D_GRAPHICS_DEVICE::GetDevice()->CopyDescriptors(1, &CommonTexture, &destCount, destCount, lightHandles, sourceCounts, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 			}

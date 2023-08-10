@@ -15,7 +15,6 @@
 #include <Engine/EngineContext.hpp>
 #include <Graphics/CommandContext.hpp>
 #include <Graphics/GraphicsUtils/Profiling/Profiling.hpp>
-#include <Renderer/Rasterization/Light/LightManager.hpp>
 #include <Renderer/Rasterization/Renderer.hpp>
 #include <Renderer/Camera/CameraManager.hpp>
 #include <Utils/Debug.hpp>
@@ -106,15 +105,7 @@ namespace Darius::Editor
 
 		D_EDITOR_CONTEXT::Update(elapsedTime);
 
-		auto& context = D_GRAPHICS::GraphicsContext::Begin(L"Update resources");
-
-		// TODO: Hacking accuiring cam input of update light buffers. Needs to be fixed ASAP!
-		auto cam = D_CAMERA_MANAGER::GetActiveCamera();
-		auto mathCam = cam.IsValid() ? &cam->GetCamera() : nullptr;
-		D_LIGHT_RAST::UpdateBuffers(context, mathCam);
 		D_RESOURCE::UpdateGPUResources();
-		context.Finish();
-
 	}
 #pragma endregion
 

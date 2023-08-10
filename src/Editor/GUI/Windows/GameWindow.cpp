@@ -11,7 +11,6 @@
 #include <Graphics/PostProcessing/PostProcessing.hpp>
 #include <Renderer/Components/SkeletalMeshRendererComponent.hpp>
 #include <Renderer/Components/MeshRendererComponent.hpp>
-#include <Renderer/Rasterization/Light/LightManager.hpp>
 
 #include <imgui.h>
 #include <Libs/FontIcon/IconsFontAwesome6.h>

@@ -1196,12 +1196,12 @@ namespace Darius::Renderer::Geometry::ModelLoader::Fbx
 		{
 		case FbxLight::eDirectional:
 		{
-			comp->SetLightType(D_LIGHT_RAST::LightSourceType::DirectionalLight);
+			comp->SetLightType(D_RENDERER_LIGHT::LightSourceType::DirectionalLight);
 			break;
 		}
 		case FbxLight::eSpot:
 		{
-			comp->SetLightType(D_LIGHT_RAST::LightSourceType::SpotLight);
+			comp->SetLightType(D_RENDERER_LIGHT::LightSourceType::SpotLight);
 			comp->SetConeInnerAngle(DirectX::XMConvertToRadians((float)light->InnerAngle.Get()));
 			comp->SetConeOuterAngle(DirectX::XMConvertToRadians((float)light->OuterAngle.Get()));
 			break;
@@ -1209,7 +1209,7 @@ namespace Darius::Renderer::Geometry::ModelLoader::Fbx
 		case FbxLight::ePoint:
 		default:
 		{
-			comp->SetLightType(D_LIGHT_RAST::LightSourceType::PointLight);
+			comp->SetLightType(D_RENDERER_LIGHT::LightSourceType::PointLight);
 			break;
 		}
 		}

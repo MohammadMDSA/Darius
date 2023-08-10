@@ -485,12 +485,12 @@ namespace Darius::Renderer
 			ImGui::EndPopup();
 		}
 
-		// Diffuse
+		// Albedo
 		ImGui::TableNextRow();
 		ImGui::TableSetColumnIndex(0);
 		DrawTexture2DHolder(mBaseColorTexture, BaseColor);
 		ImGui::SameLine();
-		ImGui::Text("Diffuse");
+		ImGui::Text("Albedo");
 		if (!(mMaterial.TextureStatusMask & (1 << kBaseColor)))
 		{
 			ImGui::TableSetColumnIndex(1);

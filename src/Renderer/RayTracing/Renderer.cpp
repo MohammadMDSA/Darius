@@ -97,8 +97,10 @@ namespace Darius::Renderer::RayTracing
 		SamplerHeap.Destroy();
 	}
 
-	void UpdateRendererComponents()
+	void UpdateRendererComponents(D_GRAPHICS::CommandContext& context)
 	{
+		D_PROFILING::ScopedTimer _prof(L"Update Renderer Components", context);
+
 		D_CAMERA_MANAGER::Update();
 
 		D_WORLD::IterateComponents<MeshRendererComponent>([&](D_RENDERER::MeshRendererComponent& meshComp)
@@ -149,16 +151,17 @@ namespace Darius::Renderer::RayTracing
 		}*/
 	}
 
-	void Update()
+	void Update(D_GRAPHICS::CommandContext& context)
 	{
-
 		RTScene->Reset();
 
 		// Updating Components
-		UpdateRendererComponents();
+		UpdateRendererComponents(context);
 
 		// Updating BLASes
 		{
+			D_PROFILING::ScopedTimer _prof(L"Update Blas Instances", context);
+
 			auto createStaticMeshBlas = [scene = RTScene.get()](D_RENDERER_GEOMETRY::Mesh const& mesh, D_CORE::Uuid const& uuid)
 			{
 				// TODO: Add translucent objects

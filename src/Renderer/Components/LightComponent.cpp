@@ -13,7 +13,7 @@
 #include <imgui.h>
 #endif
 
-using namespace D_LIGHT_RAST;
+using namespace D_RENDERER_LIGHT;
 using namespace D_SERIALIZATION;
 using namespace DirectX;
 
@@ -116,7 +116,7 @@ namespace Darius::Renderer
 
 		switch (mLightType)
 		{
-		case D_LIGHT_RAST::LightSourceType::DirectionalLight:
+		case LightSourceType::DirectionalLight:
 		{
 			auto activeCam = D_CAMERA_MANAGER::GetActiveCamera();
 
@@ -159,12 +159,12 @@ namespace Darius::Renderer
 
 			break;
 		}
-		case D_LIGHT_RAST::LightSourceType::PointLight:
+		case LightSourceType::PointLight:
 		{
 			D_DEBUG_DRAW::DrawSphere(trans->GetPosition(), mLightData.Range, 0.f, D_MATH::Color(mLightData.Color.x, mLightData.Color.y, mLightData.Color.z));
 			break;
 		}
-		case D_LIGHT_RAST::LightSourceType::SpotLight:
+		case LightSourceType::SpotLight:
 			auto innerAng = mConeInnerAngle == 0 ? 0.001f : mConeInnerAngle;
 			auto outerAng = mConeOuterAngle == 0 ? 0.001f : mConeOuterAngle;
 			// Drawing outer cone

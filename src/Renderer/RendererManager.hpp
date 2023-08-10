@@ -10,7 +10,6 @@
 #define D_RENDERER Darius::Renderer
 #endif // !D_RENDERER
 
-
 namespace Darius::Renderer
 {
 	enum class RendererType

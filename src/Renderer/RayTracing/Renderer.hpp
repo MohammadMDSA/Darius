@@ -4,6 +4,7 @@
 #include "RayTracingCommandContext.hpp"
 
 #include <Core/Serialization/Json.hpp>
+#include <Graphics/CommandContext.hpp>
 #include <Graphics/GraphicsUtils/Memory/DescriptorHeap.hpp>
 #include <Math/Camera/Camera.hpp>
 
@@ -30,7 +31,7 @@ namespace Darius::Renderer::RayTracing
 
 	void Initialize(D_SERIALIZATION::Json const& settings);
 	void Shutdown();
-	void Update();
+	void Update(D_GRAPHICS::CommandContext& context);
 	void Render(std::wstring const& jobId, SceneRenderContext& renderContext, std::function<void()> postAntiAliasing);
 
 	// Allocating from heaps

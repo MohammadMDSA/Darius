@@ -187,7 +187,7 @@ namespace Darius::Renderer::Rasterization
 
 	void Initialize(D_SERIALIZATION::Json const& settings);
 	void Shutdown();
-	void Update();
+	void Update(D_GRAPHICS::CommandContext& context);
 	void Render(std::wstring const& jobId, SceneRenderContext& rContext, std::function<void()> postAntiAliasing = nullptr);
 
 #ifdef _D_EDITOR

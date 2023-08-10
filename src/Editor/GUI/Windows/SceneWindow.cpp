@@ -15,7 +15,6 @@
 #include <Renderer/Components/SkeletalMeshRendererComponent.hpp>
 #include <Renderer/RendererManager.hpp>
 #include <Renderer/Rasterization/Renderer.hpp>
-#include <Renderer/Rasterization/Light/LightManager.hpp>
 #include <ResourceManager/ResourceManager.hpp>
 #include <Scene/Scene.hpp>
 
