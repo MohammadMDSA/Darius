@@ -52,7 +52,7 @@ namespace Darius::Editor::Gui::Windows
 
 		// Setup camera
 		mCamera.SetFoV(XM_PI / 3);
-		mCamera.SetZRange(0.001f, 10000.f);
+		mCamera.SetZRange(0.001f, 1000.f);
 		mCamera.SetPosition(Vector3(2.f, 2.f, 2.f));
 		mCamera.SetLookDirection(Vector3(-2), Vector3::Up);
 		mCamera.SetOrthographicSize(10);
