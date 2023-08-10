@@ -47,8 +47,12 @@ namespace Darius::Graphics::Utils::Buffers
 #endif
     }
 
+    void* UploadBuffer::MapInstance(UINT instanceIndex, bool fillZero) const
+    {
+        return reinterpret_cast<BYTE*>(Map(fillZero)) + (instanceIndex * GetBufferSize());
+    }
 
-    void* UploadBuffer::Map(bool fillZero)
+    void* UploadBuffer::Map(bool fillZero) const
     {
         void* Memory;
         auto range = CD3DX12_RANGE(0, GetTotalBufferSize());
@@ -60,7 +64,7 @@ namespace Darius::Graphics::Utils::Buffers
         return Memory;
     }
 
-    void UploadBuffer::Unmap(size_t begin, size_t end)
+    void UploadBuffer::Unmap(size_t begin, size_t end) const
     {
         auto range = CD3DX12_RANGE(begin, std::min(end, GetTotalBufferSize()));
         mResource->Unmap(0, &range);

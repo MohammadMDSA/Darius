@@ -20,8 +20,9 @@ namespace Darius::Graphics::Utils::Buffers
 
         void Create(std::wstring const& name, size_t BufferSize, UINT numInstances = 1);
 
-        void* Map(bool fillZero = false);
-        void Unmap(size_t begin = 0, size_t end = -1);
+        void* MapInstance(UINT instanceIndex, bool fillZero = false) const;
+        void* Map(bool fillZero = false) const;
+        void Unmap(size_t begin = 0, size_t end = -1) const;
 
         INLINE size_t GetBufferSize() const { return mBufferSize; }
         INLINE size_t GetTotalBufferSize() const { return mBufferSize * mNumInstances; }
