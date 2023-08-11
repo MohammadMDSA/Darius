@@ -7,7 +7,7 @@
 cbuffer                             l_MaterialConstants         : register(b1, space2)
 {
     float4                          l_DiffuseAlbedo;
-    float3                          l_FresnelR0;
+    float4                          l_FresnelR0;
     float3                          l_Emissive;
     float                           l_Metallic;
     float                           l_Roughness;

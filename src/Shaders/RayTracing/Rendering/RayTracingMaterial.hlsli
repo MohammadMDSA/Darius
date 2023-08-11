@@ -8,7 +8,7 @@ struct PrimitiveMaterialBuffer
     XMFLOAT3                Albedo;
     XMFLOAT3                Specular;
     float                   SpecularMask;
-    XMFLOAT3                Metallic;
+    float                   Metallic;
     XMFLOAT3                Transmissivity;
     XMFLOAT3                Emission;
     XMFLOAT3                Opacity;

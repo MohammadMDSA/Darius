@@ -29,7 +29,7 @@ struct Light
     int3            padding;
 };
 
-ByteAddressBuffer               g_LightMask : register(t10);
-StructuredBuffer<Light>         g_LightData : register(t11);
+ByteAddressBuffer               g_LightMask : register(t10, space0);
+StructuredBuffer<Light>         g_LightData : register(t11, space0);
 
 #endif

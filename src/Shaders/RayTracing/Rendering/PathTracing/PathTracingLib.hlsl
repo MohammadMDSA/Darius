@@ -317,7 +317,7 @@ float3 Shade(
     const float3 Kd = material.Albedo;
     //const float3 Ks = lerp(kDielectricSpecular, material.Albedo, material.Metallic);
     const float3 Ks = material.Specular;
-    const float3 Kr = material.Metallic;
+    const float3 Kr = material.Metallic * material.Albedo;
     const float3 Kt = material.Transmissivity;
     const float roughness = material.Roughness;
 
@@ -413,15 +413,7 @@ float3 Shade(
                 // Ref: eq 24.4, [Ray-tracing from the Ground Up]
                 float3 reflectedValue = TraceReflectedGBufferRay(hitPosition, wi, N, objectNormal, reflectedRayPayLoad);
                 
-                //// Env Sample
-                //if(reflectedRayPayLoad.MissLatestRay)
-                //{
-                //    float3 diff = Ks * (1 - kDielectricSpecular) * (1 - material.Metallic);
-                //    float3 spec = lerp(kDielectricSpecular, Ks, material.Metallic);
-                //    L += Specular_IBL(spec, N, V, roughness) + Diffuse_IBL(N, V, diff, roughness);
-                //}
-                //else
-                    L += Fr * reflectedValue;
+                L += Fr * reflectedValue;
                 
                 UpdateGBufferOnLargerDiffuseComponent(rayPayload, reflectedRayPayLoad, Fr);
             }
@@ -439,6 +431,8 @@ float3 Shade(
             }
         }
     }
+                
+    L += Diffuse_IBL(N, V, Ks * (1 - kDielectricSpecular) * (1 - material.Metallic), roughness);
 
     return L;
 }
@@ -568,13 +562,12 @@ void MainRenderCHS(inout PathTracerRayPayload rayPayload, in BuiltInTriangleInte
   
     if (BitMasked(l_TexStats, MaterialTextureType::Metallic))
     {
-        metallicFactor = l_TexMetallic.SampleLevel(l_MetallicSampler, texCoord, 0);
+        material.Metallic = l_TexMetallic.SampleLevel(l_MetallicSampler, texCoord, 0);
     }
     else
-        metallicFactor = l_Metallic;
+        material.Metallic = l_Metallic;
         
-    material.Metallic = metallicFactor * material.Albedo;
-       
+
     if (BitMasked(l_TexStats, MaterialTextureType::Emissive))
     {
         float3 texSample = l_TexEmissive.SampleLevel(l_EmissiveSampler, texCoord, 0).xyz;
@@ -603,7 +596,7 @@ void MainRenderCHS(inout PathTracerRayPayload rayPayload, in BuiltInTriangleInte
     // TODO: Add specular mask texture
     material.SpecularMask = 1.f;
             
-    material.Specular = l_FresnelR0;
+    material.Specular = l_FresnelR0.rgb;
 
     // Shade the current hit point, including casting any further rays into the scene 
     // based on current's surface material properties.
