@@ -1,38 +1,11 @@
-#include "Common.hlsli"
-
-#include "../../Utils/Fresnel.hlsli"
-#include "../../Utils/LightHelpers.hlsli"
-
 #ifndef __LIGHTING_HLSLI__
 #define __LIGHTING_HLSLI__
 
-#define MAX_LIGHTS 256
+#include "Common.hlsli"
 
-// Defaults for number of lights.
-#ifndef NUM_DIR_LIGHTS
-#define NUM_DIR_LIGHTS 6
-#endif
-
-#ifndef NUM_POINT_LIGHTS
-#define NUM_POINT_LIGHTS 125
-#endif
-
-#ifndef NUM_SPOT_LIGHTS
-#define NUM_SPOT_LIGHTS 125
-#endif
-
-struct Light
-{
-    float3              Color;
-    float3              Direction;
-    float3              Position;
-    float               Intencity;
-    float               Radius;
-    float2              SpotAngles; // x = 1.0f / (cos(coneInner) - cos(coneOuter)), y = cos(coneOuter)
-    float4x4            ShadowMatrix;
-    bool                CastsShadow;
-    int3                padding;
-};
+#include "../../Lighting/LightBindings.hlsli"
+#include "../../Lighting/LightHelpers.hlsli"
+#include "../../Utils/Fresnel.hlsli"
 
 struct Material
 {
@@ -42,16 +15,12 @@ struct Material
     float               SpecularMask;
 };
 
-ByteAddressBuffer       LightMask                           : register(t10);
-StructuredBuffer<Light> LightData                           : register(t11);
 Texture2DArray<float>   DirectioanalightShadowArrayTex      : register(t12);
 TextureCubeArray<float> PointLightShadowArrayTex            : register(t13);
 Texture2DArray<float>   SpotLightShadowArrayTex             : register(t14);
 Texture2D<float>        ssaoTexture                         : register(t15);
 TextureCube<float3>     radianceIBLTexture                  : register(t16);
 TextureCube<float3>     irradianceIBLTexture                : register(t17);
-
-static const float3 kDielectricSpecular = float3(0.04, 0.04, 0.04);
 
 void AntiAliasSpecular(inout float3 texNormal, inout float gloss)
 {
@@ -102,7 +71,7 @@ float GetShadowConeLight(uint lightIndex, float3 shadowCoord, float3 wPos)
 
 float GetShadowPointLight(uint lightIndex, float3 lightToPos)
 {
-    float4x4 shadow = LightData[lightIndex].ShadowMatrix;
+    float4x4 shadow = g_LightData[lightIndex].ShadowMatrix;
     
     float3 absToPixel = abs(lightToPos);
     float Z = -max(absToPixel.z, max(absToPixel.x, absToPixel.y));
@@ -287,12 +256,12 @@ float3 ComputeLighting(
     
     for (uint i = 0; i < NUM_DIR_LIGHTS + NUM_POINT_LIGHTS + NUM_SPOT_LIGHTS; ++i)
     {
-        uint masks = LightMask.Load((i / 32) * 4);
+        uint masks = g_LightMask.Load((i / 32) * 4);
         uint idx = i - (i / 32) * 32;
         if (!(masks & (1u << (31 - idx))))
             continue;
         
-        Light light = LightData[i];
+        Light light = g_LightData[i];
 
         if (i < NUM_DIR_LIGHTS)
         {

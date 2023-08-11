@@ -7,6 +7,7 @@
 #include "Renderer/Components/MeshRendererComponent.hpp"
 #include "Renderer/Components/SkeletalMeshRendererComponent.hpp"
 #include "Renderer/Components/TerrainRendererComponent.hpp"
+#include "Renderer/RayTracing/Light/RayTracingLightContext.hpp"
 
 #include <Core/Uuid.hpp>
 #include <Graphics/GraphicsUtils/Buffers/GpuBuffer.hpp>
@@ -50,8 +51,11 @@ namespace Darius::Renderer::RayTracing
 	// Internal
 	bool													_initialized;
 	DescriptorHandle										PathTracingCommonSRVs[D_GRAPHICS_DEVICE::gNumFrameResources]; // 0: TLAS, 1: RadIBL, 2: IrradIBL
+	DescriptorHandle										PathTracingLightDataSRVs[D_GRAPHICS_DEVICE::gNumFrameResources]; // 0: LighStatus, 1: LightData
 	DescriptorHandle										RayGenUAVs[D_GRAPHICS_DEVICE::gNumFrameResources]; // 0: Color Render target
 	D_RESOURCE::ResourceRef<TextureResource>				BlackCubeTextureRes({ L"Rasterization Renderer" });
+
+	std::unique_ptr<D_RENDERER_RT_LIGHT::RayTracingLightContext> LightContext;
 
 	ALIGN_DECL_256 struct MeshConstants
 	{
@@ -77,16 +81,21 @@ namespace Darius::Renderer::RayTracing
 		for (int i = 0; i < D_GRAPHICS_DEVICE::gNumFrameResources; i++)
 		{
 			PathTracingCommonSRVs[i] = TextureHeap.Alloc(3);
+			PathTracingLightDataSRVs[i] = TextureHeap.Alloc(3);
 			RayGenUAVs[i] = TextureHeap.Alloc(3);
 		}
 		
 		BlackCubeTextureRes = D_RESOURCE::GetResource<TextureResource>(D_RENDERER::GetDefaultGraphicsResource(D_RENDERER::DefaultResource::TextureCubeMapBlack));
+
+		LightContext = std::make_unique<D_RENDERER_RT_LIGHT::RayTracingLightContext>();
 
 	}
 
 	void Shutdown()
 	{
 		D_ASSERT(_initialized);
+
+		LightContext.reset();
 
 		MainRenderPipeline->Shutdown();
 
@@ -212,25 +221,42 @@ namespace Darius::Renderer::RayTracing
 		context.SetDynamicConstantBufferView(PathTracing::GlobalRootSignatureBindings::GlobalRayTracingConstants, sizeof(RTCB), &RTCB);
 
 
-		// SRVs
-		DVector<D3D12_CPU_DESCRIPTOR_HANDLE> srvHandles;
-		srvHandles.reserve(3);
-		srvHandles.push_back(RTScene->GetTopLevelAS().GetSRV());
-		if (renderContext.IrradianceIBL != nullptr && renderContext.RadianceIBL != nullptr)
+		UINT frameResourceIndex = D_GRAPHICS_DEVICE::GetCurrentFrameResourceIndex();
+		// Global SRVs
 		{
-			srvHandles.push_back(renderContext.RadianceIBL->GetSRV());
-			srvHandles.push_back(renderContext.IrradianceIBL->GetSRV());
-		}
-		else
-		{
-			srvHandles.push_back(BlackCubeTextureRes->GetTextureData()->GetSRV());
-			srvHandles.push_back(BlackCubeTextureRes->GetTextureData()->GetSRV());
-		}
-		UINT srvSrcCount[] = { 1u, 1u, 1u };
-		UINT srvDestCount = 3u;
+			DVector<D3D12_CPU_DESCRIPTOR_HANDLE> srvHandles;
+			srvHandles.reserve(3);
+			srvHandles.push_back(RTScene->GetTopLevelAS().GetSRV());
+			if (renderContext.IrradianceIBL != nullptr && renderContext.RadianceIBL != nullptr)
+			{
+				srvHandles.push_back(renderContext.RadianceIBL->GetSRV());
+				srvHandles.push_back(renderContext.IrradianceIBL->GetSRV());
+			}
+			else
+			{
+				srvHandles.push_back(BlackCubeTextureRes->GetTextureData()->GetSRV());
+				srvHandles.push_back(BlackCubeTextureRes->GetTextureData()->GetSRV());
+			}
+			UINT srvSrcCount[] = { 1u, 1u, 1u };
+			UINT srvDestCount = 3u;
 
-		D_GRAPHICS_DEVICE::GetDevice()->CopyDescriptors(1, &PathTracingCommonSRVs[D_GRAPHICS_DEVICE::GetCurrentFrameResourceIndex()], &srvDestCount, (UINT)srvHandles.size(), srvHandles.data(), srvSrcCount, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-		context.SetDescriptorTable(PathTracing::GlobalRootSignatureBindings::GlobalSRVTable, PathTracingCommonSRVs[D_GRAPHICS_DEVICE::GetCurrentFrameResourceIndex()]);
+			D_GRAPHICS_DEVICE::GetDevice()->CopyDescriptors(1, &PathTracingCommonSRVs[frameResourceIndex], &srvDestCount, (UINT)srvHandles.size(), srvHandles.data(), srvSrcCount, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+			context.SetDescriptorTable(PathTracing::GlobalRootSignatureBindings::GlobalSRVTable, PathTracingCommonSRVs[frameResourceIndex]);
+		}
+		
+		// Global Light Data
+		{
+			D3D12_CPU_DESCRIPTOR_HANDLE srvHandles[] =
+			{
+				LightContext->GetLightsStatusBufferDescriptor(),
+				LightContext->GetLightsDataBufferDescriptor()
+			};
+			
+			UINT srvSrcCount[] = { 1u, 1u };
+			UINT srvDestCount = 2u;
+			D_GRAPHICS_DEVICE::GetDevice()->CopyDescriptors(1, &PathTracingLightDataSRVs[frameResourceIndex], &srvDestCount, 2u, srvHandles, srvSrcCount, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+			context.SetDescriptorTable(PathTracing::GlobalRootSignatureBindings::GlobalLightData, PathTracingLightDataSRVs[frameResourceIndex]);
+		}
 	}
 
 	void CreateLocalBindings(RayTracingCommandContext& context, SceneRenderContext& renderContext, ShaderTable* shaderTable)
@@ -312,7 +338,16 @@ namespace Darius::Renderer::RayTracing
 		auto& renderTarget = renderContext.ColorBuffer;
 		auto const& camera = renderContext.Camera;
 
-		D_PROFILING::ScopedTimer _prof(L"Simple Ray Tracing Render", context);
+		D_PROFILING::ScopedTimer _prof(L"Ray Tracing Render", context);
+
+		// Update Lights
+		{
+
+			D_PROFILING::ScopedTimer _prof(L"Update Shadowed Light Context", context);
+
+			LightContext->Update(camera);
+			LightContext->UpdateBuffers(context, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
+		}
 
 		RTScene->Build(context, nullptr, D_GRAPHICS_DEVICE::GetCurrentFrameResourceIndex(), false);
 

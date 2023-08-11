@@ -64,6 +64,11 @@ struct PathTracerRayPayload
     PathTracerGBuffer               GBuffer;
 };
 
+struct ShadowRayPayload
+{
+    float                           THit;         // Hit time <0,..> on Hit. -1 on miss.
+};
+
 struct RTVertexPositionNormalTangentTexture
 {
     XMFLOAT3						Position;

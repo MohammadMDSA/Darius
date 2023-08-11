@@ -96,6 +96,7 @@ namespace Darius::Renderer::RayTracing::Pipeline
 		(*globalRootSig)[PathTracing::GlobalRootSignatureBindings::GlobalConstants].InitAsConstantBuffer(0, D3D12_SHADER_VISIBILITY_ALL, 0);
 		(*globalRootSig)[PathTracing::GlobalRootSignatureBindings::GlobalRayTracingConstants].InitAsConstantBuffer(1, D3D12_SHADER_VISIBILITY_ALL, 0);
 		(*globalRootSig)[PathTracing::GlobalRootSignatureBindings::GlobalSRVTable].InitAsDescriptorRange(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 0, 5, D3D12_SHADER_VISIBILITY_ALL, 0);
+		(*globalRootSig)[PathTracing::GlobalRootSignatureBindings::GlobalLightData].InitAsDescriptorRange(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 10, 5, D3D12_SHADER_VISIBILITY_ALL);
 		globalRootSig->Finalize(L"Path Tracing Pipeling Globl Root Sig", D3D12_ROOT_SIGNATURE_FLAG_NONE);
 		mRTSO->SetGlobalRootSignature(globalRootSig);
 

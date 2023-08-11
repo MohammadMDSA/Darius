@@ -35,12 +35,22 @@ namespace Darius::Renderer::RayTracing::Pipeline
 		{
 			GlobalConstants = 0,
 			GlobalRayTracingConstants,
-			GlobalSRVTable,
+
+
 			// 0: TLAS
-			// 1: -
-			// 2: -
+			// 1: Radiance IBL
+			// 2: Irradiance IBL
 			// 3: -
 			// 4: -
+			GlobalSRVTable,
+
+
+			// 10: Light Mask
+			// 11: Light Data
+			// 12: -
+			// 13: -
+			// 14: -
+			GlobalLightData,
 
 			Count
 		};

@@ -32,9 +32,9 @@ namespace Darius::Renderer::Light
 		UINT								GetNumberOfPointLights() const;
 		UINT								GetNumberOfSpotLights() const;
 
-		LightData const& GetDirectionalLightData(UINT index) const;
-		LightData const& GetPointLightData(UINT index) const;
-		LightData const& GetSpotLightData(UINT index) const;
+		LightData const&					GetDirectionalLightData(UINT index) const;
+		LightData const&					GetPointLightData(UINT index) const;
+		LightData const&					GetSpotLightData(UINT index) const;
 
 		void								UpdateBuffers(D_GRAPHICS::CommandContext& context, D3D12_RESOURCE_STATES buffersReadyState = D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
 	

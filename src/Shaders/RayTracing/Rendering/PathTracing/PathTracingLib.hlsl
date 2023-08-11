@@ -2,9 +2,10 @@
 
 #include "../../RaytracingHlslCompat.h"
 #include "../RayTracingMaterialBindings.hlsli"
-#include "BxDF.hlsli"
+#include "../RayTracingLighting.hlsli"
 #include "../../RayTracingCommon.hlsli"
 #include "../../Utils/RayTracingUtils.hlsli"
+#include "../../../Utils/BxDF.hlsli"
 #include "../../../Utils/PixelPacking/PixelPacking.hlsli"
 #include "../../../Utils/ShaderUtility.hlsli"
 
@@ -49,7 +50,7 @@ cbuffer g_RTCB : register(b1, space0)
 RaytracingAccelerationStructure     g_RtScene                   : register(t0, space0);
 TextureCube<float3>                 g_RadianceIBLTexture        : register(t1, space0);
 TextureCube<float3>                 g_IrradianceIBLTexture      : register(t2, space0);
-
+// Includes light data bindings
 
 // Locals //////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////
@@ -59,7 +60,7 @@ RWTexture2D<float4>                 l_GBufferPosition           : register(u1, s
 RWTexture2D<NormalDepthTexFormat>   l_GBufferNormalDepth        : register(u2, space1);
 RWTexture2D<float>                  l_GBufferDepth              : register(u3, space1);
 
-// Hit Group    
+// Hit Group Main
 StructuredBuffer<uint16_t>          l_Indices                   : register(t10, space2);
 StructuredBuffer<RTVertexPositionNormalTangentTexture> l_Vertices : register(t11, space2);  
 cbuffer                             l_MeshConstants             : register(b0, space2)
@@ -68,7 +69,10 @@ cbuffer                             l_MeshConstants             : register(b0, s
     float3x3                        l_worldIT;
 }
 // Includes Material data
+        
 
+// Hit Group Shadow
+// Nothing yet...
 
 namespace PathtracerRayType {
     enum Enum {
@@ -98,6 +102,7 @@ namespace TraceRayParameters
         };
     }
 }
+ 
         
 PathTracerRayPayload TraceRadianceRay(in Ray ray, in UINT currentRayRecursionDepth, float tMin = NEAR_PLANE, float tMax = FAR_PLANE, float bounceContribution = 1, bool cullNonOpaque = false)
 {
@@ -213,7 +218,76 @@ void UpdateGBufferOnLargerDiffuseComponent(inout PathTracerRayPayload rayPayload
         rayPayload.GBuffer.DiffuseByte3 = NormalizedFloat3ToByte3(_diffuse);
     }
 }
-          
+
+// Trace a shadow ray and return true if it hits any geometry.
+bool TraceShadowRayAndReportIfHit(out float tHit, in Ray ray, in UINT currentRayRecursionDepth, in bool retrieveTHit = true, in float TMax = 10000)
+{
+    if (currentRayRecursionDepth >= 1)
+    {
+        return false;
+    }
+
+    // Set the ray's extents.
+    RayDesc rayDesc;
+    rayDesc.Origin = ray.Origin;
+    rayDesc.Direction = ray.Direction;
+    rayDesc.TMin = 0.0;
+    rayDesc.TMax = TMax;
+
+    // Initialize shadow ray payload.
+    // Set the initial value to a hit at TMax. 
+    // Miss shader will set it to HitDistanceOnMiss.
+    // This way closest and any hit shaders can be skipped if true tHit is not needed. 
+    ShadowRayPayload shadowPayload = { TMax };
+
+    UINT rayFlags = RAY_FLAG_CULL_NON_OPAQUE; // ~skip transparent objects
+    bool acceptFirstHit = !retrieveTHit;
+    if (acceptFirstHit)
+    {
+        // Performance TIP: Accept first hit if true hit is not neeeded,
+        // or has minimal to no impact. The peformance gain can
+        // be substantial.
+        rayFlags |= RAY_FLAG_ACCEPT_FIRST_HIT_AND_END_SEARCH;
+    }
+
+    // Skip closest hit shaders of tHit time is not needed.
+    if (!retrieveTHit)
+    {
+        rayFlags |= RAY_FLAG_SKIP_CLOSEST_HIT_SHADER;
+    }
+
+    TraceRay(g_RtScene,
+        rayFlags,
+        TraceRayParameters::InstanceMask,
+        TraceRayParameters::HitGroup::Offset[PathtracerRayType::Shadow],
+        TraceRayParameters::HitGroup::GeometryStride,
+        TraceRayParameters::MissShader::Offset[PathtracerRayType::Shadow],
+        rayDesc, shadowPayload);
+    
+    // Report a hit if Miss Shader didn't set the value to HitDistanceOnMiss.
+    tHit = shadowPayload.THit;
+
+    return shadowPayload.THit > 0;
+}
+
+bool TraceShadowRayAndReportIfHit(out float tHit, in Ray ray, in float3 N, in UINT currentRayRecursionDepth, in bool retrieveTHit = true, in float TMax = 10000)
+{
+    // Only trace if the surface is facing the target.
+    if (dot(ray.Direction, N) > 0)
+    {
+        return TraceShadowRayAndReportIfHit(tHit, ray, currentRayRecursionDepth, retrieveTHit, TMax);
+    }
+    return false;
+}
+
+bool TraceShadowRayAndReportIfHit(in float3 hitPosition, in float3 direction, in float3 N, in PathTracerRayPayload rayPayload, in float TMax = 10000)
+{
+    float tOffset = 0.001f;
+    Ray visibilityRay = { hitPosition + tOffset * N, direction };
+    float dummyTHit;
+    return TraceShadowRayAndReportIfHit(dummyTHit, visibilityRay, N, rayPayload.RayRecursionDepth, false, TMax - tOffset);
+}
+
 float3 Shade(
     inout PathTracerRayPayload rayPayload,
     in float3 N,
@@ -221,38 +295,68 @@ float3 Shade(
     in float3 hitPosition,
     in PrimitiveMaterialBuffer material)
 {
-    float3 V = -WorldRayDirection();
+    float3 V = WorldRayDirection();
     float pdf;
     float3 indirectContribution = 0;
     float3 L = 0;
 
-    const float3 Kd = material.Albedo;
-    const float3 Ks = material.Specular;
+    const float3 Kd = material.Albedo * (1 - kDielectricSpecular) * (1 - material.Metallic);
+    const float3 Ks = lerp(kDielectricSpecular, material.Albedo, material.Metallic);
     const float3 Kr = material.Metallic;
     const float3 Kt = material.Transmissivity;
     const float roughness = material.Roughness;
 
      // Direct illumination
     rayPayload.GBuffer.DiffuseByte3 = NormalizedFloat3ToByte3(Kd);
-    if (!BxDF::IsBlack(material.Albedo) || !BxDF::IsBlack(material.Specular))
+    if (!BxDF::IsBlack(Kd) || !BxDF::IsBlack(Ks))
     {
-        float3 lightPos = float3(100.f, 100.f, 100.f);
-        float3 wi = normalize(lightPos - hitPosition);
+        
+        for(uint i = 0u; i < MAX_LIGHTS; i++)
+        {
+            uint masks = g_LightMask.Load((i / 32u) * 4);
+            uint idx = i - (i / 32u) * 32u;
+            
+            // Is light active?
+            if(!(masks & (1u << (31u - idx))))
+                continue;
+                        
+            Light lightData = g_LightData[i];
 
-        // Raytraced shadows.
-        bool isInShadow = false; //TraceShadowRayAndReportIfHit(hitPosition, wi, N, rayPayload);
+            if(i < NUM_DIR_LIGHTS)
+            {
+                            
+                // Raytraced shadows.
+                //if(!TraceShadowRayAndReportIfHit(hitPosition, lightData.Direction, N, rayPayload))
+                //    continue;
 
-        L += BxDF::Shade(
-            material.Type,
-            Kd,
-            Ks,
-            float3(1.f, 1.f, 1.f), // Light color
-            isInShadow,
-            g_AmbientLight.xyz,
-            roughness,
-            N,
-            V,
-            wi);
+                L += ApplyDirectionalLight(Kd, Ks, material.SpecularMask, roughness, N, V, lightData.Position, -lightData.Direction, lightData.Color, lightData.Intencity);
+                continue;
+            }
+
+            float3 lightDir = lightData.Position - hitPosition;
+            float lightDistSq = dot(lightDir, lightDir);
+            float lightRadiusSq = lightData.Radius * lightData.Radius;
+        
+            // If pixel position is too far from light
+            if (lightDistSq >= lightRadiusSq)
+                continue;
+        
+            if (i < NUM_DIR_LIGHTS + NUM_POINT_LIGHTS)
+            {
+                //if(!TraceShadowRayAndReportIfHit(hitPosition, lightDir, N, rayPayload, lightData.Radius))
+                //    continue;
+                            
+                L += ApplyPointLight(Kd, Ks, material.SpecularMask, roughness, N, V, lightDir, lightRadiusSq, lightData.Color, lightData.Intencity);
+            }
+            else
+            {
+                //if(!TraceShadowRayAndReportIfHit(hitPosition, lightDir, N, rayPayload, lightData.Radius))
+                //    continue;
+                
+                L += ApplyConeLight(Kd, Ks, material.SpecularMask, roughness, N, V, hitPosition, lightData.Position, lightRadiusSq, lightData.Color, lightData.Intencity, lightData.Direction, lightData.SpotAngles);
+                            
+            }
+        }
     }
 
     //L += g_AmbientLight.xyz * Kd; // Applying ambient light
@@ -269,18 +373,20 @@ float3 Shade(
 
     if (isReflective || isTransmissive)
     {
-        //if (isReflective 
-        //    && (BxDF::Specular::Reflection::IsTotalInternalReflection(V, N) 
-        //        || material.Type == MaterialType::Mirror))
-        //{
-        //    PathTracerRayPayload reflectedRayPayLoad = rayPayload;
-        //    float3 wi = reflect(-V, N);
+#if PROCESS_TOTAL_REFLECTION
+        if (isReflective
+        && (BxDF::Specular::Reflection::IsTotalInternalReflection(V, N)
+            || material.Type == MaterialType::Mirror))
+        {
+            PathTracerRayPayload reflectedRayPayLoad = rayPayload;
+            float3 wi = reflect(-V, N);
                 
-        //    L += Kr * TraceReflectedGBufferRay(hitPosition, wi, N, objectNormal, reflectedRayPayLoad);
-        //    UpdateGBufferOnLargerDiffuseComponent(rayPayload, reflectedRayPayLoad, Kr);
-        //}
-        //else // No total internal reflection
-        //{
+            L += Kr * TraceReflectedGBufferRay(hitPosition, wi, N, objectNormal, reflectedRayPayLoad);
+            UpdateGBufferOnLargerDiffuseComponent(rayPayload, reflectedRayPayLoad, Kr);
+        }
+        else // No total internal reflection
+#endif
+        {
             float3 Fo = Ks;
             if (isReflective)
             {
@@ -305,11 +411,12 @@ float3 Shade(
                 L += Ft * TraceRefractedGBufferRay(hitPosition, wt, N, objectNormal, refractedRayPayLoad);
                 UpdateGBufferOnLargerDiffuseComponent(rayPayload, refractedRayPayLoad, Ft);
             }
-        //}
+        }
     }
 
     return L;
 }
+
             
 [shader("raygeneration")]
 void MainRenderRayGen()
@@ -374,8 +481,6 @@ void MainRenderMiss(inout PathTracerRayPayload payload)
     payload.Radiance = g_RadianceIBLTexture.SampleLevel(g_CubeMapSampler, WorldRayDirection(), 0);
 }
 
-static const float3 kDielectricSpecular = float3(0.04, 0.04, 0.04);
-            
 [shader("closesthit")]
 void MainRenderCHS(inout PathTracerRayPayload rayPayload, in BuiltInTriangleIntersectionAttributes attr)
 {
@@ -462,10 +567,11 @@ void MainRenderCHS(inout PathTracerRayPayload rayPayload, in BuiltInTriangleInte
     rayPayload.GBuffer.HitPosition = hitPosition;
     rayPayload.GBuffer.EncodedNormal = EncodeNormal(normal);
                 
-    
-    material.Specular = lerp(kDielectricSpecular, material.Albedo, material.Metallic);
-    material.Albedo = material.Albedo * (1 - kDielectricSpecular) * (1 - material.Metallic);
-    material.Opacity = 1;
+    material.Albedo = material.Albedo;
+    material.Opacity = 1.f;
+                
+    // TODO: Add specular mask texture
+    material.SpecularMask = 1.f;
 
     // Shade the current hit point, including casting any further rays into the scene 
     // based on current's surface material properties.

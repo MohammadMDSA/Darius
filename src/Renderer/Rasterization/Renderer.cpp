@@ -372,17 +372,13 @@ namespace Darius::Renderer::Rasterization
 	void Render(std::wstring const& jobId, SceneRenderContext& rContext, std::function<void()> postAntiAliasing)
 	{
 		auto& context = rContext.CommandContext.GetGraphicsContext();
+		D_PROFILING::ScopedTimer _prof(L"Rasterization Render", context);
 
 		// Update Lights
 		{
-
 			D_PROFILING::ScopedTimer _prof(L"Update Shadowed Light Context", context);
 
-			// TODO: Hacking accuiring cam input of update light buffers. Needs to be fixed ASAP!
-			auto cam = D_CAMERA_MANAGER::GetActiveCamera();
-			auto mathCam = cam.IsValid() ? &cam->GetCamera() : nullptr;
 			LightContext->Update(rContext.Camera);
-
 			LightContext->UpdateBuffers(context, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
 		}
 

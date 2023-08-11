@@ -1,8 +1,10 @@
 #ifndef __LIGHT_HELPERS_HLSLI__
 #define __LIGHT_HELPERS_HLSLI__
 
-#include "Fresnel.hlsli"
-#include "BxDF.hlsli"
+#include "../Utils/Fresnel.hlsli"
+#include "../Utils/BxDF.hlsli"
+
+static const float3 kDielectricSpecular = float3(0.04, 0.04, 0.04);
 
 // Common light
 inline float3 ApplyLightCommon(
