@@ -89,7 +89,7 @@ namespace Darius::Editor::Gui::Windows
 	{
 
 		auto& context = GraphicsContext::Begin(L"Game Window Render");
-		
+
 		auto camera = D_CAMERA_MANAGER::GetActiveCamera();
 
 		if (!camera.IsValid() || !camera->IsActive() || !UpdateGlobalConstants(mSceneGlobals))
@@ -101,11 +101,11 @@ namespace Darius::Editor::Gui::Windows
 			// Clear scene color
 			context.TransitionResource(mSceneTexture, D3D12_RESOURCE_STATE_RENDER_TARGET, true);
 			context.ClearColor(mSceneTexture);
-			
+
 			context.Finish();
 			return;
 		}
-		
+
 		D_MATH_CAMERA::Camera const& c = camera.Get()->GetCamera();
 
 		SceneRenderContext rc =
@@ -142,8 +142,8 @@ namespace Darius::Editor::Gui::Windows
 			c,
 			mSceneGlobals,
 			{},
-			nullptr,
-			nullptr,
+			nullptr, // TODO: Skybox For Game Window
+			nullptr, // TODO: Skybox For Game Window
 			true
 		};
 
@@ -325,6 +325,10 @@ namespace Darius::Editor::Gui::Windows
 		globals.TotalTime = (float)time.GetTotalSeconds();
 		globals.DeltaTime = (float)time.GetElapsedSeconds();
 		globals.AmbientLight = { 0.1f, 0.1f, 0.1f, 1.0f };
+
+		// TODO: Skybox For Game Window
+		globals.IBLBias = 0.f;
+		globals.IBLRange = 0.f;
 
 		auto const& frustum = camera.GetWorldSpaceFrustum();
 

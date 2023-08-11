@@ -154,10 +154,7 @@ namespace Darius::Renderer::RayTracing
 
 		if (D_JOB::IsMainThread())
 			D_JOB::WaitForThreadsToFinish();
-		/*{
-			D_PROFILING::ScopedTimer lightProfiling(L"Update Lights");
-			D_LIGHT_RAST::Update();
-		}*/
+
 	}
 
 	void Update(D_GRAPHICS::CommandContext& context)

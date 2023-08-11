@@ -113,6 +113,7 @@ PathTracerRayPayload TraceRadianceRay(in Ray ray, in UINT currentRayRecursionDep
     rayPayload.GBuffer.HitPosition = 0;
     rayPayload.GBuffer.DiffuseByte3 = 0;
     rayPayload.GBuffer.EncodedNormal = 0;
+    rayPayload.MissLatestRay = false;
 
     if (currentRayRecursionDepth >= g_MaxRadianceRayRecursionDepth)
     {
@@ -141,6 +142,24 @@ PathTracerRayPayload TraceRadianceRay(in Ray ray, in UINT currentRayRecursionDep
 	return rayPayload;
 }
 
+// Diffuse irradiance
+float3 Diffuse_IBL(float3 normal, float3 toEye, float3 diffuseColor, float roughness)
+{
+    float LdotH = saturate(dot(normal, normalize(normal + toEye)));
+    float fd90 = 0.5f + 2.f * roughness * LdotH * LdotH;
+    float3 diffuseBurley = diffuseColor * FresnelSchlick(1, fd90, saturate(dot(normal, toEye)));
+    return diffuseBurley * g_IrradianceIBLTexture.SampleLevel(g_CubeMapSampler, normal, 0.f);
+}
+
+// Approximate specular IBL by sampling lower mips according to roughness.  Then modulate by Fresnel. 
+float3 Specular_IBL(float3 spec, float3 normal, float3 toEye, float roughness)
+{
+    float lod = roughness * g_IBLRange + g_IBLBias;
+    float3 specular = spec;
+    specular = FresnelSchlick(specular, 1.f, saturate(dot(normal, toEye)));
+    return specular * g_RadianceIBLTexture.SampleLevel(g_CubeMapSampler, reflect(-toEye, normal), lod);
+}
+
 // Returns radiance of the traced refracted ray.
 float3 TraceRefractedGBufferRay(in float3 hitPosition, in float3 wt, in float3 N, in float3 objectNormal, inout PathTracerRayPayload rayPayload, in float TMax = 10000)
 {
@@ -157,12 +176,6 @@ float3 TraceRefractedGBufferRay(in float3 hitPosition, in float3 wt, in float3 N
     float tMin = 0.f; 
     float tMax = TMax; 
 
-    // TRADEOFF: Performance vs visual quality
-    // Cull transparent surfaces when casting a transmission ray for a transparent surface.
-    // Spaceship in particular has multiple layer glass causing a substantial perf hit 
-    // with multiple bounces along the way.
-    // This can cause visual pop ins however, such as in a case of looking at the spaceship's
-    // glass cockpit through a window in the house. The cockpit will be skipped in this case.
     bool cullNonOpaque = true;
 
     rayPayload = TraceRadianceRay(ray, rayPayload.RayRecursionDepth, tMin, tMax, 0, cullNonOpaque);
@@ -191,7 +204,7 @@ float3 TraceReflectedGBufferRay(in float3 hitPosition, in float3 wi, in float3 N
 
     float tMin = 0.f; 
     float tMax = TMax;
-
+                
     rayPayload = TraceRadianceRay(ray, rayPayload.RayRecursionDepth, tMin, tMax);
     if (rayPayload.GBuffer.THit != HitDistanceOnMiss)
     {
@@ -295,13 +308,15 @@ float3 Shade(
     in float3 hitPosition,
     in PrimitiveMaterialBuffer material)
 {
-    float3 V = WorldRayDirection();
+    float3 V = -WorldRayDirection();
     float pdf;
     float3 indirectContribution = 0;
     float3 L = 0;
 
-    const float3 Kd = material.Albedo * (1 - kDielectricSpecular) * (1 - material.Metallic);
-    const float3 Ks = lerp(kDielectricSpecular, material.Albedo, material.Metallic);
+    //const float3 Kd = material.Albedo * (1 - kDielectricSpecular) * (1 - material.Metallic);
+    const float3 Kd = material.Albedo;
+    //const float3 Ks = lerp(kDielectricSpecular, material.Albedo, material.Metallic);
+    const float3 Ks = material.Specular;
     const float3 Kr = material.Metallic;
     const float3 Kt = material.Transmissivity;
     const float roughness = material.Roughness;
@@ -329,7 +344,7 @@ float3 Shade(
                 //if(!TraceShadowRayAndReportIfHit(hitPosition, lightData.Direction, N, rayPayload))
                 //    continue;
 
-                L += ApplyDirectionalLight(Kd, Ks, material.SpecularMask, roughness, N, V, lightData.Position, -lightData.Direction, lightData.Color, lightData.Intencity);
+                L += ApplyDirectionalLight(Kd, Ks, material.SpecularMask, roughness, N, -V, lightData.Position, -lightData.Direction, lightData.Color, lightData.Intencity);
                 continue;
             }
 
@@ -346,14 +361,14 @@ float3 Shade(
                 //if(!TraceShadowRayAndReportIfHit(hitPosition, lightDir, N, rayPayload, lightData.Radius))
                 //    continue;
                             
-                L += ApplyPointLight(Kd, Ks, material.SpecularMask, roughness, N, V, lightDir, lightRadiusSq, lightData.Color, lightData.Intencity);
+                L += ApplyPointLight(Kd, Ks, material.SpecularMask, roughness, N, -V, lightDir, lightRadiusSq, lightData.Color, lightData.Intencity);
             }
             else
             {
                 //if(!TraceShadowRayAndReportIfHit(hitPosition, lightDir, N, rayPayload, lightData.Radius))
                 //    continue;
                 
-                L += ApplyConeLight(Kd, Ks, material.SpecularMask, roughness, N, V, hitPosition, lightData.Position, lightRadiusSq, lightData.Color, lightData.Intencity, lightData.Direction, lightData.SpotAngles);
+                L += ApplyConeLight(Kd, Ks, material.SpecularMask, roughness, N, -V, hitPosition, lightData.Position, lightRadiusSq, lightData.Color, lightData.Intencity, lightData.Direction, lightData.SpotAngles);
                             
             }
         }
@@ -371,7 +386,7 @@ float3 Shade(
     float smallValue = 1e-6f;
     //isReflective = dot(V, N) > smallValue ? isReflective : false;
 
-    if (isReflective || isTransmissive)
+    //if (isReflective || isTransmissive)
     {
 #if PROCESS_TOTAL_REFLECTION
         if (isReflective
@@ -388,7 +403,7 @@ float3 Shade(
 #endif
         {
             float3 Fo = Ks;
-            if (isReflective)
+            if (1)
             {
                 // Radiance contribution from reflection.
                 float3 wi;
@@ -396,7 +411,18 @@ float3 Shade(
                 
                 PathTracerRayPayload reflectedRayPayLoad = rayPayload;
                 // Ref: eq 24.4, [Ray-tracing from the Ground Up]
-                L += Fr * TraceReflectedGBufferRay(hitPosition, wi, N, objectNormal, reflectedRayPayLoad);
+                float3 reflectedValue = TraceReflectedGBufferRay(hitPosition, wi, N, objectNormal, reflectedRayPayLoad);
+                
+                //// Env Sample
+                //if(reflectedRayPayLoad.MissLatestRay)
+                //{
+                //    float3 diff = Ks * (1 - kDielectricSpecular) * (1 - material.Metallic);
+                //    float3 spec = lerp(kDielectricSpecular, Ks, material.Metallic);
+                //    L += Specular_IBL(spec, N, V, roughness) + Diffuse_IBL(N, V, diff, roughness);
+                //}
+                //else
+                    L += Fr * reflectedValue;
+                
                 UpdateGBufferOnLargerDiffuseComponent(rayPayload, reflectedRayPayLoad, Fr);
             }
 
@@ -474,11 +500,13 @@ float3 NormalMap(
     float3 bumpNormal = normalize(texSample * 2.f - 1.f);
     return BumpMapNormalToWorldSpaceNormal(bumpNormal, normal, tangent);
 }
-    
+ 
 [shader("miss")]
 void MainRenderMiss(inout PathTracerRayPayload payload)
 {
-    payload.Radiance = g_RadianceIBLTexture.SampleLevel(g_CubeMapSampler, WorldRayDirection(), 0);
+    payload.MissLatestRay = true;
+    //if(payload.RayRecursionDepth == 1u)
+        payload.Radiance = g_RadianceIBLTexture.SampleLevel(g_CubeMapSampler, WorldRayDirection(), 0.f);
 }
 
 [shader("closesthit")]
@@ -502,6 +530,7 @@ void MainRenderCHS(inout PathTracerRayPayload rayPayload, in BuiltInTriangleInte
         
     // Load triangle normal.
     float3 normal;
+    float metallicFactor;
     float3 objectNormal;
     {
         // Retrieve corresponding vertex normals for the triangle vertices.
@@ -539,11 +568,12 @@ void MainRenderCHS(inout PathTracerRayPayload rayPayload, in BuiltInTriangleInte
   
     if (BitMasked(l_TexStats, MaterialTextureType::Metallic))
     {
-        float texSample = l_TexMetallic.SampleLevel(l_MetallicSampler, texCoord, 0);
-        material.Metallic = texSample * material.Albedo;
+        metallicFactor = l_TexMetallic.SampleLevel(l_MetallicSampler, texCoord, 0);
     }
     else
-        material.Metallic = l_Metallic * material.Albedo;
+        metallicFactor = l_Metallic;
+        
+    material.Metallic = metallicFactor * material.Albedo;
        
     if (BitMasked(l_TexStats, MaterialTextureType::Emissive))
     {
@@ -572,6 +602,8 @@ void MainRenderCHS(inout PathTracerRayPayload rayPayload, in BuiltInTriangleInte
                 
     // TODO: Add specular mask texture
     material.SpecularMask = 1.f;
+            
+    material.Specular = l_FresnelR0;
 
     // Shade the current hit point, including casting any further rays into the scene 
     // based on current's surface material properties.

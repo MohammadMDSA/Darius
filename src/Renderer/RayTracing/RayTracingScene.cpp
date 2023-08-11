@@ -105,6 +105,7 @@ namespace Darius::Renderer::RayTracing
 			else
 				mat = materialRes.Get();
 
+
 			return GeometryMaterialData{ mat->GetTexturesHandle(), mat->GetSamplersHandle(), mat->GetConstantsGpuAddress() };
 
 			});

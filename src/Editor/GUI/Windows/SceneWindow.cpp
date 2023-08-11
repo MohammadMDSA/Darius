@@ -176,6 +176,11 @@ namespace Darius::Editor::Gui::Windows
 		globals.TotalTime = (float)time.GetTotalSeconds();
 		globals.DeltaTime = (float)time.GetElapsedSeconds();
 		globals.AmbientLight = { 0.1f, 0.1f, 0.1f, 0.1f };
+		globals.IBLBias = 0;
+		if (mSkyboxDiff.IsValid() && mDrawSkybox)
+			globals.IBLRange = std::max(0.f, (float)const_cast<ID3D12Resource*>(mSkyboxDiff->GetTextureData()->GetResource())->GetDesc().MipLevels - 1);
+		else
+			globals.IBLRange = 0;
 
 		auto const& frustum = mCamera.GetWorldSpaceFrustum();
 
@@ -237,8 +242,8 @@ namespace Darius::Editor::Gui::Windows
 			mCamera,
 			mSceneGlobals,
 			additional,
-			mSkyboxSpec->GetTextureData(),
-			mSkyboxDiff->GetTextureData(),
+			mDrawSkybox ? mSkyboxSpec->GetTextureData() : nullptr,
+			mDrawSkybox ? mSkyboxDiff->GetTextureData() : nullptr,
 			mDrawSkybox
 		};
 
