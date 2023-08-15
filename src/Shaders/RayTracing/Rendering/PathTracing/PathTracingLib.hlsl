@@ -235,7 +235,7 @@ void UpdateGBufferOnLargerDiffuseComponent(inout PathTracerRayPayload rayPayload
 // Trace a shadow ray and return true if it hits any geometry.
 bool TraceShadowRayAndReportIfHit(out float tHit, in Ray ray, in UINT currentRayRecursionDepth, in bool retrieveTHit = true, in float TMax = 10000)
 {
-    if (currentRayRecursionDepth >= 1)
+    if (currentRayRecursionDepth >= 2)
     {
         return false;
     }
@@ -341,32 +341,32 @@ float3 Shade(
             {
                             
                 // Raytraced shadows.
-                //if(!TraceShadowRayAndReportIfHit(hitPosition, lightData.Direction, N, rayPayload))
-                //    continue;
+                if(TraceShadowRayAndReportIfHit(hitPosition, -lightData.Direction, N, rayPayload))
+                    continue;
 
                 L += ApplyDirectionalLight(Kd, Ks, material.SpecularMask, roughness, N, -V, lightData.Position, -lightData.Direction, lightData.Color, lightData.Intencity);
                 continue;
             }
 
             float3 lightDir = lightData.Position - hitPosition;
-            float lightDistSq = dot(lightDir, lightDir);
+            float lightDist = length(lightDir);
             float lightRadiusSq = lightData.Radius * lightData.Radius;
         
             // If pixel position is too far from light
-            if (lightDistSq >= lightRadiusSq)
+            if (lightDist > lightData.Radius)
                 continue;
         
             if (i < NUM_DIR_LIGHTS + NUM_POINT_LIGHTS)
             {
-                //if(!TraceShadowRayAndReportIfHit(hitPosition, lightDir, N, rayPayload, lightData.Radius))
-                //    continue;
+                if(TraceShadowRayAndReportIfHit(hitPosition, lightDir / lightDist, N, rayPayload, lightDist))
+                    continue;
                             
                 L += ApplyPointLight(Kd, Ks, material.SpecularMask, roughness, N, -V, lightDir, lightRadiusSq, lightData.Color, lightData.Intencity);
             }
             else
             {
-                //if(!TraceShadowRayAndReportIfHit(hitPosition, lightDir, N, rayPayload, lightData.Radius))
-                //    continue;
+                if(TraceShadowRayAndReportIfHit(hitPosition, lightDir / lightDist, N, rayPayload, lightDist))
+                    continue;
                 
                 L += ApplyConeLight(Kd, Ks, material.SpecularMask, roughness, N, -V, hitPosition, lightData.Position, lightRadiusSq, lightData.Color, lightData.Intencity, lightData.Direction, lightData.SpotAngles);
                             
@@ -432,7 +432,7 @@ float3 Shade(
         }
     }
                 
-    L += Diffuse_IBL(N, V, Ks * (1 - kDielectricSpecular) * (1 - material.Metallic), roughness);
+    L += Diffuse_IBL(N, V, Kd * (1 - kDielectricSpecular) * (1 - material.Metallic), roughness);
 
     return L;
 }
@@ -601,4 +601,17 @@ void MainRenderCHS(inout PathTracerRayPayload rayPayload, in BuiltInTriangleInte
     // Shade the current hit point, including casting any further rays into the scene 
     // based on current's surface material properties.
     rayPayload.Radiance = Shade(rayPayload, normal, objectNormal, hitPosition, material);
+}
+            
+
+[shader("closesthit")]
+void ShadowCHS(inout ShadowRayPayload rayPayload, in BuiltInTriangleIntersectionAttributes attr)
+{
+    rayPayload.THit = RayTCurrent();
+}
+
+[shader("miss")]
+void ShadowMiss(inout ShadowRayPayload rayPayload)
+{
+    rayPayload.THit = HitDistanceOnMiss;
 }

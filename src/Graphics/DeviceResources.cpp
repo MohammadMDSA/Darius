@@ -102,6 +102,7 @@ namespace Darius::Graphics::Device
 			{
 				debugController->EnableDebugLayer();
 				//debugController->SetEnableGPUBasedValidation(true);
+
 			}
 			else
 			{

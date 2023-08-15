@@ -80,9 +80,9 @@ namespace Darius::Renderer::RayTracing
 
 		for (int i = 0; i < D_GRAPHICS_DEVICE::gNumFrameResources; i++)
 		{
-			PathTracingCommonSRVs[i] = TextureHeap.Alloc(3);
-			PathTracingLightDataSRVs[i] = TextureHeap.Alloc(3);
-			RayGenUAVs[i] = TextureHeap.Alloc(3);
+			PathTracingCommonSRVs[i] = TextureHeap.Alloc(10);
+			PathTracingLightDataSRVs[i] = TextureHeap.Alloc(10);
+			RayGenUAVs[i] = TextureHeap.Alloc(10);
 		}
 		
 		BlackCubeTextureRes = D_RESOURCE::GetResource<TextureResource>(D_RENDERER::GetDefaultGraphicsResource(D_RENDERER::DefaultResource::TextureCubeMapBlack));
@@ -177,6 +177,9 @@ namespace Darius::Renderer::RayTracing
 
 			D_WORLD::IterateComponents<MeshRendererComponent>([scene = RTScene.get(), createBlasFunc = createStaticMeshBlas](D_RENDERER::MeshRendererComponent& comp)
 				{
+					if (!comp.IsActive())
+						return;
+
 					auto const* meshRes = comp.GetMesh();
 
 					if (!meshRes)
@@ -269,7 +272,9 @@ namespace Darius::Renderer::RayTracing
 
 
 		// Hit groups
-		auto hitGroup = MainRenderPipeline->GetStateObject()->GetHitGroups()[0];
+		auto hitGroups = MainRenderPipeline->GetStateObject()->GetHitGroups();
+		auto hitGroup = hitGroups[0];
+		auto shadowHitGroup = hitGroups[1];
 		auto CHSRS = hitGroup.ClosestHitShader->GetLocalRootSignature();
 		// For each instance
 		for (UINT instanceIndex = 0u; instanceIndex < RTScene->GetNumberOfBottomLevelASInstances(); instanceIndex++)
@@ -287,28 +292,36 @@ namespace Darius::Renderer::RayTracing
 				auto const& meshVertViews = blas->GetGeometryMeshViewsByIndex(geomIndex);
 				
 				// For now, no settings for shadow
-				for (UINT geomSlot = 0; geomSlot < (UINT)RayTypes::Shadow; geomSlot++)
+				for (UINT geomSlot = 0; geomSlot < (UINT)RayTypes::Count; geomSlot++)
 				{
+
+
 					UINT hitGroupIndex = (RTScene->GetTotalNumberOfPriorGeometrySegmets(instanceIndex) + geomIndex) * (UINT)RayTypes::Count + geomSlot;
 
-					shaderTable->SetHitGroupIdentifier(hitGroupIndex, hitGroup.Identifier);
-					
+					if (geomSlot == 0)
+					{
+						shaderTable->SetHitGroupIdentifier(hitGroupIndex, hitGroup.Identifier);
 
-					// Settting mesh vertices data		RootIndex 0
-					shaderTable->SetHitGroupSystemParameters(hitGroupIndex, { meshVertViews.IndexVertexBufferSRV });
+						// Settting mesh vertices data		RootIndex 0
+						shaderTable->SetHitGroupSystemParameters(hitGroupIndex, { meshVertViews.IndexVertexBufferSRV });
 
-					// Setting mesh constants			RootIndex 1
-					shaderTable->SetHitGroupParameters(hitGroupIndex, CHSRS->GetRootParameterOffset(1), meshConstantsAddress);
+						// Setting mesh constants			RootIndex 1
+						shaderTable->SetHitGroupParameters(hitGroupIndex, CHSRS->GetRootParameterOffset(1), meshConstantsAddress);
 
-					// Setting material constans		RootIndex 2
-					shaderTable->SetHitGroupParameters(hitGroupIndex, CHSRS->GetRootParameterOffset(2), materials[geomIndex].MaterialConstants);
+						// Setting material constans		RootIndex 2
+						shaderTable->SetHitGroupParameters(hitGroupIndex, CHSRS->GetRootParameterOffset(2), materials[geomIndex].MaterialConstants);
 
-					// Setting material textures		RootIndex 3
-					shaderTable->SetHitGroupParameters(hitGroupIndex, CHSRS->GetRootParameterOffset(3), materials[geomIndex].TextureTableHandle);
+						// Setting material textures		RootIndex 3
+						shaderTable->SetHitGroupParameters(hitGroupIndex, CHSRS->GetRootParameterOffset(3), materials[geomIndex].TextureTableHandle);
 
-					// Setting material samplers		RootIndex 4
-					shaderTable->SetHitGroupParameters(hitGroupIndex, CHSRS->GetRootParameterOffset(4), materials[geomIndex].SamplerTableHandle);
+						// Setting material samplers		RootIndex 4
+						shaderTable->SetHitGroupParameters(hitGroupIndex, CHSRS->GetRootParameterOffset(4), materials[geomIndex].SamplerTableHandle);
+					}
+					else // Shadow
+					{
+						shaderTable->SetHitGroupIdentifier(hitGroupIndex, shadowHitGroup.Identifier);
 
+					}
 				}
 
 			}

@@ -15,9 +15,12 @@ using namespace D_GRAPHICS_SHADERS;
 namespace
 {
 	const wchar_t* c_hitGroupName = L"DefaultPathTracingHitGroup";
+	const wchar_t* c_shadowHitGroupName = L"ShadowPathTracingHitGroup";
 	const wchar_t* c_raygenShaderName = L"MainRenderRayGen";
 	const wchar_t* c_closestHitShaderName = L"MainRenderCHS";
+	const wchar_t* c_shadowClosestHitShaderName = L"ShadowCHS";
 	const wchar_t* c_missShaderName = L"MainRenderMiss";
+	const wchar_t* c_shadowMissShaderName = L"ShadowMiss";
 	const wchar_t* c_libName = L"PathTracingLib";
 
 }
@@ -75,10 +78,26 @@ namespace Darius::Renderer::RayTracing::Pipeline
 		rayGenRootSig->Finalize(L"Path Tracing Pipeling RayGen Root Sig", D3D12_ROOT_SIGNATURE_FLAG_LOCAL_ROOT_SIGNATURE);
 		std::shared_ptr<RayGenerationShader> rayGenShader = std::make_shared<RayGenerationShader>(c_raygenShaderName, c_libName, rayGenRootSig);
 
+		// Shadow Miss Shader
+		std::shared_ptr<RootSignature> shadowMissRootSig = std::make_shared<RootSignature>();
+		shadowMissRootSig->Finalize(L"Path Tracing Pipeling Shadow Miss Root Sig", D3D12_ROOT_SIGNATURE_FLAG_LOCAL_ROOT_SIGNATURE);
+		std::shared_ptr<MissShader> shadowMissShader = std::make_shared<MissShader>(c_shadowMissShaderName, c_libName, shadowMissRootSig);
+
+
+		// Shadow CH Shader
+		std::shared_ptr<RootSignature> shadowCHRootSig = std::make_shared<RootSignature>();
+		shadowCHRootSig->Finalize(L"Path Tracing Pipeling Shadow CH Root Sig", D3D12_ROOT_SIGNATURE_FLAG_LOCAL_ROOT_SIGNATURE);
+		std::shared_ptr<ClosestHitShader> shadowCHShader = std::make_shared<ClosestHitShader>(c_shadowClosestHitShaderName, c_libName, shadowCHRootSig);
+
+		RayTracingHitGroup shadowHitGroup;
+		shadowHitGroup.Type = D3D12_HIT_GROUP_TYPE_TRIANGLES;
+		shadowHitGroup.Name = c_shadowHitGroupName;
+		shadowHitGroup.ClosestHitShader = shadowCHShader;
+
 		// Adding shader config
 		mRTSO->SetShaderConfig<PathTracerRayPayload>();
 
-		// Adding hit groupd
+		// Adding hit group
 		mRTSO->AddHitGroup(hitGroup);
 
 		// Adding miss shader
@@ -86,6 +105,12 @@ namespace Darius::Renderer::RayTracing::Pipeline
 
 		// Adding ray generation shader
 		mRTSO->AddRayGenerationShader(rayGenShader);
+
+		// Adding shadow miss shader
+		mRTSO->AddMissShader(shadowMissShader);
+
+		// Adding shadow hit group
+		mRTSO->AddHitGroup(shadowHitGroup);
 
 		// Adding global root signature
 		std::shared_ptr<RootSignature> globalRootSig = std::make_shared<RootSignature>(PathTracing::GlobalRootSignatureBindings::Count, 3);
@@ -106,7 +131,7 @@ namespace Darius::Renderer::RayTracing::Pipeline
 		// Adding DXIL Libraries
 		mRTSO->ResolveDXILLibraries();
 
-		D_ASSERT(mRTSO->GetCurrentIndex() == 11u);
+		D_ASSERT(mRTSO->GetCurrentIndex() == 14u);
 
 #ifdef _DEBUG
 		D_RENDERER_RT_UTILS::PrintStateObjectDesc(mRTSO->GetDesc());

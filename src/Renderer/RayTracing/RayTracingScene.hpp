@@ -72,7 +72,7 @@ namespace Darius::Renderer::RayTracing
 		void							Reset();
 
 		// Num miss and callabale shaders should be configured from the owning module
-		UINT							NumMissShaderSlots = 1u;
+		UINT							NumMissShaderSlots = 2u;
 		UINT							NumCallableShaderSlots = 0u;
 
 	private:

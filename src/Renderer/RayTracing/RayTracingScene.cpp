@@ -259,7 +259,7 @@ namespace Darius::Renderer::RayTracing
 
 	void RayTracingScene::Reset()
 	{
-		NumMissShaderSlots = 1;
+		NumMissShaderSlots = 2;
 		NumCallableShaderSlots = 0;
 		mNumBottomLevelASInstances = 0;
 
