@@ -377,8 +377,8 @@ namespace Darius::Renderer::RayTracing
 		context.DispatchRays(&rayTracingDesc);
 
 
-		//if (postAntiAliasing)
-			//postAntiAliasing();
+		if (postAntiAliasing)
+			postAntiAliasing();
 	}
 
 #ifdef _D_EDITOR
