@@ -5,7 +5,4 @@
 
 #pragma once
 
-#include <Core/pch.hpp>
-#include <Math/pch.hpp>
-#include <Graphics/pch.hpp>
-#include <ResourceManager/pch.hpp>
+#include <Debug/pch.hpp>

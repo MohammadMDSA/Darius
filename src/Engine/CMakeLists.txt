@@ -49,6 +49,7 @@ list(APPEND DARIUS_LIBS
     "Core"
     "Math"
     "Graphics"
+	"Renderer"
     "Scene"
     "ResourceManager"
     "Physics"

@@ -311,13 +311,13 @@ namespace Darius::Renderer
 				mBaseColorTextureHandle = D_RENDERER::GetDefaultGraphicsResource(D_RENDERER::DefaultResource::Texture2DWhiteOpaque);
 				break;
 			case D_RENDERER_RAST::kMetallic:
-				mMetallicTextureHandle = D_GRAPHICS::GetDefaultGraphicsResource(D_RENDERER::DefaultResource::Texture2DBlackOpaque);
+				mMetallicTextureHandle = D_RENDERER::GetDefaultGraphicsResource(D_RENDERER::DefaultResource::Texture2DBlackOpaque);
 				break;
 			case D_RENDERER_RAST::kRoughness:
 				mRoughnessTextureHandle = D_RENDERER::GetDefaultGraphicsResource(D_RENDERER::DefaultResource::Texture2DBlackOpaque);
 				break;
 			case D_RENDERER_RAST::kNormal:
-				mNormalTextureHandle = D_GRAPHICS::GetDefaultGraphicsResource(D_RENDERER::DefaultResource::Texture2DNormalMap);
+				mNormalTextureHandle = D_RENDERER::GetDefaultGraphicsResource(D_RENDERER::DefaultResource::Texture2DNormalMap);
 				break;
 			case D_RENDERER_RAST::kEmissive:
 				mEmissiveTextureHandle = D_RENDERER::GetDefaultGraphicsResource(D_RENDERER::DefaultResource::Texture2DBlackOpaque);
@@ -326,7 +326,7 @@ namespace Darius::Renderer
 				mAmbientOcclusionTextureHandle = D_RENDERER::GetDefaultGraphicsResource(D_RENDERER::DefaultResource::Texture2DWhiteOpaque);
 				break;
 			case D_RENDERER_RAST::kWorldDisplacement:
-				mWorldDisplacementTextureHandle = D_GRAPHICS::GetDefaultGraphicsResource(D_RENDERER::DefaultResource::Texture2DBlackOpaque);
+				mWorldDisplacementTextureHandle = D_RENDERER::GetDefaultGraphicsResource(D_RENDERER::DefaultResource::Texture2DBlackOpaque);
 				mPsoFlags &= ~RenderItem::HasDisplacement;
 			default:
 				return;

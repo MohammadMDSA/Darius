@@ -35,7 +35,7 @@ PRIVATE
 )
 
 target_link_libraries("Debug" PRIVATE ${Boost_LIBRARIES})
-target_link_libraries("Debug" PUBLIC Renderer ResourceManager Job)
+target_link_libraries("Debug" PUBLIC Renderer Graphics ResourceManager Job)
 
 
 if(BUILD_TESTS)

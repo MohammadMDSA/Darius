@@ -12,7 +12,7 @@
 //
 
 #include "../CommonRS.hlsli"
-#include "../Utils/PixelPacking_Velocity.hlsli"
+#include "../Utils/PixelPacking/PixelPacking_Velocity.hlsli"
 
 // We can use the original depth buffer or a linearized one.  In this case, we use linear Z because
 // we have discarded the 32-bit depth buffer but still retain a 16-bit linear buffer (previously

@@ -95,21 +95,20 @@ if ((${CMAKE_VERSION} VERSION_GREATER_EQUAL "3.16") AND (NOT MINGW))
     target_precompile_headers("Graphics" PRIVATE pch.hpp )
 endif()
 
+include("../../cmake/FindWinPixEventRuntime.cmake")
 
 target_include_directories("Graphics"
 PUBLIC
+	${WinPixEventRuntime_INCLUDE_DIR}
 PRIVATE
 	".."
 	${Boost_INCLUDE_DIRS}
-	${FBX_INCLUDE_DIRS}
 	"../Libs/DirectXShaderCompiler/inc"
 )
 
-include("../../cmake/FindWinPixEventRuntime.cmake")
-
 target_link_libraries("Graphics" PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/../Libs/DirectXShaderCompiler/lib/dxcompiler.lib")
 
-target_link_libraries("Graphics" PRIVATE ${Boost_LIBRARIES} ${FBX_LINK_LIBS} DirectXTex IMGUI PUBLIC ResourceManager PIX::WinPixEventRuntime)
+target_link_libraries("Graphics" PRIVATE ${Boost_LIBRARIES} DirectXTex IMGUI PUBLIC ResourceManager PIX::WinPixEventRuntime)
 
 if(BUILD_TESTS)
 	set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/../../cmake")
@@ -117,5 +116,5 @@ if(BUILD_TESTS)
 	add_compile_definitions(BOOST_TEST_LOG_LEVEL=all)
 	add_compile_definitions(BOOST_TEST_DETECT_MEMORY_LEAK=1)
 	add_compile_definitions(BOOST_TEST_SHOW_PROGRESS=yes)
-	# add_boost_test(SOURCE "Tests/GraphicsTests.cpp" INCLUDE "." LINK Graphics PREFIX Renderer)
+	# add_boost_test(SOURCE "Tests/GraphicsTests.cpp" INCLUDE "." LINK Graphics PREFIX Graphics)
 endif(BUILD_TESTS)

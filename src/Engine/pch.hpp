@@ -9,6 +9,7 @@
 #include <Core/pch.hpp>
 #include <Debug/pch.hpp>
 #include <Graphics/pch.hpp>
+#include <Renderer/pch.hpp>
 #include <Math/pch.hpp>
 #include <Physics/pch.hpp>
 #include <Scene/pch.hpp>

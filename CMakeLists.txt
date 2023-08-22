@@ -185,6 +185,7 @@ list(APPEND DARIUS_LOW_LEVEL_LIBS
     "Core"
     "Math"
     "Graphics"
+    "Renderer"
     "Scene"
     "ResourceManager"
     "Physics"

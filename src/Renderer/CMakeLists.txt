@@ -107,13 +107,7 @@ PUBLIC
 PRIVATE
 	".."
 	${Boost_INCLUDE_DIRS}
-	${FBX_INCLUDE_DIRS}
-	"../Libs/DirectXShaderCompiler/inc"
-)
-
-include("../../cmake/FindWinPixEventRuntime.cmake")
-
-target_link_libraries("Renderer" PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/../Libs/DirectXShaderCompiler/lib/dxcompiler.lib")
+	${FBX_INCLUDE_DIRS})
 
 target_link_libraries("Renderer" PRIVATE ${Boost_LIBRARIES} ${FBX_LINK_LIBS} DirectXTex IMGUI PUBLIC Graphics Math Scene)
 
