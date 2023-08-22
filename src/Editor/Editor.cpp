@@ -121,9 +121,9 @@ namespace Darius::Editor
 			return;
 		}
 
-		D_GUI_MANAGER::Render();
-		D_GUI_RENDERER::Render();
-		D_GRAPHICS::Present();
+		D_GUI_MANAGER::Render();		// Rendering each window
+		D_GUI_RENDERER::Render();		// Rendering editor gui
+		D_GRAPHICS::Present();			// Present the frame
 
 	}
 #pragma endregion
