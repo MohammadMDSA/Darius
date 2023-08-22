@@ -18,6 +18,8 @@
 #include <Renderer/RendererManager.hpp>
 #include <ResourceManager/ResourceManager.hpp>
 
+#include <Shaders/RayTracing/RaytracingHlslCompat.h>
+
 #ifdef _D_EDITOR
 #include <imgui.h>
 #endif
@@ -197,7 +199,8 @@ namespace Darius::Renderer::RayTracing
 					}
 
 					// Submit BLAS instance with all associated data
-					scene->AddBottomLevelASInstance(uuid, mats, comp.GetConstantsAddress(), comp.GetTransform()->GetWorld());
+					BYTE mask = comp.IsCastsShadow() ? 0xff : (0xff & ~InstanceFlags::CastsShadow);
+					scene->AddBottomLevelASInstance(uuid, mats, comp.GetConstantsAddress(), comp.GetTransform()->GetWorld(), mask);
 				});
 
 		}

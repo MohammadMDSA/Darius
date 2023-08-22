@@ -88,4 +88,12 @@ struct VertexPositionNormalTangentTextureSkinned
     XMFLOAT4						BlendWeights;
 };
 
+namespace InstanceFlags
+{
+    enum InstanceFlags : UINT
+    {
+        CastsShadow = 1 << 0
+    };
+}
+
 #endif

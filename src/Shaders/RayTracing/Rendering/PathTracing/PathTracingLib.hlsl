@@ -271,7 +271,7 @@ bool TraceShadowRayAndReportIfHit(out float tHit, in Ray ray, in UINT currentRay
 
     TraceRay(g_RtScene,
         rayFlags,
-        TraceRayParameters::InstanceMask,
+        InstanceFlags::CastsShadow,
         TraceRayParameters::HitGroup::Offset[PathtracerRayType::Shadow],
         TraceRayParameters::HitGroup::GeometryStride,
         TraceRayParameters::MissShader::Offset[PathtracerRayType::Shadow],
