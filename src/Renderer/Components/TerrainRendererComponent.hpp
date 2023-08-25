@@ -50,6 +50,8 @@ namespace Darius::Renderer
 
 		void								SetGridSize(TerrainGridSize size);
 
+		D_RESOURCE::ResourceRef<MaterialResource> GetMaterialRef() const { return mMaterial; }
+
 		static INLINE std::string			GetTerrainSizeName(TerrainGridSize size)
 		{
 			switch (size)
