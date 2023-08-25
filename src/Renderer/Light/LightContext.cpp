@@ -148,6 +148,7 @@ namespace Darius::Renderer::Light
 
 		default:
 			D_ASSERT_M(false, "Source type is not implemented");
+			throw std::exception("Source type is not implemented");
 		}
 	}
 }

@@ -284,7 +284,7 @@ namespace Darius::Renderer::Rasterization::Light
 		shadowContext.TransitionResource(mPointShadowTextureArrayBuffer, D3D12_RESOURCE_STATE_COPY_DEST, true);
 
 		// Rendering directional
-		for (int i = 0; i < GetNumberOfDirectionalLights(); i++)
+		for (UINT i = 0u; i < GetNumberOfDirectionalLights(); i++)
 		{
 
 			sorter.Reset();
@@ -299,7 +299,7 @@ namespace Darius::Renderer::Rasterization::Light
 		sorter.SetScissor({ 1, 1, (long)mSpotShadowBufferWidth - 2l, (long)mSpotShadowBufferWidth - 2l });
 
 		// Rendering spot
-		for (int idx = 0; idx < MaxNumSpotLight; idx++)
+		for (UINT idx = 0u; idx < MaxNumSpotLight; idx++)
 		{
 			if (idx >= GetNumberOfSpotLights())
 				break;
@@ -315,7 +315,7 @@ namespace Darius::Renderer::Rasterization::Light
 		sorter.SetScissor({ 0l, 0l, (long)mPointShadowBufferWidth, (long)mPointShadowBufferWidth });
 
 		// Rendering point
-		for (int idx = 0; idx < MaxNumPointLight; idx++)
+		for (UINT idx = 0u; idx < MaxNumPointLight; idx++)
 		{
 			if (idx >= GetNumberOfPointLights())
 				break;
