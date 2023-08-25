@@ -86,7 +86,7 @@ namespace Darius::Renderer::RayTracing
 			PathTracingLightDataSRVs[i] = TextureHeap.Alloc(10);
 			RayGenUAVs[i] = TextureHeap.Alloc(10);
 		}
-		
+
 		BlackCubeTextureRes = D_RESOURCE::GetResource<TextureResource>(D_RENDERER::GetDefaultGraphicsResource(D_RENDERER::DefaultResource::TextureCubeMapBlack));
 
 		LightContext = std::make_unique<D_RENDERER_RT_LIGHT::RayTracingLightContext>();
@@ -172,9 +172,13 @@ namespace Darius::Renderer::RayTracing
 
 			auto createStaticMeshBlas = [scene = RTScene.get()](D_RENDERER_GEOMETRY::Mesh const& mesh, D_CORE::Uuid const& uuid)
 			{
-				// TODO: Add translucent objects
 				BottomLevelAccelerationStructureGeometry BLASGeom = { mesh, uuid, D3D12_RAYTRACING_GEOMETRY_FLAG_OPAQUE };
+
+#ifdef _D_EDITOR
+				RTScene->AddBottomLevelAS(StaticBLASBuildFlags, BLASGeom, true, false);
+#else
 				RTScene->AddBottomLevelAS(StaticBLASBuildFlags, BLASGeom, false, false);
+#endif
 			};
 
 			D_WORLD::IterateComponents<MeshRendererComponent>([scene = RTScene.get(), createBlasFunc = createStaticMeshBlas](D_RENDERER::MeshRendererComponent& comp)
@@ -201,6 +205,40 @@ namespace Darius::Renderer::RayTracing
 					// Submit BLAS instance with all associated data
 					BYTE mask = comp.IsCastsShadow() ? 0xff : (0xff & ~InstanceFlags::CastsShadow);
 					scene->AddBottomLevelASInstance(uuid, mats, comp.GetConstantsAddress(), comp.GetTransform()->GetWorld(), mask);
+				});
+
+			D_WORLD::IterateComponents<TerrainRendererComponent>([scene = RTScene.get(), createBlasFunc = createStaticMeshBlas](D_RENDERER::TerrainRendererComponent& comp)
+				{
+					if (!comp.IsActive())
+						return;
+
+					auto const* terrainRes = comp.GetTerrainData();
+
+					if (!terrainRes)
+						return;
+
+					auto const mat = comp.GetMaterialRef();
+
+					auto uuid = terrainRes->GetUuid();
+					auto const* blas = scene->GetBottomLevelAS(uuid);
+
+					// Create blas if it's not there
+					if (!blas)
+					{
+						createBlasFunc(terrainRes->GetMeshData(), uuid);
+					}
+
+#ifdef _D_EDITOR
+					else
+					{
+						const_cast<D_RENDERER_RT_UTILS::BottomLevelAccelerationStructure*>(blas)->SetDirty(true);
+					}
+#endif
+
+
+					// Submit BLAS instance with all associated data
+					BYTE mask = comp.IsCastsShadow() ? 0xff : (0xff & ~InstanceFlags::CastsShadow);
+					scene->AddBottomLevelASInstance(uuid, { mat }, comp.GetConstantsAddress(), comp.GetTransform()->GetWorld(), mask);
 				});
 
 		}
@@ -246,7 +284,7 @@ namespace Darius::Renderer::RayTracing
 			D_GRAPHICS_DEVICE::GetDevice()->CopyDescriptors(1, &PathTracingCommonSRVs[frameResourceIndex], &srvDestCount, (UINT)srvHandles.size(), srvHandles.data(), srvSrcCount, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 			context.SetDescriptorTable(PathTracing::GlobalRootSignatureBindings::GlobalSRVTable, PathTracingCommonSRVs[frameResourceIndex]);
 		}
-		
+
 		// Global Light Data
 		{
 			D3D12_CPU_DESCRIPTOR_HANDLE srvHandles[] =
@@ -254,7 +292,7 @@ namespace Darius::Renderer::RayTracing
 				LightContext->GetLightsStatusBufferDescriptor(),
 				LightContext->GetLightsDataBufferDescriptor()
 			};
-			
+
 			UINT srvSrcCount[] = { 1u, 1u };
 			UINT srvDestCount = 2u;
 			D_GRAPHICS_DEVICE::GetDevice()->CopyDescriptors(1, &PathTracingLightDataSRVs[frameResourceIndex], &srvDestCount, 2u, srvHandles, srvSrcCount, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
@@ -264,7 +302,7 @@ namespace Darius::Renderer::RayTracing
 
 	void CreateLocalBindings(RayTracingCommandContext& context, SceneRenderContext& renderContext, ShaderTable* shaderTable)
 	{
-		
+
 		// Ray Generation
 		auto rayGenShader = MainRenderPipeline->GetStateObject()->GetRayGenerationShaders()[0];
 		UINT rayGenUavSrcCount[] = { 1u, 1u, 1u, 1u };
@@ -293,7 +331,7 @@ namespace Darius::Renderer::RayTracing
 			for (UINT geomIndex = 0u; geomIndex < blas->GetNumGeometries(); geomIndex++)
 			{
 				auto const& meshVertViews = blas->GetGeometryMeshViewsByIndex(geomIndex);
-				
+
 				// For now, no settings for shadow
 				for (UINT geomSlot = 0; geomSlot < (UINT)RayTypes::Count; geomSlot++)
 				{
