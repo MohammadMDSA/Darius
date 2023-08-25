@@ -34,7 +34,7 @@ namespace Darius::Renderer::Geometry
 		D_CONTAINERS::DVector<Vertex>	Vertices;
 		D_CONTAINERS::DVector<uint32>	Indices32;
 
-		D_CONTAINERS::DVector<uint16>&	GetIndices16()
+		D_CONTAINERS::DVector<uint16> const& GetIndices16()
 		{
 			if (mIndices16.empty())
 			{

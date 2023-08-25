@@ -22,7 +22,7 @@ namespace Darius::Renderer
 		SetName(GetName());
 
 		D_CONTAINERS::DVector<D_RENDERER_VERTEX::VertexPositionNormalTangentTextureSkinned> vertices;
-		D_CONTAINERS::DVector<std::uint16_t> indices;
+		D_CONTAINERS::DVector<std::uint32_t> indices;
 
 		vertices.reserve(data.MeshData.Vertices.size());
 		indices.reserve(data.MeshData.Indices32.size());
@@ -35,7 +35,7 @@ namespace Darius::Renderer
 		}
 		for (int i = 0; i < data.MeshData.Indices32.size(); i++)
 		{
-			indices.push_back(static_cast<std::uint16_t>(data.MeshData.Indices32[i]));
+			indices.push_back(data.MeshData.Indices32[i]);
 		}
 
 		mMesh.mDraw.clear();
@@ -66,7 +66,7 @@ namespace Darius::Renderer
 		mMesh.VertexDataGpu.Create(mMesh.Name + L" Vertex Buffer", (UINT)vertices.size(), sizeof(D_RENDERER_VERTEX::VertexPositionNormalTangentTextureSkinned), vertices.data());
 
 		// Create index buffer
-		mMesh.IndexDataGpu.Create(mMesh.Name + L" Index Buffer", (UINT)indices.size(), sizeof(std::uint16_t), indices.data());
+		mMesh.IndexDataGpu.Create(mMesh.Name + L" Index Buffer", (UINT)indices.size(), sizeof(std::uint32_t), indices.data());
 
 		mJointCount = (UINT)mSkeleton.size();
 		mSkeletonRoot = mJointCount > 0 ? &mSkeleton.front() : nullptr;

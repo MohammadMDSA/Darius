@@ -30,7 +30,7 @@ namespace Darius::Renderer
 		SetName(GetName());
 
 		DVector<D_RENDERER_VERTEX::VertexPositionNormalTangentTexture> vertices;
-		DVector<std::uint16_t> indices;
+		DVector<std::uint32_t> indices;
 
 		vertices.reserve(data.MeshData.Vertices.size());
 		indices.reserve(data.MeshData.Indices32.size());
@@ -43,7 +43,7 @@ namespace Darius::Renderer
 		}
 		for (int i = 0; i < data.MeshData.Indices32.size(); i++)
 		{
-			indices.push_back(static_cast<std::uint16_t>(data.MeshData.Indices32[i]));
+			indices.push_back(data.MeshData.Indices32[i]);
 		}
 
 		mMesh.mDraw.clear();
@@ -74,7 +74,7 @@ namespace Darius::Renderer
 		mMesh.VertexDataGpu.Create(mMesh.Name + L" Vertex Buffer", (UINT)vertices.size(), sizeof(D_RENDERER_VERTEX::VertexPositionNormalTangentTexture), vertices.data());
 
 		// Create index buffer
-		mMesh.IndexDataGpu.Create(mMesh.Name + L" Index Buffer", (UINT)indices.size(), sizeof(std::uint16_t), indices.data());
+		mMesh.IndexDataGpu.Create(mMesh.Name + L" Index Buffer", (UINT)indices.size(), sizeof(std::uint32_t), indices.data());
 
 	}
 

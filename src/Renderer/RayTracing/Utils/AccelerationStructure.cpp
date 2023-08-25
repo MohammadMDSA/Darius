@@ -73,8 +73,8 @@ namespace Darius::Renderer::RayTracing::Utils
 	{
 		D3D12_RAYTRACING_GEOMETRY_DESC geometryDescTemplate = {};
 		geometryDescTemplate.Type = D3D12_RAYTRACING_GEOMETRY_TYPE_TRIANGLES;
-		geometryDescTemplate.Triangles.IndexFormat = D_RENDERER_GEOMETRY::Mesh::IndexFormat;
-		geometryDescTemplate.Triangles.VertexFormat = D_RENDERER_GEOMETRY::Mesh::VertexFormat;
+		geometryDescTemplate.Triangles.IndexFormat = D_RENDERER_GEOMETRY::Mesh::StandardIndexFormat;
+		geometryDescTemplate.Triangles.VertexFormat = D_RENDERER_GEOMETRY::Mesh::StandardVertexFormat;
 
 		// TODO: Multiple geometries per buttom level acceleration buffer
 		//mGeometryDescs.reserve(bottomLevelASGeometry.m_geometryInstances.size());
@@ -93,6 +93,7 @@ namespace Darius::Renderer::RayTracing::Utils
 
 		GeometryVertexIndexViews gviv;
 		{
+
 			geometryDescTemplate.Flags = bottomLevelASGeometry.Flags;
 			geometryDescTemplate.Triangles.IndexBuffer = bottomLevelASGeometry.Mesh.IndexDataGpu.GetGpuVirtualAddress();
 			geometryDescTemplate.Triangles.IndexCount = bottomLevelASGeometry.Mesh.mNumTotalIndices;

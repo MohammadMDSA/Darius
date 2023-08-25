@@ -61,7 +61,7 @@ RWTexture2D<NormalDepthTexFormat>   l_GBufferNormalDepth        : register(u2, s
 RWTexture2D<float>                  l_GBufferDepth              : register(u3, space1);
 
 // Hit Group Main
-StructuredBuffer<uint16_t>          l_Indices                   : register(t10, space2);
+StructuredBuffer<uint32_t>          l_Indices                   : register(t10, space2);
 StructuredBuffer<RTVertexPositionNormalTangentTexture> l_Vertices : register(t11, space2);  
 cbuffer                             l_MeshConstants             : register(b0, space2)
 {
