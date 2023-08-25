@@ -40,7 +40,7 @@ namespace Darius::Graphics::PostProcessing
 
 	// PSOs
 	RootSignature										PostEffectRS;
-	ComputePSO											ToneMapCS(L"Post Effects: Tone Map  CS");
+	ComputePSO											ToneMapCS(L"Post Effects: Tone Map CS");
 	ComputePSO											GenerateHistogramCS(L"Post Effects: Generate Histogram CS");
 	ComputePSO											DrawHistogramCS(L"Post Effects: Draw Histogram CS");
 	ComputePSO											AdaptExposureCS(L"Post Effects: Adapt Exposure CS");
