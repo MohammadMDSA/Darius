@@ -26,9 +26,6 @@ Texture2D<float4> InTemporal : register(t2);
 Texture2D<float> CurDepth : register(t3);
 Texture2D<float> PreDepth : register(t4);
 
-SamplerState LinearSampler : register(s0);
-SamplerState PointSampler : register(s1);
-
 groupshared float ldsDepth[kLdsPitch * kLdsRows];
 groupshared float ldsR[kLdsPitch * kLdsRows];
 groupshared float ldsG[kLdsPitch * kLdsRows];

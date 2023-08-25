@@ -35,3 +35,6 @@
         "borderColor = STATIC_BORDER_COLOR_TRANSPARENT_BLACK," \
         "filter = FILTER_MIN_MAG_MIP_LINEAR)"
 
+SamplerState LinearSampler : register(s0);
+SamplerState PointSampler : register(s1);
+SamplerState LinearBorder : register(s2);

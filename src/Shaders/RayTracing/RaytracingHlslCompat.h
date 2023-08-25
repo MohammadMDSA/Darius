@@ -7,7 +7,7 @@
 #define FAR_PLANE 1000.0f
 
 #ifdef HLSL
-#include "Utils/HlslCompat.h"
+#include "../HlslCompat.h"
 #else
 using namespace DirectX;
 #endif
@@ -70,23 +70,7 @@ struct ShadowRayPayload
     float                           THit;         // Hit time <0,..> on Hit. -1 on miss.
 };
 
-struct RTVertexPositionNormalTangentTexture
-{
-    XMFLOAT3						Position;
-    XMFLOAT3						Normal;
-    XMFLOAT4						Tangent;
-    XMFLOAT2						Tex;
-};
-
-struct VertexPositionNormalTangentTextureSkinned
-{
-    XMFLOAT3						Position;
-    XMFLOAT3						Normal;
-    XMFLOAT4						Tangent;
-    XMFLOAT2						Tex;
-    XMUINT4						    BlendIndices;
-    XMFLOAT4						BlendWeights;
-};
+#include "../Geometry/VertexType.h"
 
 namespace InstanceFlags
 {

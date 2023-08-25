@@ -16,9 +16,6 @@
 Texture2D<float4> TemporalColor : register(t0);
 RWTexture2D<float3> OutColor : register(u0);
 
-SamplerState LinearSampler : register(s0);
-SamplerState PointSampler : register(s1);
-
 cbuffer InlineConstants : register(b0)
 {
     float WA, WB;

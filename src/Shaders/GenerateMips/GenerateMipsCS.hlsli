@@ -22,7 +22,6 @@ RWTexture2D<float4> OutMip2 : register(u1);
 RWTexture2D<float4> OutMip3 : register(u2);
 RWTexture2D<float4> OutMip4 : register(u3);
 Texture2D<float4> SrcMip : register(t0);
-SamplerState BilinearClamp : register(s0);
 
 cbuffer CB0 : register(b0)
 {
@@ -82,33 +81,33 @@ void main( uint GI : SV_GroupIndex, uint3 DTid : SV_DispatchThreadID )
     // have to take more source texture samples.
 #if NON_POWER_OF_TWO == 0
     float2 UV = TexelSize * (DTid.xy + 0.5);
-    float4 Src1 = SrcMip.SampleLevel(BilinearClamp, UV, SrcMipLevel);
+    float4 Src1 = SrcMip.SampleLevel(LinearSampler, UV, SrcMipLevel);
 #elif NON_POWER_OF_TWO == 1
     // > 2:1 in X dimension
     // Use 2 bilinear samples to guarantee we don't undersample when downsizing by more than 2x
     // horizontally.
     float2 UV1 = TexelSize * (DTid.xy + float2(0.25, 0.5));
     float2 Off = TexelSize * float2(0.5, 0.0);
-    float4 Src1 = 0.5 * (SrcMip.SampleLevel(BilinearClamp, UV1, SrcMipLevel) +
-        SrcMip.SampleLevel(BilinearClamp, UV1 + Off, SrcMipLevel));
+    float4 Src1 = 0.5 * (SrcMip.SampleLevel(LinearSampler, UV1, SrcMipLevel) +
+        SrcMip.SampleLevel(LinearSampler, UV1 + Off, SrcMipLevel));
 #elif NON_POWER_OF_TWO == 2
     // > 2:1 in Y dimension
     // Use 2 bilinear samples to guarantee we don't undersample when downsizing by more than 2x
     // vertically.
     float2 UV1 = TexelSize * (DTid.xy + float2(0.5, 0.25));
     float2 Off = TexelSize * float2(0.0, 0.5);
-    float4 Src1 = 0.5 * (SrcMip.SampleLevel(BilinearClamp, UV1, SrcMipLevel) +
-        SrcMip.SampleLevel(BilinearClamp, UV1 + Off, SrcMipLevel));
+    float4 Src1 = 0.5 * (SrcMip.SampleLevel(LinearSampler, UV1, SrcMipLevel) +
+        SrcMip.SampleLevel(LinearSampler, UV1 + Off, SrcMipLevel));
 #elif NON_POWER_OF_TWO == 3
     // > 2:1 in in both dimensions
     // Use 4 bilinear samples to guarantee we don't undersample when downsizing by more than 2x
     // in both directions.
     float2 UV1 = TexelSize * (DTid.xy + float2(0.25, 0.25));
     float2 O = TexelSize * 0.5;
-    float4 Src1 = SrcMip.SampleLevel(BilinearClamp, UV1, SrcMipLevel);
-    Src1 += SrcMip.SampleLevel(BilinearClamp, UV1 + float2(O.x, 0.0), SrcMipLevel);
-    Src1 += SrcMip.SampleLevel(BilinearClamp, UV1 + float2(0.0, O.y), SrcMipLevel);
-    Src1 += SrcMip.SampleLevel(BilinearClamp, UV1 + float2(O.x, O.y), SrcMipLevel);
+    float4 Src1 = SrcMip.SampleLevel(LinearSampler, UV1, SrcMipLevel);
+    Src1 += SrcMip.SampleLevel(LinearSampler, UV1 + float2(O.x, 0.0), SrcMipLevel);
+    Src1 += SrcMip.SampleLevel(LinearSampler, UV1 + float2(0.0, O.y), SrcMipLevel);
+    Src1 += SrcMip.SampleLevel(LinearSampler, UV1 + float2(O.x, O.y), SrcMipLevel);
     Src1 *= 0.25;
 #endif
 

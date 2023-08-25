@@ -3,7 +3,11 @@
 
 #include "Renderer/Rasterization/Renderer.hpp"
 #include "Renderer/RendererManager.hpp"
+#include "Renderer/Geometry/GeometryGenerator.hpp"
 
+#include <Core/Containers/Vector.hpp>
+#include <Graphics/GraphicsUtils/PipelineState.hpp>
+#include <Graphics/GraphicsUtils/Profiling/Profiling.hpp>
 #include <ResourceManager/ResourceManager.hpp>
 #include <Utils/Common.hpp>
 
@@ -15,10 +19,16 @@
 
 #include "TerrainResource.sgenerated.hpp"\
 
+using namespace D_CONTAINERS;
+using namespace D_GRAPHICS_UTILS;
+using namespace D_RENDERER_GEOMETRY;
 using namespace D_SERIALIZATION;
 
 namespace Darius::Renderer
 {
+
+	// Internal
+	ComputePSO				TerrainMeshGenerationCS(L"Terrain Mesh Generation CS");
 
 	D_CH_RESOURCE_DEF(TerrainResource);
 
@@ -26,6 +36,22 @@ namespace Darius::Renderer
 	{
 		float HeightFactor;
 	};
+
+	TerrainResource::TerrainResource(D_CORE::Uuid uuid, std::wstring const& path, std::wstring const& name, D_RESOURCE::DResourceId id, bool isDefault) :
+		Resource(uuid, path, name, id, isDefault),
+		mHeightFactor(300.f),
+		mHeightMap(GetAsCountedOwner())
+	{
+		// Is pso setup yet?
+		if (TerrainMeshGenerationCS.GetPipelineStateObject() == nullptr)
+		{
+			TerrainMeshGenerationCS.SetRootSignature(D_GRAPHICS::CommonRS);
+			auto shader = D_GRAPHICS::GetShaderByName("TerrainMeshGeneratorCS");
+			TerrainMeshGenerationCS.SetComputeShader(shader->GetBufferPointer(), shader->GetBufferSize());
+			TerrainMeshGenerationCS.Finalize();
+		}
+
+	}
 
 	void TerrainResource::WriteResourceToFile(D_SERIALIZATION::Json& j) const
 	{
@@ -56,11 +82,112 @@ namespace Darius::Renderer
 
 	bool TerrainResource::UploadToGpu()
 	{
+
+		auto renderType = D_RENDERER::GetActiveRendererType();
+
+		switch (renderType)
+		{
+		case Darius::Renderer::RendererType::Rasterization:
+			return InitRasterization();
+		case Darius::Renderer::RendererType::RayTracing:
+			return InitRayTracing();
+		default:
+			D_ASSERT_M(false, "Renderer not supported");
+		}
+		return false;
+	}
+
+	bool TerrainResource::InitRayTracing()
+	{
+
+		auto& context = D_GRAPHICS::ComputeContext::Begin(L"Initializing Ray Tracing Terrain Resource");
+
+		if (mParametersConstantsGPU.GetGpuVirtualAddress() != D3D12_GPU_VIRTUAL_ADDRESS_NULL)
+		{
+			mParametersConstantsCPU.Destroy();
+			mParametersConstantsGPU.Destroy();
+		}
+
+		if (mTexturesHeap.IsNull())
+		{
+			mTexturesHeap = D_RENDERER::AllocateTextureDescriptor();
+		}
+
+		if (mMesh.VertexDataGpu.GetGpuVirtualAddress() == D3D12_GPU_VIRTUAL_ADDRESS_NULL)
+		{
+			D_PROFILING::ScopedTimer _prof(L"Creating Grid Mesh", context);
+
+			auto name = GetName() + L"Terrain Mesh";
+
+			auto grid = D_RENDERER_GEOMETRY_GENERATOR::CreateGrid(100, 100, 64 * 8, 64 * 8);
+
+			DVector<D_RENDERER_VERTEX::VertexPositionNormalTangentTexture> vertices;
+			DVector<std::uint32_t> indices;
+
+			vertices.reserve(grid.Vertices.size());
+			indices.reserve(grid.Indices32.size());
+
+			// Filling vertex and index data
+			for (int i = 0; i < grid.Vertices.size(); i++)
+			{
+				auto const& meshVertex = grid.Vertices[i];
+				vertices.push_back(D_RENDERER_VERTEX::VertexPositionNormalTangentTexture(meshVertex.mPosition, D_MATH::Normalize(meshVertex.mNormal), meshVertex.mTangent, meshVertex.mTexC));
+			}
+
+			auto const& indicesSrc = grid.Indices32;
+			for (int i = 0; i < indicesSrc.size(); i++)
+			{
+				indices.push_back(indicesSrc[i]);
+			}
+
+			mMesh.mDraw.clear();
+			Mesh::Draw gpuDraw = { (UINT)indices.size(), 0, 0 };
+			mMesh.mDraw.push_back(gpuDraw);
+
+			mMesh.mNumTotalVertices = (UINT)vertices.size();
+			mMesh.mNumTotalIndices = (UINT)indices.size();
+
+			mMesh.Name = GetName();
+
+			// Create vertex buffer
+			mMesh.VertexDataGpu.Create(mMesh.Name + L" Vertex Buffer", (UINT)vertices.size(), sizeof(D_RENDERER_VERTEX::VertexPositionNormalTangentTexture), vertices.data());
+
+			// Create index buffer
+			mMesh.IndexDataGpu.Create(mMesh.Name + L" Index Buffer", (UINT)indices.size(), sizeof(std::uint32_t), indices.data());
+		}
+
+		if (!mHeightMap.IsValid())
+			mHeightMap = D_RESOURCE::GetResource<TextureResource>(D_RENDERER::GetDefaultGraphicsResource(D_RENDERER::DefaultResource::Texture2DBlackOpaque), *this);
+
+		{
+			D_PROFILING::ScopedTimer _prof(L"Applying Terrain Height", context);
+
+			context.TransitionResource(mMesh.VertexDataGpu, D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
+
+			context.SetPipelineState(TerrainMeshGenerationCS);
+			context.SetRootSignature(D_GRAPHICS::CommonRS);
+
+			context.SetConstants(0, mHeightFactor);
+			context.SetDynamicDescriptor(1, 0, mHeightMap->GetTextureData()->GetSRV());
+			context.SetDynamicDescriptor(2, 0, mMesh.VertexDataGpu.GetUAV());
+			context.Dispatch2D(mMesh.mNumTotalVertices, 1u, 8u, 1u);
+			
+			context.TransitionResource(mMesh.VertexDataGpu, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
+		}
+		context.Finish(true);
+		return false;
+	}
+
+	bool TerrainResource::InitRasterization()
+	{
 		// Creating buffers
 		if (mParametersConstantsGPU.GetGpuVirtualAddress() == D3D12_GPU_VIRTUAL_ADDRESS_NULL)
 		{
+			// Releasing raytracing stuff
+			mMesh = {};
+
 			// Initializing patameters constants buffers
-			mParametersConstantsCPU.Create(L"Terrain Parameter Constants Buffer: " + GetName(), sizeof(TerrainParametersConstants));
+			mParametersConstantsCPU.Create(L"Terrain Parameter Constants Buffer: " + GetName(), sizeof(TerrainParametersConstants), D_GRAPHICS_DEVICE::gNumFrameResources);
 			mParametersConstantsGPU.Create(L"Terrain Parameter Constants Buffer: " + GetName(), 1, sizeof(TerrainParametersConstants));
 
 			mTexturesHeap = D_RENDERER::AllocateTextureDescriptor(1);
@@ -78,7 +205,7 @@ namespace Darius::Renderer
 		D_GRAPHICS_DEVICE::GetDevice()->CopyDescriptors(1, &mTexturesHeap, &destCount, destCount, initializeTextures, srcCount, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 
 		// Updating parameter constants
-		auto paramCB = reinterpret_cast<TerrainParametersConstants*>(mParametersConstantsCPU.Map());
+		auto paramCB = reinterpret_cast<TerrainParametersConstants*>(mParametersConstantsCPU.MapInstance(D_GRAPHICS_DEVICE::GetCurrentFrameResourceIndex()));
 		paramCB->HeightFactor = mHeightFactor;
 		mParametersConstantsCPU.Unmap();
 

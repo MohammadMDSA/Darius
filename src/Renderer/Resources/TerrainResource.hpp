@@ -2,11 +2,14 @@
 
 #include "TextureResource.hpp"
 
+#include "Renderer/Resources/StaticMeshResource.hpp"
+
 #include <Graphics/GraphicsUtils/Memory/DescriptorHeap.hpp>
 #include <Graphics/GraphicsUtils/Buffers/GpuBuffer.hpp>
 #include <Graphics/GraphicsUtils/Buffers/UploadBuffer.hpp>
 #include <ResourceManager/Resource.hpp>
 #include <ResourceManager/ResourceRef.hpp>
+#include <Utils/StaticConstructor.hpp>
 
 #include "TerrainResource.generated.hpp"
 
@@ -44,6 +47,7 @@ namespace Darius::Renderer
 			return D_CORE::CountedOwner{ GetName(), rttr::type::get<TerrainResource>(), this, 0, [&]() { MakeGpuDirty(); } };
 		}
 
+		INLINE D_RENDERER_GEOMETRY::Mesh const& GetMeshData() const { return mMesh; }
 
 	protected:
 
@@ -54,10 +58,10 @@ namespace Darius::Renderer
 
 	private:
 
-		TerrainResource(D_CORE::Uuid uuid, std::wstring const& path, std::wstring const& name, D_RESOURCE::DResourceId id, bool isDefault = false) :
-			Resource(uuid, path, name, id, isDefault),
-			mHeightFactor(300.f),
-			mHeightMap(GetAsCountedOwner()) {}
+		TerrainResource(D_CORE::Uuid uuid, std::wstring const& path, std::wstring const& name, D_RESOURCE::DResourceId id, bool isDefault = false);
+
+		bool							InitRasterization();
+		bool							InitRayTracing();
 
 		
 		DField(Get[const, &, inline])
@@ -66,10 +70,13 @@ namespace Darius::Renderer
 		DField(Get[const, &, inline])
 		float											mHeightFactor;
 
+		// Rasterization Stuff
 		D_GRAPHICS_BUFFERS::UploadBuffer				mParametersConstantsCPU;
 		D_GRAPHICS_BUFFERS::ByteAddressBuffer			mParametersConstantsGPU;
-
 		D_GRAPHICS_MEMORY::DescriptorHandle				mTexturesHeap;
+
+		// RayTracing Stuff
+		D_RENDERER_GEOMETRY::Mesh		mMesh;
 
 	public:
 		Darius_Renderer_TerrainResource_GENERATED
