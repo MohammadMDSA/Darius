@@ -66,7 +66,12 @@ namespace Darius::Renderer::RayTracing
 		bottomLevelAS.Initialize(buildFlags, bottomLevelASGeometry, allowUpdate);
 
 		mASmemoryFootprint += bottomLevelAS.RequiredResultDataSizeInBytes();
-		mScratchResourceSize = std::max(bottomLevelAS.RequiredScratchSize(), mScratchResourceSize);
+
+		if (bottomLevelAS.RequiredScratchSize() > mScratchResourceSize)
+		{
+			mScratchResourceSize = bottomLevelAS.RequiredScratchSize();
+			mTLASSizeDirty = true;
+		}
 
 		mVBottomLevelAS[bottomLevelAS.GetUuid()] = bottomLevelAS;
 	}
@@ -220,6 +225,14 @@ namespace Darius::Renderer::RayTracing
 
 		mBottomLevelASInstanceDescs.CopyStagingToGpu(frameIndex);
 
+
+		// Initialize TLAS again if necessary
+		if (mTLASSizeDirty)
+		{
+			D_GRAPHICS::GetCommandManager()->IdleGPU();
+			InitializeTopLevelAS(D3D12_RAYTRACING_ACCELERATION_STRUCTURE_BUILD_FLAG_PREFER_FAST_TRACE, false, false, L"Top Level Acceleration Structure");
+		}
+
 		// Build all bottom-level AS.
 		{
 			ScopedTimer _prof(L"Bottom Level AS", commandList);
@@ -238,13 +251,6 @@ namespace Darius::Renderer::RayTracing
 					commandList.InsertUAVBarrier(bottomLevelAS, true);
 				}
 			}
-		}
-
-		// Initialize TLAS again if necessary
-		if (mTLASSizeDirty)
-		{
-			D_GRAPHICS::GetCommandManager()->IdleGPU();
-			InitializeTopLevelAS(D3D12_RAYTRACING_ACCELERATION_STRUCTURE_BUILD_FLAG_PREFER_FAST_TRACE, false, false, L"Top Level Acceleration Structure");
 		}
 
 		// Build the top-level AS.
