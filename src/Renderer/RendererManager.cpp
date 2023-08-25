@@ -140,10 +140,10 @@ namespace Darius::Renderer
 			auto cylinder = D_RENDERER_GEOMETRY_GENERATOR::CreateCylinder(0.5f, 0.5f, 1, 40, 20);
 			auto geosphere = D_RENDERER_GEOMETRY_GENERATOR::CreateGeosphere(0.5f, 40);
 			auto gridp2 = D_RENDERER_GEOMETRY_GENERATOR::CreateGridQuadPatch(100.f, 100.f, 2, 2);
-			auto gridp4 = D_RENDERER_GEOMETRY_GENERATOR::CreateGridQuadPatch(200.f, 200.f, 4, 4);
-			auto gridp8 = D_RENDERER_GEOMETRY_GENERATOR::CreateGridQuadPatch(400.f, 400.f, 8, 8);
-			auto gridp16 = D_RENDERER_GEOMETRY_GENERATOR::CreateGridQuadPatch(1000.f, 1000.f, 16, 16);
-			auto grid100 = D_RENDERER_GEOMETRY_GENERATOR::CreateGrid(100.f, 100.f, 100, 100);
+			auto gridp4 = D_RENDERER_GEOMETRY_GENERATOR::CreateGridQuadPatch(100.f, 100.f, 4, 4);
+			auto gridp8 = D_RENDERER_GEOMETRY_GENERATOR::CreateGridQuadPatch(100.f, 100.f, 8, 8);
+			auto gridp16 = D_RENDERER_GEOMETRY_GENERATOR::CreateGridQuadPatch(100.f, 100.f, 16, 16);
+			auto grid100 = D_RENDERER_GEOMETRY_GENERATOR::CreateGrid(100.f, 100.f, 1000, 1000);
 			auto quad = D_RENDERER_GEOMETRY_GENERATOR::CreateQuad(0.f, 0.f, 1.f, 1.f, 0.f);
 			auto sphere = D_RENDERER_GEOMETRY_GENERATOR::CreateSphere(0.5f, 40, 40);
 			auto lowSphere = D_RENDERER_GEOMETRY_GENERATOR::CreateSphere(0.5f, 10, 6);
