@@ -11,8 +11,6 @@
 
 ## Features
 
-<span style="font-size: xx-large;">***RAYTRACING COMING SOON!***</span>
-
 - Core
     - Runtime Type Reflection
     - Code Generation
@@ -31,14 +29,17 @@
     - Physics-Based Rendering (PBR) Materials
         - Diffuse, Normal, Roughness, Metallic, and Emissive Textures Mapping
         - Diffuse Albedo, Emissive, Metallic, and Roughness Components
-        - Opaque, Transparent, and Cutoff
+        - Opaque, Transparent
         - Multiple Sub-Meshes
     - Lighting
-        - Blinn-Phong Model
+        - Hammon Model
         - Shadow Mapping
     - Texture Filtering
     - Skybox
-    - Render Items
+    - Ray Tracing Renderer
+        - Static Mesh
+        - Terrain
+    - Rasterization Renderer
         - Static Mesh
         - Skeletal Mesh
         - Terrain
