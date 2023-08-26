@@ -484,7 +484,6 @@ namespace Darius::Graphics::PostProcessing
 			D3D12_CPU_DESCRIPTOR_HANDLE SRVs[2] = { buffers.HistogramBuffer.GetSRV(), buffers.ExposureBuffer.GetSRV() };
 			context.SetDynamicDescriptors(2, 0, 2, SRVs);
 			context.Dispatch(1, 32);
-			context.TransitionResource(buffers.SceneColor, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
 		}
 
 		context.PIXEndEvent();

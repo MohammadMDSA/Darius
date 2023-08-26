@@ -11,6 +11,8 @@
 #include <ResourceManager/ResourceManager.hpp>
 #include <Utils/Common.hpp>
 
+#include <Libs/DirectXTex/DirectXTex/DirectXTex.h>
+
 #ifdef _D_EDITOR
 #include <ResourceManager/ResourceDragDropPayload.hpp>
 #include <Libs/FontIcon/IconsFontAwesome6.h>
@@ -50,7 +52,6 @@ namespace Darius::Renderer
 			TerrainMeshGenerationCS.SetComputeShader(shader->GetBufferPointer(), shader->GetBufferSize());
 			TerrainMeshGenerationCS.Finalize();
 		}
-
 	}
 
 	void TerrainResource::WriteResourceToFile(D_SERIALIZATION::Json& j) const
@@ -159,6 +160,35 @@ namespace Darius::Renderer
 		if (!mHeightMap.IsValid())
 			mHeightMap = D_RESOURCE::GetResource<TextureResource>(D_RENDERER::GetDefaultGraphicsResource(D_RENDERER::DefaultResource::Texture2DBlackOpaque), *this);
 
+		if (!mHeightMap->GetDefault() && D_H_ENSURE_FILE(mHeightMap->GetPath()))
+		{
+			D_PROFILING::ScopedTimer _prof(L"Calculating Terrain Normal Map");
+
+			DirectX::TexMetadata info;
+			DirectX::ScratchImage heightImage;
+			DirectX::ScratchImage normalImage;
+
+			{
+				D_PROFILING::ScopedTimer _prof(L"Reading Height Map");
+
+				DirectX::LoadFromDDSFile(mHeightMap->GetPath().c_str(), DirectX::DDS_FLAGS_NONE, &info, heightImage);
+			}
+
+			DirectX::ComputeNormalMap(*heightImage.GetImage(0, 0, 0), DirectX::CNMAP_CHANNEL_RED, mHeightFactor, DXGI_FORMAT_R8G8B8A8_UNORM, normalImage);
+
+			auto normalImg = normalImage.GetImage(0, 0, 0);
+			mGeneratedNormalMap.Create2D(normalImg->rowPitch, info.width, info.height, normalImage.GetMetadata().format, normalImage.GetPixels());
+
+			heightImage.Release();
+			normalImage.Release();
+
+		}
+		else
+		{
+			uint32_t color = 0x00FF0000;
+			mGeneratedNormalMap.Create2D(4, 1, 1, DXGI_FORMAT_R8G8B8A8_UNORM, &color);
+		}
+
 		{
 			D_PROFILING::ScopedTimer _prof(L"Applying Terrain Height", context);
 
@@ -169,13 +199,15 @@ namespace Darius::Renderer
 
 			context.SetConstants(0, mHeightFactor);
 			context.SetDynamicDescriptor(1, 0, mHeightMap->GetTextureData()->GetSRV());
+			context.SetDynamicDescriptor(1, 1, mGeneratedNormalMap.GetSRV());
 			context.SetDynamicDescriptor(2, 0, mMesh.VertexDataGpu.GetUAV());
 			context.Dispatch2D(mMesh.mNumTotalVertices, 1u, 8u, 1u);
-			
+
 			context.TransitionResource(mMesh.VertexDataGpu, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
 		}
+
 		context.Finish(true);
-		return false;
+		return true;
 	}
 
 	bool TerrainResource::InitRasterization()

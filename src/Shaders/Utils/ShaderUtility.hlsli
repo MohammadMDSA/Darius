@@ -139,4 +139,17 @@ float3 ConvertColor( float3 x, int FromFormat, int ToFormat )
     return ApplyDisplayProfile(RemoveDisplayProfile(x, FromFormat), ToFormat);
 }
 
+// Sample normal map, convert to signed, apply tangent-to-world space transform.
+float3 BumpMapNormalToWorldSpaceNormal(float3 bumpNormal, float3 surfaceNormal, float3 tangent)
+{
+    // Compute tangent frame.
+    surfaceNormal = normalize(surfaceNormal);
+    tangent = normalize(tangent);
+
+    float3 bitangent = normalize(cross(tangent, surfaceNormal));
+    float3x3 tangentSpaceToWorldSpace = float3x3(tangent, bitangent, surfaceNormal);
+
+    return mul(bumpNormal, tangentSpaceToWorldSpace);
+}
+
 #endif // __SHADER_UTILITY_HLSLI__

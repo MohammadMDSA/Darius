@@ -76,7 +76,9 @@ namespace Darius::Renderer
 		D_GRAPHICS_MEMORY::DescriptorHandle				mTexturesHeap;
 
 		// RayTracing Stuff
-		D_RENDERER_GEOMETRY::Mesh		mMesh;
+		D_RENDERER_GEOMETRY::Mesh						mMesh;
+
+		D_GRAPHICS_BUFFERS::Texture						mGeneratedNormalMap;
 
 	public:
 		Darius_Renderer_TerrainResource_GENERATED
