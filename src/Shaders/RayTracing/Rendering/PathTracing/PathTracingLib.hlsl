@@ -468,8 +468,8 @@ void MainRenderRayGen()
         float3 cameraDirection = GenerateForwardCameraRayDirection(g_InvViewProjEyeCenter);
         float linearDepth = rayLength * dot(ray.Direction, cameraDirection);
 
-        //l_GBufferNormalDepth[DTid] = EncodeNormalDepth(DecodeNormal(rayPayload.GBuffer.EncodedNormal), linearDepth);
-        //l_GBufferDepth[DTid] = linearDepth;
+        l_GBufferNormalDepth[DTid] = EncodeNormalDepth(DecodeNormal(rayPayload.GBuffer.EncodedNormal), linearDepth);
+        //l_GBufferDepth[DTid] = (linearDepth - g_NearZ) / (g_FarZ - g_NearZ);
     }
     else // No geometry hit.
     {
