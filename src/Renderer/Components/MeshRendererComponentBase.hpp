@@ -54,7 +54,7 @@ namespace Darius::Renderer
 		DField(Serialize)
 		D_CONTAINERS::DVector<D_RESOURCE::ResourceRef<MaterialResource>> mMaterials;
 
-		DField(Get[inline], Set[inline])
+		DField(Get[inline], Set[inline], Serialize)
 		bool									mCastsShadow;
 
 		DField(Get[inline], Set[inline, dirty])
