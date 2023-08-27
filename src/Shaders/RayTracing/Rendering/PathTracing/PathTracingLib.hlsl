@@ -500,7 +500,7 @@ void MainRenderMiss(inout PathTracerRayPayload payload)
 {
     payload.MissLatestRay = true;
     //if(payload.RayRecursionDepth == 1u)
-        payload.Radiance = g_RadianceIBLTexture.SampleLevel(g_CubeMapSampler, WorldRayDirection(), 0.f);
+    payload.Radiance = g_RadianceIBLTexture.SampleLevel(g_CubeMapSampler, WorldRayDirection(), 0.f);
 }
 
 [shader("closesthit")]
