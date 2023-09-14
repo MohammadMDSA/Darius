@@ -153,6 +153,13 @@ include_directories("src/Libs/PhysX/include")
 # Adding rttr
 add_subdirectory("src/Libs/rttr")
 
+# Adding enkiTS
+set(ENKITS_BUILD_C_INTERFACE OFF)
+Set(ENKITS_BUILD_EXAMPLES OFF)
+Set(ENKITS_BUILD_SHARED OFF)
+Set(ENKITS_INSTALL OFF)
+add_subdirectory("src/Libs/enkiTS")
+
 if(NOT DEFINED BOOST_ROOT)
     set(BOOST_ROOT $ENV{Boost_ROOT})
 endif(NOT DEFINED BOOST_ROOT)

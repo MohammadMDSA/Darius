@@ -132,18 +132,27 @@ namespace Darius::Physics
 	void UpdatePostPhysicsTransforms()
 	{
 		D_PROFILING::ScopedTimer physicsProfiler(L"Physics Post Update");
-		D_WORLD::IterateComponents<RigidbodyComponent>([&](RigidbodyComponent& colliderComp)
+
+		UINT numRigidBodyComps = D_WORLD::CountComponents<RigidbodyComponent>();
+		if (numRigidBodyComps <= 0)
+			return;
+
+		D_CONTAINERS::DVector<std::function<void()>> updateFuncs;
+		updateFuncs.reserve(numRigidBodyComps);
+
+		D_WORLD::IterateComponents<RigidbodyComponent>([&](RigidbodyComponent& comp)
 			{
-				D_JOB::AssignTask([&](int threadNumber, int)
+				updateFuncs.push_back([&]()
 					{
-						colliderComp.Update(-1);
+						if (comp.IsActive())
+							comp.Update(-1);
 
 					});
 			}
 		);
 
-		if (D_JOB::IsMainThread())
-			D_JOB::WaitForThreadsToFinish();
+		D_JOB::AddTaskSetAndWait(updateFuncs);
+
 	}
 
 	void UpdatePrePhysicsTransform(bool simulating)

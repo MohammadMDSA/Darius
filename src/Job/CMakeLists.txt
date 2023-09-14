@@ -5,13 +5,11 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ".")
 
 list(APPEND JOB_LIBS_INCLUDE
 	"Job.hpp"
-	"ThreadPool.hpp"
 	"JobCommon.hpp"
 	)
 
 list(APPEND JOB_LIBS_SOURCES
 	"Job.cpp"
-	"ThreadPool.cpp"
 	)
 
 
@@ -39,7 +37,7 @@ PRIVATE
 	${Boost_INCLUDE_DIRS}
 )
 
-target_link_libraries("Job" PRIVATE ${Boost_LIBRARIES})
+target_link_libraries("Job" PRIVATE ${Boost_LIBRARIES} enkiTS)
 target_link_libraries("Job" PRIVATE Utils Core)
 
 

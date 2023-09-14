@@ -114,48 +114,33 @@ namespace Darius::Renderer::RayTracing
 
 		D_CAMERA_MANAGER::Update();
 
-		D_WORLD::IterateComponents<MeshRendererComponent>([&](D_RENDERER::MeshRendererComponent& meshComp)
-			{
-				D_JOB::AssignTask([&](int threadNumber, int)
-					{
-						meshComp.Update(-1);
+		DVector<std::function<void()>> updateFuncs;
 
-					});
-			}
-		);
+		auto componentCount = 0u;
+		componentCount += D_WORLD::CountComponents<MeshRendererComponent>();
+		componentCount += D_WORLD::CountComponents<SkeletalMeshRendererComponent>();
+		componentCount += D_WORLD::CountComponents<BillboardRendererComponent>();
+		componentCount += D_WORLD::CountComponents<TerrainRendererComponent>();
+		updateFuncs.reserve(componentCount);
 
-		D_WORLD::IterateComponents<SkeletalMeshRendererComponent>([&](D_RENDERER::SkeletalMeshRendererComponent& meshComp)
-			{
-				D_JOB::AssignTask([&](int threadNumber, int)
-					{
-						meshComp.Update(-1);
+#define RENDERER_COMPONENT_UPDATE_ITER(T) \
+			D_WORLD::IterateComponents<T>([&](D_RENDERER::T& meshComp) \
+				{ \
+					updateFuncs.push_back([&]() \
+						{ \
+							if(meshComp.IsActive()) \
+								meshComp.Update(-1.f); \
+						}); \
+				} \
+			) \
 
-					});
-			}
-		);
+		RENDERER_COMPONENT_UPDATE_ITER(MeshRendererComponent);
+		RENDERER_COMPONENT_UPDATE_ITER(SkeletalMeshRendererComponent);
+		RENDERER_COMPONENT_UPDATE_ITER(BillboardRendererComponent);
+		RENDERER_COMPONENT_UPDATE_ITER(TerrainRendererComponent);
+#undef RENDERER_COMPONENT_UPDATE_ITER
 
-		D_WORLD::IterateComponents<BillboardRendererComponent>([&](D_RENDERER::BillboardRendererComponent& meshComp)
-			{
-				D_JOB::AssignTask([&](int threadNumber, int)
-					{
-						meshComp.Update(-1);
-
-					});
-			}
-		);
-
-		D_WORLD::IterateComponents<TerrainRendererComponent>([&](D_RENDERER::TerrainRendererComponent& meshComp)
-			{
-				D_JOB::AssignTask([&](int threadNumber, int)
-					{
-						meshComp.Update(-1);
-
-					});
-			}
-		);
-
-		if (D_JOB::IsMainThread())
-			D_JOB::WaitForThreadsToFinish();
+		D_JOB::AddTaskSetAndWait(updateFuncs);
 
 	}
 

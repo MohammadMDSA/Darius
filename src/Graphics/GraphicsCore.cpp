@@ -616,17 +616,17 @@ namespace Darius::Graphics
 
 				std::wstring compiler;
 				if (shaderName.ends_with("VS"))
-					compiler = L"vs_6_2";
+					compiler = L"vs_6_6";
 				else if (shaderName.ends_with("PS"))
-					compiler = L"ps_6_2";
+					compiler = L"ps_6_6";
 				else if (shaderName.ends_with("CS"))
-					compiler = L"cs_6_2";
+					compiler = L"cs_6_6";
 				else if (shaderName.ends_with("GS"))
-					compiler = L"gs_6_2";
+					compiler = L"gs_6_6";
 				else if (shaderName.ends_with("DS"))
-					compiler = L"ds_6_2";
+					compiler = L"ds_6_6";
 				else if (shaderName.ends_with("HS"))
-					compiler = L"hs_6_2";
+					compiler = L"hs_6_6";
 				else if (shaderName.ends_with("Lib"))
 					compiler = L"lib_6_6";
 				else

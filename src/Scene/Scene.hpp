@@ -63,6 +63,12 @@ namespace Darius::Scene
 			World.each(FLECS_MOV(callback));
 		}
 
+		template<typename COMP>
+		static INLINE UINT		CountComponents()
+		{
+			return (UINT)World.count<COMP>();
+		}
+
 		template<typename T>
 		static INLINE D_ECS::ECSId GetTypeId()
 		{

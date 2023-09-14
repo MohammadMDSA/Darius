@@ -2,12 +2,29 @@
 #include <functional>
 #include <Core/Containers/ConcurrentQueue.hpp>
 
+#include <Libs/enkiTS/src/TaskScheduler.h>
+
+#ifndef D_JOB
+#define D_JOB Darius::Job
+#endif // !D_JOB
+
 namespace Darius::Job
 {
-    using ThreadNumber = uint32_t;
-    using Task = std::function<void(ThreadNumber threadNumber, ThreadNumber totalThreadCount)>;
-    using OnFinishCallback = std::function<void()>;
+    enum class ThreadType : uint16_t
+    {
+        FileIO
+    };
 
-    template<typename T>
-    using ThreadSafeQueue = Darius::Core::Containers::ConcurrentQueue<T>;
+    typedef enki::TaskSetPartition          TaskPartition;
+    typedef uint32_t                        ThreadNumber;
+
+    typedef enki::ICompletable              ICompletable;
+    typedef enki::ITaskSet                  ITaskSet;
+    typedef enki::IPinnedTask               IPinnedTask;
+
+    typedef std::function<void(TaskPartition range, ThreadNumber threadNumber)> TaskSetFunction;
+    typedef std::function<void()>           PinnedTaskFunction;
+    typedef std::function<void()>           OnFinishCallback;
+
+    typedef enki::TaskPriority              TaskPriority;
 }

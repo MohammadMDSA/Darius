@@ -39,18 +39,21 @@ namespace Darius::Animation
 
 	void Update(float dt)
 	{
+		D_CONTAINERS::DVector<std::function<void()>> updateFuncs;
+		updateFuncs.reserve(D_WORLD::CountComponents<AnimationComponent>());
+
 		D_WORLD::IterateComponents<AnimationComponent>([&](AnimationComponent& animationComponent)
 			{
-				D_JOB::AssignTask([&](int threadNumber, int)
+				updateFuncs.push_back([&]()
 					{
-						animationComponent.Update(dt);
+						if (animationComponent.IsActive())
+							animationComponent.Update(dt);
 
 					});
 			}
 		);
-
-		if (D_JOB::IsMainThread())
-			Darius::Job::WaitForThreadsToFinish();
+		
+		D_JOB::AddTaskSetAndWait(updateFuncs);
 	}
 
 }
