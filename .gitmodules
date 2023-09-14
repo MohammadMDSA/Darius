@@ -19,3 +19,6 @@
 [submodule "DariusHeaderTool"]
 	path = DariusHeaderTool
 	url = https://github.com/MohammadMDSA/DariusHeaderTool
+[submodule "src/Libs/enkiTS"]
+	path = src/Libs/enkiTS
+	url = https://github.com/dougbinks/enkiTS
