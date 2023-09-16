@@ -103,7 +103,7 @@ PUBLIC
 PRIVATE
 	".."
 	${Boost_INCLUDE_DIRS}
-	"../Libs/DirectXShaderCompiler/inc"
+	"${CMAKE_CURRENT_SOURCE_DIR}/../Libs/DirectXShaderCompiler/inc"
 )
 
 target_link_libraries("Graphics" PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/../Libs/DirectXShaderCompiler/lib/dxcompiler.lib")

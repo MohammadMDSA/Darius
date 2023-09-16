@@ -32,7 +32,6 @@ list(APPEND RENDERER_LIBS_INCLUDE
 	"RayTracing/Utils/ShaderTable.hpp"
 	"RayTracing/Utils/Utils.hpp"
 	"RendererCommon.hpp"
-	"RendererJobs.hpp"
 	"RendererManager.hpp"
 	"Resources/BatchResource.hpp"
 	"Resources/FBXPrefabResource.hpp"

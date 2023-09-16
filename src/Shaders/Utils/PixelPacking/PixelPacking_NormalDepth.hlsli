@@ -36,7 +36,7 @@ float3 Unpack_R8G8B16_FLOAT(uint rgb)
 // Ref: https://knarkowicz.wordpress.com/2014/04/16/octahedron-normal-vector-encoding/
 float2 OctWrap(float2 v)
 {
-    return (1.0 - abs(v.yx)) * (v.xy >= 0.0 ? 1.0 : -1.0);
+    return (1.0 - abs(v.yx)) * select(v.xy >= 0.0, 1.0, -1.0);
 }
 
 // Converts a 3D unit vector to a 2D vector with <0,1> range. 
@@ -55,7 +55,7 @@ float3 DecodeNormal(float2 f)
     // https://twitter.com/Stubbesaurus/status/937994790553227264
     float3 n = float3(f.x, f.y, 1.0 - abs(f.x) - abs(f.y));
     float t = saturate(-n.z);
-    n.xy += n.xy >= 0.0 ? -t : t;
+    n.xy += select(n.xy >= 0.0, -t, t);
     return normalize(n);
 }
 /***************************************************************/

@@ -235,8 +235,9 @@ void UpdateGBufferOnLargerDiffuseComponent(inout PathTracerRayPayload rayPayload
 // Trace a shadow ray and return true if it hits any geometry.
 bool TraceShadowRayAndReportIfHit(out float tHit, in Ray ray, in UINT currentRayRecursionDepth, in bool retrieveTHit = true, in float TMax = 10000)
 {
-    if (currentRayRecursionDepth >= 2)
+    if (currentRayRecursionDepth >= 2u)
     {
+        tHit = HitDistanceOnMiss;
         return false;
     }
 
@@ -290,6 +291,7 @@ bool TraceShadowRayAndReportIfHit(out float tHit, in Ray ray, in float3 N, in UI
     {
         return TraceShadowRayAndReportIfHit(tHit, ray, currentRayRecursionDepth, retrieveTHit, TMax);
     }
+    tHit = HitDistanceOnMiss;
     return false;
 }
 
