@@ -26,6 +26,6 @@ D_CORE::SignalConnection SubscribeOn##name(std::function<__VA_ARGS__> callback);
 
 #define D_CH_SIGNAL(name, ...) \
 private: \
-D_CORE::Signal<__VA_ARGS__> name##Signal; \
+D_CORE::Signal<__VA_ARGS__> m##name##Signal; \
 public: \
-INLINE SignalConnection SubscribeOn##name(std::function<__VA_ARGS__> callback) { return name##Signal.connect(callback); }
+INLINE Darius::Core::SignalConnection SubscribeOn##name(std::function<__VA_ARGS__> callback) { return m##name##Signal.connect(callback); }
