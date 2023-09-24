@@ -54,6 +54,7 @@ namespace Darius::Renderer
 		mMeshConstantsGPU.Create(L"Mesh Constant GPU Buffer", 1, sizeof(MeshConstants));
 
 		UpdateGridMesh();
+		SetDirty();
 
 	}
 
