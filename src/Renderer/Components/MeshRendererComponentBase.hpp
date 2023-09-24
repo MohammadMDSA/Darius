@@ -56,7 +56,7 @@ namespace Darius::Renderer
 		DField(Get[inline], Set[inline], Serialize)
 		bool									mCastsShadow;
 
-		DField(Get[inline], Set[inline, dirty])
+		DField(Get[inline], Set[inline, dirty], Serialize)
 		float									mLoD;
 
 		// Gpu buffers
