@@ -82,6 +82,15 @@ namespace Darius::Math
 	INLINE float Min(float a, float b) { return a < b ? a : b; }
 	INLINE float Clamp(float v, float a, float b) { return Min(Max(v, a), b); }
 
+	template<typename T>
+	INLINE T Min(T a, T b) { return std::min(a, b); }
+
+	template<typename T>
+	INLINE T Max(T a, T b) { return std::max(a, b); }
+
+	template<typename T>
+	INLINE UINT Clamp(T v, T a, T b) { return Min(Max(v, a), b); }
+
 	INLINE Scalar Length(Vector3 const& v) { return Scalar(DirectX::XMVector3Length(v)); }
 	INLINE Scalar LengthSquare(Vector3 const& v) { return Scalar(DirectX::XMVector3LengthSq(v)); }
 	INLINE Scalar LengthRecip(Vector3 const& v) { return Scalar(DirectX::XMVector3ReciprocalLength(v)); }
