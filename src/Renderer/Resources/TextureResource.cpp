@@ -296,7 +296,6 @@ namespace Darius::Renderer
 
 	bool TextureResource::UploadToGpu()
 	{
-		D_GRAPHICS::GetCommandManager()->IdleGPU();
 		auto path = GetPath();
 		auto ext = path.extension().string();
 		if (ext == ".dds")
