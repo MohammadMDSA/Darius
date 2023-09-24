@@ -2,6 +2,8 @@
 #include "DetailsWindow.hpp"
 #include "Editor/EditorContext.hpp"
 
+#include <imgui.h>
+
 #include <ResourceManager/ResourceLoader.hpp>
 
 using namespace D_RESOURCE;
@@ -25,15 +27,27 @@ namespace Darius::Editor::Gui::Windows
 		if (!obj)
 			return;
 
+		auto editable = obj->IsEditableInDetailsWindow();
+
+		
+
 		if (auto resource = dynamic_cast<Resource*>(obj); resource)
 		{
 			if (!resource->IsLoaded())
 			{
-				D_RESOURCE_LOADER::LoadResource(resource);
+				D_RESOURCE_LOADER::LoadResourceAsync(resource, nullptr);
+
 				return;
 			}
 		}
 
+		// Disable inputs if the resource is a default one
+		if (!editable)
+			ImGui::BeginDisabled(true);
+		
 		obj->DrawDetails(nullptr);
+
+		if (!editable)
+			ImGui::EndDisabled();
 	}
 }
