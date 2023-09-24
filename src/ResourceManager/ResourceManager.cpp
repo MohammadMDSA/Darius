@@ -44,32 +44,47 @@ namespace Darius::ResourceManager
 		return _ResourceManager.get();
 	}
 
-	Resource* _GetRawResource(D_CORE::Uuid const& uuid, bool load)
+	Resource* GetRawResourceSync(D_CORE::Uuid const& uuid, bool syncLoad)
 	{
 		auto resource = _ResourceManager->GetRawResource(uuid);
 
 		// Load resource if not loaded yet
-		if (load && !resource->IsLoaded())
-			D_RESOURCE_LOADER::LoadResource(resource);
-		if (load && resource->IsDirtyGPU())
+		if (syncLoad && !resource->IsLoaded())
+			D_RESOURCE_LOADER::LoadResourceSync(resource);
+		if (syncLoad && resource->IsDirtyGPU())
+		{
+			if (resource->UpdateGPU())
+				resource->MakeGpuClean();
+		}
+		return resource;
+	}
+
+	Resource* GetRawResourceSync(ResourceHandle handle, bool syncLoad)
+	{
+		auto resource = _ResourceManager->GetRawResource(handle);
+
+		// Load resource if not loaded yet
+		if (syncLoad && !resource->IsLoaded())
+			D_RESOURCE_LOADER::LoadResourceSync(resource);
+		if (syncLoad && resource->IsDirtyGPU())
 		{
 			resource->UpdateGPU();
 		}
 		return resource;
 	}
 
-	Resource* _GetRawResource(ResourceHandle handle, bool load)
+	void GetRawResourceAsync(ResourceHandle handle, ResourceLoadedResourceCalllback callback)
 	{
 		auto resource = _ResourceManager->GetRawResource(handle);
 
-		// Load resource if not loaded yet
-		if (load && !resource->IsLoaded())
-			D_RESOURCE_LOADER::LoadResource(resource);
-		if (load && resource->IsDirtyGPU())
-		{
-			resource->UpdateGPU();
-		}
-		return resource;
+		ResourceLoader::LoadResourceAsync(resource, callback, true);
+	}
+
+	void GetRawResourceAsync(D_CORE::Uuid const& uuid, ResourceLoadedResourceCalllback callback)
+	{
+		auto resource = _ResourceManager->GetRawResource(uuid);
+
+		ResourceLoader::LoadResourceAsync(resource, callback, true);
 	}
 
 	ResourceHandle GetResourceHandle(D_CORE::Uuid const& uuid)
@@ -111,12 +126,15 @@ namespace Darius::ResourceManager
 #endif // _D_EDITOR
 
 
-	DResourceManager::DResourceManager()
+	DResourceManager::DResourceManager() :
+		mDefaultResourcesSet()
 	{
 	}
 
 	DResourceManager::~DResourceManager()
 	{
+		mDefaultResourcesSet.clear();
+
 		for (auto& typeClass : mResourceMap)
 			for (auto& resourcePair : typeClass.second)
 				resourcePair.second->Destroy();
@@ -124,7 +142,7 @@ namespace Darius::ResourceManager
 
 	Resource* DResourceManager::GetRawResource(D_CORE::Uuid const& uuid)
 	{
-		if (!mUuidMap.contains(uuid))
+		if (mUuidMap.find(uuid) == mUuidMap.end())
 			throw D_EXCEPTION::Exception((std::string("Resource not found: uuid = ") + D_CORE::ToString(uuid)).c_str());
 		return mUuidMap[uuid];
 	}
@@ -134,7 +152,7 @@ namespace Darius::ResourceManager
 		if (handle.Type == 0)
 			return nullptr;
 
-		if (!mResourceMap.contains(handle.Type))
+		if (mResourceMap.find(handle.Type) == mResourceMap.end())
 			throw D_EXCEPTION::Exception("Type not found");
 		auto& typeClass = mResourceMap[handle.Type];
 		if (!typeClass.contains(handle.Id))
@@ -147,7 +165,7 @@ namespace Darius::ResourceManager
 		if (handle.Type == 0)
 			return nullptr;
 
-		if (!mResourceMap.contains(handle.Type))
+		if (mResourceMap.find(handle.Type) == mResourceMap.end())
 			return nullptr;
 		auto& typeClass = mResourceMap[handle.Type];
 		if (!typeClass.contains(handle.Id))
@@ -170,7 +188,7 @@ namespace Darius::ResourceManager
 	{
 		auto res = GetRawResourceSafe(handle);
 		if (res == nullptr)
-			return { L"", D_FILE::Path(), EmptyResourceHandle};
+			return { L"", D_FILE::Path(), EmptyResourceHandle };
 
 		return *res;
 	}
@@ -187,6 +205,9 @@ namespace Darius::ResourceManager
 
 		auto res = factory->Create(uuid, path, name, GetNewId(), isDefault);
 
+		if (isDefault)
+			mDefaultResourcesSet.push_back(res.get());
+
 		res->mLoaded = !fromFile;
 		res->mDirtyDisk = !fromFile;
 
@@ -199,15 +220,24 @@ namespace Darius::ResourceManager
 
 	void DResourceManager::UpdateGPUResources()
 	{
+		static DVector<Resource*> dirtyResources;
+		dirtyResources.clear();
+
 		for (auto& resType : mResourceMap)
 		{
 			for (auto& res : resType.second)
 			{
 				auto resource = res.second;
-				if (resource->IsLoaded() && resource->IsDirtyGPU())
-					resource->UpdateGPU();
+				if (resource->IsLoaded() && resource->IsDirtyGPU() && !resource->IsLocked())
+				{
+					if (resource->UpdateGPU())
+						dirtyResources.push_back(resource.get());
+				}
 			}
 		}
+
+		for (auto resource : dirtyResources)
+			resource->MakeGpuClean();
 	}
 
 	void DResourceManager::UpdateMaps(std::shared_ptr<Resource> resource)
@@ -217,7 +247,7 @@ namespace Darius::ResourceManager
 		mResourceMap.at(resource->GetType()).try_emplace(resource->GetId(), resource);
 
 		// Update uuid map
-		mUuidMap.try_emplace(resource->GetUuid(), resource.get());
+		mUuidMap.insert({ resource->GetUuid(), resource.get() });
 
 		// Update path map
 

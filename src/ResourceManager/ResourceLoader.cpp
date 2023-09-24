@@ -4,7 +4,9 @@
 
 #include <Core/Serialization/Json.hpp>
 #include <Core/Exceptions/Exception.hpp>
+#include <Job/Job.hpp>
 #include <Utils/Common.hpp>
+#include <Utils/Log.hpp>
 
 #include <fstream>
 
@@ -15,6 +17,48 @@ using namespace D_SERIALIZATION;
 
 namespace Darius::ResourceManager
 {
+	struct AsyncResourceLoadingFromResourceDataTask : public D_JOB::IPinnedTask
+	{
+		virtual void Execute() override
+		{
+			if (!mPendingToLoad)
+			{
+				if (mCallback)
+					mCallback(nullptr);
+				return;
+			}
+
+			if (!mPendingToLoad->IsLoaded())
+				ResourceLoader::LoadResourceSync(mPendingToLoad);
+
+			if (mUpdateGpu && mPendingToLoad->IsDirtyGPU())
+				if (mPendingToLoad->UpdateGPU())
+					mPendingToLoad->MakeGpuClean();
+
+			if (mCallback)
+				mCallback(mPendingToLoad);
+		}
+
+		Resource* mPendingToLoad = nullptr;
+		bool							mUpdateGpu = false;
+		ResourceLoadedResourceCalllback	mCallback = nullptr;
+	};
+
+	struct AsyncResourceLoadingFromPathTask : public D_JOB::IPinnedTask
+	{
+		virtual void Execute() override
+		{
+			auto loaded = ResourceLoader::LoadResourceSync(mPath, mMetaOnly);
+			
+			if (mCallback)
+				mCallback(loaded);
+
+		}
+
+		D_FILE::Path					mPath;
+		bool							mMetaOnly = false;
+		ResourceLoadedResourceListCalllback	mCallback = nullptr;
+	};
 
 	// Only used in resource reading / wrting, from / to file context
 	DVector<ResourceHandle> ResourceLoader::CreateResourceObject(ResourceFileMeta const& meta, DResourceManager* manager, Path const& directory)
@@ -71,13 +115,22 @@ namespace Darius::ResourceManager
 	{
 		if (resource->GetType() == 0)
 			throw D_CORE::Exception::Exception("Bad resource type to save");
+
+		if (resource->IsLocked())
+			return false;
+
 		if (resource->mDefault)
 		{
+			resource->SetLocked(true);
 			resource->mDirtyDisk = false;
+			resource->SetLocked(false);
+
 			return true;
 		}
 
 		auto path = D_FILE::Path(resource->mPath.string() + ".tos");
+
+		resource->SetLocked(true);
 
 		Json resourceProps;
 		if (!metaOnly)
@@ -118,20 +171,24 @@ namespace Darius::ResourceManager
 			os.close();
 		}
 
+		resource->SetLocked(false);
+
 		return true;
 	}
 
-	ResourceHandle ResourceLoader::LoadResource(Resource* resource)
+	ResourceHandle ResourceLoader::LoadResourceSync(Resource* resource)
 	{
 
 		if (resource->mDefault)
 		{
+			resource->SetLocked(true);
 			resource->mDirtyDisk = false;
 			resource->mLoaded = true;
+			resource->SetLocked(false);
 			return *resource;
 		}
 
-		auto loaded = LoadResource(resource->GetPath());
+		auto loaded = LoadResourceSync(resource->GetPath(), false, *resource);
 
 		ResourceHandle resourceHandle = *resource;
 		for (auto const& loadedHandle : loaded)
@@ -144,6 +201,23 @@ namespace Darius::ResourceManager
 
 	}
 
+	void ResourceLoader::LoadResourceAsync(Resource* resource, ResourceLoadedResourceCalllback onLoaded, bool updateGpu)
+	{
+		if (resource == nullptr)
+		{
+			D_LOG_WARN("Trying to load a null resource");
+			return;
+		}
+
+		auto task = new AsyncResourceLoadingFromResourceDataTask();
+		task->mCallback = onLoaded;
+		task->mPendingToLoad = resource;
+		task->mUpdateGpu = updateGpu;
+
+		D_JOB::AddPinnedTask(task, D_JOB::ThreadType::FileIO);
+	}
+
+
 	DVector<ResourceHandle> ResourceLoader::CreateReourceFromMeta(Path const& _path, bool& foundMeta, Json& jMeta)
 	{
 		foundMeta = false;
@@ -153,7 +227,9 @@ namespace Darius::ResourceManager
 
 		// If already exists
 		auto manager = D_RESOURCE::GetManager();
-		if (manager->mPathMap.contains(path))
+
+		DVector<ResourceHandle>const* existingResources;
+		if (manager->TryGetHandleFromPath(path, &existingResources))
 		{
 			foundMeta = true;
 			alreadyExists = true;
@@ -179,12 +255,12 @@ namespace Darius::ResourceManager
 		meta = jMeta;
 
 		if (alreadyExists)
-			return manager->mPathMap.at(path);
+			return *existingResources;
 
 		return CreateResourceObject(meta, manager, path.parent_path());
 	}
 
-	DVector<ResourceHandle> ResourceLoader::LoadResource(Path const& path, bool metaOnly)
+	DVector<ResourceHandle> ResourceLoader::LoadResourceSync(Path const& path, bool metaOnly, ResourceHandle specificHandle)
 	{
 		if (!D_H_ENSURE_FILE(path))
 			return { };
@@ -205,13 +281,20 @@ namespace Darius::ResourceManager
 
 		Json properties = meta.contains("Properties") ? meta["Properties"] : Json();
 
+		bool specific = specificHandle.IsValid();
+
 		for (auto handle : handles)
 		{
 			// Resource not supported
 			if (handle.Type != 0)
 			{
+				if (specific && handle != specificHandle)
+					continue;
+
 				// Fetch pointer to resource
 				auto resource = manager->GetRawResource(handle);
+
+				resource->SetLocked(true);
 
 				if (!hasMeta)
 					// Save meta to file
@@ -226,10 +309,27 @@ namespace Darius::ResourceManager
 					resource->mLoaded = true;
 				}
 
+				resource->SetLocked(false);
+
+
 			}
 		}
+		if (specific)
+			return { specificHandle };
+
 		return handles;
 	}
+
+	void ResourceLoader::LoadResourceAsync(D_FILE::Path const& path, ResourceLoadedResourceListCalllback onLoaded, bool metaOnly)
+	{
+		auto task = new AsyncResourceLoadingFromPathTask();
+		task->mCallback = onLoaded;
+		task->mPath = path;
+		task->mMetaOnly = metaOnly;
+
+		D_JOB::AddPinnedTask(task, D_JOB::ThreadType::FileIO);
+	}
+
 
 	void ResourceLoader::VisitSubdirectory(Path const& path, bool recursively)
 	{
@@ -252,7 +352,7 @@ namespace Darius::ResourceManager
 		auto pathStr = path.lexically_normal().wstring();
 
 		auto manager = D_RESOURCE::GetManager();
-		auto resourceHandleVec = manager->mPathMap[pathStr];
+		auto resourceHandleVec = manager->GetHandleFromPath(pathStr);
 
 		ResourceFileMeta result;
 
@@ -306,7 +406,7 @@ namespace Darius::ResourceManager
 		if (!D_H_ENSURE_FILE(path))
 			throw D_EXCEPTION::FileNotFoundException("Resource on location " + path.string() + " not found");
 
-		LoadResource(path, true);
+		LoadResourceAsync(path, nullptr, true);
 	}
 
 	void to_json(D_SERIALIZATION::Json& j, const ResourceFileMeta& value)

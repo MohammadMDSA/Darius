@@ -1,12 +1,15 @@
 #pragma once
 
+#include <Core/Containers/Map.hpp>
 #include <Core/Containers/Set.hpp>
-#include <Core/Counted.hpp>
+#include <Core/Containers/Vector.hpp>
 #include <Core/Exceptions/Exception.hpp>
 #include <Core/Filesystem/FileUtils.hpp>
 #include <Core/Filesystem/Path.hpp>
-#include <Core/Ref.hpp>
+#include <Core/RefCounting/Counted.hpp>
+#include <Core/RefCounting/Ref.hpp>
 #include <Core/Serialization/Json.hpp>
+#include <Core/Signal.hpp>
 #include <Core/Uuid.hpp>
 #include <Utils/Common.hpp>
 #include <Utils/Assert.hpp>
@@ -15,20 +18,13 @@
 #include <rttr/registration_friend.h>
 #include <rttr/rttr_enable.h>
 
+#include <atomic>
+
 #include "Resource.generated.hpp"
 
 #ifndef D_RESOURCE
 #define D_RESOURCE Darius::ResourceManager
 #endif // !D_RESOURCE
-
-#define D_CH_RESOURCE_RW_FIELD_ACC(type, name, access, ...) \
-public: \
-INLINE void Set##name(type const& val) { m##name = val; MakeDiskDirty(); MakeGpuDirty(); SignalChange(); } \
-access: \
-DField(__VA_ARGS__) \
-type m##name;
-
-#define D_CH_RESOURCE_RW_FIELD(type, name, ...) D_CH_RESOURCE_RW_FIELD_ACC(type, name, private, __VA_ARGS__)
 
 #define D_T_RESOURCE_ID UINT16
 
@@ -125,7 +121,6 @@ namespace Darius::ResourceManager
 
 		void Destroy()
 		{
-			mLoaded = false;
 			mVersion++;
 		}
 
@@ -139,13 +134,11 @@ namespace Darius::ResourceManager
 		virtual INLINE rttr::type	GetResourceReflectionType() const { return rttr::type::get<Resource>(); }
 		virtual INLINE std::string	GetResourceTypeName() const = 0;
 
-		INLINE virtual D_CORE::CountedOwner	GetAsCountedOwner() const
-		{
-			auto strName = GetResourceTypeName();
-			return D_CORE::CountedOwner{ STR2WSTR(strName), GetResourceReflectionType(), (void*)this };
-		}
-
-		INLINE virtual bool			IsDirtyGPU() const { return mDirtyGPU; }
+		INLINE bool					IsSelfDirtyGPU() const { return mDirtyGPU.load(); }
+		INLINE bool					IsDirtyGPU() const { return IsSelfDirtyGPU() || AreDependenciesDirty(); }
+		INLINE virtual bool			AreDependenciesDirty() const = 0;
+		INLINE bool					IsLocked() const { return mLocked.load(); }
+		INLINE void					SetLocked(bool value) { mLocked.store(value); }
 
 		INLINE operator ResourceHandle() const { return { GetType(), mId }; }
 		INLINE operator ResourcePreview() const { return GetPreview(); }
@@ -163,7 +156,7 @@ namespace Darius::ResourceManager
 		DField(Get[inline])
 		bool				mDirtyDisk;
 
-		bool				mDirtyGPU;
+		std::atomic<bool>	mDirtyGPU;
 		
 		DField(Get[inline])
 		const DResourceId	mId;
@@ -177,12 +170,18 @@ namespace Darius::ResourceManager
 		DField(Get[inline, const, &], Set[inline])
 		std::wstring		mName;
 
+		// For saving / loading / manipulation purposes
+		std::atomic_bool	mLocked;
+
 
 	public:
-		void						UpdateGPU();
+		// Returns true if gpu dirty state "has changed" AND "changed to true". Returns false if the state didn't change or didn't clean gpu.
+		bool						UpdateGPU();
 
 #ifdef _D_EDITOR
+		// The result of this method is obsolete
 		virtual bool				DrawDetails(float params[]) = 0;
+		virtual bool				IsEditableInDetailsWindow() const;
 #endif // _D_EDITOR
 
 #pragma region Registeration
@@ -213,17 +212,20 @@ namespace Darius::ResourceManager
 			return type;
 		}
 
-		INLINE void					MakeDiskDirty() { mDirtyDisk = true; }
-		INLINE void					MakeGpuDirty() { mDirtyGPU = true; }
+		INLINE void					MakeDiskDirty() { D_ASSERT_M(!mLocked, "Resource cannot be manipulated while locked."); if(!GetDefault()) mDirtyDisk = true; }
+		INLINE void					MakeGpuDirty() { if (!GetDefault()) mDirtyGPU.store(true); }
 		INLINE void					MakeDiskClean() { mDirtyDisk = false; }
-		INLINE void					MakeGpuClean() { mDirtyGPU = false; }
+		INLINE void					MakeGpuClean() { mDirtyGPU.store(false); }
 
 		friend class DResourceManager;
 		friend class ResourceLoader;
 
+		template<class T>
+		friend class D_CORE::Ref;
+
 	protected:
 		Resource(D_CORE::Uuid uuid, std::wstring const& path, std::wstring const& name, DResourceId id, bool isDefault) :
-			mLoaded(false),
+			mLoaded(isDefault),
 			mPath(path),
 			mName(name),
 			mVersion(1),
@@ -231,7 +233,8 @@ namespace Darius::ResourceManager
 			mDefault(isDefault),
 			mDirtyDisk(false),
 			mDirtyGPU(true),
-			mUuid(uuid)
+			mUuid(uuid),
+			mLocked(false)
 		{
 		}
 
@@ -253,6 +256,9 @@ namespace Darius::ResourceManager
 		// Don't trigger change signal inside this. It'll break the whole thing!
 		virtual void				OnChange() { }
 		void						SignalChange();
+		virtual bool				Release() override;
+
+		D_CH_SIGNAL(Change, void(Resource*));
 
 		static void					AddTypeContainer(ResourceType type);
 
@@ -267,6 +273,14 @@ namespace Darius::ResourceManager
 		Darius_ResourceManager_Resource_GENERATED
 
 	};
+
+	INLINE bool Resource::IsEditableInDetailsWindow() const
+	{
+		if (GetDefault())
+			return false;
+		return true;
+	}
+
 
 }
 

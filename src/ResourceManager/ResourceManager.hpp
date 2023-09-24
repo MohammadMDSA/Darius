@@ -4,12 +4,14 @@
 #include "ResourceLoader.hpp"
 #include "ResourceRef.hpp"
 
-#include <Core/Ref.hpp>
 #include <Core/Uuid.hpp>
 #include <Core/Containers/Vector.hpp>
+#include <COre/Containers/Map.hpp>
 #include <Core/Exceptions/Exception.hpp>
 
 #include <boost/functional/hash.hpp>
+
+#include <concurrent_unordered_map.h>
 
 #include <optional>
 
@@ -22,6 +24,8 @@ namespace Darius::ResourceManager
 	class DResourceManager;
 	class ResourceLoader;
 
+	template<class RESOURCE> using ResourceLoadedTypedResourceCalllback = std::function<void(D_RESOURCE::ResourceRef<RESOURCE> resource)>;
+
 	void					Initialize(D_SERIALIZATION::Json const& settings);
 	void					Shutdown();
 #ifdef _D_EDITOR
@@ -31,10 +35,25 @@ namespace Darius::ResourceManager
 
 	void					UpdateGPUResources();
 
-	DResourceManager*		GetManager();
+	DResourceManager* GetManager();
 
-	Resource*				_GetRawResource(D_CORE::Uuid const& uuid, bool load = false);
-	Resource*				_GetRawResource(ResourceHandle handle, bool load = false);
+	/// <summary>
+	/// Gets a resource by its UUID
+	/// </summary>
+	/// <param name="uuid">UUID of the resource</param>
+	/// <param name="syncLoad">Whether it should be loaded or not. If true, loading will happen synchronously</param>
+	Resource*				GetRawResourceSync(D_CORE::Uuid const& uuid, bool syncLoad = false);
+
+	/// <summary>
+	/// Gets a resource by its handle
+	/// </summary>
+	/// <param name="handle">handle of the resource</param>
+	/// <param name="syncLoad">Whether it should be loaded or not. If true, loading will happen synchronously</param>
+	Resource*				GetRawResourceSync(ResourceHandle handle, bool syncLoad = false);
+
+	void					GetRawResourceAsync(ResourceHandle handle, ResourceLoadedResourceCalllback callback);
+	void					GetRawResourceAsync(D_CORE::Uuid const& uuid, ResourceLoadedResourceCalllback callback);
+
 	void					SaveAll();
 
 #ifdef _D_EDITOR
@@ -45,27 +64,41 @@ namespace Darius::ResourceManager
 #pragma region GetResource
 	// Resource retreival stuff
 	template<class T>
-	ResourceRef<T> GetResource(D_CORE::Uuid const& uuid, std::optional<D_CORE::CountedOwner> ownerData)
+	ResourceRef<T> GetResourceSync(D_CORE::Uuid const& uuid)
 	{
 		// Checking if T is a resource type
 		using conv = std::is_convertible<T*, Resource*>;
 		D_STATIC_ASSERT(conv::value);
 
-		return ResourceRef(dynamic_cast<T*>(_GetRawResource(uuid, true)), ownerData);
-	}
-
-	// Untyped version of resource getter. Doesn't load resources
-	INLINE Resource* GetUncountedResource(ResourceHandle handle, std::optional<D_CORE::CountedOwner> ownerData = std::nullopt)
-	{
-		// Requested None resource so we return nothing
-		if (handle.Type == 0)
-			return nullptr;
-
-		return _GetRawResource(handle, false);
+		return ResourceRef(dynamic_cast<T*>(GetRawResourceSync(uuid, true)));
 	}
 
 	template<class T>
-	ResourceRef<T> GetResource(ResourceHandle handle, std::optional<D_CORE::CountedOwner> ownerData = std::nullopt)
+	void GetResourceAsync(ResourceHandle handle, ResourceLoadedTypedResourceCalllback<T> callback)
+	{
+		// Checking if T is a resource type
+		using conv = std::is_convertible<T*, Resource*>;
+		D_STATIC_ASSERT(conv::value);
+
+		// Requested None resource so we return nothing
+		if (handle.Type == 0)
+			return;
+
+		// Requested resource type must be compatible with T
+		if (handle.Type != T::GetResourceType())
+			throw D_EXCEPTION::Exception("Requested type and handle type are not compatible");
+
+		GetRawResourceAsync(handle, [callback](auto resource)
+			{
+				if (callback)
+				{
+					callback(ResourceRef(static_cast<T*>(resource)));
+				}
+			});
+	}
+
+	template<class T>
+	ResourceRef<T> GetResourceSync(ResourceHandle handle)
 	{
 		// Checking if T is a resource type
 		using conv = std::is_convertible<T*, Resource*>;
@@ -79,13 +112,7 @@ namespace Darius::ResourceManager
 		if (handle.Type != T::GetResourceType())
 			throw D_EXCEPTION::Exception("Requested type and handle type are not compatible");
 
-		return ResourceRef(dynamic_cast<T*>(_GetRawResource(handle, true)), ownerData);
-	}
-
-	template<class T>
-	ResourceRef<T> GetResource(ResourceHandle handle, void* owner, std::wstring const& ownerName, rttr::type const& ownerType, std::function<void()> changeCallback = nullptr)
-	{
-		return GetResource<T>(handle, std::optional<D_CORE::CountedOwner> { D_CORE::CountedOwner { ownerName, ownerType, owner, 0, changeCallback } } );
+		return ResourceRef(dynamic_cast<T*>(GetRawResourceSync(handle)));
 	}
 
 	ResourceHandle GetResourceHandle(D_CORE::Uuid const& uuid);
@@ -94,16 +121,12 @@ namespace Darius::ResourceManager
 
 	D_CONTAINERS::DVector<ResourcePreview> GetResourcePreviews(ResourceType type);
 	ResourcePreview					GetResourcePreview(ResourceHandle const& handle);
-	
+
 	class DResourceManager : NonCopyable
 	{
 	public:
 		DResourceManager();
 		~DResourceManager();
-
-		// Retreival
-		Resource*					GetRawResource(ResourceHandle handle);
-		Resource*					GetRawResource(D_CORE::Uuid const& uuid);
 
 		// Save resouce
 		void						SaveAllResources();
@@ -138,8 +161,19 @@ namespace Darius::ResourceManager
 #endif // _D_EDITOR
 
 	private:
-		friend class ResourceLoader;
+		friend Resource* GetRawResourceSync(ResourceHandle handle, bool syncLoad);
+		friend Resource* GetRawResourceSync(D_CORE::Uuid const& uuid, bool syncLoad);
+		friend void GetRawResourceAsync(ResourceHandle handle, ResourceLoadedResourceCalllback callback);
+		friend void GetRawResourceAsync(D_CORE::Uuid const& uuid, ResourceLoadedResourceCalllback callback);
+		friend ResourceHandle GetResourceHandle(D_CORE::Uuid const& uuid);
 		friend class Resource;
+		friend class ResourceLoader;
+		friend struct AsyncResourceLoadingFromPathTask;
+
+
+		// Retreival
+		Resource* GetRawResource(ResourceHandle handle);
+		Resource* GetRawResource(D_CORE::Uuid const& uuid);
 
 		ResourceHandle				CreateResource(ResourceType type, D_CORE::Uuid const& uuid, std::wstring const& path, std::wstring const& name, bool isDefault, bool fromFile);
 
@@ -153,16 +187,28 @@ namespace Darius::ResourceManager
 			return CreateResource(T::GetResourceType(), uuid, path, name, isDefault, fromFile);
 		}
 
-		Resource*					GetRawResourceSafe(ResourceHandle handle);
+		Resource* GetRawResourceSafe(ResourceHandle handle);
 
 		void						UpdateMaps(std::shared_ptr<Resource> resuorce);
 
 		INLINE DResourceId			GetNewId() { return ++mLastId; }
+		INLINE D_CONTAINERS::DVector<ResourceHandle> const& GetHandleFromPath(std::wstring const& path) const { if (mPathMap.find(path) == mPathMap.end()) throw std::exception("Path Not Found"); return mPathMap.at(path); }
+		INLINE bool					TryGetHandleFromPath(std::wstring const& path, _OUT_ D_CONTAINERS::DVector<ResourceHandle>const** result) const
+		{
+			if (mPathMap.find(path) == mPathMap.end())
+			{
+				result = nullptr;
+				return false;
+			}
+			*result = &mPathMap.at(path);
+			return true;
+		}
 
-		D_CONTAINERS::DUnorderedMap<ResourceType, D_CONTAINERS::DUnorderedMap<DResourceId, std::shared_ptr<Resource>>>	mResourceMap;
-		D_CONTAINERS::DUnorderedMap<D_CORE::Uuid, Resource*, D_CORE::UuidHasher>			mUuidMap;
-		D_CONTAINERS::DUnorderedMap<std::wstring, D_CONTAINERS::DVector<ResourceHandle>>	mPathMap;
-		DResourceId																			mLastId = 0;
+		D_CONTAINERS::DConcurrentUnorderedMap<ResourceType, D_CONTAINERS::DUnorderedMap<DResourceId, std::shared_ptr<Resource>>>	mResourceMap;
+		D_CONTAINERS::DConcurrentUnorderedMap<D_CORE::Uuid, Resource*, D_CORE::UuidHasher>			mUuidMap;
+		D_CONTAINERS::DConcurrentUnorderedMap<std::wstring, D_CONTAINERS::DVector<ResourceHandle>>	mPathMap;
+		D_CONTAINERS::DConcurrentVector<ResourceRef<Resource>> mDefaultResourcesSet;
+		DResourceId								mLastId = 0;
 	};
 
 }

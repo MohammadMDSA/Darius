@@ -3,6 +3,7 @@
 #include "Resource.hpp"
 
 #include <Core/Filesystem/Path.hpp>
+#include <Core/Containers/Vector.hpp>
 
 #ifndef D_RESOURCE_LOADER
 #define D_RESOURCE_LOADER Darius::ResourceManager::ResourceLoader
@@ -13,6 +14,9 @@ namespace Darius::ResourceManager
 {
 	class ResourceManager;
 
+	typedef std::function<void(Resource* resource)> ResourceLoadedResourceCalllback;
+	typedef std::function<void(D_CONTAINERS::DVector<ResourceHandle> const&)> ResourceLoadedResourceListCalllback;
+
 	class ResourceLoader
 	{
 	public:
@@ -20,8 +24,13 @@ namespace Darius::ResourceManager
 
 		static D_CONTAINERS::DVector<ResourceHandle> CreateReourceFromMeta(D_FILE::Path const& path, bool& foundMeta, D_SERIALIZATION::Json& jMeta);
 
-		static ResourceHandle	LoadResource(Resource* resource);
-		static D_CONTAINERS::DVector<ResourceHandle>	LoadResource(D_FILE::Path const& path, bool metaOnly = false);
+		// Resource Loading Sync
+		static ResourceHandle	LoadResourceSync(Resource* resource);
+		static D_CONTAINERS::DVector<ResourceHandle> LoadResourceSync(D_FILE::Path const& path, bool metaOnly = false, ResourceHandle specificHandle = EmptyResourceHandle);
+		
+		// Resource Loading Async
+		static void				LoadResourceAsync(Resource* resource, ResourceLoadedResourceCalllback onLoaded, bool updateGpu = false);
+		static void				LoadResourceAsync(D_FILE::Path const& path, ResourceLoadedResourceListCalllback onLoaded, bool metaOnly = false);
 
 		static void				VisitSubdirectory(D_FILE::Path const& path, bool recursively = false);
 		static ResourceFileMeta GetResourceFileMetaFromResource(Resource* resource);

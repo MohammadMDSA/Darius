@@ -43,13 +43,19 @@ namespace Darius::ResourceManager
 		return Resource::GetResourceTypeFromName(name);
 	}
 
-	void Resource::UpdateGPU()
+	bool Resource::UpdateGPU()
 	{
 		// Is gpu already up to date
-		if (!mDirtyGPU)
-			return;
+		if (!IsDirtyGPU())
+			return false;
 
-		mDirtyGPU = !UploadToGpu();
+		SetLocked(true);
+
+		auto result = UploadToGpu();
+
+		SetLocked(false);
+
+		return result;
 	}
 
 	void Resource::AddTypeContainer(ResourceType type)
@@ -61,11 +67,7 @@ namespace Darius::ResourceManager
 	{
 		OnChange();
 
-		for (auto const& pOwner : GetOwners())
-		{
-			if (pOwner.second.ChangeCallback)
-				pOwner.second.ChangeCallback();
-		}
+		mChangeSignal(this);
 	}
 
 	DVector<ResourceDataInFile> Resource::CanConstructFrom(ResourceType type, Path const& path)
@@ -77,4 +79,10 @@ namespace Darius::ResourceManager
 		return { data };
 	}
 
+	bool Resource::Release()
+	{
+		Unload();
+		mLoaded = false;
+		return true;
+	}
 }
