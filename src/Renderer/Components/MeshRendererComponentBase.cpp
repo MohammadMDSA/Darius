@@ -50,14 +50,24 @@ namespace Darius::Renderer
 		{
 			auto const& material = mMaterials[i];
 			if (!material.IsValid())
-				SetMaterial(i, D_RENDERER::GetDefaultGraphicsResource(DefaultResource::Material));
+				SetMaterial(i, static_cast<MaterialResource*>(D_RESOURCE::GetRawResourceSync(D_RENDERER::GetDefaultGraphicsResource(DefaultResource::Material))));
 		}
 	}
 
-	void MeshRendererComponentBase::SetMaterial(UINT index, ResourceHandle handle)
+	void MeshRendererComponentBase::SetMaterial(UINT index, MaterialResource* material)
 	{
+		if (mMaterials[index] == material)
+			return;
+		
 		mMaterialPsoData[index].PsoIndexDirty = true;
-		mMaterials[index] = D_RESOURCE::GetResource<MaterialResource>(handle, *this);
+
+		mMaterials[index] = material;
+
+		if (mMaterials[index].IsValid() && !material->IsLoaded())
+			D_RESOURCE_LOADER::LoadResourceAsync(material, nullptr, true);
+
+
+		mChangeSignal(this);
 	}
 
 	UINT MeshRendererComponentBase::GetPsoIndex(UINT materialIndex)
@@ -90,11 +100,9 @@ namespace Darius::Renderer
 
 		for (UINT i = 0; i < mMaterials.size(); i++)
 		{
-			auto setter = [&](D_RESOURCE::ResourceHandle handle)
+			auto setter = [&, i](MaterialResource* resource)
 			{
-				mChangeSignal();
-				mMaterialPsoData[i].PsoIndexDirty = true;
-				mMaterials[i] = D_RESOURCE::GetResource<MaterialResource>(handle, *this);
+				SetMaterial(i, resource);
 			};
 
 			auto name = std::string("Material ") + std::to_string(i + 1);
@@ -136,7 +144,7 @@ namespace Darius::Renderer
 	void MeshRendererComponentBase::OnMeshChanged()
 	{
 		auto numberOfSubmeshes = GetNumberOfSubmeshes();
-		mMaterials.resize(numberOfSubmeshes, { GetAsCountedOwner() });
+		mMaterials.resize(numberOfSubmeshes);
 		mMaterialPsoData.resize(numberOfSubmeshes);
 	}
 

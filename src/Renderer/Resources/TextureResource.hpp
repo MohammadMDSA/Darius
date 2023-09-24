@@ -17,6 +17,16 @@ namespace Darius::Renderer
 {
 	class DResourceManager;
 
+	enum class DEnum(Serialize) TextureFilterType : UINT
+	{
+		Point,
+		Bilinear,
+		Trilinear,
+		Anisotropic,
+
+		Count
+	};
+
 	class DClass(Serialize, Resource) TextureResource : public D_RESOURCE::Resource
 	{
 		D_CH_RESOURCE_BODY(TextureResource, "Texture", ".tga", ".dds")
@@ -33,36 +43,44 @@ namespace Darius::Renderer
 		void										CreateRaw(uint32_t color, DXGI_FORMAT format, size_t rowPitchByte, size_t width, size_t height);
 		void										CreateCubeMap(uint32_t* color, DXGI_FORMAT format, size_t rowPitchByte, size_t width, size_t height);
 
-		INLINE D3D12_FILTER							GetFilter() const { return (D3D12_FILTER)mFilter; }
-		INLINE void									SetFilter(D3D12_FILTER value) { mFilter = value; MakeGpuDirty(); MakeDiskDirty(); SignalChange(); }
+		// SRGB
+		void										SetSRGB(bool value);
 
+		// Border Color
+		void										SetBorderColor(D_MATH::Color const& color);
+
+		// Filter
+		INLINE TextureFilterType					GetFilter() const { return mFilter; }
+		void										SetFilter(TextureFilterType value);
+
+		// Texture Addressing
 		INLINE D3D12_TEXTURE_ADDRESS_MODE			GetUAddressing() const { return (D3D12_TEXTURE_ADDRESS_MODE)mUAddressing; }
 		INLINE D3D12_TEXTURE_ADDRESS_MODE			GetVAddressing() const { return (D3D12_TEXTURE_ADDRESS_MODE)mVAddressing; }
 		INLINE D3D12_TEXTURE_ADDRESS_MODE			GetWAddressing() const { return (D3D12_TEXTURE_ADDRESS_MODE)mWAddressing; }
-		INLINE void									SetUAddressing(D3D12_TEXTURE_ADDRESS_MODE value) { mUAddressing = value; MakeGpuDirty(); MakeDiskDirty(); SignalChange(); }
-		INLINE void									SetVAddressing(D3D12_TEXTURE_ADDRESS_MODE value) { mVAddressing = value; MakeGpuDirty(); MakeDiskDirty(); SignalChange(); }
-		INLINE void									SetWAddressing(D3D12_TEXTURE_ADDRESS_MODE value) { mWAddressing = value; MakeGpuDirty(); MakeDiskDirty(); SignalChange(); }
+		void										SetUAddressing(D3D12_TEXTURE_ADDRESS_MODE value);
+		void										SetVAddressing(D3D12_TEXTURE_ADDRESS_MODE value);
+		void										SetWAddressing(D3D12_TEXTURE_ADDRESS_MODE value);
 
-		INLINE void									SetAnisotropicLevel(UINT value) { mAnisotropicLevel = value; MakeGpuDirty(); MakeDiskDirty(); SignalChange(); }
+		// Anisotropic Level
+		void										SetAnisotropicLevel(UINT value);
 
 		D_GRAPHICS_UTILS::SamplerDesc const&		GetSamplerDesc();
 
-		D_CH_RESOURCE_RW_FIELD_ACC(bool, SRGB, protected, Get[inline], Serialize);
-		D_CH_RESOURCE_RW_FIELD_ACC(D_MATH::Color, BorderColor, protected, Get[inline, const, &], Serialize);
-
+		INLINE virtual bool							AreDependenciesDirty() const override { return false; }
 
 	protected:
 		TextureResource(D_CORE::Uuid uuid, std::wstring const& path, std::wstring const& name, D_RESOURCE::DResourceId id, bool isDefault = false) :
 			Resource(uuid, path, name, id, isDefault),
 			mSRGB(false),
-			mFilter(D3D12_FILTER_MIN_MAG_MIP_LINEAR),
+			mFilter(TextureFilterType::Trilinear),
 			mAnisotropicLevel(16),
 			mUAddressing(D3D12_TEXTURE_ADDRESS_MODE_WRAP),
 			mVAddressing(D3D12_TEXTURE_ADDRESS_MODE_WRAP),
 			mWAddressing(D3D12_TEXTURE_ADDRESS_MODE_WRAP),
 			mBorderColor(D_MATH::Color::Black),
 			mSamplerDesc(),
-			mDirtySampler(true)
+			mDirtySampler(true),
+			mCreatedManually(true)
 		{}
 
 
@@ -73,10 +91,8 @@ namespace Darius::Renderer
 
 		virtual void								Unload() override;
 		
-		virtual void								OnChange() override;
-
 		DField(Serialize)
-		UINT										mFilter;
+		TextureFilterType							mFilter;
 
 		DField(Get[inline], Serialize)
 		UINT										mAnisotropicLevel;
@@ -92,6 +108,15 @@ namespace Darius::Renderer
 
 		DField(Get[inline])
 		bool										mDirtySampler;
+
+		DField(Get[inline])
+		bool										mCreatedManually;
+
+		DField(Get[inline, const, &], Serialize)
+		D_MATH::Color								mBorderColor;
+
+		DField(Get[inline], Serialize)
+		bool										mSRGB;
 
 		D_GRAPHICS_BUFFERS::Texture					mTexture;
 

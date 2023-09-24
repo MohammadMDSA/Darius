@@ -113,7 +113,7 @@ namespace Darius::Editor::Gui::ThumbnailManager
 			auto resourcesOfType = D_RESOURCE::GetResourcePreviews(supportedTypes[i]);
 			for (auto resourcePrev : resourcesOfType)
 			{
-				auto resource = D_RESOURCE::_GetRawResource(resourcePrev.Handle, false);
+				auto resource = D_RESOURCE::GetRawResourceSync(resourcePrev.Handle, false);
 				if (!resource->GetDefault())
 					GenerateThumbnailForResource(resource);
 			}
@@ -153,7 +153,7 @@ namespace Darius::Editor::Gui::ThumbnailManager
 
 	uint64_t GetResourceTextureId(D_RESOURCE::ResourceHandle const& handle)
 	{
-		auto resource = D_RESOURCE::_GetRawResource(handle, false);
+		auto resource = D_RESOURCE::GetRawResourceSync(handle, false);
 		auto uuid = resource->GetUuid();
 		if (ResourceTextureIdMap.contains(uuid))
 			return ResourceTextureIdMap[uuid];
@@ -178,7 +178,7 @@ namespace Darius::Editor::Gui::ThumbnailManager
 		auto fileData = D_FILE::ReadFileSync(GetResourceThumbnailPath(uuid));
 
 		tex.CreateDDSFromMemory(fileData->data(), fileData->size(), true);
-		
+
 		// Don't create texture if not
 		if (!tex.Is2D() || tex.ArraySize() > 1)
 		{

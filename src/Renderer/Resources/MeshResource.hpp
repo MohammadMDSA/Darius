@@ -23,8 +23,8 @@ namespace Darius::Renderer
 		using VertexType = D_RENDERER_VERTEX::VertexPositionNormalTangentTextureSkinned;
 	public:
 		INLINE D_RENDERER_GEOMETRY::Mesh*	ModifyMeshData() { MakeDiskDirty(); MakeGpuDirty(); return &mMesh; }
-		INLINE const D_RENDERER_GEOMETRY::Mesh*	GetMeshData() const { return &mMesh; }
-		virtual void						Create(D_RENDERER_GEOMETRY::MultiPartMeshData<VertexType> const& data) = 0;
+		INLINE D_RENDERER_GEOMETRY::Mesh const*	GetMeshData() const { return &mMesh; }
+		virtual void						Create(D_RENDERER_GEOMETRY::MultiPartMeshData<VertexType> const& data);
 
 		static D_CONTAINERS::DVector<D_RESOURCE::ResourceDataInFile> CanConstructFrom(D_RESOURCE::ResourceType type, D_FILE::Path const& path);
 
@@ -35,11 +35,14 @@ namespace Darius::Renderer
 		INLINE operator const D_RENDERER_GEOMETRY::Mesh* () const { return &mMesh; }
 		INLINE operator D_RENDERER_GEOMETRY::Mesh* () { return ModifyMeshData(); }
 
+		INLINE virtual bool				AreDependenciesDirty() const override { return false; }
 
 	protected:
 
 		MeshResource(D_CORE::Uuid uuid, std::wstring const& path, std::wstring const& name, D_RESOURCE::DResourceId id, bool isDefault = false) :
 			Resource(uuid, path, name, id, isDefault) {}
+
+		virtual void					CreateInternal(D_RENDERER_GEOMETRY::MultiPartMeshData<VertexType> const& data) = 0;
 
 		INLINE virtual void				WriteResourceToFile(D_SERIALIZATION::Json&) const override {};
 		INLINE virtual void				ReadResourceFromFile(D_SERIALIZATION::Json const&) override {};

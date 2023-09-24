@@ -25,13 +25,26 @@ namespace Darius::Renderer
 		return D_RENDERER_GEOMETRY_LOADER_FBX::GetMeshResourcesDataFromFile(type, path);
 	}
 
+	void MeshResource::Create(D_RENDERER_GEOMETRY::MultiPartMeshData<VertexType> const& data)
+	{
+		CreateInternal(data);
+
+		MakeDiskDirty();
+		MakeGpuDirty();
+
+		SignalChange();
+	}
+
 	bool MeshResource::UploadToGpu()
 	{
+		if (GetDefault())
+			return true;
+
 		MultiPartMeshData<VertexType> meshData;
 
 		D_RENDERER_GEOMETRY_LOADER_FBX::ReadMeshByName(GetPath(), GetName(), meshData);
 
-		Create(meshData);
+		CreateInternal(meshData);
 		return true;
 	}
 

@@ -289,7 +289,7 @@ namespace Darius::Editor::Gui::GuiManager
 
 				auto refGameObject = reinterpret_cast<D_SCENE::GameObject*>(ImGuiFileDialog::Instance()->GetUserDatas());
 
-				auto prefabRes = D_RESOURCE::GetResource<D_SCENE::PrefabResource>(prefabResHandle);
+				auto prefabRes = D_RESOURCE::GetResourceSync<D_SCENE::PrefabResource>(prefabResHandle);
 				prefabRes->CreateFromGameObject(refGameObject);
 			}
 

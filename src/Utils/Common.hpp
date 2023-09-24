@@ -59,7 +59,7 @@ static INLINE std::string const GetTypeName() { return D_NAMEOF(T); }
 		{ \
 			if (ImGuiPayload const* payload = ImGui::AcceptDragDropPayload(D_PAYLOAD_TYPE_RESOURCE)) \
 			{ \
-				handleSetter(((D_RESOURCE::ResourceDragDropPayloadContent const*)(imPayload->Data))->Handle); \
+				handleSetter(static_cast<resourceType*>(D_RESOURCE::GetRawResourceSync(reinterpret_cast<D_RESOURCE::ResourceDragDropPayloadContent const*>(imPayload->Data)->Handle))); \
 			} \
 		} \
 		ImGui::EndDragDropTarget(); \
@@ -121,7 +121,7 @@ static INLINE std::string const GetTypeName() { return D_NAMEOF(T); }
 					ImGui::PushID((Name + std::to_string(idx)).c_str()); \
 					if (ImGui::Selectable(Name.c_str(), &selected)) \
 					{ \
-						handleFunction(prev.Handle); \
+						handleFunction(static_cast<resourceType*>(D_RESOURCE::GetRawResourceSync(prev.Handle))); \
 						valueChanged = true; \
 					} \
 					ImGui::PopID(); \

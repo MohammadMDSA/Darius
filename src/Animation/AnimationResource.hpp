@@ -27,6 +27,9 @@ namespace Darius::Animation
 		virtual INLINE bool				UploadToGpu() override { return true; };
 		virtual INLINE void				Unload() override { EvictFromGpu(); }
 
+		INLINE virtual bool				AreDependenciesDirty() const override { return false; }
+
+
 		static D_CONTAINERS::DVector<D_RESOURCE::ResourceDataInFile> CanConstructFrom(D_RESOURCE::ResourceType type, D_FILE::Path const& path);
 
 	protected:

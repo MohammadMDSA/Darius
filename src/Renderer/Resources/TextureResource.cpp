@@ -30,19 +30,28 @@ namespace Darius::Renderer
 	void TextureResource::CreateRaw(uint32_t color, DXGI_FORMAT format, size_t rowPitchByte, size_t width, size_t height)
 	{
 		mTexture.Create2D(rowPitchByte, width, height, format, &color);
+
+		mCreatedManually = true;
+
+		MakeGpuDirty();
+
+		SignalChange();
 	}
 
 	void TextureResource::CreateCubeMap(uint32_t* color, DXGI_FORMAT format, size_t rowPitchByte, size_t width, size_t height)
 	{
 		mTexture.CreateCube(rowPitchByte, width, height, format, color);
 
+		mCreatedManually = true;
+
+		MakeGpuDirty();
+
+		SignalChange();
 	}
 
 #ifdef _D_EDITOR
 	bool TextureResource::DrawDetails(float params[])
 	{
-		bool valueChanged = false;
-
 		D_H_DETAILS_DRAW_BEGIN_TABLE();
 
 		{
@@ -51,7 +60,6 @@ namespace Darius::Renderer
 			if (ImGui::Checkbox("##sRGB", &val))
 			{
 				SetSRGB(val);
-				valueChanged = true;
 			}
 		}
 
@@ -181,19 +189,17 @@ namespace Darius::Renderer
 		{
 			// Creating array of available filters and their labels
 			static char const* const filterLabels[] = { "Point", "Bilinear", "Trilinear", "Anisotropic" };
-			static const D3D12_FILTER filterValues[] = { D3D12_FILTER_MIN_MAG_MIP_POINT, D3D12_FILTER_MIN_MAG_LINEAR_MIP_POINT, D3D12_FILTER_MIN_MAG_MIP_LINEAR, D3D12_FILTER_ANISOTROPIC };
-			constexpr int filterValueCount = sizeof(filterValues) / sizeof(filterValues[0]);
 
-			D3D12_FILTER filter = GetFilter();
-			auto selectedIndex = std::distance(filterValues, std::find(filterValues, filterValues + filterValueCount, filter));
+			auto filter = GetFilter();
+			int selectedIndex = (int)filter;
 
 			char const* selected = filterLabels[selectedIndex];
 			D_H_DETAILS_DRAW_PROPERTY("Filter Mode");
 			if (ImGui::BeginCombo("##FilterMode", selected))
 			{
-				for (UINT i = 0; i < filterValueCount; i++)
+				for (UINT i = 0u; i < (UINT)TextureFilterType::Count; i++)
 				{
-					auto val = filterValues[i];
+					auto val = (TextureFilterType)i;
 					if (ImGui::Selectable(filterLabels[i], val == filter))
 					{
 						SetFilter(val);
@@ -205,10 +211,10 @@ namespace Darius::Renderer
 		}
 
 		// Anisotropic Level
-		if (mFilter == D3D12_FILTER_ANISOTROPIC)
+		if (mFilter == TextureFilterType::Anisotropic)
 		{
 			D_H_DETAILS_DRAW_PROPERTY("Aniso Level");
-			int val = (short)mAnisotropicLevel;
+			int val = (int)mAnisotropicLevel;
 			if (ImGui::SliderInt("##AnisotropicLevel", &val, 0, 16))
 			{
 				SetAnisotropicLevel((UINT)val);
@@ -284,13 +290,7 @@ namespace Darius::Renderer
 		}
 		D_H_DETAILS_DRAW_END_TABLE();
 
-		if (valueChanged)
-		{
-			MakeDiskDirty();
-			MakeGpuDirty();
-		}
-
-		return valueChanged;
+		return true;
 	}
 #endif // _D_EDITOR
 
@@ -303,13 +303,16 @@ namespace Darius::Renderer
 		{
 			auto fileData = D_FILE::ReadFileSync(path.wstring());
 			return mTexture.CreateDDSFromMemory(fileData->data(), fileData->size(), IsSRGB());
+
+			mCreatedManually = false;
+
 		}
 		else if (ext == ".tga")
 		{
 			auto fileData = D_FILE::ReadFileSync(path.wstring());
 			mTexture.CreateTGAFromMemory(fileData->data(), fileData->size(), IsSRGB());
 
-			return true;
+			mCreatedManually = false;
 		}
 
 		return false;
@@ -321,9 +324,109 @@ namespace Darius::Renderer
 		EvictFromGpu();
 	}
 
-	void TextureResource::OnChange()
+	void TextureResource::SetUAddressing(D3D12_TEXTURE_ADDRESS_MODE value)
 	{
+		if (mUAddressing == value)
+			return;
+
+		mUAddressing = value;
+
 		mDirtySampler = true;
+
+		MakeGpuDirty();
+		MakeDiskDirty();
+
+		SignalChange();
+	}
+
+	void TextureResource::SetVAddressing(D3D12_TEXTURE_ADDRESS_MODE value)
+	{
+		if (mVAddressing == value)
+			return;
+
+		mVAddressing = value;
+
+		mDirtySampler = true;
+
+		MakeGpuDirty();
+		MakeDiskDirty();
+
+		SignalChange();
+	}
+
+	void TextureResource::SetWAddressing(D3D12_TEXTURE_ADDRESS_MODE value)
+	{
+		if (mWAddressing == value)
+			return;
+
+		mWAddressing = value;
+
+		mDirtySampler = true;
+
+		MakeGpuDirty();
+		MakeDiskDirty();
+
+		SignalChange();
+	}
+
+	void TextureResource::SetAnisotropicLevel(UINT value)
+	{
+		value = D_MATH::Clamp(value, 0u, 16u);
+
+		if (mAnisotropicLevel == value)
+			return;;
+
+		mAnisotropicLevel = value;
+
+		mDirtySampler = true;
+
+		MakeGpuDirty();
+		MakeDiskDirty();
+
+		SignalChange();
+	}
+
+	void TextureResource::SetFilter(TextureFilterType value)
+	{
+		if (mFilter == value)
+			return;
+
+		mFilter = value;
+
+		mDirtySampler = true;
+
+		MakeGpuDirty();
+		MakeDiskDirty();
+
+		SignalChange();
+	}
+
+	void TextureResource::SetBorderColor(D_MATH::Color const& color)
+	{
+		if (color == mBorderColor)
+			return;
+
+		mBorderColor = color;
+
+		mDirtySampler = true;
+
+		MakeGpuDirty();
+		MakeDiskDirty();
+
+		SignalChange();
+	}
+
+	void TextureResource::SetSRGB(bool value)
+	{
+		if (mSRGB == value)
+			return;
+
+		mSRGB = value;
+
+		MakeDiskDirty();
+		MakeGpuDirty();
+
+		SignalChange();
 	}
 
 	D_GRAPHICS_UTILS::SamplerDesc const& TextureResource::GetSamplerDesc()
@@ -332,7 +435,23 @@ namespace Darius::Renderer
 			return mSamplerDesc;
 
 		mSamplerDesc = SamplerDesc();
-		mSamplerDesc.Filter = GetFilter();
+		switch (GetFilter())
+		{
+		case TextureFilterType::Point:
+			mSamplerDesc.Filter = D3D12_FILTER_MIN_MAG_MIP_POINT;
+			break;
+		default:
+		case TextureFilterType::Bilinear:
+			mSamplerDesc.Filter = D3D12_FILTER_MIN_MAG_LINEAR_MIP_POINT;
+			break;
+		case TextureFilterType::Trilinear:
+			mSamplerDesc.Filter = D3D12_FILTER_MIN_MAG_MIP_LINEAR;
+			break;
+		case TextureFilterType::Anisotropic:
+			mSamplerDesc.Filter = D3D12_FILTER_ANISOTROPIC;
+			break;
+		}
+
 		mSamplerDesc.AddressU = GetUAddressing();
 		mSamplerDesc.AddressV = GetVAddressing();
 		mSamplerDesc.AddressW = GetWAddressing();

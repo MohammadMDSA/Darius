@@ -71,50 +71,84 @@ namespace Darius::Physics
 		mPxData = nullptr;
 	}
 
+	void PhysicsMaterialResource::SetStaticFriction(float value)
+	{
+		value = D_MATH::Clamp(value, 0.f, 1.f);
+
+		if (value == GetStaticFriction())
+			return;
+
+		mPxData->setStaticFriction(value);
+
+		MakeDiskDirty();
+
+		SignalChange();
+	}
+
+	void PhysicsMaterialResource::SetDynamicFriction(float value)
+	{
+		value = D_MATH::Clamp(value, 0.f, 1.f);
+
+		if (value == GetDynamicFriction())
+			return;
+
+		mPxData->setDynamicFriction(value);
+
+		MakeDiskDirty();
+
+		SignalChange();
+	}
+
+	void PhysicsMaterialResource::SetRestitution(float value)
+	{
+		value = D_MATH::Clamp(value, 0.f, 1.f);
+
+		if (value == GetRestitution())
+			return;
+
+		mPxData->setRestitution(value);
+
+		MakeDiskDirty();
+
+		SignalChange();
+	}
+
 #ifdef _D_EDITOR
 	bool PhysicsMaterialResource::DrawDetails(float params[])
 	{
-		bool valueChanged = false;
-
 		D_H_DETAILS_DRAW_BEGIN_TABLE();
 
 		// Static Friction
 		{
 			D_H_DETAILS_DRAW_PROPERTY("Static Friction");
-			float staticFriction = mPxData->getStaticFriction();
+			float staticFriction = GetStaticFriction();
 			if (ImGui::DragFloat("##staticFriction", &staticFriction, 0.01f, 0.f, 1.f, "%.3f"))
 			{
-				mPxData->setStaticFriction(staticFriction);
-				valueChanged = true;
+				SetStaticFriction(staticFriction);
 			}
 		}
 
 		// Dynamic Friction
 		{
 			D_H_DETAILS_DRAW_PROPERTY("Dynamic Friction");
-			float dynamicFriction = mPxData->getDynamicFriction();
+			float dynamicFriction = GetDynamicFriction();
 			if (ImGui::DragFloat("##dynamicFriction", &dynamicFriction, 0.01f, 0.f, 1.f, "%.3f"))
 			{
-				mPxData->setDynamicFriction(dynamicFriction);
-				valueChanged = true;
+				SetDynamicFriction(dynamicFriction);
 			}
 		}
 
 		// Restitution
 		{
 			D_H_DETAILS_DRAW_PROPERTY("Restitution");
-			float restitution = mPxData->getRestitution();
+			float restitution = GetRestitution();
 			if (ImGui::DragFloat("##restitution", &restitution, 0.01f, 0.f, 1.f, "%.3f"))
 			{
-				mPxData->setRestitution(restitution);
-				valueChanged = true;
+				SetRestitution(restitution);
 			}
 		}
 
 		D_H_DETAILS_DRAW_END_TABLE();
-
-		if (valueChanged)
-			MakeDiskDirty();
 
 		return false;
 	}

@@ -34,7 +34,7 @@ namespace Darius::Renderer
 	SkeletalMeshRendererComponent::SkeletalMeshRendererComponent() :
 		MeshRendererComponentBase(),
 		mSkeletonRoot(nullptr),
-		mMesh(GetAsCountedOwner())
+		mMesh()
 	{
 		mComponentPsoFlags |= RenderItem::HasSkin;
 	}
@@ -42,13 +42,17 @@ namespace Darius::Renderer
 	SkeletalMeshRendererComponent::SkeletalMeshRendererComponent(D_CORE::Uuid uuid) :
 		MeshRendererComponentBase(uuid),
 		mSkeletonRoot(nullptr),
-		mMesh(GetAsCountedOwner())
+		mMesh()
 	{
 		mComponentPsoFlags |= RenderItem::HasSkin;
 	}
 
 	bool SkeletalMeshRendererComponent::AddRenderItems(std::function<void(D_RENDERER::RenderItem const&)> appendFunction)
 	{
+
+		if (mMesh->IsDirtyGPU())
+			return false;
+
 		bool any = false;
 		auto result = RenderItem();
 		const Mesh* mesh = mMesh.Get()->GetMeshData();
@@ -99,18 +103,31 @@ namespace Darius::Renderer
 
 		D_H_DETAILS_DRAW_END_TABLE();
 
-		if (valueChanged)
-			mChangeSignal();
-
 		return valueChanged;
 
 	}
 #endif
 
-	void SkeletalMeshRendererComponent::_SetMesh(ResourceHandle handle)
+	void SkeletalMeshRendererComponent::SetMesh(SkeletalMeshResource* mesh)
 	{
-		mMesh = D_RESOURCE::GetResource<SkeletalMeshResource>(handle, *this);
-		LoadMeshData();
+
+		if (mMesh == mesh)
+			return;
+
+		mMesh = mesh;
+
+		if (mMesh.IsValid() && mMesh->IsLoaded())
+			LoadMeshData();
+		else
+		{
+			D_RESOURCE_LOADER::LoadResourceAsync(mesh, [&](auto resource)
+				{
+					LoadMeshData();
+				}, true);
+
+		}
+
+		mChangeSignal(this);
 	}
 
 	void SkeletalMeshRendererComponent::LoadMeshData()
@@ -228,7 +245,7 @@ namespace Darius::Renderer
 
 	void SkeletalMeshRendererComponent::OnDeserialized()
 	{
-		for(UINT i = 0; i < mMaterialPsoData.size(); i++)
+		for (UINT i = 0; i < mMaterialPsoData.size(); i++)
 			mMaterialPsoData[i].PsoIndexDirty = true;
 
 		LoadMeshData();

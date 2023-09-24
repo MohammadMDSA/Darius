@@ -24,14 +24,14 @@ namespace Darius::Physics
 	ColliderComponent::ColliderComponent() :
 		ComponentBase(),
 		mDynamic(false),
-		mMaterial(GetAsCountedOwner())
+		mMaterial()
 	{
 	}
 
 	ColliderComponent::ColliderComponent(D_CORE::Uuid uuid) :
 		ComponentBase(uuid),
 		mDynamic(false),
-		mMaterial(GetAsCountedOwner())
+		mMaterial()
 	{
 	}
 
@@ -59,7 +59,7 @@ namespace Darius::Physics
 	void ColliderComponent::Awake()
 	{
 		if (!mMaterial.IsValid())
-			SetMaterial(D_PHYSICS::GetDefaultMaterial());
+			SetMaterial(static_cast<PhysicsMaterialResource*>(D_RESOURCE::GetRawResourceSync(D_PHYSICS::GetDefaultMaterial())));
 
 		InvalidatePhysicsActor();
 	}
@@ -119,12 +119,30 @@ namespace Darius::Physics
 		mShape = D_PHYSICS::PhysicsScene::AddCollider(this, mDynamic);
 	}
 
-	void ColliderComponent::_SetMaterial(D_RESOURCE::ResourceHandle handle)
+	void ColliderComponent::SetMaterial(PhysicsMaterialResource* material)
 	{
-		mMaterial = D_RESOURCE::GetResource<PhysicsMaterialResource>(handle, *this);
-		ReloadMaterialData();
+		if (mMaterial == material)
+			return;
+
+		mMaterial = material;
+
+		if (!mMaterial.IsValid())
+			mMaterial = D_RESOURCE::GetResourceSync<PhysicsMaterialResource>(D_PHYSICS::GetDefaultMaterial());
+
+		if (mMaterial->IsLoaded())
+			ReloadMaterialData();
+		else
+		{
+			D_RESOURCE_LOADER::LoadResourceAsync(material, [&](auto material)
+				{
+					ReloadMaterialData();
+				}, true);
+
+		}
+
+		mChangeSignal(this);
 	}
-	
+
 	void ColliderComponent::ReloadMaterialData()
 	{
 		if (!mShape)

@@ -195,6 +195,7 @@ namespace Darius::Graphics::Utils::Buffers
 
 #ifdef _D_EDITOR
 		memcpy(&mMetaData, &meta, sizeof(DirectX::TexMetadata));
+
 		mMetaData.Initialized = true;
 #endif // _D_EDITOR
 
@@ -240,5 +241,10 @@ namespace Darius::Graphics::Utils::Buffers
 	UINT Texture::ArraySize() const
 	{
 		return (UINT)mMetaData.ArraySize;
+	}
+
+	bool Texture::IsCubeMap() const
+	{
+		return (mMetaData.MiscFlags & DirectX::TEX_MISC_TEXTURECUBE) != 0;
 	}
 }

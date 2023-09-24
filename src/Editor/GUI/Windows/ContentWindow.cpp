@@ -148,6 +148,12 @@ namespace Darius::Editor::Gui::Windows
 
 	void ContentWindow::DrawMainItems()
 	{
+		// Are items are being loaded
+		if (mItemsLoading.load())
+		{
+			ImGui::Text("Items are being loaded");
+			return;
+		}
 
 		ImGuiStyle& style = ImGui::GetStyle();
 		float window_visible_x2 = ImGui::GetWindowPos().x + ImGui::GetWindowContentRegionMax().x;
@@ -185,6 +191,8 @@ namespace Darius::Editor::Gui::Windows
 
 	void ContentWindow::UpdateDirectoryItems()
 	{
+		mItemsLoading.store(true);
+
 		mCurrentDirectoryItems.clear();
 
 		D_FILE::VisitEntriesInDirectory(mCurrentDirectory, false, [&](auto const& _path, bool isDir)
@@ -206,34 +214,51 @@ namespace Darius::Editor::Gui::Windows
 				continue;
 			if (std::filesystem::equivalent(mCurrentDirectory, parent))
 			{
-				auto containedResources = D_RESOURCE::ResourceLoader::LoadResource(path, true);
-				auto name = D_FILE::GetFileName(path.filename());
-				auto nameStr = WSTR2STR(name);
-
-				uint64_t icon = D_THUMBNAIL::GetIconTextureId(D_THUMBNAIL::CommonIcon::File);
-
-				D_RESOURCE::ResourceHandle resourceHandle = D_RESOURCE::EmptyResourceHandle;
-				if (containedResources.size() == 1)
-				{
-					icon = D_THUMBNAIL::GetResourceTextureId(containedResources[0]);
-					resourceHandle = containedResources[0];
-				}
-
-				mCurrentDirectoryItems.push_back({ nameStr, path, false, icon, resourceHandle });
-				auto& lastItem = mCurrentDirectoryItems[mCurrentDirectoryItems.size() - 1];
-
-				for (auto const& handle : containedResources)
-				{
-					if (handle.Type == D_RENDERER::FBXPrefabResource::GetResourceType())
+				D_RESOURCE::ResourceLoader::LoadResourceAsync(path, [_currentDirectoryItems = &mCurrentDirectoryItems, path = path, itemsLoading = &mItemsLoading](auto containedResources)
 					{
-						lastItem.MainHandle = handle;
-						lastItem.IconId = D_THUMBNAIL::GetResourceTextureId(handle);
-					}
-					else
-					{
-						lastItem.ChildResources.push_back(handle);
-					}
-				}
+						auto& currentDirectoryItems = *_currentDirectoryItems;
+						auto name = D_FILE::GetFileName(path.filename());
+						auto nameStr = WSTR2STR(name);
+
+						uint64_t icon = D_THUMBNAIL::GetIconTextureId(D_THUMBNAIL::CommonIcon::File);
+
+						D_RESOURCE::ResourceHandle resourceHandle = D_RESOURCE::EmptyResourceHandle;
+						if (containedResources.size() == 1)
+						{
+							icon = D_THUMBNAIL::GetResourceTextureId(containedResources[0]);
+							resourceHandle = containedResources[0];
+						}
+
+						currentDirectoryItems.push_back({ nameStr, path, false, icon, resourceHandle });
+						auto& lastItem = currentDirectoryItems[currentDirectoryItems.size() - 1];
+
+						for (auto const& handle : containedResources)
+						{
+							if (handle.Type == D_RENDERER::FBXPrefabResource::GetResourceType())
+							{
+								lastItem.MainHandle = handle;
+								lastItem.IconId = D_THUMBNAIL::GetResourceTextureId(handle);
+							}
+							else
+							{
+								lastItem.ChildResources.push_back(handle);
+							}
+						}
+
+						std::sort(currentDirectoryItems.begin(), currentDirectoryItems.end(), [](auto first, auto second)
+							{
+								if (first.IsDirectory && !second.IsDirectory)
+									return true;
+								else if (second.IsDirectory && !first.IsDirectory)
+									return false;
+								else
+									return first.Name.compare(second.Name.c_str()) < 0;
+							});
+
+						itemsLoading->store(false);
+
+					}, true);
+
 			}
 		}
 
@@ -295,16 +320,17 @@ namespace Darius::Editor::Gui::Windows
 		if (item->IsDirectory)
 			return;
 
-		auto containedResources = D_RESOURCE::ResourceLoader::LoadResource(item->Path, true);
+		D_RESOURCE::ResourceLoader::LoadResourceAsync(item->Path, [selectedHandle](auto containedResources)
+			{
+				if (containedResources.size() == 0)
+				{
+					D_EDITOR_CONTEXT::SetSelectedDetailed(nullptr);
+					return;
+				}
 
-		if (containedResources.size() == 0)
-		{
-			D_EDITOR_CONTEXT::SetSelectedDetailed(nullptr);
-			return;
-		}
-
-		auto resource = D_RESOURCE::_GetRawResource(selectedHandle);
-		D_EDITOR_CONTEXT::SetSelectedDetailed(resource);
+				auto resource = D_RESOURCE::GetRawResourceSync(selectedHandle);
+				D_EDITOR_CONTEXT::SetSelectedDetailed(resource);
+			}, true);
 	}
 
 }

@@ -24,7 +24,7 @@ namespace Darius::Renderer
 
 	D_CH_RESOURCE_DEF(StaticMeshResource);
 
-	void StaticMeshResource::Create(D_RENDERER_GEOMETRY::MultiPartMeshData<VertexType> const& data)
+	void StaticMeshResource::CreateInternal(D_RENDERER_GEOMETRY::MultiPartMeshData<VertexType> const& data)
 	{
 		Destroy();
 		SetName(GetName());

@@ -4,8 +4,6 @@
 
 #include "Renderer/Resources/SkeletalMeshResource.hpp"
 
-#include <Core/Ref.hpp>
-
 #include "SkeletalMeshRendererComponent.generated.hpp"
 
 #ifndef D_RENDERER
@@ -39,15 +37,17 @@ namespace Darius::Renderer
 
 		INLINE virtual D_MATH_BOUNDS::BoundingSphere const& GetBounds() override { return mBounds; }
 
+		void								SetMesh(SkeletalMeshResource* mesh);
+		INLINE SkeletalMeshResource*		GetMesh() const { return mMesh.Get(); }
+
 
 	protected:
 
-		DField(Resource[false], Serialize)
+		DField(Serialize)
 		D_RESOURCE::ResourceRef<SkeletalMeshResource>				mMesh;
 
 	private:
 
-		void								_SetMesh(D_RESOURCE::ResourceHandle handle);
 		void								JointUpdateRecursion(D_MATH::Matrix4 const& parent, D_RENDERER_GEOMETRY::Mesh::SkeletonJoint& skeletonJoint);
 		void								LoadMeshData();
 

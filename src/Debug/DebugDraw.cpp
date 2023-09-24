@@ -59,18 +59,18 @@ namespace Darius::Debug
 
 	D_CONTAINERS::DUnorderedMap<double, std::pair<D_RENDERER::RenderItem, D_MATH::Transform>> DrawsWithDuration;
 
-	D_RESOURCE::ResourceRef<D_RENDERER::StaticMeshResource>	DebugDraw::CubeMeshResource({ L"Debug Drawer" });
-	D_RESOURCE::ResourceRef<D_RENDERER::StaticMeshResource>	DebugDraw::SphereMeshResource({ L"Debug Drawer" });
-	D_RESOURCE::ResourceRef<D_RENDERER::BatchResource>		DebugDraw::LineMeshResource({ L"Debug Drawer" });
+	D_RESOURCE::ResourceRef<D_RENDERER::StaticMeshResource>	DebugDraw::CubeMeshResource;
+	D_RESOURCE::ResourceRef<D_RENDERER::StaticMeshResource>	DebugDraw::SphereMeshResource;
+	D_RESOURCE::ResourceRef<D_RENDERER::BatchResource>		DebugDraw::LineMeshResource;
 
 #endif // _DEBUG
 
 	void DebugDraw::Initialize(D_SERIALIZATION::Json const& settings)
 	{
 #ifdef _DEBUG
-		CubeMeshResource = GetResource<D_RENDERER::StaticMeshResource>(D_RENDERER::GetDefaultGraphicsResource(D_RENDERER::DefaultResource::BoxMesh));
-		SphereMeshResource = GetResource<D_RENDERER::StaticMeshResource>(D_RENDERER::GetDefaultGraphicsResource(D_RENDERER::DefaultResource::LowPolySphereMesh));
-		LineMeshResource = GetResource<D_RENDERER::BatchResource>(D_RENDERER::GetDefaultGraphicsResource(D_RENDERER::DefaultResource::LineMesh));
+		CubeMeshResource = GetResourceSync<D_RENDERER::StaticMeshResource>(D_RENDERER::GetDefaultGraphicsResource(D_RENDERER::DefaultResource::BoxMesh));
+		SphereMeshResource = GetResourceSync<D_RENDERER::StaticMeshResource>(D_RENDERER::GetDefaultGraphicsResource(D_RENDERER::DefaultResource::LowPolySphereMesh));
+		LineMeshResource = GetResourceSync<D_RENDERER::BatchResource>(D_RENDERER::GetDefaultGraphicsResource(D_RENDERER::DefaultResource::LineMesh));
 
 		// Initializing Mesh Constants buffers
 		MeshConstantsCPU.Create(L"Debug Mesh Constant Upload Buffer", sizeof(D_RENDERER::MeshConstants) * MAX_DEBUG_DRAWS);

@@ -3,7 +3,6 @@
 #include "Scene/GameObject.hpp"
 #include "Scene/EntityComponentSystem/Components/TransformComponent.hpp"
 
-#include <ResourceManager/ResourceRef.hpp>
 #include <ResourceManager/ResourceManager.hpp>
 
 #include "PrefabResource.generated.hpp"
@@ -30,9 +29,10 @@ namespace Darius::Scene
 
 		virtual void					WriteResourceToFile(D_SERIALIZATION::Json& j) const override;
 		virtual void					ReadResourceFromFile(D_SERIALIZATION::Json const& j) override;
-		virtual bool					UploadToGpu() override;
-		virtual INLINE void				Unload() override;
+		virtual INLINE bool				UploadToGpu() override { return true; }
+		virtual void					Unload() override;
 
+		INLINE virtual bool				AreDependenciesDirty() const override { return false; }
 
 	protected:
 		PrefabResource(D_CORE::Uuid uuid, std::wstring const& path, std::wstring const& name, D_RESOURCE::DResourceId id, bool isDefault = false);

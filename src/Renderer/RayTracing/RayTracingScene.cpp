@@ -18,7 +18,7 @@ using namespace D_RENDERER_RT_UTILS;
 
 namespace
 {
-	D_RESOURCE::ResourceRef<D_RENDERER::MaterialResource>		DefaultMaterial({ L"Ray Tracing Scene" });
+	D_RESOURCE::ResourceRef<D_RENDERER::MaterialResource>		DefaultMaterial;
 }
 
 namespace Darius::Renderer::RayTracing
@@ -41,7 +41,7 @@ namespace Darius::Renderer::RayTracing
 			InitializeTopLevelAS(D3D12_RAYTRACING_ACCELERATION_STRUCTURE_BUILD_FLAG_PREFER_FAST_TRACE, false, false, L"Top Level Acceleration Structure");
 		}
 
-		DefaultMaterial = D_RESOURCE::GetResource<MaterialResource>(D_RENDERER::GetDefaultGraphicsResource(D_RENDERER::DefaultResource::Material));
+		DefaultMaterial = D_RESOURCE::GetResourceSync<MaterialResource>(D_RENDERER::GetDefaultGraphicsResource(D_RENDERER::DefaultResource::Material));
 	}
 
 	RayTracingScene::~RayTracingScene()
@@ -105,7 +105,7 @@ namespace Darius::Renderer::RayTracing
 		// Transforming materials
 		auto transformedRange = geometryMaterials | std::views::transform([](D_RESOURCE::ResourceRef<MaterialResource> const& materialRes) {
 			MaterialResource const* mat;
-			if (!materialRes.IsValid())
+			if (!materialRes.IsValid() || materialRes->IsDirtyGPU())
 				mat = DefaultMaterial.Get();
 			else
 				mat = materialRes.Get();

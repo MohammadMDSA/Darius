@@ -16,7 +16,7 @@ namespace Darius::Renderer
 
 	D_CH_RESOURCE_DEF(SkeletalMeshResource);
 
-	void SkeletalMeshResource::Create(MultiPartMeshData<VertexType> const& data)
+	void SkeletalMeshResource::CreateInternal(MultiPartMeshData<VertexType> const& data)
 	{
 		Destroy();
 		SetName(GetName());
@@ -70,6 +70,8 @@ namespace Darius::Renderer
 
 		mJointCount = (UINT)mSkeleton.size();
 		mSkeletonRoot = mJointCount > 0 ? &mSkeleton.front() : nullptr;
+
+
 	}
 
 	bool SkeletalMeshResource::UploadToGpu()
@@ -78,7 +80,7 @@ namespace Darius::Renderer
 
 		D_RENDERER_GEOMETRY_LOADER_FBX::ReadMeshByName(GetPath(), GetName(), meshData, mSkeleton);
 
-		Create(meshData);
+		CreateInternal(meshData);
 		return true;
 	}
 

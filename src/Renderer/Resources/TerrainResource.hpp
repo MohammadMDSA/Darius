@@ -29,25 +29,21 @@ namespace Darius::Renderer
 		virtual bool					DrawDetails(float params[]) override;
 #endif // _D_EDITOR
 
-		void							SetHeightMap(D_RESOURCE::ResourceHandle handle);
-		virtual bool					IsDirtyGPU() const override;
+		void							SetHeightMap(TextureResource* hightMap);
+		INLINE TextureResource*			GetHeightMap() const { return mHeightMap.Get(); }
 
-		INLINE void						SetHeightFactor(float value)
-		{
-			mHeightFactor = value;
-			MakeDiskDirty();
-			MakeGpuDirty();
-		}
+		void							SetHeightFactor(float value);
+		INLINE float					GetHeightFactor() const { return mHeightFactor; }
+		
 
 		INLINE D3D12_GPU_VIRTUAL_ADDRESS GetParamsConstantsAddress() const { return mParametersConstantsGPU
 		.GetGpuVirtualAddress(); }
 		INLINE D3D12_GPU_DESCRIPTOR_HANDLE	GetTexturesHandle() const { return mTexturesHeap; }
 
-		INLINE operator D_CORE::CountedOwner() {
-			return D_CORE::CountedOwner{ GetName(), rttr::type::get<TerrainResource>(), this, 0, [&]() { MakeGpuDirty(); } };
-		}
-
 		INLINE D_RENDERER_GEOMETRY::Mesh const& GetMeshData() const { return mMesh; }
+
+		INLINE virtual bool				AreDependenciesDirty() const override { return mHeightMap.IsValidAndGpuDirty(); }
+
 
 	protected:
 
@@ -64,10 +60,10 @@ namespace Darius::Renderer
 		bool							InitRayTracing();
 
 		
-		DField(Get[const, &, inline])
+		DField()
 		D_RESOURCE::ResourceRef<TextureResource>		mHeightMap;
 
-		DField(Get[const, &, inline])
+		DField()
 		float											mHeightFactor;
 
 		// Rasterization Stuff

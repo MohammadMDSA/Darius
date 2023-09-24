@@ -50,6 +50,13 @@ namespace Darius::Renderer
 
 		void								SetGridSize(TerrainGridSize size);
 
+		void								SetTerrainData(TerrainResource* terrain);
+		void								SetMaterial(MaterialResource* material);
+
+		INLINE TerrainResource*				GetTerrainData() const { return mTerrainData.Get(); }
+		INLINE MaterialResource*			GetMaterial() const { return mMaterial.Get(); }
+
+
 		D_RESOURCE::ResourceRef<MaterialResource> GetMaterialRef() const { return mMaterial; }
 
 		static INLINE std::string			GetTerrainSizeName(TerrainGridSize size)
@@ -74,7 +81,7 @@ namespace Darius::Renderer
 		void								UpdatePsoIndex();
 		void								UpdateGridMesh();
 
-		DField(Serialize, Resource)
+		DField(Serialize)
 		D_RESOURCE::ResourceRef<MaterialResource> mMaterial;
 
 	private:
@@ -85,7 +92,7 @@ namespace Darius::Renderer
 		DField(Get[inline], Serialize)
 		TerrainGridSize						mGridSize;
 
-		DField(Serialize, Resource)
+		DField(Serialize)
 		D_RESOURCE::ResourceRef<D_RENDERER::TerrainResource> mTerrainData;
 		
 		// Gpu buffers

@@ -88,7 +88,7 @@ namespace Darius::Physics
 			mActor->setActorFlag(PxActorFlag::eDISABLE_GRAVITY, !enable);
 
 		mUsingGravity = enable;
-		mChangeSignal();
+		mChangeSignal(this);
 	}
 
 	void RigidbodyComponent::SetKinematic(bool value)
@@ -96,7 +96,7 @@ namespace Darius::Physics
 		if (mActor)
 			mActor->setRigidBodyFlag(PxRigidBodyFlag::eKINEMATIC, value);
 		mKinematic = value;
-		mChangeSignal();
+		mChangeSignal(this);
 	}
 
 	bool RigidbodyComponent::IsKinematic() const
@@ -122,7 +122,7 @@ namespace Darius::Physics
 			return;
 
 		mActor->setLinearVelocity(VEC3_2_PX(v));
-		mChangeSignal();
+		mChangeSignal(this);
 	}
 
 	Vector3 RigidbodyComponent::GetAngularVelocity() const
@@ -167,7 +167,7 @@ namespace Darius::Physics
 			mActor->setRigidDynamicLockFlag(PxRigidDynamicLockFlag::eLOCK_ANGULAR_X, enable);
 
 		mRotationConstraints[0] = enable;
-		mChangeSignal();
+		mChangeSignal(this);
 	}
 
 	void RigidbodyComponent::SetRotationConstraintsY(bool enable)
@@ -176,7 +176,7 @@ namespace Darius::Physics
 			mActor->setRigidDynamicLockFlag(PxRigidDynamicLockFlag::eLOCK_ANGULAR_Y, enable);
 
 		mRotationConstraints[1] = enable;
-		mChangeSignal();
+		mChangeSignal(this);
 	}
 
 	void RigidbodyComponent::SetRotationConstraintsZ(bool enable)
@@ -185,7 +185,7 @@ namespace Darius::Physics
 			mActor->setRigidDynamicLockFlag(PxRigidDynamicLockFlag::eLOCK_ANGULAR_Z, enable);
 
 		mRotationConstraints[2] = enable;
-		mChangeSignal();
+		mChangeSignal(this);
 	}
 
 	bool RigidbodyComponent::GetPositionConstraintsX() const
@@ -221,7 +221,7 @@ namespace Darius::Physics
 			mActor->setRigidDynamicLockFlag(PxRigidDynamicLockFlag::eLOCK_LINEAR_X, enable);
 
 		mPositionConstraints[0] = enable;
-		mChangeSignal();
+		mChangeSignal(this);
 	}
 
 	void RigidbodyComponent::SetPositionConstraintsY(bool enable)
@@ -230,7 +230,7 @@ namespace Darius::Physics
 			mActor->setRigidDynamicLockFlag(PxRigidDynamicLockFlag::eLOCK_LINEAR_Y, enable);
 
 		mPositionConstraints[1] = enable;
-		mChangeSignal();
+		mChangeSignal(this);
 	}
 
 	void RigidbodyComponent::SetPositionConstraintsZ(bool enable)
@@ -239,7 +239,7 @@ namespace Darius::Physics
 			mActor->setRigidDynamicLockFlag(PxRigidDynamicLockFlag::eLOCK_LINEAR_Z, enable);
 
 		mPositionConstraints[2] = enable;
-		mChangeSignal();
+		mChangeSignal(this);
 	}
 
 	void RigidbodyComponent::SetAngularVelocity(Vector3 const& v, bool autoWake)
@@ -248,19 +248,19 @@ namespace Darius::Physics
 			return;
 
 		mActor->setAngularVelocity(VEC3_2_PX(v));
-		mChangeSignal();
+		mChangeSignal(this);
 	}
 
 	void RigidbodyComponent::AddForce(D_MATH::Vector3 const& f)
 	{
 		mActor->addForce(VEC3_2_PX(f));
-		mChangeSignal();
+		mChangeSignal(this);
 	}
 
 	void RigidbodyComponent::ClearForce()
 	{
 		mActor->clearForce();
-		mChangeSignal();
+		mChangeSignal(this);
 	}
 
 #ifdef _D_EDITOR

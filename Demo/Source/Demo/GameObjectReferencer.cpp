@@ -20,12 +20,12 @@ namespace Demo
 
 	GameObjectReferencer::GameObjectReferencer() :
 		D_ECS_COMP::BehaviourComponent(),
-		mReference(GetAsCountedOwner())
+		mReference()
 	{ }
 
 	GameObjectReferencer::GameObjectReferencer(D_CORE::Uuid uuid) :
 		D_ECS_COMP::BehaviourComponent(uuid),
-		mReference(GetAsCountedOwner())
+		mReference()
 	{ }
 
 	void GameObjectReferencer::Start()

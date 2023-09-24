@@ -27,7 +27,7 @@ namespace Darius::Animation
 		ComponentBase(),
 		mMeshId(),
 		mRootMotion(false),
-		mAnimation(GetAsCountedOwner())
+		mAnimation()
 	{
 	}
 
@@ -35,7 +35,7 @@ namespace Darius::Animation
 		ComponentBase(uuid),
 		mMeshId(),
 		mRootMotion(false),
-		mAnimation(GetAsCountedOwner())
+		mAnimation()
 	{
 	}
 
@@ -253,6 +253,17 @@ namespace Darius::Animation
 	{
 		mAnimState.Time = 0.f;
 		mAnimState.State = AnimationState::kLooping;
+	}
+
+	void AnimationComponent::SetAnimation(AnimationResource* animation)
+	{
+		if (mAnimation == animation)
+			return;
+
+		mAnimation = animation;
+
+		if (mAnimation.IsValid() && !mAnimation->IsLoaded())
+			D_RESOURCE_LOADER::LoadResourceAsync(animation, nullptr, true);
 	}
 
 }

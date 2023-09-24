@@ -37,7 +37,7 @@ namespace Darius::Renderer
 		mBoundDirty(true),
 		mWidth(1),
 		mHeight(1),
-		mMaterial(GetAsCountedOwner())
+		mMaterial()
 	{
 	}
 
@@ -46,7 +46,7 @@ namespace Darius::Renderer
 		mBoundDirty(true),
 		mWidth(1),
 		mHeight(1),
-		mMaterial(GetAsCountedOwner())
+		mMaterial()
 	{
 	}
 
@@ -170,6 +170,19 @@ namespace Darius::Renderer
 
 		}
 
+	}
+
+	void BillboardRendererComponent::SetMaterial(MaterialResource* material)
+	{
+		if (mMaterial == material)
+			return;
+
+		mMaterial = material;
+
+		if (mMaterial.IsValid() && !mMaterial->IsLoaded())
+			D_RESOURCE_LOADER::LoadResourceAsync(material, nullptr, true);
+
+		mChangeSignal(this);
 	}
 
 #ifdef _D_EDITOR

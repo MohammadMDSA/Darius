@@ -41,6 +41,7 @@ namespace Darius::Graphics::Utils::Buffers
         bool    Is2D() const;
         bool    Is3D() const;
         UINT    ArraySize() const;
+        bool    IsCubeMap() const;
 
 
 #ifdef _D_EDITOR

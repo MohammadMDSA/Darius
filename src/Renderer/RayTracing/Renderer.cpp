@@ -55,7 +55,7 @@ namespace Darius::Renderer::RayTracing
 	DescriptorHandle										PathTracingCommonSRVs[D_GRAPHICS_DEVICE::gNumFrameResources]; // 0: TLAS, 1: RadIBL, 2: IrradIBL
 	DescriptorHandle										PathTracingLightDataSRVs[D_GRAPHICS_DEVICE::gNumFrameResources]; // 0: LighStatus, 1: LightData
 	DescriptorHandle										RayGenUAVs[D_GRAPHICS_DEVICE::gNumFrameResources]; // 0: Color Render target
-	D_RESOURCE::ResourceRef<TextureResource>				BlackCubeTextureRes({ L"Rasterization Renderer" });
+	D_RESOURCE::ResourceRef<TextureResource>				BlackCubeTextureRes;
 
 	std::unique_ptr<D_RENDERER_RT_LIGHT::RayTracingLightContext> LightContext;
 
@@ -87,7 +87,7 @@ namespace Darius::Renderer::RayTracing
 			RayGenUAVs[i] = TextureHeap.Alloc(10);
 		}
 
-		BlackCubeTextureRes = D_RESOURCE::GetResource<TextureResource>(D_RENDERER::GetDefaultGraphicsResource(D_RENDERER::DefaultResource::TextureCubeMapBlack));
+		BlackCubeTextureRes = D_RESOURCE::GetResourceSync<TextureResource>(D_RENDERER::GetDefaultGraphicsResource(D_RENDERER::DefaultResource::TextureCubeMapBlack));
 
 		LightContext = std::make_unique<D_RENDERER_RT_LIGHT::RayTracingLightContext>();
 
@@ -173,7 +173,7 @@ namespace Darius::Renderer::RayTracing
 
 					auto const* meshRes = comp.GetMesh();
 
-					if (!meshRes)
+					if (!meshRes || meshRes->IsDirtyGPU())
 						return;
 
 					auto const& mats = comp.GetMaterials();
@@ -199,7 +199,7 @@ namespace Darius::Renderer::RayTracing
 
 					auto const* terrainRes = comp.GetTerrainData();
 
-					if (!terrainRes)
+					if (!terrainRes || terrainRes->IsDirtyGPU())
 						return;
 
 					auto const mat = comp.GetMaterialRef();

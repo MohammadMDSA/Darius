@@ -31,6 +31,9 @@ namespace Darius::Renderer
 		virtual bool					UploadToGpu() override;
 		virtual INLINE void				Unload() override;
 
+		INLINE virtual bool				AreDependenciesDirty() const override { return false; }
+
+
 	protected:
 		FBXPrefabResource(D_CORE::Uuid uuid, std::wstring const& path, std::wstring const& name, D_RESOURCE::DResourceId id, bool isDefault = false);
 

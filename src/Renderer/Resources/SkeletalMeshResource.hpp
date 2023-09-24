@@ -24,7 +24,6 @@ namespace Darius::Renderer
 	public:
 		D_CH_RESOURCE_BODY(SkeletalMeshResource, "Skeletal Mesh", ".fbx")
 
-		virtual void					Create(D_RENDERER_GEOMETRY::MultiPartMeshData<VertexType> const& data) override;
 
 #ifdef _D_EDITOR
 		virtual bool					DrawDetails(float params[]) override;
@@ -46,6 +45,8 @@ namespace Darius::Renderer
 			MeshResource(uuid, path, name, id, isDefault),
 			mJointCount(0),
 			mSkeletonRoot(nullptr) {}
+
+		virtual void					CreateInternal(D_RENDERER_GEOMETRY::MultiPartMeshData<VertexType> const& data) override;
 
 		virtual bool					UploadToGpu() override;
 

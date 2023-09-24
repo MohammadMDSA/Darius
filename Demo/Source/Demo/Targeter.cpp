@@ -19,12 +19,12 @@ namespace Demo
 
 	Targeter::Targeter() :
 		D_ECS_COMP::BehaviourComponent(),
-		mTargetObject(GetAsCountedOwner())
+		mTargetObject()
 	{ }
 
 	Targeter::Targeter(D_CORE::Uuid uuid) :
 		D_ECS_COMP::BehaviourComponent(uuid),
-		mTargetObject(GetAsCountedOwner())
+		mTargetObject()
 	{ }
 
 	void Targeter::Start()

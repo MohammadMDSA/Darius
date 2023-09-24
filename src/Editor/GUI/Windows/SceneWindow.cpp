@@ -43,12 +43,10 @@ namespace Darius::Editor::Gui::Windows
 		mDrawSkybox(true),
 		mSceneNormals(D_MATH::Color(0.f, 0.f, 0.f, 1.f)),
 		mSSAOFullScreen(D_MATH::Color(1.f, 1.f, 1.f)),
-		mLineMeshResource({ L"Scene Window", rttr::type::get<SceneWindow>(), nullptr })
+		mLineMeshResource()
 	{
 		CreateBuffers();
 		mTextureHandle = D_GUI_RENDERER::AllocateUiTexture(1);
-
-		mLineMeshResource = D_RESOURCE::ResourceRef<D_RENDERER::BatchResource>({ L"Scene Window", rttr::type::get<SceneWindow>(), this });
 
 		// Setup camera
 		mCamera.SetFoV(XM_PI / 3);
@@ -63,7 +61,7 @@ namespace Darius::Editor::Gui::Windows
 
 		// Fetch line mesh resource
 		auto lineHandle = D_RENDERER::GetDefaultGraphicsResource(D_RENDERER::DefaultResource::LineMesh);
-		mLineMeshResource = D_RESOURCE::GetResource<D_RENDERER::BatchResource>(lineHandle);
+		mLineMeshResource = D_RESOURCE::GetResourceSync<D_RENDERER::BatchResource>(lineHandle);
 
 		// Initializing grid gpu constants
 		auto count = 50;
@@ -77,16 +75,22 @@ namespace Darius::Editor::Gui::Windows
 		// Window padding
 		mPadding[0] = mPadding[1] = 0.f;
 
-		auto diffIBLHandle = D_RESOURCE_LOADER::LoadResource(D_ENGINE_CONTEXT::GetAssetsPath() / "PBR/DefaultSkyboxDiffuseIBL_HDR.dds");
-		auto specIBLHandle = D_RESOURCE_LOADER::LoadResource(D_ENGINE_CONTEXT::GetAssetsPath() / "PBR/DefaultSkyboxSpecularIBL.dds");
+		D_RESOURCE_LOADER::LoadResourceAsync(D_ENGINE_CONTEXT::GetAssetsPath() / "PBR/DefaultSkyboxDiffuseIBL_HDR.dds", [&](auto const& resourceHandles)
+			{
+				auto diffIBLHandle = resourceHandles[0];
+				mSkyboxDiff = D_RESOURCE::GetResourceSync<D_RENDERER::TextureResource>(diffIBLHandle);
 
-		mSkyboxDiff = D_RESOURCE::GetResource<D_RENDERER::TextureResource>(diffIBLHandle[0], this, L"Scene Window", rttr::type::get<SceneWindow>());
-		mSkyboxSpec = D_RESOURCE::GetResource<D_RENDERER::TextureResource>(specIBLHandle[0], this, L"Scene Window", rttr::type::get<SceneWindow>());
+				D_RESOURCE_LOADER::LoadResourceAsync(D_ENGINE_CONTEXT::GetAssetsPath() / "PBR/DefaultSkyboxSpecularIBL.dds", [&](auto const& resourceHandles2)
+					{
+						auto specIBLHandle = resourceHandles2[0];
+						mSkyboxSpec = D_RESOURCE::GetResourceSync<D_RENDERER::TextureResource>(specIBLHandle);
 
-		D_RENDERER::SetIBLTextures(
-			mSkyboxDiff,
-			mSkyboxSpec
-		);
+						D_RENDERER::SetIBLTextures(
+							mSkyboxDiff,
+							mSkyboxSpec
+						);
+					});
+			});
 
 		D_RENDERER::SetIBLBias(0);
 
@@ -242,8 +246,8 @@ namespace Darius::Editor::Gui::Windows
 			mCamera,
 			mSceneGlobals,
 			additional,
-			mDrawSkybox ? mSkyboxSpec->GetTextureData() : nullptr,
-			mDrawSkybox ? mSkyboxDiff->GetTextureData() : nullptr,
+			mDrawSkybox && mSkyboxSpec.IsValid() ? mSkyboxSpec->GetTextureData() : nullptr,
+			mDrawSkybox && mSkyboxDiff.IsValid() ? mSkyboxDiff->GetTextureData() : nullptr,
 			mDrawSkybox
 		};
 

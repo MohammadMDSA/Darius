@@ -27,6 +27,20 @@ using namespace D_RESOURCE;
 using namespace D_SCENE;
 using namespace DirectX;
 
+namespace
+{
+	FbxManager* sdkManager;
+
+	struct StaticDestruct
+	{
+		~StaticDestruct()
+		{
+			if (sdkManager)
+				sdkManager->Destroy();
+		}
+	} StaticDes;
+}
+
 namespace Darius::Renderer::Geometry::ModelLoader::Fbx
 {
 	const int TRIANGLE_VERTEX_COUNT = 3;
@@ -59,14 +73,18 @@ namespace Darius::Renderer::Geometry::ModelLoader::Fbx
 #pragma region Common
 	// Reads the scene from path and return a pointer to root node of the scene
 	// to work with and the sdk manager to get dispose of later.
-	bool InitializeFbxScene(D_FILE::Path const& path, FbxNode** rootNode, FbxManager** sdkManager)
+	bool InitializeFbxScene(D_FILE::Path const& path, FbxNode** rootNode)
 	{
-		// Create the FBX SDK manager
-		*sdkManager = FbxManager::Create();
 
-		// Create an IOSettings object.
-		FbxIOSettings* ios = FbxIOSettings::Create(*sdkManager, IOSROOT);
-		(*sdkManager)->SetIOSettings(ios);
+		if (sdkManager == nullptr)
+		{
+			// Create the FBX SDK manager
+			sdkManager = FbxManager::Create();
+
+			// Create an IOSettings object.
+			FbxIOSettings* ios = FbxIOSettings::Create(sdkManager, IOSROOT);
+			sdkManager->SetIOSettings(ios);
+		}
 
 		// Declare the path and filename of the file containing the scene.
 		// In this case, we are assuming the file is in the same directory as the executable.
@@ -74,10 +92,10 @@ namespace Darius::Renderer::Geometry::ModelLoader::Fbx
 		const char* lFilename = pathStr.c_str();
 
 		// Create an importer.
-		FbxImporter* lImporter = FbxImporter::Create(*sdkManager, pathStr.c_str());
+		FbxImporter* lImporter = FbxImporter::Create(sdkManager, pathStr.c_str());
 
 		// Initialize the importer.
-		bool lImportStatus = lImporter->Initialize(lFilename, -1, (*sdkManager)->GetIOSettings());
+		bool lImportStatus = lImporter->Initialize(lFilename, -1, sdkManager->GetIOSettings());
 
 		if (!lImportStatus) {
 			D_LOG_ERROR("Call to FbxImporter::Initialize() failed. Tried to load resource from " << pathStr);
@@ -87,7 +105,7 @@ namespace Darius::Renderer::Geometry::ModelLoader::Fbx
 		}
 
 		// Create a new scene so it can be populated by the imported file.
-		FbxScene* lScene = FbxScene::Create(*sdkManager, "modelScene");
+		FbxScene* lScene = FbxScene::Create(sdkManager, "modelScene");
 
 		// Import the contents of the file into the scene.
 		lImporter->Import(lScene);
@@ -105,7 +123,7 @@ namespace Darius::Renderer::Geometry::ModelLoader::Fbx
 		}
 
 		// Convert mesh, NURBS and patch into triangle mesh
-		FbxGeometryConverter lGeomConverter(*sdkManager);
+		FbxGeometryConverter lGeomConverter(sdkManager);
 		try {
 			lGeomConverter.Triangulate(lScene, /*replace*/true);
 		}
@@ -233,9 +251,8 @@ namespace Darius::Renderer::Geometry::ModelLoader::Fbx
 		FbxManager* sdkManager = nullptr;
 		FbxNode* rootNode = nullptr;
 
-		if (!InitializeFbxScene(path, &rootNode, &sdkManager))
+		if (!InitializeFbxScene(path, &rootNode))
 		{
-			sdkManager->Destroy();
 			return D_CONTAINERS::DVector<D_RESOURCE::ResourceDataInFile>();
 		}
 
@@ -260,8 +277,6 @@ namespace Darius::Renderer::Geometry::ModelLoader::Fbx
 				}
 			});
 
-		sdkManager->Destroy();
-
 		return results;
 	}
 
@@ -269,7 +284,7 @@ namespace Darius::Renderer::Geometry::ModelLoader::Fbx
 	{
 		FbxNode* rootNode = nullptr;
 
-		if (!InitializeFbxScene(path, &rootNode, sdkManager))
+		if (!InitializeFbxScene(path, &rootNode))
 		{
 			return false;
 		}
@@ -302,8 +317,6 @@ namespace Darius::Renderer::Geometry::ModelLoader::Fbx
 		DUnorderedMap<int, DVector<int>> controlPointIndexToVertexIndexMap;
 		auto res = ReadMeshByName(path, meshName, result, controlPointIndexToVertexIndexMap, &mesh, &sdkManager);
 
-
-		sdkManager->Destroy();
 		return res;
 	}
 
@@ -675,7 +688,6 @@ namespace Darius::Renderer::Geometry::ModelLoader::Fbx
 
 		if (!ReadMeshByName(path, meshName, result, controlPointIndexToVertexIndexMap, &mesh, &sdkManager))
 		{
-			sdkManager->Destroy();
 			return false;
 		}
 
@@ -683,8 +695,6 @@ namespace Darius::Renderer::Geometry::ModelLoader::Fbx
 		if (ReadMeshSkin(mesh, result, skeleton, controlPointIndexToVertexIndexMap))
 			ReadFBXCacheVertexPositions(result, mesh, controlPointIndexToVertexIndexMap);
 
-
-		sdkManager->Destroy();
 		return true;
 
 	}
@@ -1027,9 +1037,8 @@ namespace Darius::Renderer::Geometry::ModelLoader::Fbx
 		FbxManager* sdkManager = nullptr;
 		FbxNode* rootNode = nullptr;
 
-		if (!InitializeFbxScene(path, &rootNode, &sdkManager))
+		if (!InitializeFbxScene(path, &rootNode))
 		{
-			sdkManager->Destroy();
 			return nullptr;
 		}
 
@@ -1038,10 +1047,10 @@ namespace Darius::Renderer::Geometry::ModelLoader::Fbx
 		// Fetching resources
 		DUnorderedMap<std::string, Resource const*> resourceMap;
 		{
-			auto handles = D_RESOURCE_LOADER::LoadResource(path, true);
+			auto handles = D_RESOURCE_LOADER::LoadResourceSync(path, true);
 			for (auto const& handle : handles)
 			{
-				auto resource = D_RESOURCE::GetUncountedResource(handle);
+				auto resource = D_RESOURCE::GetRawResourceSync(handle);
 				auto name = WSTR2STR(resource->GetName());
 				resourceMap[name] = resource;
 			}
@@ -1049,7 +1058,6 @@ namespace Darius::Renderer::Geometry::ModelLoader::Fbx
 
 		result = IterateSceneNodes(rootNode->GetScene(), rootUuid, resourceMap);
 
-		sdkManager->Destroy();
 		return result;
 
 	}
@@ -1137,7 +1145,7 @@ namespace Darius::Renderer::Geometry::ModelLoader::Fbx
 	}
 
 	template<class T>
-	ResourceHandle FindRes(std::string const& name, DUnorderedMap<std::string, Resource const*> const& resourceDic)
+	T* FindRes(std::string const& name, DUnorderedMap<std::string, Resource const*> const& resourceDic)
 	{
 		// Checking if T is a resource type
 		using conv = std::is_convertible<T*, Resource*>;
@@ -1146,7 +1154,7 @@ namespace Darius::Renderer::Geometry::ModelLoader::Fbx
 		if (!resourceDic.contains(name))
 		{
 			D_LOG_WARN("Resource with given name: " + name + ", was not found in the resource file");
-			return EmptyResourceHandle;
+			return nullptr;
 		}
 
 		Resource const* res = resourceDic.at(name);
@@ -1154,10 +1162,10 @@ namespace Darius::Renderer::Geometry::ModelLoader::Fbx
 		if (T::GetResourceType() != res->GetType())
 		{
 			D_LOG_WARN("Resource type mismatch with what expected");
-			return EmptyResourceHandle;
+			return nullptr;
 		}
 
-		return (ResourceHandle)(*res);
+		return const_cast<T*>(static_cast<T const*>(res));
 	}
 
 	void AddSkeletalMesh(FbxNode* node, GameObject* go, DUnorderedMap<std::string, Resource const*> const& resourceDic)

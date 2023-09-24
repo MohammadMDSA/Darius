@@ -25,8 +25,6 @@ namespace Darius::Renderer
 	public:
 		INLINE D_RENDERER_GEOMETRY::Mesh*		ModifyMeshData() { MakeDiskDirty(); MakeGpuDirty(); return &mMesh; }
 		INLINE const D_RENDERER_GEOMETRY::Mesh*	GetMeshData() const { return &mMesh; }
-		virtual void							Create(D_RENDERER_GEOMETRY::MultiPartMeshData<VertexType> const& data) override;
-
 #ifdef _D_EDITOR
 		virtual bool							DrawDetails(float params[]) override { (params); return false; };
 #endif // _D_EDITOR
@@ -38,6 +36,9 @@ namespace Darius::Renderer
 		
 		StaticMeshResource(D_CORE::Uuid uuid, std::wstring const& path, std::wstring const& name, D_RESOURCE::DResourceId id, bool isDefault = false) :
 			MeshResource(uuid, path, name, id, isDefault) {}
+
+		virtual void							CreateInternal(D_RENDERER_GEOMETRY::MultiPartMeshData<VertexType> const& data) override;
+
 	private:
 		friend class DResourceManager;
 

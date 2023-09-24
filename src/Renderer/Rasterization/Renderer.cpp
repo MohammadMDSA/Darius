@@ -60,9 +60,9 @@ namespace Darius::Renderer::Rasterization
 
 	DescriptorHandle									CommonTexture;
 
-	D_RESOURCE::ResourceRef<TextureResource>			RadianceCubeMap({ L"Rasterization Renderer" });
-	D_RESOURCE::ResourceRef<TextureResource>			IrradianceCubeMap({ L"Rasterization Renderer" });
-	D_RESOURCE::ResourceRef<TextureResource>			DefaultBlackCubeMap({ L"Rasterization Renderer" });
+	D_RESOURCE::ResourceRef<TextureResource>			RadianceCubeMap;
+	D_RESOURCE::ResourceRef<TextureResource>			IrradianceCubeMap;
+	D_RESOURCE::ResourceRef<TextureResource>			DefaultBlackCubeMap;
 	float												SpecularIBLRange;
 	float												SpecularIBLBias = FLT_MAX;
 
@@ -107,7 +107,7 @@ namespace Darius::Renderer::Rasterization
 
 		CommonTexture = TextureHeap.Alloc(8);
 
-		DefaultBlackCubeMap = D_RESOURCE::GetResource<TextureResource>(GetDefaultGraphicsResource(D_RENDERER::DefaultResource::TextureCubeMapBlack), nullptr, L"Renderer", rttr::type::get<void>());
+		DefaultBlackCubeMap = D_RESOURCE::GetResourceSync<TextureResource>(GetDefaultGraphicsResource(D_RENDERER::DefaultResource::TextureCubeMapBlack));
 
 		// Initialize IBL Textrues on GPU
 		{
@@ -585,41 +585,95 @@ namespace Darius::Renderer::Rasterization
 
 	void SetIBLTextures(D_RESOURCE::ResourceRef<TextureResource>& diffuseIBL, D_RESOURCE::ResourceRef<TextureResource>& specularIBL)
 	{
-		RadianceCubeMap = specularIBL;
-		IrradianceCubeMap = diffuseIBL;
 
-		SpecularIBLRange = 0.f;
-		if (RadianceCubeMap.IsValid())
+		bool loadIrradiance = false;
+		bool loadRadiance = false;
+
+		// Set default texture if ibl textures are not loaded and
+		// have them loaded if necessary
+		if (!diffuseIBL.IsValid() || !diffuseIBL->GetTextureData()->IsCubeMap())
+		{
+			IrradianceCubeMap = DefaultBlackCubeMap;
+		}
+		else if (!diffuseIBL->IsLoaded() || diffuseIBL->IsDirtyGPU())
+		{
+			IrradianceCubeMap = DefaultBlackCubeMap;
+			loadIrradiance = true;
+		}
+		else
+		{
+			IrradianceCubeMap = diffuseIBL;
+		}
+
+		if (!specularIBL.IsValid() || !specularIBL->GetTextureData()->IsCubeMap())
+		{
+			RadianceCubeMap = DefaultBlackCubeMap;
+		}
+		else if (!specularIBL->IsLoaded() || specularIBL->IsDirtyGPU())
+		{
+			RadianceCubeMap = DefaultBlackCubeMap;
+			loadRadiance = true;
+		}
+		else
+		{
+			RadianceCubeMap = specularIBL;
+		}
+
+
+		// Set radiance cube map function
+		auto setRadiance = [](TextureResource* specular)
 		{
 			auto texRes = const_cast<ID3D12Resource*>(RadianceCubeMap->GetTextureData()->GetResource());
 			const D3D12_RESOURCE_DESC& texDesc = texRes->GetDesc();
 			SpecularIBLRange = D_MATH::Max(0.f, (float)texDesc.MipLevels - 1);
 			SpecularIBLBias = D_MATH::Min(SpecularIBLBias, SpecularIBLRange);
-		}
 
-		uint32_t DestCount = 2;
-		uint32_t SourceCounts[] = { 1, 1 };
+			UINT destCount = 1;
+			UINT sourceCounts = 1;
+			D3D12_CPU_DESCRIPTOR_HANDLE texHandle = RadianceCubeMap->GetTextureData()->GetSRV();
 
-		D3D12_CPU_DESCRIPTOR_HANDLE specHandle;
-		D3D12_CPU_DESCRIPTOR_HANDLE diffHandle;
-		if (specularIBL.IsValid())
-			specHandle = specularIBL->GetTextureData()->GetSRV();
-		else
-			specHandle = DefaultBlackCubeMap->GetTextureData()->GetSRV();
-
-		if (diffuseIBL.IsValid())
-			diffHandle = diffuseIBL->GetTextureData()->GetSRV();
-		else
-			diffHandle = DefaultBlackCubeMap->GetTextureData()->GetSRV();
-
-		D3D12_CPU_DESCRIPTOR_HANDLE SourceTextures[] =
-		{
-			specHandle,
-			diffHandle
+			DescriptorHandle dest = CommonTexture + 6 * TextureHeap.GetDescriptorSize();
+			D_GRAPHICS_DEVICE::GetDevice()->CopyDescriptors(1, &dest, &destCount, destCount, &texHandle, &sourceCounts, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 		};
 
-		DescriptorHandle dest = CommonTexture + 6 * TextureHeap.GetDescriptorSize();
-		D_GRAPHICS_DEVICE::GetDevice()->CopyDescriptors(1, &dest, &DestCount, DestCount, SourceTextures, SourceCounts, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+		// Set irradiance cube map function
+		auto setIrradiance = [](TextureResource* irradiance)
+		{
+			UINT destCount = 1;
+			UINT sourceCounts = 1;
+			D3D12_CPU_DESCRIPTOR_HANDLE texHandle = IrradianceCubeMap->GetTextureData()->GetSRV();
+
+			DescriptorHandle dest = CommonTexture + 7 * TextureHeap.GetDescriptorSize();
+			D_GRAPHICS_DEVICE::GetDevice()->CopyDescriptors(1, &dest, &destCount, destCount, &texHandle, &sourceCounts, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+
+		};
+
+		if (loadRadiance)
+		{
+			D_RESOURCE::GetResourceAsync<TextureResource>(*specularIBL.Get(), [setRadiance = setRadiance](auto loadedSpecIbl)
+				{
+					RadianceCubeMap = loadedSpecIbl;
+					setRadiance(loadedSpecIbl.Get());
+
+				});
+		}
+		else
+		{
+			setRadiance(specularIBL.Get());
+		}
+
+		if (loadIrradiance)
+		{
+			D_RESOURCE::GetResourceAsync<TextureResource>(*diffuseIBL.Get(), [setIrradiance = setIrradiance](auto loadedDiff)
+				{
+					IrradianceCubeMap = loadedDiff;
+					setIrradiance(loadedDiff.Get());
+				});
+		}
+		else
+		{
+			setIrradiance(diffuseIBL.Get());
+		}
 	}
 
 	void DrawSkybox(D_GRAPHICS::GraphicsContext& context, const D_MATH_CAMERA::BaseCamera& camera, D_GRAPHICS_BUFFERS::ColorBuffer& sceneColor, D_GRAPHICS_BUFFERS::DepthBuffer& sceneDepth, const D3D12_VIEWPORT& viewport, const D3D12_RECT& scissor)

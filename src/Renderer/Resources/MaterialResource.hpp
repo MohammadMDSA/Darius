@@ -7,7 +7,7 @@
 #include <Graphics/GraphicsUtils/Buffers/GpuBuffer.hpp>
 #include <Graphics/GraphicsUtils/Buffers/UploadBuffer.hpp>
 #include <ResourceManager/Resource.hpp>
-#include <Core/Ref.hpp>
+#include <Core/RefCounting/Ref.hpp>
 
 #include "MaterialResource.generated.hpp"
 
@@ -38,12 +38,40 @@ namespace Darius::Renderer
 #endif
 				;
 		}
-		void								SetTexture(D_RESOURCE::ResourceHandle textureHandle, D_RENDERER_RAST::TextureType type);
+		void								SetTexture(TextureResource* texture, D_RENDERER_RAST::TextureType type);
 
-		virtual bool						IsDirtyGPU() const override;
-
-		INLINE bool							HasDisplacement() const { return (mMaterial.TextureStatusMask & (1 << D_RENDERER_RAST::kWorldDisplacement)) != 0; }
+		// Two sided
 		INLINE bool							IsTwoSided() const { return mPsoFlags & RenderItem::TwoSided; }
+		void								SetTwoSided(bool value);
+
+		INLINE float						GetAlphaCutout() const { return mCutout; }
+		void								SetAlphaCutout(float value);
+
+		// Displacement
+		INLINE bool							HasDisplacement() const { return (mMaterial.TextureStatusMask & (1 << D_RENDERER_RAST::kWorldDisplacement)) != 0; }
+		INLINE float						GetDisplacementAmount() const { return mMaterial.DisplacementAmount; }
+		void								SetDisplacementAmount(float value);
+
+		// Emissive
+		INLINE D_MATH::Color				GetEmissiveColor() const { return D_MATH::Color(D_MATH::Vector3(mMaterial.Emissive)); }
+		void								SetEmissiveColor(D_MATH::Color const& value);
+		INLINE bool							HasEmissiveTexture() const { return mMaterial.TextureStatusMask & (1 << D_RENDERER_RAST::kEmissive); }
+
+		// Roughness
+		INLINE float						GetRoughness() const { return mMaterial.Roughness; }
+		void								SetRoughness(float value);
+		INLINE bool							HasRoughnessTexture() const { return mMaterial.TextureStatusMask & (1 << D_RENDERER_RAST::kRoughness); }
+
+		// Metallic
+		INLINE float						GetMetallic() const { return mMaterial.Metallic; }
+		void								SetMetallic(float value);
+		INLINE bool							HasMetallicTexture() const { return mMaterial.TextureStatusMask & (1 << D_RENDERER_RAST::kMetallic); }
+
+		// Albedo
+		INLINE D_MATH::Color				GetAlbedoColor() const { return D_MATH::Color(D_MATH::Vector4(mMaterial.DifuseAlbedo)); }
+		void								SetAlbedoColor(D_MATH::Color const& value);
+		INLINE bool							HasAlbedoTexture() const { return mMaterial.TextureStatusMask & (1 << D_RENDERER_RAST::kBaseColor); }
+
 
 #ifdef _D_EDITOR
 		virtual bool						DrawDetails(float params[]) override;
@@ -53,13 +81,12 @@ namespace Darius::Renderer
 		INLINE operator D_RENDERER::MaterialConstants*() { ModifyMaterialData(); }
 
 		INLINE operator D3D12_GPU_VIRTUAL_ADDRESS() const { return mMaterialConstantsGPU.GetGpuVirtualAddress(); }
+		virtual bool						AreDependenciesDirty() const override;
 
-		INLINE operator D_CORE::CountedOwner const() {
-			return D_CORE::CountedOwner{ GetName(), rttr::type::get<MaterialResource>(), this, 0};
-		}
 
+		// Stand alone texture setters declarations
 #define TextureSetter(type) \
-inline void Set##type##Texture(D_RESOURCE::ResourceHandle textureHandle) { SetTexture(textureHandle, D_RENDERER_RAST::k##type); }
+		void Set##type##Texture(TextureResource* texture);
 			
 		TextureSetter(BaseColor);
 		TextureSetter(Metallic);
@@ -81,51 +108,21 @@ inline void Set##type##Texture(D_RESOURCE::ResourceHandle textureHandle) { SetTe
 		friend class DResourceManager;
 
 		MaterialResource(D_CORE::Uuid uuid, std::wstring const& path, std::wstring const& name, D_RESOURCE::DResourceId id, bool isDefault = false);
-
-
 		
-		DField(Get[const, &, inline])
 		D_RESOURCE::ResourceRef<D_RENDERER::TextureResource>	mBaseColorTexture;
 		
-		DField(Get[const, &, inline])
 		D_RESOURCE::ResourceRef<D_RENDERER::TextureResource>	mNormalTexture;
 		
-		DField(Get[const, &, inline])
 		D_RESOURCE::ResourceRef<D_RENDERER::TextureResource>	mMetallicTexture;
 		
-		DField(Get[const, &, inline])
 		D_RESOURCE::ResourceRef<D_RENDERER::TextureResource>	mRoughnessTexture;
 		
-		DField(Get[const, &, inline])
 		D_RESOURCE::ResourceRef<D_RENDERER::TextureResource>	mEmissiveTexture;
 		
-		DField(Get[const, &, inline])
 		D_RESOURCE::ResourceRef<D_RENDERER::TextureResource>	mAmbientOcclusionTexture;
 		
-		DField(Get[const, &, inline])
 		D_RESOURCE::ResourceRef<D_RENDERER::TextureResource>	mWorldDisplacementTexture;
 		
-		DField(Get[const, &, inline])
-		D_RESOURCE::ResourceHandle					mBaseColorTextureHandle;
-		
-		DField(Get[const, &, inline])
-		D_RESOURCE::ResourceHandle					mNormalTextureHandle;
-		
-		DField(Get[const, &, inline])
-		D_RESOURCE::ResourceHandle					mMetallicTextureHandle;
-		
-		DField(Get[const, &, inline])
-		D_RESOURCE::ResourceHandle					mRoughnessTextureHandle;
-		
-		DField(Get[const, &, inline])
-		D_RESOURCE::ResourceHandle					mEmissiveTextureHandle;
-		
-		DField(Get[const, &, inline])
-		D_RESOURCE::ResourceHandle					mAmbientOcclusionTextureHandle;
-
-		DField(Get[const, &, inline])
-		D_RESOURCE::ResourceHandle					mWorldDisplacementTextureHandle;
-
 
 		D_RENDERER::MaterialConstants				mMaterial;
 		D_GRAPHICS_BUFFERS::UploadBuffer			mMaterialConstantsCPU;

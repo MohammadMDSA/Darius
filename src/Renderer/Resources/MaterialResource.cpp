@@ -46,29 +46,22 @@ namespace Darius::Renderer
 		Resource(uuid, path, name, id, isDefault),
 		mPsoFlags(RenderItem::HasPosition | RenderItem::HasNormal | RenderItem::HasTangent | RenderItem::HasUV0),
 		mCutout(0),
-		mBaseColorTexture(GetAsCountedOwner()),
-		mNormalTexture(GetAsCountedOwner()),
-		mMetallicTexture(GetAsCountedOwner()),
-		mRoughnessTexture(GetAsCountedOwner()),
-		mEmissiveTexture(GetAsCountedOwner()),
-		mAmbientOcclusionTexture(GetAsCountedOwner()),
-		mWorldDisplacementTexture(GetAsCountedOwner())
+		mBaseColorTexture(),
+		mNormalTexture(),
+		mMetallicTexture(),
+		mRoughnessTexture(),
+		mEmissiveTexture(),
+		mAmbientOcclusionTexture(),
+		mWorldDisplacementTexture()
 	{
-		auto callback = [&]() { MakeGpuDirty(); };
-		mBaseColorTexture.SetChangeCallback(callback);
-		mNormalTexture.SetChangeCallback(callback);
-		mMetallicTexture.SetChangeCallback(callback);
-		mRoughnessTexture.SetChangeCallback(callback);
-		mEmissiveTexture.SetChangeCallback(callback);
-		mAmbientOcclusionTexture.SetChangeCallback(callback);
-		mWorldDisplacementTexture.SetChangeCallback(callback);
-		mBaseColorTextureHandle = D_RENDERER::GetDefaultGraphicsResource(D_RENDERER::DefaultResource::Texture2DWhiteOpaque);
-		mNormalTextureHandle = D_RENDERER::GetDefaultGraphicsResource(D_RENDERER::DefaultResource::Texture2DNormalMap);
-		mMetallicTextureHandle = D_RENDERER::GetDefaultGraphicsResource(D_RENDERER::DefaultResource::Texture2DBlackOpaque);
-		mRoughnessTextureHandle = D_RENDERER::GetDefaultGraphicsResource(D_RENDERER::DefaultResource::Texture2DBlackOpaque);
-		mEmissiveTextureHandle = D_RENDERER::GetDefaultGraphicsResource(D_RENDERER::DefaultResource::Texture2DBlackOpaque);
-		mAmbientOcclusionTextureHandle = D_RENDERER::GetDefaultGraphicsResource(D_RENDERER::DefaultResource::Texture2DWhiteOpaque);
-		mWorldDisplacementTextureHandle = D_RENDERER::GetDefaultGraphicsResource(D_RENDERER::DefaultResource::Texture2DBlackOpaque);
+
+		mBaseColorTexture = D_RESOURCE::GetResourceSync<TextureResource>(D_RENDERER::GetDefaultGraphicsResource(D_RENDERER::DefaultResource::Texture2DWhiteOpaque));
+		mNormalTexture = D_RESOURCE::GetResourceSync<TextureResource>(D_RENDERER::GetDefaultGraphicsResource(D_RENDERER::DefaultResource::Texture2DNormalMap));
+		mMetallicTexture = D_RESOURCE::GetResourceSync<TextureResource>(D_RENDERER::GetDefaultGraphicsResource(D_RENDERER::DefaultResource::Texture2DBlackOpaque));
+		mRoughnessTexture = D_RESOURCE::GetResourceSync<TextureResource>(D_RENDERER::GetDefaultGraphicsResource(D_RENDERER::DefaultResource::Texture2DBlackOpaque));
+		mEmissiveTexture = D_RESOURCE::GetResourceSync<TextureResource>(D_RENDERER::GetDefaultGraphicsResource(D_RENDERER::DefaultResource::Texture2DBlackOpaque));
+		mAmbientOcclusionTexture = D_RESOURCE::GetResourceSync<TextureResource>(D_RENDERER::GetDefaultGraphicsResource(D_RENDERER::DefaultResource::Texture2DWhiteOpaque));
+		mWorldDisplacementTexture = D_RESOURCE::GetResourceSync<TextureResource>(D_RENDERER::GetDefaultGraphicsResource(D_RENDERER::DefaultResource::Texture2DBlackOpaque));
 	}
 
 	void MaterialResource::WriteResourceToFile(D_SERIALIZATION::Json& j) const
@@ -146,45 +139,82 @@ namespace Darius::Renderer
 
 		if (data.contains("BaseColorTexture"))
 		{
-			mBaseColorTextureHandle = D_RESOURCE::GetResourceHandle(FromString(data["BaseColorTexture"]));
-			mMaterial.TextureStatusMask |= 1 << kBaseColor;
+			mBaseColorTexture = D_RESOURCE::GetResourceSync<TextureResource>(D_RESOURCE::GetResourceHandle(FromString(data["BaseColorTexture"])));
+
+			if (mBaseColorTexture.IsValid())
+				mMaterial.TextureStatusMask |= 1 << kBaseColor;
+
+			if (mBaseColorTexture.IsValid() && !mBaseColorTexture->IsLoaded())
+				D_RESOURCE_LOADER::LoadResourceAsync(mBaseColorTexture.Get(), nullptr, true);
 		}
 
 		if (data.contains("MetallicTexture"))
 		{
-			mMetallicTextureHandle = D_RESOURCE::GetResourceHandle(FromString(data["MetallicTexture"]));
-			mMaterial.TextureStatusMask |= 1 << kMetallic;
+			mMetallicTexture = D_RESOURCE::GetResourceSync<TextureResource>(D_RESOURCE::GetResourceHandle(FromString(data["MetallicTexture"])));
+
+			if (mMetallicTexture.IsValid())
+				mMaterial.TextureStatusMask |= 1 << kMetallic;
+
+			if (mMetallicTexture.IsValid() && !mMetallicTexture->IsLoaded())
+				D_RESOURCE_LOADER::LoadResourceAsync(mMetallicTexture.Get(), nullptr, true);
 		}
 
 		if (data.contains("RoughnessTexture"))
 		{
-			mRoughnessTextureHandle = D_RESOURCE::GetResourceHandle(FromString(data["RoughnessTexture"]));
-			mMaterial.TextureStatusMask |= 1 << kRoughness;
+			mRoughnessTexture = D_RESOURCE::GetResourceSync<TextureResource>(D_RESOURCE::GetResourceHandle(FromString(data["RoughnessTexture"])));
+
+			if (mRoughnessTexture.IsValid())
+				mMaterial.TextureStatusMask |= 1 << kRoughness;
+
+			if (mRoughnessTexture.IsValid() && !mRoughnessTexture->IsLoaded())
+				D_RESOURCE_LOADER::LoadResourceAsync(mRoughnessTexture.Get(), nullptr, true);
 		}
 
 		if (data.contains("NormalTexture"))
 		{
-			mNormalTextureHandle = D_RESOURCE::GetResourceHandle(FromString(data["NormalTexture"]));
-			mMaterial.TextureStatusMask |= 1 << kNormal;
+			mNormalTexture = D_RESOURCE::GetResourceSync<TextureResource>(D_RESOURCE::GetResourceHandle(FromString(data["NormalTexture"])));
+
+			if (mNormalTexture.IsValid())
+				mMaterial.TextureStatusMask |= 1 << kNormal;
+
+			if (mNormalTexture.IsValid() && !mNormalTexture->IsLoaded())
+				D_RESOURCE_LOADER::LoadResourceAsync(mNormalTexture.Get(), nullptr, true);
 		}
 
 		if (data.contains("EmissionTexture"))
 		{
-			mEmissiveTextureHandle = D_RESOURCE::GetResourceHandle(FromString(data["EmissionTexture"]));
-			mMaterial.TextureStatusMask |= 1 << kEmissive;
+			mEmissiveTexture = D_RESOURCE::GetResourceSync<TextureResource>(D_RESOURCE::GetResourceHandle(FromString(data["EmissionTexture"])));
+
+			if (mEmissiveTexture.IsValid())
+				mMaterial.TextureStatusMask |= 1 << kEmissive;
+
+			if (mEmissiveTexture.IsValid() && !mEmissiveTexture->IsLoaded())
+				D_RESOURCE_LOADER::LoadResourceAsync(mEmissiveTexture.Get(), nullptr, true);
 		}
 
 		if (data.contains("AmbientOcclusionTexture"))
 		{
-			mAmbientOcclusionTextureHandle = D_RESOURCE::GetResourceHandle(FromString(data["AmbientOcclusionTexture"]));
-			mMaterial.TextureStatusMask |= 1 << kAmbientOcclusion;
+			mAmbientOcclusionTexture = D_RESOURCE::GetResourceSync<TextureResource>(D_RESOURCE::GetResourceHandle(FromString(data["AmbientOcclusionTexture"])));
+
+			if (mAmbientOcclusionTexture.IsValid())
+				mMaterial.TextureStatusMask |= 1 << kAmbientOcclusion;
+
+			if (mAmbientOcclusionTexture.IsValid() && !mAmbientOcclusionTexture->IsLoaded())
+				D_RESOURCE_LOADER::LoadResourceAsync(mAmbientOcclusionTexture.Get(), nullptr, true);
 		}
 
 		if (data.contains("WorldDisplacementTexture"))
 		{
-			mWorldDisplacementTextureHandle = D_RESOURCE::GetResourceHandle(FromString(data["WorldDisplacementTexture"]));
-			mMaterial.TextureStatusMask |= 1 << kWorldDisplacement;
-			mPsoFlags |= RenderItem::HasDisplacement;
+			mWorldDisplacementTexture = D_RESOURCE::GetResourceSync<TextureResource>(D_RESOURCE::GetResourceHandle(FromString(data["WorldDisplacementTexture"])));
+
+			if (mWorldDisplacementTexture.IsValid())
+			{
+				mMaterial.TextureStatusMask |= 1 << kWorldDisplacement;
+				mPsoFlags |= RenderItem::HasDisplacement;
+			}
+
+			if (mWorldDisplacementTexture.IsValid() && !mWorldDisplacementTexture->IsLoaded())
+				D_RESOURCE_LOADER::LoadResourceAsync(mWorldDisplacementTexture.Get(), nullptr, true);
 		}
 
 		if (data.contains("AlphaCutout"))
@@ -212,20 +242,12 @@ namespace Darius::Renderer
 			mTexturesHeap = D_RENDERER::AllocateTextureDescriptor(kNumTextures);
 			mSamplerTable = D_RENDERER::AllocateSamplerDescriptor(kNumTextures);
 		}
-		D_CORE::CountedOwner countedOwner = *this;
-		countedOwner.ChangeCallback = [&]()
+
+		if (AreDependenciesDirty())
 		{
 			MakeGpuDirty();
-		};
-
-		// Load resources
-		mBaseColorTexture = D_RESOURCE::GetResource<TextureResource>(mBaseColorTextureHandle);
-		mNormalTexture = D_RESOURCE::GetResource<TextureResource>(mNormalTextureHandle);
-		mMetallicTexture = D_RESOURCE::GetResource<TextureResource>(mMetallicTextureHandle);
-		mRoughnessTexture = D_RESOURCE::GetResource<TextureResource>(mRoughnessTextureHandle);
-		mEmissiveTexture = D_RESOURCE::GetResource<TextureResource>(mEmissiveTextureHandle);
-		mAmbientOcclusionTexture = D_RESOURCE::GetResource<TextureResource>(mAmbientOcclusionTextureHandle);
-		mWorldDisplacementTexture = D_RESOURCE::GetResource<TextureResource>(mWorldDisplacementTextureHandle);
+			return false;
+		}
 
 		UINT destCount = kNumTextures;
 		UINT sourceCounts[kNumTextures] = { 1, 1, 1, 1, 1, 1, 1 };
@@ -299,42 +321,100 @@ namespace Darius::Renderer
 		return true;
 	}
 
-	void MaterialResource::SetTexture(ResourceHandle textureHandle, D_RENDERER_RAST::TextureType type)
+	void MaterialResource::SetTexture(TextureResource* texture, D_RENDERER_RAST::TextureType type)
 	{
 
-		if (textureHandle.Type != TextureResource::GetResourceType())
+		// If texuture resource is already set, return
+		switch (type)
+		{
+		case Darius::Renderer::Rasterization::kBaseColor:
+			if (mBaseColorTexture == texture)
+				return;
+			break;
+		case Darius::Renderer::Rasterization::kMetallic:
+			if (mMetallicTexture == texture)
+				return;
+			break;
+		case Darius::Renderer::Rasterization::kRoughness:
+			if (mRoughnessTexture == texture)
+				return;
+			break;
+		case Darius::Renderer::Rasterization::kAmbientOcclusion:
+			if (mAmbientOcclusionTexture == texture)
+				return;
+			break;
+		case Darius::Renderer::Rasterization::kEmissive:
+			if (mEmissiveTexture == texture)
+				return;
+			break;
+		case Darius::Renderer::Rasterization::kNormal:
+			if (mNormalTexture == texture)
+				return;
+			break;
+		case Darius::Renderer::Rasterization::kWorldDisplacement:
+			if (mWorldDisplacementTexture == texture)
+				return;
+			break;
+		default:
+			return;
+		}
+
+		// If texture is null, set to default
+		if (texture == nullptr)
 		{
 			mMaterial.TextureStatusMask &= ~(1 << type);
 			switch (type)
 			{
 			case D_RENDERER_RAST::kBaseColor:
-				mBaseColorTextureHandle = D_RENDERER::GetDefaultGraphicsResource(D_RENDERER::DefaultResource::Texture2DWhiteOpaque);
+				mBaseColorTexture = D_RESOURCE::GetResourceSync<TextureResource>(D_RENDERER::GetDefaultGraphicsResource(D_RENDERER::DefaultResource::Texture2DWhiteOpaque));
+
+				if (!mBaseColorTexture->IsLoaded())
+					D_RESOURCE_LOADER::LoadResourceAsync(mBaseColorTexture.Get(), nullptr, true);
 				break;
 			case D_RENDERER_RAST::kMetallic:
-				mMetallicTextureHandle = D_RENDERER::GetDefaultGraphicsResource(D_RENDERER::DefaultResource::Texture2DBlackOpaque);
+				mMetallicTexture = D_RESOURCE::GetResourceSync<TextureResource>(D_RENDERER::GetDefaultGraphicsResource(D_RENDERER::DefaultResource::Texture2DBlackOpaque));
+
+				if (!mMetallicTexture->IsLoaded())
+					D_RESOURCE_LOADER::LoadResourceAsync(mMetallicTexture.Get(), nullptr, true);
 				break;
 			case D_RENDERER_RAST::kRoughness:
-				mRoughnessTextureHandle = D_RENDERER::GetDefaultGraphicsResource(D_RENDERER::DefaultResource::Texture2DBlackOpaque);
+				mRoughnessTexture = D_RESOURCE::GetResourceSync<TextureResource>(D_RENDERER::GetDefaultGraphicsResource(D_RENDERER::DefaultResource::Texture2DBlackOpaque));
+
+				if (!mRoughnessTexture->IsLoaded())
+					D_RESOURCE_LOADER::LoadResourceAsync(mRoughnessTexture.Get(), nullptr, true);
 				break;
 			case D_RENDERER_RAST::kNormal:
-				mNormalTextureHandle = D_RENDERER::GetDefaultGraphicsResource(D_RENDERER::DefaultResource::Texture2DNormalMap);
+				mNormalTexture = D_RESOURCE::GetResourceSync<TextureResource>(D_RENDERER::GetDefaultGraphicsResource(D_RENDERER::DefaultResource::Texture2DNormalMap));
+
+				if (!mNormalTexture->IsLoaded())
+					D_RESOURCE_LOADER::LoadResourceAsync(mNormalTexture.Get(), nullptr, true);
 				break;
 			case D_RENDERER_RAST::kEmissive:
-				mEmissiveTextureHandle = D_RENDERER::GetDefaultGraphicsResource(D_RENDERER::DefaultResource::Texture2DBlackOpaque);
+				mEmissiveTexture = D_RESOURCE::GetResourceSync<TextureResource>(D_RENDERER::GetDefaultGraphicsResource(D_RENDERER::DefaultResource::Texture2DBlackOpaque));
+
+				if (!mEmissiveTexture->IsLoaded())
+					D_RESOURCE_LOADER::LoadResourceAsync(mEmissiveTexture.Get(), nullptr, true);
 				break;
 			case D_RENDERER_RAST::kAmbientOcclusion:
-				mAmbientOcclusionTextureHandle = D_RENDERER::GetDefaultGraphicsResource(D_RENDERER::DefaultResource::Texture2DWhiteOpaque);
+				mAmbientOcclusionTexture = D_RESOURCE::GetResourceSync<TextureResource>(D_RENDERER::GetDefaultGraphicsResource(D_RENDERER::DefaultResource::Texture2DWhiteOpaque));
+
+				if (!mAmbientOcclusionTexture->IsLoaded())
+					D_RESOURCE_LOADER::LoadResourceAsync(mAmbientOcclusionTexture.Get(), nullptr, true);
 				break;
 			case D_RENDERER_RAST::kWorldDisplacement:
-				mWorldDisplacementTextureHandle = D_RENDERER::GetDefaultGraphicsResource(D_RENDERER::DefaultResource::Texture2DBlackOpaque);
+				mWorldDisplacementTexture = D_RESOURCE::GetResourceSync<TextureResource>(D_RENDERER::GetDefaultGraphicsResource(D_RENDERER::DefaultResource::Texture2DBlackOpaque));
+
+				if (!mWorldDisplacementTexture->IsLoaded())
+					D_RESOURCE_LOADER::LoadResourceAsync(mWorldDisplacementTexture.Get(), nullptr, true);
 				mPsoFlags &= ~RenderItem::HasDisplacement;
 			default:
 				return;
 			}
 
-
 			MakeGpuDirty();
 			MakeDiskDirty();
+
+			SignalChange();
 
 			return;
 		}
@@ -344,14 +424,13 @@ namespace Darius::Renderer
 
 #define SetTex(name) \
 { \
-	m##name##TextureHandle = textureHandle; \
-	m##name##Texture = D_RESOURCE::GetResource<TextureResource>(textureHandle); \
+	m##name##Texture = texture; \
 	device->CopyDescriptorsSimple(1, mTexturesHeap + type * incSize, m##name##Texture->GetTextureData()->GetSRV(), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV); \
 	SamplerDesc sd = m##name##Texture->GetSamplerDesc(); \
 	sd.CreateDescriptor(mSamplerTable + incSize * type); \
 }
 
-		auto& context = D_GRAPHICS::GraphicsContext::Begin(L"Set Material Texture");
+		// Copy texture and sampler descriptor to material descriptor tables
 
 		switch (type)
 		{
@@ -378,7 +457,7 @@ namespace Darius::Renderer
 			mPsoFlags |= RenderItem::HasDisplacement;
 			break;
 		default:
-			return;
+			break;
 		}
 
 		mMaterial.TextureStatusMask |= 1 << type;
@@ -386,11 +465,29 @@ namespace Darius::Renderer
 		MakeGpuDirty();
 		MakeDiskDirty();
 
+
+		SignalChange();
 	}
 
+	// Stand alone texture definitions
+#define TexSetterDefinition(type) \
+	void MaterialResource::Set##type##Texture(TextureResource* texture) \
+	{ \
+		SetTexture(texture, k##type);\
+	}
+
+	TexSetterDefinition(BaseColor)
+		TexSetterDefinition(Metallic)
+		TexSetterDefinition(Roughness)
+		TexSetterDefinition(AmbientOcclusion)
+		TexSetterDefinition(Emissive)
+		TexSetterDefinition(Normal)
+		TexSetterDefinition(WorldDisplacement)
+
+#undef TexSetterDefinition
 
 #ifdef _D_EDITOR
-	bool MaterialResource::DrawDetails(float params[])
+		bool MaterialResource::DrawDetails(float params[])
 	{
 
 #define DrawTexture2DHolder(prop, type) \
@@ -413,8 +510,7 @@ namespace Darius::Renderer
 		bool nonSel = !prop.IsValid(); \
 		if (ImGui::Selectable("<None>", &nonSel)) \
 		{ \
-			SetTexture(EmptyResourceHandle, k##type); \
-			valueChanged = true; \
+			SetTexture(nullptr, k##type); \
 		} \
 			 \
 		auto meshes = D_RESOURCE::GetResourcePreviews(TextureResource::GetResourceType()); \
@@ -427,8 +523,7 @@ namespace Darius::Renderer
 			ImGui::PushID((name + std::to_string(idx)).c_str()); \
 			if (ImGui::Selectable(name.c_str(), &selected)) \
 			{ \
-				SetTexture(prev.Handle, k##type); \
-				valueChanged = true; \
+				SetTexture(static_cast<TextureResource*>(D_RESOURCE::GetRawResourceSync(prev.Handle)), k##type); \
 			} \
 			ImGui::PopID(); \
 				 \
@@ -441,10 +536,11 @@ namespace Darius::Renderer
 
 		// Material constants
 	{
-		bool valueChanged = false;
 
 		ImGuiIO& io = ImGui::GetIO();
 		auto boldFont = io.Fonts->Fonts[0];
+		float valueChanged = false;
+
 
 		D_H_DETAILS_DRAW_BEGIN_TABLE();
 
@@ -486,58 +582,73 @@ namespace Darius::Renderer
 		}
 
 		// Albedo
-		ImGui::TableNextRow();
-		ImGui::TableSetColumnIndex(0);
-		DrawTexture2DHolder(mBaseColorTexture, BaseColor);
-		ImGui::SameLine();
-		ImGui::Text("Albedo");
-		if (!(mMaterial.TextureStatusMask & (1 << kBaseColor)))
 		{
-			ImGui::TableSetColumnIndex(1);
-			float defL[] = D_H_DRAW_DETAILS_MAKE_VEC_PARAM_COLOR;
-			if (D_MATH::DrawDetails(*(Vector4*)&mMaterial.DifuseAlbedo, defL))
+			ImGui::TableNextRow();
+			ImGui::TableSetColumnIndex(0);
+			DrawTexture2DHolder(mBaseColorTexture, BaseColor);
+			ImGui::SameLine();
+			ImGui::Text("Albedo");
+			if (!HasAlbedoTexture())
 			{
-				valueChanged = true;
+				auto value = *reinterpret_cast<Vector4*>(GetAlbedoColor().GetPtr());
+				ImGui::TableSetColumnIndex(1);
+				float defL[] = D_H_DRAW_DETAILS_MAKE_VEC_PARAM_COLOR;
+				if (D_MATH::DrawDetails(value, defL))
+				{
+					SetAlbedoColor(D_MATH::Color(value));
+				}
 			}
 		}
 
 		// Metallic
-		ImGui::TableNextRow();
-		ImGui::TableSetColumnIndex(0);
-		DrawTexture2DHolder(mMetallicTexture, Metallic);
-		ImGui::SameLine();
-		ImGui::Text("Metallic");
-		if (!(mMaterial.TextureStatusMask & (1 << kMetallic)))
 		{
-			ImGui::TableSetColumnIndex(1);
-			valueChanged |= ImGui::SliderFloat("##Metallic", &mMaterial.Metallic, 0.f, 1.f, "% .3f");
+			ImGui::TableNextRow();
+			ImGui::TableSetColumnIndex(0);
+			DrawTexture2DHolder(mMetallicTexture, Metallic);
+			ImGui::SameLine();
+			ImGui::Text("Metallic");
+			if (!HasMetallicTexture())
+			{
+				float value = GetMetallic();
+				ImGui::TableSetColumnIndex(1);
+				if (ImGui::SliderFloat("##Metallic", &value, 0.f, 1.f, "% .3f"))
+					SetMetallic(value);
+
+			}
 		}
 
 		// Roughness
-		ImGui::TableNextRow();
-		ImGui::TableSetColumnIndex(0);
-		DrawTexture2DHolder(mRoughnessTexture, Roughness);
-		ImGui::SameLine();
-		ImGui::Text("Roughenss");
-		if (!(mMaterial.TextureStatusMask & (1 << kRoughness)))
 		{
-			ImGui::TableSetColumnIndex(1);
-			valueChanged |= ImGui::SliderFloat("##Roughness", &mMaterial.Roughness, 0.f, 1.f, "% .3f");
+			ImGui::TableNextRow();
+			ImGui::TableSetColumnIndex(0);
+			DrawTexture2DHolder(mRoughnessTexture, Roughness);
+			ImGui::SameLine();
+			ImGui::Text("Roughenss");
+			if (!HasRoughnessTexture())
+			{
+				ImGui::TableSetColumnIndex(1);
+				float value = GetRoughness();
+				if (ImGui::SliderFloat("##Roughness", &value, 0.f, 1.f, "% .3f"))
+					SetRoughness(value);
+			}
 		}
 
 		// Emission
-		ImGui::TableNextRow();
-		ImGui::TableSetColumnIndex(0);
-		DrawTexture2DHolder(mEmissiveTexture, Emissive);
-		ImGui::SameLine();
-		ImGui::Text("Emission");
-		if (!(mMaterial.TextureStatusMask & (1 << kEmissive)))
 		{
-			ImGui::TableSetColumnIndex(1);
-			float emS[] = D_H_DRAW_DETAILS_MAKE_VEC_PARAM_COLOR;
-			if (D_MATH::DrawDetails(*(Vector3*)&mMaterial.Emissive, emS))
+			ImGui::TableNextRow();
+			ImGui::TableSetColumnIndex(0);
+			DrawTexture2DHolder(mEmissiveTexture, Emissive);
+			ImGui::SameLine();
+			ImGui::Text("Emission");
+			if (!HasEmissiveTexture())
 			{
-				valueChanged = true;
+				ImGui::TableSetColumnIndex(1);
+				auto value = *reinterpret_cast<Vector3*>(GetEmissiveColor().GetPtr());
+				float emS[] = D_H_DRAW_DETAILS_MAKE_VEC_PARAM_COLOR;
+				if (D_MATH::DrawDetails(value, emS))
+				{
+					SetEmissiveColor(D_MATH::Color(value));
+				}
 			}
 		}
 
@@ -556,12 +667,13 @@ namespace Darius::Renderer
 			ImGui::SameLine();
 			ImGui::Text("World Displacement");
 
-			if ((mMaterial.TextureStatusMask & (1 << kWorldDisplacement)))
+			if (HasDisplacement())
 			{
 				ImGui::TableSetColumnIndex(1);
-				if (ImGui::DragFloat("##DisplacementAmount", &mMaterial.DisplacementAmount, 0.05f, 0.f))
+				float value = GetDisplacementAmount();
+				if (ImGui::DragFloat("##DisplacementAmount", &value, 0.05f, 0.f))
 				{
-					valueChanged = true;
+					SetDisplacementAmount(value);
 				}
 			}
 		}
@@ -573,11 +685,7 @@ namespace Darius::Renderer
 
 			if (ImGui::Checkbox("##TwoSided", &val))
 			{
-				valueChanged = true;
-				if (val)
-					mPsoFlags |= RenderItem::TwoSided;
-				else
-					mPsoFlags &= ~RenderItem::TwoSided;
+				SetTwoSided(val);
 			}
 		}
 
@@ -585,10 +693,10 @@ namespace Darius::Renderer
 		if (mPsoFlags & RenderItem::AlphaTest)
 		{
 			D_H_DETAILS_DRAW_PROPERTY("Alpha Cutout");
-			if (ImGui::SliderFloat("##AlphaCutout", &mCutout, 0, 1, "%.2f"))
+			float value = GetAlphaCutout();
+			if (ImGui::SliderFloat("##AlphaCutout", &value, 0, 1, "%.2f"))
 			{
-				valueChanged = true;
-				mMaterial.AlphaCutout = floatToHalf(mCutout);
+				SetAlphaCutout(value);
 			}
 		}
 
@@ -603,18 +711,125 @@ namespace Darius::Renderer
 		return valueChanged;
 	}
 	}
+
+	void MaterialResource::SetTwoSided(bool value)
+	{
+		if (value == IsTwoSided())
+			return;
+
+		if (value)
+			mPsoFlags |= RenderItem::TwoSided;
+		else
+			mPsoFlags &= ~RenderItem::TwoSided;
+
+		MakeDiskDirty();
+		MakeGpuDirty();
+
+		SignalChange();
+	}
+
+	void MaterialResource::SetAlphaCutout(float value)
+	{
+		value = D_MATH::Max(0.f, value);
+
+		if (value == GetAlphaCutout())
+			return;
+
+		mCutout = value;
+		mMaterial.AlphaCutout = floatToHalf(value);
+
+		MakeDiskDirty();
+		MakeGpuDirty();
+
+		SignalChange();
+	}
+
+	void MaterialResource::SetDisplacementAmount(float value)
+	{
+		value = D_MATH::Max(0.f, value);
+
+		if (value == mMaterial.DisplacementAmount)
+			return;
+
+		mMaterial.DisplacementAmount = value;
+
+		MakeDiskDirty();
+		MakeGpuDirty();
+
+		SignalChange();
+	}
+
+	void MaterialResource::SetEmissiveColor(D_MATH::Color const& value)
+	{
+		auto valueVector = D_MATH::Vector3(value);
+		if (valueVector == mMaterial.Emissive)
+			return;
+
+		mMaterial.Emissive = (XMFLOAT3)valueVector;
+
+		MakeDiskDirty();
+		MakeGpuDirty();
+
+		SignalChange();
+	}
+
+	void MaterialResource::SetRoughness(float value)
+	{
+		value = D_MATH::Clamp(value, 0.f, 1.f);
+
+		if (value == GetRoughness())
+			return;
+
+		mMaterial.Roughness = value;
+
+		MakeDiskDirty();
+		MakeGpuDirty();
+
+		SignalChange();
+	}
+
+	void MaterialResource::SetMetallic(float value)
+	{
+		value = D_MATH::Clamp(value, 0.f, 1.f);
+
+		if (value == GetMetallic())
+			return;
+
+		mMaterial.Metallic = value;
+
+		MakeDiskDirty();
+		MakeGpuDirty();
+
+		SignalChange();
+	}
+
+	void MaterialResource::SetAlbedoColor(D_MATH::Color const& value)
+	{
+		auto valueVector = D_MATH::Vector4((DirectX::FXMVECTOR)value);
+		if (valueVector == mMaterial.DifuseAlbedo)
+			return;
+
+		mMaterial.DifuseAlbedo = valueVector;
+
+		MakeDiskDirty();
+		MakeGpuDirty();
+
+		SignalChange();
+	}
+
 #endif // _D_EDITOR
 
-	bool MaterialResource::IsDirtyGPU() const
+	bool MaterialResource::AreDependenciesDirty() const
 	{
-		return Resource::IsDirtyGPU() ||
-			(mBaseColorTexture.IsValid() && mBaseColorTexture->IsDirtyGPU()) ||
-			(mNormalTexture.IsValid() && mNormalTexture->IsDirtyGPU()) ||
-			(mMetallicTexture.IsValid() && mMetallicTexture->IsDirtyGPU()) ||
-			(mRoughnessTexture.IsValid() && mRoughnessTexture->IsDirtyGPU()) ||
-			(mEmissiveTexture.IsValid() && mEmissiveTexture->IsDirtyGPU()) ||
-			(mWorldDisplacementTexture.IsValid() && mWorldDisplacementTexture->IsDirtyGPU()) ||
-			(mAmbientOcclusionTexture.IsValid() && mAmbientOcclusionTexture->IsDirtyGPU());
+		return
+			mBaseColorTexture.IsValidAndGpuDirty() ||
+			mNormalTexture.IsValidAndGpuDirty() ||
+			mMetallicTexture.IsValidAndGpuDirty() ||
+			mRoughnessTexture.IsValidAndGpuDirty() ||
+			mEmissiveTexture.IsValidAndGpuDirty() ||
+			mWorldDisplacementTexture.IsValidAndGpuDirty() ||
+			mAmbientOcclusionTexture.IsValidAndGpuDirty();
+
 	}
 
 }

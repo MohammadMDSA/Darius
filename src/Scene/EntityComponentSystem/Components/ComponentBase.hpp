@@ -63,7 +63,7 @@ static void StaticConstructor() \
 static void StaticDistructor() \
 {} \
 private: \
-D_CORE::Signal<void()> mChangeSignal; \
+D_CORE::Signal<void(ComponentBase*)> mChangeSignal; \
 static bool sInit; \
 static std::string DisplayName;
 
@@ -149,17 +149,6 @@ namespace Darius::Scene::ECS::Components
         }
 
         INLINE CompRef<D_MATH::TransformComponent> GetTransform() const { return mGameObject->GetTransform(); }
-
-        INLINE virtual D_CORE::CountedOwner GetAsCountedOwner()
-        {
-            auto strName = GetComponentName();
-            return D_CORE::CountedOwner{ STR2WSTR(strName), GetComponentType(), this, 0 };
-        }
-
-        INLINE operator D_CORE::CountedOwner()
-        {
-            return GetAsCountedOwner();
-        }
 
         static INLINE std::string   ClassName() { return "ComponentBase"; }
 

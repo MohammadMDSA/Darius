@@ -37,6 +37,9 @@ namespace Darius::Animation
 		virtual void							Update(float deltaTime) override;
 		virtual void							Awake() override;
 
+		INLINE AnimationResource*				GetAnimation() const { return mAnimation.Get(); }
+		void									SetAnimation(AnimationResource* animation);
+
 	protected:
 
 		DField(Get[const, &, inline], Set[inline])
@@ -49,7 +52,7 @@ namespace Darius::Animation
 		DField(Get[inline], Set[inline], Serialize)
 		bool									mRootMotion;
 
-		DField(Resource, Serialize)
+		DField(Serialize)
 		D_RESOURCE::ResourceRef<AnimationResource>			mAnimation;
 
 		D_CONTAINERS::DUnorderedMap<int, int>	mAnimationJointIndexMap; // Animation joint index to skeleton joint index

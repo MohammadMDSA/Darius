@@ -152,7 +152,7 @@ namespace Darius::Renderer
 			auto resHandle = D_RESOURCE::GetManager()->CreateResource<StaticMeshResource>(GenerateUuidFor("Box Mesh"), L"Box Mesh", L"Box Mesh", true);
 			MultiPartMeshData<StaticMeshResource::VertexType> meshData;
 			meshData.MeshData = box;
-			auto res = D_RESOURCE::GetManager()->GetRawResource(resHandle);
+			auto res = D_RESOURCE::GetRawResourceSync(resHandle);
 			res->MakeGpuClean();
 			res->MakeDiskClean();
 			((StaticMeshResource*)res)->Create(meshData);
@@ -160,7 +160,7 @@ namespace Darius::Renderer
 
 			resHandle = D_RESOURCE::GetManager()->CreateResource<StaticMeshResource>(GenerateUuidFor("Cylinder Mesh"), L"Cylinder Mesh", L"Cylinder Mesh", true);
 			meshData.MeshData = cylinder;
-			res = D_RESOURCE::GetManager()->GetRawResource(resHandle);
+			res = D_RESOURCE::GetRawResourceSync(resHandle);
 			res->MakeGpuClean();
 			res->MakeDiskClean();
 			((StaticMeshResource*)res)->Create(meshData);
@@ -168,7 +168,7 @@ namespace Darius::Renderer
 
 			resHandle = D_RESOURCE::GetManager()->CreateResource<StaticMeshResource>(GenerateUuidFor("Geosphere Mesh"), L"Geosphere Mesh", L"Geosphere Mesh", true);
 			meshData.MeshData = geosphere;
-			res = D_RESOURCE::GetManager()->GetRawResource(resHandle);
+			res = D_RESOURCE::GetRawResourceSync(resHandle);
 			res->MakeGpuClean();
 			res->MakeDiskClean();
 			((StaticMeshResource*)res)->Create(meshData);
@@ -177,7 +177,7 @@ namespace Darius::Renderer
 			{
 				resHandle = D_RESOURCE::GetManager()->CreateResource<StaticMeshResource>(GenerateUuidFor("Grid 2x2 Mesh"), L"Grid 2x2 Mesh", L"Grid 2x2 Mesh", true);
 				meshData.MeshData = gridp2;
-				res = D_RESOURCE::GetManager()->GetRawResource(resHandle);
+				res = D_RESOURCE::GetRawResourceSync(resHandle);
 				res->MakeGpuClean();
 				res->MakeDiskClean();
 				((StaticMeshResource*)res)->Create(meshData);
@@ -185,7 +185,7 @@ namespace Darius::Renderer
 
 				resHandle = D_RESOURCE::GetManager()->CreateResource<StaticMeshResource>(GenerateUuidFor("Grid 4x4 Mesh"), L"Grid 4x4 Mesh", L"Grid 4x4 Mesh", true);
 				meshData.MeshData = gridp4;
-				res = D_RESOURCE::GetManager()->GetRawResource(resHandle);
+				res = D_RESOURCE::GetRawResourceSync(resHandle);
 				res->MakeGpuClean();
 				res->MakeDiskClean();
 				((StaticMeshResource*)res)->Create(meshData);
@@ -193,7 +193,7 @@ namespace Darius::Renderer
 
 				resHandle = D_RESOURCE::GetManager()->CreateResource<StaticMeshResource>(GenerateUuidFor("Grid 8x8 Mesh"), L"Grid 8x8 Mesh", L"Grid 8x8 Mesh", true);
 				meshData.MeshData = gridp8;
-				res = D_RESOURCE::GetManager()->GetRawResource(resHandle);
+				res = D_RESOURCE::GetRawResourceSync(resHandle);
 				res->MakeGpuClean();
 				res->MakeDiskClean();
 				((StaticMeshResource*)res)->Create(meshData);
@@ -201,7 +201,7 @@ namespace Darius::Renderer
 
 				resHandle = D_RESOURCE::GetManager()->CreateResource<StaticMeshResource>(GenerateUuidFor("Grid 16x16 Mesh"), L"Grid 16x16 Mesh", L"Grid 16x16 Mesh", true);
 				meshData.MeshData = gridp16;
-				res = D_RESOURCE::GetManager()->GetRawResource(resHandle);
+				res = D_RESOURCE::GetRawResourceSync(resHandle);
 				res->MakeGpuClean();
 				res->MakeDiskClean();
 				((StaticMeshResource*)res)->Create(meshData);
@@ -209,7 +209,7 @@ namespace Darius::Renderer
 
 				resHandle = D_RESOURCE::GetManager()->CreateResource<StaticMeshResource>(GenerateUuidFor("Grid 100x100 Mesh"), L"Grid 100x100 Mesh", L"Grid 100x100 Mesh", true);
 				meshData.MeshData = grid100;
-				res = D_RESOURCE::GetManager()->GetRawResource(resHandle);
+				res = D_RESOURCE::GetRawResourceSync(resHandle);
 				res->MakeGpuClean();
 				res->MakeDiskClean();
 				((StaticMeshResource*)res)->Create(meshData);
@@ -218,7 +218,7 @@ namespace Darius::Renderer
 
 			resHandle = D_RESOURCE::GetManager()->CreateResource<StaticMeshResource>(GenerateUuidFor("Quad Mesh"), L"Quad Mesh", L"Quad Mesh", true);
 			meshData.MeshData = quad;
-			res = D_RESOURCE::GetManager()->GetRawResource(resHandle);
+			res = D_RESOURCE::GetRawResourceSync(resHandle);
 			res->MakeGpuClean();
 			res->MakeDiskClean();
 			((StaticMeshResource*)res)->Create(meshData);
@@ -226,7 +226,7 @@ namespace Darius::Renderer
 
 			resHandle = D_RESOURCE::GetManager()->CreateResource<StaticMeshResource>(GenerateUuidFor("Sphere Mesh"), L"Sphere Mesh", L"Sphere Mesh", true);
 			meshData.MeshData = sphere;
-			res = D_RESOURCE::GetManager()->GetRawResource(resHandle);
+			res = D_RESOURCE::GetRawResourceSync(resHandle);
 			res->MakeGpuClean();
 			res->MakeDiskClean();
 			((StaticMeshResource*)res)->Create(meshData);
@@ -234,7 +234,7 @@ namespace Darius::Renderer
 
 			resHandle = D_RESOURCE::GetManager()->CreateResource<StaticMeshResource>(GenerateUuidFor("Low Poly Sphere Mesh"), L"Low Poly Sphere Mesh", L"Low Poly Sphere Mesh", true);
 			meshData.MeshData = lowSphere;
-			res = D_RESOURCE::GetManager()->GetRawResource(resHandle);
+			res = D_RESOURCE::GetRawResourceSync(resHandle);
 			res->MakeGpuClean();
 			res->MakeDiskClean();
 			((StaticMeshResource*)res)->Create(meshData);
@@ -242,7 +242,7 @@ namespace Darius::Renderer
 
 			resHandle = D_RESOURCE::GetManager()->CreateResource<BatchResource>(GenerateUuidFor("Line Mesh"), L"Line Mesh", L"Line Mesh", true);
 			meshData.MeshData = line;
-			res = D_RESOURCE::GetManager()->GetRawResource(resHandle);
+			res = D_RESOURCE::GetRawResourceSync(resHandle);
 			res->MakeGpuClean();
 			res->MakeDiskClean();
 			((BatchResource*)res)->Create(meshData);
@@ -254,7 +254,7 @@ namespace Darius::Renderer
 #define CreateDefaultTexture2D(name, color) \
 { \
 	auto defaultTextureHandle = D_RESOURCE::GetManager()->CreateResource<TextureResource>(GenerateUuidFor("Default Texture2D " #name), L"Default Texture2D " #name, L"Default Texture2D " #name, true); \
-	auto textureRes = (TextureResource*)D_RESOURCE::GetManager()->GetRawResource(defaultTextureHandle); \
+	auto textureRes = (TextureResource*)D_RESOURCE::GetRawResourceSync(defaultTextureHandle); \
 	textureRes->CreateRaw(color, DXGI_FORMAT_R8G8B8A8_UNORM, 4, 1, 1); \
 	auto rRes = dynamic_cast<Resource*>(textureRes); \
 	rRes->MakeGpuClean(); \
@@ -265,14 +265,13 @@ namespace Darius::Renderer
 #define CreateDefaultTextureCubeMap(name, color) \
 { \
 	auto defaultTextureHandle = D_RESOURCE::GetManager()->CreateResource<TextureResource>(GenerateUuidFor("Default TextureCubeMap" #name), L"Default Texture2D " #name, L"Default Texture2D " #name, true); \
-	auto textureRes = (TextureResource*)D_RESOURCE::GetManager()->GetRawResource(defaultTextureHandle); \
+	auto textureRes = (TextureResource*)D_RESOURCE::GetRawResourceSync(defaultTextureHandle); \
 	textureRes->CreateCubeMap(color, DXGI_FORMAT_R8G8B8A8_UNORM, 4, 1, 1); \
 	auto rRes = dynamic_cast<Resource*>(textureRes); \
 	rRes->MakeGpuClean(); \
 	rRes->MakeDiskClean(); \
 	DefaultResourceMap.insert({ DefaultResource::TextureCubeMap##name, { TextureResource::GetResourceType(), textureRes->GetId() } }); \
 }
-
 			CreateDefaultTexture2D(Magenta, 0xFFFF00FF);
 			CreateDefaultTexture2D(BlackOpaque, 0xFF000000);
 			CreateDefaultTexture2D(BlackTransparent, 0x00000000);
@@ -287,7 +286,7 @@ namespace Darius::Renderer
 		// Creating default materials
 		{
 			auto defaultMaterialHandle = D_RESOURCE::GetManager()->CreateResource<MaterialResource>(GenerateUuidFor("Default Material"), L"Default Material", L"Default Material", true);
-			auto materialRes = (MaterialResource*)D_RESOURCE::GetManager()->GetRawResource(defaultMaterialHandle);
+			auto materialRes = (MaterialResource*)D_RESOURCE::GetRawResourceSync(defaultMaterialHandle);
 			auto mat = materialRes->ModifyMaterialData();
 			mat->DifuseAlbedo = DirectX::XMFLOAT4(Vector4(kOne));
 			mat->FresnelR0 = DirectX::XMFLOAT3(Vector3(kOne) * 0.56f);

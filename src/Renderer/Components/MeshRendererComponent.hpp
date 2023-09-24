@@ -4,7 +4,7 @@
 
 #include "Renderer/Resources/StaticMeshResource.hpp"
 
-#include <Core/Ref.hpp>
+#include <Core/RefCounting/Ref.hpp>
 
 #include "MeshRendererComponent.generated.hpp"
 
@@ -33,14 +33,15 @@ namespace Darius::Renderer
 		INLINE virtual bool					CanRender() const override { return MeshRendererComponentBase::CanRender() && mMesh.IsValid(); }
 		INLINE virtual D_MATH_BOUNDS::BoundingSphere const& GetBounds() override { return mMesh.Get()->GetMeshData()->mBoundSp; }
 
+		void								SetMesh(StaticMeshResource* mesh);
+		INLINE StaticMeshResource*			GetMesh() const { return mMesh.Get(); }
+
 	protected:
 		virtual UINT						GetPsoIndex(UINT materialIndex) override;
 
 	private:
 
-		void								_SetMesh(D_RESOURCE::ResourceHandle handle);
-
-		DField(Resource[false], Serialize)
+		DField(Serialize)
 		D_RESOURCE::ResourceRef<StaticMeshResource> mMesh;
 
 	public:

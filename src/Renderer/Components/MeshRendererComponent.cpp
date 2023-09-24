@@ -28,18 +28,22 @@ namespace Darius::Renderer
 
 	MeshRendererComponent::MeshRendererComponent() :
 		MeshRendererComponentBase(),
-		mMesh(GetAsCountedOwner())
+		mMesh()
 	{
 	}
 
 	MeshRendererComponent::MeshRendererComponent(D_CORE::Uuid uuid) :
 		MeshRendererComponentBase(uuid),
-		mMesh(GetAsCountedOwner())
+		mMesh()
 	{
 	}
 
 	bool MeshRendererComponent::AddRenderItems(std::function<void(D_RENDERER::RenderItem const&)> appendFunction)
 	{
+
+		if (mMesh->IsDirtyGPU())
+			return false;
+
 		bool any = false;
 		auto result = RenderItem();
 		const Mesh* mesh = mMesh.Get()->GetMeshData();
@@ -113,6 +117,10 @@ namespace Darius::Renderer
 			mMaterialPsoData[materialIndex].PsoIndex = D_RENDERER_RAST::GetPso(config);
 
 			config.PsoFlags |= RenderItem::DepthOnly;
+
+			if (!(config.PsoFlags & RenderItem::AlphaTest))
+				config.PSIndex = 0;
+
 			mMaterialPsoData[materialIndex].DepthPsoIndex = D_RENDERER_RAST::GetPso(config);
 
 			mMaterialPsoData[materialIndex].PsoIndexDirty = false;
@@ -120,10 +128,19 @@ namespace Darius::Renderer
 		return mMaterialPsoData[materialIndex].PsoIndex;
 	}
 
-	void MeshRendererComponent::_SetMesh(D_RESOURCE::ResourceHandle handle)
+	void MeshRendererComponent::SetMesh(StaticMeshResource* mesh)
 	{
-		mMesh = D_RESOURCE::GetResource<StaticMeshResource>(handle, *this);
+		if (mMesh == mesh)
+			return;
+
+		mMesh = mesh;
+
+		if (mMesh.IsValid() && !mMesh->IsLoaded())
+			D_RESOURCE_LOADER::LoadResourceAsync(mesh, nullptr, true);
+
 		OnMeshChanged();
+
+		mChangeSignal(this);
 	}
 
 #ifdef _D_EDITOR
@@ -141,8 +158,6 @@ namespace Darius::Renderer
 
 		D_H_DETAILS_DRAW_END_TABLE();
 
-		if (valueChanged)
-			mChangeSignal();
 		return valueChanged;
 
 	}

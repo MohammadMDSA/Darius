@@ -27,22 +27,22 @@ namespace Darius::Renderer
 
 	TerrainRendererComponent::TerrainRendererComponent() :
 		ComponentBase(),
-		mMaterial(GetAsCountedOwner()),
-		mGridMesh(GetAsCountedOwner()),
+		mMaterial(),
+		mGridMesh(),
 		//mHeightMap(GetAsCountedOwner()),
 		mGridSize(TerrainGridSize::Cells8x8),
-		mTerrainData(GetAsCountedOwner()),
+		mTerrainData(),
 		mCastsShadow(true)
 	{
 	}
 
 	TerrainRendererComponent::TerrainRendererComponent(D_CORE::Uuid uuid) :
 		ComponentBase(uuid),
-		mMaterial(GetAsCountedOwner()),
-		mGridMesh(GetAsCountedOwner()),
+		mMaterial(),
+		mGridMesh(),
 		//mHeightMap(GetAsCountedOwner()),
 		mGridSize(TerrainGridSize::Cells8x8),
-		mTerrainData(GetAsCountedOwner()),
+		mTerrainData(),
 		mCastsShadow(true)
 	{
 	}
@@ -87,7 +87,7 @@ namespace Darius::Renderer
 	bool TerrainRendererComponent::AddRenderItems(std::function<void(D_RENDERER::RenderItem const&)> appendFunction)
 	{
 
-		if (!mTerrainData.IsValid() || !mMaterial.IsValid() || mMaterial->IsDirtyGPU())
+		if (!mTerrainData.IsValid() || mTerrainData->IsDirtyGPU() || !mMaterial.IsValid() || mMaterial->IsDirtyGPU())
 			return false;
 
 		UpdatePsoIndex();
@@ -157,6 +157,31 @@ namespace Darius::Renderer
 		UpdateGridMesh();
 	}
 
+	void TerrainRendererComponent::SetTerrainData(TerrainResource* terrain)
+	{
+		if (mTerrainData == terrain)
+			return;
+
+		mTerrainData = terrain;
+
+		if(mTerrainData.IsValid() && !mTerrainData->IsLoaded())
+			D_RESOURCE_LOADER::LoadResourceAsync(terrain, nullptr, true);
+
+		mChangeSignal(this);
+	}
+
+	void TerrainRendererComponent::SetMaterial(MaterialResource* material)
+	{
+		if (mMaterial == material)
+			return;
+		mMaterial = material;
+
+		if(mMaterial.IsValid() && !mMaterial->IsLoaded())
+			D_RESOURCE_LOADER::LoadResourceAsync(material, nullptr, true);
+
+		mChangeSignal(this);
+	}
+
 	void TerrainRendererComponent::UpdateGridMesh()
 	{
 		D_RENDERER::DefaultResource defaultResourceType;
@@ -179,7 +204,7 @@ namespace Darius::Renderer
 			defaultResourceType = D_RENDERER::DefaultResource::GridPatch2x2Mesh;
 		}
 
-		mGridMesh = D_RESOURCE::GetResource<D_RENDERER::StaticMeshResource>(D_RENDERER::GetDefaultGraphicsResource(defaultResourceType), GetAsCountedOwner());
+		mGridMesh = D_RESOURCE::GetResourceSync<D_RENDERER::StaticMeshResource>(D_RENDERER::GetDefaultGraphicsResource(defaultResourceType));
 	}
 
 

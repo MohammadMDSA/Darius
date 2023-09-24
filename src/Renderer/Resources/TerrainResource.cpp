@@ -42,7 +42,7 @@ namespace Darius::Renderer
 	TerrainResource::TerrainResource(D_CORE::Uuid uuid, std::wstring const& path, std::wstring const& name, D_RESOURCE::DResourceId id, bool isDefault) :
 		Resource(uuid, path, name, id, isDefault),
 		mHeightFactor(300.f),
-		mHeightMap(GetAsCountedOwner())
+		mHeightMap()
 	{
 		// Is pso setup yet?
 		if (TerrainMeshGenerationCS.GetPipelineStateObject() == nullptr)
@@ -77,7 +77,11 @@ namespace Darius::Renderer
 
 		if (json.contains("HeightMap"))
 		{
-			mHeightMap = D_RESOURCE::GetResource<TextureResource>(D_CORE::FromString(json["HeightMap"]), GetAsCountedOwner());
+			mHeightMap = D_RESOURCE::GetResourceSync<TextureResource>(D_CORE::FromString(json["HeightMap"]));
+
+			if (mHeightMap.IsValid() && !mHeightMap->IsLoaded())
+				D_RESOURCE_LOADER::LoadResourceAsync(mHeightMap.Get(), nullptr, true);
+
 		}
 	}
 
@@ -158,7 +162,7 @@ namespace Darius::Renderer
 		}
 
 		if (!mHeightMap.IsValid())
-			mHeightMap = D_RESOURCE::GetResource<TextureResource>(D_RENDERER::GetDefaultGraphicsResource(D_RENDERER::DefaultResource::Texture2DBlackOpaque), *this);
+			mHeightMap = D_RESOURCE::GetResourceSync<TextureResource>(D_RENDERER::GetDefaultGraphicsResource(D_RENDERER::DefaultResource::Texture2DBlackOpaque));
 
 		if (!mHeightMap->GetDefault() && D_H_ENSURE_FILE(mHeightMap->GetPath()))
 		{
@@ -226,7 +230,7 @@ namespace Darius::Renderer
 		}
 
 		if (!mHeightMap.IsValid())
-			mHeightMap = D_RESOURCE::GetResource<TextureResource>(D_RENDERER::GetDefaultGraphicsResource(D_RENDERER::DefaultResource::Texture2DBlackOpaque), *this);
+			mHeightMap = D_RESOURCE::GetResourceSync<TextureResource>(D_RENDERER::GetDefaultGraphicsResource(D_RENDERER::DefaultResource::Texture2DBlackOpaque));
 
 		UINT destCount = 1;
 		UINT srcCount[] = { 1 };
@@ -286,17 +290,31 @@ namespace Darius::Renderer
 	}
 #endif
 
-	void TerrainResource::SetHeightMap(D_RESOURCE::ResourceHandle handle)
+	void TerrainResource::SetHeightMap(TextureResource* hightMap)
 	{
-		mHeightMap = D_RESOURCE::GetResource<TextureResource>(handle, *this);
+		if (mHeightMap == hightMap)
+			return;
+
+		if (mHeightMap.IsValid() && !mHeightMap->IsLoaded())
+			D_RESOURCE_LOADER::LoadResourceAsync(hightMap, nullptr, true);
+
 		MakeDiskDirty();
 		MakeGpuDirty();
+
+		SignalChange();
 	}
 
-	bool TerrainResource::IsDirtyGPU() const
+	void TerrainResource::SetHeightFactor(float value)
 	{
-		return Resource::IsDirtyGPU() ||
-			(mHeightMap.IsValid() && mHeightMap->IsDirtyGPU());
+		if (value == mHeightFactor)
+			return;
+
+		mHeightFactor = value;
+
+		MakeDiskDirty();
+		MakeGpuDirty();
+
+		SignalChange();
 	}
 
 }

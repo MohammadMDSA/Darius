@@ -153,26 +153,33 @@ namespace Darius::Editor::Gui::Windows
 				if (payload->IsCompatible(D_UTILS::BaseDragDropPayloadContent::Type::Resource, std::to_string(D_SCENE::PrefabResource::GetResourceType())))
 				{
 					auto payloadData = reinterpret_cast<D_RESOURCE::ResourceDragDropPayloadContent const*>(imPayload->Data);
-					auto prefabResource = D_RESOURCE::GetResource<PrefabResource>(payloadData->Handle);
 
-					if (prefabResource.IsValid() && prefabResource->GetPrefabGameObject() && prefabResource->GetPrefabGameObject()->IsValid() && ImGui::AcceptDragDropPayload(D_PAYLOAD_TYPE_RESOURCE))
-					{
-						auto newGo = D_WORLD::InstantiateGameObject(prefabResource->GetPrefabGameObject(), true);
-						newGo->SetParent(go);
-					}
+					D_RESOURCE::GetResourceAsync<PrefabResource>(payloadData->Handle, [go](auto prefabResource)
+						{
+							if (prefabResource.IsValid() && prefabResource->GetPrefabGameObject() && prefabResource->GetPrefabGameObject()->IsValid() && ImGui::AcceptDragDropPayload(D_PAYLOAD_TYPE_RESOURCE))
+							{
+								auto newGo = D_WORLD::InstantiateGameObject(prefabResource->GetPrefabGameObject(), true);
+								newGo->SetParent(go);
+							}
+						});
+
 				}
 
 				// In case it is a fbx prefab resource
 				else if (payload->IsCompatible(D_UTILS::BaseDragDropPayloadContent::Type::Resource, std::to_string(D_RENDERER::FBXPrefabResource::GetResourceType())))
 				{
 					auto payloadData = reinterpret_cast<D_RESOURCE::ResourceDragDropPayloadContent const*>(imPayload->Data);
-					auto prefabResource = D_RESOURCE::GetResource<D_RENDERER::FBXPrefabResource>(payloadData->Handle);
 
-					if (prefabResource.IsValid() && prefabResource->GetPrefabGameObject() && prefabResource->GetPrefabGameObject()->IsValid() && ImGui::AcceptDragDropPayload(D_PAYLOAD_TYPE_RESOURCE))
-					{
-						auto newGo = D_WORLD::InstantiateGameObject(prefabResource->GetPrefabGameObject(), true);
-						newGo->SetParent(go);
-					}
+					D_RESOURCE::GetResourceAsync<D_RENDERER::FBXPrefabResource>(payloadData->Handle, [go](auto prefabResource)
+						{
+							if (prefabResource.IsValid() && prefabResource->GetPrefabGameObject() && prefabResource->GetPrefabGameObject()->IsValid() && ImGui::AcceptDragDropPayload(D_PAYLOAD_TYPE_RESOURCE))
+							{
+								auto newGo = D_WORLD::InstantiateGameObject(prefabResource->GetPrefabGameObject(), true);
+								newGo->SetParent(go);
+							}
+						});
+
+					
 				}
 			}
 			ImGui::EndDragDropTarget();

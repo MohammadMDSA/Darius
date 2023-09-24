@@ -49,11 +49,6 @@ namespace Darius::Scene
 		D_WORLD::LoadGameObject(dataJson, &mPrefabGameObject, false);
 	}
 
-	bool PrefabResource::UploadToGpu()
-	{
-		return true;
-	}
-
 	void PrefabResource::Unload()
 	{
 		D_WORLD::DeleteGameObject(mPrefabGameObject);

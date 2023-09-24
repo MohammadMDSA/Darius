@@ -6,6 +6,8 @@
 #include <Core/Filesystem/Path.hpp>
 #include <Core/Containers/Vector.hpp>
 
+#include <atomic>
+
 #include "ContentWindow.generated.hpp"
 
 namespace Darius::Editor::Gui::Windows
@@ -51,6 +53,9 @@ namespace Darius::Editor::Gui::Windows
 		D_FILE::Path				mCurrentDirectory;
 		float						mTreeViewWidth;
 		float						mRightPanelWidth;
+
+
+		std::atomic_bool			mItemsLoading;
 	};
 }
 

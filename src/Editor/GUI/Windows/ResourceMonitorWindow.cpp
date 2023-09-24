@@ -93,7 +93,7 @@ namespace Darius::Editor::Gui::Windows
 					ImGui::TableSetColumnIndex(9);
 					ImGui::Text(resource->GetDefault() ? " - " : resource->GetPath().string().c_str());
 					ImGui::TableSetColumnIndex(10);
-					ImGui::Text(std::to_string(resource->GetNamedOwnersCount()).c_str());
+					ImGui::Text(std::to_string(resource->GetReferenceCount()).c_str());
 
 				}
 			}
