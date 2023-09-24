@@ -3,7 +3,8 @@
 #include "EntityComponentSystem/Entity.hpp"
 #include "EntityComponentSystem/CompRef.hpp"
 
-#include <Core/Counted.hpp>
+#include <Core/Containers/Map.hpp>
+#include <Core/RefCounting/Ref.hpp>
 #include <Core/Uuid.hpp>
 #include <Core/Serialization/Json.hpp>
 #include <Core/Exceptions/Exception.hpp>
@@ -38,9 +39,8 @@ namespace Darius::Math
 namespace Darius::Scene
 {
 	class SceneManager;
-	class GameObject;
 	
-	class DClass(Serialize) GameObject : public Detailed, public D_CORE::Counted
+	class DClass(Serialize) GameObject sealed : public Detailed, public D_CORE::Counted
 	{
 	public:
 
@@ -146,12 +146,9 @@ namespace Darius::Scene
 
 #ifdef _D_EDITOR
 		bool								DrawDetails(float params[]);
+		INLINE bool							IsEditableInDetailsWindow() const { return true; }
 		void								OnGizmo() const;
 #endif // _EDITOR
-
-		INLINE operator D_CORE::CountedOwner const() {
-			return D_CORE::CountedOwner { STR2WSTR(mName), rttr::type::get<GameObject>(), this, 0};
-		}
 
 		static void							RegisterComponent(std::string name, D_CONTAINERS::DVector<std::string>& displayName);
 		static void							RegisterBehaviourComponent(D_ECS::EntityId componentId);
@@ -163,9 +160,15 @@ namespace Darius::Scene
 			bool								IsBranch;
 		};
 
+	protected:
+		virtual bool Release() override;
+
 	private:
 		friend class D_SCENE::SceneManager;
 		friend class Darius::Scene::ECS::Components::ComponentBase;
+
+		template<class T>
+		friend class D_CORE::Ref;
 
 		GameObject(D_CORE::Uuid uuid, D_ECS::Entity entity, bool inScene = true);
 
@@ -203,6 +206,7 @@ namespace Darius::Scene
 		DField(Get[inline], Serialize)
 		D_CORE::Uuid			mPrefab;
 
+		DField(Get[inline])
 		D_ECS::Entity			mEntity;
 
 		DField(Get[inline])

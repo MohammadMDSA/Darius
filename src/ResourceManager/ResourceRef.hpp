@@ -2,7 +2,7 @@
 
 #include "Resource.hpp"
 
-#include <Core/Ref.hpp>
+#include <Core/RefCounting/Ref.hpp>
 
 #ifndef D_RESOURCE
 #define D_RESOURCE Darius::ResourceManager
@@ -13,22 +13,26 @@ namespace Darius::ResourceManager
 	template<class T>
 	class ResourceRef : public D_CORE::Ref<T>
 	{
+		using __conv = std::is_convertible<T*, Resource*>;
+		D_STATIC_ASSERT(__conv::value);
+
 	public:
 
-		ResourceRef() : ResourceRef(nullptr, std::nullopt) {}
+		ResourceRef(ResourceRef const& other) : D_CORE::Ref<T>(other) { }
 
-		ResourceRef(D_CORE::CountedOwner ownerData) : ResourceRef(nullptr, ownerData) {}
+		template<class OTHER>
+		ResourceRef(D_CORE::Ref<OTHER> const& other) : D_CORE::Ref<T>(other) { };
 
-		ResourceRef(T* data, std::optional<D_CORE::CountedOwner> ownerData = std::nullopt) :
-			D_CORE::Ref<T>(data, ownerData)
-		{
-			using conv = std::is_convertible<T*, Resource*>;
-			D_STATIC_ASSERT(conv::value);
-		}
+		ResourceRef(T* ptr) : D_CORE::Ref<T>(ptr) { }
+
+		ResourceRef() : D_CORE::Ref<T>() { };
+
+		INLINE bool IsValidAndGpuDirty() const { return D_CORE::Ref<T>::IsValid() && D_CORE::Ref<T>::Get()->IsDirtyGPU(); }
 	};
 
 	template<class T>
-	D_RESOURCE::ResourceRef<T> GetResource(D_CORE::Uuid const& uuid, std::optional<D_CORE::CountedOwner> ownerData = std::nullopt);
+	D_RESOURCE::ResourceRef<T> GetResourceSync(D_CORE::Uuid const& uuid);
+	Resource* GetRawResourceSync(D_CORE::Uuid const& uuid, bool syncLoad);
 
 }
 
@@ -51,7 +55,8 @@ namespace rttr
 		{
 			if (value.is_nil())
 				return D_RESOURCE::ResourceRef<T>(nullptr);
-			return D_RESOURCE::GetResource<T>(value, std::nullopt);
+			D_RESOURCE::GetRawResourceSync(value, true);
+			return D_RESOURCE::GetResourceSync<T>(value);
 		}
 
 		template<typename U>

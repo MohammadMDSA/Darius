@@ -522,4 +522,10 @@ namespace Darius::Scene
 		RegisteredBehaviours.insert(compId);
 	}
 
+	bool GameObject::Release()
+	{
+		D_WORLD::DeleteGameObject(this);
+		return true;
+	}
+
 }

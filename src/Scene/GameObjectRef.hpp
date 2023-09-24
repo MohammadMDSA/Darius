@@ -3,7 +3,7 @@
 #include "GameObject.hpp"
 #include "Scene.hpp"
 
-#include <Core/Ref.hpp>
+#include <Core/RefCounting/Ref.hpp>
 #include <Core/Serialization/TypeSerializer.hpp>
 
 #ifndef D_SCENE
@@ -16,43 +16,30 @@ namespace Darius::Scene
 	{
 	public:
 
-		GameObjectRef() : GameObjectRef(nullptr, std::nullopt) { }
+		GameObjectRef() : D_CORE::Ref<GameObject>() { }
 
-		GameObjectRef(D_CORE::CountedOwner ownerData) : GameObjectRef(nullptr, ownerData) { }
+		template<class OTHER>
+		GameObjectRef(D_CORE::Ref<OTHER> const& other) : D_CORE::Ref<GameObject>(other) { }
 
-		GameObjectRef(GameObject* data, std::optional<D_CORE::CountedOwner> ownerData = std::nullopt) :
-			D_CORE::Ref<GameObject>(data, ownerData)
-		{
-			if (data != nullptr)
-				mUuid = data->GetUuid();
-			else
-				mUuid = D_CORE::Uuid();
-		}
+		GameObjectRef(GameObject* gameObject) : D_CORE::Ref<GameObject>(gameObject) { }
+
+		GameObjectRef(GameObjectRef const& other) : D_CORE::Ref<GameObject>(other) { }
 
 		INLINE virtual bool IsValid() const override
 		{
 			if (!D_CORE::Ref<GameObject>::IsValid())
 				return false;
-			auto sceneObj = D_WORLD::GetGameObject(mUuid);
+			auto sceneObj = D_WORLD::GetGameObject(Get()->GetEntity());
 			return sceneObj && sceneObj->IsValid();
 		}
 
 		INLINE bool IsValid(_OUT_ bool& isMissing) const
 		{
-			auto sceneObj = D_WORLD::GetGameObject(mUuid);
-			isMissing = !mUuid.is_nil() && sceneObj == nullptr;
+			auto sceneObj = IsNull() ? nullptr : D_WORLD::GetGameObject(Get()->GetEntity());
+			isMissing = sceneObj == nullptr;
 			return D_CORE::Ref<GameObject>::IsValid() && sceneObj && sceneObj->IsValid();
 		}
 
-		INLINE virtual void SetData(GameObject* data) override
-		{
-			D_CORE::Ref<GameObject>::SetData(data);
-			if (data)
-				mUuid = data->GetUuid();
-		}
-
-	private:
-		D_CORE::Uuid			mUuid;
 	};
 }
 
