@@ -290,13 +290,15 @@ namespace Darius::Renderer
 	}
 #endif
 
-	void TerrainResource::SetHeightMap(TextureResource* hightMap)
+	void TerrainResource::SetHeightMap(TextureResource* heightMap)
 	{
-		if (mHeightMap == hightMap)
+		if (mHeightMap == heightMap)
 			return;
 
+		mHeightMap = heightMap;
+
 		if (mHeightMap.IsValid() && !mHeightMap->IsLoaded())
-			D_RESOURCE_LOADER::LoadResourceAsync(hightMap, nullptr, true);
+			D_RESOURCE_LOADER::LoadResourceAsync(heightMap, nullptr, true);
 
 		MakeDiskDirty();
 		MakeGpuDirty();

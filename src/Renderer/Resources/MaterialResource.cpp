@@ -243,12 +243,6 @@ namespace Darius::Renderer
 			mSamplerTable = D_RENDERER::AllocateSamplerDescriptor(kNumTextures);
 		}
 
-		if (AreDependenciesDirty())
-		{
-			MakeGpuDirty();
-			return false;
-		}
-
 		UINT destCount = kNumTextures;
 		UINT sourceCounts[kNumTextures] = { 1, 1, 1, 1, 1, 1, 1 };
 		D3D12_CPU_DESCRIPTOR_HANDLE initialTextures[kNumTextures]

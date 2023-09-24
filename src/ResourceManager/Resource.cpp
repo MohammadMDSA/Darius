@@ -45,8 +45,16 @@ namespace Darius::ResourceManager
 
 	bool Resource::UpdateGPU()
 	{
+		// Update dependencies first
+		if (AreDependenciesDirty())
+		{
+			// If dependencies are dirty, I mark myself to be updated when they are done
+			MakeGpuDirty();
+			return false;
+		}
+
 		// Is gpu already up to date
-		if (!IsDirtyGPU())
+		if (!IsSelfDirtyGPU())
 			return false;
 
 		SetLocked(true);
