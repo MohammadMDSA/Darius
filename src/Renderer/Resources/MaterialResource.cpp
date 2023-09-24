@@ -425,9 +425,8 @@ namespace Darius::Renderer
 #define SetTex(name) \
 { \
 	m##name##Texture = texture; \
-	device->CopyDescriptorsSimple(1, mTexturesHeap + type * incSize, m##name##Texture->GetTextureData()->GetSRV(), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV); \
-	SamplerDesc sd = m##name##Texture->GetSamplerDesc(); \
-	sd.CreateDescriptor(mSamplerTable + incSize * type); \
+	if(m##name##Texture.IsValid() && !m##name##Texture->IsLoaded()) \
+		D_RESOURCE_LOADER::LoadResourceAsync(texture, nullptr, true); \
 }
 
 		// Copy texture and sampler descriptor to material descriptor tables
