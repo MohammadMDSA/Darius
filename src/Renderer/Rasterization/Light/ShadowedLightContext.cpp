@@ -5,6 +5,7 @@
 #include "Renderer/RendererCommon.hpp"
 
 #include <Graphics/GraphicsUtils/Profiling/Profiling.hpp>
+#include <Job/Job.hpp>
 #include <Math/VectorMath.hpp>
 
 #include "Renderer/Components/LightComponent.hpp"
@@ -62,6 +63,9 @@ namespace Darius::Renderer::Rasterization::Light
 	{
 		Reset();
 
+		D_CONTAINERS::DVector<std::function<void()>> updateFuncs;
+		updateFuncs.reserve(D_WORLD::CountComponents<D_RENDERER::LightComponent>());
+
 		D_WORLD::IterateComponents<D_RENDERER::LightComponent>([&](D_RENDERER::LightComponent& comp)
 			{
 				if (!comp.IsActive())
@@ -74,21 +78,28 @@ namespace Darius::Renderer::Rasterization::Light
 				lightData.Position = (DirectX::XMFLOAT3)trans->GetPosition();
 				lightData.Direction = (DirectX::XMFLOAT3)trans->GetRotation().GetForward();
 
-				switch (lightType)
-				{
-				case LightSourceType::DirectionalLight:
-					CalculateDirectionalShadowCamera(viewerCamera, lightData, lightIndex);
-					break;
-				case LightSourceType::PointLight:
-					CalculatePointShadowCamera(lightData, lightIndex);
-					break;
-				case LightSourceType::SpotLight:
-					CalculateSpotShadowCamera(lightData, lightIndex);
-					break;
-				default:
-					D_ASSERT_M(false, "Source type is not implemented");
-				}
+				updateFuncs.push_back([&, lightType, viewerCamera, light = &lightData, lightIndex]()
+					{
+						switch (lightType)
+						{
+						case LightSourceType::DirectionalLight:
+							CalculateDirectionalShadowCamera(viewerCamera, *light, lightIndex);
+							break;
+						case LightSourceType::PointLight:
+							CalculatePointShadowCamera(*light, lightIndex);
+							break;
+						case LightSourceType::SpotLight:
+							CalculateSpotShadowCamera(*light, lightIndex);
+							break;
+						default:
+							D_ASSERT_M(false, "Source type is not implemented");
+						}
+					});
 			});
+
+
+		// Wait for processing all light sources
+		D_JOB::AddTaskSetAndWait(updateFuncs);
 	}
 
 	void RasterizationShadowedLightContext::CalculateDirectionalShadowCamera(D_MATH_CAMERA::Camera const& viewerCamera, LightData& light, int directionalIndex)
