@@ -192,95 +192,45 @@ namespace Darius::Renderer::Rasterization
 		auto frustum = cam.GetViewSpaceFrustum();
 
 		// Iterating over static meshes
-		D_WORLD::IterateComponents<MeshRendererComponent>([&](D_RENDERER::MeshRendererComponent& meshComp)
-			{
-				// Can't render
-				if (!meshComp.CanRender())
-					return;
+#define ADD_RENDERER_COMPONENT_RENDER_ITEMS(type) \
+		D_WORLD::IterateComponents<type>([&](D_RENDERER::type& meshComp) \
+			{ \
+				/* Can't render */ \
+				if (!meshComp.CanRender()) \
+					return; \
+\
+				/* Is it in our frustum */ \
+				auto sphereWorldSpace = AffineTransform(meshComp.GetTransform()->GetWorld()) * meshComp.GetBounds(); \
+				auto sphereViewSpace = BoundingSphere(Vector3(cam.GetViewMatrix() * sphereWorldSpace.GetCenter()), sphereWorldSpace.GetRadius()); \
+				if (!frustum.IntersectSphere(sphereViewSpace)) \
+					return; \
+\
+				auto distance = -sphereViewSpace.GetCenter().GetZ() - sphereViewSpace.GetRadius(); \
+\
+				meshComp.AddRenderItems([distance, &sorter](auto const& ri) \
+					{ \
+						sorter.AddMesh(ri, distance); \
+					}); \
+			}); \
 
-				// Is it in our frustum
-				auto sphereWorldSpace = AffineTransform(meshComp.GetTransform()->GetWorld()) * meshComp.GetBounds();
-				auto sphereViewSpace = BoundingSphere(Vector3(cam.GetViewMatrix() * sphereWorldSpace.GetCenter()), sphereWorldSpace.GetRadius());
-				if (!frustum.IntersectSphere(sphereViewSpace))
-					return;
+		ADD_RENDERER_COMPONENT_RENDER_ITEMS(MeshRendererComponent);
+		ADD_RENDERER_COMPONENT_RENDER_ITEMS(SkeletalMeshRendererComponent);
+		ADD_RENDERER_COMPONENT_RENDER_ITEMS(BillboardRendererComponent);
+		ADD_RENDERER_COMPONENT_RENDER_ITEMS(TerrainRendererComponent);
 
-				auto distance = -sphereViewSpace.GetCenter().GetZ() - sphereViewSpace.GetRadius();
-
-				meshComp.AddRenderItems([distance, &sorter](auto const& ri)
-					{
-						sorter.AddMesh(ri, distance);
-					});
-			});
-
-		// Iterating over skeletal meshes
-		D_WORLD::IterateComponents<SkeletalMeshRendererComponent>([&](D_RENDERER::SkeletalMeshRendererComponent& meshComp)
-			{
-				// Can't render
-				if (!meshComp.CanRender())
-					return;
-
-				// Is it in our frustum
-				auto sphereWorldSpace = AffineTransform(meshComp.GetTransform()->GetWorld()) * meshComp.GetBounds();
-				auto sphereViewSpace = BoundingSphere(Vector3(cam.GetViewMatrix() * sphereWorldSpace.GetCenter()), sphereWorldSpace.GetRadius());
-				if (!frustum.IntersectSphere(sphereViewSpace))
-					return;
-
-				auto distance = -sphereViewSpace.GetCenter().GetZ() - sphereViewSpace.GetRadius();
-
-				meshComp.AddRenderItems([distance, &sorter](auto const& ri)
-					{
-						sorter.AddMesh(ri, distance);
-					});
-			});
-
-		// Iterating over billboards
-		D_WORLD::IterateComponents<BillboardRendererComponent>([&](D_RENDERER::BillboardRendererComponent& meshComp)
-			{
-				// Can't render
-				if (!meshComp.CanRender())
-					return;
-
-				// Is it in our frustum
-				auto sphereWorldSpace = AffineTransform(meshComp.GetTransform()->GetWorld()) * meshComp.GetBounds();
-				auto sphereViewSpace = BoundingSphere(Vector3(cam.GetViewMatrix() * sphereWorldSpace.GetCenter()), sphereWorldSpace.GetRadius());
-				if (!frustum.IntersectSphere(sphereViewSpace))
-					return;
-
-				auto distance = -sphereViewSpace.GetCenter().GetZ() - sphereViewSpace.GetRadius();
-
-				meshComp.AddRenderItems([distance, &sorter](auto const& ri)
-					{
-						sorter.AddMesh(ri, distance);
-					});
-			});
-
-		// Iterating over terrains
-		D_WORLD::IterateComponents<TerrainRendererComponent>([&](D_RENDERER::TerrainRendererComponent& meshComp)
-			{
-				// Can't render
-				if (!meshComp.CanRender())
-					return;
-
-				// Is it in our frustum
-				auto sphereWorldSpace = AffineTransform(meshComp.GetTransform()->GetWorld()) * meshComp.GetBounds();
-				auto sphereViewSpace = BoundingSphere(Vector3(cam.GetViewMatrix() * sphereWorldSpace.GetCenter()), sphereWorldSpace.GetRadius());
-				if (!frustum.IntersectSphere(sphereViewSpace))
-					return;
-
-				auto distance = -sphereViewSpace.GetCenter().GetZ() - sphereViewSpace.GetRadius();
-
-				meshComp.AddRenderItems([distance, &sorter](auto const& ri)
-					{
-						sorter.AddMesh(ri, distance);
-					});
-			});
-
-		//D_LOG_DEBUG("Number of render items: " << sorter.CountObjects());
-
+#undef ADD_RENDERER_COMPONENT_RENDER_ITEMS
 	}
 
 	void AddShadowRenderItems(D_CONTAINERS::DVector<RenderItem>& items)
 	{
+
+		UINT shadowCompsCount = 0;
+		shadowCompsCount += D_WORLD::CountComponents<D_RENDERER::MeshRendererComponent>();
+		shadowCompsCount += D_WORLD::CountComponents<D_RENDERER::SkeletalMeshRendererComponent>();
+		shadowCompsCount += D_WORLD::CountComponents<D_RENDERER::BillboardRendererComponent>();
+		shadowCompsCount += D_WORLD::CountComponents<D_RENDERER::TerrainRendererComponent>();
+		items.reserve(shadowCompsCount);
+
 		// Iterating over meshes
 		D_WORLD::IterateComponents<MeshRendererComponent>([&](D_RENDERER::MeshRendererComponent& meshComp)
 			{
