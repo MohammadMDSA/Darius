@@ -63,9 +63,6 @@ namespace Darius::Renderer
 		if (!IsDirty() || !IsActive())
 			return;
 
-		if (!mMaterial.IsValid() || mMaterial->IsDirtyGPU())
-			return;
-
 		auto& context = D_GRAPHICS::GraphicsContext::Begin();
 
 		// Updating mesh constants
