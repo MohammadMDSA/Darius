@@ -312,7 +312,7 @@ if ( CMAKE_CXX_COMPILER_ID MATCHES "MSVC" )
          /sdl /permissive- /Zc:__cplusplus
          "/wd4061" "/wd4365" "/wd4514" "/wd4571" "/wd4668" "/wd4710" "/wd4820" "/wd5039" "/wd5045"
          "/wd4265" "/wd4625" "/wd4626" "/wd4986" "/wd5204" "/wd5220"
-         "/wd4324" "/wd4623"
+         "/wd4324" "/wd4623" "/wd5262" "/wd5264"
          "/wd5026" "/wd5027" "/wd5038"
          "/wd4464" "/wd4127" "/wd4371" "/wd5205" "/wd5032" "/wd5219" "/wd4868")
 
