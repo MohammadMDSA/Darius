@@ -53,7 +53,7 @@ namespace Darius::ResourceManager
 			D_RESOURCE_LOADER::LoadResourceSync(resource);
 		if (syncLoad && resource->IsDirtyGPU())
 		{
-			if (resource->UpdateGPU())
+			if (resource->UpdateGPU() == ResourceGpuUpdateResult::Success)
 				resource->MakeGpuClean();
 		}
 		return resource;
@@ -221,8 +221,11 @@ namespace Darius::ResourceManager
 	void DResourceManager::UpdateGPUResources()
 	{
 		static DVector<Resource*> dirtyResources;
+		static DVector<Resource*> stillDirtyResources;
 		dirtyResources.clear();
+		stillDirtyResources.clear();
 
+		// Iterating over all resources
 		for (auto& resType : mResourceMap)
 		{
 			for (auto& res : resType.second)
@@ -230,14 +233,63 @@ namespace Darius::ResourceManager
 				auto resource = res.second;
 				if (resource->IsLoaded() && resource->IsDirtyGPU() && !resource->IsLocked())
 				{
-					if (resource->UpdateGPU())
+					switch (resource->UpdateGPU())
+					{
+						// It is successfully cleaned
+					case ResourceGpuUpdateResult::Success:
 						dirtyResources.push_back(resource.get());
+						break;
+
+						// It will be cleaned in the next round
+					case ResourceGpuUpdateResult::DirtyDependency:
+						stillDirtyResources.push_back(resource.get());
+						break;
+
+					case ResourceGpuUpdateResult::AlreadyClean:
+					default:
+						break;
+					}
 				}
 			}
 		}
 
+		// Make gpu state of the clean ones, clean
 		for (auto resource : dirtyResources)
 			resource->MakeGpuClean();
+		dirtyResources.clear();
+
+		while (!stillDirtyResources.empty())
+		{
+			static DVector<Resource*> newStillDirtyResources;
+
+			for (auto resource : stillDirtyResources)
+			{
+				switch (resource->UpdateGPU())
+				{
+					// It is successfully cleaned
+				case ResourceGpuUpdateResult::Success:
+					dirtyResources.push_back(resource);
+					break;
+
+					// It will be cleaned in the next round
+				case ResourceGpuUpdateResult::DirtyDependency:
+					newStillDirtyResources.push_back(resource);
+					break;
+
+				case ResourceGpuUpdateResult::AlreadyClean:
+				default:
+					break;
+				}
+			}
+
+			// Make gpu state of the clean ones, clean
+			for (auto resource : dirtyResources)
+				resource->MakeGpuClean();
+			dirtyResources.clear();
+
+			stillDirtyResources = newStillDirtyResources;
+			newStillDirtyResources.clear();
+		}
 	}
 
 	void DResourceManager::UpdateMaps(std::shared_ptr<Resource> resource)

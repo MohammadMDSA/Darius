@@ -43,19 +43,19 @@ namespace Darius::ResourceManager
 		return Resource::GetResourceTypeFromName(name);
 	}
 
-	bool Resource::UpdateGPU()
+	ResourceGpuUpdateResult Resource::UpdateGPU()
 	{
 		// Update dependencies first
 		if (AreDependenciesDirty())
 		{
 			// If dependencies are dirty, I mark myself to be updated when they are done
 			MakeGpuDirty();
-			return false;
+			return ResourceGpuUpdateResult::DirtyDependency;
 		}
 
 		// Is gpu already up to date
 		if (!IsSelfDirtyGPU())
-			return false;
+			return ResourceGpuUpdateResult::AlreadyClean;
 
 		SetLocked(true);
 
@@ -63,7 +63,7 @@ namespace Darius::ResourceManager
 
 		SetLocked(false);
 
-		return result;
+		return ResourceGpuUpdateResult::Success;
 	}
 
 	void Resource::AddTypeContainer(ResourceType type)

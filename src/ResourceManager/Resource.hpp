@@ -105,6 +105,13 @@ namespace Darius::ResourceManager
 	std::string ResourceTypeToString(ResourceType type);
 	ResourceType StringToResourceType(std::string type);
 
+	enum class ResourceGpuUpdateResult
+	{
+		Success,
+		AlreadyClean,
+		DirtyDependency
+	};
+
 	class DClass(Serialize) Resource : public D_CORE::Counted, public Detailed
 	{
 	public:
@@ -176,7 +183,7 @@ namespace Darius::ResourceManager
 
 	public:
 		// Returns true if gpu dirty state "has changed" AND "changed to true". Returns false if the state didn't change or didn't clean gpu.
-		bool						UpdateGPU();
+		ResourceGpuUpdateResult		UpdateGPU();
 
 #ifdef _D_EDITOR
 		// The result of this method is obsolete

@@ -32,7 +32,7 @@ namespace Darius::ResourceManager
 				ResourceLoader::LoadResourceSync(mPendingToLoad);
 
 			if (mUpdateGpu && mPendingToLoad->IsDirtyGPU())
-				if (mPendingToLoad->UpdateGPU())
+				if (mPendingToLoad->UpdateGPU() == ResourceGpuUpdateResult::Success)
 					mPendingToLoad->MakeGpuClean();
 
 			if (mCallback)
