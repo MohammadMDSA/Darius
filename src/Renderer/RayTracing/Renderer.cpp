@@ -150,12 +150,14 @@ namespace Darius::Renderer::RayTracing
 
 		// Updating Components
 		UpdateRendererComponents(context);
+		
+	}
 
-		// Updating BLASes
-		{
-			D_PROFILING::ScopedTimer _prof(L"Update Blas Instances", context);
+	void UpdateAS(D_GRAPHICS::CommandContext& context)
+	{
+		D_PROFILING::ScopedTimer _prof(L"Update Blas Instances", context);
 
-			auto createStaticMeshBlas = [scene = RTScene.get()](D_RENDERER_GEOMETRY::Mesh const& mesh, D_CORE::Uuid const& uuid)
+		auto createStaticMeshBlas = [scene = RTScene.get()](D_RENDERER_GEOMETRY::Mesh const& mesh, D_CORE::Uuid const& uuid)
 			{
 				BottomLevelAccelerationStructureGeometry BLASGeom = { mesh, uuid, D3D12_RAYTRACING_GEOMETRY_FLAG_OPAQUE };
 
@@ -166,68 +168,68 @@ namespace Darius::Renderer::RayTracing
 #endif
 			};
 
-			D_WORLD::IterateComponents<MeshRendererComponent>([scene = RTScene.get(), createBlasFunc = createStaticMeshBlas](D_RENDERER::MeshRendererComponent& comp)
+		D_WORLD::IterateComponents<MeshRendererComponent>([scene = RTScene.get(), createBlasFunc = createStaticMeshBlas](D_RENDERER::MeshRendererComponent& comp)
+			{
+				if (!comp.IsActive())
+					return;
+
+				auto const* meshRes = comp.GetMesh();
+
+				if (!meshRes || meshRes->IsDirtyGPU())
+					return;
+
+				auto const& mats = comp.GetMaterials();
+
+				auto uuid = meshRes->GetUuid();
+				auto const* blas = scene->GetBottomLevelAS(uuid);
+
+				// Create blas if it's not there
+				if (!blas)
 				{
-					if (!comp.IsActive())
-						return;
+					createBlasFunc(*meshRes->GetMeshData(), uuid);
+				}
 
-					auto const* meshRes = comp.GetMesh();
+				// Submit BLAS instance with all associated data
+				BYTE mask = comp.IsCastsShadow() ? 0xff : (0xff & ~InstanceFlags::CastsShadow);
+				scene->AddBottomLevelASInstance(uuid, mats, comp.GetConstantsAddress(), comp.GetTransform()->GetWorld(), mask);
+			});
 
-					if (!meshRes || meshRes->IsDirtyGPU())
-						return;
+		D_WORLD::IterateComponents<TerrainRendererComponent>([scene = RTScene.get(), createBlasFunc = createStaticMeshBlas](D_RENDERER::TerrainRendererComponent& comp)
+			{
+				if (!comp.IsActive())
+					return;
 
-					auto const& mats = comp.GetMaterials();
+				auto const* terrainRes = comp.GetTerrainData();
 
-					auto uuid = meshRes->GetUuid();
-					auto const* blas = scene->GetBottomLevelAS(uuid);
+				if (!terrainRes || terrainRes->IsDirtyGPU())
+					return;
 
-					// Create blas if it's not there
-					if (!blas)
-					{
-						createBlasFunc(*meshRes->GetMeshData(), uuid);
-					}
+				auto const mat = comp.GetMaterialRef();
 
-					// Submit BLAS instance with all associated data
-					BYTE mask = comp.IsCastsShadow() ? 0xff : (0xff & ~InstanceFlags::CastsShadow);
-					scene->AddBottomLevelASInstance(uuid, mats, comp.GetConstantsAddress(), comp.GetTransform()->GetWorld(), mask);
-				});
+				auto uuid = terrainRes->GetUuid();
+				auto const* blas = scene->GetBottomLevelAS(uuid);
 
-			D_WORLD::IterateComponents<TerrainRendererComponent>([scene = RTScene.get(), createBlasFunc = createStaticMeshBlas](D_RENDERER::TerrainRendererComponent& comp)
+				// Create blas if it's not there
+				if (!blas)
 				{
-					if (!comp.IsActive())
-						return;
-
-					auto const* terrainRes = comp.GetTerrainData();
-
-					if (!terrainRes || terrainRes->IsDirtyGPU())
-						return;
-
-					auto const mat = comp.GetMaterialRef();
-
-					auto uuid = terrainRes->GetUuid();
-					auto const* blas = scene->GetBottomLevelAS(uuid);
-
-					// Create blas if it's not there
-					if (!blas)
-					{
-						createBlasFunc(terrainRes->GetMeshData(), uuid);
-					}
+					createBlasFunc(terrainRes->GetMeshData(), uuid);
+				}
 
 #ifdef _D_EDITOR
-					else
-					{
-						const_cast<D_RENDERER_RT_UTILS::BottomLevelAccelerationStructure*>(blas)->SetDirty(true);
-					}
+				else
+				{
+					const_cast<D_RENDERER_RT_UTILS::BottomLevelAccelerationStructure*>(blas)->SetDirty(true);
+				}
 #endif
 
 
-					// Submit BLAS instance with all associated data
-					BYTE mask = comp.IsCastsShadow() ? 0xff : (0xff & ~InstanceFlags::CastsShadow);
-					scene->AddBottomLevelASInstance(uuid, { mat }, comp.GetConstantsAddress(), comp.GetTransform()->GetWorld(), mask);
-				});
+				// Submit BLAS instance with all associated data
+				BYTE mask = comp.IsCastsShadow() ? 0xff : (0xff & ~InstanceFlags::CastsShadow);
+				scene->AddBottomLevelASInstance(uuid, { mat }, comp.GetConstantsAddress(), comp.GetTransform()->GetWorld(), mask);
+			});
 
-		}
 	}
+
 
 	void CreateGlobalBindings(RayTracingCommandContext& context, SceneRenderContext& renderContext, ShaderTable* shaderTable)
 	{
@@ -384,6 +386,8 @@ namespace Darius::Renderer::RayTracing
 			LightContext->Update(camera);
 			LightContext->UpdateBuffers(context, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
 		}
+
+		UpdateAS(context);
 
 		RTScene->Build(context, nullptr, D_GRAPHICS_DEVICE::GetCurrentFrameResourceIndex(), false);
 

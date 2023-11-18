@@ -32,6 +32,7 @@ namespace Darius::Renderer::RayTracing
 	void Initialize(D_SERIALIZATION::Json const& settings);
 	void Shutdown();
 	void Update(D_GRAPHICS::CommandContext& context);
+	void UpdateAS(D_GRAPHICS::CommandContext& context);
 	void Render(std::wstring const& jobId, SceneRenderContext& renderContext, std::function<void()> postAntiAliasing);
 
 	// Allocating from heaps
