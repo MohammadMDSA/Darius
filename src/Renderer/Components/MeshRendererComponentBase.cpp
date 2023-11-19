@@ -43,7 +43,7 @@ namespace Darius::Renderer
 	void MeshRendererComponentBase::Awake()
 	{
 		// Initializing Mesh Constants buffers
-		mMeshConstantsCPU.Create(L"Mesh Constant Upload Buffer", sizeof(MeshConstants));
+		mMeshConstantsCPU.Create(L"Mesh Constant Upload Buffer", sizeof(MeshConstants), 3);
 		mMeshConstantsGPU.Create(L"Mesh Constant GPU Buffer", 1, sizeof(MeshConstants));
 
 		for (UINT i = 0; i < mMaterials.size(); i++)

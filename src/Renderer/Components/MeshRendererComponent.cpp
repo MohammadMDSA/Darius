@@ -135,10 +135,17 @@ namespace Darius::Renderer
 
 		mMesh = mesh;
 
-		if (mMesh.IsValid() && !mMesh->IsLoaded())
-			D_RESOURCE_LOADER::LoadResourceAsync(mesh, nullptr, true);
+		auto meshValid = mMesh.IsValid();
 
-		OnMeshChanged();
+		if (meshValid && mMesh->IsLoaded())
+			OnMeshChanged();
+		else if (meshValid)
+		{
+			D_RESOURCE_LOADER::LoadResourceAsync(mesh, [&](auto resource)
+				{
+					OnMeshChanged();
+				}, true);
+		}
 
 		mChangeSignal(this);
 	}
@@ -172,10 +179,11 @@ namespace Darius::Renderer
 			return;
 
 		auto& context = D_GRAPHICS::GraphicsContext::Begin();
+		auto frameResourceIndex = D_GRAPHICS_DEVICE::GetCurrentFrameResourceIndex();
 
 		// Updating mesh constants
 		// Mapping upload buffer
-		MeshConstants* cb = (MeshConstants*)mMeshConstantsCPU.Map();
+		MeshConstants* cb = (MeshConstants*)mMeshConstantsCPU.MapInstance(frameResourceIndex);
 
 		auto world = GetTransform()->GetWorld();
 		cb->World = world;
@@ -187,7 +195,7 @@ namespace Darius::Renderer
 
 		// Uploading
 		context.TransitionResource(mMeshConstantsGPU, D3D12_RESOURCE_STATE_COPY_DEST, true);
-		context.CopyBufferRegion(mMeshConstantsGPU, 0, mMeshConstantsCPU, 0, mMeshConstantsCPU.GetBufferSize());
+		context.CopyBufferRegion(mMeshConstantsGPU, 0, mMeshConstantsCPU, mMeshConstantsCPU.GetBufferSize() * frameResourceIndex, mMeshConstantsCPU.GetBufferSize());
 		context.TransitionResource(mMeshConstantsGPU, D3D12_RESOURCE_STATE_GENERIC_READ);
 
 		context.Finish();

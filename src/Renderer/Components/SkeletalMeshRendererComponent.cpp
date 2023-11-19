@@ -116,9 +116,11 @@ namespace Darius::Renderer
 
 		mMesh = mesh;
 
-		if (mMesh.IsValid() && mMesh->IsLoaded())
+		auto meshValid = mMesh.IsValid();
+
+		if (meshValid && mMesh->IsLoaded())
 			LoadMeshData();
-		else
+		else if(meshValid)
 		{
 			D_RESOURCE_LOADER::LoadResourceAsync(mesh, [&](auto resource)
 				{
@@ -212,10 +214,11 @@ namespace Darius::Renderer
 			return;
 
 		auto& context = D_GRAPHICS::GraphicsContext::Begin();
+		auto frameResourceIndex = D_GRAPHICS_DEVICE::GetCurrentFrameResourceIndex();
 
 		// Updating mesh constants
 		// Mapping upload buffer
-		MeshConstants* cb = (MeshConstants*)mMeshConstantsCPU.Map();
+		MeshConstants* cb = (MeshConstants*)mMeshConstantsCPU.Map(frameResourceIndex);
 
 
 		Matrix4 world = GetTransform()->GetWorld();
@@ -236,7 +239,7 @@ namespace Darius::Renderer
 
 			// Uploading
 			context.TransitionResource(mMeshConstantsGPU, D3D12_RESOURCE_STATE_COPY_DEST, true);
-			context.GetCommandList()->CopyBufferRegion(mMeshConstantsGPU.GetResource(), 0, mMeshConstantsCPU.GetResource(), 0, mMeshConstantsCPU.GetBufferSize());
+			context.GetCommandList()->CopyBufferRegion(mMeshConstantsGPU.GetResource(), 0, mMeshConstantsCPU.GetResource(), frameResourceIndex * mMeshConstantsCPU.GetBufferSize(), mMeshConstantsCPU.GetBufferSize());
 			context.TransitionResource(mMeshConstantsGPU, D3D12_RESOURCE_STATE_GENERIC_READ);
 		}
 		context.Finish();

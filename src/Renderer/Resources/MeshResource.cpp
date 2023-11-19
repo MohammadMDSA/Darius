@@ -37,7 +37,7 @@ namespace Darius::Renderer
 
 	bool MeshResource::UploadToGpu()
 	{
-		if (GetDefault())
+		if (IsDefault())
 			return true;
 
 		MultiPartMeshData<VertexType> meshData;

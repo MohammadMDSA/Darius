@@ -164,7 +164,7 @@ namespace Darius::Renderer
 		if (!mHeightMap.IsValid())
 			mHeightMap = D_RESOURCE::GetResourceSync<TextureResource>(D_RENDERER::GetDefaultGraphicsResource(D_RENDERER::DefaultResource::Texture2DBlackOpaque));
 
-		if (!mHeightMap->GetDefault() && D_H_ENSURE_FILE(mHeightMap->GetPath()))
+		if (!mHeightMap->IsDefault() && D_H_ENSURE_FILE(mHeightMap->GetPath()))
 		{
 			D_PROFILING::ScopedTimer _prof(L"Calculating Terrain Normal Map");
 
