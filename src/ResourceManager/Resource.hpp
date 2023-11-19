@@ -95,12 +95,14 @@ namespace Darius::ResourceManager
 
 	constexpr ResourceHandle EmptyResourceHandle = { 0, 0 };
 
+#ifdef _D_EDITOR
 	struct ResourcePreview
 	{
 		std::wstring			Name;
 		std::wstring			Path;
 		ResourceHandle			Handle;
 	};
+#endif
 
 	std::string ResourceTypeToString(ResourceType type);
 	ResourceType StringToResourceType(std::string type);
@@ -150,31 +152,42 @@ namespace Darius::ResourceManager
 		INLINE operator ResourceHandle() const { return { GetType(), mId }; }
 		INLINE operator ResourcePreview() const { return GetPreview(); }
 
+		INLINE D_FILE::Path const&	GetPath() const { return mPath; }
+		INLINE bool					IsLoaded() const { return mLoaded.load(); }
+		INLINE unsigned int			GetVersion() const { return mVersion; }
+		INLINE bool					IsDirtyDisk() const { return mDirtyDisk; }
+		INLINE DResourceId			GetId() const { return mId; }
+		INLINE D_CORE::Uuid const&	GetUuid() const { return mUuid; }
+		INLINE bool					IsDefault() const { return mDefault; }
+		INLINE std::wstring const&	GetName() const { return mName; }
+
+		INLINE void					SetName(std::wstring const& name) { mName = name; }
+		
 	private:
-		DField(Get[const, &, inline])
+
+		DField()
 		D_FILE::Path		mPath;
 
-		DField(Get[inline])
-		bool				mLoaded;
+		std::atomic_bool	mLoaded;
 
-		DField(Get[inline])
+		DField()
 		unsigned int		mVersion;
 
-		DField(Get[inline])
+		DField()
 		bool				mDirtyDisk;
 
-		std::atomic<bool>	mDirtyGPU;
+		std::atomic_bool	mDirtyGPU;
 		
-		DField(Get[inline])
+		DField()
 		const DResourceId	mId;
 		
-		DField(Get[inline, &])
+		DField()
 		const D_CORE::Uuid	mUuid;
 		
-		DField(Get[inline])
+		DField()
 		const bool			mDefault;
 
-		DField(Get[inline, const, &], Set[inline])
+		DField()
 		std::wstring		mName;
 
 		// For saving / loading / manipulation purposes
@@ -182,7 +195,6 @@ namespace Darius::ResourceManager
 
 
 	public:
-		// Returns true if gpu dirty state "has changed" AND "changed to true". Returns false if the state didn't change or didn't clean gpu.
 		ResourceGpuUpdateResult		UpdateGPU();
 
 #ifdef _D_EDITOR
@@ -219,8 +231,8 @@ namespace Darius::ResourceManager
 			return type;
 		}
 
-		INLINE void					MakeDiskDirty() { D_ASSERT_M(!mLocked, "Resource cannot be manipulated while locked."); if(!GetDefault()) mDirtyDisk = true; }
-		INLINE void					MakeGpuDirty() { if (!GetDefault()) mDirtyGPU.store(true); }
+		INLINE void					MakeDiskDirty() { D_ASSERT_M(!mLocked, "Resource cannot be manipulated while locked."); if(!IsDefault()) mDirtyDisk = true; }
+		INLINE void					MakeGpuDirty() { if (!IsDefault()) mDirtyGPU.store(true); }
 		INLINE void					MakeDiskClean() { mDirtyDisk = false; }
 		INLINE void					MakeGpuClean() { mDirtyGPU.store(false); }
 
@@ -283,7 +295,7 @@ namespace Darius::ResourceManager
 
 	INLINE bool Resource::IsEditableInDetailsWindow() const
 	{
-		if (GetDefault())
+		if (IsDefault())
 			return false;
 		return true;
 	}

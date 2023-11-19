@@ -90,7 +90,7 @@ namespace Darius::ResourceManager
 	bool Resource::Release()
 	{
 		Unload();
-		mLoaded = false;
+		mLoaded.store(false);
 		return true;
 	}
 }

@@ -114,7 +114,7 @@ namespace Darius::Editor::Gui::ThumbnailManager
 			for (auto resourcePrev : resourcesOfType)
 			{
 				auto resource = D_RESOURCE::GetRawResourceSync(resourcePrev.Handle, false);
-				if (!resource->GetDefault())
+				if (!resource->IsDefault())
 					GenerateThumbnailForResource(resource);
 			}
 		}

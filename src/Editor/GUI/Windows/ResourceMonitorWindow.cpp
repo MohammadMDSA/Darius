@@ -81,7 +81,7 @@ namespace Darius::Editor::Gui::Windows
 					ImGui::TableSetColumnIndex(3);
 					ImGui::Text(ToString(resource->GetUuid()).c_str());
 					ImGui::TableSetColumnIndex(4);
-					ImGui::Text(std::to_string(resource->GetDefault()).c_str());
+					ImGui::Text(std::to_string(resource->IsDefault()).c_str());
 					ImGui::TableSetColumnIndex(5);
 					ImGui::Text(std::to_string(resource->IsLoaded()).c_str());
 					ImGui::TableSetColumnIndex(6);
@@ -91,7 +91,7 @@ namespace Darius::Editor::Gui::Windows
 					ImGui::TableSetColumnIndex(8);
 					ImGui::Text(std::to_string(resource->IsDirtyGPU()).c_str());
 					ImGui::TableSetColumnIndex(9);
-					ImGui::Text(resource->GetDefault() ? " - " : resource->GetPath().string().c_str());
+					ImGui::Text(resource->IsDefault() ? " - " : resource->GetPath().string().c_str());
 					ImGui::TableSetColumnIndex(10);
 					ImGui::Text(std::to_string(resource->GetReferenceCount()).c_str());
 
