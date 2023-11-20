@@ -19,8 +19,23 @@
 
 #include "Math/VectorMath.hpp"
 
+#include "CollisionCommon.hpp"
+
+namespace Darius::Math
+{
+    class Plane;
+    class Ray;
+}
+
+namespace Darius::Math::Camera
+{
+    class Frustum;
+}
+
 namespace Darius::Math::Bounds
 {
+    class AxisAlignedBox;
+    class OrientedBox;
     class BoundingSphere
     {
     public:
@@ -32,10 +47,29 @@ namespace Darius::Math::Bounds
         explicit BoundingSphere(const DirectX::XMVECTOR& v) : m_repr(v) {}
         explicit BoundingSphere(const DirectX::XMFLOAT4& f4) : m_repr(f4) {}
         explicit BoundingSphere(Vector4 sphere) : m_repr(sphere) {}
-        explicit operator Vector4() const { return Vector4(m_repr); }
+        explicit operator Vector4() const { return m_repr; }
 
-        Vector3 GetCenter(void) const { return Vector3(m_repr); }
-        Scalar GetRadius(void) const { return m_repr.GetW(); }
+        ContainmentType Contains(Vector3 const& point) const;
+        // Triangle test
+        ContainmentType Contains(Vector3 const& v0, Vector3 const& v1, Vector3 const& v2) const;
+        ContainmentType Contains(BoundingSphere const& sphere) const;
+        ContainmentType Contains(AxisAlignedBox const& aabb) const;
+        ContainmentType Contains(OrientedBox const& orientedBox) const;
+        ContainmentType Contains(Darius::Math::Camera::Frustum const& frustum) const;
+
+        bool Intersects(BoundingSphere const& sphere) const;
+        bool Intersects(AxisAlignedBox const& aabb) const;
+        bool Intersects(OrientedBox const& orientedBox) const;
+        bool Intersects(Darius::Math::Camera::Frustum const& frustum) const;
+        // Triangle-sphere test
+        bool Intersects(Vector3 const& v0, Vector3 const& v1, Vector3 const& v2);
+        // Plane-sphere test
+        bool Intersects(Darius::Math::Plane const& plane) const;
+        // Ray-sphere test
+        bool Intersects(Darius::Math::Ray const& ray, _OUT_ float& dist) const;
+
+        INLINE Vector3 GetCenter(void) const { return Vector3(m_repr); }
+        INLINE Scalar GetRadius(void) const { return m_repr.GetW(); }
 
         BoundingSphere Union(const BoundingSphere& rhs);
 

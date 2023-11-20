@@ -52,7 +52,9 @@ namespace Darius::Math
 		INLINE void SetX(float _x) { m_vec = DirectX::XMVectorPermute<4, 1, 2, 3>(m_vec, Scalar(_x)); }
 		INLINE void SetY(float _y) { m_vec = DirectX::XMVectorPermute<0, 5, 2, 3>(m_vec, Scalar(_y)); }
 		INLINE void SetZ(float _z) { m_vec = DirectX::XMVectorPermute<0, 1, 6, 3>(m_vec, Scalar(_z)); }
-		INLINE Vector3 Normalize() { return Vector3(DirectX::XMVector3Normalize(m_vec)); }
+		INLINE Vector3 Normalize() const { return Vector3(DirectX::XMVector3Normalize(m_vec)); }
+		INLINE float Length() const { return Scalar(DirectX::XMVector3Length(m_vec)); }
+		INLINE float LengthSquare() const { return Scalar(DirectX::XMVector3LengthSq(m_vec)); }
 		INLINE bool	Equals(Vector3 const& other) const { return DirectX::XMVector3Equal(m_vec, other.m_vec); }
 
 		INLINE Vector3 operator- () const { return Vector3(DirectX::XMVectorNegate(m_vec)); }
@@ -135,7 +137,8 @@ namespace Darius::Math
 		INLINE D_CONTAINERS::DVector<float> GetData() const { return { GetX(), GetY(), GetZ(), GetW() }; }
 		// Consty, don't use too often
 		INLINE void SetData(D_CONTAINERS::DVector<float> data) { SetX(data[0]); SetY(data[1]); SetZ(data[2]); SetW(data[3]); }
-
+		INLINE float Length() const { return Scalar(DirectX::XMVector4Length(m_vec)); }
+		INLINE float LengthSquare() const { return Scalar(DirectX::XMVector4LengthSq(m_vec)); }
 		INLINE bool	Equals(Vector4 const& other) const { return DirectX::XMVector4Equal(m_vec, other.m_vec); }
 
 		INLINE Vector4 operator- () const { return Vector4(DirectX::XMVectorNegate(m_vec)); }
