@@ -202,7 +202,7 @@ namespace Darius::Renderer::Rasterization
 				/* Is it in our frustum */ \
 				auto sphereWorldSpace = AffineTransform(meshComp.GetTransform()->GetWorld()) * meshComp.GetBounds(); \
 				auto sphereViewSpace = BoundingSphere(Vector3(cam.GetViewMatrix() * sphereWorldSpace.GetCenter()), sphereWorldSpace.GetRadius()); \
-				if (!frustum.IntersectSphere(sphereViewSpace)) \
+				if (!frustum.Intersects(sphereViewSpace)) \
 					return; \
 \
 				auto distance = -sphereViewSpace.GetCenter().GetZ() - sphereViewSpace.GetRadius(); \
@@ -219,6 +219,8 @@ namespace Darius::Renderer::Rasterization
 		ADD_RENDERER_COMPONENT_RENDER_ITEMS(TerrainRendererComponent);
 
 #undef ADD_RENDERER_COMPONENT_RENDER_ITEMS
+		
+		D_LOG_DEBUG(sorter.CountObjects());
 	}
 
 	void AddShadowRenderItems(D_CONTAINERS::DVector<RenderItem>& items)
