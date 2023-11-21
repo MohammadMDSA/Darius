@@ -29,6 +29,10 @@ namespace Darius::Animation
 
 		INLINE virtual bool				AreDependenciesDirty() const override { return false; }
 
+		INLINE AnimationLayer			GetAnimationData() const { return mAnimationData; }
+		INLINE D_CONTAINERS::DVector<AnimationCurve> GetCurvesData() const { return mCurvesData; }
+		INLINE D_CONTAINERS::DVector<Keyframe> GetKeyframes() const { return mKeyframes; }
+		INLINE D_CONTAINERS::DUnorderedMap<std::string, int> GetSkeletonNameIndexMap() const { return mSkeletonNameIndexMap; }
 
 		static D_CONTAINERS::DVector<D_RESOURCE::ResourceDataInFile> CanConstructFrom(D_RESOURCE::ResourceType type, D_FILE::Path const& path);
 
@@ -38,16 +42,16 @@ namespace Darius::Animation
 			mAnimationData() {}
 
 		
-		DField(Get[const, &, inline])
+		DField()
 		AnimationLayer							mAnimationData;
 		
-		DField(Get[const, &, inline])
+		DField()
 		D_CONTAINERS::DVector<AnimationCurve>	mCurvesData;
 		
-		DField(Get[const, &, inline])
+		DField()
 		D_CONTAINERS::DVector<Keyframe>			mKeyframes;
 
-		DField(Get[const, &, inline])
+		DField()
 		D_CONTAINERS::DUnorderedMap<std::string, int> mSkeletonNameIndexMap;
 
 	private:
