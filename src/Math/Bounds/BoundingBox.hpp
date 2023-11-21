@@ -1,94 +1,167 @@
-//
-// Copyright (c) Microsoft. All rights reserved.
-// This code is licensed under the MIT License (MIT).
-// THIS CODE IS PROVIDED *AS IS* WITHOUT WARRANTY OF
-// ANY KIND, EITHER EXPRESS OR IMPLIED, INCLUDING ANY
-// IMPLIED WARRANTIES OF FITNESS FOR A PARTICULAR
-// PURPOSE, MERCHANTABILITY, OR NON-INFRINGEMENT.
-//
-// Developed by Minigraph
-//
-// Author:  James Stanard 
-//
-
 #pragma once
 
 #ifndef D_MATH_BOUNDS
 #define D_MATH_BOUNDS Darius::Math::Bounds
 #endif
 
+#include "CollisionCommon.hpp"
 #include "Math/VectorMath.hpp"
 #include "Math/Transform.hpp"
 
+namespace Darius::Math
+{
+	class Ray;
+
+	namespace Camera
+	{
+		class Frustum;
+	}
+}
+
 namespace Darius::Math::Bounds
 {
-    class AxisAlignedBox
-    {
-    public:
-        AxisAlignedBox() : m_min(FLT_MAX, FLT_MAX, FLT_MAX), m_max(-FLT_MAX, -FLT_MAX, -FLT_MAX) {}
-        AxisAlignedBox(EZeroTag) : m_min(FLT_MAX, FLT_MAX, FLT_MAX), m_max(-FLT_MAX, -FLT_MAX, -FLT_MAX) {}
-        AxisAlignedBox(Vector3 min, Vector3 max) : m_min(min), m_max(max) {}
+	class BoundingSphere;
+	class BoundingPlane;
+	class OrientedBox;
 
-        void AddPoint(Vector3 point)
-        {
-            m_min = Min(point, m_min);
-            m_max = Max(point, m_max);
-        }
+	class AxisAlignedBox : private DirectX::BoundingBox
+	{
+	public:
+		AxisAlignedBox() : DirectX::BoundingBox() {}
+		AxisAlignedBox(EZeroTag) : DirectX::BoundingBox({ 0.f, 0.f, 0.f }, { 0.f, 0.f, 0.f }) {}
+		AxisAlignedBox(Vector3 min, Vector3 max) : DirectX::BoundingBox((min + max) / 2, (max - min) / 2) {}
 
-        void AddBoundingBox(const AxisAlignedBox& box)
-        {
-            AddPoint(box.m_min);
-            AddPoint(box.m_max);
-        }
+		INLINE Vector3 GetMin() const { return Vector3(DirectX::BoundingBox::Center) - Vector3(DirectX::BoundingBox::Extents); }
+		INLINE Vector3 GetMax() const { return Vector3(DirectX::BoundingBox::Center) + Vector3(DirectX::BoundingBox::Extents); }
+		INLINE void SetMinMax(Vector3 min, Vector3 max)
+		{
+			DirectX::BoundingBox::Center = (max + min) / 2;
+			DirectX::BoundingBox::Extents = (max - min) / 2;
+		}
 
-        AxisAlignedBox Union(const AxisAlignedBox& box)
-        {
-            return AxisAlignedBox(Min(m_min, box.m_min), Max(m_max, box.m_max));
-        }
+		INLINE void AddPoint(Vector3 point)
+		{
+			auto min = Min(point, GetMin());
+			auto max = Max(point, GetMax());
+			SetMinMax(min, max);
+		}
 
-        Vector3 GetMin() const { return m_min; }
-        Vector3 GetMax() const { return m_max; }
-        Vector3 GetCenter() const { return (m_min + m_max) * 0.5f; }
-        Vector3 GetDimensions() const { return Max(m_max - m_min, Vector3(kZero)); }
+		INLINE void AddBoundingBox(const AxisAlignedBox& box)
+		{
+			auto min = box.GetMin();
+			auto max = box.GetMax();
 
-    private:
+			auto newMin = Min(min, GetMin());
+			auto newMax = Max(max, GetMax());
+			SetMinMax(newMin, newMax);
+		}
 
-        Vector3 m_min;
-        Vector3 m_max;
-    };
+		INLINE AxisAlignedBox Union(const AxisAlignedBox& box)
+		{
+			return AxisAlignedBox(Min(GetMin(), box.GetMin()), Max(GetMax(), box.GetMax()));
+		}
 
-    class OrientedBox
-    {
-    public:
-        OrientedBox() {}
+		ContainmentType Contains(Vector3 const& point) const;
+		// Triangle test
+		ContainmentType Contains(Vector3 const& v0, Vector3 const& v1, Vector3 const& v2) const;
+		ContainmentType Contains(BoundingSphere const& sphere) const;
+		ContainmentType Contains(AxisAlignedBox const& aabb) const;
+		ContainmentType Contains(OrientedBox const& orientedBox) const;
+		ContainmentType Contains(Darius::Math::Camera::Frustum const& frustum) const;
 
-        OrientedBox(const AxisAlignedBox& box)
-        {
-            m_repr.SetBasis(Matrix3::MakeScale(box.GetMax() - box.GetMin()));
-            m_repr.SetTranslation(box.GetMin());
-        }
+		bool Intersects(BoundingSphere const& sphere) const;
+		bool Intersects(AxisAlignedBox const& aabb) const;
+		bool Intersects(OrientedBox const& orientedBox) const;
+		bool Intersects(Darius::Math::Camera::Frustum const& frustum) const;
+		// Triangle-sphere test
+		bool Intersects(Vector3 const& v0, Vector3 const& v1, Vector3 const& v2);
+		bool Intersects(Darius::Math::Ray const& ray, _OUT_ float& dist) const;
+		bool Intersects(BoundingPlane const& plane) const;
 
-        friend OrientedBox operator* (const AffineTransform& xform, const OrientedBox& obb)
-        {
-            auto trans = xform * obb.m_repr;
-            return *reinterpret_cast<OrientedBox*>(&trans);
-        }
+		Vector3 GetCenter() const { return Center; }
+		Vector3 GetDimensions() const { return GetExtents() * 2; }
+		// Distance from center to each side;
+		Vector3 GetExtents() const { Extents; }
 
-        Vector3 GetDimensions() const { return m_repr.GetX() + m_repr.GetY() + m_repr.GetZ(); }
-        Vector3 GetCenter() const { return m_repr.GetTranslation() + GetDimensions() * 0.5f; }
+		// Index from 0 to 7 for 8 corners
+		Vector3 GetCornerLocal(UINT index) const;
+		Vector3 GetCorner(UINT index) const;
+	};
 
-    private:
-        AffineTransform m_repr;
-    };
+	class OrientedBox : private DirectX::BoundingOrientedBox
+	{
+	public:
+		OrientedBox() : DirectX::BoundingOrientedBox() {}
 
-    INLINE OrientedBox operator* (const UniformTransform& xform, const OrientedBox& obb)
-    {
-        return AffineTransform(xform) * obb;
-    }
+		OrientedBox(const AxisAlignedBox& box) : DirectX::BoundingOrientedBox(box.GetCenter(), box.GetExtents(), { 0.f, 0.f, 0.f, 1.f }) { }
 
-    INLINE OrientedBox operator* (const UniformTransform& xform, const AxisAlignedBox& aabb)
-    {
-        return AffineTransform(xform) * OrientedBox(aabb);
-    }
+		INLINE OrientedBox Transform(AffineTransform const& xform) const
+		{
+			OrientedBox result;
+			DirectX::XMMATRIX const& mat = xform;
+			DirectX::BoundingOrientedBox::Transform(result, xform);
+			return result;
+		}
+
+		ContainmentType Contains(Vector3 const& point) const;
+		// Triangle test
+		ContainmentType Contains(Vector3 const& v0, Vector3 const& v1, Vector3 const& v2) const;
+		ContainmentType Contains(BoundingSphere const& sphere) const;
+		ContainmentType Contains(AxisAlignedBox const& aabb) const;
+		ContainmentType Contains(OrientedBox const& orientedBox) const;
+
+		bool Intersects(BoundingSphere const& sphere) const;
+		bool Intersects(AxisAlignedBox const& aabb) const;
+		bool Intersects(OrientedBox const& orientedBox) const;
+		// Triangle-sphere test
+		bool Intersects(Vector3 const& v0, Vector3 const& v1, Vector3 const& v2);
+		bool Intersects(Darius::Math::Ray const& ray, _OUT_ float& dist) const;
+		bool Intersects(BoundingPlane const& plane) const;
+
+		INLINE Vector3 GetDimensions() const { GetExtents() * 2; }
+		INLINE Vector3 GetCenter() const { DirectX::BoundingOrientedBox::Center; }
+		INLINE Vector3 GetExtents() const { DirectX::BoundingOrientedBox; }
+
+	};
+
+	INLINE OrientedBox operator* (AffineTransform const& xform, const OrientedBox const& obb)
+	{
+		return obb.Transform(xform);
+	}
+
+
+	INLINE OrientedBox operator* (const UniformTransform& xform, const OrientedBox& obb)
+	{
+		return AffineTransform(xform) * obb;
+	}
+
+	INLINE OrientedBox operator* (const UniformTransform& xform, const AxisAlignedBox& aabb)
+	{
+		return AffineTransform(xform) * OrientedBox(aabb);
+	}
+
+	INLINE Vector3 AxisAlignedBox::GetCornerLocal(UINT index) const
+	{
+		D_ASSERT_M(index >= 0 && index < 8, "Out of bounds index of the box corner");
+
+		static const Vector3 boxOffset[8] =
+		{
+			{ -1.0f, -1.0f,  1.0f },
+			{  1.0f, -1.0f,  1.0f },
+			{  1.0f,  1.0f,  1.0f },
+			{ -1.0f,  1.0f,  1.0f },
+			{ -1.0f, -1.0f, -1.0f },
+			{  1.0f, -1.0f, -1.0f },
+			{  1.0f,  1.0f, -1.0f },
+			{ -1.0f,  1.0f, -1.0f },
+		};
+
+		return GetExtents() * boxOffset[index];
+	}
+
+	INLINE Vector3 AxisAlignedBox::GetCorner(UINT index) const
+	{
+		return GetCornerLocal(index) + GetCenter();
+	}
 
 } // namespace Math

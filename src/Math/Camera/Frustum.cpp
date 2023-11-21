@@ -115,4 +115,5 @@ namespace Darius::Math::Camera
 			ConstructPerspectiveFrustum(RcpXX, RcpYY, NearClip, FarClip);
 		}
 	}
+
 }

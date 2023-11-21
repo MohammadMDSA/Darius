@@ -13,7 +13,6 @@ list(APPEND MATH_LIBS_INCLUDE
 	"Matrix3.hpp"
 	"Matrix4.hpp"
 	"pch.hpp"
-	"Plane.hpp"
 	"Quaternion.hpp"
 	"Rectangle.hpp"
 	"Scalar.hpp"
@@ -28,6 +27,7 @@ list(APPEND MATH_LIBS_INCLUDE
 	)
 
 list(APPEND MATH_LIBS_SOURCES
+	"Bounds/BoundingBox.cpp"
 	"Bounds/BoundingSphere.cpp"
 	"pch.cpp"
 	"Color.cpp"

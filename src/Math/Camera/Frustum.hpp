@@ -1,16 +1,3 @@
-//
-// Copyright (c) Microsoft. All rights reserved.
-// This code is licensed under the MIT License (MIT).
-// THIS CODE IS PROVIDED *AS IS* WITHOUT WARRANTY OF
-// ANY KIND, EITHER EXPRESS OR IMPLIED, INCLUDING ANY
-// IMPLIED WARRANTIES OF FITNESS FOR A PARTICULAR
-// PURPOSE, MERCHANTABILITY, OR NON-INFRINGEMENT.
-//
-// Developed by Minigraph
-//
-// Author:  James Stanard 
-//
-
 #pragma once
 
 #define D_MATH_CAMERA Darius::Math::Camera
@@ -44,11 +31,10 @@ namespace Darius::Math::Camera
 
         // Test whether the bounding sphere intersects the frustum.  Intersection is defined as either being
         // fully contained in the frustum, or by intersecting one or more of the planes.
-        bool                            IntersectSphere(D_MATH_BOUNDS::BoundingSphere sphere) const;
+        bool                            Intersects(D_MATH_BOUNDS::BoundingSphere const& sphere) const;
 
-        // We don't officially have a AxisAlignedBox class yet, but let's assume it's forthcoming.  (There is a
-        // simple struct in the Model project.)
-        bool                            IntersectBoundingBox(const D_MATH_BOUNDS::AxisAlignedBox& aabb) const;
+
+        bool                            Intersects(D_MATH_BOUNDS::AxisAlignedBox const& aabb) const;
 
         friend Frustum  operator* (const OrthogonalTransform& xform, const Frustum& frustum);	// Fast
         friend Frustum  operator* (const AffineTransform& xform, const Frustum& frustum);		// Slow
@@ -70,7 +56,7 @@ namespace Darius::Math::Camera
     // Inline implementations
     //
 
-    inline bool Frustum::IntersectSphere(D_MATH_BOUNDS::BoundingSphere sphere) const
+    inline bool Frustum::Intersects(D_MATH_BOUNDS::BoundingSphere const& sphere) const
     {
         float radius = sphere.GetRadius();
         for (int i = 0; i < 6; ++i)
@@ -81,7 +67,7 @@ namespace Darius::Math::Camera
         return true;
     }
 
-    inline bool Frustum::IntersectBoundingBox(const D_MATH_BOUNDS::AxisAlignedBox& aabb) const
+    inline bool Frustum::Intersects(D_MATH_BOUNDS::AxisAlignedBox const& aabb) const
     {
         for (int i = 0; i < 6; ++i)
         {

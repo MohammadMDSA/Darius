@@ -169,7 +169,7 @@ namespace Darius::Math
 		INLINE explicit AffineTransform(const DirectX::XMMATRIX& mat)
 			: m_basis(mat), m_translation(mat.r[3]) {}
 
-		INLINE operator DirectX::XMMATRIX() const { return (DirectX::XMMATRIX&)*this; }
+		INLINE operator DirectX::XMMATRIX const&() const { return (DirectX::XMMATRIX&)*this; }
 
 		INLINE void SetX(Vector3 x) { m_basis.SetX(x); }
 		INLINE void SetY(Vector3 y) { m_basis.SetY(y); }

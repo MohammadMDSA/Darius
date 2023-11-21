@@ -14,6 +14,9 @@
 #include "Math/pch.hpp"
 #include "BoundingSphere.hpp"
 
+#include "BoundingBox.hpp"
+#include "Math/Camera/Frustum.hpp"
+
 
 namespace Darius::Math::Bounds
 {
@@ -41,92 +44,86 @@ namespace Darius::Math::Bounds
 
     ContainmentType BoundingSphere::Contains(Vector3 const& point) const
     {
-        auto radius = GetRadius();
-        auto radiusSq = radius * radius;
-        auto distSq = (point - GetCenter()).LengthSquare();
-
-        return distSq <= radiusSq ? ContainmentType::Contains : ContainmentType::Disjoint;
+        return (ContainmentType)DirectX::BoundingSphere::Contains(point);
     }
-    
+
     ContainmentType BoundingSphere::Contains(Vector3 const& v0, Vector3 const& v1, Vector3 const& v2) const
     {
-        auto center = GetCenter();
-        auto radius = GetRadius();
-        auto radiusSq = radius * radius;
-
-        auto distSq = (v0 - center).LengthSquare();
-        auto inside = distSq <= radiusSq;
-
-        distSq = (v1 - center).LengthSquare();
-        inside = inside && (distSq <= radiusSq);
-
-        distSq = (v2 - center).LengthSquare();
-        inside = inside && (distSq <= radiusSq);
-
-        return inside ? ContainmentType::Contains : ContainmentType::Intersects;
+        return (ContainmentType)DirectX::BoundingSphere::Contains(v0, v1, v2);
     }
 
     ContainmentType BoundingSphere::Contains(BoundingSphere const& sphere) const
     {
-        Vector3 center1 = GetCenter();
-        float r1 = GetRadius();
-
-        Vector3 center2 = sphere.GetCenter();
-        float r2 = sphere.GetRadius();
-        
-        float dist = (center2 - center1).Length();
-        
-        return (r1 + r2 >= dist) ? ((r1 - r2 >= dist) ? ContainmentType::Contains : ContainmentType::Intersects) : ContainmentType::Disjoint;
+        return (ContainmentType)DirectX::BoundingSphere::Contains(sphere);
     }
 
     ContainmentType BoundingSphere::Contains(AxisAlignedBox const& aabb) const
     {
-
+        return (ContainmentType)DirectX::BoundingSphere::Contains((DirectX::BoundingBox const&)aabb);
     }
 
     ContainmentType BoundingSphere::Contains(OrientedBox const& orientedBox) const
     {
-
+        return (ContainmentType)DirectX::BoundingSphere::Contains((DirectX::BoundingOrientedBox const&)orientedBox);
     }
 
     ContainmentType BoundingSphere::Contains(Darius::Math::Camera::Frustum const& frustum) const
     {
+        if (!frustum.Intersects(*this))
+            return ContainmentType::Disjoint;
 
+        Vector3 center = GetCenter();
+        float radius = GetRadius();
+        float radiusSq = radius * radius;
+
+        bool allInside = true;
+
+        for (UINT i = 0u; i < Darius::Math::Camera::Frustum::CornerID::_kNumCorners; i++)
+        {
+            auto corner = frustum.GetFrustumCorner((Darius::Math::Camera::Frustum::CornerID)i);
+            auto distSq = (center - corner).LengthSquare();
+            allInside &= distSq <= radiusSq;
+
+            if (allInside)
+                return ContainmentType::Intersects;
+        }
+
+        return ContainmentType::Contains;
     }
 
     bool BoundingSphere::Intersects(BoundingSphere const& sphere) const
     {
-
+        return DirectX::BoundingSphere::Intersects(sphere);
     }
 
     bool BoundingSphere::Intersects(AxisAlignedBox const& aabb) const
     {
-
+        return DirectX::BoundingSphere::Intersects((DirectX::BoundingBox const&)aabb);
     }
 
     bool BoundingSphere::Intersects(OrientedBox const& orientedBox) const
     {
-
+        return DirectX::BoundingSphere::Intersects((DirectX::BoundingOrientedBox const&)orientedBox);
     }
 
     bool BoundingSphere::Intersects(Darius::Math::Camera::Frustum const& frustum) const
     {
-
+        return frustum.Intersects(*this);
     }
 
     bool BoundingSphere::Intersects(Vector3 const& v0, Vector3 const& v1, Vector3 const& v2)
     {
-
-    }
-
-    bool BoundingSphere::Intersects(Darius::Math::Plane const& plane) const
-    {
-
+        return DirectX::BoundingSphere::Intersects(v0, v1, v2);
     }
 
     bool BoundingSphere::Intersects(Darius::Math::Ray const& ray, _OUT_ float& dist) const
     {
+        static_assert(false);
+    }
 
+    bool BoundingSphere::Intersects(BoundingPlane const& plane) const
+    {
+        return DirectX::BoundingSphere::Intersects(static_cast<Vector4>(plane));
     }
 
 }

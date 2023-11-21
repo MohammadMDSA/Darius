@@ -1,16 +1,3 @@
-//
-// Copyright (c) Microsoft. All rights reserved.
-// This code is licensed under the MIT License (MIT).
-// THIS CODE IS PROVIDED *AS IS* WITHOUT WARRANTY OF
-// ANY KIND, EITHER EXPRESS OR IMPLIED, INCLUDING ANY
-// IMPLIED WARRANTIES OF FITNESS FOR A PARTICULAR
-// PURPOSE, MERCHANTABILITY, OR NON-INFRINGEMENT.
-//
-// Developed by Minigraph
-//
-// Author:  James Stanard 
-//
-
 #pragma once
 
 #ifndef D_MATH_BOUNDS
@@ -23,7 +10,6 @@
 
 namespace Darius::Math
 {
-    class Plane;
     class Ray;
 }
 
@@ -36,18 +22,18 @@ namespace Darius::Math::Bounds
 {
     class AxisAlignedBox;
     class OrientedBox;
-    class BoundingSphere
+    class BoundingPlane;
+
+    class BoundingSphere : private DirectX::BoundingSphere
     {
     public:
-        BoundingSphere() {}
-        BoundingSphere(float x, float y, float z, float r) : m_repr(x, y, z, r) {}
-        BoundingSphere(const DirectX::XMFLOAT4* unaligned_array) : m_repr(*unaligned_array) {}
-        BoundingSphere(Vector3 center, Scalar radius);
-        BoundingSphere(EZeroTag) : m_repr(kZero) {}
-        explicit BoundingSphere(const DirectX::XMVECTOR& v) : m_repr(v) {}
-        explicit BoundingSphere(const DirectX::XMFLOAT4& f4) : m_repr(f4) {}
-        explicit BoundingSphere(Vector4 sphere) : m_repr(sphere) {}
-        explicit operator Vector4() const { return m_repr; }
+        BoundingSphere() : DirectX::BoundingSphere() {}
+        BoundingSphere(float x, float y, float z, float r) : DirectX::BoundingSphere({ x, y, z }, r) {}
+        BoundingSphere(Vector3 center, Scalar radius) : DirectX::BoundingSphere(center, radius) {}
+        BoundingSphere(EZeroTag) : DirectX::BoundingSphere() {}
+        explicit BoundingSphere(const DirectX::XMFLOAT4& f4) : BoundingSphere(f4.x, f4.y, f4.z, f4.w) {}
+        explicit BoundingSphere(Vector4 sphere) : DirectX::BoundingSphere(Vector3(sphere), sphere.GetW()) {}
+        explicit operator Vector4() const { return Vector4(Center, Radius); }
 
         ContainmentType Contains(Vector3 const& point) const;
         // Triangle test
@@ -63,30 +49,18 @@ namespace Darius::Math::Bounds
         bool Intersects(Darius::Math::Camera::Frustum const& frustum) const;
         // Triangle-sphere test
         bool Intersects(Vector3 const& v0, Vector3 const& v1, Vector3 const& v2);
-        // Plane-sphere test
-        bool Intersects(Darius::Math::Plane const& plane) const;
-        // Ray-sphere test
         bool Intersects(Darius::Math::Ray const& ray, _OUT_ float& dist) const;
+        bool Intersects(BoundingPlane const& plane) const;
 
-        INLINE Vector3 GetCenter(void) const { return Vector3(m_repr); }
-        INLINE Scalar GetRadius(void) const { return m_repr.GetW(); }
+        INLINE Vector3 GetCenter(void) const { return Center; }
+        INLINE float GetRadius(void) const { return Radius; }
 
         BoundingSphere Union(const BoundingSphere& rhs);
-
-    private:
-
-        Vector4 m_repr;
     };
 
     //=======================================================================================================
     // Inline implementations
     //
-
-    inline BoundingSphere::BoundingSphere(Vector3 center, Scalar radius)
-    {
-        m_repr = Vector4(center);
-        m_repr.SetW(radius);
-    }
 
     INLINE BoundingSphere operator*(const OrthogonalTransform& trans, const BoundingSphere& sphere)
     {

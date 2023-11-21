@@ -1,5 +1,7 @@
 #pragma once
 
+#include "DirectXCollision.h"
+
 #ifndef D_MATH_BOUNDS
 #define D_MATH_BOUNDS Darius::Math::Bounds
 #endif
@@ -12,7 +14,7 @@ namespace Darius::Math::Bounds
 		Intersects = 1,
 		Contains = 2
 	};
-
+	
 	enum class PlaneIntersectionType : uint8_t
 	{
 		Front = 0,
