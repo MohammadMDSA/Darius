@@ -4,6 +4,7 @@
 #include "BoundingSphere.hpp"
 #include "BoundingPlane.hpp"
 #include "Math/Camera/Frustum.hpp"
+#include "Math/Ray.hpp"
 
 namespace Darius::Math::Bounds
 {
@@ -81,7 +82,7 @@ namespace Darius::Math::Bounds
 
     bool AxisAlignedBox::Intersects(Darius::Math::Ray const& ray, _OUT_ float& dist) const
     {
-        static_assert(false);
+        return DirectX::BoundingBox::Intersects(ray.GetOrigin(), ray.GetDirection(), dist);
     }
 
     bool AxisAlignedBox::Intersects(BoundingPlane const& plane) const
@@ -137,7 +138,7 @@ namespace Darius::Math::Bounds
 
     bool OrientedBox::Intersects(Darius::Math::Ray const& ray, _OUT_ float& dist) const
     {
-        static_assert(false);
+        return DirectX::BoundingOrientedBox::Intersects(ray.GetOrigin(), ray.GetDirection(), dist);
     }
 
     bool OrientedBox::Intersects(BoundingPlane const& plane) const

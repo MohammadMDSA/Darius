@@ -35,8 +35,8 @@ namespace Darius::Math::Bounds
 		INLINE Vector3 GetMax() const { return Vector3(DirectX::BoundingBox::Center) + Vector3(DirectX::BoundingBox::Extents); }
 		INLINE void SetMinMax(Vector3 min, Vector3 max)
 		{
-			DirectX::BoundingBox::Center = (max + min) / 2;
-			DirectX::BoundingBox::Extents = (max - min) / 2;
+			DirectX::BoundingBox::Center = (DirectX::XMFLOAT3)((max + min) / 2);
+			DirectX::BoundingBox::Extents = (DirectX::XMFLOAT3)((max - min) / 2);
 		}
 
 		INLINE void AddPoint(Vector3 point)
@@ -81,7 +81,7 @@ namespace Darius::Math::Bounds
 		Vector3 GetCenter() const { return Center; }
 		Vector3 GetDimensions() const { return GetExtents() * 2; }
 		// Distance from center to each side;
-		Vector3 GetExtents() const { Extents; }
+		Vector3 GetExtents() const { return Extents; }
 
 		// Index from 0 to 7 for 8 corners
 		Vector3 GetCornerLocal(UINT index) const;
@@ -98,7 +98,6 @@ namespace Darius::Math::Bounds
 		INLINE OrientedBox Transform(AffineTransform const& xform) const
 		{
 			OrientedBox result;
-			DirectX::XMMATRIX const& mat = xform;
 			DirectX::BoundingOrientedBox::Transform(result, xform);
 			return result;
 		}
@@ -118,31 +117,31 @@ namespace Darius::Math::Bounds
 		bool Intersects(Darius::Math::Ray const& ray, _OUT_ float& dist) const;
 		bool Intersects(BoundingPlane const& plane) const;
 
-		INLINE Vector3 GetDimensions() const { GetExtents() * 2; }
-		INLINE Vector3 GetCenter() const { DirectX::BoundingOrientedBox::Center; }
-		INLINE Vector3 GetExtents() const { DirectX::BoundingOrientedBox; }
+		INLINE Vector3 GetDimensions() const { return GetExtents() * 2; }
+		INLINE Vector3 GetCenter() const { return DirectX::BoundingOrientedBox::Center; }
+		INLINE Vector3 GetExtents() const { return DirectX::BoundingOrientedBox::Extents; }
 
 	};
 
-	INLINE OrientedBox operator* (AffineTransform const& xform, const OrientedBox const& obb)
+	INLINE OrientedBox operator* (AffineTransform const& xform, OrientedBox const& obb)
 	{
 		return obb.Transform(xform);
 	}
 
 
-	INLINE OrientedBox operator* (const UniformTransform& xform, const OrientedBox& obb)
+	INLINE OrientedBox operator* (UniformTransform const& xform, OrientedBox const& obb)
 	{
 		return AffineTransform(xform) * obb;
 	}
 
-	INLINE OrientedBox operator* (const UniformTransform& xform, const AxisAlignedBox& aabb)
+	INLINE OrientedBox operator* (UniformTransform const& xform, AxisAlignedBox const& aabb)
 	{
 		return AffineTransform(xform) * OrientedBox(aabb);
 	}
 
 	INLINE Vector3 AxisAlignedBox::GetCornerLocal(UINT index) const
 	{
-		D_ASSERT_M(index >= 0 && index < 8, "Out of bounds index of the box corner");
+		D_ASSERT_M(index < 8, "Out of bounds index of the box corner");
 
 		static const Vector3 boxOffset[8] =
 		{

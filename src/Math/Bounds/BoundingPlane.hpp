@@ -43,20 +43,25 @@ namespace Darius::Math::Bounds
         // Distance from 3D point
         Scalar DistanceFromPoint(Vector3 point) const
         {
-            return Dot(point, GetNormal()) + m_repr.GetW();
+            return Math::Dot(point, GetNormal()) + m_repr.GetW();
         }
 
         // Distance from homogeneous point
         Scalar DistanceFromPoint(Vector4 point) const
         {
-            return Dot(point, m_repr);
+            return Math::Dot(point, m_repr);
+        }
+
+        INLINE float Dot(Vector3 const& vec) const
+        {
+            return DirectX::XMVectorGetX(DirectX::XMPlaneDotNormal(m_repr, vec));
         }
 
         // Most efficient way to transform a plane.  (Involves one quaternion-vector rotation and one dot product.)
         friend BoundingPlane operator* (const OrthogonalTransform& xform, BoundingPlane plane)
         {
             Vector3 normalToPlane = xform.GetRotation() * plane.GetNormal();
-            float distanceFromOrigin = plane.m_repr.GetW() - Dot(normalToPlane, xform.GetTranslation());
+            float distanceFromOrigin = plane.m_repr.GetW() - Math::Dot(normalToPlane, xform.GetTranslation());
             return BoundingPlane(normalToPlane, distanceFromOrigin);
         }
 
@@ -78,7 +83,7 @@ namespace Darius::Math::Bounds
     {
         // Guarantee a normal.  This constructor isn't meant to be called frequently, but if it is, we can change this.
         normalToPlane = Normalize(normalToPlane);
-        m_repr = Vector4(normalToPlane, -Dot(pointOnPlane, normalToPlane));
+        m_repr = Vector4(normalToPlane, -Math::Dot(pointOnPlane, normalToPlane));
     }
 
     //=======================================================================================================

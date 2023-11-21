@@ -16,6 +16,7 @@
 
 #include "BoundingBox.hpp"
 #include "Math/Camera/Frustum.hpp"
+#include "Math/Ray.hpp"
 
 
 namespace Darius::Math::Bounds
@@ -118,7 +119,7 @@ namespace Darius::Math::Bounds
 
     bool BoundingSphere::Intersects(Darius::Math::Ray const& ray, _OUT_ float& dist) const
     {
-        static_assert(false);
+        return DirectX::BoundingSphere::Intersects(ray.GetOrigin(), ray.GetDirection(), dist);
     }
 
     bool BoundingSphere::Intersects(BoundingPlane const& plane) const

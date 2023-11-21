@@ -14,6 +14,7 @@ list(APPEND MATH_LIBS_INCLUDE
 	"Matrix4.hpp"
 	"pch.hpp"
 	"Quaternion.hpp"
+	"Ray.hpp"
 	"Rectangle.hpp"
 	"Scalar.hpp"
 	"Transform.hpp"
@@ -41,6 +42,7 @@ list(APPEND MATH_LIBS_SOURCES
 	"Camera/Frustum.cpp"
 	"Camera/ShadowCamera.cpp"
 	"Serialization.cpp"
+	"Ray.cpp"
 	)
 
 
