@@ -219,8 +219,7 @@ namespace Darius::Renderer::Rasterization
 		ADD_RENDERER_COMPONENT_RENDER_ITEMS(TerrainRendererComponent);
 
 #undef ADD_RENDERER_COMPONENT_RENDER_ITEMS
-		
-		D_LOG_DEBUG(sorter.CountObjects());
+
 	}
 
 	void AddShadowRenderItems(D_CONTAINERS::DVector<RenderItem>& items)
