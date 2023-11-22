@@ -51,6 +51,7 @@ namespace Darius::Physics
 		SetPositionConstraintsX(mPositionConstraints[0]);
 		SetPositionConstraintsY(mPositionConstraints[1]);
 		SetPositionConstraintsZ(mPositionConstraints[2]);
+		mActor->setActorFlag(physx::PxActorFlag::eDISABLE_SIMULATION, true);
 	}
 
 	void RigidbodyComponent::OnDestroy()
@@ -65,6 +66,22 @@ namespace Darius::Physics
 
 		physicsTrans.Scale = preTrans->GetScale();
 		GetTransform()->SetWorld(Matrix4(physicsTrans.GetWorld()));
+	}
+
+	void RigidbodyComponent::OnActivate()
+	{
+		if (mActor)
+		{
+			mActor->setActorFlag(physx::PxActorFlag::eDISABLE_SIMULATION, false);
+		}
+	}
+
+	void RigidbodyComponent::OnDeactivate()
+	{
+		if (mActor)
+		{
+			mActor->setActorFlag(physx::PxActorFlag::eDISABLE_SIMULATION, false);
+		}
 	}
 
 	void RigidbodyComponent::PreUpdate()

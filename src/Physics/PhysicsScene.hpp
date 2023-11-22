@@ -23,7 +23,7 @@ namespace Darius::Physics
 
 		static physx::PxRigidDynamic*	AddDynamicActor(D_SCENE::GameObject* go, bool kinematic);
 		static void						RemoveDynamicActor(D_SCENE::GameObject* go);
-		static physx::PxShape*			AddCollider(ColliderComponent* collider, _OUT_ bool& nonStatic);
+		static physx::PxShape*			AddCollider(ColliderComponent* collider, _OUT_ bool& nonStatic, _OUT_ PhysicsActor** physicsActor = nullptr);
 		static void						RemoveCollider(ColliderComponent const* collider);
 		static void						AddActor(D_SCENE::GameObject const* go);
 		static INLINE bool				IsRegistered(D_SCENE::GameObject const* go) { return sActorMap.contains(const_cast<D_SCENE::GameObject*>(go)); }

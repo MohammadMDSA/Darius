@@ -1,10 +1,10 @@
 #pragma once
 
-#include "Components/ColliderComponent.hpp"
-
 #include <Core/Containers/Set.hpp>
 #include <Scene/GameObject.hpp>
 #include <Utils/Common.hpp>
+
+#include <PxActor.h>
 
 #include "PhysicsActor.generated.hpp"
 

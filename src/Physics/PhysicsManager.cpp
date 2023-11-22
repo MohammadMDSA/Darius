@@ -161,19 +161,22 @@ namespace Darius::Physics
 
 		D_WORLD::IterateComponents<BoxColliderComponent>([&](BoxColliderComponent& colliderComp)
 			{
-				colliderComp.PreUpdate(simulating);
+				if (colliderComp.IsActive())
+					colliderComp.PreUpdate(simulating);
 			}
 		);
 
 		D_WORLD::IterateComponents<SphereColliderComponent>([&](SphereColliderComponent& colliderComp)
 			{
-				colliderComp.PreUpdate(simulating);
+				if (colliderComp.IsActive())
+					colliderComp.PreUpdate(simulating);
 			}
 		);
 
 		D_WORLD::IterateComponents<RigidbodyComponent>([&](RigidbodyComponent& rigidbodyComp)
 			{
-				rigidbodyComp.PreUpdate();
+				if (rigidbodyComp.IsActive())
+					rigidbodyComp.PreUpdate();
 			}
 		);
 	}

@@ -24,6 +24,8 @@ namespace Darius::Physics
 		virtual void					OnDestroy() override;
 		virtual void					Update(float) override;
 		virtual void					PreUpdate();
+		virtual void					OnActivate() override;
+		virtual void					OnDeactivate() override;
 
 #ifdef _D_EDITOR
 		virtual bool					DrawDetails(float[]) override;

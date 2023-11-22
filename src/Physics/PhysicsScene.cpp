@@ -2,6 +2,7 @@
 #include "PhysicsScene.hpp"
 
 #include "PhysicsManager.hpp"
+#include "Physics/PhysicsActor.hpp"
 #include "Components/ColliderComponent.hpp"
 #include "Components/RigidbodyComponent.hpp"
 
@@ -67,7 +68,7 @@ namespace Darius::Physics
 
 	}
 
-	physx::PxShape* PhysicsScene::AddCollider(ColliderComponent* collider, _OUT_ bool& nonStatic)
+	physx::PxShape* PhysicsScene::AddCollider(ColliderComponent* collider, _OUT_ bool& nonStatic, PhysicsActor** physicsActor)
 	{
 		auto go = collider->GetGameObject();
 
@@ -87,6 +88,9 @@ namespace Darius::Physics
 
 		if (shape)
 			actor.mCollider.insert(collider->GetUuid());
+
+		if (physicsActor)
+			*physicsActor = &actor;
 
 		return shape;
 
