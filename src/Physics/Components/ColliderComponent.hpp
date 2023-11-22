@@ -2,6 +2,7 @@
 
 #include "Physics/PhysicsManager.hpp"
 #include "Physics/Resources/PhysicsMaterialResource.hpp"
+#include "Physics/PhysicsActor.hpp"
 
 #include <ResourceManager/ResourceManager.hpp>
 #include <Scene/EntityComponentSystem/Components/ComponentBase.hpp>
@@ -56,6 +57,7 @@ namespace Darius::Physics
 		DField(Serialize)
 		D_RESOURCE::ResourceRef<PhysicsMaterialResource>	mMaterial;
 
+		PhysicsActor*										mActor;
 		physx::PxShape*										mShape = nullptr;
 
 

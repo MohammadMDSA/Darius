@@ -70,10 +70,19 @@ namespace Darius::Physics
 		if (!simulating && IsDynamic() != GetGameObject()->HasComponent<RigidbodyComponent>())
 			InvalidatePhysicsActor();
 
+		// Update rot pos
+		if (!IsDynamic()) // Dynamic objects are handled by their rigidbody component
+		{
+			auto trans = GetTransform();
+			auto pos = trans->GetPosition();
+			auto rot = trans->GetRotation();
+			mActor->GetPxActor()->setGlobalPose(physx::PxTransform(D_PHYSICS::GetVec3(pos), D_PHYSICS::GetQuat(rot)));
+		}
+
 		if (!IsDynamic() && simulating)
 			return;
 
-		// Updating scale, pos, rot
+		// Updating shape
 		bool geomChanged = false;
 		auto geom = UpdateAndGetPhysicsGeometry(geomChanged);
 
@@ -116,7 +125,7 @@ namespace Darius::Physics
 		mShape = nullptr;
 
 		auto material = D_PHYSICS::GetDefaultMaterial();
-		mShape = D_PHYSICS::PhysicsScene::AddCollider(this, mDynamic);
+		mShape = D_PHYSICS::PhysicsScene::AddCollider(this, mDynamic, &mActor);
 	}
 
 	void ColliderComponent::SetMaterial(PhysicsMaterialResource* material)
