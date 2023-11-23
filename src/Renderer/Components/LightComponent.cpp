@@ -49,10 +49,10 @@ namespace Darius::Renderer
 	{
 		bool changed = false;
 
-		D_H_DETAILS_DRAW_BEGIN_TABLE()
+		D_H_DETAILS_DRAW_BEGIN_TABLE();
 
-			// Light type
-			D_H_DETAILS_DRAW_PROPERTY("Light Type");
+		// Light type
+		D_H_DETAILS_DRAW_PROPERTY("Light Type");
 		int lightType = (int)mLightType;
 		if (ImGui::Combo("##LightTyp", &lightType, "DirectionalLight\0PointLight\0SpotLight\0\0"))
 		{
