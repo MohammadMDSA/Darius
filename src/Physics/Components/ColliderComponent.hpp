@@ -35,7 +35,8 @@ namespace Darius::Physics
 		virtual bool										DrawDetails(float params[]) override;
 #endif
 
-		INLINE physx::PxShape*								GetShape() { return mShape; }
+		INLINE physx::PxShape*								GetShape() const { return mShape; }
+		INLINE bool											IsDynamic() const { return mDynamic; }
 
 		void												SetMaterial(PhysicsMaterialResource* material);
 		INLINE PhysicsMaterialResource*						GetMaterial() const { return mMaterial.Get(); }
@@ -51,7 +52,7 @@ namespace Darius::Physics
 		void												InvalidatePhysicsActor();
 		void												ReloadMaterialData();
 
-		DField(Get[const, inline])
+		DField()
 		bool												mDynamic;
 
 		DField(Serialize)

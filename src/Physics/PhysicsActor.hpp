@@ -42,6 +42,8 @@ namespace Darius::Physics
 		INLINE bool						IsDynamic() const { return mActorType == PhysicsActorType::Dynamic; }
 		INLINE bool						IsKinematic() const { return mActorType == PhysicsActorType::Kinematic; }
 		INLINE bool						IsStatic() const { return mActorType == PhysicsActorType::Static; }
+		INLINE physx::PxRigidActor*		GetPxActor() const { return mPxActor; }
+		INLINE PhysicsActorType const	GetActorType() const { return mActorType; }
 
 	private:
 		friend class PhysicsScene;
@@ -50,10 +52,10 @@ namespace Darius::Physics
 		
 
 		
-		DField(Get[const, inline])
+		DField()
 		physx::PxRigidActor*			mPxActor;
 
-		DField(Get[inline])
+		DField()
 		const PhysicsActorType			mActorType;
 		
 		D_SCENE::GameObject* const		mGameObject;
