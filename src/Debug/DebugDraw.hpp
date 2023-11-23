@@ -16,6 +16,13 @@ namespace Darius::Debug
 	{
 	public:
 
+		enum class CapsuleOrientation
+		{
+			AlongX,
+			AlongY,
+			AlongZ
+		};
+
 		static void Initialize(D_SERIALIZATION::Json const& settings);
 		static void Shutdown();
 
@@ -38,6 +45,10 @@ namespace Darius::Debug
 		static void DrawCubeLines(D_CONTAINERS::DVector<D_MATH::Vector3> const& vertices, double duration = 0.f, D_MATH::Color const& color = { 1.f, 1.f, 1.f, 1.f });
 
 		static void DrawConeLines(D_MATH::Vector3 const& tipLocation, D_MATH::Vector3 const& tipToBaseDirection, float height, float baseRadius, double duration = 0., D_MATH::Color const& color = { 1.f, 1.f, 1.f, 1.f });
+		
+		static void DrawHemisphere(D_MATH::Vector3 const& centerLocation, D_MATH::Vector3 const& centerToTopDirection, float radius, UINT tessellation = 16, double duration = 0., D_MATH::Color const& color = { 1.f, 1.f, 1.f, 1.f });
+
+		static void DrawCapsule(D_MATH::Vector3 const& centerLocation, float radius, float halfHeight, D_MATH::Quaternion const& rotation, CapsuleOrientation orientation, UINT tessellation = 16, double duration = 0., D_MATH::Color const& color = { 1.f, 1.f, 1.f, 1.f });
 
 #else
 		static INLINE void FinalizeUpload() {}
@@ -51,6 +62,8 @@ namespace Darius::Debug
 		static INLINE void DrawFrustum(D_MATH_CAMERA::Frustum const& frus, double duration = 0.f, D_MATH::Color const& color = { 1.f, 1.f, 1.f, 1.f }) {}
 		static INLINE void DrawCubeLines(D_CONTAINERS::DVector<D_MATH::Vector3> const& vertices, double duration = 0.f, D_MATH::Color const& color = { 1.f, 1.f, 1.f, 1.f }) {}
 		static INLINE void DrawConeLines(D_MATH::Vector3 const& tipLocation, D_MATH::Vector3 const& tipToBaseDirection, float height, float baseRadius, double duration = 0., D_MATH::Color const& color = { 1.f, 1.f, 1.f, 1.f }) {}
+		static INLINE void DrawHemisphere(D_MATH::Vector3 const& centerLocation, D_MATH::Vector3 const& centerToTopDirection, float radius, UINT tessellation = 16, double duration = 0., D_MATH::Color const& color = { 1.f, 1.f, 1.f, 1.f }) {}
+		static INLINE void DrawCapsule(D_MATH::Vector3 const& centerLocation, float radius, float halfHeight, D_MATH::Quaternion const& rotation, CapsuleOrientation orientation, UINT tessellation = 16, double duration = 0., D_MATH::Color const& color = { 1.f, 1.f, 1.f, 1.f }) {}
 
 
 

@@ -206,6 +206,96 @@ namespace Darius::Debug
 		DrawLine(NearLowerRight, FarLowerRight, duration, color);
 	}
 
+	void DebugDraw::DrawHemisphere(D_MATH::Vector3 const& centerLocation, D_MATH::Vector3 const& centerToTopDirection, float radius, UINT tessellation, double duration, D_MATH::Color const& color)
+	{
+		D_ASSERT_M(tessellation > 3, "Tessellation parameter must be at least 3");
+		const UINT verticalSegments = tessellation;
+		const UINT horizontalSegments = tessellation * 2;
+
+		using namespace DirectX;
+
+		D_CONTAINERS::DVector<Vector3> verticesLocations;
+		verticesLocations.reserve((horizontalSegments + 1) * (tessellation / 2) + 1);
+
+		auto baseRotation = Quaternion::GetShortestArcBetweenTwoVector(Vector3::Up, centerToTopDirection.Normalize());
+
+		// Latitude rings, starting from main belt to top
+		for (UINT i = verticalSegments / 2; i <= verticalSegments; i++)
+		{
+			const float v = 1 - float(i) / float(verticalSegments);
+
+			const float lat = (float(i) * XM_PI / float(verticalSegments)) - XM_PIDIV2;
+			float dy, dxz;
+			XMScalarSinCos(&dy, &dxz, lat);
+
+			// Create verts of this latitude
+			for (UINT j = 0; j <= horizontalSegments; j++)
+			{
+				const float u = float(j) / float(horizontalSegments);
+
+				const float longtitude = float(j) * XM_2PI / float(horizontalSegments);
+				float dx, dz;
+
+				XMScalarSinCos(&dx, &dz, longtitude);
+
+				dx *= dxz;
+				dz *= dxz;
+
+				Vector3 pos(dx, dy, dz);
+				pos = (baseRotation * pos) * radius + centerLocation;
+
+				verticesLocations.push_back(pos);
+			}
+		}
+
+		// Drawing vertical lines
+		const UINT stride = horizontalSegments + 1;
+
+		for (UINT i = 0u; i < verticalSegments / 2; i++)
+		{
+			for (UINT j = 0; j < 4; j++)
+			{
+				UINT horiz = (horizontalSegments * j) / 4;
+				Vector3& p1 = verticesLocations[i * stride + horiz];
+				Vector3& p2 = verticesLocations[(i + 1) * stride + horiz];
+				DrawLine(p1, p2, duration, color);
+			}
+		}
+
+		// Draing main belt
+		for (UINT i = 0; i < horizontalSegments - 1; i++)
+		{
+			Vector3& p1 = verticesLocations[i];
+			Vector3& p2 = verticesLocations[i + 1];
+			DrawLine(p1, p2, duration, color);
+		}
+		DrawLine(verticesLocations[horizontalSegments - 1], verticesLocations[0], duration, color);
+	}
+
+	void DebugDraw::DrawCapsule(D_MATH::Vector3 const& centerLocation, float radius, float halfHeight, D_MATH::Quaternion const& rotation, CapsuleOrientation orientation, UINT tessellation, double duration, D_MATH::Color const& color)
+	{
+		Vector3 centerToTipDirection;
+		switch (orientation)
+		{
+		case Darius::Debug::DebugDraw::CapsuleOrientation::AlongX:
+			centerToTipDirection = rotation * Vector3(1.f, 0.f, 0.f);
+			break;
+		case Darius::Debug::DebugDraw::CapsuleOrientation::AlongY:
+			centerToTipDirection = rotation * Vector3(0.f, 1.f, 0.f);
+			break;
+		case Darius::Debug::DebugDraw::CapsuleOrientation::AlongZ:
+			centerToTipDirection = rotation * Vector3(0.f, 0.f, 1.f);
+			break;
+		default:
+			D_ASSERT(false);
+			break;
+		}
+		
+		// Drawing two hemisphere at its two ends
+		DrawHemisphere(centerToTipDirection * halfHeight + centerLocation, centerToTipDirection, radius, tessellation, duration, color);
+		DrawHemisphere(-centerToTipDirection * halfHeight + centerLocation, -centerToTipDirection, radius, tessellation, duration, color);
+	}
+
 	void DebugDraw::DrawConeLines(D_MATH::Vector3 const& tipLocation, D_MATH::Vector3 const& tipToBaseDirection, float height, float baseRadius, double duration, D_MATH::Color const& color)
 	{
 #define ConeBasePoints 12
@@ -275,7 +365,7 @@ namespace Darius::Debug
 	{
 		//D_LOG_DEBUG(DrawPending.size());
 		const std::lock_guard<std::mutex> lock(AdditionMutex);
-		
+
 		return DrawPending;
 	}
 
