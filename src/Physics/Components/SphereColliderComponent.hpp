@@ -26,8 +26,8 @@ namespace Darius::Physics
 
 	protected:
 
-		virtual physx::PxGeometry* UpdateAndGetPhysicsGeometry(bool& changed);
-		virtual physx::PxGeometry const* GetPhysicsGeometry() const;
+		virtual physx::PxGeometry*			UpdateAndGetPhysicsGeometry(bool& changed) override;
+		virtual physx::PxGeometry const*	GetPhysicsGeometry() const override;
 
 		INLINE float						GetRadius() const
 		{

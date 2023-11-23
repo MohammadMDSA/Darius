@@ -25,8 +25,8 @@ namespace Darius::Physics
 
 	protected:
 
-		virtual physx::PxGeometry*			UpdateAndGetPhysicsGeometry(bool& changed);
-		INLINE virtual physx::PxGeometry const* GetPhysicsGeometry() const { return &mGeometry; }
+		virtual physx::PxGeometry*			UpdateAndGetPhysicsGeometry(bool& changed) override;
+		INLINE virtual physx::PxGeometry const* GetPhysicsGeometry() const override { return &mGeometry; }
 
 	private:
 		physx::PxBoxGeometry				mGeometry;

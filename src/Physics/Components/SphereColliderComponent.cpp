@@ -23,6 +23,7 @@ namespace Darius::Physics
 		ColliderComponent::Awake();
 	}
 
+#ifdef _D_EDITOR
 	bool SphereColliderComponent::DrawDetails(float params[])
 	{
 		bool valueChanged = false;
@@ -31,6 +32,7 @@ namespace Darius::Physics
 
 		return valueChanged;
 	}
+#endif
 
 	void SphereColliderComponent::OnGizmo() const
 	{

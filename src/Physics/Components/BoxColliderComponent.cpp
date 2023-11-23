@@ -11,10 +11,10 @@ namespace Darius::Physics
 	D_H_COMP_DEF(BoxColliderComponent);
 
 	BoxColliderComponent::BoxColliderComponent() :
-		ColliderComponent() {}
+		ColliderComponent() { }
 
-	BoxColliderComponent::BoxColliderComponent(D_CORE::Uuid uuid) : \
-		ColliderComponent(uuid) {}
+	BoxColliderComponent::BoxColliderComponent(D_CORE::Uuid uuid) :
+		ColliderComponent(uuid) { }
 
 	void BoxColliderComponent::Awake()
 	{
@@ -24,6 +24,7 @@ namespace Darius::Physics
 		ColliderComponent::Awake();
 	}
 
+#ifdef _D_EDITOR
 	bool BoxColliderComponent::DrawDetails(float params[])
 	{
 		bool valueChanged = false;
@@ -32,6 +33,7 @@ namespace Darius::Physics
 
 		return valueChanged;
 	}
+#endif
 
 	void BoxColliderComponent::OnGizmo() const
 	{
