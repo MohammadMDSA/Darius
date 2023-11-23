@@ -8,9 +8,10 @@ list(APPEND PHYSICS_LIBS_INCLUDE
 	"PhysicsManager.hpp"
 	"PhysicsScene.hpp"
 	"PhysicsActor.hpp"
-	"Components/SphereColliderComponent.hpp"
 	"Components/BoxColliderComponent.hpp"
+	"Components/CapsuleColliderComponent.hpp"
 	"Components/ColliderComponent.hpp"
+	"Components/SphereColliderComponent.hpp"
 	"Components/RigidbodyComponent.hpp"
 	"Resources/PhysicsMaterialResource.hpp"
 	)
@@ -20,9 +21,10 @@ list(APPEND PHYSICS_LIBS_SOURCES
 	"PhysicsManager.cpp"
 	"PhysicsScene.cpp"
 	"PhysicsActor.cpp"
- 	"Components/SphereColliderComponent.cpp"
  	"Components/BoxColliderComponent.cpp"
+	"Components/CapsuleColliderComponent.cpp"
 	"Components/ColliderComponent.cpp"
+ 	"Components/SphereColliderComponent.cpp"
 	"Components/RigidbodyComponent.cpp"
 	"Resources/PhysicsMaterialResource.cpp"
 	)

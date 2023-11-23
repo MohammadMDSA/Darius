@@ -4,6 +4,7 @@
 #include "Components/RigidbodyComponent.hpp"
 #include "Components/BoxColliderComponent.hpp"
 #include "Components/SphereColliderComponent.hpp"
+#include "Components/CapsuleColliderComponent.hpp"
 #include "Resources/PhysicsMaterialResource.hpp"
 
 #include <Core/TimeManager/TimeManager.hpp>
@@ -78,6 +79,7 @@ namespace Darius::Physics
 		// Registering Components
 		BoxColliderComponent::StaticConstructor();
 		SphereColliderComponent::StaticConstructor();
+		CapsuleColliderComponent::StaticConstructor();
 		RigidbodyComponent::StaticConstructor();
 
 		// Create default resources
@@ -167,6 +169,13 @@ namespace Darius::Physics
 		);
 
 		D_WORLD::IterateComponents<SphereColliderComponent>([&](SphereColliderComponent& colliderComp)
+			{
+				if (colliderComp.IsActive())
+					colliderComp.PreUpdate(simulating);
+			}
+		);
+
+		D_WORLD::IterateComponents<CapsuleColliderComponent>([&](CapsuleColliderComponent& colliderComp)
 			{
 				if (colliderComp.IsActive())
 					colliderComp.PreUpdate(simulating);
