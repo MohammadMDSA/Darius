@@ -14,6 +14,10 @@
 #include <Scene/Scene.hpp>
 #include <Utils/Assert.hpp>
 
+#ifdef _D_EDITOR
+#include <Debug/DebugDraw.hpp>
+#endif
+
 #include <PxPhysics.h>
 
 #define PX_RELEASE(x)	if(x)	{ x->release(); x = NULL;	}
@@ -205,8 +209,112 @@ namespace Darius::Physics
 		return gDefaultMaterial;
 	}
 
-	bool Raycast(_IN_ D_MATH::Vector3 const& origin, _IN_ D_MATH::Vector3 const& direction, _IN_ float const& maxDistance, _OUT_ physx::PxRaycastBuffer& hit)
+	bool CastRay(_IN_ D_MATH::Vector3 const& origin, _IN_ D_MATH::Vector3 const& direction, _IN_ float maxDistance, _OUT_ physx::PxRaycastBuffer& hit)
 	{
 		return gScene->raycast(*(PxVec3 const*)&origin, *(PxVec3 const*)&direction, maxDistance, hit);
 	}
+
+	bool CastCapsule(_IN_ D_MATH::Vector3 const& origin, _IN_ D_MATH::Vector3 const& direction, float radius, float halfHeight, D_MATH::Quaternion const& capsuleRotation, float maxDistance, physx::PxSweepBuffer& hit)
+	{
+		D_ASSERT(radius > 0);
+		D_ASSERT(halfHeight > 0);
+		return gScene->sweep(PxCapsuleGeometry(radius, halfHeight), PxTransform(GetVec3(origin), GetQuat(capsuleRotation)), GetVec3(direction.Normalize()), maxDistance, hit);
+	}
+
+	bool CastSphere(D_MATH::Vector3 const& origin, D_MATH::Vector3 const& direction, float radius, float maxDistance, _OUT_ physx::PxSweepBuffer& hit)
+	{
+		D_ASSERT(radius > 0);
+		return gScene->sweep(PxSphereGeometry(radius), PxTransform(GetVec3(origin)), GetVec3(direction.Normalize()), maxDistance, hit);
+	}
+
+	bool CastBox(D_MATH::Vector3 const& origin, D_MATH::Vector3 const& direction, D_MATH::Vector3 const& halfExtents, D_MATH::Quaternion const& boxRotation, float maxDistance, _OUT_ physx::PxSweepBuffer& hit)
+	{
+		D_ASSERT(DirectX::XMVector3Greater(halfExtents, DirectX::XMVectorZero()));
+
+		return gScene->sweep(PxBoxGeometry(GetVec3(halfExtents)), PxTransform(GetVec3(origin), GetQuat(boxRotation)), GetVec3(direction.Normalize()), maxDistance, hit);
+	}
+
+	bool CastRay_DebugDraw(_IN_ D_MATH::Vector3 const& origin, _IN_ D_MATH::Vector3 const& direction, _IN_ float maxDistance, float secendsToDisplay, _OUT_ physx::PxRaycastBuffer& hit)
+	{
+		bool result = CastRay(origin, direction, maxDistance, hit);
+
+#if _D_EDITOR
+		if (result)
+		{
+			auto hitPos = GetVec3(hit.block.position);
+			D_DEBUG_DRAW::DrawLine(origin, hitPos, secendsToDisplay, D_MATH::Color::Green);
+			D_DEBUG_DRAW::DrawLine(hitPos, GetVec3(hit.block.normal) * 0.5f + hitPos, secendsToDisplay, D_MATH::Color::Red);
+		}
+
+		else
+			D_DEBUG_DRAW::DrawLine(origin, direction.Normalize() * maxDistance + origin, secendsToDisplay, D_MATH::Color::Red);
+#endif
+		return result;
+
+	}
+
+	bool CastCapsule_DebugDraw(_IN_ D_MATH::Vector3 const& origin, _IN_ D_MATH::Vector3 const& direction, float maxDistance, float radius, float halfHeight, D_MATH::Quaternion const& capsuleRotation, float secendsToDisplay, _OUT_ physx::PxSweepBuffer& hit)
+	{
+		bool result = CastCapsule(origin, direction, radius, halfHeight, capsuleRotation, maxDistance, hit);
+
+#if _D_EDITOR
+
+		auto dirNorm = direction.Normalize();
+
+		if (result)
+		{
+			auto hitGeomPos = origin + dirNorm * hit.block.distance;
+			D_DEBUG_DRAW::DrawLine(origin, hitGeomPos, secendsToDisplay, D_MATH::Color::Green);
+			D_DEBUG_DRAW::DrawCapsule(hitGeomPos, radius, halfHeight, capsuleRotation, D_DEBUG_DRAW::CapsuleOrientation::AlongX, 16u, secendsToDisplay, D_MATH::Color::Red);
+		}
+
+		else
+			D_DEBUG_DRAW::DrawLine(origin, dirNorm * maxDistance + origin, secendsToDisplay, D_MATH::Color::Red);
+#endif
+		return result;
+	}
+
+	bool CastSphere_DebugDraw(D_MATH::Vector3 const& origin, D_MATH::Vector3 const& direction, float radius, float maxDistance, float secendsToDisplay, _OUT_ physx::PxSweepBuffer& hit)
+	{
+		bool result = CastSphere(origin, direction, radius, maxDistance, hit);
+
+#if _D_EDITOR
+
+		auto dirNorm = direction.Normalize();
+
+		if (result)
+		{
+			auto hitGeomPos = origin + dirNorm * hit.block.distance;
+			D_DEBUG_DRAW::DrawLine(origin, hitGeomPos, secendsToDisplay, D_MATH::Color::Green);
+			D_DEBUG_DRAW::DrawSphere(hitGeomPos, radius, secendsToDisplay, D_MATH::Color::Red);
+		}
+
+		else
+			D_DEBUG_DRAW::DrawLine(origin, dirNorm * maxDistance + origin, secendsToDisplay, D_MATH::Color::Red);
+#endif
+		return result;
+	}
+
+	bool CastBox_DebugDraw(D_MATH::Vector3 const& origin, D_MATH::Vector3 const& direction, D_MATH::Vector3 const& halfExtents, D_MATH::Quaternion const& boxRotation, float maxDistance, float secendsToDisplay, _OUT_ physx::PxSweepBuffer& hit)
+	{
+		bool result = CastBox(origin, direction, halfExtents, boxRotation, maxDistance, hit);
+
+
+#if _D_EDITOR
+
+		auto dirNorm = direction.Normalize();
+
+		if (result)
+		{
+			auto hitGeomPos = origin + dirNorm * hit.block.distance;
+			D_DEBUG_DRAW::DrawLine(origin, hitGeomPos, secendsToDisplay, D_MATH::Color::Green);
+			D_DEBUG_DRAW::DrawCube(hitGeomPos, boxRotation, halfExtents * 2, secendsToDisplay, D_MATH::Color::Red);
+		}
+
+		else
+			D_DEBUG_DRAW::DrawLine(origin, dirNorm * maxDistance + origin, secendsToDisplay, D_MATH::Color::Red);
+#endif
+		return result;
+	}
+
 }
