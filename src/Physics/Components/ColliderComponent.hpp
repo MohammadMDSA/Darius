@@ -41,6 +41,7 @@ namespace Darius::Physics
 		void												SetMaterial(PhysicsMaterialResource* material);
 		INLINE PhysicsMaterialResource*						GetMaterial() const { return mMaterial.Get(); }
 
+		virtual INLINE D_MATH::Quaternion					GetBiasedRotation() const { return D_MATH::Quaternion::Identity; }
 
 	protected:
 		virtual INLINE physx::PxGeometry const*				GetPhysicsGeometry() const { return nullptr; };

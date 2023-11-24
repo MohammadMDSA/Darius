@@ -3,6 +3,7 @@
 
 #include "Physics/PhysicsManager.hpp"
 #include "Physics/PhysicsScene.hpp"
+#include "Physics/Components/CapsuleColliderComponent.hpp"
 
 #ifdef _D_EDITOR
 #include <imgui.h>
@@ -62,9 +63,11 @@ namespace Darius::Physics
 	void RigidbodyComponent::Update(float)
 	{
 		auto preTrans = GetTransform();
+		auto inverseBiasedRot = mBiasedRotation.Invert();
 		D_MATH::Transform physicsTrans = D_PHYSICS::GetTransform(mActor->getGlobalPose());
 
 		physicsTrans.Scale = preTrans->GetScale();
+		physicsTrans.Rotation *= inverseBiasedRot;
 		GetTransform()->SetWorld(Matrix4(physicsTrans.GetWorld()));
 	}
 
@@ -86,7 +89,21 @@ namespace Darius::Physics
 
 	void RigidbodyComponent::PreUpdate()
 	{
-		mActor->setGlobalPose(D_PHYSICS::GetTransform(GetTransform()->GetTransformData()));
+		auto trans = GetTransform();
+		auto pos = trans->GetPosition();
+		auto rot = trans->GetRotation();
+
+		auto capsule = GetGameObject()->GetComponent<CapsuleColliderComponent>();
+		if (capsule)
+		{
+			mBiasedRotation = capsule->GetBiasedRotation();
+		}
+		else
+			mBiasedRotation = Quaternion::Identity;
+
+		rot *= mBiasedRotation;
+
+		mActor->setGlobalPose(physx::PxTransform(D_PHYSICS::GetVec3(pos), D_PHYSICS::GetQuat(rot)));
 	}
 
 	bool RigidbodyComponent::IsUsingGravity() const

@@ -77,7 +77,7 @@ namespace Darius::Physics
 		{
 			auto trans = GetTransform();
 			auto pos = trans->GetPosition();
-			auto rot = trans->GetRotation();
+			auto rot = trans->GetRotation() * GetBiasedRotation();
 			mActor->GetPxActor()->setGlobalPose(physx::PxTransform(D_PHYSICS::GetVec3(pos), D_PHYSICS::GetQuat(rot)));
 		}
 

@@ -41,6 +41,8 @@ namespace Darius::Physics
 		// Call when are the parameters are correctly set
 		void								CalculateGeometry(_OUT_ physx::PxGeometry& geom) const;
 
+		virtual D_MATH::Quaternion			GetBiasedRotation() const override;
+
 		static constexpr float				MinRadius = 0.01f;
 		static constexpr float				MinHalfHeight = 0.01f;
 

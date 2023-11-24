@@ -76,6 +76,7 @@ namespace Darius::Physics
 		bool							mUsingGravity;
 		bool							mRotationConstraints[3];
 		bool							mPositionConstraints[3];
+		D_MATH::Quaternion				mBiasedRotation;
 
 	public:
 		Darius_Physics_RigidbodyComponent_GENERATED

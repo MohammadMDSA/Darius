@@ -186,4 +186,19 @@ namespace Darius::Physics
 		physx::PxCapsuleGeometry& caps = reinterpret_cast<physx::PxCapsuleGeometry&>(geom);
 		caps = physx::PxCapsuleGeometry(mScaledRadius, mScaledHalfHeight);
 	}
+
+	D_MATH::Quaternion CapsuleColliderComponent::GetBiasedRotation() const
+	{
+		switch (mOrientation)
+		{
+		case Darius::Physics::CapsuleColliderComponent::CapsuleColliderOrientation::AlongX:
+			return D_MATH::Quaternion::Identity;
+		case Darius::Physics::CapsuleColliderComponent::CapsuleColliderOrientation::AlongY:
+			return D_MATH::Quaternion(D_MATH::Vector3::Forward, DirectX::XM_PIDIV2);
+		case Darius::Physics::CapsuleColliderComponent::CapsuleColliderOrientation::AlongZ:
+			return D_MATH::Quaternion(D_MATH::Vector3::Up, DirectX::XM_PIDIV2);
+		default:
+			D_ASSERT(false);
+		}
+	}
 }
