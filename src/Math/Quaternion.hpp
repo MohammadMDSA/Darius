@@ -78,6 +78,8 @@ namespace Darius::Math
 		INLINE Vector3 GetRight() const { return *this * Vector3::Right; }
 		INLINE Vector3 GetUp() const { return *this * Vector3::Up; }
 
+		INLINE Quaternion Invert() const { return Quaternion(DirectX::XMQuaternionInverse(m_vec)); }
+
 		INLINE Quaternion operator~ (void) const { return Quaternion(DirectX::XMQuaternionConjugate(m_vec)); }
 		INLINE Quaternion operator- (void) const { return Quaternion(DirectX::XMVectorNegate(m_vec)); }
 
@@ -94,12 +96,13 @@ namespace Darius::Math
 			auto angle = DirectX::XMVectorGetX(DirectX::XMVector3AngleBetweenVectors(v1, v2));
 			auto cross = Vector3(DirectX::XMVector3Cross(v1, v2));
 			if (DirectX::XMVector3Equal(cross, { 0.f, 0.f, 0.f }))
-				return angle > DirectX::g_XMEpsilon[0] ? -Quaternion() : Quaternion();
+				return angle > DirectX::g_XMEpsilon[0] ? Quaternion::Inverted : Quaternion::Identity;
 
 			return Quaternion(cross, angle);
 		}
 
 		static const Quaternion Identity;
+		static const Quaternion Inverted;
 
 	protected:
 		RTTR_REGISTRATION_FRIEND

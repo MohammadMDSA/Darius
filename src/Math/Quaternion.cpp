@@ -9,6 +9,7 @@ using namespace DirectX;
 namespace Darius::Math
 {
 	const Quaternion Quaternion::Identity = Quaternion(kIdentity);
+	const Quaternion Quaternion::Inverted = { 0.f, 0.f, 0.f, -1.f };
 
 #ifdef _D_EDITOR
 
