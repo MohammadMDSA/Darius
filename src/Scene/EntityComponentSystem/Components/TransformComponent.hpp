@@ -36,6 +36,7 @@ namespace Darius::Math
 		Vector3								GetPosition();
 		Quaternion							GetRotation();
 		Vector3								GetScale();
+		Vector3								GetForward();
 		INLINE Transform const&				GetTransformData() const { return mTransformMath; }
 
 #ifdef _D_EDITOR
@@ -154,6 +155,10 @@ namespace Darius::Math
 		return world.Scale;
 	}
 
+	INLINE Vector3 TransformComponent::GetForward()
+	{
+		return GetRotation().GetForward();
+	}
 }
 
 File_TransformComponent_GENERATED
