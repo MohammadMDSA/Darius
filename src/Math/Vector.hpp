@@ -193,8 +193,10 @@ namespace Darius::Math
 	public:
 		INLINE BoolVector(DirectX::FXMVECTOR vec) { m_vec = vec; }
 
+		INLINE bool All() const { return DirectX::XMVector4Equal(m_vec, DirectX::g_XMOne); }
+		INLINE bool All3() const { return DirectX::XMVector3Equal(m_vec, DirectX::g_XMOne); }
 		INLINE operator DirectX::XMVECTOR() const { return m_vec; }
-		INLINE operator bool() const { return DirectX::XMVectorGetX(m_vec) && DirectX::XMVectorGetY(m_vec) && DirectX::XMVectorGetZ(m_vec) && DirectX::XMVectorGetW(m_vec); }
+		INLINE operator bool() const { return All(); }
 	protected:
 		DirectX::XMVECTOR m_vec;
 
