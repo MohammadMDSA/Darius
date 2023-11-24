@@ -101,6 +101,11 @@ namespace Darius::Math
 			return Quaternion(cross, angle);
 		}
 
+		INLINE static Quaternion FromForwardAndAngle(Vector3 const& forward, float angleDeg = 0.f)
+		{
+			return Quaternion(DirectX::XMQuaternionRotationNormal(forward, DirectX::XMConvertToRadians(angleDeg)));
+		}
+
 		static const Quaternion Identity;
 		static const Quaternion Inverted;
 
