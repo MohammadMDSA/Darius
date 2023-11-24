@@ -9,16 +9,22 @@
 #include <imgui.h>
 #endif
 
+#include "LaserShoot.sgenerated.hpp"
+
+using namespace D_MATH;
+
 namespace Demo
 {
 	D_H_BEHAVIOUR_COMP_DEF(LaserShoot);
 
 	LaserShoot::LaserShoot() :
-		D_ECS_COMP::BehaviourComponent()
+		D_ECS_COMP::BehaviourComponent(),
+		mCastType(0)
 	{ }
 
 	LaserShoot::LaserShoot(D_CORE::Uuid uuid) :
-		D_ECS_COMP::BehaviourComponent(uuid)
+		D_ECS_COMP::BehaviourComponent(uuid),
+		mCastType(0)
 	{ }
 
 	void LaserShoot::Start()
@@ -28,20 +34,34 @@ namespace Demo
 
 	void LaserShoot::Update(float deltaTime)
 	{
-		auto frame = D_TIME::GetFrameCount();
-
 		auto trans = GetTransform();
-		auto dir = trans->GetRotation().GetForward();
+		auto scale = trans->GetLocalScale();
 
-		D_DEBUG_DRAW::DrawSphere(trans->GetPosition() + dir * 3, 0.5, 0, { 0.f, 1.f, 0.f, 1.f });
+		physx::PxRaycastBuffer rayHit;
+		physx::PxSweepBuffer sweepHit;
 
-		physx::PxRaycastBuffer hit;
-		if (D_PHYSICS::Raycast(trans->GetPosition() + dir * 2, dir, 100, hit))
+		static const float maxDist = 30.f;
+		static const float timeToDisplay = 1.f;
+
+		switch (mCastType)
 		{
-			auto hitPos = D_PHYSICS::GetVec3(hit.block.position);
-			D_DEBUG_DRAW::DrawCube(D_PHYSICS::GetVec3(hit.block.position), D_MATH::LookAt(D_PHYSICS::GetVec3(hit.block.normal), D_MATH::Vector3::Up), D_MATH::Vector3(0.5f, 0.5f, 0.5f), 1, { 1.f, 0.f, 0.f, 1.f });
+		case 0: // Ray
+			D_PHYSICS::CastRay_DebugDraw(trans->GetPosition(), trans->GetForward(), maxDist, timeToDisplay, rayHit);
+			break;
 
-			D_DEBUG_DRAW::DrawLine(trans->GetPosition(), hitPos);
+		case 1:
+			D_PHYSICS::CastCapsule_DebugDraw(trans->GetPosition(), trans->GetForward(), maxDist, D_MATH::Max(0.01f, D_MATH::Max(D_MATH::Abs(scale.GetX()), D_MATH::Abs(scale.GetZ()))), D_MATH::Max(0.01f, D_MATH::Abs(scale.GetY())), Quaternion::Identity, timeToDisplay, sweepHit);
+			break;
+
+		case 2:
+			D_PHYSICS::CastSphere_DebugDraw(trans->GetPosition(), trans->GetForward(), D_MATH::Max(0.01f, D_MATH::Max(D_MATH::Abs(scale.GetX()), D_MATH::Max(D_MATH::Abs(scale.GetZ()), D_MATH::Abs(scale.GetY())))), maxDist, timeToDisplay, sweepHit);
+			break;
+
+		case 3:
+			D_PHYSICS::CastBox_DebugDraw(trans->GetPosition(), trans->GetForward(), D_MATH::Max(D_MATH::Abs(scale), Vector3(0.01)) / 2, Quaternion::Identity, maxDist, timeToDisplay, sweepHit);
+			break;
+		default:
+			break;
 		}
 
 	}
@@ -55,10 +75,9 @@ namespace Demo
 
 
 		// sample field
-		D_H_DETAILS_DRAW_PROPERTY("field");
+		D_H_DETAILS_DRAW_PROPERTY("Cast Type");
 
-		float val;
-		valueChanged |= ImGui::InputFloat("##val", &val);
+		valueChanged |= ImGui::Combo("##CastType", &mCastType, "Ray\0Capsule\0Sphere\0Box\0\0");
 
 		D_H_DETAILS_DRAW_END_TABLE();
 
