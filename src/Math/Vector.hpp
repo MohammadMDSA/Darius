@@ -21,7 +21,137 @@
 
 namespace Darius::Math
 {
+	class Vector3;
 	class Vector4;
+	//class Matrix4;
+	class Quaternion;
+
+	class DClass() Vector2
+	{
+	public:
+		Vector2() : mData(0.f, 0.f) {}
+		constexpr explicit Vector2(float ix) : mData(ix, ix) {}
+		constexpr Vector2(float ix, float iy) : mData(ix, iy) {}
+		explicit Vector2(_In_reads_(2) const float* pArray) : mData(pArray) {}
+		Vector2(DirectX::FXMVECTOR V) { DirectX::XMStoreFloat2(&mData, V); }
+		Vector2(const DirectX::XMFLOAT2 & V) { mData.x = V.x; mData.y = V.y; }
+		explicit Vector2(const DirectX::XMVECTORF32 & F) { mData.x = F.f[0]; mData.y = F.f[1]; }
+
+		Vector2(const Vector2&) = default;
+		Vector2& operator=(const Vector2&) = default;
+
+		Vector2(Vector2&&) = default;
+		Vector2& operator=(Vector2&&) = default;
+
+		operator DirectX::XMVECTOR() const { return XMLoadFloat2(&mData); }
+		operator DirectX::XMFLOAT2 const&() const { return mData; }
+
+		// Comparison operators
+		bool operator == (const Vector2 & V) const;
+		bool operator != (const Vector2 & V) const;
+
+		// Assignment operators
+		Vector2& operator= (const DirectX::XMVECTORF32 & F) { mData.x = F.f[0]; mData.y = F.f[1]; return *this; }
+		Vector2& operator+= (const Vector2 & V);
+		Vector2& operator-= (const Vector2 & V);
+		Vector2& operator*= (const Vector2 & V);
+		Vector2& operator*= (float S);
+		Vector2& operator/= (float S);
+
+		// Unary operators
+		Vector2 operator+ () const { return mData; }
+		Vector2 operator- () const { return Vector2(-mData.x, -mData.y); }
+
+		// Vector operations
+		bool InBounds(const Vector2 & Bounds) const;
+
+		float Length() const;
+		float LengthSquared() const;
+
+		float Dot(const Vector2 & V) const;
+		void Cross(const Vector2 & V, Vector2 & result) const;
+		Vector2 Cross(const Vector2 & V) const;
+
+		void Normalize();
+		void Normalize(Vector2 & result) const;
+
+		void Clamp(const Vector2 & vmin, const Vector2 & vmax);
+		void Clamp(const Vector2 & vmin, const Vector2 & vmax, Vector2 & result) const;
+
+		INLINE float GetX() const { return mData.x; }
+		INLINE float GetY() const { return mData.y; }
+
+		INLINE void SetX(float x) { mData.x = x; }
+		INLINE void SetY(float y) { mData.y = y; }
+
+		INLINE D_CONTAINERS::DVector<float> GetData() const { return { GetX(), GetY() }; }
+		// Costy, don't use too often
+		INLINE void SetData(D_CONTAINERS::DVector<float> data) { SetX(data[0]); SetY(data[1]); }
+
+		// Static functions
+		static float Distance(const Vector2 & v1, const Vector2 & v2);
+		static float DistanceSquared(const Vector2 & v1, const Vector2 & v2);
+
+		static void Min(const Vector2 & v1, const Vector2 & v2, Vector2 & result);
+		static Vector2 Min(const Vector2 & v1, const Vector2 & v2);
+
+		static void Max(const Vector2 & v1, const Vector2 & v2, Vector2 & result);
+		static Vector2 Max(const Vector2 & v1, const Vector2 & v2);
+
+		static void Lerp(const Vector2 & v1, const Vector2 & v2, float t, Vector2 & result);
+		static Vector2 Lerp(const Vector2 & v1, const Vector2 & v2, float t);
+
+		static void SmoothStep(const Vector2 & v1, const Vector2 & v2, float t, Vector2 & result);
+		static Vector2 SmoothStep(const Vector2 & v1, const Vector2 & v2, float t);
+
+		static void Barycentric(const Vector2 & v1, const Vector2 & v2, const Vector2 & v3, float f, float g, Vector2 & result);
+		static Vector2 Barycentric(const Vector2 & v1, const Vector2 & v2, const Vector2 & v3, float f, float g);
+
+		static void CatmullRom(const Vector2 & v1, const Vector2 & v2, const Vector2 & v3, const Vector2 & v4, float t, Vector2 & result);
+		static Vector2 CatmullRom(const Vector2 & v1, const Vector2 & v2, const Vector2 & v3, const Vector2 & v4, float t);
+
+		static void Hermite(const Vector2 & v1, const Vector2 & t1, const Vector2 & v2, const Vector2 & t2, float t, Vector2 & result);
+		static Vector2 Hermite(const Vector2 & v1, const Vector2 & t1, const Vector2 & v2, const Vector2 & t2, float t);
+
+		static void Reflect(const Vector2 & ivec, const Vector2 & nvec, Vector2 & result);
+		static Vector2 Reflect(const Vector2 & ivec, const Vector2 & nvec);
+
+		static void Refract(const Vector2 & ivec, const Vector2 & nvec, float refractionIndex, Vector2 & result);
+		static Vector2 Refract(const Vector2 & ivec, const Vector2 & nvec, float refractionIndex);
+
+		//static void Transform(const Vector2 & v, const Quaternion & quat, Vector2 & result);
+		//static Vector2 Transform(const Vector2 & v, const Quaternion & quat);
+
+		/*static void Transform(const Vector2 & v, const Matrix4 & m, Vector2 & result);
+		static Vector2 Transform(const Vector2 & v, const Matrix4 & m);
+		static void Transform(_In_reads_(count) const Vector2 * varray, size_t count, const Matrix4 & m, _Out_writes_(count) Vector2 * resultArray);
+
+		static void Transform(const Vector2 & v, const Matrix4 & m, Vector4 & result);
+		static void Transform(_In_reads_(count) const Vector2 * varray, size_t count, const Matrix4 & m, _Out_writes_(count) Vector4 * resultArray);
+
+		static void TransformNormal(const Vector2 & v, const Matrix4& m, Vector2 & result);
+		static Vector2 TransformNormal(const Vector2 & v, const Matrix4& m);
+		static void TransformNormal(_In_reads_(count) const Vector2 * varray, size_t count, const Matrix4& m, _Out_writes_(count) Vector2 * resultArray);*/
+
+		// Constants
+		static const Vector2 Zero;
+		static const Vector2 One;
+		static const Vector2 UnitX;
+		static const Vector2 UnitY;
+
+	private:
+		RTTR_REGISTRATION_FRIEND;
+		DirectX::XMFLOAT2 mData;
+	};
+
+	// Binary operators
+	Vector2 operator+ (const Vector2& V1, const Vector2& V2);
+	Vector2 operator- (const Vector2& V1, const Vector2& V2);
+	Vector2 operator* (const Vector2& V1, const Vector2& V2);
+	Vector2 operator* (const Vector2& V, float S);
+	Vector2 operator/ (const Vector2& V1, const Vector2& V2);
+	Vector2 operator/ (const Vector2& V, float S);
+	Vector2 operator* (float S, const Vector2& V);
 
 	// A 3-vector with an unspecified fourth component.  Depending on the context, the W can be 0 or 1, but both are implicit.
 	// The actual value of the fourth component is undefined for performance reasons.
@@ -31,8 +161,8 @@ namespace Darius::Math
 
 		INLINE Vector3() { m_vec = DirectX::XMVectorSet(0.f, 0.f, 0.f, 0.f); }
 		INLINE Vector3(float _x, float _y, float _z) { m_vec = DirectX::XMVectorSet(_x, _y, _z, _z); }
-		explicit INLINE Vector3(const float* data) : Vector3(DirectX::XMFLOAT3(data)) {}
-		INLINE Vector3(const DirectX::XMFLOAT3 & v) { m_vec = DirectX::XMLoadFloat3(&v); }
+		explicit INLINE Vector3(float const* data) : Vector3(DirectX::XMFLOAT3(data)) {}
+		INLINE Vector3(DirectX::XMFLOAT3 const& v) { m_vec = DirectX::XMLoadFloat3(&v); }
 		INLINE Vector3(const Vector3 & v) { m_vec = v; }
 		INLINE Vector3(Scalar s) { m_vec = s; }
 		INLINE explicit Vector3(Vector4 vec);
@@ -72,9 +202,9 @@ namespace Darius::Math
 		INLINE Vector3& operator *= (Vector3 v) { *this = *this * v; return *this; }
 		INLINE Vector3& operator /= (Vector3 v) { *this = *this / v; return *this; }
 
-		// Consty, don't use too often
+		// Costy, don't use too often
 		INLINE D_CONTAINERS::DVector<float> GetData() const { return { GetX(), GetY(), GetZ() }; }
-		// Consty, don't use too often
+		// Costy, don't use too often
 		INLINE void SetData(D_CONTAINERS::DVector<float> data) { SetX(data[0]); SetY(data[1]); SetZ(data[2]); }
 
 		INLINE operator DirectX::XMVECTOR const& () { return m_vec; }
@@ -93,6 +223,9 @@ namespace Darius::Math
 		static const Vector3 Backward;
 		static const Vector3 Zero;
 		static const Vector3 One;
+		static const Vector3 UnitX;
+		static const Vector3 UnitY;
+		static const Vector3 UnitZ;
 
 	protected:
 		RTTR_REGISTRATION_FRIEND;
@@ -120,7 +253,7 @@ namespace Darius::Math
 		INLINE explicit Vector4(EZUnitVector) { m_vec = CreateZUnitVector(); }
 		INLINE explicit Vector4(EWUnitVector) { m_vec = CreateWUnitVector(); }
 
-		INLINE operator DirectX::XMVECTOR const&() const { return m_vec; }
+		INLINE operator DirectX::XMVECTOR const& () const { return m_vec; }
 		INLINE operator DirectX::XMFLOAT4() const { DirectX::XMFLOAT4 dest; DirectX::XMStoreFloat4(&dest, m_vec); return dest; }
 
 		INLINE float GetX() const { return Scalar(DirectX::XMVectorSplatX(m_vec)); }
@@ -133,9 +266,9 @@ namespace Darius::Math
 		INLINE void SetW(float _w) { m_vec = DirectX::XMVectorPermute<0, 1, 2, 7>(m_vec, Scalar(_w)); }
 		INLINE void SetXYZ(Vector3 xyz) { m_vec = DirectX::XMVectorPermute<0, 1, 2, 7>(xyz, m_vec); }
 
-		// Consty, don't use too often
+		// Costy, don't use too often
 		INLINE D_CONTAINERS::DVector<float> GetData() const { return { GetX(), GetY(), GetZ(), GetW() }; }
-		// Consty, don't use too often
+		// Costy, don't use too often
 		INLINE void SetData(D_CONTAINERS::DVector<float> data) { SetX(data[0]); SetY(data[1]); SetZ(data[2]); SetW(data[3]); }
 		INLINE float Length() const { return Scalar(DirectX::XMVector4Length(m_vec)); }
 		INLINE float LengthSquare() const { return Scalar(DirectX::XMVector4LengthSq(m_vec)); }
@@ -167,6 +300,10 @@ namespace Darius::Math
 		static const Vector4 Backward;
 		static const Vector4 Zero;
 		static const Vector4 One;
+		static const Vector4 UnitX;
+		static const Vector4 UnitY;
+		static const Vector4 UnitZ;
+		static const Vector4 UnitW;
 
 	protected:
 		RTTR_REGISTRATION_FRIEND;
@@ -188,6 +325,8 @@ namespace Darius::Math
 		return Vector3(DirectX::XMVectorSelect(DirectX::XMVectorDivide(v, W), v, DirectX::XMVectorEqual(W, SplatZero())));
 	}
 
+#include "Vector2.inl"
+
 	class BoolVector
 	{
 	public:
@@ -207,6 +346,8 @@ namespace Darius::Math
 #define D_H_DRAW_DETAILS_MAKE_VEC_PARAM(_default, hasColor) { _default, hasColor ? 1 : 0 }
 #define D_H_DRAW_DETAILS_MAKE_VEC_PARAM_COLOR D_H_DRAW_DETAILS_MAKE_VEC_PARAM(0, 1)
 #define D_H_DRAW_DETAILS_MAKE_VEC_PARAM_VECTOR D_H_DRAW_DETAILS_MAKE_VEC_PARAM(0, 0)
+
+	bool DrawDetails(D_MATH::Vector2& elem, float params[]);
 
 	bool DrawDetails(D_MATH::Vector3& elem, float params[]);
 

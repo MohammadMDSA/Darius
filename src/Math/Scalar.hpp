@@ -51,7 +51,7 @@ namespace Darius::Math
 
     private:
 
-        //RTTR_REGISTRATION_FRIEND
+        RTTR_REGISTRATION_FRIEND
 
 #pragma warning(push)
 #pragma warning(disable: 4201)
