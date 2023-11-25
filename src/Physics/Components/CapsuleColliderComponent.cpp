@@ -199,6 +199,7 @@ namespace Darius::Physics
 			return D_MATH::Quaternion(D_MATH::Vector3::Up, DirectX::XM_PIDIV2);
 		default:
 			D_ASSERT(false);
+			return D_MATH::Quaternion();
 		}
 	}
 }
