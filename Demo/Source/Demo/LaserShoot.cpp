@@ -58,7 +58,7 @@ namespace Demo
 			break;
 
 		case 3:
-			D_PHYSICS::CastBox_DebugDraw(trans->GetPosition(), trans->GetForward(), D_MATH::Max(D_MATH::Abs(scale), Vector3(0.01)) / 2, Quaternion::Identity, maxDist, timeToDisplay, sweepHit);
+			D_PHYSICS::CastBox_DebugDraw(trans->GetPosition(), trans->GetForward(), D_MATH::Max(D_MATH::Abs(scale), Vector3(0.01f)) / 2, Quaternion::Identity, maxDist, timeToDisplay, sweepHit);
 			break;
 		default:
 			break;
