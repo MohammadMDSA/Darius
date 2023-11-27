@@ -25,6 +25,8 @@ namespace Darius::Scene
 
 		GameObjectRef(GameObjectRef const& other) : D_CORE::Ref<GameObject>(other) { }
 
+		GameObjectRef& operator= (GameObjectRef const&) = default;
+
 		INLINE virtual bool IsValid() const override
 		{
 			if (!D_CORE::Ref<GameObject>::IsValid())

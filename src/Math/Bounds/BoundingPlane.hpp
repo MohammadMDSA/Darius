@@ -32,6 +32,8 @@ namespace Darius::Math::Bounds
         BoundingPlane(const BoundingPlane& plane) : m_repr(plane.m_repr) {}
         explicit BoundingPlane(Vector4 plane) : m_repr(plane) {}
 
+        BoundingPlane& operator=(BoundingPlane const& other) = default;
+
         INLINE operator Vector4() const { return m_repr; }
 
         // Returns the direction the plane is facing.  (Warning:  might not be normalized.)

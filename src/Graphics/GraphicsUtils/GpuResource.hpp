@@ -51,6 +51,8 @@ namespace Darius::Graphics::Utils
 
 		D3D12_RESOURCE_STATES GetUsageState() const { return mUsageState; }
 
+		GpuResource& operator=(GpuResource const&) = default;
+
 		~GpuResource() { Destroy(); }
 
 		virtual void Destroy()

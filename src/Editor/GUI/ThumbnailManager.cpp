@@ -132,7 +132,6 @@ namespace Darius::Editor::Gui::ThumbnailManager
 
 		for (UINT i = 0; i < (UINT)CommonIcon::NumIcons; i++)
 		{
-			CommonIconTextures[(CommonIcon)i] = D_GRAPHICS_BUFFERS::Texture();
 			auto& tex = CommonIconTextures[(CommonIcon)i];
 
 			auto fileData = D_FILE::ReadFileSync(resPath / "icons" / iconFiles[i]);
@@ -172,7 +171,6 @@ namespace Darius::Editor::Gui::ThumbnailManager
 		if (ResourceTextures.contains(uuid))
 			return;
 
-		ResourceTextures[uuid] = D_GRAPHICS_BUFFERS::Texture();
 		auto& tex = ResourceTextures[uuid];
 
 		auto fileData = D_FILE::ReadFileSync(GetResourceThumbnailPath(uuid));

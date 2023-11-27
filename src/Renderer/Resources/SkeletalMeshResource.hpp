@@ -29,11 +29,14 @@ namespace Darius::Renderer
 		virtual bool					DrawDetails(float params[]) override;
 #endif // _D_EDITOR
 
+		INLINE D_RENDERER_GEOMETRY::Mesh::SkeletonJoint const* GetSkeletonRoot() const { return mSkeletonRoot; }
+		INLINE D_CONTAINERS::DList<D_RENDERER_GEOMETRY::Mesh::SkeletonJoint> const& GetSkeleton() const { return mSkeleton; }
+
 	private:
-		DField(Get[inline, const])
+		DField()
 		D_CONTAINERS::DList<D_RENDERER_GEOMETRY::Mesh::SkeletonJoint> mSkeleton;
 		
-		DField(Get[inline, const])
+		DField()
 		D_RENDERER_GEOMETRY::Mesh::SkeletonJoint*	mSkeletonRoot;
 		
 		DField(Get[inline])
