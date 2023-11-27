@@ -48,6 +48,17 @@ namespace Darius::Physics
 			D_H_RESOURCE_SELECTION_DRAW_DEF(PhysicsMaterialResource, Material)
 		}
 
+		// Is Trigger
+		{
+			D_H_DETAILS_DRAW_PROPERTY("Trigger");
+			bool trigger = IsTrigger();
+			if (ImGui::Checkbox("##Trigger", &trigger))
+			{
+				SetTrigger(trigger);
+				valueChanged;
+			}
+
+		}
 
 		D_H_DETAILS_DRAW_END_TABLE();
 
@@ -128,6 +139,7 @@ namespace Darius::Physics
 
 		auto material = D_PHYSICS::GetDefaultMaterial();
 		mShape = D_PHYSICS::PhysicsScene::AddCollider(this, mDynamic, &mActor);
+		mShape->setFlag(physx::PxShapeFlag::eTRIGGER_SHAPE, IsTrigger());
 	}
 
 	void ColliderComponent::SetMaterial(PhysicsMaterialResource* material)
@@ -152,6 +164,19 @@ namespace Darius::Physics
 		}
 
 		mChangeSignal(this);
+	}
+
+	bool ColliderComponent::SetTrigger(bool trigger)
+	{
+		if (mTrigger == trigger)
+			return;
+
+		mTrigger = trigger;
+
+		InvalidatePhysicsActor();
+
+		mChangeSignal(this);
+
 	}
 
 	void ColliderComponent::ReloadMaterialData()

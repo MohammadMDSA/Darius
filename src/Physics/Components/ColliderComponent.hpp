@@ -39,7 +39,9 @@ namespace Darius::Physics
 		INLINE bool											IsDynamic() const { return mDynamic; }
 
 		void												SetMaterial(PhysicsMaterialResource* material);
+		bool												SetTrigger(bool trigger);
 		INLINE PhysicsMaterialResource*						GetMaterial() const { return mMaterial.Get(); }
+		INLINE bool											IsTrigger() const { return mTrigger; }
 
 		virtual INLINE D_MATH::Quaternion					GetBiasedRotation() const { return D_MATH::Quaternion::Identity; }
 
@@ -55,6 +57,9 @@ namespace Darius::Physics
 
 		DField()
 		bool												mDynamic;
+
+		DField(Serialize)
+		bool												mTrigger;
 
 		DField(Serialize)
 		D_RESOURCE::ResourceRef<PhysicsMaterialResource>	mMaterial;
