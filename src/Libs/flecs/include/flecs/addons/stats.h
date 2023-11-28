@@ -1,5 +1,5 @@
 /**
- * @file stats.h
+ * @file addons/stats.h
  * @brief Statistics addon.
  *
  * The statistics addon enables an application to obtain detailed metrics about
@@ -7,6 +7,14 @@
  */
 
 #ifdef FLECS_STATS
+
+/**
+ * @defgroup c_addons_stats Stats
+ * @brief Collection of statistics for world, queries, systems and pipelines.
+ * 
+ * \ingroup c_addons
+ * @{
+ */
 
 #ifndef FLECS_STATS_H
 #define FLECS_STATS_H
@@ -24,93 +32,133 @@ typedef struct ecs_gauge_t {
     ecs_float_t max[ECS_STAT_WINDOW];
 } ecs_gauge_t;
 
-/* Monotonically increasing counter */
+/** Monotonically increasing counter */
 typedef struct ecs_counter_t {
-    ecs_gauge_t rate;                          /* Keep track of deltas too */
-    ecs_float_t value[ECS_STAT_WINDOW];
+    ecs_gauge_t rate;                     /**< Keep track of deltas too */
+    double value[ECS_STAT_WINDOW];
 } ecs_counter_t;
 
-/* Make all metrics the same size, so we can iterate over fields */
+/** Make all metrics the same size, so we can iterate over fields */
 typedef union ecs_metric_t {
     ecs_gauge_t gauge;
     ecs_counter_t counter;
 } ecs_metric_t;
 
 typedef struct ecs_world_stats_t {
-    int32_t first_;
+    int64_t first_;
 
-    ecs_metric_t entity_count;               /* Number of entities */
-    ecs_metric_t entity_not_alive_count;     /* Number of not alive (recyclable) entity ids */
+    /* Entities */
+    struct {
+        ecs_metric_t count;               /**< Number of entities */
+        ecs_metric_t not_alive_count;     /**< Number of not alive (recyclable) entity ids */
+    } entities;
 
-    /* Components and ids */
-    ecs_metric_t id_count;                   /* Number of ids (excluding wildcards) */
-    ecs_metric_t tag_id_count;               /* Number of tag ids (ids without data) */
-    ecs_metric_t component_id_count;         /* Number of components ids (ids with data) */
-    ecs_metric_t pair_id_count;              /* Number of pair ids */
-    ecs_metric_t wildcard_id_count;          /* Number of wildcard ids */
-    ecs_metric_t component_count;            /* Number of components  (non-zero sized types) */
-    ecs_metric_t id_create_count;            /* Number of times id has been created */
-    ecs_metric_t id_delete_count;            /* Number of times id has been deleted */
+    /* Component ids */
+    struct {
+        ecs_metric_t tag_count;           /**< Number of tag ids (ids without data) */
+        ecs_metric_t component_count;     /**< Number of components ids (ids with data) */
+        ecs_metric_t pair_count;          /**< Number of pair ids */
+        ecs_metric_t type_count;          /**< Number of registered types */
+        ecs_metric_t create_count;        /**< Number of times id has been created */
+        ecs_metric_t delete_count;        /**< Number of times id has been deleted */
+    } components;
 
     /* Tables */
-    ecs_metric_t table_count;                /* Number of tables */
-    ecs_metric_t empty_table_count;          /* Number of empty tables */
-    ecs_metric_t tag_table_count;            /* Number of tables with only tags */
-    ecs_metric_t trivial_table_count;        /* Number of tables with only trivial components */
-    ecs_metric_t table_record_count;         /* Number of table cache records */
-    ecs_metric_t table_storage_count;        /* Number of table storages */
-    ecs_metric_t table_create_count;         /* Number of times table has been created */
-    ecs_metric_t table_delete_count;         /* Number of times table has been deleted */
+    struct {
+        ecs_metric_t count;                /**< Number of tables */
+        ecs_metric_t empty_count;          /**< Number of empty tables */
+        ecs_metric_t create_count;         /**< Number of times table has been created */
+        ecs_metric_t delete_count;         /**< Number of times table has been deleted */
+    } tables;
 
     /* Queries & events */
-    ecs_metric_t query_count;                /* Number of queries */
-    ecs_metric_t observer_count;             /* Number of observers */
-    ecs_metric_t system_count;               /* Number of systems */
+    struct {
+        ecs_metric_t query_count;          /**< Number of queries */
+        ecs_metric_t observer_count;       /**< Number of observers */
+        ecs_metric_t system_count;         /**< Number of systems */
+    } queries;
 
-    /* Deferred operations */
-    ecs_metric_t new_count;
-    ecs_metric_t bulk_new_count;
-    ecs_metric_t delete_count;
-    ecs_metric_t clear_count;
-    ecs_metric_t add_count;
-    ecs_metric_t remove_count;
-    ecs_metric_t set_count;
-    ecs_metric_t discard_count;
+    /* Commands */
+    struct {
+        ecs_metric_t add_count;
+        ecs_metric_t remove_count;
+        ecs_metric_t delete_count;
+        ecs_metric_t clear_count;
+        ecs_metric_t set_count;
+        ecs_metric_t get_mut_count;
+        ecs_metric_t modified_count;
+        ecs_metric_t other_count;
+        ecs_metric_t discard_count;
+        ecs_metric_t batched_entity_count;
+        ecs_metric_t batched_count;
+    } commands;
+
+    /* Frame data */
+    struct {
+        ecs_metric_t frame_count;          /**< Number of frames processed. */
+        ecs_metric_t merge_count;          /**< Number of merges executed. */
+        ecs_metric_t rematch_count;        /**< Number of query rematches */
+        ecs_metric_t pipeline_build_count; /**< Number of system pipeline rebuilds (occurs when an inactive system becomes active). */
+        ecs_metric_t systems_ran;          /**< Number of systems ran. */
+        ecs_metric_t observers_ran;        /**< Number of times an observer was invoked. */
+        ecs_metric_t event_emit_count;     /**< Number of events emitted */
+    } frame;
 
     /* Timing */
-    ecs_metric_t world_time_total_raw;       /* Actual time passed since simulation start (first time progress() is called) */
-    ecs_metric_t world_time_total;           /* Simulation time passed since simulation start. Takes into account time scaling */
-    ecs_metric_t frame_time_total;           /* Time spent processing a frame. Smaller than world_time_total when load is not 100% */
-    ecs_metric_t system_time_total;          /* Time spent on processing systems. */
-    ecs_metric_t merge_time_total;           /* Time spent on merging deferred actions. */
-    ecs_metric_t fps;                        /* Frames per second. */
-    ecs_metric_t delta_time;                 /* Delta_time. */
-    
-    /* Frame data */
-    ecs_metric_t frame_count_total;          /* Number of frames processed. */
-    ecs_metric_t merge_count_total;          /* Number of merges executed. */
-    ecs_metric_t pipeline_build_count_total; /* Number of system pipeline rebuilds (occurs when an inactive system becomes active). */
-    ecs_metric_t systems_ran_frame;          /* Number of systems ran in the last frame. */
+    struct {
+        ecs_metric_t world_time_raw;       /**< Actual time passed since simulation start (first time progress() is called) */
+        ecs_metric_t world_time;           /**< Simulation time passed since simulation start. Takes into account time scaling */
+        ecs_metric_t frame_time;           /**< Time spent processing a frame. Smaller than world_time_total when load is not 100% */
+        ecs_metric_t system_time;          /**< Time spent on running systems. */
+        ecs_metric_t emit_time;            /**< Time spent on notifying observers. */
+        ecs_metric_t merge_time;           /**< Time spent on merging commands. */
+        ecs_metric_t rematch_time;         /**< Time spent on rematching. */
+        ecs_metric_t fps;                  /**< Frames per second. */
+        ecs_metric_t delta_time;           /**< Delta_time. */
+    } performance;
 
-    /* OS API data */
-    ecs_metric_t alloc_count;                /* Allocs per frame */
-    ecs_metric_t realloc_count;              /* Reallocs per frame */
-    ecs_metric_t free_count;                 /* Frees per frame */
-    ecs_metric_t outstanding_alloc_count;    /* Difference between allocs & frees */
+    struct {
+        /* Memory allocation data */
+        ecs_metric_t alloc_count;          /**< Allocs per frame */
+        ecs_metric_t realloc_count;        /**< Reallocs per frame */
+        ecs_metric_t free_count;           /**< Frees per frame */
+        ecs_metric_t outstanding_alloc_count; /**< Difference between allocs & frees */
 
-    int32_t last_;
+        /* Memory allocator data */
+        ecs_metric_t block_alloc_count;    /**< Block allocations per frame */
+        ecs_metric_t block_free_count;     /**< Block frees per frame */
+        ecs_metric_t block_outstanding_alloc_count; /**< Difference between allocs & frees */
+        ecs_metric_t stack_alloc_count;    /**< Page allocations per frame */
+        ecs_metric_t stack_free_count;     /**< Page frees per frame */
+        ecs_metric_t stack_outstanding_alloc_count; /**< Difference between allocs & frees */
+    } memory;
+
+    /* HTTP statistics */
+    struct {
+        ecs_metric_t request_received_count;
+        ecs_metric_t request_invalid_count;
+        ecs_metric_t request_handled_ok_count;
+        ecs_metric_t request_handled_error_count;
+        ecs_metric_t request_not_handled_count;
+        ecs_metric_t request_preflight_count;
+        ecs_metric_t send_ok_count;
+        ecs_metric_t send_error_count;
+        ecs_metric_t busy_count;
+    } http;
+
+    int64_t last_;
 
     /** Current position in ringbuffer */
     int32_t t;
 } ecs_world_stats_t;
 
-/* Statistics for a single query (use ecs_query_stats_get) */
+/** Statistics for a single query (use ecs_query_stats_get) */
 typedef struct ecs_query_stats_t {
-    int32_t first_;
-    ecs_metric_t matched_table_count;       /* Matched non-empty tables */    
-    ecs_metric_t matched_empty_table_count; /* Matched empty tables */
-    ecs_metric_t matched_entity_count;      /* Number of matched entities */
-    int32_t last_;
+    int64_t first_;
+    ecs_metric_t matched_table_count;       /**< Matched non-empty tables */    
+    ecs_metric_t matched_empty_table_count; /**< Matched empty tables */
+    ecs_metric_t matched_entity_count;      /**< Number of matched entities */
+    int64_t last_;
 
     /** Current position in ringbuffer */
     int32_t t; 
@@ -118,23 +166,39 @@ typedef struct ecs_query_stats_t {
 
 /** Statistics for a single system (use ecs_system_stats_get) */
 typedef struct ecs_system_stats_t {
-    int32_t first_;
-    ecs_metric_t time_spent;       /* Time spent processing a system */
-    ecs_metric_t invoke_count;     /* Number of times system is invoked */
-    ecs_metric_t active;           /* Whether system is active (is matched with >0 entities) */
-    ecs_metric_t enabled;          /* Whether system is enabled */
-    int32_t last_;
+    int64_t first_;
+    ecs_metric_t time_spent;       /**< Time spent processing a system */
+    ecs_metric_t invoke_count;     /**< Number of times system is invoked */
+    int64_t last_;
 
-    bool task;                     /* Is system a task */
+    bool task;                     /**< Is system a task */
 
     ecs_query_stats_t query;
 } ecs_system_stats_t;
 
+/** Statistics for sync point */
+typedef struct ecs_sync_stats_t {
+    int64_t first_;
+    ecs_metric_t time_spent;
+    ecs_metric_t commands_enqueued;
+    int64_t last_;
+
+    int32_t system_count;
+    bool multi_threaded;
+    bool no_readonly;
+} ecs_sync_stats_t;
+
 /** Statistics for all systems in a pipeline. */
 typedef struct ecs_pipeline_stats_t {
+    /* Allow for initializing struct with {0} */
+    int8_t canary_;
+
     /** Vector with system ids of all systems in the pipeline. The systems are
      * stored in the order they are executed. Merges are represented by a 0. */
-    ecs_vector_t *systems;
+    ecs_vec_t systems;
+    
+    /** Vector with sync point stats */
+    ecs_vec_t sync_points;
 
     /** Map with system statistics. For each system in the systems vector, an
      * entry in the map exists of type ecs_system_stats_t. */
@@ -143,9 +207,9 @@ typedef struct ecs_pipeline_stats_t {
     /** Current position in ringbuffer */
     int32_t t;
 
-    int32_t system_count; /* Number of systems in pipeline */
-    int32_t active_system_count; /* Number of active systems in pipeline */
-    int32_t rebuild_count; /* Number of times pipeline has rebuilt */
+    int32_t system_count;        /**< Number of systems in pipeline */
+    int32_t active_system_count; /**< Number of active systems in pipeline */
+    int32_t rebuild_count;       /**< Number of times pipeline has rebuilt */
 } ecs_pipeline_stats_t;
 
 /** Get world statistics.
@@ -346,5 +410,7 @@ void ecs_metric_copy(
 #endif
 
 #endif
+
+/** @} */
 
 #endif

@@ -1,3 +1,8 @@
+/**
+ * @file addons/cpp/mixins/filter/builder_i.hpp
+ * @brief Filter builder interface.
+ */
+
 #pragma once
 
 #include "../term/builder_i.hpp"
@@ -5,7 +10,10 @@
 namespace flecs 
 {
 
-// Filter builder interface
+/** Filter builder interface.
+ * 
+ * \ingroup cpp_filters
+ */
 template<typename Base, typename ... Components>
 struct filter_builder_i : term_builder_i<Base> {
     filter_builder_i(ecs_filter_desc_t *desc, int32_t term_index = 0) 
@@ -15,6 +23,11 @@ struct filter_builder_i : term_builder_i<Base> {
 
     Base& instanced() {
         m_desc->instanced = true;
+        return *this;
+    }
+
+    Base& filter_flags(ecs_flags32_t flags) {
+        m_desc->flags |= flags;
         return *this;
     }
 
@@ -28,6 +41,91 @@ struct filter_builder_i : term_builder_i<Base> {
         return *this;
     }
 
+    /* With/without shorthand notation. */
+
+    template <typename ... Args>
+    Base& with(Args&&... args) {
+        return this->term(FLECS_FWD(args)...).inout_none();
+    }
+
+    template <typename T, typename ... Args>
+    Base& with(Args&&... args) {
+        return this->term<T>(FLECS_FWD(args)...).inout_none();
+    }
+
+    template <typename First, typename Second>
+    Base& with() {
+        return this->term<First, Second>().inout_none();
+    }
+
+    template <typename ... Args>
+    Base& without(Args&&... args) {
+        return this->term(FLECS_FWD(args)...).not_();
+    }
+
+    template <typename T, typename ... Args>
+    Base& without(Args&&... args) {
+        return this->term<T>(FLECS_FWD(args)...).not_();
+    }
+
+    template <typename First, typename Second>
+    Base& without() {
+        return this->term<First, Second>().not_();
+    }
+
+    /* Write/read shorthand notation */
+
+    Base& write() {
+        term_builder_i<Base>::write();
+        return *this;
+    }
+
+    template <typename ... Args>
+    Base& write(Args&&... args) {
+        return this->term(FLECS_FWD(args)...).write();
+    }
+
+    template <typename T, typename ... Args>
+    Base& write(Args&&... args) {
+        return this->term<T>(FLECS_FWD(args)...).write();
+    }
+
+    template <typename First, typename Second>
+    Base& write() {
+        return this->term<First, Second>().write();
+    }
+
+    Base& read() {
+        term_builder_i<Base>::read();
+        return *this;
+    }
+
+    template <typename ... Args>
+    Base& read(Args&&... args) {
+        return this->term(FLECS_FWD(args)...).read();
+    }
+
+    template <typename T, typename ... Args>
+    Base& read(Args&&... args) {
+        return this->term<T>(FLECS_FWD(args)...).read();
+    }
+
+    template <typename First, typename Second>
+    Base& read() {
+        return this->term<First, Second>().read();
+    }
+
+    /* Scope_open/scope_close shorthand notation. */
+    Base& scope_open() {
+        return this->with(flecs::ScopeOpen).entity(0);
+    }
+
+    Base& scope_close() {
+        return this->with(flecs::ScopeClose).entity(0);
+    }
+
+    /* Term notation for more complex query features */
+
     Base& term() {
         if (this->m_term) {
             ecs_check(ecs_term_is_initialized(this->m_term), 
@@ -35,14 +133,14 @@ struct filter_builder_i : term_builder_i<Base> {
                     "filter_builder::term() called without initializing term");
         }
 
-        if (m_term_index >= ECS_TERM_DESC_CACHE_SIZE) {
-            if (m_term_index == ECS_TERM_DESC_CACHE_SIZE) {
+        if (m_term_index >= FLECS_TERM_DESC_MAX) {
+            if (m_term_index == FLECS_TERM_DESC_MAX) {
                 m_desc->terms_buffer = ecs_os_calloc_n(
                     ecs_term_t, m_term_index + 1);
                 ecs_os_memcpy_n(m_desc->terms_buffer, m_desc->terms, 
                     ecs_term_t, m_term_index);
                 ecs_os_memset_n(m_desc->terms, 0, 
-                    ecs_term_t, ECS_TERM_DESC_CACHE_SIZE);
+                    ecs_term_t, FLECS_TERM_DESC_MAX);
             } else {
                 m_desc->terms_buffer = ecs_os_realloc_n(m_desc->terms_buffer, 
                     ecs_term_t, m_term_index + 1);
@@ -91,15 +189,38 @@ struct filter_builder_i : term_builder_i<Base> {
         return *this;
     }
 
+    Base& term(const char *name) {
+        this->term();
+        *this->m_term = flecs::term().first(name).move();
+        return *this;
+    }
+
+    Base& term(const char *first, const char *second) {
+        this->term();
+        *this->m_term = flecs::term().first(first).second(second).move();
+        return *this;
+    }
+
     Base& term(entity_t r, entity_t o) {
         this->term();
         *this->m_term = flecs::term(r, o).move();
         return *this;
     }
 
+    Base& term(entity_t r, const char *o) {
+        this->term();
+        *this->m_term = flecs::term(r).second(o).move();
+        return *this;
+    }
+
     template<typename First>
     Base& term(id_t o) {
         return this->term(_::cpp_type<First>::id(this->world_v()), o);
+    }
+
+    template<typename First>
+    Base& term(const char *second) {
+        return this->term(_::cpp_type<First>::id(this->world_v())).second(second);
     }
 
     template<typename First, typename Second>

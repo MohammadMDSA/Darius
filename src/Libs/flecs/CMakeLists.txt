@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.1)
+cmake_minimum_required(VERSION 3.5)
 cmake_policy(SET CMP0063 NEW)
 
 project(flecs LANGUAGES C)
@@ -6,9 +6,30 @@ project(flecs LANGUAGES C)
 option(FLECS_STATIC "Build static flecs lib" ON)
 option(FLECS_SHARED "Build shared flecs lib" ON)
 option(FLECS_PIC "Compile static flecs lib with position independent code (PIC)" ON)
+option(FLECS_TESTS "Build flecs tests" OFF)
 
 include(cmake/target_default_compile_warnings.cmake)
 include(cmake/target_default_compile_options.cmake)
+
+# Automatically generate the same folder structure in Visual Studio as we have on disk
+macro(GroupSources curdir)
+	file(GLOB children RELATIVE ${PROJECT_SOURCE_DIR}/${curdir} ${PROJECT_SOURCE_DIR}/${curdir}/*)
+	foreach(child ${children})
+		if(IS_DIRECTORY ${PROJECT_SOURCE_DIR}/${curdir}/${child})
+			GroupSources(${curdir}/${child})
+		else()
+			string(REPLACE "/" "\\" groupname ${curdir})
+            source_group(${groupname} FILES ${PROJECT_SOURCE_DIR}/${curdir}/${child})
+		endif()
+	endforeach()
+endmacro()
+
+file(GLOB children RELATIVE ${PROJECT_SOURCE_DIR}/. ${PROJECT_SOURCE_DIR}/./*)
+foreach(child ${children})
+	if(IS_DIRECTORY ${PROJECT_SOURCE_DIR}/${curdir}/${child})
+		GroupSources(${child})
+	endif()
+endforeach()
 
 file(GLOB_RECURSE INC include/*.h include/*.hpp)
 file(GLOB_RECURSE SRC src/*.c)
@@ -47,6 +68,11 @@ endif()
 if(FLECS_STATIC)
     add_flecs_target(flecs_static STATIC)
     target_compile_definitions(flecs_static PUBLIC flecs_STATIC)
+endif()
+
+if(FLECS_TESTS)
+    enable_testing()
+    add_subdirectory(test)
 endif()
 
 message(STATUS "Targets: ${FLECS_TARGETS}")

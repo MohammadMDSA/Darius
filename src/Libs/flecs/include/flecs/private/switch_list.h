@@ -1,25 +1,6 @@
 /**
  * @file switch_list.h
  * @brief Interleaved linked list for storing mutually exclusive values.
- *
- * Datastructure that stores N interleaved linked lists in an array. 
- * This allows for efficient storage of elements with mutually exclusive values.
- * Each linked list has a header element which points to the index in the array
- * that stores the first node of the list. Each list node points to the next
- * array element.
- *
- * The datastructure needs to be created with min and max values, so that it can
- * allocate an array of headers that can be directly indexed by the value. The
- * values are stored in a contiguous array, which allows for the values to be
- * iterated without having to follow the linked list nodes.
- *
- * The datastructure allows for efficient storage and retrieval for values with
- * mutually exclusive values, such as enumeration values. The linked list allows
- * an application to obtain all elements for a given (enumeration) value without
- * having to search.
- *
- * While the list accepts 64 bit values, it only uses the lower 32bits of the
- * value for selecting the correct linked list.
  */
 
 #ifndef FLECS_SWITCH_LIST_H
@@ -28,44 +9,31 @@
 #include "flecs/private/api_defines.h"
 
 typedef struct ecs_switch_header_t {
-    int32_t element;        /* First element for value */
-    int32_t count;          /* Number of elements for value */
+    int32_t element;    /* First element for value */
+    int32_t count;      /* Number of elements for value */
 } ecs_switch_header_t;
 
 typedef struct ecs_switch_node_t {
-    int32_t next;           /* Next node in list */
-    int32_t prev;           /* Prev node in list */
+    int32_t next;       /* Next node in list */
+    int32_t prev;       /* Prev node in list */
 } ecs_switch_node_t;
 
-struct ecs_switch_t {
-    // uint64_t min;           /* Minimum value the switch can store */
-    // uint64_t max;           /* Maximum value the switch can store */
-    // ecs_switch_header_t *headers;   /* Array with headers, indexed by value */
-    
-    ecs_map_t headers;
-    ecs_vector_t *nodes;    /* Vector with nodes, of type ecs_switch_node_t */
-    ecs_vector_t *values;   /* Vector with values, of type uint64_t */
+struct ecs_switch_t {    
+    ecs_map_t hdrs;     /* map<uint64_t, ecs_switch_header_t> */
+    ecs_vec_t nodes;    /* vec<ecs_switch_node_t> */
+    ecs_vec_t values;   /* vec<uint64_t> */
 };
 
 /** Init new switch. */
 FLECS_DBG_API
 void flecs_switch_init(
     ecs_switch_t* sw,
-    int32_t elements);
-
-/** Create new switch. */
-FLECS_DBG_API
-ecs_switch_t* flecs_switch_new(
+    ecs_allocator_t *allocator,
     int32_t elements);
 
 /** Fini switch. */
 FLECS_DBG_API
 void flecs_switch_fini(
-    ecs_switch_t *sw);
-
-/** Free switch. */
-FLECS_DBG_API
-void flecs_switch_free(
     ecs_switch_t *sw);
 
 /** Remove all values. */
@@ -129,7 +97,7 @@ void flecs_switch_swap(
 
 /** Get vector with all values. Use together with count(). */
 FLECS_DBG_API
-ecs_vector_t* flecs_switch_values(
+ecs_vec_t* flecs_switch_values(
     const ecs_switch_t *sw);    
 
 /** Return number of different values. */

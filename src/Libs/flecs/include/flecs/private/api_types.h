@@ -16,7 +16,6 @@
 extern "C" {
 #endif
 
-
 ////////////////////////////////////////////////////////////////////////////////
 //// Opaque types
 ////////////////////////////////////////////////////////////////////////////////
@@ -24,43 +23,44 @@ extern "C" {
 /** A stage enables modification while iterating and from multiple threads */
 typedef struct ecs_stage_t ecs_stage_t;
 
-/** A record stores data to map an entity id to a location in a table */
-typedef struct ecs_record_t ecs_record_t;
-
-/** Table column */
-typedef struct ecs_column_t ecs_column_t;
-
 /** Table data */
 typedef struct ecs_data_t ecs_data_t;
-
-/* Sparse set */
-typedef struct ecs_sparse_t ecs_sparse_t;
 
 /* Switch list */
 typedef struct ecs_switch_t ecs_switch_t;
 
-/* Internal structure to lookup tables for a (component) id */
-typedef struct ecs_id_record_t ecs_id_record_t;
-
 /* Cached query table data */
-typedef struct ecs_query_table_node_t ecs_query_table_node_t;
-
-/* Internal table storage record */
-struct ecs_table_record_t;
+typedef struct ecs_query_table_match_t ecs_query_table_match_t;
 
 ////////////////////////////////////////////////////////////////////////////////
 //// Non-opaque types
 ////////////////////////////////////////////////////////////////////////////////
 
 /** Mixin for emitting events to triggers/observers */
+/** All observers for a specific event */
+typedef struct ecs_event_record_t {
+    struct ecs_event_id_record_t *any;
+    struct ecs_event_id_record_t *wildcard;
+    struct ecs_event_id_record_t *wildcard_pair;
+    ecs_map_t event_ids; /* map<id, ecs_event_id_record_t> */
+    ecs_entity_t event;
+} ecs_event_record_t;
+
 struct ecs_observable_t {
-    ecs_sparse_t *events;  /* sparse<event, ecs_event_record_t> */
+    ecs_event_record_t on_add;
+    ecs_event_record_t on_remove;
+    ecs_event_record_t on_set;
+    ecs_event_record_t un_set;
+    ecs_event_record_t on_wildcard;
+    ecs_sparse_t events;  /* sparse<event, ecs_event_record_t> */
 };
 
 /** Record for entity index */
 struct ecs_record_t {
-    ecs_table_t *table;  /* Identifies a type (and table) in world */
-    uint32_t row;        /* Table row of the entity */
+    ecs_id_record_t *idr; /* Id record to (*, entity) for target entities */
+    ecs_table_t *table;   /* Identifies a type (and table) in world */
+    uint32_t row;         /* Table row of the entity */
+    int32_t dense;        /* Index in dense array */    
 };
 
 /** Range in table */
@@ -88,6 +88,19 @@ struct ecs_ref_t {
     struct ecs_table_record_t *tr; /* Table record for component */
     ecs_record_t *record;   /* Entity index record */
 };
+
+/* Cursor to stack allocator. Type is public to allow for white box testing. */
+struct ecs_stack_page_t;
+
+typedef struct ecs_stack_cursor_t {
+    struct ecs_stack_cursor_t *prev;
+    struct ecs_stack_page_t *page;
+    int16_t sp;
+    bool is_free;
+#ifdef FLECS_DEBUG
+    struct ecs_stack_t *owner;
+#endif
+} ecs_stack_cursor_t;
 
 /* Page-iterator specific data */
 typedef struct ecs_page_iter_t {
@@ -153,7 +166,7 @@ typedef struct ecs_filter_iter_t {
 /** Query-iterator specific data */
 typedef struct ecs_query_iter_t {
     ecs_query_t *query;
-    ecs_query_table_node_t *node, *prev, *last;
+    ecs_query_table_match_t *node, *prev, *last;
     int32_t sparse_smallest;
     int32_t sparse_first;
     int32_t bitset_first;
@@ -163,32 +176,31 @@ typedef struct ecs_query_iter_t {
 /** Snapshot-iterator specific data */
 typedef struct ecs_snapshot_iter_t {
     ecs_filter_t filter;
-    ecs_vector_t *tables; /* ecs_table_leaf_t */
+    ecs_vec_t tables; /* ecs_table_leaf_t */
     int32_t index;
-} ecs_snapshot_iter_t;  
+} ecs_snapshot_iter_t;
 
-/** Type used for iterating ecs_sparse_t */
-typedef struct ecs_sparse_iter_t {
-    ecs_sparse_t *sparse;
-    const uint64_t *ids;
-    ecs_size_t size;
-    int32_t i;
-    int32_t count;
-} ecs_sparse_iter_t;
+typedef struct ecs_rule_op_profile_t {
+    int32_t count[2]; /* 0 = enter, 1 = redo */
+} ecs_rule_op_profile_t;
 
 /** Rule-iterator specific data */
 typedef struct ecs_rule_iter_t {
     const ecs_rule_t *rule;
-    struct ecs_var_t *registers;         /* Variable storage (tables, entities) */
+    struct ecs_var_t *vars;              /* Variable storage */
+    const struct ecs_rule_var_t *rule_vars;
+    const struct ecs_rule_op_t *ops;
     struct ecs_rule_op_ctx_t *op_ctx;    /* Operation-specific state */
-    
-    int32_t *columns;                    /* Column indices */
-    
-    ecs_entity_t entity;                 /* Result in case of 1 entity */
+    uint64_t *written;
+    ecs_flags32_t source_set;
+
+#ifdef FLECS_DEBUG
+    ecs_rule_op_profile_t *profile;
+#endif
 
     bool redo;
-    int32_t op;
-    int32_t sp;
+    int16_t op;
+    int16_t sp;
 } ecs_rule_iter_t;
 
 /* Bits for tracking whether a cache was used/whether the array was allocated.
@@ -197,24 +209,16 @@ typedef struct ecs_rule_iter_t {
 #define flecs_iter_cache_ids           (1u << 0u)
 #define flecs_iter_cache_columns       (1u << 1u)
 #define flecs_iter_cache_sources       (1u << 2u)
-#define flecs_iter_cache_sizes         (1u << 3u)
-#define flecs_iter_cache_ptrs          (1u << 4u)
-#define flecs_iter_cache_match_indices (1u << 5u)
-#define flecs_iter_cache_variables     (1u << 6u)
+#define flecs_iter_cache_ptrs          (1u << 3u)
+#define flecs_iter_cache_match_indices (1u << 4u)
+#define flecs_iter_cache_variables     (1u << 5u)
 #define flecs_iter_cache_all           (255)
 
 /* Inline iterator arrays to prevent allocations for small array sizes */
 typedef struct ecs_iter_cache_t {
-    ecs_id_t ids[ECS_TERM_CACHE_SIZE];
-    int32_t columns[ECS_TERM_CACHE_SIZE];
-    ecs_entity_t sources[ECS_TERM_CACHE_SIZE];
-    ecs_size_t sizes[ECS_TERM_CACHE_SIZE];
-    void *ptrs[ECS_TERM_CACHE_SIZE];
-    int32_t match_indices[ECS_TERM_CACHE_SIZE];
-    ecs_var_t variables[ECS_VARIABLE_CACHE_SIZE];
-
+    ecs_stack_cursor_t *stack_cursor; /* Stack cursor to restore to */
     ecs_flags8_t used;       /* For which fields is the cache used */
-    ecs_flags8_t allocated; /* Which fields are allocated */
+    ecs_flags8_t allocated;  /* Which fields are allocated */
 } ecs_iter_cache_t;
 
 /* Private iterator data. Used by iterator implementations to keep track of
@@ -230,6 +234,7 @@ typedef struct ecs_iter_private_t {
         ecs_worker_iter_t worker;
     } iter;                       /* Iterator specific data */
 
+    void *entity_iter;            /* Filter applied after matching a table */
     ecs_iter_cache_t cache;       /* Inline arrays to reduce allocations */
 } ecs_iter_private_t;
 
@@ -295,6 +300,7 @@ struct ecs_iter_t {
     /* Chained iterators */
     ecs_iter_next_action_t next;  /* Function to progress iterator */
     ecs_iter_action_t callback;   /* Callback of system or observer */
+    ecs_iter_action_t set_var;    /* Invoked after setting variable (optionally set) */
     ecs_iter_fini_action_t fini;  /* Function to cleanup iterator resources */
     ecs_iter_t *chain_it;         /* Optional, allows for creating iterator chains */
 };

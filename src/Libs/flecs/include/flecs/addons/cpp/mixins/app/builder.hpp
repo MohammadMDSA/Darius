@@ -1,8 +1,20 @@
+/**
+ * @file addons/cpp/mixins/app/builder.hpp
+ * @brief App builder.
+ */
+
 #pragma once
 
 namespace flecs {
 
-// App builder interface
+/**
+ * @defgroup cpp_addons_app App
+ * @brief Optional addon for running the main application loop.
+ * \ingroup cpp_addons
+ * @{
+ */
+
+/** App builder interface */
 struct app_builder {
     app_builder(flecs::world_t *world)
         : m_world(world)
@@ -10,7 +22,8 @@ struct app_builder {
     {
         const ecs_world_info_t *stats = ecs_get_world_info(world);
         m_desc.target_fps = stats->target_fps;
-        if (m_desc.target_fps == static_cast<ecs_ftime_t>(0.0)) {
+        ecs_ftime_t t_zero = 0.0;
+        if (ECS_EQ(m_desc.target_fps, t_zero)) {
             m_desc.target_fps = 60;
         }
     }
@@ -30,8 +43,14 @@ struct app_builder {
         return *this;
     }
 
-    app_builder& enable_rest(bool value = true) {
-        m_desc.enable_rest = value;
+    app_builder& frames(int32_t value) {
+        m_desc.frames = value;
+        return *this;
+    }
+
+    app_builder& enable_rest(uint16_t port = 0) {
+        m_desc.enable_rest = true;
+        m_desc.port = port;
         return *this;
     }
 
@@ -51,12 +70,21 @@ struct app_builder {
     }
 
     int run() {
-        return ecs_app_run(m_world, &m_desc);
+        int result = ecs_app_run(m_world, &m_desc);
+        if (ecs_should_quit(m_world)) {
+            // Only free world if quit flag is set. This ensures that we won't
+            // try to cleanup the world if the app is used in an environment 
+            // that takes over the main loop, like with emscripten.
+            ecs_fini(m_world);
+        }
+        return result;
     }
 
 private:
     flecs::world_t *m_world;
     ecs_app_desc_t m_desc;
 };
+
+/** @} */
 
 }

@@ -1,8 +1,6 @@
 /**
- * @file flecs.hpp
- * @brief Flecs C++ API.
- *
- * Modern C++11 API
+ * @file addons/cpp/flecs.hpp
+ * @brief Flecs C++11 API.
  */
 
 #pragma once
@@ -10,7 +8,11 @@
 // STL includes
 #include <type_traits>
 
-// Forward declarations
+/**
+ * @defgroup cpp C++ API
+ * @{
+ */
+
 namespace flecs 
 {
 
@@ -21,6 +23,7 @@ struct entity_view;
 struct entity;
 struct type;
 struct table;
+struct table_range;
 struct untyped_component;
 
 template <typename T>
@@ -32,7 +35,7 @@ template <typename T, typename U = int>
 struct cpp_type;
 
 template <typename Func, typename ... Components>
-struct each_invoker;
+struct each_delegate;
 
 } // namespace _
 } // namespace flecs
@@ -80,6 +83,12 @@ struct each_invoker;
 #ifdef FLECS_MONITOR
 #include "mixins/monitor/decl.hpp"
 #endif
+#ifdef FLECS_METRICS
+#include "mixins/metrics/decl.hpp"
+#endif
+#ifdef FLECS_ALERTS
+#include "mixins/alerts/decl.hpp"
+#endif
 #ifdef FLECS_JSON
 #include "mixins/json/decl.hpp"
 #endif
@@ -90,11 +99,11 @@ struct each_invoker;
 #include "log.hpp"
 #include "pair.hpp"
 #include "lifecycle_traits.hpp"
+#include "ref.hpp"
 #include "world.hpp"
 #include "iter.hpp"
-#include "ref.hpp"
 #include "entity.hpp"
-#include "invoker.hpp"
+#include "delegate.hpp"
 #include "utils/iterable.hpp"
 #include "component.hpp"
 #include "type.hpp"
@@ -106,9 +115,9 @@ struct each_invoker;
 #include "mixins/component/impl.hpp"
 #include "mixins/term/impl.hpp"
 #include "mixins/filter/impl.hpp"
-#include "mixins/event/impl.hpp"
 #include "mixins/query/impl.hpp"
 #include "mixins/observer/impl.hpp"
+#include "mixins/event/impl.hpp"
 #include "mixins/enum/impl.hpp"
 #ifdef FLECS_MODULE
 #include "mixins/module/impl.hpp"
@@ -146,5 +155,30 @@ struct each_invoker;
 #ifdef FLECS_MONITOR
 #include "mixins/monitor/impl.hpp"
 #endif
+#ifdef FLECS_METRICS
+#include "mixins/metrics/impl.hpp"
+#endif
+#ifdef FLECS_ALERTS
+#include "mixins/alerts/impl.hpp"
+#endif
 
-#include "impl.hpp"
+#include "impl/iter.hpp"
+#include "impl/world.hpp"
+
+/**
+ * @defgroup cpp_core Core
+ * @brief Core ECS functionality (entities, storage, queries)
+ * 
+ * @{
+ * @}
+ */
+
+/**
+ * @defgroup cpp_addons Addons
+ * @brief C++ APIs for addons.
+ * 
+ * @{
+ * @}
+ */
+
+/** @} */

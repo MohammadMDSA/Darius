@@ -1,3 +1,8 @@
+/**
+ * @file addons/os_api_impl/posix_impl.inl
+ * @brief Builtin POSIX implementation for OS API.
+ */
+
 #include "pthread.h"
 
 #if defined(__APPLE__) && defined(__MACH__)
@@ -6,6 +11,13 @@
 #include <emscripten.h>
 #else
 #include <time.h>
+#endif
+
+/* This mutex is used to emulate atomic operations when the gnu builtins are
+ * not supported. This is probably not very fast but if the compiler doesn't
+ * support the gnu built-ins, then speed is probably not a priority. */
+#ifndef __GNUC__
+static pthread_mutex_t atomic_mutex = PTHREAD_MUTEX_INITIALIZER;
 #endif
 
 static
@@ -34,6 +46,12 @@ void* posix_thread_join(
 }
 
 static
+ecs_os_thread_id_t posix_thread_self(void)
+{
+    return (ecs_os_thread_id_t)pthread_self();
+}
+
+static
 int32_t posix_ainc(
     int32_t *count)
 {
@@ -42,8 +60,14 @@ int32_t posix_ainc(
     value = __sync_add_and_fetch (count, 1);
     return value;
 #else
-    /* Unsupported */
-    abort();
+    if (pthread_mutex_lock(&atomic_mutex)) {
+	    abort();
+    }
+    value = (*count) += 1;
+    if (pthread_mutex_unlock(&atomic_mutex)) {
+	    abort();
+    }
+    return value;
 #endif
 }
 
@@ -51,13 +75,59 @@ static
 int32_t posix_adec(
     int32_t *count) 
 {
-    int value;
+    int32_t value;
 #ifdef __GNUC__
     value = __sync_sub_and_fetch (count, 1);
     return value;
 #else
-    /* Unsupported */
-    abort();
+    if (pthread_mutex_lock(&atomic_mutex)) {
+	    abort();
+    }
+    value = (*count) -= 1;
+    if (pthread_mutex_unlock(&atomic_mutex)) {
+	    abort();
+    }
+    return value;
+#endif
+}
+
+static
+int64_t posix_lainc(
+    int64_t *count)
+{
+    int64_t value;
+#ifdef __GNUC__
+    value = __sync_add_and_fetch (count, 1);
+    return value;
+#else
+    if (pthread_mutex_lock(&atomic_mutex)) {
+	    abort();
+    }
+    value = (*count) += 1;
+    if (pthread_mutex_unlock(&atomic_mutex)) {
+	    abort();
+    }
+    return value;
+#endif
+}
+
+static
+int64_t posix_ladec(
+    int64_t *count) 
+{
+    int64_t value;
+#ifdef __GNUC__
+    value = __sync_sub_and_fetch (count, 1);
+    return value;
+#else
+    if (pthread_mutex_lock(&atomic_mutex)) {
+	    abort();
+    }
+    value = (*count) -= 1;
+    if (pthread_mutex_unlock(&atomic_mutex)) {
+	    abort();
+    }
+    return value;
 #endif
 }
 
@@ -235,8 +305,13 @@ void ecs_set_os_api_impl(void) {
 
     api.thread_new_ = posix_thread_new;
     api.thread_join_ = posix_thread_join;
+    api.thread_self_ = posix_thread_self;
+    api.task_new_ = posix_thread_new;
+    api.task_join_ = posix_thread_join;
     api.ainc_ = posix_ainc;
     api.adec_ = posix_adec;
+    api.lainc_ = posix_lainc;
+    api.ladec_ = posix_ladec;
     api.mutex_new_ = posix_mutex_new;
     api.mutex_free_ = posix_mutex_free;
     api.mutex_lock_ = posix_mutex_lock;

@@ -41,9 +41,20 @@ namespace Darius::Physics
 		friend class RigidbodyComponent;
 		friend class PhysicsActor;
 
+		class SimulationCallback : public physx::PxSimulationEventCallback
+		{
+			virtual void onConstraintBreak(physx::PxConstraintInfo* constraints, physx::PxU32 count) override { }
+			virtual void onWake(physx::PxActor** actors, physx::PxU32 count) override { }
+			virtual void onSleep(physx::PxActor** actors, physx::PxU32 count) { }
+			virtual void onContact(physx::PxContactPairHeader const& pairHeader, physx::PxContactPair const* pairs, physx::PxU32 nbPairs) override;
+			virtual void onTrigger(physx::PxTriggerPair* pairs, physx::PxU32 count) override;
+			virtual void onAdvance(physx::PxRigidBody const* const* bodyBuffer, physx::PxTransform const* poseBuffer, const physx::PxU32 count) override { }
+
+		};
+
 		physx::PxRigidDynamic*		AddDynamicActor(D_SCENE::GameObject* go, bool kinematic);
 		void						RemoveDynamicActor(D_SCENE::GameObject* go);
-		physx::PxShape*				AddCollider(ColliderComponent* collider, _OUT_ bool& nonStatic, _OUT_ PhysicsActor** physicsActor = nullptr);
+		physx::PxShape*				AddCollider(ColliderComponent* collider, _OUT_ bool& nonStatic, _OUT_ PhysicsActor ** physicsActor = nullptr);
 		void						RemoveCollider(ColliderComponent const* collider);
 		void						AddActor(D_SCENE::GameObject const* go);
 		INLINE bool					IsRegistered(D_SCENE::GameObject const* go) { return sActorMap.contains(const_cast<D_SCENE::GameObject*>(go)); }
@@ -51,7 +62,7 @@ namespace Darius::Physics
 		D_CONTAINERS::DUnorderedMap<D_SCENE::GameObject const*, PhysicsActor> sActorMap;
 
 		physx::PxScene*				mPxScene;
-				
+		SimulationCallback			mCallbacks;
 	};
 
 }

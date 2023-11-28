@@ -1,5 +1,5 @@
 /**
- * @file parser.h
+ * @file addons/parser.h
  * @brief Parser addon.
  *
  * The parser addon parses string expressions into lists of terms, and can be
@@ -8,8 +8,19 @@
 
 #ifdef FLECS_PARSER
 
+/**
+ * @defgroup c_addons_parser Parser
+ * @brief Query DSL parser and parsing utilities.
+ * 
+ * \ingroup c_addons
+ * @{
+ */
+
 #ifndef FLECS_PARSER_H
 #define FLECS_PARSER_H
+
+/** Maximum number of extra arguments in term expression */
+#define ECS_PARSER_MAX_ARGS (16)
 
 #ifdef __cplusplus
 extern "C" {
@@ -22,7 +33,7 @@ extern "C" {
  * @return Pointer to the next non-whitespace character.
  */
 FLECS_API
-const char* ecs_parse_whitespace(
+const char* ecs_parse_ws(
     const char *ptr);
 
 /** Skip whitespace and newline characters.
@@ -32,8 +43,15 @@ const char* ecs_parse_whitespace(
  * @return Pointer to the next non-whitespace character.
  */
 FLECS_API
-const char* ecs_parse_eol_and_whitespace(
+const char* ecs_parse_ws_eol(
     const char *ptr);
+
+/** Utility function to parse an identifier */
+const char* ecs_parse_identifier(
+    const char *name,
+    const char *expr,
+    const char *ptr,
+    char *token_out);
 
 /** Parse digit.
  * This function will parse until the first non-digit character is found. The
@@ -47,17 +65,6 @@ FLECS_API
 const char* ecs_parse_digit(
     const char *ptr,
     char *token);
-
-/** Skip whitespaces and comments.
- * This function skips whitespace characters and comments (single line, //).
- * 
- * @param ptr pointer to (potential) whitespaces/comments to skip.
- * @return pointer to the next non-whitespace character.
- */
-FLECS_API
-const char* ecs_parse_fluff(
-    const char *ptr,
-    char **last_comment);
 
 /** Parse a single token.
  * This function can be used as simple tokenizer by other parsers.
@@ -73,7 +80,8 @@ const char* ecs_parse_token(
     const char *name,
     const char *expr,
     const char *ptr,
-    char *token_out);
+    char *token_out,
+    char delim);
 
 /** Parse term in expression.
  * This operation parses a single term in an expression and returns a pointer
@@ -100,6 +108,7 @@ const char* ecs_parse_token(
  * @param expr The expression to parse (optional, improves error logs)
  * @param ptr The pointer to the current term (must be in expr).
  * @param term_out Out parameter for the term.
+ * @param extra_args Out array for extra args, must be of size ECS_PARSER_MAX_ARGS.
  * @return pointer to next term if successful, NULL if failed.
  */
 FLECS_API
@@ -108,12 +117,15 @@ char* ecs_parse_term(
     const char *name,
     const char *expr,
     const char *ptr,
-    ecs_term_t *term_out);
+    ecs_term_t *term_out,
+    ecs_term_id_t *extra_args);
 
 #ifdef __cplusplus
 }
 #endif // __cplusplus
 
 #endif // FLECS_PARSER_H
+
+/** @} */
 
 #endif // FLECS_PARSER

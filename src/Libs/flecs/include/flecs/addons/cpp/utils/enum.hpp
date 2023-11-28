@@ -1,7 +1,27 @@
+/**
+ * @file addons/cpp/utils/enum.hpp
+ * @brief Compile time enum reflection utilities.
+ * 
+ * Discover at compile time valid enumeration constants for an enumeration type
+ * and their names. This is used to automatically register enum constants.
+ */
+
 #include <string.h>
 
 #define FLECS_ENUM_MAX(T) _::to_constant<T, 128>::value
 #define FLECS_ENUM_MAX_COUNT (FLECS_ENUM_MAX(int) + 1)
+
+#ifndef FLECS_CPP_ENUM_REFLECTION_SUPPORT
+#if !defined(__clang__) && defined(__GNUC__)
+#if __GNUC__ > 7 || (__GNUC__ == 7 && __GNUC_MINOR__ >= 5)
+#define FLECS_CPP_ENUM_REFLECTION_SUPPORT 1
+#else
+#define FLECS_CPP_ENUM_REFLECTION_SUPPORT 0
+#endif
+#else
+#define FLECS_CPP_ENUM_REFLECTION_SUPPORT 1
+#endif
+#endif
 
 namespace flecs {
 
@@ -9,7 +29,12 @@ namespace flecs {
 namespace _ {
 template <typename E, int Value>
 struct to_constant {
+#if defined(__clang__) && __clang_major__ >= 16
+    // https://reviews.llvm.org/D130058, https://reviews.llvm.org/D131307
+    static constexpr E value = __builtin_bit_cast(E, Value);
+#else
     static constexpr E value = static_cast<E>(Value);
+#endif
 };
 
 template <typename E, int Value>
@@ -39,12 +64,38 @@ struct enum_last {
 
 namespace _ {
 
-#ifdef ECS_TARGET_MSVC
-#define ECS_SIZE_T_STR "unsigned __int64"
-#elif defined(__clang__)
-#define ECS_SIZE_T_STR "size_t"
+#if INTPTR_MAX == INT64_MAX
+    #ifdef ECS_TARGET_MSVC
+        #if _MSC_VER >= 1930
+            #define ECS_SIZE_T_STR "unsigned __int64"
+        #else
+            #define ECS_SIZE_T_STR "unsigned int"
+        #endif 
+    #elif defined(__clang__)
+        #define ECS_SIZE_T_STR "size_t"
+    #else
+        #ifdef ECS_TARGET_WINDOWS
+            #define ECS_SIZE_T_STR "constexpr size_t; size_t = long long unsigned int"
+        #else
+            #define ECS_SIZE_T_STR "constexpr size_t; size_t = long unsigned int"
+        #endif
+    #endif
 #else
-#define ECS_SIZE_T_STR "constexpr size_t; size_t = long unsigned int"
+    #ifdef ECS_TARGET_MSVC
+        #if _MSC_VER >= 1930
+            #define ECS_SIZE_T_STR "unsigned __int32"
+        #else
+            #define ECS_SIZE_T_STR "unsigned int"
+        #endif 
+    #elif defined(__clang__)
+        #define ECS_SIZE_T_STR "size_t"
+    #else
+        #ifdef ECS_TARGET_WINDOWS
+            #define ECS_SIZE_T_STR "constexpr size_t; size_t = unsigned int"
+        #else
+            #define ECS_SIZE_T_STR "constexpr size_t; size_t = unsigned int"
+        #endif
+    #endif
 #endif
 
 template <typename E>
@@ -57,8 +108,8 @@ constexpr size_t enum_type_len() {
  * This function leverages that when a valid value is provided, 
  * __PRETTY_FUNCTION__ contains the enumeration name, whereas if a value is
  * invalid, the string contains a number. */
-#if defined(__clang__)
-#if __clang_major__ < 13 || (defined(__APPLE__) && __clang_minor__ < 1)
+#if defined(ECS_TARGET_CLANG)
+#if ECS_CLANG_VERSION < 13
 template <typename E, E C>
 constexpr bool enum_constant_is_valid() {
     return !(
@@ -74,7 +125,7 @@ constexpr bool enum_constant_is_valid() {
         enum_type_len<E>() + 6 /* ', E C = ' */] != '(');
 }
 #endif
-#elif defined(__GNUC__)
+#elif defined(ECS_TARGET_GNU)
 template <typename E, E C>
 constexpr bool enum_constant_is_valid() {
     return (ECS_FUNC_NAME[ECS_FUNC_NAME_FRONT(constepxr bool, enum_constant_is_valid) +
@@ -102,7 +153,8 @@ static const char* enum_constant_to_name() {
     static const size_t len = ECS_FUNC_TYPE_LEN(const char*, enum_constant_to_name, ECS_FUNC_NAME);
     static char result[len + 1] = {};
     return ecs_cpp_get_constant_name(
-        result, ECS_FUNC_NAME, string::length(ECS_FUNC_NAME));
+        result, ECS_FUNC_NAME, string::length(ECS_FUNC_NAME),
+            ECS_FUNC_NAME_BACK);
 }
 
 /** Enumeration constant data */
@@ -134,15 +186,12 @@ struct enum_type {
     }
 
     void init(flecs::world_t *world, flecs::entity_t id) {
-#if !defined(__clang__) && defined(__GNUC__)
-        ecs_assert(__GNUC__ > 7 || (__GNUC__ == 7 && __GNUC_MINOR__ >= 5), 
-            ECS_UNSUPPORTED, "enum component types require gcc 7.5 or higher");
+#if !FLECS_CPP_ENUM_REFLECTION_SUPPORT
+        ecs_abort(ECS_UNSUPPORTED, "enum reflection requires gcc 7.5 or higher")
 #endif
 
         ecs_log_push();
-        ecs_add_id(world, id, flecs::Exclusive);
-        ecs_add_id(world, id, flecs::OneOf);
-        ecs_add_id(world, id, flecs::Tag);
+        ecs_cpp_enum_init(world, id);
         data.id = id;
         data.min = FLECS_ENUM_MAX(int);
         init< enum_last<E>::value >(world);

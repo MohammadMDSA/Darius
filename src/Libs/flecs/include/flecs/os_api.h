@@ -13,6 +13,14 @@
 #ifndef FLECS_OS_API_H
 #define FLECS_OS_API_H
 
+/**
+ * @defgroup c_os_api OS API
+ * @brief Interface for providing OS specific functionality.
+ * 
+ * \ingroup c
+ * @{
+ */
+
 #include <stdarg.h>
 #include <errno.h>
 
@@ -33,7 +41,7 @@ typedef struct ecs_time_t {
     uint32_t nanosec;
 } ecs_time_t;
 
-/* Allocation counters (not thread safe) */
+/* Allocation counters */
 extern int64_t ecs_os_api_malloc_count;
 extern int64_t ecs_os_api_realloc_count;
 extern int64_t ecs_os_api_calloc_count;
@@ -45,6 +53,9 @@ typedef uintptr_t ecs_os_cond_t;
 typedef uintptr_t ecs_os_mutex_t;
 typedef uintptr_t ecs_os_dl_t;
 typedef uintptr_t ecs_os_sock_t;
+
+/* 64 bit thread id */
+typedef uint64_t ecs_os_thread_id_t;
 
 /* Generic function pointer type */
 typedef void (*ecs_os_proc_t)(void);
@@ -93,11 +104,27 @@ typedef
 void* (*ecs_os_api_thread_join_t)(
     ecs_os_thread_t thread);
 
+typedef
+ecs_os_thread_id_t (*ecs_os_api_thread_self_t)(void);
+
+/* Tasks */
+typedef
+ecs_os_thread_t (*ecs_os_api_task_new_t)(
+    ecs_os_thread_callback_t callback,
+    void *param);
+
+typedef
+void* (*ecs_os_api_task_join_t)(
+    ecs_os_thread_t thread);
+
 /* Atomic increment / decrement */
 typedef
-int (*ecs_os_api_ainc_t)(
+int32_t (*ecs_os_api_ainc_t)(
     int32_t *value);
 
+typedef
+int64_t (*ecs_os_api_lainc_t)(
+    int64_t *value);
 
 /* Mutex */
 typedef
@@ -205,10 +232,17 @@ typedef struct ecs_os_api_t {
     /* Threads */
     ecs_os_api_thread_new_t thread_new_;
     ecs_os_api_thread_join_t thread_join_;
+    ecs_os_api_thread_self_t thread_self_;
+
+    /* Tasks */
+    ecs_os_api_thread_new_t task_new_;
+    ecs_os_api_thread_join_t task_join_;
 
     /* Atomic incremenet / decrement */
     ecs_os_api_ainc_t ainc_;
     ecs_os_api_ainc_t adec_;
+    ecs_os_api_lainc_t lainc_;
+    ecs_os_api_lainc_t ladec_;
 
     /* Mutex */
     ecs_os_api_mutex_new_t mutex_new_;
@@ -282,6 +316,9 @@ void ecs_os_set_api(
     ecs_os_api_t *os_api);
 
 FLECS_API
+ecs_os_api_t ecs_os_get_api(void);
+
+FLECS_API
 void ecs_os_set_api_defaults(void);
 
 /* Memory management */
@@ -308,7 +345,7 @@ void ecs_os_set_api_defaults(void);
 #define ecs_os_calloc_t(T) ECS_CAST(T*, ecs_os_calloc(ECS_SIZEOF(T)))
 #define ecs_os_calloc_n(T, count) ECS_CAST(T*, ecs_os_calloc(ECS_SIZEOF(T) * (count)))
 
-#define ecs_os_realloc_t(ptr, T) ECS_CAST(T*, ecs_os_realloc([ptr, ECS_SIZEOF(T)))
+#define ecs_os_realloc_t(ptr, T) ECS_CAST(T*, ecs_os_realloc(ptr, ECS_SIZEOF(T)))
 #define ecs_os_realloc_n(ptr, T, count) ECS_CAST(T*, ecs_os_realloc(ptr, ECS_SIZEOF(T) * (count)))
 #define ecs_os_alloca_t(T) ECS_CAST(T*, ecs_os_alloca(ECS_SIZEOF(T)))
 #define ecs_os_alloca_n(T, count) ECS_CAST(T*, ecs_os_alloca(ECS_SIZEOF(T) * (count)))
@@ -317,8 +354,6 @@ void ecs_os_set_api_defaults(void);
 #ifndef ecs_os_strdup
 #define ecs_os_strdup(str) ecs_os_api.strdup_(str)
 #endif
-
-#define ecs_os_strset(dst, src) ecs_os_free(*dst); *dst = ecs_os_strdup(src)
 
 #ifdef __cplusplus
 #define ecs_os_strlen(str) static_cast<ecs_size_t>(strlen(str))
@@ -340,6 +375,10 @@ void ecs_os_set_api_defaults(void);
 #define ecs_os_memcpy_n(ptr1, ptr2, T, count) ecs_os_memcpy(ptr1, ptr2, ECS_SIZEOF(T) * count)
 #define ecs_os_memcmp_t(ptr1, ptr2, T) ecs_os_memcmp(ptr1, ptr2, ECS_SIZEOF(T))
 
+#define ecs_os_memmove_t(ptr1, ptr2, T) ecs_os_memmove(ptr1, ptr2, ECS_SIZEOF(T))
+#define ecs_os_memmove_n(ptr1, ptr2, T, count) ecs_os_memmove(ptr1, ptr2, ECS_SIZEOF(T) * count)
+#define ecs_os_memmove_t(ptr1, ptr2, T) ecs_os_memmove(ptr1, ptr2, ECS_SIZEOF(T))
+
 #define ecs_os_strcmp(str1, str2) strcmp(str1, str2)
 #define ecs_os_memset_t(ptr, value, T) ecs_os_memset(ptr, value, ECS_SIZEOF(T))
 #define ecs_os_memset_n(ptr, value, T, count) ecs_os_memset(ptr, value, ECS_SIZEOF(T) * count)
@@ -351,7 +390,7 @@ void ecs_os_set_api_defaults(void);
 #define ecs_offset(ptr, T, index)\
     ECS_CAST(T*, ECS_OFFSET(ptr, ECS_SIZEOF(T) * index))
 
-#if defined(ECS_TARGET_MSVC)
+#if !defined(ECS_TARGET_POSIX) && !defined(ECS_TARGET_MINGW)
 #define ecs_os_strcat(str1, str2) strcat_s(str1, INT_MAX, str2)
 #define ecs_os_sprintf(ptr, ...) sprintf_s(ptr, INT_MAX, __VA_ARGS__)
 #define ecs_os_vsprintf(ptr, fmt, args) vsprintf_s(ptr, INT_MAX, fmt, args)
@@ -374,7 +413,7 @@ void ecs_os_set_api_defaults(void);
 #endif
 
 /* Files */
-#if defined(ECS_TARGET_MSVC)
+#ifndef ECS_TARGET_POSIX
 #define ecs_os_fopen(result, file, mode) fopen_s(result, file, mode)
 #else
 #define ecs_os_fopen(result, file, mode) (*(result)) = fopen(file, mode)
@@ -383,10 +422,17 @@ void ecs_os_set_api_defaults(void);
 /* Threads */
 #define ecs_os_thread_new(callback, param) ecs_os_api.thread_new_(callback, param)
 #define ecs_os_thread_join(thread) ecs_os_api.thread_join_(thread)
+#define ecs_os_thread_self() ecs_os_api.thread_self_()
+
+/* Tasks */
+#define ecs_os_task_new(callback, param) ecs_os_api.task_new_(callback, param)
+#define ecs_os_task_join(thread) ecs_os_api.task_join_(thread)
 
 /* Atomic increment / decrement */
 #define ecs_os_ainc(value) ecs_os_api.ainc_(value)
 #define ecs_os_adec(value) ecs_os_api.adec_(value)
+#define ecs_os_lainc(value) ecs_os_api.lainc_(value)
+#define ecs_os_ladec(value) ecs_os_api.ladec_(value)
 
 /* Mutex */
 #define ecs_os_mutex_new() ecs_os_api.mutex_new_()
@@ -424,6 +470,31 @@ void ecs_os_fatal(const char *file, int32_t line, const char *msg);
 
 FLECS_API
 const char* ecs_os_strerror(int err);
+
+FLECS_API
+void ecs_os_strset(char **str, const char *value);
+
+#ifdef FLECS_ACCURATE_COUNTERS
+#define ecs_os_inc(v)  (ecs_os_ainc(v))
+#define ecs_os_linc(v) (ecs_os_lainc(v))
+#define ecs_os_dec(v)  (ecs_os_adec(v))
+#define ecs_os_ldec(v) (ecs_os_ladec(v))
+#else
+#define ecs_os_inc(v)  (++(*v))
+#define ecs_os_linc(v) (++(*v))
+#define ecs_os_dec(v)  (--(*v))
+#define ecs_os_ldec(v) (--(*v))
+#endif
+
+#ifdef ECS_TARGET_MINGW
+/* mingw bug: without this a conversion error is thrown, but isnan/isinf should
+ * accept float, double and long double. */
+#define ecs_os_isnan(val) (isnan((float)val))
+#define ecs_os_isinf(val) (isinf((float)val))
+#else
+#define ecs_os_isnan(val) (isnan(val))
+#define ecs_os_isinf(val) (isinf(val))
+#endif
 
 /* Application termination */
 #define ecs_os_abort() ecs_os_api.abort_()
@@ -471,6 +542,10 @@ bool ecs_os_has_heap(void);
 FLECS_API
 bool ecs_os_has_threading(void);
 
+/** Are task functions available? */
+FLECS_API
+bool ecs_os_has_task_support(void);
+
 /** Are time functions available? */
 FLECS_API
 bool ecs_os_has_time(void);
@@ -490,5 +565,7 @@ bool ecs_os_has_modules(void);
 #ifdef __cplusplus
 }
 #endif
+
+/** @} */
 
 #endif

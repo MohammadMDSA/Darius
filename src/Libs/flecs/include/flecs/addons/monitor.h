@@ -1,5 +1,5 @@
 /**
- * @file doc.h
+ * @file addons/monitor.h
  * @brief Doc module.
  *
  * The monitor module automatically tracks statistics from the stats addon and
@@ -7,6 +7,14 @@
  */
 
 #ifdef FLECS_MONITOR
+
+/**
+ * @defgroup c_addons_monitor Monitor
+ * @brief The monitor addon periodically tracks statistics for the world and systems.
+ * 
+ * \ingroup c_addons
+ * @{
+ */
 
 #ifndef FLECS_MONITOR_H
 #define FLECS_MONITOR_H
@@ -25,6 +33,7 @@ extern "C" {
 
 FLECS_API extern ECS_COMPONENT_DECLARE(FlecsMonitor);
 FLECS_API extern ECS_COMPONENT_DECLARE(EcsWorldStats);
+FLECS_API extern ECS_COMPONENT_DECLARE(EcsWorldSummary);
 FLECS_API extern ECS_COMPONENT_DECLARE(EcsPipelineStats);
 
 FLECS_API extern ecs_entity_t EcsPeriod1s;
@@ -48,6 +57,21 @@ typedef struct {
     ecs_pipeline_stats_t stats;
 } EcsPipelineStats;
 
+typedef struct {
+    /* Target FPS */
+    double target_fps;          /**< Target FPS */
+
+    /* Total time */
+    double frame_time_total;    /**< Total time spent processing a frame */
+    double system_time_total;   /**< Total time spent in systems */
+    double merge_time_total;    /**< Total time spent in merges */
+
+    /* Last frame time */
+    double frame_time_last;     /**< Time spent processing a frame */
+    double system_time_last;    /**< Time spent in systems */
+    double merge_time_last;     /**< Time spent in merges */
+} EcsWorldSummary;
+
 /* Module import */
 FLECS_API
 void FlecsMonitorImport(
@@ -58,5 +82,7 @@ void FlecsMonitorImport(
 #endif
 
 #endif
+
+/** @} */
 
 #endif

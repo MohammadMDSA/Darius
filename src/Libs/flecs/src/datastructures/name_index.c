@@ -1,7 +1,12 @@
+/**
+ * @file datastructures/name_index.c
+ * @brief Data structure for resolving 64bit keys by string (name).
+ */
+
 #include "../private_api.h"
 
 static
-uint64_t name_index_hash(
+uint64_t flecs_name_index_hash(
     const void *ptr)
 {
     const ecs_hashed_string_t *str = ptr;
@@ -10,7 +15,7 @@ uint64_t name_index_hash(
 }
 
 static
-int name_index_compare(
+int flecs_name_index_compare(
     const void *ptr1, 
     const void *ptr2)
 {
@@ -26,18 +31,38 @@ int name_index_compare(
 }
 
 void flecs_name_index_init(
-    ecs_hashmap_t *hm) 
+    ecs_hashmap_t *hm,
+    ecs_allocator_t *allocator) 
 {
-    _flecs_hashmap_init(hm, 
+    flecs_hashmap_init_(hm, 
         ECS_SIZEOF(ecs_hashed_string_t), ECS_SIZEOF(uint64_t), 
-        name_index_hash, 
-        name_index_compare);
+        flecs_name_index_hash, 
+        flecs_name_index_compare,
+        allocator);
 }
 
-ecs_hashmap_t* flecs_name_index_new(void) 
+void flecs_name_index_init_if(
+    ecs_hashmap_t *hm,
+    ecs_allocator_t *allocator) 
 {
-    ecs_hashmap_t *result = ecs_os_calloc_t(ecs_hashmap_t);
-    flecs_name_index_init(result);
+    if (!hm->compare) {
+        flecs_name_index_init(hm, allocator);
+    }
+}
+
+bool flecs_name_index_is_init(
+    const ecs_hashmap_t *hm)
+{
+    return hm->compare != NULL;
+}
+
+ecs_hashmap_t* flecs_name_index_new(
+    ecs_world_t *world,
+    ecs_allocator_t *allocator) 
+{
+    ecs_hashmap_t *result = flecs_bcalloc(&world->allocators.hashmap);
+    flecs_name_index_init(result, allocator);
+    result->hashmap_allocator = &world->allocators.hashmap;
     return result;
 }
 
@@ -52,8 +77,17 @@ void flecs_name_index_free(
 {
     if (map) {
         flecs_name_index_fini(map);
-        ecs_os_free(map);
+        flecs_bfree(map->hashmap_allocator, map);
     }
+}
+
+ecs_hashmap_t* flecs_name_index_copy(
+    ecs_hashmap_t *map)
+{
+    ecs_hashmap_t *result = flecs_bcalloc(map->hashmap_allocator);
+    result->hashmap_allocator = map->hashmap_allocator;
+    flecs_hashmap_copy(result, map);
+    return result;
 }
 
 ecs_hashed_string_t flecs_get_hashed_string(
@@ -74,7 +108,7 @@ ecs_hashed_string_t flecs_get_hashed_string(
     }
 
     return (ecs_hashed_string_t) {
-        .value = (char*)name,
+        .value = ECS_CONST_CAST(char*, name),
         .length = length,
         .hash = hash
     };
@@ -87,14 +121,13 @@ const uint64_t* flecs_name_index_find_ptr(
     uint64_t hash)
 {
     ecs_hashed_string_t hs = flecs_get_hashed_string(name, length, hash);
-
     ecs_hm_bucket_t *b = flecs_hashmap_get_bucket(map, hs.hash);
     if (!b) {
         return NULL;
     }
 
-    ecs_hashed_string_t *keys = ecs_vector_first(b->keys, ecs_hashed_string_t);
-    int32_t i, count = ecs_vector_count(b->keys);
+    ecs_hashed_string_t *keys = ecs_vec_first(&b->keys);
+    int32_t i, count = ecs_vec_count(&b->keys);
 
     for (i = 0; i < count; i ++) {
         ecs_hashed_string_t *key = &keys[i];
@@ -105,7 +138,7 @@ const uint64_t* flecs_name_index_find_ptr(
         }
 
         if (!ecs_os_strcmp(name, key->value)) {
-            uint64_t *e = ecs_vector_get(b->values, uint64_t, i);
+            uint64_t *e = ecs_vec_get_t(&b->values, uint64_t, i);
             ecs_assert(e != NULL, ECS_INTERNAL_ERROR, NULL);
             return e;
         }
@@ -137,9 +170,8 @@ void flecs_name_index_remove(
         return;
     }
 
-    uint64_t *ids = ecs_vector_first(b->values, uint64_t);
-    int32_t i, count = ecs_vector_count(b->values);
-
+    uint64_t *ids = ecs_vec_first(&b->values);
+    int32_t i, count = ecs_vec_count(&b->values);
     for (i = 0; i < count; i ++) {
         if (ids[i] == e) {
             flecs_hm_bucket_remove(map, b, hash, i);
@@ -159,14 +191,13 @@ void flecs_name_index_update_name(
         return;
     }
 
-    uint64_t *ids = ecs_vector_first(b->values, uint64_t);
-    int32_t i, count = ecs_vector_count(b->values);
-
+    uint64_t *ids = ecs_vec_first(&b->values);
+    int32_t i, count = ecs_vec_count(&b->values);
     for (i = 0; i < count; i ++) {
         if (ids[i] == e) {
-            ecs_hashed_string_t *key = ecs_vector_get(
-                b->keys, ecs_hashed_string_t, i);
-            key->value = (char*)name;
+            ecs_hashed_string_t *key = ecs_vec_get_t(
+                &b->keys, ecs_hashed_string_t, i);
+            key->value = ECS_CONST_CAST(char*, name);
             ecs_assert(ecs_os_strlen(name) == key->length,
                 ECS_INTERNAL_ERROR, NULL);
             ecs_assert(flecs_hash(name, key->length) == key->hash,
@@ -201,7 +232,6 @@ void flecs_name_index_ensure(
 
     flecs_hashmap_result_t hmr = flecs_hashmap_ensure(
         map, &key, uint64_t);
-
     *((uint64_t*)hmr.value) = id;
 error:
     return;

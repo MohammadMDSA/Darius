@@ -1,15 +1,29 @@
-#pragma once
-
-namespace flecs
-{
-
-/** Entity view class
+/**
+ * @file addons/cpp/entity_view.hpp
+ * @brief Entity class with only readonly operations.
+ * 
  * This class provides readonly access to entities. Using this class to store 
  * entities in components ensures valid handles, as this class will always store
  * the actual world vs. a stage. The constructors of this class will never 
  * create a new entity.
  *
  * To obtain a mutable handle to the entity, use the "mut" function.
+ */
+
+#pragma once
+
+/**
+ * \ingroup cpp_entities
+ * @{
+ */
+
+namespace flecs
+{
+
+/** Entity view.
+ * Class with read operations for entities. Base for flecs::entity.
+ * 
+ * \ingroup cpp_entities
  */
 struct entity_view : public id {
 
@@ -37,7 +51,7 @@ struct entity_view : public id {
         return m_id;
     }
 
-    /** Check is entity is valid.
+    /** Check if entity is valid.
      *
      * @return True if the entity is alive, false otherwise.
      */
@@ -49,7 +63,7 @@ struct entity_view : public id {
         return is_valid();
     }
 
-    /** Check is entity is alive.
+    /** Check if entity is alive.
      *
      * @return True if the entity is alive, false otherwise.
      */
@@ -78,11 +92,28 @@ struct entity_view : public id {
      * @return The hierarchical entity path.
      */
     flecs::string path(const char *sep = "::", const char *init_sep = "::") const {
-        char *path = ecs_get_path_w_sep(m_world, 0, m_id, sep, init_sep);
-        return flecs::string(path);
+        return path_from(0, sep, init_sep);
     }   
 
-    bool enabled() {
+    /** Return the entity path relative to a parent.
+     *
+     * @return The relative hierarchical entity path.
+     */
+    flecs::string path_from(flecs::entity_t parent, const char *sep = "::", const char *init_sep = "::") const {
+        char *path = ecs_get_path_w_sep(m_world, parent, m_id, sep, init_sep);
+        return flecs::string(path);
+    }
+
+    /** Return the entity path relative to a parent.
+     *
+     * @return The relative hierarchical entity path.
+     */
+    template <typename Parent>
+    flecs::string path_from(const char *sep = "::", const char *init_sep = "::") const {
+        return path_from(_::cpp_type<Parent>::id(m_world), sep, init_sep);
+    }
+
+    bool enabled() const {
         return !ecs_has_id(m_world, m_id, flecs::Disabled);
     }
 
@@ -97,6 +128,15 @@ struct entity_view : public id {
      * @return Returns the entity's table.
      */
     flecs::table table() const;
+
+    /** Get table range for the entity.
+     * Returns a range with the entity's row as offset and count set to 1. If
+     * the entity is not stored in a table, the function returns a range with
+     * count 0.
+     *
+     * @return Returns the entity's table range.
+     */
+    flecs::table_range range() const;
 
     /** Iterate (component) ids of an entity.
      * The function parameter must match the following signature:
@@ -142,10 +182,19 @@ struct entity_view : public id {
      * The function parameter must match the following signature:
      *   void(*)(flecs::entity target)
      *
+     * @param rel The relationship to follow.
      * @param func The function invoked for each child.     
      */
     template <typename Func>
-    void children(Func&& func) const {
+    void children(flecs::entity_t rel, Func&& func) const {
+        /* When the entity is a wildcard, this would attempt to query for all
+         * entities with (ChildOf, *) or (ChildOf, _) instead of querying for
+         * the children of the wildcard entity. */
+        if (m_id == flecs::Wildcard || m_id == flecs::Any) {
+            /* This is correct, wildcard entities don't have children */
+            return;
+        }
+
         flecs::world world(m_world);
 
         ecs_term_t terms[2];
@@ -154,18 +203,45 @@ struct entity_view : public id {
         f.term_count = 2;
 
         ecs_filter_desc_t desc = {};
-        desc.terms[0].id = ecs_pair(flecs::ChildOf, m_id);
+        desc.terms[0].first.id = rel;
+        desc.terms[0].second.id = m_id;
+        desc.terms[0].second.flags = EcsIsEntity;
         desc.terms[1].id = flecs::Prefab;
         desc.terms[1].oper = EcsOptional;
         desc.storage = &f;
-        ecs_filter_init(m_world, &desc);
+        if (ecs_filter_init(m_world, &desc) != nullptr) {
+            ecs_iter_t it = ecs_filter_iter(m_world, &f);
+            while (ecs_filter_next(&it)) {
+                _::each_delegate<Func>(FLECS_MOV(func)).invoke(&it);
+            }
 
-        ecs_iter_t it = ecs_filter_iter(m_world, &f);
-        while (ecs_filter_next(&it)) {
-            _::each_invoker<Func>(FLECS_MOV(func)).invoke(&it);
+            ecs_filter_fini(&f);
         }
+    }
 
-        ecs_filter_fini(&f);
+    /** Iterate children for entity.
+     * The function parameter must match the following signature:
+     *   void(*)(flecs::entity target)
+     *
+     * @tparam Rel The relationship to follow.
+     * @param func The function invoked for each child.     
+     */
+    template <typename Rel, typename Func>
+    void children(Func&& func) const {
+        children(_::cpp_type<Rel>::id(m_world), FLECS_MOV(func));
+    }
+
+    /** Iterate children for entity.
+     * The function parameter must match the following signature:
+     *   void(*)(flecs::entity target)
+     * 
+     * This operation follows the ChildOf relationship.
+     *
+     * @param func The function invoked for each child.     
+     */
+    template <typename Func>
+    void children(Func&& func) const {
+        children(flecs::ChildOf, FLECS_MOV(func));
     }
 
     /** Get component value.
@@ -371,15 +447,42 @@ struct entity_view : public id {
 
     template <typename First, typename Second>
     flecs::entity target_for(flecs::entity_t relationship) const;
+
+    /** Get depth for given relationship.
+     *
+     * @param rel The relationship.
+     * @return The depth.
+     */
+    int32_t depth(flecs::entity_t rel) const {
+        return ecs_get_depth(m_world, m_id, rel);
+    }
+
+    /** Get depth for given relationship.
+     *
+     * @tparam Rel The relationship.
+     * @return The depth.
+     */
+    template<typename Rel>
+    int32_t depth() const {
+        return this->depth(_::cpp_type<Rel>::id(m_world));
+    }
+
+    /** Get parent of entity.
+     * Short for target(flecs::ChildOf).
+     * 
+     * @return The parent of the entity.
+     */
+    flecs::entity parent() const;
     
     /** Lookup an entity by name.
      * Lookup an entity in the scope of this entity. The provided path may
      * contain double colons as scope separators, for example: "Foo::Bar".
      *
      * @param path The name of the entity to lookup.
+     * @param search_path When false, only the entity's scope is searched.
      * @return The found entity, or entity::null if no entity matched.
      */
-    flecs::entity lookup(const char *path) const;
+    flecs::entity lookup(const char *path, bool search_path = false) const;
 
     /** Check if entity has the provided entity.
      *
@@ -542,7 +645,7 @@ struct entity_view : public id {
      * @param id The id to test.
      * @return True if enabled, false if not.
      */
-    bool enabled(flecs::id_t id) {
+    bool enabled(flecs::id_t id) const {
         return ecs_is_enabled_id(m_world, m_id, id);
     }
 
@@ -552,7 +655,7 @@ struct entity_view : public id {
      * @return True if enabled, false if not.
      */
     template<typename T>
-    bool enabled() {
+    bool enabled() const {
         return this->enabled(_::cpp_type<T>::id(m_world));
     }
 
@@ -562,7 +665,7 @@ struct entity_view : public id {
      * @param second The second element of the pair.
      * @return True if enabled, false if not.
      */
-    bool enabled(flecs::id_t first, flecs::id_t second) {
+    bool enabled(flecs::id_t first, flecs::id_t second) const {
         return this->enabled(ecs_pair(first, second));
     }
 
@@ -573,7 +676,7 @@ struct entity_view : public id {
      * @return True if enabled, false if not.
      */
     template <typename First>
-    bool enabled(flecs::id_t second) {
+    bool enabled(flecs::id_t second) const {
         return this->enabled(_::cpp_type<First>::id(m_world), second);
     }
 
@@ -584,19 +687,8 @@ struct entity_view : public id {
      * @return True if enabled, false if not.
      */
     template <typename First, typename Second>
-    bool enabled() {
+    bool enabled() const {
         return this->enabled<First>(_::cpp_type<Second>::id(m_world));
-    }
-
-    /** Get current delta time.
-     * Convenience function so system implementations can get delta_time, even
-     * if they are using the .each() function.
-     *
-     * @return Current delta_time.
-     */
-    ecs_ftime_t delta_time() const {
-        const ecs_world_info_t *stats = ecs_get_world_info(m_world);
-        return stats->delta_time;
     }
 
     flecs::entity clone(bool clone_value = true, flecs::entity_t dst_id = 0) const;
@@ -642,16 +734,22 @@ struct entity_view : public id {
     flecs::entity mut(const flecs::entity_view& e) const;
 
 #   ifdef FLECS_JSON
-#   include "mixins/json/entity.inl"
+#   include "mixins/json/entity_view.inl"
 #   endif
 #   ifdef FLECS_DOC
 #   include "mixins/doc/entity_view.inl"
 #   endif
+#   ifdef FLECS_ALERTS
+#   include "mixins/alerts/entity_view.inl"
+#   endif
 
 #   include "mixins/enum/entity_view.inl"
+#   include "mixins/event/entity_view.inl"
 
 private:
     flecs::entity set_stage(world_t *stage);
 };
 
 }
+
+/** @} */

@@ -1,3 +1,13 @@
+/**
+ * @file iter.c
+ * @brief Iterator API.
+ * 
+ * The iterator API contains functions that apply to all iterators, such as
+ * resource management, or fetching resources for a matched table. The API also
+ * contains functions for generic iterators, which make it possible to iterate
+ * an iterator without needing to know what created the iterator.
+ */
+
 #include "private_api.h"
 #include <stddef.h>
 
@@ -5,78 +15,76 @@
 
 /* If term count is smaller than cache size, initialize with inline array,
  * otherwise allocate. */
-#define INIT_CACHE(it, fields, f, count, cache_size)\
+#define INIT_CACHE(it, stack, fields, f, T, count)\
     if (!it->f && (fields & flecs_iter_cache_##f) && count) {\
-        if (count <= cache_size) {\
-            it->f = it->priv.cache.f;\
-            it->priv.cache.used |= flecs_iter_cache_##f;\
-        } else {\
-            it->f = ecs_os_calloc(ECS_SIZEOF(*(it->f)) * count);\
-            it->priv.cache.allocated |= flecs_iter_cache_##f;\
-        }\
-    }
-
-/* If array is using the cache, make sure that its address is correct in case
- * the iterator got moved (typically happens when returned by a function) */
-#define VALIDATE_CACHE(it, f)\
-    if (it->f) {\
-        if (it->priv.cache.used & flecs_iter_cache_##f) {\
-            it->f = it->priv.cache.f;\
-        }\
+        it->f = flecs_stack_calloc_n(stack, T, count);\
+        it->priv.cache.used |= flecs_iter_cache_##f;\
     }
 
 /* If array is allocated, free it when finalizing the iterator */
-#define FINI_CACHE(it, f)\
-    if (it->f) {\
-        if (it->priv.cache.allocated & flecs_iter_cache_##f) {\
-            ecs_os_free((void*)it->f);\
-        }\
+#define FINI_CACHE(it, f, T, count)\
+    if (it->priv.cache.used & flecs_iter_cache_##f) {\
+        flecs_stack_free_n((void*)it->f, T, count);\
     }
 
+void* flecs_iter_calloc(
+    ecs_iter_t *it,
+    ecs_size_t size,
+    ecs_size_t align)
+{
+    ecs_world_t *world = it->world;
+    ecs_stage_t *stage = flecs_stage_from_world((ecs_world_t**)&world);
+    ecs_stack_t *stack = &stage->allocators.iter_stack;
+    return flecs_stack_calloc(stack, size, align); 
+}
+
+void flecs_iter_free(
+    void *ptr,
+    ecs_size_t size)
+{
+    flecs_stack_free(ptr, size);
+}
+
 void flecs_iter_init(
+    const ecs_world_t *world,
     ecs_iter_t *it,
     ecs_flags8_t fields)
 {
     ecs_assert(!ECS_BIT_IS_SET(it->flags, EcsIterIsValid), 
         ECS_INTERNAL_ERROR, NULL);
 
+    ecs_stage_t *stage = flecs_stage_from_world(
+        ECS_CONST_CAST(ecs_world_t**, &world));
+    ecs_stack_t *stack = &stage->allocators.iter_stack;
+
     it->priv.cache.used = 0;
     it->priv.cache.allocated = 0;
+    it->priv.cache.stack_cursor = flecs_stack_get_cursor(stack);
+    it->priv.entity_iter = flecs_stack_calloc_t(
+        stack, ecs_entity_filter_iter_t);
 
-    INIT_CACHE(it, fields, ids, it->field_count, ECS_TERM_CACHE_SIZE);
-    INIT_CACHE(it, fields, sources, it->field_count, ECS_TERM_CACHE_SIZE);
-    INIT_CACHE(it, fields, match_indices, it->field_count, ECS_TERM_CACHE_SIZE);
-    INIT_CACHE(it, fields, columns, it->field_count, ECS_TERM_CACHE_SIZE);
-    INIT_CACHE(it, fields, variables, it->variable_count, 
-        ECS_VARIABLE_CACHE_SIZE);
-    INIT_CACHE(it, fields, sizes, it->field_count, ECS_TERM_CACHE_SIZE);
-
-    if (!ECS_BIT_IS_SET(it->flags, EcsIterIsFilter)) {
-        INIT_CACHE(it, fields, ptrs, it->field_count, ECS_TERM_CACHE_SIZE);
-    } else {
-        it->ptrs = NULL;
-    }
-}
-
-static
-void iter_validate_cache(
-    ecs_iter_t *it)
-{
-    /* Make sure pointers to cache are up to date in case iter has moved */
-    VALIDATE_CACHE(it, ids);
-    VALIDATE_CACHE(it, sources);
-    VALIDATE_CACHE(it, match_indices);
-    VALIDATE_CACHE(it, columns);
-    VALIDATE_CACHE(it, variables);
-    VALIDATE_CACHE(it, sizes);
-    VALIDATE_CACHE(it, ptrs);
+    INIT_CACHE(it, stack, fields, ids, ecs_id_t, it->field_count);
+    INIT_CACHE(it, stack, fields, sources, ecs_entity_t, it->field_count);
+    INIT_CACHE(it, stack, fields, match_indices, int32_t, it->field_count);
+    INIT_CACHE(it, stack, fields, columns, int32_t, it->field_count);
+    INIT_CACHE(it, stack, fields, variables, ecs_var_t, it->variable_count);
+    INIT_CACHE(it, stack, fields, ptrs, void*, it->field_count);
 }
 
 void flecs_iter_validate(
     ecs_iter_t *it)
 {
-    iter_validate_cache(it);
     ECS_BIT_SET(it->flags, EcsIterIsValid);
+
+    /* Make sure multithreaded iterator isn't created for real world */
+    ecs_world_t *world = it->real_world;
+    ecs_poly_assert(world, ecs_world_t);
+    ecs_check(!(world->flags & EcsWorldMultiThreaded) || it->world != it->real_world,
+        ECS_INVALID_PARAMETER, 
+            "create iterator for stage when world is in multithreaded mode");
+    (void)world;
+error:
+    return;
 }
 
 void ecs_iter_fini(
@@ -88,34 +96,22 @@ void ecs_iter_fini(
         it->fini(it);
     }
 
-    FINI_CACHE(it, ids);
-    FINI_CACHE(it, columns);
-    FINI_CACHE(it, sources);
-    FINI_CACHE(it, sizes);
-    FINI_CACHE(it, ptrs);
-    FINI_CACHE(it, match_indices);
-    FINI_CACHE(it, variables);
-}
-
-static
-ecs_size_t iter_get_size_for_id(
-    ecs_world_t *world,
-    ecs_id_t id)
-{
-    ecs_id_record_t *idr = flecs_id_record_get(world, id);
-    if (!idr) {
-        return 0;
+    ecs_world_t *world = it->world;
+    if (!world) {
+        return;
     }
 
-    if (idr->flags & EcsIdUnion) {
-        return ECS_SIZEOF(ecs_entity_t);
-    }
+    FINI_CACHE(it, ids, ecs_id_t, it->field_count);
+    FINI_CACHE(it, sources, ecs_entity_t, it->field_count);
+    FINI_CACHE(it, match_indices, int32_t, it->field_count);
+    FINI_CACHE(it, columns, int32_t, it->field_count);
+    FINI_CACHE(it, variables, ecs_var_t, it->variable_count);
+    FINI_CACHE(it, ptrs, void*, it->field_count);
+    flecs_stack_free_t(it->priv.entity_iter, ecs_entity_filter_iter_t);
 
-    if (idr->type_info) {
-        return idr->type_info->size;
-    }
-
-    return 0;
+    ecs_stage_t *stage = flecs_stage_from_world(&world);
+    flecs_stack_restore_cursor(&stage->allocators.iter_stack, 
+        it->priv.cache.stack_cursor);
 }
 
 static
@@ -124,13 +120,11 @@ bool flecs_iter_populate_term_data(
     ecs_iter_t *it,
     int32_t t,
     int32_t column,
-    void **ptr_out,
-    ecs_size_t *size_out)
+    void **ptr_out)
 {
     bool is_shared = false;
     ecs_table_t *table;
     void *data;
-    ecs_size_t size = 0;
     int32_t row, u_index;
 
     if (!column) {
@@ -138,23 +132,23 @@ bool flecs_iter_populate_term_data(
         goto no_data;
     }
 
-    if (!it->terms) {
+    /* Filter terms may match with data but don't return it */
+    if (it->terms[t].inout == EcsInOutNone) {
         goto no_data;
     }
 
-    /* Filter terms may match with data but don't return it */
-    if (it->terms[t].inout == EcsInOutNone) {
-        if (size_out) {
-            size = iter_get_size_for_id(world, it->ids[t]);
-        }
+    ecs_assert(it->sizes != NULL, ECS_INTERNAL_ERROR, NULL);
+    int32_t size = it->sizes[t];
+    if (!size) {
         goto no_data;
     }
 
     if (column < 0) {
+        table = it->table;
         is_shared = true;
 
         /* Data is not from This */
-        if (it->references) {
+        if (it->references && (!table || !(table->flags & EcsTableHasTarget))) {
             /* The reference array is used only for components matched on a
              * table (vs. individual entities). Remaining components should be
              * assigned outside of this function */
@@ -174,11 +168,6 @@ bool flecs_iter_populate_term_data(
                     is_shared = false;
                 }
 
-                /* If cached references were provided, the code that populated
-                * the iterator also had a chance to cache sizes, so size array
-                * should already have been assigned. This saves us from having
-                * to do additional lookups to find the component size. */
-                ecs_assert(size_out == NULL, ECS_INTERNAL_ERROR, NULL);
                 return is_shared;
             }
 
@@ -196,10 +185,9 @@ bool flecs_iter_populate_term_data(
             table = r->table;
 
             ecs_id_t id = it->ids[t];
-            ecs_table_t *s_table = table->storage_table;
             ecs_table_record_t *tr;
 
-            if (!s_table || !(tr = flecs_table_record_get(world, s_table, id))){
+            if (!(tr = flecs_table_record_get(world, table, id)) || (tr->column == -1)) {
                 u_index = flecs_table_column_to_union_index(table, -column - 1);
                 if (u_index != -1) {
                     goto has_union;
@@ -210,22 +198,18 @@ bool flecs_iter_populate_term_data(
             /* We now have row and column, so we can get the storage for the id
              * which gives us the pointer and size */
             column = tr->column;
-            ecs_type_info_t *ti = table->type_info[column];
-            ecs_column_t *s = &table->data.columns[column];
-            size = ti->size;
-            data = ecs_storage_first(s);
+            ecs_vec_t *s = &table->data.columns[column].data;
+            data = ecs_vec_first(s);
             /* Fallthrough to has_data */
         }
     } else {
         /* Data is from This, use table from iterator */
         table = it->table;
-        if (!table) {
-            goto no_data;
-        }
+        ecs_assert(table != NULL, ECS_INTERNAL_ERROR, NULL);
 
         row = it->offset;
 
-        int32_t storage_column = ecs_table_type_to_storage_index(
+        int32_t storage_column = ecs_table_type_to_column_index(
             table, column - 1);
         if (storage_column == -1) {
             u_index = flecs_table_column_to_union_index(table, column - 1);
@@ -235,35 +219,31 @@ bool flecs_iter_populate_term_data(
             goto no_data;
         }
 
-        ecs_type_info_t *ti = table->type_info[storage_column];
-        ecs_column_t *s = &table->data.columns[storage_column];
-        size = ti->size;
-        data = ecs_storage_first(s);
-
-        if (!table || !ecs_table_count(table)) {
+        if (!it->count) {
             goto no_data;
         }
+
+        ecs_vec_t *s = &table->data.columns[storage_column].data;
+        data = ecs_vec_first(s);
 
         /* Fallthrough to has_data */
     }
 
 has_data:
     if (ptr_out) ptr_out[0] = ECS_ELEM(data, size, row);
-    if (size_out) size_out[0] = size;
     return is_shared;
 
 has_union: {
         /* Edge case: if column is a switch we should return the vector with case
          * identifiers. Will be replaced in the future with pluggable storage */
-        ecs_switch_t *sw = &table->data.sw_columns[u_index];
-        data = ecs_vector_first(flecs_switch_values(sw), ecs_entity_t);
-        size = ECS_SIZEOF(ecs_entity_t);
+        ecs_assert(table->_ != NULL, ECS_INTERNAL_ERROR, NULL);
+        ecs_switch_t *sw = &table->_->sw_columns[u_index];
+        data = ecs_vec_first(flecs_switch_values(sw));
         goto has_data;
     }
 
 no_data:
     if (ptr_out) ptr_out[0] = NULL;
-    if (size_out) size_out[0] = size;
     return false;
 }
 
@@ -273,23 +253,21 @@ void flecs_iter_populate_data(
     ecs_table_t *table,
     int32_t offset,
     int32_t count,
-    void **ptrs,
-    ecs_size_t *sizes)
+    void **ptrs)
 {
-    if (it->table) {
-        it->frame_offset += ecs_table_count(it->table);
+    ecs_table_t *prev_table = it->table;
+    if (prev_table) {
+        it->frame_offset += ecs_table_count(prev_table);
     }
 
     it->table = table;
     it->offset = offset;
     it->count = count;
-
     if (table) {
-        if (!count) {
-            count = it->count = ecs_table_count(table);
-        }
+        ecs_assert(count != 0 || !ecs_table_count(table) || (it->flags & EcsIterTableOnly), 
+            ECS_INTERNAL_ERROR, NULL);
         if (count) {
-            it->entities = ecs_storage_get_t(
+            it->entities = ecs_vec_get_t(
                 &table->data.entities, ecs_entity_t, offset);
         } else {
             it->entities = NULL;
@@ -297,46 +275,17 @@ void flecs_iter_populate_data(
     }
 
     int t, field_count = it->field_count;
-
-    if (ECS_BIT_IS_SET(it->flags, EcsIterIsFilter)) {
+    if (ECS_BIT_IS_SET(it->flags, EcsIterNoData)) {
         ECS_BIT_CLEAR(it->flags, EcsIterHasShared);
-
-        if (!sizes) {
-            return;
-        }
-
-        /* Fetch sizes, skip fetching data */
-        for (t = 0; t < field_count; t ++) {
-            sizes[t] = iter_get_size_for_id(world, it->ids[t]);
-        }
         return;
     }
 
     bool has_shared = false;
-
-    if (ptrs && sizes) {
+    if (ptrs) {
         for (t = 0; t < field_count; t ++) {
             int32_t column = it->columns[t];
             has_shared |= flecs_iter_populate_term_data(world, it, t, column,
-                &ptrs[t], 
-                &sizes[t]);
-        }
-    } else {
-        for (t = 0; t < field_count; t ++) {
-            ecs_assert(it->columns != NULL, ECS_INTERNAL_ERROR, NULL);
-
-            int32_t column = it->columns[t];
-            void **ptr = NULL;
-            if (ptrs) {
-                ptr = &ptrs[t];
-            }
-            ecs_size_t *size = NULL;
-            if (sizes) {
-                size = &sizes[t];
-            }
-
-            has_shared |= flecs_iter_populate_term_data(world, it, t, column,
-                ptr, size);
+                &ptrs[t]);
         }
     }
 
@@ -390,6 +339,7 @@ bool flecs_iter_next_instanced(
     if (result && !is_instanced && it->count && has_shared) {
         it->count = 1;
     }
+
     return result;
 }
 
@@ -398,85 +348,55 @@ bool flecs_iter_next_instanced(
 void* ecs_field_w_size(
     const ecs_iter_t *it,
     size_t size,
-    int32_t term)
+    int32_t index)
 {
     ecs_check(it->flags & EcsIterIsValid, ECS_INVALID_PARAMETER, NULL);
-    ecs_check(!size || ecs_field_size(it, term) == size || 
-        (!ecs_field_size(it, term) && (!it->ptrs || !it->ptrs[term - 1])), 
-        ECS_INVALID_PARAMETER, NULL);
+    ecs_assert(index >= 1, ECS_INVALID_PARAMETER, NULL);
 
+    ecs_check(!size || ecs_field_size(it, index) == size ||
+        (!ecs_field_size(it, index) && (!it->ptrs[index - 1])),
+            ECS_INVALID_PARAMETER, NULL);
     (void)size;
 
-    if (!term) {
-        return it->entities;
-    }
-
-    if (!it->ptrs) {
-        return NULL;
-    }
-
-    return it->ptrs[term - 1];
+    return it->ptrs[index - 1];
 error:
     return NULL;
 }
 
 bool ecs_field_is_readonly(
     const ecs_iter_t *it,
-    int32_t term_index)
+    int32_t index)
 {
     ecs_check(it->flags & EcsIterIsValid, ECS_INVALID_PARAMETER, NULL);
-    ecs_check(term_index > 0, ECS_INVALID_PARAMETER, NULL);
+    ecs_assert(index >= 1, ECS_INVALID_PARAMETER, NULL);
+    ecs_term_t *term = &it->terms[index - 1];
 
-    ecs_term_t *term = &it->terms[term_index - 1];
-    ecs_check(term != NULL, ECS_INVALID_PARAMETER, NULL);
-    
     if (term->inout == EcsIn) {
         return true;
-    } else {
+    } else if (term->inout == EcsInOutDefault) {
+        if (!ecs_term_match_this(term)) {
+            return true;
+        }
+
         ecs_term_id_t *src = &term->src;
-
-        if (term->inout == EcsInOutDefault) {
-            if (!(ecs_term_match_this(term))) {
-                return true;
-            }
-
-            if (!(src->flags & EcsSelf)) {
-                return true;
-            }
+        if (!(src->flags & EcsSelf)) {
+            return true;
         }
     }
-
 error:
     return false;
 }
 
 bool ecs_field_is_writeonly(
     const ecs_iter_t *it,
-    int32_t term_index)
+    int32_t index)
 {
     ecs_check(it->flags & EcsIterIsValid, ECS_INVALID_PARAMETER, NULL);
-    ecs_check(term_index > 0, ECS_INVALID_PARAMETER, NULL);
-
-    ecs_term_t *term = &it->terms[term_index - 1];
-    ecs_check(term != NULL, ECS_INVALID_PARAMETER, NULL);
-    
-    if (term->inout == EcsOut) {
-        return true;
-    }
-
+    ecs_assert(index >= 1, ECS_INVALID_PARAMETER, NULL);
+    ecs_term_t *term = &it->terms[index - 1];
+    return term->inout == EcsOut;
 error:
     return false;
-}
-
-int32_t ecs_iter_find_column(
-    const ecs_iter_t *it,
-    ecs_entity_t component)
-{
-    ecs_check(it->flags & EcsIterIsValid, ECS_INVALID_PARAMETER, NULL);
-    ecs_check(it->table != NULL, ECS_INVALID_PARAMETER, NULL);
-    return ecs_search(it->real_world, it->table, component, 0);
-error:
-    return -1;
 }
 
 bool ecs_field_is_set(
@@ -484,7 +404,7 @@ bool ecs_field_is_set(
     int32_t index)
 {
     ecs_check(it->flags & EcsIterIsValid, ECS_INVALID_PARAMETER, NULL);
-
+    ecs_assert(index >= 1, ECS_INVALID_PARAMETER, NULL);
     int32_t column = it->columns[index - 1];
     if (!column) {
         return false;
@@ -497,7 +417,6 @@ bool ecs_field_is_set(
             return true;
         }
     }
-
     return true;
 error:
     return false;
@@ -507,8 +426,7 @@ bool ecs_field_is_self(
     const ecs_iter_t *it,
     int32_t index)
 {
-    ecs_assert(it != NULL, ECS_INVALID_PARAMETER, NULL);
-    ecs_assert(index >= 0, ECS_INVALID_PARAMETER, NULL);
+    ecs_assert(index >= 1, ECS_INVALID_PARAMETER, NULL);
     return it->sources == NULL || it->sources[index - 1] == 0;
 }
 
@@ -516,17 +434,28 @@ ecs_id_t ecs_field_id(
     const ecs_iter_t *it,
     int32_t index)
 {
-    ecs_assert(it != NULL, ECS_INVALID_PARAMETER, NULL);
-    ecs_assert(index >= 0, ECS_INVALID_PARAMETER, NULL);
+    ecs_assert(index >= 1, ECS_INVALID_PARAMETER, NULL);
     return it->ids[index - 1];
+}
+
+int32_t ecs_field_column_index(
+    const ecs_iter_t *it,
+    int32_t index)
+{
+    ecs_assert(index >= 1, ECS_INVALID_PARAMETER, NULL);
+    int32_t result = it->columns[index - 1];
+    if (result <= 0) {
+        return -1;
+    } else {
+        return result - 1;
+    }
 }
 
 ecs_entity_t ecs_field_src(
     const ecs_iter_t *it,
     int32_t index)
 {
-    ecs_assert(it != NULL, ECS_INVALID_PARAMETER, NULL);
-    ecs_assert(index >= 0, ECS_INVALID_PARAMETER, NULL);
+    ecs_assert(index >= 1, ECS_INVALID_PARAMETER, NULL);
     if (it->sources) {
         return it->sources[index - 1];
     } else {
@@ -538,70 +467,23 @@ size_t ecs_field_size(
     const ecs_iter_t *it,
     int32_t index)
 {
-    ecs_assert(it != NULL, ECS_INVALID_PARAMETER, NULL);
-    ecs_assert(index >= 0, ECS_INVALID_PARAMETER, NULL);
-
-    if (index == 0) {
-        return sizeof(ecs_entity_t);
-    } else {
-        return (size_t)it->sizes[index - 1];
-    }
-}
-
-void* ecs_iter_column_w_size(
-    const ecs_iter_t *it,
-    size_t size,
-    int32_t index)
-{
-    ecs_check(it->flags & EcsIterIsValid, ECS_INVALID_PARAMETER, NULL);
-    ecs_check(it->table != NULL, ECS_INVALID_PARAMETER, NULL);
-    (void)size;
-    
-    ecs_table_t *table = it->table;
-    int32_t storage_index = ecs_table_type_to_storage_index(table, index);
-    if (storage_index == -1) {
-        return NULL;
-    }
-
-    ecs_type_info_t *ti = table->type_info[storage_index];
-    ecs_check(!size || (ecs_size_t)size == ti->size, 
-        ECS_INVALID_PARAMETER, NULL);
-    (void)ti;
-
-    ecs_column_t *column = &table->data.columns[storage_index];
-    return ecs_storage_get(column, flecs_uto(int32_t, size), it->offset);
-error:
-    return NULL;
-}
-
-size_t ecs_iter_column_size(
-    const ecs_iter_t *it,
-    int32_t index)
-{
-    ecs_check(it->flags & EcsIterIsValid, ECS_INVALID_PARAMETER, NULL);
-    ecs_check(it->table != NULL, ECS_INVALID_PARAMETER, NULL);
-    
-    ecs_table_t *table = it->table;
-    int32_t storage_index = ecs_table_type_to_storage_index(table, index);
-    if (storage_index == -1) {
-        return 0;
-    }
-
-    ecs_type_info_t *ti = table->type_info[storage_index];
-    return flecs_ito(size_t, ti->size);
-error:
-    return 0;
+    ecs_assert(index >= 1, ECS_INVALID_PARAMETER, NULL);
+    return (size_t)it->sizes[index - 1];
 }
 
 char* ecs_iter_str(
     const ecs_iter_t *it)
 {
+    if (!(it->flags & EcsIterIsValid)) {
+        return NULL;
+    }
+
     ecs_world_t *world = it->world;
     ecs_strbuf_t buf = ECS_STRBUF_INIT;
     int i;
 
     if (it->field_count) {
-        ecs_strbuf_list_push(&buf, "term: ", ",");
+        ecs_strbuf_list_push(&buf, "id:  ", ",");
         for (i = 0; i < it->field_count; i ++) {
             ecs_id_t id = ecs_field_id(it, i + 1);
             char *str = ecs_id_str(world, id);
@@ -610,7 +492,7 @@ char* ecs_iter_str(
         }
         ecs_strbuf_list_pop(&buf, "\n");
 
-        ecs_strbuf_list_push(&buf, "subj: ", ",");
+        ecs_strbuf_list_push(&buf, "src: ", ",");
         for (i = 0; i < it->field_count; i ++) {
             ecs_entity_t subj = ecs_field_src(it, i + 1);
             char *str = ecs_get_fullpath(world, subj);
@@ -618,13 +500,23 @@ char* ecs_iter_str(
             ecs_os_free(str);
         }
         ecs_strbuf_list_pop(&buf, "\n");
+
+        ecs_strbuf_list_push(&buf, "set: ", ",");
+        for (i = 0; i < it->field_count; i ++) {
+            if (ecs_field_is_set(it, i + 1)) {
+                ecs_strbuf_list_appendlit(&buf, "true");
+            } else {
+                ecs_strbuf_list_appendlit(&buf, "false");
+            }
+        }
+        ecs_strbuf_list_pop(&buf, "\n");
     }
 
-    if (it->variable_count) {
+    if (it->variable_count && it->variable_names) {
         int32_t actual_count = 0;
         for (i = 0; i < it->variable_count; i ++) {
             const char *var_name = it->variable_names[i];
-            if (!var_name || var_name[0] == '_' || var_name[0] == '.') {
+            if (!var_name || var_name[0] == '_' || !strcmp(var_name, "This")) {
                 /* Skip anonymous variables */
                 continue;
             }
@@ -636,7 +528,7 @@ char* ecs_iter_str(
             }
 
             if (!actual_count) {
-                ecs_strbuf_list_push(&buf, "vars: ", ",");
+                ecs_strbuf_list_push(&buf, "var: ", ",");
             }
 
             char *str = ecs_get_fullpath(world, var.entity);
@@ -651,13 +543,13 @@ char* ecs_iter_str(
     }
 
     if (it->count) {
-        ecs_strbuf_appendstr(&buf, "this:\n");
+        ecs_strbuf_appendlit(&buf, "this:\n");
         for (i = 0; i < it->count; i ++) {
             ecs_entity_t e = it->entities[i];
             char *str = ecs_get_fullpath(world, e);
-            ecs_strbuf_appendstr(&buf, "    - ");
+            ecs_strbuf_appendlit(&buf, "    - ");
             ecs_strbuf_appendstr(&buf, str);
-            ecs_strbuf_appendstr(&buf, "\n");
+            ecs_strbuf_appendch(&buf, '\n');
             ecs_os_free(str);
         }
     }
@@ -690,7 +582,7 @@ int32_t ecs_iter_count(
 {
     ecs_check(it != NULL, ECS_INVALID_PARAMETER, NULL);
 
-    ECS_BIT_SET(it->flags, EcsIterIsFilter);
+    ECS_BIT_SET(it->flags, EcsIterNoData);
     ECS_BIT_SET(it->flags, EcsIterIsInstanced);
 
     int32_t count = 0;
@@ -702,12 +594,31 @@ error:
     return 0;
 }
 
+ecs_entity_t ecs_iter_first(
+    ecs_iter_t *it)
+{
+    ecs_check(it != NULL, ECS_INVALID_PARAMETER, NULL);
+
+    ECS_BIT_SET(it->flags, EcsIterNoData);
+    ECS_BIT_SET(it->flags, EcsIterIsInstanced);
+
+    ecs_entity_t result = 0;
+    if (ecs_iter_next(it)) {
+        result = it->entities[0];
+        ecs_iter_fini(it);
+    }
+
+    return result;
+error:
+    return 0;
+}
+
 bool ecs_iter_is_true(
     ecs_iter_t *it)
 {
     ecs_check(it != NULL, ECS_INVALID_PARAMETER, NULL);
 
-    ECS_BIT_SET(it->flags, EcsIterIsFilter);
+    ECS_BIT_SET(it->flags, EcsIterNoData);
     ECS_BIT_SET(it->flags, EcsIterIsInstanced);
 
     bool result = ecs_iter_next(it);
@@ -735,7 +646,7 @@ ecs_entity_t ecs_iter_get_var(
             if ((var->range.count == 1) || (ecs_table_count(table) == 1)) {
                 ecs_assert(ecs_table_count(table) > var->range.offset,
                     ECS_INTERNAL_ERROR, NULL);
-                e = ecs_storage_get_t(&table->data.entities, ecs_entity_t,
+                e = ecs_vec_get_t(&table->data.entities, ecs_entity_t,
                     var->range.offset)[0];
             }
         }
@@ -833,14 +744,12 @@ void ecs_iter_set_var(
 {
     ecs_check(it != NULL, ECS_INVALID_PARAMETER, NULL);
     ecs_check(var_id >= 0, ECS_INVALID_PARAMETER, NULL);
-    ecs_check(var_id < ECS_VARIABLE_COUNT_MAX, ECS_INVALID_PARAMETER, NULL);
+    ecs_check(var_id < FLECS_VARIABLE_COUNT_MAX, ECS_INVALID_PARAMETER, NULL);
     ecs_check(var_id < it->variable_count, ECS_INVALID_PARAMETER, NULL);
     ecs_check(entity != 0, ECS_INVALID_PARAMETER, NULL);
     /* Can't set variable while iterating */
     ecs_check(!(it->flags & EcsIterIsValid), ECS_INVALID_PARAMETER, NULL);
     ecs_check(it->variables != NULL, ECS_INTERNAL_ERROR, NULL);
-
-    iter_validate_cache(it);
 
     ecs_var_t *var = &it->variables[var_id];
     var->entity = entity;
@@ -858,6 +767,10 @@ void ecs_iter_set_var(
 
     it->constrained_vars |= flecs_ito(uint64_t, 1 << var_id);
 
+    if (it->set_var) {
+        it->set_var(it);
+    }
+
 error:
     return;
 }
@@ -867,7 +780,7 @@ void ecs_iter_set_var_as_table(
     int32_t var_id,
     const ecs_table_t *table)
 {
-    ecs_table_range_t range = { .table = (ecs_table_t*)table };
+    ecs_table_range_t range = { .table = ECS_CONST_CAST(ecs_table_t*, table) };
     ecs_iter_set_var_as_range(it, var_id, &range);
 }
 
@@ -878,7 +791,7 @@ void ecs_iter_set_var_as_range(
 {
     ecs_check(it != NULL, ECS_INVALID_PARAMETER, NULL);
     ecs_check(var_id >= 0, ECS_INVALID_PARAMETER, NULL);
-    ecs_check(var_id < ECS_VARIABLE_COUNT_MAX, ECS_INVALID_PARAMETER, NULL);
+    ecs_check(var_id < FLECS_VARIABLE_COUNT_MAX, ECS_INVALID_PARAMETER, NULL);
     ecs_check(var_id < it->variable_count, ECS_INVALID_PARAMETER, NULL);
     ecs_check(range != 0, ECS_INVALID_PARAMETER, NULL);
     ecs_check(range->table != NULL, ECS_INVALID_PARAMETER, NULL);
@@ -890,14 +803,12 @@ void ecs_iter_set_var_as_range(
     /* Can't set variable while iterating */
     ecs_check(!(it->flags & EcsIterIsValid), ECS_INVALID_OPERATION, NULL);
 
-    iter_validate_cache(it);
-
     ecs_var_t *var = &it->variables[var_id];
     var->range = *range;
 
     if (range->count == 1) {
         ecs_table_t *table = range->table;
-        var->entity = ecs_storage_get_t(
+        var->entity = ecs_vec_get_t(
             &table->data.entities, ecs_entity_t, range->offset)[0];
     } else {
         var->entity = 0;
@@ -916,6 +827,18 @@ bool ecs_iter_var_is_constrained(
     return (it->constrained_vars & (flecs_uto(uint64_t, 1 << var_id))) != 0;
 }
 
+static
+void ecs_chained_iter_fini(
+    ecs_iter_t *it)
+{
+    ecs_assert(it != NULL, ECS_INVALID_PARAMETER, NULL);
+    ecs_assert(it->chain_it != NULL, ECS_INVALID_PARAMETER, NULL);
+
+    ecs_iter_fini(it->chain_it);
+
+    it->chain_it = NULL;
+}
+
 ecs_iter_t ecs_page_iter(
     const ecs_iter_t *it,
     int32_t offset,
@@ -925,13 +848,16 @@ ecs_iter_t ecs_page_iter(
     ecs_check(it->next != NULL, ECS_INVALID_PARAMETER, NULL);
 
     ecs_iter_t result = *it;
+    result.priv.cache.stack_cursor = NULL; /* Don't copy allocator cursor */
+
     result.priv.iter.page = (ecs_page_iter_t){
         .offset = offset,
         .limit = limit,
         .remaining = limit
     };
     result.next = ecs_page_next;
-    result.chain_it = (ecs_iter_t*)it;
+    result.fini = ecs_chained_iter_fini;
+    result.chain_it = ECS_CONST_CAST(ecs_iter_t*, it);
 
     return result;
 error:
@@ -939,24 +865,27 @@ error:
 }
 
 static
-void offset_iter(
+void flecs_offset_iter(
     ecs_iter_t *it,
     int32_t offset)
 {
     it->entities = &it->entities[offset];
 
     int32_t t, field_count = it->field_count;
-    for (t = 0; t < field_count; t ++) {
-        void *ptrs = it->ptrs[t];
-        if (!ptrs) {
-            continue;
-        }
+    void **it_ptrs = it->ptrs;
+    if (it_ptrs) {
+        for (t = 0; t < field_count; t ++) {
+            void *ptrs = it_ptrs[t];
+            if (!ptrs) {
+                continue;
+            }
 
-        if (it->sources[t]) {
-            continue;
-        }
+            if (it->sources[t]) {
+                continue;
+            }
 
-        it->ptrs[t] = ECS_OFFSET(ptrs, offset * it->sizes[t]);
+            it->ptrs[t] = ECS_OFFSET(ptrs, offset * it->sizes[t]);
+        }
     }
 }
 
@@ -1011,7 +940,7 @@ bool ecs_page_next_instanced(
                 it->offset += offset;
                 count = it->count -= offset;
                 iter->offset = 0;
-                offset_iter(it, offset);
+                flecs_offset_iter(it, offset);
             }
         }
 
@@ -1071,18 +1000,18 @@ ecs_iter_t ecs_worker_iter(
     ecs_check(index >= 0, ECS_INVALID_PARAMETER, NULL);
     ecs_check(index < count, ECS_INVALID_PARAMETER, NULL);
 
-    return (ecs_iter_t){
-        .real_world = it->real_world,
-        .world = it->world,
-        .priv.iter.worker = {
-            .index = index,
-            .count = count
-        },
-        .next = ecs_worker_next,
-        .chain_it = (ecs_iter_t*)it,
-        .flags = it->flags & EcsIterIsInstanced
+    ecs_iter_t result = *it;
+    result.priv.cache.stack_cursor = NULL; /* Don't copy allocator cursor */
+    
+    result.priv.iter.worker = (ecs_worker_iter_t){
+        .index = index,
+        .count = count
     };
+    result.next = ecs_worker_next;
+    result.fini = ecs_chained_iter_fini;
+    result.chain_it = ECS_CONST_CAST(ecs_iter_t*, it);
 
+    return result;
 error:
     return (ecs_iter_t){ 0 };
 }
@@ -1133,6 +1062,9 @@ bool ecs_worker_next_instanced(
             if (res_index == 0) {
                 return true;
             } else {
+                // chained iterator was not yet cleaned up
+                // since it returned true from ecs_iter_next, so clean it up here.
+                ecs_iter_fini(chain_it);
                 return false;
             }
         }
@@ -1141,7 +1073,7 @@ bool ecs_worker_next_instanced(
     it->instance_count = instances_per_worker;
     it->frame_offset += first;
 
-    offset_iter(it, it->offset + first);
+    flecs_offset_iter(it, it->offset + first);
     it->count = per_worker;
 
     if (ECS_BIT_IS_SET(it->flags, EcsIterIsInstanced)) {

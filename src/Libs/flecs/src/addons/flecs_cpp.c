@@ -1,3 +1,8 @@
+/**
+ * @file addons/flecs_cpp.c
+ * @brief Utilities for C++ addon.
+ */
+
 #include "../private_api.h"
 #include <ctype.h>
 
@@ -79,9 +84,10 @@ void ecs_cpp_trim_type_name(
 char* ecs_cpp_get_type_name(
     char *type_name, 
     const char *func_name,
-    size_t len)
+    size_t len,
+    size_t front_len)
 {
-    memcpy(type_name, func_name + ECS_FUNC_NAME_FRONT(const char*, type_name), len);
+    memcpy(type_name, func_name + front_len, len);
     type_name[len] = '\0';
     ecs_cpp_trim_type_name(type_name);
     return type_name;
@@ -112,20 +118,21 @@ char* ecs_cpp_get_symbol_name(
 }
 
 static
-const char* cpp_func_rchr(
+const char* flecs_cpp_func_rchr(
     const char *func_name,
     ecs_size_t func_name_len,
+    ecs_size_t func_back_len,
     char ch)
 {
     const char *r = strrchr(func_name, ch);
-    if ((r - func_name) >= (func_name_len - flecs_uto(ecs_size_t, ECS_FUNC_NAME_BACK))) {
+    if ((r - func_name) >= (func_name_len - flecs_uto(ecs_size_t, func_back_len))) {
         return NULL;
     }
     return r;
 }
 
 static
-const char* cpp_func_max(
+const char* flecs_cpp_func_max(
     const char *a,
     const char *b)
 {
@@ -136,18 +143,23 @@ const char* cpp_func_max(
 char* ecs_cpp_get_constant_name(
     char *constant_name,
     const char *func_name,
-    size_t func_name_len)
+    size_t func_name_len,
+    size_t func_back_len)
 {
     ecs_size_t f_len = flecs_uto(ecs_size_t, func_name_len);
-    const char *start = cpp_func_rchr(func_name, f_len, ' ');
-    start = cpp_func_max(start, cpp_func_rchr(func_name, f_len, ')'));
-    start = cpp_func_max(start, cpp_func_rchr(func_name, f_len, ':'));
-    start = cpp_func_max(start, cpp_func_rchr(func_name, f_len, ','));
+    ecs_size_t fb_len = flecs_uto(ecs_size_t, func_back_len);
+    const char *start = flecs_cpp_func_rchr(func_name, f_len, fb_len, ' ');
+    start = flecs_cpp_func_max(start, flecs_cpp_func_rchr(
+        func_name, f_len, fb_len, ')'));
+    start = flecs_cpp_func_max(start, flecs_cpp_func_rchr(
+        func_name, f_len, fb_len, ':'));
+    start = flecs_cpp_func_max(start, flecs_cpp_func_rchr(
+        func_name, f_len, fb_len, ','));
     ecs_assert(start != NULL, ECS_INVALID_PARAMETER, func_name);
     start ++;
     
     ecs_size_t len = flecs_uto(ecs_size_t, 
-        (f_len - (start - func_name) - flecs_uto(ecs_size_t, ECS_FUNC_NAME_BACK)));
+        (f_len - (start - func_name) - fb_len));
     ecs_os_memcpy_n(constant_name, start, char, len);
     constant_name[len] = '\0';
     return constant_name;
@@ -193,6 +205,7 @@ void ecs_cpp_component_validate(
     ecs_world_t *world,
     ecs_entity_t id,
     const char *name,
+    const char *symbol,
     size_t size,
     size_t alignment,
     bool implicit_name)
@@ -200,17 +213,27 @@ void ecs_cpp_component_validate(
     /* If entity has a name check if it matches */
     if (ecs_is_valid(world, id) && ecs_get_name(world, id) != NULL) {
         if (!implicit_name && id >= EcsFirstUserComponentId) {
-#           ifndef FLECS_NDEBUG
+#ifndef FLECS_NDEBUG
             char *path = ecs_get_path_w_sep(
                 world, 0, id, "::", NULL);
             if (ecs_os_strcmp(path, name)) {
-                ecs_err(
+                ecs_abort(ECS_INCONSISTENT_NAME,
                     "component '%s' already registered with name '%s'",
                     name, path);
-                ecs_abort(ECS_INCONSISTENT_NAME, NULL);
             }
             ecs_os_free(path);
-#           endif
+#endif
+        }
+
+        if (symbol) {
+            const char *existing_symbol = ecs_get_symbol(world, id);
+            if (existing_symbol) {
+                if (ecs_os_strcmp(symbol, existing_symbol)) {
+                    ecs_abort(ECS_INCONSISTENT_NAME,
+                        "component '%s' with symbol '%s' already registered with symbol '%s'",
+                        name, symbol, existing_symbol);
+                }
+            }
         }
     } else {
         /* Ensure that the entity id valid */
@@ -248,7 +271,8 @@ ecs_entity_t ecs_cpp_component_register(
     const char *symbol,
     ecs_size_t size,
     ecs_size_t alignment,
-    bool implicit_name)
+    bool implicit_name,
+    bool *existing_out)
 {
     (void)size;
     (void)alignment;
@@ -263,7 +287,7 @@ ecs_entity_t ecs_cpp_component_register(
         ent = id;
     } else {
         ent = ecs_lookup_path_w_sep(world, 0, name, "::", "::", false);
-        existing = ent != 0;
+        existing = ent != 0 && ecs_has(world, ent, EcsComponent);
     }
     ecs_set_scope(world, prev_scope);
 
@@ -273,10 +297,6 @@ ecs_entity_t ecs_cpp_component_register(
         const EcsComponent *component = ecs_get(world, ent, EcsComponent);
         if (component != NULL) {
             const char *sym = ecs_get_symbol(world, ent);
-            ecs_assert(!existing || (sym != NULL), ECS_MISSING_SYMBOL, 
-                ecs_get_name(world, ent));
-            (void)existing;
-
             if (sym && ecs_os_strcmp(sym, symbol)) {
                 /* Application is trying to register a type with an entity that
                  * was already associated with another type. In most cases this
@@ -306,14 +326,20 @@ ecs_entity_t ecs_cpp_component_register(
                     ecs_abort(ECS_NAME_IN_USE, NULL);
                 }
                 ecs_os_free(type_path);
+            } else if (!sym) {
+                ecs_set_symbol(world, ent, symbol);
             }
         }
 
     /* If no entity is found, lookup symbol to check if the component was
      * registered under a different name. */
     } else if (!implicit_name) {
-        ent = ecs_lookup_symbol(world, symbol, false);
+        ent = ecs_lookup_symbol(world, symbol, false, false);
         ecs_assert(ent == 0 || (ent == id), ECS_INCONSISTENT_COMPONENT_ID, symbol);
+    }
+
+    if (existing_out) {
+        *existing_out = existing;
     }
 
     return ent;
@@ -328,9 +354,11 @@ ecs_entity_t ecs_cpp_component_register_explicit(
     const char *symbol,
     size_t size,
     size_t alignment,
-    bool is_component)
+    bool is_component,
+    bool *existing_out)
 {
     char *existing_name = NULL;
+    if (existing_out) *existing_out = false;
 
     // If an explicit id is provided, it is possible that the symbol and
     // name differ from the actual type, as the application may alias
@@ -339,10 +367,11 @@ ecs_entity_t ecs_cpp_component_register_explicit(
         if (!name) {
             // If no name was provided first check if a type with the provided
             // symbol was already registered.
-            id = ecs_lookup_symbol(world, symbol, false);
+            id = ecs_lookup_symbol(world, symbol, false, false);
             if (id) {
                 existing_name = ecs_get_path_w_sep(world, 0, id, "::", "::");
                 name = existing_name;
+                if (existing_out) *existing_out = true;
             } else {
                 // If type is not yet known, derive from type name
                 name = ecs_cpp_trim_module(world, type_name);
@@ -375,7 +404,7 @@ ecs_entity_t ecs_cpp_component_register_explicit(
         });
         ecs_assert(entity != 0, ECS_INVALID_OPERATION, NULL);
     } else {
-        entity = ecs_entity_init(world, &(ecs_entity_desc_t){
+        entity = ecs_entity(world, {
             .id = s_id,
             .name = name,
             .sep = "::",
@@ -390,6 +419,20 @@ ecs_entity_t ecs_cpp_component_register_explicit(
     ecs_os_free(existing_name);
 
     return entity;
+}
+
+void ecs_cpp_enum_init(
+    ecs_world_t *world,
+    ecs_entity_t id)
+{
+    (void)world;
+    (void)id;
+#ifdef FLECS_META
+    ecs_suspend_readonly_state_t readonly_state;
+    world = flecs_suspend_readonly(world, &readonly_state);
+    ecs_set(world, id, EcsEnum, {0});
+    flecs_resume_readonly(world, &readonly_state);
+#endif
 }
 
 ecs_entity_t ecs_cpp_enum_constant_register(
@@ -412,7 +455,7 @@ ecs_entity_t ecs_cpp_enum_constant_register(
     }
 
     ecs_entity_t prev = ecs_set_scope(world, parent);
-    id = ecs_entity_init(world, &(ecs_entity_desc_t){
+    id = ecs_entity(world, {
         .id = id,
         .name = name
     });
@@ -426,7 +469,10 @@ ecs_entity_t ecs_cpp_enum_constant_register(
         "enum component must have 32bit size");
     #endif
 
-    ecs_set_id(world, id, parent, sizeof(int), &value);
+#ifdef FLECS_META
+    ecs_set_id(world, id, ecs_pair(EcsConstant, ecs_id(ecs_i32_t)), 
+        sizeof(ecs_i32_t), &value);
+#endif
 
     flecs_resume_readonly(world, &readonly_state);
 
@@ -445,5 +491,26 @@ int32_t ecs_cpp_reset_count_get(void) {
 int32_t ecs_cpp_reset_count_inc(void) {
     return ++flecs_reset_count;
 }
+
+#ifdef FLECS_META
+const ecs_member_t* ecs_cpp_last_member(
+    const ecs_world_t *world, 
+    ecs_entity_t type)
+{
+    const EcsStruct *st = ecs_get(world, type, EcsStruct);
+    if (!st) {
+        char *type_str = ecs_get_fullpath(world, type);
+        ecs_err("entity '%s' is not a struct", type_str);
+        ecs_os_free(type_str);
+        return 0;
+    }
+
+    ecs_member_t *m = ecs_vec_get_t(&st->members, ecs_member_t, 
+        ecs_vec_count(&st->members) - 1);
+    ecs_assert(m != NULL, ECS_INTERNAL_ERROR, NULL);
+
+    return m;
+}
+#endif
 
 #endif

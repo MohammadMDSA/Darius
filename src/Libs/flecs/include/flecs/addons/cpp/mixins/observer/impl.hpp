@@ -1,3 +1,8 @@
+/**
+ * @file addons/cpp/mixins/observer/impl.hpp
+ * @brief Observer implementation.
+ */
+
 #pragma once
 
 #include "builder.hpp"
@@ -33,7 +38,13 @@ struct observer final : entity
     }
 
     void* ctx() const {
-        return ecs_get_observer_ctx(m_world, m_id);
+        return ecs_observer_get_ctx(m_world, m_id);
+    }
+
+    flecs::filter<> query() const {
+        const flecs::Poly *poly = this->get<flecs::Poly>(flecs::Observer);
+        const ecs_observer_t *ob = static_cast<const flecs::observer_t*>(poly->poly);
+        return flecs::filter<>(m_world, &ob->filter);
     }
 };
 

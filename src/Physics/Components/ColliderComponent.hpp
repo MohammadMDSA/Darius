@@ -1,8 +1,8 @@
 #pragma once
 
+#include "Physics/HitResult.hpp"
 #include "Physics/PhysicsManager.hpp"
 #include "Physics/Resources/PhysicsMaterialResource.hpp"
-#include "Physics/PhysicsActor.hpp"
 
 #include <ResourceManager/ResourceManager.hpp>
 #include <Scene/EntityComponentSystem/Components/ComponentBase.hpp>
@@ -44,6 +44,13 @@ namespace Darius::Physics
 		INLINE bool											IsTrigger() const { return mTrigger; }
 
 		virtual INLINE D_MATH::Quaternion					GetBiasedRotation() const { return D_MATH::Quaternion::Identity; }
+
+		D_CORE::Signal<void(ColliderComponent* thisCollider, ColliderComponent* otherCollider, D_SCENE::GameObject* otherGameObject, HitResult const& Hit)> OnColliderContactEnter;
+		D_CORE::Signal<void(ColliderComponent* thisCollider, ColliderComponent* otherCollider, D_SCENE::GameObject* otherGameObject, HitResult const& Hit)> OnColliderContactLost;
+		D_CORE::Signal<void(ColliderComponent* thisCollider, ColliderComponent* otherCollider, D_SCENE::GameObject* otherGameObject, HitResult const& Hit)> OnColliderContactStay;
+
+		D_CORE::Signal<void(ColliderComponent* thisCollider, D_SCENE::GameObject* otherGameObject)> OnTriggerEnter;
+		D_CORE::Signal<void(ColliderComponent* thisCollider, D_SCENE::GameObject* otherGameObject)> OnTriggerExit;
 
 	protected:
 		virtual INLINE physx::PxGeometry const*				GetPhysicsGeometry() const { return nullptr; };

@@ -1,3 +1,8 @@
+/**
+ * @file addons/cpp/mixins/rule/impl.hpp
+ * @brief Rule implementation.
+ */
+
 #pragma once
 
 #include "builder.hpp"
@@ -21,31 +26,66 @@ struct rule_base {
         : m_world(world)
     {
         m_rule = ecs_rule_init(world, desc);
-
-        if (!m_rule) {
-            ecs_abort(ECS_INVALID_PARAMETER, NULL);
-        }
-
         if (desc->terms_buffer) {
             ecs_os_free(desc->terms_buffer);
         }
+    }
+
+    bool is_valid() const {
+        return m_rule != nullptr;
     }
 
     operator rule_t*() const {
         return m_rule;
     }
 
-    /** Free the rule.
-     */
-    void destruct() {
-        ecs_rule_fini(m_rule);
-        m_world = nullptr;
-        m_rule = nullptr;
+    flecs::entity entity() {
+        return flecs::entity(m_world, ecs_get_entity(m_rule));
     }
 
-    flecs::string str() {
+    /** Free the rule. */
+    void destruct() {
+        if (m_rule) {
+            ecs_rule_fini(m_rule);
+            m_world = nullptr;
+            m_rule = nullptr;
+        }
+    }
+
+    template <typename Func>
+    void each_term(const Func& func) const {
+        this->filter().each_term(func);
+    }
+
+    /** Move the rule. */
+    void move(flecs::rule_base&& obj) {
+        this->destruct();
+        this->m_world = obj.m_world;
+        this->m_rule = obj.m_rule;
+        obj.m_world = nullptr;
+        obj.m_rule = nullptr;
+    }
+
+    flecs::filter_base filter() const {
+        return filter_base(m_world, ecs_rule_get_filter(m_rule));
+    }
+
+    /** Converts this rule to a string expression
+     * @see ecs_filter_str
+     */
+    flecs::string str() const {
         const ecs_filter_t *f = ecs_rule_get_filter(m_rule);
         char *result = ecs_filter_str(m_world, f);
+        return flecs::string(result);
+    }
+
+
+    /** Converts this rule to a string that can be used to aid debugging
+     * the behavior of the rule.
+     * @see ecs_rule_str
+     */
+    flecs::string rule_str() const {
+        char *result = ecs_rule_str(m_rule);
         return flecs::string(result);
     }
 
@@ -61,8 +101,11 @@ struct rule final : rule_base, iterable<Components...> {
 private:
     using Terms = typename _::term_ptrs<Components...>::array;
 
-    ecs_iter_t get_iter() const override {
-        return ecs_rule_iter(m_world, m_rule);
+    ecs_iter_t get_iter(flecs::world_t *world) const override {
+        if (!world) {
+            world = m_world;
+        }
+        return ecs_rule_iter(world, m_rule);
     }
 
     ecs_iter_next_action_t next_action() const override {

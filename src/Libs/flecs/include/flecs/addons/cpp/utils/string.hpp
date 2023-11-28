@@ -1,4 +1,7 @@
-// String utility that doesn't implicitly allocate memory.
+/**
+ * @file addons/cpp/utils/string.hpp
+ * @brief String utility that doesn't implicitly allocate memory.
+ */
 
 namespace flecs {
 
@@ -93,7 +96,7 @@ struct string {
         return m_const_str;
     }
 
-    std::size_t length() {
+    std::size_t length() const {
         return static_cast<std::size_t>(m_length);
     }
 
@@ -102,7 +105,7 @@ struct string {
         return N - 1;
     }
 
-    std::size_t size() {
+    std::size_t size() const {
         return length();
     }
 

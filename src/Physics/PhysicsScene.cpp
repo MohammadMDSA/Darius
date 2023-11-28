@@ -110,7 +110,7 @@ namespace Darius::Physics
 		auto shape = PxRigidActorExt::createExclusiveShape(*pxActor, *collider->GetPhysicsGeometry(), *collider->GetMaterial());
 
 		if (shape)
-			actor.mCollider.insert(collider->GetUuid());
+			actor.mCollider.emplace(shape, collider->GetComponentName());
 
 		if (physicsActor)
 			*physicsActor = &actor;
@@ -130,10 +130,11 @@ namespace Darius::Physics
 		auto& actor = sActorMap[go];
 
 		auto pxActor = actor.mPxActor;
+		auto shape = collider->mShape;
 
-		pxActor->detachShape(*collider->mShape);
+		pxActor->detachShape(*shape);
 
-		actor.mCollider.erase(collider->GetUuid());
+		actor.mCollider.erase(shape);
 
 		if (actor.IsStatic() && actor.mCollider.size() <= 0)
 		{
@@ -258,6 +259,106 @@ namespace Darius::Physics
 			D_DEBUG_DRAW::DrawLine(origin, dirNorm * maxDistance + origin, secendsToDisplay, D_MATH::Color::Red);
 #endif
 		return result;
+	}
+
+	void PhysicsScene::SimulationCallback::onContact(physx::PxContactPairHeader const& pairHeader, physx::PxContactPair const* pairs, physx::PxU32 nbPairs)
+	{
+		for (UINT i = 0u; i < nbPairs; i++)
+		{
+			// Finding physics actors
+			auto& pair = pairs[i];
+			auto actor1 = PhysicsActor::GetFromPxActor(pairHeader.actors[0]);
+			auto actor2 = PhysicsActor::GetFromPxActor(pairHeader.actors[1]);
+
+			// Finding collider component names which generated the event
+			auto compName1 = actor1->mCollider.at(pair.shapes[0]);
+			auto compName2 = actor2->mCollider.at(pair.shapes[1]);
+
+			// Finding the corresponding game objects
+			auto go1 = actor1->mGameObject;
+			auto go2 = actor2->mGameObject;
+
+			// Finding the components responsible for the collision
+			auto comp1 = reinterpret_cast<ColliderComponent*>(go1->GetComponent(compName1));
+			auto comp2 = reinterpret_cast<ColliderComponent*>(go2->GetComponent(compName2));
+
+			D_STATIC_ASSERT(sizeof(PxVec3) == 3 * sizeof(float));
+			
+			// Loading hit points
+			HitResult hit;
+			D_CONTAINERS::DVector<PxContactPairPoint> nativePoints;
+			UINT contactCount = pair.contactCount;
+			if (contactCount > 0)
+			{
+				nativePoints.resize(contactCount);
+				for (UINT i = 0u; i < contactCount; i++)
+				{
+					hit.Contacts.push_back(
+						{
+						D_MATH::Vector3(&nativePoints[i].position.x),
+						nativePoints[i].separation,
+						D_MATH::Vector3(&nativePoints[i].normal.x),
+						D_MATH::Vector3(&nativePoints[i].impulse.x),
+						}
+					);
+				}
+			}
+
+			// Firing contact event
+			if (pair.events & PxPairFlag::eNOTIFY_TOUCH_FOUND)
+			{
+				comp1->OnColliderContactEnter(comp1, comp2, const_cast<D_SCENE::GameObject*>(go2), hit);
+				comp2->OnColliderContactEnter(comp2, comp1, const_cast<D_SCENE::GameObject*>(go1), hit);
+			}
+
+			// Firing stay event
+			if (pair.events & PxPairFlag::eNOTIFY_TOUCH_PERSISTS)
+			{
+				comp1->OnColliderContactStay(comp1, comp2, const_cast<D_SCENE::GameObject*>(go2), hit);
+				comp2->OnColliderContactStay(comp2, comp1, const_cast<D_SCENE::GameObject*>(go1), hit);
+			}
+
+			// Firing lost event
+			if (pair.events & PxPairFlag::eNOTIFY_TOUCH_PERSISTS)
+			{
+				comp1->OnColliderContactLost(comp1, comp2, const_cast<D_SCENE::GameObject*>(go2), hit);
+				comp2->OnColliderContactLost(comp2, comp1, const_cast<D_SCENE::GameObject*>(go1), hit);
+			}
+		}
+	}
+
+	void PhysicsScene::SimulationCallback::onTrigger(physx::PxTriggerPair* pairs, physx::PxU32 count)
+	{
+		for (UINT i = 0u; i < count; i++)
+		{
+			// Finding physics actors
+			auto& pair = pairs[i];
+			auto actor1 = PhysicsActor::GetFromPxActor(pair.triggerActor);
+			auto actor2 = PhysicsActor::GetFromPxActor(pair.otherActor);
+
+			// Finding collider component names which generated the event
+			auto compName1 = actor1->mCollider.at(pair.triggerShape);
+
+			// Finding the corresponding game objects
+			auto go1 = actor1->mGameObject;
+			auto go2 = actor2->mGameObject;
+
+			// Finding the components responsible for the collision
+			auto comp1 = reinterpret_cast<ColliderComponent*>(go1->GetComponent(compName1));
+
+			// Firing trigger enter event
+			if (pair.status & PxPairFlag::eNOTIFY_TOUCH_FOUND)
+			{
+				comp1->OnTriggerEnter(comp1, const_cast<D_SCENE::GameObject*>(go2));
+			}
+
+			// Firing trigger exit event
+			if (pair.status & PxPairFlag::eNOTIFY_TOUCH_LOST)
+			{
+				comp1->OnTriggerExit(comp1, const_cast<D_SCENE::GameObject*>(go2));
+			}
+
+		}
 	}
 
 }

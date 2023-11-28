@@ -1,15 +1,21 @@
+/**
+ * @file misc.c
+ * @brief Miscallaneous functions.
+ */
+
 #include "private_api.h"
 #include <time.h>
+#include <ctype.h>
 
 #ifndef FLECS_NDEBUG
-static int64_t s_min[] = { 
+static int64_t flecs_s_min[] = { 
     [1] = INT8_MIN, [2] = INT16_MIN, [4] = INT32_MIN, [8] = INT64_MIN };
-static int64_t s_max[] = { 
+static int64_t flecs_s_max[] = { 
     [1] = INT8_MAX, [2] = INT16_MAX, [4] = INT32_MAX, [8] = INT64_MAX };
-static uint64_t u_max[] = { 
+static uint64_t flecs_u_max[] = { 
     [1] = UINT8_MAX, [2] = UINT16_MAX, [4] = UINT32_MAX, [8] = UINT64_MAX };
 
-uint64_t _flecs_ito(
+uint64_t flecs_ito_(
     size_t size,
     bool is_signed,
     bool lt_zero,
@@ -24,11 +30,11 @@ uint64_t _flecs_ito(
     v.u = u;
 
     if (is_signed) {
-        ecs_assert(v.s >= s_min[size], ECS_INVALID_CONVERSION, err);
-        ecs_assert(v.s <= s_max[size], ECS_INVALID_CONVERSION, err);
+        ecs_assert(v.s >= flecs_s_min[size], ECS_INVALID_CONVERSION, err);
+        ecs_assert(v.s <= flecs_s_max[size], ECS_INVALID_CONVERSION, err);
     } else {
         ecs_assert(lt_zero == false, ECS_INVALID_CONVERSION, err);
-        ecs_assert(u <= u_max[size], ECS_INVALID_CONVERSION, err);
+        ecs_assert(u <= flecs_u_max[size], ECS_INVALID_CONVERSION, err);
     }
 
     return u;
@@ -121,15 +127,6 @@ int flecs_entity_compare(
     return (e1 > e2) - (e1 < e2);
 }
 
-int flecs_entity_compare_qsort(
-    const void *e1,
-    const void *e2)
-{
-    ecs_entity_t v1 = *(ecs_entity_t*)e1;
-    ecs_entity_t v2 = *(ecs_entity_t*)e2;
-    return flecs_entity_compare(v1, NULL, v2, NULL);
-}
-
 uint64_t flecs_string_hash(
     const void *ptr)
 {
@@ -178,23 +175,34 @@ char* ecs_asprintf(
     return result;
 }
 
-/*
-    This code was taken from sokol_time.h 
-    
-    zlib/libpng license
-    Copyright (c) 2018 Andre Weissflog
-    This software is provided 'as-is', without any express or implied warranty.
-    In no event will the authors be held liable for any damages arising from the
-    use of this software.
-    Permission is granted to anyone to use this software for any purpose,
-    including commercial applications, and to alter it and redistribute it
-    freely, subject to the following restrictions:
-        1. The origin of this software must not be misrepresented; you must not
-        claim that you wrote the original software. If you use this software in a
-        product, an acknowledgment in the product documentation would be
-        appreciated but is not required.
-        2. Altered source versions must be plainly marked as such, and must not
-        be misrepresented as being the original software.
-        3. This notice may not be removed or altered from any source
-        distribution.
-*/
+char* flecs_to_snake_case(const char *str) {
+    int32_t upper_count = 0, len = 1;
+    const char *ptr = str;
+    char ch, *out, *out_ptr;
+
+    for (ptr = &str[1]; (ch = *ptr); ptr ++) {
+        if (isupper(ch)) {
+            upper_count ++;
+        }
+        len ++;
+    }
+
+    out = out_ptr = ecs_os_malloc_n(char, len + upper_count + 1);
+    for (ptr = str; (ch = *ptr); ptr ++) {
+        if (isupper(ch)) {
+            if ((ptr != str) && (out_ptr[-1] != '_')) {
+                out_ptr[0] = '_';
+                out_ptr ++;
+            }
+            out_ptr[0] = (char)tolower(ch);
+            out_ptr ++;
+        } else {
+            out_ptr[0] = ch;
+            out_ptr ++;
+        }
+    }
+
+    out_ptr[0] = '\0';
+
+    return out;
+}

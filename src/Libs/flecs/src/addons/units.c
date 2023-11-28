@@ -1,127 +1,11 @@
+/**
+ * @file addons/units.c
+ * @brief Units addon.
+ */
 
 #include "../private_api.h"
 
 #ifdef FLECS_UNITS
-
-ECS_DECLARE(EcsUnitPrefixes);
-
-ECS_DECLARE(EcsYocto);
-ECS_DECLARE(EcsZepto);
-ECS_DECLARE(EcsAtto);
-ECS_DECLARE(EcsFemto);
-ECS_DECLARE(EcsPico);
-ECS_DECLARE(EcsNano);
-ECS_DECLARE(EcsMicro);
-ECS_DECLARE(EcsMilli);
-ECS_DECLARE(EcsCenti);
-ECS_DECLARE(EcsDeci);
-ECS_DECLARE(EcsDeca);
-ECS_DECLARE(EcsHecto);
-ECS_DECLARE(EcsKilo);
-ECS_DECLARE(EcsMega);
-ECS_DECLARE(EcsGiga);
-ECS_DECLARE(EcsTera);
-ECS_DECLARE(EcsPeta);
-ECS_DECLARE(EcsExa);
-ECS_DECLARE(EcsZetta);
-ECS_DECLARE(EcsYotta);
-
-ECS_DECLARE(EcsKibi);
-ECS_DECLARE(EcsMebi);
-ECS_DECLARE(EcsGibi);
-ECS_DECLARE(EcsTebi);
-ECS_DECLARE(EcsPebi);
-ECS_DECLARE(EcsExbi);
-ECS_DECLARE(EcsZebi);
-ECS_DECLARE(EcsYobi);
-
-ECS_DECLARE(EcsDuration);
-    ECS_DECLARE(EcsPicoSeconds);
-    ECS_DECLARE(EcsNanoSeconds);
-    ECS_DECLARE(EcsMicroSeconds);
-    ECS_DECLARE(EcsMilliSeconds);
-    ECS_DECLARE(EcsSeconds);
-    ECS_DECLARE(EcsMinutes);
-    ECS_DECLARE(EcsHours);
-    ECS_DECLARE(EcsDays);
-
-ECS_DECLARE(EcsTime);
-    ECS_DECLARE(EcsDate);
-
-ECS_DECLARE(EcsMass);
-    ECS_DECLARE(EcsGrams);
-    ECS_DECLARE(EcsKiloGrams);
-
-ECS_DECLARE(EcsElectricCurrent);
-    ECS_DECLARE(EcsAmpere);
-
-ECS_DECLARE(EcsAmount);
-    ECS_DECLARE(EcsMole);
-
-ECS_DECLARE(EcsLuminousIntensity);
-    ECS_DECLARE(EcsCandela);
-
-ECS_DECLARE(EcsForce);
-    ECS_DECLARE(EcsNewton);
-
-ECS_DECLARE(EcsLength);
-    ECS_DECLARE(EcsMeters);
-        ECS_DECLARE(EcsPicoMeters);
-        ECS_DECLARE(EcsNanoMeters);
-        ECS_DECLARE(EcsMicroMeters);
-        ECS_DECLARE(EcsMilliMeters);
-        ECS_DECLARE(EcsCentiMeters);
-        ECS_DECLARE(EcsKiloMeters);
-    ECS_DECLARE(EcsMiles);
-
-ECS_DECLARE(EcsPressure);
-    ECS_DECLARE(EcsPascal);
-    ECS_DECLARE(EcsBar);
-
-ECS_DECLARE(EcsSpeed);
-    ECS_DECLARE(EcsMetersPerSecond);
-    ECS_DECLARE(EcsKiloMetersPerSecond);
-    ECS_DECLARE(EcsKiloMetersPerHour);
-    ECS_DECLARE(EcsMilesPerHour);
-
-ECS_DECLARE(EcsAcceleration);
-
-ECS_DECLARE(EcsTemperature);
-    ECS_DECLARE(EcsKelvin);
-    ECS_DECLARE(EcsCelsius);
-    ECS_DECLARE(EcsFahrenheit);
-
-ECS_DECLARE(EcsData);
-    ECS_DECLARE(EcsBits);
-        ECS_DECLARE(EcsKiloBits);
-        ECS_DECLARE(EcsMegaBits);
-        ECS_DECLARE(EcsGigaBits);
-    ECS_DECLARE(EcsBytes);
-        ECS_DECLARE(EcsKiloBytes);
-        ECS_DECLARE(EcsMegaBytes);
-        ECS_DECLARE(EcsGigaBytes);
-        ECS_DECLARE(EcsKibiBytes);
-        ECS_DECLARE(EcsGibiBytes);
-        ECS_DECLARE(EcsMebiBytes);
-
-ECS_DECLARE(EcsDataRate);
-    ECS_DECLARE(EcsBitsPerSecond);
-    ECS_DECLARE(EcsKiloBitsPerSecond);
-    ECS_DECLARE(EcsMegaBitsPerSecond);
-    ECS_DECLARE(EcsGigaBitsPerSecond);
-    ECS_DECLARE(EcsBytesPerSecond);
-    ECS_DECLARE(EcsKiloBytesPerSecond);
-    ECS_DECLARE(EcsMegaBytesPerSecond);
-    ECS_DECLARE(EcsGigaBytesPerSecond);
-
-ECS_DECLARE(EcsPercentage);
-
-ECS_DECLARE(EcsAngle);
-    ECS_DECLARE(EcsRadians);
-    ECS_DECLARE(EcsDegrees);
-
-ECS_DECLARE(EcsBel);
-ECS_DECLARE(EcsDeciBel);
 
 void FlecsUnitsImport(
     ecs_world_t *world)
@@ -130,7 +14,7 @@ void FlecsUnitsImport(
 
     ecs_set_name_prefix(world, "Ecs");
 
-    EcsUnitPrefixes = ecs_entity_init(world, &(ecs_entity_desc_t){
+    EcsUnitPrefixes = ecs_entity(world, {
         .name = "prefixes",
         .add = { EcsModule }
     });
@@ -554,6 +438,16 @@ void FlecsUnitsImport(
             .entity = EcsMiles,
             .kind = EcsF32
         });
+
+        EcsPixels = ecs_unit_init(world, &(ecs_unit_desc_t){ 
+            .entity = ecs_entity(world, { .name = "Pixels" }),
+            .quantity = EcsLength,
+            .symbol = "px"
+        });
+        ecs_primitive_init(world, &(ecs_primitive_desc_t){
+            .entity = EcsPixels,
+            .kind = EcsF32
+        });
     ecs_set_scope(world, prev_scope);
 
     /* Pressure units */
@@ -934,6 +828,76 @@ void FlecsUnitsImport(
         .kind = EcsF32
     });
 
+    EcsFrequency = ecs_quantity_init(world, &(ecs_entity_desc_t){ 
+        .name = "Frequency" });
+    prev_scope = ecs_set_scope(world, EcsFrequency);
+
+        EcsHertz = ecs_unit_init(world, &(ecs_unit_desc_t){ 
+            .entity = ecs_entity(world, { .name = "Hertz" }),
+            .quantity = EcsFrequency,
+            .symbol = "Hz" });
+        ecs_primitive_init(world, &(ecs_primitive_desc_t){
+            .entity = EcsHertz,
+            .kind = EcsF32
+        });
+
+        EcsKiloHertz = ecs_unit_init(world, &(ecs_unit_desc_t){ 
+            .entity = ecs_entity(world, { .name = "KiloHertz" }),
+            .prefix = EcsKilo,
+            .base = EcsHertz });
+        ecs_primitive_init(world, &(ecs_primitive_desc_t){
+            .entity = EcsKiloHertz,
+            .kind = EcsF32
+        });
+
+        EcsMegaHertz = ecs_unit_init(world, &(ecs_unit_desc_t){ 
+            .entity = ecs_entity(world, { .name = "MegaHertz" }),
+            .prefix = EcsMega,
+            .base = EcsHertz });
+        ecs_primitive_init(world, &(ecs_primitive_desc_t){
+            .entity = EcsMegaHertz,
+            .kind = EcsF32
+        });
+
+        EcsGigaHertz = ecs_unit_init(world, &(ecs_unit_desc_t){ 
+            .entity = ecs_entity(world, { .name = "GigaHertz" }),
+            .prefix = EcsGiga,
+            .base = EcsHertz });
+        ecs_primitive_init(world, &(ecs_primitive_desc_t){
+            .entity = EcsGigaHertz,
+            .kind = EcsF32
+        });
+    ecs_set_scope(world, prev_scope);
+
+    EcsUri = ecs_quantity_init(world, &(ecs_entity_desc_t){ 
+        .name = "Uri" });
+    prev_scope = ecs_set_scope(world, EcsUri);
+
+        EcsUriHyperlink = ecs_unit_init(world, &(ecs_unit_desc_t){ 
+            .entity = ecs_entity(world, { .name = "Hyperlink" }),
+            .quantity = EcsUri });
+        ecs_primitive_init(world, &(ecs_primitive_desc_t){
+            .entity = EcsUriHyperlink,
+            .kind = EcsString
+        });
+
+        EcsUriImage = ecs_unit_init(world, &(ecs_unit_desc_t){ 
+            .entity = ecs_entity(world, { .name = "Image" }),
+            .quantity = EcsUri });
+        ecs_primitive_init(world, &(ecs_primitive_desc_t){
+            .entity = EcsUriImage,
+            .kind = EcsString
+        });
+
+        EcsUriFile = ecs_unit_init(world, &(ecs_unit_desc_t){ 
+            .entity = ecs_entity(world, { .name = "File" }),
+            .quantity = EcsUri });
+        ecs_primitive_init(world, &(ecs_primitive_desc_t){
+            .entity = EcsUriFile,
+            .kind = EcsString
+        });
+    ecs_set_scope(world, prev_scope);
+
     /* Documentation */
 #ifdef FLECS_DOC
     ECS_IMPORT(world, FlecsDoc);
@@ -987,6 +951,10 @@ void FlecsUnitsImport(
     ecs_doc_set_brief(world, EcsAngle,
         "Units of rotation (e.g. \"1.2 radians\", \"180 degrees\")");
 
+    ecs_doc_set_brief(world, EcsFrequency, 
+        "The number of occurrences of a repeating event per unit of time.");
+
+    ecs_doc_set_brief(world, EcsUri, "Universal resource identifier.");
 #endif
 }
 

@@ -1,42 +1,46 @@
+/**
+ * @file datastructures/sparse.c
+ * @brief Sparse set data structure.
+ */
+
 #include "../private_api.h"
 
-/** The number of elements in a single chunk */
-#define CHUNK_COUNT (4096)
+/** Compute the page index from an id by stripping the first 12 bits */
+#define PAGE(index) ((int32_t)((uint32_t)index >> FLECS_SPARSE_PAGE_BITS))
 
-/** Compute the chunk index from an id by stripping the first 12 bits */
-#define CHUNK(index) ((int32_t)((uint32_t)index >> 12))
-
-/** This computes the offset of an index inside a chunk */
-#define OFFSET(index) ((int32_t)index & 0xFFF)
+/** This computes the offset of an index inside a page */
+#define OFFSET(index) ((int32_t)index & (FLECS_SPARSE_PAGE_SIZE - 1))
 
 /* Utility to get a pointer to the payload */
 #define DATA(array, size, offset) (ECS_OFFSET(array, size * offset))
 
-typedef struct chunk_t {
+typedef struct ecs_page_t {
     int32_t *sparse;            /* Sparse array with indices to dense array */
     void *data;                 /* Store data in sparse array to reduce  
                                  * indirection and provide stable pointers. */
-} chunk_t;
+} ecs_page_t;
 
 static
-chunk_t* chunk_new(
+ecs_page_t* flecs_sparse_page_new(
     ecs_sparse_t *sparse,
-    int32_t chunk_index)
+    int32_t page_index)
 {
-    int32_t count = ecs_vector_count(sparse->chunks);
-    chunk_t *chunks;
+    ecs_allocator_t *a = sparse->allocator;
+    ecs_block_allocator_t *ca = sparse->page_allocator;
+    int32_t count = ecs_vec_count(&sparse->pages);
+    ecs_page_t *pages;
 
-    if (count <= chunk_index) {
-        ecs_vector_set_count(&sparse->chunks, chunk_t, chunk_index + 1);
-        chunks = ecs_vector_first(sparse->chunks, chunk_t);
-        ecs_os_memset(&chunks[count], 0, (1 + chunk_index - count) * ECS_SIZEOF(chunk_t));
+    if (count <= page_index) {
+        ecs_vec_set_count_t(a, &sparse->pages, ecs_page_t, page_index + 1);
+        pages = ecs_vec_first_t(&sparse->pages, ecs_page_t);
+        ecs_os_memset_n(&pages[count], 0, ecs_page_t, (1 + page_index - count));
     } else {
-        chunks = ecs_vector_first(sparse->chunks, chunk_t);
+        pages = ecs_vec_first_t(&sparse->pages, ecs_page_t);
     }
 
-    ecs_assert(chunks != NULL, ECS_INTERNAL_ERROR, NULL);
+    ecs_assert(pages != NULL, ECS_INTERNAL_ERROR, NULL);
 
-    chunk_t *result = &chunks[chunk_index];
+    ecs_page_t *result = &pages[page_index];
     ecs_assert(result->sparse == NULL, ECS_INTERNAL_ERROR, NULL);
     ecs_assert(result->data == NULL, ECS_INTERNAL_ERROR, NULL);
 
@@ -44,12 +48,14 @@ chunk_t* chunk_new(
      * sparse element has not been paired with a dense element. Use zero
      * as this means we can take advantage of calloc having a possibly better 
      * performance than malloc + memset. */
-    result->sparse = ecs_os_calloc(ECS_SIZEOF(int32_t) * CHUNK_COUNT);
+    result->sparse = ca ? flecs_bcalloc(ca)
+                        : ecs_os_calloc_n(int32_t, FLECS_SPARSE_PAGE_SIZE);
 
     /* Initialize the data array with zero's to guarantee that data is 
      * always initialized. When an entry is removed, data is reset back to
      * zero. Initialize now, as this can take advantage of calloc. */
-    result->data = ecs_os_calloc(sparse->size * CHUNK_COUNT);
+    result->data = a ? flecs_calloc(a, sparse->size * FLECS_SPARSE_PAGE_SIZE)
+                     : ecs_os_calloc(sparse->size * FLECS_SPARSE_PAGE_SIZE);
 
     ecs_assert(result->sparse != NULL, ECS_INTERNAL_ERROR, NULL);
     ecs_assert(result->data != NULL, ECS_INTERNAL_ERROR, NULL);
@@ -58,57 +64,59 @@ chunk_t* chunk_new(
 }
 
 static
-void chunk_free(
-    chunk_t *chunk)
-{
-    ecs_os_free(chunk->sparse);
-    ecs_os_free(chunk->data);
-}
-
-static
-chunk_t* get_chunk(
-    const ecs_sparse_t *sparse,
-    int32_t chunk_index)
-{
-    if (!sparse->chunks) {
-        return NULL;
-    }
-    if (chunk_index >= ecs_vector_count(sparse->chunks)) {
-        return NULL;
-    }
-
-    /* If chunk_index is below zero, application used an invalid entity id */
-    ecs_assert(chunk_index >= 0, ECS_INVALID_PARAMETER, NULL);
-    chunk_t *result = ecs_vector_get(sparse->chunks, chunk_t, chunk_index);
-    if (result && !result->sparse) {
-        return NULL;
-    }
-
-    return result;
-}
-
-static
-chunk_t* get_or_create_chunk(
+void flecs_sparse_page_free(
     ecs_sparse_t *sparse,
-    int32_t chunk_index)
+    ecs_page_t *page)
 {
-    chunk_t *chunk = get_chunk(sparse, chunk_index);
-    if (chunk) {
-        return chunk;
-    }
+    ecs_allocator_t *a = sparse->allocator;
+    ecs_block_allocator_t *ca = sparse->page_allocator;
 
-    return chunk_new(sparse, chunk_index);
+    if (ca) {
+        flecs_bfree(ca, page->sparse);
+    } else {
+        ecs_os_free(page->sparse);
+    }
+    if (a) {
+        flecs_free(a, sparse->size * FLECS_SPARSE_PAGE_SIZE, page->data);
+    } else {
+        ecs_os_free(page->data);
+    }
 }
 
 static
-void grow_dense(
+ecs_page_t* flecs_sparse_get_page(
+    const ecs_sparse_t *sparse,
+    int32_t page_index)
+{
+    ecs_assert(page_index >= 0, ECS_INVALID_PARAMETER, NULL);
+    if (page_index >= ecs_vec_count(&sparse->pages)) {
+        return NULL;
+    }
+    return ecs_vec_get_t(&sparse->pages, ecs_page_t, page_index);
+}
+
+static
+ecs_page_t* flecs_sparse_get_or_create_page(
+    ecs_sparse_t *sparse,
+    int32_t page_index)
+{
+    ecs_page_t *page = flecs_sparse_get_page(sparse, page_index);
+    if (page && page->sparse) {
+        return page;
+    }
+
+    return flecs_sparse_page_new(sparse, page_index);
+}
+
+static
+void flecs_sparse_grow_dense(
     ecs_sparse_t *sparse)
 {
-    ecs_vector_add(&sparse->dense, uint64_t);
+    ecs_vec_append_t(sparse->allocator, &sparse->dense, uint64_t);
 }
 
 static
-uint64_t strip_generation(
+uint64_t flecs_sparse_strip_generation(
     uint64_t *index_out)
 {
     uint64_t index = *index_out;
@@ -121,20 +129,20 @@ uint64_t strip_generation(
 }
 
 static
-void assign_index(
-    chunk_t * chunk, 
+void flecs_sparse_assign_index(
+    ecs_page_t * page, 
     uint64_t * dense_array, 
     uint64_t index, 
     int32_t dense)
 {
     /* Initialize sparse-dense pair. This assigns the dense index to the sparse
      * array, and the sparse index to the dense array .*/
-    chunk->sparse[OFFSET(index)] = dense;
+    page->sparse[OFFSET(index)] = dense;
     dense_array[dense] = index;
 }
 
 static
-uint64_t inc_gen(
+uint64_t flecs_sparse_inc_gen(
     uint64_t index)
 {
     /* When an index is deleted, its generation is increased so that we can do
@@ -143,197 +151,131 @@ uint64_t inc_gen(
 }
 
 static
-uint64_t inc_id(
+uint64_t flecs_sparse_inc_id(
     ecs_sparse_t *sparse)
 {
     /* Generate a new id. The last issued id could be stored in an external
      * variable, such as is the case with the last issued entity id, which is
      * stored on the world. */
-    return ++ (sparse->max_id[0]);
+    return ++ sparse->max_id;
 }
 
 static
-uint64_t get_id(
+uint64_t flecs_sparse_get_id(
     const ecs_sparse_t *sparse)
 {
-    return sparse->max_id[0];
+    ecs_assert(sparse != NULL, ECS_INTERNAL_ERROR, NULL);
+    return sparse->max_id;
 }
 
 static
-void set_id(
+void flecs_sparse_set_id(
     ecs_sparse_t *sparse,
     uint64_t value)
 {
     /* Sometimes the max id needs to be assigned directly, which typically 
      * happens when the API calls get_or_create for an id that hasn't been 
      * issued before. */
-    sparse->max_id[0] = value;
+    sparse->max_id = value;
 }
 
 /* Pair dense id with new sparse id */
 static
-uint64_t create_id(
+uint64_t flecs_sparse_create_id(
     ecs_sparse_t *sparse,
     int32_t dense)
 {
-    uint64_t index = inc_id(sparse);
-    grow_dense(sparse);
+    uint64_t index = flecs_sparse_inc_id(sparse);
+    flecs_sparse_grow_dense(sparse);
 
-    chunk_t *chunk = get_or_create_chunk(sparse, CHUNK(index));
-    ecs_assert(chunk->sparse[OFFSET(index)] == 0, ECS_INTERNAL_ERROR, NULL);
+    ecs_page_t *page = flecs_sparse_get_or_create_page(sparse, PAGE(index));
+    ecs_assert(page->sparse[OFFSET(index)] == 0, ECS_INTERNAL_ERROR, NULL);
     
-    uint64_t *dense_array = ecs_vector_first(sparse->dense, uint64_t);
-    assign_index(chunk, dense_array, index, dense);
+    uint64_t *dense_array = ecs_vec_first_t(&sparse->dense, uint64_t);
+    flecs_sparse_assign_index(page, dense_array, index, dense);
     
     return index;
 }
 
 /* Create new id */
 static
-uint64_t new_index(
+uint64_t flecs_sparse_new_index(
     ecs_sparse_t *sparse)
 {
-    ecs_vector_t *dense = sparse->dense;
-    int32_t dense_count = ecs_vector_count(dense);
+    int32_t dense_count = ecs_vec_count(&sparse->dense);
     int32_t count = sparse->count ++;
 
     ecs_assert(count <= dense_count, ECS_INTERNAL_ERROR, NULL);
-
     if (count < dense_count) {
         /* If there are unused elements in the dense array, return first */
-        uint64_t *dense_array = ecs_vector_first(dense, uint64_t);
+        uint64_t *dense_array = ecs_vec_first_t(&sparse->dense, uint64_t);
         return dense_array[count];
     } else {
-        return create_id(sparse, count);
+        return flecs_sparse_create_id(sparse, count);
     }
-}
-
-/* Try obtaining a value from the sparse set, don't care about whether the
- * provided index matches the current generation count.  */
-static
-void* try_sparse_any(
-    const ecs_sparse_t *sparse,
-    uint64_t index)
-{    
-    strip_generation(&index);
-
-    chunk_t *chunk = get_chunk(sparse, CHUNK(index));
-    if (!chunk) {
-        return NULL;
-    }
-
-    int32_t offset = OFFSET(index);
-    int32_t dense = chunk->sparse[offset];
-    bool in_use = dense && (dense < sparse->count);
-    if (!in_use) {
-        return NULL;
-    }
-
-    ecs_assert(dense == chunk->sparse[offset], ECS_INTERNAL_ERROR, NULL);
-    return DATA(chunk->data, sparse->size, offset);
-}
-
-/* Try obtaining a value from the sparse set, make sure it's alive. */
-static
-void* try_sparse(
-    const ecs_sparse_t *sparse,
-    uint64_t index)
-{
-    chunk_t *chunk = get_chunk(sparse, CHUNK(index));
-    if (!chunk) {
-        return NULL;
-    }
-
-    int32_t offset = OFFSET(index);
-    int32_t dense = chunk->sparse[offset];
-    bool in_use = dense && (dense < sparse->count);
-    if (!in_use) {
-        return NULL;
-    }
-
-    uint64_t gen = strip_generation(&index);
-    uint64_t *dense_array = ecs_vector_first(sparse->dense, uint64_t);
-    uint64_t cur_gen = dense_array[dense] & ECS_GENERATION_MASK;
-
-    if (cur_gen != gen) {
-        return NULL;
-    }
-
-    ecs_assert(dense == chunk->sparse[offset], ECS_INTERNAL_ERROR, NULL);
-    return DATA(chunk->data, sparse->size, offset);
 }
 
 /* Get value from sparse set when it is guaranteed that the value exists. This
  * function is used when values are obtained using a dense index */
 static
-void* get_sparse(
+void* flecs_sparse_get_sparse(
     const ecs_sparse_t *sparse,
     int32_t dense,
     uint64_t index)
 {
-    strip_generation(&index);
-    chunk_t *chunk = get_chunk(sparse, CHUNK(index));
+    flecs_sparse_strip_generation(&index);
+    ecs_page_t *page = flecs_sparse_get_page(sparse, PAGE(index));
+    if (!page || !page->sparse) {
+        return NULL;
+    }
+
     int32_t offset = OFFSET(index);
-    
-    ecs_assert(chunk != NULL, ECS_INTERNAL_ERROR, NULL);
-    ecs_assert(dense == chunk->sparse[offset], ECS_INTERNAL_ERROR, NULL);
+    ecs_assert(page != NULL, ECS_INTERNAL_ERROR, NULL);
+    ecs_assert(dense == page->sparse[offset], ECS_INTERNAL_ERROR, NULL);
     (void)dense;
 
-    return DATA(chunk->data, sparse->size, offset);
+    return DATA(page->data, sparse->size, offset);
 }
 
 /* Swap dense elements. A swap occurs when an element is removed, or when a
  * removed element is recycled. */
 static
-void swap_dense(
+void flecs_sparse_swap_dense(
     ecs_sparse_t * sparse,
-    chunk_t * chunk_a,
+    ecs_page_t * page_a,
     int32_t a,
     int32_t b)
 {
-    ecs_assert(a != b, ECS_INTERNAL_ERROR, NULL);
-    uint64_t *dense_array = ecs_vector_first(sparse->dense, uint64_t);
+    uint64_t *dense_array = ecs_vec_first_t(&sparse->dense, uint64_t);
     uint64_t index_a = dense_array[a];
     uint64_t index_b = dense_array[b];
 
-    chunk_t *chunk_b = get_or_create_chunk(sparse, CHUNK(index_b));
-    assign_index(chunk_a, dense_array, index_a, b);
-    assign_index(chunk_b, dense_array, index_b, a);
+    ecs_page_t *page_b = flecs_sparse_get_or_create_page(sparse, PAGE(index_b));
+    flecs_sparse_assign_index(page_a, dense_array, index_a, b);
+    flecs_sparse_assign_index(page_b, dense_array, index_b, a);
 }
 
-void _flecs_sparse_init(
+void flecs_sparse_init(
     ecs_sparse_t *result,
+    struct ecs_allocator_t *allocator,
+    ecs_block_allocator_t *page_allocator,
     ecs_size_t size)
 {
     ecs_assert(result != NULL, ECS_OUT_OF_MEMORY, NULL);
     result->size = size;
-    result->max_id_local = UINT64_MAX;
-    result->max_id = &result->max_id_local;
+    result->max_id = UINT64_MAX;
+    result->allocator = allocator;
+    result->page_allocator = page_allocator;
+
+    ecs_vec_init_t(allocator, &result->pages, ecs_page_t, 0);
+    ecs_vec_init_t(allocator, &result->dense, uint64_t, 1);
+    result->dense.count = 1;
 
     /* Consume first value in dense array as 0 is used in the sparse array to
      * indicate that a sparse element hasn't been paired yet. */
-    uint64_t *first = ecs_vector_add(&result->dense, uint64_t);
-    *first = 0;
+    ecs_vec_first_t(&result->dense, uint64_t)[0] = 0;
 
     result->count = 1;
-}
-
-ecs_sparse_t* _flecs_sparse_new(
-    ecs_size_t size)
-{
-    ecs_sparse_t *result = ecs_os_calloc_t(ecs_sparse_t);
-
-    _flecs_sparse_init(result, size);
-
-    return result;
-}
-
-void flecs_sparse_set_id_source(
-    ecs_sparse_t * sparse,
-    uint64_t * id_source)
-{
-    ecs_assert(sparse != NULL, ECS_INVALID_PARAMETER, NULL);
-    sparse->max_id = id_source;
 }
 
 void flecs_sparse_clear(
@@ -341,110 +283,86 @@ void flecs_sparse_clear(
 {
     ecs_assert(sparse != NULL, ECS_INVALID_PARAMETER, NULL);
 
-    ecs_vector_each(sparse->chunks, chunk_t, chunk, {
-        chunk_free(chunk);
-    });
+    int32_t i, count = ecs_vec_count(&sparse->pages);
+    ecs_page_t *pages = ecs_vec_first_t(&sparse->pages, ecs_page_t);
+    for (i = 0; i < count; i ++) {
+        int32_t *indices = pages[i].sparse;
+        if (indices) {
+            ecs_os_memset_n(indices, 0, int32_t, FLECS_SPARSE_PAGE_SIZE);
+        }
+    }
 
-    ecs_vector_free(sparse->chunks);
-    ecs_vector_set_count(&sparse->dense, uint64_t, 1);
+    ecs_vec_set_count_t(sparse->allocator, &sparse->dense, uint64_t, 1);
 
-    sparse->chunks = NULL;   
     sparse->count = 1;
-    sparse->max_id_local = 0;
+    sparse->max_id = 0;
 }
 
-void _flecs_sparse_fini(
+void flecs_sparse_fini(
     ecs_sparse_t *sparse)
 {
     ecs_assert(sparse != NULL, ECS_INTERNAL_ERROR, NULL);
-    flecs_sparse_clear(sparse);
-    ecs_vector_free(sparse->dense);
-}
-
-void flecs_sparse_free(
-    ecs_sparse_t *sparse)
-{
-    if (sparse) {
-        _flecs_sparse_fini(sparse);
-        ecs_os_free(sparse);
+    
+    int32_t i, count = ecs_vec_count(&sparse->pages);
+    ecs_page_t *pages = ecs_vec_first_t(&sparse->pages, ecs_page_t);
+    for (i = 0; i < count; i ++) {
+        flecs_sparse_page_free(sparse, &pages[i]);
     }
+
+    ecs_vec_fini_t(sparse->allocator, &sparse->pages, ecs_page_t);
+    ecs_vec_fini_t(sparse->allocator, &sparse->dense, uint64_t);
 }
 
 uint64_t flecs_sparse_new_id(
     ecs_sparse_t *sparse)
 {
     ecs_assert(sparse != NULL, ECS_INVALID_PARAMETER, NULL);
-    return new_index(sparse);
+    return flecs_sparse_new_index(sparse);
 }
 
-const uint64_t* flecs_sparse_new_ids(
-    ecs_sparse_t *sparse,
-    int32_t new_count)
-{
-    ecs_assert(sparse != NULL, ECS_INVALID_PARAMETER, NULL);
-    int32_t dense_count = ecs_vector_count(sparse->dense);
-    int32_t count = sparse->count;
-    int32_t remaining = dense_count - count;
-    int32_t i, to_create = new_count - remaining;
-
-    if (to_create > 0) {
-        flecs_sparse_set_size(sparse, dense_count + to_create);
-        for (i = 0; i < to_create; i ++) {
-            create_id(sparse, count + i);
-        }
-    }
-
-    sparse->count += new_count;
-
-    return ecs_vector_get(sparse->dense, uint64_t, count);
-}
-
-void* _flecs_sparse_add(
+void* flecs_sparse_add(
     ecs_sparse_t *sparse,
     ecs_size_t size)
 {
     ecs_assert(sparse != NULL, ECS_INVALID_PARAMETER, NULL);
     ecs_assert(!size || size == sparse->size, ECS_INVALID_PARAMETER, NULL);
-    uint64_t index = new_index(sparse);
-    chunk_t *chunk = get_chunk(sparse, CHUNK(index));
-    ecs_assert(chunk != NULL, ECS_INTERNAL_ERROR, NULL);
-    return DATA(chunk->data, size, OFFSET(index));
+    uint64_t index = flecs_sparse_new_index(sparse);
+    ecs_page_t *page = flecs_sparse_get_page(sparse, PAGE(index));
+    ecs_assert(page != NULL, ECS_INTERNAL_ERROR, NULL);
+    return DATA(page->data, size, OFFSET(index));
 }
 
 uint64_t flecs_sparse_last_id(
     const ecs_sparse_t *sparse)
 {
     ecs_assert(sparse != NULL, ECS_INTERNAL_ERROR, NULL);
-    uint64_t *dense_array = ecs_vector_first(sparse->dense, uint64_t);
+    uint64_t *dense_array = ecs_vec_first_t(&sparse->dense, uint64_t);
     return dense_array[sparse->count - 1];
 }
 
-void* _flecs_sparse_ensure(
+void* flecs_sparse_ensure(
     ecs_sparse_t *sparse,
     ecs_size_t size,
     uint64_t index)
 {
     ecs_assert(sparse != NULL, ECS_INVALID_PARAMETER, NULL);
     ecs_assert(!size || size == sparse->size, ECS_INVALID_PARAMETER, NULL);
-    ecs_assert(ecs_vector_count(sparse->dense) > 0, ECS_INTERNAL_ERROR, NULL);
+    ecs_assert(ecs_vec_count(&sparse->dense) > 0, ECS_INTERNAL_ERROR, NULL);
     (void)size;
 
-    uint64_t gen = strip_generation(&index);
-    chunk_t *chunk = get_or_create_chunk(sparse, CHUNK(index));
+    uint64_t gen = flecs_sparse_strip_generation(&index);
+    ecs_page_t *page = flecs_sparse_get_or_create_page(sparse, PAGE(index));
     int32_t offset = OFFSET(index);
-    int32_t dense = chunk->sparse[offset];
+    int32_t dense = page->sparse[offset];
 
     if (dense) {
         /* Check if element is alive. If element is not alive, update indices so
          * that the first unused dense element points to the sparse element. */
         int32_t count = sparse->count;
-        if (dense == count) {
-            /* If dense is the next unused element in the array, simply increase
-             * the count to make it part of the alive set. */
-            sparse->count ++;
-        } else if (dense > count) {
+        if (dense >= count) {
             /* If dense is not alive, swap it with the first unused element. */
-            swap_dense(sparse, chunk, dense, count);
+            flecs_sparse_swap_dense(sparse, page, dense, count);
+            dense = count;
 
             /* First unused element is now last used element */
             sparse->count ++;
@@ -456,52 +374,69 @@ void* _flecs_sparse_ensure(
          * generations if the provided generation count is 0. This allows for
          * using the ensure function in combination with ids that have their
          * generation stripped. */
-        ecs_vector_t *dense_vector = sparse->dense;
-        uint64_t *dense_array = ecs_vector_first(dense_vector, uint64_t);    
+#ifdef FLECS_DEBUG
+        uint64_t *dense_array = ecs_vec_first_t(&sparse->dense, uint64_t);
         ecs_assert(!gen || dense_array[dense] == (index | gen), ECS_INTERNAL_ERROR, NULL);
-        (void)dense_vector;
-        (void)dense_array;
+#endif
     } else {
         /* Element is not paired yet. Must add a new element to dense array */
-        grow_dense(sparse);
+        flecs_sparse_grow_dense(sparse);
 
-        ecs_vector_t *dense_vector = sparse->dense;
-        uint64_t *dense_array = ecs_vector_first(dense_vector, uint64_t);    
-        int32_t dense_count = ecs_vector_count(dense_vector) - 1;
+        uint64_t *dense_array = ecs_vec_first_t(&sparse->dense, uint64_t);    
+        int32_t dense_count = ecs_vec_count(&sparse->dense) - 1;
         int32_t count = sparse->count ++;
 
         /* If index is larger than max id, update max id */
-        if (index >= get_id(sparse)) {
-            set_id(sparse, index);
+        if (index >= flecs_sparse_get_id(sparse)) {
+            flecs_sparse_set_id(sparse, index);
         }
 
         if (count < dense_count) {
             /* If there are unused elements in the list, move the first unused
              * element to the end of the list */
             uint64_t unused = dense_array[count];
-            chunk_t *unused_chunk = get_or_create_chunk(sparse, CHUNK(unused));
-            assign_index(unused_chunk, dense_array, unused, dense_count);
+            ecs_page_t *unused_page = flecs_sparse_get_or_create_page(sparse, PAGE(unused));
+            flecs_sparse_assign_index(unused_page, dense_array, unused, dense_count);
         }
 
-        assign_index(chunk, dense_array, index, count);
+        flecs_sparse_assign_index(page, dense_array, index, count);
         dense_array[count] |= gen;
     }
 
-    return DATA(chunk->data, sparse->size, offset);
+    return DATA(page->data, sparse->size, offset);
 }
 
-void* _flecs_sparse_set(
-    ecs_sparse_t * sparse,
-    ecs_size_t elem_size,
-    uint64_t index,
-    void* value)
+void* flecs_sparse_ensure_fast(
+    ecs_sparse_t *sparse,
+    ecs_size_t size,
+    uint64_t index_long)
 {
-    void *ptr = _flecs_sparse_ensure(sparse, elem_size, index);
-    ecs_os_memcpy(ptr, value, elem_size);
-    return ptr;
+    ecs_assert(sparse != NULL, ECS_INVALID_PARAMETER, NULL);
+    ecs_assert(!size || size == sparse->size, ECS_INVALID_PARAMETER, NULL);
+    ecs_assert(ecs_vec_count(&sparse->dense) > 0, ECS_INTERNAL_ERROR, NULL);
+    (void)size;
+
+    uint32_t index = (uint32_t)index_long;
+    ecs_page_t *page = flecs_sparse_get_or_create_page(sparse, PAGE(index));
+    int32_t offset = OFFSET(index);
+    int32_t dense = page->sparse[offset];
+    int32_t count = sparse->count;
+
+    if (!dense) {
+        /* Element is not paired yet. Must add a new element to dense array */
+        sparse->count = count + 1;
+        if (count == ecs_vec_count(&sparse->dense)) {
+            flecs_sparse_grow_dense(sparse);
+        }
+
+        uint64_t *dense_array = ecs_vec_first_t(&sparse->dense, uint64_t);
+        flecs_sparse_assign_index(page, dense_array, index, count);
+    }
+
+    return DATA(page->data, sparse->size, offset);
 }
 
-void* _flecs_sparse_remove_get(
+void flecs_sparse_remove(
     ecs_sparse_t *sparse,
     ecs_size_t size,
     uint64_t index)
@@ -510,22 +445,26 @@ void* _flecs_sparse_remove_get(
     ecs_assert(!size || size == sparse->size, ECS_INVALID_PARAMETER, NULL);
     (void)size;
 
-    chunk_t *chunk = get_or_create_chunk(sparse, CHUNK(index));
-    uint64_t gen = strip_generation(&index);
+    ecs_page_t *page = flecs_sparse_get_page(sparse, PAGE(index));
+    if (!page || !page->sparse) {
+        return;
+    }
+
+    uint64_t gen = flecs_sparse_strip_generation(&index);
     int32_t offset = OFFSET(index);
-    int32_t dense = chunk->sparse[offset];
+    int32_t dense = page->sparse[offset];
 
     if (dense) {
-        uint64_t *dense_array = ecs_vector_first(sparse->dense, uint64_t);
+        uint64_t *dense_array = ecs_vec_first_t(&sparse->dense, uint64_t);
         uint64_t cur_gen = dense_array[dense] & ECS_GENERATION_MASK;
         if (gen != cur_gen) {
             /* Generation doesn't match which means that the provided entity is
              * already not alive. */
-            return NULL;
+            return;
         }
 
         /* Increase generation */
-        dense_array[dense] = index | inc_gen(cur_gen);
+        dense_array[dense] = index | flecs_sparse_inc_gen(cur_gen);
         
         int32_t count = sparse->count;
         
@@ -534,28 +473,19 @@ void* _flecs_sparse_remove_get(
             sparse->count --;
         } else if (dense < count) {
             /* If element is alive, move it to unused elements */
-            swap_dense(sparse, chunk, dense, count - 1);
+            flecs_sparse_swap_dense(sparse, page, dense, count - 1);
             sparse->count --;
         } else {
             /* Element is not alive, nothing to be done */
-            return NULL;
+            return;
         }
 
         /* Reset memory to zero on remove */
-        return DATA(chunk->data, sparse->size, offset);
+        void *ptr = DATA(page->data, sparse->size, offset);
+        ecs_os_memset(ptr, 0, size);
     } else {
         /* Element is not paired and thus not alive, nothing to be done */
-        return NULL;
-    }
-}
-
-void flecs_sparse_remove(
-    ecs_sparse_t *sparse,
-    uint64_t index)
-{
-    void *ptr = _flecs_sparse_remove_get(sparse, 0, index);
-    if (ptr) {
-        ecs_os_memset(ptr, 0, sparse->size);
+        return;
     }
 }
 
@@ -564,40 +494,22 @@ void flecs_sparse_set_generation(
     uint64_t index)
 {
     ecs_assert(sparse != NULL, ECS_INVALID_PARAMETER, NULL);
-    chunk_t *chunk = get_or_create_chunk(sparse, CHUNK(index));
+    ecs_page_t *page = flecs_sparse_get_or_create_page(sparse, PAGE(index));
     
     uint64_t index_w_gen = index;
-    strip_generation(&index);
+    flecs_sparse_strip_generation(&index);
     int32_t offset = OFFSET(index);
-    int32_t dense = chunk->sparse[offset];
+    int32_t dense = page->sparse[offset];
 
     if (dense) {
         /* Increase generation */
-        uint64_t *dense_array = ecs_vector_first(sparse->dense, uint64_t);
-        dense_array[dense] = index_w_gen;
+        ecs_vec_get_t(&sparse->dense, uint64_t, dense)[0] = index_w_gen;
     } else {
         /* Element is not paired and thus not alive, nothing to be done */
     }
 }
 
-bool flecs_sparse_exists(
-    const ecs_sparse_t *sparse,
-    uint64_t index)
-{
-    ecs_assert(sparse != NULL, ECS_INVALID_PARAMETER, NULL);
-    chunk_t *chunk = get_chunk(sparse, CHUNK(index));
-    if (!chunk) {
-        return false;
-    }
-    
-    strip_generation(&index);
-    int32_t offset = OFFSET(index);
-    int32_t dense = chunk->sparse[offset];
-
-    return dense != 0;
-}
-
-void* _flecs_sparse_get_dense(
+void* flecs_sparse_get_dense(
     const ecs_sparse_t *sparse,
     ecs_size_t size,
     int32_t dense_index)
@@ -609,172 +521,151 @@ void* _flecs_sparse_get_dense(
 
     dense_index ++;
 
-    uint64_t *dense_array = ecs_vector_first(sparse->dense, uint64_t);
-    return get_sparse(sparse, dense_index, dense_array[dense_index]);
+    uint64_t *dense_array = ecs_vec_first_t(&sparse->dense, uint64_t);
+    return flecs_sparse_get_sparse(sparse, dense_index, dense_array[dense_index]);
 }
 
 bool flecs_sparse_is_alive(
     const ecs_sparse_t *sparse,
     uint64_t index)
 {
-    return try_sparse(sparse, index) != NULL;
-}
-
-uint64_t flecs_sparse_get_alive(
-    const ecs_sparse_t *sparse,
-    uint64_t index)
-{
-    chunk_t *chunk = get_chunk(sparse, CHUNK(index));
-    if (!chunk) {
-        return 0;
+    ecs_page_t *page = flecs_sparse_get_page(sparse, PAGE(index));
+    if (!page || !page->sparse) {
+        return false;
     }
 
     int32_t offset = OFFSET(index);
-    int32_t dense = chunk->sparse[offset];
-    uint64_t *dense_array = ecs_vector_first(sparse->dense, uint64_t);
+    int32_t dense = page->sparse[offset];
+    if (!dense || (dense >= sparse->count)) {
+        return false;
+    }
 
-    /* If dense is 0 (tombstone) this will return 0 */
-    return dense_array[dense];
+    uint64_t gen = flecs_sparse_strip_generation(&index);
+    uint64_t *dense_array = ecs_vec_first_t(&sparse->dense, uint64_t);
+    uint64_t cur_gen = dense_array[dense] & ECS_GENERATION_MASK;
+
+    if (cur_gen != gen) {
+        return false;
+    }
+
+    ecs_assert(dense == page->sparse[offset], ECS_INTERNAL_ERROR, NULL);
+    return true;
 }
 
-void* _flecs_sparse_get(
+void* flecs_sparse_try(
     const ecs_sparse_t *sparse,
     ecs_size_t size,
     uint64_t index)
 {
     ecs_assert(sparse != NULL, ECS_INVALID_PARAMETER, NULL);
-    ecs_assert(sparse != NULL, ECS_INVALID_PARAMETER, NULL);
     ecs_assert(!size || size == sparse->size, ECS_INVALID_PARAMETER, NULL);
     (void)size;
-    return try_sparse(sparse, index);
+    ecs_page_t *page = flecs_sparse_get_page(sparse, PAGE(index));
+    if (!page || !page->sparse) {
+        return NULL;
+    }
+
+    int32_t offset = OFFSET(index);
+    int32_t dense = page->sparse[offset];
+    if (!dense || (dense >= sparse->count)) {
+        return NULL;
+    }
+
+    uint64_t gen = flecs_sparse_strip_generation(&index);
+    uint64_t *dense_array = ecs_vec_first_t(&sparse->dense, uint64_t);
+    uint64_t cur_gen = dense_array[dense] & ECS_GENERATION_MASK;
+    if (cur_gen != gen) {
+        return NULL;
+    }
+
+    ecs_assert(dense == page->sparse[offset], ECS_INTERNAL_ERROR, NULL);
+    return DATA(page->data, sparse->size, offset);
 }
 
-void* _flecs_sparse_get_any(
+void* flecs_sparse_get(
     const ecs_sparse_t *sparse,
     ecs_size_t size,
     uint64_t index)
 {
     ecs_assert(sparse != NULL, ECS_INVALID_PARAMETER, NULL);
+    ecs_assert(!size || size == sparse->size, ECS_INVALID_PARAMETER, NULL);
+    (void)size;
+
+    ecs_page_t *page = ecs_vec_get_t(&sparse->pages, ecs_page_t, PAGE(index));
+    int32_t offset = OFFSET(index);
+    int32_t dense = page->sparse[offset];
+    ecs_assert(dense != 0, ECS_INTERNAL_ERROR, NULL);
+
+    uint64_t gen = flecs_sparse_strip_generation(&index);
+    uint64_t *dense_array = ecs_vec_first_t(&sparse->dense, uint64_t);
+    uint64_t cur_gen = dense_array[dense] & ECS_GENERATION_MASK;
+    (void)cur_gen; (void)gen;
+
+    ecs_assert(cur_gen == gen, ECS_INVALID_PARAMETER, NULL);
+    ecs_assert(dense == page->sparse[offset], ECS_INTERNAL_ERROR, NULL);
+    ecs_assert(dense < sparse->count, ECS_INTERNAL_ERROR, NULL);
+    return DATA(page->data, sparse->size, offset);
+}
+
+void* flecs_sparse_get_any(
+    const ecs_sparse_t *sparse,
+    ecs_size_t size,
+    uint64_t index)
+{
     ecs_assert(sparse != NULL, ECS_INVALID_PARAMETER, NULL);
     ecs_assert(!size || size == sparse->size, ECS_INVALID_PARAMETER, NULL);
     (void)size;
-    return try_sparse_any(sparse, index);
+    
+    flecs_sparse_strip_generation(&index);
+    ecs_page_t *page = flecs_sparse_get_page(sparse, PAGE(index));
+    if (!page || !page->sparse) {
+        return NULL;
+    }
+
+    int32_t offset = OFFSET(index);
+    int32_t dense = page->sparse[offset];
+    bool in_use = dense && (dense < sparse->count);
+    if (!in_use) {
+        return NULL;
+    }
+
+    ecs_assert(dense == page->sparse[offset], ECS_INTERNAL_ERROR, NULL);
+    return DATA(page->data, sparse->size, offset);
 }
 
 int32_t flecs_sparse_count(
     const ecs_sparse_t *sparse)
 {
-    if (!sparse) {
+    if (!sparse || !sparse->count) {
         return 0;
     }
 
     return sparse->count - 1;
 }
 
-int32_t flecs_sparse_not_alive_count(
-    const ecs_sparse_t *sparse)
-{
-    if (!sparse) {
-        return 0;
-    }
-
-    return ecs_vector_count(sparse->dense) - sparse->count;
-}
-
-int32_t flecs_sparse_size(
-    const ecs_sparse_t *sparse)
-{
-    if (!sparse) {
-        return 0;
-    }
-        
-    return ecs_vector_count(sparse->dense) - 1;
-}
-
 const uint64_t* flecs_sparse_ids(
     const ecs_sparse_t *sparse)
 {
     ecs_assert(sparse != NULL, ECS_INVALID_PARAMETER, NULL);
-    return &(ecs_vector_first(sparse->dense, uint64_t)[1]);
-}
-
-void flecs_sparse_set_size(
-    ecs_sparse_t *sparse,
-    int32_t elem_count)
-{
-    ecs_assert(sparse != NULL, ECS_INVALID_PARAMETER, NULL);
-    ecs_vector_set_size(&sparse->dense, uint64_t, elem_count);
-}
-
-static
-void sparse_copy(
-    ecs_sparse_t * dst,
-    const ecs_sparse_t * src)
-{
-    flecs_sparse_set_size(dst, flecs_sparse_size(src));
-    const uint64_t *indices = flecs_sparse_ids(src);
-    
-    ecs_size_t size = src->size;
-    int32_t i, count = src->count;
-
-    for (i = 0; i < count - 1; i ++) {
-        uint64_t index = indices[i];
-        void *src_ptr = _flecs_sparse_get(src, size, index);
-        void *dst_ptr = _flecs_sparse_ensure(dst, size, index);
-        flecs_sparse_set_generation(dst, index);
-        ecs_os_memcpy(dst_ptr, src_ptr, size);
-    }
-
-    set_id(dst, get_id(src));
-
-    ecs_assert(src->count == dst->count, ECS_INTERNAL_ERROR, NULL);
-}
-
-ecs_sparse_t* flecs_sparse_copy(
-    const ecs_sparse_t *src)
-{
-    if (!src) {
+    if (sparse->dense.array) {
+        return &(ecs_vec_first_t(&sparse->dense, uint64_t)[1]);
+    } else {
         return NULL;
     }
-
-    ecs_sparse_t *dst = _flecs_sparse_new(src->size);
-    sparse_copy(dst, src);
-
-    return dst;
 }
 
-void flecs_sparse_restore(
-    ecs_sparse_t * dst,
-    const ecs_sparse_t * src)
-{
-    ecs_assert(dst != NULL, ECS_INVALID_PARAMETER, NULL);
-    dst->count = 1;
-    if (src) {
-        sparse_copy(dst, src);
-    }
-}
-
-void flecs_sparse_memory(
-    ecs_sparse_t *sparse,
-    int32_t *allocd,
-    int32_t *used)
-{
-    (void)sparse;
-    (void)allocd;
-    (void)used;
-}
-
-ecs_sparse_t* _ecs_sparse_new(
-    ecs_size_t elem_size)
-{
-    return _flecs_sparse_new(elem_size);
-}
-
-void* _ecs_sparse_add(
+void ecs_sparse_init(
     ecs_sparse_t *sparse,
     ecs_size_t elem_size)
 {
-    return _flecs_sparse_add(sparse, elem_size);
+    flecs_sparse_init(sparse, NULL, NULL, elem_size);
+}
+
+void* ecs_sparse_add(
+    ecs_sparse_t *sparse,
+    ecs_size_t elem_size)
+{
+    return flecs_sparse_add(sparse, elem_size);
 }
 
 uint64_t ecs_sparse_last_id(
@@ -789,33 +680,18 @@ int32_t ecs_sparse_count(
     return flecs_sparse_count(sparse);
 }
 
-void* _ecs_sparse_get_dense(
+void* ecs_sparse_get_dense(
     const ecs_sparse_t *sparse,
     ecs_size_t elem_size,
     int32_t index)
 {
-    return _flecs_sparse_get_dense(sparse, elem_size, index);
+    return flecs_sparse_get_dense(sparse, elem_size, index);
 }
 
-void* _ecs_sparse_get(
+void* ecs_sparse_get(
     const ecs_sparse_t *sparse,
     ecs_size_t elem_size,
     uint64_t id)
 {
-    return _flecs_sparse_get(sparse, elem_size, id);
-}
-
-ecs_sparse_iter_t _flecs_sparse_iter(
-    ecs_sparse_t *sparse,
-    ecs_size_t elem_size)
-{
-    ecs_assert(sparse != NULL, ECS_INVALID_PARAMETER, NULL);
-    ecs_assert(elem_size == sparse->size, ECS_INVALID_PARAMETER, NULL);
-    ecs_sparse_iter_t result;
-    result.sparse = sparse;
-    result.ids = flecs_sparse_ids(sparse);
-    result.size = elem_size;
-    result.i = 0;
-    result.count = sparse->count - 1;
-    return result;
+    return flecs_sparse_get(sparse, elem_size, id);
 }

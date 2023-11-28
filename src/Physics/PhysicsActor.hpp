@@ -39,6 +39,8 @@ namespace Darius::Physics
 
 		~PhysicsActor();
 		
+		static PhysicsActor*			GetFromPxActor(physx::PxActor* actor);
+
 		INLINE bool						IsDynamic() const { return mActorType == PhysicsActorType::Dynamic; }
 		INLINE bool						IsKinematic() const { return mActorType == PhysicsActorType::Kinematic; }
 		INLINE bool						IsStatic() const { return mActorType == PhysicsActorType::Static; }
@@ -59,7 +61,7 @@ namespace Darius::Physics
 		const PhysicsActorType			mActorType;
 		
 		D_SCENE::GameObject const* const mGameObject;
-		D_CONTAINERS::DSet<D_CORE::Uuid, boost::hash<D_CORE::Uuid>> mCollider;
+		D_CONTAINERS::DUnorderedMap<physx::PxShape*, std::string> mCollider;
 	};
 
 }

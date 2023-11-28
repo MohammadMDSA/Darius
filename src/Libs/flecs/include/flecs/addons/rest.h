@@ -1,5 +1,5 @@
 /**
- * @file rest.h
+ * @file addons/rest.h
  * @brief REST API addon.
  *
  * A small REST API that uses the HTTP server and JSON serializer to provide
@@ -9,6 +9,14 @@
  */
 
 #ifdef FLECS_REST
+
+/**
+ * @defgroup c_addons_rest Rest
+ * @brief REST API for querying and mutating entities.
+ * 
+ * \ingroup c_addons
+ * @{
+ */
 
 /* Used for the HTTP server */
 #ifndef FLECS_HTTP
@@ -39,14 +47,34 @@ extern "C" {
 
 #define ECS_REST_DEFAULT_PORT (27750)
 
-/* Component that instantiates the REST API */
+/** Component that instantiates the REST API */
 FLECS_API extern const ecs_entity_t ecs_id(EcsRest);
 
 typedef struct {
-    uint16_t port;        /* Port of server (optional, default = 27750) */
-    char *ipaddr;         /* Interface address (optional, default = 0.0.0.0) */
+    uint16_t port;      /**< Port of server (optional, default = 27750) */
+    char *ipaddr;       /**< Interface address (optional, default = 0.0.0.0) */
     void *impl;
 } EcsRest;
+
+/** Create HTTP server for REST API. 
+ * This allows for the creation of a REST server that can be managed by the
+ * application without using Flecs systems.
+ * 
+ * @param world The world.
+ * @param desc The HTTP server descriptor.
+ * @return The HTTP server, or NULL if failed.
+ */
+FLECS_API
+ecs_http_server_t* ecs_rest_server_init(
+    ecs_world_t *world,
+    const ecs_http_server_desc_t *desc);
+
+/** Cleanup REST HTTP server. 
+ * The server must have been created with ecs_rest_server_init.
+ */
+FLECS_API
+void ecs_rest_server_fini(
+    ecs_http_server_t *srv);
 
 /* Module import */
 FLECS_API
@@ -58,5 +86,7 @@ void FlecsRestImport(
 #endif
 
 #endif
+
+/** @} */
 
 #endif

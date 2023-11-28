@@ -1,3 +1,8 @@
+/**
+ * @file addons/meta_c.c
+ * @brief C utilities for meta addon.
+ */
+
 #include "../private_api.h"
 
 #ifdef FLECS_META_C
@@ -88,7 +93,7 @@ const char* parse_c_digit(
     int64_t *value_out)
 {
     char token[24];
-    ptr = ecs_parse_eol_and_whitespace(ptr);
+    ptr = ecs_parse_ws_eol(ptr);
     ptr = ecs_parse_digit(ptr, token);
     if (!ptr) {
         goto error;
@@ -96,7 +101,7 @@ const char* parse_c_digit(
 
     *value_out = strtol(token, NULL, 0);
 
-    return ecs_parse_eol_and_whitespace(ptr);
+    return ecs_parse_ws_eol(ptr);
 error:
     return NULL;
 }
@@ -119,15 +124,17 @@ const char* parse_c_identifier(
     }
 
     /* Ignore whitespaces */
-    ptr = ecs_parse_eol_and_whitespace(ptr);
+    ptr = ecs_parse_ws_eol(ptr);
+    ch = *ptr;
 
-    if (!isalpha(*ptr)) {
-        ecs_meta_error(ctx, ptr, 
-            "invalid identifier (starts with '%c')", *ptr);
+    if (!isalpha(ch) && (ch != '_')) {
+        ecs_meta_error(ctx, ptr, "invalid identifier (starts with '%c')", ch);
         goto error;
     }
 
-    while ((ch = *ptr) && !isspace(ch) && ch != ';' && ch != ',' && ch != ')' && ch != '>' && ch != '}') {
+    while ((ch = *ptr) && !isspace(ch) && ch != ';' && ch != ',' && ch != ')' && 
+        ch != '>' && ch != '}' && ch != '*') 
+    {
         /* Type definitions can contain macros or templates */
         if (ch == '(' || ch == '<') {
             if (!params) {
@@ -165,7 +172,7 @@ const char * meta_open_scope(
     meta_parse_ctx_t *ctx)    
 {
     /* Skip initial whitespaces */
-    ptr = ecs_parse_eol_and_whitespace(ptr);
+    ptr = ecs_parse_ws_eol(ptr);
 
     /* Is this the start of the type definition? */
     if (ctx->desc == ptr) {
@@ -175,7 +182,7 @@ const char * meta_open_scope(
         }
 
         ptr ++;
-        ptr = ecs_parse_eol_and_whitespace(ptr);
+        ptr = ecs_parse_ws_eol(ptr);
     }
 
     /* Is this the end of the type definition? */
@@ -186,7 +193,7 @@ const char * meta_open_scope(
 
     /* Is this the end of the type definition? */
     if (*ptr == '}') {
-        ptr = ecs_parse_eol_and_whitespace(ptr + 1);
+        ptr = ecs_parse_ws_eol(ptr + 1);
         if (*ptr) {
             ecs_meta_error(ctx, ptr, 
                 "stray characters after struct definition");
@@ -219,7 +226,7 @@ const char* meta_parse_constant(
         return NULL;
     }
 
-    ptr = ecs_parse_eol_and_whitespace(ptr);
+    ptr = ecs_parse_ws_eol(ptr);
     if (!ptr) {
         return NULL;
     }
@@ -256,7 +263,7 @@ const char* meta_parse_type(
     token->is_ptr = false;
     token->is_const = false;
 
-    ptr = ecs_parse_eol_and_whitespace(ptr);
+    ptr = ecs_parse_ws_eol(ptr);
 
     /* Parse token, expect type identifier or ECS_PROPERTY */
     ptr = parse_c_identifier(ptr, token->type, token->params, ctx);
@@ -279,7 +286,7 @@ const char* meta_parse_type(
     }
 
     /* Check if type is a pointer */
-    ptr = ecs_parse_eol_and_whitespace(ptr);
+    ptr = ecs_parse_ws_eol(ptr);
     if (*ptr == '*') {
         token->is_ptr = true;
         ptr ++;
@@ -312,6 +319,10 @@ const char* meta_parse_member(
         goto error;
     }
 
+    if (!ptr[0]) {
+        return ptr;        
+    }
+
     /* Next token is the identifier */
     ptr = parse_c_identifier(ptr, token->name, NULL, ctx);
     if (!ptr) {
@@ -319,7 +330,7 @@ const char* meta_parse_member(
     }
 
     /* Skip whitespace between member and [ or ; */
-    ptr = ecs_parse_eol_and_whitespace(ptr);
+    ptr = ecs_parse_ws_eol(ptr);
 
     /* Check if this is an array */
     char *array_start = strchr(token->name, '[');
@@ -327,7 +338,8 @@ const char* meta_parse_member(
         /* If the [ was separated by a space, it will not be parsed as part of
          * the name */
         if (*ptr == '[') {
-            array_start = (char*)ptr; /* safe, will not be modified */
+            /* safe, will not be modified */
+            array_start = ECS_CONST_CAST(char*, ptr);
         }
     }
 
@@ -374,7 +386,7 @@ int meta_parse_desc(
     token->is_key_value = false;
     token->is_fixed_size = false;
 
-    ptr = ecs_parse_eol_and_whitespace(ptr);
+    ptr = ecs_parse_ws_eol(ptr);
     if (*ptr != '(' && *ptr != '<') {
         ecs_meta_error(ctx, ptr, 
             "expected '(' at start of collection definition");
@@ -389,11 +401,11 @@ int meta_parse_desc(
         goto error;
     }
 
-    ptr = ecs_parse_eol_and_whitespace(ptr);
+    ptr = ecs_parse_ws_eol(ptr);
 
     /* If next token is a ',' the first type was a key type */
     if (*ptr == ',') {
-        ptr = ecs_parse_eol_and_whitespace(ptr + 1);
+        ptr = ecs_parse_ws_eol(ptr + 1);
         
         if (isdigit(*ptr)) {
             int64_t value;
@@ -409,7 +421,7 @@ int meta_parse_desc(
 
             /* Parse element type */
             ptr = meta_parse_type(ptr, &token->type, ctx);
-            ptr = ecs_parse_eol_and_whitespace(ptr);
+            ptr = ecs_parse_ws_eol(ptr);
 
             token->is_key_value = true;
         }
@@ -460,7 +472,8 @@ ecs_entity_t meta_lookup_array(
         goto error;
     }
 
-    ecs_entity_t element_type = ecs_lookup_symbol(world, params.type.type, true);
+    ecs_entity_t element_type = ecs_lookup_symbol(
+        world, params.type.type, true, true);
     if (!element_type) {
         ecs_meta_error(ctx, params_decl, "unknown element type '%s'",
             params.type.type);
@@ -625,10 +638,13 @@ ecs_entity_t meta_lookup(
         } else if (!ecs_os_strcmp(typename, "ecs_entity_t")) {
             type = ecs_id(ecs_entity_t);
 
+        } else if (!ecs_os_strcmp(typename, "ecs_id_t")) {
+            type = ecs_id(ecs_id_t);
+
         } else if (!ecs_os_strcmp(typename, "char*")) {
             type = ecs_id(ecs_string_t);
         } else {
-            type = ecs_lookup_symbol(world, typename, true);
+            type = ecs_lookup_symbol(world, typename, true, true);
         }
     } else {
         if (!ecs_os_strcmp(typename, "char")) {
@@ -643,7 +659,7 @@ ecs_entity_t meta_lookup(
             typename = "flecs.meta.string";
         }
 
-        type = ecs_lookup_symbol(world, typename, true);
+        type = ecs_lookup_symbol(world, typename, true, true);
     }
 
     if (count != 1) {
@@ -680,7 +696,7 @@ int meta_parse_struct(
     ecs_entity_t old_scope = ecs_set_scope(world, t);
 
     while ((ptr = meta_parse_member(ptr, &token, &ctx)) && ptr[0]) {
-        ecs_entity_t m = ecs_entity_init(world, &(ecs_entity_desc_t){
+        ecs_entity_t m = ecs_entity(world, {
             .name = token.name
         });
 
@@ -716,6 +732,10 @@ int meta_parse_constants(
 
     const char *ptr = desc;
     const char *name = ecs_get_name(world, t);
+    int32_t name_len = ecs_os_strlen(name);
+    const ecs_world_info_t *info = ecs_get_world_info(world);
+    const char *name_prefix = info->name_prefix;
+    int32_t name_prefix_len = name_prefix ? ecs_os_strlen(name_prefix) : 0;
 
     meta_parse_ctx_t ctx = {
         .name = name,
@@ -736,7 +756,19 @@ int meta_parse_constants(
             goto error;
         }
 
-        ecs_entity_t c = ecs_entity_init(world, &(ecs_entity_desc_t){
+        if (name_prefix) {
+            if (!ecs_os_strncmp(token.name, name_prefix, name_prefix_len)) {
+                ecs_os_memmove(token.name, token.name + name_prefix_len, 
+                    ecs_os_strlen(token.name) - name_prefix_len + 1);
+            }
+        }
+
+        if (!ecs_os_strncmp(token.name, name, name_len)) {
+            ecs_os_memmove(token.name, token.name + name_len, 
+                ecs_os_strlen(token.name) - name_len + 1);
+        }
+
+        ecs_entity_t c = ecs_entity(world, {
             .name = token.name
         });
 
@@ -800,8 +832,13 @@ int ecs_meta_from_desc(
             goto error;
         }
         break;
-    default:
+    case EcsPrimitiveType:
+    case EcsArrayType:
+    case EcsVectorType:
+    case EcsOpaqueType:
         break;
+    default:
+        ecs_throw(ECS_INTERNAL_ERROR, "invalid type kind");
     }
 
     return 0;

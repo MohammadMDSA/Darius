@@ -1,21 +1,14 @@
+/**
+ * @file addons/cpp/impl/world.hpp
+ * @brief World implementation.
+ */
+
 #pragma once
 
 namespace flecs 
 {
 
-// emplace for T(flecs::entity, Args...)
-template <typename T, typename ... Args, if_t<
-    std::is_constructible<actual_type_t<T>, flecs::entity, Args...>::value >>
-inline void emplace(world_t *world, id_t entity, Args&&... args) {
-    flecs::entity self(world, entity);
-    emplace<T>(world, entity, self, FLECS_FWD(args)...);
-}
-
 inline void world::init_builtin_components() {
-    component<Component>("flecs::core::Component");
-    component<Identifier>("flecs::core::Identifier");
-    component<Poly>("flecs::core::Poly");
-
 #   ifdef FLECS_SYSTEM
     _::system_init(*this);
 #   endif
@@ -34,7 +27,7 @@ inline void world::init_builtin_components() {
 }
 
 template <typename T>
-inline flecs::entity world::use(const char *alias) {
+inline flecs::entity world::use(const char *alias) const {
     entity_t e = _::cpp_type<T>::id(m_world);
     const char *name = alias;
     if (!name) {
@@ -45,7 +38,7 @@ inline flecs::entity world::use(const char *alias) {
     return flecs::entity(m_world, e);
 }
 
-inline flecs::entity world::use(const char *name, const char *alias) {
+inline flecs::entity world::use(const char *name, const char *alias) const {
     entity_t e = ecs_lookup_path_w_sep(m_world, 0, name, "::", "::", true);
     ecs_assert(e != 0, ECS_INVALID_PARAMETER, NULL);
 
@@ -53,14 +46,14 @@ inline flecs::entity world::use(const char *name, const char *alias) {
     return flecs::entity(m_world, e);
 }
 
-inline void world::use(flecs::entity e, const char *alias) {
+inline void world::use(flecs::entity e, const char *alias) const {
     entity_t eid = e.id();
     const char *name = alias;
     if (!name) {
         // If no name is defined, use the entity name without the scope
-        ecs_get_name(m_world, eid);
+        name = ecs_get_name(m_world, eid);
     }
-    ecs_set_alias(m_world, eid, alias);
+    ecs_set_alias(m_world, eid, name);
 }
 
 inline flecs::entity world::set_scope(const flecs::entity_t s) const {
@@ -76,63 +69,173 @@ inline flecs::entity world::set_scope() const {
     return set_scope( _::cpp_type<T>::id(m_world) ); 
 }
 
-inline entity world::lookup(const char *name) const {
-    auto e = ecs_lookup_path_w_sep(m_world, 0, name, "::", "::", true);
+inline entity world::lookup(const char *name, bool search_path) const {
+    auto e = ecs_lookup_path_w_sep(m_world, 0, name, "::", "::", search_path);
     return flecs::entity(*this, e);
 }
 
 template <typename T>
-T* world::get_mut() const {
+inline T* world::get_mut() const {
     flecs::entity e(m_world, _::cpp_type<T>::id(m_world));
     return e.get_mut<T>();
 }
 
 template <typename T>
-void world::modified() const {
+inline void world::modified() const {
     flecs::entity e(m_world, _::cpp_type<T>::id(m_world));
-    return e.modified<T>();
+    e.modified<T>();
+}
+
+template <typename First, typename Second>
+inline void world::set(Second second, const First& value) const {
+    flecs::entity e(m_world, _::cpp_type<First>::id(m_world));
+    e.set<First>(second, value);
+}
+
+template <typename First, typename Second>
+inline void world::set(Second second, First&& value) const {
+    flecs::entity e(m_world, _::cpp_type<First>::id(m_world));
+    e.set<First>(second, value);
 }
 
 template <typename T>
-const T* world::get() const {
+inline ref<T> world::get_ref() const {
+    flecs::entity e(m_world, _::cpp_type<T>::id(m_world));
+    return e.get_ref<T>();
+}
+
+template <typename T>
+inline const T* world::get() const {
     flecs::entity e(m_world, _::cpp_type<T>::id(m_world));
     return e.get<T>();
 }
 
+template <typename First, typename Second, typename P, typename A>
+const A* world::get() const {
+    flecs::entity e(m_world, _::cpp_type<First>::id(m_world));
+    return e.get<First, Second>();
+}
+
+template <typename First, typename Second>
+const First* world::get(Second second) const {
+    flecs::entity e(m_world, _::cpp_type<First>::id(m_world));
+    return e.get<First>(second);
+}
+
 template <typename T>
-bool world::has() const {
+inline bool world::has() const {
     flecs::entity e(m_world, _::cpp_type<T>::id(m_world));
     return e.has<T>();
 }
 
+template <typename First, typename Second>
+inline bool world::has() const {
+    flecs::entity e(m_world, _::cpp_type<First>::id(m_world));
+    return e.has<First, Second>();
+}
+
+template <typename First>
+inline bool world::has(flecs::id_t second) const {
+    flecs::entity e(m_world, _::cpp_type<First>::id(m_world));
+    return e.has<First>(second);
+}
+
+inline bool world::has(flecs::id_t first, flecs::id_t second) const {
+    flecs::entity e(m_world, first);
+    return e.has(first, second);
+}
+
 template <typename T>
-void world::add() const {
+inline void world::add() const {
     flecs::entity e(m_world, _::cpp_type<T>::id(m_world));
     e.add<T>();
 }
 
+template <typename First, typename Second>
+inline void world::add() const {
+    flecs::entity e(m_world, _::cpp_type<First>::id(m_world));
+    e.add<First, Second>();
+}
+
+template <typename First>
+inline void world::add(flecs::entity_t second) const {
+    flecs::entity e(m_world, _::cpp_type<First>::id(m_world));
+    e.add<First>(second);
+}
+
+inline void world::add(flecs::entity_t first, flecs::entity_t second) const {
+    flecs::entity e(m_world, first);
+    e.add(first, second);
+}
+
 template <typename T>
-void world::remove() const {
+inline void world::remove() const {
     flecs::entity e(m_world, _::cpp_type<T>::id(m_world));
     e.remove<T>();
 }
 
+template <typename First, typename Second>
+inline void world::remove() const {
+    flecs::entity e(m_world, _::cpp_type<First>::id(m_world));
+    e.remove<First, Second>();
+}
+
+template <typename First>
+inline void world::remove(flecs::entity_t second) const {
+    flecs::entity e(m_world, _::cpp_type<First>::id(m_world));
+    e.remove<First>(second);
+}
+
+inline void world::remove(flecs::entity_t first, flecs::entity_t second) const {
+    flecs::entity e(m_world, first);
+    e.remove(first, second);
+}
+
+template <typename Func>
+inline void world::children(Func&& f) const {
+    this->entity(0).children(FLECS_FWD(f));
+}
+
 template <typename T>
-inline flecs::entity world::singleton() {
+inline flecs::entity world::singleton() const {
     return flecs::entity(m_world, _::cpp_type<T>::id(m_world));
 }
 
+template <typename First>
+inline flecs::entity world::target(int32_t index) const
+{
+    return flecs::entity(m_world,
+        ecs_get_target(m_world, _::cpp_type<First>::id(m_world), _::cpp_type<First>::id(m_world), index));
+}
+
+template <typename T>
+inline flecs::entity world::target(
+    flecs::entity_t relationship,
+    int32_t index) const
+{
+    return flecs::entity(m_world,
+        ecs_get_target(m_world, _::cpp_type<T>::id(m_world), relationship, index));
+}
+
+inline flecs::entity world::target(
+    flecs::entity_t relationship,
+    int32_t index) const
+{
+    return flecs::entity(m_world,
+        ecs_get_target(m_world, relationship, relationship, index));
+}
+
 template <typename Func, if_t< is_callable<Func>::value > >
-void world::get(const Func& func) {
+inline void world::get(const Func& func) const {
     static_assert(arity<Func>::value == 1, "singleton component must be the only argument");
-    _::entity_with_invoker<Func>::invoke_get(
+    _::entity_with_delegate<Func>::invoke_get(
         this->m_world, this->singleton<first_arg_t<Func>>(), func);
 }
 
 template <typename Func, if_t< is_callable<Func>::value > >
-void world::set(const Func& func) {
+inline void world::set(const Func& func) const {
     static_assert(arity<Func>::value == 1, "singleton component must be the only argument");
-    _::entity_with_invoker<Func>::invoke_get_mut(
+    _::entity_with_delegate<Func>::invoke_get_mut(
         this->m_world, this->singleton<first_arg_t<Func>>(), func);
 }
 
@@ -167,14 +270,18 @@ inline flecs::entity enum_data<E>::entity(E value) const {
 /** Use provided scope for operations ran on returned world.
  * Operations need to be ran in a single statement.
  */
-inline flecs::scoped_world world::scope(id_t parent) {
+inline flecs::scoped_world world::scope(id_t parent) const {
     return scoped_world(m_world, parent);
 }
 
 template <typename T>
-inline flecs::scoped_world world::scope() {
+inline flecs::scoped_world world::scope() const {
     flecs::id_t parent = _::cpp_type<T>::id(m_world);
     return scoped_world(m_world, parent);
+}
+
+inline flecs::scoped_world world::scope(const char* name) const {
+  return scope(entity(name));
 }
 
 } // namespace flecs

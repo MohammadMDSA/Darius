@@ -1,13 +1,69 @@
+/**
+ * @file json/json.h
+ * @brief Internal functions for JSON addon.
+ */
+
 #include "../../private_api.h"
 
 #ifdef FLECS_JSON
 
-void flecs_json_next(
+/* Deserialize from JSON */
+typedef enum ecs_json_token_t {
+    JsonObjectOpen,
+    JsonObjectClose,
+    JsonArrayOpen,
+    JsonArrayClose,
+    JsonColon,
+    JsonComma,
+    JsonNumber,
+    JsonString,
+    JsonTrue,
+    JsonFalse,
+    JsonNull,
+    JsonLargeInt,
+    JsonLargeString,
+    JsonInvalid
+} ecs_json_token_t;
+
+const char* flecs_json_parse(
+    const char *json,
+    ecs_json_token_t *token_kind,
+    char *token);
+
+const char* flecs_json_parse_large_string(
+    const char *json,
     ecs_strbuf_t *buf);
 
-void flecs_json_literal(
-    ecs_strbuf_t *buf,
-    const char *value);
+const char* flecs_json_expect(
+    const char *json,
+    ecs_json_token_t token_kind,
+    char *token,
+    const ecs_from_json_desc_t *desc);
+
+const char* flecs_json_expect_member(
+    const char *json,
+    char *token,
+    const ecs_from_json_desc_t *desc);
+
+const char* flecs_json_expect_member_name(
+    const char *json,
+    char *token,
+    const char *member_name,
+    const ecs_from_json_desc_t *desc);
+
+const char* flecs_json_skip_object(
+    const char *json,
+    char *token,
+    const ecs_from_json_desc_t *desc);
+
+const char* flecs_json_skip_array(
+    const char *json,
+    char *token,
+    const ecs_from_json_desc_t *desc);
+
+/* Serialize to JSON */
+void flecs_json_next(
+    ecs_strbuf_t *buf);
 
 void flecs_json_number(
     ecs_strbuf_t *buf,
@@ -39,9 +95,21 @@ void flecs_json_string(
     ecs_strbuf_t *buf,
     const char *value);
 
+void flecs_json_string_escape(
+    ecs_strbuf_t *buf,
+    const char *value);
+
 void flecs_json_member(
     ecs_strbuf_t *buf,
     const char *name);
+
+void flecs_json_membern(
+    ecs_strbuf_t *buf,
+    const char *name,
+    int32_t name_len);
+
+#define flecs_json_memberl(buf, name)\
+    flecs_json_membern(buf, name, sizeof(name) - 1)
 
 void flecs_json_path(
     ecs_strbuf_t *buf,

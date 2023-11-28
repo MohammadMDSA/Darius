@@ -1,8 +1,11 @@
-////////////////////////////////////////////////////////////////////////////////
-//// Flecs STL (FTL?)
-//// Minimalistic utilities that allow for STL like functionality without having
-//// to depend on the actual STL.
-////////////////////////////////////////////////////////////////////////////////
+/**
+ * @file addons/cpp/utils/utils.hpp
+ * @brief Flecs STL (FTL?)
+ * 
+ * Flecs STL (FTL?)
+ * Minimalistic utilities that allow for STL like functionality without having
+ * to depend on the actual STL.
+ */
 
 // Macros so that C++ new calls can allocate using ecs_os_api memory allocation functions
 // Rationale:
@@ -105,6 +108,12 @@ using transcribe_volatile_t = conditional_t<is_volatile<Src>::value, Dst volatil
 
 template<class Src, class Dst>
 using transcribe_cv_t = transcribe_const_t< Src, transcribe_volatile_t< Src, Dst> >;
+
+template<class Src, class Dst>
+using transcribe_pointer_t = conditional_t<is_pointer<Src>::value, Dst*, Dst>;
+
+template<class Src, class Dst>
+using transcribe_cvp_t = transcribe_cv_t< Src, transcribe_pointer_t< Src, Dst> >;
 
 
 // More convenience templates. The if_*_t templates use int as default type

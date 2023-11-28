@@ -1,15 +1,29 @@
-////////////////////////////////////////////////////////////////////////////////
-//// Aliases for types/constants from C API
-////////////////////////////////////////////////////////////////////////////////
+/**
+ * @file addons/cpp/c_types.hpp
+ * @brief Aliases for types/constants from C API
+ */
+
+#pragma once
 
 namespace flecs {
 
+/**
+ * @defgroup cpp_globals API Types & Globals
+ * @brief Types & constants bridged from C API.
+ * 
+ * \ingroup cpp_core
+ * @{
+ */
+
 using world_t = ecs_world_t;
+using world_info_t = ecs_world_info_t;
+using query_group_info_t = ecs_query_group_info_t;
 using id_t = ecs_id_t;
 using entity_t = ecs_entity_t;
 using type_t = ecs_type_t;
 using table_t = ecs_table_t;
 using filter_t = ecs_filter_t;
+using observer_t = ecs_observer_t;
 using query_t = ecs_query_t;
 using rule_t = ecs_rule_t;
 using ref_t = ecs_ref_t;
@@ -49,6 +63,7 @@ static const flecs::entity_t Toggle = ECS_TOGGLE;
 using Component = EcsComponent;
 using Identifier = EcsIdentifier;
 using Poly = EcsPoly;
+using Target = EcsTarget;
 
 /* Builtin tags */
 static const flecs::entity_t Query = EcsQuery;
@@ -68,15 +83,19 @@ static const flecs::entity_t OnAdd = EcsOnAdd;
 static const flecs::entity_t OnRemove = EcsOnRemove;
 static const flecs::entity_t OnSet = EcsOnSet;
 static const flecs::entity_t UnSet = EcsUnSet;
+static const flecs::entity_t OnTableCreate = EcsOnTableCreate;
+static const flecs::entity_t OnTableDelete = EcsOnTableDelete;
 
 /* Builtin term flags */
 static const uint32_t Self = EcsSelf;
 static const uint32_t Up = EcsUp;
 static const uint32_t Down = EcsDown;
 static const uint32_t Cascade = EcsCascade;
+static const uint32_t Desc = EcsDesc;
 static const uint32_t Parent = EcsParent;
 static const uint32_t IsVariable = EcsIsVariable;
 static const uint32_t IsEntity = EcsIsEntity;
+static const uint32_t Filter = EcsFilter;
 static const uint32_t TraverseFlags = EcsTraverseFlags;
 
 /* Builtin entity ids */
@@ -92,10 +111,12 @@ static const flecs::entity_t Transitive = EcsTransitive;
 static const flecs::entity_t Reflexive = EcsReflexive;
 static const flecs::entity_t Final = EcsFinal;
 static const flecs::entity_t DontInherit = EcsDontInherit;
+static const flecs::entity_t AlwaysOverride = EcsAlwaysOverride;
 static const flecs::entity_t Tag = EcsTag;
 static const flecs::entity_t Union = EcsUnion;
 static const flecs::entity_t Exclusive = EcsExclusive;
 static const flecs::entity_t Acyclic = EcsAcyclic;
+static const flecs::entity_t Traversable = EcsTraversable;
 static const flecs::entity_t Symmetric = EcsSymmetric;
 static const flecs::entity_t With = EcsWith;
 static const flecs::entity_t OneOf = EcsOneOf;
@@ -116,5 +137,20 @@ static const flecs::entity_t OnDeleteTarget = EcsOnDeleteTarget;
 static const flecs::entity_t Remove = EcsRemove;
 static const flecs::entity_t Delete = EcsDelete;
 static const flecs::entity_t Panic = EcsPanic;
+
+/* Misc */
+static const flecs::entity_t Flatten = EcsFlatten;
+static const flecs::entity_t DefaultChildComponent = EcsDefaultChildComponent;
+
+/* Builtin predicates for comparing entity ids in queries. Only supported by rules */
+static const flecs::entity_t PredEq = EcsPredEq;
+static const flecs::entity_t PredMatch = EcsPredMatch;
+static const flecs::entity_t PredLookup = EcsPredLookup;
+
+/* Builtin marker entities for query scopes */
+static const flecs::entity_t ScopeOpen = EcsScopeOpen;
+static const flecs::entity_t ScopeClose = EcsScopeClose;
+
+/** @} */
 
 }
