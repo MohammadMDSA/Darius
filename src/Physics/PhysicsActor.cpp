@@ -10,7 +10,7 @@ using namespace physx;
 
 namespace Darius::Physics
 {
-	PhysicsActor::PhysicsActor(D_SCENE::GameObject* gameObject, PhysicsActorType type) :
+	PhysicsActor::PhysicsActor(D_SCENE::GameObject const* gameObject, PhysicsActorType type) :
 		mActorType(type),
 		mPxActor(nullptr),
 		mGameObject(gameObject)

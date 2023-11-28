@@ -39,7 +39,7 @@ namespace Darius::Physics
 		INLINE bool											IsDynamic() const { return mDynamic; }
 
 		void												SetMaterial(PhysicsMaterialResource* material);
-		bool												SetTrigger(bool trigger);
+		void												SetTrigger(bool trigger);
 		INLINE PhysicsMaterialResource*						GetMaterial() const { return mMaterial.Get(); }
 		INLINE bool											IsTrigger() const { return mTrigger; }
 

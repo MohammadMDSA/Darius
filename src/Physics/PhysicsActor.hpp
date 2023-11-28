@@ -30,7 +30,7 @@ namespace Darius::Physics
 		Darius_Physics_PhysicsActor_GENERATED
 
 	public:
-		PhysicsActor(D_SCENE::GameObject* gameObject, PhysicsActorType type);
+		PhysicsActor(D_SCENE::GameObject const* gameObject, PhysicsActorType type);
 		
 		INLINE PhysicsActor() :
 			mGameObject(nullptr),
@@ -58,7 +58,7 @@ namespace Darius::Physics
 		DField()
 		const PhysicsActorType			mActorType;
 		
-		D_SCENE::GameObject* const		mGameObject;
+		D_SCENE::GameObject const* const mGameObject;
 		D_CONTAINERS::DSet<D_CORE::Uuid, boost::hash<D_CORE::Uuid>> mCollider;
 	};
 

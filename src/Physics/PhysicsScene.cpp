@@ -16,7 +16,7 @@ using namespace physx;
 namespace Darius::Physics
 {
 
-	D_CONTAINERS::DUnorderedMap<D_SCENE::GameObject*, PhysicsActor> PhysicsScene::sActorMap = {};
+	D_CONTAINERS::DUnorderedMap<D_SCENE::GameObject const*, PhysicsActor> PhysicsScene::sActorMap = {};
 
 	PxRigidDynamic* PhysicsScene::AddDynamicActor(D_SCENE::GameObject* go, bool kinematic)
 	{
@@ -82,6 +82,8 @@ namespace Darius::Physics
 		// Check if corresponding actor is non-static
 		nonStatic = !actor.IsStatic();
 
+		if (!actor.mPxActor)
+			actor.InitializeActor();
 		auto pxActor = actor.mPxActor;
 
 		auto shape = PxRigidActorExt::createExclusiveShape(*pxActor, *collider->GetPhysicsGeometry(), *collider->GetMaterial());
@@ -120,7 +122,7 @@ namespace Darius::Physics
 
 	void PhysicsScene::AddActor(GameObject const* go)
 	{
-		auto ref = const_cast<GameObject*>(go);
+		auto ref = go;
 		if (sActorMap.contains(ref))
 			return;
 

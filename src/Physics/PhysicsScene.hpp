@@ -28,7 +28,7 @@ namespace Darius::Physics
 		static void						AddActor(D_SCENE::GameObject const* go);
 		static INLINE bool				IsRegistered(D_SCENE::GameObject const* go) { return sActorMap.contains(const_cast<D_SCENE::GameObject*>(go)); }
 
-		static D_CONTAINERS::DUnorderedMap<D_SCENE::GameObject*, PhysicsActor> sActorMap;
+		static D_CONTAINERS::DUnorderedMap<D_SCENE::GameObject const*, PhysicsActor> sActorMap;
 
 	};
 

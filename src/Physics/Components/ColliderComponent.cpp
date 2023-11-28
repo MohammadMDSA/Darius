@@ -24,14 +24,16 @@ namespace Darius::Physics
 	ColliderComponent::ColliderComponent() :
 		ComponentBase(),
 		mDynamic(false),
-		mMaterial()
+		mMaterial(),
+		mTrigger(false)
 	{
 	}
 
 	ColliderComponent::ColliderComponent(D_CORE::Uuid uuid) :
 		ComponentBase(uuid),
 		mDynamic(false),
-		mMaterial()
+		mMaterial(),
+		mTrigger(false)
 	{
 	}
 
@@ -137,9 +139,11 @@ namespace Darius::Physics
 
 		mShape = nullptr;
 
+		bool trigger = IsTrigger();
 		auto material = D_PHYSICS::GetDefaultMaterial();
 		mShape = D_PHYSICS::PhysicsScene::AddCollider(this, mDynamic, &mActor);
-		mShape->setFlag(physx::PxShapeFlag::eTRIGGER_SHAPE, IsTrigger());
+		mShape->setFlag(physx::PxShapeFlag::eTRIGGER_SHAPE, trigger);
+		mShape->setFlag(physx::PxShapeFlag::eSIMULATION_SHAPE, !trigger);
 	}
 
 	void ColliderComponent::SetMaterial(PhysicsMaterialResource* material)
@@ -166,15 +170,20 @@ namespace Darius::Physics
 		mChangeSignal(this);
 	}
 
-	bool ColliderComponent::SetTrigger(bool trigger)
+	void ColliderComponent::SetTrigger(bool trigger)
 	{
 		if (mTrigger == trigger)
 			return;
 
 		mTrigger = trigger;
 
-		InvalidatePhysicsActor();
-
+		if (mShape)
+		{
+			auto trigger = IsTrigger();
+			mShape->setFlag(physx::PxShapeFlag::eTRIGGER_SHAPE, trigger);
+			mShape->setFlag(physx::PxShapeFlag::eSIMULATION_SHAPE, !trigger);
+		}
+		
 		mChangeSignal(this);
 
 	}
