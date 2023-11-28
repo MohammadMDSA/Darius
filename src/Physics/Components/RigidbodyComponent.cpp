@@ -41,9 +41,10 @@ namespace Darius::Physics
 
 	void RigidbodyComponent::Awake()
 	{
-		mActor = D_PHYSICS::PhysicsScene::AddDynamicActor(GetGameObject(), false);
+		mActor = D_PHYSICS::GetScene()->AddDynamicActor(GetGameObject(), false);
 		D_ASSERT(mActor);
 
+		SetDirty();
 		SetKinematic(mKinematic);
 		SetUsingGravity(mUsingGravity);
 		SetRotationConstraintsX(mRotationConstraints[0]);
@@ -53,11 +54,12 @@ namespace Darius::Physics
 		SetPositionConstraintsY(mPositionConstraints[1]);
 		SetPositionConstraintsZ(mPositionConstraints[2]);
 		mActor->setActorFlag(physx::PxActorFlag::eDISABLE_SIMULATION, true);
+		SetClean();
 	}
 
 	void RigidbodyComponent::OnDestroy()
 	{
-		D_PHYSICS::PhysicsScene::RemoveDynamicActor(GetGameObject());
+		D_PHYSICS::GetScene()->RemoveDynamicActor(GetGameObject());
 	}
 
 	void RigidbodyComponent::Update(float)
@@ -118,7 +120,7 @@ namespace Darius::Physics
 
 	void RigidbodyComponent::SetUsingGravity(bool enable)
 	{
-		if (mUsingGravity == enable)
+		if (mUsingGravity == enable && !IsDirty())
 			return;
 
 		if (mActor)
@@ -130,7 +132,7 @@ namespace Darius::Physics
 
 	void RigidbodyComponent::SetKinematic(bool value)
 	{
-		if (mKinematic == value)
+		if (mKinematic == value && !IsDirty())
 			return;
 
 		if (mActor)
@@ -203,7 +205,7 @@ namespace Darius::Physics
 
 	void RigidbodyComponent::SetRotationConstraintsX(bool enable)
 	{
-		if (mRotationConstraints[0] == enable)
+		if (mRotationConstraints[0] == enable && !IsDirty())
 			return;
 
 		if (mActor)
@@ -215,7 +217,7 @@ namespace Darius::Physics
 
 	void RigidbodyComponent::SetRotationConstraintsY(bool enable)
 	{
-		if (mRotationConstraints[1] == enable)
+		if (mRotationConstraints[1] == enable && !IsDirty())
 			return;
 
 		if (mActor)
@@ -227,7 +229,7 @@ namespace Darius::Physics
 
 	void RigidbodyComponent::SetRotationConstraintsZ(bool enable)
 	{
-		if (mRotationConstraints[2] == enable)
+		if (mRotationConstraints[2] == enable && !IsDirty())
 			return;
 
 		if (mActor)
@@ -266,7 +268,7 @@ namespace Darius::Physics
 
 	void RigidbodyComponent::SetPositionConstraintsX(bool enable)
 	{
-		if (mPositionConstraints[0] == enable)
+		if (mPositionConstraints[0] == enable && !IsDirty())
 			return;
 
 		if (mActor)
@@ -278,7 +280,7 @@ namespace Darius::Physics
 
 	void RigidbodyComponent::SetPositionConstraintsY(bool enable)
 	{
-		if (mPositionConstraints[1] == enable)
+		if (mPositionConstraints[1] == enable && !IsDirty())
 			return;
 
 		if (mActor)
@@ -290,7 +292,7 @@ namespace Darius::Physics
 
 	void RigidbodyComponent::SetPositionConstraintsZ(bool enable)
 	{
-		if (mPositionConstraints[2] == enable)
+		if (mPositionConstraints[2] == enable && !IsDirty())
 			return;
 
 		if (mActor)

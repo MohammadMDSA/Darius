@@ -46,19 +46,19 @@ namespace Demo
 		switch (mCastType)
 		{
 		case 0: // Ray
-			D_PHYSICS::CastRay_DebugDraw(trans->GetPosition(), trans->GetForward(), maxDist, timeToDisplay, rayHit);
+			D_PHYSICS::GetScene()->CastRay_DebugDraw(trans->GetPosition(), trans->GetForward(), maxDist, timeToDisplay, rayHit);
 			break;
 
 		case 1:
-			D_PHYSICS::CastCapsule_DebugDraw(trans->GetPosition(), trans->GetForward(), maxDist, D_MATH::Max(0.01f, D_MATH::Max(D_MATH::Abs(scale.GetX()), D_MATH::Abs(scale.GetZ()))), D_MATH::Max(0.01f, D_MATH::Abs(scale.GetY())), Quaternion::Identity, timeToDisplay, sweepHit);
+			D_PHYSICS::GetScene()->CastCapsule_DebugDraw(trans->GetPosition(), trans->GetForward(), maxDist, D_MATH::Max(0.01f, D_MATH::Max(D_MATH::Abs(scale.GetX()), D_MATH::Abs(scale.GetZ()))), D_MATH::Max(0.01f, D_MATH::Abs(scale.GetY())), Quaternion::Identity, timeToDisplay, sweepHit);
 			break;
 
 		case 2:
-			D_PHYSICS::CastSphere_DebugDraw(trans->GetPosition(), trans->GetForward(), D_MATH::Max(0.01f, D_MATH::Max(D_MATH::Abs(scale.GetX()), D_MATH::Max(D_MATH::Abs(scale.GetZ()), D_MATH::Abs(scale.GetY())))), maxDist, timeToDisplay, sweepHit);
+			D_PHYSICS::GetScene()->CastSphere_DebugDraw(trans->GetPosition(), trans->GetForward(), D_MATH::Max(0.01f, D_MATH::Max(D_MATH::Abs(scale.GetX()), D_MATH::Max(D_MATH::Abs(scale.GetZ()), D_MATH::Abs(scale.GetY())))), maxDist, timeToDisplay, sweepHit);
 			break;
 
 		case 3:
-			D_PHYSICS::CastBox_DebugDraw(trans->GetPosition(), trans->GetForward(), D_MATH::Max(D_MATH::Abs(scale), Vector3(0.01f)) / 2, Quaternion::Identity, maxDist, timeToDisplay, sweepHit);
+			D_PHYSICS::GetScene()->CastBox_DebugDraw(trans->GetPosition(), trans->GetForward(), D_MATH::Max(D_MATH::Abs(scale), Vector3(0.01f)) / 2, Quaternion::Identity, maxDist, timeToDisplay, sweepHit);
 			break;
 		default:
 			break;

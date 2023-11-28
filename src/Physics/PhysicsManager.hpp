@@ -1,9 +1,9 @@
 #pragma once
 
+#include "PhysicsScene.hpp"
+
 #include <Math/VectorMath.hpp>
 #include <ResourceManager/Resource.hpp>
-
-#include <PxPhysicsAPI.h>
 
 #ifndef D_PHYSICS
 #define D_PHYSICS Darius::Physics
@@ -20,7 +20,7 @@ namespace Darius::Physics
 
 	void					Update(bool running);
 
-	physx::PxScene*			GetScene();
+	PhysicsScene*			GetScene();
 	physx::PxPhysics*		GetCore();
 	D_RESOURCE::ResourceHandle GetDefaultMaterial();
 
@@ -64,14 +64,4 @@ namespace Darius::Physics
 		return D_MATH::Transform(GetVec3(trans.p), GetQuat(trans.q));
 	}
 
-	// Scene Queries
-	bool					CastRay(_IN_ D_MATH::Vector3 const& origin, _IN_ D_MATH::Vector3 const& direction, _IN_ float maxDistance, _OUT_ physx::PxRaycastBuffer& hit);
-	bool					CastCapsule(_IN_ D_MATH::Vector3 const& origin, _IN_ D_MATH::Vector3 const& direction, float radius, float halfHeight, D_MATH::Quaternion const& capsuleRotation, float maxDistance, _OUT_ physx::PxSweepBuffer& hit);
-	bool					CastSphere(D_MATH::Vector3 const& origin, D_MATH::Vector3 const& direction, float radius, float maxDistance, _OUT_ physx::PxSweepBuffer& hit);
-	bool					CastBox(D_MATH::Vector3 const& origin, D_MATH::Vector3 const& direction, D_MATH::Vector3 const& halfExtents, D_MATH::Quaternion const& boxRotation, float maxDistance, _OUT_ physx::PxSweepBuffer& hit);
-
-	bool					CastRay_DebugDraw(_IN_ D_MATH::Vector3 const& origin, _IN_ D_MATH::Vector3 const& direction, _IN_ float maxDistance, float secendsToDisplay, _OUT_ physx::PxRaycastBuffer& hit);
-	bool					CastCapsule_DebugDraw(_IN_ D_MATH::Vector3 const& origin, _IN_ D_MATH::Vector3 const& direction, float maxDistance, float radius, float halfHeight, D_MATH::Quaternion const& capsuleRotation, float secendsToDisplay, _OUT_ physx::PxSweepBuffer& hit);
-	bool					CastSphere_DebugDraw(D_MATH::Vector3 const& origin, D_MATH::Vector3 const& direction, float radius, float maxDistance, float secendsToDisplay, _OUT_ physx::PxSweepBuffer& hit);
-	bool					CastBox_DebugDraw(D_MATH::Vector3 const& origin, D_MATH::Vector3 const& direction, D_MATH::Vector3 const& halfExtents, D_MATH::Quaternion const& boxRotation, float maxDistance, float secendsToDisplay, _OUT_ physx::PxSweepBuffer& hit);
 }

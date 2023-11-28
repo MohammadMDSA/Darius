@@ -112,7 +112,7 @@ namespace Darius::Physics
 	{
 		if (mShape)
 		{
-			D_PHYSICS::PhysicsScene::RemoveCollider(this);
+			D_PHYSICS::GetScene()->RemoveCollider(this);
 			mShape = nullptr;
 		}
 	}
@@ -127,7 +127,7 @@ namespace Darius::Physics
 	{
 		if (mShape)
 		{
-			D_PHYSICS::PhysicsScene::RemoveCollider(this);
+			D_PHYSICS::GetScene()->RemoveCollider(this);
 			mShape = nullptr;
 		}
 	}
@@ -141,7 +141,7 @@ namespace Darius::Physics
 
 		bool trigger = IsTrigger();
 		auto material = D_PHYSICS::GetDefaultMaterial();
-		mShape = D_PHYSICS::PhysicsScene::AddCollider(this, mDynamic, &mActor);
+		mShape = D_PHYSICS::GetScene()->AddCollider(this, mDynamic, &mActor);
 		mShape->setFlag(physx::PxShapeFlag::eTRIGGER_SHAPE, trigger);
 		mShape->setFlag(physx::PxShapeFlag::eSIMULATION_SHAPE, !trigger);
 	}

@@ -22,7 +22,7 @@ namespace Darius::Physics
 		if (!mPxActor)
 			return;
 		auto scene = D_PHYSICS::GetScene();
-		scene->removeActor(*mPxActor);
+		scene->mPxScene->removeActor(*mPxActor);
 		mPxActor = nullptr;
 	}
 
@@ -49,7 +49,7 @@ namespace Darius::Physics
 			mPxActor = physics->createRigidDynamic(transform);
 		}
 
-		scene->addActor(*mPxActor);
+		scene->mPxScene->addActor(*mPxActor);
 
 	}
 }

@@ -4,6 +4,8 @@
 
 #include <Core/Signal.hpp>
 #include <Scene/GameObject.hpp>
+#include <PxPhysicsAPI.h>
+
 
 #ifndef D_PHYSICS
 #define D_PHYSICS Darius::Physics
@@ -14,22 +16,42 @@ namespace Darius::Physics
 	class ColliderComponent;
 	class RigidbodyComponent;
 
-	class PhysicsScene
+	class PhysicsScene : public NonCopyable
 	{
+	public:
+		PhysicsScene(physx::PxScene* scene);
+		~PhysicsScene();
+
+	// Scene Queries
+		bool					CastRay(_IN_ D_MATH::Vector3 const& origin, _IN_ D_MATH::Vector3 const& direction, _IN_ float maxDistance, _OUT_ physx::PxRaycastBuffer& hit);
+		bool					CastCapsule(_IN_ D_MATH::Vector3 const& origin, _IN_ D_MATH::Vector3 const& direction, float radius, float halfHeight, D_MATH::Quaternion const& capsuleRotation, float maxDistance, _OUT_ physx::PxSweepBuffer& hit);
+		bool					CastSphere(D_MATH::Vector3 const& origin, D_MATH::Vector3 const& direction, float radius, float maxDistance, _OUT_ physx::PxSweepBuffer& hit);
+		bool					CastBox(D_MATH::Vector3 const& origin, D_MATH::Vector3 const& direction, D_MATH::Vector3 const& halfExtents, D_MATH::Quaternion const& boxRotation, float maxDistance, _OUT_ physx::PxSweepBuffer& hit);
+
+		bool					CastRay_DebugDraw(_IN_ D_MATH::Vector3 const& origin, _IN_ D_MATH::Vector3 const& direction, _IN_ float maxDistance, float secendsToDisplay, _OUT_ physx::PxRaycastBuffer& hit);
+		bool					CastCapsule_DebugDraw(_IN_ D_MATH::Vector3 const& origin, _IN_ D_MATH::Vector3 const& direction, float maxDistance, float radius, float halfHeight, D_MATH::Quaternion const& capsuleRotation, float secendsToDisplay, _OUT_ physx::PxSweepBuffer& hit);
+		bool					CastSphere_DebugDraw(D_MATH::Vector3 const& origin, D_MATH::Vector3 const& direction, float radius, float maxDistance, float secendsToDisplay, _OUT_ physx::PxSweepBuffer& hit);
+		bool					CastBox_DebugDraw(D_MATH::Vector3 const& origin, D_MATH::Vector3 const& direction, D_MATH::Vector3 const& halfExtents, D_MATH::Quaternion const& boxRotation, float maxDistance, float secendsToDisplay, _OUT_ physx::PxSweepBuffer& hit);
+
+		void					Simulate(bool fetchResults, float deltaTime);
+
 	private:
 
 		friend class ColliderComponent;
 		friend class RigidbodyComponent;
+		friend class PhysicsActor;
 
-		static physx::PxRigidDynamic*	AddDynamicActor(D_SCENE::GameObject* go, bool kinematic);
-		static void						RemoveDynamicActor(D_SCENE::GameObject* go);
-		static physx::PxShape*			AddCollider(ColliderComponent* collider, _OUT_ bool& nonStatic, _OUT_ PhysicsActor** physicsActor = nullptr);
-		static void						RemoveCollider(ColliderComponent const* collider);
-		static void						AddActor(D_SCENE::GameObject const* go);
-		static INLINE bool				IsRegistered(D_SCENE::GameObject const* go) { return sActorMap.contains(const_cast<D_SCENE::GameObject*>(go)); }
+		physx::PxRigidDynamic*		AddDynamicActor(D_SCENE::GameObject* go, bool kinematic);
+		void						RemoveDynamicActor(D_SCENE::GameObject* go);
+		physx::PxShape*				AddCollider(ColliderComponent* collider, _OUT_ bool& nonStatic, _OUT_ PhysicsActor** physicsActor = nullptr);
+		void						RemoveCollider(ColliderComponent const* collider);
+		void						AddActor(D_SCENE::GameObject const* go);
+		INLINE bool					IsRegistered(D_SCENE::GameObject const* go) { return sActorMap.contains(const_cast<D_SCENE::GameObject*>(go)); }
 
-		static D_CONTAINERS::DUnorderedMap<D_SCENE::GameObject const*, PhysicsActor> sActorMap;
+		D_CONTAINERS::DUnorderedMap<D_SCENE::GameObject const*, PhysicsActor> sActorMap;
 
+		physx::PxScene*				mPxScene;
+				
 	};
 
 }
