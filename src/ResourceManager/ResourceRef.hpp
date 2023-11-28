@@ -27,6 +27,8 @@ namespace Darius::ResourceManager
 
 		ResourceRef() : D_CORE::Ref<T>() { };
 
+		ResourceRef& operator= (ResourceRef const&) = default;
+
 		INLINE bool IsValidAndGpuDirty() const { return D_CORE::Ref<T>::IsValid() && D_CORE::Ref<T>::Get()->IsDirtyGPU(); }
 	};
 

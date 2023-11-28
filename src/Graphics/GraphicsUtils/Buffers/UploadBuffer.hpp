@@ -16,7 +16,11 @@ namespace Darius::Graphics::Utils::Buffers
     class UploadBuffer : public GpuResource
     {
     public:
+
+        UploadBuffer() = default;
+        UploadBuffer(UploadBuffer const&) = default;
         INLINE virtual ~UploadBuffer() { Destroy(); }
+        UploadBuffer& operator= (UploadBuffer const&) = default;
 
         void Create(std::wstring const& name, size_t BufferSize, UINT numInstances = 1);
 

@@ -19,7 +19,10 @@ namespace Darius::Graphics::Utils::Buffers
     class GpuBuffer : public GpuResource
     {
     public:
+        GpuBuffer(GpuBuffer const&) = default;
         virtual ~GpuBuffer() { Destroy(); }
+
+        GpuBuffer& operator= (GpuBuffer const&) = default;
 
         // Create a buffer.  If initial data is provided, it will be copied into the buffer using the default command context.
         void Create(const std::wstring& name, uint32_t NumElements, uint32_t ElementSize, const void* initialData = nullptr, D3D12_RESOURCE_STATES initialState = D3D12_RESOURCE_STATE_COMMON);
