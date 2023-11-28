@@ -36,8 +36,8 @@ namespace Darius::Graphics::Utils::Buffers
 
     protected:
 
-        size_t mBufferSize;
-        UINT mNumInstances;
+        size_t mBufferSize = 0;
+        UINT mNumInstances = 0;
     };
 
     template<typename T>
