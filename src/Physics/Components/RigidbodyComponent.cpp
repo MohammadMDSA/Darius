@@ -118,6 +118,9 @@ namespace Darius::Physics
 
 	void RigidbodyComponent::SetUsingGravity(bool enable)
 	{
+		if (mUsingGravity == enable)
+			return;
+
 		if (mActor)
 			mActor->setActorFlag(PxActorFlag::eDISABLE_GRAVITY, !enable);
 
@@ -127,6 +130,9 @@ namespace Darius::Physics
 
 	void RigidbodyComponent::SetKinematic(bool value)
 	{
+		if (mKinematic == value)
+			return;
+
 		if (mActor)
 			mActor->setRigidBodyFlag(PxRigidBodyFlag::eKINEMATIC, value);
 		mKinematic = value;
@@ -197,6 +203,9 @@ namespace Darius::Physics
 
 	void RigidbodyComponent::SetRotationConstraintsX(bool enable)
 	{
+		if (mRotationConstraints[0] == enable)
+			return;
+
 		if (mActor)
 			mActor->setRigidDynamicLockFlag(PxRigidDynamicLockFlag::eLOCK_ANGULAR_X, enable);
 
@@ -206,6 +215,9 @@ namespace Darius::Physics
 
 	void RigidbodyComponent::SetRotationConstraintsY(bool enable)
 	{
+		if (mRotationConstraints[1] == enable)
+			return;
+
 		if (mActor)
 			mActor->setRigidDynamicLockFlag(PxRigidDynamicLockFlag::eLOCK_ANGULAR_Y, enable);
 
@@ -215,6 +227,9 @@ namespace Darius::Physics
 
 	void RigidbodyComponent::SetRotationConstraintsZ(bool enable)
 	{
+		if (mRotationConstraints[2] == enable)
+			return;
+
 		if (mActor)
 			mActor->setRigidDynamicLockFlag(PxRigidDynamicLockFlag::eLOCK_ANGULAR_Z, enable);
 
@@ -251,6 +266,9 @@ namespace Darius::Physics
 
 	void RigidbodyComponent::SetPositionConstraintsX(bool enable)
 	{
+		if (mPositionConstraints[0] == enable)
+			return;
+
 		if (mActor)
 			mActor->setRigidDynamicLockFlag(PxRigidDynamicLockFlag::eLOCK_LINEAR_X, enable);
 
@@ -260,6 +278,9 @@ namespace Darius::Physics
 
 	void RigidbodyComponent::SetPositionConstraintsY(bool enable)
 	{
+		if (mPositionConstraints[1] == enable)
+			return;
+
 		if (mActor)
 			mActor->setRigidDynamicLockFlag(PxRigidDynamicLockFlag::eLOCK_LINEAR_Y, enable);
 
@@ -269,6 +290,9 @@ namespace Darius::Physics
 
 	void RigidbodyComponent::SetPositionConstraintsZ(bool enable)
 	{
+		if (mPositionConstraints[2] == enable)
+			return;
+
 		if (mActor)
 			mActor->setRigidDynamicLockFlag(PxRigidDynamicLockFlag::eLOCK_LINEAR_Z, enable);
 
@@ -281,7 +305,7 @@ namespace Darius::Physics
 		if (!mActor)
 			return;
 
-		mActor->setAngularVelocity(VEC3_2_PX(v));
+		mActor->setAngularVelocity(VEC3_2_PX(v), autoWake);
 		mChangeSignal(this);
 	}
 
