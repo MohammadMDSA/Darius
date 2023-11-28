@@ -113,7 +113,12 @@ namespace Darius::Scene
 		// Drawing components
 		VisitComponents([&](auto comp)
 			{
-				if (!comp)
+				if (!comp || !comp->GetGameObject())
+					return;
+
+				auto label = comp->GetDisplayName();
+
+				if (label == "")
 					return;
 
 				bool isTransform = dynamic_cast<D_MATH::TransformComponent*>(comp);
@@ -124,7 +129,8 @@ namespace Darius::Scene
 				ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 8.f);
 
 				ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2{ 4, 4 });
-				bool open = ImGui::TreeNodeEx(comp->GetDisplayName().c_str(), treeNodeFlags);
+
+				bool open = ImGui::TreeNodeEx(label.c_str(), treeNodeFlags);
 				ImGui::PopStyleVar();
 
 
@@ -161,7 +167,9 @@ namespace Darius::Scene
 				{
 
 					if (!isTransform && ImGui::MenuItem("Remove component"))
+					{
 						RemoveComponent(comp);
+					}
 
 					ImGui::EndPopup();
 				}
@@ -391,6 +399,17 @@ namespace Darius::Scene
 
 		RemoveComponentRoutine(comp);
 		mEntity.remove(compId);
+	}
+
+	D_ECS_COMP::ComponentBase* GameObject::GetComponent(std::string const& compName) const
+	{
+		if (!RegisteredComponentNames.contains(compName))
+			return nullptr;
+
+		auto compT = D_WORLD::GetComponentEntity(compName.c_str());
+
+
+		return reinterpret_cast<D_ECS_COMP::ComponentBase*>(mEntity.get_mut(compT));
 	}
 
 	void GameObject::SetParent(GameObject* newParent)
