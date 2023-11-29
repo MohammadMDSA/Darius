@@ -23,6 +23,62 @@ namespace Darius::Math
 
 namespace Darius::Scene::ECS
 {
+	class DClass() UntypedCompRef
+	{
+	public:
+
+		UntypedCompRef() = default;
+
+		INLINE UntypedCompRef(Entity ent, ComponentEntry component) :
+			mEntity(ent),
+			mComponent(component)
+		{
+		}
+
+		INLINE UntypedCompRef(UntypedCompRef const& other) :
+			mEntity(other.mEntity),
+			mComponent(other.mComponent)
+		{
+
+		}
+
+		INLINE bool IsValid() const
+		{
+			return mEntity.is_valid() && mEntity.has(mComponent);
+		}
+
+		INLINE void* Get() const
+		{
+			if (!IsValid())
+				return nullptr;
+
+			return mEntity.get_mut(mComponent);
+		}
+
+		template<class T>
+		INLINE T* Get() const
+		{
+			static ComponentEntry compId = flecs::component<T>();
+			D_ASSERT_M(compId == mComponent, "Provided component type as template type is not compatible with the referenced component type");
+			if (!IsValid())
+				return nullptr;
+
+			return mEntity.get_mut<T>();
+		}
+
+		void* operator-> () const { return Get(); }
+		bool operator== (UntypedCompRef const& other) const
+		{
+			return mEntity == other.mEntity && mComponent == other.mComponent;
+		}
+
+
+	private:
+
+		Entity					mEntity;
+		ComponentEntry			mComponent;
+	};
+
 	template<class T>
 	class DClass() CompRef
 	{
@@ -71,7 +127,7 @@ namespace Darius::Scene::ECS
 
 	private:
 		DField(Get[const, &, inline])
-			flecs::ref<T>						mRef;
+		flecs::ref<T>						mRef;
 
 		ECS_CompRef_GENERATED
 	};
