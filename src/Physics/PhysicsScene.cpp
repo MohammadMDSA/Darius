@@ -18,12 +18,40 @@ using namespace physx;
 
 #define PX_RELEASE(x)	if(x) { x->release(); x = NULL; }
 
+// Detects a trigger using the shape's simulation filter data. See createTriggerShape() function.
+bool isTrigger(const PxFilterData & data)
+{
+	if (data.word0 != 0xffffffff)
+		return false;
+	if (data.word1 != 0xffffffff)
+		return false;
+	if (data.word2 != 0xffffffff)
+		return false;
+	if (data.word3 != 0xffffffff)
+		return false;
+	return true;
+}
+
 namespace Darius::Physics
 {
 
-	PhysicsScene::PhysicsScene(PxScene* scene) :
-		mPxScene(scene)
+	PhysicsScene::PhysicsScene(PxSceneDesc const& sceneDesc, PxPhysics* core)
 	{
+		PxSceneDesc desc = sceneDesc;
+		desc.filterShader = PxDefaultSimulationFilterShader;
+		desc.simulationEventCallback = &mCallbacks;
+
+		mPxScene = core->createScene(desc);
+
+#ifdef _DEBUG
+		PxPvdSceneClient* pvdClient = mPxScene->getScenePvdClient();
+		if (pvdClient)
+		{
+			pvdClient->setScenePvdFlag(PxPvdSceneFlag::eTRANSMIT_CONSTRAINTS, true);
+			pvdClient->setScenePvdFlag(PxPvdSceneFlag::eTRANSMIT_CONTACTS, true);
+			pvdClient->setScenePvdFlag(PxPvdSceneFlag::eTRANSMIT_SCENEQUERIES, true);
+		}
+#endif // _DEBUG
 
 	}
 

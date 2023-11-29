@@ -19,7 +19,7 @@ namespace Darius::Physics
 	class PhysicsScene : public NonCopyable
 	{
 	public:
-		PhysicsScene(physx::PxScene* scene);
+		PhysicsScene(physx::PxSceneDesc const& sceneDesc, physx::PxPhysics* core);
 		~PhysicsScene();
 
 	// Scene Queries

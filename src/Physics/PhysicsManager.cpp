@@ -61,18 +61,7 @@ namespace Darius::Physics
 		gDispatcher = PxDefaultCpuDispatcherCreate(2);
 		sceneDesc.cpuDispatcher = gDispatcher;
 		sceneDesc.filterShader = PxDefaultSimulationFilterShader;
-		auto pxScene = gPhysics->createScene(sceneDesc);
-		gScene = std::make_unique<PhysicsScene>(pxScene);
-
-#ifdef _DEBUG
-		PxPvdSceneClient* pvdClient = pxScene->getScenePvdClient();
-		if (pvdClient)
-		{
-			pvdClient->setScenePvdFlag(PxPvdSceneFlag::eTRANSMIT_CONSTRAINTS, true);
-			pvdClient->setScenePvdFlag(PxPvdSceneFlag::eTRANSMIT_CONTACTS, true);
-			pvdClient->setScenePvdFlag(PxPvdSceneFlag::eTRANSMIT_SCENEQUERIES, true);
-		}
-#endif // _DEBUG
+		gScene = std::make_unique<PhysicsScene>(sceneDesc, gPhysics);
 
 		// Registering Resources
 		PhysicsMaterialResource::Register();
