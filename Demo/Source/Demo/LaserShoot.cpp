@@ -3,7 +3,9 @@
 
 #include <Core/TimeManager/TimeManager.hpp>
 #include <Debug/DebugDraw.hpp>
+
 #include <Physics/PhysicsManager.hpp>
+#include <Physics/Components/SphereColliderComponent.hpp>
 
 #ifdef _D_EDITOR
 #include <imgui.h>
@@ -12,6 +14,7 @@
 #include "LaserShoot.sgenerated.hpp"
 
 using namespace D_MATH;
+using namespace D_PHYSICS;
 
 namespace Demo
 {
@@ -29,7 +32,7 @@ namespace Demo
 
 	void LaserShoot::Start()
 	{
-		
+		GetGameObject()->GetComponent<SphereColliderComponent>()->OnColliderContactEnter.connect(boost::bind(&LaserShoot::OnHit, this, boost::placeholders::_1, boost::placeholders::_2, boost::placeholders::_3, boost::placeholders::_4));
 	}
 
 	void LaserShoot::Update(float deltaTime)
@@ -65,6 +68,12 @@ namespace Demo
 		}
 
 	}
+
+	void LaserShoot::OnHit(Darius::Physics::ColliderComponent* thisCollider, Darius::Physics::ColliderComponent* otherCollider, D_SCENE::GameObject* otherGameObject, Darius::Physics::HitResult const& Hit)
+	{
+		D_LOG_DEBUG("Hit");
+	}
+
 
 #ifdef _D_EDITOR
 	bool LaserShoot::DrawDetails(float params[])
