@@ -30,9 +30,25 @@ namespace Demo
 		mCastType(0)
 	{ }
 
+	template<typename R, typename ... T>
+	struct a
+	{
+		R operator()(T... args) const
+		{
+			return Comp.Get()->*Func(...args);
+		}
+
+		D_ECS::UntypedCompRef Comp;
+		std::function<R(T...)> Func;
+	};
+
 	void LaserShoot::Start()
 	{
-		GetGameObject()->GetComponent<SphereColliderComponent>()->OnColliderContactEnter.connect(boost::bind(&LaserShoot::OnHit, this, boost::placeholders::_1, boost::placeholders::_2, boost::placeholders::_3, boost::placeholders::_4));
+		
+		a<void, ColliderComponent*, ColliderComponent*, D_SCENE::GameObject*, HitResult const&> a;
+		a.Comp = D_ECS::UntypedCompRef(GetGameObject()->GetEntity(), D_WORLD::GetComponentEntity(GetComponentName()));
+		//a.Func = LaserShoot::OnHit;
+		GetGameObject()->GetComponent<SphereColliderComponent>()->OnColliderContactEnter.connect(a);
 	}
 
 	void LaserShoot::Update(float deltaTime)
