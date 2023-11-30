@@ -4,12 +4,6 @@
 
 #include "LaserShoot.generated.hpp"
 
-namespace Darius::Physics
-{
-	class ColliderComponent;
-	struct HitResult;
-}
-
 namespace Demo
 {
 	class DClass(Serialize) LaserShoot : public D_ECS_COMP::BehaviourComponent
@@ -23,11 +17,7 @@ namespace Demo
 #endif // _D_EDITOR
 
 		// States
-		virtual void					Start() override;
-
 		virtual void					Update(float deltaTime) override;
-
-		void							OnHit(Darius::Physics::ColliderComponent* thisCollider, Darius::Physics::ColliderComponent* otherCollider, D_SCENE::GameObject* otherGameObject, Darius::Physics::HitResult const& Hit);
 
 	private:
 

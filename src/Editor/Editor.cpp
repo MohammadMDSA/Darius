@@ -24,6 +24,8 @@
 #include <Demo/GameObjectReferencer.hpp>
 #include <Demo/LaserShoot.hpp>
 #include <Demo/Targeter.hpp>
+#include <Demo/TriggerTest.hpp>
+#include <Demo/CollisionTest.hpp>
 
 #include <exception>
 
@@ -72,6 +74,8 @@ namespace Darius::Editor
 		Demo::DetailDrawTest::StaticConstructor();
 		Demo::Targeter::StaticConstructor();
 		Demo::GameObjectReferencer::StaticConstructor();
+		Demo::TriggerTest::StaticConstructor();
+		Demo::CollisionTest::StaticConstructor();
 
 		mTimer.SetFixedTimeStep(true);
 		mTimer.SetTargetElapsedSeconds(1.f / 60.f);
