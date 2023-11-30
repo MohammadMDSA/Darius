@@ -111,6 +111,7 @@ namespace Darius::Scene::ECS::Components
         virtual INLINE void         Start() { }
         virtual INLINE void         Awake() { }
         virtual INLINE void         OnDestroy() { }
+        virtual INLINE void         OnPreDestroy() { }
         virtual INLINE void         OnSerialized() const { }
         virtual INLINE void         OnDeserialized() { }
 

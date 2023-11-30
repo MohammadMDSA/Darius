@@ -65,6 +65,7 @@ namespace Darius::Scene
 		void								Start();
 		void								Awake();
 		void								OnDestroy();
+		void								OnPreDestroy();
 
 		void								VisitComponents(std::function<void(Darius::Scene::ECS::Components::ComponentBase*)> callback, std::function<void(D_EXCEPTION::Exception const&)> onException = nullptr) const;
 		void								VisitBehaviourComponents(std::function<void(Darius::Scene::ECS::Components::BehaviourComponent*)> callback, std::function<void(D_EXCEPTION::Exception const&)> onException = nullptr) const;

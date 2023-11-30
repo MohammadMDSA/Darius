@@ -195,6 +195,9 @@ namespace Darius::Scene
 		if (go->mDeleted || !go->mEntity.is_valid())
 			return;
 
+		if (!go->mDeleted)
+			go->OnPreDestroy();
+
 		go->VisitChildren([&](GameObject* child)
 			{
 				DeleteGameObject(child);

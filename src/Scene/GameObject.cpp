@@ -57,6 +57,14 @@ namespace Darius::Scene
 
 	}
 
+	void GameObject::OnPreDestroy()
+	{
+		VisitComponents([](auto comp)
+			{
+				comp->OnPreDestroy();
+			});
+	}
+
 #ifdef _D_EDITOR
 	bool GameObject::DrawDetails(float params[])
 	{

@@ -33,6 +33,7 @@ namespace Darius::Scene
 		static GameObject*		CreateGameObject(D_CORE::Uuid uuid, bool addToScene = true);
 		static GameObject*		InstantiateGameObject(GameObject* go, bool maintainContext = true);
 		static void				DeleteGameObject(GameObject* go);
+		// Use of this method is strongly discouraged
 		static void				DeleteGameObjectImmediately(GameObject* go);
 		static void				GetGameObjects(D_CONTAINERS::DVector<GameObject*>& container);
 		static GameObject*		GetGameObject(D_CORE::Uuid const& uuid);
