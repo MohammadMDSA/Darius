@@ -15,10 +15,10 @@
 
 namespace Darius::Physics
 {
-	typedef D_CORE::Signal<void(ColliderComponent* thisCollider, ColliderComponent* otherCollider, D_SCENE::GameObject* otherGameObject, HitResult const& Hit)> CollisionSignalType;
-	typedef D_CORE::Signal<void(ColliderComponent* thisCollider, D_SCENE::GameObject* otherGameObject)> TriggerSignalType;
+	D_H_SIGNAL_COMP_FOUR_PARAM(CollisionSignalType, ColliderComponent*, thisCollider, ColliderComponent*, otherCollider, D_SCENE::GameObject*, otherGameObject, HitResult const&, Hit);
+	D_H_SIGNAL_COMP_TWO_PARAM(TriggerSignalType, ColliderComponent*, thisCollider, D_SCENE::GameObject*, otherGameObject);
 
-	class DClass(Serialize) ColliderComponent : public D_ECS_COMP::ComponentBase
+		class DClass(Serialize) ColliderComponent : public D_ECS_COMP::ComponentBase
 	{
 		D_H_COMP_BODY(ColliderComponent, ComponentBase, "Physics/Collider", false);
 
@@ -38,12 +38,12 @@ namespace Darius::Physics
 		virtual bool										DrawDetails(float params[]) override;
 #endif
 
-		INLINE physx::PxShape*								GetShape() const { return mShape; }
+		INLINE physx::PxShape* GetShape() const { return mShape; }
 		INLINE bool											IsDynamic() const { return mDynamic; }
 
-		void												SetMaterial(PhysicsMaterialResource* material);
+		void												SetMaterial(PhysicsMaterialResource * material);
 		void												SetTrigger(bool trigger);
-		INLINE PhysicsMaterialResource*						GetMaterial() const { return mMaterial.Get(); }
+		INLINE PhysicsMaterialResource* GetMaterial() const { return mMaterial.Get(); }
 		INLINE bool											IsTrigger() const { return mTrigger; }
 
 		virtual INLINE D_MATH::Quaternion					GetBiasedRotation() const { return D_MATH::Quaternion::Identity; }
@@ -56,8 +56,8 @@ namespace Darius::Physics
 		TriggerSignalType									OnTriggerExit;
 
 	protected:
-		virtual INLINE physx::PxGeometry const*				GetPhysicsGeometry() const { return nullptr; };
-		virtual INLINE physx::PxGeometry*					UpdateAndGetPhysicsGeometry(bool& changed) { changed = false; return nullptr; };
+		virtual INLINE physx::PxGeometry const* GetPhysicsGeometry() const { return nullptr; };
+		virtual INLINE physx::PxGeometry* UpdateAndGetPhysicsGeometry(bool& changed) { changed = false; return nullptr; };
 
 	private:
 		friend class PhysicsScene;
@@ -66,16 +66,16 @@ namespace Darius::Physics
 		void												ReloadMaterialData();
 
 		DField()
-		bool												mDynamic;
+			bool												mDynamic;
 
 		DField(Serialize)
-		bool												mTrigger;
+			bool												mTrigger;
 
 		DField(Serialize)
-		D_RESOURCE::ResourceRef<PhysicsMaterialResource>	mMaterial;
+			D_RESOURCE::ResourceRef<PhysicsMaterialResource>	mMaterial;
 
-		PhysicsActor*										mActor;
-		physx::PxShape*										mShape = nullptr;
+		PhysicsActor* mActor;
+		physx::PxShape* mShape = nullptr;
 
 
 	public:
