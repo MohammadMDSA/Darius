@@ -218,7 +218,7 @@ namespace Darius::Renderer
 
 		// Updating mesh constants
 		// Mapping upload buffer
-		MeshConstants* cb = (MeshConstants*)mMeshConstantsCPU.Map(frameResourceIndex);
+		MeshConstants* cb = (MeshConstants*)mMeshConstantsCPU.MapInstance(frameResourceIndex);
 
 
 		Matrix4 world = GetTransform()->GetWorld();
