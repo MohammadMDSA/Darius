@@ -19,6 +19,7 @@ namespace Darius::Physics
 #endif
 
 	void					Update(bool running);
+	void					Flush();
 
 	PhysicsScene*			GetScene();
 	physx::PxPhysics*		GetCore();

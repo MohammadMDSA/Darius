@@ -35,6 +35,9 @@ namespace Darius::Physics
 
 		void					Simulate(bool fetchResults, float deltaTime);
 
+		// Remove deleted actors and colliders
+		void					FlushDeleted();
+		INLINE bool				RequiresDeletedFlushing() const { return mToBeRemoved.size() > 0; }
 	private:
 
 		friend class ColliderComponent;
@@ -57,9 +60,13 @@ namespace Darius::Physics
 		physx::PxShape*				AddCollider(ColliderComponent* collider, _OUT_ bool& nonStatic, _OUT_ PhysicsActor ** physicsActor = nullptr);
 		void						RemoveCollider(ColliderComponent const* collider);
 		void						AddActor(D_SCENE::GameObject const* go);
-		INLINE bool					IsRegistered(D_SCENE::GameObject const* go) { return sActorMap.contains(const_cast<D_SCENE::GameObject*>(go)); }
+		INLINE bool					IsRegistered(D_SCENE::GameObject const* go) { return mActorMap.contains(const_cast<D_SCENE::GameObject*>(go)); }
 
-		D_CONTAINERS::DUnorderedMap<D_SCENE::GameObject const*, PhysicsActor> sActorMap;
+		// Remove pending GOs
+		void						RemovePending();
+
+		D_CONTAINERS::DUnorderedMap<D_SCENE::GameObject const*, PhysicsActor> mActorMap;
+		D_CONTAINERS::DSet<D_SCENE::GameObject const*> mToBeRemoved;
 
 		physx::PxScene*				mPxScene;
 		SimulationCallback			mCallbacks;

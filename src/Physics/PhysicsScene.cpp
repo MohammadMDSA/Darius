@@ -18,7 +18,7 @@ using namespace physx;
 
 #define PX_RELEASE(x)	if(x) { x->release(); x = NULL; }
 
-bool isTrigger(const PxFilterData & data)
+bool IsTrigger(PxFilterData const& data)
 {
 	if (data.word0 != 0xffffffff)
 		return false;
@@ -35,12 +35,8 @@ PxFilterFlags triggersUsingFilterShader(PxFilterObjectAttributes /*attributes0*/
 	PxFilterObjectAttributes /*attributes1*/, PxFilterData filterData1,
 	PxPairFlags& pairFlags, const void* /*constantBlock*/, PxU32 /*constantBlockSize*/)
 {
-	//	printf("contactReportFilterShader\n");
-
-	PX_ASSERT(getImpl() == FILTER_SHADER);
-
 	// We need to detect whether one of the shapes is a trigger.
-	const bool isTriggerPair = isTrigger(filterData0) || isTrigger(filterData1);
+	const bool isTriggerPair = IsTrigger(filterData0) || IsTrigger(filterData1);
 
 	// If we have a trigger, replicate the trigger codepath from PxDefaultSimulationFilterShader
 	if (isTriggerPair)
@@ -91,31 +87,64 @@ namespace Darius::Physics
 	void PhysicsScene::Simulate(bool fetchResults, float deltaTime)
 	{
 		D_PROFILING::ScopedTimer physicsProfiler(L"Physics Simulation Update");
+
 		mPxScene->simulate(deltaTime);
 		mPxScene->fetchResults(fetchResults);
+
+		FlushDeleted();
+
+	}
+
+	void PhysicsScene::FlushDeleted()
+	{
+		// Remove deleted colliders
+		PhysicsActor::RemoveDeleted();
+
+		// Remove irrelevant GOs
+		RemovePending();
+	}
+
+	void PhysicsScene::RemovePending()
+	{
+		for (auto go : mToBeRemoved)
+		{
+			mActorMap.erase(go);
+		}
+
+		mToBeRemoved.clear();
 	}
 
 	PxRigidDynamic* PhysicsScene::AddDynamicActor(D_SCENE::GameObject* go, bool kinematic)
 	{
 		// An actor is already registered for the corresponding game object
-		if (sActorMap.contains(go))
+
+		if (mActorMap.contains(go))
 		{
-			auto& actor = sActorMap[go];
+
+			auto& actor = mActorMap.at(go);
 
 			// The registered actor is a dynamic one so just return it
-			if (!actor.IsStatic())
+			if (!actor.IsStatic() && !actor.mDirty)
+			{
+				D_ASSERT(actor.mPxActor);
+				D_ASSERT(!actor.mDirty);
 				return reinterpret_cast<PxRigidDynamic*>(actor.mPxActor);
+			}
 
-			sActorMap.erase(go);
+			mActorMap.erase(go);
 		}
 
 		// Deciding the actor type
 		auto type = kinematic ? PhysicsActor::PhysicsActorType::Kinematic : PhysicsActor::PhysicsActorType::Dynamic;
-		sActorMap.emplace(go, PhysicsActor(go, type));
-		auto& newActor = sActorMap[go];
+
+		mToBeRemoved.erase(go);
+		mActorMap.emplace(go, PhysicsActor(go, type));
+		auto& newActor = mActorMap.at(go);
 		newActor.InitializeActor(); // Initialize physics actor
 		auto dynamicActor = reinterpret_cast<PxRigidDynamic*>(newActor.mPxActor);
 
+		D_ASSERT(dynamicActor);
+		D_ASSERT(!newActor.mDirty);
 		return dynamicActor;
 
 	}
@@ -123,25 +152,28 @@ namespace Darius::Physics
 	void PhysicsScene::RemoveDynamicActor(D_SCENE::GameObject* go)
 	{
 		// If there is no actor for the gameobject, we don't have to do anything
-		if (!sActorMap.contains(go))
+		if (!mActorMap.contains(go))
 			return;
 
 		// So there is an actor
-		auto& actor = sActorMap[go];
+		auto& actor = mActorMap.at(go);
 
 		// Don't do anything if it already is static
 		if (actor.IsStatic())
 			return;
 
-		auto invalidCollidersCount = actor.mCollider.size();
-
-		sActorMap.erase(go);
+		auto invalidCollidersCount = actor.ColliderCount();
 
 		if (invalidCollidersCount <= 0)
+		{
+			mToBeRemoved.insert(go);
+			mActorMap.at(go).UninitialzieActor();
 			return;
+		}
 
-		sActorMap.emplace(go, PhysicsActor(go, PhysicsActor::PhysicsActorType::Static));
-		auto& newActor = sActorMap[go];
+		mToBeRemoved.erase(go);
+		mActorMap.emplace(go, PhysicsActor(go, PhysicsActor::PhysicsActorType::Static));
+		auto& newActor = mActorMap[go];
 
 	}
 
@@ -149,18 +181,17 @@ namespace Darius::Physics
 	{
 		auto go = collider->GetGameObject();
 
-		if (!sActorMap.contains(go))
+		if (!mActorMap.contains(go))
 			AddActor(go);
 
-		D_ASSERT(sActorMap.contains(go));
+		D_ASSERT(mActorMap.contains(go));
 
-		auto& actor = sActorMap[go];
+		auto& actor = mActorMap.at(go);
 
 		// Check if corresponding actor is non-static
 		nonStatic = !actor.IsStatic();
 
-		if (!actor.mPxActor)
-			actor.InitializeActor();
+		actor.InitializeActor();
 
 		auto pxActor = actor.mPxActor;
 		D_ASSERT(pxActor != nullptr);
@@ -173,6 +204,10 @@ namespace Darius::Physics
 		if (physicsActor)
 			*physicsActor = &actor;
 
+
+		D_ASSERT(shape);
+		D_ASSERT(!actor.mDirty);
+
 		return shape;
 
 	}
@@ -182,32 +217,34 @@ namespace Darius::Physics
 		auto coll = const_cast<ColliderComponent*>(collider);
 		auto go = coll->GetGameObject();
 
-		if (!sActorMap.contains(go))
+		if (!mActorMap.contains(go))
 			return;
 
-		auto& actor = sActorMap[go];
+		auto& actor = mActorMap.at(go);
 
 		auto pxActor = actor.mPxActor;
 		auto shape = collider->mShape;
 
 		pxActor->detachShape(*shape);
 
-		actor.mCollider.erase(shape);
+		actor.RemoveCollider(shape);
 
-		if (actor.IsStatic() && actor.mCollider.size() <= 0)
+		if (actor.IsStatic() && actor.ColliderCount() <= 0)
 		{
-			sActorMap.erase(go);
+			mToBeRemoved.insert(go);
+			mActorMap.at(go).UninitialzieActor();
 		}
 	}
 
 	void PhysicsScene::AddActor(GameObject const* go)
 	{
 		auto ref = go;
-		if (sActorMap.contains(ref))
+		if (mActorMap.contains(ref))
 			return;
 
-		sActorMap.emplace(ref, PhysicsActor(ref, PhysicsActor::PhysicsActorType::Static));
-		sActorMap[ref].InitializeActor();
+		mToBeRemoved.erase(go);
+		mActorMap.emplace(ref, PhysicsActor(ref, PhysicsActor::PhysicsActorType::Static));
+		mActorMap[ref].InitializeActor();
 	}
 
 
@@ -328,7 +365,11 @@ namespace Darius::Physics
 			auto actor1 = PhysicsActor::GetFromPxActor(pairHeader.actors[0]);
 			auto actor2 = PhysicsActor::GetFromPxActor(pairHeader.actors[1]);
 
-			// Finding collider component names which generated the event
+			// At least one of the actor has been invalid
+			/*if (!actor1 || !actor2)
+				continue;*/
+
+				// Finding collider component names which generated the event
 			auto compName1 = actor1->mCollider.at(pair.shapes[0]);
 			auto compName2 = actor2->mCollider.at(pair.shapes[1]);
 
@@ -341,7 +382,7 @@ namespace Darius::Physics
 			auto comp2 = reinterpret_cast<ColliderComponent*>(go2->GetComponent(compName2));
 
 			D_STATIC_ASSERT(sizeof(PxVec3) == 3 * sizeof(float));
-			
+
 			// Loading hit points
 			HitResult hit;
 			D_CONTAINERS::DVector<PxContactPairPoint> nativePoints;

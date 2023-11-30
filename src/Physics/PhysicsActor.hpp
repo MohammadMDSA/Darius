@@ -46,22 +46,27 @@ namespace Darius::Physics
 		INLINE bool						IsStatic() const { return mActorType == PhysicsActorType::Static; }
 		INLINE physx::PxRigidActor*		GetPxActor() const { return mPxActor; }
 		INLINE PhysicsActorType 		GetActorType() const { return mActorType; }
+		INLINE int						ColliderCount() const { return (int)mCollider.size() - (int)mToBeRemoved.size(); }
 
 	private:
 		friend class PhysicsScene;
 
 		void							InitializeActor();
-		
-
+		void							UninitialzieActor();
+		void							RemoveCollider(void* shape);
+		static void						RemoveDeleted();
 		
 		DField()
 		physx::PxRigidActor*			mPxActor;
 
 		DField()
 		const PhysicsActorType			mActorType;
+
+		bool							mDirty;
 		
 		D_SCENE::GameObject const* const mGameObject;
 		D_CONTAINERS::DUnorderedMap<physx::PxShape*, std::string> mCollider;
+		D_CONTAINERS::DSet<physx::PxShape*> mToBeRemoved;
 	};
 
 }

@@ -16,23 +16,40 @@ namespace Darius::Physics
 {
 
 	DUnorderedMap<PxActor*, PhysicsActor*> ActorMap;
+	DSet<PhysicsActor*>	RequireDelete;
 
 
 	PhysicsActor::PhysicsActor(D_SCENE::GameObject const* gameObject, PhysicsActorType type) :
 		mActorType(type),
 		mPxActor(nullptr),
-		mGameObject(gameObject)
+		mGameObject(gameObject),
+		mDirty(true)
 	{
 	}
 
 	PhysicsActor::~PhysicsActor()
 	{
+		UninitialzieActor();
+
+		RequireDelete.erase(this);
+
 		if (!mPxActor)
 			return;
-		auto scene = D_PHYSICS::GetScene();
-		scene->mPxScene->removeActor(*mPxActor);
 		ActorMap.erase(mPxActor);
 		mPxActor = nullptr;
+	}
+
+	void PhysicsActor::RemoveDeleted()
+	{
+		for (auto actor : RequireDelete)
+		{
+			for (auto collider : actor->mToBeRemoved)
+			{
+				actor->mCollider.erase(collider);
+			}
+			actor->mToBeRemoved.clear();
+		}
+		RequireDelete.clear();
 	}
 
 	PhysicsActor* PhysicsActor::GetFromPxActor(physx::PxActor* actor)
@@ -43,10 +60,25 @@ namespace Darius::Physics
 		return ActorMap.at(actor);
 	}
 
+	void PhysicsActor::UninitialzieActor()
+	{
+		mDirty = true;
+		if (!mPxActor)
+			return;
+		auto scene = D_PHYSICS::GetScene();
+		scene->mPxScene->removeActor(*mPxActor);
+	}
+
+	void PhysicsActor::RemoveCollider(void* shape)
+	{
+		mToBeRemoved.insert(reinterpret_cast<PxShape*>(shape));
+		RequireDelete.insert(this);
+	}
+
 	void PhysicsActor::InitializeActor()
 	{
 		D_ASSERT(mGameObject);
-		if (mPxActor)
+		if (mPxActor && !mDirty)
 			return;
 
 		auto scene = D_PHYSICS::GetScene();
@@ -67,8 +99,11 @@ namespace Darius::Physics
 		}
 
 		ActorMap[mPxActor] = this;
+		mCollider.clear();
 
 		scene->mPxScene->addActor(*mPxActor);
+
+		mDirty = false;
 
 	}
 }

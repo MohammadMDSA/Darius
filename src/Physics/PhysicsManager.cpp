@@ -103,6 +103,11 @@ namespace Darius::Physics
 	}
 #endif
 
+	void Flush()
+	{
+		gScene->Simulate(true, D_TIME::GetTargetElapsedSeconds());
+	}
+
 	void Update(bool running)
 	{
 		D_PROFILING::ScopedTimer physicsProfiler(L"Physics Update");
