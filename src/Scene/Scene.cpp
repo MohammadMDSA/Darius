@@ -540,12 +540,15 @@ namespace Darius::Scene
 		Loaded = false;
 	}
 
-	void SceneManager::ClearScene()
+	void SceneManager::ClearScene(std::function<void()> preClean)
 	{
 		Root.children([&](D_ECS::Entity ent)
 			{
 				DeleteGameObject((*EntityMap)[ent]);
 			});
+
+		if (preClean)
+			preClean();
 
 		RemoveDeleted();
 		GOs->clear();
