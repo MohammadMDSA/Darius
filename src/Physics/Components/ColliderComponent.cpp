@@ -79,10 +79,10 @@ namespace Darius::Physics
 
 	void ColliderComponent::PreUpdate(bool simulating)
 	{
-		if (!mShape)
+		if (!mShape || !simulating)
 			return;
 
-		if (!simulating && IsDynamic() != GetGameObject()->HasComponent<RigidbodyComponent>())
+		if (simulating && IsDynamic() != GetGameObject()->HasComponent<RigidbodyComponent>())
 			InvalidatePhysicsActor();
 
 		// Update rot pos
@@ -108,7 +108,7 @@ namespace Darius::Physics
 
 	}
 
-	void ColliderComponent::OnDestroy()
+	void ColliderComponent::OnPreDestroy()
 	{
 		if (mShape)
 		{

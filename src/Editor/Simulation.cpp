@@ -149,7 +149,7 @@ namespace Darius::Editor::Simulate
 
 		// Resetting scene to what it originally was
 		D_EDITOR_CONTEXT::SetSelectedGameObject(nullptr);
-		D_WORLD::ClearScene();
+		D_WORLD::ClearScene([]() { D_PHYSICS::Update(true); });
 		D_WORLD::LoadSceneDump(SceneDump);
 		D_DEBUG_DRAW::Clear(true);
 

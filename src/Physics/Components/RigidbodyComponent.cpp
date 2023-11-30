@@ -57,7 +57,7 @@ namespace Darius::Physics
 		SetClean();
 	}
 
-	void RigidbodyComponent::OnDestroy()
+	void RigidbodyComponent::OnPreDestroy()
 	{
 		D_PHYSICS::GetScene()->RemoveDynamicActor(GetGameObject());
 	}
