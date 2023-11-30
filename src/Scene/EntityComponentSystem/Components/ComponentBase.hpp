@@ -238,16 +238,25 @@ namespace Darius::Scene::ECS
         typedef GenericComponentSignalSlot<void, T...> Slot;
 
     public:
-        template<typename FUNCTION>
-        INLINE D_CORE::SignalConnection ConnectComponent(D_ECS::Components::ComponentBase* comp, FUNCTION func)
+        template<class COMP, typename FUNCTION>
+        INLINE D_CORE::SignalConnection ConnectComponent(COMP* comp, FUNCTION func)
         {
+            // Checking if FUNCTION is a member function
             D_STATIC_ASSERT(std::is_member_function_pointer<FUNCTION>::value);
+            // Checking if COMP is a component type
+            using conv = std::is_convertible<COMP*, D_ECS::Components::ComponentBase*>;
+            D_STATIC_ASSERT(conv::value);
+            // Checking if FUNCTION signature is the same with the signal signature
+            D_STATIC_ASSERT(std::is_same_v<FUNCTION, void(COMP::*)(T...)>);
             D_ASSERT(comp);
 
             Slot slot;
-            slot.Func = func;
+            slot.Func = [inner = func](void* obj, T... args)
+                {
+                    return (reinterpret_cast<COMP*>(obj)->*inner)(args...);
+                };
             slot.Comp = UntypedCompRef(comp->GetGameObject()->GetEntity(), comp->GetComponentEntry());
-            return connect(slot);
+            return this->connect(slot);
         }
     };
 

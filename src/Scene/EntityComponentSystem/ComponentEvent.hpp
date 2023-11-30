@@ -21,14 +21,14 @@ namespace Darius::Scene::ECS
 	{
 		typedef R							ReturnType;
 
-		UntypedCompRef						Comp;
-		std::function<ReturnType(T...)>		Func;
+		UntypedCompRef							Comp;
+		std::function<ReturnType(void*, T...)>	Func;
 
 		ReturnType operator() (T... args)
 		{
 			auto compRef = Comp.Get();
-			if(compRef)
-				return compRef->*Func(args...);
+			if (compRef)
+				return Func(compRef, args...);
 
 			return ReturnType();
 		}
