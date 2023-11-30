@@ -142,8 +142,8 @@ namespace Darius::Physics
 		bool trigger = IsTrigger();
 		auto material = D_PHYSICS::GetDefaultMaterial();
 		mShape = D_PHYSICS::GetScene()->AddCollider(this, mDynamic, &mActor);
-		mShape->setFlag(physx::PxShapeFlag::eTRIGGER_SHAPE, trigger);
 		mShape->setFlag(physx::PxShapeFlag::eSIMULATION_SHAPE, !trigger);
+		mShape->setFlag(physx::PxShapeFlag::eTRIGGER_SHAPE, trigger);
 	}
 
 	void ColliderComponent::SetMaterial(PhysicsMaterialResource* material)
@@ -180,8 +180,8 @@ namespace Darius::Physics
 		if (mShape)
 		{
 			auto trigger = IsTrigger();
-			mShape->setFlag(physx::PxShapeFlag::eTRIGGER_SHAPE, trigger);
 			mShape->setFlag(physx::PxShapeFlag::eSIMULATION_SHAPE, !trigger);
+			mShape->setFlag(physx::PxShapeFlag::eTRIGGER_SHAPE, trigger);
 		}
 		
 		mChangeSignal(this);
