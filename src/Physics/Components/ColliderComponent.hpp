@@ -15,6 +15,9 @@
 
 namespace Darius::Physics
 {
+	typedef D_CORE::Signal<void(ColliderComponent* thisCollider, ColliderComponent* otherCollider, D_SCENE::GameObject* otherGameObject, HitResult const& Hit)> CollisionSignalType;
+	typedef D_CORE::Signal<void(ColliderComponent* thisCollider, D_SCENE::GameObject* otherGameObject)> TriggerSignalType;
+
 	class DClass(Serialize) ColliderComponent : public D_ECS_COMP::ComponentBase
 	{
 		D_H_COMP_BODY(ColliderComponent, ComponentBase, "Physics/Collider", false);
@@ -45,12 +48,12 @@ namespace Darius::Physics
 
 		virtual INLINE D_MATH::Quaternion					GetBiasedRotation() const { return D_MATH::Quaternion::Identity; }
 
-		D_CORE::Signal<void(ColliderComponent* thisCollider, ColliderComponent* otherCollider, D_SCENE::GameObject* otherGameObject, HitResult const& Hit)> OnColliderContactEnter;
-		D_CORE::Signal<void(ColliderComponent* thisCollider, ColliderComponent* otherCollider, D_SCENE::GameObject* otherGameObject, HitResult const& Hit)> OnColliderContactLost;
-		D_CORE::Signal<void(ColliderComponent* thisCollider, ColliderComponent* otherCollider, D_SCENE::GameObject* otherGameObject, HitResult const& Hit)> OnColliderContactStay;
+		CollisionSignalType									OnColliderContactEnter;
+		CollisionSignalType									OnColliderContactLost;
+		CollisionSignalType									OnColliderContactStay;
 
-		D_CORE::Signal<void(ColliderComponent* thisCollider, D_SCENE::GameObject* otherGameObject)> OnTriggerEnter;
-		D_CORE::Signal<void(ColliderComponent* thisCollider, D_SCENE::GameObject* otherGameObject)> OnTriggerExit;
+		TriggerSignalType									OnTriggerEnter;
+		TriggerSignalType									OnTriggerExit;
 
 	protected:
 		virtual INLINE physx::PxGeometry const*				GetPhysicsGeometry() const { return nullptr; };

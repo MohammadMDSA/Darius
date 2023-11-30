@@ -3,7 +3,9 @@
 
 #include <Core/TimeManager/TimeManager.hpp>
 #include <Debug/DebugDraw.hpp>
+
 #include <Physics/PhysicsManager.hpp>
+#include <Physics/Components/SphereColliderComponent.hpp>
 
 #ifdef _D_EDITOR
 #include <imgui.h>
@@ -12,6 +14,7 @@
 #include "LaserShoot.sgenerated.hpp"
 
 using namespace D_MATH;
+using namespace D_PHYSICS;
 
 namespace Demo
 {
@@ -27,9 +30,25 @@ namespace Demo
 		mCastType(0)
 	{ }
 
+	template<typename R, typename ... T>
+	struct a
+	{
+		R operator()(T... args) const
+		{
+			return Comp.Get()->*Func(...args);
+		}
+
+		D_ECS::UntypedCompRef Comp;
+		std::function<R(T...)> Func;
+	};
+
 	void LaserShoot::Start()
 	{
 		
+		a<void, ColliderComponent*, ColliderComponent*, D_SCENE::GameObject*, HitResult const&> a;
+		a.Comp = D_ECS::UntypedCompRef(GetGameObject()->GetEntity(), D_WORLD::GetComponentEntity(GetComponentName()));
+		//a.Func = LaserShoot::OnHit;
+		GetGameObject()->GetComponent<SphereColliderComponent>()->OnColliderContactEnter.connect(a);
 	}
 
 	void LaserShoot::Update(float deltaTime)
@@ -65,6 +84,12 @@ namespace Demo
 		}
 
 	}
+
+	void LaserShoot::OnHit(Darius::Physics::ColliderComponent* thisCollider, Darius::Physics::ColliderComponent* otherCollider, D_SCENE::GameObject* otherGameObject, Darius::Physics::HitResult const& Hit)
+	{
+		D_LOG_DEBUG("Hit");
+	}
+
 
 #ifdef _D_EDITOR
 	bool LaserShoot::DrawDetails(float params[])

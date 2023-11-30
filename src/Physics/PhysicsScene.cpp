@@ -18,12 +18,68 @@ using namespace physx;
 
 #define PX_RELEASE(x)	if(x) { x->release(); x = NULL; }
 
+bool isTrigger(const PxFilterData & data)
+{
+	if (data.word0 != 0xffffffff)
+		return false;
+	if (data.word1 != 0xffffffff)
+		return false;
+	if (data.word2 != 0xffffffff)
+		return false;
+	if (data.word3 != 0xffffffff)
+		return false;
+	return true;
+}
+
+PxFilterFlags triggersUsingFilterShader(PxFilterObjectAttributes /*attributes0*/, PxFilterData filterData0,
+	PxFilterObjectAttributes /*attributes1*/, PxFilterData filterData1,
+	PxPairFlags& pairFlags, const void* /*constantBlock*/, PxU32 /*constantBlockSize*/)
+{
+	//	printf("contactReportFilterShader\n");
+
+	PX_ASSERT(getImpl() == FILTER_SHADER);
+
+	// We need to detect whether one of the shapes is a trigger.
+	const bool isTriggerPair = isTrigger(filterData0) || isTrigger(filterData1);
+
+	// If we have a trigger, replicate the trigger codepath from PxDefaultSimulationFilterShader
+	if (isTriggerPair)
+	{
+		pairFlags = PxPairFlag::eTRIGGER_DEFAULT;
+
+		//if (usesCCD())
+		//	pairFlags |= PxPairFlag::eDETECT_CCD_CONTACT;
+
+		return PxFilterFlag::eDEFAULT;
+	}
+	else
+	{
+		// Otherwise use the default flags for regular pairs
+		pairFlags = PxPairFlag::eCONTACT_DEFAULT | PxPairFlag::eNOTIFY_TOUCH_FOUND | PxPairFlag::eNOTIFY_TOUCH_LOST | PxPairFlag::eNOTIFY_TOUCH_PERSISTS;
+		return PxFilterFlag::eDEFAULT;
+	}
+}
+
 namespace Darius::Physics
 {
 
-	PhysicsScene::PhysicsScene(PxScene* scene) :
-		mPxScene(scene)
+	PhysicsScene::PhysicsScene(PxSceneDesc const& sceneDesc, PxPhysics* core)
 	{
+		PxSceneDesc desc = sceneDesc;
+		desc.filterShader = triggersUsingFilterShader;
+		desc.simulationEventCallback = &mCallbacks;
+
+		mPxScene = core->createScene(desc);
+
+#ifdef _DEBUG
+		PxPvdSceneClient* pvdClient = mPxScene->getScenePvdClient();
+		if (pvdClient)
+		{
+			pvdClient->setScenePvdFlag(PxPvdSceneFlag::eTRANSMIT_CONSTRAINTS, true);
+			pvdClient->setScenePvdFlag(PxPvdSceneFlag::eTRANSMIT_CONTACTS, true);
+			pvdClient->setScenePvdFlag(PxPvdSceneFlag::eTRANSMIT_SCENEQUERIES, true);
+		}
+#endif // _DEBUG
 
 	}
 
@@ -105,7 +161,9 @@ namespace Darius::Physics
 
 		if (!actor.mPxActor)
 			actor.InitializeActor();
+
 		auto pxActor = actor.mPxActor;
+		D_ASSERT(pxActor != nullptr);
 
 		auto shape = PxRigidActorExt::createExclusiveShape(*pxActor, *collider->GetPhysicsGeometry(), *collider->GetMaterial());
 
@@ -319,7 +377,7 @@ namespace Darius::Physics
 			}
 
 			// Firing lost event
-			if (pair.events & PxPairFlag::eNOTIFY_TOUCH_PERSISTS)
+			if (pair.events & PxPairFlag::eNOTIFY_TOUCH_LOST)
 			{
 				comp1->OnColliderContactLost(comp1, comp2, const_cast<D_SCENE::GameObject*>(go2), hit);
 				comp2->OnColliderContactLost(comp2, comp1, const_cast<D_SCENE::GameObject*>(go1), hit);
