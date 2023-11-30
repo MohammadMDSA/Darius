@@ -6,6 +6,7 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ".")
 list(APPEND SCENE_LIBS_INCLUDE
 	"EntityComponentSystem/Entity.hpp"
 	"EntityComponentSystem/CompRef.hpp"
+	"EntityComponentSystem/ComponentEvent.hpp"
 	"EntityComponentSystem/Components/ComponentBase.hpp"
 	"EntityComponentSystem/Components/BehaviourComponent.hpp"
 	"EntityComponentSystem/Components/TransformComponent.hpp"

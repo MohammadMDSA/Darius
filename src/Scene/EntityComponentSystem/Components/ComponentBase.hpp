@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Scene/EntityComponentSystem/CompRef.hpp"
+#include "Scene/EntityComponentSystem/ComponentEvent.hpp"
 #include "Scene/GameObject.hpp"
 #include "Scene/Scene.hpp"
 
@@ -30,7 +31,9 @@
 public: \
 T(); \
 T(D_CORE::Uuid uuid); \
-static INLINE std::string ClassName() { return D_NAMEOF(T); } \
+static constexpr INLINE std::string ClassName() { return D_NAMEOF(T); } \
+static INLINE D_ECS::ComponentEntry GetComponentEntryStatic() { return D_WORLD::GetComponentEntity(ClassName()); } \
+virtual INLINE D_ECS::ComponentEntry GetComponentEntry() const override { return D_WORLD::GetComponentEntity(ClassName()); } \
 virtual INLINE std::string GetDisplayName() const override { return T::DisplayName; } \
 virtual INLINE std::string GetComponentName() const override { return D_NAMEOF(T); } \
 virtual INLINE rttr::type GetComponentType() const override { return rttr::type::get<T>(); }; \
@@ -102,6 +105,8 @@ namespace Darius::Scene::ECS::Components
         virtual INLINE std::string  GetComponentName() const { return ""; }
         virtual INLINE std::string  GetDisplayName() const { return ""; }
         virtual INLINE rttr::type   GetComponentType() const { return rttr::type::get<ComponentBase>(); };
+        virtual INLINE ComponentEntry GetComponentEntry() const { return D_WORLD::GetComponentEntity(ClassName()); }
+
 
         virtual INLINE void         Start() { }
         virtual INLINE void         Awake() { }
@@ -220,6 +225,49 @@ namespace Darius::Scene::ECS::Components
             return true;
         return false;
     }
+
+}
+
+namespace Darius::Scene::ECS
+{
+
+    template<typename ...T>
+    class GenericComponentSignal : public D_CORE::Signal<void(T...)>
+    {
+    public:
+        typedef GenericComponentSignalSlot<void, T...> Slot;
+
+    public:
+        template<typename FUNCTION>
+        INLINE D_CORE::SignalConnection ConnectComponent(D_ECS::Components::ComponentBase* comp, FUNCTION func)
+        {
+            D_STATIC_ASSERT(std::is_member_function_pointer<FUNCTION>::value);
+            D_ASSERT(comp);
+
+            Slot slot;
+            slot.Func = func;
+            slot.Comp = UntypedCompRef(comp->GetGameObject()->GetEntity(), comp->GetComponentEntry());
+            return connect(slot);
+        }
+    };
+
+#define D_H_SIGNAL_COMP(ClassName) \
+	class ClassName : public D_ECS::GenericComponentSignal<> { }
+
+#define D_H_SIGNAL_COMP_ONE_PARAM(ClassName, Param1Type, Param1Name) \
+	class ClassName : public D_ECS::GenericComponentSignal<Param1Type> { }
+
+#define D_H_SIGNAL_COMP_TWO_PARAM(ClassName, Param1Type, Param1Name, Param2Type, Param2Name) \
+	class ClassName : public D_ECS::GenericComponentSignal<Param1Type, Param2Type> { }
+
+#define D_H_SIGNAL_COMP_THREE_PARAM(ClassName, Param1Type, Param1Name, Param2Type, Param2Name, Param3Type, Param3Name) \
+	class ClassName : public D_ECS::GenericComponentSignal<Param1Type, Param2Type, Param3Type> { }
+
+#define D_H_SIGNAL_COMP_FOUR_PARAM(ClassName, Param1Type, Param1Name, Param2Type, Param2Name, Param3Type, Param3Name, Param4Type, Param4Name) \
+	class ClassName : public D_ECS::GenericComponentSignal<Param1Type, Param2Type, Param3Type, Param4Type> { }
+
+#define D_H_SIGNAL_COMP_FIVE_PARAM(ClassName, Param1Type, Param1Name, Param2Type, Param2Name, Param3Type, Param3Name, Param4Type, Param4Name, Param5Type, Param5Name) \
+	class ClassName : public D_ECS::GenericComponentSignal<Param1Type, Param2Type, Param3Type, Param4Type, Param5Type> { }
 
 }
 
