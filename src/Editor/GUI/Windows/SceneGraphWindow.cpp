@@ -2,6 +2,8 @@
 #include "SceneGraphWindow.hpp"
 #include "Editor/EditorContext.hpp"
 
+#include "Editor/Simulation.hpp"
+
 #include <Core/Input.hpp>
 #include <Core/Containers/List.hpp>
 #include <Engine/EngineContext.hpp>
@@ -85,7 +87,11 @@ namespace Darius::Editor::Gui::Windows
 
 			else if (ImGui::Selectable("Delete"))
 			{
-				D_WORLD::DeleteGameObjectImmediately(go);
+				if (D_SIMULATE::IsSimulating())
+					D_WORLD::DeleteGameObject(go);
+				else
+					D_WORLD::DeleteGameObjectImmediately(go);
+
 				if (selected)
 					D_EDITOR_CONTEXT::SetSelectedGameObject(nullptr);
 				ImGui::EndPopup();
