@@ -1,5 +1,6 @@
 #pragma once
 
+#include "Physics/CollisionCommon.hpp"
 #include "Physics/HitResult.hpp"
 #include "Physics/PhysicsManager.hpp"
 #include "Physics/Resources/PhysicsMaterialResource.hpp"
@@ -24,7 +25,15 @@ namespace Darius::Physics
 
 	public:
 
-		// Events
+		// Physics Events
+		CollisionSignalType									OnColliderContactEnter;
+		CollisionSignalType									OnColliderContactLost;
+		CollisionSignalType									OnColliderContactStay;
+
+		TriggerSignalType									OnTriggerEnter;
+		TriggerSignalType									OnTriggerExit;
+
+		// State Events
 		virtual void										Awake() override;
 		virtual void										OnPreDestroy() override;
 
@@ -33,6 +42,9 @@ namespace Darius::Physics
 		virtual void										OnActivate() override;
 		virtual void										OnDeactivate() override;
 		virtual void										OnDeserialized() override;
+
+		// Call when all the parameters are correctly set. Make sure to provide appropriate PxGeometry type for each component.
+		INLINE virtual void									CalculateGeometry(_OUT_ physx::PxGeometry& geom) const { }
 
 #ifdef _D_EDITOR
 		virtual bool										DrawDetails(float params[]) override;
@@ -47,17 +59,13 @@ namespace Darius::Physics
 		INLINE bool											IsTrigger() const { return mTrigger; }
 
 		virtual INLINE D_MATH::Quaternion					GetBiasedRotation() const { return D_MATH::Quaternion::Identity; }
+		INLINE D_MATH::Vector3 const&						GetUsedScale() const { return mUsedScale; }
 
-		CollisionSignalType									OnColliderContactEnter;
-		CollisionSignalType									OnColliderContactLost;
-		CollisionSignalType									OnColliderContactStay;
-
-		TriggerSignalType									OnTriggerEnter;
-		TriggerSignalType									OnTriggerExit;
 
 	protected:
-		virtual INLINE physx::PxGeometry const* GetPhysicsGeometry() const { return nullptr; };
-		virtual INLINE physx::PxGeometry* UpdateAndGetPhysicsGeometry(bool& changed) { changed = false; return nullptr; };
+		virtual INLINE physx::PxGeometry const*				GetPhysicsGeometry() const { return nullptr; };
+		virtual INLINE physx::PxGeometry*					UpdateAndGetPhysicsGeometry(bool& changed) { changed = false; return nullptr; };
+		virtual INLINE void									CalculateScaledParameters() { mUsedScale = GetTransform()->GetScale(); }
 
 	private:
 		friend class PhysicsScene;
@@ -66,16 +74,17 @@ namespace Darius::Physics
 		void												ReloadMaterialData();
 
 		DField()
-			bool												mDynamic;
+		bool												mDynamic;
 
 		DField(Serialize)
-			bool												mTrigger;
+		bool												mTrigger;
 
 		DField(Serialize)
-			D_RESOURCE::ResourceRef<PhysicsMaterialResource>	mMaterial;
+		D_RESOURCE::ResourceRef<PhysicsMaterialResource>	mMaterial;
 
-		PhysicsActor* mActor;
-		physx::PxShape* mShape = nullptr;
+		PhysicsActor*										mActor;
+		physx::PxShape*										mShape = nullptr;
+		D_MATH::Vector3										mUsedScale;
 
 
 	public:

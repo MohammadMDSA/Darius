@@ -38,8 +38,7 @@ namespace Darius::Physics
 		void								SetRadius(float radius);
 		void								SetHalfHeight(float halfHeight);
 
-		// Call when are the parameters are correctly set
-		void								CalculateGeometry(_OUT_ physx::PxGeometry& geom) const;
+		virtual void						CalculateGeometry(_OUT_ physx::PxGeometry& geom) const override;
 
 		virtual D_MATH::Quaternion			GetBiasedRotation() const override;
 
@@ -50,9 +49,9 @@ namespace Darius::Physics
 
 		virtual physx::PxGeometry*			UpdateAndGetPhysicsGeometry(bool& changed) override;
 		INLINE virtual physx::PxGeometry const* GetPhysicsGeometry() const override { return &mGeometry; }
+		virtual void						CalculateScaledParameters() override;
 
 	private:
-		void								CalculateScaledParameters();
 
 		DField(Serialize)
 		CapsuleColliderOrientation			mOrientation;
@@ -63,7 +62,6 @@ namespace Darius::Physics
 		float								mHalfHeight;
 
 		physx::PxCapsuleGeometry			mGeometry;
-		D_MATH::Vector3						mUsedScale;
 		float								mScaledRadius;
 		float								mScaledHalfHeight;
 

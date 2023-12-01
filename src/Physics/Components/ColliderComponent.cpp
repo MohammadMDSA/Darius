@@ -25,7 +25,8 @@ namespace Darius::Physics
 		ComponentBase(),
 		mDynamic(false),
 		mMaterial(),
-		mTrigger(false)
+		mTrigger(false),
+		mUsedScale(D_MATH::kOne)
 	{
 	}
 
@@ -33,7 +34,8 @@ namespace Darius::Physics
 		ComponentBase(uuid),
 		mDynamic(false),
 		mMaterial(),
-		mTrigger(false)
+		mTrigger(false),
+		mUsedScale(D_MATH::kOne)
 	{
 	}
 
@@ -79,19 +81,22 @@ namespace Darius::Physics
 
 	void ColliderComponent::PreUpdate(bool simulating)
 	{
-		if (!mShape || !simulating)
+		if (!mShape)
 			return;
 
-		if (simulating && IsDynamic() != GetGameObject()->HasComponent<RigidbodyComponent>())
-			InvalidatePhysicsActor();
-
-		// Update rot pos
-		if (!IsDynamic()) // Dynamic objects are handled by their rigidbody component
+		if (simulating)
 		{
-			auto trans = GetTransform();
-			auto pos = trans->GetPosition();
-			auto rot = trans->GetRotation() * GetBiasedRotation();
-			mActor->GetPxActor()->setGlobalPose(physx::PxTransform(D_PHYSICS::GetVec3(pos), D_PHYSICS::GetQuat(rot)));
+			if (IsDynamic() != GetGameObject()->HasComponent<RigidbodyComponent>())
+				InvalidatePhysicsActor();
+
+			// Update rot pos
+			if (!IsDynamic()) // Dynamic objects are handled by their rigidbody component
+			{
+				auto trans = GetTransform();
+				auto pos = trans->GetPosition();
+				auto rot = trans->GetRotation() * GetBiasedRotation();
+				mActor->GetPxActor()->setGlobalPose(physx::PxTransform(D_PHYSICS::GetVec3(pos), D_PHYSICS::GetQuat(rot)));
+			}
 		}
 
 		if (!IsDynamic() && simulating)
@@ -104,6 +109,7 @@ namespace Darius::Physics
 		if (geomChanged)
 		{
 			mShape->setGeometry(*geom);
+			SetClean();
 		}
 
 	}

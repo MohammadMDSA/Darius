@@ -103,7 +103,7 @@ namespace Darius::Physics
 	{
 		auto scale = GetTransform()->GetScale();
 
-		if (!IsDirty() && mUsedScale == scale)
+		if (!IsDirty() && GetUsedScale().NearEquals(scale, COLLIDER_SCALE_TOLERANCE))
 		{
 			changed = false;
 			return &mGeometry;
@@ -136,6 +136,8 @@ namespace Darius::Physics
 
 		mRadius = radius;
 		SetDirty();
+
+		mChangeSignal(this);
 	}
 
 	void CapsuleColliderComponent::SetHalfHeight(float halfHeight)
@@ -147,6 +149,8 @@ namespace Darius::Physics
 
 		mHalfHeight = halfHeight;
 		SetDirty();
+
+		mChangeSignal(this);
 	}
 
 	void CapsuleColliderComponent::CalculateScaledParameters()
@@ -178,7 +182,7 @@ namespace Darius::Physics
 		mScaledHalfHeight = D_MATH::Max(MinHalfHeight, mScaledHalfHeight);
 		mScaledRadius = D_MATH::Max(MinRadius, mScaledRadius);
 
-		mUsedScale = scale;
+		Super::CalculateScaledParameters();
 	}
 
 	void CapsuleColliderComponent::CalculateGeometry(_OUT_ physx::PxGeometry& geom) const

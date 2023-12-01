@@ -8,6 +8,7 @@ list(APPEND PHYSICS_LIBS_INCLUDE
 	"PhysicsManager.hpp"
 	"PhysicsScene.hpp"
 	"PhysicsActor.hpp"
+	"CollisionCommon.hpp"
 	"Components/BoxColliderComponent.hpp"
 	"Components/CapsuleColliderComponent.hpp"
 	"Components/ColliderComponent.hpp"
