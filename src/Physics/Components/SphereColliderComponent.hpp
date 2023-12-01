@@ -24,18 +24,26 @@ namespace Darius::Physics
 
 #endif
 
+		static constexpr float				MinRadius = 0.01f;
+
+
 	protected:
 
 		virtual physx::PxGeometry*			UpdateAndGetPhysicsGeometry(bool& changed) override;
-		virtual physx::PxGeometry const*	GetPhysicsGeometry() const override;
+		INLINE virtual physx::PxGeometry const* GetPhysicsGeometry() const override { return &mGeometry; }
+		virtual void						CalculateGeometry(_OUT_ physx::PxGeometry & geom) const override;
+		virtual void						CalculateScaledParameters() override;
 
-		INLINE float						GetRadius() const
-		{
-			auto scale = GetTransform()->GetScale();
-			return std::max((float)scale.GetX(), std::max((float)scale.GetY(), (float)scale.GetZ())) / 2;
-		}
+		INLINE float						GetRadius() const { return mRadius; }
+		INLINE float						GetScaledRadius() const { return mScaledRadius; }
+		void								SetRadius(float);
 
 	private:
+
+		DField(Serialize)
+		float								mRadius;
+
+		float								mScaledRadius;
 		physx::PxSphereGeometry				mGeometry;
 
 	public:
