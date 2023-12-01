@@ -28,6 +28,8 @@ namespace Darius::Physics
 
 		void								SetHalfExtents(D_MATH::Vector3 const& halfExtents);
 
+		static constexpr float				MinExtent = 0.01f;
+
 	protected:
 
 		virtual physx::PxGeometry*			UpdateAndGetPhysicsGeometry(bool& changed) override;

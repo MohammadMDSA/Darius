@@ -16,13 +16,19 @@ namespace Darius::Physics
 
 	BoxColliderComponent::BoxColliderComponent() :
 		ColliderComponent(),
-		mHalfExtents(0.5f)
-	{ }
+		mHalfExtents(0.5f),
+		mScaledHalfExtents(0.5f)
+	{
+		SetDirty();
+	}
 
 	BoxColliderComponent::BoxColliderComponent(D_CORE::Uuid uuid) :
 		ColliderComponent(uuid),
-		mHalfExtents(0.5f)
-	{ }
+		mHalfExtents(0.5f),
+		mScaledHalfExtents(0.5f)
+	{
+		SetDirty();
+	}
 
 	void BoxColliderComponent::Awake()
 	{
@@ -57,13 +63,6 @@ namespace Darius::Physics
 
 		return valueChanged;
 	}
-#endif
-
-	void BoxColliderComponent::CalculateGeometry(physx::PxGeometry& geom) const
-	{
-		physx::PxBoxGeometry& box = reinterpret_cast<physx::PxBoxGeometry&>(geom);
-		box = physx::PxBoxGeometry(D_PHYSICS::GetVec3(mScaledHalfExtents));
-	}
 
 	void BoxColliderComponent::OnGizmo() const
 	{
@@ -73,10 +72,18 @@ namespace Darius::Physics
 		D_DEBUG_DRAW::DrawCube(transform->GetPosition(), transform->GetRotation(), mScaledHalfExtents * 2, 0, { 0.f, 1.f, 0.f, 1.f });
 	}
 
+#endif
+
+	void BoxColliderComponent::CalculateGeometry(physx::PxGeometry& geom) const
+	{
+		physx::PxBoxGeometry& box = reinterpret_cast<physx::PxBoxGeometry&>(geom);
+		box = physx::PxBoxGeometry(D_PHYSICS::GetVec3(mScaledHalfExtents));
+	}
+
 	void BoxColliderComponent::CalculateScaledParameters()
 	{
-		auto absHalfExt = D_MATH::Abs(GetHalfExtents());
-		mScaledHalfExtents = absHalfExt * GetTransform()->GetScale();
+		auto tmp = GetTransform()->GetScale() * GetHalfExtents();
+		mScaledHalfExtents = D_MATH::Max(D_MATH::Abs(tmp), D_MATH::Vector3(MinExtent));
 		Super::CalculateScaledParameters();
 	}
 
@@ -101,12 +108,10 @@ namespace Darius::Physics
 
 	void BoxColliderComponent::SetHalfExtents(D_MATH::Vector3 const& halfExtents)
 	{
-		auto abs = D_MATH::Abs(halfExtents);
-
-		if (mHalfExtents == abs)
+		if (mHalfExtents == halfExtents)
 			return;
 
-		mHalfExtents = abs;
+		mHalfExtents = halfExtents;
 		SetDirty();
 		
 		mChangeSignal(this);
