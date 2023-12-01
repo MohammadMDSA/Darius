@@ -31,6 +31,7 @@
 public: \
 T(); \
 T(D_CORE::Uuid uuid); \
+using Super = parent; \
 static constexpr INLINE std::string ClassName() { return D_NAMEOF(T); } \
 static INLINE D_ECS::ComponentEntry GetComponentEntryStatic() { return D_WORLD::GetComponentEntity(ClassName()); } \
 virtual INLINE D_ECS::ComponentEntry GetComponentEntry() const override { return D_WORLD::GetComponentEntity(ClassName()); } \
