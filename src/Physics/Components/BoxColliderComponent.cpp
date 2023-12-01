@@ -3,6 +3,10 @@
 
 #include <Debug/DebugDraw.hpp>
 
+#if _D_EDITOR
+#include <imgui.h>
+#endif
+
 #include "BoxColliderComponent.sgenerated.hpp"
 
 namespace Darius::Physics
@@ -11,15 +15,19 @@ namespace Darius::Physics
 	D_H_COMP_DEF(BoxColliderComponent);
 
 	BoxColliderComponent::BoxColliderComponent() :
-		ColliderComponent() { }
+		ColliderComponent(),
+		mHalfExtents(0.5f)
+	{ }
 
 	BoxColliderComponent::BoxColliderComponent(D_CORE::Uuid uuid) :
-		ColliderComponent(uuid) { }
+		ColliderComponent(uuid),
+		mHalfExtents(0.5f)
+	{ }
 
 	void BoxColliderComponent::Awake()
 	{
-		auto scale = GetTransform()->GetScale();
-		mGeometry = physx::PxBoxGeometry(scale.GetX() / 2.f, scale.GetY() / 2.f, scale.GetZ() / 2.f);
+		CalculateScaledParameters();
+		CalculateGeometry(mGeometry);
 
 		ColliderComponent::Awake();
 	}
@@ -31,31 +39,76 @@ namespace Darius::Physics
 
 		valueChanged |= ColliderComponent::DrawDetails(params);
 
+		D_H_DETAILS_DRAW_BEGIN_TABLE();
+
+		// Half extents
+		{
+			D_H_DETAILS_DRAW_PROPERTY("Half Extents");
+			auto halfExt = GetHalfExtents();
+			float drawParams[] = D_H_DRAW_DETAILS_MAKE_VEC_PARAM(0.5f, false);
+			if (D_MATH::DrawDetails(halfExt, drawParams))
+			{
+				SetHalfExtents(halfExt);
+				valueChanged = true;
+			}
+		}
+
+		D_H_DETAILS_DRAW_END_TABLE();
+
 		return valueChanged;
 	}
 #endif
+
+	void BoxColliderComponent::CalculateGeometry(physx::PxGeometry& geom) const
+	{
+		physx::PxBoxGeometry& box = reinterpret_cast<physx::PxBoxGeometry&>(geom);
+		box = physx::PxBoxGeometry(D_PHYSICS::GetVec3(mScaledHalfExtents));
+	}
 
 	void BoxColliderComponent::OnGizmo() const
 	{
 		if (!IsActive())
 			return;
 		auto transform = GetTransform();
-		D_DEBUG_DRAW::DrawCube(transform->GetPosition(), transform->GetRotation(), transform->GetScale(), 0, { 0.f, 1.f, 0.f, 1.f });
+		D_DEBUG_DRAW::DrawCube(transform->GetPosition(), transform->GetRotation(), mScaledHalfExtents * 2, 0, { 0.f, 1.f, 0.f, 1.f });
+	}
+
+	void BoxColliderComponent::CalculateScaledParameters()
+	{
+		auto absHalfExt = D_MATH::Abs(GetHalfExtents());
+		mScaledHalfExtents = absHalfExt * GetTransform()->GetScale();
+		Super::CalculateScaledParameters();
 	}
 
 	physx::PxGeometry* BoxColliderComponent::UpdateAndGetPhysicsGeometry(bool& changed)
 	{
 		auto scale = GetTransform()->GetScale();
-		auto size = physx::PxVec3(scale.GetX() / 2.f, scale.GetY() / 2.f, scale.GetZ() / 2.f);
-		if (mGeometry.halfExtents == size)
+		if (!IsDirty() && GetUsedScale().NearEquals(scale, COLLIDER_SCALE_TOLERANCE))
 		{
 			changed = false;
 			return &mGeometry;
 		}
-
-		mGeometry = physx::PxBoxGeometry(size);
 		changed = true;
+
+		CalculateScaledParameters();
+		CalculateGeometry(mGeometry);
+
+		SetClean();
+
 		return &mGeometry;
 
+	}
+
+	void BoxColliderComponent::SetHalfExtents(D_MATH::Vector3 const& halfExtents)
+	{
+		auto abs = D_MATH::Abs(halfExtents);
+
+		if (mHalfExtents == abs)
+			return;
+
+		mHalfExtents = abs;
+		SetDirty();
+		
+		mChangeSignal(this);
 	}
 }

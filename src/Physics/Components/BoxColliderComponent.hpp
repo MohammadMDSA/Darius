@@ -23,13 +23,25 @@ namespace Darius::Physics
 		virtual void						OnGizmo() const override;
 #endif
 
+		INLINE D_MATH::Vector3 const&		GetHalfExtents() const { return mHalfExtents; }
+		INLINE D_MATH::Vector3 const&		GetScaledHalfExtents() const { return mScaledHalfExtents; }
+
+		void								SetHalfExtents(D_MATH::Vector3 const& halfExtents);
+
 	protected:
 
 		virtual physx::PxGeometry*			UpdateAndGetPhysicsGeometry(bool& changed) override;
 		INLINE virtual physx::PxGeometry const* GetPhysicsGeometry() const override { return &mGeometry; }
+		virtual void						CalculateGeometry(_OUT_ physx::PxGeometry& geom) const override;
+		virtual void						CalculateScaledParameters() override;
 
 	private:
+
+		DField(Serialize)
+		D_MATH::Vector3						mHalfExtents;
+
 		physx::PxBoxGeometry				mGeometry;
+		D_MATH::Vector3						mScaledHalfExtents;
 
 
 	public:
