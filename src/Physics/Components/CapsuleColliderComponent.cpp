@@ -54,7 +54,7 @@ namespace Darius::Physics
 		{
 			float radius = GetRadius();
 			D_H_DETAILS_DRAW_PROPERTY("Radius");
-			if (ImGui::DragFloat("##Radius", &radius, 0.1f, MinRadius))
+			if (ImGui::DragFloat("##Radius", &radius, 0.1f))
 			{
 				SetRadius(radius);
 				valueChanged = true;
@@ -65,7 +65,7 @@ namespace Darius::Physics
 		{
 			float halfHeight = GetHalfHeight();
 			D_H_DETAILS_DRAW_PROPERTY("Half Height");
-			if (ImGui::DragFloat("##HalfHeight", &halfHeight, 0.1f, MinHalfHeight))
+			if (ImGui::DragFloat("##HalfHeight", &halfHeight, 0.1f))
 			{
 				SetHalfHeight(halfHeight);
 				valueChanged = true;
@@ -129,8 +129,6 @@ namespace Darius::Physics
 
 	void CapsuleColliderComponent::SetRadius(float radius)
 	{
-		radius = D_MATH::Max(MinRadius, radius);
-
 		if (mRadius == radius)
 			return;
 
@@ -142,8 +140,6 @@ namespace Darius::Physics
 
 	void CapsuleColliderComponent::SetHalfHeight(float halfHeight)
 	{
-		halfHeight = D_MATH::Max(MinHalfHeight, halfHeight);
-
 		if (mHalfHeight == halfHeight)
 			return;
 
