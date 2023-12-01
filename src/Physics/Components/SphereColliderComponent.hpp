@@ -16,22 +16,19 @@ namespace Darius::Physics
 		
 	public:
 
-		virtual void						Awake() override;
-
 #ifdef _D_EDITOR
 		virtual bool						DrawDetails(float params[]) override;
 		virtual void						OnGizmo() const override;
 
 #endif
+		virtual void						CalculateGeometry(_OUT_ physx::PxGeometry & geom) const override;
+		INLINE virtual void					UpdateGeometry() override { CalculateGeometry(mGeometry); }
 
 		static constexpr float				MinRadius = 0.01f;
 
-
 	protected:
 
-		virtual physx::PxGeometry*			UpdateAndGetPhysicsGeometry(bool& changed) override;
 		INLINE virtual physx::PxGeometry const* GetPhysicsGeometry() const override { return &mGeometry; }
-		virtual void						CalculateGeometry(_OUT_ physx::PxGeometry & geom) const override;
 		virtual void						CalculateScaledParameters() override;
 
 		INLINE float						GetRadius() const { return mRadius; }

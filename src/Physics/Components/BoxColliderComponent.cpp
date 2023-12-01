@@ -30,14 +30,6 @@ namespace Darius::Physics
 		SetDirty();
 	}
 
-	void BoxColliderComponent::Awake()
-	{
-		CalculateScaledParameters();
-		CalculateGeometry(mGeometry);
-
-		ColliderComponent::Awake();
-	}
-
 #ifdef _D_EDITOR
 	bool BoxColliderComponent::DrawDetails(float params[])
 	{
@@ -85,25 +77,6 @@ namespace Darius::Physics
 		auto tmp = GetTransform()->GetScale() * GetHalfExtents();
 		mScaledHalfExtents = D_MATH::Max(D_MATH::Abs(tmp), D_MATH::Vector3(MinExtent));
 		Super::CalculateScaledParameters();
-	}
-
-	physx::PxGeometry* BoxColliderComponent::UpdateAndGetPhysicsGeometry(bool& changed)
-	{
-		auto scale = GetTransform()->GetScale();
-		if (!IsDirty() && GetUsedScale().NearEquals(scale, COLLIDER_SCALE_TOLERANCE))
-		{
-			changed = false;
-			return &mGeometry;
-		}
-		changed = true;
-
-		CalculateScaledParameters();
-		CalculateGeometry(mGeometry);
-
-		SetClean();
-
-		return &mGeometry;
-
 	}
 
 	void BoxColliderComponent::SetHalfExtents(D_MATH::Vector3 const& halfExtents)

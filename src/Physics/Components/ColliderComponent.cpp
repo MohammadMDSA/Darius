@@ -73,6 +73,9 @@ namespace Darius::Physics
 
 	void ColliderComponent::Awake()
 	{
+		CalculateScaledParameters();
+		UpdateGeometry();
+
 		if (!mMaterial.IsValid())
 			SetMaterial(static_cast<PhysicsMaterialResource*>(D_RESOURCE::GetRawResourceSync(D_PHYSICS::GetDefaultMaterial())));
 
@@ -205,5 +208,22 @@ namespace Darius::Physics
 	void ColliderComponent::OnDeserialized()
 	{
 		ReloadMaterialData();
+	}
+
+	physx::PxGeometry const* ColliderComponent::UpdateAndGetPhysicsGeometry(bool& changed)
+	{
+		auto scale = GetTransform()->GetScale();
+		if (!IsDirty() && GetUsedScale().NearEquals(scale, COLLIDER_SCALE_TOLERANCE))
+		{
+			changed = false;
+			return GetPhysicsGeometry();
+		}
+	
+		changed = true;
+
+		CalculateScaledParameters();
+		UpdateGeometry();
+
+		return GetPhysicsGeometry();
 	}
 }

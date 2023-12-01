@@ -31,14 +31,6 @@ namespace Darius::Physics
 		SetDirty();
 	}
 
-	void SphereColliderComponent::Awake()
-	{
-		CalculateScaledParameters();
-		CalculateGeometry(mGeometry);
-
-		ColliderComponent::Awake();
-	}
-
 #ifdef _D_EDITOR
 	bool SphereColliderComponent::DrawDetails(float params[])
 	{
@@ -73,26 +65,6 @@ namespace Darius::Physics
 		D_DEBUG_DRAW::DrawSphere(transform->GetPosition(), GetScaledRadius() + 0.03f, 0, { 0.f, 1.f, 0.f, 1.f });
 	}
 #endif
-
-	physx::PxGeometry* SphereColliderComponent::UpdateAndGetPhysicsGeometry(bool& changed)
-	{
-		auto scale = GetTransform()->GetScale();
-		if (!IsDirty() && GetUsedScale().NearEquals(scale, COLLIDER_SCALE_TOLERANCE))
-		{
-			changed = false;
-			return &mGeometry;
-		}
-
-		changed = true;
-
-		CalculateScaledParameters();
-		CalculateGeometry(mGeometry);
-
-		SetClean();
-
-		return &mGeometry;
-
-	}
 
 	void SphereColliderComponent::SetRadius(float radius)
 	{

@@ -32,14 +32,6 @@ namespace Darius::Physics
 		SetDirty();
 	}
 
-	void CapsuleColliderComponent::Awake()
-	{
-		CalculateScaledParameters();
-		CalculateGeometry(mGeometry);
-
-		ColliderComponent::Awake();
-	}
-
 #ifdef _D_EDITOR
 
 	bool CapsuleColliderComponent::DrawDetails(float params[])
@@ -98,25 +90,6 @@ namespace Darius::Physics
 	}
 
 #endif
-
-	physx::PxGeometry* CapsuleColliderComponent::UpdateAndGetPhysicsGeometry(bool& changed)
-	{
-		auto scale = GetTransform()->GetScale();
-
-		if (!IsDirty() && GetUsedScale().NearEquals(scale, COLLIDER_SCALE_TOLERANCE))
-		{
-			changed = false;
-			return &mGeometry;
-		}
-		changed = true;
-
-		CalculateScaledParameters();
-		CalculateGeometry(mGeometry);
-
-		SetClean();
-
-		return &mGeometry;
-	}
 
 	void CapsuleColliderComponent::SetOrientation(CapsuleColliderOrientation orientation)
 	{

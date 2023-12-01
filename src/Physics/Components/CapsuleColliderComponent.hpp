@@ -23,8 +23,6 @@ namespace Darius::Physics
 
 	public:
 
-		virtual void						Awake() override;
-
 #ifdef _D_EDITOR
 		virtual bool						DrawDetails(float params[]) override;
 		virtual void						OnGizmo() const override;
@@ -39,6 +37,7 @@ namespace Darius::Physics
 		void								SetHalfHeight(float halfHeight);
 
 		virtual void						CalculateGeometry(_OUT_ physx::PxGeometry& geom) const override;
+		INLINE virtual void					UpdateGeometry() override { CalculateGeometry(mGeometry); }
 
 		virtual D_MATH::Quaternion			GetBiasedRotation() const override;
 
@@ -47,7 +46,6 @@ namespace Darius::Physics
 
 	protected:
 
-		virtual physx::PxGeometry*			UpdateAndGetPhysicsGeometry(bool& changed) override;
 		INLINE virtual physx::PxGeometry const* GetPhysicsGeometry() const override { return &mGeometry; }
 		virtual void						CalculateScaledParameters() override;
 

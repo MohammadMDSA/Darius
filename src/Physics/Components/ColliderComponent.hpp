@@ -45,6 +45,7 @@ namespace Darius::Physics
 
 		// Call when all the parameters are correctly set. Make sure to provide appropriate PxGeometry type for each component.
 		INLINE virtual void									CalculateGeometry(_OUT_ physx::PxGeometry& geom) const { }
+		INLINE virtual void									UpdateGeometry() { }
 
 #ifdef _D_EDITOR
 		virtual bool										DrawDetails(float params[]) override;
@@ -64,12 +65,12 @@ namespace Darius::Physics
 
 	protected:
 		virtual INLINE physx::PxGeometry const*				GetPhysicsGeometry() const { return nullptr; };
-		virtual INLINE physx::PxGeometry*					UpdateAndGetPhysicsGeometry(bool& changed) { changed = false; return nullptr; };
 		virtual INLINE void									CalculateScaledParameters() { mUsedScale = GetTransform()->GetScale(); }
 
 	private:
 		friend class PhysicsScene;
 
+		physx::PxGeometry const*									UpdateAndGetPhysicsGeometry(bool& changed);
 		void												InvalidatePhysicsActor();
 		void												ReloadMaterialData();
 
