@@ -186,6 +186,7 @@ namespace Darius::Math
 		INLINE float Length() const { return Scalar(DirectX::XMVector3Length(m_vec)); }
 		INLINE float LengthSquare() const { return Scalar(DirectX::XMVector3LengthSq(m_vec)); }
 		INLINE bool	Equals(Vector3 const& other) const { return DirectX::XMVector3Equal(m_vec, other.m_vec); }
+		INLINE bool NearEquals(Vector3 const& other, float const& epsilon = DirectX::g_XMEpsilon[0]) const { return DirectX::XMVector3NearEqual(m_vec, other.m_vec, Scalar(epsilon)); }
 
 		INLINE Vector3 operator- () const { return Vector3(DirectX::XMVectorNegate(m_vec)); }
 		INLINE Vector3 operator+ (Vector3 v2) const { return Vector3(DirectX::XMVectorAdd(m_vec, v2)); }
@@ -273,6 +274,7 @@ namespace Darius::Math
 		INLINE float Length() const { return Scalar(DirectX::XMVector4Length(m_vec)); }
 		INLINE float LengthSquare() const { return Scalar(DirectX::XMVector4LengthSq(m_vec)); }
 		INLINE bool	Equals(Vector4 const& other) const { return DirectX::XMVector4Equal(m_vec, other.m_vec); }
+		INLINE bool NearEquals(Vector4 const& other, float const& epsilon = DirectX::g_XMEpsilon[0]) const { return DirectX::XMVector4NearEqual(m_vec, other.m_vec, Scalar(epsilon)); }
 
 		INLINE Vector4 operator- () const { return Vector4(DirectX::XMVectorNegate(m_vec)); }
 		INLINE Vector4 operator+ (Vector4 v2) const { return Vector4(DirectX::XMVectorAdd(m_vec, v2)); }
