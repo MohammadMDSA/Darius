@@ -21,8 +21,8 @@ namespace Darius::Physics
 		virtual void						OnGizmo() const override;
 
 #endif
-		virtual bool						CalculateGeometry(_OUT_ physx::PxGeometry& geom) const override;
-		INLINE virtual bool					UpdateGeometry() override { return CalculateGeometry(mGeometry); }
+		virtual void						CalculateGeometry(_OUT_ physx::PxGeometry& geom) const override;
+		INLINE virtual void					UpdateGeometry() override { CalculateGeometry(mGeometry); }
 
 		INLINE float						GetRadius() const { return mRadius; }
 		INLINE float						GetScaledRadius() const { return mScaledRadius; }
