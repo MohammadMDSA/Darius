@@ -189,7 +189,13 @@ namespace Darius::Physics
 			convDesc.indices.count = mMeshIndicesReadback.GetElementCount();
 			convDesc.indices.data = mMeshIndicesReadback.Map();
 			convDesc.indices.stride = mMeshIndicesReadback.GetElementSize();
-			mMesh = D_PHYSICS::CreateConvexMesh(mReferenceMesh->GetUuid(), false, convDesc);
+			auto refUuid = mReferenceMesh->GetUuid();
+			mMesh = D_PHYSICS::CreateConvexMesh(refUuid, false, convDesc);
+
+#if _D_EDITOR
+			mDebugMesh = D_PHYSICS::GetDebugMesh(refUuid);
+#endif // _D_EDITOR
+
 		}
 
 		D_ASSERT(mMesh);

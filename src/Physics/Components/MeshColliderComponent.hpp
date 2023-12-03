@@ -55,6 +55,10 @@ namespace Darius::Physics
 		D_GRAPHICS_BUFFERS::ReadbackBuffer			mMeshVerticesReadback;
 		D_GRAPHICS_BUFFERS::ReadbackBuffer			mMeshIndicesReadback;
 
+#if _D_EDITOR
+		D_RENDERER_GEOMETRY::Mesh const*			mDebugMesh;
+#endif
+
 	public:
 		Darius_Physics_MeshColliderComponent_GENERATED
 	};
