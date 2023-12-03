@@ -79,8 +79,7 @@ namespace Darius::Physics
 		if (!mMaterial.IsValid())
 			SetMaterial(static_cast<PhysicsMaterialResource*>(D_RESOURCE::GetRawResourceSync(D_PHYSICS::GetDefaultMaterial())));
 
-		if (!mActor)
-			InvalidatePhysicsActor();
+		InvalidatePhysicsActor();
 	}
 
 	void ColliderComponent::PreUpdate(bool simulating)
@@ -155,16 +154,8 @@ namespace Darius::Physics
 		if (!mShape)
 			return;
 
-		if (trigger)
-		{
-			mShape->setFlag(physx::PxShapeFlag::eSIMULATION_SHAPE, false);
-			mShape->setFlag(physx::PxShapeFlag::eTRIGGER_SHAPE, true);
-		}
-		else
-		{
-			mShape->setFlag(physx::PxShapeFlag::eTRIGGER_SHAPE, false);
-			mShape->setFlag(physx::PxShapeFlag::eSIMULATION_SHAPE, true);
-		}
+		mShape->setFlag(physx::PxShapeFlag::eSIMULATION_SHAPE, !trigger);
+		mShape->setFlag(physx::PxShapeFlag::eTRIGGER_SHAPE, trigger);
 	}
 
 	void ColliderComponent::SetMaterial(PhysicsMaterialResource* material)
@@ -201,16 +192,8 @@ namespace Darius::Physics
 		if (mShape)
 		{
 			auto trigger = IsTrigger();
-			if (trigger)
-			{
-				mShape->setFlag(physx::PxShapeFlag::eSIMULATION_SHAPE, false);
-				mShape->setFlag(physx::PxShapeFlag::eTRIGGER_SHAPE, true);
-			}
-			else
-			{
-				mShape->setFlag(physx::PxShapeFlag::eTRIGGER_SHAPE, false);
-				mShape->setFlag(physx::PxShapeFlag::eSIMULATION_SHAPE, true);
-			}
+			mShape->setFlag(physx::PxShapeFlag::eSIMULATION_SHAPE, !trigger);
+			mShape->setFlag(physx::PxShapeFlag::eTRIGGER_SHAPE, trigger);
 		}
 
 		mChangeSignal(this);
