@@ -9,11 +9,9 @@
 #include "Resources/PhysicsMaterialResource.hpp"
 
 #include <Core/Containers/Map.hpp>
-#include <Core/Containers/Vector.hpp>
 #include <Core/TimeManager/TimeManager.hpp>
 #include <Graphics/GraphicsUtils/Profiling/Profiling.hpp>
 #include <Job/Job.hpp>
-#include <Renderer/Resources/StaticMeshResource.hpp>
 #include <ResourceManager/ResourceManager.hpp>
 #include <Scene/Scene.hpp>
 #include <Utils/Assert.hpp>
@@ -29,20 +27,9 @@
 
 using namespace D_CORE;
 using namespace D_CONTAINERS;
-using namespace D_RENDERER_GEOMETRY;
 using namespace physx;
 
-struct ConvexMeshData
-{
-	UINT			RefCount = 0;
-	PxConvexMesh* PxMesh = nullptr;
-
-#if _D_EDITOR
-	Mesh			Mesh;
-#endif
-};
-
-DUnorderedMap<Uuid, ConvexMeshData, UuidHasher>		ConvexMeshCache;
+DUnorderedMap<Uuid, std::pair<UINT, PxConvexMesh*>, UuidHasher>		ConvexMeshCache;
 std::mutex												CacheAccessMutex;
 
 namespace Darius::Physics
@@ -68,31 +55,6 @@ namespace Darius::Physics
 
 	void					UpdatePostPhysicsTransforms();
 	void					UpdatePrePhysicsTransform(bool simulating);
-
-	struct AsyncConvexMeshCreationTask : public D_JOB::IPinnedTask
-	{
-		virtual void Execute() override
-		{
-			if (cancellationToken && cancellationToken->IsCancelled())
-				return;
-
-			auto convexMesh = CreateConvexMesh(uuid, direct, desc);
-
-			if (callback)
-				callback(convexMesh);
-		}
-
-		~AsyncConvexMeshCreationTask()
-		{
-			D_LOG_DEBUG("AsyncConvexMeshCreationTask destruction");
-		}
-
-		D_JOB::CancellationToken* cancellationToken = nullptr;
-		bool direct = false;
-		Uuid uuid;
-		physx::PxConvexMeshDesc desc;
-		MeshCreationCallback callback;
-	};
 
 	void Initialize(D_SERIALIZATION::Json const& settings)
 	{
@@ -285,18 +247,6 @@ namespace Darius::Physics
 		return gDefaultMaterial;
 	}
 
-	void CreateConvexMeshAsync(D_CORE::Uuid const& uuid, bool direct, physx::PxConvexMeshDesc const& desc, MeshCreationCallback callback, Darius::Job::CancellationToken* cancelleationToken)
-	{
-		auto task = new AsyncConvexMeshCreationTask();
-		task->callback = callback;
-		task->cancellationToken = cancelleationToken;
-		task->desc = desc;
-		task->direct = direct;
-		task->uuid = uuid;
-
-		D_JOB::AddPinnedTask(task, D_JOB::ThreadType::FileIO);
-	}
-
 	PxConvexMesh* CreateConvexMesh(D_CORE::Uuid const& uuid, bool direct, physx::PxConvexMeshDesc const& desc)
 	{
 		D_ASSERT(desc.flags & PxConvexFlag::eCOMPUTE_CONVEX);
@@ -306,12 +256,12 @@ namespace Darius::Physics
 			std::scoped_lock accessLock(CacheAccessMutex);
 			if (ConvexMeshCache.contains(uuid))
 			{
-				auto& data = ConvexMeshCache.at(uuid);
-				data.RefCount++;
-				return data.PxMesh;
+				auto& pair = ConvexMeshCache.at(uuid);
+				pair.first++;
+				return pair.second;
 			}
 		}
-
+		
 		PxConvexMesh* convex;
 
 		// Creating convex mesh
@@ -341,77 +291,13 @@ namespace Darius::Physics
 		// Adding the created mesh to the cache
 		{
 			std::scoped_lock accessLock(CacheAccessMutex);
-			auto& data = ConvexMeshCache[uuid];
-			data.RefCount = 1u;
-			data.PxMesh = convex;
-
-
-#if _D_EDITOR
-			// Creating debug mesh
-			{
-				auto& mesh = data.Mesh;
-
-				// Loading vertices buffer
-				{
-					// Loading positions only
-					DVector<D_RENDERER::StaticMeshResource::VertexType, boost::alignment::aligned_allocator<D_RENDERER::StaticMeshResource::VertexType, 16>> vertices;
-					vertices.resize(convex->getNbVertices());
-					auto pxVerts = convex->getVertices();
-					for (UINT i = 0; i < convex->getNbVertices(); i++)
-					{
-						vertices[i].mPosition = DirectX::XMFLOAT3((D_PHYSICS::GetVec3(pxVerts[i])));
-					}
-					// Create vertex buffer
-					mesh.VertexDataGpu.Create(L"Physics Convex Mesh Debug Vertices", convex->getNbVertices(), sizeof(D_RENDERER::StaticMeshResource::VertexType), vertices.data());
-					mesh.mNumTotalVertices = convex->getNbVertices();
-				}
-
-				// Loading indices
-				{
-					DVector<UINT, boost::alignment::aligned_allocator<UINT, 16>> indices;
-					auto indexBuff = convex->getIndexBuffer();
-					indices.reserve(convex->getNbVertices() * 3);
-					auto src = indices.data();
-
-					for (UINT i = 0; i < convex->getNbPolygons(); i++)
-					{
-						PxHullPolygon polyData;
-						convex->getPolygonData(i, polyData);
-						UINT triangleCount = polyData.mNbVerts - 2;
-
-						UINT index0 = indexBuff[polyData.mIndexBase];
-
-						for (UINT j = 0; j < triangleCount; j++)
-						{
-							indices.push_back(index0);
-							indices.push_back(indexBuff[polyData.mIndexBase + j + 1]);
-							indices.push_back(indexBuff[polyData.mIndexBase + j + 2]);
-						}
-
-					}
-
-					mesh.IndexDataGpu.Create(L"Physics Convex Mesh Debug Indices", (UINT)indices.size(), sizeof(UINT), indices.data());
-					mesh.mNumTotalIndices = (UINT)indices.size();
-					mesh.mDraw.push_back({ mesh.mNumTotalIndices, 0u, 0u });
-				}
-			}
-#endif
+			auto& pair = ConvexMeshCache[uuid];
+			pair.first = 1u;
+			pair.second = convex;
 		}
 
 		return convex;
 	}
-
-#if _D_EDITOR
-	D_RENDERER_GEOMETRY::Mesh const* GetDebugMesh(D_CORE::Uuid const& uuid)
-	{
-		std::scoped_lock accessLock(CacheAccessMutex);
-		if (!ConvexMeshCache.contains(uuid))
-			return nullptr;
-
-		return &ConvexMeshCache.at(uuid).Mesh;
-	}
-#endif // _D_EDITOR
-
 
 	void ReleaseConvexMesh(D_CORE::Uuid const& uuid)
 	{
@@ -419,12 +305,12 @@ namespace Darius::Physics
 		if (!ConvexMeshCache.contains(uuid))
 			return;
 
-		auto& data = ConvexMeshCache.at(uuid);
-		data.RefCount--;
+		auto& pair = ConvexMeshCache.at(uuid);
+		pair.first--;
 
-		if (data.RefCount <= 0u)
+		if (pair.first <= 0u)
 		{
-			data.PxMesh->release();
+			pair.second->release();
 			ConvexMeshCache.erase(uuid);
 		}
 	}

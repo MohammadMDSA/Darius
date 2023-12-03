@@ -9,22 +9,37 @@
 #define D_PHYSICS Darius::Physics
 #endif // !D_PHYSICS
 
+namespace Darius::Job
+{
+	class CancellationToken;
+}
+
 namespace Darius::Physics
 {
-	void					Initialize(D_SERIALIZATION::Json const& settings);
-	void					Shutdown();
+	typedef std::function<void(physx::PxConvexMesh* mesh)> MeshCreationCallback;
+
+	void							Initialize(D_SERIALIZATION::Json const& settings);
+	void							Shutdown();
 
 #ifdef _D_EDITOR
-	bool					OptionsDrawer(_IN_OUT_ D_SERIALIZATION::Json& options);
+	bool							OptionsDrawer(_IN_OUT_ D_SERIALIZATION::Json& options);
 #endif
 
-	void					Update(bool running);
-	void					Flush();
+	void							Update(bool running);
+	void							Flush();
 
-	PhysicsScene*			GetScene();
-	physx::PxPhysics*		GetCore();
-	D_RESOURCE::ResourceHandle GetDefaultMaterial();
+	PhysicsScene*					GetScene();
+	physx::PxPhysics*				GetCore();
+	D_RESOURCE::ResourceHandle		GetDefaultMaterial();
 
+	// Creates a convex mesh with association with the given uuid. It is best to have some kind
+	// of relevance between the given uuid and the mesh the cooking is being performed on. Mesh
+	// resource uuid is the best choice for it.
+	physx::PxConvexMesh*			CreateConvexMesh(D_CORE::Uuid const& uuid, bool direct, physx::PxConvexMeshDesc const& desc);
+	void							CreateConvexMeshAsync(D_CORE::Uuid const& uuid, bool direct, physx::PxConvexMeshDesc const& desc, MeshCreationCallback callback, Darius::Job::CancellationToken* cancelleationToken = nullptr);
+	void							ReleaseConvexMesh(D_CORE::Uuid const& uuid);
+
+#pragma region Math Converters
 	INLINE physx::PxQuat	GetQuat(D_MATH::Quaternion const& quat)
 	{
 		return physx::PxQuat(quat.GetX(), quat.GetY(), quat.GetZ(), quat.GetW());
@@ -64,5 +79,5 @@ namespace Darius::Physics
 	{
 		return D_MATH::Transform(GetVec3(trans.p), GetQuat(trans.q));
 	}
-
+#pragma endregion
 }
