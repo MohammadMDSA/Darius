@@ -56,6 +56,31 @@ namespace Darius::Physics
 	void					UpdatePostPhysicsTransforms();
 	void					UpdatePrePhysicsTransform(bool simulating);
 
+	struct AsyncConvexMeshCreationTask : public D_JOB::IPinnedTask
+	{
+		virtual void Execute() override
+		{
+			if (cancellationToken && cancellationToken->IsCancelled())
+				return;
+
+			auto convexMesh = CreateConvexMesh(uuid, direct, desc);
+
+			if (callback)
+				callback(convexMesh);
+		}
+
+		~AsyncConvexMeshCreationTask()
+		{
+			D_LOG_DEBUG("AsyncConvexMeshCreationTask destruction");
+		}
+
+		D_JOB::CancellationToken* cancellationToken = nullptr;
+		bool direct = false;
+		Uuid uuid;
+		physx::PxConvexMeshDesc desc;
+		MeshCreationCallback callback;
+	};
+
 	void Initialize(D_SERIALIZATION::Json const& settings)
 	{
 		D_ASSERT(!_init);
@@ -245,6 +270,18 @@ namespace Darius::Physics
 	D_RESOURCE::ResourceHandle GetDefaultMaterial()
 	{
 		return gDefaultMaterial;
+	}
+
+	void CreateConvexMeshAsync(D_CORE::Uuid const& uuid, bool direct, physx::PxConvexMeshDesc const& desc, MeshCreationCallback callback, Darius::Job::CancellationToken* cancelleationToken)
+	{
+		auto task = new AsyncConvexMeshCreationTask();
+		task->callback = callback;
+		task->cancellationToken = cancelleationToken;
+		task->desc = desc;
+		task->direct = direct;
+		task->uuid = uuid;
+
+		D_JOB::AddPinnedTask(task, D_JOB::ThreadType::FileIO);
 	}
 
 	PxConvexMesh* CreateConvexMesh(D_CORE::Uuid const& uuid, bool direct, physx::PxConvexMeshDesc const& desc)
