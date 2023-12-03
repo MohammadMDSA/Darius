@@ -4,6 +4,7 @@
 
 #include <Math/VectorMath.hpp>
 #include <ResourceManager/Resource.hpp>
+#include <Renderer/Geometry/Mesh.hpp>
 
 #ifndef D_PHYSICS
 #define D_PHYSICS Darius::Physics
@@ -38,6 +39,11 @@ namespace Darius::Physics
 	physx::PxConvexMesh*			CreateConvexMesh(D_CORE::Uuid const& uuid, bool direct, physx::PxConvexMeshDesc const& desc);
 	void							CreateConvexMeshAsync(D_CORE::Uuid const& uuid, bool direct, physx::PxConvexMeshDesc const& desc, MeshCreationCallback callback, Darius::Job::CancellationToken* cancelleationToken = nullptr);
 	void							ReleaseConvexMesh(D_CORE::Uuid const& uuid);
+
+#if _D_EDITOR
+	D_RENDERER_GEOMETRY::Mesh const* GetDebugMesh(D_CORE::Uuid const& uuid);
+#endif // _D_EDITOR
+
 
 #pragma region Math Converters
 	INLINE physx::PxQuat	GetQuat(D_MATH::Quaternion const& quat)

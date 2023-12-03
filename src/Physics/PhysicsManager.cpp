@@ -9,9 +9,11 @@
 #include "Resources/PhysicsMaterialResource.hpp"
 
 #include <Core/Containers/Map.hpp>
+#include <Core/Containers/Vector.hpp>
 #include <Core/TimeManager/TimeManager.hpp>
 #include <Graphics/GraphicsUtils/Profiling/Profiling.hpp>
 #include <Job/Job.hpp>
+#include <Renderer/Resources/StaticMeshResource.hpp>
 #include <ResourceManager/ResourceManager.hpp>
 #include <Scene/Scene.hpp>
 #include <Utils/Assert.hpp>
@@ -27,9 +29,20 @@
 
 using namespace D_CORE;
 using namespace D_CONTAINERS;
+using namespace D_RENDERER_GEOMETRY;
 using namespace physx;
 
-DUnorderedMap<Uuid, std::pair<UINT, PxConvexMesh*>, UuidHasher>		ConvexMeshCache;
+struct ConvexMeshData
+{
+	UINT			RefCount = 0;
+	PxConvexMesh* PxMesh = nullptr;
+
+#if _D_EDITOR
+	Mesh			Mesh;
+#endif
+};
+
+DUnorderedMap<Uuid, ConvexMeshData, UuidHasher>		ConvexMeshCache;
 std::mutex												CacheAccessMutex;
 
 namespace Darius::Physics
@@ -293,12 +306,12 @@ namespace Darius::Physics
 			std::scoped_lock accessLock(CacheAccessMutex);
 			if (ConvexMeshCache.contains(uuid))
 			{
-				auto& pair = ConvexMeshCache.at(uuid);
-				pair.first++;
-				return pair.second;
+				auto& data = ConvexMeshCache.at(uuid);
+				data.RefCount++;
+				return data.PxMesh;
 			}
 		}
-		
+
 		PxConvexMesh* convex;
 
 		// Creating convex mesh
@@ -328,13 +341,60 @@ namespace Darius::Physics
 		// Adding the created mesh to the cache
 		{
 			std::scoped_lock accessLock(CacheAccessMutex);
-			auto& pair = ConvexMeshCache[uuid];
-			pair.first = 1u;
-			pair.second = convex;
+			auto& data = ConvexMeshCache[uuid];
+			data.RefCount = 1u;
+			data.PxMesh = convex;
+
+
+#if _D_EDITOR
+			// Creating debug mesh
+			{
+				auto& mesh = data.Mesh;
+
+				// Loading vertices buffer
+				{
+					// Loading positions only
+					DVector<D_RENDERER::StaticMeshResource::VertexType> vertices;
+					vertices.resize(convex->getNbVertices());
+					auto pxVerts = convex->getVertices();
+					for (UINT i = 0; i < convex->getNbVertices(); i++)
+					{
+						D_RENDERER::StaticMeshResource::VertexType vert;
+						vertices[i].mPosition = D_PHYSICS::GetVec3(pxVerts[i]);
+					}
+					// Create vertex buffer
+					mesh.VertexDataGpu.Create(L"Physics Convex Mesh Debug Vertices", convex->getNbVertices(), sizeof(D_RENDERER::StaticMeshResource::VertexType), vertices.data());
+					mesh.mNumTotalVertices = convex->getNbVertices();
+				}
+
+				// Loading indices
+				{
+					DVector<UINT> indices;
+					auto indexBuff = convex->getIndexBuffer();
+					indices.resize(convex->getNbPolygons() * 3);
+					std::memcpy(indices.data(), indexBuff, indices.size() * sizeof(UINT));
+
+					mesh.IndexDataGpu.Create(L"Physics Convex Mesh Debug Indices", indices.size(), sizeof(UINT), indexBuff);
+					mesh.mNumTotalIndices = indices.size();
+				}
+			}
+#endif
 		}
 
 		return convex;
 	}
+
+#if _D_EDITOR
+	D_RENDERER_GEOMETRY::Mesh const* GetDebugMesh(D_CORE::Uuid const& uuid)
+	{
+		std::scoped_lock accessLock(CacheAccessMutex);
+		if (!ConvexMeshCache.contains(uuid))
+			return nullptr;
+
+		return &ConvexMeshCache.at(uuid).Mesh;
+	}
+#endif // _D_EDITOR
+
 
 	void ReleaseConvexMesh(D_CORE::Uuid const& uuid)
 	{
@@ -342,12 +402,12 @@ namespace Darius::Physics
 		if (!ConvexMeshCache.contains(uuid))
 			return;
 
-		auto& pair = ConvexMeshCache.at(uuid);
-		pair.first--;
+		auto& data = ConvexMeshCache.at(uuid);
+		data.RefCount--;
 
-		if (pair.first <= 0u)
+		if (data.RefCount <= 0u)
 		{
-			pair.second->release();
+			data.PxMesh->release();
 			ConvexMeshCache.erase(uuid);
 		}
 	}
