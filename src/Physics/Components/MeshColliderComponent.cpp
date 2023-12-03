@@ -130,9 +130,6 @@ namespace Darius::Physics
 		if (mReferenceMesh == staticMesh)
 			return;
 
-		if (mReferenceMesh.IsValid())
-			D_PHYSICS::ReleaseConvexMesh(mReferenceMesh->GetUuid());
-
 		mReferenceMesh = staticMesh;
 
 		auto meshValid = mReferenceMesh.IsValid();
@@ -164,6 +161,7 @@ namespace Darius::Physics
 		D_ASSERT(mReferenceMesh.IsValid());
 		D_ASSERT(mReferenceMesh->IsLoaded());
 
+		
 		auto& context = D_GRAPHICS::CommandContext::Begin(L"Convex Mesh Creation Mesh Readback");
 
 		auto meshData = mReferenceMesh->GetMeshData();
@@ -173,7 +171,10 @@ namespace Darius::Physics
 		mMeshVerticesReadback.Create(L"Convex Mesh Creation Vertices Readback", vertBuffer.GetElementCount(), vertBuffer.GetElementSize());
 		context.CopyBuffer(mMeshVerticesReadback, vertBuffer);
 
+		D_PHYSICS::ReleaseConvexMesh(mCurrentMeshUuid);
 		mMeshIndicesReadback.Create(L"Convex Mesh Creation Indices Readback", indexBuffer.GetElementCount(), indexBuffer.GetElementSize());
+		mCurrentMeshUuid = mReferenceMesh->GetUuid();
+
 		context.CopyBuffer(mMeshIndicesReadback, indexBuffer);
 
 		context.Finish(true);
@@ -198,8 +199,6 @@ namespace Darius::Physics
 
 		mMeshVerticesReadback.Destroy();
 		mMeshIndicesReadback.Destroy();
-
-		SetDirty();
 
 		CalculateScaledParameters();
 		UpdateGeometry();

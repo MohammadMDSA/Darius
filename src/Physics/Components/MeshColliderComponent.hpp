@@ -48,6 +48,7 @@ namespace Darius::Physics
 		DField(Serialize)
 		D_RESOURCE::ResourceRef<D_RENDERER::StaticMeshResource> mReferenceMesh;
 
+		D_CORE::Uuid								mCurrentMeshUuid;
 		physx::PxConvexMeshGeometry					mGeometry;
 		physx::PxConvexMesh*						mMesh;
 
