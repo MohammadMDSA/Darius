@@ -354,7 +354,7 @@ namespace Darius::Physics
 				// Loading vertices buffer
 				{
 					// Loading positions only
-					DVector<D_RENDERER::StaticMeshResource::VertexType> vertices;
+					DVector<D_RENDERER::StaticMeshResource::VertexType, boost::alignment::aligned_allocator<D_RENDERER::StaticMeshResource::VertexType, 16>> vertices;
 					vertices.resize(convex->getNbVertices());
 					auto pxVerts = convex->getVertices();
 					for (UINT i = 0; i < convex->getNbVertices(); i++)
@@ -368,13 +368,31 @@ namespace Darius::Physics
 
 				// Loading indices
 				{
-					DVector<UINT> indices;
+					DVector<UINT, boost::alignment::aligned_allocator<UINT, 16>> indices;
 					auto indexBuff = convex->getIndexBuffer();
-					indices.resize(convex->getNbPolygons() * 3);
-					std::memcpy(indices.data(), indexBuff, indices.size() * sizeof(UINT));
+					indices.reserve(convex->getNbVertices() * 3);
+					auto src = indices.data();
 
-					mesh.IndexDataGpu.Create(L"Physics Convex Mesh Debug Indices", (UINT)indices.size(), sizeof(UINT), indexBuff);
+					for (UINT i = 0; i < convex->getNbPolygons(); i++)
+					{
+						PxHullPolygon polyData;
+						convex->getPolygonData(i, polyData);
+						UINT triangleCount = polyData.mNbVerts - 2;
+
+						UINT index0 = indexBuff[polyData.mIndexBase];
+
+						for (UINT j = 0; j < triangleCount; j++)
+						{
+							indices.push_back(index0);
+							indices.push_back(indexBuff[polyData.mIndexBase + j + 1]);
+							indices.push_back(indexBuff[polyData.mIndexBase + j + 2]);
+						}
+
+					}
+
+					mesh.IndexDataGpu.Create(L"Physics Convex Mesh Debug Indices", (UINT)indices.size(), sizeof(UINT), indices.data());
 					mesh.mNumTotalIndices = (UINT)indices.size();
+					mesh.mDraw.push_back({ mesh.mNumTotalIndices, 0u, 0u });
 				}
 			}
 #endif
