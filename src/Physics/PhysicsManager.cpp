@@ -359,8 +359,7 @@ namespace Darius::Physics
 					auto pxVerts = convex->getVertices();
 					for (UINT i = 0; i < convex->getNbVertices(); i++)
 					{
-						D_RENDERER::StaticMeshResource::VertexType vert;
-						vertices[i].mPosition = D_PHYSICS::GetVec3(pxVerts[i]);
+						vertices[i].mPosition = DirectX::XMFLOAT3((D_PHYSICS::GetVec3(pxVerts[i])));
 					}
 					// Create vertex buffer
 					mesh.VertexDataGpu.Create(L"Physics Convex Mesh Debug Vertices", convex->getNbVertices(), sizeof(D_RENDERER::StaticMeshResource::VertexType), vertices.data());
@@ -374,8 +373,8 @@ namespace Darius::Physics
 					indices.resize(convex->getNbPolygons() * 3);
 					std::memcpy(indices.data(), indexBuff, indices.size() * sizeof(UINT));
 
-					mesh.IndexDataGpu.Create(L"Physics Convex Mesh Debug Indices", indices.size(), sizeof(UINT), indexBuff);
-					mesh.mNumTotalIndices = indices.size();
+					mesh.IndexDataGpu.Create(L"Physics Convex Mesh Debug Indices", (UINT)indices.size(), sizeof(UINT), indexBuff);
+					mesh.mNumTotalIndices = (UINT)indices.size();
 				}
 			}
 #endif
