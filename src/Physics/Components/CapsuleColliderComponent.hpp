@@ -36,8 +36,8 @@ namespace Darius::Physics
 		void								SetRadius(float radius);
 		void								SetHalfHeight(float halfHeight);
 
-		virtual void						CalculateGeometry(_OUT_ physx::PxGeometry& geom) const override;
-		INLINE virtual void					UpdateGeometry() override { CalculateGeometry(mGeometry); }
+		virtual bool						CalculateGeometry(_OUT_ physx::PxGeometry& geom) const override;
+		INLINE virtual bool					UpdateGeometry() override { return CalculateGeometry(mGeometry); }
 
 		virtual D_MATH::Quaternion			GetBiasedRotation() const override;
 

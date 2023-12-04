@@ -180,6 +180,10 @@ namespace Darius::Physics
 	physx::PxShape* PhysicsScene::AddCollider(ColliderComponent* collider, _OUT_ bool& nonStatic, PhysicsActor** physicsActor)
 	{
 		auto go = collider->GetGameObject();
+		auto geom = collider->GetPhysicsGeometry();
+
+		if (!geom)
+			return nullptr;
 
 		if (!mActorMap.contains(go))
 			AddActor(go);
@@ -196,7 +200,7 @@ namespace Darius::Physics
 		auto pxActor = actor.mPxActor;
 		D_ASSERT(pxActor != nullptr);
 
-		auto shape = PxRigidActorExt::createExclusiveShape(*pxActor, *collider->GetPhysicsGeometry(), *collider->GetMaterial());
+		auto shape = PxRigidActorExt::createExclusiveShape(*pxActor, *geom, *collider->GetMaterial());
 
 		if (shape)
 			actor.mCollider.emplace(shape, collider->GetComponentName());
@@ -205,7 +209,6 @@ namespace Darius::Physics
 			*physicsActor = &actor;
 
 
-		D_ASSERT(shape);
 		D_ASSERT(!actor.mDirty);
 
 		return shape;
@@ -406,22 +409,31 @@ namespace Darius::Physics
 			// Firing contact event
 			if (pair.events & PxPairFlag::eNOTIFY_TOUCH_FOUND)
 			{
-				comp1->OnColliderContactEnter(comp1, comp2, const_cast<D_SCENE::GameObject*>(go2), hit);
-				comp2->OnColliderContactEnter(comp2, comp1, const_cast<D_SCENE::GameObject*>(go1), hit);
+				if (comp1->IsActive())
+					comp1->OnColliderContactEnter(comp1, comp2, const_cast<D_SCENE::GameObject*>(go2), hit);
+
+				if (comp2->IsActive())
+					comp2->OnColliderContactEnter(comp2, comp1, const_cast<D_SCENE::GameObject*>(go1), hit);
 			}
 
 			// Firing stay event
 			if (pair.events & PxPairFlag::eNOTIFY_TOUCH_PERSISTS)
 			{
-				comp1->OnColliderContactStay(comp1, comp2, const_cast<D_SCENE::GameObject*>(go2), hit);
-				comp2->OnColliderContactStay(comp2, comp1, const_cast<D_SCENE::GameObject*>(go1), hit);
+				if (comp1->IsActive())
+					comp1->OnColliderContactStay(comp1, comp2, const_cast<D_SCENE::GameObject*>(go2), hit);
+
+				if (comp2->IsActive())
+					comp2->OnColliderContactStay(comp2, comp1, const_cast<D_SCENE::GameObject*>(go1), hit);
 			}
 
 			// Firing lost event
 			if (pair.events & PxPairFlag::eNOTIFY_TOUCH_LOST)
 			{
-				comp1->OnColliderContactLost(comp1, comp2, const_cast<D_SCENE::GameObject*>(go2), hit);
-				comp2->OnColliderContactLost(comp2, comp1, const_cast<D_SCENE::GameObject*>(go1), hit);
+				if (comp1->IsActive())
+					comp1->OnColliderContactLost(comp1, comp2, const_cast<D_SCENE::GameObject*>(go2), hit);
+
+				if (comp2->IsActive())
+					comp2->OnColliderContactLost(comp2, comp1, const_cast<D_SCENE::GameObject*>(go1), hit);
 			}
 		}
 	}
@@ -448,13 +460,15 @@ namespace Darius::Physics
 			// Firing trigger enter event
 			if (pair.status & PxPairFlag::eNOTIFY_TOUCH_FOUND)
 			{
-				comp1->OnTriggerEnter(comp1, const_cast<D_SCENE::GameObject*>(go2));
+				if (comp1->IsActive())
+					comp1->OnTriggerEnter(comp1, const_cast<D_SCENE::GameObject*>(go2));
 			}
 
 			// Firing trigger exit event
 			if (pair.status & PxPairFlag::eNOTIFY_TOUCH_LOST)
 			{
-				comp1->OnTriggerExit(comp1, const_cast<D_SCENE::GameObject*>(go2));
+				if (comp1->IsActive())
+					comp1->OnTriggerExit(comp1, const_cast<D_SCENE::GameObject*>(go2));
 			}
 
 		}

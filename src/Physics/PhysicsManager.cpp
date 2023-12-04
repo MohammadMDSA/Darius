@@ -5,24 +5,51 @@
 #include "Components/BoxColliderComponent.hpp"
 #include "Components/SphereColliderComponent.hpp"
 #include "Components/CapsuleColliderComponent.hpp"
+#include "Components/MeshColliderComponent.hpp"
 #include "Resources/PhysicsMaterialResource.hpp"
 
+#include <Core/Containers/Map.hpp>
+#include <Core/Containers/Vector.hpp>
 #include <Core/TimeManager/TimeManager.hpp>
 #include <Graphics/GraphicsUtils/Profiling/Profiling.hpp>
 #include <Job/Job.hpp>
+#include <Renderer/Resources/StaticMeshResource.hpp>
 #include <ResourceManager/ResourceManager.hpp>
 #include <Scene/Scene.hpp>
 #include <Utils/Assert.hpp>
 
 #include <PxPhysics.h>
+#include <cooking/PxCooking.h>
+
+#if _D_EDITOR
+#include <imgui.h>
+#endif
 
 #define PX_RELEASE(x)	if(x)	{ x->release(); x = NULL;	}
 
+using namespace D_CORE;
+using namespace D_CONTAINERS;
+using namespace D_RENDERER_GEOMETRY;
 using namespace physx;
+
+struct ConvexMeshData
+{
+	UINT			RefCount = 0;
+	PxConvexMesh* PxMesh = nullptr;
+
+#if _D_EDITOR
+	Mesh			Mesh;
+#endif
+};
+
+DUnorderedMap<Uuid, ConvexMeshData, UuidHasher>		ConvexMeshCache;
+std::mutex												CacheAccessMutex;
 
 namespace Darius::Physics
 {
 	bool									_init = false;
+
+	bool									dirtyOptions = false;
 
 	PxDefaultAllocator						gAllocator;
 	PxDefaultErrorCallback					gErrorCallback;
@@ -30,6 +57,7 @@ namespace Darius::Physics
 
 	PxFoundation* gFoundation = NULL;
 	PxPhysics* gPhysics = NULL;
+	PxCooking* gCooking = NULL;
 
 	PxDefaultCpuDispatcher* gDispatcher = NULL;
 	std::unique_ptr<PhysicsScene> gScene;
@@ -41,12 +69,43 @@ namespace Darius::Physics
 	void					UpdatePostPhysicsTransforms();
 	void					UpdatePrePhysicsTransform(bool simulating);
 
+	struct AsyncConvexMeshCreationTask : public D_JOB::IPinnedTask
+	{
+		virtual void Execute() override
+		{
+			if (cancellationToken && cancellationToken->IsCancelled())
+				return;
+
+			auto convexMesh = CreateConvexMesh(uuid, direct, desc);
+
+			if (callback)
+				callback(convexMesh);
+		}
+
+		~AsyncConvexMeshCreationTask()
+		{
+			D_LOG_DEBUG("AsyncConvexMeshCreationTask destruction");
+		}
+
+		D_JOB::CancellationToken* cancellationToken = nullptr;
+		bool direct = false;
+		Uuid uuid;
+		physx::PxConvexMeshDesc desc;
+		MeshCreationCallback callback;
+	};
+
 	void Initialize(D_SERIALIZATION::Json const& settings)
 	{
 		D_ASSERT(!_init);
 		_init = true;
 
+		// Initializing options
+		D_H_OPTIONS_LOAD_BASIC_DEFAULT("Physics.Tolerance.Length", gToleranceScale.length, 1.f);
+		D_H_OPTIONS_LOAD_BASIC_DEFAULT("Physics.Tolerance.Speed", gToleranceScale.speed, 10.f);
+
+		// Initializing Physic Foundation
 		gFoundation = PxCreateFoundation(PX_PHYSICS_VERSION, gAllocator, gErrorCallback);
+		D_ASSERT_M(gFoundation, "Could not initialize physic foundation.");
 
 #ifdef _DEBUG
 		gPvd = PxCreatePvd(*gFoundation);
@@ -54,7 +113,11 @@ namespace Darius::Physics
 		gPvd->connect(*transport, PxPvdInstrumentationFlag::eALL);
 #endif
 
+		// Initializing Physics Core
 		gPhysics = PxCreatePhysics(PX_PHYSICS_VERSION, *gFoundation, gToleranceScale, true, gPvd);
+		D_ASSERT_M(gPhysics, "Could not initialize physics core.");
+
+		gCooking = PxCreateCooking(PX_PHYSICS_VERSION, *gFoundation, PxCookingParams(gToleranceScale));
 
 		PxSceneDesc sceneDesc(gPhysics->getTolerancesScale());
 		sceneDesc.gravity = PxVec3(0.f, -9.8f, 0.f);
@@ -70,6 +133,7 @@ namespace Darius::Physics
 		BoxColliderComponent::StaticConstructor();
 		SphereColliderComponent::StaticConstructor();
 		CapsuleColliderComponent::StaticConstructor();
+		MeshColliderComponent::StaticConstructor();
 		RigidbodyComponent::StaticConstructor();
 
 		// Create default resources
@@ -82,6 +146,7 @@ namespace Darius::Physics
 
 		gScene.reset();
 		PX_RELEASE(gDispatcher);
+		PX_RELEASE(gCooking);
 		PX_RELEASE(gPhysics);
 
 		if (gPvd)
@@ -99,7 +164,24 @@ namespace Darius::Physics
 #ifdef _D_EDITOR
 	bool OptionsDrawer(_IN_OUT_ D_SERIALIZATION::Json& options)
 	{
-		return false;
+		D_H_OPTION_DRAW_BEGIN();
+
+		if (dirtyOptions)
+		{
+			ImGui::TextColored({ 1.f, 1.f, 0.f, 1.f }, "You have to restart the engine for Physics options to take effect!");
+		}
+
+		ImGui::Text("Tolerance");
+		ImGui::Separator();
+		{
+			D_H_OPTION_DRAW_FLOAT_SLIDER_EXP("Speed Tolerance", "Physics.Tolerance.Speed", gToleranceScale.speed, 1.f, 100.f);
+			D_H_OPTION_DRAW_FLOAT_SLIDER_EXP("Length Tolerance", "Physics.Tolerance.Length", gToleranceScale.length, 0.01f, 100.f);
+		}
+		ImGui::Spacing();
+
+		dirtyOptions |= settingsChanged;
+
+		D_H_OPTION_DRAW_END();
 	}
 #endif
 
@@ -173,6 +255,13 @@ namespace Darius::Physics
 			}
 		);
 
+		D_WORLD::IterateComponents<MeshColliderComponent>([&](MeshColliderComponent& colliderComp)
+			{
+				if (colliderComp.IsActive())
+					colliderComp.PreUpdate(simulating);
+			}
+		);
+
 		D_WORLD::IterateComponents<RigidbodyComponent>([&](RigidbodyComponent& rigidbodyComp)
 			{
 				if (rigidbodyComp.IsActive())
@@ -194,6 +283,150 @@ namespace Darius::Physics
 	D_RESOURCE::ResourceHandle GetDefaultMaterial()
 	{
 		return gDefaultMaterial;
+	}
+
+	void CreateConvexMeshAsync(D_CORE::Uuid const& uuid, bool direct, physx::PxConvexMeshDesc const& desc, MeshCreationCallback callback, Darius::Job::CancellationToken* cancelleationToken)
+	{
+		auto task = new AsyncConvexMeshCreationTask();
+		task->callback = callback;
+		task->cancellationToken = cancelleationToken;
+		task->desc = desc;
+		task->direct = direct;
+		task->uuid = uuid;
+
+		D_JOB::AddPinnedTask(task, D_JOB::ThreadType::FileIO);
+	}
+
+	PxConvexMesh* CreateConvexMesh(D_CORE::Uuid const& uuid, bool direct, physx::PxConvexMeshDesc const& desc)
+	{
+		D_ASSERT(desc.flags & PxConvexFlag::eCOMPUTE_CONVEX);
+
+		// Lookup the cache to retreive the mesh if already created for the given uuid
+		{
+			std::scoped_lock accessLock(CacheAccessMutex);
+			if (ConvexMeshCache.contains(uuid))
+			{
+				auto& data = ConvexMeshCache.at(uuid);
+				data.RefCount++;
+				return data.PxMesh;
+			}
+		}
+
+		PxConvexMesh* convex;
+
+		// Creating convex mesh
+		if (direct)
+		{
+#ifdef _DEBUG
+			if (desc.flags & PxConvexFlag::eDISABLE_MESH_VALIDATION)
+			{
+				// mesh should be validated before cooking without the mesh cleaning
+				bool res = gCooking->validateConvexMesh(desc);
+				D_ASSERT(res);
+			}
+#endif
+			convex = gCooking->createConvexMesh(desc, gPhysics->getPhysicsInsertionCallback());
+		}
+		else
+		{
+			PxDefaultMemoryOutputStream buf;
+			PxConvexMeshCookingResult::Enum result;
+			bool test = gCooking->cookConvexMesh(desc, buf, &result);
+			D_ASSERT(test);
+
+			PxDefaultMemoryInputData input(buf.getData(), buf.getSize());
+			convex = gPhysics->createConvexMesh(input);
+		}
+
+		// Adding the created mesh to the cache
+		{
+			std::scoped_lock accessLock(CacheAccessMutex);
+			auto& data = ConvexMeshCache[uuid];
+			data.RefCount = 1u;
+			data.PxMesh = convex;
+
+
+#if _D_EDITOR
+			// Creating debug mesh
+			{
+				auto& mesh = data.Mesh;
+
+				// Loading vertices buffer
+				{
+					// Loading positions only
+					DVector<D_RENDERER::StaticMeshResource::VertexType, boost::alignment::aligned_allocator<D_RENDERER::StaticMeshResource::VertexType, 16>> vertices;
+					vertices.resize(convex->getNbVertices());
+					auto pxVerts = convex->getVertices();
+					for (UINT i = 0; i < convex->getNbVertices(); i++)
+					{
+						vertices[i].mPosition = DirectX::XMFLOAT3((D_PHYSICS::GetVec3(pxVerts[i])));
+					}
+					// Create vertex buffer
+					mesh.VertexDataGpu.Create(L"Physics Convex Mesh Debug Vertices", convex->getNbVertices(), sizeof(D_RENDERER::StaticMeshResource::VertexType), vertices.data());
+					mesh.mNumTotalVertices = convex->getNbVertices();
+				}
+
+				// Loading indices
+				{
+					DVector<UINT, boost::alignment::aligned_allocator<UINT, 16>> indices;
+					auto indexBuff = convex->getIndexBuffer();
+					indices.reserve(convex->getNbVertices() * 3);
+					auto src = indices.data();
+
+					for (UINT i = 0; i < convex->getNbPolygons(); i++)
+					{
+						PxHullPolygon polyData;
+						convex->getPolygonData(i, polyData);
+						UINT triangleCount = polyData.mNbVerts - 2;
+
+						UINT index0 = indexBuff[polyData.mIndexBase];
+
+						for (UINT j = 0; j < triangleCount; j++)
+						{
+							indices.push_back(index0);
+							indices.push_back(indexBuff[polyData.mIndexBase + j + 1]);
+							indices.push_back(indexBuff[polyData.mIndexBase + j + 2]);
+						}
+
+					}
+
+					mesh.IndexDataGpu.Create(L"Physics Convex Mesh Debug Indices", (UINT)indices.size(), sizeof(UINT), indices.data());
+					mesh.mNumTotalIndices = (UINT)indices.size();
+					mesh.mDraw.push_back({ mesh.mNumTotalIndices, 0u, 0u });
+				}
+			}
+#endif
+		}
+
+		return convex;
+	}
+
+#if _D_EDITOR
+	D_RENDERER_GEOMETRY::Mesh const* GetDebugMesh(D_CORE::Uuid const& uuid)
+	{
+		std::scoped_lock accessLock(CacheAccessMutex);
+		if (!ConvexMeshCache.contains(uuid))
+			return nullptr;
+
+		return &ConvexMeshCache.at(uuid).Mesh;
+	}
+#endif // _D_EDITOR
+
+
+	void ReleaseConvexMesh(D_CORE::Uuid const& uuid)
+	{
+		std::scoped_lock accessLock(CacheAccessMutex);
+		if (!ConvexMeshCache.contains(uuid))
+			return;
+
+		auto& data = ConvexMeshCache.at(uuid);
+		data.RefCount--;
+
+		if (data.RefCount <= 0u)
+		{
+			data.PxMesh->release();
+			ConvexMeshCache.erase(uuid);
+		}
 	}
 
 }

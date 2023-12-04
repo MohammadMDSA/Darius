@@ -79,7 +79,8 @@ namespace Darius::Physics
 		if (!mMaterial.IsValid())
 			SetMaterial(static_cast<PhysicsMaterialResource*>(D_RESOURCE::GetRawResourceSync(D_PHYSICS::GetDefaultMaterial())));
 
-		InvalidatePhysicsActor();
+		if (!mActor)
+			InvalidatePhysicsActor();
 	}
 
 	void ColliderComponent::PreUpdate(bool simulating)
@@ -93,7 +94,7 @@ namespace Darius::Physics
 				InvalidatePhysicsActor();
 
 			// Update rot pos
-			if (!IsDynamic()) // Dynamic objects are handled by their rigidbody component
+			if (!IsDynamic() && mActor) // Dynamic objects are handled by their rigidbody component
 			{
 				auto trans = GetTransform();
 				auto pos = trans->GetPosition();
@@ -109,7 +110,7 @@ namespace Darius::Physics
 		bool geomChanged = false;
 		auto geom = UpdateAndGetPhysicsGeometry(geomChanged);
 
-		if (geomChanged)
+		if (geomChanged && geom)
 		{
 			mShape->setGeometry(*geom);
 			SetClean();
@@ -151,8 +152,19 @@ namespace Darius::Physics
 		bool trigger = IsTrigger();
 		auto material = D_PHYSICS::GetDefaultMaterial();
 		mShape = D_PHYSICS::GetScene()->AddCollider(this, mDynamic, &mActor);
-		mShape->setFlag(physx::PxShapeFlag::eSIMULATION_SHAPE, !trigger);
-		mShape->setFlag(physx::PxShapeFlag::eTRIGGER_SHAPE, trigger);
+		if (!mShape)
+			return;
+
+		if (trigger)
+		{
+			mShape->setFlag(physx::PxShapeFlag::eSIMULATION_SHAPE, false);
+			mShape->setFlag(physx::PxShapeFlag::eTRIGGER_SHAPE, true);
+		}
+		else
+		{
+			mShape->setFlag(physx::PxShapeFlag::eTRIGGER_SHAPE, false);
+			mShape->setFlag(physx::PxShapeFlag::eSIMULATION_SHAPE, true);
+		}
 	}
 
 	void ColliderComponent::SetMaterial(PhysicsMaterialResource* material)
@@ -189,10 +201,18 @@ namespace Darius::Physics
 		if (mShape)
 		{
 			auto trigger = IsTrigger();
-			mShape->setFlag(physx::PxShapeFlag::eSIMULATION_SHAPE, !trigger);
-			mShape->setFlag(physx::PxShapeFlag::eTRIGGER_SHAPE, trigger);
+			if (trigger)
+			{
+				mShape->setFlag(physx::PxShapeFlag::eSIMULATION_SHAPE, false);
+				mShape->setFlag(physx::PxShapeFlag::eTRIGGER_SHAPE, true);
+			}
+			else
+			{
+				mShape->setFlag(physx::PxShapeFlag::eTRIGGER_SHAPE, false);
+				mShape->setFlag(physx::PxShapeFlag::eSIMULATION_SHAPE, true);
+			}
 		}
-		
+
 		mChangeSignal(this);
 
 	}
@@ -218,11 +238,15 @@ namespace Darius::Physics
 			changed = false;
 			return GetPhysicsGeometry();
 		}
-	
+
 		changed = true;
 
 		CalculateScaledParameters();
-		UpdateGeometry();
+		if (!UpdateGeometry())
+		{
+			SetDirty();
+			return nullptr;
+		}
 
 		return GetPhysicsGeometry();
 	}

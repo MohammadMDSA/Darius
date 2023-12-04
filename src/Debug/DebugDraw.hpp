@@ -50,6 +50,8 @@ namespace Darius::Debug
 
 		static void DrawCapsule(D_MATH::Vector3 const& centerLocation, float radius, float halfHeight, D_MATH::Quaternion const& rotation, CapsuleOrientation orientation, UINT tessellation = 16, double duration = 0., D_MATH::Color const& color = { 1.f, 1.f, 1.f, 1.f });
 
+		static void DrawMesh(D_MATH::Vector3 const& position, D_MATH::Quaternion const& rotation, D_MATH::Vector3 const& scale, D_RENDERER_GEOMETRY::Mesh const* mesh, double duration = 0., D_MATH::Color const& color = { 1.f, 1.f, 1.f, 1.f });
+
 #else
 		static INLINE void FinalizeUpload() {}
 		static INLINE void Clear(bool clearCache = false) {}
@@ -64,6 +66,7 @@ namespace Darius::Debug
 		static INLINE void DrawConeLines(D_MATH::Vector3 const& tipLocation, D_MATH::Vector3 const& tipToBaseDirection, float height, float baseRadius, double duration = 0., D_MATH::Color const& color = { 1.f, 1.f, 1.f, 1.f }) {}
 		static INLINE void DrawHemisphere(D_MATH::Vector3 const& centerLocation, D_MATH::Vector3 const& centerToTopDirection, float radius, UINT tessellation = 16, double duration = 0., D_MATH::Color const& color = { 1.f, 1.f, 1.f, 1.f }) {}
 		static INLINE void DrawCapsule(D_MATH::Vector3 const& centerLocation, float radius, float halfHeight, D_MATH::Quaternion const& rotation, CapsuleOrientation orientation, UINT tessellation = 16, double duration = 0., D_MATH::Color const& color = { 1.f, 1.f, 1.f, 1.f }) {}
+		static INLINE void DrawMesh(D_MATH::Vector3 const& position, D_MATH::Quaternion const& rotation, D_MATH::Vector3 const& scale, D_RENDERER_GEOMETRY::Mesh const* mesh, double duration = 0., D_MATH::Color const& color = { 1.f, 1.f, 1.f, 1.f });
 
 
 

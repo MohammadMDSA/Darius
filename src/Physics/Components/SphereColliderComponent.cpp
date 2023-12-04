@@ -87,9 +87,11 @@ namespace Darius::Physics
 		Super::CalculateScaledParameters();
 	}
 
-	void SphereColliderComponent::CalculateGeometry(physx::PxGeometry& geom) const
+	bool SphereColliderComponent::CalculateGeometry(physx::PxGeometry& geom) const
 	{
 		physx::PxSphereGeometry& sphere = reinterpret_cast<physx::PxSphereGeometry&>(geom);
 		sphere = physx::PxSphereGeometry(mScaledRadius);
+
+		return true;
 	}
 }

@@ -60,6 +60,16 @@ namespace Darius::Scene
 		void								SetParent(GameObject* newParent);
 
 		void								SetActive(bool active);
+		INLINE bool							IsActive() const
+		{
+			if (!IsSelfActive())
+				return false;
+			auto parent = GetParent();
+			if (parent)
+				return parent->IsActive();
+			return true;
+		}
+		INLINE bool							IsSelfActive() const { return mActive; }
 
 		// Object states
 		void								Start();
@@ -191,7 +201,7 @@ namespace Darius::Scene
 		void								DrawComponentNameContext(D_CONTAINERS::DMap<std::string, GameObject::ComponentAddressNode> const& componentNameTree);
 #endif // _D_EDITOR
 
-		DField(Get[inline], Serialize)
+		DField(Serialize)
 		bool					mActive;
 		
 		DField(Get[inline])

@@ -10,7 +10,9 @@
 #include <Utils/Assert.hpp>
 #include <Utils/Common.hpp>
 
+#if _D_EDITOR
 #include <imgui.h>
+#endif // _D_EDITOR
 
 using namespace D_GRAPHICS;
 using namespace D_GRAPHICS_BUFFERS;

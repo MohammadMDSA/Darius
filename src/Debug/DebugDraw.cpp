@@ -8,7 +8,7 @@
 
 #include <mutex>
 
-#define MAX_DEBUG_DRAWS 1024
+#define MAX_DEBUG_DRAWS 4096
 
 
 #define RENDERSETUP_LINE(meshResource) \
@@ -26,9 +26,9 @@ if(duration > 0) \
 	DrawsWithDuration.insert({ D_TIME::GetTotalTime() + duration, { ri, trans } }); \
 }
 
-#define RENDERSETUP(meshResource) \
+#define RENDERSETUP(meshData) \
 D_RENDERER::RenderItem ri; \
-PopulateRenderItemFromMesh(ri, meshResource->GetMeshData()); \
+PopulateRenderItemFromMesh(ri, meshData); \
 ri.MeshVsCBV = MeshConstantsGPU.GetGpuVirtualAddress() + sizeof(D_RENDERER::MeshConstants) * index; \
 ri.Color = color; \
 ri.PsoFlags = RenderItem::HasPosition | RenderItem::HasNormal | RenderItem::HasTangent | RenderItem::HasUV0 | RenderItem::ColorOnly | RenderItem::TwoSided | RenderItem::Wireframe; \
@@ -108,7 +108,23 @@ namespace Darius::Debug
 		auto trans = D_MATH::Transform(position, rotation, scale);
 		UploadTransform(trans, index);
 
-		RENDERSETUP(CubeMeshResource);
+		RENDERSETUP(CubeMeshResource->GetMeshData());
+	}
+
+	void DebugDraw::DrawMesh(D_MATH::Vector3 const& position, D_MATH::Quaternion const& rotation, D_MATH::Vector3 const& scale, D_RENDERER_GEOMETRY::Mesh const* mesh, double duration, D_MATH::Color const& color)
+	{
+		const std::lock_guard lock(AdditionMutex);
+
+		if (DrawPending.size() >= MAX_DEBUG_DRAWS)
+			return;
+
+		auto index = (UINT)DrawPending.size();;
+
+		// Upload transform
+		auto trans = D_MATH::Transform(position, rotation, scale);
+		UploadTransform(trans, index);
+
+		RENDERSETUP(mesh);
 	}
 
 	void DebugDraw::DrawSphere(D_MATH::Vector3 const& position, float radius, double duration, D_MATH::Color const& color)
@@ -122,7 +138,7 @@ namespace Darius::Debug
 		auto trans = D_MATH::Transform(position, Quaternion(kIdentity), D_MATH::Vector3(kOne) * 2 * radius);
 		UploadTransform(trans, index);
 
-		RENDERSETUP(SphereMeshResource);
+		RENDERSETUP(SphereMeshResource->GetMeshData());
 	}
 
 	void DebugDraw::DrawLine(D_MATH::Vector3 const& p1, D_MATH::Vector3 const& p2, double duration, D_MATH::Color const& color)

@@ -66,10 +66,12 @@ namespace Darius::Physics
 
 #endif
 
-	void BoxColliderComponent::CalculateGeometry(physx::PxGeometry& geom) const
+	bool BoxColliderComponent::CalculateGeometry(physx::PxGeometry& geom) const
 	{
 		physx::PxBoxGeometry& box = reinterpret_cast<physx::PxBoxGeometry&>(geom);
 		box = physx::PxBoxGeometry(D_PHYSICS::GetVec3(mScaledHalfExtents));
+
+		return true;
 	}
 
 	void BoxColliderComponent::CalculateScaledParameters()

@@ -3,7 +3,8 @@
 
 #include <Physics/Components/SphereColliderComponent.hpp>
 #include <Physics/Components/CapsuleColliderComponent.hpp>
-#include <physics/Components/BoxColliderComponent.hpp>
+#include <Physics/Components/BoxColliderComponent.hpp>
+#include <Physics/Components/MeshColliderComponent.hpp>
 #include <ResourceManager/Resource.hpp>
 
 #ifdef _D_EDITOR
@@ -34,6 +35,7 @@ namespace Demo
 		auto box = GetGameObject()->GetComponent<BoxColliderComponent>();
 		auto capsule = GetGameObject()->GetComponent<CapsuleColliderComponent>();
 		auto sphere = GetGameObject()->GetComponent<SphereColliderComponent>();
+		auto mesh = GetGameObject()->GetComponent<MeshColliderComponent>();
 
 		if (box)
 		{
@@ -55,6 +57,13 @@ namespace Demo
 			sphere->OnColliderContactStay.ConnectComponent(this, &CollisionTest::OnTouchStay);
 			sphere->OnColliderContactLost.ConnectComponent(this, &CollisionTest::OnTouchExit);
 		}
+
+		if (mesh)
+		{
+			mesh->OnColliderContactEnter.ConnectComponent(this, &CollisionTest::OnTouchEnter);
+			mesh->OnColliderContactStay.ConnectComponent(this, &CollisionTest::OnTouchStay);
+			mesh->OnColliderContactLost.ConnectComponent(this, &CollisionTest::OnTouchExit);
+		}
 	}
 
 	void CollisionTest::Update(float deltaTime)
@@ -64,17 +73,20 @@ namespace Demo
 
 	void CollisionTest::OnTouchEnter(Darius::Physics::ColliderComponent* thisCollider, Darius::Physics::ColliderComponent* otherCollider, D_SCENE::GameObject* otherGameObject, Darius::Physics::HitResult const& Hit)
 	{
-		D_LOG_DEBUG("Touch Enter " << otherGameObject->GetName());
+		if (IsActive())
+			D_LOG_DEBUG("Touch Enter " << otherGameObject->GetName());
 	}
 
 	void CollisionTest::OnTouchStay(Darius::Physics::ColliderComponent* thisCollider, Darius::Physics::ColliderComponent* otherCollider, D_SCENE::GameObject* otherGameObject, Darius::Physics::HitResult const& Hit)
 	{
-		D_LOG_DEBUG("Touch Stay " << otherGameObject->GetName());
+		if (IsActive())
+			D_LOG_DEBUG("Touch Stay " << otherGameObject->GetName());
 	}
 
 	void CollisionTest::OnTouchExit(Darius::Physics::ColliderComponent* thisCollider, Darius::Physics::ColliderComponent* otherCollider, D_SCENE::GameObject* otherGameObject, Darius::Physics::HitResult const& Hit)
 	{
-		D_LOG_DEBUG("Touch Exit " << otherGameObject->GetName());
+		if (IsActive())
+			D_LOG_DEBUG("Touch Exit " << otherGameObject->GetName());
 	}
 
 #ifdef _D_EDITOR

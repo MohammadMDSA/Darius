@@ -3,8 +3,6 @@
 
 [![Codacy Badge](https://app.codacy.com/project/badge/Grade/ac33ce5f8bae433698ab70c31a7d6fbf)](https://app.codacy.com/gh/MohammadMDSA/Darius/dashboard?utm_source=gh&utm_medium=referral&utm_content=&utm_campaign=Badge_grade)
 
-## First Look
-
 <img src="Docs/overview.png" width="100%">
 
 ---
@@ -27,13 +25,14 @@
         - HDR Tone Mapping
         - Bloom
     - Physics-Based Rendering (PBR) Materials
-        - Diffuse, Normal, Roughness, Metallic, and Emissive Textures Mapping
+        - Diffuse, Normal, Roughness, Metallic, Emissive, and World Displacement Textures Mapping
         - Diffuse Albedo, Emissive, Metallic, and Roughness Components
         - Opaque, Transparent
         - Multiple Sub-Meshes
     - Lighting
         - Hammon Model
         - Shadow Mapping
+        - IBL
     - Texture Filtering
     - Skybox
     - Ray Tracing Renderer
@@ -61,10 +60,15 @@
 - Physics
     - Dynamic, Static, and Kinematic Actors
     - Physics Material
-    - Collision Handling
-        - Box, and Sphere Colliders
+    - Collision and Trigger Handling with Callbacks
+    - Geometry
+        - Box, Sphere, Capsule, and Convex Mesh
     - Scene Query
         - Ray Casting
+        - Sweeps
+            - Sphere
+            - Box
+            - Capsule
 - Editor
     - Resource Monitor
     - Ghost and Orbit Cameras

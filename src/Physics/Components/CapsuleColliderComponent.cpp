@@ -154,10 +154,12 @@ namespace Darius::Physics
 		Super::CalculateScaledParameters();
 	}
 
-	void CapsuleColliderComponent::CalculateGeometry(_OUT_ physx::PxGeometry& geom) const
+	bool CapsuleColliderComponent::CalculateGeometry(_OUT_ physx::PxGeometry& geom) const
 	{
 		physx::PxCapsuleGeometry& caps = reinterpret_cast<physx::PxCapsuleGeometry&>(geom);
 		caps = physx::PxCapsuleGeometry(mScaledRadius, mScaledHalfHeight);
+
+		return true;
 	}
 
 	D_MATH::Quaternion CapsuleColliderComponent::GetBiasedRotation() const

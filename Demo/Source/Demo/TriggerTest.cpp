@@ -4,6 +4,7 @@
 #include <Physics/Components/SphereColliderComponent.hpp>
 #include <Physics/Components/CapsuleColliderComponent.hpp>
 #include <physics/Components/BoxColliderComponent.hpp>
+#include <Physics/Components/MeshColliderComponent.hpp>
 #include <ResourceManager/Resource.hpp>
 
 #ifdef _D_EDITOR
@@ -34,6 +35,7 @@ namespace Demo
 		auto box = GetGameObject()->GetComponent<BoxColliderComponent>();
 		auto capsule = GetGameObject()->GetComponent<CapsuleColliderComponent>();
 		auto sphere = GetGameObject()->GetComponent<SphereColliderComponent>();
+		auto mesh = GetGameObject()->GetComponent<MeshColliderComponent>();
 
 		if (box)
 		{
@@ -53,6 +55,12 @@ namespace Demo
 			sphere->OnTriggerExit.ConnectComponent(this, &TriggerTest::OnTriggerExit);
 		}
 
+		if (mesh)
+		{
+			mesh->OnTriggerEnter.ConnectComponent(this, &TriggerTest::OnTriggerEnter);
+			mesh->OnTriggerExit.ConnectComponent(this, &TriggerTest::OnTriggerExit);
+		}
+
 	}
 
 	void TriggerTest::Update(float deltaTime)
@@ -62,12 +70,14 @@ namespace Demo
 
 	void TriggerTest::OnTriggerEnter(Darius::Physics::ColliderComponent* thisCollider, D_SCENE::GameObject* otherGameObject)
 	{
-		D_LOG_DEBUG("Trigger Enter " << otherGameObject->GetName());
+		if (IsActive())
+			D_LOG_DEBUG("Trigger Enter " << otherGameObject->GetName());
 	}
 
 	void TriggerTest::OnTriggerExit(Darius::Physics::ColliderComponent* thisCollider, D_SCENE::GameObject* otherGameObject)
 	{
-		D_LOG_DEBUG("Trigger Exit " << otherGameObject->GetName());
+		if (IsActive())
+			D_LOG_DEBUG("Trigger Exit " << otherGameObject->GetName());
 	}
 
 

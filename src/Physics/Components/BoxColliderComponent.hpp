@@ -25,8 +25,8 @@ namespace Darius::Physics
 		INLINE D_MATH::Vector3 const&		GetScaledHalfExtents() const { return mScaledHalfExtents; }
 
 		void								SetHalfExtents(D_MATH::Vector3 const& halfExtents);
-		virtual void						CalculateGeometry(_OUT_ physx::PxGeometry& geom) const override;
-		INLINE virtual void					UpdateGeometry() override { CalculateGeometry(mGeometry); }
+		virtual bool						CalculateGeometry(_OUT_ physx::PxGeometry& geom) const override;
+		INLINE virtual bool					UpdateGeometry() override { return CalculateGeometry(mGeometry); }
 
 		static constexpr float				MinExtent = 0.01f;
 

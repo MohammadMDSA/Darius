@@ -12,6 +12,7 @@ list(APPEND PHYSICS_LIBS_INCLUDE
 	"Components/BoxColliderComponent.hpp"
 	"Components/CapsuleColliderComponent.hpp"
 	"Components/ColliderComponent.hpp"
+	"Components/MeshColliderComponent.hpp"
 	"Components/SphereColliderComponent.hpp"
 	"Components/RigidbodyComponent.hpp"
 	"Resources/PhysicsMaterialResource.hpp"
@@ -25,6 +26,7 @@ list(APPEND PHYSICS_LIBS_SOURCES
  	"Components/BoxColliderComponent.cpp"
 	"Components/CapsuleColliderComponent.cpp"
 	"Components/ColliderComponent.cpp"
+	"Components/MeshColliderComponent.cpp"
  	"Components/SphereColliderComponent.cpp"
 	"Components/RigidbodyComponent.cpp"
 	"Resources/PhysicsMaterialResource.cpp"
@@ -57,16 +59,18 @@ if(${CMAKE_BUILD_TYPE} MATCHES Release)
 	target_link_libraries("Physics" PRIVATE "${SOURCE_DIR}/Libs/PhysX/libs/win.x86_64.vc142/release/PhysXCommon_64.lib")
 	target_link_libraries("Physics" PRIVATE "${SOURCE_DIR}/Libs/PhysX/libs/win.x86_64.vc142/release/PhysXExtensions_static_64.lib")
 	target_link_libraries("Physics" PRIVATE "${SOURCE_DIR}/Libs/PhysX/libs/win.x86_64.vc142/release/PhysXPvdSDK_static_64.lib")
+	target_link_libraries("Physics" PRIVATE "${SOURCE_DIR}/Libs/PhysX/libs/win.x86_64.vc142/release/PhysXCooking_64.lib")
 else()
 	target_link_libraries("Physics" PRIVATE "${SOURCE_DIR}/Libs/PhysX/libs/win.x86_64.vc142/debug/PhysX_64.lib")
 	target_link_libraries("Physics" PRIVATE "${SOURCE_DIR}/Libs/PhysX/libs/win.x86_64.vc142/debug/PhysXFoundation_64.lib")
 	target_link_libraries("Physics" PRIVATE "${SOURCE_DIR}/Libs/PhysX/libs/win.x86_64.vc142/debug/PhysXCommon_64.lib")
 	target_link_libraries("Physics" PRIVATE "${SOURCE_DIR}/Libs/PhysX/libs/win.x86_64.vc142/debug/PhysXExtensions_static_64.lib")
 	target_link_libraries("Physics" PRIVATE "${SOURCE_DIR}/Libs/PhysX/libs/win.x86_64.vc142/debug/PhysXPvdSDK_static_64.lib")
+	target_link_libraries("Physics" PRIVATE "${SOURCE_DIR}/Libs/PhysX/libs/win.x86_64.vc142/debug/PhysXCooking_64.lib")
 endif()
 
 target_link_libraries("Physics" PRIVATE ${Boost_LIBRARIES} IMGUI)
-target_link_libraries("Physics" PUBLIC Job Debug)
+target_link_libraries("Physics" PUBLIC Job Debug Graphics Renderer)
 
 
 if(BUILD_TESTS)

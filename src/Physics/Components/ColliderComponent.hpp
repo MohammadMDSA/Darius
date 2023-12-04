@@ -44,8 +44,8 @@ namespace Darius::Physics
 		virtual void										OnDeserialized() override;
 
 		// Call when all the parameters are correctly set. Make sure to provide appropriate PxGeometry type for each component.
-		INLINE virtual void									CalculateGeometry(_OUT_ physx::PxGeometry& geom) const { }
-		INLINE virtual void									UpdateGeometry() { }
+		INLINE virtual bool									CalculateGeometry(_OUT_ physx::PxGeometry& geom) const { return false; }
+		INLINE virtual bool									UpdateGeometry() { return false; }
 
 #ifdef _D_EDITOR
 		virtual bool										DrawDetails(float params[]) override;
@@ -67,11 +67,11 @@ namespace Darius::Physics
 		virtual INLINE physx::PxGeometry const*				GetPhysicsGeometry() const { return nullptr; };
 		virtual INLINE void									CalculateScaledParameters() { mUsedScale = GetTransform()->GetScale(); }
 
+		void												InvalidatePhysicsActor();
 	private:
 		friend class PhysicsScene;
 
 		physx::PxGeometry const*									UpdateAndGetPhysicsGeometry(bool& changed);
-		void												InvalidatePhysicsActor();
 		void												ReloadMaterialData();
 
 		DField()
