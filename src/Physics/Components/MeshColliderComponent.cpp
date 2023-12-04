@@ -37,6 +37,8 @@ namespace Darius::Physics
 	{
 		if (mReferenceMesh.IsValid())
 			CalculateMeshGeometry();
+
+		Super::Awake();
 	}
 
 #ifdef _D_EDITOR
