@@ -119,8 +119,10 @@ namespace Darius::ResourceManager
 
 #pragma endregion
 
+#if _D_EDITOR
 	D_CONTAINERS::DVector<ResourcePreview> GetResourcePreviews(ResourceType type);
 	ResourcePreview					GetResourcePreview(ResourceHandle const& handle);
+#endif
 
 	class DResourceManager : NonCopyable
 	{
@@ -131,8 +133,10 @@ namespace Darius::ResourceManager
 		// Save resouce
 		void						SaveAllResources();
 
+#if _D_EDITOR
 		D_CONTAINERS::DVector<ResourcePreview>	GetResourcePreviews(ResourceType type);
 		ResourcePreview				GetResourcePreview(ResourceHandle const& handle);
+#endif
 
 		template<class T>
 		INLINE ResourceHandle		CreateResource(D_CORE::Uuid const& uuid, std::wstring const& path, std::wstring const& name, bool isDefault = false) {

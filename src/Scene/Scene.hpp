@@ -109,11 +109,7 @@ namespace Darius::Scene
 
 		static void				SetAwake();
 
-#ifdef _D_EDITOR
 	public:
-#elif
-	private:
-#endif
 		// Dumping and reloading scene for simulation
 		static void				DumpScene(D_SERIALIZATION::Json& sceneDump);
 		static void				LoadSceneDump(D_SERIALIZATION::Json const& sceneDump);

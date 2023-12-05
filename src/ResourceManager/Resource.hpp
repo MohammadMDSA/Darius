@@ -133,10 +133,12 @@ namespace Darius::ResourceManager
 			mVersion++;
 		}
 
+#if _D_EDITOR
 		INLINE ResourcePreview		GetPreview() const
 		{
 			return { mName, mPath, { GetType(), mId } };
 		}
+#endif
 
 		virtual ResourceType		GetType() const = 0;
 
@@ -150,8 +152,9 @@ namespace Darius::ResourceManager
 		INLINE void					SetLocked(bool value) { mLocked.store(value); }
 
 		INLINE operator ResourceHandle() const { return { GetType(), mId }; }
+#if _D_EDITOR
 		INLINE operator ResourcePreview() const { return GetPreview(); }
-
+#endif
 		INLINE D_FILE::Path const&	GetPath() const { return mPath; }
 		INLINE bool					IsLoaded() const { return mLoaded.load(); }
 		INLINE unsigned int			GetVersion() const { return mVersion; }
@@ -293,13 +296,14 @@ namespace Darius::ResourceManager
 
 	};
 
+#if _D_EDITOR
 	INLINE bool Resource::IsEditableInDetailsWindow() const
 	{
 		if (IsDefault())
 			return false;
 		return true;
 	}
-
+#endif
 
 }
 

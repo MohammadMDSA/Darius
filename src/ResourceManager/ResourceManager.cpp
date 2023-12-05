@@ -92,6 +92,7 @@ namespace Darius::ResourceManager
 		return *_ResourceManager->GetRawResource(uuid);
 	}
 
+#ifdef _D_EDITOR
 	D_CONTAINERS::DVector<ResourcePreview> GetResourcePreviews(ResourceType type)
 	{
 		return _ResourceManager->GetResourcePreviews(type);
@@ -101,6 +102,7 @@ namespace Darius::ResourceManager
 	{
 		return _ResourceManager->GetResourcePreview(handle);
 	}
+#endif
 
 	void UpdateGPUResources()
 	{
@@ -173,6 +175,7 @@ namespace Darius::ResourceManager
 		return typeClass[handle.Id].get();
 	}
 
+#ifdef _D_EDITOR
 	DVector<ResourcePreview> DResourceManager::GetResourcePreviews(ResourceType type)
 	{
 		DVector<ResourcePreview> res;
@@ -192,6 +195,7 @@ namespace Darius::ResourceManager
 
 		return *res;
 	}
+#endif
 
 	ResourceHandle DResourceManager::CreateResource(ResourceType type, Uuid const& uuid, std::wstring const& path, std::wstring const& name, bool isDefault, bool fromFile)
 
