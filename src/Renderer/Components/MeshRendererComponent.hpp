@@ -16,6 +16,7 @@ namespace Darius::Renderer
 {
 	class DClass(Serialize) MeshRendererComponent : public MeshRendererComponentBase
 	{
+		GENERATED_BODY();
 		D_H_COMP_BODY(MeshRendererComponent, MeshRendererComponentBase, "Rendering/Mesh Renderer", true);
 
 	public:
@@ -44,8 +45,6 @@ namespace Darius::Renderer
 		DField(Serialize)
 		D_RESOURCE::ResourceRef<StaticMeshResource> mMesh;
 
-	public:
-		Darius_Renderer_MeshRendererComponent_GENERATED
 
 	};
 }

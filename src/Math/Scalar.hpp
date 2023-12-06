@@ -38,6 +38,7 @@ namespace Darius::Math
 
     class DClass() Scalar
     {
+
     public:
         INLINE Scalar() { m_vec = DirectX::XMVectorReplicate(0.f); }
         INLINE Scalar(const Scalar& s) { m_vec = s; }
@@ -66,8 +67,6 @@ namespace Darius::Math
         };
 #pragma warning(pop)
 
-    public:
-        Darius_Math_Scalar_GENERATED
     };
 
     INLINE Scalar operator- (Scalar s) { return Scalar(DirectX::XMVectorNegate(s)); }

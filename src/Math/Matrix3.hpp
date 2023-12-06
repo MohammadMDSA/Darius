@@ -22,6 +22,7 @@ namespace Darius::Math
 	// (0, 0, 0, 1).  Constructing a Matrix4 will make those values explicit.
 	__declspec(align(16)) class DClass() Matrix3
 	{
+
 	public:
 		INLINE Matrix3() {}
 		INLINE Matrix3(Vector3 x, Vector3 y, Vector3 z) { m_mat[0] = x; m_mat[1] = y; m_mat[2] = z; }
@@ -85,8 +86,6 @@ namespace Darius::Math
 	private:
 		Vector3 m_mat[3];
 
-	public:
-		Darius_Math_Matrix3_GENERATED
 	};
 
 }

@@ -13,6 +13,8 @@ namespace %%NAMESPACE%%
 {
 	class DClass(Serialize, Resource) %%CLASS_NAME%% : public D_RESOURCE::Resource
 	{
+		GENERATED_BODY();
+
 		D_CH_RESOURCE_BODY(%%CLASS_NAME%%, %%RESOURCE_NAME%%, %%SUPPORTED_EXT%%);
 
 	public:
@@ -31,9 +33,6 @@ namespace %%NAMESPACE%%
 	private:
 		%%CLASS_NAME%%(D_CORE::Uuid uuid, std::wstring const& path, std::wstring const& name, D_RESOURCE::DResourceId id, bool isDefault = false) :
 			Resource(uuid, path, name, id, isDefault) {}
-
-	public:
-		%%CLASS_FOOTER_GENERATED%%
 	};
 }
 

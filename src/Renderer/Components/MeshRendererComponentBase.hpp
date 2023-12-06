@@ -15,6 +15,7 @@ namespace Darius::Renderer
 {
 	class DClass(Serialize) MeshRendererComponentBase : public D_ECS_COMP::ComponentBase, public IRenderable
 	{
+		GENERATED_BODY();
 		D_H_COMP_BODY(MeshRendererComponentBase, D_ECS_COMP::ComponentBase, "Rendering/Base Mesh Renderer", false);
 
 	public:
@@ -67,8 +68,6 @@ namespace Darius::Renderer
 
 		D_CONTAINERS::DVector<MaterialPsoData>	mMaterialPsoData;
 		
-	public:
-		Darius_Renderer_MeshRendererComponentBase_GENERATED
 	};
 }
 

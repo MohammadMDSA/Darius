@@ -21,6 +21,7 @@ namespace Demo
 	{
 		D_H_BEHAVIOUR_COMP_BODY(DetailDrawTest, D_ECS_COMP::BehaviourComponent, "Debug/DetailDrawTest", true, true);
 
+		GENERATED_BODY();
 	public:
 
 #ifdef _D_EDITOR
@@ -88,8 +89,6 @@ namespace Demo
 		DField(Serialize)
 		D_CONTAINERS::DVector<D_CONTAINERS::DVector<int>>		mVecVec = { {1, 2, 3}, {1, 2}, {4, 5, 6, 7, 8} };
 		*/
-	public:
-		Demo_DetailDrawTest_GENERATED
 	};
 }
 

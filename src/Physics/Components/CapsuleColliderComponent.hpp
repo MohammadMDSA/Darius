@@ -12,6 +12,7 @@ namespace Darius::Physics
 {
 	class DClass(Serialize) CapsuleColliderComponent : public ColliderComponent
 	{
+		GENERATED_BODY();
 		D_H_COMP_BODY(CapsuleColliderComponent, ColliderComponent, "Physics/Capsule Collider", true);
 	public:
 		enum class DEnum(Serialize) CapsuleColliderOrientation
@@ -62,9 +63,6 @@ namespace Darius::Physics
 		physx::PxCapsuleGeometry			mGeometry;
 		float								mScaledRadius;
 		float								mScaledHalfHeight;
-
-	public:
-		Darius_Physics_CapsuleColliderComponent_GENERATED
 
 	};
 }

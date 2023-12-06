@@ -93,6 +93,8 @@ namespace Darius::Scene::ECS::Components
 {
     class DClass(Serialize) ComponentBase
     {
+        GENERATED_BODY();
+
     public:
 
         ComponentBase();
@@ -204,9 +206,6 @@ namespace Darius::Scene::ECS::Components
 
         static bool                 sInit;
         static std::string          DisplayName;
-
-        public:
-            Darius_Scene_ECS_Components_ComponentBase_GENERATED
 
 	};
 

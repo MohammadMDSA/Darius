@@ -26,6 +26,8 @@ namespace Darius::Editor::Gui::Windows
 {
 	class DClass(Serialize) Window
 	{
+		GENERATED_BODY();
+
 	public:
 		Window(D_SERIALIZATION::Json const& config);
 		~Window() = default;
@@ -59,8 +61,6 @@ namespace Darius::Editor::Gui::Windows
 		bool						mHovered;
 		bool						mFocused;
 
-	public:
-		Darius_Editor_Gui_Windows_Window_GENERATED
 	};
 
 }

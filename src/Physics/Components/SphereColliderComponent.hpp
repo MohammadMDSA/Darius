@@ -12,6 +12,7 @@ namespace Darius::Physics
 {
 	class DClass(Serialize) SphereColliderComponent : public ColliderComponent
 	{
+		GENERATED_BODY();
 		D_H_COMP_BODY(SphereColliderComponent, ColliderComponent, "Physics/Sphere Collider", true);
 		
 	public:
@@ -44,8 +45,6 @@ namespace Darius::Physics
 		float								mScaledRadius;
 		physx::PxSphereGeometry				mGeometry;
 
-	public:
-		Darius_Physics_SphereColliderComponent_GENERATED
 	};
 }
 

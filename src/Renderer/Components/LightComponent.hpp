@@ -15,6 +15,7 @@ namespace Darius::Renderer
 {
 	class DClass(Serialize) LightComponent : public D_ECS_COMP::ComponentBase
 	{
+		GENERATED_BODY();
 		D_H_COMP_BODY(LightComponent, D_ECS_COMP::ComponentBase, "Rendering/Light", true);
 
 	public:
@@ -66,8 +67,6 @@ namespace Darius::Renderer
 			mLightData.SpotAngles.y = cosOuter;
 		}
 
-	public:
-		Darius_Renderer_LightComponent_GENERATED
 	};
 }
 

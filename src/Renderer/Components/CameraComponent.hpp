@@ -13,6 +13,7 @@ namespace Darius::Renderer
 {
 	class DClass(Serialize[FoV, NearClip, FarClip, OrthographicSize, bInfiniteZ, bOrthographic]) CameraComponent : public D_ECS_COMP::ComponentBase
 	{
+		GENERATED_BODY();
 		D_H_COMP_BODY(CameraComponent, D_ECS_COMP::ComponentBase, "Rendering/Camera", true);
 
 	public:
@@ -48,9 +49,6 @@ namespace Darius::Renderer
 	private:
 		DField(Get[const, &, inline])
 		D_MATH_CAMERA::Camera			mCamera;
-
-	public:
-		Darius_Renderer_CameraComponent_GENERATED
 
 	};
 }

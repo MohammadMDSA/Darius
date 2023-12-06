@@ -24,6 +24,7 @@ namespace Darius::Math::Camera
 {
     class DClass() BaseCamera
     {
+
     public:
 
         // Call this function once per frame and after you've changed any state.  This
@@ -90,12 +91,12 @@ namespace Darius::Math::Camera
         RTTR_REGISTRATION_FRIEND;
         RTTR_ENABLE();
 
-    public:
-        Darius_Math_Camera_BaseCamera_GENERATED;
     };
 
     class DClass(Serialize) Camera : public BaseCamera
     {
+        GENERATED_BODY();
+
     public:
         Camera();
 
@@ -139,8 +140,6 @@ namespace Darius::Math::Camera
         DField(Get[const, &, inline], Serialize)
         bool mOrthographic;
 
-    public:
-        Darius_Math_Camera_Camera_GENERATED;
     };
 
     inline void BaseCamera::SetEyeAtUp(Vector3 eye, Vector3 at, Vector3 up)

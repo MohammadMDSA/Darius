@@ -15,6 +15,8 @@ namespace Darius::Scene
 {
 	class DClass(Serialize, Resource) PrefabResource : public D_RESOURCE::Resource
 	{
+		GENERATED_BODY();
+
 		D_CH_RESOURCE_BODY(PrefabResource, "Prefab", ".prefab");
 
 	public:
@@ -42,8 +44,6 @@ namespace Darius::Scene
 		DField(Serialize, Get)
 		GameObject* mPrefabGameObject;
 
-	public:
-		Darius_Scene_PrefabResource_GENERATED
 	};
 }
 

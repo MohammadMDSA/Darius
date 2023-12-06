@@ -15,6 +15,8 @@ namespace Darius::Math
 {
 	class DClass(Serialize[LocalPosition, LocalRotation, LocalScale]) TransformComponent : public D_ECS_COMP::ComponentBase
 	{
+		GENERATED_BODY();
+
 		D_H_COMP_BODY(TransformComponent, D_ECS_COMP::ComponentBase, "Math/Transform", true);
 	public:
 
@@ -54,9 +56,6 @@ namespace Darius::Math
 		D_MATH::Matrix4						mWorldMatrix;
 
 		bool								mWorldDirty;
-
-	public:
-		Darius_Math_TransformComponent_GENERATED
 	};
 
 	INLINE bool TransformComponent::IsWorldDirty() const

@@ -14,6 +14,7 @@ namespace Darius::Renderer
 
 	class DClass(Serialize, Resource) BatchResource : public StaticMeshResource
 	{
+		GENERATED_BODY();
 		D_CH_RESOURCE_BODY(BatchResource, "Batch", "")
 
 	private:
@@ -22,8 +23,6 @@ namespace Darius::Renderer
 		BatchResource(D_CORE::Uuid uuid, std::wstring const& path, std::wstring const& name, D_RESOURCE::DResourceId id, bool isDefault = false) :
 			StaticMeshResource(uuid, path, name, id, isDefault) {}
 
-	public:
-		Darius_Renderer_BatchResource_GENERATED
 
 	};
 

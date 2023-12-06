@@ -21,6 +21,7 @@ namespace Darius::Renderer
 {
 	class DClass(Serialize, Resource) TerrainResource : public D_RESOURCE::Resource
 	{
+		GENERATED_BODY();
 		D_CH_RESOURCE_BODY(TerrainResource, "Terrain", ".terrain");
 
 	public:
@@ -76,8 +77,6 @@ namespace Darius::Renderer
 
 		D_GRAPHICS_BUFFERS::Texture						mGeneratedNormalMap;
 
-	public:
-		Darius_Renderer_TerrainResource_GENERATED
 	};
 }
 

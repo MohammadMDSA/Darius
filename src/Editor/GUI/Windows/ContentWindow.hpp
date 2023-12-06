@@ -14,11 +14,10 @@ namespace Darius::Editor::Gui::Windows
 {
 	class DClass(Serialize) ContentWindow : public Window
 	{
+		GENERATED_BODY();
 		D_CH_EDITOR_WINDOW_BODY(ContentWindow, "Content");
 
 	public:
-		Darius_Editor_Gui_Windows_ContentWindow_GENERATED
-
 		// Inherited via Window
 
 		INLINE virtual void			Update(float) override {}

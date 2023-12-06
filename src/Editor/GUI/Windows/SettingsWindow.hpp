@@ -8,10 +8,10 @@ namespace Darius::Editor::Gui::Windows
 {
 	class DClass(Serialize) SettingsWindow : public Window
 	{
+		GENERATED_BODY();
 		D_CH_EDITOR_WINDOW_BODY(SettingsWindow, "Settings");
 
 	public:
-		Darius_Editor_Gui_Windows_SettingsWindow_GENERATED
 
 		// Inherited via Window
 		INLINE virtual void			Update(float) override {}

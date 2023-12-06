@@ -8,6 +8,8 @@ namespace %%NAMESPACE%%
 {
 	class DClass(Serialize) %%CLASS_NAME%% : public D_ECS_COMP::BehaviourComponent
 	{
+		GENERATED_BODY();
+
 		D_H_BEHAVIOUR_COMP_BODY(%%CLASS_NAME%%, D_ECS_COMP::BehaviourComponent, "%%DISPLAY_NAME%%", true, true);
 
 	public:
@@ -21,8 +23,6 @@ namespace %%NAMESPACE%%
 
 		virtual void					Update(float deltaTime) override;
 
-	public:
-		%%CLASS_FOOTER_GENERATED%%
 	};
 }
 

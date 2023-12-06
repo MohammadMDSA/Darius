@@ -15,8 +15,10 @@ namespace Darius::Animation
 
 	class DClass(Serialize) AnimationComponent : public D_ECS_COMP::ComponentBase
 	{
+		GENERATED_BODY();
 
 	public:
+
 
 		struct AnimationState
 		{
@@ -58,8 +60,6 @@ namespace Darius::Animation
 		D_CONTAINERS::DUnorderedMap<int, int>	mAnimationJointIndexMap; // Animation joint index to skeleton joint index
 
 		D_CORE::Uuid							mMeshId;
-
-		Darius_Animation_AnimationComponent_GENERATED
 	};
 
 }

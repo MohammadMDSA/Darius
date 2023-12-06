@@ -10,6 +10,8 @@
 struct DStruct(Serialize) TestContainer
 {
 
+	GENERATED_BODY();
+
 	TestContainer();
 
 	DField(Serialize)
@@ -20,8 +22,6 @@ struct DStruct(Serialize) TestContainer
 
 	DField(Serialize)
 	TestContainer2					mInner;
-
-	TestContainer_GENERATED
 };
 
 File_TestStruct_GENERATED

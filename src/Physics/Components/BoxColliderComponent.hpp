@@ -12,6 +12,8 @@ namespace Darius::Physics
 {
 	class DClass(Serialize) BoxColliderComponent : public ColliderComponent
 	{
+		GENERATED_BODY();
+
 		D_H_COMP_BODY(BoxColliderComponent, ColliderComponent, "Physics/Box Collider", true);
 		
 	public:
@@ -44,8 +46,6 @@ namespace Darius::Physics
 		D_MATH::Vector3						mScaledHalfExtents;
 
 
-	public:
-		Darius_Physics_BoxColliderComponent_GENERATED
 	};
 }
 File_BoxColliderComponent_GENERATED

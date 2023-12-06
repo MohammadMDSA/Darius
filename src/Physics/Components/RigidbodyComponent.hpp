@@ -15,7 +15,7 @@ namespace Darius::Physics
 	class DClass(Serialize[bKinematic, bUsingGravity, RotationConstraintsX, RotationConstraintsY, RotationConstraintsZ, PositionConstraintsX, PositionConstraintsY, PositionConstraintsZ]) RigidbodyComponent : public D_ECS_COMP::ComponentBase
 	{
 		D_H_COMP_BODY(RigidbodyComponent, ComponentBase, "Physics/Rigidbody", true);
-
+		GENERATED_BODY();
 	public:
 		virtual INLINE bool				IsDisableable() const { return false; }
 
@@ -77,9 +77,6 @@ namespace Darius::Physics
 		bool							mRotationConstraints[3];
 		bool							mPositionConstraints[3];
 		D_MATH::Quaternion				mBiasedRotation;
-
-	public:
-		Darius_Physics_RigidbodyComponent_GENERATED
 
 	};
 }

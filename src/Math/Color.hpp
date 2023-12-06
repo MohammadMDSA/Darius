@@ -27,6 +27,8 @@ namespace Darius::Math
 {
 	class DClass(Serialize[R, G, B, A]) Color
 	{
+		GENERATED_BODY();
+
 	public:
 		Color() : m_value(DirectX::g_XMOne) {}
 		Color(DirectX::FXMVECTOR vec);
@@ -78,8 +80,6 @@ namespace Darius::Math
 
 	private:
 		DirectX::XMVECTORF32 m_value;
-
-		RTTR_ENABLE();
 	};
 
 	INLINE Color Max(Color a, Color b) { return Color(DirectX::XMVectorMax(a, b)); }

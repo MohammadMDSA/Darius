@@ -13,6 +13,8 @@ namespace Darius::Physics
 {
 	struct DStruct() HitContactPoint
 	{
+		GENERATED_BODY();
+
 		// The position of the contact point between the shapes, in world space.
 		D_MATH::Vector3 Position;
 
@@ -25,15 +27,14 @@ namespace Darius::Physics
 		// The impulse applied at the contact point, in world space. Divide by the simulation time step to get a force value.
 		D_MATH::Vector3 Impulse;
 
-		Darius_Physics_HitContactPoint_GENERATED
 	};
 
 	struct DStruct() HitResult
 	{
 
-		DField()
-			D_CONTAINERS::DVector<HitContactPoint> Contacts;
+		GENERATED_BODY();
 
-		Darius_Physics_HitResult_GENERATED
+		DField()
+		D_CONTAINERS::DVector<HitContactPoint> Contacts;
 	};
 }

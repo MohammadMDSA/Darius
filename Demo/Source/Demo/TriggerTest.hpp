@@ -14,6 +14,7 @@ namespace Demo
 	class DClass(Serialize) TriggerTest : public D_ECS_COMP::BehaviourComponent
 	{
 		D_H_BEHAVIOUR_COMP_BODY(TriggerTest, D_ECS_COMP::BehaviourComponent, "Physics/Debug/Trigger Test", true, true);
+		GENERATED_BODY();
 
 	public:
 
@@ -30,8 +31,6 @@ namespace Demo
 		void OnTriggerEnter(Darius::Physics::ColliderComponent * thisCollider, D_SCENE::GameObject * otherGameObject);
 		void OnTriggerExit(Darius::Physics::ColliderComponent* thisCollider, D_SCENE::GameObject* otherGameObject);
 
-	public:
-		Demo_TriggerTest_GENERATED
 	};
 }
 

@@ -21,6 +21,7 @@ namespace Darius::Renderer
 
 	class DClass(Serialize, Resource) MaterialResource : public D_RESOURCE::Resource
 	{
+		GENERATED_BODY();
 		D_CH_RESOURCE_BODY(MaterialResource, "Material", ".mat")
 		
 	public:
@@ -134,9 +135,6 @@ namespace Darius::Renderer
 		uint16_t									mPsoFlags;
 
 		float										mCutout;
-
-	public:
-		Darius_Renderer_MaterialResource_GENERATED
 
 	};
 }

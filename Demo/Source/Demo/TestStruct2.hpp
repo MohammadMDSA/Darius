@@ -7,6 +7,8 @@
 
 struct DStruct(Serialize) TestContainer2
 {
+	GENERATED_BODY();
+
 	TestContainer2();
 
 	DField(Serialize)
@@ -15,7 +17,6 @@ struct DStruct(Serialize) TestContainer2
 	DField(Serialize)
 	float							mBar = 0.5;
 
-	TestContainer2_GENERATED
 };
 
 File_TestStruct2_GENERATED

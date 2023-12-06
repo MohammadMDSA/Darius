@@ -23,6 +23,8 @@ namespace Darius::Renderer::Light
 
 	struct DStruct(Serialize) LightData
 	{
+		GENERATED_BODY();
+
 		DField(Serialize)
 		DirectX::XMFLOAT3	Color = D_MATH::Vector3(D_MATH::kOne);
 

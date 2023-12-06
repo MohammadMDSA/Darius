@@ -23,8 +23,9 @@ namespace Darius::Math
 
 namespace Darius::Scene::ECS
 {
-	class DClass() UntypedCompRef
+	class DClass(Reg) UntypedCompRef
 	{
+		GENERATED_BODY();
 	public:
 
 		UntypedCompRef() = default;
@@ -80,8 +81,10 @@ namespace Darius::Scene::ECS
 	};
 
 	template<class T>
-	class DClass() CompRef
+	class DClass(Reg) CompRef
 	{
+		GENERATED_BODY();
+
 	public:
 
 		CompRef() = default;
@@ -128,8 +131,6 @@ namespace Darius::Scene::ECS
 	private:
 		DField(Get[const, &, inline])
 		flecs::ref<T>						mRef;
-
-		ECS_CompRef_GENERATED
 	};
 
 }

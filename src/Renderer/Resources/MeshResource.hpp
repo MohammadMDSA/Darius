@@ -19,6 +19,8 @@ namespace Darius::Renderer
 
 	class DClass(Serialize, Resource) MeshResource : public D_RESOURCE::Resource
 	{
+		GENERATED_BODY();
+
 	public:
 		using VertexType = D_RENDERER_VERTEX::VertexPositionNormalTangentTextureSkinned;
 	public:
@@ -53,9 +55,6 @@ namespace Darius::Renderer
 		D_RENDERER_GEOMETRY::Mesh		mMesh;
 		
 		friend class DResourceManager;
-
-	public:
-		Darius_Renderer_MeshResource_GENERATED
 	};
 }
 

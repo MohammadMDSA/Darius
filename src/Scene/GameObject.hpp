@@ -39,9 +39,10 @@ namespace Darius::Math
 namespace Darius::Scene
 {
 	class SceneManager;
-	
+
 	class DClass(Serialize) GameObject sealed : public Detailed, public D_CORE::Counted
 	{
+
 	public:
 
 		enum class DEnum(Serialize) Type
@@ -49,6 +50,8 @@ namespace Darius::Scene
 			Static,
 			Movable
 		};
+
+		GENERATED_BODY();
 
 	public:
 
@@ -104,7 +107,7 @@ namespace Darius::Scene
 		}
 
 		template<class T>
-		T*									GetComponent() const
+		T* GetComponent() const
 		{
 			// Checking if T is a resource type
 			using conv = std::is_convertible<T*, Darius::Scene::ECS::Components::ComponentBase*>;
@@ -112,10 +115,10 @@ namespace Darius::Scene
 			return mEntity.get_mut<T>();
 		}
 
-		ECS::Components::ComponentBase*		GetComponent(std::string const& compName) const;
+		ECS::Components::ComponentBase* GetComponent(std::string const& compName) const;
 
 		template<class T>
-		T*									AddComponent()
+		T* AddComponent()
 		{
 			// Checking if T is a resource type
 			using conv = std::is_convertible<T*, Darius::Scene::ECS::Components::ComponentBase*>;
@@ -128,7 +131,7 @@ namespace Darius::Scene
 		}
 
 		template<class T>
-		T*									AddComponent(T const& value)
+		T* AddComponent(T const& value)
 		{
 			// Checking if T is a resource type
 			using conv = std::is_convertible<T*, Darius::Scene::ECS::Components::ComponentBase*>;
@@ -203,25 +206,25 @@ namespace Darius::Scene
 
 		DField(Serialize)
 		bool					mActive;
-		
+
 		DField(Get[inline])
 		bool					mStarted;
-		
+
 		DField(Get[inline])
 		bool					mAwake;
-		
+
 		DField(Get[inline])
 		bool					mDeleted;
 
 		DField(Get[inline])
-		GameObject*				mParent;
+		GameObject* mParent;
 
 		DField(Get[const, &, inline], Serialize)
 		const D_CORE::Uuid		mUuid;
 
 		DField(Get[inline], Set[inline], Serialize)
 		Type					mType;
-		
+
 		DField(Get[inline, const, &], Set[inline], Serialize)
 		std::string				mName;
 
@@ -239,8 +242,6 @@ namespace Darius::Scene
 		static D_CONTAINERS::DSet<D_ECS::EntityId> RegisteredBehaviours;
 		static D_CONTAINERS::DSet<std::string> RegisteredComponentNames;
 
-		public:
-			Darius_Scene_GameObject_GENERATED
 	};
 
 	D_H_SERIALIZE_ENUM(GameObject::Type, {

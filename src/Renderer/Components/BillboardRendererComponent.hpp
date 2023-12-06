@@ -17,6 +17,7 @@ namespace Darius::Renderer
 	class DClass(Serialize) BillboardRendererComponent : public D_ECS_COMP::ComponentBase, public IRenderable
 	{
 
+		GENERATED_BODY();
 		D_H_COMP_BODY(BillboardRendererComponent, D_ECS_COMP::ComponentBase, "Rendering/Billboard Renderer", true);
 
 	public:
@@ -80,9 +81,6 @@ namespace Darius::Renderer
 
 		MaterialPsoData						mMaterialPsoData;
 	
-
-	public:
-		Darius_Renderer_BillboardRendererComponent_GENERATED
 	};
 }
 

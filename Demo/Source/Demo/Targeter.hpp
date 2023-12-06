@@ -9,6 +9,7 @@ namespace Demo
 	class DClass(Serialize) Targeter : public D_ECS_COMP::BehaviourComponent
 	{
 		D_H_BEHAVIOUR_COMP_BODY(Targeter, D_ECS_COMP::BehaviourComponent, "Targeter", true, true);
+		GENERATED_BODY();
 
 	public:
 
@@ -27,8 +28,6 @@ namespace Demo
 		DField(Serialize)
 		D_SCENE::GameObjectRef			mTargetObject;
 
-	public:
-		Demo_Targeter_GENERATED
 	};
 }
 

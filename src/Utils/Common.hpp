@@ -264,6 +264,17 @@ D_H_OPTIONS_LOAD_BASIC(key, variable) else variable = defaultValue;
 
 #endif // _D_EDITOR
 
+/////////////////////////////////
+//// Code Generation ////////////
+/////////////////////////////////
+#define BODY_MACRO_COMBINE_INNER(A,B,C,D) A##B##C##D
+#define BODY_MACRO_COMBINE(A,B,C,D) BODY_MACRO_COMBINE_INNER(A,B,C,D)
+#if CODEGEN_BUILD
+#define GENERATED_BODY() class DClass() __CodeGenIdentifier__;
+#else
+#define GENERATED_BODY() BODY_MACRO_COMBINE(CURRENT_FILE_ID,_,__LINE__,_GENERATED_BODY)
+#endif
+
 
 struct NonCopyable
 {

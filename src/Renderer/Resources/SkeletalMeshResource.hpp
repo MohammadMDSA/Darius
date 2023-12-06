@@ -21,6 +21,8 @@ namespace Darius::Renderer
 
 	class DClass(Serialize, Resource) SkeletalMeshResource : public MeshResource
 	{
+		GENERATED_BODY();
+
 	public:
 		D_CH_RESOURCE_BODY(SkeletalMeshResource, "Skeletal Mesh", ".fbx")
 
@@ -53,9 +55,6 @@ namespace Darius::Renderer
 
 		virtual bool					UploadToGpu() override;
 
-
-	public:
-		Darius_Renderer_SkeletalMeshResource_GENERATED
 	};
 }
 

@@ -19,8 +19,9 @@ namespace Darius::Physics
 	D_H_SIGNAL_COMP_FOUR_PARAM(CollisionSignalType, ColliderComponent*, thisCollider, ColliderComponent*, otherCollider, D_SCENE::GameObject*, otherGameObject, HitResult const&, Hit);
 	D_H_SIGNAL_COMP_TWO_PARAM(TriggerSignalType, ColliderComponent*, thisCollider, D_SCENE::GameObject*, otherGameObject);
 
-		class DClass(Serialize) ColliderComponent : public D_ECS_COMP::ComponentBase
+	class DClass(Serialize) ColliderComponent : public D_ECS_COMP::ComponentBase
 	{
+		GENERATED_BODY();
 		D_H_COMP_BODY(ColliderComponent, ComponentBase, "Physics/Collider", false);
 
 	public:
@@ -44,7 +45,7 @@ namespace Darius::Physics
 		virtual void										OnDeserialized() override;
 
 		// Call when all the parameters are correctly set. Make sure to provide appropriate PxGeometry type for each component.
-		INLINE virtual bool									CalculateGeometry(_OUT_ physx::PxGeometry& geom) const { return false; }
+		INLINE virtual bool									CalculateGeometry(_OUT_ physx::PxGeometry & geom) const { return false; }
 		INLINE virtual bool									UpdateGeometry() { return false; }
 
 #ifdef _D_EDITOR
@@ -60,36 +61,33 @@ namespace Darius::Physics
 		INLINE bool											IsTrigger() const { return mTrigger; }
 
 		virtual INLINE D_MATH::Quaternion					GetBiasedRotation() const { return D_MATH::Quaternion::Identity; }
-		INLINE D_MATH::Vector3 const&						GetUsedScale() const { return mUsedScale; }
+		INLINE D_MATH::Vector3 const& GetUsedScale() const { return mUsedScale; }
 
 
 	protected:
-		virtual INLINE physx::PxGeometry const*				GetPhysicsGeometry() const { return nullptr; };
+		virtual INLINE physx::PxGeometry const* GetPhysicsGeometry() const { return nullptr; };
 		virtual INLINE void									CalculateScaledParameters() { mUsedScale = GetTransform()->GetScale(); }
 
 		void												InvalidatePhysicsActor();
 	private:
 		friend class PhysicsScene;
 
-		physx::PxGeometry const*									UpdateAndGetPhysicsGeometry(bool& changed);
+		physx::PxGeometry const* UpdateAndGetPhysicsGeometry(bool& changed);
 		void												ReloadMaterialData();
 
 		DField()
-		bool												mDynamic;
+			bool												mDynamic;
 
 		DField(Serialize)
-		bool												mTrigger;
+			bool												mTrigger;
 
 		DField(Serialize)
-		D_RESOURCE::ResourceRef<PhysicsMaterialResource>	mMaterial;
+			D_RESOURCE::ResourceRef<PhysicsMaterialResource>	mMaterial;
 
-		PhysicsActor*										mActor;
-		physx::PxShape*										mShape = nullptr;
+		PhysicsActor* mActor;
+		physx::PxShape* mShape = nullptr;
 		D_MATH::Vector3										mUsedScale;
 
-
-	public:
-		Darius_Physics_ColliderComponent_GENERATED
 
 	};
 }

@@ -18,6 +18,8 @@ namespace Darius::Renderer
 
 	class DClass(Serialize, Resource) StaticMeshResource : public MeshResource
 	{
+		GENERATED_BODY();
+
 	public:
 		D_CH_RESOURCE_BODY(StaticMeshResource, "Static Mesh", ".fbx")
 
@@ -42,8 +44,6 @@ namespace Darius::Renderer
 	private:
 		friend class DResourceManager;
 
-	public:
-		Darius_Renderer_StaticMeshResource_GENERATED
 
 	};
 }

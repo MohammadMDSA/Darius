@@ -18,6 +18,7 @@ namespace Darius::Renderer
 {
 	class DClass(Serialize) TerrainRendererComponent : public D_ECS_COMP::ComponentBase, public IRenderable
 	{
+		GENERATED_BODY();
 	public:
 		enum class DEnum(Serialize) TerrainGridSize
 		{
@@ -103,9 +104,6 @@ namespace Darius::Renderer
 		MaterialPsoData						mMaterialPsoData;
 		D_RESOURCE::ResourceRef<D_RENDERER::StaticMeshResource> mGridMesh;
 	
-
-	public:
-		Darius_Renderer_TerrainRendererComponent_GENERATED
 	};
 }
 

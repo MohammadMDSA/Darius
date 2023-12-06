@@ -14,6 +14,7 @@ namespace Darius::Physics
 {
 	class DClass(Serialize, Resource) PhysicsMaterialResource : public D_RESOURCE::Resource
 	{
+		GENERATED_BODY();
 		D_CH_RESOURCE_BODY(PhysicsMaterialResource, "Physics Material", ".physmat");
 
 	public:
@@ -52,8 +53,6 @@ namespace Darius::Physics
 	private:
 		physx::PxMaterial*				mPxData;
 
-	public:
-		Darius_Physics_PhysicsMaterialResource_GENERATED
 	};
 }
 

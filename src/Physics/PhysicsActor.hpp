@@ -18,6 +18,8 @@ namespace Darius::Physics
 
 	class DClass(Serialize) PhysicsActor
 	{
+		GENERATED_BODY();
+
 	public:
 
 		enum class PhysicsActorType
@@ -26,8 +28,6 @@ namespace Darius::Physics
 			Static,
 			Kinematic
 		};
-
-		Darius_Physics_PhysicsActor_GENERATED
 
 	public:
 		PhysicsActor(D_SCENE::GameObject const* gameObject, PhysicsActorType type);

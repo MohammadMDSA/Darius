@@ -116,6 +116,8 @@ namespace Darius::ResourceManager
 
 	class DClass(Serialize) Resource : public D_CORE::Counted, public Detailed
 	{
+		GENERATED_BODY();
+
 	public:
 
 		class ResourceFactory
@@ -291,9 +293,6 @@ namespace Darius::ResourceManager
 		static D_CONTAINERS::DUnorderedMap<ResourceType, ResourceFactory*> ResourceFactories;
 		static D_CONTAINERS::DUnorderedMap<std::string, D_CONTAINERS::DSet<ResourceType>> ResourceExtensionMap;
 		static D_CONTAINERS::DUnorderedMap<ResourceType, std::function<D_CONTAINERS::DVector<ResourceDataInFile>(ResourceType type, D_FILE::Path const&)>> ConstructValidationMap;
-	public:
-		Darius_ResourceManager_Resource_GENERATED
-
 	};
 
 #if _D_EDITOR

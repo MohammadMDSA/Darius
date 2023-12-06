@@ -16,6 +16,7 @@ namespace Darius::Renderer
 {
 	class DClass(Serialize, Resource) FBXPrefabResource : public D_RESOURCE::Resource
 	{
+		GENERATED_BODY();
 		D_CH_RESOURCE_BODY(FBXPrefabResource, "FBX Scene", ".fbx");
 
 	public:
@@ -42,8 +43,6 @@ namespace Darius::Renderer
 		DField(Serialize, Get)
 		D_SCENE::GameObject* mPrefabGameObject;
 
-	public:
-		Darius_Renderer_FBXPrefabResource_GENERATED
 	};
 }
 

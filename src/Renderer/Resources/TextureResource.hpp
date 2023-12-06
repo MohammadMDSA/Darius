@@ -29,6 +29,7 @@ namespace Darius::Renderer
 
 	class DClass(Serialize, Resource) TextureResource : public D_RESOURCE::Resource
 	{
+		GENERATED_BODY();
 		D_CH_RESOURCE_BODY(TextureResource, "Texture", ".tga", ".dds")
 
 	public:
@@ -121,8 +122,6 @@ namespace Darius::Renderer
 		D_GRAPHICS_BUFFERS::Texture					mTexture;
 
 		D_GRAPHICS_UTILS::SamplerDesc				mSamplerDesc;
-	public:
-		Darius_Renderer_TextureResource_GENERATED
 
 	};
 }

@@ -19,6 +19,7 @@ namespace Darius::Math
 {
 	class DClass() Quaternion
 	{
+
 	public:
 		INLINE Quaternion() { m_vec = DirectX::XMQuaternionIdentity(); }
 		INLINE Quaternion(const Vector3 & axis, const Scalar & angle) { m_vec = DirectX::XMQuaternionRotationAxis(axis, angle); }
@@ -114,8 +115,6 @@ namespace Darius::Math
 
 			DirectX::XMVECTOR m_vec;
 
-	public:
-		Darius_Math_Quaternion_GENERATED
 	};
 
 	INLINE Quaternion Normalize(Quaternion q) { return Quaternion(DirectX::XMQuaternionNormalize(q)); }

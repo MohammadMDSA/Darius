@@ -14,6 +14,7 @@ namespace Darius::Renderer
 {
 	class DClass(Serialize) SkeletalMeshRendererComponent : public MeshRendererComponentBase
 	{
+		GENERATED_BODY();
 		D_H_COMP_BODY(SkeletalMeshRendererComponent, MeshRendererComponentBase, "Rendering/Skeletal Mesh Renderer", true);
 
 	public:
@@ -55,10 +56,6 @@ namespace Darius::Renderer
 		D_CONTAINERS::DVector<D_RENDERER_GEOMETRY::Mesh::SkeletonJoint> mSkeleton;
 		D_RENDERER_GEOMETRY::Mesh::SkeletonJoint*					mSkeletonRoot;
 		D_MATH_BOUNDS::BoundingSphere								mBounds;
-
-		
-	public:
-		Darius_Renderer_SkeletalMeshRendererComponent_GENERATED
 
 	};
 }

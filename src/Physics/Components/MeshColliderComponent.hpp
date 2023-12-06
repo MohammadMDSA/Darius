@@ -15,6 +15,7 @@ namespace Darius::Physics
 {
 	class DClass(Serialize) MeshColliderComponent : public ColliderComponent
 	{
+		GENERATED_BODY();
 		D_H_COMP_BODY(MeshColliderComponent, ColliderComponent, "Physics/Mesh Collider", true);
 
 	public:
@@ -59,8 +60,6 @@ namespace Darius::Physics
 		D_RENDERER_GEOMETRY::Mesh const*			mDebugMesh;
 #endif
 
-	public:
-		Darius_Physics_MeshColliderComponent_GENERATED
 	};
 }
 

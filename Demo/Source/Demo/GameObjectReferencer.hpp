@@ -10,6 +10,8 @@ namespace Demo
 	{
 		D_H_BEHAVIOUR_COMP_BODY(GameObjectReferencer, D_ECS_COMP::BehaviourComponent, "Utils/Game Object Referencer", true, true);
 
+		GENERATED_BODY();
+
 	public:
 
 #ifdef _D_EDITOR
@@ -29,8 +31,6 @@ namespace Demo
 		DField(Serialize)
 		D_SCENE::GameObjectRef			mReference;
 
-	public:
-		Demo_GameObjectReferencer_GENERATED
 	};
 }
 
