@@ -41,21 +41,26 @@ namespace Darius::Animation
 
 		INLINE AnimationResource*				GetAnimation() const { return mAnimation.Get(); }
 		void									SetAnimation(AnimationResource* animation);
+		void									SetAnimState(AnimationState const& value) { mAnimState = value; }
+		INLINE void								SetRootMotion(bool rootMotion) { mRootMotion = rootMotion; }
+
+		INLINE AnimationState const&			GetAnimState() const { return mAnimState; }
+		INLINE bool								IsRootMotion() const { return mRootMotion; }
 
 	protected:
 
-		DField(Get[const, &, inline], Set[inline])
+		DField()
 		AnimationState							mAnimState;
 
 	private:
 
 		void									CreateAnimationToJointIndexMap();
 
-		DField(Get[inline], Set[inline], Serialize)
+		DField(Serialize)
 		bool									mRootMotion;
 
 		DField(Serialize)
-		D_RESOURCE::ResourceRef<AnimationResource>			mAnimation;
+		D_RESOURCE::ResourceRef<AnimationResource> mAnimation;
 
 		D_CONTAINERS::DUnorderedMap<int, int>	mAnimationJointIndexMap; // Animation joint index to skeleton joint index
 

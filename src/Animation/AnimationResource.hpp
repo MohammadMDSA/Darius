@@ -19,6 +19,8 @@ namespace Darius::Animation
 		D_CH_RESOURCE_BODY(AnimationResource, "Animation", ".fbx");
 		GENERATED_BODY();
 
+	public:
+
 #ifdef _D_EDITOR
 		virtual bool					DrawDetails(float params[]) override { return false; }
 #endif // _D_EDITOR

@@ -11,7 +11,7 @@
 
 namespace Darius::Physics
 {
-	struct DStruct() HitContactPoint
+	struct DStruct(Reg) HitContactPoint
 	{
 		GENERATED_BODY();
 
@@ -29,7 +29,7 @@ namespace Darius::Physics
 
 	};
 
-	struct DStruct() HitResult
+	struct DStruct(Reg) HitResult
 	{
 
 		GENERATED_BODY();

@@ -15,6 +15,7 @@
 #include <Utils/Common.hpp>
 #include <DirectXMath.h>
 
+#include <rttr/registration_friend.h>
 #include <rttr/rttr_enable.h>
 
 #include <Color.generated.hpp>

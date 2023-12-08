@@ -264,6 +264,8 @@ namespace Darius::Animation
 
 		if (mAnimation.IsValid() && !mAnimation->IsLoaded())
 			D_RESOURCE_LOADER::LoadResourceAsync(animation, nullptr, true);
+
+		mChangeSignal(this);
 	}
 
 }

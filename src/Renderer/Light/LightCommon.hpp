@@ -1,5 +1,6 @@
 #pragma once
 
+#include "Utils/Common.hpp"
 #include "LightCommon.generated.hpp"
 
 #ifndef D_RENDERER_LIGHT
@@ -23,7 +24,6 @@ namespace Darius::Renderer::Light
 
 	struct DStruct(Serialize) LightData
 	{
-		GENERATED_BODY();
 
 		DField(Serialize)
 		DirectX::XMFLOAT3	Color = D_MATH::Vector3(D_MATH::kOne);
@@ -43,4 +43,6 @@ namespace Darius::Renderer::Light
 		bool				CastsShadow = true;
 		DirectX::XMFLOAT3	padding;
 	};
+
+	//D_STATIC_ASSERT(sizeof(LightData) == 52)
 }

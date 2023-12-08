@@ -12,6 +12,7 @@ struct DStruct(Serialize) TestContainer
 
 	GENERATED_BODY();
 
+public:
 	TestContainer();
 
 	DField(Serialize)

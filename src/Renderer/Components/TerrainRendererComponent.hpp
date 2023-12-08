@@ -53,6 +53,10 @@ namespace Darius::Renderer
 
 		void								SetTerrainData(TerrainResource* terrain);
 		void								SetMaterial(MaterialResource* material);
+		void								SetCastsShadow(bool value) { mCastsShadow = value; }
+
+		INLINE TerrainGridSize				GetGridSize() const { return mGridSize; }
+		INLINE bool							IsCastsShadow() const { return mCastsShadow; }
 
 		INLINE TerrainResource*				GetTerrainData() const { return mTerrainData.Get(); }
 		INLINE MaterialResource*			GetMaterial() const { return mMaterial.Get(); }
@@ -87,10 +91,10 @@ namespace Darius::Renderer
 
 	private:
 		
-		DField(Get[inline], Set[inline])
+		DField(Serialize)
 		bool								mCastsShadow;
 
-		DField(Get[inline], Serialize)
+		DField(Serialize)
 		TerrainGridSize						mGridSize;
 
 		DField(Serialize)

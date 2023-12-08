@@ -17,6 +17,7 @@ namespace Darius::Renderer::Light
 	class LightContext
 	{
 	public:
+
 		LightContext();
 		virtual ~LightContext();
 
