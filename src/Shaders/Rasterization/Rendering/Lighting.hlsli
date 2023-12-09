@@ -64,8 +64,31 @@ float GetDirectionalShadow(uint lightIndex, float3 ShadowCoord)
 float GetShadowConeLight(uint lightIndex, float3 shadowCoord, float3 wPos)
 {
     float2 scrCoord = float2(shadowCoord.x, -shadowCoord.y) / 2 + 0.5f;
+//#define SINGLE_SAMPLE
+#ifdef SINGLE_SAMPLE
     float result = SpotLightShadowArrayTex.SampleCmpLevelZero(
         shadowSampler, float3(scrCoord.xy, lightIndex - NUM_POINT_LIGHTS - NUM_DIR_LIGHTS), shadowCoord.z);
+#else
+
+    const float Dilation = 2.0;
+    float d1 = Dilation * gShadowTexelSize.x * 0.125;
+    float d2 = Dilation * gShadowTexelSize.x * 0.875;
+    float d3 = Dilation * gShadowTexelSize.x * 0.625;
+    float d4 = Dilation * gShadowTexelSize.x * 0.375;
+    float3 coord = float3(scrCoord, lightIndex - NUM_POINT_LIGHTS - NUM_DIR_LIGHTS);
+            
+    float result = (
+        2.0 * SpotLightShadowArrayTex.SampleCmpLevelZero(shadowSampler, coord, shadowCoord.z) +
+        SpotLightShadowArrayTex.SampleCmpLevelZero(shadowSampler, coord + float3(-d2, d1, 0.f), shadowCoord.z) +
+        SpotLightShadowArrayTex.SampleCmpLevelZero(shadowSampler, coord + float3(-d1, -d2, 0.f), shadowCoord.z) +
+        SpotLightShadowArrayTex.SampleCmpLevelZero(shadowSampler, coord + float3(d2, -d1, 0.f), shadowCoord.z) +
+        SpotLightShadowArrayTex.SampleCmpLevelZero(shadowSampler, coord + float3(d1, d2, 0.f), shadowCoord.z) +
+        SpotLightShadowArrayTex.SampleCmpLevelZero(shadowSampler, coord + float3(-d4, d3, 0.f), shadowCoord.z) +
+        SpotLightShadowArrayTex.SampleCmpLevelZero(shadowSampler, coord + float3(-d3, -d4, 0.f), shadowCoord.z) +
+        SpotLightShadowArrayTex.SampleCmpLevelZero(shadowSampler, coord + float3(d4, -d3, 0.f), shadowCoord.z) +
+        SpotLightShadowArrayTex.SampleCmpLevelZero(shadowSampler, coord + float3(d3, d4, 0.f), shadowCoord.z)
+        ) / 10.0;
+#endif
     return result * result;
 }
 
