@@ -102,8 +102,28 @@ float GetShadowPointLight(uint lightIndex, float3 lightToPos)
     float depth = (params.y + params.x * Z) / (-Z);
     
     lightToPos = normalize(lightToPos);
-    
+//#define SINGLE_SAMPLE
+#ifdef SINGLE_SAMPLE      
     float result = PointLightShadowArrayTex.SampleCmpLevelZero(shadowSampler, float4(-lightToPos.x, lightToPos.y, lightToPos.z, lightIndex - NUM_DIR_LIGHTS), depth);
+#else
+    const float Dilation = 2.0;
+    float d1 = Dilation * gShadowTexelSize.x * 0.125;
+    float d2 = Dilation * gShadowTexelSize.x * 0.875;
+    float d3 = Dilation * gShadowTexelSize.x * 0.625;
+    float d4 = Dilation * gShadowTexelSize.x * 0.375;
+    float4 coord = float4(-lightToPos.x, lightToPos.y, lightToPos.z, lightIndex - NUM_DIR_LIGHTS);
+    float result = (
+        2.0 * PointLightShadowArrayTex.SampleCmpLevelZero(shadowSampler, coord, depth) +
+        PointLightShadowArrayTex.SampleCmpLevelZero(shadowSampler, coord + float4(-d2, d1, 0.f, 0.f), depth) +
+        PointLightShadowArrayTex.SampleCmpLevelZero(shadowSampler, coord + float4(-d1, -d2, 0.f, 0.f), depth) +
+        PointLightShadowArrayTex.SampleCmpLevelZero(shadowSampler, coord + float4(d2, -d1, 0.f, 0.f), depth) +
+        PointLightShadowArrayTex.SampleCmpLevelZero(shadowSampler, coord + float4(d1, d2, 0.f, 0.f), depth) +
+        PointLightShadowArrayTex.SampleCmpLevelZero(shadowSampler, coord + float4(-d4, d3, 0.f, 0.f), depth) +
+        PointLightShadowArrayTex.SampleCmpLevelZero(shadowSampler, coord + float4(-d3, -d4, 0.f, 0.f), depth) +
+        PointLightShadowArrayTex.SampleCmpLevelZero(shadowSampler, coord + float4(d4, -d3, 0.f, 0.f), depth) +
+        PointLightShadowArrayTex.SampleCmpLevelZero(shadowSampler, coord + float4(d3, d4, 0.f, 0.f), depth)
+    ) / 10.0;
+#endif
     return result * result;
 }
 
