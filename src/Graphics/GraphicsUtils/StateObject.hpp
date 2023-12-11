@@ -3,6 +3,10 @@
 #include "RootSignature.hpp"
 #include "Shaders.hpp"
 
+#include <Core/Containers/Map.hpp>
+#include <Core/Containers/Set.hpp>
+#include <Core/Containers/Vector.hpp>
+
 #ifndef D_GRAPHICS_UTILS
 #define D_GRAPHICS_UTILS Darius::Graphics::Utils
 #endif

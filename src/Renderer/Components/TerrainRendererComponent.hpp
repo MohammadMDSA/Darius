@@ -7,6 +7,7 @@
 #include "Renderer/Resources/TerrainResource.hpp"
 
 #include <Scene/EntityComponentSystem/Components/ComponentBase.hpp>
+#include <Scene/EntityComponentSystem/Components/TransformComponent.hpp>
 
 #include "TerrainRendererComponent.generated.hpp"
 

@@ -11,6 +11,7 @@
 #include <Graphics/GraphicsUtils/Profiling/Profiling.hpp>
 #include <ResourceManager/ResourceLoader.hpp>
 #include <Scene/Scene.hpp>
+#include <Scene/EntityComponentSystem/Components/TransformComponent.hpp>
 #include <Utils/Assert.hpp>
 
 using namespace D_CORE;

@@ -4,8 +4,9 @@
 #include "AnimationResource.hpp"
 #include "AnimationComponent.hpp"
 
-#include <Scene/Scene.hpp>
 #include <Job/Job.hpp>
+#include <Scene/EntityComponentSystem/Components/TransformComponent.hpp>
+#include <Scene/Scene.hpp>
 #include <Utils/Assert.hpp>
 
 namespace Darius::Animation

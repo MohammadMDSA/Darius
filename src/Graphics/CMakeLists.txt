@@ -95,7 +95,7 @@ if ((${CMAKE_VERSION} VERSION_GREATER_EQUAL "3.16") AND (NOT MINGW))
     target_precompile_headers("Graphics" PRIVATE pch.hpp )
 endif()
 
-include("../../cmake/FindWinPixEventRuntime.cmake")
+include("${ENGINE_ROOT}/cmake/FindWinPixEventRuntime.cmake")
 
 target_include_directories("Graphics"
 PUBLIC
@@ -103,10 +103,10 @@ PUBLIC
 PRIVATE
 	".."
 	${Boost_INCLUDE_DIRS}
-	"${CMAKE_CURRENT_SOURCE_DIR}/../Libs/DirectXShaderCompiler/inc"
+	"${ENGINE_DIR}/Libs/DirectXShaderCompiler/inc"
 )
 
-target_link_libraries("Graphics" PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/../Libs/DirectXShaderCompiler/lib/dxcompiler.lib")
+target_link_libraries("Graphics" PRIVATE "${ENGINE_DIR}/Libs/DirectXShaderCompiler/lib/dxcompiler.lib")
 
 target_link_libraries("Graphics" PRIVATE ${Boost_LIBRARIES} DirectXTex IMGUI PUBLIC ResourceManager PIX::WinPixEventRuntime)
 

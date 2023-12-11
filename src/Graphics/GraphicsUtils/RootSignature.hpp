@@ -1,6 +1,7 @@
 #pragma once
 
 #include <Utils/Assert.hpp>
+#include <Utils/Common.hpp>
 
 class DescriptorCache;
 

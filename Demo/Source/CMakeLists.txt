@@ -1,32 +1,22 @@
 set(GAME_DIR ${CMAKE_CURRENT_SOURCE_DIR})
 
-set(GAME_PROJECT "Demo")
+set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
 
-FILE(GLOB SRC_FILES ${GAME_DIR}/Demo/*.cpp)
-
-set(ENGINE_DIR "C:\Users\AF\source\repos\Darius")
-set(SOURCE_DIR ${ENGINE_DIR}\src)
+FILE(GLOB SRC_FILES ${GAME_DIR}/${GAME_PROJECT}/*.cpp)
 
 if(${EDITOR_BUILD})
-set(EXEC_SRC ${SOURCE_DIR}/Editor/Main.cpp)
+set(EXEC_SRC ${ENGINE_DIR}/Editor/Main.cpp)
 else(${EDITOR_BUILD})
 endif(${EDITOR_BUILD})
 
 add_executable(${GAME_PROJECT} WIN32
     ${EXEC_SRC}
-    ${SOURCE_DIR}/Editor/Main.cpp
+    ${ENGINE_DIR}/Editor/Main.cpp
     ${SRC_FILES}
     pch.hpp)
 
-add_subdirectory(${ENGINE_DIR})
-
-target_link_libraries(${GAME_PROJECT} PUBLIC DariusEngine)
-target_include_directories(${GAME_PROJECT} PUBLIC ${SOURCE_DIR})
-
-if(${EDITOR_BUILD})
-target_link_libraries(${GAME_PROJECT} PRIVATE IMGUI)
-else(${EDITOR_BUILD})
-endif(${EDITOR_BUILD})
     
 if ((${CMAKE_VERSION} VERSION_GREATER_EQUAL "3.16") AND (NOT MINGW))
     target_precompile_headers(${GAME_PROJECT} PRIVATE pch.hpp )
@@ -35,17 +25,37 @@ endif()
 target_include_directories(${GAME_PROJECT}
                 PUBLIC
                 ${GAME_DIR}
-                ${GAME_DIR}/Demo/Generated)
+                ${GAME_DIR}/${GAME_PROJECT}/Generated)
 
 
 add_custom_target(GameGeneratorCommand
                     WORKING_DIRECTORY $<TARGET_FILE_DIR:DariusCodeGenerator>
-                    COMMAND DariusCodeGenerator ${CMAKE_SOURCE_DIR}/Demo/Source/Demo ${CMAKE_SOURCE_DIR}/Demo/Source/Demo/Generated "pch.h" ${TOTAL_INCLUDES}
+                    COMMAND DariusCodeGenerator ${CMAKE_SOURCE_DIR}/${GAME_PROJECT}/Source/${GAME_PROJECT} ${CMAKE_SOURCE_DIR}/${GAME_PROJECT}/Source/${GAME_PROJECT}/Generated "pch.h" ${TOTAL_INCLUDES}
                     COMMENT "Generating Game Headers"
-                    DEPFILE ${SOURCE_DIR}/)
+                    DEPFILE ${ENGINE_DIR}/)
 
-add_dependencies(${GAME_PROJECT} ${DARIUS_PROJECT})
 add_dependencies(${GAME_PROJECT} GameGeneratorCommand)
+
+
+# Adding Boost
+set(Boost_USE_STATIC_LIBS ON)
+set(Boost_USE_MULTITHREADED ON)
+set(Boost_USE_STATIC_RUNTIME OFF)
+set(Boost_ARCHITECTURE "-x64")
+
+if(NOT DEFINED BOOST_ROOT)
+    set(BOOST_ROOT $ENV{Boost_ROOT})
+endif(NOT DEFINED BOOST_ROOT)
+
+find_package(Boost 1.70 COMPONENTS REQUIRED)
+
+if(Boost_FOUND)
+    include_directories(SYSTEM ${Boost_INCLUDE_DIRS})
+    target_link_libraries(${GAME_PROJECT} PRIVATE ${Boost_LIBRARIES})
+else()
+    message(FATAL_ERROR "Boost not found!")
+endif()
+
 
 target_link_libraries(${GAME_PROJECT} PRIVATE
     d3d12.lib dxgi.lib dxguid.lib uuid.lib
@@ -112,7 +122,7 @@ if ( CMAKE_CXX_COMPILER_ID MATCHES "MSVC" )
          "/wd4265" "/wd4625" "/wd4626" "/wd4986" "/wd5204" "/wd5220"
          "/wd4324" "/wd4623" "/wd5262" "/wd5264"
          "/wd5026" "/wd5027" "/wd5038"
-         "/wd4464" "/wd4127" "/wd4371" "/wd5205" "/wd5032" "/wd5219" "/wd4868")
+         "/wd4464" "/wd4127" "/wd4371" "/wd5205" "/wd5032" "/wd5219" "/wd4868" "/wd5267")
 
     if(ENABLE_CODE_ANALYSIS)
         target_compile_options(${GAME_PROJECT} PRIVATE /analyze)
@@ -155,7 +165,7 @@ add_custom_command(TARGET ${GAME_PROJECT} POST_BUILD
 
 add_custom_command(TARGET ${GAME_PROJECT} POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy_directory
-        "${CMAKE_SOURCE_DIR}/dll"
+        "${ENGINE_ROOT}/dll"
         $<TARGET_FILE_DIR:${GAME_PROJECT}>)
 
 add_custom_command(TARGET ${GAME_PROJECT} POST_BUILD
@@ -163,19 +173,19 @@ add_custom_command(TARGET ${GAME_PROJECT} POST_BUILD
         "$<TARGET_FILE_DIR:${GAME_PROJECT}>/Shaders"
 
     COMMAND ${CMAKE_COMMAND} -E copy_directory
-        "${CMAKE_SOURCE_DIR}/src/Shaders"
+        "${ENGINE_DIR}/Shaders"
         "$<TARGET_FILE_DIR:${GAME_PROJECT}>/Shaders"
 
     COMMAND ${CMAKE_COMMAND} -E make_directory
         "$<TARGET_FILE_DIR:${GAME_PROJECT}>/EditorResources"
 
     COMMAND ${CMAKE_COMMAND} -E copy_directory
-        "${CMAKE_SOURCE_DIR}/Editor Resources"
+        "${ENGINE_ROOT}/Editor Resources"
         "$<TARGET_FILE_DIR:${GAME_PROJECT}>/EditorResources"
 
     COMMAND ${CMAKE_COMMAND} -E make_directory
         "$<TARGET_FILE_DIR:${GAME_PROJECT}>/Utils"
 
     COMMAND ${CMAKE_COMMAND} -E copy_directory
-        "${CMAKE_SOURCE_DIR}/Tools/Utils"
+        "${ENGINE_ROOT}/Tools/Utils"
         "$<TARGET_FILE_DIR:${GAME_PROJECT}>/Utils")

@@ -3,9 +3,10 @@
 
 #include "Renderer/Camera/CameraManager.hpp"
 
+#include <Debug/DebugDraw.hpp>
 #include <Math/Serialization.hpp>
 #include <Scene/Utils/DetailsDrawer.hpp>
-#include <Debug/DebugDraw.hpp>
+#include <Scene/EntityComponentSystem/Components/TransformComponent.hpp>
 
 #include "LightComponent.sgenerated.hpp"
 

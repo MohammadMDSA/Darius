@@ -1,6 +1,8 @@
 #include "Renderer/pch.hpp"
 #include "RayTracingLightContext.hpp"
 
+#include <Scene/EntityComponentSystem/Components/TransformComponent.hpp>
+
 #include "Renderer/Components/LightComponent.hpp"
 
 namespace Darius::Renderer::RayTracing::Light

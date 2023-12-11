@@ -162,7 +162,7 @@ namespace Darius::Core
 		{
 			CheckUnrefSanity();
 
-			return mCount.Decrement();
+			return (bool)mCount.Decrement();
 		}
 
 		INLINE UINT Get() const

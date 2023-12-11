@@ -11,6 +11,7 @@
 #include <iostream>
 #include <stdio.h>
 #include <imgui_impl_win32.h>
+#include GAME_INITIALIZER_DIR
 
 using namespace DirectX;
 using namespace D_EDITOR;
@@ -46,8 +47,12 @@ int WINAPI wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, 
 {
 #ifdef _DEBUG
 	AllocConsole();
+#pragma warning(push)
+#pragma warning(disable: 4996)
 	freopen("CONOUT$", "w", stdout);
 	freopen("CONOUT$", "w", stderr);
+#pragma warning(pop)
+
 #endif
 
 	UNREFERENCED_PARAMETER(hPrevInstance);
@@ -76,7 +81,7 @@ int WINAPI wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, 
 		wcex.lpfnWndProc = WndProc;
 		wcex.hInstance = hInstance;
 		wcex.hIcon = LoadIconW(hInstance, L"IDI_ICON");
-		wcex.hCursor = LoadCursorW(nullptr, IDC_ARROW);
+		wcex.hCursor = LoadCursor(nullptr, IDC_ARROW);
 		wcex.hbrBackground = reinterpret_cast<HBRUSH>(COLOR_WINDOW + 1);
 		wcex.lpszClassName = L"DariusWindowClass";
 		wcex.hIconSm = LoadIconW(wcex.hInstance, L"IDI_ICON");
@@ -107,7 +112,8 @@ int WINAPI wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, 
 
 		GetClientRect(hwnd, &rc);
 
-		g_game->Initialize(hwnd, rc.right - rc.left, rc.bottom - rc.top, D_FILE::Path(_PROJ_ROOT).append("Demo"));
+		g_game->Initialize(hwnd, rc.right - rc.left, rc.bottom - rc.top, D_FILE::Path(_PROJ_ROOT));
+		InitializeGame();
 	}
 
 	// Main message loop

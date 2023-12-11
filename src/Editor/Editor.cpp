@@ -17,15 +17,8 @@
 #include <Graphics/GraphicsUtils/Profiling/Profiling.hpp>
 #include <Renderer/Rasterization/Renderer.hpp>
 #include <Renderer/Camera/CameraManager.hpp>
+#include <Scene/EntityComponentSystem/Components/TransformComponent.hpp>
 #include <Utils/Debug.hpp>
-
-#include <Demo/DetailDrawTest.hpp>
-#include <Demo/MovementBehaviour.hpp>
-#include <Demo/GameObjectReferencer.hpp>
-#include <Demo/LaserShoot.hpp>
-#include <Demo/Targeter.hpp>
-#include <Demo/TriggerTest.hpp>
-#include <Demo/CollisionTest.hpp>
 
 #include <exception>
 
@@ -66,16 +59,6 @@ namespace Darius::Editor
 
 		// Setting V-Sync
 		D_TIME::EnableFixedTimeStep(1.0 / 60);
-
-		// Registering components
-		// TODO: Better component initialization
-		Demo::MovementBehaviour::StaticConstructor();
-		Demo::LaserShoot::StaticConstructor();
-		Demo::DetailDrawTest::StaticConstructor();
-		Demo::Targeter::StaticConstructor();
-		Demo::GameObjectReferencer::StaticConstructor();
-		Demo::TriggerTest::StaticConstructor();
-		Demo::CollisionTest::StaticConstructor();
 
 		mTimer.SetFixedTimeStep(true);
 		mTimer.SetTargetElapsedSeconds(1.f / 60.f);

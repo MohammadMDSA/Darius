@@ -96,7 +96,7 @@ namespace Darius::Math
 		{
 			auto angle = DirectX::XMVectorGetX(DirectX::XMVector3AngleBetweenVectors(v1, v2));
 			auto cross = Vector3(DirectX::XMVector3Cross(v1, v2));
-			if (DirectX::XMVector3Equal(cross, { 0.f, 0.f, 0.f }))
+			if (DirectX::XMVector3Equal(cross, DirectX::XMVectorZero()))
 				return angle > DirectX::g_XMEpsilon[0] ? Quaternion::Inverted : Quaternion::Identity;
 
 			return Quaternion(cross, angle);

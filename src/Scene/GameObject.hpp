@@ -55,9 +55,9 @@ namespace Darius::Scene
 
 	public:
 
-		INLINE ECS::CompRef<D_MATH::TransformComponent>	GetTransform() const
+		D_MATH::TransformComponent*			GetTransform() const
 		{
-			return GetComponentRef<D_MATH::TransformComponent>();
+			return GetComponent<D_MATH::TransformComponent>();
 		}
 
 		void								SetParent(GameObject* newParent);
@@ -109,9 +109,6 @@ namespace Darius::Scene
 		template<class T>
 		T* GetComponent() const
 		{
-			// Checking if T is a resource type
-			using conv = std::is_convertible<T*, Darius::Scene::ECS::Components::ComponentBase*>;
-			D_STATIC_ASSERT(conv::value);
 			return mEntity.get_mut<T>();
 		}
 
@@ -168,6 +165,9 @@ namespace Darius::Scene
 
 		void								RemoveComponent(Darius::Scene::ECS::Components::ComponentBase*);
 
+	public:
+		INLINE D_ECS::Entity				GetEntity() const { return mEntity; }
+		INLINE bool							IsInScene() const { return mInScene; }
 
 #ifdef _D_EDITOR
 		bool								DrawDetails(float params[]);
@@ -231,10 +231,10 @@ namespace Darius::Scene
 		DField(Get[inline], Serialize)
 		D_CORE::Uuid			mPrefab;
 
-		DField(Get[inline])
+		DField()
 		D_ECS::Entity			mEntity;
 
-		DField(Get[inline])
+		DField()
 		const bool				mInScene;
 
 		// Comp name and display name

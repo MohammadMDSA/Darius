@@ -13,6 +13,8 @@
 
 #pragma once
 
+#include <Utils/Assert.hpp>
+#include <Utils/Common.hpp>
 
 #ifndef D_GRAPHICS_UTILS
 #define D_GRAPHICS_UTILS Darius::Graphics::Utils

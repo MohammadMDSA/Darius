@@ -166,7 +166,7 @@ namespace Darius::Scene
 		DumpGameObject(go, refGoJson, maintainContext);
 		LoadGameObject(refGoJson, &result, true);
 
-		if (!go->GetInScene())
+		if (!go->IsInScene())
 			result->mPrefab = go->GetUuid();
 
 		return result;

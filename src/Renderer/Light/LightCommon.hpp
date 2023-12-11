@@ -1,6 +1,9 @@
 #pragma once
 
-#include "Utils/Common.hpp"
+
+#include <Math/VectorMath.hpp>
+#include <Utils/Common.hpp>
+
 #include "LightCommon.generated.hpp"
 
 #ifndef D_RENDERER_LIGHT

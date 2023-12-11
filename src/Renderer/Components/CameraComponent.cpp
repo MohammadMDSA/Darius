@@ -5,6 +5,7 @@
 
 #include <Debug/DebugDraw.hpp>
 #include <Scene/Utils/DetailsDrawer.hpp>
+#include <Scene/EntityComponentSystem/Components/TransformComponent.hpp>
 
 #ifdef _D_EDITOR
 #include <imgui.h>

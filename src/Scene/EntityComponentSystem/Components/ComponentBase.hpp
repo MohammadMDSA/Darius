@@ -130,7 +130,7 @@ namespace Darius::Scene::ECS::Components
         virtual INLINE bool			IsDirty() const { return mDirty; }
         bool						CanChange() const;
 
-        INLINE bool                 IsActive() const { return mGameObject->IsActive() && mGameObject->GetInScene() && mEnabled; }
+        INLINE bool                 IsActive() const { return mGameObject->IsActive() && mGameObject->IsInScene() && mEnabled; }
 
         virtual INLINE bool         IsDisableable() const { return true; }
         
@@ -157,7 +157,7 @@ namespace Darius::Scene::ECS::Components
 
         }
 
-        INLINE CompRef<D_MATH::TransformComponent> GetTransform() const { return mGameObject->GetTransform(); }
+        INLINE D_MATH::TransformComponent* GetTransform() const { return mGameObject->GetTransform(); }
 
         static INLINE std::string   ClassName() { return "ComponentBase"; }
 

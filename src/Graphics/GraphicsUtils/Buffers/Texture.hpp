@@ -329,7 +329,9 @@ namespace Darius::Graphics::Utils::Buffers
         uint32_t mHeight;
         uint32_t mDepth;
 
+#if _D_EDITOR
         TextureMeta mMetaData;
+#endif // _D_EDITOR
 
         D3D12_CPU_DESCRIPTOR_HANDLE mCpuDescriptorHandle;
     };

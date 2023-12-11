@@ -2,6 +2,7 @@
 
 #include "CameraManager.hpp"
 
+#include <Scene/EntityComponentSystem/Components/TransformComponent.hpp>
 #include <Utils/Assert.hpp>
 
 namespace Darius::Renderer::CameraManager

@@ -7,6 +7,7 @@
 #include <Graphics/GraphicsUtils/Profiling/Profiling.hpp>
 #include <Job/Job.hpp>
 #include <Math/VectorMath.hpp>
+#include <Scene/EntityComponentSystem/Components/TransformComponent.hpp>
 
 #include "Renderer/Components/LightComponent.hpp"
 

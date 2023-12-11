@@ -390,9 +390,12 @@ namespace Darius::Math
 
 	INLINE UINT CountLeadingZeros(UINT value)
 	{
+#pragma warning(push)
+#pragma warning(disable: 4245)
 		// return 32 if value is zero
 		unsigned long bitIndex;
 		if (!_BitScanReverse(&bitIndex, value)) bitIndex = -1;
+#pragma warning(pop)
 		return 31 - bitIndex;
 	}
 

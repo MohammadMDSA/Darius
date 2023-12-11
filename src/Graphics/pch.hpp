@@ -8,7 +8,6 @@
 #define NOMINMAX
 
 #define D_HR_CHECK(hr) Darius::Graphics::Utils::ThrowIfFailed(hr);
-#define D_HR_FORCE(cond) D_HR_CHECK(cond ? S_OK : E_FAIL)
 #define D_HR_FORCE(cond, msg) Darius::Graphics::Utils::ThrowIfFailed(cond ? S_OK : E_FAIL, msg)
 #define D_HR_SUCCEEDED(hr) SUCCEEDED(hr)
 
@@ -38,8 +37,6 @@
 
 #include <Core/pch.hpp>
 #include <ResourceManager/pch.hpp>
-#include <Scene/EntityComponentSystem/Components/TransformComponent.hpp>
-#include <Scene/pch.hpp>
 #include <Utils/Log.hpp>
 
 #undef min
@@ -92,19 +89,5 @@ namespace Darius::Graphics::Utils
     }
 }
 
-#ifdef __MINGW32__
-constexpr UINT PIX_COLOR_DEFAULT = 0;
-
-inline void PIXBeginEvent(UINT64, PCWSTR) {}
-
-template<typename T>
-inline void PIXBeginEvent(T*, UINT64, PCWSTR) {}
-
-inline void PIXEndEvent() {}
-
-template<typename T>
-inline void PIXEndEvent(T*) {}
-#else
 #include <pix3.h>
-#endif
 

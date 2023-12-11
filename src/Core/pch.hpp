@@ -34,6 +34,7 @@
 #ifdef __MINGW32__
 #include <unknwn.h>
 #endif
+
 #include <wrl/client.h>
 
 #include <algorithm>

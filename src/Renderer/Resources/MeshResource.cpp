@@ -9,6 +9,7 @@
 #include <Graphics/GraphicsDeviceManager.hpp>
 #include <Graphics/GraphicsCore.hpp>
 #include <ResourceManager/ResourceManager.hpp>
+#include <Scene/EntityComponentSystem/Components/TransformComponent.hpp>
 
 #include "MeshResource.sgenerated.hpp"
 

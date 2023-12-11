@@ -7,6 +7,7 @@
 
 #include <ResourceManager/ResourceManager.hpp>
 #include <Scene/EntityComponentSystem/Components/ComponentBase.hpp>
+#include <Scene/EntityComponentSystem/Components/TransformComponent.hpp>
 
 #include "ColliderComponent.generated.hpp"
 

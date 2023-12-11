@@ -4,6 +4,7 @@
 #include "Editor/EditorContext.hpp"
 
 #include <ResourceManager/ResourceManager.hpp>
+#include <Scene/EntityComponentSystem/Components/TransformComponent.hpp>
 
 #include <imgui.h>
 

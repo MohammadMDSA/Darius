@@ -2,6 +2,8 @@
 #include "DetailsWindow.hpp"
 #include "Editor/EditorContext.hpp"
 
+#include <Scene/EntityComponentSystem/Components/TransformComponent.hpp>
+
 #include <imgui.h>
 
 #include <ResourceManager/ResourceLoader.hpp>

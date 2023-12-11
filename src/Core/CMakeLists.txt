@@ -47,7 +47,7 @@ add_library("Core")
 target_sources("Core"
 	PRIVATE
 	${CORE_LIBS_SOURCES}
-	${CORE_LIBS_INCLUDE} "Filesystem/Path.hpp")
+	${CORE_LIBS_INCLUDE})
 
 	
 set(Boost_USE_STATIC_LIBS ON) 
@@ -67,14 +67,19 @@ include_directories(SYSTEM ${Boost_INCLUDE_DIRS})
 
 target_include_directories("Core"
 PUBLIC
+	"${SOURCE_DIR}/Generated"
+SYSTEM
 	"${SOURCE_DIR}/Libs/rttr/src"
-	"${BASE_DIR}/Generated"
 PRIVATE
 	".."
 	${Boost_INCLUDE_DIRS}
 )
 
-target_link_libraries("Core" PUBLIC rttr_core Utils PRIVATE ${Boost_LIBRARIES} DirectXTK12)
+target_link_libraries("Core" PUBLIC Utils rttr_core PRIVATE ${Boost_LIBRARIES} DirectXTK12)
+
+# Adding Nlohmann Json
+target_include_directories("Core" PUBLIC "${SOURCE_DIR}/Libs/nlohmann_json/single_include")
+
 
 if(BUILD_TESTS)
 	set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/../../cmake")

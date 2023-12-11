@@ -5,6 +5,7 @@
 #include "Renderer/Resources/MaterialResource.hpp"
 
 #include <Scene/EntityComponentSystem/Components/ComponentBase.hpp>
+#include <Scene/EntityComponentSystem/Components/TransformComponent.hpp>
 
 #include "BillboardRendererComponent.generated.hpp"
 

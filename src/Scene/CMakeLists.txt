@@ -63,6 +63,7 @@ PRIVATE
 target_link_libraries("Scene" PRIVATE ${Boost_LIBRARIES} IMGUI)
 target_link_libraries("Scene" PUBLIC flecs_static ResourceManager Job)
 
+target_include_directories("Scene" INTERFACE "${SOURCE_DIR}/Libs/flecs")
 
 if(BUILD_TESTS)
 	set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/../../cmake")

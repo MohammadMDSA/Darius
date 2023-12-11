@@ -24,7 +24,11 @@ namespace Darius::Graphics::Utils::Buffers
     class ReadbackBuffer : public GpuBuffer
     {
     public:
+        ReadbackBuffer() = default;
+        ReadbackBuffer(ReadbackBuffer const&) = default;
         virtual ~ReadbackBuffer() { Destroy(); }
+
+        ReadbackBuffer& operator= (ReadbackBuffer const& other) = default;
 
         void Create(const std::wstring& name, uint32_t NumElements, uint32_t ElementSize);
 

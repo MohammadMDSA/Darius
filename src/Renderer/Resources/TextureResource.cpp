@@ -4,6 +4,7 @@
 #include <Core/Serialization/TypeSerializer.hpp>
 #include <Graphics/CommandContext.hpp>
 #include <ResourceManager/ResourceManager.hpp>
+#include <Math/VectorMath.hpp>
 
 #ifdef _D_EDITOR
 #include <imgui.h>

@@ -27,8 +27,6 @@ namespace Darius::Scene
 
 		void							CreateFromGameObject(GameObject const* go);
 
-	protected:
-
 		virtual void					WriteResourceToFile(D_SERIALIZATION::Json& j) const override;
 		virtual void					ReadResourceFromFile(D_SERIALIZATION::Json const& j) override;
 		virtual INLINE bool				UploadToGpu() override { return true; }
@@ -36,12 +34,14 @@ namespace Darius::Scene
 
 		INLINE virtual bool				AreDependenciesDirty() const override { return false; }
 
+		INLINE GameObject*				GetPrefabGameObject() const { return mPrefabGameObject; }
+
 	protected:
 		PrefabResource(D_CORE::Uuid uuid, std::wstring const& path, std::wstring const& name, D_RESOURCE::DResourceId id, bool isDefault = false);
 
 	private:
 
-		DField(Serialize, Get)
+		DField(Serialize)
 		GameObject* mPrefabGameObject;
 
 	};

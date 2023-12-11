@@ -5,6 +5,7 @@
 #include "PhysicsScene.hpp"
 
 #include <Core\Containers\Map.hpp>
+#include <Scene/EntityComponentSystem/Components/TransformComponent.hpp>
 
 #include "PhysicsActor.sgenerated.hpp"
 

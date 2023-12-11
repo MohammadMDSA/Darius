@@ -2,6 +2,8 @@
 
 #include "RootSignature.hpp"
 
+#include <Utils/Common.hpp>
+
 #define D_GRAPHICS_SHADERS Darius::Graphics::Utils::Shaders
 
 namespace Darius::Graphics::Utils::Shaders

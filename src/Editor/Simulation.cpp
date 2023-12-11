@@ -12,6 +12,7 @@
 #include <Physics/PhysicsManager.hpp>
 #include <Renderer/RendererManager.hpp>
 #include <Scene/Scene.hpp>
+#include <Scene/EntityComponentSystem/Components/TransformComponent.hpp>
 #include <Utils/Assert.hpp>
 
 namespace Darius::Editor::Simulate

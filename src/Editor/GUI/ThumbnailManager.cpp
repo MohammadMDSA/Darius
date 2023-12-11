@@ -6,7 +6,7 @@
 
 #include <Core/Containers/Map.hpp>
 #include <Renderer/Resources/MaterialResource.hpp>
-
+#include <Scene/EntityComponentSystem/Components/TransformComponent.hpp>
 #include <Utils/Assert.hpp>
 
 #define REGISTER_RESOURCE_TYPE_TEXTURE(resType, fileName) \

@@ -3,6 +3,8 @@
 
 #include "Renderer/Geometry/ModelLoader/FbxLoader.hpp"
 
+#include <Scene/EntityComponentSystem/Components/TransformComponent.hpp>
+
 #ifdef _D_EDITOR
 #include <imgui.h>
 #endif

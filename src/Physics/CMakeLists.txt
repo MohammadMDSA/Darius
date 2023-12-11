@@ -72,6 +72,7 @@ endif()
 target_link_libraries("Physics" PRIVATE ${Boost_LIBRARIES} IMGUI)
 target_link_libraries("Physics" PUBLIC Job Debug Graphics Renderer)
 
+target_include_directories("Physics" PUBLIC "${SOURCE_DIR}/Libs/PhysX/include")
 
 if(BUILD_TESTS)
 	set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/../../cmake")

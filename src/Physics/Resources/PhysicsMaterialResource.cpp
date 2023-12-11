@@ -1,6 +1,7 @@
 #include "Physics/pch.hpp"
 #include "PhysicsMaterialResource.hpp"
 
+#include <Scene/EntityComponentSystem/Components/TransformComponent.hpp>
 #include <Utils/Common.hpp>
 
 #ifdef _D_EDITOR
