@@ -1,4 +1,4 @@
-
+// Comment out this line when using as DLL
 /**
  * @file flecs.h
  * @brief Flecs public API.
@@ -8,6 +8,7 @@
 
 #ifndef FLECS_H
 #define FLECS_H
+//#define flecs_STATIC
 
 /**
  * @defgroup c C API

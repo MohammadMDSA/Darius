@@ -123,8 +123,8 @@ PUBLIC
 ##############################
 
 # Adding Flecs
+set(FLECS_STATIC FALSE)
 add_subdirectory("${SOURCE_DIR}/Libs/flecs")
-target_compile_options(flecs_static PRIVATE)
 
 # Adding imgui
 if(EDITOR_BUILD)
@@ -239,13 +239,10 @@ foreach(DLib ${DARIUS_LIBS})
     ${LIB_INCLUDES})
 endforeach()
 
-
 # Generating Code before compile
 get_target_property(DARIUS_INCLUDES ${DariusEngine} INCLUDE_DIRECTORIES)
 list(APPEND TOTAL_INCLUDES
     ${DARIUS_INCLUDES})
-
-FILE(GLOB HPP_SRC_FILES ${SOURCE_DIR}/**/*.hpp)
 
 add_custom_target(DariusGeneratorCommand
                     WORKING_DIRECTORY $<TARGET_FILE_DIR:DariusCodeGenerator>
@@ -253,6 +250,12 @@ add_custom_target(DariusGeneratorCommand
                     COMMENT "Generating Darius Headers"
                     DEPFILE ${SOURCE_DIR}/)
     
+
+add_custom_target(GameGeneratorCommand
+                    WORKING_DIRECTORY $<TARGET_FILE_DIR:DariusCodeGenerator>
+                    COMMAND DariusCodeGenerator ${PROJECT_DIR}/Source/${GAME_PROJECT} ${CMAKE_SOURCE_DIR}/${GAME_PROJECT}/Source/${GAME_PROJECT}/Generated "pch.h" ${TOTAL_INCLUDES}
+                    COMMENT "Generating Game Headers"
+                    DEPFILE ${GAME_DIR}/${GAME_PROJECT})
 
 # Defining CMAKE project dependencies
 add_dependencies(DariusGeneratorCommand DariusCodeGenerator)
