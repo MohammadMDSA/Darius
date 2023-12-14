@@ -244,6 +244,104 @@ get_target_property(DARIUS_INCLUDES ${DariusEngine} INCLUDE_DIRECTORIES)
 list(APPEND TOTAL_INCLUDES
     ${DARIUS_INCLUDES})
 
+
+##############################
+##############################
+##############################
+
+
+if(MSVC)
+    # Use max Warning Level 
+    string(REPLACE "/W3 " "/Wall " CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS})
+    string(REPLACE "/W3 " "/Wall " CMAKE_CXX_FLAGS_DEBUG ${CMAKE_CXX_FLAGS_DEBUG})
+    string(REPLACE "/W3 " "/Wall " CMAKE_CXX_FLAGS_RELEASE ${CMAKE_CXX_FLAGS_RELEASE})
+    add_definitions(/WX)
+    add_definitions(/MP)
+    target_compile_options(${DariusEngine} PRIVATE /fp:fast "$<$<NOT:$<CONFIG:DEBUG>>:/guard:cf>")
+    target_link_options(${DariusEngine} PRIVATE /DYNAMICBASE /NXCOMPAT)
+
+    if((${CMAKE_SIZEOF_VOID_P} EQUAL 4) AND (NOT ${DIRECTX_ARCH} MATCHES "^arm"))
+        target_link_options(${DariusEngine} PRIVATE /SAFESEH)
+    endif()
+endif()
+
+if(NOT ${DIRECTX_ARCH} MATCHES "^arm")
+    if (${CMAKE_SIZEOF_VOID_P} EQUAL "4")
+        set(ARCH_SSE2 $<$<CXX_COMPILER_ID:MSVC>:/arch:SSE2> $<$<NOT:$<CXX_COMPILER_ID:MSVC>>:-msse2>)
+    else()
+        set(ARCH_SSE2 $<$<NOT:$<CXX_COMPILER_ID:MSVC>>:-msse2>)
+    endif()
+
+    target_compile_options(${DariusEngine} PRIVATE ${ARCH_SSE2})
+endif()
+
+if (MINGW OR VCPKG_TOOLCHAIN)
+    message("INFO: Using VCPKG for DirectX-Headers and DirectXMath.")
+    find_package(directx-headers CONFIG REQUIRED)
+    find_package(directxmath CONFIG REQUIRED)
+    target_link_libraries(${DariusEngine} PRIVATE Microsoft::DirectX-Headers Microsoft::DirectX-Guids Microsoft::DirectXMath)
+    target_compile_definitions(${DariusEngine} PRIVATE USING_DIRECTX_HEADERS)
+
+endif()
+
+if ( CMAKE_CXX_COMPILER_ID MATCHES "Clang|IntelLLVM" )
+    target_compile_options(${DariusEngine} PRIVATE
+        -Wpedantic -Wextra -Werror
+        "-Wno-c++98-compat" "-Wno-c++98-compat-pedantic"
+        "-Wno-exit-time-destructors" "-Wno-global-constructors" "-Wno-language-extension-token"
+        "-Wno-missing-prototypes" "-Wno-missing-variable-declarations" "-Wno-reserved-id-macro"
+        "-Wno-float-equal" "-Wno-switch-enum" "-Wno-tautological-type-limit-compare")
+
+    if(BUILD_TEST_TEMPLATE)
+        target_compile_options(${DariusEngine} PRIVATE "-Wno-unused-value")
+    endif()
+endif()
+if(MINGW)
+    target_compile_options(${DariusEngine} PRIVATE -Wno-ignored-attributes)
+    target_link_options(${DariusEngine} PRIVATE -municode)
+endif()
+if ( CMAKE_CXX_COMPILER_ID MATCHES "MSVC" )
+    target_compile_options(${DariusEngine} PRIVATE
+         /sdl /permissive- /Zc:__cplusplus
+         "/wd4061" "/wd4365" "/wd4514" "/wd4571" "/wd4668" "/wd4710" "/wd4820" "/wd5039" "/wd5045"
+         "/wd4265" "/wd4625" "/wd4626" "/wd4986" "/wd5204" "/wd5220"
+         "/wd4324" "/wd4623" "/wd5262" "/wd5264"
+         "/wd5026" "/wd5027" "/wd5038"
+         "/wd4464" "/wd4127" "/wd4371" "/wd5205" "/wd5032" "/wd5219" "/wd4868" "/wd5267")
+
+    if(ENABLE_CODE_ANALYSIS)
+        target_compile_options(${DariusEngine} PRIVATE /analyze)
+    endif()
+
+    if (CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL 19.24)
+        target_compile_options(${DariusEngine} PRIVATE /ZH:SHA_256)
+    endif()
+
+    if (CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL 19.26)
+        target_compile_options(${DariusEngine} PRIVATE /Zc:preprocessor /wd5105)
+    endif()
+
+    if ((CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL 19.27) AND (NOT (${DIRECTX_ARCH} MATCHES "^arm")))
+        target_link_options(${DariusEngine} PRIVATE /CETCOMPAT)
+    endif()
+
+    if(BUILD_TEST_TEMPLATE)
+        target_compile_options(${DariusEngine} PRIVATE "/wd4555")
+    endif()
+endif()
+if ( CMAKE_CXX_COMPILER_ID MATCHES "^Intel$" )
+    target_compile_options(${DariusEngine} PRIVATE /Qwd161)
+endif()
+
+if(WIN32)
+    target_compile_definitions(${DariusEngine} PRIVATE _UNICODE UNICODE _WIN32_WINNT=0x0A00)
+endif()
+
+##############################
+##############################
+##############################
+
+
 add_custom_target(DariusGeneratorCommand
                     WORKING_DIRECTORY $<TARGET_FILE_DIR:DariusCodeGenerator>
                     COMMAND ${CMAKE_COMMAND} -E copy_if_different "${SOURCE_DIR}/pch.h" $<TARGET_FILE_DIR:DariusCodeGenerator> && DariusCodeGenerator ${SOURCE_DIR} ${SOURCE_DIR}/Generated "${SOURCE_DIR}/pch.h" ${SOURCE_DIR} ${TOTAL_INCLUDES} && DariusCodeGenerator ${CMAKE_SOURCE_DIR}/Demo/Source/Demo ${CMAKE_SOURCE_DIR}/Demo/Source/Demo/Generated "pch.h" ${TOTAL_INCLUDES}
@@ -253,9 +351,9 @@ add_custom_target(DariusGeneratorCommand
 
 add_custom_target(GameGeneratorCommand
                     WORKING_DIRECTORY $<TARGET_FILE_DIR:DariusCodeGenerator>
-                    COMMAND DariusCodeGenerator ${PROJECT_DIR}/Source/${GAME_PROJECT} ${CMAKE_SOURCE_DIR}/${GAME_PROJECT}/Source/${GAME_PROJECT}/Generated "pch.h" ${TOTAL_INCLUDES}
+                    COMMAND DariusCodeGenerator ${PROJECT_DIR}/Source/${GAME_PROJECT} ${PROJECT_DIR}/Source/${GAME_PROJECT}/Generated "pch.h" ${TOTAL_INCLUDES}
                     COMMENT "Generating Game Headers"
-                    DEPFILE ${GAME_DIR}/${GAME_PROJECT})
+                    DEPFILE ${GAME_DIR}/${DariusEngine})
 
 # Defining CMAKE project dependencies
 add_dependencies(DariusGeneratorCommand DariusCodeGenerator)

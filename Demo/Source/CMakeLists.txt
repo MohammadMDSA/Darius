@@ -81,15 +81,6 @@ if(NOT ${DIRECTX_ARCH} MATCHES "^arm")
     target_compile_options(${GAME_PROJECT} PRIVATE ${ARCH_SSE2})
 endif()
 
-if (MINGW OR VCPKG_TOOLCHAIN)
-    message("INFO: Using VCPKG for DirectX-Headers and DirectXMath.")
-    find_package(directx-headers CONFIG REQUIRED)
-    find_package(directxmath CONFIG REQUIRED)
-    target_link_libraries(${GAME_PROJECT} PRIVATE Microsoft::DirectX-Headers Microsoft::DirectX-Guids Microsoft::DirectXMath)
-    target_compile_definitions(${GAME_PROJECT} PRIVATE USING_DIRECTX_HEADERS)
-
-endif()
-
 if ( CMAKE_CXX_COMPILER_ID MATCHES "Clang|IntelLLVM" )
     target_compile_options(${GAME_PROJECT} PRIVATE
         -Wpedantic -Wextra -Werror
