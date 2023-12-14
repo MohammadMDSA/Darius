@@ -28,15 +28,6 @@ target_include_directories(${GAME_PROJECT}
                 ${GAME_DIR}/${GAME_PROJECT}/Generated)
 
 
-add_custom_target(GameGeneratorCommand
-                    WORKING_DIRECTORY $<TARGET_FILE_DIR:DariusCodeGenerator>
-                    COMMAND DariusCodeGenerator ${CMAKE_SOURCE_DIR}/${GAME_PROJECT}/Source/${GAME_PROJECT} ${CMAKE_SOURCE_DIR}/${GAME_PROJECT}/Source/${GAME_PROJECT}/Generated "pch.h" ${TOTAL_INCLUDES}
-                    COMMENT "Generating Game Headers"
-                    DEPFILE ${ENGINE_DIR}/)
-
-add_dependencies(${GAME_PROJECT} GameGeneratorCommand)
-
-
 # Adding Boost
 set(Boost_USE_STATIC_LIBS ON)
 set(Boost_USE_MULTITHREADED ON)
@@ -161,6 +152,11 @@ set_property(DIRECTORY PROPERTY VS_STARTUP_PROJECT ${GAME_PROJECT})
 add_custom_command(TARGET ${GAME_PROJECT} POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy_if_different 
         "$<TARGET_FILE_DIR:rttr_core>/rttr_core_d.dll"
+        $<TARGET_FILE_DIR:${GAME_PROJECT}>)
+
+add_custom_command(TARGET ${GAME_PROJECT} POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different
+        "$<TARGET_FILE_DIR:flecs>/flecs.dll"
         $<TARGET_FILE_DIR:${GAME_PROJECT}>)
 
 add_custom_command(TARGET ${GAME_PROJECT} POST_BUILD

@@ -11,7 +11,7 @@ add_subdirectory("DariusHeaderTool")
 
 set(ENGINE_ROOT ${CMAKE_CURRENT_SOURCE_DIR})
 set(ENGINE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/src")
-set(PROJECT_DIR "${CMAKE_CURRENT_SOURCE_DIR}/Demo")
+set(PROJECT_DIR "${CMAKE_CURRENT_SOURCE_DIR}/${GAME_PROJECT}")
 
 add_definitions(-D_PROJ_ROOT="${PROJECT_DIR}")
 add_definitions(-DGAME_INITIALIZER_DIR="${PROJECT_DIR}/Source/${GAME_PROJECT}/${GAME_PROJECT}.hpp")
@@ -22,6 +22,8 @@ add_subdirectory("src")
 
 # Adding game project
 add_subdirectory("${GAME_PROJECT}/Source")
+
+add_dependencies(${GAME_PROJECT} GameGeneratorCommand)
 
 target_link_libraries("${GAME_PROJECT}" PUBLIC "Darius")
 target_include_directories("${GAME_PROJECT}" PUBLIC ${ENGINE_DIR})
