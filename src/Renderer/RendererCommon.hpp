@@ -137,12 +137,15 @@ namespace Darius::Renderer
 		UINT						StartIndexLocation = 0;
 		int							BaseVertexLocation = 0;
 
-		Joint const* mJointData = nullptr;
+		Joint const*				mJointData = nullptr;
 		int							mNumJoints = 0;
 
-		uint16_t					PsoFlags = 0;
+		UINT						PsoFlags : 16 = 0;
+		UINT						StencilValue : 8 = 0;
+		UINT						StencilEnable : 1 = 0;
 		UINT						PsoType = 0;
 		UINT						DepthPsoIndex = 0;
+
 	};
 
 	struct SceneRenderContext

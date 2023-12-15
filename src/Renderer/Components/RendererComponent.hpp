@@ -19,12 +19,18 @@ namespace Darius::Renderer
 		
 	public:
 		INLINE virtual bool									CanRender() const override { return IsActive(); }
-		INLINE virtual D_MATH_BOUNDS::BoundingSphere const& GetBounds() override { return D_MATH_BOUNDS::BoundingSphere(); }
+		INLINE virtual D_MATH_BOUNDS::BoundingSphere const& GetBounds() override { return *reinterpret_cast<D_MATH_BOUNDS::BoundingSphere*>(nullptr); }
 		INLINE virtual D3D12_GPU_VIRTUAL_ADDRESS			GetConstantsAddress() const override { return D3D12_GPU_VIRTUAL_ADDRESS_UNKNOWN; }
 		INLINE virtual bool									AddRenderItems(std::function<void(D_RENDERER::RenderItem const&)> appendFunction) override { return false; }
 		INLINE virtual bool									IsCastingShadow() const override { return mCastsShadow; }
 
 		void												SetCastsShadow(bool value);
+
+		bool												IsStencilWriteEnable() const { return mStencilWriteEnable; }
+		UINT8												GetStencilValue() const { return mStencilValue; }
+
+		void												SetStencilWriteEnable(bool value);
+		void												SetStencilValue(UINT8 value);
 
 #ifdef _D_EDITOR
 		virtual bool										DrawDetails(float[]) override;
@@ -33,6 +39,12 @@ namespace Darius::Renderer
 	private:
 
 		DField(Serialize)
-		bool									mCastsShadow;
+		bool												mCastsShadow;
+
+		DField(Serialize)
+		bool												mStencilWriteEnable;
+
+		DField(Serialize)
+		UINT8												mStencilValue;
 	};
 }

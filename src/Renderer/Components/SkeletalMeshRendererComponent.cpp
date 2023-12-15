@@ -61,6 +61,8 @@ namespace Darius::Renderer
 		result.MeshVsCBV = GetConstantsAddress();
 		result.mJointData = mJoints.data();
 		result.mNumJoints = (UINT)mJoints.size();
+		result.StencilEnable = IsStencilWriteEnable();
+		result.StencilValue = GetStencilValue();
 
 		for (UINT i = 0; i < mesh->mDraw.size(); i++)
 		{
@@ -95,8 +97,8 @@ namespace Darius::Renderer
 
 		valueChanged |= MeshRendererComponentBase::DrawDetails(params);
 
-
 		D_H_DETAILS_DRAW_BEGIN_TABLE();
+
 		// Mesh selection
 		D_H_DETAILS_DRAW_PROPERTY("Mesh");
 		D_H_RESOURCE_SELECTION_DRAW(SkeletalMeshResource, mMesh, "Select Mesh", SetMesh);
@@ -110,6 +112,9 @@ namespace Darius::Renderer
 
 	void SkeletalMeshRendererComponent::SetMesh(SkeletalMeshResource* mesh)
 	{
+
+		if (!CanChange())
+			return;
 
 		if (mMesh == mesh)
 			return;

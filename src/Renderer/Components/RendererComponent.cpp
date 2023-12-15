@@ -14,14 +14,18 @@ namespace Darius::Renderer
 
 	RendererComponent::RendererComponent() :
 		D_ECS_COMP::ComponentBase(),
-		mCastsShadow(true)
+		mCastsShadow(true),
+		mStencilValue(0u),
+		mStencilWriteEnable(false)
 	{
 		SetDirty();
 	}
 
 	RendererComponent::RendererComponent(D_CORE::Uuid uuid) :
 		D_ECS_COMP::ComponentBase(uuid),
-		mCastsShadow(false)
+		mCastsShadow(false),
+		mStencilValue(0u),
+		mStencilWriteEnable(false)
 	{
 		SetDirty();
 	}
@@ -41,6 +45,28 @@ namespace Darius::Renderer
 			if (ImGui::Checkbox("##CastsShadow", &value))
 			{
 				SetCastsShadow(value);
+				valueChanged = true;
+			}
+		}
+
+		// Stencil enable
+		{
+			bool value = IsStencilWriteEnable();
+			D_H_DETAILS_DRAW_PROPERTY("Stencil Write");
+			if (ImGui::Checkbox("##StencilWrite", &value))
+			{
+				SetStencilWriteEnable(value);
+				valueChanged = true;
+			}
+		}
+
+		// Stencil value
+		{
+			UINT8 value = GetStencilValue();
+			D_H_DETAILS_DRAW_PROPERTY("Stencil Value");;
+			if (ImGui::DragScalar("##StencilValue", ImGuiDataType_U8, &value))
+			{
+				SetStencilValue(value);
 				valueChanged = true;
 			}
 		}
@@ -65,4 +91,29 @@ namespace Darius::Renderer
 		mChangeSignal(this);
 	}
 
+	void RendererComponent::SetStencilValue(UINT8 value)
+	{
+		if (!CanChange())
+			return;
+
+		if (mStencilValue == value)
+			return;
+
+		mStencilValue = value;
+
+		mChangeSignal(this);
+	}
+
+	void RendererComponent::SetStencilWriteEnable(bool value)
+	{
+		if (!CanChange())
+			return;
+
+		if (mStencilWriteEnable == value)
+			return;
+
+		mStencilWriteEnable = value;
+
+		mChangeSignal(this);
+	}
 }

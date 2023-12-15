@@ -129,6 +129,8 @@ namespace Darius::Renderer
 		ri.PsoFlags = psoFlags;
 		ri.BaseVertexLocation = 0;
 		ri.IndexCount = 1;
+		ri.StencilEnable = IsStencilWriteEnable();
+		ri.StencilValue = GetStencilValue();
 
 		appendFunction(ri);
 

@@ -54,6 +54,9 @@ namespace Darius::Renderer
 
 	void MeshRendererComponentBase::SetMaterial(UINT index, MaterialResource* material)
 	{
+		if (!CanChange())
+			return;
+
 		if (mMaterials[index] == material)
 			return;
 		

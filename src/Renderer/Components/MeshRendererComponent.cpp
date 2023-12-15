@@ -49,6 +49,8 @@ namespace Darius::Renderer
 		const Mesh* mesh = mMesh.Get()->GetMeshData();
 		result.Mesh = mesh;
 		result.MeshVsCBV = GetConstantsAddress();
+		result.StencilEnable = IsStencilWriteEnable();
+		result.StencilValue = GetStencilValue();
 
 		static auto incSize = D_GRAPHICS_DEVICE::GetDevice()->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 
@@ -130,6 +132,9 @@ namespace Darius::Renderer
 
 	void MeshRendererComponent::SetMesh(StaticMeshResource* mesh)
 	{
+		if (!CanChange())
+			return;
+
 		if (mMesh == mesh)
 			return;
 

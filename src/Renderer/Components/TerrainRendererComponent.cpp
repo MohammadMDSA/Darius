@@ -107,6 +107,8 @@ namespace Darius::Renderer
 
 		ri.TextureDomainSRV = mTerrainData->GetTexturesHandle();
 		ri.IndexCount = ri.Mesh->mNumTotalIndices;
+		ri.StencilEnable = IsStencilEnable();
+		ri.StencilValue = GetStencilValue();
 
 		appendFunction(ri);
 

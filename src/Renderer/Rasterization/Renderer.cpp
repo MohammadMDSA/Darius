@@ -932,6 +932,14 @@ namespace Darius::Renderer::Rasterization
 					context.SetIndexBuffer(ri.Mesh->IndexBufferView());
 				}
 
+				if(m_CurrentPass == kZPass)
+				{
+					if (ri.StencilEnable)
+						context.SetStencilRef(ri.StencilValue);
+					else
+						context.SetStencilRef(0u);
+				}
+
 				if (ri.PsoFlags & RenderItem::SkipVertexIndex)
 					context.DrawInstanced(ri.IndexCount, 1, ri.BaseVertexLocation, 0);
 				else
