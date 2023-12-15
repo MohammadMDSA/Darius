@@ -64,7 +64,7 @@ set(Boost_USE_STATIC_LIBS ON)
 set(Boost_USE_MULTITHREADED ON)  
 set(Boost_USE_STATIC_RUNTIME OFF)
 set(Boost_ARCHITECTURE "-x64")
-find_package(Boost 1.75 REQUIRED)
+find_package(BOOST 1.75 REQUIRED)
 
 set_target_properties("Editor" PROPERTIES LINKER_LANGUAGE CXX)
 

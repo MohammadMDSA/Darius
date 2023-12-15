@@ -3,8 +3,42 @@ project(Demo)
 
 set(GAME_PROJECT "Demo")
 
+if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+    set(WINDOWS TRUE)
+endif()
+
+set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
+
+set(VCPKG_TOOLCHAIN OFF)
+
 option(EDITOR_BUILD on)
 set(EDITOR_BUILD TRUE)
+
+if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+    set(WINDOWS TRUE)
+endif()
+
+if(WINDOWS)
+    add_definitions(-D_CRT_SECURE_NO_WARNINGS)
+endif(WINDOWS)
+
+message(STATUS "Build type is ${CMAKE_BUILD_TYPE}")
+if(NOT WINDOWS)
+    if(${CMAKE_BUILD_TYPE} MATCHES Release)
+        add_definitions(-DNDEBUG)
+    else()
+        add_definitions(-D_DEBUG)
+    endif()
+endif()
+
+set(CMAKE_MAP_IMPORTED_CONFIG_RELWITHDEBINFO Release)
+
+if(BUILD_EDITOR)
+    add_definitions(-D_D_EDITOR)
+endif(BUILD_EDITOR)
+
 
 # Adding Darius Header Tool
 add_subdirectory("DariusHeaderTool")

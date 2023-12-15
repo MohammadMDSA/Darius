@@ -23,29 +23,8 @@ set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin/${CMAKE_BUILD_TYPE}"
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin/${CMAKE_BUILD_TYPE}")
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin/${CMAKE_BUILD_TYPE}")
 
-set(VCPKG_TOOLCHAIN OFF)
-
 set(SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR})
 
-if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
-    set(WINDOWS TRUE)
-endif()
-
-if(WINDOWS)
-    add_definitions(-D_CRT_SECURE_NO_WARNINGS)
-endif(WINDOWS)
-
-message(STATUS "Build type is ${CMAKE_BUILD_TYPE}")
-if(NOT WINDOWS)
-    if(${CMAKE_BUILD_TYPE} MATCHES Release)
-        add_definitions(-DNDEBUG)
-    else()
-        add_definitions(-D_DEBUG)
-    endif()
-endif()
-
-
-set(CMAKE_MAP_IMPORTED_CONFIG_RELWITHDEBINFO Release)
 
 if (DEFINED VCPKG_TARGET_ARCHITECTURE)
     set(DIRECTX_ARCH ${VCPKG_TARGET_ARCHITECTURE})
@@ -163,7 +142,7 @@ if(NOT DEFINED BOOST_ROOT)
     set(BOOST_ROOT $ENV{Boost_ROOT})
 endif(NOT DEFINED BOOST_ROOT)
 
-find_package(Boost 1.70 COMPONENTS REQUIRED)
+find_package(BOOST 1.70 COMPONENTS REQUIRED)
 
 if(Boost_FOUND)
     include_directories(SYSTEM ${Boost_INCLUDE_DIRS})
@@ -216,7 +195,7 @@ endforeach()
 set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/../cmake")
 
 if(BUILD_TESTS)
-    find_package(Boost COMPONENTS unit_test_framework REQUIRED)
+    find_package(BOOST COMPONENTS unit_test_framework REQUIRED)
     enable_testing()
     include(BoostTestHelper)
 

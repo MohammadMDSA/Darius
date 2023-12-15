@@ -14,6 +14,7 @@
 public: \
 static INLINE std::string const GetTypeName() { return D_NAMEOF(T); }
 
+
 ///////////////////////////// Function Helpers
 #define _IN_
 #define _OUT_

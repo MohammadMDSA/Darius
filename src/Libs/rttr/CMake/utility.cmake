@@ -535,7 +535,7 @@ function(get_latest_supported_cxx CXX_STANDARD)
     if(${CMAKE_VERSION} VERSION_LESS "3.8.0") 
         set(CMAKE_CXX_STANDARD 14)
     else()
-        set(CMAKE_CXX_STANDARD 17)
+        set(CMAKE_CXX_STANDARD 20)
     endif()    
 
     include(CheckCXXSourceCompiles)
@@ -597,7 +597,7 @@ function(get_latest_supported_cxx CXX_STANDARD)
 
     if (HAS_NO_EXCEPT_TYPE_SIGNATURE_SUPPORT AND HAS_STL_NO_EXCEPT_TYPE_SIGNATURE_SUPPORT AND
         HAS_PARTIAL_SPECIALIZATION_FOR_ARRAYS)
-        set(MAX_CXX_STD 17)
+        set(MAX_CXX_STD 20)
     else()
         if (HAS_CXX_CONSTEXPR)
             set(MAX_CXX_STD 14)
