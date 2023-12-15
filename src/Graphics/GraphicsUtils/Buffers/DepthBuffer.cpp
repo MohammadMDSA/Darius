@@ -102,6 +102,7 @@ namespace Darius::Graphics::Utils::Buffers
                 mStencilSRV = Graphics::AllocateDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 
             SRVDesc.Format = stencilReadFormat;
+            SRVDesc.Texture2D.PlaneSlice = 1;
             Device->CreateShaderResourceView(Resource, &SRVDesc, mStencilSRV);
         }
     }

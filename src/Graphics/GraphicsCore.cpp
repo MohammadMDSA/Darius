@@ -518,7 +518,7 @@ namespace Darius::Graphics
 		DepthStateDisabled.StencilReadMask = D3D12_DEFAULT_STENCIL_READ_MASK;
 		DepthStateDisabled.StencilWriteMask = D3D12_DEFAULT_STENCIL_WRITE_MASK;
 		DepthStateDisabled.FrontFace.StencilFunc = D3D12_COMPARISON_FUNC_ALWAYS;
-		DepthStateDisabled.FrontFace.StencilPassOp = D3D12_STENCIL_OP_KEEP;
+		DepthStateDisabled.FrontFace.StencilPassOp = D3D12_STENCIL_OP_REPLACE;
 		DepthStateDisabled.FrontFace.StencilFailOp = D3D12_STENCIL_OP_KEEP;
 		DepthStateDisabled.FrontFace.StencilDepthFailOp = D3D12_STENCIL_OP_KEEP;
 		DepthStateDisabled.BackFace = DepthStateDisabled.FrontFace;
@@ -530,6 +530,7 @@ namespace Darius::Graphics
 
 		DepthStateReadOnly = DepthStateReadWrite;
 		DepthStateReadOnly.DepthWriteMask = D3D12_DEPTH_WRITE_MASK_ZERO;
+		DepthStateReadOnly.StencilWriteMask = D3D12_DEFAULT_STENCIL_REFERENCE;
 
 		DepthStateReadOnlyReversed = DepthStateReadOnly;
 		DepthStateReadOnlyReversed.DepthFunc = D3D12_COMPARISON_FUNC_LESS;
