@@ -327,6 +327,8 @@ namespace Darius::Renderer::Rasterization
 		context.ClearDepth(rContext.DepthBuffer);
 		if (D_GRAPHICS::IsStencilEnable())
 			context.ClearStencil(rContext.DepthBuffer);
+		if (rContext.CustomDepthBuffer)
+			context.ClearDepth(*rContext.CustomDepthBuffer);
 		context.ClearColor(rContext.ColorBuffer);
 		context.ClearColor(rContext.NormalBuffer);
 
@@ -339,7 +341,7 @@ namespace Darius::Renderer::Rasterization
 		sorter.SetCamera(rContext.Camera);
 		sorter.SetViewport(viewPort);
 		sorter.SetScissor(scissor);
-		sorter.SetDepthStencilTarget(rContext.DepthBuffer);
+		sorter.SetDepthStencilTarget(rContext.DepthBuffer, rContext.CustomDepthBuffer);
 		sorter.AddRenderTarget(rContext.ColorBuffer);
 		sorter.SetNormalTarget(rContext.NormalBuffer);
 
@@ -575,31 +577,31 @@ namespace Darius::Renderer::Rasterization
 
 		// Set radiance cube map function
 		auto setRadiance = [](TextureResource* specular)
-		{
-			auto texRes = const_cast<ID3D12Resource*>(RadianceCubeMap->GetTextureData()->GetResource());
-			const D3D12_RESOURCE_DESC& texDesc = texRes->GetDesc();
-			SpecularIBLRange = D_MATH::Max(0.f, (float)texDesc.MipLevels - 1);
-			SpecularIBLBias = D_MATH::Min(SpecularIBLBias, SpecularIBLRange);
+			{
+				auto texRes = const_cast<ID3D12Resource*>(RadianceCubeMap->GetTextureData()->GetResource());
+				const D3D12_RESOURCE_DESC& texDesc = texRes->GetDesc();
+				SpecularIBLRange = D_MATH::Max(0.f, (float)texDesc.MipLevels - 1);
+				SpecularIBLBias = D_MATH::Min(SpecularIBLBias, SpecularIBLRange);
 
-			UINT destCount = 1;
-			UINT sourceCounts = 1;
-			D3D12_CPU_DESCRIPTOR_HANDLE texHandle = RadianceCubeMap->GetTextureData()->GetSRV();
+				UINT destCount = 1;
+				UINT sourceCounts = 1;
+				D3D12_CPU_DESCRIPTOR_HANDLE texHandle = RadianceCubeMap->GetTextureData()->GetSRV();
 
-			DescriptorHandle dest = CommonTexture + 6 * TextureHeap.GetDescriptorSize();
-			D_GRAPHICS_DEVICE::GetDevice()->CopyDescriptors(1, &dest, &destCount, destCount, &texHandle, &sourceCounts, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-		};
+				DescriptorHandle dest = CommonTexture + 6 * TextureHeap.GetDescriptorSize();
+				D_GRAPHICS_DEVICE::GetDevice()->CopyDescriptors(1, &dest, &destCount, destCount, &texHandle, &sourceCounts, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+			};
 
 		// Set irradiance cube map function
 		auto setIrradiance = [](TextureResource* irradiance)
-		{
-			UINT destCount = 1;
-			UINT sourceCounts = 1;
-			D3D12_CPU_DESCRIPTOR_HANDLE texHandle = IrradianceCubeMap->GetTextureData()->GetSRV();
+			{
+				UINT destCount = 1;
+				UINT sourceCounts = 1;
+				D3D12_CPU_DESCRIPTOR_HANDLE texHandle = IrradianceCubeMap->GetTextureData()->GetSRV();
 
-			DescriptorHandle dest = CommonTexture + 7 * TextureHeap.GetDescriptorSize();
-			D_GRAPHICS_DEVICE::GetDevice()->CopyDescriptors(1, &dest, &destCount, destCount, &texHandle, &sourceCounts, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+				DescriptorHandle dest = CommonTexture + 7 * TextureHeap.GetDescriptorSize();
+				D_GRAPHICS_DEVICE::GetDevice()->CopyDescriptors(1, &dest, &destCount, destCount, &texHandle, &sourceCounts, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 
-		};
+			};
 
 		if (loadRadiance)
 		{
@@ -838,6 +840,8 @@ namespace Darius::Renderer::Rasterization
 			if (passCount == 0)
 				continue;
 
+			bool customDepthWriteAvailable = false;
+
 			if (m_BatchType == kDefault)
 			{
 				switch (m_CurrentPass)
@@ -845,8 +849,14 @@ namespace Darius::Renderer::Rasterization
 				case kZPass:
 					context.TransitionResource(*m_DSV, D3D12_RESOURCE_STATE_DEPTH_WRITE);
 					context.SetDepthStencilTarget(m_DSV->GetDSV());
+
+					if (m_DSVCustom)
+					{
+						context.TransitionResource(*m_DSVCustom, D3D12_RESOURCE_STATE_DEPTH_WRITE);
+						customDepthWriteAvailable = true;
+					}
+
 					break;
-					continue;
 				case kOpaque:
 					if (SeparateZPass)
 					{
@@ -859,6 +869,11 @@ namespace Darius::Renderer::Rasterization
 					else
 					{
 						context.TransitionResource(*m_DSV, D3D12_RESOURCE_STATE_DEPTH_WRITE);
+						if (m_DSVCustom)
+						{
+							context.TransitionResource(*m_DSVCustom, D3D12_RESOURCE_STATE_DEPTH_WRITE);
+							customDepthWriteAvailable = true;
+						}
 						context.TransitionResource(*m_RTV[0], D3D12_RESOURCE_STATE_RENDER_TARGET);
 						context.TransitionResource(*m_Norm, D3D12_RESOURCE_STATE_RENDER_TARGET);
 						D3D12_CPU_DESCRIPTOR_HANDLE RTs[] = { m_RTV[0]->GetRTV(), m_Norm->GetRTV() };
@@ -932,7 +947,7 @@ namespace Darius::Renderer::Rasterization
 					context.SetIndexBuffer(ri.Mesh->IndexBufferView());
 				}
 
-				if(m_CurrentPass == kZPass)
+				if (m_CurrentPass == kZPass)
 				{
 					if (ri.StencilEnable)
 						context.SetStencilRef(ri.StencilValue);
@@ -940,10 +955,21 @@ namespace Darius::Renderer::Rasterization
 						context.SetStencilRef(0u);
 				}
 
+				// Main render
 				if (ri.PsoFlags & RenderItem::SkipVertexIndex)
 					context.DrawInstanced(ri.IndexCount, 1, ri.BaseVertexLocation, 0);
 				else
 					context.DrawIndexedInstanced(ri.IndexCount, 1, ri.StartIndexLocation, ri.BaseVertexLocation, 0);
+
+				// Custom depth
+				if(ri.CustomDepth && customDepthWriteAvailable)
+				{
+					context.SetDepthStencilTarget(m_DSVCustom->GetDSV());
+					if (ri.PsoFlags & RenderItem::SkipVertexIndex)
+						context.DrawInstanced(ri.IndexCount, 1, ri.BaseVertexLocation, 0);
+					else
+						context.DrawIndexedInstanced(ri.IndexCount, 1, ri.StartIndexLocation, ri.BaseVertexLocation, 0);
+				}
 
 				++m_CurrentDraw;
 			}

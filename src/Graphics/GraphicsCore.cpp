@@ -140,7 +140,9 @@ namespace Darius::Graphics
 	///////////////////////// Options
 
 	bool											StencilEnabled;
+	bool											CustomDepthEnabled;
 	bool											CurrentlyStencilEnabled;
+	bool											CurrentlyCustomDepthDenabled;
 
 
 	namespace Device
@@ -278,7 +280,9 @@ namespace Darius::Graphics
 
 		// Settings
 		D_H_OPTIONS_LOAD_BASIC_DEFAULT("Graphics.StencilEnabled", StencilEnabled, false);
+		D_H_OPTIONS_LOAD_BASIC_DEFAULT("Graphics.CustomDepthEnabled", CustomDepthEnabled, false);
 		CurrentlyStencilEnabled = StencilEnabled;
+		CurrentlyCustomDepthDenabled = CustomDepthEnabled;
 		if (StencilEnabled)
 		{
 			DepthFormat = DXGI_FORMAT_D32_FLOAT_S8X24_UINT;
@@ -345,6 +349,11 @@ namespace Darius::Graphics
 	bool IsStencilEnable()
 	{
 		return CurrentlyStencilEnabled;
+	}
+
+	bool IsCustomDepthEnable()
+	{
+		return CurrentlyCustomDepthDenabled;
 	}
 
 	void Present()
@@ -681,6 +690,14 @@ namespace Darius::Graphics
 			ImGui::SameLine();
 			ImGui::TextColored({ 1.f, 1.f, 0.f, 1.f }, "You have to restart the engine for this option to take effect!");
 		}
+
+		D_H_OPTION_DRAW_CHECKBOX("Enable Custom Depth", "Graphics.CustomDepthEnabled", CustomDepthEnabled);
+		if (CustomDepthEnabled != CurrentlyCustomDepthDenabled)
+		{
+			ImGui::SameLine();
+			ImGui::TextColored({ 1.f, 1.f, 0.f, 1.f }, "You have to restart the engine for this option to take effect!");
+		}
+
 
 		ImGui::Separator();
 

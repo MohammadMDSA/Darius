@@ -46,6 +46,7 @@ namespace Darius::Editor::Gui::Windows
 		// Main Buffers
 		D_GRAPHICS_BUFFERS::ColorBuffer				mSceneTexture;
 		D_GRAPHICS_BUFFERS::DepthBuffer				mSceneDepth;
+		D_GRAPHICS_BUFFERS::DepthBuffer				mCustomDepth;
 		D_GRAPHICS_BUFFERS::ColorBuffer				mSceneNormals;
 
 		// TAA Buffers
@@ -113,6 +114,7 @@ namespace Darius::Editor::Gui::Windows
 		bool										mMovingCam;
 		bool										mDrawDebug;
 		bool										mForceWireframe;
+		bool										mCustomDepthApplied;
 	};
 
 }

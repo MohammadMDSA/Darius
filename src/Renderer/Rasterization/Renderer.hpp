@@ -67,6 +67,7 @@ namespace Darius::Renderer::Rasterization
 			m_Scissor = {};
 			m_NumRTVs = 0;
 			m_DSV = nullptr;
+			m_DSVCustom = nullptr;
 			m_Norm = nullptr;
 			m_SortObjects.clear();
 			m_SortKeys.clear();
@@ -84,6 +85,7 @@ namespace Darius::Renderer::Rasterization
 			m_Scissor = other.m_Scissor;
 			m_NumRTVs = other.m_NumRTVs;
 			m_DSV = other.m_DSV;
+			m_DSVCustom = other.m_DSVCustom;
 			m_Norm = other.m_Norm;
 			memcpy(m_RTV, other.m_RTV, sizeof(D_GRAPHICS_BUFFERS::ColorBuffer*) * m_NumRTVs);
 
@@ -106,7 +108,18 @@ namespace Darius::Renderer::Rasterization
 			D_ASSERT(m_NumRTVs < 8);
 			m_RTV[m_NumRTVs++] = &RTV;
 		}
-		void SetDepthStencilTarget(D_GRAPHICS_BUFFERS::DepthBuffer& DSV) { m_DSV = &DSV; }
+		void SetDepthStencilTarget(D_GRAPHICS_BUFFERS::DepthBuffer& DSV, D_GRAPHICS_BUFFERS::DepthBuffer* DSVCustom)
+		{
+			m_DSV = &DSV;
+			m_DSVCustom = DSVCustom;
+
+			if (m_DSVCustom)
+			{
+				D_ASSERT(m_DSV->GetWidth() == m_DSVCustom->GetWidth());
+				D_ASSERT(m_DSV->GetHeight() == m_DSVCustom->GetHeight());
+			}
+		}
+
 		INLINE void SetNormalTarget(D_GRAPHICS_BUFFERS::ColorBuffer& normal) { m_Norm = &normal; }
 
 		const D_MATH_CAMERA::Frustum& GetWorldFrustum() const { return m_Camera->GetWorldSpaceFrustum(); }
@@ -166,6 +179,7 @@ namespace Darius::Renderer::Rasterization
 		D_GRAPHICS_BUFFERS::ColorBuffer* m_RTV[8];
 		D_GRAPHICS_BUFFERS::ColorBuffer* m_Norm;
 		D_GRAPHICS_BUFFERS::DepthBuffer* m_DSV;
+		D_GRAPHICS_BUFFERS::DepthBuffer* m_DSVCustom;
 	};
 
 	struct PsoConfig
@@ -182,7 +196,7 @@ namespace Darius::Renderer::Rasterization
 			0
 		};
 	};
-	
+
 	D_STATIC_ASSERT(sizeof(PsoConfig) == 8u + sizeof(D3D12_INPUT_LAYOUT_DESC));
 
 	void Initialize(D_SERIALIZATION::Json const& settings);
@@ -193,7 +207,7 @@ namespace Darius::Renderer::Rasterization
 #ifdef _D_EDITOR
 	bool OptionsDrawer(_IN_OUT_ D_SERIALIZATION::Json& options);
 
-	UINT16 const&			GetForcedPsoFlags();
+	UINT16 const& GetForcedPsoFlags();
 	void					SetForceWireframe(bool val);
 #endif
 

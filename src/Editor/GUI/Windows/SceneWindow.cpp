@@ -215,6 +215,7 @@ namespace Darius::Editor::Gui::Windows
 		SceneRenderContext rc =
 		{
 			mSceneDepth,
+			mCustomDepthApplied ? &mCustomDepth : nullptr,
 			mSceneTexture,
 			mSceneNormals,
 			mVelocityBuffer,
@@ -520,11 +521,16 @@ namespace Darius::Editor::Gui::Windows
 
 	void SceneWindow::CreateBuffers()
 	{
+
+		mCustomDepthApplied = D_GRAPHICS::IsCustomDepthEnable();
+
 		D_GRAPHICS::GetCommandManager()->IdleGPU();
 		mBufferWidth = mWidth;
 		mBufferHeight = mHeight;
 		mSceneTexture.Create(L"Scene Texture", (UINT)mBufferWidth, (UINT)mBufferHeight, 1, D_GRAPHICS::GetColorFormat());
 		mSceneDepth.Create(L"Scene DepthStencil", (UINT)mBufferWidth, (UINT)mBufferHeight, D_GRAPHICS::GetDepthFormat());
+		if(mCustomDepthApplied)
+			mCustomDepth.Create(L"Scene CustomDepth", (UINT)mBufferWidth, (UINT)mBufferHeight, D_GRAPHICS::GetDepthFormat());
 		mSceneNormals.Create(L"Scene Normals", (UINT)mBufferWidth, (UINT)mBufferHeight, 1, DXGI_FORMAT_R16G16B16A16_FLOAT);
 
 		// Linear Depth

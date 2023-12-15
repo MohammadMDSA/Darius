@@ -83,22 +83,22 @@ namespace Darius::Renderer
 	{
 		enum PSOFlags : uint16_t
 		{
-			HasPosition = 0x001,
-			HasNormal = 0x002,
-			HasTangent = 0x004,
-			HasUV0 = 0x008,
-			HasUV1 = 0x010,
-			AlphaBlend = 0x020,
-			AlphaTest = 0x040,
-			TwoSided = 0x080,
-			HasSkin = 0x100,
-			Wireframe = 0x200,
-			ColorOnly = 0x400,
-			LineOnly = 0x800,
-			PointOnly = 0x1000,
-			DepthOnly = 0x2000,
-			SkipVertexIndex = 0x4000,
-			HasDisplacement = 0x8000
+			HasPosition = 1 << 0,
+			HasNormal = 1 << 1,
+			HasTangent = 1 << 2,
+			HasUV0 = 1 << 3,
+			HasUV1 = 1 << 4,
+			AlphaBlend = 1 << 5,
+			AlphaTest = 1 << 6,
+			TwoSided = 1 << 7,
+			HasSkin = 1 << 8,
+			Wireframe = 1 << 9,
+			ColorOnly = 1 << 10,
+			LineOnly = 1 << 11,
+			PointOnly = 1 << 12,
+			DepthOnly = 1 << 13,
+			SkipVertexIndex = 1 << 14,
+			HasDisplacement = 1 << 15,
 		};
 
 		RenderItem() = default;
@@ -143,6 +143,7 @@ namespace Darius::Renderer
 		UINT						PsoFlags : 16 = 0;
 		UINT						StencilValue : 8 = 0;
 		UINT						StencilEnable : 1 = 0;
+		UINT						CustomDepth : 1 = 0;
 		UINT						PsoType = 0;
 		UINT						DepthPsoIndex = 0;
 
@@ -151,6 +152,7 @@ namespace Darius::Renderer
 	struct SceneRenderContext
 	{
 		D_GRAPHICS_BUFFERS::DepthBuffer&	DepthBuffer;
+		D_GRAPHICS_BUFFERS::DepthBuffer*	CustomDepthBuffer;
 		D_GRAPHICS_BUFFERS::ColorBuffer&	ColorBuffer;
 		D_GRAPHICS_BUFFERS::ColorBuffer&	NormalBuffer;
 		D_GRAPHICS_BUFFERS::ColorBuffer&	VelocityBuffer;

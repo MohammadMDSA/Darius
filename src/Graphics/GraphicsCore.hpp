@@ -33,6 +33,7 @@ namespace Darius::Graphics
 	DXGI_FORMAT								SwapChainGetDepthFormat();
 
 	bool									IsStencilEnable();
+	bool									IsCustomDepthEnable();
 
 	HWND									GetWindow();
 

@@ -26,19 +26,20 @@ namespace Darius::Editor::Gui::Windows
 	GameWindow::GameWindow(D_SERIALIZATION::Json const& config) :
 		Window(config),
 		mSceneNormals(D_MATH::Color(0.f, 0.f, 0.f, 1.f)),
-		mSSAOFullScreen(D_MATH::Color(1.f, 1.f, 1.f))
+		mSSAOFullScreen(D_MATH::Color(1.f, 1.f, 1.f)),
+		mCustomDepthApplied(false)
 	{
 		CreateBuffers();
 		mTextureHandle = D_GUI_RENDERER::AllocateUiTexture();
 
 		// Window padding
 		mPadding[0] = mPadding[1] = 0.f;
-
 	}
 
 	GameWindow::~GameWindow()
 	{
 		mSceneDepth.Destroy();
+		mCustomDepth.Destroy();
 		mSceneTexture.Destroy();
 		mSceneNormals.Destroy();
 		mTemporalColor[0].Destroy();
@@ -111,6 +112,7 @@ namespace Darius::Editor::Gui::Windows
 		SceneRenderContext rc =
 		{
 			mSceneDepth,
+			mCustomDepthApplied ? &mCustomDepth : nullptr,
 			mSceneTexture,
 			mSceneNormals,
 			mVelocityBuffer,
@@ -201,11 +203,15 @@ namespace Darius::Editor::Gui::Windows
 
 	void GameWindow::CreateBuffers()
 	{
+		mCustomDepthApplied = D_GRAPHICS::IsCustomDepthEnable();
+
 		D_GRAPHICS::GetCommandManager()->IdleGPU();
 		mBufferWidth = mWidth;
 		mBufferHeight = mHeight;
 		mSceneTexture.Create(L"Game Scene Texture", (UINT)mBufferWidth, (UINT)mBufferHeight, 1, D_GRAPHICS::GetColorFormat());
 		mSceneDepth.Create(L"Game Scene DepthStencil", (UINT)mBufferWidth, (UINT)mBufferHeight, D_GRAPHICS::GetDepthFormat());
+		if (mCustomDepthApplied)
+			mCustomDepth.Create(L"Game Scene CustomDepth", (UINT)mBufferWidth, (UINT)mBufferHeight, D_GRAPHICS::GetDepthFormat());
 		mSceneNormals.Create(L"Game Normals", (UINT)mBufferWidth, (UINT)mBufferHeight, 1, DXGI_FORMAT_R16G16B16A16_FLOAT);
 
 		// Linear Depth
