@@ -51,6 +51,7 @@ namespace Darius::Renderer
 		result.MeshVsCBV = GetConstantsAddress();
 		result.StencilEnable = IsStencilWriteEnable();
 		result.StencilValue = GetStencilValue();
+		result.CustomDepth = IsCustomDepthEnable();
 
 		static auto incSize = D_GRAPHICS_DEVICE::GetDevice()->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 

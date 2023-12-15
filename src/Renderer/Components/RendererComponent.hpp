@@ -26,11 +26,13 @@ namespace Darius::Renderer
 
 		void												SetCastsShadow(bool value);
 
-		bool												IsStencilWriteEnable() const { return mStencilWriteEnable; }
-		UINT8												GetStencilValue() const { return mStencilValue; }
+		INLINE bool											IsStencilWriteEnable() const { return mStencilWriteEnable; }
+		INLINE UINT8										GetStencilValue() const { return mStencilValue; }
+		INLINE bool											IsCustomDepthEnable() const { return mCustomDepthEnable; }
 
 		void												SetStencilWriteEnable(bool value);
 		void												SetStencilValue(UINT8 value);
+		void												SetCustomDepthEnable(bool value);
 
 #ifdef _D_EDITOR
 		virtual bool										DrawDetails(float[]) override;
@@ -43,6 +45,9 @@ namespace Darius::Renderer
 
 		DField(Serialize)
 		bool												mStencilWriteEnable;
+
+		DField(Serialize)
+		bool												mCustomDepthEnable;
 
 		DField(Serialize)
 		UINT8												mStencilValue;

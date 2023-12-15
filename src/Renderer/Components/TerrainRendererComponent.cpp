@@ -109,6 +109,7 @@ namespace Darius::Renderer
 		ri.IndexCount = ri.Mesh->mNumTotalIndices;
 		ri.StencilEnable = IsStencilEnable();
 		ri.StencilValue = GetStencilValue();
+		ri.CustomDepth = IsCustomDepthEnable();
 
 		appendFunction(ri);
 

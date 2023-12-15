@@ -131,6 +131,7 @@ namespace Darius::Renderer
 		ri.IndexCount = 1;
 		ri.StencilEnable = IsStencilWriteEnable();
 		ri.StencilValue = GetStencilValue();
+		ri.CustomDepth = IsCustomDepthEnable();
 
 		appendFunction(ri);
 

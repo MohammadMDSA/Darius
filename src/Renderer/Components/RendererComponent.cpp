@@ -16,7 +16,8 @@ namespace Darius::Renderer
 		D_ECS_COMP::ComponentBase(),
 		mCastsShadow(true),
 		mStencilValue(0u),
-		mStencilWriteEnable(false)
+		mStencilWriteEnable(false),
+		mCustomDepthEnable(false)
 	{
 		SetDirty();
 	}
@@ -25,7 +26,8 @@ namespace Darius::Renderer
 		D_ECS_COMP::ComponentBase(uuid),
 		mCastsShadow(false),
 		mStencilValue(0u),
-		mStencilWriteEnable(false)
+		mStencilWriteEnable(false),
+		mCustomDepthEnable(false)
 	{
 		SetDirty();
 	}
@@ -63,10 +65,21 @@ namespace Darius::Renderer
 		// Stencil value
 		{
 			UINT8 value = GetStencilValue();
-			D_H_DETAILS_DRAW_PROPERTY("Stencil Value");;
+			D_H_DETAILS_DRAW_PROPERTY("Stencil Value");
 			if (ImGui::DragScalar("##StencilValue", ImGuiDataType_U8, &value))
 			{
 				SetStencilValue(value);
+				valueChanged = true;
+			}
+		}
+
+		// Custom Depth
+		{
+			bool value = IsCustomDepthEnable();
+			D_H_DETAILS_DRAW_PROPERTY("Custom Depth");
+			if (ImGui::Checkbox("##CustomDepth", &value))
+			{
+				SetCustomDepthEnable(value);
 				valueChanged = true;
 			}
 		}
@@ -113,6 +126,19 @@ namespace Darius::Renderer
 			return;
 
 		mStencilWriteEnable = value;
+
+		mChangeSignal(this);
+	}
+
+	void RendererComponent::SetCustomDepthEnable(bool value)
+	{
+		if (!CanChange())
+			return;
+
+		if (mCustomDepthEnable == value)
+			return;
+
+		mCustomDepthEnable = value;
 
 		mChangeSignal(this);
 	}

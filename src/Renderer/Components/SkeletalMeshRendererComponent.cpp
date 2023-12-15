@@ -63,6 +63,7 @@ namespace Darius::Renderer
 		result.mNumJoints = (UINT)mJoints.size();
 		result.StencilEnable = IsStencilWriteEnable();
 		result.StencilValue = GetStencilValue();
+		result.CustomDepth = IsCustomDepthEnable();
 
 		for (UINT i = 0; i < mesh->mDraw.size(); i++)
 		{
