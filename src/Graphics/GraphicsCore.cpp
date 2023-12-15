@@ -54,7 +54,7 @@ namespace Darius::Graphics
 
 	// Formats
 	DXGI_FORMAT											ColorFormat = DXGI_FORMAT_R11G11B10_FLOAT;
-	DXGI_FORMAT											DepthFormat = DXGI_FORMAT_D32_FLOAT;
+	DXGI_FORMAT											DepthFormat = DXGI_FORMAT_UNKNOWN;
 	DXGI_FORMAT											ShadowFormat = DXGI_FORMAT_D16_UNORM;
 
 	// Device resource
@@ -136,6 +136,11 @@ namespace Darius::Graphics
 	};
 
 	/*GraphicsPSO DownsampleDepthPSO(L"DownsampleDepth PSO")*/;
+
+	///////////////////////// Options
+
+	bool											StencilEnabled;
+	bool											CurrentlyStencilEnabled;
 
 
 	namespace Device
@@ -271,6 +276,18 @@ namespace Darius::Graphics
 		D_ASSERT(!_initialized);
 		_initialized = true;
 
+		// Settings
+		D_H_OPTIONS_LOAD_BASIC_DEFAULT("Graphics.StencilEnabled", StencilEnabled, false);
+		CurrentlyStencilEnabled = StencilEnabled;
+		if (StencilEnabled)
+		{
+			DepthFormat = DXGI_FORMAT_D32_FLOAT_S8X24_UINT;
+		}
+		else
+		{
+			DepthFormat = DXGI_FORMAT_D32_FLOAT;
+		}
+
 		Device::Initialize(window, width, height, settings);
 		D_ASSERT(Resources);
 		D_ASSERT(Resources->GetD3DDevice());
@@ -323,6 +340,11 @@ namespace Darius::Graphics
 			kv.Reset();
 
 		Device::Shutdown();
+	}
+
+	bool IsStencilEnable()
+	{
+		return CurrentlyStencilEnabled;
 	}
 
 	void Present()
@@ -492,7 +514,7 @@ namespace Darius::Graphics
 		DepthStateDisabled.DepthEnable = FALSE;
 		DepthStateDisabled.DepthWriteMask = D3D12_DEPTH_WRITE_MASK_ZERO;
 		DepthStateDisabled.DepthFunc = D3D12_COMPARISON_FUNC_ALWAYS;
-		DepthStateDisabled.StencilEnable = FALSE;
+		DepthStateDisabled.StencilEnable = IsStencilEnable();
 		DepthStateDisabled.StencilReadMask = D3D12_DEFAULT_STENCIL_READ_MASK;
 		DepthStateDisabled.StencilWriteMask = D3D12_DEFAULT_STENCIL_WRITE_MASK;
 		DepthStateDisabled.FrontFace.StencilFunc = D3D12_COMPARISON_FUNC_ALWAYS;
@@ -651,6 +673,16 @@ namespace Darius::Graphics
 	bool OptionsDrawer(_IN_OUT_ D_SERIALIZATION::Json& options)
 	{
 		D_H_OPTION_DRAW_BEGIN();
+
+		D_H_OPTION_DRAW_CHECKBOX("Enable Stencil", "Graphics.StencilEnabled", StencilEnabled);
+		if (StencilEnabled != CurrentlyStencilEnabled)
+		{
+			ImGui::SameLine();
+			ImGui::TextColored({ 1.f, 1.f, 0.f, 1.f }, "You have to restart the engine for this option to take effect!");
+		}
+
+		ImGui::Separator();
+
 
 		if (ImGui::CollapsingHeader("Temporal Anti-Aliasing"))
 		{
