@@ -55,14 +55,14 @@ namespace Darius::Graphics::Utils::Buffers
 #ifdef _D_EDITOR
         struct TextureMeta
         {
-            size_t          Width;
-            size_t          Height;     // Should be 1 for 1D textures
-            size_t          Depth;      // Should be 1 for 1D or 2D textures
-            size_t          ArraySize;  // For cubemap, this is a multiple of 6
-            size_t          MipLevels;
-            uint32_t        MiscFlags;
-            uint32_t        MiscFlags2;
-            DXGI_FORMAT     Format;
+            size_t          Width = 0;
+            size_t          Height = 0;     // Should be 1 for 1D textures
+            size_t          Depth = 0;      // Should be 1 for 1D or 2D textures
+            size_t          ArraySize = 0;  // For cubemap, this is a multiple of 6
+            size_t          MipLevels = 0;
+            uint32_t        MiscFlags = 0;
+            uint32_t        MiscFlags2 = 0;
+            DXGI_FORMAT     Format = DXGI_FORMAT_UNKNOWN;
             enum
                 // Subset here matches D3D10_RESOURCE_DIMENSION and D3D11_RESOURCE_DIMENSION
             {
