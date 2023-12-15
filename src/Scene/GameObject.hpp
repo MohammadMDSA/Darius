@@ -55,10 +55,7 @@ namespace Darius::Scene
 
 	public:
 
-		D_MATH::TransformComponent*			GetTransform() const
-		{
-			return GetComponent<D_MATH::TransformComponent>();
-		}
+		D_MATH::TransformComponent*			GetTransform() const;
 
 		void								SetParent(GameObject* newParent);
 
@@ -107,9 +104,12 @@ namespace Darius::Scene
 		}
 
 		template<class T>
-		T* GetComponent() const
+		INLINE T*							GetComponent() const
 		{
-			return mEntity.get_mut<T>();
+			if (!HasComponent<T>())
+				return nullptr;
+
+			return const_cast<T*>(mEntity.get<T>());
 		}
 
 		ECS::Components::ComponentBase* GetComponent(std::string const& compName) const;

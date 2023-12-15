@@ -152,7 +152,7 @@ namespace Darius::Scene
 						auto enabled = comp->IsEnabled();
 						if (ImGui::Checkbox("##Enabled", &enabled))
 						{
-							comp->SetEnabled(enabled);
+							comp->SetEnable(enabled);
 							changeValue = true;
 						}
 						ImGui::SameLine();
@@ -272,7 +272,7 @@ namespace Darius::Scene
 				if (!RegisteredBehaviours.contains(compId))
 					return;
 
-				auto compP = mEntity.get_mut(compId);
+				auto compP = const_cast<void*>(mEntity.get(compId));
 				try
 				{
 					auto comp = reinterpret_cast<BehaviourComponent*>(compP);
@@ -294,7 +294,7 @@ namespace Darius::Scene
 	{
 		auto compList = DVector<ComponentBase*>();
 
-		compList.push_back(mEntity.get_mut<D_MATH::TransformComponent>());
+		compList.push_back(const_cast<D_MATH::TransformComponent*>(mEntity.get<D_MATH::TransformComponent>()));
 
 		auto transId = D_WORLD::GetTypeId<D_MATH::TransformComponent>();
 
@@ -306,7 +306,7 @@ namespace Darius::Scene
 				if (transId == compId || !mEntity.has(compId))
 					return;
 
-				auto compP = mEntity.get_mut(compId);
+				auto compP = const_cast<void*>(mEntity.get(compId));
 				try
 				{
 					auto comp = reinterpret_cast<ComponentBase*>(compP);
@@ -332,7 +332,7 @@ namespace Darius::Scene
 		auto compT = D_WORLD::GetComponentEntity(name.c_str());
 
 		mEntity.add(compT);
-		auto compP = mEntity.get_mut(compT);
+		auto compP = const_cast<void*>(mEntity.get(compT));
 
 		auto ref = reinterpret_cast<ComponentBase*>(compP);
 		AddComponentRoutine(ref);
@@ -417,7 +417,7 @@ namespace Darius::Scene
 		auto compT = D_WORLD::GetComponentEntity(compName.c_str());
 
 
-		return reinterpret_cast<D_ECS_COMP::ComponentBase*>(mEntity.get_mut(compT));
+		return reinterpret_cast<D_ECS_COMP::ComponentBase*>(const_cast<void*>(mEntity.get(compT)));
 	}
 
 	void GameObject::SetParent(GameObject* newParent)

@@ -63,7 +63,7 @@ namespace Darius::Scene
 		D_ECS_COMP::BehaviourComponent::StaticConstructor();
 
 #ifdef _DEBUG
-		World.set<flecs::Rest>({});
+		//World.set<flecs::Rest>({});
 #endif // _DEBUG
 
 		PrefabResource::Register();
@@ -106,7 +106,7 @@ namespace Darius::Scene
 		ToBeStarted.clear();
 
 		// Update each component
-		for (auto updater : BehaviourUpdaterFunctions)
+		for (auto& updater : BehaviourUpdaterFunctions)
 			updater(deltaTime, World);
 
 	}
@@ -115,7 +115,7 @@ namespace Darius::Scene
 	{
 		RemoveDeleted();
 
-		for (auto updater : BehaviourLateUpdaterFunctions)
+		for (auto& updater : BehaviourLateUpdaterFunctions)
 			updater(deltaTime, World);
 	}
 
@@ -338,7 +338,7 @@ namespace Darius::Scene
 
 		// Loading hierarchy
 		if (sceneJson.contains("Hierarchy"))
-			for (auto [obUuid, childList] : sceneJson["Hierarchy"].items())
+			for (auto& [obUuid, childList] : sceneJson["Hierarchy"].items())
 			{
 				auto go = (*UuidMap)[FromString(obUuid)];
 				for (int i = 0; i < childList.size(); i++)
@@ -365,7 +365,7 @@ namespace Darius::Scene
 					// Adding component to entity
 					gameObject->mEntity.add(compR);
 
-					auto compP = gameObject->mEntity.get_mut(compId);
+					auto compP = const_cast<void*>(gameObject->mEntity.get(compId));
 
 					// Get component pointer
 					auto comp = reinterpret_cast<D_ECS_COMP::ComponentBase*>(compP);
@@ -413,7 +413,7 @@ namespace Darius::Scene
 		}
 
 		// Loading hierarchy
-		for (auto [obUuidStr, childrenList] : json["Hierarchy"].items())
+		for (auto& [obUuidStr, childrenList] : json["Hierarchy"].items())
 		{
 			auto parentGo = addedObjs[FromString(obUuidStr)];
 			for (int i = 0; i < childrenList.size(); i++)
@@ -438,7 +438,7 @@ namespace Darius::Scene
 
 				// Adding component to entity
 				gameObject->mEntity.add(compR);
-				auto compP = gameObject->mEntity.get_mut(compId);
+				auto compP = const_cast<void*>(gameObject->mEntity.get(compId));
 
 				// Get component pointer
 				auto comp = reinterpret_cast<D_ECS_COMP::ComponentBase*>(compP);

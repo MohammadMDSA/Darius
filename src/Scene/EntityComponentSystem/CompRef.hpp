@@ -53,7 +53,7 @@ namespace Darius::Scene::ECS
 			if (!IsValid())
 				return nullptr;
 
-			return mEntity.get_mut(mComponent);
+			return const_cast<void*>(mEntity.get(mComponent));
 		}
 
 		template<class T>
@@ -64,7 +64,7 @@ namespace Darius::Scene::ECS
 			if (!IsValid())
 				return nullptr;
 
-			return mEntity.get_mut<T>();
+			return const_cast<T*>(mEntity.get<T>());
 		}
 
 		void* operator-> () const { return Get(); }

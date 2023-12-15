@@ -43,7 +43,7 @@ set(Boost_USE_STATIC_LIBS ON)
 set(Boost_USE_MULTITHREADED ON)  
 set(Boost_USE_STATIC_RUNTIME OFF)
 set(Boost_ARCHITECTURE "-x64")
-find_package(Boost REQUIRED)
+find_package(BOOST REQUIRED)
 
 set_target_properties("Scene" PROPERTIES LINKER_LANGUAGE CXX)
 
