@@ -15,12 +15,12 @@ namespace Darius::Math
 {
 	class DClass(Serialize[LocalPosition, LocalRotation, LocalScale]) TransformComponent : public D_ECS_COMP::ComponentBase
 	{
+		D_H_COMP_BODY(TransformComponent, D_ECS_COMP::ComponentBase, "Math/Transform", true);
 		GENERATED_BODY();
 
-		D_H_COMP_BODY(TransformComponent, D_ECS_COMP::ComponentBase, "Math/Transform", true);
 	public:
 
-		virtual INLINE void					SetEnabled(bool) override {}
+		virtual INLINE void					SetEnable(bool) override {}
 
 		void								SetWorld(Matrix4 const& mat);
 		void								SetLocalWorld(Matrix4 const& mat);
@@ -158,6 +158,21 @@ namespace Darius::Math
 	{
 		return GetRotation().GetForward();
 	}
+
+}
+
+namespace Darius::Scene
+{
+
+	INLINE D_MATH::TransformComponent* D_SCENE::GameObject::GetTransform() const
+	{
+		return GetComponent<D_MATH::TransformComponent>();
+	}
+}
+
+namespace Darius::Scene::ECS::Components
+{
+	INLINE D_MATH::TransformComponent* ComponentBase::GetTransform() const { return mGameObject->GetTransform(); }
 }
 
 File_TransformComponent_GENERATED

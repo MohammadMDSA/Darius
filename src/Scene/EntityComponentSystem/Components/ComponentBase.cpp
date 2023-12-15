@@ -30,4 +30,26 @@ namespace Darius::Scene::ECS::Components
 		mDirty(false)
 	{}
 
+	void ComponentBase::SetEnable(bool value)
+	{
+		if (!value && !IsDisableable())
+			return;
+
+		auto changed = mEnabled != value;
+		mEnabled = value;
+		if (!changed)
+			return;
+
+		if (value)
+			OnActivate();
+		else
+			OnDeactivate();
+
+		if (!mStarted && IsActive())
+		{
+			mStarted = true;
+			Start();
+		}
+	}
+
 }

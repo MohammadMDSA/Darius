@@ -135,30 +135,9 @@ namespace Darius::Scene::ECS::Components
 
         virtual INLINE bool         IsDisableable() const { return true; }
         
-        virtual INLINE void         SetEnabled(bool value)
-        {
-            if (!value && !IsDisableable())
-                return;
+        virtual void                SetEnable(bool value);
 
-            auto changed = mEnabled != value;
-            mEnabled = value;
-            if (!changed)
-                return;
-            if (value)
-                OnActivate();
-            else
-                OnDeactivate();
-
-
-            if (!mStarted && IsActive())
-            {
-                mStarted = true;
-                Start();
-            }
-
-        }
-
-        INLINE D_MATH::TransformComponent* GetTransform() const { return mGameObject->GetTransform(); }
+        D_MATH::TransformComponent* GetTransform() const;
 
         static INLINE std::string   ClassName() { return "ComponentBase"; }
 
