@@ -33,7 +33,7 @@ namespace Darius::Renderer
 	D_H_COMP_DEF(BillboardRendererComponent);
 
 	BillboardRendererComponent::BillboardRendererComponent() :
-		ComponentBase(),
+		RendererComponent(),
 		mBoundDirty(true),
 		mWidth(1),
 		mHeight(1),
@@ -42,7 +42,7 @@ namespace Darius::Renderer
 	}
 
 	BillboardRendererComponent::BillboardRendererComponent(D_CORE::Uuid uuid) :
-		ComponentBase(uuid),
+		RendererComponent(uuid),
 		mBoundDirty(true),
 		mWidth(1),
 		mHeight(1),
@@ -68,7 +68,7 @@ namespace Darius::Renderer
 		// Updating mesh constants
 		// Mapping upload buffer
 		BillboardConstants* cb = reinterpret_cast<BillboardConstants*>(mMeshConstantsCPU.Map());
-		auto world = GetTransform()->GetWorld();
+		auto& world = GetTransform()->GetWorld();
 		cb->world = world;
 		cb->size = { mWidth, mHeight };
 		mMeshConstantsCPU.Unmap();
@@ -183,9 +183,11 @@ namespace Darius::Renderer
 	}
 
 #ifdef _D_EDITOR
-	bool BillboardRendererComponent::DrawDetails(float[])
+	bool BillboardRendererComponent::DrawDetails(float params[])
 	{
 		bool valueChanged = false;
+
+		valueChanged |= Super::DrawDetails(params);
 
 		D_H_DETAILS_DRAW_BEGIN_TABLE("Billbouard Details");
 
@@ -206,18 +208,10 @@ namespace Darius::Renderer
 			SetHeight(height);
 		}
 
-		{
-			D_H_DETAILS_DRAW_PROPERTY("Casts Shadow");
-			auto casts = IsCastsShadow();
-			if (ImGui::Checkbox("##CastsShadow", &casts))
-			{
-				SetCastsShadow(casts);
-			}
-		}
-
 		D_H_DETAILS_DRAW_END_TABLE();
 
 		return valueChanged;
 	}
-#endif 
+#endif
+
 }

@@ -3,8 +3,8 @@
 #include "IRenderable.hpp"
 
 #include "Renderer/Resources/MaterialResource.hpp"
+#include "RendererComponent.hpp"
 
-#include <Scene/EntityComponentSystem/Components/ComponentBase.hpp>
 #include <Scene/EntityComponentSystem/Components/TransformComponent.hpp>
 
 #include "BillboardRendererComponent.generated.hpp"
@@ -15,11 +15,11 @@
 
 namespace Darius::Renderer
 {
-	class DClass(Serialize) BillboardRendererComponent : public D_ECS_COMP::ComponentBase, public IRenderable
+	class DClass(Serialize) BillboardRendererComponent : public RendererComponent
 	{
 
 		GENERATED_BODY();
-		D_H_COMP_BODY(BillboardRendererComponent, D_ECS_COMP::ComponentBase, "Rendering/Billboard Renderer", true);
+		D_H_COMP_BODY(BillboardRendererComponent, RendererComponent, "Rendering/Billboard Renderer", true);
 
 	public:
 
@@ -27,15 +27,14 @@ namespace Darius::Renderer
 		virtual void						Awake() override;
 
 #ifdef _D_EDITOR
-		virtual bool						DrawDetails(float[]) override;
+		virtual bool						DrawDetails(float params[]) override;
 #endif // _D_EDITOR
 
 
-		virtual bool						AddRenderItems(std::function<void(D_RENDERER::RenderItem const&)> appendFunction);
+		virtual bool						AddRenderItems(std::function<void(D_RENDERER::RenderItem const&)> appendFunction) override;
 
-		INLINE virtual bool					CanRender() const { return IsActive(); }
 		INLINE virtual D3D12_GPU_VIRTUAL_ADDRESS GetConstantsAddress() const override { return mMeshConstantsGPU.GetGpuVirtualAddress(); }
-		INLINE virtual D_MATH_BOUNDS::BoundingSphere const& GetBounds()
+		INLINE virtual D_MATH_BOUNDS::BoundingSphere const& GetBounds() override
 		{
 			if (mBoundDirty)
 			{
@@ -67,9 +66,6 @@ namespace Darius::Renderer
 
 		DField(Serialize, Get[inline])
 		float								mHeight;
-
-		DField(Get[inline], Set[inline])
-		bool								mCastsShadow;
 
 		bool								mBoundDirty;
 		D_MATH_BOUNDS::BoundingSphere		mBoundingSphere;

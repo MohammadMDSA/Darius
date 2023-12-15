@@ -26,24 +26,22 @@ namespace Darius::Renderer
 	D_H_COMP_DEF(TerrainRendererComponent);
 
 	TerrainRendererComponent::TerrainRendererComponent() :
-		ComponentBase(),
+		RendererComponent(),
 		mMaterial(),
 		mGridMesh(),
 		//mHeightMap(GetAsCountedOwner()),
 		mGridSize(TerrainGridSize::Cells8x8),
-		mTerrainData(),
-		mCastsShadow(true)
+		mTerrainData()
 	{
 	}
 
 	TerrainRendererComponent::TerrainRendererComponent(D_CORE::Uuid uuid) :
-		ComponentBase(uuid),
+		RendererComponent(uuid),
 		mMaterial(),
 		mGridMesh(),
 		//mHeightMap(GetAsCountedOwner()),
 		mGridSize(TerrainGridSize::Cells8x8),
-		mTerrainData(),
-		mCastsShadow(true)
+		mTerrainData()
 	{
 	}
 
@@ -207,9 +205,11 @@ namespace Darius::Renderer
 
 
 #ifdef _D_EDITOR
-	bool TerrainRendererComponent::DrawDetails(float[])
+	bool TerrainRendererComponent::DrawDetails(float params[])
 	{
 		bool valueChanged = false;
+
+		valueChanged |= Super::DrawDetails(params);
 
 		D_H_DETAILS_DRAW_BEGIN_TABLE("Terrain Details");
 

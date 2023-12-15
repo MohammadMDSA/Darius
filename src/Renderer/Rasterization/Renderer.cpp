@@ -239,7 +239,7 @@ namespace Darius::Renderer::Rasterization
 				if (!meshComp.CanRender())
 					return;
 
-				if (!meshComp.IsCastsShadow())
+				if (!meshComp.IsCastingShadow())
 					return;
 
 				meshComp.AddRenderItems([&items](auto const& ri)
@@ -257,7 +257,7 @@ namespace Darius::Renderer::Rasterization
 				if (!meshComp.CanRender())
 					return;
 
-				if (!meshComp.IsCastsShadow())
+				if (!meshComp.IsCastingShadow())
 					return;
 
 				meshComp.AddRenderItems([&items](auto const& ri)
@@ -275,7 +275,7 @@ namespace Darius::Renderer::Rasterization
 				if (!meshComp.CanRender())
 					return;
 
-				if (!meshComp.IsCastsShadow())
+				if (!meshComp.IsCastingShadow())
 					return;
 
 				meshComp.AddRenderItems([&items](auto const& ri)
@@ -293,7 +293,7 @@ namespace Darius::Renderer::Rasterization
 				if (!meshComp.CanRender())
 					return;
 
-				if (!meshComp.IsCastsShadow())
+				if (!meshComp.IsCastingShadow())
 					return;
 
 				meshComp.AddRenderItems([&items](auto const& ri)
@@ -325,6 +325,8 @@ namespace Darius::Renderer::Rasterization
 		context.TransitionResource(rContext.ColorBuffer, D3D12_RESOURCE_STATE_RENDER_TARGET);
 		context.TransitionResource(rContext.NormalBuffer, D3D12_RESOURCE_STATE_RENDER_TARGET, true);
 		context.ClearDepth(rContext.DepthBuffer);
+		if (D_GRAPHICS::IsStencilEnable())
+			context.ClearStencil(rContext.DepthBuffer);
 		context.ClearColor(rContext.ColorBuffer);
 		context.ClearColor(rContext.NormalBuffer);
 

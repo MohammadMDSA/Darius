@@ -5,8 +5,8 @@
 #include "Renderer/Resources/MaterialResource.hpp"
 #include "Renderer/Resources/StaticMeshResource.hpp"
 #include "Renderer/Resources/TerrainResource.hpp"
+#include "RendererComponent.hpp"
 
-#include <Scene/EntityComponentSystem/Components/ComponentBase.hpp>
 #include <Scene/EntityComponentSystem/Components/TransformComponent.hpp>
 
 #include "TerrainRendererComponent.generated.hpp"
@@ -17,7 +17,7 @@
 
 namespace Darius::Renderer
 {
-	class DClass(Serialize) TerrainRendererComponent : public D_ECS_COMP::ComponentBase, public IRenderable
+	class DClass(Serialize) TerrainRendererComponent : public RendererComponent
 	{
 		GENERATED_BODY();
 	public:
@@ -30,7 +30,7 @@ namespace Darius::Renderer
 		};
 
 
-		D_H_COMP_BODY(TerrainRendererComponent, D_ECS_COMP::ComponentBase, "Rendering/Terrain Renderer", true);
+		D_H_COMP_BODY(TerrainRendererComponent, RendererComponent, "Rendering/Terrain Renderer", true);
 
 	public:
 
@@ -38,13 +38,12 @@ namespace Darius::Renderer
 		virtual void						Awake() override;
 
 #ifdef _D_EDITOR
-		virtual bool						DrawDetails(float[]) override;
+		virtual bool						DrawDetails(float params[]) override;
 #endif // _D_EDITOR
 
 
-		virtual bool						AddRenderItems(std::function<void(D_RENDERER::RenderItem const&)> appendFunction);
+		virtual bool						AddRenderItems(std::function<void(D_RENDERER::RenderItem const&)> appendFunction) override;
 
-		INLINE virtual bool					CanRender() const { return IsActive(); }
 		INLINE virtual D3D12_GPU_VIRTUAL_ADDRESS GetConstantsAddress() const override { return mMeshConstantsGPU.GetGpuVirtualAddress(); }
 		INLINE virtual D_MATH_BOUNDS::BoundingSphere const& GetBounds() override { return mGridMesh->GetMeshData()->mBoundSp; }
 
@@ -54,10 +53,8 @@ namespace Darius::Renderer
 
 		void								SetTerrainData(TerrainResource* terrain);
 		void								SetMaterial(MaterialResource* material);
-		void								SetCastsShadow(bool value) { mCastsShadow = value; }
 
 		INLINE TerrainGridSize				GetGridSize() const { return mGridSize; }
-		INLINE bool							IsCastsShadow() const { return mCastsShadow; }
 
 		INLINE TerrainResource*				GetTerrainData() const { return mTerrainData.Get(); }
 		INLINE MaterialResource*			GetMaterial() const { return mMaterial.Get(); }
@@ -92,9 +89,6 @@ namespace Darius::Renderer
 
 	private:
 		
-		DField(Serialize)
-		bool								mCastsShadow;
-
 		DField(Serialize)
 		TerrainGridSize						mGridSize;
 

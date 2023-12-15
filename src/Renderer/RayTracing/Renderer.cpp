@@ -190,7 +190,7 @@ namespace Darius::Renderer::RayTracing
 				}
 
 				// Submit BLAS instance with all associated data
-				BYTE mask = comp.IsCastsShadow() ? 0xff : (0xff & ~InstanceFlags::CastsShadow);
+				BYTE mask = comp.IsCastingShadow() ? 0xff : (0xff & ~InstanceFlags::CastsShadow);
 				scene->AddBottomLevelASInstance(uuid, mats, comp.GetConstantsAddress(), comp.GetTransform()->GetWorld(), mask);
 			});
 
@@ -224,7 +224,7 @@ namespace Darius::Renderer::RayTracing
 
 
 				// Submit BLAS instance with all associated data
-				BYTE mask = comp.IsCastsShadow() ? 0xff : (0xff & ~InstanceFlags::CastsShadow);
+				BYTE mask = comp.IsCastingShadow() ? 0xff : (0xff & ~InstanceFlags::CastsShadow);
 				scene->AddBottomLevelASInstance(uuid, { mat }, comp.GetConstantsAddress(), comp.GetTransform()->GetWorld(), mask);
 			});
 

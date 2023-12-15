@@ -23,18 +23,16 @@ namespace Darius::Renderer
 	D_H_COMP_DEF(MeshRendererComponentBase);
 
 	MeshRendererComponentBase::MeshRendererComponentBase() :
-		D_ECS_COMP::ComponentBase(),
+		RendererComponent(),
 		mComponentPsoFlags(0),
-		mCastsShadow(true),
 		mLoD(1.f)
 	{
 		SetDirty();
 	}
 
 	MeshRendererComponentBase::MeshRendererComponentBase(D_CORE::Uuid uuid) :
-		D_ECS_COMP::ComponentBase(uuid),
+		RendererComponent(uuid),
 		mComponentPsoFlags(0),
-		mCastsShadow(true),
 		mLoD(1.f)
 	{
 		SetDirty();
@@ -98,6 +96,10 @@ namespace Darius::Renderer
 	{
 		auto valueChanged = false;
 
+		valueChanged |= Super::DrawDetails(params);
+
+		D_H_DETAILS_DRAW_BEGIN_TABLE();
+
 		for (UINT i = 0; i < mMaterials.size(); i++)
 		{
 			auto setter = [&, i](MaterialResource* resource)
@@ -110,10 +112,6 @@ namespace Darius::Renderer
 			D_H_RESOURCE_SELECTION_DRAW(MaterialResource, mMaterials[i], "Select Material", setter, std::to_string(i));
 		}
 
-		// Casting shadow
-		D_H_DETAILS_DRAW_PROPERTY("Casts Shadow");
-		valueChanged |= ImGui::Checkbox("##CastsShadow", &mCastsShadow);
-
 		// LoD
 		{
 			D_H_DETAILS_DRAW_PROPERTY("LoD");
@@ -124,6 +122,8 @@ namespace Darius::Renderer
 				valueChanged = true;
 			}
 		}
+
+		D_H_DETAILS_DRAW_END_TABLE();
 
 		return valueChanged;
 

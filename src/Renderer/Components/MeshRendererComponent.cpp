@@ -155,9 +155,9 @@ namespace Darius::Renderer
 	{
 		auto valueChanged = false;
 
-		D_H_DETAILS_DRAW_BEGIN_TABLE();
-
 		valueChanged |= MeshRendererComponentBase::DrawDetails(params);
+
+		D_H_DETAILS_DRAW_BEGIN_TABLE();
 
 		// Mesh selection
 		D_H_DETAILS_DRAW_PROPERTY("Mesh");

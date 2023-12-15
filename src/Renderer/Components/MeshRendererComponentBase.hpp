@@ -2,8 +2,8 @@
 
 #include "IRenderable.hpp"
 #include "Renderer/Resources/MaterialResource.hpp"
+#include "RendererComponent.hpp"
 
-#include <Scene/EntityComponentSystem/Components/ComponentBase.hpp>
 #include <Scene/EntityComponentSystem/Components/TransformComponent.hpp>
 
 #include "MeshRendererComponentBase.generated.hpp"
@@ -14,10 +14,10 @@
 
 namespace Darius::Renderer
 {
-	class DClass(Serialize) MeshRendererComponentBase : public D_ECS_COMP::ComponentBase, public IRenderable
+	class DClass(Serialize) MeshRendererComponentBase : public RendererComponent
 	{
 		GENERATED_BODY();
-		D_H_COMP_BODY(MeshRendererComponentBase, D_ECS_COMP::ComponentBase, "Rendering/Base Mesh Renderer", false);
+		D_H_COMP_BODY(MeshRendererComponentBase, RendererComponent, "Rendering/Base Mesh Renderer", false);
 
 	public:
 
@@ -35,12 +35,10 @@ namespace Darius::Renderer
 		
 		INLINE virtual UINT						GetNumberOfSubmeshes() const { return 0; }
 
-		virtual bool							CanRender() const override { return IsActive(); }
-
 		INLINE virtual D_MATH_BOUNDS::BoundingSphere const& GetBounds() override { return (D_MATH_BOUNDS::BoundingSphere&)*this; }
 
 		INLINE D3D12_GPU_VIRTUAL_ADDRESS		GetConstantsAddress() const override { return mMeshConstantsGPU.GetGpuVirtualAddress(); }
-
+		INLINE virtual bool						CanRender() const override { return Super::CanRender(); }
 		INLINE virtual bool						IsDirty() const override { return D_ECS_COMP::ComponentBase::IsDirty() || GetTransform()->IsDirty(); }
 
 		void									SetMaterial(UINT index, MaterialResource* material);
@@ -54,9 +52,6 @@ namespace Darius::Renderer
 		
 		DField(Serialize)
 		D_CONTAINERS::DVector<D_RESOURCE::ResourceRef<MaterialResource>> mMaterials;
-
-		DField(Get[inline], Set[inline], Serialize)
-		bool									mCastsShadow;
 
 		DField(Get[inline], Set[inline, dirty], Serialize)
 		float									mLoD;
