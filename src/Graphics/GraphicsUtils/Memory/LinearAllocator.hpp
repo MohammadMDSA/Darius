@@ -30,8 +30,13 @@ namespace Darius::Graphics::Utils::Memory
 	// Various types of allocations may contain NULL pointers.  Check before dereferencing if you are unsure.
 	struct DynAlloc
 	{
-		DynAlloc(GpuResource& BaseResource, size_t ThisOffset, size_t ThisSize)
-			: Buffer(BaseResource), Offset(ThisOffset), Size(ThisSize) {}
+		DynAlloc(GpuResource& BaseResource, size_t ThisOffset, size_t ThisSize) :
+			Buffer(BaseResource),
+			Offset(ThisOffset),
+			Size(ThisSize),
+			DataPtr(nullptr),
+			GpuAddress(D3D12_GPU_VIRTUAL_ADDRESS_UNKNOWN)
+		{}
 
 		GpuResource& Buffer;	// The D3D buffer associated with this memory.
 		size_t Offset;			// Offset from start of buffer resource

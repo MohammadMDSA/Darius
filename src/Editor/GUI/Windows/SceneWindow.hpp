@@ -34,7 +34,7 @@ namespace Darius::Editor::Gui::Windows
 		void CreateGrid(D_CONTAINERS::DVector<D_RENDERER::RenderItem>& items, int count);
 		void CalcGridLineConstants(D_CONTAINERS::DVector<D_RENDERER::MeshConstants>& constants, int count);
 
-		void UpdateGlobalConstants(D_RENDERER::GlobalConstants& globals);
+		void UpdateGlobalConstants(D_RENDERER::GlobalConstants& globals) const;
 
 		D_MATH_CAMERA::Camera						mCamera;
 		D_EDITOR::FlyingFPSCamera					mFlyingCam;

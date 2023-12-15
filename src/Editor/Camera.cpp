@@ -155,6 +155,7 @@ namespace D_EDITOR
 
 	OrbitCamera::OrbitCamera(D_MATH_CAMERA::Camera& camera, D_MATH_BOUNDS::BoundingSphere focus, Vector3 worldUp) :
 		CameraController(camera),
+		mAdjusting(false),
 		mTargetLocationDirty(false)
 	{
 		mModelBounds = focus;

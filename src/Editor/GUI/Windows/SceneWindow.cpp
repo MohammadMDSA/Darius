@@ -149,7 +149,7 @@ namespace Darius::Editor::Gui::Windows
 		mNormalDepth.Destroy();
 	}
 
-	void SceneWindow::UpdateGlobalConstants(GlobalConstants& globals)
+	void SceneWindow::UpdateGlobalConstants(GlobalConstants& globals) const
 	{
 		Matrix4 temp;
 

@@ -14,8 +14,16 @@ namespace Darius::Graphics::Utils::Buffers
 
     public:
 
-        Texture() { mCpuDescriptorHandle.ptr = D3D12_GPU_VIRTUAL_ADDRESS_UNKNOWN; }
-        Texture(D3D12_CPU_DESCRIPTOR_HANDLE Handle) : mCpuDescriptorHandle(Handle) {}
+        Texture() :
+            mDepth(0u),
+            mHeight(0u),
+            mWidth(0u)
+        { mCpuDescriptorHandle.ptr = D3D12_GPU_VIRTUAL_ADDRESS_UNKNOWN; }
+        Texture(D3D12_CPU_DESCRIPTOR_HANDLE Handle) :
+            mCpuDescriptorHandle(Handle),
+            mDepth(0u),
+            mHeight(0u),
+            mWidth(0u) {}
 
         // Create a 1-level textures
         void Create2D(size_t RowPitchBytes, size_t Width, size_t Height, DXGI_FORMAT Format, const void* InitData);

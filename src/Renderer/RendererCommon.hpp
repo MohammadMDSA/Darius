@@ -25,9 +25,9 @@ namespace Darius::Renderer
 		DirectX::XMFLOAT4X4	ViewProj;
 		DirectX::XMFLOAT4X4	InvViewProj;
 		DirectX::XMFLOAT4X4 InvViewProjEyeCenter;
-		DirectX::XMFLOAT4	FrustumPlanes[6];
+		DirectX::XMFLOAT4	FrustumPlanes[6] = { { 0.f, 0.f, 0.f, 0.f }, { 0.f, 0.f, 0.f, 0.f }, { 0.f, 0.f, 0.f, 0.f }, { 0.f, 0.f, 0.f, 0.f }, { 0.f, 0.f, 0.f, 0.f }, { 0.f, 0.f, 0.f, 0.f } };
 		DirectX::XMFLOAT4	ShadowTexelSize = { 0.f, 0.f, 0.f, 0.f };
-		DirectX::XMFLOAT3	CameraPos;
+		DirectX::XMFLOAT3	CameraPos = { 0.f, 0.f, 0.f };
 		float				cbPerObjectPad1 = 0.0f;
 		DirectX::XMFLOAT2	RenderTargetSize = { 0.0f, 0.0f };
 		DirectX::XMFLOAT2	InvRenderTargetSize = { 0.0f, 0.0f };
@@ -35,9 +35,9 @@ namespace Darius::Renderer
 		float				FarZ = 0.0f;
 		float				TotalTime = 0.0f;
 		float				DeltaTime = 0.0f;
-		DirectX::XMFLOAT4	AmbientLight;
-		float				IBLRange;
-		float				IBLBias;
+		DirectX::XMFLOAT4	AmbientLight = { 0.f, 0.f, 0.f, 0.f };
+		float				IBLRange = 0.f;
+		float				IBLBias = 0.f;
 	};
 
 	ALIGN_DECL_256 struct MeshConstants
