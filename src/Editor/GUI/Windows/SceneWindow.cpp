@@ -212,6 +212,12 @@ namespace Darius::Editor::Gui::Windows
 		if (mDrawDebug)
 			additional.push_back(&D_DEBUG_DRAW::GetRenderItems());
 
+		D_RENDERER::RenderItemContext riContext;
+		riContext.IsEditor = true;
+		riContext.SelectedGameObject = D_EDITOR_CONTEXT::GetSelectedGameObject();
+		riContext.Shadow = false;
+		riContext.StencilOverride = mSelectedGameObjectStencilValue;
+
 		SceneRenderContext rc =
 		{
 			mSceneDepth,
@@ -249,6 +255,7 @@ namespace Darius::Editor::Gui::Windows
 			additional,
 			mDrawSkybox && mSkyboxSpec.IsValid() ? mSkyboxSpec->GetTextureData() : nullptr,
 			mDrawSkybox && mSkyboxDiff.IsValid() ? mSkyboxDiff->GetTextureData() : nullptr,
+			riContext,
 			mDrawSkybox
 		};
 

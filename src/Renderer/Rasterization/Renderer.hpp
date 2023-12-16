@@ -130,6 +130,8 @@ namespace Darius::Renderer::Rasterization
 
 		void Sort();
 
+		void SetupDefaultBatchTypeRenderTargetsAfterCustomDepth(D_GRAPHICS::GraphicsContext& context);
+
 		void RenderMeshes(DrawPass pass,
 			D_GRAPHICS::GraphicsContext& context,
 			D_GRAPHICS_BUFFERS::ColorBuffer* ssao,

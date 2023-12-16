@@ -40,6 +40,16 @@ namespace Darius::Renderer
 		float				IBLBias = 0.f;
 	};
 
+	struct RenderItemContext
+	{
+#if _D_EDITOR
+		bool				IsEditor;
+		void*				SelectedGameObject;
+		UINT8				StencilOverride;
+#endif
+		bool				Shadow;
+	};
+
 	ALIGN_DECL_256 struct MeshConstants
 	{
 		D_MATH::Matrix4			World;
@@ -186,7 +196,7 @@ namespace Darius::Renderer
 		D_CONTAINERS::DVector<D_CONTAINERS::DVector<RenderItem> const*> const& AdditionalRenderItems;
 		D_GRAPHICS_BUFFERS::Texture const*	RadianceIBL;
 		D_GRAPHICS_BUFFERS::Texture const*	IrradianceIBL;
-
+		RenderItemContext const&			RenderItemContext;
 		bool								DrawSkybox;
 	};
 }

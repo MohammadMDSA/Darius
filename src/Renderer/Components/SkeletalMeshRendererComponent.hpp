@@ -27,7 +27,7 @@ namespace Darius::Renderer
 		virtual void						Update(float dt) override;
 		virtual void						OnDeserialized() override;
 
-		virtual bool						AddRenderItems(std::function<void(D_RENDERER::RenderItem const&)> appendFunction) override;
+		virtual bool						AddRenderItems(std::function<void(D_RENDERER::RenderItem const&)> appendFunction, RenderItemContext const& riContext) override;
 
 		INLINE virtual UINT					GetNumberOfSubmeshes() const { return mMesh.IsValid() ? (UINT)mMesh->GetMeshData()->mDraw.size() : 0u; }
 

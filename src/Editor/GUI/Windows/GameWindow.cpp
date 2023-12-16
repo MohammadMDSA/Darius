@@ -109,6 +109,14 @@ namespace Darius::Editor::Gui::Windows
 
 		D_MATH_CAMERA::Camera const& c = camera.Get()->GetCamera();
 
+
+		D_RENDERER::RenderItemContext riContext;
+		riContext.IsEditor = false;
+		riContext.SelectedGameObject = nullptr;
+		riContext.Shadow = false;
+		riContext.StencilOverride = 0;
+
+
 		SceneRenderContext rc =
 		{
 			mSceneDepth,
@@ -146,6 +154,7 @@ namespace Darius::Editor::Gui::Windows
 			{},
 			nullptr, // TODO: Skybox For Game Window
 			nullptr, // TODO: Skybox For Game Window
+			riContext,
 			true
 		};
 

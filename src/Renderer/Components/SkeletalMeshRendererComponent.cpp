@@ -47,7 +47,7 @@ namespace Darius::Renderer
 		mComponentPsoFlags |= RenderItem::HasSkin;
 	}
 
-	bool SkeletalMeshRendererComponent::AddRenderItems(std::function<void(D_RENDERER::RenderItem const&)> appendFunction)
+	bool SkeletalMeshRendererComponent::AddRenderItems(std::function<void(D_RENDERER::RenderItem const&)> appendFunction, RenderItemContext const& riContext)
 	{
 
 		if (mMesh->IsDirtyGPU())
@@ -61,9 +61,30 @@ namespace Darius::Renderer
 		result.MeshVsCBV = GetConstantsAddress();
 		result.mJointData = mJoints.data();
 		result.mNumJoints = (UINT)mJoints.size();
-		result.StencilEnable = IsStencilWriteEnable();
-		result.StencilValue = GetStencilValue();
-		result.CustomDepth = IsCustomDepthEnable();
+
+#if _D_EDITOR
+		if (riContext.IsEditor)
+		{
+			if (GetGameObject() == riContext.SelectedGameObject)
+			{
+				result.StencilEnable = true;
+				result.CustomDepth = true;
+				result.StencilValue = riContext.StencilOverride;
+			}
+			else
+			{
+				result.StencilEnable = false;
+				result.CustomDepth = false;
+				result.StencilValue = 0;
+			}
+		}
+		else
+#endif
+		{
+			result.StencilEnable = IsStencilWriteEnable();
+			result.StencilValue = GetStencilValue();
+			result.CustomDepth = IsCustomDepthEnable();
+		}
 
 		for (UINT i = 0; i < mesh->mDraw.size(); i++)
 		{

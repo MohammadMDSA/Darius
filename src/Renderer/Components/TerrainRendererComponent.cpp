@@ -80,7 +80,7 @@ namespace Darius::Renderer
 		SetClean();
 	}
 
-	bool TerrainRendererComponent::AddRenderItems(std::function<void(D_RENDERER::RenderItem const&)> appendFunction)
+	bool TerrainRendererComponent::AddRenderItems(std::function<void(D_RENDERER::RenderItem const&)> appendFunction, RenderItemContext const& riContext)
 	{
 
 		if (!mTerrainData.IsValid() || mTerrainData->IsDirtyGPU() || !mMaterial.IsValid() || mMaterial->IsDirtyGPU())
@@ -107,9 +107,30 @@ namespace Darius::Renderer
 
 		ri.TextureDomainSRV = mTerrainData->GetTexturesHandle();
 		ri.IndexCount = ri.Mesh->mNumTotalIndices;
-		ri.StencilEnable = IsStencilEnable();
-		ri.StencilValue = GetStencilValue();
-		ri.CustomDepth = IsCustomDepthEnable();
+
+#if _D_EDITOR
+		if (riContext.IsEditor)
+		{
+			if (GetGameObject() == riContext.SelectedGameObject)
+			{
+				ri.StencilEnable = true;
+				ri.CustomDepth = true;
+				ri.StencilValue = riContext.StencilOverride;
+			}
+			else
+			{
+				ri.StencilEnable = false;
+				ri.CustomDepth = false;
+				ri.StencilValue = 0;
+			}
+		}
+		else
+#endif
+		{
+			ri.StencilEnable = IsStencilEnable();
+			ri.StencilValue = GetStencilValue();
+			ri.CustomDepth = IsCustomDepthEnable();
+		}
 
 		appendFunction(ri);
 

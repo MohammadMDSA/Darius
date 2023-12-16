@@ -38,7 +38,7 @@ namespace Darius::Renderer
 	{
 	}
 
-	bool MeshRendererComponent::AddRenderItems(std::function<void(D_RENDERER::RenderItem const&)> appendFunction)
+	bool MeshRendererComponent::AddRenderItems(std::function<void(D_RENDERER::RenderItem const&)> appendFunction, RenderItemContext const& riContext)
 	{
 
 		if (mMesh->IsDirtyGPU())
@@ -49,9 +49,30 @@ namespace Darius::Renderer
 		const Mesh* mesh = mMesh.Get()->GetMeshData();
 		result.Mesh = mesh;
 		result.MeshVsCBV = GetConstantsAddress();
-		result.StencilEnable = IsStencilWriteEnable();
-		result.StencilValue = GetStencilValue();
-		result.CustomDepth = IsCustomDepthEnable();
+
+#if _D_EDITOR
+		if (riContext.IsEditor)
+		{
+			if (GetGameObject() == riContext.SelectedGameObject)
+			{
+				result.StencilEnable = true;
+				result.CustomDepth = true;
+				result.StencilValue = riContext.StencilOverride;
+			}
+			else
+			{
+				result.StencilEnable = false;
+				result.CustomDepth = false;
+				result.StencilValue = 0;
+			}
+		}
+		else
+#endif
+		{
+			result.StencilEnable = IsStencilWriteEnable();
+			result.StencilValue = GetStencilValue();
+			result.CustomDepth = IsCustomDepthEnable();
+		}
 
 		static auto incSize = D_GRAPHICS_DEVICE::GetDevice()->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 

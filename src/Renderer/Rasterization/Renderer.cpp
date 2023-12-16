@@ -187,7 +187,7 @@ namespace Darius::Renderer::Rasterization
 		}
 	}
 
-	void AddRenderItems(D_RENDERER_RAST::MeshSorter& sorter, D_MATH_CAMERA::BaseCamera const& cam)
+	void AddRenderItems(D_RENDERER_RAST::MeshSorter& sorter, D_MATH_CAMERA::BaseCamera const& cam, RenderItemContext const& riContext)
 	{
 		auto frustum = cam.GetViewSpaceFrustum();
 
@@ -210,7 +210,7 @@ namespace Darius::Renderer::Rasterization
 				meshComp.AddRenderItems([distance, &sorter](auto const& ri) \
 					{ \
 						sorter.AddMesh(ri, distance); \
-					}); \
+					}, riContext); \
 			}); \
 
 		ADD_RENDERER_COMPONENT_RENDER_ITEMS(MeshRendererComponent);
@@ -222,8 +222,11 @@ namespace Darius::Renderer::Rasterization
 
 	}
 
-	void AddShadowRenderItems(D_CONTAINERS::DVector<RenderItem>& items)
+	void AddShadowRenderItems(D_CONTAINERS::DVector<RenderItem>& items, RenderItemContext const& riContext)
 	{
+
+		RenderItemContext shadowRiContext = riContext;
+		shadowRiContext.Shadow = true;
 
 		UINT shadowCompsCount = 0;
 		shadowCompsCount += D_WORLD::CountComponents<D_RENDERER::MeshRendererComponent>();
@@ -247,7 +250,7 @@ namespace Darius::Renderer::Rasterization
 						auto item = ri;
 						item.Material.SamplersSRV.ptr = 0;
 						items.push_back(item);
-					});
+					}, shadowRiContext);
 			});
 
 		// Iterating over meshes
@@ -265,7 +268,7 @@ namespace Darius::Renderer::Rasterization
 						auto item = ri;
 						item.Material.SamplersSRV.ptr = 0;
 						items.push_back(item);
-					});
+					}, shadowRiContext);
 			});
 
 		// Iterating over meshes
@@ -283,7 +286,7 @@ namespace Darius::Renderer::Rasterization
 						auto item = ri;
 						item.Material.SamplersSRV.ptr = 0;
 						items.push_back(item);
-					});
+					}, shadowRiContext);
 			});
 
 		// Iterating over meshes
@@ -301,7 +304,7 @@ namespace Darius::Renderer::Rasterization
 						auto item = ri;
 						item.Material.SamplersSRV.ptr = 0;
 						items.push_back(item);
-					});
+					}, shadowRiContext);
 			});
 	}
 
@@ -346,13 +349,13 @@ namespace Darius::Renderer::Rasterization
 		sorter.SetNormalTarget(rContext.NormalBuffer);
 
 		// Add meshes to sorter
-		AddRenderItems(sorter, rContext.Camera);
+		AddRenderItems(sorter, rContext.Camera, rContext.RenderItemContext);
 
 		{
 			// Creating shadows
 
 			DVector<RenderItem> shadowRenderItems;
-			AddShadowRenderItems(shadowRenderItems);
+			AddShadowRenderItems(shadowRenderItems, rContext.RenderItemContext);
 
 			LightContext->RenderShadows(shadowRenderItems, context);
 		}
@@ -894,12 +897,17 @@ namespace Darius::Renderer::Rasterization
 
 			const uint32_t lastDraw = m_CurrentDraw + passCount;
 
+			bool dirtyRenderTarget = false;
+
 			while (m_CurrentDraw < lastDraw)
 			{
 				SortKey key;
 				key.value = m_SortKeys[m_CurrentDraw];
 				const SortObject& object = m_SortObjects[key.objectIdx];
 				RenderItem const& ri = object.renderItem;
+
+				if (dirtyRenderTarget)
+					SetupDefaultBatchTypeRenderTargetsAfterCustomDepth(context);
 
 				if (ri.MeshVsCBV != D3D12_GPU_VIRTUAL_ADDRESS_UNKNOWN)
 					context.SetConstantBuffer(kMeshConstantsVS, ri.MeshVsCBV);
@@ -962,13 +970,14 @@ namespace Darius::Renderer::Rasterization
 					context.DrawIndexedInstanced(ri.IndexCount, 1, ri.StartIndexLocation, ri.BaseVertexLocation, 0);
 
 				// Custom depth
-				if(ri.CustomDepth && customDepthWriteAvailable)
+				if (ri.CustomDepth && customDepthWriteAvailable)
 				{
 					context.SetDepthStencilTarget(m_DSVCustom->GetDSV());
 					if (ri.PsoFlags & RenderItem::SkipVertexIndex)
 						context.DrawInstanced(ri.IndexCount, 1, ri.BaseVertexLocation, 0);
 					else
 						context.DrawIndexedInstanced(ri.IndexCount, 1, ri.StartIndexLocation, ri.BaseVertexLocation, 0);
+					dirtyRenderTarget = true;
 				}
 
 				++m_CurrentDraw;
@@ -976,6 +985,23 @@ namespace Darius::Renderer::Rasterization
 		}
 
 		context.PIXEndEvent();
+	}
+
+	void MeshSorter::SetupDefaultBatchTypeRenderTargetsAfterCustomDepth(D_GRAPHICS::GraphicsContext& context)
+	{
+		switch (m_CurrentPass)
+		{
+		case kZPass:
+			context.SetDepthStencilTarget(m_DSV->GetDSV());
+			break;
+		case kOpaque:
+			if (!SeparateZPass)
+			{
+				D3D12_CPU_DESCRIPTOR_HANDLE RTs[] = { m_RTV[0]->GetRTV(), m_Norm->GetRTV() };
+				context.SetRenderTargets(2, RTs, m_DSV->GetDSV());
+			}
+			break;
+		}
 	}
 
 #ifdef _D_EDITOR

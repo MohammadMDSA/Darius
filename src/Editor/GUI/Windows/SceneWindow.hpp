@@ -109,6 +109,8 @@ namespace Darius::Editor::Gui::Windows
 		float										mBufferWidth;
 		float										mBufferHeight;
 
+		UINT8										mSelectedGameObjectStencilValue = 255;
+
 		bool										mDrawGrid;
 		bool										mDrawSkybox;
 		bool										mMovingCam;
