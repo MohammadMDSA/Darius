@@ -24,7 +24,6 @@ RWTexture2D<uint> DstColor : register( u0 );
 Texture2D<float3> SrcColor : register( t2 );
 #endif
 RWTexture2D<float> OutLuma : register( u1 );
-SamplerState LinearSampler : register( s0 );
 
 cbuffer CB0 : register(b0)
 {

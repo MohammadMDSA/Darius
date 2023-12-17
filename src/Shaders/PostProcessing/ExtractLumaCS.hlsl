@@ -16,7 +16,6 @@
 #include "../Utils/ShaderUtility.hlsli"
 #include "PostEffectsRS.hlsli"
 
-SamplerState BiLinearClamp : register( s0 );
 Texture2D<float3> SourceTex : register( t0 );
 StructuredBuffer<float> Exposure : register( t1 );
 RWTexture2D<uint> LumaResult : register( u0 );
@@ -36,10 +35,10 @@ void main( uint3 DTid : SV_DispatchThreadID )
     float2 offset = g_inverseOutputSize * 0.25f;
 
     // Use 4 bilinear samples to guarantee we don't undersample when downsizing by more than 2x
-    float3 color1 = SourceTex.SampleLevel( BiLinearClamp, uv + float2(-offset.x, -offset.y), 0 );
-    float3 color2 = SourceTex.SampleLevel( BiLinearClamp, uv + float2( offset.x, -offset.y), 0 );
-    float3 color3 = SourceTex.SampleLevel( BiLinearClamp, uv + float2(-offset.x,  offset.y), 0 );
-    float3 color4 = SourceTex.SampleLevel( BiLinearClamp, uv + float2( offset.x,  offset.y), 0 );
+    float3 color1 = SourceTex.SampleLevel(LinearSampler, uv + float2(-offset.x, -offset.y), 0);
+    float3 color2 = SourceTex.SampleLevel(LinearSampler, uv + float2(offset.x, -offset.y), 0);
+    float3 color3 = SourceTex.SampleLevel(LinearSampler, uv + float2(-offset.x, offset.y), 0);
+    float3 color4 = SourceTex.SampleLevel(LinearSampler, uv + float2(offset.x, offset.y), 0);
 
     // Compute average luminance
     float luma = RGBToLuminance(color1 + color2 + color3 + color4) * 0.25;
