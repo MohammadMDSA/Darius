@@ -43,8 +43,10 @@ namespace Darius::Editor::Gui::Windows
 		mDrawSkybox(true),
 		mSceneNormals(D_MATH::Color(0.f, 0.f, 0.f, 1.f)),
 		mSSAOFullScreen(D_MATH::Color(1.f, 1.f, 1.f)),
-		mLineMeshResource()
+		mLineMeshResource(),
+		mGuiPostProcess(sSelectedGameObjectStencilValue)
 	{
+
 		CreateBuffers();
 		mTextureHandle = D_GUI_RENDERER::AllocateUiTexture(1);
 
@@ -103,6 +105,7 @@ namespace Darius::Editor::Gui::Windows
 	{
 		mSceneDepth.Destroy();
 		mSceneTexture.Destroy();
+		mPostProcessedSceneTexture.Destroy();
 		mSceneNormals.Destroy();
 		mTemporalColor[0].Destroy();
 		mTemporalColor[1].Destroy();
@@ -216,7 +219,7 @@ namespace Darius::Editor::Gui::Windows
 		riContext.IsEditor = true;
 		riContext.SelectedGameObject = D_EDITOR_CONTEXT::GetSelectedGameObject();
 		riContext.Shadow = false;
-		riContext.StencilOverride = mSelectedGameObjectStencilValue;
+		riContext.StencilOverride = sSelectedGameObjectStencilValue;
 
 		SceneRenderContext rc =
 		{
@@ -282,13 +285,16 @@ namespace Darius::Editor::Gui::Windows
 				D_GRAPHICS_PP::Render(*buffers, (*context).GetComputeContext());
 			});
 
+
+		// Gui PostProcessing
+		mGuiPostProcess.Render(rc, mPostProcessedSceneTexture);
+
 		// Copying to texture
-		context.TransitionResource(mSceneTexture, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
-		context.TransitionResource(mSceneNormals, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, true);
+		context.TransitionResource(mPostProcessedSceneTexture, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
 
 		context.Finish();
 
-		D_GRAPHICS_DEVICE::GetDevice()->CopyDescriptorsSimple(1, mTextureHandle, mSceneTexture.GetSRV(), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+		D_GRAPHICS_DEVICE::GetDevice()->CopyDescriptorsSimple(1, mTextureHandle, mPostProcessedSceneTexture.GetSRV(), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 
 
 	}
@@ -535,6 +541,7 @@ namespace Darius::Editor::Gui::Windows
 		mBufferWidth = mWidth;
 		mBufferHeight = mHeight;
 		mSceneTexture.Create(L"Scene Texture", (UINT)mBufferWidth, (UINT)mBufferHeight, 1, D_GRAPHICS::GetColorFormat());
+		mPostProcessedSceneTexture.Create(L"PostProcessed Scene Texture", (UINT)mBufferWidth, (UINT)mBufferHeight, 1u, D_GRAPHICS::GetColorFormat());
 		mSceneDepth.Create(L"Scene DepthStencil", (UINT)mBufferWidth, (UINT)mBufferHeight, D_GRAPHICS::GetDepthFormat());
 		if(mCustomDepthApplied)
 			mCustomDepth.Create(L"Scene CustomDepth", (UINT)mBufferWidth, (UINT)mBufferHeight, D_GRAPHICS::GetDepthFormat());

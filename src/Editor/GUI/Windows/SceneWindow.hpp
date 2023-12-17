@@ -2,6 +2,7 @@
 
 #include "Window.hpp"
 #include "Editor/Camera.hpp"
+#include "Editor/GUI/PostProcessing/GuiPostProcessing.hpp"
 
 #include <Core/Containers/Vector.hpp>
 #include <Core/RefCounting/Ref.hpp>
@@ -45,6 +46,7 @@ namespace Darius::Editor::Gui::Windows
 
 		// Main Buffers
 		D_GRAPHICS_BUFFERS::ColorBuffer				mSceneTexture;
+		D_GRAPHICS_BUFFERS::ColorBuffer				mPostProcessedSceneTexture;
 		D_GRAPHICS_BUFFERS::DepthBuffer				mSceneDepth;
 		D_GRAPHICS_BUFFERS::DepthBuffer				mCustomDepth;
 		D_GRAPHICS_BUFFERS::ColorBuffer				mSceneNormals;
@@ -102,14 +104,16 @@ namespace Darius::Editor::Gui::Windows
 		D_GRAPHICS_BUFFERS::ByteAddressBuffer		mLineConstantsGPU;
 
 		D_CONTAINERS::DVector<D_RENDERER::RenderItem> mWindowRenderItems;
-		D_RENDERER::GlobalConstants	mSceneGlobals;
+		D_RENDERER::GlobalConstants					mSceneGlobals;
+
+		D_EDITOR::Gui::PostProcessing::GuiPostProcessing mGuiPostProcess;
 
 		float										mMouseWheelPerspectiveSensitivity;
 
 		float										mBufferWidth;
 		float										mBufferHeight;
 
-		UINT8										mSelectedGameObjectStencilValue = 255;
+		static constexpr UINT8						sSelectedGameObjectStencilValue = 255;
 
 		bool										mDrawGrid;
 		bool										mDrawSkybox;

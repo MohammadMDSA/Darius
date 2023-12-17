@@ -323,17 +323,23 @@ namespace Darius::Renderer::Rasterization
 
 		MeshSorter sorter(MeshSorter::kDefault);
 
-		// Clearing depth and scene color textures
-		context.TransitionResource(rContext.DepthBuffer, D3D12_RESOURCE_STATE_DEPTH_WRITE);
-		context.TransitionResource(rContext.ColorBuffer, D3D12_RESOURCE_STATE_RENDER_TARGET);
-		context.TransitionResource(rContext.NormalBuffer, D3D12_RESOURCE_STATE_RENDER_TARGET, true);
-		context.ClearDepth(rContext.DepthBuffer);
-		if (D_GRAPHICS::IsStencilEnable())
-			context.ClearStencil(rContext.DepthBuffer);
-		if (rContext.CustomDepthBuffer)
-			context.ClearDepth(*rContext.CustomDepthBuffer);
-		context.ClearColor(rContext.ColorBuffer);
-		context.ClearColor(rContext.NormalBuffer);
+		{
+			D_PROFILING::ScopedTimer _prof1(L"Clearing render targets", context);
+			// Clearing depth and scene color textures
+			context.TransitionResource(rContext.DepthBuffer, D3D12_RESOURCE_STATE_DEPTH_WRITE);
+			if (rContext.CustomDepthBuffer)
+				context.TransitionResource(*rContext.CustomDepthBuffer, D3D12_RESOURCE_STATE_DEPTH_WRITE);
+
+			context.TransitionResource(rContext.ColorBuffer, D3D12_RESOURCE_STATE_RENDER_TARGET);
+			context.TransitionResource(rContext.NormalBuffer, D3D12_RESOURCE_STATE_RENDER_TARGET, true);
+			context.ClearDepth(rContext.DepthBuffer);
+			if (D_GRAPHICS::IsStencilEnable())
+				context.ClearStencil(rContext.DepthBuffer);
+			if (rContext.CustomDepthBuffer)
+				context.ClearDepth(*rContext.CustomDepthBuffer);
+			context.ClearColor(rContext.ColorBuffer);
+			context.ClearColor(rContext.NormalBuffer);
+		}
 
 		auto width = rContext.ColorBuffer.GetWidth();
 		auto height = rContext.ColorBuffer.GetHeight();
