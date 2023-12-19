@@ -2,9 +2,9 @@
 
 Texture2D<float>    DepthBuffer         : register(t0);
 Texture2D<float>    CustomDepthBuffer   : register(t1);
-Texture2D<uint>     StencilBuffer       : register(t2);
+Texture2D<uint2>    StencilBuffer       : register(t2);
 Texture2D<float3>   InColorBuffer       : register(t3);
-RWTexture2D<float3>   OutputColor         : register(u0);
+RWTexture2D<float3> OutputColor         : register(u0);
 
 cbuffer cb0 : register(b1)
 {
@@ -37,22 +37,22 @@ void main(uint3 Gid : SV_GroupID, uint3 GTid : SV_GroupThreadID, uint3 DTid : SV
     
     float2 scaledOutline = OutlineWidth * RcpBufferDim;
     
-    float2 scaledOutlineX = float2(scaledOutline.x, 0);
-    float2 scaledOutlineY = float2(0, scaledOutline.y);
+    //float2 scaledOutlineX = float2(scaledOutline.x, 0);
+    //float2 scaledOutlineY = float2(0, scaledOutline.y);
     
-    float2 coordx1 = uv + scaledOutlineX;
-    float2 coordx2 = uv - scaledOutlineX;
-    float2 coordy1 = uv + scaledOutlineY;
-    float2 coordy2 = uv - scaledOutlineY;
+    //float2 coordx1 = uv + scaledOutlineX;
+    //float2 coordx2 = uv - scaledOutlineX;
+    //float2 coordy1 = uv + scaledOutlineY;
+    //float2 coordy2 = uv - scaledOutlineY;
     
-    //uint depthx1 = StencilBuffer[DTid.xy + float2(0.f, 1.f)];
-    //uint depthx2 = StencilBuffer[DTid.xy + float2(0.f, -1.f)];
-    //uint depthy1 = StencilBuffer[DTid.xy + float2(1.f, 0.f)];
-    //uint depthy2 = StencilBuffer[DTid.xy + float2(-1.f, 0.f)];
-    float depthx1 = CustomDepthBuffer.SampleLevel(LinearSamplerBorderBlack, coordx1, 0.f);
-    float depthx2 = CustomDepthBuffer.SampleLevel(LinearSamplerBorderBlack, coordx2, 0.f);
-    float depthy1 = CustomDepthBuffer.SampleLevel(LinearSamplerBorderBlack, coordy1, 0.f);
-    float depthy2 = CustomDepthBuffer.SampleLevel(LinearSamplerBorderBlack, coordy2, 0.f);
+    uint depthx1 = StencilBuffer[DTid.xy + int2(0, 1)].y;
+    uint depthx2 = StencilBuffer[DTid.xy + int2(0, -1)].y;
+    uint depthy1 = StencilBuffer[DTid.xy + int2(1, 0)].y;
+    uint depthy2 = StencilBuffer[DTid.xy + int2(-1, 0)].y;
+    //float depthx1 = CustomDepthBuffer.SampleLevel(LinearSamplerBorderBlack, coordx1, 0.f);
+    //float depthx2 = CustomDepthBuffer.SampleLevel(LinearSamplerBorderBlack, coordx2, 0.f);
+    //float depthy1 = CustomDepthBuffer.SampleLevel(LinearSamplerBorderBlack, coordy1, 0.f);
+    //float depthy2 = CustomDepthBuffer.SampleLevel(LinearSamplerBorderBlack, coordy2, 0.f);
 
     float dx = floor(abs((depthx1 - depthx2) * Threshold));
     float dy = floor(abs((depthy1 - depthy2) * Threshold));
