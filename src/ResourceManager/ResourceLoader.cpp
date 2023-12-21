@@ -39,7 +39,7 @@ namespace Darius::ResourceManager
 				mCallback(mPendingToLoad);
 		}
 
-		Resource* mPendingToLoad = nullptr;
+		Resource*						mPendingToLoad = nullptr;
 		bool							mUpdateGpu = false;
 		ResourceLoadedResourceCalllback	mCallback = nullptr;
 	};
