@@ -303,7 +303,7 @@ namespace Darius::Renderer
 		return ActiveRendererType;
 	}
 
-	void SetIBLTextures(D_RESOURCE::ResourceRef<D_RENDERER::TextureResource>& diffuseIBL, D_RESOURCE::ResourceRef<D_RENDERER::TextureResource>& specularIBL)
+	void SetIBLTextures(D_RENDERER::TextureResource* diffuseIBL, D_RENDERER::TextureResource* specularIBL)
 	{
 		switch (ActiveRendererType)
 		{

@@ -257,8 +257,8 @@ namespace Darius::Renderer::RayTracing
 			srvHandles.push_back(RTScene->GetTopLevelAS().GetSRV());
 			if (renderContext.IrradianceIBL != nullptr && renderContext.RadianceIBL != nullptr)
 			{
-				srvHandles.push_back(renderContext.RadianceIBL->GetSRV());
-				srvHandles.push_back(renderContext.IrradianceIBL->GetSRV());
+				srvHandles.push_back(renderContext.RadianceIBL->GetTextureData()->GetSRV());
+				srvHandles.push_back(renderContext.IrradianceIBL->GetTextureData()->GetSRV());
 			}
 			else
 			{

@@ -194,8 +194,8 @@ namespace Darius::Renderer
 		D_MATH_CAMERA::Camera const&		Camera;
 		GlobalConstants&					Globals;
 		D_CONTAINERS::DVector<D_CONTAINERS::DVector<RenderItem> const*> const& AdditionalRenderItems;
-		D_GRAPHICS_BUFFERS::Texture const*	RadianceIBL;
-		D_GRAPHICS_BUFFERS::Texture const*	IrradianceIBL;
+		TextureResource*					RadianceIBL;
+		TextureResource*					IrradianceIBL;
 		RenderItemContext const&			RenderItemContext;
 		bool								DrawSkybox;
 	};

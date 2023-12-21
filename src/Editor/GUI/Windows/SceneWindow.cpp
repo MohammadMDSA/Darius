@@ -88,8 +88,8 @@ namespace Darius::Editor::Gui::Windows
 						mSkyboxSpec = D_RESOURCE::GetResourceSync<D_RENDERER::TextureResource>(specIBLHandle);
 
 						D_RENDERER::SetIBLTextures(
-							mSkyboxDiff,
-							mSkyboxSpec
+							mSkyboxDiff.Get(),
+							mSkyboxSpec.Get()
 						);
 					});
 			});
@@ -256,8 +256,8 @@ namespace Darius::Editor::Gui::Windows
 			mCamera,
 			mSceneGlobals,
 			additional,
-			mDrawSkybox && mSkyboxSpec.IsValid() ? mSkyboxSpec->GetTextureData() : nullptr,
-			mDrawSkybox && mSkyboxDiff.IsValid() ? mSkyboxDiff->GetTextureData() : nullptr,
+			mDrawSkybox && mSkyboxSpec.IsValid() ? mSkyboxSpec.Get() : nullptr,
+			mDrawSkybox && mSkyboxDiff.IsValid() ? mSkyboxDiff.Get() : nullptr,
 			riContext,
 			mDrawSkybox
 		};
@@ -409,11 +409,11 @@ namespace Darius::Editor::Gui::Windows
 					if (!mDrawSkybox)
 					{
 						auto invTex = D_RESOURCE::ResourceRef<D_RENDERER::TextureResource>();
-						D_RENDERER::SetIBLTextures(invTex, invTex);
+						D_RENDERER::SetIBLTextures(invTex.Get(), invTex.Get());
 					}
 					else
 					{
-						D_RENDERER::SetIBLTextures(mSkyboxDiff, mSkyboxSpec);
+						D_RENDERER::SetIBLTextures(mSkyboxDiff.Get(), mSkyboxSpec.Get());
 					}
 				}
 				if (preDrawSkybox)

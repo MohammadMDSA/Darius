@@ -216,7 +216,7 @@ namespace Darius::Renderer::Rasterization
 	D_GRAPHICS_UTILS::RootSignature& GetRootSignature(RootSignatureTypes type);
 
 	// Set IBL properties
-	void					SetIBLTextures(D_RESOURCE::ResourceRef<D_RENDERER::TextureResource>& diffuseIBL, D_RESOURCE::ResourceRef<D_RENDERER::TextureResource>& specularIBL);
+	void					SetIBLTextures(D_RENDERER::TextureResource* diffuseIBL, D_RENDERER::TextureResource* specularIBL);
 	void					SetIBLBias(float LODBias);
 
 	// PSO Getter

@@ -235,77 +235,32 @@ namespace Darius::Renderer::Rasterization
 		shadowCompsCount += D_WORLD::CountComponents<D_RENDERER::TerrainRendererComponent>();
 		items.reserve(shadowCompsCount);
 
-		// Iterating over meshes
-		D_WORLD::IterateComponents<MeshRendererComponent>([&](D_RENDERER::MeshRendererComponent& meshComp)
-			{
-				// Can't render
-				if (!meshComp.CanRender())
-					return;
 
-				if (!meshComp.IsCastingShadow())
-					return;
+#define ADD_RENDERER_COMPONENT_RENDER_ITMES(type) \
+		/* Iterating over meshes */ \
+		D_WORLD::IterateComponents<type>([&](D_RENDERER::type& meshComp) \
+			{ \
+				/* Can't render */ \
+				if (!meshComp.CanRender()) \
+					return; \
+ \
+				if (!meshComp.IsCastingShadow()) \
+					return; \
+\
+				meshComp.AddRenderItems([&items](auto const& ri) \
+					{ \
+						auto item = ri; \
+						item.Material.SamplersSRV.ptr = 0; \
+						items.push_back(item); \
+					}, shadowRiContext); \
+			}); \
 
-				meshComp.AddRenderItems([&items](auto const& ri)
-					{
-						auto item = ri;
-						item.Material.SamplersSRV.ptr = 0;
-						items.push_back(item);
-					}, shadowRiContext);
-			});
+		ADD_RENDERER_COMPONENT_RENDER_ITMES(MeshRendererComponent);
+		ADD_RENDERER_COMPONENT_RENDER_ITMES(SkeletalMeshRendererComponent);
+		ADD_RENDERER_COMPONENT_RENDER_ITMES(BillboardRendererComponent);
+		ADD_RENDERER_COMPONENT_RENDER_ITMES(TerrainRendererComponent);
 
-		// Iterating over meshes
-		D_WORLD::IterateComponents<SkeletalMeshRendererComponent>([&](D_RENDERER::SkeletalMeshRendererComponent& meshComp)
-			{
-				// Can't render
-				if (!meshComp.CanRender())
-					return;
-
-				if (!meshComp.IsCastingShadow())
-					return;
-
-				meshComp.AddRenderItems([&items](auto const& ri)
-					{
-						auto item = ri;
-						item.Material.SamplersSRV.ptr = 0;
-						items.push_back(item);
-					}, shadowRiContext);
-			});
-
-		// Iterating over meshes
-		D_WORLD::IterateComponents<BillboardRendererComponent>([&](D_RENDERER::BillboardRendererComponent& meshComp)
-			{
-				// Can't render
-				if (!meshComp.CanRender())
-					return;
-
-				if (!meshComp.IsCastingShadow())
-					return;
-
-				meshComp.AddRenderItems([&items](auto const& ri)
-					{
-						auto item = ri;
-						item.Material.SamplersSRV.ptr = 0;
-						items.push_back(item);
-					}, shadowRiContext);
-			});
-
-		// Iterating over meshes
-		D_WORLD::IterateComponents<TerrainRendererComponent>([&](D_RENDERER::TerrainRendererComponent& meshComp)
-			{
-				// Can't render
-				if (!meshComp.CanRender())
-					return;
-
-				if (!meshComp.IsCastingShadow())
-					return;
-
-				meshComp.AddRenderItems([&items](auto const& ri)
-					{
-						auto item = ri;
-						item.Material.SamplersSRV.ptr = 0;
-						items.push_back(item);
-					}, shadowRiContext);
-			});
+#undef ADD_RENDERER_COMPONENT_RENDER_ITMES
 	}
 
 	void Render(std::wstring const& jobId, SceneRenderContext& rContext, std::function<void()> postAntiAliasing)
@@ -369,7 +324,10 @@ namespace Darius::Renderer::Rasterization
 		sorter.Sort();
 
 		if (rContext.DrawSkybox)
+		{
+			D_RENDERER_RAST::SetIBLTextures(rContext.IrradianceIBL, rContext.RadianceIBL);
 			DrawSkybox(context, rContext.Camera, rContext.ColorBuffer, rContext.DepthBuffer, viewPort, scissor);
+		}
 
 		// Rendering depth
 		sorter.RenderMeshes(MeshSorter::kZPass, context, 0, rContext.Globals);
@@ -547,7 +505,7 @@ namespace Darius::Renderer::Rasterization
 		def.Finalize(L"Main Root Sig", D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT);
 	}
 
-	void SetIBLTextures(D_RESOURCE::ResourceRef<TextureResource>& diffuseIBL, D_RESOURCE::ResourceRef<TextureResource>& specularIBL)
+	void SetIBLTextures(D_RENDERER::TextureResource* diffuseIBL, D_RENDERER::TextureResource* specularIBL)
 	{
 
 		bool loadIrradiance = false;
@@ -555,7 +513,7 @@ namespace Darius::Renderer::Rasterization
 
 		// Set default texture if ibl textures are not loaded and
 		// have them loaded if necessary
-		if (!diffuseIBL.IsValid() || !diffuseIBL->GetTextureData()->IsCubeMap())
+		if (diffuseIBL == nullptr || !diffuseIBL->GetTextureData()->IsCubeMap())
 		{
 			IrradianceCubeMap = DefaultBlackCubeMap;
 		}
@@ -569,7 +527,7 @@ namespace Darius::Renderer::Rasterization
 			IrradianceCubeMap = diffuseIBL;
 		}
 
-		if (!specularIBL.IsValid() || !specularIBL->GetTextureData()->IsCubeMap())
+		if (specularIBL == nullptr || !specularIBL->GetTextureData()->IsCubeMap())
 		{
 			RadianceCubeMap = DefaultBlackCubeMap;
 		}
@@ -614,29 +572,20 @@ namespace Darius::Renderer::Rasterization
 
 		if (loadRadiance)
 		{
-			D_RESOURCE::GetResourceAsync<TextureResource>(*specularIBL.Get(), [setRadiance = setRadiance](auto loadedSpecIbl)
-				{
-					RadianceCubeMap = loadedSpecIbl;
-					setRadiance(loadedSpecIbl.Get());
-
-				});
+			D_RESOURCE::ResourceLoader::LoadResourceAsync(specularIBL, nullptr, true);
 		}
 		else
 		{
-			setRadiance(specularIBL.Get());
+			setRadiance(specularIBL);
 		}
 
 		if (loadIrradiance)
 		{
-			D_RESOURCE::GetResourceAsync<TextureResource>(*diffuseIBL.Get(), [setIrradiance = setIrradiance](auto loadedDiff)
-				{
-					IrradianceCubeMap = loadedDiff;
-					setIrradiance(loadedDiff.Get());
-				});
+			D_RESOURCE::ResourceLoader::LoadResourceAsync(diffuseIBL, nullptr, true);
 		}
 		else
 		{
-			setIrradiance(diffuseIBL.Get());
+			setIrradiance(diffuseIBL);
 		}
 	}
 
