@@ -31,9 +31,15 @@ namespace Darius::Graphics::Utils::Buffers
 
 		mUsageState = D3D12_RESOURCE_STATE_COPY_DEST;
 
-		mWidth = (uint32_t)Width;
-		mHeight = (uint32_t)Height;
-		mDepth = 1;
+		mMetaData.Width = Width;
+		mMetaData.Height = Height;
+		mMetaData.Depth = 1;
+		mMetaData.ArraySize = 0;
+		mMetaData.MipLevels = 1;
+		mMetaData.MiscFlags = 0;
+		mMetaData.Format = Format;
+		mMetaData.Dimension = TextureMeta::TEX_DIMENSION_TEXTURE2D;
+		mMetaData.Initialized = true;
 
 		D3D12_RESOURCE_DESC texDesc = {};
 		texDesc.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
@@ -71,6 +77,7 @@ namespace Darius::Graphics::Utils::Buffers
 		if (mCpuDescriptorHandle.ptr == D3D12_GPU_VIRTUAL_ADDRESS_UNKNOWN)
 			mCpuDescriptorHandle = AllocateDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 		device->CreateShaderResourceView(mResource.Get(), nullptr, mCpuDescriptorHandle);
+		mMetaData.MiscFlags |= DirectX::TEX_MISC_TEXTURECUBE;
 	}
 
 	void Texture::CreateCube(size_t RowPitchBytes, size_t Width, size_t Height, DXGI_FORMAT Format, const void* InitialData)
@@ -78,10 +85,6 @@ namespace Darius::Graphics::Utils::Buffers
 		Destroy();
 
 		mUsageState = D3D12_RESOURCE_STATE_COPY_DEST;
-
-		mWidth = (uint32_t)Width;
-		mHeight = (uint32_t)Height;
-		mDepth = 6;
 
 		D3D12_RESOURCE_DESC texDesc = {};
 		texDesc.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
@@ -127,6 +130,16 @@ namespace Darius::Graphics::Utils::Buffers
 		srvDesc.TextureCube.MostDetailedMip = 0;
 		srvDesc.TextureCube.ResourceMinLODClamp = 0.0f;
 		device->CreateShaderResourceView(mResource.Get(), &srvDesc, mCpuDescriptorHandle);
+
+		mMetaData.Width = Width;
+		mMetaData.Height = Height;
+		mMetaData.Depth = 6;
+		mMetaData.ArraySize = 6;
+		mMetaData.MipLevels = 1;
+		mMetaData.MiscFlags |= DirectX::TEX_MISC_TEXTURECUBE;
+		mMetaData.Format = Format;
+		mMetaData.Dimension = TextureMeta::TEX_DIMENSION_TEXTURE2D;
+		mMetaData.Initialized = true;
 	}
 
 
@@ -193,15 +206,9 @@ namespace Darius::Graphics::Utils::Buffers
 		DirectX::TexMetadata meta;
 		DirectX::GetMetadataFromDDSMemory(filePtr, fileSize, DirectX::DDS_FLAGS_NONE, meta);
 
-#ifdef _D_EDITOR
 		memcpy(&mMetaData, &meta, sizeof(DirectX::TexMetadata));
 
 		mMetaData.Initialized = true;
-#endif // _D_EDITOR
-
-		mWidth = (UINT)meta.width;
-		mHeight = (UINT)meta.height;
-		mDepth = (UINT)meta.depth;
 
 		return SUCCEEDED(hr);
 	}
@@ -221,26 +228,6 @@ namespace Darius::Graphics::Utils::Buffers
 			"Raw PIX image dump has an invalid file size");
 
 		Create2D(header.Pitch, header.Width, header.Height, header.Format, (uint8_t*)memBuffer + sizeof(Header));
-	}
-
-	bool Texture::Is1D() const
-	{
-		return mMetaData.Dimension == TextureMeta::TEX_DIMENSION_TEXTURE1D;
-	}
-
-	bool Texture::Is2D() const
-	{
-		return mMetaData.Dimension == TextureMeta::TEX_DIMENSION_TEXTURE2D;
-	}
-
-	bool Texture::Is3D() const
-	{
-		return mMetaData.Dimension == TextureMeta::TEX_DIMENSION_TEXTURE3D;
-	}
-
-	UINT Texture::ArraySize() const
-	{
-		return (UINT)mMetaData.ArraySize;
 	}
 
 	bool Texture::IsCubeMap() const
