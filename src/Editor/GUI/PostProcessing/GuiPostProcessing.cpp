@@ -60,17 +60,23 @@ namespace Darius::Editor::Gui::PostProcessing
 
 		D_PROFILING::ScopedTimer _prof(L"Gui Post Processing", renderContext.CommandContext);
 
+		bool success = false;
+
 		if (mRenderTargetFilter == RenderTargetFilter::Color)
 		{
-			ApplyEditorSelectionOutline(renderContext, destinationBuffer);
+			success |= ApplyEditorSelectionOutline(renderContext, destinationBuffer);
+		}
+
+		// Fallback operation -> Copy src scene color to destination
+		if (!success)
+		{
+			RECT region = { 0l, 0l, (long)destinationBuffer.GetWidth(), (long)destinationBuffer.GetHeight() };
+			renderContext.CommandContext.CopyTextureRegion(destinationBuffer, 0u, 0u, 0u, renderContext.ColorBuffer, region);
 		}
 	}
 
-	void GuiPostProcessing::ApplyEditorSelectionOutline(Darius::Renderer::SceneRenderContext const& renderContext, Darius::Graphics::Utils::Buffers::ColorBuffer& destinationBuffer)
+	bool GuiPostProcessing::ApplyEditorSelectionOutline(Darius::Renderer::SceneRenderContext const& renderContext, Darius::Graphics::Utils::Buffers::ColorBuffer& destinationBuffer)
 	{
-		// Drawing selection outline requires availability of the custom depth buffer;
-		if (!renderContext.CustomDepthBuffer)
-			return;
 
 		ALIGN_DECL_16 struct
 		{
@@ -79,7 +85,6 @@ namespace Darius::Editor::Gui::PostProcessing
 			UINT			StencilRefValue;
 			float			OutlineColor[3];
 			float			Threshold;
-			float			CoveredOulineColor[3];
 		} constants =
 		{
 			{ 1.f / destinationBuffer.GetWidth(), 1.f / destinationBuffer.GetHeight() },
@@ -87,27 +92,24 @@ namespace Darius::Editor::Gui::PostProcessing
 			mOutlineStencilReference,
 			{ mOutlineColor.GetR(), mOutlineColor.GetG(), mOutlineColor.GetB() },
 			80000.f,
-			//1.f,
-			{ mOutlineColor.GetR() * mCoveredOutlineMultiplier, mOutlineColor.GetG() * mCoveredOutlineMultiplier, mOutlineColor.GetB() * mCoveredOutlineMultiplier },
 		};
-		
+
 		auto& context = renderContext.CommandContext.GetComputeContext();
 		context.SetRootSignature(sRootSignature);
 
 
 		context.TransitionResource(renderContext.DepthBuffer, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
-		context.TransitionResource(*renderContext.CustomDepthBuffer, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
 		context.TransitionResource(renderContext.ColorBuffer, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
 		context.TransitionResource(destinationBuffer, D3D12_RESOURCE_STATE_UNORDERED_ACCESS, true);
 
 		context.SetPipelineState(sOutlineCS);
-		context.SetDynamicDescriptor(2, 0, renderContext.DepthBuffer.GetDepthSRV());
-		context.SetDynamicDescriptor(2, 1, renderContext.CustomDepthBuffer->GetDepthSRV());
-		context.SetDynamicDescriptor(2, 2, renderContext.DepthBuffer.GetStencilSRV());
-		context.SetDynamicDescriptor(2, 3, renderContext.ColorBuffer.GetSRV());
+		context.SetDynamicDescriptor(2, 0, renderContext.DepthBuffer.GetStencilSRV());
+		context.SetDynamicDescriptor(2, 1, renderContext.ColorBuffer.GetSRV());
 		context.SetDynamicDescriptor(1, 0, destinationBuffer.GetUAV());
 		context.SetDynamicConstantBufferView(3, sizeof(constants), &constants);
 		context.Dispatch2D(destinationBuffer.GetWidth(), destinationBuffer.GetHeight());
+
+		return true;
 	}
 
 }

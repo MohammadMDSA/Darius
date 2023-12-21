@@ -36,7 +36,7 @@ namespace Darius::Editor::Gui::PostProcessing
 		void									Render(Darius::Renderer::SceneRenderContext const& renderContext, Darius::Graphics::Utils::Buffers::ColorBuffer& destinationBuffer);
 
 	private:
-		void									ApplyEditorSelectionOutline(Darius::Renderer::SceneRenderContext const& renderContext, Darius::Graphics::Utils::Buffers::ColorBuffer & destinationBuffer);
+		bool									ApplyEditorSelectionOutline(Darius::Renderer::SceneRenderContext const& renderContext, Darius::Graphics::Utils::Buffers::ColorBuffer & destinationBuffer);
 
 		static void								InitializePSOs();
 
