@@ -85,8 +85,6 @@ namespace Darius::Graphics::Device
 	// Destructor for DeviceResources.
 	DeviceResources::~DeviceResources()
 	{
-		// Ensure that the GPU is no longer referencing resources that are about to be destroyed.
-		D_GRAPHICS::GetCommandManager()->IdleGPU();
 	}
 
 	// Configures the Direct3D device, and stores handles to it and the device context.

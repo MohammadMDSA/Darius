@@ -46,6 +46,7 @@ namespace Darius::Editor::Gui::GuiManager
 	bool											initialzied = false;
 
 	D_CONTAINERS::DUnorderedMap<std::string, Window*>	Windows;
+	Json											windowsConfig;
 
 	std::string										LayoutPath;
 
@@ -60,7 +61,6 @@ namespace Darius::Editor::Gui::GuiManager
 
 		D_EDITOR_CONTEXT::SubscribeOnEditorDeactivated(SaveWindowsState);
 
-		Json windowsConfig;
 		auto winConfigPath = D_EDITOR_CONTEXT::GetEditorWindowsConfigPath();
 		if (D_H_ENSURE_FILE(winConfigPath))
 			D_FILE::ReadJsonFile(winConfigPath, windowsConfig);
@@ -68,7 +68,7 @@ namespace Darius::Editor::Gui::GuiManager
 #define RegisterWindow(type) \
 { \
 	auto name = type::SGetName(); \
-	auto wind = new type(windowsConfig.contains(name) ? windowsConfig.at(name) : Json()); \
+	auto wind = new type(windowsConfig[name]); \
 	Windows[name] = wind; \
 }	
 		// TODO: Use linear allocator to allocate windows
@@ -110,10 +110,19 @@ namespace Darius::Editor::Gui::GuiManager
 		D_ASSERT(initialzied);
 
 		// Unallocating windows objects
-		for (auto keyVal : Windows)
+		D_CONTAINERS::DVector<Window*> toBeRemoved;
+		for (auto& keyVal : Windows)
 		{
-			delete keyVal.second;
+			toBeRemoved.push_back(keyVal.second);
 		}
+		Windows.clear();
+		for (int i = 0; i < toBeRemoved.size(); i++)
+		{
+			Window* win = toBeRemoved[i];
+			delete win;
+		}
+
+		D_FILE::WriteJsonFile(D_EDITOR_CONTEXT::GetEditorWindowsConfigPath(), windowsConfig);
 	}
 
 	void Update(float deltaTime)

@@ -169,7 +169,6 @@ namespace Darius::Graphics
 		void Shutdown()
 		{
 			Resources.reset();
-			D_GRAPHICS::Shutdown();
 		}
 
 		void OnWindowMoved()

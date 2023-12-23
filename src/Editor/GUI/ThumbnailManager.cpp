@@ -63,6 +63,8 @@ namespace Darius::Editor::Gui::ThumbnailManager
 		RegisterResourceTypeTextures();
 
 		RegisterExistingResources();
+
+		_initialized = true;
 	}
 
 	void Shutdown()

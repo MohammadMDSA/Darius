@@ -126,7 +126,8 @@ int WINAPI wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, 
 			DispatchMessage(&msg);
 		}
 
-		g_game->Tick();
+		if (g_game.get())
+			g_game->Tick();
 	}
 
 	g_game.reset();
@@ -327,6 +328,9 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 	case WM_MOUSEWHEEL:
 		D_INPUT::_processMouseMessage(message, wParam, lParam);
 		break;
+	case WM_CLOSE:
+		ExitGame();
+		break;
 	}
 
 	return DefWindowProc(hWnd, message, wParam, lParam);
@@ -335,5 +339,6 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 // Exit helper
 void ExitGame() noexcept
 {
+	g_game.reset();
 	PostQuitMessage(0);
 }

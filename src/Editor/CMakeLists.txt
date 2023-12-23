@@ -26,6 +26,7 @@ list(APPEND EDITOR_LIBS_SOURCES
 	"GUI/Windows/ResourceMonitorWindow.cpp"
 	"GUI/Windows/SceneGraphWindow.cpp"
 	"GUI/Windows/SceneWindow.cpp"
+	"GUI/Windows/SequencerWindow.cpp"
 	"GUI/Windows/SettingsWindow.cpp"
 	"GUI/Windows/Window.cpp"
 )
@@ -50,6 +51,7 @@ list(APPEND EDITOR_LIBS_INCLUDE
 	"GUI/Windows/ResourceMonitorWindow.hpp"
 	"GUI/Windows/SceneGraphWindow.hpp"
 	"GUI/Windows/SceneWindow.hpp"
+	"GUI/Windows/SequencerWindow.hpp"
 	"GUI/Windows/SettingsWindow.hpp"
 	"GUI/Windows/Window.hpp"
 )

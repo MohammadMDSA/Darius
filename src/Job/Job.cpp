@@ -21,7 +21,7 @@ namespace Darius::Job
 	struct RunFileIOPinnedTaskLoopTask : IPinnedTask {
 
 		void Execute() override {
-			while (TaskScheduler->GetIsRunning() && Executing) {
+			while (TaskScheduler->GetIsRunning() && Executing && !TaskScheduler->GetIsShutdownRequested()) {
 				TaskScheduler->WaitForNewPinnedTasks(); // this thread will 'sleep' until there are new pinned tasks
 				TaskScheduler->RunPinnedTasks();
 			}
@@ -61,7 +61,7 @@ namespace Darius::Job
 	void Shutdown()
 	{
 		D_ASSERT(_initialized);
-		Scheduler.WaitforAllAndShutdown();
+		Scheduler.ShutdownNow();
 
 		// Delete threads
 		for (auto [_, taskRunner] : PinnedTaskRunners)
