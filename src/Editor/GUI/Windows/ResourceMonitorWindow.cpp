@@ -14,7 +14,7 @@ using namespace D_RESOURCE;
 
 namespace Darius::Editor::Gui::Windows
 {
-	ResourceMonitorWindow::ResourceMonitorWindow(D_SERIALIZATION::Json const& config) :
+	ResourceMonitorWindow::ResourceMonitorWindow(D_SERIALIZATION::Json& config) :
 		Window(config)
 	{
 	}

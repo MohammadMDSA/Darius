@@ -23,7 +23,7 @@ using namespace DirectX;
 
 namespace Darius::Editor::Gui::Windows
 {
-	GameWindow::GameWindow(D_SERIALIZATION::Json const& config) :
+	GameWindow::GameWindow(D_SERIALIZATION::Json& config) :
 		Window(config),
 		mSceneNormals(D_MATH::Color(0.f, 0.f, 0.f, 1.f)),
 		mSSAOFullScreen(D_MATH::Color(1.f, 1.f, 1.f)),

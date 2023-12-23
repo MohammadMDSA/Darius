@@ -25,7 +25,7 @@ using namespace D_SCENE;
 namespace Darius::Editor::Gui::Windows
 {
 
-	SceneGraphWindow::SceneGraphWindow(D_SERIALIZATION::Json const& config) :
+	SceneGraphWindow::SceneGraphWindow(D_SERIALIZATION::Json& config) :
 		Window(config)
 	{
 	}

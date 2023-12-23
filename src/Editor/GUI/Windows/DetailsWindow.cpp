@@ -13,7 +13,7 @@ using namespace D_RESOURCE;
 namespace Darius::Editor::Gui::Windows
 {
 
-	DetailsWindow::DetailsWindow(D_SERIALIZATION::Json const& config) :
+	DetailsWindow::DetailsWindow(D_SERIALIZATION::Json& config) :
 		Window(config)
 	{
 	}

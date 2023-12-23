@@ -16,7 +16,7 @@ using namespace D_SERIALIZATION;
 
 namespace Darius::Editor::Gui::Windows
 {
-	SettingsWindow::SettingsWindow(D_SERIALIZATION::Json const& config) :
+	SettingsWindow::SettingsWindow(D_SERIALIZATION::Json& config) :
 		Window(config),
 		mNavigatorWidth(-1.f),
 		mRightPanelWidth(-1.f)

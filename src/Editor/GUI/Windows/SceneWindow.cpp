@@ -30,9 +30,12 @@ using namespace D_RENDERER;
 using namespace D_RENDERER_GEOMETRY;
 using namespace DirectX;
 
+constexpr char const* CameraPositionKey = "CameraPositin";
+constexpr char const* CameraRotationKey = "CameraRotation";
+
 namespace Darius::Editor::Gui::Windows
 {
-	SceneWindow::SceneWindow(D_SERIALIZATION::Json const& config) :
+	SceneWindow::SceneWindow(D_SERIALIZATION::Json& config) :
 		Window(config),
 		mFlyingCam(mCamera, Vector3::Up),
 		mOrbitCam(mCamera, D_MATH_BOUNDS::BoundingSphere(0.f, 0.f, 0.f, 5.f), Vector3::Up),
@@ -50,11 +53,24 @@ namespace Darius::Editor::Gui::Windows
 		CreateBuffers();
 		mTextureHandle = D_GUI_RENDERER::AllocateUiTexture(1);
 
+		// Loading config
+		Vector3 camPos;
+		if (!ReadVector3Config(CameraPositionKey, camPos))
+		{
+			camPos = Vector3(2.f, 2.f, 2.f);
+		}
+
+		Quaternion camRot;
+		if (!ReadQuaternionConfig(CameraRotationKey, camRot))
+		{
+			camRot = Quaternion::FromForwardAndAngle(Vector3(-2));
+		}
+
 		// Setup camera
 		mCamera.SetFoV(XM_PI / 3);
 		mCamera.SetZRange(0.001f, 1000.f);
-		mCamera.SetPosition(Vector3(2.f, 2.f, 2.f));
-		mCamera.SetLookDirection(Vector3(-2), Vector3::Up);
+		mCamera.SetPosition(camPos);
+		mCamera.SetRotation(camRot);
 		mCamera.SetOrthographicSize(10);
 		mCamera.SetOrthographic(false);
 		ImGuizmo::SetOrthographic(true);
@@ -150,6 +166,10 @@ namespace Darius::Editor::Gui::Windows
 
 		mWorldPos.Destroy();
 		mNormalDepth.Destroy();
+
+		// Setting camera position to config
+		WriteVector3Config(CameraPositionKey, mCamera.GetPosition());
+		WriteQuaternionConfig(CameraRotationKey, mCamera.GetRotation());
 	}
 
 	void SceneWindow::UpdateGlobalConstants(GlobalConstants& globals) const
