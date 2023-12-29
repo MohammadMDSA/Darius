@@ -20,6 +20,9 @@
 
 #include "Camera.generated.hpp"
 
+// Base camera class was registered manually, so needs the generated declarations too
+static void rttr_auto_register_reflection_function_BaseCamera_();
+
 namespace Darius::Math::Camera
 {
     class DClass() BaseCamera
@@ -88,7 +91,7 @@ namespace Darius::Math::Camera
         Frustum m_FrustumVS;		// View-space view frustum
         Frustum m_FrustumWS;		// World-space view frustum
 
-        RTTR_REGISTRATION_FRIEND;
+        RTTR_REGISTRATION_FRIEND_PFX(BaseCamera);
         RTTR_ENABLE();
 
     };

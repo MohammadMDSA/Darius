@@ -41,7 +41,7 @@ namespace Darius::Math::Camera
     }
 }
 
-RTTR_REGISTRATION
+RTTR_REGISTRATION_PFX(BaseCamera)
 {
     rttr::registration::class_<D_MATH_CAMERA::BaseCamera>("Darius::Math::Camera::BaseCamera")
         .property("Position", &D_MATH_CAMERA::BaseCamera::GetPosition, &D_MATH_CAMERA::BaseCamera::SetPosition)

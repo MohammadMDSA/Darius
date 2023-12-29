@@ -67,9 +67,15 @@ static void rttr_auto_register_reflection_function_();
  */
 #define RTTR_REGISTRATION_FRIEND
 #else
-#define RTTR_REGISTRATION_FRIEND friend void ::rttr_auto_register_reflection_function_();                               \
-                                 template<typename Ctor_Type, typename Policy, typename Accessor, typename Arg_Indexer> \
-                                 friend struct rttr::detail::constructor_invoker;
+#define RTTR_REGISTRATION_FRIEND \
+    friend void ::rttr_auto_register_reflection_function_(); \
+    template<typename Ctor_Type, typename Policy, typename Accessor, typename Arg_Indexer> \
+    friend struct rttr::detail::constructor_invoker;
+
+#define RTTR_REGISTRATION_FRIEND_PFX(postfix) \
+    friend void ::rttr_auto_register_reflection_function_##postfix##_(); \
+    template<typename Ctor_Type, typename Policy, typename Accessor, typename Arg_Indexer> \
+    friend struct rttr::detail::constructor_invoker;
 #endif
 
 #endif // RTTR_REGISTRATION_FRIEND_H_
