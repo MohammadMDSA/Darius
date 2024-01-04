@@ -342,4 +342,19 @@ namespace Darius::Animation
 
 		lSdkManager->Destroy();
 	}
+
+	float AnimationResource::GetDuration() const
+	{
+		if (IsSkeletalAnimation())
+			return mSkeletalAnimationSequence.GetDuration();
+		
+		if (mComponentAnimation.size() <= 0)
+			return 0.f;
+
+		auto earliestAnim = *std::min_element(mComponentAnimation.begin(), mComponentAnimation.end(), [](auto el) { return el.AnimationSequence.GetStartTime(); });
+
+		auto latestAnim = *std::max_element(mComponentAnimation.begin(), mComponentAnimation.end(), [](auto el) { return el.AnimationSequence.GetEndTime(); });
+
+		return latestAnim.AnimationSequence.GetEndTime() - earliestAnim.AnimationSequence.GetStartTime();
+	}
 }

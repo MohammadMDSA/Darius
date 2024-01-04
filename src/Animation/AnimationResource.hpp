@@ -45,9 +45,11 @@ namespace Darius::Animation
 		INLINE virtual bool				AreDependenciesDirty() const override { return false; }
 
 		INLINE Sequence const&			GetSkeletalAnimationSequence() const { return mSkeletalAnimationSequence; }
+		INLINE D_CONTAINERS::DVector<ComponentAnimationData> const& GetComponentAnimationData() const { return mComponentAnimation; }
 		INLINE D_CONTAINERS::DUnorderedMap<std::string, int> GetSkeletonNameIndexMap() const { return mSkeletonNameIndexMap; }
 
 		INLINE bool						IsSkeletalAnimation() const { return mSkeletalAnimation; }
+		float							GetDuration() const;
 
 		static D_CONTAINERS::DVector<D_RESOURCE::ResourceDataInFile> CanConstructFrom(D_RESOURCE::ResourceType type, D_FILE::Path const& path);
 
@@ -65,7 +67,7 @@ namespace Darius::Animation
 		Sequence								mSkeletalAnimationSequence;
 		
 		DField(Serialize)
-		ComponentAnimationData					mComponentAnimation;
+		D_CONTAINERS::DVector<ComponentAnimationData> mComponentAnimation;
 
 		DField()
 		D_CONTAINERS::DUnorderedMap<std::string, int> mSkeletonNameIndexMap;
