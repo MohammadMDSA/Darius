@@ -8,7 +8,6 @@
 
 #include "AnimationResource.sgenerated.hpp"
 
-using namespace fbxsdk;
 using namespace D_CONTAINERS;
 using namespace D_FILE;
 using namespace D_RESOURCE;
@@ -20,93 +19,122 @@ namespace Darius::Animation
 
 	DVector<ResourceDataInFile> AnimationResource::CanConstructFrom(ResourceType type, Path const& path)
 	{
-		// Create the FBX SDK manager
-		FbxManager* lSdkManager = FbxManager::Create();
-
-		// Create an IOSettings object.
-		FbxIOSettings* ios = FbxIOSettings::Create(lSdkManager, IOSROOT);
-		lSdkManager->SetIOSettings(ios);
-
-		// Create an importer.
-		FbxImporter* lImporter = FbxImporter::Create(lSdkManager, "");
-
-		// Declare the path and filename of the file containing the scene.
-		// In this case, we are assuming the file is in the same directory as the executable.
-		auto pathStr = path.string();
-		const char* lFilename = pathStr.c_str();
-
-
-		// Initialize the importer.
-		bool lImportStatus = lImporter->Initialize(lFilename, -1, lSdkManager->GetIOSettings());
-
-		if (!lImportStatus) {
-			D_LOG_ERROR("Call to FbxImporter::Initialize() failed.");
-			std::string msg = "Error returned: " + std::string(lImporter->GetStatus().GetErrorString());
-			D_LOG_ERROR(msg);
-			return {};
-		}
-
-		// Create a new scene so it can be populated by the imported file.
-		FbxScene* lScene = FbxScene::Create(lSdkManager, "modelScene");
-
-		// Import the contents of the file into the scene.
-		lImporter->Import(lScene);
-
-		// The file has been imported; we can get rid of the importer.
-		lImporter->Destroy();
-
 		DVector<ResourceDataInFile> result;
-
-		for (int i = 0; i < lScene->GetSrcObjectCount<FbxAnimStack>(); i++)
+		auto ext = path.extension();
+		if (ext == ".anim")
 		{
-			ResourceDataInFile data;
-			FbxAnimStack* animStack = lScene->GetSrcObject<FbxAnimStack>(i);
-
-			data.Name = animStack->GetName();
-			data.Type = AnimationResource::GetResourceType();
-			result.push_back(data);
+			ResourceDataInFile res;
+			res.Name = WSTR2STR(D_FILE::GetFileName(path));
+			res.Type = AnimationResource::GetResourceType();
 		}
 
-		lSdkManager->Destroy();
+		if (ext == ".fbx")
+		{
+			// Create the FBX SDK manager
+			FbxManager* lSdkManager = FbxManager::Create();
+
+			// Create an IOSettings object.
+			FbxIOSettings* ios = FbxIOSettings::Create(lSdkManager, IOSROOT);
+			lSdkManager->SetIOSettings(ios);
+
+			// Create an importer.
+			FbxImporter* lImporter = FbxImporter::Create(lSdkManager, "");
+
+			// Declare the path and filename of the file containing the scene.
+			// In this case, we are assuming the file is in the same directory as the executable.
+			auto pathStr = path.string();
+			const char* lFilename = pathStr.c_str();
+
+
+			// Initialize the importer.
+			bool lImportStatus = lImporter->Initialize(lFilename, -1, lSdkManager->GetIOSettings());
+
+			if (!lImportStatus) {
+				D_LOG_ERROR("Call to FbxImporter::Initialize() failed.");
+				std::string msg = "Error returned: " + std::string(lImporter->GetStatus().GetErrorString());
+				D_LOG_ERROR(msg);
+				return {};
+			}
+
+			// Create a new scene so it can be populated by the imported file.
+			FbxScene* lScene = FbxScene::Create(lSdkManager, "modelScene");
+
+			// Import the contents of the file into the scene.
+			lImporter->Import(lScene);
+
+			// The file has been imported; we can get rid of the importer.
+			lImporter->Destroy();
+
+			for (int i = 0; i < lScene->GetSrcObjectCount<FbxAnimStack>(); i++)
+			{
+				ResourceDataInFile data;
+				FbxAnimStack* animStack = lScene->GetSrcObject<FbxAnimStack>(i);
+
+				data.Name = animStack->GetName();
+				data.Type = AnimationResource::GetResourceType();
+				result.push_back(data);
+			}
+
+			lSdkManager->Destroy();
+
+			return result;
+		}
 
 		return result;
 	}
 
-	bool AnimationResource::GetPropertyData(int jointIndex, void* propP, void* currentLayerP, AnimationCurve& animCurve, const char* channelName)
+	bool AnimationResource::GetPropertyData(void* propP, void* currentLayerP, Track& animCurve, const char* channelName)
 	{
 		FbxPropertyT<FbxDouble3>& prop = *(FbxPropertyT<FbxDouble3>*)propP;
 		FbxAnimLayer* currentLayer = (FbxAnimLayer*)currentLayerP;
 
-		animCurve.TargetNode = jointIndex;
-		// TODO: Extract right interpolation
-		animCurve.Interpolation = AnimationCurve::kLinear;
-		animCurve.KeyFrameOffset = mKeyframes.size();
-		animCurve.KeyFrameFormat = AnimationCurve::kFloat;
-		animCurve.KeyFrameStride = sizeof(float) / 4;
-
+		animCurve.SetInterpolationMode(InterpolationMode::Linear);
 
 		auto curve = prop.GetCurve(currentLayer, channelName);
 		// No curve for this property
 		if (!curve)
 			return false;
 
+		int componentOffset = -1;
+		if (!std::strcmp(channelName, "X"))
+			componentOffset = 0;
+		else if (!std::strcmp(channelName, "Y"))
+			componentOffset = 1;
+		else if (!std::strcmp(channelName, "Z"))
+			componentOffset = 2;
+		else if (!std::strcmp(channelName, "T"))
+			componentOffset = 3;
+
+		// It is not x, y, z, w, so in this context it is invalid
+		if (componentOffset == -1)
+			return false;
+
 		for (UINT keyIndex = 0; keyIndex < (UINT)curve->KeyGetCount(); keyIndex++)
 		{
 			auto curveKey = curve->KeyGet(keyIndex);
-			auto keyTime = curveKey.GetTime().GetSecondDouble();
+			auto keyTime = (float)curveKey.GetTime().GetSecondDouble();
 
-			if (keyIndex == 0)
+			Keyframe* keyframe = animCurve.FindOrCreateKeyframeByTime(keyTime);
+			keyframe->Time = keyTime;
+
+			switch (componentOffset)
 			{
-				animCurve.StartTime = (float)keyTime;
+			case 0:
+				keyframe->Value.SetX(curveKey.GetValue());
+				break;
+			case 1:
+				keyframe->Value.SetY(curveKey.GetValue());
+				break;
+			case 2:
+				keyframe->Value.SetZ(curveKey.GetValue());
+				break;
+			case 3:
+				keyframe->Value.SetW(curveKey.GetValue());
+				break;
+
+			default:
+				break;
 			}
-
-			animCurve.KeyframeTimeMap.insert({ (float)keyTime, keyIndex });
-
-			// Increasing keyframe vector size
-			for (int i = 0; i < 4; i++) mKeyframes.push_back(0);
-
-			auto keyDataLoc = mKeyframes.data() + animCurve.KeyFrameOffset + keyIndex * sizeof(float);
-			*(float*)keyDataLoc = curveKey.GetValue();
 		}
 
 		return true;
@@ -114,9 +142,35 @@ namespace Darius::Animation
 
 	void AnimationResource::ReadResourceFromFile(D_SERIALIZATION::Json const& json)
 	{
-		ZeroMemory(&mAnimationData, sizeof(AnimationLayer));
-		mCurvesData.clear();
-		mKeyframes.clear();
+		auto ext = GetPath().extension();
+		if (ext == ".anim")
+		{
+			mSkeletalAnimation = false;
+			ReadNativeAnimationFromFile(json);
+			return;
+		}
+		if (ext == ".fbx")
+		{
+			mSkeletalAnimation = true;
+			ReadFbxAnimationFromFile(json);
+			return;
+		}
+	}
+
+	void AnimationResource::Unload()
+	{
+		EvictFromGpu();
+		mSkeletonNameIndexMap.clear();
+		mAnimationSequence = Sequence();
+	}
+
+	void AnimationResource::ReadNativeAnimationFromFile(D_SERIALIZATION::Json const& json)
+	{
+
+	}
+
+	void AnimationResource::ReadFbxAnimationFromFile(D_SERIALIZATION::Json const& json)
+	{
 
 		// Create the FBX SDK manager
 		FbxManager* lSdkManager = FbxManager::Create();
@@ -177,10 +231,6 @@ namespace Darius::Animation
 		// Getting the layer that we want to work with
 		auto currentLayer = targetAnimStack->GetMember<FbxAnimLayer>();
 
-		// Get take info (duration)
-		auto takeInfo = lScene->GetTakeInfo(targetAnimStack->GetName());
-		mAnimationData.Duration = (float)(takeInfo->mLocalTimeSpan.GetStop() - takeInfo->mLocalTimeSpan.GetStart()).GetSecondDouble();
-
 		// Get frame rate from the scene.
 		FbxTime::EMode mode = lScene->GetGlobalSettings().GetTimeMode();
 		const float scene_frame_rate =
@@ -189,10 +239,11 @@ namespace Darius::Animation
 				: FbxTime::GetFrameRate(mode));
 
 		// Creating a mapping from joint name to it's index (animations will use this index)
-		D_CONTAINERS::DUnorderedMap<FbxSkeleton*, int> skeletonMap;
+		D_CONTAINERS::DVector<FbxSkeleton*> jointVec;
 		mSkeletonNameIndexMap.clear();
 		{
 			auto skeltCnt = lScene->GetMemberCount<FbxSkeleton>();
+			jointVec.resize(skeltCnt);
 			int index = 0;
 			for (int skeletonIndex = 0; skeletonIndex < skeltCnt; skeletonIndex++)
 			{
@@ -201,7 +252,7 @@ namespace Darius::Animation
 				if (!node)
 					continue;
 
-				skeletonMap[skeleton] = index;
+				jointVec[index] = skeleton;
 				mSkeletonNameIndexMap[node->GetName()] = index;
 
 				index++;
@@ -209,39 +260,41 @@ namespace Darius::Animation
 		}
 
 		// Adding translation, scale, and rotation curves of joints
-		for (auto [skeleton, jointIndex] : skeletonMap)
+		for (int i = 0; i < jointVec.size(); i++)
 		{
+			FbxSkeleton* skeleton = jointVec[i];
 			auto node = skeleton->GetNode();
-
+			std::string nodeName = node->GetName();
 			// Translation
 			{
 				auto curveNode = node->LclTranslation.GetCurveNode(currentLayer);
 				if (curveNode)
+				{
+					Track animCurve;
 					for (UINT channelIdx = 0; channelIdx < curveNode->GetChannelsCount(); channelIdx++)
 					{
-						AnimationCurve animCurve;
-						animCurve.TargetPath = AnimationCurve::kTranslation;
-						if (GetPropertyData(jointIndex, &node->LclTranslation, currentLayer, animCurve, curveNode->GetChannelName(channelIdx)))
-						{
-							animCurve.ChannelIndex = channelIdx;
-							mCurvesData.push_back(animCurve);
-						}
+						GetPropertyData(&node->LclTranslation, currentLayer, animCurve, curveNode->GetChannelName(channelIdx));
 					}
+
+					for (auto& kf : animCurve.GetKeyframes())
+						kf.Value.SetW(1.f);
+
+					mAnimationSequence.AddTrack(nodeName + ".Translation", animCurve);
+				}
 			}
 
 			// Scale
 			{
 				auto curveNode = node->LclScaling.GetCurveNode(currentLayer);
 				if (curveNode)
-				for (UINT channelIdx = 0; channelIdx < curveNode->GetChannelsCount(); channelIdx++)
 				{
-					AnimationCurve animCurve;
-					animCurve.TargetPath = AnimationCurve::kScale;
-					if (GetPropertyData(jointIndex, &node->LclScaling, currentLayer, animCurve, curveNode->GetChannelName(channelIdx)))
+					Track animCurve;
+					for (UINT channelIdx = 0; channelIdx < curveNode->GetChannelsCount(); channelIdx++)
 					{
-						animCurve.ChannelIndex = channelIdx;
-						mCurvesData.push_back(animCurve);
+						GetPropertyData(&node->LclTranslation, currentLayer, animCurve, curveNode->GetChannelName(channelIdx));
 					}
+
+					mAnimationSequence.AddTrack(nodeName + ".Scale", animCurve);
 				}
 			}
 
@@ -249,15 +302,14 @@ namespace Darius::Animation
 			{
 				auto curveNode = node->LclRotation.GetCurveNode(currentLayer);
 				if (curveNode)
-				for (UINT channelIdx = 0; channelIdx < curveNode->GetChannelsCount(); channelIdx++)
 				{
-					AnimationCurve animCurve;
-					animCurve.TargetPath = AnimationCurve::kRotation;
-					if (GetPropertyData(jointIndex, &node->LclRotation, currentLayer, animCurve, curveNode->GetChannelName(channelIdx)))
+					Track animCurve;
+					for (UINT channelIdx = 0; channelIdx < curveNode->GetChannelsCount(); channelIdx++)
 					{
-						animCurve.ChannelIndex = channelIdx;
-						mCurvesData.push_back(animCurve);
+						GetPropertyData(&node->LclTranslation, currentLayer, animCurve, curveNode->GetChannelName(channelIdx));
 					}
+
+					mAnimationSequence.AddTrack(nodeName + ".Rotation", animCurve);
 				}
 
 			}

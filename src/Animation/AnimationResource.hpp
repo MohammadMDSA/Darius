@@ -1,6 +1,6 @@
 #pragma once
 
-#include "AnimationTypes.hpp"
+#include "AnimationCommon.hpp"
 
 #include <Core/Containers/Map.hpp>
 #include <ResourceManager/ResourceManager.hpp>
@@ -16,7 +16,7 @@ namespace Darius::Animation
 {
 	class DClass(Serialize, Resource) AnimationResource : public D_RESOURCE::Resource
 	{
-		D_CH_RESOURCE_BODY(AnimationResource, "Animation", ".fbx");
+		D_CH_RESOURCE_BODY(AnimationResource, "Animation", ".fbx", ".anim");
 		GENERATED_BODY();
 
 	public:
@@ -28,37 +28,37 @@ namespace Darius::Animation
 		virtual INLINE void				WriteResourceToFile(D_SERIALIZATION::Json& json) const override { throw D_EXCEPTION::UnsupportedException(); };
 		virtual void					ReadResourceFromFile(D_SERIALIZATION::Json const& json) override;
 		virtual INLINE bool				UploadToGpu() override { return true; };
-		virtual INLINE void				Unload() override { EvictFromGpu(); }
+		virtual INLINE void				Unload() override;
+
+		virtual void					ReadFbxAnimationFromFile(D_SERIALIZATION::Json const& json);
+		virtual void					ReadNativeAnimationFromFile(D_SERIALIZATION::Json const& json);
 
 		INLINE virtual bool				AreDependenciesDirty() const override { return false; }
 
-		INLINE AnimationLayer			GetAnimationData() const { return mAnimationData; }
-		INLINE D_CONTAINERS::DVector<AnimationCurve> GetCurvesData() const { return mCurvesData; }
-		INLINE D_CONTAINERS::DVector<Keyframe> GetKeyframes() const { return mKeyframes; }
+		INLINE Sequence const&			GetAnimationSequence() const { return mAnimationSequence; }
 		INLINE D_CONTAINERS::DUnorderedMap<std::string, int> GetSkeletonNameIndexMap() const { return mSkeletonNameIndexMap; }
+
+		INLINE bool						IsSkeletalAnimation() const { return mSkeletalAnimation; }
 
 		static D_CONTAINERS::DVector<D_RESOURCE::ResourceDataInFile> CanConstructFrom(D_RESOURCE::ResourceType type, D_FILE::Path const& path);
 
 	protected:
 		AnimationResource(D_CORE::Uuid uuid, std::wstring const& path, std::wstring const& name, D_RESOURCE::DResourceId id, bool isDefault = false) :
 			Resource(uuid, path, name, id, isDefault),
-			mAnimationData() {}
+			mAnimationSequence() {}
 
 		
 		DField()
-		AnimationLayer							mAnimationData;
+		Sequence								mAnimationSequence;
 		
-		DField()
-		D_CONTAINERS::DVector<AnimationCurve>	mCurvesData;
-		
-		DField()
-		D_CONTAINERS::DVector<Keyframe>			mKeyframes;
-
 		DField()
 		D_CONTAINERS::DUnorderedMap<std::string, int> mSkeletonNameIndexMap;
 
+		DField()
+		bool									mSkeletalAnimation;
+
 	private:
-		bool						GetPropertyData(int jointIndex, void* propP, void* currentLayerP, AnimationCurve& animCurve, const char* channelName);
+		bool						GetPropertyData(void* propP, void* currentLayerP, Track& animCurve, const char* channelName);
 	};
 }
 

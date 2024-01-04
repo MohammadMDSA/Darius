@@ -39,79 +39,6 @@ namespace Darius::Animation
 	{
 	}
 
-	static inline float ToFloat(const int8_t x) { return Math::Max(x / 127.0f, -1.0f); }
-	static inline float ToFloat(const uint8_t x) { return x / 255.0f; }
-	static inline float ToFloat(const int16_t x) { return Math::Max(x / 32767.0f, -1.0f); }
-	static inline float ToFloat(const uint16_t x) { return x / 65535.0f; }
-
-	static inline void Lerp3(float* Dest, const float* Key1, const float* Key2, float T)
-	{
-		Dest[0] = Math::Lerp(Key1[0], Key2[0], T);
-		Dest[1] = Math::Lerp(Key1[1], Key2[1], T);
-		Dest[2] = Math::Lerp(Key1[2], Key2[2], T);
-	}
-
-	static inline void AnimLerp(float* Dest, const float* Key1, const float* Key2, float T)
-	{
-		*Dest = Math::Lerp(*Key1, *Key2, T);
-	}
-
-	template <typename T>
-	static inline D_MATH::Quaternion ToQuat(const T* rot)
-	{
-		return (Quaternion)Vector4(ToFloat(rot[0]), ToFloat(rot[1]), ToFloat(rot[2]), ToFloat(rot[3]));
-	}
-
-	static inline D_MATH::Quaternion ToQuat(const float* rot)
-	{
-		return D_MATH::Quaternion(DirectX::XMLoadFloat4((const DirectX::XMFLOAT4*)rot));
-	}
-
-	static inline void Slerp(float* Dest, const void* Key1, const void* Key2, float T, uint32_t Format)
-	{
-		switch (Format)
-		{
-		case AnimationCurve::kSNorm8:
-		{
-			const int8_t* key1 = (const int8_t*)Key1;
-			const int8_t* key2 = (const int8_t*)Key2;
-			DirectX::XMStoreFloat4((DirectX::XMFLOAT4*)Dest, (DirectX::FXMVECTOR)D_MATH::Slerp(ToQuat(key1), ToQuat(key2), T));
-			break;
-		}
-		case AnimationCurve::kUNorm8:
-		{
-			const uint8_t* key1 = (const uint8_t*)Key1;
-			const uint8_t* key2 = (const uint8_t*)Key2;
-			DirectX::XMStoreFloat4((DirectX::XMFLOAT4*)Dest, (DirectX::FXMVECTOR)D_MATH::Slerp(ToQuat(key1), ToQuat(key2), T));
-			break;
-		}
-		case AnimationCurve::kSNorm16:
-		{
-			const int16_t* key1 = (const int16_t*)Key1;
-			const int16_t* key2 = (const int16_t*)Key2;
-			DirectX::XMStoreFloat4((DirectX::XMFLOAT4*)Dest, (DirectX::FXMVECTOR)Math::Slerp(ToQuat(key1), ToQuat(key2), T));
-			break;
-		}
-		case AnimationCurve::kUNorm16:
-		{
-			const uint16_t* key1 = (const uint16_t*)Key1;
-			const uint16_t* key2 = (const uint16_t*)Key2;
-			DirectX::XMStoreFloat4((DirectX::XMFLOAT4*)Dest, (DirectX::FXMVECTOR)Math::Slerp(ToQuat(key1), ToQuat(key2), T));
-			break;
-		}
-		case AnimationCurve::kFloat:
-		{
-			const float* key1 = (const float*)Key1;
-			const float* key2 = (const float*)Key2;
-			DirectX::XMStoreFloat4((DirectX::XMFLOAT4*)Dest, (DirectX::FXMVECTOR)Math::Slerp(ToQuat(key1), ToQuat(key2), T));
-			break;
-		}
-		default:
-			D_ASSERT_M(0, "Unexpected animation key frame data format");
-			break;
-		}
-	}
-
 #ifdef _D_EDITOR
 	bool AnimationComponent::DrawDetails(float params[])
 	{
@@ -154,62 +81,52 @@ namespace Darius::Animation
 
 		mAnimState.Time += deltaTime;
 
-		const AnimationResource& animResource = *mAnimation.Get();
+		AnimationResource const& animResource = *mAnimation.Get();
 
-		const AnimationLayer& animation = animResource.GetAnimationData();
+		Sequence const& animation = animResource.GetAnimationSequence();
 
 		if (mAnimState.State == AnimationState::kLooping)
 		{
-			mAnimState.Time = fmodf(mAnimState.Time, animation.Duration);
+			mAnimState.Time = fmodf(mAnimState.Time, animation.GetDuration());
 		}
-		else if (mAnimState.Time > animation.Duration)
+		else if (mAnimState.Time > animation.GetDuration())
 		{
 			mAnimState.Time = 0.0f;
 			mAnimState.State = AnimationState::kStopped;
 		}
 
+		D_CONTAINERS::DVector<Track> const& tracks = animation.GetTracks();
+
 		// Update animation nodes
-		for (AnimationCurve const& curve : animResource.GetCurvesData())
+		for (int i = 0; i < tracks.size(); i++)
 		{
-			if (!mAnimationJointIndexMap.contains(curve.TargetNode))
-				continue;
+			// Since every bone has translation, rotation, and scale tracks, the index of the bone
+			// associated to a track is the index of the track divided by 3
+			Mesh::SkeletonJoint& node = skeletalMesh->GetSkeleton()[i / 3];
 
-			auto curveTime = mAnimState.Time - curve.StartTime;
-			auto upperIter = curve.KeyframeTimeMap.upper_bound(curveTime);
-			auto key2pair = *upperIter;
-			--upperIter;
-			auto key1pair = *upperIter;
+			Track track = tracks[i];
 
-			const float progress = curveTime;
-			const float key1Time = key1pair.first;
-			const float lerpT = (progress - key1Time) / (key2pair.first - key1Time);
-
-			const size_t stride = curve.KeyFrameStride * 4;
-			const uint8_t* key1 = animResource.GetKeyframes().data() + curve.KeyFrameOffset + stride * key1pair.second;
-
-			const uint8_t* key2 = key1 + stride;
-
-			Mesh::SkeletonJoint& node = skeletalMesh->GetSkeleton()[mAnimationJointIndexMap[curve.TargetNode]];
-
-			switch (curve.TargetPath)
+			switch (i % 3)
 			{
-			case AnimationCurve::kTranslation:
-				D_ASSERT(curve.KeyFrameFormat == AnimationCurve::kFloat);
-				AnimLerp((float*)&node.Xform + 12 + curve.ChannelIndex, (const float*)key1, (const float*)key2, lerpT);
+			case 0: // Translation
+			{
+				auto value = track.Evaluate(mAnimState.Time, true);
+				node.Xform.SetW(value.value_or(Vector4(0.f, 0.f, 0.f, 1.f)));
 				break;
-			case AnimationCurve::kRotation:
+			}
+			case 1: // Scale
+			{
 				node.StaleMatrix = true;
-				AnimLerp((float*)&node.Rotation + curve.ChannelIndex, (const float*)key1, (const float*)key2, lerpT);
+				node.Scale = (DirectX::XMFLOAT3)Vector3(track.Evaluate(mAnimState.Time, true).value_or(Vector4::One));
 				break;
-			case AnimationCurve::kScale:
-				D_ASSERT(curve.KeyFrameFormat == AnimationCurve::kFloat);
-				node.StaleMatrix = true;
-				AnimLerp((float*)&node.Scale + curve.ChannelIndex, (const float*)key1, (const float*)key2, lerpT);
-				break;
+			}
+			case 2: // Rotation
 			default:
-			case AnimationCurve::kWeights:
-				D_ASSERT_M(0, "Unhandled blend shape weights in animation");
+			{
+				node.StaleMatrix = true;
+				node.Rotation = (DirectX::XMFLOAT3)Vector3(track.Evaluate(mAnimState.Time, true).value_or(Vector4::Zero));
 				break;
+			}
 			}
 		}
 

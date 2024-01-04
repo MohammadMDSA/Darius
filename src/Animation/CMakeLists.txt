@@ -5,16 +5,18 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ".")
 
 list(APPEND ANIMATION_LIBS_INCLUDE
 	"pch.hpp"
+	"AnimationCommon.hpp"
+	"AnimationComponent.hpp"
 	"AnimationResource.hpp"
 	"AnimationManager.hpp"
-	"AnimationComponent.hpp"
 	)
 
 list(APPEND ANIMATION_LIBS_SOURCES
 	"pch.cpp"
-	"AnimationResource.cpp"
-	"AnimationManager.cpp"
+	"AnimationCommon.cpp"
 	"AnimationComponent.cpp"
+	"AnimationManager.cpp"
+	"AnimationResource.cpp"
 	)
 
 
