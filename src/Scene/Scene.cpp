@@ -35,6 +35,7 @@ namespace Darius::Scene
 
 	DVector<std::function<void(float, D_ECS::ECSRegistry&)>>			BehaviourUpdaterFunctions;
 	DVector<std::function<void(float, D_ECS::ECSRegistry&)>>			BehaviourLateUpdaterFunctions;
+	DUnorderedMap<D_ECS::ComponentEntry, rttr::type>					ComponentEntityReflectionTypeMapping;
 
 	DVector<GameObject*>												ToBeDeleted;
 	DVector<GameObject*>												ToBeStarted;
@@ -637,4 +638,23 @@ namespace Darius::Scene
 	{
 		return Running;
 	}
+
+	rttr::type SceneManager::GetComponentReflectionTypeByComponentEntity(ECS::ComponentEntry comp)
+	{
+		auto result = ComponentEntityReflectionTypeMapping.find(comp);
+
+		if (result == ComponentEntityReflectionTypeMapping.end())
+		{
+			D_ASSERT_M(false, "Given component is not registered via its static constructor.");
+			return rttr::type::get<rttr::detail::invalid_type>();
+		}
+
+		return result->second;
+	}
+
+	void SceneManager::RegisterComponentType(D_ECS::ComponentEntry componentId, rttr::type type)
+	{
+		ComponentEntityReflectionTypeMapping.emplace(componentId, type);
+	}
+
 }

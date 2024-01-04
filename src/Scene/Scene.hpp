@@ -76,6 +76,8 @@ namespace Darius::Scene
 			return World.id<T>();
 		}
 
+		static rttr::type GetComponentReflectionTypeByComponentEntity(ECS::ComponentEntry comp);
+
 		static INLINE bool		IsIdValid(D_ECS::ECSId id)
 		{
 			return World.is_valid(id);
@@ -91,6 +93,7 @@ namespace Darius::Scene
 		{
 			auto comp = World.component<COMP>(COMP::ClassName().c_str());
 			auto parentComp = World.component<PARENT>();
+			RegisterComponentType(comp, rttr::type::get<COMP>().get_id());
 			D_ASSERT(World.is_valid(parentComp));
 			comp.is_a(parentComp);
 			return comp;
@@ -119,6 +122,7 @@ namespace Darius::Scene
 		static void				RemoveDeletedPointers();
 		static void				StartScene();
 		static void				RemoveDeleted();
+		static void				RegisterComponentType(D_ECS::ComponentEntry componentId, rttr::type type);
 
 		static GameObject*		AddGameObject(D_CORE::Uuid const& uuid, bool addToScene = true);
 
