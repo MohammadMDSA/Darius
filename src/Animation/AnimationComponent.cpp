@@ -3,6 +3,8 @@
 
 #include <Renderer/Components/SkeletalMeshRendererComponent.hpp>
 
+#include <rttr/type.h>
+
 #ifdef _D_EDITOR
 #include <Libs/FontIcon/IconsFontAwesome6.h>
 #include <ResourceManager/ResourceDragDropPayload.hpp>
@@ -49,9 +51,28 @@ namespace Darius::Animation
 		D_H_DETAILS_DRAW_PROPERTY("Animation Clip");
 		D_H_RESOURCE_SELECTION_DRAW(AnimationResource, mAnimation, "Select Animation", SetAnimation);
 
-		D_H_DETAILS_DRAW_PROPERTY("Root Motion");
-		if (ImGui::Checkbox("##RootMotion", &mRootMotion))
-			valueChanged = true;
+		// Root motion
+		{
+			bool value = IsRootMotion();
+			D_H_DETAILS_DRAW_PROPERTY("Root Motion");
+			if (ImGui::Checkbox("##RootMotion", &value))
+			{
+				SetRootMotion(value);
+				valueChanged = true;
+			}
+
+		}
+
+		// Extrapolate values
+		{
+			bool value = IsExtrapolateValues();
+			D_H_DETAILS_DRAW_PROPERTY("Extrapolate Values");
+			if (ImGui::Checkbox("##ExtrapolateValues", &value))
+			{
+				SetExtrapolateValues(value);
+				valueChanged = true;
+			}
+		}
 
 		D_H_DETAILS_DRAW_END_TABLE();
 
@@ -62,9 +83,9 @@ namespace Darius::Animation
 	}
 #endif
 
-	void AnimationComponent::Update(float deltaTime)
+	void AnimationComponent::UpdateSkeletalMeshSkeleton(float deltaTime)
 	{
-		if (!IsActive() || !mAnimation.IsValid() || !GetGameObject()->HasComponent<D_RENDERER::SkeletalMeshRendererComponent>())
+		if (!GetGameObject()->HasComponent<D_RENDERER::SkeletalMeshRendererComponent>())
 			return;
 
 		D_RENDERER::SkeletalMeshRendererComponent* skeletalMesh = GetGameObject()->GetComponent<D_RENDERER::SkeletalMeshRendererComponent>();
@@ -75,25 +96,9 @@ namespace Darius::Animation
 			CreateAnimationToJointIndexMap();
 
 
-		// Animating skeleton
-		if (mAnimState.State == AnimationState::kStopped)
-			return;
-
-		mAnimState.Time += deltaTime;
-
 		AnimationResource const& animResource = *mAnimation.Get();
 
-		Sequence const& animation = animResource.GetAnimationSequence();
-
-		if (mAnimState.State == AnimationState::kLooping)
-		{
-			mAnimState.Time = fmodf(mAnimState.Time, animation.GetDuration());
-		}
-		else if (mAnimState.Time > animation.GetDuration())
-		{
-			mAnimState.Time = 0.0f;
-			mAnimState.State = AnimationState::kStopped;
-		}
+		Sequence const& animation = animResource.GetSkeletalAnimationSequence();
 
 		D_CONTAINERS::DVector<Track> const& tracks = animation.GetTracks();
 
@@ -128,8 +133,8 @@ namespace Darius::Animation
 			{
 				node.StaleMatrix = true;
 				auto value = track.Evaluate(mAnimState.Time, true);
-				if(value.has_value())
-				node.Rotation = (DirectX::XMFLOAT3)Vector3(value.value());
+				if (value.has_value())
+					node.Rotation = (DirectX::XMFLOAT3)Vector3(value.value());
 				break;
 			}
 			}
@@ -144,6 +149,101 @@ namespace Darius::Animation
 		}
 
 		skeletalMesh->SetDirty();
+	}
+
+	void AnimationComponent::UpdatePropertyValue(rttr::property prop, Track const& propertyAnimationData) const
+	{
+		using TypeId = rttr::type::type_id;
+		static const TypeId boolType = rttr::type::get<bool>().get_id();
+		static const TypeId intType = rttr::type::get<int>().get_id();
+		static const TypeId uintType = rttr::type::get<UINT>().get_id();
+		static const TypeId shortType = rttr::type::get<short>().get_id();
+		static const TypeId ushortType = rttr::type::get<USHORT>().get_id();
+		static const TypeId	longType = rttr::type::get<long>().get_id();
+		static const TypeId uLongType = rttr::type::get<ULONG>().get_id();
+		static const TypeId vector2Type = rttr::type::get<Vector2>().get_id();
+		static const TypeId vector3Type = rttr::type::get<Vector3>().get_id();
+		static const TypeId vector4Type = rttr::type::get<Vector4>().get_id();
+		static const TypeId colorType = rttr::type::get<Color>().get_id();
+		static const TypeId quaternionType = rttr::type::get<Quaternion>().get_id();
+
+		auto optValue = propertyAnimationData.Evaluate(mAnimState.Time, IsExtrapolateValues());
+
+		if (!optValue.has_value())
+			return;
+
+		switch (prop.get_type().get_id())
+		{
+		default:
+			break;
+		}
+	}
+
+	void AnimationComponent::UpdatePropertyValues(float deltaTime)
+	{
+		
+		// For each component in the animation
+		for (auto& componentAnimation : mAnimation->GetComponentAnimationData())
+		{
+			auto componentTypeResult = mComponentNameTypeIdMap.find(componentAnimation.ComponentName);
+			if (componentTypeResult == mComponentNameTypeIdMap.end())
+			{
+				// Component cache not found
+				D_ASSERT_M(false, "Bad component name type id map");
+				continue;
+			}
+
+			auto const& tracks = componentAnimation.AnimationSequence.GetTracks();
+
+			// For each animated property (track) in the component
+			for (auto& [propertyName, trackIndex] : componentAnimation.AnimationSequence.GetNameIndexMapping())
+			{
+
+				rttr::property prop = componentTypeResult->second.get_property(propertyName);
+
+				if (!prop.is_valid())
+				{
+					D_LOG_WARN("Property " + propertyName + " animated property was not found in component properties.");
+					continue;
+				}
+
+				D_ASSERT(trackIndex < tracks.size());
+
+				UpdatePropertyValue(prop, tracks[trackIndex]);
+			}
+		}
+
+	}
+
+	void AnimationComponent::Update(float deltaTime)
+	{
+		if (!IsActive() || !mAnimation.IsValid())
+			return;
+
+		// Update animation state
+		if (mAnimState.State == AnimationState::kStopped)
+			return;
+
+		mAnimState.Time += deltaTime;
+
+		if (mAnimState.State == AnimationState::kLooping)
+		{
+			mAnimState.Time = fmodf(mAnimState.Time, mAnimation->GetDuration());
+		}
+		else if (mAnimState.Time > mAnimation->GetDuration())
+		{
+			mAnimState.Time = 0.0f;
+			mAnimState.State = AnimationState::kStopped;
+		}
+
+
+		if (mAnimation->IsSkeletalAnimation())
+		{
+			UpdateSkeletalMeshSkeleton(deltaTime);
+			return;
+		}
+
+		UpdatePropertyValues(deltaTime);
 	}
 
 	void AnimationComponent::CreateAnimationToJointIndexMap()
@@ -184,11 +284,61 @@ namespace Darius::Animation
 
 		mAnimation = animation;
 
-		if (mAnimation.IsValid() && !mAnimation->IsLoaded())
-			D_RESOURCE_LOADER::LoadResourceAsync(animation, nullptr, true);
+		bool animValid = mAnimation.IsValid();
+
+		if (animValid && mAnimation->IsLoaded())
+			LoadAnimationCache();
+		else if (animValid)
+			D_RESOURCE_LOADER::LoadResourceAsync(animation, [&](auto resource)
+				{
+					LoadAnimationCache();
+				}, true);
 
 		mChangeSignal(this);
 	}
 
+	void AnimationComponent::LoadAnimationCache()
+	{
+		mComponentNameTypeIdMap.clear();
+
+		if (!mAnimation.IsValid() || mAnimation->IsSkeletalAnimation())
+			return;
+
+		for (auto& componentSequence : mAnimation->GetComponentAnimationData())
+		{
+			auto componentEntity = D_WORLD::GetComponentEntity(componentSequence.ComponentName);
+			mComponentNameTypeIdMap.emplace(componentSequence.ComponentName, D_WORLD::GetComponentReflectionTypeByComponentEntity(componentEntity));
+		}
+	}
+
+	void AnimationComponent::SetAnimState(AnimationState const& value)
+	{
+		if (value == mAnimState)
+			return;
+
+		mAnimState = value;
+
+		mChangeSignal(this);
+	}
+
+	void AnimationComponent::SetRootMotion(bool rootMotion)
+	{
+		if (mRootMotion == rootMotion)
+			return;
+
+		mRootMotion = rootMotion;
+
+		mChangeSignal(this);
+	}
+
+	void AnimationComponent::SetExtrapolateValues(bool extrapolate)
+	{
+		if (mExtrapolateValues == extrapolate)
+			return;
+
+		mExtrapolateValues = extrapolate;
+
+		mChangeSignal(this);
+	}
 }
 

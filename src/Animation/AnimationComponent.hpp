@@ -26,6 +26,12 @@ namespace Darius::Animation
 			eMode State;
 			float Time;
 			AnimationState() : State(kStopped), Time(0.0f) {}
+
+			INLINE bool operator== (AnimationState const& other)
+			{
+				return State == other.State && Time == other.Time;
+				D_STATIC_ASSERT(sizeof(AnimationState) == 8); // To ensure fixing this function if properties changed
+			}
 		};
 
 		D_H_COMP_BODY(AnimationComponent, D_ECS_COMP::ComponentBase, "Rendering/Animation", true);
@@ -41,13 +47,17 @@ namespace Darius::Animation
 
 		INLINE AnimationResource*				GetAnimation() const { return mAnimation.Get(); }
 		void									SetAnimation(AnimationResource* animation);
-		void									SetAnimState(AnimationState const& value) { mAnimState = value; }
-		INLINE void								SetRootMotion(bool rootMotion) { mRootMotion = rootMotion; }
+		void									SetAnimState(AnimationState const& value);
+		void									SetRootMotion(bool rootMotion);
 
 		INLINE AnimationState const&			GetAnimState() const { return mAnimState; }
 		INLINE bool								IsRootMotion() const { return mRootMotion; }
 
+		INLINE bool								IsExtrapolateValues() const { return mExtrapolateValues; }
+		void									SetExtrapolateValues(bool extrapolate);
+
 	protected:
+		void                                    LoadAnimationCache();
 
 		DField()
 		AnimationState							mAnimState;
@@ -56,8 +66,16 @@ namespace Darius::Animation
 
 		void									CreateAnimationToJointIndexMap();
 
+		void									UpdateSkeletalMeshSkeleton(float deltaTime);
+		
+		void									UpdatePropertyValues(float deltaTime);
+		void									UpdatePropertyValue(rttr::property prop, Track const& propertyAnimationData) const;
+
 		DField(Serialize)
 		bool									mRootMotion;
+
+		DField(Serialize)
+		bool									mExtrapolateValues;
 
 		DField(Serialize)
 		D_RESOURCE::ResourceRef<AnimationResource> mAnimation;
@@ -65,6 +83,8 @@ namespace Darius::Animation
 		D_CONTAINERS::DUnorderedMap<int, int>	mAnimationJointIndexMap; // Animation joint index to skeleton joint index
 
 		D_CORE::Uuid							mMeshId;
+
+		D_CONTAINERS::DUnorderedMap<std::string, rttr::type> mComponentNameTypeIdMap;
 	};
 
 }
