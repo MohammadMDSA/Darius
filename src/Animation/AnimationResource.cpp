@@ -1,6 +1,8 @@
 #include "pch.hpp"
 #include "AnimationResource.hpp"
 
+#include <Core/Serialization/TypeSerializer.hpp>
+
 #define FBXSDK_SHARED
 
 #include <fbxsdk.h>
@@ -161,12 +163,34 @@ namespace Darius::Animation
 	{
 		EvictFromGpu();
 		mSkeletonNameIndexMap.clear();
-		mAnimationSequence = Sequence();
+		mSkeletalAnimationSequence = Sequence();
 	}
 
 	void AnimationResource::ReadNativeAnimationFromFile(D_SERIALIZATION::Json const& json)
 	{
+		D_SERIALIZATION::Json animData;
+		if (!D_FILE::ReadJsonFile(GetPath(), animData))
+		{
+			D_LOG_ERROR("Could not read animation data from " + GetPath().string());
+			return;
+		}
 
+		D_SERIALIZATION::Deserialize(*this, animData);
+	}
+
+	void AnimationResource::WriteResourceToFile(D_SERIALIZATION::Json& json) const
+	{
+		if (IsSkeletalAnimation())
+			return;
+
+		D_SERIALIZATION::Json animData;
+		D_SERIALIZATION::Serialize(*this, animData);
+
+		if (D_FILE::WriteJsonFile(GetPath(), animData))
+		{
+			D_LOG_ERROR("Unable to write animation data to " + GetPath().string());
+			return;
+		}
 	}
 
 	void AnimationResource::ReadFbxAnimationFromFile(D_SERIALIZATION::Json const& json)
@@ -280,7 +304,7 @@ namespace Darius::Animation
 						kf.Value.SetW(1.f);
 
 				}
-				mAnimationSequence.AddTrack(nodeName + ".Translation", animCurve);
+				mSkeletalAnimationSequence.AddTrack(nodeName + ".Translation", animCurve);
 			}
 
 			// Scale
@@ -295,7 +319,7 @@ namespace Darius::Animation
 					}
 
 				}
-				mAnimationSequence.AddTrack(nodeName + ".Scale", animCurve);
+				mSkeletalAnimationSequence.AddTrack(nodeName + ".Scale", animCurve);
 			}
 
 			// Rotation
@@ -310,7 +334,7 @@ namespace Darius::Animation
 					}
 				}
 
-				mAnimationSequence.AddTrack(nodeName + ".Rotation", animCurve);
+				mSkeletalAnimationSequence.AddTrack(nodeName + ".Rotation", animCurve);
 
 			}
 

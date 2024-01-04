@@ -14,6 +14,18 @@
 
 namespace Darius::Animation
 {
+	struct DStruct(Serialize) ComponentAnimationData
+	{
+		GENERATED_BODY();
+
+	public:
+		DField(Serialize)
+		std::string									ComponentName;
+
+		DField(Serialize)
+		Sequence									AnimationSequence;
+	};
+
 	class DClass(Serialize, Resource) AnimationResource : public D_RESOURCE::Resource
 	{
 		D_CH_RESOURCE_BODY(AnimationResource, "Animation", ".fbx", ".anim");
@@ -25,17 +37,14 @@ namespace Darius::Animation
 		virtual bool					DrawDetails(float params[]) override { return false; }
 #endif // _D_EDITOR
 
-		virtual INLINE void				WriteResourceToFile(D_SERIALIZATION::Json& json) const override { throw D_EXCEPTION::UnsupportedException(); };
+		virtual void					WriteResourceToFile(D_SERIALIZATION::Json& json) const override;
 		virtual void					ReadResourceFromFile(D_SERIALIZATION::Json const& json) override;
 		virtual INLINE bool				UploadToGpu() override { return true; };
 		virtual INLINE void				Unload() override;
 
-		virtual void					ReadFbxAnimationFromFile(D_SERIALIZATION::Json const& json);
-		virtual void					ReadNativeAnimationFromFile(D_SERIALIZATION::Json const& json);
-
 		INLINE virtual bool				AreDependenciesDirty() const override { return false; }
 
-		INLINE Sequence const&			GetAnimationSequence() const { return mAnimationSequence; }
+		INLINE Sequence const&			GetSkeletalAnimationSequence() const { return mSkeletalAnimationSequence; }
 		INLINE D_CONTAINERS::DUnorderedMap<std::string, int> GetSkeletonNameIndexMap() const { return mSkeletonNameIndexMap; }
 
 		INLINE bool						IsSkeletalAnimation() const { return mSkeletalAnimation; }
@@ -45,12 +54,19 @@ namespace Darius::Animation
 	protected:
 		AnimationResource(D_CORE::Uuid uuid, std::wstring const& path, std::wstring const& name, D_RESOURCE::DResourceId id, bool isDefault = false) :
 			Resource(uuid, path, name, id, isDefault),
-			mAnimationSequence() {}
+			mSkeletalAnimationSequence(),
+			mSkeletalAnimation(false)
+		{}
 
+		virtual void					ReadFbxAnimationFromFile(D_SERIALIZATION::Json const& json);
+		virtual void					ReadNativeAnimationFromFile(D_SERIALIZATION::Json const& json);
 		
 		DField()
-		Sequence								mAnimationSequence;
+		Sequence								mSkeletalAnimationSequence;
 		
+		DField(Serialize)
+		ComponentAnimationData					mComponentAnimation;
+
 		DField()
 		D_CONTAINERS::DUnorderedMap<std::string, int> mSkeletonNameIndexMap;
 
