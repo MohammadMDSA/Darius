@@ -92,9 +92,14 @@ namespace Darius::Animation
 
         UINT                                    AddTrack(std::string const& name, Track const& track);
 
+        D_CONTAINERS::DUnorderedMap<std::string, UINT> const& GetNameIndexMapping() const { return mTracksNameIndex; }
+
         NODISCARD INLINE float                  GetDuration() const { return mDuration; }
 
         D_CONTAINERS::DVector<Track> const&     GetTracks() const { return mTracks; }
+
+        INLINE float                            GetStartTime() const { return mTracks.size() > 0 ? mTracks.front().GetStartTime() : 0.f; }
+        INLINE float                            GetEndTime() const { return mTracks.size() > 0 ? mTracks.back().GetEndTime() : 0.f; }
 
     protected:
 
@@ -102,7 +107,7 @@ namespace Darius::Animation
         D_CONTAINERS::DUnorderedMap<std::string, UINT> mTracksNameIndex;
 
         DField(Serialize)
-        D_CONTAINERS::DVector<Track> mTracks;
+        D_CONTAINERS::DVector<Track>            mTracks;
 
         DField(Serialize)
         float                                   mDuration = 0.f;
