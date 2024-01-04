@@ -106,8 +106,8 @@ namespace Darius::Math
 		INLINE operator DirectX::XMMATRIX() const { return m_mat; }
 		INLINE operator DirectX::XMFLOAT4X4() const { DirectX::XMFLOAT4X4 dest; DirectX::XMStoreFloat4x4(&dest, m_mat); return dest; }
 
-		INLINE Vector4 operator* (Vector3 vec) const { return Vector4(DirectX::XMVector3Transform(vec, m_mat)); }
-		INLINE Vector4 operator* (Vector4 vec) const { return Vector4(DirectX::XMVector4Transform(vec, m_mat)); }
+		INLINE Vector4 operator* (Vector3 const& vec) const { return Vector4(DirectX::XMVector3Transform(vec, m_mat)); }
+		INLINE Vector4 operator* (Vector4 const& vec) const { return Vector4(DirectX::XMVector4Transform(vec, m_mat)); }
 		INLINE Matrix4 operator* (const Matrix4& mat) const { return Matrix4(DirectX::XMMatrixMultiply(mat, m_mat)); }
 
 		static INLINE Matrix4 MakeScale(float scale) { return Matrix4(DirectX::XMMatrixScaling(scale, scale, scale)); }

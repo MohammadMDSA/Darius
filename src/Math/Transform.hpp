@@ -245,7 +245,8 @@ namespace Darius::Math
 
 		INLINE operator DirectX::XMMATRIX const() { return GetWorld(); }
 
-		INLINE Vector3 operator* (Vector3 vec) const { return Vector3(DirectX::XMVector3Transform(vec, GetWorld())); }
+		INLINE Vector3 operator* (Vector3 const& vec) const { return Vector3(DirectX::XMVector3Transform(vec, GetWorld())); }
+		INLINE Quaternion operator* (Quaternion const& quat) const { return Quaternion(DirectX::XMMatrixMultiply(DirectX::XMMatrixRotationQuaternion(quat), GetWorld())); }
 
 		INLINE Transform operator* (const Transform& mat) const {
 			return GetWorld() * mat.GetWorld();
