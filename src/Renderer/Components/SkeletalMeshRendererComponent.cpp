@@ -130,6 +130,17 @@ namespace Darius::Renderer
 		return valueChanged;
 
 	}
+
+	void SkeletalMeshRendererComponent::OnGizmo() const
+	{
+		auto transform = GetTransform();
+		for (auto& joint : mJointLocalPoses)
+		{
+
+			Vector3 loc = Vector3(transform->GetWorld() * joint);
+			D_DEBUG_DRAW::DrawSphere(loc, 0.01f, 0., Color::Red);
+		}
+	}
 #endif
 
 	void SkeletalMeshRendererComponent::SetMesh(SkeletalMeshResource* mesh)
@@ -164,11 +175,18 @@ namespace Darius::Renderer
 		OnMeshChanged();
 		mJoints.clear();
 		mSkeleton.clear();
+		mJointLocalPoses.clear();
 		mSkeletonRoot = nullptr;
 		if (mMesh.IsValid())
 		{
 			// Copying skeleton to component
 			mJoints.resize(mMesh->GetJointCount());
+			mSkeleton.reserve(mMesh->GetJointCount());
+
+#if _D_EDITOR
+			mJointLocalPoses.resize(mMesh->GetJointCount());
+#endif
+			
 			for (auto const& skeletonNode : mMesh->GetSkeleton())
 			{
 				mSkeleton.push_back(skeletonNode);
@@ -203,7 +221,7 @@ namespace Darius::Renderer
 			skeletonJoint.StaleMatrix = false;
 
 			fbxsdk::FbxAMatrix mat;
-			mat.SetTRS({ 0, 0, 0 }, { skeletonJoint.Rotation.x, skeletonJoint.Rotation.y, skeletonJoint.Rotation.z, 1.f }, { 1, 1, 1 });
+			mat.SetTRS({ 0, 0, 0 }, { skeletonJoint.Rotation.GetX(), skeletonJoint.Rotation.GetY(), skeletonJoint.Rotation.GetZ(), 1.f}, {1, 1, 1});
 			auto quat = mat.GetQ();
 
 
@@ -215,6 +233,9 @@ namespace Darius::Renderer
 			xform = parent * xform;
 
 		auto& joint = mJoints[skeletonJoint.MatrixIdx];
+#if _D_EDITOR
+		mJointLocalPoses[skeletonJoint.MatrixIdx] = Vector3(xform.GetW());
+#endif
 		auto withOffset = xform * skeletonJoint.IBM;
 		joint.mWorld = withOffset;
 		joint.mWorldIT = InverseTranspose(withOffset.Get3x3());
@@ -257,7 +278,7 @@ namespace Darius::Renderer
 		if (mSkeletonRoot)
 		{
 
-			JointUpdateRecursion(Matrix4(), *mSkeletonRoot);
+			JointUpdateRecursion(Matrix4::Identity, *mSkeletonRoot);
 		}
 
 		// Copy to gpu

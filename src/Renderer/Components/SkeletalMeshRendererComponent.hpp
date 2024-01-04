@@ -21,6 +21,7 @@ namespace Darius::Renderer
 
 #ifdef _D_EDITOR
 		virtual bool						DrawDetails(float params[]) override;
+		virtual void						OnGizmo() const override;
 #endif
 
 		// States
@@ -56,6 +57,10 @@ namespace Darius::Renderer
 		D_CONTAINERS::DVector<D_RENDERER_GEOMETRY::Mesh::SkeletonJoint> mSkeleton;
 		D_RENDERER_GEOMETRY::Mesh::SkeletonJoint*					mSkeletonRoot;
 		D_MATH_BOUNDS::BoundingSphere								mBounds;
+
+#if _D_EDITOR
+		D_CONTAINERS::DVector<D_MATH::Vector3>						mJointLocalPoses;
+#endif
 
 	};
 }
