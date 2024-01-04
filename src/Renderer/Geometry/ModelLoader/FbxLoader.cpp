@@ -952,9 +952,9 @@ namespace Darius::Renderer::Geometry::ModelLoader::Fbx
 				continue;
 
 			Mesh::SkeletonJoint sceneGraphNode;
-			ZeroMemory(&sceneGraphNode, sizeof(Mesh::SkeletonJoint));
 			sceneGraphNode.StaleMatrix = true;
 			sceneGraphNode.MatrixIdx = skeletonData.size();
+			sceneGraphNode.SkeletonRoot = false;
 			skeletonData.push_back(sceneGraphNode);
 			currentSceneGraphNode.Children.push_back(&skeletonData.back());
 			AddSkeletonChildren(node->GetChild(i)->GetSkeleton(), skeletonData, skeletonIndexMap);

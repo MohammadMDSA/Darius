@@ -28,11 +28,11 @@ namespace Darius::Renderer::Geometry
 
 		struct SkeletonJoint
 		{
-			D_MATH::Matrix4			Xform;
-			DirectX::XMFLOAT3		Rotation;
-			DirectX::XMFLOAT3		Scale;
+			D_MATH::Matrix4			Xform = D_MATH::Matrix4::Identity;
+			D_MATH::Vector3			Rotation = D_MATH::Vector3::Zero;
+			D_MATH::Vector3			Scale = D_MATH::Vector3::One;
 			std::string				Name;
-			D_MATH::Matrix4			IBM;
+			D_MATH::Matrix4			IBM = D_MATH::Matrix4::Identity;
 
 			D_CONTAINERS::DVector<SkeletonJoint*> Children;
 
