@@ -267,10 +267,10 @@ namespace Darius::Animation
 			std::string nodeName = node->GetName();
 			// Translation
 			{
+				Track animCurve;
 				auto curveNode = node->LclTranslation.GetCurveNode(currentLayer);
 				if (curveNode)
 				{
-					Track animCurve;
 					for (UINT channelIdx = 0; channelIdx < curveNode->GetChannelsCount(); channelIdx++)
 					{
 						GetPropertyData(&node->LclTranslation, currentLayer, animCurve, curveNode->GetChannelName(channelIdx));
@@ -279,38 +279,38 @@ namespace Darius::Animation
 					for (auto& kf : animCurve.GetKeyframes())
 						kf.Value.SetW(1.f);
 
-					mAnimationSequence.AddTrack(nodeName + ".Translation", animCurve);
 				}
+				mAnimationSequence.AddTrack(nodeName + ".Translation", animCurve);
 			}
 
 			// Scale
 			{
+				Track animCurve;
 				auto curveNode = node->LclScaling.GetCurveNode(currentLayer);
 				if (curveNode)
 				{
-					Track animCurve;
 					for (UINT channelIdx = 0; channelIdx < curveNode->GetChannelsCount(); channelIdx++)
 					{
-						GetPropertyData(&node->LclTranslation, currentLayer, animCurve, curveNode->GetChannelName(channelIdx));
+						GetPropertyData(&node->LclScaling, currentLayer, animCurve, curveNode->GetChannelName(channelIdx));
 					}
 
-					mAnimationSequence.AddTrack(nodeName + ".Scale", animCurve);
 				}
+				mAnimationSequence.AddTrack(nodeName + ".Scale", animCurve);
 			}
 
 			// Rotation
 			{
+				Track animCurve;
 				auto curveNode = node->LclRotation.GetCurveNode(currentLayer);
 				if (curveNode)
 				{
-					Track animCurve;
 					for (UINT channelIdx = 0; channelIdx < curveNode->GetChannelsCount(); channelIdx++)
 					{
-						GetPropertyData(&node->LclTranslation, currentLayer, animCurve, curveNode->GetChannelName(channelIdx));
+						GetPropertyData(&node->LclRotation, currentLayer, animCurve, curveNode->GetChannelName(channelIdx));
 					}
-
-					mAnimationSequence.AddTrack(nodeName + ".Rotation", animCurve);
 				}
+
+				mAnimationSequence.AddTrack(nodeName + ".Rotation", animCurve);
 
 			}
 

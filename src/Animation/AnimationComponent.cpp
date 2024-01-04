@@ -111,20 +111,25 @@ namespace Darius::Animation
 			case 0: // Translation
 			{
 				auto value = track.Evaluate(mAnimState.Time, true);
-				node.Xform.SetW(value.value_or(Vector4(0.f, 0.f, 0.f, 1.f)));
+				if (value.has_value())
+					node.Xform.SetW(value.value());
 				break;
 			}
 			case 1: // Scale
 			{
 				node.StaleMatrix = true;
-				node.Scale = (DirectX::XMFLOAT3)Vector3(track.Evaluate(mAnimState.Time, true).value_or(Vector4::One));
+				auto value = track.Evaluate(mAnimState.Time, true);
+				if (value.has_value())
+					node.Scale = (DirectX::XMFLOAT3)Vector3(value.value());
 				break;
 			}
 			case 2: // Rotation
 			default:
 			{
 				node.StaleMatrix = true;
-				node.Rotation = (DirectX::XMFLOAT3)Vector3(track.Evaluate(mAnimState.Time, true).value_or(Vector4::Zero));
+				auto value = track.Evaluate(mAnimState.Time, true);
+				if(value.has_value())
+				node.Rotation = (DirectX::XMFLOAT3)Vector3(value.value());
 				break;
 			}
 			}
