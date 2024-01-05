@@ -7,6 +7,8 @@
 #include <Core/Filesystem/Path.hpp>
 #include <Utils/Assert.hpp>
 
+#include <rttr/type.h>
+
 #include <functional>
 
 #ifndef D_WORLD
@@ -93,7 +95,7 @@ namespace Darius::Scene
 		{
 			auto comp = World.component<COMP>(COMP::ClassName().c_str());
 			auto parentComp = World.component<PARENT>();
-			RegisterComponentType(comp, rttr::type::get<COMP>().get_id());
+			RegisterComponentType(comp, rttr::type::get<COMP>());
 			D_ASSERT(World.is_valid(parentComp));
 			comp.is_a(parentComp);
 			return comp;

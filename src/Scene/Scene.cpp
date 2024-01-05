@@ -35,7 +35,7 @@ namespace Darius::Scene
 
 	DVector<std::function<void(float, D_ECS::ECSRegistry&)>>			BehaviourUpdaterFunctions;
 	DVector<std::function<void(float, D_ECS::ECSRegistry&)>>			BehaviourLateUpdaterFunctions;
-	DUnorderedMap<D_ECS::ComponentEntry, rttr::type>					ComponentEntityReflectionTypeMapping;
+	DUnorderedMap<D_ECS::ComponentEntry, rttr::type, std::hash<flecs::id_t>>					ComponentEntityReflectionTypeMapping;
 
 	DVector<GameObject*>												ToBeDeleted;
 	DVector<GameObject*>												ToBeStarted;
