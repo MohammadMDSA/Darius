@@ -21,8 +21,8 @@ namespace Darius::Math
 	{
 
 	public:
-		INLINE Quaternion() { m_vec = DirectX::XMQuaternionIdentity(); }
-		INLINE Quaternion(const Vector3 & axis, const Scalar & angle) { m_vec = DirectX::XMQuaternionRotationAxis(axis, angle); }
+		INLINE explicit Quaternion() { m_vec = DirectX::XMQuaternionIdentity(); }
+		INLINE explicit Quaternion(const Vector3 & axis, const Scalar & angle) { m_vec = DirectX::XMQuaternionRotationAxis(axis, angle); }
 		INLINE Quaternion(float pitch, float yaw, float roll) { m_vec = DirectX::XMQuaternionRotationMatrix(DirectX::XMMatrixRotationZ(roll) * DirectX::XMMatrixRotationX(pitch) * DirectX::XMMatrixRotationY(yaw)); }
 		INLINE Quaternion(float x, float y, float z, float w) { m_vec = DirectX::XMVectorSet(x, y, z, w); }
 		INLINE explicit Quaternion(const DirectX::XMMATRIX & matrix) { m_vec = DirectX::XMQuaternionRotationMatrix(matrix); }
@@ -81,14 +81,28 @@ namespace Darius::Math
 
 		INLINE Quaternion Invert() const { return Quaternion(DirectX::XMQuaternionInverse(m_vec)); }
 
+		// Unary operators
 		INLINE Quaternion operator~ (void) const { return Quaternion(DirectX::XMQuaternionConjugate(m_vec)); }
 		INLINE Quaternion operator- (void) const { return Quaternion(DirectX::XMVectorNegate(m_vec)); }
+		INLINE Quaternion operator+ (void) const { return *this; }
 
 		INLINE Quaternion operator* (Quaternion rhs) const { return Quaternion(DirectX::XMQuaternionMultiply(rhs, m_vec)); }
 		INLINE Vector3 operator* (Vector3 rhs) const { return Vector3(DirectX::XMVector3Rotate(rhs, m_vec)); }
 
-		INLINE Quaternion& operator= (Quaternion rhs) { m_vec = rhs; return *this; }
-		INLINE Quaternion& operator*= (Quaternion rhs) { *this = *this * rhs; return *this; }
+		// Assignment operators
+		INLINE Quaternion& operator= (Quaternion const& rhs) { m_vec = rhs; return *this; }
+		INLINE Quaternion& operator*= (Quaternion const& rhs) { *this = *this * rhs; return *this; }
+		INLINE Quaternion& operator+= (Quaternion const& rhs) { *this = *this + rhs; return *this; }
+		INLINE Quaternion& operator-= (Quaternion const& rhs) { *this = *this - rhs; return *this; }
+		INLINE Quaternion& operator*= (float s) { *this = *this * s; return *this; }
+		INLINE Quaternion& operator/= (Quaternion const& rhs) { *this = *this / rhs; return *this; }
+
+		// Binary operators
+		Quaternion operator+ (Quaternion const& rhs);
+		Quaternion operator- (Quaternion const& rhs);
+		Quaternion operator* (Quaternion const& rhs);
+		Quaternion operator/ (Quaternion const& rhs);
+		Quaternion operator* (float rhs);
 
 		INLINE operator DirectX::XMVECTOR const& () const { return m_vec; }
 
@@ -116,6 +130,55 @@ namespace Darius::Math
 			DirectX::XMVECTOR m_vec;
 
 	};
+
+	// Binary operators
+	INLINE Quaternion Quaternion::operator+ (Quaternion const& rhs)
+	{
+		using namespace DirectX;
+		Quaternion R;
+
+		R.m_vec = XMVectorAdd(m_vec, rhs.m_vec);
+		return R;
+	}
+
+	INLINE Quaternion Quaternion::operator- (Quaternion const& rhs)
+	{
+		using namespace DirectX;
+		Quaternion R;
+		R.m_vec = XMVectorSubtract(m_vec, rhs.m_vec);
+		return R;
+	}
+
+	INLINE Quaternion Quaternion::operator* (Quaternion const& rhs)
+	{
+		using namespace DirectX;
+		Quaternion R;
+		R.m_vec = XMQuaternionMultiply(m_vec, rhs.m_vec);
+		return R;
+	}
+
+	INLINE Quaternion Quaternion::operator* (float rhs)
+	{
+		using namespace DirectX;
+		Quaternion R;
+		R.m_vec = XMVectorScale(m_vec, rhs);
+		return R;
+	}
+
+	INLINE Quaternion Quaternion::operator/ (Quaternion const& rhs)
+	{
+		using namespace DirectX;
+
+		Quaternion R;
+		R.m_vec = XMQuaternionMultiply(m_vec, XMQuaternionInverse(rhs.m_vec));
+		return R;
+	}
+
+	INLINE Quaternion operator* (float S, Quaternion const& Q)
+	{
+		using namespace DirectX;
+		return Quaternion(XMVectorScale((DirectX::XMVECTOR const&)Q, S));
+	}
 
 	INLINE Quaternion Normalize(Quaternion q) { return Quaternion(DirectX::XMQuaternionNormalize(q)); }
 	INLINE Quaternion Slerp(Quaternion a, Quaternion b, float t) { return Normalize(Quaternion(DirectX::XMQuaternionSlerp(a, b, t))); }

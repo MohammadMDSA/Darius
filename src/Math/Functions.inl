@@ -41,7 +41,7 @@ namespace Darius::Math
     INLINE TYPE Lerp( TYPE const& a, TYPE const& b, float t ) { return TYPE(DirectX::XMVectorLerp(a, b, t)); } \
 	INLINE TYPE Max( TYPE const& a, TYPE const& b ) { return TYPE(DirectX::XMVectorMax(a, b)); } \
 	INLINE TYPE Min( TYPE const& a, TYPE const& b ) { return TYPE(DirectX::XMVectorMin(a, b)); } \
-	INLINE TYPE Clamp( TYPE const& v, TYPE const& a, TYPE const& b ) { return Min(Max(v, a), b); } \
+	INLINE TYPE Clamp( TYPE const& v, TYPE const& a, TYPE const& b ) { return TYPE(DirectX::XMVectorClamp(v, a, b)); } \
 	INLINE BoolVector operator<  ( TYPE const& lhs, TYPE const& rhs ) { return DirectX::XMVectorLess(lhs, rhs); } \
 	INLINE BoolVector operator<= ( TYPE const& lhs, TYPE const& rhs ) { return DirectX::XMVectorLessOrEqual(lhs, rhs); } \
 	INLINE BoolVector operator>  ( TYPE const& lhs, TYPE const& rhs ) { return DirectX::XMVectorGreater(lhs, rhs); } \
@@ -50,11 +50,12 @@ namespace Darius::Math
 	//INLINE BoolVector operator== ( TYPE const& lhs, TYPE const& rhs ) { return DirectX::XMVectorEqual(lhs, rhs); }
 
 	CREATE_SIMD_FUNCTIONS(Scalar);
+	CREATE_SIMD_FUNCTIONS(Vector2);
 	CREATE_SIMD_FUNCTIONS(Vector3);
 	CREATE_SIMD_FUNCTIONS(Vector4);
 
-
 	INLINE bool operator== (Scalar const& lhs, Scalar const& rhs) { return (float)lhs == (float)rhs; }
+	INLINE bool operator== (Vector2 const& lhs, Vector2 const& rhs) { return DirectX::XMVector2Equal(lhs, rhs); }
 	INLINE bool operator== (Vector3 const& lhs, Vector3 const& rhs) { return DirectX::XMVector3Equal(lhs, rhs); }
 	INLINE bool operator== (Vector4 const& lhs, Vector4 const& rhs) { return DirectX::XMVector4Equal(lhs, rhs); }
 

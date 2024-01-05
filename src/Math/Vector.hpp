@@ -33,8 +33,8 @@ namespace Darius::Math
 		constexpr explicit Vector2(float ix) : mData(ix, ix) {}
 		constexpr Vector2(float ix, float iy) : mData(ix, iy) {}
 		explicit Vector2(_In_reads_(2) const float* pArray) : mData(pArray) {}
-		Vector2(DirectX::FXMVECTOR V) { DirectX::XMStoreFloat2(&mData, V); }
-		Vector2(const DirectX::XMFLOAT2 & V) { mData.x = V.x; mData.y = V.y; }
+		explicit Vector2(DirectX::FXMVECTOR V) { DirectX::XMStoreFloat2(&mData, V); }
+		explicit Vector2(const DirectX::XMFLOAT2 & V) { mData.x = V.x; mData.y = V.y; }
 		explicit Vector2(const DirectX::XMVECTORF32 & F) { mData.x = F.f[0]; mData.y = F.f[1]; }
 
 		Vector2(const Vector2&) = default;
@@ -59,7 +59,7 @@ namespace Darius::Math
 		Vector2& operator/= (float S);
 
 		// Unary operators
-		Vector2 operator+ () const { return mData; }
+		Vector2 operator+ () const { return Vector2(mData); }
 		Vector2 operator- () const { return Vector2(-mData.x, -mData.y); }
 
 		// Vector operations
