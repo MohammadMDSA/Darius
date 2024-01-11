@@ -12,6 +12,7 @@
 
 using namespace D_CONTAINERS;
 using namespace D_FILE;
+using namespace D_MATH;
 using namespace D_RESOURCE;
 
 namespace Darius::Animation
@@ -122,16 +123,16 @@ namespace Darius::Animation
 			switch (componentOffset)
 			{
 			case 0:
-				keyframe->Value.SetX(curveKey.GetValue());
+				keyframe->GetValue<Vector4>().SetX(curveKey.GetValue());
 				break;
 			case 1:
-				keyframe->Value.SetY(curveKey.GetValue());
+				keyframe->GetValue<Vector4>().SetY(curveKey.GetValue());
 				break;
 			case 2:
-				keyframe->Value.SetZ(curveKey.GetValue());
+				keyframe->GetValue<Vector4>().SetZ(curveKey.GetValue());
 				break;
 			case 3:
-				keyframe->Value.SetW(curveKey.GetValue());
+				keyframe->GetValue<Vector4>().SetW(curveKey.GetValue());
 				break;
 
 			default:
@@ -301,7 +302,7 @@ namespace Darius::Animation
 					}
 
 					for (auto& kf : animCurve.GetKeyframes())
-						kf.Value.SetW(1.f);
+						kf.GetValue<Vector4>().SetW(1.f);
 
 				}
 				mSkeletalAnimationSequence.AddTrack(nodeName + ".Translation", animCurve);
@@ -351,10 +352,10 @@ namespace Darius::Animation
 		if (mComponentAnimation.size() <= 0)
 			return 0.f;
 
-		auto earliestAnim = *std::min_element(mComponentAnimation.begin(), mComponentAnimation.end(), [](auto el) { return el.AnimationSequence.GetStartTime(); });
+		auto earliestAnim = std::max_element(mComponentAnimation.begin(), mComponentAnimation.end(), [](auto const& el1, auto const& el2) { return el1.AnimationSequence.GetStartTime() < el2.AnimationSequence.GetStartTime(); });
 
-		auto latestAnim = *std::max_element(mComponentAnimation.begin(), mComponentAnimation.end(), [](auto el) { return el.AnimationSequence.GetEndTime(); });
+		auto latestAnim = std::max_element(mComponentAnimation.begin(), mComponentAnimation.end(), [](auto const& el1, auto const& el2) { return el1.AnimationSequence.GetStartTime() < el2.AnimationSequence.GetStartTime(); });
 
-		return latestAnim.AnimationSequence.GetEndTime() - earliestAnim.AnimationSequence.GetStartTime();
+		return latestAnim->AnimationSequence.GetEndTime() - earliestAnim->AnimationSequence.GetStartTime();
 	}
 }

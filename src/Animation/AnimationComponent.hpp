@@ -69,7 +69,7 @@ namespace Darius::Animation
 		void									UpdateSkeletalMeshSkeleton(float deltaTime);
 		
 		void									UpdatePropertyValues(float deltaTime);
-		void									UpdatePropertyValue(rttr::property prop, Track const& propertyAnimationData) const;
+		void									UpdatePropertyValue(D_ECS_COMP::ComponentBase* targetComponent, rttr::property prop, Track const& propertyAnimationData) const;
 
 		DField(Serialize)
 		bool									mRootMotion;

@@ -115,7 +115,7 @@ namespace Darius::Animation
 			{
 			case 0: // Translation
 			{
-				auto value = track.Evaluate(mAnimState.Time, true);
+				auto value = track.Evaluate<Vector4>(mAnimState.Time, true);
 				if (value.has_value())
 					node.Xform.SetW(value.value());
 				break;
@@ -123,7 +123,7 @@ namespace Darius::Animation
 			case 1: // Scale
 			{
 				node.StaleMatrix = true;
-				auto value = track.Evaluate(mAnimState.Time, true);
+				auto value = track.Evaluate<Vector4>(mAnimState.Time, true);
 				if (value.has_value())
 					node.Scale = (DirectX::XMFLOAT3)Vector3(value.value());
 				break;
@@ -132,7 +132,7 @@ namespace Darius::Animation
 			default:
 			{
 				node.StaleMatrix = true;
-				auto value = track.Evaluate(mAnimState.Time, true);
+				auto value = track.Evaluate<Vector4>(mAnimState.Time, true);
 				if (value.has_value())
 					node.Rotation = (DirectX::XMFLOAT3)Vector3(value.value());
 				break;
@@ -151,7 +151,7 @@ namespace Darius::Animation
 		skeletalMesh->SetDirty();
 	}
 
-	void AnimationComponent::UpdatePropertyValue(rttr::property prop, Track const& propertyAnimationData) const
+	void AnimationComponent::UpdatePropertyValue(D_ECS_COMP::ComponentBase* targetComponent, rttr::property prop, Track const& propertyAnimationData) const
 	{
 		using TypeId = rttr::type::type_id;
 		static const TypeId boolType = rttr::type::get<bool>().get_id();
@@ -167,16 +167,72 @@ namespace Darius::Animation
 		static const TypeId colorType = rttr::type::get<Color>().get_id();
 		static const TypeId quaternionType = rttr::type::get<Quaternion>().get_id();
 
-		auto optValue = propertyAnimationData.Evaluate(mAnimState.Time, IsExtrapolateValues());
+		rttr::type::type_id propTypeId = prop.get_type().get_id();
 
-		if (!optValue.has_value())
-			return;
+#define SetPropertyValue(type) \
+std::optional<type> optValue = propertyAnimationData.Evaluate<type>(mAnimState.Time, IsExtrapolateValues()); \
+if(!optValue.has_value()) \
+	return; \
+if(!prop.set_value(*targetComponent, optValue.value())) \
+{ \
+	D_LOG_WARN("Failed to set value for animated property " + prop.get_name().to_string() + " on component " + targetComponent->GetComponentName() + " with type " + D_NAMEOF(type)); \
+}
 
-		switch (prop.get_type().get_id())
+		if (propTypeId == boolType)
 		{
-		default:
-			break;
+			SetPropertyValue(bool);
 		}
+		else if(intType)
+		{
+			SetPropertyValue(int);
+		}
+		else if(uintType)
+		{
+			SetPropertyValue(UINT);
+		}
+		else if(shortType)
+		{
+			SetPropertyValue(short);
+		}
+		else if(ushortType)
+		{
+			SetPropertyValue(USHORT);
+		}
+		else if(longType)
+		{
+			SetPropertyValue(long);
+		}
+		else if(uLongType)
+		{
+			SetPropertyValue(ULONG);
+		}
+		else if(vector2Type)
+		{
+			SetPropertyValue(Vector2);
+		}
+		else if(vector3Type)
+		{
+			SetPropertyValue(Vector3);
+		}
+		else if(vector4Type)
+		{
+			SetPropertyValue(Vector4);
+		}
+		else if(colorType)
+		{
+			SetPropertyValue(Color);
+		}
+		else if(quaternionType)
+		{
+			SetPropertyValue(Quaternion);
+		}
+		else
+		{
+			D_ASSERT_M(false, "Unsopported property type for animation.");
+		}
+
+#undef SetPropertyValue
+
 	}
 
 	void AnimationComponent::UpdatePropertyValues(float deltaTime)
@@ -190,6 +246,14 @@ namespace Darius::Animation
 			{
 				// Component cache not found
 				D_ASSERT_M(false, "Bad component name type id map");
+				continue;
+			}
+
+			// Fetching the target component
+			ComponentBase* targetComponent = GetGameObject()->GetComponent(componentAnimation.ComponentName);
+			if (!targetComponent)
+			{
+				D_LOG_WARN("Component " + componentAnimation.ComponentName + " has animated properties but does not exist on the target gameobject.");
 				continue;
 			}
 
@@ -209,7 +273,7 @@ namespace Darius::Animation
 
 				D_ASSERT(trackIndex < tracks.size());
 
-				UpdatePropertyValue(prop, tracks[trackIndex]);
+				UpdatePropertyValue(targetComponent, prop, tracks[trackIndex]);
 			}
 		}
 
