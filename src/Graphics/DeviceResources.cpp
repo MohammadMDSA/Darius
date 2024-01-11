@@ -78,7 +78,7 @@ namespace Darius::Graphics::Device
 		}
 		for (size_t i = 0; i < backBufferCount; i++)
 		{
-			m_swapChainBuffer.push_back({ DirectX::Colors::CornflowerBlue });
+			m_swapChainBuffer.push_back(D_MATH::Color(DirectX::Colors::CornflowerBlue));
 		}
 	}
 

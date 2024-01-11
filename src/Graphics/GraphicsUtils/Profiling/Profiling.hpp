@@ -83,7 +83,8 @@ namespace Darius::Graphics::Utils::Profiling
 	class StatHistory
 	{
 	public:
-		StatHistory()
+		StatHistory() :
+			m_Recent(0.f)
 		{
 			for (uint32_t i = 0; i < kHistorySize; ++i)
 				m_RecentHistory[i] = 0.0f;
