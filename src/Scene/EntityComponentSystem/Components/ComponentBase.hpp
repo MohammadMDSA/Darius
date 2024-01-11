@@ -119,7 +119,7 @@ namespace Darius::Scene::ECS::Components
         virtual INLINE void         OnSerialized() const { }
         virtual INLINE void         OnDeserialized() { }
 
-        // Gameobject Events
+        // GameObject Events
         virtual INLINE void         OnActivate() {}
         virtual INLINE void         OnDeactivate() {}
 
@@ -167,7 +167,7 @@ namespace Darius::Scene::ECS::Components
         friend class Darius::Scene::SceneManager;
 
 
-        DField(Get[const, &, inline], Serialize)
+        DField(Get[const, &, inline], Serialize, NotAnimate)
         D_CORE::Uuid                mUuid;
         
         DField(Get[inline])
