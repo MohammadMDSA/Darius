@@ -74,8 +74,8 @@ namespace ImSequencer
 
       bool popupOpened = false;
       int sequenceCount = sequence->GetItemCount();
-      if (!sequenceCount)
-         return false;
+     /* if (!sequenceCount)
+         return false;*/
       ImGui::BeginGroup();
 
       ImDrawList* draw_list = ImGui::GetWindowDrawList();
@@ -85,6 +85,8 @@ namespace ImSequencer
 
 
       int controlHeight = sequenceCount * ItemHeight;
+      if (controlHeight <= 0)
+          controlHeight = 1;
       for (int i = 0; i < sequenceCount; i++)
          controlHeight += int(sequence->GetCustomHeight(i));
       int frameCount = ImMax(sequence->GetFrameMax() - sequence->GetFrameMin(), 1);
@@ -198,7 +200,7 @@ namespace ImSequencer
          draw_list->AddRectFilled(canvas_pos, ImVec2(canvas_size.x + canvas_pos.x, canvas_pos.y + ItemHeight), 0xFF3D3837, 0);
          if (sequenceOptions & SEQUENCER_ADD)
          {
-            if (SequencerAddDelButton(draw_list, ImVec2(canvas_pos.x + legendWidth - ItemHeight, canvas_pos.y + 2), true))
+            if (sequence->GetItemTypeCount() && SequencerAddDelButton(draw_list, ImVec2(canvas_pos.x + legendWidth - ItemHeight, canvas_pos.y + 2), true))
                ImGui::OpenPopup("addEntry");
 
             if (ImGui::BeginPopup("addEntry"))
