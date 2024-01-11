@@ -7,6 +7,7 @@
 #include "Windows/ProfilerWindow.hpp"
 #include "Windows/SceneWindow.hpp"
 #include "Windows/SceneGraphWindow.hpp"
+#include "Windows/SequencerWindow.hpp"
 #include "Windows/SettingsWindow.hpp"
 #include "Windows/ResourceMonitorWindow.hpp"
 #include "Editor/EditorContext.hpp"
@@ -80,6 +81,7 @@ namespace Darius::Editor::Gui::GuiManager
 		RegisterWindow(ContentWindow);
 		RegisterWindow(SettingsWindow);
 		RegisterWindow(GameWindow);
+		RegisterWindow(SequencerWindow);
 
 		ImGuiIO& io = ImGui::GetIO();
 		// Setup docking

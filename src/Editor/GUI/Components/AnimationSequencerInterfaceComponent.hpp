@@ -1,0 +1,79 @@
+#pragma once
+
+#include "PropertyAnimationCurve.hpp"
+
+#include <Core/Containers/Vector.hpp>
+#include <Core/Signal.hpp>
+
+#include <ImSequencer.h>
+#include <rttr/property.h>
+
+#ifndef D_GUI_COMPONENT
+#define D_GUI_COMPONENT Darius::Editor::Gui::Components
+#endif
+
+namespace Darius::Scene::ECS::Components
+{
+	class ComponentBase;
+}
+
+namespace Darius::Editor::Gui::Components
+{
+	struct AnimationSequence : public ImSequencer::SequenceInterface
+	{
+		using ComponentBase = Darius::Scene::ECS::Components::ComponentBase;
+
+		struct MySequenceItem
+		{
+			int Type;
+			int FrameStart, FrameEnd;
+			bool Expanded;
+		};
+
+		AnimationSequence();
+
+		virtual int                 GetFrameMin() const override;
+
+		virtual int                 GetFrameMax() const override;
+
+		virtual int                 GetItemCount() const override;
+
+		virtual int                 GetItemTypeCount() const override;
+
+		virtual const char*			GetItemTypeName(int typeIndex) const override;
+
+		virtual const char*			GetItemLabel(int index) const override;
+
+		virtual const char*			GetCollapseFmt() const override;
+
+		virtual void                Get(int index, int** start, int** end, int* type, unsigned int* color) override;
+
+		virtual void                Add(int type) override;
+
+		virtual void                Del(int index) override;
+
+		virtual void                Duplicate(int index) override;
+
+		virtual size_t              GetCustomHeight(int index) override;
+
+		virtual void                DoubleClick(int index) override;
+
+		virtual void                CustomDraw(int index, ImDrawList* draw_list, const ImRect& rc, const ImRect& legendRect, const ImRect& clippingRect, const ImRect& legendClippingRect) override;
+
+		virtual void                CustomDrawCompact(int index, ImDrawList* draw_list, const ImRect& rc, const ImRect& clippingRect) override;
+
+		void						SetReferenceComponent(ComponentBase* comp);
+
+		std::vector<MySequenceItem> myItems;
+		Vector3PropertyCurveEdit rampEdit;
+
+		int mFrameMin, mFrameMax;
+		bool mExpanded;
+
+	private:
+		ComponentBase*				mReferenceComponent;
+		std::string					mComponentDisplayName;
+		std::string					mCollapsedDisplayName;
+		D_CONTAINERS::DVector<rttr::property> mProperties;
+	};
+}
