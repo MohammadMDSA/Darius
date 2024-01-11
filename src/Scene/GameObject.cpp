@@ -76,7 +76,7 @@ namespace Darius::Scene
 		// Drawing game object header
 		ImGui::SetNextItemWidth(contentRegionAvailable.x - lineHeight * 0.5f - 10.f);
 
-		// Setting Gameobject name
+		// Setting GameObject name
 		{
 			char name[32];
 			size_t curNameSize = mName.size();
@@ -358,12 +358,17 @@ namespace Darius::Scene
 			comp->Start();
 		}
 
+		OnComponentAdd(this, comp);
+		OnComponentSetChange(this);
 	}
 
 	void GameObject::RemoveComponentRoutine(Darius::Scene::ECS::Components::ComponentBase* comp)
 	{
 		comp->OnDestroy();
 		comp->mDestroyed = true;
+
+		OnComponentRemove(this, comp);
+		OnComponentSetChange(this);
 	}
 
 	void GameObject::Start()
@@ -555,4 +560,24 @@ namespace Darius::Scene
 		return true;
 	}
 
+	DVector<ComponentBase*> GameObject::GetComponents(bool sorted) const
+	{
+		DVector<ComponentBase*> result;
+		
+		VisitComponents([&result](ComponentBase* comp)
+			{
+				result.push_back(comp);
+			});
+
+		// Sort components based on their display name
+		if (sorted)
+		{
+			std::sort(result.begin(), result.end(), [](ComponentBase const* a, ComponentBase const* b)
+				{
+					return a->GetDisplayName() < b->GetDisplayName();
+				});
+		}
+
+		return result;
+	}
 }

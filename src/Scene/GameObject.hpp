@@ -9,6 +9,7 @@
 #include <Core/Serialization/Json.hpp>
 #include <Core/Exceptions/Exception.hpp>
 #include <Core/Containers/Set.hpp>
+#include <Core/Signal.hpp>
 #include <Math/VectorMath.hpp>
 #include <Utils/Detailed.hpp>
 
@@ -86,15 +87,6 @@ namespace Darius::Scene
 		INLINE bool							IsValid() const { return !mDeleted && mEntity.is_valid(); }
 
 		template<class T>
-		T* GetComponent()
-		{
-			// Checking if T is a resource type
-			using conv = std::is_convertible<T*, Darius::Scene::ECS::Components::ComponentBase*>;
-			D_STATIC_ASSERT(conv::value);
-			return mEntity.get_ref<T>().get();
-		}
-
-		template<class T>
 		bool								HasComponent() const
 		{
 			// Checking if T is a resource type
@@ -140,6 +132,8 @@ namespace Darius::Scene
 			return ref;
 		}
 
+		D_CONTAINERS::DVector<Darius::Scene::ECS::Components::ComponentBase*> GetComponents(bool sorted = false) const;
+
 		template<class T>
 		INLINE D_ECS::CompRef<T>			GetComponentRef() const
 		{
@@ -178,12 +172,21 @@ namespace Darius::Scene
 		static void							RegisterComponent(std::string name, D_CONTAINERS::DVector<std::string>& displayName);
 		static void							RegisterBehaviourComponent(D_ECS::EntityId componentId);
 
+#ifdef _D_EDITOR
 		struct ComponentAddressNode
 		{
 			std::string							ComponentName;
 			D_CONTAINERS::DMap<std::string, ComponentAddressNode> ChildrenNameMap;
 			bool								IsBranch;
 		};
+#endif
+
+		// Events
+
+		// The returned component is already destroyed but not removed from entity
+		D_CORE::Signal<void(GameObject*, Darius::Scene::ECS::Components::ComponentBase*)> OnComponentRemove;
+		D_CORE::Signal<void(GameObject*, Darius::Scene::ECS::Components::ComponentBase*)> OnComponentAdd;
+		D_CORE::Signal<void(GameObject*)> OnComponentSetChange;
 
 	protected:
 		virtual bool Release() override;
