@@ -6,10 +6,10 @@
 #include <Utils/Common.hpp>
 
 #ifndef D_GUI_COMPONENT
-#define D_GUI_COMPONENT Darius::Editor::Gui::Component
+#define D_GUI_COMPONENT Darius::Editor::Gui::Components
 #endif
 
-namespace Darius::Editor::Gui::Component
+namespace Darius::Editor::Gui::Components
 {
 	
 	struct EditorContentWindowItem

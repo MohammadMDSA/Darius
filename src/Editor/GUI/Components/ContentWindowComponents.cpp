@@ -9,7 +9,7 @@
 #include <imgui.h>
 #include <Libs/FontIcon/IconsFontAwesome6.h>
 
-namespace Darius::Editor::Gui::Component
+namespace Darius::Editor::Gui::Components
 {
 
 	void ContentWindowItemGrid(EditorContentWindowItem& data, float width, float height, bool& selected, bool& doubleClicked, D_RESOURCE::ResourceHandle& selectedResource)

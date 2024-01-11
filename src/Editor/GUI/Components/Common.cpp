@@ -5,7 +5,7 @@
 # define IMGUI_DEFINE_MATH_OPERATORS
 #include <imgui_internal.h>
 
-namespace Darius::Editor::Gui::Component
+namespace Darius::Editor::Gui::Components
 {
     bool Splitter(bool split_vertically, float thickness, float* size1, float* size2, float min_size1, float min_size2, float splitter_long_axis_size)
     {
