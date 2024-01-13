@@ -4,11 +4,15 @@
 
 #include "Editor/GUI/Components/AnimationSequencerInterfaceComponent.hpp"
 
-#include <Animation/AnimationResource.hpp>
-
 namespace Darius::Scene
 {
     class GameObject;
+}
+
+namespace Darius::Animation
+{
+    class AnimationResource;
+    class AnimationComponent;
 }
 
 namespace Darius::Editor::Gui::Windows
@@ -20,6 +24,8 @@ namespace Darius::Editor::Gui::Windows
 
         using GameObject = Darius::Scene::GameObject;
         using ComponentBase = Darius::Scene::ECS::Components::ComponentBase;
+        using AnimationResource = Darius::Animation::AnimationResource;
+        using AnimationComponent = Darius::Animation::AnimationComponent;
 
 	public:
 		SequencerWindow(D_SERIALIZATION::Json& config);
@@ -51,7 +57,10 @@ namespace Darius::Editor::Gui::Windows
         D_CONTAINERS::DVector<ComponentBase*> GetUnusedComponents() const;
         bool                        AnyUnusedComponentsLeft() const;
 
-        static void                 ConfigureSequencerForComponent(Components::AnimationSequence& seq, ComponentBase* comp);
+        AnimationResource*          GetAssociatedAnimationResource() const;
+        AnimationComponent*         GetAssociatedAnimationComponent() const;
+
+        static void                 ConfigureSequencerForComponent(Components::AnimationSequence& seq, ComponentBase* comp, D_ANIMATION::Sequence* keyframeSequence, D_ANIMATION::AnimationResource* animationResource);
 
         GameObject*                 mReferenceGameObject;
         D_CONTAINERS::DVector<ComponentBase*> mReferenceComponents;
@@ -64,8 +73,8 @@ namespace Darius::Editor::Gui::Windows
         // Sequencer data
         int                         mSelectedEntry;
         int                         mSelectedSequence;
-        int                         mFirstFrame;
-        int                         mLastFrame;
         int                         mCurrentFrame;
+
+        AnimationResource*          mCachedAnimation;
 	};
 }

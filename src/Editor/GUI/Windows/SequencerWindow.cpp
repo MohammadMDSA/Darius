@@ -3,6 +3,8 @@
 
 #include "Editor/EditorContext.hpp"
 
+#include <Animation/AnimationComponent.hpp>
+#include <Animation/AnimationResource.hpp>
 #include <Scene/Gameobject.hpp>
 #include <Scene/EntityComponentSystem/Components/ComponentBase.hpp>
 #include <Scene/EntityComponentSystem/Components/TransformComponent.hpp>
@@ -11,7 +13,7 @@
 #include <ImSequencer.h>
 #include <Libs/FontIcon/IconsFontAwesome6.h>
 
-//using namespace D_ANIMATION;
+using namespace D_ANIMATION;
 using namespace D_CONTAINERS;
 using namespace D_ECS_COMP;
 
@@ -22,9 +24,8 @@ namespace Darius::Editor::Gui::Windows
 		mReferenceGameObject(nullptr),
 		mSelectedEntry(-1),
 		mSelectedSequence(-1),
-		mFirstFrame(0),
-		mLastFrame(0),
-		mCurrentFrame(0)
+		mCurrentFrame(0),
+		mCachedAnimation(nullptr)
 	{
 	}
 
@@ -83,10 +84,19 @@ namespace Darius::Editor::Gui::Windows
 
 	void SequencerWindow::DrawGUI()
 	{
-		if (mReferenceGameObject == nullptr)
+		AnimationResource* associatedAnimation = GetAssociatedAnimationResource();
+
+		if (!associatedAnimation)
 		{
 			DrawNullObjectMessage();
 			return;
+		}
+
+		// Refresh curves data if animation has changed
+		if (associatedAnimation != mCachedAnimation)
+		{
+			mCachedAnimation = associatedAnimation;
+			RefreshComponentSequencers();
 		}
 
 		// Top header
@@ -94,8 +104,6 @@ namespace Darius::Editor::Gui::Windows
 		DrawAddComponentButton();
 		ImGui::SameLine();
 		ImGui::InputInt("Frame ", &mCurrentFrame);
-		ImGui::SameLine();
-		ImGui::InputInt("Frame Max", &mLastFrame);
 		ImGui::PopItemWidth();
 
 		// Component add popup
@@ -112,11 +120,13 @@ namespace Darius::Editor::Gui::Windows
 			ImGui::EndPopup();
 		}
 
+		int firstFrame = mCachedAnimation->GetFirstFrame();
+
 		if (mComponentSequencers.size() <= 0)
 		{
 			Components::AnimationSequence seq;
 			static bool _true = true;
-			ImSequencer::Sequencer(&seq, &mCurrentFrame, &_true, &mSelectedEntry, &mFirstFrame, ImSequencer::SEQUENCER_EDIT_STARTEND | ImSequencer::SEQUENCER_ADD | ImSequencer::SEQUENCER_COPYPASTE | ImSequencer::SEQUENCER_CHANGE_FRAME);
+			ImSequencer::Sequencer(&seq, &mCurrentFrame, &_true, &mSelectedEntry, &firstFrame, ImSequencer::SEQUENCER_EDIT_STARTEND | ImSequencer::SEQUENCER_ADD | ImSequencer::SEQUENCER_COPYPASTE | ImSequencer::SEQUENCER_CHANGE_FRAME);
 			// add a UI to edit that particular item
 			if (mSelectedEntry != -1)
 			{
@@ -127,11 +137,11 @@ namespace Darius::Editor::Gui::Windows
 			return;
 		}
 
-		int firstSequenceOptions = ImSequencer::SEQUENCER_EDIT_STARTEND | ImSequencer::SEQUENCER_ADD | ImSequencer::SEQUENCER_DEL | ImSequencer::SEQUENCER_COPYPASTE | ImSequencer::SEQUENCER_CHANGE_FRAME;
-		bool first = true;
+		int sequenceOptions = ImSequencer::SEQUENCER_EDIT_STARTEND | ImSequencer::SEQUENCER_ADD | ImSequencer::SEQUENCER_DEL | ImSequencer::SEQUENCER_COPYPASTE | ImSequencer::SEQUENCER_CHANGE_FRAME;
+
 		for (auto& [compName, seq] : mComponentSequencers)
 		{
-			ImSequencer::Sequencer(&seq, &mCurrentFrame, &seq.mExpanded, &mSelectedEntry, &mFirstFrame, first ? firstSequenceOptions : 0);
+			ImSequencer::Sequencer(&seq, &mCurrentFrame, &seq.mExpanded, &mSelectedEntry, &firstFrame, sequenceOptions);
 			// add a UI to edit that particular item
 			if (mSelectedEntry != -1)
 			{
@@ -140,13 +150,11 @@ namespace Darius::Editor::Gui::Windows
 				//// switch (type) ....
 			}
 
-			first = false;
 		}
 	}
 
 	void SequencerWindow::SetReferenceGameObject(GameObject* referenceGameObject)
 	{
-
 		if (mReferenceGameObject != referenceGameObject)
 		{
 			CleanUpGameObjectData();
@@ -157,18 +165,14 @@ namespace Darius::Editor::Gui::Windows
 		if (mReferenceGameObject && mReferenceGameObject->IsValid())
 		{
 			AttachGameObjectObservers();
-
-			mComponentSequencers.emplace(D_MATH::TransformComponent::ClassName(), Components::AnimationSequence());
-			auto& seq = mComponentSequencers.at(D_MATH::TransformComponent::ClassName());
-			ConfigureSequencerForComponent(seq, referenceGameObject->GetTransform());
 		}
 
 		UpdateComponents();
 	}
 
-	void SequencerWindow::ConfigureSequencerForComponent(Components::AnimationSequence& seq, ComponentBase* comp)
+	void SequencerWindow::ConfigureSequencerForComponent(Components::AnimationSequence& seq, ComponentBase* comp, D_ANIMATION::Sequence* keyframeSequence, D_ANIMATION::AnimationResource* animationResource)
 	{
-		seq.SetReferenceComponent(comp);
+		seq.Initialize(comp, animationResource, keyframeSequence);
 	}
 
 	void SequencerWindow::CleanUpGameObjectData()
@@ -180,24 +184,25 @@ namespace Darius::Editor::Gui::Windows
 	void SequencerWindow::RefreshComponentSequencers()
 	{
 		// Making a list of used components
-		DVector<std::string> usedComponentNames;
-		usedComponentNames.reserve(mComponentSequencers.size());
-		for (auto& [compName, _] : mComponentSequencers)
-			usedComponentNames.push_back(compName);
-
 		mComponentSequencers.clear();
 
-		for (auto& compName : usedComponentNames)
+		AnimationResource* animResource = GetAssociatedAnimationResource();
+		if (animResource->IsSkeletalAnimation())
+			return;
+
+		auto& compAnimationData = animResource->GetComponentAnimationData();
+
+		for (auto& compAnimData : compAnimationData)
 		{
-			auto comp = mReferenceGameObject->GetComponent(compName);
+			auto comp = mReferenceGameObject->GetComponent(compAnimData.ComponentName);
 
 			// Component has been removed
 			if (!comp)
 				continue;
 
-			mComponentSequencers.emplace(compName, Components::AnimationSequence());
-			auto& addedSeq = mComponentSequencers.at(compName);
-			ConfigureSequencerForComponent(addedSeq, comp);
+			mComponentSequencers.emplace(compAnimData.ComponentName, Components::AnimationSequence());
+			auto& addedSeq = mComponentSequencers.at(compAnimData.ComponentName);
+			ConfigureSequencerForComponent(addedSeq, comp, &compAnimData.AnimationSequence, animResource);
 		}
 	}
 
@@ -264,11 +269,54 @@ namespace Darius::Editor::Gui::Windows
 
 		D_ASSERT(mReferenceGameObject->GetComponent(componentName) == comp);
 
+		AnimationResource* animResource = GetAssociatedAnimationResource();
+		D_ASSERT(animResource);
+
+		auto& componentAnims = animResource->GetComponentAnimationData();
+
+		ComponentAnimationData* componentAnimationData = nullptr;
+		// Search for existing data for this component animation data
+		{
+			auto res = std::find_if(componentAnims.begin(), componentAnims.end(), [componentName](ComponentAnimationData& el) { return el.ComponentName == componentName; });
+			if (res != componentAnims.end())
+			{
+				// Found component data on the resource
+				componentAnimationData = &(*res);
+			}
+		}
+		// Animation data for the component was now found on resource. Create it.
+		if (!componentAnimationData)
+		{
+			ComponentAnimationData compAnimData;
+			compAnimData.ComponentName = componentName;
+			componentAnims.push_back(compAnimData);
+			componentAnimationData = &componentAnims.back();
+			animResource->MakeDiskDirty();
+			animResource->MakeGpuDirty();
+		}
+
 		mComponentSequencers.emplace(componentName, Components::AnimationSequence());
 		auto& addedSeq = mComponentSequencers.at(componentName);
 
-		ConfigureSequencerForComponent(addedSeq, comp);
+		ConfigureSequencerForComponent(addedSeq, comp, &componentAnimationData->AnimationSequence, animResource);
 
 		return true;
+	}
+
+	AnimationResource* SequencerWindow::GetAssociatedAnimationResource() const
+	{
+		AnimationComponent* animComp = GetAssociatedAnimationComponent();
+		if (!animComp)
+			return nullptr;
+
+		return animComp->GetAnimation();
+	}
+
+	AnimationComponent* SequencerWindow::GetAssociatedAnimationComponent() const
+	{
+		if (!mReferenceGameObject)
+			return nullptr;
+
+		return mReferenceGameObject->GetComponent<AnimationComponent>();
 	}
 }
