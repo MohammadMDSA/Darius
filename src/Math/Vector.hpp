@@ -29,6 +29,9 @@ namespace Darius::Math
 	class DClass() Vector2
 	{
 	public:
+		
+		using ElementType = float;
+
 		Vector2() : mData(0.f, 0.f) {}
 		constexpr explicit Vector2(float ix) : mData(ix, ix) {}
 		constexpr Vector2(float ix, float iy) : mData(ix, iy) {}
@@ -159,6 +162,8 @@ namespace Darius::Math
 	{
 	public:
 
+		using ElementType = float;
+
 		INLINE Vector3() { m_vec = DirectX::XMVectorSet(0.f, 0.f, 0.f, 0.f); }
 		INLINE Vector3(float _x, float _y, float _z) { m_vec = DirectX::XMVectorSet(_x, _y, _z, _z); }
 		explicit INLINE Vector3(float const* data) : Vector3(DirectX::XMFLOAT3(data)) {}
@@ -238,6 +243,9 @@ namespace Darius::Math
 	class DClass() Vector4
 	{
 	public:
+		
+		using ElementType = float;
+
 		INLINE Vector4() { m_vec = DirectX::XMVectorSet(0.f, 0.f, 0.f, 0.f); }
 		INLINE Vector4(float _x, float _y, float _z, float _w) { m_vec = DirectX::XMVectorSet(_x, _y, _z, _w); }
 		explicit INLINE Vector4(const float* data) : Vector4(DirectX::XMFLOAT4(data)) { }

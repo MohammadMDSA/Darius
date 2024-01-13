@@ -89,9 +89,12 @@ namespace Darius::Math
 	template<typename T>
 	INLINE T Max(T a, T b) { return std::max(a, b); }
 
+	INLINE float GetMaxComponent(Vector2 const& vec) { return D_MATH::Max(vec.GetX(), vec.GetY()); }
 	INLINE float GetMaxComponent(Vector3 const& vec) { return D_MATH::Max(vec.GetX(), D_MATH::Max(vec.GetY(), vec.GetZ())); }
-
 	INLINE float GetMaxComponent(Vector4 const& vec) { return D_MATH::Max(vec.GetX(), D_MATH::Max(vec.GetY(), D_MATH::Max(vec.GetZ(), vec.GetW()))); }
+	INLINE float GetMinComponent(Vector2 const& vec) { return D_MATH::Min(vec.GetX(), vec.GetY()); }
+	INLINE float GetMinComponent(Vector3 const& vec) { return D_MATH::Min(vec.GetX(), D_MATH::Min(vec.GetY(), vec.GetZ())); }
+	INLINE float GetMinComponent(Vector4 const& vec) { return D_MATH::Min(vec.GetX(), D_MATH::Min(vec.GetY(), D_MATH::Min(vec.GetZ(), vec.GetW()))); }
 
 	template<typename T>
 	INLINE UINT Clamp(T v, T a, T b) { return Min(Max(v, a), b); }
