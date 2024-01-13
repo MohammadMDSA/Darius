@@ -1,33 +1,136 @@
 #include "Editor/pch.hpp"
 #include "PropertyAnimationCurve.hpp"
 
+#include <Utils/Assert.hpp>
+
+using namespace D_ANIMATION;
+using namespace D_MATH;
+
 namespace Darius::Editor::Gui::Components
 {
-	Vector3PropertyCurveEdit::Vector3PropertyCurveEdit()
+	Vector3PropertyCurveEdit::Vector3PropertyCurveEdit(Track* track, UINT framesPerSecond) :
+		ImCurveEdit::Delegate(),
+		std::enable_shared_from_this<Vector3PropertyCurveEdit>(),
+		mTrack(track),
+		mFramesPerSecond(framesPerSecond)
 	{
-        mPts[0][0] = ImVec2(-10.f, 0);
-        mPts[0][1] = ImVec2(20.f, 0.6f);
-        mPts[0][2] = ImVec2(25.f, 0.2f);
-        mPts[0][3] = ImVec2(70.f, 0.4f);
-        mPts[0][4] = ImVec2(120.f, 1.f);
-        mPointCount[0] = 5;
+		D_ASSERT(mTrack);
+		D_ASSERT(mFramesPerSecond > 0);
 
-        mPts[1][0] = ImVec2(-50.f, 0.2f);
-        mPts[1][1] = ImVec2(33.f, 0.7f);
-        mPts[1][2] = ImVec2(80.f, 0.2f);
-        mPts[1][3] = ImVec2(82.f, 0.8f);
-        mPointCount[1] = 4;
+		mVisible[0] = mVisible[1] = mVisible[2] = true;
 
-
-        mPts[2][0] = ImVec2(40.f, 0);
-        mPts[2][1] = ImVec2(60.f, 0.1f);
-        mPts[2][2] = ImVec2(90.f, 0.82f);
-        mPts[2][3] = ImVec2(150.f, 0.24f);
-        mPts[2][4] = ImVec2(200.f, 0.34f);
-        mPts[2][5] = ImVec2(250.f, 0.12f);
-        mPointCount[2] = 6;
-        mbVisible[0] = mbVisible[1] = mbVisible[2] = true;
-        mMax = ImVec2(1.f, 1.f);
-        mMin = ImVec2(0.f, 0.f);
+		ReconstructPoints();
 	}
+
+	ImCurveEdit::CurveType Vector3PropertyCurveEdit::GetCurveType(size_t curveIndex) const
+	{
+		switch (mTrack->GetInterpolationMode())
+		{
+		case InterpolationMode::Step:
+			return ImCurveEdit::CurveDiscrete;
+
+		case InterpolationMode::Linear:
+		case InterpolationMode::Slerp:
+			return ImCurveEdit::CurveLinear;
+
+		case InterpolationMode::CatmullRomSpline:
+		case InterpolationMode::HermiteSpline:
+			return ImCurveEdit::CurveSmooth;
+
+		default:
+			D_ASSERT(false);
+			return ImCurveEdit::CurveLinear;
+		}
+	}
+
+	void Vector3PropertyCurveEdit::AddPoint(size_t curveIndex, ImVec2 value)
+	{
+		if (curveIndex > 2)
+			return;
+
+		float kfTime = GetTime(static_cast<UINT>(value.x));
+
+		Keyframe* kf = mTrack->FindOrCreateKeyframeByTime(kfTime);
+
+		if (curveIndex == 0)
+			kf->GetValue<Vector3>().SetX(value.y);
+
+		else if (curveIndex == 1)
+			kf->GetValue<Vector3>().SetY(value.y);
+
+		else if (curveIndex == 2)
+			kf->GetValue<Vector3>().SetZ(value.y);
+		
+		SortValues(curveIndex);
+	}
+
+	void Vector3PropertyCurveEdit::SortValues(size_t curveIndex)
+	{
+		auto& keyframes = mTrack->GetKeyframes();
+		std::sort(keyframes.begin(), keyframes.end(), [](Keyframe& a, Keyframe& b)
+			{
+				return a.Time < b.Time;
+			});
+		ReconstructPoints();
+	}
+
+	void Vector3PropertyCurveEdit::ReconstructPoints()
+	{
+		for (int i = 0; i < GetCurveCount(); i++)
+		{
+			mPts[i].clear();
+			mPts[i].resize(mTrack->GetKeyframesCount());
+		}
+
+		ImVec2 maxPoint(0.f, 0.f);
+		ImVec2 minPoint(0.f, 0.f);
+
+		auto& keyframes = mTrack->GetKeyframes();
+		if (keyframes.size() > 0)
+		{
+			maxPoint.x = keyframes[keyframes.size() - 1].Time;
+			minPoint.x = keyframes[0].Time;
+		}
+
+		int index = 0;
+		for (auto& kf : mTrack->GetKeyframes())
+		{
+			auto& value = kf.GetValue<Vector3>();
+			float* rawValue = (float*)&value;
+
+			for (int i = 0; i < GetCurveCount(); i++)
+			{
+				float v = rawValue[i];
+				mPts[i][index] = ImVec2((float)GetFrameIndex(kf.Time), v);
+
+				// Deciding the max value
+				if (minPoint.y > v)
+					minPoint.y = v;
+				if (maxPoint.y < v)
+					maxPoint.y = v;
+			}
+
+			index++;
+		}
+	}
+
+	int Vector3PropertyCurveEdit::EditPoint(size_t curveIndex, int pointIndex, ImVec2 value)
+	{
+
+		Keyframe& keyframe = mTrack->GetKeyframes()[pointIndex];
+
+		float* kfValue = (float*)&keyframe.GetValue<Vector3>();
+		kfValue[curveIndex] = value.y;
+
+		SortValues(curveIndex);
+
+		for (int i = 0; i < GetPointCount(0); i++)
+		{
+			if (mPts[0][i].x == value.x)
+				return i;
+		}
+
+		return pointIndex;
+	}
+
 }

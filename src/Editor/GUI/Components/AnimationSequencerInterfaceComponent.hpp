@@ -12,9 +12,17 @@
 #define D_GUI_COMPONENT Darius::Editor::Gui::Components
 #endif
 
-namespace Darius::Scene::ECS::Components
+namespace Darius
 {
-	class ComponentBase;
+	namespace Animation
+	{
+		class AnimationResource;
+	}
+
+	namespace Scene::ECS::Components
+	{
+		class ComponentBase;
+	}
 }
 
 namespace Darius::Editor::Gui::Components
@@ -23,11 +31,14 @@ namespace Darius::Editor::Gui::Components
 	{
 		using ComponentBase = Darius::Scene::ECS::Components::ComponentBase;
 
-		struct MySequenceItem
+		struct SequenceItem
 		{
-			int Type;
-			int FrameStart, FrameEnd;
-			bool Expanded;
+			int										Type;
+			std::shared_ptr<ImCurveEdit::Delegate>	Curve;
+			rttr::property							PropertyRef;
+
+			int										FrameStart, FrameEnd;
+			bool									Expanded;
 		};
 
 		AnimationSequence();
@@ -62,18 +73,22 @@ namespace Darius::Editor::Gui::Components
 
 		virtual void                CustomDrawCompact(int index, ImDrawList* draw_list, const ImRect& rc, const ImRect& clippingRect) override;
 
-		void						SetReferenceComponent(ComponentBase* comp);
+		void						Initialize(ComponentBase* referenceComponent, D_ANIMATION::AnimationResource* animationRes, D_ANIMATION::Sequence* keyframeSequence);
 
-		std::vector<MySequenceItem> myItems;
-		Vector3PropertyCurveEdit rampEdit;
 
 		int mFrameMin, mFrameMax;
 		bool mExpanded;
 
 	private:
-		ComponentBase*				mReferenceComponent;
-		std::string					mComponentDisplayName;
-		std::string					mCollapsedDisplayName;
-		D_CONTAINERS::DVector<rttr::property> mProperties;
+
+		void								InitializeSequenceItems();
+
+		D_ANIMATION::Sequence*				mAnimationSequence;
+		D_ANIMATION::AnimationResource*		mAnimationResource;
+		ComponentBase*						mReferenceComponent;
+		std::string							mComponentDisplayName;
+		std::string							mCollapsedDisplayName;
+		D_CONTAINERS::DVector<rttr::property> mAllProperties;
+		std::vector<SequenceItem>			mPropertyCurves;
 	};
 }
