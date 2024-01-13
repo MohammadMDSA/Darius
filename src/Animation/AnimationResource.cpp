@@ -344,18 +344,34 @@ namespace Darius::Animation
 		lSdkManager->Destroy();
 	}
 
-	float AnimationResource::GetDuration() const
+	float AnimationResource::GetStartTime() const
 	{
 		if (IsSkeletalAnimation())
-			return mSkeletalAnimationSequence.GetDuration();
-		
+			return mSkeletalAnimationSequence.GetStartTime();
+
 		if (mComponentAnimation.size() <= 0)
 			return 0.f;
 
-		auto earliestAnim = std::max_element(mComponentAnimation.begin(), mComponentAnimation.end(), [](auto const& el1, auto const& el2) { return el1.AnimationSequence.GetStartTime() < el2.AnimationSequence.GetStartTime(); });
+		// Check for earliest sequence
+
+		auto earliestAnim = std::min_element(mComponentAnimation.begin(), mComponentAnimation.end(), [](auto const& el1, auto const& el2) { return el1.AnimationSequence.GetStartTime() < el2.AnimationSequence.GetStartTime(); });
+
+		return earliestAnim->AnimationSequence.GetStartTime();
+	}
+
+	float AnimationResource::GetEndTime() const
+	{
+		if (IsSkeletalAnimation())
+			return mSkeletalAnimationSequence.GetEndTime();
+
+		if (mComponentAnimation.size() <= 0)
+			return 0.f;
+
+		// Check for lates sequence
 
 		auto latestAnim = std::max_element(mComponentAnimation.begin(), mComponentAnimation.end(), [](auto const& el1, auto const& el2) { return el1.AnimationSequence.GetStartTime() < el2.AnimationSequence.GetStartTime(); });
 
-		return latestAnim->AnimationSequence.GetEndTime() - earliestAnim->AnimationSequence.GetStartTime();
+		return latestAnim->AnimationSequence.GetEndTime();
 	}
+
 }

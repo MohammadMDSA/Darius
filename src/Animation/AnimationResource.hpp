@@ -46,10 +46,17 @@ namespace Darius::Animation
 
 		INLINE Sequence const&			GetSkeletalAnimationSequence() const { return mSkeletalAnimationSequence; }
 		INLINE D_CONTAINERS::DVector<ComponentAnimationData> const& GetComponentAnimationData() const { return mComponentAnimation; }
+		INLINE D_CONTAINERS::DVector<ComponentAnimationData>& GetComponentAnimationData() { return mComponentAnimation; }
 		INLINE D_CONTAINERS::DUnorderedMap<std::string, int> GetSkeletonNameIndexMap() const { return mSkeletonNameIndexMap; }
 
 		INLINE bool						IsSkeletalAnimation() const { return mSkeletalAnimation; }
-		float							GetDuration() const;
+		NODISCARD float					GetStartTime() const;
+		NODISCARD float					GetEndTime() const;
+		NODISCARD INLINE UINT			GetFramesPerSecond() const { return mFramesPerSecond; }
+		NODISCARD INLINE float			GetDuration() const { return GetEndTime() - GetStartTime(); }
+		NODISCARD INLINE UINT			GetFirstFrame() const { return (UINT)(GetStartTime() * mFramesPerSecond); }
+		NODISCARD INLINE UINT			GetLastFrame() const { return (UINT)(GetEndTime() * mFramesPerSecond); }
+
 
 		static D_CONTAINERS::DVector<D_RESOURCE::ResourceDataInFile> CanConstructFrom(D_RESOURCE::ResourceType type, D_FILE::Path const& path);
 
@@ -57,7 +64,8 @@ namespace Darius::Animation
 		AnimationResource(D_CORE::Uuid uuid, std::wstring const& path, std::wstring const& name, D_RESOURCE::DResourceId id, bool isDefault = false) :
 			Resource(uuid, path, name, id, isDefault),
 			mSkeletalAnimationSequence(),
-			mSkeletalAnimation(false)
+			mSkeletalAnimation(false),
+			mFramesPerSecond(60u)
 		{}
 
 		virtual void					ReadFbxAnimationFromFile(D_SERIALIZATION::Json const& json);
@@ -68,6 +76,9 @@ namespace Darius::Animation
 		
 		DField(Serialize)
 		D_CONTAINERS::DVector<ComponentAnimationData> mComponentAnimation;
+
+		DField(Serialize)
+		UINT									mFramesPerSecond;
 
 		DField()
 		D_CONTAINERS::DUnorderedMap<std::string, int> mSkeletonNameIndexMap;

@@ -256,6 +256,7 @@ namespace Darius::Animation
         Quaternion
     };
     
+#pragma region Interpolations
     template<typename T>
     T Interpolate(InterpolationMode mode, Keyframe const& a, Keyframe const& b, Keyframe const& c, Keyframe const& d, float t, float dt)
     {
@@ -670,6 +671,8 @@ namespace Darius::Animation
     StepOnlyInterpolationFunction(bool);
 
 #undef StepOnlyInterpolationFunction
+
+#pragma endregion
     
     // Represents a curve on a scalar or vector value
     class DClass(Serialize) Track
@@ -694,10 +697,14 @@ namespace Darius::Animation
 
 
         NODISCARD INLINE InterpolationMode      GetInterpolationMode() const { return mMode; }
-        INLINE void                             SetInterpolationMode(InterpolationMode mode) { mMode = mode; }
+        NODISCARD INLINE void                   SetInterpolationMode(InterpolationMode mode) { mMode = mode; }
 
         NODISCARD float                         GetStartTime() const;
         NODISCARD float                         GetEndTime() const;
+        NODISCARD INLINE UINT                   GetFirstFrame(UINT framesPerSecond) const { return (UINT)(GetStartTime() * framesPerSecond); }
+        NODISCARD INLINE UINT                   GetLastFrame(UINT framesPerSecond) const { return (UINT)(GetEndTime() * framesPerSecond); }
+
+        NODISCARD INLINE UINT                   GetKeyframesCount() const { return (UINT)mKeyframes.size(); }
     protected:
         DField(Serialize)
         D_CONTAINERS::DVector<Keyframe>         mKeyframes;
@@ -724,15 +731,15 @@ namespace Darius::Animation
         std::optional<T>                        Evaluate(std::string const& name, float time, bool extrapolateLastValue = false);
 
         UINT                                    AddTrack(std::string const& name, Track const& track);
+        bool                                    RemoveTrack(std::string const& name);
 
         D_CONTAINERS::DUnorderedMap<std::string, UINT> const& GetNameIndexMapping() const { return mTracksNameIndex; }
 
-        NODISCARD INLINE float                  GetDuration() const { return mDuration; }
-
         D_CONTAINERS::DVector<Track> const&     GetTracks() const { return mTracks; }
 
-        INLINE float                            GetStartTime() const { return mTracks.size() > 0 ? mTracks.front().GetStartTime() : 0.f; }
-        INLINE float                            GetEndTime() const { return mTracks.size() > 0 ? mTracks.back().GetEndTime() : 0.f; }
+        NODISCARD INLINE float                  GetDuration() const { return GetEndTime() - GetStartTime(); }
+        NODISCARD float                         GetStartTime() const;
+        NODISCARD float                         GetEndTime() const;
 
     protected:
 
@@ -742,8 +749,8 @@ namespace Darius::Animation
         DField(Serialize)
         D_CONTAINERS::DVector<Track>            mTracks;
 
-        DField(Serialize)
-        float                                   mDuration = 0.f;
+        float                                   mStartTime = 0.f;
+        float                                   mEndTime = 0.f;
     };
 
     template<typename T>

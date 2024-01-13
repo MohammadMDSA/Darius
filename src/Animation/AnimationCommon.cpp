@@ -100,8 +100,48 @@ namespace Darius::Animation
 		UINT trackIndex = (UINT)mTracks.size();
 		mTracks.push_back(track);
 		mTracksNameIndex[name] = trackIndex;
-		mDuration = D_MATH::Max(mDuration, track.GetEndTime());
 
 		return trackIndex;
 	}
+
+	bool Sequence::RemoveTrack(std::string const& name)
+	{
+		auto search = mTracksNameIndex.find(name);
+
+		if (search == mTracksNameIndex.end())
+			return false;
+
+		UINT trackIdx = search->second;
+		
+		mTracks.erase(mTracks.begin() + trackIdx);
+		mTracksNameIndex.erase(name);
+		return true;
+	}
+
+	float Sequence::GetStartTime() const
+	{
+		if (mTracks.size() <= 0)
+			return 0.f;
+
+		auto earliestTrack = std::min_element(mTracks.begin(), mTracks.end(), [](Track const& a, Track const& b)
+			{
+				return a.GetStartTime() < b.GetStartTime();
+			});
+
+		return earliestTrack->GetStartTime();
+	}
+
+	float Sequence::GetEndTime() const
+	{
+		if (mTracks.size() <= 0)
+			return 0.f;
+
+		auto latestTrack = std::max_element(mTracks.begin(), mTracks.end(), [](Track const& a, Track const& b)
+			{
+				return a.GetEndTime() < b.GetEndTime();
+			});
+
+		return latestTrack->GetEndTime();
+	}
+
 }
