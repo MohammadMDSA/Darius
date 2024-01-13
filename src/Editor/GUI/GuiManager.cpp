@@ -13,6 +13,7 @@
 #include "Editor/EditorContext.hpp"
 #include "Editor/Simulation.hpp"
 
+#include <Animation/AnimationResource.hpp>
 #include <Core/Containers/Map.hpp>
 #include <Core/TimeManager/TimeManager.hpp>
 #include <Core/TimeManager/SystemTime.hpp>
@@ -388,6 +389,11 @@ namespace Darius::Editor::Gui::GuiManager
 					if (ImGui::MenuItem("Terrain"))
 					{
 						ImGuiFileDialog::Instance()->OpenDialog("SaveResource", "Create Terrain", ".terrain", D_ENGINE_CONTEXT::GetAssetsPath().string(), 1, (void*)D_RENDERER::TerrainResource::GetResourceType());
+					}
+
+					if (ImGui::MenuItem("Animation"))
+					{
+						ImGuiFileDialog::Instance()->OpenDialog("SaveResource", "Create Animation", ".anim", D_ENGINE_CONTEXT::GetAssetsPath().string(), 1, (void*)D_ANIMATION::AnimationResource::GetResourceType());
 					}
 
 					ImGui::Separator();
