@@ -60,7 +60,7 @@ namespace Darius::Editor::Gui::Windows
         AnimationResource*          GetAssociatedAnimationResource() const;
         AnimationComponent*         GetAssociatedAnimationComponent() const;
 
-        static void                 ConfigureSequencerForComponent(Components::AnimationSequence& seq, ComponentBase* comp, D_ANIMATION::Sequence* keyframeSequence, D_ANIMATION::AnimationResource* animationResource);
+        static void                 ConfigureSequencerForComponent(Components::AnimationSequence& seq, ComponentBase* comp, D_ANIMATION::Sequence* keyframeSequence, D_ANIMATION::AnimationResource* animationResource, int& currentFrameRef);
 
         GameObject*                 mReferenceGameObject;
         D_CONTAINERS::DVector<ComponentBase*> mReferenceComponents;

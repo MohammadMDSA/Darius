@@ -8,21 +8,29 @@ using namespace D_MATH;
 
 namespace Darius::Editor::Gui::Components
 {
-	Vector3PropertyCurveEdit::Vector3PropertyCurveEdit(Track* track, UINT framesPerSecond) :
+	BasePropertyCurveEdit::BasePropertyCurveEdit(D_ANIMATION::Track* track, UINT framesPerSecond) :
 		ImCurveEdit::Delegate(),
-		std::enable_shared_from_this<Vector3PropertyCurveEdit>(),
+		std::enable_shared_from_this<BasePropertyCurveEdit>(),
 		mTrack(track),
 		mFramesPerSecond(framesPerSecond)
 	{
+
 		D_ASSERT(mTrack);
 		D_ASSERT(mFramesPerSecond > 0);
 
-		mVisible[0] = mVisible[1] = mVisible[2] = true;
+	}
 
+	void BasePropertyCurveEdit::SortValues(size_t curveIndex)
+	{
+		auto& keyframes = mTrack->GetKeyframes();
+		std::sort(keyframes.begin(), keyframes.end(), [](Keyframe& a, Keyframe& b)
+			{
+				return a.Time < b.Time;
+			});
 		ReconstructPoints();
 	}
 
-	ImCurveEdit::CurveType Vector3PropertyCurveEdit::GetCurveType(size_t curveIndex) const
+	ImCurveEdit::CurveType BasePropertyCurveEdit::GetCurveType(size_t curveIndex) const
 	{
 		switch (mTrack->GetInterpolationMode())
 		{
@@ -43,35 +51,73 @@ namespace Darius::Editor::Gui::Components
 		}
 	}
 
-	void Vector3PropertyCurveEdit::AddPoint(size_t curveIndex, ImVec2 value)
+	Vector3PropertyCurveEdit::Vector3PropertyCurveEdit(Track* track, UINT framesPerSecond) :
+		BasePropertyCurveEdit(track, framesPerSecond)
 	{
-		if (curveIndex > 2)
-			return;
 
-		float kfTime = GetTime(static_cast<UINT>(value.x));
+		this->ReconstructPoints();
 
-		Keyframe* kf = mTrack->FindOrCreateKeyframeByTime(kfTime);
+		for (int i = 0; i < GetCurveCount(); i++)
+		{
+			mVisible[i] = true;
+		}
 
-		if (curveIndex == 0)
-			kf->GetValue<Vector3>().SetX(value.y);
-
-		else if (curveIndex == 1)
-			kf->GetValue<Vector3>().SetY(value.y);
-
-		else if (curveIndex == 2)
-			kf->GetValue<Vector3>().SetZ(value.y);
-		
-		SortValues(curveIndex);
 	}
 
-	void Vector3PropertyCurveEdit::SortValues(size_t curveIndex)
+	bool Vector3PropertyCurveEdit::SetKeyframeValue(int frameIndex, rttr::property property, rttr::instance const& targetObject)
 	{
-		auto& keyframes = mTrack->GetKeyframes();
-		std::sort(keyframes.begin(), keyframes.end(), [](Keyframe& a, Keyframe& b)
-			{
-				return a.Time < b.Time;
-			});
-		ReconstructPoints();
+		if (!D_VERIFY(targetObject))
+			return false;
+
+		if(!D_VERIFY(property.is_valid()))
+			return false;
+
+		auto targetValueVar = property.get_value(targetObject);
+		if (!D_VERIFY(targetValueVar.is_valid()))
+			return false;
+
+		if (!D_VERIFY(targetValueVar.is_type<Vector3>()))
+			return false;
+
+		Vector3 value = targetValueVar.get_value<Vector3>();
+
+		float keyframeTime = GetTime(frameIndex);
+
+		bool created;
+		Keyframe* kf = mTrack->FindOrCreateKeyframeByTime(keyframeTime, &created);
+
+		bool changed = created;
+		Vector3& destination = kf->GetValue<Vector3>();
+
+		// Neither Keyframe created nor value changed
+		if (!created && destination == value)
+			return false;
+
+		destination = value;
+
+		SortValues(-1 /* Don't care param */);
+
+		return true;
+	}
+
+	void Vector3PropertyCurveEdit::AddPoint(size_t curveIndex, ImVec2 value)
+	{
+
+		Keyframe* kf = mTrack->FindOrCreateKeyframeByTime((float)GetTime((UINT)value.x));
+		auto& refValue = kf->GetValue<Vector3>();
+
+		float* rawValue = reinterpret_cast<float*>(&refValue);
+
+		rawValue[curveIndex] = value.y;
+		for (int i = 0; i < GetCurveCount(); i++)
+		{
+			if (i == curveIndex)
+				rawValue[i] = value.y;
+			else
+				rawValue[i] = 0;
+		}
+
+		SortValues(curveIndex);
 	}
 
 	void Vector3PropertyCurveEdit::ReconstructPoints()
@@ -82,36 +128,41 @@ namespace Darius::Editor::Gui::Components
 			mPts[i].resize(mTrack->GetKeyframesCount());
 		}
 
-		ImVec2 maxPoint(0.f, 0.f);
-		ImVec2 minPoint(0.f, 0.f);
+		mMax = ImVec2(0.f, 0.f);
+		mMin = ImVec2(0.f, 0.f);
 
 		auto& keyframes = mTrack->GetKeyframes();
 		if (keyframes.size() > 0)
 		{
-			maxPoint.x = keyframes[keyframes.size() - 1].Time;
-			minPoint.x = keyframes[0].Time;
+			mMax.x = (UINT)GetFrameIndex(keyframes[keyframes.size() - 1].Time);
+			mMax.y = -FLT_MAX;
+			mMin.x = (UINT)GetFrameIndex(keyframes[0].Time);
+			mMin.y = FLT_MAX;
 		}
 
 		int index = 0;
-		for (auto& kf : mTrack->GetKeyframes())
+		for (auto& kf : keyframes)
 		{
 			auto& value = kf.GetValue<Vector3>();
 			float* rawValue = (float*)&value;
 
+			UINT frameIndex = GetFrameIndex(kf.Time);
+
 			for (int i = 0; i < GetCurveCount(); i++)
 			{
 				float v = rawValue[i];
-				mPts[i][index] = ImVec2((float)GetFrameIndex(kf.Time), v);
+				mPts[i][index] = ImVec2(frameIndex, v);
 
 				// Deciding the max value
-				if (minPoint.y > v)
-					minPoint.y = v;
-				if (maxPoint.y < v)
-					maxPoint.y = v;
+				if (mMin.y > v)
+					mMin.y = v;
+				if (mMax.y < v)
+					mMax.y = v;
 			}
 
 			index++;
 		}
+
 	}
 
 	int Vector3PropertyCurveEdit::EditPoint(size_t curveIndex, int pointIndex, ImVec2 value)
@@ -121,6 +172,7 @@ namespace Darius::Editor::Gui::Components
 
 		float* kfValue = (float*)&keyframe.GetValue<Vector3>();
 		kfValue[curveIndex] = value.y;
+		keyframe.Time = GetTime(value.x);
 
 		SortValues(curveIndex);
 

@@ -13,20 +13,35 @@ using namespace D_ANIMATION;
 namespace Darius::Editor::Gui::Components
 {
 	AnimationSequence::AnimationSequence() :
-		mFrameMin(0),
-		mFrameMax(60),
 		mExpanded(false),
-		mAnimationSequence(nullptr)
+		mAnimationSequence(nullptr),
+		mCurrentFrame(nullptr)
 	{
 	}
 
 	int AnimationSequence::GetFrameMin() const {
-		return mFrameMin;
+		UINT min = UINT_MAX;
+		for (auto const& seqItem : mPropertyCurves)
+		{
+			UINT curveMin = (UINT)seqItem.Curve->GetMin().x;
+			if (min > curveMin)
+				min = curveMin;
+		}
+
+		return (int)min;
 	}
 
 	int AnimationSequence::GetFrameMax() const {
-		return mFrameMax;
+		UINT max = 0u;
+		for (auto const& seqItem : mPropertyCurves)
+		{
+			UINT curveMax = (UINT)seqItem.Curve->GetMax().x;
+			if (max < curveMax)
+				max = curveMax;
+		}
+		return (int)max;
 	}
+
 	int AnimationSequence::GetItemCount() const
 	{
 		return (int)mPropertyCurves.size();
@@ -52,7 +67,7 @@ namespace Darius::Editor::Gui::Components
 			{
 				totalIndex++;
 			}
-			
+
 			if (totalIndex == typeIndex)
 				return mAllProperties[i].get_name().data();
 		}
@@ -72,9 +87,9 @@ namespace Darius::Editor::Gui::Components
 		if (color)
 			*color = 0xFFAA8080; // same color for everyone, return color based on type
 		if (start)
-			*start = &item.FrameStart;
+			*start = &item.Curve->GetStartFrameIndex();
 		if (end)
-			*end = &item.FrameEnd;
+			*end = &item.Curve->GetLastFrameIndex();
 		if (type)
 			*type = item.Type;
 	}
@@ -82,15 +97,15 @@ namespace Darius::Editor::Gui::Components
 	void AnimationSequence::Add(int type)
 	{
 		rttr::property prop = mAllProperties[type];
-		UINT trackIndex = mAnimationSequence->AddTrack(prop.get_name().data(), {});
+		UINT trackIndex = mAnimationSequence->AddTrack(prop.get_name().data(), Track(InterpolationMode::Linear, KeyframeDataType::Vector3));
 
-		Track* track = const_cast<Track*>(&mAnimationSequence->GetTracks()[trackIndex]);
+		Track* track = mAnimationSequence->GetTracks()[trackIndex];
 		mAnimationResource->MakeDiskDirty();
 		mAnimationResource->MakeGpuDirty();
 
 		UINT fps = mAnimationResource->GetFramesPerSecond();
 
-		mPropertyCurves.push_back(SequenceItem{ type, std::make_shared<Vector3PropertyCurveEdit>(track, fps), mAllProperties[type], (int)track->GetFirstFrame(fps), (int)track->GetLastFrame(fps), true});
+		mPropertyCurves.push_back(SequenceItem{ type, std::make_shared<Vector3PropertyCurveEdit>(track, fps), mAllProperties[type], true });
 		std::sort(mPropertyCurves.begin(), mPropertyCurves.end(), [](SequenceItem const& a, SequenceItem const& b) { return a.PropertyRef.get_name() < b.PropertyRef.get_name(); });
 	};
 
@@ -109,11 +124,19 @@ namespace Darius::Editor::Gui::Components
 
 	void AnimationSequence::Duplicate(int index)
 	{
+		SequenceItem& seqItem = mPropertyCurves[index];
+
+		if (seqItem.Curve->SetKeyframeValue(*mCurrentFrame, seqItem.PropertyRef, rttr::instance(mReferenceComponent)))
+		{
+			mAnimationResource->MakeGpuDirty();
+			mAnimationResource->MakeDiskDirty();
+		}
+
 	}
 
 	size_t AnimationSequence::GetCustomHeight(int index)
 	{
-		return mPropertyCurves[index].Expanded ? 300 : 0;
+		return mPropertyCurves[index].Expanded ? 170 : 0;
 	}
 
 	void AnimationSequence::DoubleClick(int index)
@@ -145,7 +168,7 @@ namespace Darius::Editor::Gui::Components
 		draw_list->PopClipRect();
 
 		ImGui::SetCursorScreenPos(rc.Min);
-		
+
 		if (ImCurveEdit::Edit(*item.Curve, rc.Max - rc.Min, 137 + index, &clippingRect))
 		{
 			mAnimationResource->MakeGpuDirty();
@@ -163,8 +186,10 @@ namespace Darius::Editor::Gui::Components
 		{
 			for (int j = 0; j < item.Curve->GetPointCount(i); j++)
 			{
+				float frameMin = item.Curve->GetMin().x;
+				float frameMax = item.Curve->GetMax().x;
 				auto p = item.Curve->GetPoints(i)[j].x;
-				float r = (p - mFrameMin) / float(mFrameMax - mFrameMin);
+				float r = (p - frameMin) / float(frameMax - frameMin);
 				float x = D_MATH::Lerp(rc.Min.x, rc.Max.x, r);
 				draw_list->AddLine(ImVec2(x, rc.Min.y + 6), ImVec2(x, rc.Max.y - 4), 0xAA000000, 4.f);
 			}
@@ -172,7 +197,7 @@ namespace Darius::Editor::Gui::Components
 		draw_list->PopClipRect();
 	}
 
-	void AnimationSequence::Initialize(ComponentBase* referenceComponent, D_ANIMATION::AnimationResource* animationRes, D_ANIMATION::Sequence* keyframeSequence)
+	void AnimationSequence::Initialize(ComponentBase* referenceComponent, D_ANIMATION::AnimationResource* animationRes, D_ANIMATION::Sequence* keyframeSequence, int& currentFrameRef)
 	{
 		if (referenceComponent == mReferenceComponent)
 			return;
@@ -209,6 +234,7 @@ namespace Darius::Editor::Gui::Components
 
 		mAnimationResource = animationRes;
 		mAnimationSequence = keyframeSequence;
+		mCurrentFrame = &currentFrameRef;
 
 		InitializeSequenceItems();
 	}
@@ -231,7 +257,7 @@ namespace Darius::Editor::Gui::Components
 				continue;
 
 			UINT fps = mAnimationResource->GetFramesPerSecond();
-			mPropertyCurves.push_back({ propIndex, std::make_shared<Vector3PropertyCurveEdit>(track, fps), prop, (int)track->GetFirstFrame(fps), (int)track->GetLastFrame(fps), true });
+			mPropertyCurves.push_back({ propIndex, std::make_shared<Vector3PropertyCurveEdit>(track, fps), prop, true });
 		}
 
 		std::sort(mPropertyCurves.begin(), mPropertyCurves.end(), [](SequenceItem const& a, SequenceItem const& b) { return a.PropertyRef.get_name() < b.PropertyRef.get_name(); });

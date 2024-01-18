@@ -679,7 +679,8 @@ namespace Darius::Animation
     {
         GENERATED_BODY();
     public:
-        Track() = default;
+        Track();
+        Track(InterpolationMode mode, KeyframeDataType dataType);
         virtual ~Track() = default;
 
         template<typename T>
@@ -693,7 +694,7 @@ namespace Darius::Animation
         // The pointer might invalidate upon change of the number of keyframes, so do not keep a reference
         NODISCARD Keyframe*                     FindKeyframeByTime(float time);
         // The pointer might invalidate upon change of the number of keyframes, so do not keep a reference
-        NODISCARD Keyframe*                     FindOrCreateKeyframeByTime(float time);
+        NODISCARD Keyframe*                     FindOrCreateKeyframeByTime(float time, bool* created = nullptr);
 
 
         NODISCARD INLINE InterpolationMode      GetInterpolationMode() const { return mMode; }
@@ -710,10 +711,10 @@ namespace Darius::Animation
         D_CONTAINERS::DVector<Keyframe>         mKeyframes;
 
         DField(Serialize)
-        InterpolationMode                       mMode = InterpolationMode::Linear;
+        InterpolationMode                       mMode;
 
         DField(Serialize)
-        KeyframeDataType                        mKeyframeDataType = KeyframeDataType::Vector4;
+        KeyframeDataType                        mKeyframeDataType;
 
     };
 
@@ -725,7 +726,7 @@ namespace Darius::Animation
         Sequence() = default;
         virtual ~Sequence() = default;
         
-        INLINE Track const*                     GetTrack(std::string const& name) const { return mTracksNameIndex.contains(name) ? &mTracks.at(mTracksNameIndex.at(name)) : nullptr; }
+        INLINE Track const*                     GetTrack(std::string const& name) const { return mTracksNameIndex.contains(name) ? mTracks.at(mTracksNameIndex.at(name)) : nullptr; }
         
         template<typename T>
         std::optional<T>                        Evaluate(std::string const& name, float time, bool extrapolateLastValue = false);
@@ -735,7 +736,7 @@ namespace Darius::Animation
 
         D_CONTAINERS::DUnorderedMap<std::string, UINT> const& GetNameIndexMapping() const { return mTracksNameIndex; }
 
-        D_CONTAINERS::DVector<Track> const&     GetTracks() const { return mTracks; }
+        D_CONTAINERS::DVector<Track*> const&     GetTracks() const { return mTracks; }
 
         NODISCARD INLINE float                  GetDuration() const { return GetEndTime() - GetStartTime(); }
         NODISCARD float                         GetStartTime() const;

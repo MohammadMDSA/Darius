@@ -8,6 +8,17 @@ using namespace D_SERIALIZATION;
 
 namespace Darius::Animation
 {
+	Track::Track() :
+		mKeyframes(),
+		mMode(InterpolationMode::Linear),
+		mKeyframeDataType(KeyframeDataType::Vector3)
+	{}
+
+	Track::Track(InterpolationMode mode, KeyframeDataType dataType) :
+		mKeyframes(),
+		mMode(mode),
+		mKeyframeDataType(dataType)
+	{}
 
 	Keyframe* Track::AddKeyframe(Keyframe const& keyframe, int index)
 	{
@@ -61,7 +72,7 @@ namespace Darius::Animation
 			// If found, return it
 			if (kf.Time == time)
 				return &kf;
-			
+
 			// If current keyframe has greater time, desired keyframe was not available
 			if (kf.Time > time)
 				return nullptr;
@@ -71,13 +82,20 @@ namespace Darius::Animation
 		return nullptr;
 	}
 
-	Keyframe* Track::FindOrCreateKeyframeByTime(float time)
+	Keyframe* Track::FindOrCreateKeyframeByTime(float time, bool* created)
 	{
 		auto kfSize = mKeyframes.size();
 
+		if (created)
+			*created = false;
+
 		if (kfSize == 0)
 		{
-			return AddKeyframe({});
+			if (created)
+				*created = true;
+			Keyframe* result = AddKeyframe({});
+			result->Time = time;
+			return result;
 		}
 
 		// Assuming keyframes are sorted by their time property
@@ -87,18 +105,30 @@ namespace Darius::Animation
 			if (kf.Time == time)
 				return &kf;
 			if (kf.Time > time)
-				return AddKeyframe({}, i);
+			{
+				if (created)
+					*created = true;
+
+				Keyframe* result = AddKeyframe({}, i);
+				result->Time = time;
+				return result;
+			}
 		}
 
 		// If we are here, then all keyframes are happening before the given time
-		return AddKeyframe({});
+		if (created)
+			*created = true;
+
+		Keyframe* result = AddKeyframe({});
+		result->Time = time;
+		return result;
 	}
 
 	UINT Sequence::AddTrack(std::string const& name, Track const& track)
 	{
 
 		UINT trackIndex = (UINT)mTracks.size();
-		mTracks.push_back(track);
+		mTracks.push_back(new Track(track));
 		mTracksNameIndex[name] = trackIndex;
 
 		return trackIndex;
@@ -112,7 +142,8 @@ namespace Darius::Animation
 			return false;
 
 		UINT trackIdx = search->second;
-		
+
+		delete mTracks[trackIdx];
 		mTracks.erase(mTracks.begin() + trackIdx);
 		mTracksNameIndex.erase(name);
 		return true;
@@ -123,12 +154,12 @@ namespace Darius::Animation
 		if (mTracks.size() <= 0)
 			return 0.f;
 
-		auto earliestTrack = std::min_element(mTracks.begin(), mTracks.end(), [](Track const& a, Track const& b)
+		auto earliestTrack = std::min_element(mTracks.begin(), mTracks.end(), [](Track* a, Track* b)
 			{
-				return a.GetStartTime() < b.GetStartTime();
+				return a->GetStartTime() < b->GetStartTime();
 			});
 
-		return earliestTrack->GetStartTime();
+		return (*earliestTrack)->GetStartTime();
 	}
 
 	float Sequence::GetEndTime() const
@@ -136,12 +167,12 @@ namespace Darius::Animation
 		if (mTracks.size() <= 0)
 			return 0.f;
 
-		auto latestTrack = std::max_element(mTracks.begin(), mTracks.end(), [](Track const& a, Track const& b)
+		auto latestTrack = std::max_element(mTracks.begin(), mTracks.end(), [](Track const* a, Track const* b)
 			{
-				return a.GetEndTime() < b.GetEndTime();
+				return a->GetEndTime() < b->GetEndTime();
 			});
 
-		return latestTrack->GetEndTime();
+		return (*latestTrack)->GetEndTime();
 	}
 
 }

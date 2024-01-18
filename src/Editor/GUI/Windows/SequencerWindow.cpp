@@ -170,9 +170,9 @@ namespace Darius::Editor::Gui::Windows
 		UpdateComponents();
 	}
 
-	void SequencerWindow::ConfigureSequencerForComponent(Components::AnimationSequence& seq, ComponentBase* comp, D_ANIMATION::Sequence* keyframeSequence, D_ANIMATION::AnimationResource* animationResource)
+	void SequencerWindow::ConfigureSequencerForComponent(Components::AnimationSequence& seq, ComponentBase* comp, D_ANIMATION::Sequence* keyframeSequence, D_ANIMATION::AnimationResource* animationResource, int& currentFrameRef)
 	{
-		seq.Initialize(comp, animationResource, keyframeSequence);
+		seq.Initialize(comp, animationResource, keyframeSequence, currentFrameRef);
 	}
 
 	void SequencerWindow::CleanUpGameObjectData()
@@ -202,7 +202,7 @@ namespace Darius::Editor::Gui::Windows
 
 			mComponentSequencers.emplace(compAnimData.ComponentName, Components::AnimationSequence());
 			auto& addedSeq = mComponentSequencers.at(compAnimData.ComponentName);
-			ConfigureSequencerForComponent(addedSeq, comp, &compAnimData.AnimationSequence, animResource);
+			ConfigureSequencerForComponent(addedSeq, comp, &compAnimData.AnimationSequence, animResource, mCurrentFrame);
 		}
 	}
 
@@ -298,7 +298,7 @@ namespace Darius::Editor::Gui::Windows
 		mComponentSequencers.emplace(componentName, Components::AnimationSequence());
 		auto& addedSeq = mComponentSequencers.at(componentName);
 
-		ConfigureSequencerForComponent(addedSeq, comp, &componentAnimationData->AnimationSequence, animResource);
+		ConfigureSequencerForComponent(addedSeq, comp, &componentAnimationData->AnimationSequence, animResource, mCurrentFrame);
 
 		return true;
 	}

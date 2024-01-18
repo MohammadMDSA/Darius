@@ -292,7 +292,7 @@ namespace Darius::Animation
 			std::string nodeName = node->GetName();
 			// Translation
 			{
-				Track animCurve;
+				Track animCurve(InterpolationMode::Linear, KeyframeDataType::Vector3);
 				auto curveNode = node->LclTranslation.GetCurveNode(currentLayer);
 				if (curveNode)
 				{
@@ -310,7 +310,7 @@ namespace Darius::Animation
 
 			// Scale
 			{
-				Track animCurve;
+				Track animCurve(InterpolationMode::Linear, KeyframeDataType::Vector3);
 				auto curveNode = node->LclScaling.GetCurveNode(currentLayer);
 				if (curveNode)
 				{
@@ -325,7 +325,7 @@ namespace Darius::Animation
 
 			// Rotation
 			{
-				Track animCurve;
+				Track animCurve(InterpolationMode::Linear, KeyframeDataType::Vector3);
 				auto curveNode = node->LclRotation.GetCurveNode(currentLayer);
 				if (curveNode)
 				{

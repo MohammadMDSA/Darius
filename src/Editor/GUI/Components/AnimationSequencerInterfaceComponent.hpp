@@ -34,10 +34,9 @@ namespace Darius::Editor::Gui::Components
 		struct SequenceItem
 		{
 			int										Type;
-			std::shared_ptr<ImCurveEdit::Delegate>	Curve;
+			std::shared_ptr<BasePropertyCurveEdit>	Curve;
 			rttr::property							PropertyRef;
 
-			int										FrameStart, FrameEnd;
 			bool									Expanded;
 		};
 
@@ -73,10 +72,8 @@ namespace Darius::Editor::Gui::Components
 
 		virtual void                CustomDrawCompact(int index, ImDrawList* draw_list, const ImRect& rc, const ImRect& clippingRect) override;
 
-		void						Initialize(ComponentBase* referenceComponent, D_ANIMATION::AnimationResource* animationRes, D_ANIMATION::Sequence* keyframeSequence);
+		void						Initialize(ComponentBase* referenceComponent, D_ANIMATION::AnimationResource* animationRes, D_ANIMATION::Sequence* keyframeSequence, int& currentFrameRef);
 
-
-		int mFrameMin, mFrameMax;
 		bool mExpanded;
 
 	private:
@@ -90,5 +87,6 @@ namespace Darius::Editor::Gui::Components
 		std::string							mCollapsedDisplayName;
 		D_CONTAINERS::DVector<rttr::property> mAllProperties;
 		std::vector<SequenceItem>			mPropertyCurves;
+		int*								mCurrentFrame;
 	};
 }

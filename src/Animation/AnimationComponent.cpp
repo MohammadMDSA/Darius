@@ -100,7 +100,7 @@ namespace Darius::Animation
 
 		Sequence const& animation = animResource.GetSkeletalAnimationSequence();
 
-		D_CONTAINERS::DVector<Track> const& tracks = animation.GetTracks();
+		D_CONTAINERS::DVector<Track*> const& tracks = animation.GetTracks();
 
 		// Update animation nodes
 		for (int i = 0; i < tracks.size(); i++)
@@ -109,13 +109,13 @@ namespace Darius::Animation
 			// associated to a track is the index of the track divided by 3
 			Mesh::SkeletonJoint& node = skeletalMesh->GetSkeleton()[i / 3];
 
-			Track track = tracks[i];
+			Track* track = tracks[i];
 
 			switch (i % 3)
 			{
 			case 0: // Translation
 			{
-				auto value = track.Evaluate<Vector4>(mAnimState.Time, true);
+				auto value = track->Evaluate<Vector4>(mAnimState.Time, true);
 				if (value.has_value())
 					node.Xform.SetW(value.value());
 				break;
@@ -123,7 +123,7 @@ namespace Darius::Animation
 			case 1: // Scale
 			{
 				node.StaleMatrix = true;
-				auto value = track.Evaluate<Vector4>(mAnimState.Time, true);
+				auto value = track->Evaluate<Vector4>(mAnimState.Time, true);
 				if (value.has_value())
 					node.Scale = (DirectX::XMFLOAT3)Vector3(value.value());
 				break;
@@ -132,7 +132,7 @@ namespace Darius::Animation
 			default:
 			{
 				node.StaleMatrix = true;
-				auto value = track.Evaluate<Vector4>(mAnimState.Time, true);
+				auto value = track->Evaluate<Vector4>(mAnimState.Time, true);
 				if (value.has_value())
 					node.Rotation = (DirectX::XMFLOAT3)Vector3(value.value());
 				break;
@@ -273,7 +273,7 @@ if(!prop.set_value(*targetComponent, optValue.value())) \
 
 				D_ASSERT(trackIndex < tracks.size());
 
-				UpdatePropertyValue(targetComponent, prop, tracks[trackIndex]);
+				UpdatePropertyValue(targetComponent, prop, *tracks[trackIndex]);
 			}
 		}
 
