@@ -62,6 +62,8 @@ namespace ImCurveEdit
       bool focused = false;
       virtual size_t GetCurveCount() = 0;
       virtual bool IsVisible(size_t /*curveIndex*/) { return true; }
+      virtual void SetVisible(size_t curveIndex, bool value) = 0;
+      virtual char const* GetCurveName(size_t curveIndex) const = 0;
       virtual CurveType GetCurveType(size_t /*curveIndex*/) const { return CurveLinear; }
       virtual ImVec2& GetMin() = 0;
       virtual ImVec2& GetMax() = 0;
