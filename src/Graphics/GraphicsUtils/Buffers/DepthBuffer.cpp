@@ -104,6 +104,7 @@ namespace Darius::Graphics::Utils::Buffers
             SRVDesc.Format = stencilReadFormat;
             SRVDesc.Texture2D.PlaneSlice = 1;
             Device->CreateShaderResourceView(Resource, &SRVDesc, mStencilSRV);
+            mHasStencil = true;
         }
     }
 }

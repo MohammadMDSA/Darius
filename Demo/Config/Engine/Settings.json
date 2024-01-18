@@ -1,1 +1,1 @@
-{"Animation":null,"Debug Draw":null,"Graphics":{"AmbientOcclusion.SuperSample.Enable":false,"AntiAliasing.Temporal.Enable":false,"PostProcessing.HDR.Enable":false},"Input":null,"Physics":null,"Renderer":{"Renderer.HardwareRayTracing":false}}
+{"Animation":null,"Debug Draw":null,"Graphics":{"AmbientOcclusion.SuperSample.Enable":false,"AntiAliasing.Temporal.Enable":false,"Graphics.StencilEnabled":true,"PostProcessing.HDR.Enable":false},"Input":null,"Physics":null,"Renderer":{"Renderer.HardwareRayTracing":false}}

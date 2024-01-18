@@ -24,8 +24,10 @@ namespace Darius::Graphics::Utils::Buffers
 	class DepthBuffer : public PixelBuffer
 	{
 	public:
-		DepthBuffer(float ClearDepth = 0.0f, uint8_t ClearStencil = 0)
-			: mClearDepth(ClearDepth), mClearStencil(ClearStencil)
+		DepthBuffer(float ClearDepth = 0.0f, uint8_t ClearStencil = 0) :
+			mClearDepth(ClearDepth),
+			mClearStencil(ClearStencil),
+			mHasStencil(false)
 		{
 			mDSV[0].ptr = D3D12_GPU_VIRTUAL_ADDRESS_UNKNOWN;
 			mDSV[1].ptr = D3D12_GPU_VIRTUAL_ADDRESS_UNKNOWN;
@@ -54,15 +56,17 @@ namespace Darius::Graphics::Utils::Buffers
 
 		float GetClearDepth() const { return mClearDepth; }
 		uint8_t GetClearStencil() const { return mClearStencil; }
+		bool HasStencil() const { return (bool)mHasStencil; }
 
 	protected:
 
 		void CreateDerivedViews(ID3D12Device* Device, DXGI_FORMAT Format);
 
 		float mClearDepth;
-		uint8_t mClearStencil;
 		D3D12_CPU_DESCRIPTOR_HANDLE mDSV[4];
 		D3D12_CPU_DESCRIPTOR_HANDLE mDepthSRV;
 		D3D12_CPU_DESCRIPTOR_HANDLE mStencilSRV;
+		uint8_t mClearStencil;
+		uint8_t mHasStencil : 1;
 	};
 }

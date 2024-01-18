@@ -77,6 +77,8 @@ namespace Darius::Editor::Gui::PostProcessing
 
 	bool GuiPostProcessing::ApplyEditorSelectionOutline(Darius::Renderer::SceneRenderContext const& renderContext, Darius::Graphics::Utils::Buffers::ColorBuffer& destinationBuffer)
 	{
+		if (!renderContext.DepthBuffer.HasStencil())
+			return false;
 
 		ALIGN_DECL_16 struct
 		{
