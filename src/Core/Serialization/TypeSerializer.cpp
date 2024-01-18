@@ -438,11 +438,11 @@ namespace Darius::Core::Serialization
 			auto& json_index_value = json_array_value[i];
 			if (json_index_value.is_object()) // a key-value associative view
 			{
-				if (json_array_value.contains("key") &&
-					json_array_value.contains("value"))
+				if (json_index_value.contains("key") &&
+					json_index_value.contains("value"))
 				{
-					auto key_var = extract_value(json_array_value["key"], view.get_key_type());
-					auto value_var = extract_value(json_array_value["value"], view.get_value_type());
+					auto key_var = extract_value(json_index_value["key"], view.get_key_type());
+					auto value_var = extract_value(json_index_value["value"], view.get_value_type());
 					if (key_var && value_var)
 					{
 						view.insert(key_var, value_var);
