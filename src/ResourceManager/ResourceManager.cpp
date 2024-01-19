@@ -154,11 +154,11 @@ namespace Darius::ResourceManager
 		if (handle.Type == 0)
 			return nullptr;
 
-		if (mResourceMap.find(handle.Type) == mResourceMap.end())
-			throw D_EXCEPTION::Exception("Type not found");
+		if (!D_VERIFY(mResourceMap.find(handle.Type) != mResourceMap.end()))
+			return nullptr;
 		auto& typeClass = mResourceMap[handle.Type];
-		if (!typeClass.contains(handle.Id))
-			throw D_EXCEPTION::Exception("Resource with given id not found");
+		if (!D_VERIFY(typeClass.contains(handle.Id)))
+			return nullptr;
 		return typeClass[handle.Id].get();
 	}
 
