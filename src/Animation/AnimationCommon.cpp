@@ -128,7 +128,7 @@ namespace Darius::Animation
 	{
 
 		UINT trackIndex = (UINT)mTracks.size();
-		mTracks.push_back(new Track(track));
+		mTracks.push_back(Track(track));
 		mTracksNameIndex[name] = trackIndex;
 
 		return trackIndex;
@@ -143,7 +143,6 @@ namespace Darius::Animation
 
 		UINT trackIdx = search->second;
 
-		delete mTracks[trackIdx];
 		mTracks.erase(mTracks.begin() + trackIdx);
 		mTracksNameIndex.erase(name);
 		return true;
@@ -154,12 +153,12 @@ namespace Darius::Animation
 		if (mTracks.size() <= 0)
 			return 0.f;
 
-		auto earliestTrack = std::min_element(mTracks.begin(), mTracks.end(), [](Track* a, Track* b)
+		auto earliestTrack = std::min_element(mTracks.begin(), mTracks.end(), [](Track const& a, Track const& b)
 			{
-				return a->GetStartTime() < b->GetStartTime();
+				return a.GetStartTime() < b.GetStartTime();
 			});
 
-		return (*earliestTrack)->GetStartTime();
+		return earliestTrack->GetStartTime();
 	}
 
 	float Sequence::GetEndTime() const
@@ -167,12 +166,12 @@ namespace Darius::Animation
 		if (mTracks.size() <= 0)
 			return 0.f;
 
-		auto latestTrack = std::max_element(mTracks.begin(), mTracks.end(), [](Track const* a, Track const* b)
+		auto latestTrack = std::max_element(mTracks.begin(), mTracks.end(), [](Track const& a, Track const& b)
 			{
-				return a->GetEndTime() < b->GetEndTime();
+				return a.GetEndTime() < b.GetEndTime();
 			});
 
-		return (*latestTrack)->GetEndTime();
+		return latestTrack->GetEndTime();
 	}
 
 }

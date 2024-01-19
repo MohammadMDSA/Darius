@@ -726,17 +726,17 @@ namespace Darius::Animation
         Sequence() = default;
         virtual ~Sequence() = default;
         
-        INLINE Track const*                     GetTrack(std::string const& name) const { return mTracksNameIndex.contains(name) ? mTracks.at(mTracksNameIndex.at(name)) : nullptr; }
+        INLINE Track const*                     GetTrack(std::string const& name) const { return mTracksNameIndex.contains(name) ? &mTracks.at(mTracksNameIndex.at(name)) : nullptr; }
         
         template<typename T>
-        std::optional<T>                        Evaluate(std::string const& name, float time, bool extrapolateLastValue = false);
+        std::optional<T>                        Evaluate(std::string const& name, float time, bool extrapolateLastValue = false) const;
 
         UINT                                    AddTrack(std::string const& name, Track const& track);
         bool                                    RemoveTrack(std::string const& name);
 
         D_CONTAINERS::DUnorderedMap<std::string, UINT> const& GetNameIndexMapping() const { return mTracksNameIndex; }
 
-        D_CONTAINERS::DVector<Track*> const&     GetTracks() const { return mTracks; }
+        D_CONTAINERS::DVector<Track> const&     GetTracks() const { return mTracks; }
 
         NODISCARD INLINE float                  GetDuration() const { return GetEndTime() - GetStartTime(); }
         NODISCARD float                         GetStartTime() const;
@@ -755,7 +755,7 @@ namespace Darius::Animation
     };
 
     template<typename T>
-    std::optional<T> Sequence::Evaluate(std::string const& name, float time, bool extrapolateLastValue)
+    std::optional<T> Sequence::Evaluate(std::string const& name, float time, bool extrapolateLastValue) const
     {
         Track const* track = GetTrack(name);
         if (!track)
