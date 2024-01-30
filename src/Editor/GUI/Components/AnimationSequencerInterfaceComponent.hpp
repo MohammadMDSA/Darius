@@ -35,7 +35,6 @@ namespace Darius::Editor::Gui::Components
 		{
 			int										Type;
 			std::shared_ptr<BasePropertyCurveEdit>	Curve;
-			rttr::property							PropertyRef;
 
 			bool									Expanded;
 		};
@@ -51,6 +50,8 @@ namespace Darius::Editor::Gui::Components
 		virtual int                 GetItemTypeCount() const override;
 
 		virtual const char*			GetItemTypeName(int typeIndex) const override;
+
+		rttr::property const*		GetItemTypeProperty(int typeIndex) const;
 
 		virtual const char*			GetItemLabel(int index) const override;
 
@@ -72,7 +73,9 @@ namespace Darius::Editor::Gui::Components
 
 		virtual void                CustomDrawCompact(int index, ImDrawList* draw_list, const ImRect& rc, const ImRect& clippingRect) override;
 
-		void						Initialize(ComponentBase* referenceComponent, D_ANIMATION::AnimationResource* animationRes, D_ANIMATION::Sequence* keyframeSequence, int& currentFrameRef);
+		void						Initialize(ComponentBase* referenceComponent, D_ANIMATION::AnimationResource* animationRes, int& currentFrameRef);
+
+		D_ANIMATION::Sequence const* GetSequence() const;
 
 		bool mExpanded;
 
@@ -80,7 +83,6 @@ namespace Darius::Editor::Gui::Components
 
 		void								InitializeSequenceItems();
 
-		D_ANIMATION::Sequence*				mAnimationSequence;
 		D_ANIMATION::AnimationResource*		mAnimationResource;
 		ComponentBase*						mReferenceComponent;
 		std::string							mComponentDisplayName;

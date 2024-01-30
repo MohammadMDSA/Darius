@@ -14,7 +14,6 @@ namespace Darius::Editor::Gui::Components
 {
 	AnimationSequence::AnimationSequence() :
 		mExpanded(false),
-		mAnimationSequence(nullptr),
 		mCurrentFrame(nullptr)
 	{
 	}
@@ -23,7 +22,7 @@ namespace Darius::Editor::Gui::Components
 		UINT min = UINT_MAX;
 		for (auto const& seqItem : mPropertyCurves)
 		{
-			UINT curveMin = (UINT)seqItem.Curve->GetMin().x;
+			UINT curveMin = seqItem.Curve->GetStartFrameIndex();
 			if (min > curveMin)
 				min = curveMin;
 		}
@@ -35,7 +34,7 @@ namespace Darius::Editor::Gui::Components
 		UINT max = 0u;
 		for (auto const& seqItem : mPropertyCurves)
 		{
-			UINT curveMax = (UINT)seqItem.Curve->GetMax().x;
+			UINT curveMax = (UINT)seqItem.Curve->GetLastFrameIndex();
 			if (max < curveMax)
 				max = curveMax;
 		}
@@ -52,14 +51,14 @@ namespace Darius::Editor::Gui::Components
 		return (int)(mAllProperties.size() - mPropertyCurves.size());
 	}
 
-	const char* AnimationSequence::GetItemTypeName(int typeIndex) const
+	rttr::property const* AnimationSequence::GetItemTypeProperty(int typeIndex) const
 	{
 		int totalIndex = -1;
 		int mCurveIndex = 0;
 
 		for (int i = 0; i < mAllProperties.size(); i++)
 		{
-			if (mPropertyCurves.size() > mCurveIndex && mAllProperties[i] == mPropertyCurves[mCurveIndex].PropertyRef)
+			if (mPropertyCurves.size() > mCurveIndex && mAllProperties[i] == mPropertyCurves[mCurveIndex].Curve->GetPropertyRef())
 			{
 				mCurveIndex++;
 			}
@@ -69,15 +68,24 @@ namespace Darius::Editor::Gui::Components
 			}
 
 			if (totalIndex == typeIndex)
-				return mAllProperties[i].get_name().data();
+				return &mAllProperties[i];
 		}
 
-		return "";
+		return nullptr;
+	}
+
+	const char* AnimationSequence::GetItemTypeName(int typeIndex) const
+	{
+		auto prop = GetItemTypeProperty(typeIndex);
+		if (!prop)
+			return "";
+
+		return prop->get_name().data();
 	}
 
 	const char* AnimationSequence::GetItemLabel(int index) const
 	{
-		return mPropertyCurves[index].PropertyRef.get_name().data();
+		return mPropertyCurves[index].Curve->GetPropertyRef().get_name().data();
 	}
 
 	void AnimationSequence::Get(int index, int** start, int** end, int* type, unsigned int* color)
@@ -87,36 +95,45 @@ namespace Darius::Editor::Gui::Components
 		if (color)
 			*color = 0xFFAA8080; // same color for everyone, return color based on type
 		if (start)
-			*start = &item.Curve->GetStartFrameIndex();
+		{
+			*start = &(int&)item.Curve->GetStartFrameIndex();
+		}
 		if (end)
-			*end = &item.Curve->GetLastFrameIndex();
+		{
+			*end = &(int&)item.Curve->GetLastFrameIndex();
+		}
 		if (type)
 			*type = item.Type;
 	}
 
 	void AnimationSequence::Add(int type)
 	{
-		rttr::property prop = mAllProperties[type];
-		UINT trackIndex = mAnimationSequence->AddTrack(prop.get_name().data(), Track(InterpolationMode::Linear, KeyframeDataType::Vector3));
+		auto sequence = const_cast<Sequence*>(GetSequence());
 
-		Track* track = mAnimationSequence->GetTracks()[trackIndex];
+		auto _prop = GetItemTypeProperty(type);
+		D_ASSERT(_prop);
+
+		rttr::property prop = *_prop;
+		UINT trackIndex = sequence->AddTrack(prop.get_name().data(), Track(InterpolationMode::Linear, KeyframeDataType::Vector3));
+
+		Track& track = const_cast<Track&>(sequence->GetTracks()[trackIndex]);
 		mAnimationResource->MakeDiskDirty();
 		mAnimationResource->MakeGpuDirty();
 
 		UINT fps = mAnimationResource->GetFramesPerSecond();
 
-		mPropertyCurves.push_back(SequenceItem{ type, std::make_shared<Vector3PropertyCurveEdit>(track, fps), mAllProperties[type], true });
-		std::sort(mPropertyCurves.begin(), mPropertyCurves.end(), [](SequenceItem const& a, SequenceItem const& b) { return a.PropertyRef.get_name() < b.PropertyRef.get_name(); });
+		mPropertyCurves.push_back(SequenceItem{ type, std::make_shared<Vector3PropertyCurveEdit>(this, prop, fps), true });
+		std::sort(mPropertyCurves.begin(), mPropertyCurves.end(), [](SequenceItem const& a, SequenceItem const& b) { return a.Curve->GetPropertyRef().get_name() < b.Curve->GetPropertyRef().get_name(); });
 	};
 
 	void AnimationSequence::Del(int index)
 	{
 
 		auto& sequenceItem = mPropertyCurves[index];
-		bool removed = mAnimationSequence->RemoveTrack(sequenceItem.PropertyRef.get_name().data());
+		bool removed = const_cast<Sequence*>(GetSequence())->RemoveTrack(sequenceItem.Curve->GetPropertyRef().get_name().data());
 
 		mPropertyCurves.erase(mPropertyCurves.begin() + index);
-		std::sort(mPropertyCurves.begin(), mPropertyCurves.end(), [](SequenceItem const& a, SequenceItem const& b) { return a.PropertyRef.get_name() < b.PropertyRef.get_name(); });
+		std::sort(mPropertyCurves.begin(), mPropertyCurves.end(), [](SequenceItem const& a, SequenceItem const& b) { return a.Curve->GetPropertyRef().get_name() < b.Curve->GetPropertyRef().get_name(); });
 
 		mAnimationResource->MakeDiskDirty();
 		mAnimationResource->MakeGpuDirty();
@@ -126,7 +143,7 @@ namespace Darius::Editor::Gui::Components
 	{
 		SequenceItem& seqItem = mPropertyCurves[index];
 
-		if (seqItem.Curve->SetKeyframeValue(*mCurrentFrame, seqItem.PropertyRef, rttr::instance(mReferenceComponent)))
+		if (seqItem.Curve->SetKeyframeValue(*mCurrentFrame, seqItem.Curve->GetPropertyRef(), rttr::instance(mReferenceComponent)))
 		{
 			mAnimationResource->MakeGpuDirty();
 			mAnimationResource->MakeDiskDirty();
@@ -197,7 +214,7 @@ namespace Darius::Editor::Gui::Components
 		draw_list->PopClipRect();
 	}
 
-	void AnimationSequence::Initialize(ComponentBase* referenceComponent, D_ANIMATION::AnimationResource* animationRes, D_ANIMATION::Sequence* keyframeSequence, int& currentFrameRef)
+	void AnimationSequence::Initialize(ComponentBase* referenceComponent, D_ANIMATION::AnimationResource* animationRes, int& currentFrameRef)
 	{
 		if (referenceComponent == mReferenceComponent)
 			return;
@@ -233,7 +250,6 @@ namespace Darius::Editor::Gui::Components
 		}
 
 		mAnimationResource = animationRes;
-		mAnimationSequence = keyframeSequence;
 		mCurrentFrame = &currentFrameRef;
 
 		InitializeSequenceItems();
@@ -246,20 +262,35 @@ namespace Darius::Editor::Gui::Components
 
 	void AnimationSequence::InitializeSequenceItems()
 	{
+		auto sequence = GetSequence();
 
 		for (int propIndex = 0; propIndex < mAllProperties.size(); propIndex++)
 		{
 			auto const& prop = mAllProperties[propIndex];
 			auto propName = prop.get_name().data();
-			auto track = const_cast<Track*>(mAnimationSequence->GetTrack(propName));
+			auto track = const_cast<Track*>(sequence->GetTrack(propName));
 
 			if (!track)
 				continue;
 
 			UINT fps = mAnimationResource->GetFramesPerSecond();
-			mPropertyCurves.push_back({ propIndex, std::make_shared<Vector3PropertyCurveEdit>(track, fps), prop, true });
+			mPropertyCurves.push_back({ propIndex, std::make_shared<Vector3PropertyCurveEdit>(this, prop, fps), true });
 		}
 
-		std::sort(mPropertyCurves.begin(), mPropertyCurves.end(), [](SequenceItem const& a, SequenceItem const& b) { return a.PropertyRef.get_name() < b.PropertyRef.get_name(); });
+		std::sort(mPropertyCurves.begin(), mPropertyCurves.end(), [](SequenceItem const& a, SequenceItem const& b) { return a.Curve->GetPropertyRef().get_name() < b.Curve->GetPropertyRef().get_name(); });
+	}
+
+	Sequence const* AnimationSequence::GetSequence() const
+	{
+		auto const& compsData = mAnimationResource->GetComponentAnimationData();
+		auto searchRes = std::find_if(compsData.begin(), compsData.end(), [compName = mReferenceComponent->GetComponentName()](ComponentAnimationData const& el)
+			{
+				return el.ComponentName == compName;
+			});
+
+		if (searchRes == compsData.end())
+			return nullptr;
+
+		return &(searchRes->AnimationSequence);
 	}
 }
