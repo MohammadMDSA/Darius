@@ -39,42 +39,42 @@ namespace Darius::Animation
 
     public:
         template<typename T>
-        INLINE T& GetValue()
+        T& GetValue()
         {
             D_ASSERT_M(false, "Unsupported type for keyframe");
             return *reinterpret_cast<T*>(nullptr);
         }
 
         template<typename T>
-        INLINE T const& GetValue() const
+        T const& GetValue() const
         {
             D_ASSERT_M(false, "Unsupported type for keyframe");
             return *reinterpret_cast<T const*>(nullptr);
         }
 
         template<typename T>
-        INLINE T& GetInTangent()
+        T& GetInTangent()
         {
             D_ASSERT_M(false, "Unsupported type for keyframe");
             return *reinterpret_cast<T*>(nullptr);
         }
 
         template<typename T>
-        INLINE T const& GetInTangent() const
+        T const& GetInTangent() const
         {
             D_ASSERT_M(false, "Unsupported type for keyframe");
             return *reinterpret_cast<T const*>(nullptr);
         }
 
         template<typename T>
-        INLINE T& GetOutTangent()
+        T& GetOutTangent()
         {
             D_ASSERT_M(false, "Unsupported type for keyframe");
             return *reinterpret_cast<T*>(nullptr);
         }
 
         template<typename T>
-        INLINE T const& GetOutTangent() const
+        T const& GetOutTangent() const
         {
             D_ASSERT_M(false, "Unsupported type for keyframe");
             return *reinterpret_cast<T const*>(nullptr);
@@ -82,153 +82,153 @@ namespace Darius::Animation
 
         // Value Getters
         template<>
-        INLINE bool& GetValue<bool>() { return *reinterpret_cast<bool*>(&Value); }
+        INLINE bool& GetValue() { return *reinterpret_cast<bool*>(&Value); }
         template<>
         INLINE bool const& GetValue<bool const>() const { return *reinterpret_cast<bool const*>(&Value); }
         template<>
-        INLINE int& GetValue<int>() { return *reinterpret_cast<int*>(&Value); }
+        INLINE int& GetValue() { return *reinterpret_cast<int*>(&Value); }
         template<>
-        INLINE int const& GetValue<int const>() const { return *reinterpret_cast<int const*>(&Value); }
+        INLINE int const& GetValue() const { return *reinterpret_cast<int const*>(&Value); }
         template<>
-        INLINE UINT& GetValue<UINT>() { return *reinterpret_cast<UINT*>(&Value); }
+        INLINE UINT& GetValue() { return *reinterpret_cast<UINT*>(&Value); }
         template<>
-        INLINE UINT const& GetValue<UINT const>() const { return *reinterpret_cast<UINT const*>(&Value); }
+        INLINE UINT const& GetValue() const { return *reinterpret_cast<UINT const*>(&Value); }
         template<>
-        INLINE short& GetValue<short>() { return *reinterpret_cast<short*>(&Value); }
+        INLINE short& GetValue() { return *reinterpret_cast<short*>(&Value); }
         template<>
-        INLINE short const& GetValue<short const>() const { return *reinterpret_cast<short const*>(&Value); }
+        INLINE short const& GetValue() const { return *reinterpret_cast<short const*>(&Value); }
         template<>
         INLINE USHORT& GetValue<USHORT>() { return *reinterpret_cast<USHORT*>(&Value); }
         template<>
-        INLINE USHORT const& GetValue<USHORT const>() const { return *reinterpret_cast<USHORT const*>(&Value); }
+        INLINE USHORT const& GetValue() const { return *reinterpret_cast<USHORT const*>(&Value); }
         template<>
         INLINE long& GetValue<long>() { return *reinterpret_cast<long*>(&Value); }
         template<>
-        INLINE long const& GetValue<long const>() const { return *reinterpret_cast<long const*>(&Value); }
+        INLINE long const& GetValue() const { return *reinterpret_cast<long const*>(&Value); }
         template<>
         INLINE ULONG& GetValue<ULONG>() { return *reinterpret_cast<ULONG*>(&Value); }
         template<>
-        INLINE ULONG const& GetValue<ULONG const>() const { return *reinterpret_cast<ULONG const*>(&Value); }
+        INLINE ULONG const& GetValue() const { return *reinterpret_cast<ULONG const*>(&Value); }
         template<>
-        INLINE D_MATH::Vector2& GetValue<D_MATH::Vector2>() { return *reinterpret_cast<D_MATH::Vector2*>(&Value); }
+        INLINE D_MATH::Vector2& GetValue() { return *reinterpret_cast<D_MATH::Vector2*>(&Value); }
         template<>
-        INLINE D_MATH::Vector2 const& GetValue<D_MATH::Vector2 const>() const { return *reinterpret_cast<D_MATH::Vector2 const*>(&Value); }
+        INLINE D_MATH::Vector2 const& GetValue() const { return *reinterpret_cast<D_MATH::Vector2 const*>(&Value); }
         template<>
-        INLINE D_MATH::Vector3& GetValue<D_MATH::Vector3>() { return *reinterpret_cast<D_MATH::Vector3*>(&Value); }
+        INLINE D_MATH::Vector3& GetValue() { return *reinterpret_cast<D_MATH::Vector3*>(&Value); }
         template<>
-        INLINE D_MATH::Vector3 const& GetValue<D_MATH::Vector3 const>() const { return *reinterpret_cast<D_MATH::Vector3 const*>(&Value); }
+        INLINE D_MATH::Vector3 const& GetValue() const { return *reinterpret_cast<D_MATH::Vector3 const*>(&Value); }
         template<>
-        INLINE D_MATH::Vector4& GetValue<D_MATH::Vector4>() { return *reinterpret_cast<D_MATH::Vector4*>(&Value); }
+        INLINE D_MATH::Vector4& GetValue() { return *reinterpret_cast<D_MATH::Vector4*>(&Value); }
         template<>
-        INLINE D_MATH::Vector4 const& GetValue<D_MATH::Vector4 const>() const { return *reinterpret_cast<D_MATH::Vector4 const*>(&Value); }
+        INLINE D_MATH::Vector4 const& GetValue() const { return *reinterpret_cast<D_MATH::Vector4 const*>(&Value); }
         template<>
-        INLINE D_MATH::Color& GetValue<D_MATH::Color>() { return *reinterpret_cast<D_MATH::Color*>(&Value); }
+        INLINE D_MATH::Color& GetValue() { return *reinterpret_cast<D_MATH::Color*>(&Value); }
         template<>
-        INLINE D_MATH::Color const& GetValue<D_MATH::Color const>() const { return *reinterpret_cast<D_MATH::Color const*>(&Value); }
+        INLINE D_MATH::Color const& GetValue() const { return *reinterpret_cast<D_MATH::Color const*>(&Value); }
         template<>
-        INLINE D_MATH::Quaternion& GetValue<D_MATH::Quaternion>() { return *reinterpret_cast<D_MATH::Quaternion*>(&Value); }
+        INLINE D_MATH::Quaternion& GetValue() { return *reinterpret_cast<D_MATH::Quaternion*>(&Value); }
         template<>
-        INLINE D_MATH::Quaternion const& GetValue<D_MATH::Quaternion const>() const { return *reinterpret_cast<D_MATH::Quaternion const*>(&Value); }
+        INLINE D_MATH::Quaternion const& GetValue() const { return *reinterpret_cast<D_MATH::Quaternion const*>(&Value); }
 
         // In Tangent Getters
         template<>
-        INLINE bool& GetInTangent<bool>() { return *reinterpret_cast<bool*>(&InTangent); }
+        INLINE bool& GetInTangent() { return *reinterpret_cast<bool*>(&InTangent); }
         template<>
-        INLINE bool const& GetInTangent<bool const>() const { return *reinterpret_cast<bool const*>(&InTangent); }
+        INLINE bool const& GetInTangent() const { return *reinterpret_cast<bool const*>(&InTangent); }
         template<>
-        INLINE int& GetInTangent<int>() { return *reinterpret_cast<int*>(&InTangent); }
+        INLINE int& GetInTangent() { return *reinterpret_cast<int*>(&InTangent); }
         template<>
-        INLINE int const& GetInTangent<int const>() const { return *reinterpret_cast<int const*>(&InTangent); }
+        INLINE int const& GetInTangent() const { return *reinterpret_cast<int const*>(&InTangent); }
         template<>
-        INLINE UINT& GetInTangent<UINT>() { return *reinterpret_cast<UINT*>(&InTangent); }
+        INLINE UINT& GetInTangent() { return *reinterpret_cast<UINT*>(&InTangent); }
         template<>
-        INLINE UINT const& GetInTangent<UINT const>() const { return *reinterpret_cast<UINT const*>(&InTangent); }
+        INLINE UINT const& GetInTangent() const { return *reinterpret_cast<UINT const*>(&InTangent); }
         template<>
-        INLINE short& GetInTangent<short>() { return *reinterpret_cast<short*>(&InTangent); }
+        INLINE short& GetInTangent() { return *reinterpret_cast<short*>(&InTangent); }
         template<>
-        INLINE short const& GetInTangent<short const>() const { return *reinterpret_cast<short const*>(&InTangent); }
+        INLINE short const& GetInTangent() const { return *reinterpret_cast<short const*>(&InTangent); }
         template<>
-        INLINE USHORT& GetInTangent<USHORT>() { return *reinterpret_cast<USHORT*>(&InTangent); }
+        INLINE USHORT& GetInTangent() { return *reinterpret_cast<USHORT*>(&InTangent); }
         template<>
-        INLINE USHORT const& GetInTangent<USHORT const>() const { return *reinterpret_cast<USHORT const*>(&InTangent); }
+        INLINE USHORT const& GetInTangent() const { return *reinterpret_cast<USHORT const*>(&InTangent); }
         template<>
-        INLINE long& GetInTangent<long>() { return *reinterpret_cast<long*>(&InTangent); }
+        INLINE long& GetInTangent() { return *reinterpret_cast<long*>(&InTangent); }
         template<>
-        INLINE long const& GetInTangent<long const>() const { return *reinterpret_cast<long const*>(&InTangent); }
+        INLINE long const& GetInTangent() const { return *reinterpret_cast<long const*>(&InTangent); }
         template<>
-        INLINE ULONG& GetInTangent<ULONG>() { return *reinterpret_cast<ULONG*>(&InTangent); }
+        INLINE ULONG& GetInTangent() { return *reinterpret_cast<ULONG*>(&InTangent); }
         template<>
-        INLINE ULONG const& GetInTangent<ULONG const>() const { return *reinterpret_cast<ULONG const*>(&InTangent); }
+        INLINE ULONG const& GetInTangent() const { return *reinterpret_cast<ULONG const*>(&InTangent); }
         template<>
-        INLINE D_MATH::Vector2& GetInTangent<D_MATH::Vector2>() { return *reinterpret_cast<D_MATH::Vector2*>(&InTangent); }
+        INLINE D_MATH::Vector2& GetInTangent() { return *reinterpret_cast<D_MATH::Vector2*>(&InTangent); }
         template<>
-        INLINE D_MATH::Vector2 const& GetInTangent<D_MATH::Vector2 const>() const { return *reinterpret_cast<D_MATH::Vector2 const*>(&InTangent); }
+        INLINE D_MATH::Vector2 const& GetInTangent() const { return *reinterpret_cast<D_MATH::Vector2 const*>(&InTangent); }
         template<>
-        INLINE D_MATH::Vector3& GetInTangent<D_MATH::Vector3>() { return *reinterpret_cast<D_MATH::Vector3*>(&InTangent); }
+        INLINE D_MATH::Vector3& GetInTangent() { return *reinterpret_cast<D_MATH::Vector3*>(&InTangent); }
         template<>
-        INLINE D_MATH::Vector3 const& GetInTangent<D_MATH::Vector3 const>() const { return *reinterpret_cast<D_MATH::Vector3 const*>(&InTangent); }
+        INLINE D_MATH::Vector3 const& GetInTangent() const { return *reinterpret_cast<D_MATH::Vector3 const*>(&InTangent); }
         template<>
-        INLINE D_MATH::Vector4& GetInTangent<D_MATH::Vector4>() { return *reinterpret_cast<D_MATH::Vector4*>(&InTangent); }
+        INLINE D_MATH::Vector4& GetInTangent() { return *reinterpret_cast<D_MATH::Vector4*>(&InTangent); }
         template<>
-        INLINE D_MATH::Vector4 const& GetInTangent<D_MATH::Vector4 const>() const { return *reinterpret_cast<D_MATH::Vector4 const*>(&InTangent); }
+        INLINE D_MATH::Vector4 const& GetInTangent() const { return *reinterpret_cast<D_MATH::Vector4 const*>(&InTangent); }
         template<>
-        INLINE D_MATH::Color& GetInTangent<D_MATH::Color>() { return *reinterpret_cast<D_MATH::Color*>(&InTangent); }
+        INLINE D_MATH::Color& GetInTangent() { return *reinterpret_cast<D_MATH::Color*>(&InTangent); }
         template<>
-        INLINE D_MATH::Color const& GetInTangent<D_MATH::Color const>() const { return *reinterpret_cast<D_MATH::Color const*>(&InTangent); }
+        INLINE D_MATH::Color const& GetInTangent() const { return *reinterpret_cast<D_MATH::Color const*>(&InTangent); }
         template<>
-        INLINE D_MATH::Quaternion& GetInTangent<D_MATH::Quaternion>() { return *reinterpret_cast<D_MATH::Quaternion*>(&InTangent); }
+        INLINE D_MATH::Quaternion& GetInTangent() { return *reinterpret_cast<D_MATH::Quaternion*>(&InTangent); }
         template<>
-        INLINE D_MATH::Quaternion const& GetInTangent<D_MATH::Quaternion const>() const { return *reinterpret_cast<D_MATH::Quaternion const*>(&InTangent); }
+        INLINE D_MATH::Quaternion const& GetInTangent() const { return *reinterpret_cast<D_MATH::Quaternion const*>(&InTangent); }
 
         // Out Tangent Getters
         template<>
-        INLINE bool& GetOutTangent<bool>() { return *reinterpret_cast<bool*>(&OutTangent); }
+        INLINE bool& GetOutTangent() { return *reinterpret_cast<bool*>(&OutTangent); }
         template<>
-        INLINE bool const& GetOutTangent<bool const>() const { return *reinterpret_cast<bool const*>(&OutTangent); }
+        INLINE bool const& GetOutTangent() const { return *reinterpret_cast<bool const*>(&OutTangent); }
         template<>
-        INLINE int& GetOutTangent<int>() { return *reinterpret_cast<int*>(&OutTangent); }
+        INLINE int& GetOutTangent() { return *reinterpret_cast<int*>(&OutTangent); }
         template<>
-        INLINE int const& GetOutTangent<int const>() const { return *reinterpret_cast<int const*>(&OutTangent); }
+        INLINE int const& GetOutTangent() const { return *reinterpret_cast<int const*>(&OutTangent); }
         template<>
-        INLINE UINT& GetOutTangent<UINT>() { return *reinterpret_cast<UINT*>(&OutTangent); }
+        INLINE UINT& GetOutTangent() { return *reinterpret_cast<UINT*>(&OutTangent); }
         template<>
-        INLINE UINT const& GetOutTangent<UINT const>() const { return *reinterpret_cast<UINT const*>(&OutTangent); }
+        INLINE UINT const& GetOutTangent() const { return *reinterpret_cast<UINT const*>(&OutTangent); }
         template<>
-        INLINE short& GetOutTangent<short>() { return *reinterpret_cast<short*>(&OutTangent); }
+        INLINE short& GetOutTangent() { return *reinterpret_cast<short*>(&OutTangent); }
         template<>
-        INLINE short const& GetOutTangent<short const>() const { return *reinterpret_cast<short const*>(&OutTangent); }
+        INLINE short const& GetOutTangent() const { return *reinterpret_cast<short const*>(&OutTangent); }
         template<>
-        INLINE USHORT& GetOutTangent<USHORT>() { return *reinterpret_cast<USHORT*>(&OutTangent); }
+        INLINE USHORT& GetOutTangent() { return *reinterpret_cast<USHORT*>(&OutTangent); }
         template<>
-        INLINE USHORT const& GetOutTangent<USHORT const>() const { return *reinterpret_cast<USHORT const*>(&OutTangent); }
+        INLINE USHORT const& GetOutTangent() const { return *reinterpret_cast<USHORT const*>(&OutTangent); }
         template<>
-        INLINE long& GetOutTangent<long>() { return *reinterpret_cast<long*>(&OutTangent); }
+        INLINE long& GetOutTangent() { return *reinterpret_cast<long*>(&OutTangent); }
         template<>
-        INLINE long const& GetOutTangent<long const>() const { return *reinterpret_cast<long const*>(&OutTangent); }
+        INLINE long const& GetOutTangent() const { return *reinterpret_cast<long const*>(&OutTangent); }
         template<>
-        INLINE ULONG& GetOutTangent<ULONG>() { return *reinterpret_cast<ULONG*>(&OutTangent); }
+        INLINE ULONG& GetOutTangent() { return *reinterpret_cast<ULONG*>(&OutTangent); }
         template<>
-        INLINE ULONG const& GetOutTangent<ULONG const>() const { return *reinterpret_cast<ULONG const*>(&OutTangent); }
+        INLINE ULONG const& GetOutTangent() const { return *reinterpret_cast<ULONG const*>(&OutTangent); }
         template<>
-        INLINE D_MATH::Vector2& GetOutTangent<D_MATH::Vector2>() { return *reinterpret_cast<D_MATH::Vector2*>(&OutTangent); }
+        INLINE D_MATH::Vector2& GetOutTangent() { return *reinterpret_cast<D_MATH::Vector2*>(&OutTangent); }
         template<>
-        INLINE D_MATH::Vector2 const& GetOutTangent<D_MATH::Vector2 const>() const { return *reinterpret_cast<D_MATH::Vector2 const*>(&OutTangent); }
+        INLINE D_MATH::Vector2 const& GetOutTangent() const { return *reinterpret_cast<D_MATH::Vector2 const*>(&OutTangent); }
         template<>
-        INLINE D_MATH::Vector3& GetOutTangent<D_MATH::Vector3>() { return *reinterpret_cast<D_MATH::Vector3*>(&OutTangent); }
+        INLINE D_MATH::Vector3& GetOutTangent() { return *reinterpret_cast<D_MATH::Vector3*>(&OutTangent); }
         template<>
-        INLINE D_MATH::Vector3 const& GetOutTangent<D_MATH::Vector3 const>() const { return *reinterpret_cast<D_MATH::Vector3 const*>(&OutTangent); }
+        INLINE D_MATH::Vector3 const& GetOutTangent() const { return *reinterpret_cast<D_MATH::Vector3 const*>(&OutTangent); }
         template<>
-        INLINE D_MATH::Vector4& GetOutTangent<D_MATH::Vector4>() { return *reinterpret_cast<D_MATH::Vector4*>(&OutTangent); }
+        INLINE D_MATH::Vector4& GetOutTangent() { return *reinterpret_cast<D_MATH::Vector4*>(&OutTangent); }
         template<>
-        INLINE D_MATH::Vector4 const& GetOutTangent<D_MATH::Vector4 const>() const { return *reinterpret_cast<D_MATH::Vector4 const*>(&OutTangent); }
+        INLINE D_MATH::Vector4 const& GetOutTangent() const { return *reinterpret_cast<D_MATH::Vector4 const*>(&OutTangent); }
         template<>
-        INLINE D_MATH::Color& GetOutTangent<D_MATH::Color>() { return *reinterpret_cast<D_MATH::Color*>(&OutTangent); }
+        INLINE D_MATH::Color& GetOutTangent() { return *reinterpret_cast<D_MATH::Color*>(&OutTangent); }
         template<>
-        INLINE D_MATH::Color const& GetOutTangent<D_MATH::Color const>() const { return *reinterpret_cast<D_MATH::Color const*>(&OutTangent); }
+        INLINE D_MATH::Color const& GetOutTangent() const { return *reinterpret_cast<D_MATH::Color const*>(&OutTangent); }
         template<>
-        INLINE D_MATH::Quaternion& GetOutTangent<D_MATH::Quaternion>() { return *reinterpret_cast<D_MATH::Quaternion*>(&OutTangent); }
+        INLINE D_MATH::Quaternion& GetOutTangent() { return *reinterpret_cast<D_MATH::Quaternion*>(&OutTangent); }
         template<>
-        INLINE D_MATH::Quaternion const& GetOutTangent<D_MATH::Quaternion const>() const { return *reinterpret_cast<D_MATH::Quaternion const*>(&OutTangent); }
+        INLINE D_MATH::Quaternion const& GetOutTangent() const { return *reinterpret_cast<D_MATH::Quaternion const*>(&OutTangent); }
     };
 
     enum class DEnum(Serialize) InterpolationMode
@@ -258,7 +258,7 @@ namespace Darius::Animation
     
 #pragma region Interpolations
     template<typename T>
-    T Interpolate(InterpolationMode mode, Keyframe const& a, Keyframe const& b, Keyframe const& c, Keyframe const& d, float t, float dt)
+    INLINE T Interpolate(InterpolationMode mode, Keyframe const& a, Keyframe const& b, Keyframe const& c, Keyframe const& d, float t, float dt)
     {
         switch (mode)
         {
@@ -755,7 +755,7 @@ namespace Darius::Animation
     };
 
     template<typename T>
-    std::optional<T> Sequence::Evaluate(std::string const& name, float time, bool extrapolateLastValue) const
+    INLINE std::optional<T> Sequence::Evaluate(std::string const& name, float time, bool extrapolateLastValue) const
     {
         Track const* track = GetTrack(name);
         if (!track)
@@ -765,7 +765,7 @@ namespace Darius::Animation
     }
 
     template<typename T>
-    std::optional<T> Track::Evaluate(float time, bool extrapolateLastValues) const
+    INLINE std::optional<T> Track::Evaluate(float time, bool extrapolateLastValues) const
     {
         size_t count = mKeyframes.size();
 
