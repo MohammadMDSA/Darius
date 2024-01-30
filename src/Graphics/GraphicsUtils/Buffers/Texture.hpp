@@ -65,7 +65,7 @@ namespace Darius::Graphics::Utils::Buffers
 				TEX_DIMENSION_TEXTURE1D = 2,
 				TEX_DIMENSION_TEXTURE2D = 3,
 				TEX_DIMENSION_TEXTURE3D = 4,
-			} Dimension;
+			} Dimension = TEX_DIMENSION_TEXTURE2D;
 			bool            Initialized = false;
 		};
 

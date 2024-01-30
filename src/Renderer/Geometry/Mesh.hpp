@@ -63,8 +63,8 @@ namespace Darius::Renderer::Geometry
 		D_MATH_BOUNDS::BoundingSphere	mBoundSp;
 		D_MATH_BOUNDS::AxisAlignedBox	mBoundBox;
 
-		UINT							mNumTotalVertices;
-		UINT							mNumTotalIndices;
+		UINT							mNumTotalVertices = 0u;
+		UINT							mNumTotalIndices = 0u;
 
 		static constexpr DXGI_FORMAT StandardIndexFormat = DXGI_FORMAT_R32_UINT;
 		static constexpr DXGI_FORMAT StandardVertexFormat = DXGI_FORMAT_R32G32B32_FLOAT;

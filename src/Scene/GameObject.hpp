@@ -241,7 +241,9 @@ namespace Darius::Scene
 		const bool				mInScene;
 
 		// Comp name and display name
+#if _D_EDITOR
 		static D_CONTAINERS::DMap<std::string, GameObject::ComponentAddressNode> RegisteredComponents;
+#endif
 		static D_CONTAINERS::DSet<D_ECS::EntityId> RegisteredBehaviours;
 		static D_CONTAINERS::DSet<std::string> RegisteredComponentNames;
 
