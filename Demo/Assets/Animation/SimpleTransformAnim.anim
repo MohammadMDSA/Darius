@@ -1,1 +1,79 @@
-{"ComponentAnimation":[{"AnimationSequence":{"Tracks":[{"KeyframeDataType":"Vector3","Keyframes":[{"InTangent":{"_data":[0.0,0.0,0.0,0.0]},"OutTangent":{"_data":[0.0,0.0,0.0,0.0]},"Time":0.0,"Value":{"_data":[8.730682373046875,-7.434861183166504,-3.50927734375,1.0]}},{"InTangent":{"_data":[0.0,0.0,0.0,0.0]},"OutTangent":{"_data":[0.0,0.0,0.0,0.0]},"Time":0.20000000298023224,"Value":{"_data":[-5.287583351135254,6.317551136016846,-3.701355457305908,1.0]}},{"InTangent":{"_data":[0.0,0.0,0.0,0.0]},"OutTangent":{"_data":[0.0,0.0,0.0,0.0]},"Time":0.4333333373069763,"Value":{"_data":[-3.1449387073516846,-0.9010187387466431,-2.557633638381958,1.0]}},{"InTangent":{"_data":[0.0,0.0,0.0,0.0]},"OutTangent":{"_data":[0.0,0.0,0.0,0.0]},"Time":0.5666666626930237,"Value":{"_data":[-1.9086769819259644,-10.1925048828125,8.3736572265625,1.0]}},{"InTangent":{"_data":[0.0,0.0,0.0,0.0]},"OutTangent":{"_data":[0.0,0.0,0.0,0.0]},"Time":1.0,"Value":{"_data":[0.0,0.0,0.0,1.0]}}],"Mode":"Linear"},{"KeyframeDataType":"Vector3","Keyframes":[{"InTangent":{"_data":[0.0,0.0,0.0,0.0]},"OutTangent":{"_data":[0.0,0.0,0.0,0.0]},"Time":0.0,"Value":{"_data":[1.0,1.0,1.0,1.0]}},{"InTangent":{"_data":[0.0,0.0,0.0,0.0]},"OutTangent":{"_data":[0.0,0.0,0.0,0.0]},"Time":0.6499999761581421,"Value":{"_data":[1.100000023841858,0.5,2.0,1.0]}}],"Mode":"Linear"}],"TracksNameIndex":[{"key":"LocalPosition","value":0},{"key":"LocalScale","value":1}]},"ComponentName":"TransformComponent"}],"Default":false,"FramesPerSecond":60,"Id":22,"Uuid":"725b7296-390c-4d2f-8c1f-8fe3a92b4dcc"}
+{
+  "ComponentAnimation": [
+    {
+      "AnimationSequence": {
+        "Tracks": [
+          {
+            "KeyframeDataType": "Vector3",
+            "Keyframes": [
+              {
+                "InTangent": { "_data": [ 0.0, 0.0, 0.0, 0.0 ] },
+                "OutTangent": { "_data": [ 0.0, 0.0, 0.0, 0.0 ] },
+                "Time": 0.0,
+                "Value": { "_data": [ 8.730682373046875, -7.434861183166504, -3.50927734375, 1.0 ] }
+              },
+              {
+                "InTangent": { "_data": [ 0.0, 0.0, 0.0, 0.0 ] },
+                "OutTangent": { "_data": [ 0.0, 0.0, 0.0, 0.0 ] },
+                "Time": 0.20000000298023224,
+                "Value": { "_data": [ -5.287583351135254, 6.317551136016846, -3.701355457305908, 1.0 ] }
+              },
+              {
+                "InTangent": { "_data": [ 0.0, 0.0, 0.0, 0.0 ] },
+                "OutTangent": { "_data": [ 0.0, 0.0, 0.0, 0.0 ] },
+                "Time": 0.4333333373069763,
+                "Value": { "_data": [ -3.1449387073516846, -0.9010187387466431, -2.557633638381958, 1.0 ] }
+              },
+              {
+                "InTangent": { "_data": [ 0.0, 0.0, 0.0, 0.0 ] },
+                "OutTangent": { "_data": [ 0.0, 0.0, 0.0, 0.0 ] },
+                "Time": 0.5666666626930237,
+                "Value": { "_data": [ -1.9086769819259644, -10.1925048828125, 8.3736572265625, 1.0 ] }
+              },
+              {
+                "InTangent": { "_data": [ 0.0, 0.0, 0.0, 0.0 ] },
+                "OutTangent": { "_data": [ 0.0, 0.0, 0.0, 0.0 ] },
+                "Time": 1.0,
+                "Value": { "_data": [ 0.0, 0.0, 0.0, 1.0 ] }
+              }
+            ],
+            "Mode": "Linear"
+          },
+          {
+            "KeyframeDataType": "Vector3",
+            "Keyframes": [
+              {
+                "InTangent": { "_data": [ 0.0, 0.0, 0.0, 0.0 ] },
+                "OutTangent": { "_data": [ 0.0, 0.0, 0.0, 0.0 ] },
+                "Time": 0.0,
+                "Value": { "_data": [ 1.0, 1.0, 1.0, 1.0 ] }
+              },
+              {
+                "InTangent": { "_data": [ 0.0, 0.0, 0.0, 0.0 ] },
+                "OutTangent": { "_data": [ 0.0, 0.0, 0.0, 0.0 ] },
+                "Time": 0.6499999761581421,
+                "Value": { "_data": [ 1.100000023841858, 0.5, 2.0, 1.0 ] }
+              }
+            ],
+            "Mode": "Linear"
+          }
+        ],
+        "TracksNameIndex": [
+          {
+            "key": "LocalPosition",
+            "value": 0
+          },
+          {
+            "key": "LocalScale",
+            "value": 1
+          }
+        ]
+      },
+      "ComponentName": "TransformComponent"
+    }
+  ],
+  "Default": false,
+  "FramesPerSecond": 24,
+  "Id": 22,
+  "Uuid": "725b7296-390c-4d2f-8c1f-8fe3a92b4dcc"
+}
