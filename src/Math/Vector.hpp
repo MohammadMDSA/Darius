@@ -170,8 +170,8 @@ namespace Darius::Math
 		INLINE Vector3(DirectX::XMFLOAT3 const& v) { m_vec = DirectX::XMLoadFloat3(&v); }
 		INLINE Vector3(const Vector3 & v) { m_vec = v; }
 		INLINE Vector3(Scalar s) { m_vec = s; }
-		INLINE explicit Vector3(Vector4 vec);
-		INLINE explicit Vector3(DirectX::FXMVECTOR vec) { m_vec = vec; }
+		INLINE explicit Vector3(Vector4 const vec);
+		INLINE explicit Vector3(DirectX::FXMVECTOR const& vec) { m_vec = vec; }
 		INLINE explicit Vector3(EZeroTag) { m_vec = SplatZero(); }
 		INLINE explicit Vector3(EIdentityTag) { m_vec = SplatOne(); }
 		INLINE explicit Vector3(EXUnitVector) { m_vec = CreateXUnitVector(); }
@@ -192,6 +192,8 @@ namespace Darius::Math
 		INLINE float LengthSquare() const { return Scalar(DirectX::XMVector3LengthSq(m_vec)); }
 		INLINE bool	Equals(Vector3 const& other) const { return DirectX::XMVector3Equal(m_vec, other.m_vec); }
 		INLINE bool NearEquals(Vector3 const& other, float const& epsilon = DirectX::g_XMEpsilon[0]) const { return DirectX::XMVector3NearEqual(m_vec, other.m_vec, Scalar(epsilon)); }
+		INLINE bool IsNearZero(float epsilon) const { return NearEquals(Vector3::Zero, epsilon); }
+		INLINE bool IsZero() const { return DirectX::XMVector3Equal(m_vec, DirectX::g_XMZero); }
 
 		INLINE Vector3 operator- () const { return Vector3(DirectX::XMVectorNegate(m_vec)); }
 		INLINE Vector3 operator+ (Vector3 v2) const { return Vector3(DirectX::XMVectorAdd(m_vec, v2)); }
@@ -206,6 +208,7 @@ namespace Darius::Math
 		INLINE Vector3& operator += (Vector3 v) { *this = *this + v; return *this; }
 		INLINE Vector3& operator -= (Vector3 v) { *this = *this - v; return *this; }
 		INLINE Vector3& operator *= (Vector3 v) { *this = *this * v; return *this; }
+		INLINE Vector3& operator *= (float v) { *this = *this * v; return *this; }
 		INLINE Vector3& operator /= (Vector3 v) { *this = *this / v; return *this; }
 
 		// Costy, don't use too often
@@ -249,8 +252,8 @@ namespace Darius::Math
 		INLINE Vector4() { m_vec = DirectX::XMVectorSet(0.f, 0.f, 0.f, 0.f); }
 		INLINE Vector4(float _x, float _y, float _z, float _w) { m_vec = DirectX::XMVectorSet(_x, _y, _z, _w); }
 		explicit INLINE Vector4(const float* data) : Vector4(DirectX::XMFLOAT4(data)) { }
-		INLINE Vector4(const DirectX::XMFLOAT4 & v) { m_vec = DirectX::XMLoadFloat4(&v); }
-		INLINE Vector4(Vector3 xyz, float w) { m_vec = DirectX::XMVectorSetW(xyz, w); }
+		INLINE Vector4(DirectX::XMFLOAT4 const& v) { m_vec = DirectX::XMLoadFloat4(&v); }
+		INLINE Vector4(Vector3 const& xyz, float w) { m_vec = DirectX::XMVectorSetW(xyz, w); }
 		INLINE Vector4(const Vector4 & v) { m_vec = v; }
 		INLINE Vector4(const Scalar & s) { m_vec = s; }
 		INLINE explicit Vector4(Vector3 xyz) { m_vec = SetWToOne(xyz); }
@@ -283,6 +286,8 @@ namespace Darius::Math
 		INLINE float LengthSquare() const { return Scalar(DirectX::XMVector4LengthSq(m_vec)); }
 		INLINE bool	Equals(Vector4 const& other) const { return DirectX::XMVector4Equal(m_vec, other.m_vec); }
 		INLINE bool NearEquals(Vector4 const& other, float const& epsilon = DirectX::g_XMEpsilon[0]) const { return DirectX::XMVector4NearEqual(m_vec, other.m_vec, Scalar(epsilon)); }
+		INLINE bool IsNearZero(float epsilon) const { return NearEquals(Vector4::Zero, epsilon); }
+		INLINE bool IsZero() const { return DirectX::XMVector4Equal(m_vec, DirectX::g_XMZero); }
 
 		INLINE Vector4 operator- () const { return Vector4(DirectX::XMVectorNegate(m_vec)); }
 		INLINE Vector4 operator+ (Vector4 v2) const { return Vector4(DirectX::XMVectorAdd(m_vec, v2)); }
@@ -324,7 +329,7 @@ namespace Darius::Math
 	D_STATIC_ASSERT(sizeof(Vector4) == 16);
 
 	// Defined after Vector4 methods are declared
-	INLINE Vector3::Vector3(Vector4 vec) : m_vec((DirectX::XMVECTOR)vec)
+	INLINE Vector3::Vector3(Vector4 const vec) : m_vec((DirectX::XMVECTOR)vec)
 	{
 	}
 

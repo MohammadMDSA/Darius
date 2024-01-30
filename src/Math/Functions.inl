@@ -55,7 +55,6 @@ namespace Darius::Math
 	CREATE_SIMD_FUNCTIONS(Vector4);
 
 	INLINE bool operator== (Scalar const& lhs, Scalar const& rhs) { return (float)lhs == (float)rhs; }
-	INLINE bool operator== (Vector2 const& lhs, Vector2 const& rhs) { return DirectX::XMVector2Equal(lhs, rhs); }
 	INLINE bool operator== (Vector3 const& lhs, Vector3 const& rhs) { return DirectX::XMVector3Equal(lhs, rhs); }
 	INLINE bool operator== (Vector4 const& lhs, Vector4 const& rhs) { return DirectX::XMVector4Equal(lhs, rhs); }
 

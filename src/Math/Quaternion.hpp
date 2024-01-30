@@ -13,6 +13,8 @@
 #pragma once
 #include "Vector.hpp"
 
+#include "Rotator.hpp"
+
 #include "Quaternion.generated.hpp"
 
 namespace Darius::Math
@@ -28,6 +30,7 @@ namespace Darius::Math
 		INLINE explicit Quaternion(const DirectX::XMMATRIX & matrix) { m_vec = DirectX::XMQuaternionRotationMatrix(matrix); }
 		INLINE explicit Quaternion(DirectX::FXMVECTOR vec) { m_vec = vec; }
 		INLINE explicit Quaternion(EIdentityTag) { m_vec = DirectX::XMQuaternionIdentity(); }
+		explicit Quaternion(Rotator const& rot);
 
 		// Costy, don't use too often
 		INLINE D_CONTAINERS::DVector<float> GetData() const { return { GetX(), GetY(), GetZ(), GetW() }; }
@@ -36,35 +39,9 @@ namespace Darius::Math
 
 		INLINE bool Equals(Quaternion const& other) const { return DirectX::XMVector4Equal(m_vec, other); }
 
-		INLINE Vector3 Angles() const
-		{
-			Vector3 result;
-			auto mat = DirectX::XMMatrixRotationQuaternion(m_vec);
-			auto fmat = DirectX::XMFLOAT4X4((float*)&mat);
+		Vector3 Angles() const;
+		Rotator GetRotator() const;
 
-			if (fmat._32 < 1.f)
-			{
-				if (fmat._32 > -1.f)
-				{
-					result.SetX(asinf(fmat._32));
-					result.SetZ(atan2f(-fmat._12, fmat._22));
-					result.SetY(atan2f(-fmat._31, fmat._33));
-				}
-				else
-				{
-					result.SetX(-DirectX::XM_PIDIV2);
-					result.SetZ(-atan2f(fmat._13, fmat._11));
-					result.SetY(0.f);
-				}
-			}
-			else
-			{
-				result.SetX(DirectX::XM_PIDIV2);
-				result.SetZ(atan2f(fmat._13, fmat._11));
-				result.SetY(0.f);
-			}
-			return -result;
-		}
 		INLINE float GetX() const { return Scalar(DirectX::XMVectorSplatX(m_vec)); }
 		INLINE float GetY() const { return Scalar(DirectX::XMVectorSplatY(m_vec)); }
 		INLINE float GetZ() const { return Scalar(DirectX::XMVectorSplatZ(m_vec)); }
@@ -86,7 +63,6 @@ namespace Darius::Math
 		INLINE Quaternion operator- (void) const { return Quaternion(DirectX::XMVectorNegate(m_vec)); }
 		INLINE Quaternion operator+ (void) const { return *this; }
 
-		INLINE Quaternion operator* (Quaternion rhs) const { return Quaternion(DirectX::XMQuaternionMultiply(rhs, m_vec)); }
 		INLINE Vector3 operator* (Vector3 rhs) const { return Vector3(DirectX::XMVector3Rotate(rhs, m_vec)); }
 
 		// Assignment operators
@@ -98,11 +74,13 @@ namespace Darius::Math
 		INLINE Quaternion& operator/= (Quaternion const& rhs) { *this = *this / rhs; return *this; }
 
 		// Binary operators
-		Quaternion operator+ (Quaternion const& rhs);
-		Quaternion operator- (Quaternion const& rhs);
-		Quaternion operator* (Quaternion const& rhs);
-		Quaternion operator/ (Quaternion const& rhs);
-		Quaternion operator* (float rhs);
+		Quaternion operator+ (Quaternion const& rhs) const;
+		Quaternion operator- (Quaternion const& rhs) const;
+		Quaternion operator* (Quaternion const& rhs) const;
+		Quaternion operator/ (Quaternion const& rhs) const;
+		Quaternion operator* (float rhs) const;
+
+		INLINE bool operator== (Quaternion const& rhs) const { return Equals(rhs); }
 
 		INLINE operator DirectX::XMVECTOR const& () const { return m_vec; }
 
@@ -121,6 +99,8 @@ namespace Darius::Math
 			return Quaternion(DirectX::XMQuaternionRotationNormal(forward, DirectX::XMConvertToRadians(angleDeg)));
 		}
 
+		INLINE static Quaternion FromRotator(Rotator const& rot) { return Quaternion(rot); }
+
 		static const Quaternion Identity;
 		static const Quaternion Inverted;
 
@@ -132,7 +112,7 @@ namespace Darius::Math
 	};
 
 	// Binary operators
-	INLINE Quaternion Quaternion::operator+ (Quaternion const& rhs)
+	INLINE Quaternion Quaternion::operator+ (Quaternion const& rhs) const
 	{
 		using namespace DirectX;
 		Quaternion R;
@@ -141,7 +121,7 @@ namespace Darius::Math
 		return R;
 	}
 
-	INLINE Quaternion Quaternion::operator- (Quaternion const& rhs)
+	INLINE Quaternion Quaternion::operator- (Quaternion const& rhs) const
 	{
 		using namespace DirectX;
 		Quaternion R;
@@ -149,7 +129,7 @@ namespace Darius::Math
 		return R;
 	}
 
-	INLINE Quaternion Quaternion::operator* (Quaternion const& rhs)
+	INLINE Quaternion Quaternion::operator* (Quaternion const& rhs) const
 	{
 		using namespace DirectX;
 		Quaternion R;
@@ -157,7 +137,7 @@ namespace Darius::Math
 		return R;
 	}
 
-	INLINE Quaternion Quaternion::operator* (float rhs)
+	INLINE Quaternion Quaternion::operator* (float rhs) const
 	{
 		using namespace DirectX;
 		Quaternion R;
@@ -165,7 +145,7 @@ namespace Darius::Math
 		return R;
 	}
 
-	INLINE Quaternion Quaternion::operator/ (Quaternion const& rhs)
+	INLINE Quaternion Quaternion::operator/ (Quaternion const& rhs) const
 	{
 		using namespace DirectX;
 
@@ -183,7 +163,6 @@ namespace Darius::Math
 	INLINE Quaternion Normalize(Quaternion q) { return Quaternion(DirectX::XMQuaternionNormalize(q)); }
 	INLINE Quaternion Slerp(Quaternion a, Quaternion b, float t) { return Normalize(Quaternion(DirectX::XMQuaternionSlerp(a, b, t))); }
 	INLINE Quaternion Lerp(Quaternion a, Quaternion b, float t) { return Normalize(Quaternion(DirectX::XMVectorLerp(a, b, t))); }
-
 
 #ifdef _D_EDITOR
 
