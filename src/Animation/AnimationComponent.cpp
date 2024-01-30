@@ -29,7 +29,8 @@ namespace Darius::Animation
 		ComponentBase(),
 		mMeshId(),
 		mRootMotion(false),
-		mAnimation()
+		mAnimation(),
+		mExtrapolateValues(true)
 	{
 	}
 
@@ -37,7 +38,8 @@ namespace Darius::Animation
 		ComponentBase(uuid),
 		mMeshId(),
 		mRootMotion(false),
-		mAnimation()
+		mAnimation(),
+		mExtrapolateValues(true)
 	{
 	}
 
@@ -182,49 +184,64 @@ if(!prop.set_value(*targetComponent, optValue.value())) \
 		{
 			SetPropertyValue(bool);
 		}
-		else if(intType)
+		else if (propTypeId == intType)
 		{
 			SetPropertyValue(int);
 		}
-		else if(uintType)
+		else if (propTypeId == uintType)
 		{
 			SetPropertyValue(UINT);
 		}
-		else if(shortType)
+		else if (propTypeId == shortType)
 		{
 			SetPropertyValue(short);
 		}
-		else if(ushortType)
+		else if (propTypeId == ushortType)
 		{
 			SetPropertyValue(USHORT);
 		}
-		else if(longType)
+		else if (propTypeId == longType)
 		{
 			SetPropertyValue(long);
 		}
-		else if(uLongType)
+		else if (propTypeId == uLongType)
 		{
 			SetPropertyValue(ULONG);
 		}
-		else if(vector2Type)
+		else if (propTypeId == vector2Type)
 		{
 			SetPropertyValue(Vector2);
 		}
-		else if(vector3Type)
+		else if (propTypeId == vector3Type)
 		{
-			SetPropertyValue(Vector3);
+			//SetPropertyValue(Vector3);
+			std::optional<Vector3> optValue = propertyAnimationData.Evaluate<Vector3>(mAnimState.Time, IsExtrapolateValues());
+			if (!optValue.has_value())
+				return;
+
+			if (!prop.set_value(*targetComponent, optValue.value()))
+			{
+				D_LOG_WARN("Failed to set value for animated property " + prop.get_name().to_string() + " on component " + targetComponent->GetComponentName() + " with type " + D_NAMEOF(type));
+			}
 		}
-		else if(vector4Type)
+		else if (propTypeId == vector4Type)
 		{
 			SetPropertyValue(Vector4);
 		}
-		else if(colorType)
+		else if (propTypeId == colorType)
 		{
 			SetPropertyValue(Color);
 		}
-		else if(quaternionType)
+		else if (propTypeId == quaternionType)
 		{
-			SetPropertyValue(Quaternion);
+			std::optional<Vector3> optValue = propertyAnimationData.Evaluate<Vector3>(mAnimState.Time, IsExtrapolateValues());
+			if (!optValue.has_value())
+				return;
+			
+			if (!prop.set_value(*targetComponent, Quaternion(optValue->GetX(), optValue->GetY(), optValue->GetZ())))
+			{
+				D_LOG_WARN("Failed to set value for animated property " + prop.get_name().to_string() + " on component " + targetComponent->GetComponentName() + " with type " + D_NAMEOF(type));
+			}
 		}
 		else
 		{
@@ -237,7 +254,7 @@ if(!prop.set_value(*targetComponent, optValue.value())) \
 
 	void AnimationComponent::UpdatePropertyValues(float deltaTime)
 	{
-		
+
 		// For each component in the animation
 		for (auto& componentAnimation : mAnimation->GetComponentAnimationData())
 		{
@@ -403,6 +420,11 @@ if(!prop.set_value(*targetComponent, optValue.value())) \
 		mExtrapolateValues = extrapolate;
 
 		mChangeSignal(this);
+	}
+
+	void AnimationComponent::OnDeserialized()
+	{
+		LoadAnimationCache();
 	}
 }
 

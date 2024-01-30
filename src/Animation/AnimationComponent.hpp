@@ -56,6 +56,7 @@ namespace Darius::Animation
 		INLINE bool								IsExtrapolateValues() const { return mExtrapolateValues; }
 		void									SetExtrapolateValues(bool extrapolate);
 
+		virtual void							OnDeserialized() override;
 	protected:
 		void                                    LoadAnimationCache();
 
