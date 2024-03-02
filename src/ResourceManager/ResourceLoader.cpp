@@ -8,6 +8,8 @@
 #include <Utils/Common.hpp>
 #include <Utils/Log.hpp>
 
+#include <boost/algorithm/string.hpp>
+
 #include <fstream>
 
 using namespace D_CONTAINERS;
@@ -39,7 +41,7 @@ namespace Darius::ResourceManager
 				mCallback(mPendingToLoad);
 		}
 
-		Resource*						mPendingToLoad = nullptr;
+		Resource* mPendingToLoad = nullptr;
 		bool							mUpdateGpu = false;
 		ResourceLoadedResourceCalllback	mCallback = nullptr;
 	};
@@ -49,7 +51,7 @@ namespace Darius::ResourceManager
 		virtual void Execute() override
 		{
 			auto loaded = ResourceLoader::LoadResourceSync(mPath, mMetaOnly);
-			
+
 			if (mCallback)
 				mCallback(loaded);
 
@@ -83,10 +85,11 @@ namespace Darius::ResourceManager
 	// Only used in resource reading/wrting, from/to file context
 	DVector<ResourceHandle> ResourceLoader::CreateResourceObject(Path const& path, DResourceManager* manager)
 	{
-		auto extension = path.extension();
-		auto resourceTypes = Resource::GetResourceTypeByExtension(extension.string());
+		auto extension = path.extension().string();
+		auto extString = boost::algorithm::to_lower_copy(extension);
+		auto resourceTypes = Resource::GetResourceTypeByExtension(extString);
 
-		auto results = DVector<ResourceHandle>();
+		DVector<ResourceHandle> results;
 
 		for (auto type : resourceTypes)
 		{
@@ -116,8 +119,8 @@ namespace Darius::ResourceManager
 		if (resource->GetType() == 0)
 			throw D_CORE::Exception::Exception("Bad resource type to save");
 
-		if (resource->IsLocked())
-			return false;
+		/*if (resource->IsLocked())
+			return false;*/
 
 		if (resource->mDefault)
 		{
@@ -300,18 +303,21 @@ namespace Darius::ResourceManager
 					// Save meta to file
 					SaveResource(resource, true);
 
+				bool dirtyDisk = false;
+
 				// Load if not loaded and should load, do it!
 				if (!metaOnly && !resource->IsLoaded())
 				{
 					auto resWName = resource->GetName();
 					auto resName = WSTR2STR(resWName);
-					resource->ReadResourceFromFile(properties.contains(resName) ? properties[resName] : Json());
+					resource->ReadResourceFromFile(properties.contains(resName) ? properties[resName] : Json(), dirtyDisk);
 					resource->mLoaded = true;
 				}
 
 				resource->SetLocked(false);
 
-
+				if (dirtyDisk)
+					resource->MakeDiskDirty();
 			}
 		}
 		if (specific)
@@ -331,7 +337,7 @@ namespace Darius::ResourceManager
 	}
 
 
-	void ResourceLoader::VisitSubdirectory(Path const& path, bool recursively)
+	void ResourceLoader::VisitSubdirectory(Path const& path, bool recursively, DirectoryVisitProgress* progress)
 	{
 		D_FILE::VisitEntriesInDirectory(path, false, [&](Path const& _path, bool isDir)
 			{
@@ -339,10 +345,10 @@ namespace Darius::ResourceManager
 				{
 					CheckDirectoryMeta(_path);
 					if (recursively)
-						VisitSubdirectory(_path, true);
+						VisitSubdirectory(_path, true, progress);
 				}
 				else
-					VisitFile(_path);
+					VisitFile(_path, progress);
 			});
 	}
 
@@ -399,14 +405,25 @@ namespace Darius::ResourceManager
 		os.close();
 	}
 
-	void ResourceLoader::VisitFile(Path const& path)
+	void ResourceLoader::VisitFile(Path const& path, DirectoryVisitProgress* progress)
 	{
 		if (path.extension() == ".tos")
 			return;
 		if (!D_H_ENSURE_FILE(path))
 			throw D_EXCEPTION::FileNotFoundException("Resource on location " + path.string() + " not found");
 
-		LoadResourceAsync(path, nullptr, true);
+		if (progress)
+		{
+			progress->Total++;
+			LoadResourceAsync(path, [progress](auto _)
+				{
+					progress->Done++;
+					D_LOG_INFO(progress->String("Updating resource database {} / {}"));
+					if (progress->IsFinished())
+						delete progress;
+
+				}, true);
+		}
 	}
 
 	void to_json(D_SERIALIZATION::Json& j, const ResourceFileMeta& value)

@@ -143,7 +143,7 @@ namespace Darius::Animation
 		return true;
 	}
 
-	void AnimationResource::ReadResourceFromFile(D_SERIALIZATION::Json const& json)
+	void AnimationResource::ReadResourceFromFile(D_SERIALIZATION::Json const& json, bool& dirtyDisk)
 	{
 		auto ext = GetPath().extension();
 		if (ext == ".anim")
@@ -158,6 +158,8 @@ namespace Darius::Animation
 			ReadFbxAnimationFromFile(json);
 			return;
 		}
+
+		dirtyDisk = false;
 	}
 
 	void AnimationResource::Unload()

@@ -39,7 +39,7 @@ namespace Darius::Scene
 		os.close();
 	}
 
-	void PrefabResource::ReadResourceFromFile(D_SERIALIZATION::Json const& j)
+	void PrefabResource::ReadResourceFromFile(D_SERIALIZATION::Json const& j, bool& dirtyDisk)
 	{
 		Json dataJson;
 		std::ifstream is(GetPath());
@@ -47,6 +47,8 @@ namespace Darius::Scene
 		is.close();
 
 		D_WORLD::LoadGameObject(dataJson, &mPrefabGameObject, false);
+
+		dirtyDisk = false;
 	}
 
 	void PrefabResource::Unload()

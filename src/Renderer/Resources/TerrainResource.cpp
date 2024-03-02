@@ -36,7 +36,8 @@ namespace Darius::Renderer
 
 	struct TerrainParametersConstants
 	{
-		float HeightFactor;
+		float				HeightFactor;
+		DirectX::XMFLOAT2	InvHeightTexDim;
 	};
 
 	TerrainResource::TerrainResource(D_CORE::Uuid uuid, std::wstring const& path, std::wstring const& name, D_RESOURCE::DResourceId id, bool isDefault) :
@@ -68,8 +69,10 @@ namespace Darius::Renderer
 		D_FILE::WriteJsonFile(GetPath(), json);
 	}
 
-	void TerrainResource::ReadResourceFromFile(D_SERIALIZATION::Json const& j)
+	void TerrainResource::ReadResourceFromFile(D_SERIALIZATION::Json const& j, bool& dirtyDisk)
 	{
+		dirtyDisk = false;
+
 		Json json;
 		D_FILE::ReadJsonFile(GetPath(), json);
 
@@ -242,8 +245,10 @@ namespace Darius::Renderer
 
 		// Updating parameter constants
 		UINT frameResIndex = D_GRAPHICS_DEVICE::GetCurrentFrameResourceIndex();
+		D_GRAPHICS_BUFFERS::Texture const* heightTexData = mHeightMap->GetTextureData();
 		auto paramCB = reinterpret_cast<TerrainParametersConstants*>(mParametersConstantsCPU.MapInstance(frameResIndex));
 		paramCB->HeightFactor = mHeightFactor;
+		paramCB->InvHeightTexDim = { 1.f / heightTexData->GetWidth(), 1.f / heightTexData->GetHeight() };
 		mParametersConstantsCPU.Unmap();
 
 		// Uploading

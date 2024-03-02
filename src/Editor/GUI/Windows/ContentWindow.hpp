@@ -53,8 +53,7 @@ namespace Darius::Editor::Gui::Windows
 		float						mTreeViewWidth;
 		float						mRightPanelWidth;
 
-
-		std::atomic_bool			mItemsLoading;
+		std::atomic_uint			mNumberOfItemsToBeLoaded;
 	};
 }
 

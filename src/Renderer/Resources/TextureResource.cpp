@@ -23,9 +23,10 @@ namespace Darius::Renderer
 		D_SERIALIZATION::Serialize(*this, json);
 	}
 
-	void TextureResource::ReadResourceFromFile(D_SERIALIZATION::Json const& json)
+	void TextureResource::ReadResourceFromFile(D_SERIALIZATION::Json const& json, bool& dirtyDisk)
 	{
 		D_SERIALIZATION::Deserialize(*this, json);
+		dirtyDisk = false;
 	}
 
 	void TextureResource::CreateRaw(uint32_t color, DXGI_FORMAT format, size_t rowPitchByte, size_t width, size_t height)

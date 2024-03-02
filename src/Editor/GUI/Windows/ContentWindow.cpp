@@ -149,7 +149,7 @@ namespace Darius::Editor::Gui::Windows
 	void ContentWindow::DrawMainItems()
 	{
 		// Are items are being loaded
-		if (mItemsLoading.load())
+		if (mNumberOfItemsToBeLoaded.load() > 0)
 		{
 			ImGui::Text("Items are being loaded");
 			return;
@@ -191,7 +191,6 @@ namespace Darius::Editor::Gui::Windows
 
 	void ContentWindow::UpdateDirectoryItems()
 	{
-		mItemsLoading.store(true);
 
 		mCurrentDirectoryItems.clear();
 
@@ -207,6 +206,8 @@ namespace Darius::Editor::Gui::Windows
 		D_RESOURCE::GetAllResourcePaths(resVec);
 
 
+		mNumberOfItemsToBeLoaded.store(0);
+
 		for (auto const& path : resVec)
 		{
 			auto parent = path.parent_path();
@@ -214,11 +215,16 @@ namespace Darius::Editor::Gui::Windows
 				continue;
 			if (std::filesystem::equivalent(mCurrentDirectory, parent))
 			{
-				D_RESOURCE::ResourceLoader::LoadResourceAsync(path, [_currentDirectoryItems = &mCurrentDirectoryItems, path = path, itemsLoading = &mItemsLoading](auto containedResources)
+				mNumberOfItemsToBeLoaded++;
+				D_RESOURCE::ResourceLoader::LoadResourceAsync(path, [_currentDirectoryItems = &mCurrentDirectoryItems, path = path, itemsLoading = &mNumberOfItemsToBeLoaded](auto containedResources)
 					{
 						auto& currentDirectoryItems = *_currentDirectoryItems;
 						auto name = D_FILE::GetFileName(path.filename());
 						auto nameStr = WSTR2STR(name);
+						(*itemsLoading)--;
+
+						if (itemsLoading->load() != 0)
+							return;
 
 						uint64_t icon = D_THUMBNAIL::GetIconTextureId(D_THUMBNAIL::CommonIcon::File);
 
@@ -254,9 +260,6 @@ namespace Darius::Editor::Gui::Windows
 								else
 									return first.Name.compare(second.Name.c_str()) < 0;
 							});
-
-						itemsLoading->store(false);
-
 					}, true);
 
 			}

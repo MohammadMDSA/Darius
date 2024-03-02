@@ -269,7 +269,7 @@ namespace Darius::ResourceManager
 		// extra parameters, it is strongly suggested that you avoid writing/reading resource properties on/from the json
 		// param.
 		virtual void				WriteResourceToFile(D_SERIALIZATION::Json& j) const = 0;
-		virtual void				ReadResourceFromFile(D_SERIALIZATION::Json const& j) = 0;
+		virtual void				ReadResourceFromFile(D_SERIALIZATION::Json const& j, bool& dirtyDisk) = 0;
 
 		virtual bool				UploadToGpu() = 0;
 

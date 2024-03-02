@@ -23,13 +23,15 @@
         "comparisonFunc = COMPARISON_GREATER_EQUAL," \
         "filter = FILTER_MIN_MAG_LINEAR_MIP_POINT)," \
     "StaticSampler(s12, maxAnisotropy = 8, visibility = SHADER_VISIBILITY_PIXEL)," \
-    "StaticSampler(s13, maxAnisotropy = 16)"
+    "StaticSampler(s13, maxAnisotropy = 16)," \
+    "StaticSampler(s14, maxAnisotropy = 16)"
 
 // Common (static) samplers
-SamplerState defaultSampler : register(s10);
-SamplerComparisonState shadowSampler : register(s11);
-SamplerState cubeMapSampler : register(s12);
-SamplerState linearWrap : register(s13);
+SamplerState defaultSampler             : register(s10);
+SamplerComparisonState shadowSampler    : register(s11);
+SamplerState cubeMapSampler             : register(s12);
+SamplerState linearWrap                 : register(s13);
+SamplerState linearClamp                : register(s14);
 
 cbuffer cbPass : register(b1)
 {

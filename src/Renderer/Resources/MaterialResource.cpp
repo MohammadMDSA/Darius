@@ -114,8 +114,10 @@ namespace Darius::Renderer
 		os.close();
 	}
 
-	void MaterialResource::ReadResourceFromFile(D_SERIALIZATION::Json const& j)
+	void MaterialResource::ReadResourceFromFile(D_SERIALIZATION::Json const& j, bool& dirtyDisk)
 	{
+		dirtyDisk = false;
+
 		Json data;
 		std::ifstream is(GetPath());
 		is >> data;

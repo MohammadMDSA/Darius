@@ -65,7 +65,7 @@ namespace Darius::Renderer::Geometry::ModelLoader::Fbx
 	};
 
 	void TraverseNodes(FbxNode* nodeP, std::function<void(FbxNode*)> callback);
-	bool ReadMeshNode(FbxMesh* pMesh, MultiPartMeshData<D_RENDERER_VERTEX::VertexPositionNormalTangentTextureSkinned>& result, DUnorderedMap<int, DVector<int>>& controlPointIndexToVertexIndexMap);
+	bool ReadMeshNode(FbxMesh* pMesh, MultiPartMeshData<D_RENDERER_VERTEX::VertexPositionNormalTangentTextureSkinned>& result, DUnorderedMap<int, DVector<int>>& controlPointIndexToVertexIndexMap, FbxAxisSystem::ECoordSystem coordSystem);
 	bool ReadMeshSkin(FbxMesh* pMesh, MultiPartMeshData<D_RENDERER_VERTEX::VertexPositionNormalTangentTextureSkinned>& meshData, DList<D_RENDERER_GEOMETRY::Mesh::SkeletonJoint>& skeleton, DUnorderedMap<int, DVector<int>> const& controlPointIndexToVertexIndexMap);
 	void AddSkeletonChildren(FbxSkeleton const* skeletonNode, DList<Mesh::SkeletonJoint>& skeletonData, DMap<FbxSkeleton const*, UINT>& skeletonIndexMap);
 	void ReadFBXCacheVertexPositions(MultiPartMeshData<D_RENDERER_VERTEX::VertexPositionNormalTangentTextureSkinned>& meshDataVec, FbxMesh const* mesh, DUnorderedMap<int, DVector<int>> const& controlPointIndexToVertexIndexMap);
@@ -74,7 +74,7 @@ namespace Darius::Renderer::Geometry::ModelLoader::Fbx
 #pragma region Common
 	// Reads the scene from path and return a pointer to root node of the scene
 	// to work with and the sdk manager to get dispose of later.
-	bool InitializeFbxScene(D_FILE::Path const& path, FbxNode** rootNode)
+	bool InitializeFbxScene(D_FILE::Path const& path, FbxNode** rootNode, FbxAxisSystem::ECoordSystem& coordSystem)
 	{
 
 		if (sdkManager == nullptr)
@@ -115,12 +115,16 @@ namespace Darius::Renderer::Geometry::ModelLoader::Fbx
 		lImporter->Destroy();
 
 
+		auto& globalSettings = lScene->GetGlobalSettings();
+
 		// Convert Axis System to what is used in this example, if needed
-		FbxAxisSystem SceneAxisSystem = lScene->GetGlobalSettings().GetAxisSystem();
+		FbxAxisSystem SceneAxisSystem = globalSettings.GetAxisSystem();
+		coordSystem = SceneAxisSystem.GetCoorSystem();
 		FbxAxisSystem OurAxisSystem(FbxAxisSystem::eYAxis, FbxAxisSystem::eParityOdd, FbxAxisSystem::eRightHanded);
 		if (SceneAxisSystem != OurAxisSystem)
 		{
-			OurAxisSystem.ConvertScene(lScene);
+			OurAxisSystem.DeepConvertScene(lScene);
+			globalSettings.SetAxisSystem(SceneAxisSystem);
 		}
 
 		// Convert mesh, NURBS and patch into triangle mesh
@@ -252,7 +256,8 @@ namespace Darius::Renderer::Geometry::ModelLoader::Fbx
 		FbxManager* sdkManager = nullptr;
 		FbxNode* rootNode = nullptr;
 
-		if (!InitializeFbxScene(path, &rootNode))
+		FbxAxisSystem::ECoordSystem coordSystem;
+		if (!InitializeFbxScene(path, &rootNode, coordSystem))
 		{
 			return D_CONTAINERS::DVector<D_RESOURCE::ResourceDataInFile>();
 		}
@@ -284,8 +289,9 @@ namespace Darius::Renderer::Geometry::ModelLoader::Fbx
 	bool ReadMeshByName(D_FILE::Path const& path, std::wstring const& meshName, MultiPartMeshData<D_RENDERER_VERTEX::VertexPositionNormalTangentTextureSkinned>& result, DUnorderedMap<int, DVector<int>>& controlPointIndexToVertexIndexMap, FbxMesh** mesh, FbxManager** sdkManager)
 	{
 		FbxNode* rootNode = nullptr;
-
-		if (!InitializeFbxScene(path, &rootNode))
+		
+		FbxAxisSystem::ECoordSystem coordSystem;
+		if (!InitializeFbxScene(path, &rootNode, coordSystem))
 		{
 			return false;
 		}
@@ -306,7 +312,7 @@ namespace Darius::Renderer::Geometry::ModelLoader::Fbx
 			return false;
 
 		*mesh = targetNode->GetMesh();
-		ReadMeshNode(*mesh, result, controlPointIndexToVertexIndexMap);
+		ReadMeshNode(*mesh, result, controlPointIndexToVertexIndexMap, coordSystem);
 		return true;
 	}
 
@@ -321,7 +327,7 @@ namespace Darius::Renderer::Geometry::ModelLoader::Fbx
 		return res;
 	}
 
-	bool ReadMeshNode(FbxMesh* pMesh, MultiPartMeshData<D_RENDERER_VERTEX::VertexPositionNormalTangentTextureSkinned>& result, DUnorderedMap<int, DVector<int>>& controlPointIndexToVertexIndexMap)
+	bool ReadMeshNode(FbxMesh* pMesh, MultiPartMeshData<D_RENDERER_VERTEX::VertexPositionNormalTangentTextureSkinned>& result, DUnorderedMap<int, DVector<int>>& controlPointIndexToVertexIndexMap, FbxAxisSystem::ECoordSystem coordSystem)
 	{
 		if (!pMesh->GetNode())
 			return false;
@@ -659,9 +665,22 @@ namespace Darius::Renderer::Geometry::ModelLoader::Fbx
 
 			result.MeshData.Vertices.push_back(vertex);
 		}
-		for (int i = 0; i < lPolygonCount * TRIANGLE_VERTEX_COUNT; i++)
+		if (coordSystem == fbxsdk::FbxAxisSystem::eRightHanded)
 		{
-			result.MeshData.Indices32.push_back(lIndices[i]);
+			for (int i = 0; i < lPolygonCount * TRIANGLE_VERTEX_COUNT; i++)
+			{
+				result.MeshData.Indices32.push_back(lIndices[i]);
+			}
+		}
+		else
+		{
+			for (int i = 0; i < lPolygonCount; i++)
+			{
+				int index = i * TRIANGLE_VERTEX_COUNT;
+				result.MeshData.Indices32.push_back(lIndices[index]);
+				result.MeshData.Indices32.push_back(lIndices[index + 2]);
+				result.MeshData.Indices32.push_back(lIndices[index + 1]);
+			}
 		}
 
 		delete[] lVertices;
@@ -1038,7 +1057,8 @@ namespace Darius::Renderer::Geometry::ModelLoader::Fbx
 		FbxManager* sdkManager = nullptr;
 		FbxNode* rootNode = nullptr;
 
-		if (!InitializeFbxScene(path, &rootNode))
+		FbxAxisSystem::ECoordSystem coordSystem;
+		if (!InitializeFbxScene(path, &rootNode, coordSystem))
 		{
 			return nullptr;
 		}

@@ -92,13 +92,13 @@ namespace Darius::ResourceManager
 			{
 				if (callback)
 				{
-					callback(ResourceRef(static_cast<T*>(resource)));
+					callback(static_cast<T*>(resource));
 				}
 			});
 	}
 
 	template<class T>
-	ResourceRef<T> GetResourceSync(ResourceHandle handle)
+	ResourceRef<T> GetResourceSync(ResourceHandle handle, bool load = false)
 	{
 		// Checking if T is a resource type
 		using conv = std::is_convertible<T*, Resource*>;
@@ -112,7 +112,7 @@ namespace Darius::ResourceManager
 		if (handle.Type != T::GetResourceType())
 			throw D_EXCEPTION::Exception("Requested type and handle type are not compatible");
 
-		return ResourceRef(dynamic_cast<T*>(GetRawResourceSync(handle)));
+		return ResourceRef(dynamic_cast<T*>(GetRawResourceSync(handle, load)));
 	}
 
 	ResourceHandle GetResourceHandle(D_CORE::Uuid const& uuid);

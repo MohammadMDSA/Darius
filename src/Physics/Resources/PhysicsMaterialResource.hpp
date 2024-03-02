@@ -39,7 +39,7 @@ namespace Darius::Physics
 		INLINE float					GetRestitution() const { return mPxData->getRestitution(); }
 
 		virtual void					WriteResourceToFile(D_SERIALIZATION::Json& j) const override;
-		virtual void					ReadResourceFromFile(D_SERIALIZATION::Json const& j) override;
+		virtual void					ReadResourceFromFile(D_SERIALIZATION::Json const& j, bool& dirtyDisk) override;
 		INLINE virtual bool				UploadToGpu() override { return true; }
 		virtual void					Unload() override;
 

@@ -49,7 +49,7 @@ namespace Darius::Editor::Context
 
 		D_WORLD::Initialize();
 
-		D_RESOURCE_LOADER::VisitSubdirectory(D_ENGINE_CONTEXT::GetAssetsPath(), true);
+		D_RESOURCE_LOADER::VisitSubdirectory(D_ENGINE_CONTEXT::GetAssetsPath(), true, new D_RESOURCE::DirectoryVisitProgress());
 
 		D_THUMBNAIL::Initialize();
 		D_GUI_MANAGER::Initialize();

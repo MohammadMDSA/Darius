@@ -32,16 +32,18 @@ namespace Darius::Renderer
 		j["PrefabUuid"] = D_CORE::ToString(mPrefabGameObject->GetUuid());
 	}
 
-	void FBXPrefabResource::ReadResourceFromFile(D_SERIALIZATION::Json const& j)
+	void FBXPrefabResource::ReadResourceFromFile(D_SERIALIZATION::Json const& j, bool& dirtyDisk)
 	{
 		D_CORE::Uuid prefabGoUuid;
+
+		dirtyDisk = false;
 
 		if (j.contains("PrefabUuid"))
 			prefabGoUuid = D_CORE::FromString(j["PrefabUuid"]);
 		else
 		{
 			prefabGoUuid = D_CORE::GenerateUuid();
-			MakeDiskDirty();
+			dirtyDisk = true;
 		}
 
 		mPrefabGameObject = D_RENDERER_GEOMETRY_LOADER_FBX::LoadScene(GetPath(), prefabGoUuid);
@@ -54,7 +56,8 @@ namespace Darius::Renderer
 
 	void FBXPrefabResource::Unload()
 	{
-		D_WORLD::DeleteGameObject(mPrefabGameObject);
+		if (mPrefabGameObject)
+			D_WORLD::DeleteGameObject(mPrefabGameObject);
 		mPrefabGameObject = nullptr;
 		EvictFromGpu();
 	}

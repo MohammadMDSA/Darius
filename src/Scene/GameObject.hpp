@@ -61,15 +61,7 @@ namespace Darius::Scene
 		void								SetParent(GameObject* newParent);
 
 		void								SetActive(bool active);
-		INLINE bool							IsActive() const
-		{
-			if (!IsSelfActive())
-				return false;
-			auto parent = GetParent();
-			if (parent)
-				return parent->IsActive();
-			return true;
-		}
+		bool								IsActive() const;
 		INLINE bool							IsSelfActive() const { return mActive; }
 
 		// Object states

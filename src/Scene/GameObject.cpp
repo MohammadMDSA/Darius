@@ -321,7 +321,10 @@ namespace Darius::Scene
 			});
 
 		for (auto comp : compList)
+		{
+			D_VERIFY(comp);
 			callback(comp);
+		}
 	}
 
 	D_ECS_COMP::ComponentBase* GameObject::AddComponent(std::string const& name)
@@ -400,6 +403,16 @@ namespace Darius::Scene
 				if (comp->IsActive())
 					comp->OnActivate();
 			});
+	}
+
+	bool GameObject::IsActive() const
+	{
+		if (!IsSelfActive())
+			return false;
+		auto parent = GetParent();
+		if (parent)
+			return parent->IsActive();
+		return true;
 	}
 
 	void GameObject::RemoveComponent(D_ECS_COMP::ComponentBase* comp)

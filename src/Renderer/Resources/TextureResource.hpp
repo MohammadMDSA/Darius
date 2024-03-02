@@ -87,7 +87,7 @@ namespace Darius::Renderer
 
 		// Inherited via Resource
 		virtual void								WriteResourceToFile(D_SERIALIZATION::Json& j) const override;
-		virtual void								ReadResourceFromFile(D_SERIALIZATION::Json const& j) override;
+		virtual void								ReadResourceFromFile(D_SERIALIZATION::Json const& j, bool& dirtyDisk) override;
 		virtual bool								UploadToGpu() override;
 
 		virtual void								Unload() override;

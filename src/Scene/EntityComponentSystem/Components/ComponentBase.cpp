@@ -52,4 +52,9 @@ namespace Darius::Scene::ECS::Components
 		}
 	}
 
+	bool ComponentBase::IsActive() const
+	{
+		return mGameObject->IsActive() && mGameObject->IsInScene() && mEnabled;
+	}
+
 }

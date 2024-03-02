@@ -9,11 +9,17 @@ cbuffer cbPerObject : register(b0)
 cbuffer cbMaterial : register(b2)
 {
     float  gDisplacementAmount;
+    float2 gDisplacementTexInvSize;
 };
 
 Texture2D<float> texWorldDisplacement : register(t0);
 
 #define ResolveParam(param) lerp(lerp(quad[0].param, quad[1].param, uv.x),lerp(quad[2].param, quad[3].param, uv.x),uv.y)
+
+float getHeight(float2 uv, SamplerState state)
+{
+    return texWorldDisplacement.SampleLevel(state, uv, 0.f).r;
+}
 
 [domain("quad")]
 [RootSignature(Renderer_RootSig)]
@@ -23,17 +29,27 @@ DomainOut main(PatchTess patchTess,
 {
     DomainOut dout;
     
-    // Normal
-    float3 normal = normalize(ResolveParam(Normal));
-    float3x3 wit = (float3x3) gWorldIT;
-    dout.WorldNormal = mul(wit, normal);
-    
     // UV
     dout.UV = ResolveParam(UV);
 
+    // Normal
+    float hL = getHeight(dout.UV - gDisplacementTexInvSize, linearClamp);
+    float hR = getHeight(dout.UV + gDisplacementTexInvSize, linearClamp);
+    float hD = getHeight(dout.UV - gDisplacementTexInvSize, linearClamp);
+    float hU = getHeight(dout.UV + gDisplacementTexInvSize, linearClamp);
+    // Deduce terrain normal
+    float3 normal; // = normalize(ResolveParam(Normal));
+    normal.x = (hL - hR) * gDisplacementAmount;
+    normal.z = (hD - hU) * gDisplacementAmount;
+    normal.y = 2.0;
+    normal = normalize(normal);
+    
+    float3x3 wit = (float3x3) gWorldIT;
+    dout.WorldNormal = mul(wit, normal);
+    
     // World Pos    
-    float displacementNorm = texWorldDisplacement.SampleLevel(linearWrap, dout.UV, 0.f).r;
-    float3 displacement = normal * (displacementNorm * gDisplacementAmount);
+    float displacementNorm = getHeight(dout.UV, linearWrap);
+    float3 displacement = float3(0.f, displacementNorm * gDisplacementAmount, 0.f);
     float3 posL = ResolveParam(Pos);
     posL += displacement;
     dout.WorldPos = mul(gWorld, float4(posL, 1.f)).xyz;

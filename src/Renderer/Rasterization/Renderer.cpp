@@ -479,7 +479,7 @@ namespace Darius::Renderer::Rasterization
 	{
 		// Default root signature
 		auto& def = RootSigns[(size_t)RootSignatureTypes::DefaultRootSig];
-		def.Reset(kNumRootBindings, 4);
+		def.Reset(kNumRootBindings, 5);
 
 		// Create samplers
 		SamplerDesc defaultSamplerDesc;
@@ -489,6 +489,7 @@ namespace Darius::Renderer::Rasterization
 		def.InitStaticSampler(11, SamplerShadowDesc, D3D12_SHADER_VISIBILITY_PIXEL);
 		def.InitStaticSampler(12, cubeMapSamplerDesc, D3D12_SHADER_VISIBILITY_PIXEL);
 		def.InitStaticSampler(13, SamplerLinearWrapDesc);
+		def.InitStaticSampler(14, SamplerLinearClampDesc);
 
 		// Create root CBVs.
 		def[kMeshConstantsVS].InitAsConstantBuffer(0, D3D12_SHADER_VISIBILITY_VERTEX);

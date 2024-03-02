@@ -40,8 +40,10 @@ namespace Darius::Physics
 		os.close();
 	}
 
-	void PhysicsMaterialResource::ReadResourceFromFile(D_SERIALIZATION::Json const& json)
+	void PhysicsMaterialResource::ReadResourceFromFile(D_SERIALIZATION::Json const& json, bool& dirtyDisk)
 	{
+		dirtyDisk = false;
+
 		Json j;
 		std::ifstream is(GetPath());
 		is >> j;

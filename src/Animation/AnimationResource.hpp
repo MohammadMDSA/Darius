@@ -38,7 +38,7 @@ namespace Darius::Animation
 #endif // _D_EDITOR
 
 		virtual void					WriteResourceToFile(D_SERIALIZATION::Json& json) const override;
-		virtual void					ReadResourceFromFile(D_SERIALIZATION::Json const& json) override;
+		virtual void					ReadResourceFromFile(D_SERIALIZATION::Json const& json, bool& dirtyDisk) override;
 		virtual INLINE bool				UploadToGpu() override { return true; };
 		virtual INLINE void				Unload() override;
 
