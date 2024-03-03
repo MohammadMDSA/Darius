@@ -65,7 +65,7 @@ namespace Darius::Renderer::Geometry::ModelLoader::Fbx
 	};
 
 	void TraverseNodes(FbxNode* nodeP, std::function<void(FbxNode*)> callback);
-	bool ReadMeshNode(FbxMesh* pMesh, MultiPartMeshData<D_RENDERER_VERTEX::VertexPositionNormalTangentTextureSkinned>& result, DUnorderedMap<int, DVector<int>>& controlPointIndexToVertexIndexMap, FbxAxisSystem::ECoordSystem coordSystem);
+	bool ReadMeshNode(FbxMesh* pMesh, bool inverted, MultiPartMeshData<D_RENDERER_VERTEX::VertexPositionNormalTangentTextureSkinned>& result, DUnorderedMap<int, DVector<int>>& controlPointIndexToVertexIndexMap, FbxAxisSystem::ECoordSystem coordSystem);
 	bool ReadMeshSkin(FbxMesh* pMesh, MultiPartMeshData<D_RENDERER_VERTEX::VertexPositionNormalTangentTextureSkinned>& meshData, DList<D_RENDERER_GEOMETRY::Mesh::SkeletonJoint>& skeleton, DUnorderedMap<int, DVector<int>> const& controlPointIndexToVertexIndexMap);
 	void AddSkeletonChildren(FbxSkeleton const* skeletonNode, DList<Mesh::SkeletonJoint>& skeletonData, DMap<FbxSkeleton const*, UINT>& skeletonIndexMap);
 	void ReadFBXCacheVertexPositions(MultiPartMeshData<D_RENDERER_VERTEX::VertexPositionNormalTangentTextureSkinned>& meshDataVec, FbxMesh const* mesh, DUnorderedMap<int, DVector<int>> const& controlPointIndexToVertexIndexMap);
@@ -286,7 +286,7 @@ namespace Darius::Renderer::Geometry::ModelLoader::Fbx
 		return results;
 	}
 
-	bool ReadMeshByName(D_FILE::Path const& path, std::wstring const& meshName, MultiPartMeshData<D_RENDERER_VERTEX::VertexPositionNormalTangentTextureSkinned>& result, DUnorderedMap<int, DVector<int>>& controlPointIndexToVertexIndexMap, FbxMesh** mesh, FbxManager** sdkManager)
+	bool ReadMeshByName(D_FILE::Path const& path, std::wstring const& meshName, bool inverted, MultiPartMeshData<D_RENDERER_VERTEX::VertexPositionNormalTangentTextureSkinned>& result, DUnorderedMap<int, DVector<int>>& controlPointIndexToVertexIndexMap, FbxMesh** mesh, FbxManager** sdkManager)
 	{
 		FbxNode* rootNode = nullptr;
 		
@@ -312,22 +312,22 @@ namespace Darius::Renderer::Geometry::ModelLoader::Fbx
 			return false;
 
 		*mesh = targetNode->GetMesh();
-		ReadMeshNode(*mesh, result, controlPointIndexToVertexIndexMap, coordSystem);
+		ReadMeshNode(*mesh, inverted, result, controlPointIndexToVertexIndexMap, coordSystem);
 		return true;
 	}
 
-	bool ReadMeshByName(D_FILE::Path const& path, std::wstring const& meshName, MultiPartMeshData<D_RENDERER_VERTEX::VertexPositionNormalTangentTextureSkinned>& result)
+	bool ReadMeshByName(D_FILE::Path const& path, std::wstring const& meshName, bool inverted, MultiPartMeshData<D_RENDERER_VERTEX::VertexPositionNormalTangentTextureSkinned>& result)
 	{
 		FbxMesh* mesh;
 		FbxManager* sdkManager;
 
 		DUnorderedMap<int, DVector<int>> controlPointIndexToVertexIndexMap;
-		auto res = ReadMeshByName(path, meshName, result, controlPointIndexToVertexIndexMap, &mesh, &sdkManager);
+		auto res = ReadMeshByName(path, meshName, inverted, result, controlPointIndexToVertexIndexMap, &mesh, &sdkManager);
 
 		return res;
 	}
 
-	bool ReadMeshNode(FbxMesh* pMesh, MultiPartMeshData<D_RENDERER_VERTEX::VertexPositionNormalTangentTextureSkinned>& result, DUnorderedMap<int, DVector<int>>& controlPointIndexToVertexIndexMap, FbxAxisSystem::ECoordSystem coordSystem)
+	bool ReadMeshNode(FbxMesh* pMesh, bool inverted, MultiPartMeshData<D_RENDERER_VERTEX::VertexPositionNormalTangentTextureSkinned>& result, DUnorderedMap<int, DVector<int>>& controlPointIndexToVertexIndexMap, FbxAxisSystem::ECoordSystem coordSystem)
 	{
 		if (!pMesh->GetNode())
 			return false;
@@ -665,7 +665,11 @@ namespace Darius::Renderer::Geometry::ModelLoader::Fbx
 
 			result.MeshData.Vertices.push_back(vertex);
 		}
-		if (coordSystem == fbxsdk::FbxAxisSystem::eRightHanded)
+
+		bool readInverted = coordSystem == fbxsdk::FbxAxisSystem::eLeftHanded;
+		readInverted = inverted ? !readInverted : readInverted;
+
+		if (readInverted)
 		{
 			for (int i = 0; i < lPolygonCount * TRIANGLE_VERTEX_COUNT; i++)
 			{
@@ -698,7 +702,7 @@ namespace Darius::Renderer::Geometry::ModelLoader::Fbx
 
 #pragma region Skinned Mesh
 
-	bool ReadMeshByName(D_FILE::Path const& path, std::wstring const& meshName, MultiPartMeshData<D_RENDERER_VERTEX::VertexPositionNormalTangentTextureSkinned>& result, DList<D_RENDERER_GEOMETRY::Mesh::SkeletonJoint>& skeleton)
+	bool ReadMeshByName(D_FILE::Path const& path, std::wstring const& meshName, bool inverted, MultiPartMeshData<D_RENDERER_VERTEX::VertexPositionNormalTangentTextureSkinned>& result, DList<D_RENDERER_GEOMETRY::Mesh::SkeletonJoint>& skeleton)
 	{
 		DUnorderedMap<int, DVector<int>> controlPointIndexToVertexIndexMap;
 
@@ -706,7 +710,7 @@ namespace Darius::Renderer::Geometry::ModelLoader::Fbx
 		FbxMesh* mesh;
 		FbxManager* sdkManager;
 
-		if (!ReadMeshByName(path, meshName, result, controlPointIndexToVertexIndexMap, &mesh, &sdkManager))
+		if (!ReadMeshByName(path, meshName, inverted, result, controlPointIndexToVertexIndexMap, &mesh, &sdkManager))
 		{
 			return false;
 		}
