@@ -29,6 +29,7 @@ namespace Darius::Graphics::Utils::Buffers
 
 		void CreateTGAFromMemory(const void* memBuffer, size_t fileSize, bool sRGB);
 		bool CreateDDSFromMemory(const void* memBuffer, size_t fileSize, bool sRGB);
+		bool CreateWICFromMemory(const void* memBuffer, size_t fileSize, bool sRGB);
 		void CreatePIXImageFromMemory(const void* memBuffer, size_t fileSize);
 
 		virtual void Destroy() override

@@ -6,6 +6,7 @@
 #include "Graphics/GraphicsDeviceManager.hpp"
 
 #include <Utils/Common.hpp>
+#include <Libs/DirectXTex/WICTextureLoader/WICTextureLoader12.h>
 
 #include <DirectXTex.h>
 
@@ -208,6 +209,22 @@ namespace Darius::Graphics::Utils::Buffers
 
 		memcpy(&mMetaData, &meta, sizeof(DirectX::TexMetadata));
 
+		mMetaData.Initialized = true;
+
+		return SUCCEEDED(hr);
+	}
+
+	bool Texture::CreateWICFromMemory(const void* memBuffer, size_t fileSize, bool sRGB)
+	{
+		DirectX::WIC_FLAGS flags = DirectX::WIC_FLAGS::WIC_FLAGS_NONE;
+		if (sRGB)
+			flags |= DirectX::WIC_FLAGS::WIC_FLAGS_FORCE_SRGB;
+
+		DirectX::TexMetadata meta;
+		DirectX::ScratchImage img;
+		HRESULT hr = DirectX::LoadFromWICMemory(memBuffer, fileSize, flags, &meta, img);
+		Create2D(img.GetPixelsSize() / meta.height, meta.width, meta.height, meta.format, img.GetPixels());
+		memcpy(&mMetaData, &meta, sizeof(DirectX::TexMetadata));
 		mMetaData.Initialized = true;
 
 		return SUCCEEDED(hr);

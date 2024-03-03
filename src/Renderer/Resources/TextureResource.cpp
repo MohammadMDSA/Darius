@@ -6,6 +6,8 @@
 #include <ResourceManager/ResourceManager.hpp>
 #include <Math/VectorMath.hpp>
 
+#include <boost/algorithm/string.hpp>
+
 #ifdef _D_EDITOR
 #include <imgui.h>
 #endif
@@ -54,6 +56,9 @@ namespace Darius::Renderer
 #ifdef _D_EDITOR
 	bool TextureResource::DrawDetails(float params[])
 	{
+
+		bool valueChanged = false;
+
 		D_H_DETAILS_DRAW_BEGIN_TABLE();
 
 		{
@@ -62,6 +67,7 @@ namespace Darius::Renderer
 			if (ImGui::Checkbox("##sRGB", &val))
 			{
 				SetSRGB(val);
+				valueChanged = true;
 			}
 		}
 
@@ -94,6 +100,7 @@ namespace Darius::Renderer
 							SetUAddressing(val);
 							SetVAddressing(val);
 							SetWAddressing(val);
+							valueChanged = true;
 						}
 					}
 
@@ -117,6 +124,7 @@ namespace Darius::Renderer
 						if (ImGui::Selectable(addressingLabels[i], val == addressing))
 						{
 							SetUAddressing(val);
+							valueChanged = true;
 						}
 					}
 
@@ -141,6 +149,7 @@ namespace Darius::Renderer
 						if (ImGui::Selectable(addressingLabels[i], val == addressing))
 						{
 							SetVAddressing(val);
+							valueChanged = true;
 						}
 					}
 
@@ -165,6 +174,7 @@ namespace Darius::Renderer
 						if (ImGui::Selectable(addressingLabels[i], val == addressing))
 						{
 							SetWAddressing(val);
+							valueChanged = true;
 						}
 					}
 
@@ -182,6 +192,7 @@ namespace Darius::Renderer
 					if (ImGui::ColorEdit4("##BorderColor", color.GetPtr()))
 					{
 						SetBorderColor(color);
+						valueChanged = true;
 					}
 				}
 			}
@@ -205,6 +216,7 @@ namespace Darius::Renderer
 					if (ImGui::Selectable(filterLabels[i], val == filter))
 					{
 						SetFilter(val);
+						valueChanged = true;
 					}
 				}
 
@@ -220,6 +232,7 @@ namespace Darius::Renderer
 			if (ImGui::SliderInt("##AnisotropicLevel", &val, 0, 16))
 			{
 				SetAnisotropicLevel((UINT)val);
+				valueChanged = true;
 			}
 		}
 
@@ -292,20 +305,28 @@ namespace Darius::Renderer
 		}
 		D_H_DETAILS_DRAW_END_TABLE();
 
-		return true;
+		return valueChanged;
 	}
 #endif // _D_EDITOR
 
 	bool TextureResource::UploadToGpu()
 	{
 		auto path = GetPath();
-		auto ext = path.extension().string();
+		auto ext = boost::algorithm::to_lower_copy(path.extension().string());
 		if (ext == ".dds")
 		{
 			auto fileData = D_FILE::ReadFileSync(path.wstring());
+			mCreatedManually = false;
 			return mTexture.CreateDDSFromMemory(fileData->data(), fileData->size(), IsSRGB());
 
-			mCreatedManually = false;
+
+		}
+		else if (ext == ".png")
+		{
+			auto fileData = D_FILE::ReadFileSync(path.wstring());
+			mCreatedManually = true;
+			return mTexture.CreateWICFromMemory(fileData->data(), fileData->size(), IsSRGB());
+
 
 		}
 		else if (ext == ".tga")
@@ -314,6 +335,7 @@ namespace Darius::Renderer
 			mTexture.CreateTGAFromMemory(fileData->data(), fileData->size(), IsSRGB());
 
 			mCreatedManually = false;
+			return true;
 		}
 
 		return false;

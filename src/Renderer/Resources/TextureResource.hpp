@@ -30,7 +30,7 @@ namespace Darius::Renderer
 	class DClass(Serialize, Resource) TextureResource : public D_RESOURCE::Resource
 	{
 		GENERATED_BODY();
-		D_CH_RESOURCE_BODY(TextureResource, "Texture", ".tga", ".dds")
+		D_CH_RESOURCE_BODY(TextureResource, "Texture", ".tga", ".dds", ".png")
 
 	public:
 
