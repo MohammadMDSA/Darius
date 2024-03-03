@@ -7,6 +7,7 @@
 #include <Core/Containers/Vector.hpp>
 
 #include <atomic>
+#include <mutex>
 
 #include "ContentWindow.generated.hpp"
 
@@ -54,6 +55,7 @@ namespace Darius::Editor::Gui::Windows
 		float						mRightPanelWidth;
 
 		std::atomic_uint			mNumberOfItemsToBeLoaded;
+		std::mutex					mItemsLoadMutex;
 	};
 }
 

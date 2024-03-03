@@ -59,7 +59,9 @@ namespace Darius::ResourceManager
 #ifdef _D_EDITOR
 	void					GetAllResources(D_CONTAINERS::DVector<Resource*>& resources);
 	void					GetAllResourcePaths(D_CONTAINERS::DVector<D_FILE::Path>& paths);
+	void					GetAllResourcePathsInDirectory(D_FILE::Path const& parentDirectory, D_CONTAINERS::DVector<D_FILE::Path>& paths);
 #endif // _D_EDITOR
+
 
 #pragma region GetResource
 	// Resource retreival stuff

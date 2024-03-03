@@ -125,6 +125,19 @@ namespace Darius::ResourceManager
 		_ResourceManager->GetAllResourcePaths(paths);
 	}
 
+	void GetAllResourcePathsInDirectory(D_FILE::Path const& parentDirectory, D_CONTAINERS::DVector<D_FILE::Path>& paths)
+	{
+		DVector<Path> pathsInternal;
+		paths.clear();
+		_ResourceManager->GetAllResourcePaths(pathsInternal);
+		std::copy_if(pathsInternal.begin(), pathsInternal.end(), std::back_inserter(paths), [parentDirectory](D_FILE::Path const& el)
+			{
+				if (!el.has_parent_path())
+					return false;
+				return std::filesystem::equivalent(parentDirectory, el.parent_path());
+			});
+	}
+
 #endif // _D_EDITOR
 
 

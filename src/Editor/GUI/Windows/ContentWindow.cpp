@@ -9,8 +9,9 @@
 #include <Engine/EngineContext.hpp>
 #include <Renderer/Resources/FBXPrefabResource.hpp>
 
-#include <imgui.h>
 #include <Libs/FontIcon/IconsFontAwesome6.h>
+
+#include <imgui.h>
 
 #include "ContentWindow.sgenerated.hpp"
 
@@ -203,77 +204,64 @@ namespace Darius::Editor::Gui::Windows
 			});
 
 		DVector<Path> resVec;
-		D_RESOURCE::GetAllResourcePaths(resVec);
-
+		D_RESOURCE::GetAllResourcePathsInDirectory(mCurrentDirectory, resVec);
 
 		mNumberOfItemsToBeLoaded.store(0);
 
+		D_THUMBNAIL::RegisterExistingResources(mCurrentDirectory);
+
 		for (auto const& path : resVec)
 		{
-			auto parent = path.parent_path();
-			if (parent.empty())
-				continue;
-			if (std::filesystem::equivalent(mCurrentDirectory, parent))
-			{
-				mNumberOfItemsToBeLoaded++;
-				D_RESOURCE::ResourceLoader::LoadResourceAsync(path, [_currentDirectoryItems = &mCurrentDirectoryItems, path = path, itemsLoading = &mNumberOfItemsToBeLoaded](auto containedResources)
+
+			mNumberOfItemsToBeLoaded++;
+			D_RESOURCE::ResourceLoader::LoadResourceAsync(path, [mutex = &mItemsLoadMutex, _currentDirectoryItems = &mCurrentDirectoryItems, path = path, itemsLoading = &mNumberOfItemsToBeLoaded](auto containedResources)
+				{
+					std::lock_guard lock(*mutex);
+					auto& currentDirectoryItems = *_currentDirectoryItems;
+					auto name = D_FILE::GetFileName(path.filename());
+					auto nameStr = WSTR2STR(name);
+					(*itemsLoading)--;
+
+					uint64_t icon = D_THUMBNAIL::GetIconTextureId(D_THUMBNAIL::CommonIcon::File);
+
+					D_RESOURCE::ResourceHandle resourceHandle = D_RESOURCE::EmptyResourceHandle;
+					if (containedResources.size() == 1)
 					{
-						auto& currentDirectoryItems = *_currentDirectoryItems;
-						auto name = D_FILE::GetFileName(path.filename());
-						auto nameStr = WSTR2STR(name);
-						(*itemsLoading)--;
+						icon = D_THUMBNAIL::GetResourceTextureId(containedResources[0]);
+						resourceHandle = containedResources[0];
+					}
 
-						if (itemsLoading->load() != 0)
-							return;
+					currentDirectoryItems.push_back({ nameStr, path, false, icon, resourceHandle });
+					auto& lastItem = currentDirectoryItems[currentDirectoryItems.size() - 1];
 
-						uint64_t icon = D_THUMBNAIL::GetIconTextureId(D_THUMBNAIL::CommonIcon::File);
-
-						D_RESOURCE::ResourceHandle resourceHandle = D_RESOURCE::EmptyResourceHandle;
-						if (containedResources.size() == 1)
+					for (auto const& handle : containedResources)
+					{
+						if (handle.Type == D_RENDERER::FBXPrefabResource::GetResourceType())
 						{
-							icon = D_THUMBNAIL::GetResourceTextureId(containedResources[0]);
-							resourceHandle = containedResources[0];
+							lastItem.MainHandle = handle;
+							lastItem.IconId = D_THUMBNAIL::GetResourceTextureId(handle);
 						}
-
-						currentDirectoryItems.push_back({ nameStr, path, false, icon, resourceHandle });
-						auto& lastItem = currentDirectoryItems[currentDirectoryItems.size() - 1];
-
-						for (auto const& handle : containedResources)
+						else
 						{
-							if (handle.Type == D_RENDERER::FBXPrefabResource::GetResourceType())
-							{
-								lastItem.MainHandle = handle;
-								lastItem.IconId = D_THUMBNAIL::GetResourceTextureId(handle);
-							}
+							lastItem.ChildResources.push_back(handle);
+						}
+					}
+
+					if (itemsLoading->load() != 0)
+						return;
+
+					std::sort(currentDirectoryItems.begin(), currentDirectoryItems.end(), [](auto first, auto second)
+						{
+							if (first.IsDirectory && !second.IsDirectory)
+								return true;
+							else if (second.IsDirectory && !first.IsDirectory)
+								return false;
 							else
-							{
-								lastItem.ChildResources.push_back(handle);
-							}
-						}
+								return first.Name.compare(second.Name.c_str()) < 0;
+						});
+				}, true);
 
-						std::sort(currentDirectoryItems.begin(), currentDirectoryItems.end(), [](auto first, auto second)
-							{
-								if (first.IsDirectory && !second.IsDirectory)
-									return true;
-								else if (second.IsDirectory && !first.IsDirectory)
-									return false;
-								else
-									return first.Name.compare(second.Name.c_str()) < 0;
-							});
-					}, true);
-
-			}
 		}
-
-		std::sort(mCurrentDirectoryItems.begin(), mCurrentDirectoryItems.end(), [](auto first, auto second)
-			{
-				if (first.IsDirectory && !second.IsDirectory)
-					return true;
-				else if (second.IsDirectory && !first.IsDirectory)
-					return false;
-				else
-					return first.Name.compare(second.Name.c_str()) < 0;
-			});
 	}
 
 	bool ContentWindow::SetCurrentPath(D_FILE::Path const& path)

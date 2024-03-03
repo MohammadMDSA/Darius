@@ -40,7 +40,7 @@ namespace Darius::Editor::Gui::ThumbnailManager
 	DUnorderedMap<CommonIcon, D_GRAPHICS_BUFFERS::Texture>		CommonIconTextures;
 
 	DUnorderedMap<ResourceType, uint64_t>						ResourceTypeTextureIdMap;
-	DUnorderedMap<Uuid, uint64_t, UuidHasher>								ResourceTextureIdMap;
+	DUnorderedMap<Uuid, uint64_t, UuidHasher>					ResourceTextureIdMap;
 	DUnorderedMap<CommonIcon, uint64_t>							CommonIconTextureIdMap;
 
 	////////////////////////////////////////////////////////////////
@@ -49,9 +49,9 @@ namespace Darius::Editor::Gui::ThumbnailManager
 
 	void RegisterResourceTypeTextures();
 	void RegisterCommonIconTextures();
-	void RegisterExistingResources();
 	void AddExistingResourceThumbnail(Uuid const& uuid); // Add thumbnail of previously generated thumbnail to registry by uuid
 	void GenerateThumbnailForResource(Resource const* resource, bool force = false);
+	D_FILE::Path GetThumbnailsDirectory();
 
 	void GenerateThumbnailFromDDSTexture(Uuid const& resourceUuid, D_FILE::Path const& path);
 
@@ -62,7 +62,14 @@ namespace Darius::Editor::Gui::ThumbnailManager
 		RegisterCommonIconTextures();
 		RegisterResourceTypeTextures();
 
-		RegisterExistingResources();
+		// Adding existing thumbnails
+		auto thumbnailDir = GetThumbnailsDirectory();
+		if (D_H_ENSURE_DIR(thumbnailDir))
+			D_FILE::VisitFilesInDirectory(thumbnailDir, true, [&](auto const& path)
+				{
+					auto uuid = FromWString(D_FILE::GetFileName(path));
+					AddExistingResourceThumbnail(uuid);
+				});
 
 		_initialized = true;
 	}
@@ -96,19 +103,10 @@ namespace Darius::Editor::Gui::ThumbnailManager
 
 	}
 
-	void RegisterExistingResources()
+	void RegisterExistingResources(D_FILE::Path const& path)
 	{
 
-		// Adding existing thumbnails
-		auto thumbnailDir = GetThumbnailsDirectory();
-		if (D_H_ENSURE_DIR(thumbnailDir))
-			D_FILE::VisitFilesInDirectory(thumbnailDir, true, [&](auto const& path)
-				{
-					auto uuid = FromWString(D_FILE::GetFileName(path));
-					AddExistingResourceThumbnail(uuid);
-				});
-
-		ResourceType supportedTypes[] = { D_RENDERER::TextureResource::GetResourceType() };
+		static ResourceType supportedTypes[] = { D_RENDERER::TextureResource::GetResourceType() };
 
 		for (int i = 0; i < _countof(supportedTypes); i++)
 		{
@@ -116,7 +114,8 @@ namespace Darius::Editor::Gui::ThumbnailManager
 			for (auto resourcePrev : resourcesOfType)
 			{
 				auto resource = D_RESOURCE::GetRawResourceSync(resourcePrev.Handle, false);
-				if (!resource->IsDefault())
+				auto resourcePath = resource->GetPath();
+				if (!resource->IsDefault() && resourcePath.has_parent_path() && std::filesystem::equivalent(resourcePath.parent_path(), path))
 					GenerateThumbnailForResource(resource);
 			}
 		}
@@ -215,15 +214,20 @@ namespace Darius::Editor::Gui::ThumbnailManager
 	{
 
 		auto destinationFolder = GetThumbnailsDirectory();
-		auto destinationFile = (destinationFolder / (D_CORE::ToString(resourceUuid) + ".dds")).lexically_normal();
+		auto finalDestinationFile = (destinationFolder / (D_CORE::ToString(resourceUuid) + ".dds")).lexically_normal();
 
 		if (!D_H_ENSURE_DIR(destinationFolder))
 			std::filesystem::create_directories(destinationFolder);
 
-		auto thumbnaildCommand = std::string("Utils\\texconv.exe -m 1 -w 64 -h 64 -o \"" + destinationFolder.string() + "\" \"" + path.lexically_normal().string() + "\"");
+		auto normalPath = path.lexically_normal();
+
+		std::string outputExt = normalPath.extension().string();
+		outputExt = outputExt.substr(1, outputExt.size() - 1);
+		boost::algorithm::to_lower(outputExt);
+		auto thumbnaildCommand = std::string("Utils\\texconv.exe -m 1 -w 64 -h 64 -o \"" + destinationFolder.string() + "\" \"" + normalPath.string() + "\"");
 
 		system(thumbnaildCommand.c_str());
 
-		std::filesystem::rename(destinationFolder / path.filename(), destinationFile);
+		std::filesystem::rename(destinationFolder / normalPath.filename().replace_extension(".dds"), finalDestinationFile);
 	}
 }

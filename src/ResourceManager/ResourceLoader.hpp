@@ -23,8 +23,9 @@ namespace Darius::ResourceManager
 	{
 		std::atomic_uint Total = 0;
 		std::atomic_uint Done = 0;
+		std::atomic_bool Deletable = false;
 
-		inline bool IsFinished() const { return Done == Total; }
+		inline bool IsFinished() const { return Deletable.load() && Done == Total; }
 
 		inline std::string String(std::string const& format) const { return std::vformat(format, std::make_format_args(Done.load(), Total.load())); }
 	};

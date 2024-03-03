@@ -49,7 +49,9 @@ namespace Darius::Editor::Context
 
 		D_WORLD::Initialize();
 
-		D_RESOURCE_LOADER::VisitSubdirectory(D_ENGINE_CONTEXT::GetAssetsPath(), true, new D_RESOURCE::DirectoryVisitProgress());
+		auto directoryVisitProgress = new D_RESOURCE::DirectoryVisitProgress();
+		D_RESOURCE_LOADER::VisitSubdirectory(D_ENGINE_CONTEXT::GetAssetsPath(), true, directoryVisitProgress);
+		directoryVisitProgress->Deletable.store(true);
 
 		D_THUMBNAIL::Initialize();
 		D_GUI_MANAGER::Initialize();

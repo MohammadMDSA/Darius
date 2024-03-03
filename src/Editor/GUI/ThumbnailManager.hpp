@@ -23,4 +23,5 @@ namespace Darius::Editor::Gui::ThumbnailManager
 
 	uint64_t GetIconTextureId(CommonIcon iconId);
 	uint64_t GetResourceTextureId(D_RESOURCE::ResourceHandle const& resource);
+	void RegisterExistingResources(D_FILE::Path const& path);
 }
