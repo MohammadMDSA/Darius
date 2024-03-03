@@ -28,7 +28,7 @@ namespace Darius::Renderer
 		INLINE D_RENDERER_GEOMETRY::Mesh*		ModifyMeshData() { MakeDiskDirty(); MakeGpuDirty(); return &mMesh; }
 		INLINE const D_RENDERER_GEOMETRY::Mesh*	GetMeshData() const { return &mMesh; }
 #ifdef _D_EDITOR
-		virtual bool							DrawDetails(float params[]) override { (params); return false; };
+		virtual bool							DrawDetails(float params[]);
 #endif // _D_EDITOR
 
 		INLINE operator const D_RENDERER_GEOMETRY::Mesh* () const { return &mMesh; }

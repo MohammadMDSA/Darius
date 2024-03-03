@@ -78,4 +78,9 @@ namespace Darius::Renderer
 
 	}
 
+	bool StaticMeshResource::DrawDetails(float params[])
+	{
+		return MeshResource::DrawDetails(params);
+	}
+
 }

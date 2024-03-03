@@ -80,7 +80,7 @@ namespace Darius::Renderer
 	{
 		MultiPartMeshData<VertexType> meshData;
 
-		D_RENDERER_GEOMETRY_LOADER_FBX::ReadMeshByName(GetPath(), GetName(), meshData, mSkeleton);
+		D_RENDERER_GEOMETRY_LOADER_FBX::ReadMeshByName(GetPath(), GetName(), IsInverted(), meshData, mSkeleton);
 
 		CreateInternal(meshData);
 		return true;
@@ -104,9 +104,11 @@ namespace Darius::Renderer
 
 	bool SkeletalMeshResource::DrawDetails(float params[])
 	{
+		bool result = MeshResource::DrawDetails(params);
+
 		DrawJoint(mSkeletonRoot);
 
-		return false;
+		return result;
 	}
 #endif
 

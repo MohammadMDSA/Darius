@@ -20,6 +20,7 @@ namespace Darius::Renderer
 	class DClass(Serialize, Resource) MeshResource : public D_RESOURCE::Resource
 	{
 		GENERATED_BODY();
+		D_CH_RESOURCE_ABSTRACT_BODY(MeshResource)
 
 	public:
 		using VertexType = D_RENDERER_VERTEX::VertexPositionNormalTangentTextureSkinned;
@@ -31,7 +32,7 @@ namespace Darius::Renderer
 		static D_CONTAINERS::DVector<D_RESOURCE::ResourceDataInFile> CanConstructFrom(D_RESOURCE::ResourceType type, D_FILE::Path const& path);
 
 #ifdef _D_EDITOR
-		virtual bool					DrawDetails(float params[]) override { (params); return false; };
+		virtual bool					DrawDetails(float params[]) override;
 #endif // _D_EDITOR
 
 		INLINE operator const D_RENDERER_GEOMETRY::Mesh* () const { return &mMesh; }
@@ -39,21 +40,31 @@ namespace Darius::Renderer
 
 		INLINE virtual bool				AreDependenciesDirty() const override { return false; }
 
+		INLINE bool						IsInverted() const { return mInverted; }
+		void							SetInverted(bool value);
+
 	protected:
 
 		MeshResource(D_CORE::Uuid uuid, std::wstring const& path, std::wstring const& name, D_RESOURCE::DResourceId id, bool isDefault = false) :
-			Resource(uuid, path, name, id, isDefault) {}
+			Resource(uuid, path, name, id, isDefault),
+			mInverted(false)
+		{}
 
 		virtual void					CreateInternal(D_RENDERER_GEOMETRY::MultiPartMeshData<VertexType> const& data) = 0;
 
-		INLINE virtual void				WriteResourceToFile(D_SERIALIZATION::Json&) const override {};
-		INLINE virtual void				ReadResourceFromFile(D_SERIALIZATION::Json const&, bool& dirtyDisk) override { dirtyDisk = false; };
+		virtual void					WriteResourceToFile(D_SERIALIZATION::Json&) const override;
+		virtual void					ReadResourceFromFile(D_SERIALIZATION::Json const&, bool& dirtyDisk) override;
 		virtual bool					UploadToGpu() override;
 
 		INLINE virtual void				Unload() override { EvictFromGpu(); }
 
 		D_RENDERER_GEOMETRY::Mesh		mMesh;
 		
+	private:
+
+		DField(Serialize)
+		bool							mInverted;
+
 		friend class DResourceManager;
 	};
 }
