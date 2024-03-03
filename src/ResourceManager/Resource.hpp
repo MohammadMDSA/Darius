@@ -28,8 +28,13 @@
 
 #define D_T_RESOURCE_ID UINT16
 
+#define D_CH_RESOURCE_ABSTRACT_BODY(T) \
+public:
+	static INLINE std::string ClassName() { return D_NAMEOF(T); } \
+
 // TODO: Better resource allocation
 #define D_CH_RESOURCE_BODY(T, ResT, ...) \
+D_CH_RESOURCE_ABSTRACT_BODY(T) \
 public: \
 	class T##Factory : public D_RESOURCE::Resource::ResourceFactory \
 	{ \
@@ -41,7 +46,6 @@ public: \
 	virtual INLINE rttr::type GetResourceReflectionType() const override { return rttr::type::get<T>(); } \
 	static INLINE D_RESOURCE::ResourceType GetResourceType() { return D_RESOURCE::Resource::GetResourceTypeFromName(ResT); } \
 	INLINE D_RESOURCE::ResourceType GetType() const override { return D_RESOURCE::Resource::GetResourceTypeFromName(ResT); } \
-	static INLINE std::string ClassName() { return D_NAMEOF(T); } \
 	virtual INLINE std::string GetResourceTypeName() const override { return ResT; } \
 	static void Register() \
 	{ \
