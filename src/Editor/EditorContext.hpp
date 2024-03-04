@@ -20,8 +20,8 @@ namespace Darius::Editor::Context
 	Detailed*						GetSelectedDetailed();
 	void							SetSelectedDetailed(Detailed* d);
 
-	void							SetClipboardJson(D_SERIALIZATION::Json const& data);
-	D_SERIALIZATION::Json const&	GetClipboardJson();
+	void							SetClipboard(class D_SERIALIZATION::ICopyable* copyable);
+	void							GetClipboardJson(bool maintainContext, D_SERIALIZATION::Json& result);
 	bool							IsGameObjectInClipboard();
 
 	// Paths

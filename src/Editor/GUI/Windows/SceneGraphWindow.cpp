@@ -100,9 +100,7 @@ namespace Darius::Editor::Gui::Windows
 			}
 			else if (ImGui::Selectable("Copy"))
 			{
-				D_SERIALIZATION::Json goJson;
-				D_WORLD::DumpGameObject(go, goJson, true);
-				D_EDITOR_CONTEXT::SetClipboardJson(goJson);
+				D_EDITOR_CONTEXT::SetClipboard(go);
 			}
 
 			{
@@ -115,7 +113,9 @@ namespace Darius::Editor::Gui::Windows
 					if (D_EDITOR_CONTEXT::IsGameObjectInClipboard())
 					{
 						GameObject* pastedGo;
-						D_WORLD::LoadGameObject(D_EDITOR_CONTEXT::GetClipboardJson(), &pastedGo, true);
+						D_SERIALIZATION::Json goJson;
+						D_EDITOR_CONTEXT::GetClipboardJson(true, goJson);
+						D_WORLD::LoadGameObject(goJson, &pastedGo, true);
 						pastedGo->SetParent(go);
 					}
 				}

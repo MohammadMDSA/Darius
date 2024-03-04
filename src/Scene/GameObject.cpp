@@ -8,7 +8,7 @@
 #include "EntityComponentSystem/Components/BehaviourComponent.hpp"
 #include "EntityComponentSystem/Components/TransformComponent.hpp"
 
-#include <Core/Uuid.hpp>
+#include <Core/Serialization/Copyable.hpp>
 #include <ResourceManager/ResourceManager.hpp>
 
 #ifdef _D_EDITOR
@@ -593,4 +593,10 @@ namespace Darius::Scene
 
 		return result;
 	}
+
+	void GameObject::Copy(bool maintainContext, D_SERIALIZATION::Json& serialized) const
+	{
+		D_WORLD::DumpGameObject(this, serialized, maintainContext);
+	}
+
 }

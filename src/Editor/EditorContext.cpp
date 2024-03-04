@@ -7,6 +7,7 @@
 #include "GUI/ThumbnailManager.hpp"
 #include "Simulation.hpp"
 
+#include <Core/Serialization/Copyable.hpp>
 #include <Engine/EngineContext.hpp>
 #include <Graphics/GraphicsUtils/Profiling/Profiling.hpp>
 #include <ResourceManager/ResourceLoader.hpp>
@@ -25,7 +26,7 @@ namespace Darius::Editor::Context
 
 	GameObject*					SelectedGameObject;
 	Detailed*					SelectedDetailed;
-	Json						Clipboard;
+	ICopyable*					Clipboard;
 
 	D_H_SIGNAL_DEFINITION(EditorSuspended, void());
 	D_H_SIGNAL_DEFINITION(EditorResuming, void());
@@ -90,21 +91,39 @@ namespace Darius::Editor::Context
 
 	}
 
-	void SetClipboardJson(Json const& data)
+	bool VerifyClipboard()
 	{
-		Clipboard = data;
+		if (Clipboard && !Clipboard->IsCopyableValid())
+			Clipboard = nullptr;
+
+		return Clipboard != nullptr;
 	}
 
-	D_SERIALIZATION::Json const& GetClipboardJson()
+	void SetClipboard(ICopyable* copyable)
 	{
-		return Clipboard;
+		Clipboard = copyable;
+
+		VerifyClipboard();
+	}
+
+	void GetClipboardJson(bool maintainContext, D_SERIALIZATION::Json& result)
+	{
+		if (VerifyClipboard())
+		{
+			Clipboard->Copy(maintainContext, result);
+		}
+		else
+		{
+			result = Json();
+		}
+		
 	}
 
 	bool IsGameObjectInClipboard()
 	{
-		return Clipboard.contains("Type") && Clipboard.at("Type") == "GameObject";
+		VerifyClipboard();
+		return dynamic_cast<GameObject*>(Clipboard);
 	}
-
 
 	GameObject* GetSelectedGameObject()
 	{

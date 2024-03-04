@@ -7,6 +7,7 @@
 #include <Core/RefCounting/Ref.hpp>
 #include <Core/Uuid.hpp>
 #include <Core/Serialization/Json.hpp>
+#include <Core/Serialization/Copyable.hpp>
 #include <Core/Exceptions/Exception.hpp>
 #include <Core/Containers/Set.hpp>
 #include <Core/Signal.hpp>
@@ -41,7 +42,7 @@ namespace Darius::Scene
 {
 	class SceneManager;
 
-	class DClass(Serialize) GameObject sealed : public Detailed, public D_CORE::Counted
+	class DClass(Serialize) GameObject sealed : public Detailed, public D_CORE::Counted, public D_SERIALIZATION::ICopyable
 	{
 
 	public:
@@ -77,6 +78,10 @@ namespace Darius::Scene
 		void								VisitDescendants(std::function<void(GameObject*)> callback) const;
 		UINT								CountChildren();
 		INLINE bool							IsValid() const { return !mDeleted && mEntity.is_valid(); }
+
+		// Copyable Interface
+		virtual void Copy(bool maintainContext, D_SERIALIZATION::Json& serialized) const override;
+		INLINE virtual bool IsCopyableValid() const override { return IsValid(); }
 
 		template<class T>
 		bool								HasComponent() const
