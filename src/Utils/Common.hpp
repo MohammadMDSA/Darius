@@ -90,6 +90,8 @@ static INLINE std::string const GetTypeName() { return D_NAMEOF(T); }
 
 #define D_H_RESOURCE_SELECTION_DRAW(resourceType, prop, placeHolder, handleFunction, ...) \
 { \
+	static char search[100]; \
+	static std::wstring searchStr; \
     resourceType* currentResource = prop.Get(); \
      \
     std::string cuurrentResourceName; \
@@ -105,33 +107,42 @@ static INLINE std::string const GetTypeName() { return D_NAMEOF(T); }
     ImGui::Button(cuurrentResourceName.c_str(), ImVec2(availableSpace.x - 2 * selectorWidth - 10.f, 0)); \
     D_H_RESOURCE_DRAG_DROP_DESTINATION(resourceType, handleFunction) \
 	ImGui::SameLine(availableSpace.x - selectorWidth); \
-		if (ImGui::Button((std::string(ICON_FA_ELLIPSIS_VERTICAL) + ("##" placeHolder) + std::string(__VA_ARGS__)).c_str(), ImVec2(selectorWidth, 0))) \
+	if (ImGui::Button((std::string(ICON_FA_ELLIPSIS_VERTICAL) + ("##" placeHolder) + std::string(__VA_ARGS__)).c_str(), ImVec2(selectorWidth, 0))) \
+	{ \
+		ImGui::OpenPopup(placeHolder " Res"); \
+		for(int i = 0; i < 100; i++) search[i] = 0; \
+		searchStr = L""; \
+	} \
+	\
+	if (ImGui::BeginPopup(placeHolder " Res")) \
+	{ \
+		auto resources = D_RESOURCE::GetResourcePreviews(resourceType::GetResourceType()); \
+		int idx = 0; \
+		if(ImGui::InputText("##Search"#prop, search, 100)) \
 		{ \
-			ImGui::OpenPopup(placeHolder " Res"); \
+			std::string searchTmp(search); \
+			searchStr = STR2WSTR(std::string(searchTmp)); \
 		} \
+		for (auto prev : resources) \
+		{ \
+			if(!searchStr.empty() && !prev.Name.starts_with(searchStr)) \
+				continue; \
+			bool selected = currentResource && prev.Handle.Id == currentResource->GetId() && prev.Handle.Type == currentResource->GetType(); \
 			\
-			if (ImGui::BeginPopup(placeHolder " Res")) \
+			auto Name = WSTR2STR(prev.Name); \
+			ImGui::PushID((Name + std::to_string(idx)).c_str()); \
+			if (ImGui::Selectable(Name.c_str(), &selected)) \
 			{ \
-				auto resources = D_RESOURCE::GetResourcePreviews(resourceType::GetResourceType()); \
-				int idx = 0; \
-				for (auto prev : resources) \
-				{ \
-					bool selected = currentResource && prev.Handle.Id == currentResource->GetId() && prev.Handle.Type == currentResource->GetType(); \
-					\
-					auto Name = WSTR2STR(prev.Name); \
-					ImGui::PushID((Name + std::to_string(idx)).c_str()); \
-					if (ImGui::Selectable(Name.c_str(), &selected)) \
-					{ \
-						handleFunction(static_cast<resourceType*>(D_RESOURCE::GetRawResourceSync(prev.Handle))); \
-						valueChanged = true; \
-					} \
-					ImGui::PopID(); \
-					\
-					idx++; \
-				} \
-				\
-				ImGui::EndPopup(); \
+				handleFunction(static_cast<resourceType*>(D_RESOURCE::GetRawResourceSync(prev.Handle))); \
+				valueChanged = true; \
 			} \
+			ImGui::PopID(); \
+			\
+			idx++; \
+		} \
+		\
+		ImGui::EndPopup(); \
+	} \
 }
 #define D_H_RESOURCE_SELECTION_DRAW_SHORT(type, name, label) D_H_RESOURCE_SELECTION_DRAW(type, m##name, label, Set##name)
 #define D_H_RESOURCE_SELECTION_DRAW_DEF(type, name) D_H_RESOURCE_SELECTION_DRAW_SHORT(type, name, "Select " #name)
