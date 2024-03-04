@@ -29,6 +29,13 @@ namespace Darius::Renderer
 		Destroy();
 		SetName(GetName());
 
+		if (data.MeshData.Vertices.size() <= 0)
+		{
+			mMesh.VertexDataGpu.Destroy();
+			mMesh.IndexDataGpu.Destroy();
+			return;
+		}
+
 		DVector<D_RENDERER_VERTEX::VertexPositionNormalTangentTexture> vertices;
 		DVector<std::uint32_t> indices;
 
