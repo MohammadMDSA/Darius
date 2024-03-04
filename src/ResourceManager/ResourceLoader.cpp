@@ -418,7 +418,8 @@ namespace Darius::ResourceManager
 			LoadResourceAsync(path, [progress](auto _)
 				{
 					progress->Done++;
-					D_LOG_INFO(progress->String("Updating resource database {} / {}"));
+					if (progress->Done.load() % 100 == 0)
+						D_LOG_INFO(progress->String("Updating resource database {} / {}"));
 					if (progress->IsFinished())
 						delete progress;
 
