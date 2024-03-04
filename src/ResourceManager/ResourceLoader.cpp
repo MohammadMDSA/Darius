@@ -421,7 +421,11 @@ namespace Darius::ResourceManager
 					if (progress->Done.load() % 100 == 0)
 						D_LOG_INFO(progress->String("Updating resource database {} / {}"));
 					if (progress->IsFinished())
+					{
+						if (progress->Done.load() % 100)
+							D_LOG_INFO(progress->String("Updating resource database {} / {}"));
 						delete progress;
+					}
 
 				}, true);
 		}

@@ -289,7 +289,7 @@ namespace Darius::Renderer::Geometry::ModelLoader::Fbx
 	bool ReadMeshByName(D_FILE::Path const& path, std::wstring const& meshName, bool inverted, MultiPartMeshData<D_RENDERER_VERTEX::VertexPositionNormalTangentTextureSkinned>& result, DUnorderedMap<int, DVector<int>>& controlPointIndexToVertexIndexMap, FbxMesh** mesh, FbxManager** sdkManager)
 	{
 		FbxNode* rootNode = nullptr;
-		
+
 		FbxAxisSystem::ECoordSystem coordSystem;
 		if (!InitializeFbxScene(path, &rootNode, coordSystem))
 		{
@@ -333,7 +333,8 @@ namespace Darius::Renderer::Geometry::ModelLoader::Fbx
 			return false;
 
 		pMesh->GenerateNormals();
-		auto f = pMesh->GenerateTangentsData();
+		auto f = pMesh->GenerateTangentsDataForAllUVSets();
+		D_VERIFY(f);
 
 		FbxArray<SubMesh*> subMeshes;
 		bool mHasNormal;
@@ -490,11 +491,16 @@ namespace Darius::Renderer::Geometry::ModelLoader::Fbx
 		FbxVector2 lCurrentUV;
 		FbxVector4 lCurrentTangent;
 
+		const FbxGeometryElementTangent* lTangentElement = NULL;
+		if (mHasTangent)
+		{
+			lTangentElement = pMesh->GetElementTangent(0);
+		}
+
 		if (mAllByControlPoint)
 		{
 			const FbxGeometryElementNormal* lNormalElement = NULL;
 			const FbxGeometryElementUV* lUVElement = NULL;
-			const FbxGeometryElementTangent* lTangentElement = NULL;
 			if (mHasNormal)
 			{
 				lNormalElement = pMesh->GetElementNormal(0);
@@ -502,10 +508,6 @@ namespace Darius::Renderer::Geometry::ModelLoader::Fbx
 			if (mHasUV)
 			{
 				lUVElement = pMesh->GetElementUV(0);
-			}
-			if (mHasTangent)
-			{
-				lTangentElement = pMesh->GetElementTangent(0);
 			}
 			for (int lIndex = 0; lIndex < lPolygonVertexCount; ++lIndex)
 			{
@@ -619,6 +621,20 @@ namespace Darius::Renderer::Geometry::ModelLoader::Fbx
 							pMesh->GetPolygonVertexUV(lPolygonIndex, lVerticeIndex, lUVName, lCurrentUV, lUnmappedUV);
 							lUVs[lVertexCount * UV_STRIDE] = static_cast<float>(lCurrentUV[0]);
 							lUVs[lVertexCount * UV_STRIDE + 1] = static_cast<float>(lCurrentUV[1]);
+						}
+
+						if (mHasTangent)
+						{
+							int lTantentIndex = lControlPointIndex;
+							if (lTangentElement->GetReferenceMode() == FbxLayerElement::eIndexToDirect)
+							{
+								lTantentIndex = lTangentElement->GetIndexArray().GetAt(lControlPointIndex);
+							}
+							lCurrentTangent = lTangentElement->GetDirectArray().GetAt(lTantentIndex);
+							lTangents[lVertexCount * TANGENT_STRIDE] = static_cast<float>(lCurrentTangent[0]);
+							lTangents[lVertexCount * TANGENT_STRIDE + 1] = static_cast<float>(lCurrentTangent[1]);
+							lTangents[lVertexCount * TANGENT_STRIDE + 2] = static_cast<float>(lCurrentTangent[2]);
+							lTangents[lVertexCount * TANGENT_STRIDE + 3] = static_cast<float>(lCurrentTangent[3]);
 						}
 					}
 				}
