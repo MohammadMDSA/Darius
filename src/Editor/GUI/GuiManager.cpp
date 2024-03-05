@@ -512,14 +512,11 @@ if (validContext) \
 				ImGui::EndMenu();
 			}
 
-			if (ImGui::BeginMenu("Scene"))
+			if (ImGui::BeginMenu("Game Object"))
 			{
-				if (ImGui::MenuItem("Create Game Object"))
-				{
-					D_WORLD::CreateGameObject();
-				}
+				DrawGammAddMenu(D_EDITOR_CONTEXT::GetSelectedGameObject());
 
-				if (ImGui::MenuItem("Delete Game Object", (const char*)0, false, D_EDITOR_CONTEXT::GetSelectedGameObject() != nullptr))
+				if (ImGui::MenuItem(ICON_FA_TRASH "  Delete Game Object", (const char*)0, false, D_EDITOR_CONTEXT::GetSelectedGameObject() != nullptr))
 				{
 					D_WORLD::DeleteGameObject(D_EDITOR_CONTEXT::GetSelectedGameObject());
 					D_EDITOR_CONTEXT::SetSelectedGameObject(nullptr);
