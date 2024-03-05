@@ -14,6 +14,7 @@
 #include "Editor/Simulation.hpp"
 
 #include <Animation/AnimationResource.hpp>
+#include <Core/Input.hpp>
 #include <Core/Containers/Map.hpp>
 #include <Core/TimeManager/TimeManager.hpp>
 #include <Core/TimeManager/SystemTime.hpp>
@@ -41,6 +42,7 @@
 
 using namespace D_FILE;
 using namespace D_SERIALIZATION;
+using namespace D_SCENE;
 using namespace Darius::Editor::Gui::Windows;
 
 namespace Darius::Editor::Gui::GuiManager
@@ -147,6 +149,50 @@ namespace Darius::Editor::Gui::GuiManager
 		}
 
 		DrawGUI();
+
+		// Handle global shortcuts
+		if (!ImGui::GetIO().WantTextInput)
+		{
+			GameObject* selectedObj = D_EDITOR_CONTEXT::GetSelectedGameObject();
+
+			// Copy
+			if ((D_KEYBOARD::GetKey(D_KEYBOARD::Keys::LeftControl) || D_KEYBOARD::GetKey(D_KEYBOARD::Keys::RightControl)) && D_KEYBOARD::IsKeyDown(D_KEYBOARD::Keys::C))
+			{
+				if (selectedObj)
+				{
+					D_EDITOR_CONTEXT::SetClipboard(selectedObj);
+				}
+			}
+
+			// Paste
+			if ((D_KEYBOARD::GetKey(D_KEYBOARD::Keys::LeftControl) || D_KEYBOARD::GetKey(D_KEYBOARD::Keys::RightControl)) && D_KEYBOARD::IsKeyDown(D_KEYBOARD::Keys::V))
+			{
+				if (D_EDITOR_CONTEXT::IsGameObjectInClipboard())
+				{
+					GameObject* pastedGo;
+					D_SERIALIZATION::Json goJson;
+					D_EDITOR_CONTEXT::GetClipboardJson(true, goJson);
+					D_WORLD::LoadGameObject(goJson, &pastedGo, true);
+
+					if (selectedObj)
+					{
+						pastedGo->SetParent(selectedObj);
+					}
+				}
+			}
+
+			// Delete
+			if ((D_KEYBOARD::IsKeyDown(D_KEYBOARD::Keys::Delete)))
+			{
+				if (selectedObj)
+				{
+					if (D_SIMULATE::IsSimulating())
+						D_WORLD::DeleteGameObject(selectedObj);
+					else
+						D_WORLD::DeleteGameObjectImmediately(selectedObj);
+				}
+			}
+		}
 
 		{
 			D_PROFILING::ScopedTimer guiRender(L"Gui Render");

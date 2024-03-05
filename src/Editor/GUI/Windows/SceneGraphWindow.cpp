@@ -54,32 +54,6 @@ namespace Darius::Editor::Gui::Windows
 			DrawObject(*it, selectedObj);
 		}
 
-		// Copy
-		if (mFocused && (D_KEYBOARD::GetKey(D_KEYBOARD::Keys::LeftControl) || D_KEYBOARD::GetKey(D_KEYBOARD::Keys::RightControl)) && D_KEYBOARD::IsKeyDown(D_KEYBOARD::Keys::C))
-		{
-			if (selectedObj)
-			{
-				D_EDITOR_CONTEXT::SetClipboard(selectedObj);
-			}
-		}
-
-		// Paste
-		if (mFocused && (D_KEYBOARD::GetKey(D_KEYBOARD::Keys::LeftControl) || D_KEYBOARD::GetKey(D_KEYBOARD::Keys::RightControl)) && D_KEYBOARD::IsKeyDown(D_KEYBOARD::Keys::V))
-		{
-			if (D_EDITOR_CONTEXT::IsGameObjectInClipboard())
-			{
-				GameObject* pastedGo;
-				D_SERIALIZATION::Json goJson;
-				D_EDITOR_CONTEXT::GetClipboardJson(true, goJson);
-				D_WORLD::LoadGameObject(goJson, &pastedGo, true);
-
-				if (selectedObj)
-				{
-					pastedGo->SetParent(selectedObj);
-				}
-			}
-		}
-
 		if (!ImGui::IsAnyItemHovered() && mHovered && ImGui::IsMouseClicked(ImGuiMouseButton_Left))
 		{
 			D_EDITOR_CONTEXT::SetSelectedGameObject(nullptr);
