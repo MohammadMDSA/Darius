@@ -554,13 +554,13 @@ void MainRenderCHS(inout PathTracerRayPayload rayPayload, in BuiltInTriangleInte
     {
         float4 texSample = l_TexDiffuse.SampleLevel(l_DiffuseSampler, texCoord, 0);
         material.Albedo = texSample.xyz;
-        material.Transmissivity = material.Albedo * (1 - texSample.w);
+        material.Transmissivity = material.Albedo * (1 - l_Opacity);
     }
     else
     {
         material.Albedo = l_DiffuseAlbedo.xyz;
-        material.Transmissivity = material.Albedo * (1 - l_DiffuseAlbedo.w);
-    }
+                        material.Transmissivity = material.Albedo * (1 - l_Opacity);
+                    }
   
     if (BitMasked(l_TexStats, MaterialTextureType::Metallic))
     {
@@ -593,7 +593,7 @@ void MainRenderCHS(inout PathTracerRayPayload rayPayload, in BuiltInTriangleInte
     rayPayload.GBuffer.EncodedNormal = EncodeNormal(normal);
                 
     material.Albedo = material.Albedo;
-    material.Opacity = 1.f;
+    material.Opacity = l_Opacity;
                 
     // TODO: Add specular mask texture
     material.SpecularMask = 1.f;
