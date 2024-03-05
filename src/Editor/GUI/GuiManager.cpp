@@ -199,7 +199,7 @@ namespace Darius::Editor::Gui::GuiManager
 		}
 
 		{
-			static bool show_demo_window = false;
+			static bool show_demo_window = true;
 			if (show_demo_window)
 				ImGui::ShowDemoWindow(&show_demo_window);
 
@@ -505,4 +505,11 @@ namespace Darius::Editor::Gui::GuiManager
 
 		D_FILE::WriteJsonFile(D_EDITOR_CONTEXT::GetEditorWindowsConfigPath(), config);
 	}
+
+	template<typename T>
+	T* GetWindow()
+	{
+		return dynamic_cast<T*>(Windows[T::SGetName()]);
+	}
+
 }
