@@ -11,6 +11,10 @@ using namespace D_FILE;
 namespace Darius::ResourceManager
 {
 
+#if _D_EDITOR
+	D_CORE::Signal<void(D_FILE::Path const&, Darius::ResourceManager::ResourceHandle const&)> Resource::RequestPathChange;
+#endif // _D_EDITOR
+
 	DUnorderedMap<ResourceType, std::string> Resource::ResourceTypeMap =
 	{
 		{ 0, "" }

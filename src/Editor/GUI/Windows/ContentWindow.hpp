@@ -3,13 +3,19 @@
 #include "Window.hpp"
 #include "Editor/GUI/Components/ContentWindowComponents.hpp"
 
-#include <Core/Filesystem/Path.hpp>
 #include <Core/Containers/Vector.hpp>
+#include <Core/Filesystem/Path.hpp>
+#include <Core/Signal.hpp>
 
 #include <atomic>
 #include <mutex>
 
 #include "ContentWindow.generated.hpp"
+
+namespace Darius::ResourceManager
+{
+	struct ResourceHandle;
+}
 
 namespace Darius::Editor::Gui::Windows
 {
@@ -26,7 +32,7 @@ namespace Darius::Editor::Gui::Windows
 		virtual void				DrawGUI() override;
 
 		void						UpdateDirectoryItems();
-		bool						SetCurrentPath(D_FILE::Path const& path);
+		bool						TrySetCurrentPath(D_FILE::Path const& path);
 
 	private:
 
@@ -56,6 +62,12 @@ namespace Darius::Editor::Gui::Windows
 
 		std::atomic_uint			mNumberOfItemsToBeLoaded;
 		std::mutex					mItemsLoadMutex;
+
+		D_CORE::SignalConnection	mComponentChangePathConnection;
+		D_CORE::SignalConnection	mResourceChangePathConnection;
+
+		Darius::ResourceManager::ResourceHandle mFocusedResource;
+
 	};
 }
 

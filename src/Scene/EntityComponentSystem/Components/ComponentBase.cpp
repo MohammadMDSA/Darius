@@ -12,6 +12,10 @@ namespace Darius::Scene::ECS::Components
 {
 	D_H_COMP_DEF(ComponentBase);
 
+#if _D_EDITOR
+	D_CORE::Signal<void(D_FILE::Path const&, Darius::ResourceManager::ResourceHandle const&)> ComponentBase::RequestPathChange;
+#endif // _D_EDITOR
+
 	ComponentBase::ComponentBase() :
 		mUuid(GenerateUuid()),
 		mStarted(false),

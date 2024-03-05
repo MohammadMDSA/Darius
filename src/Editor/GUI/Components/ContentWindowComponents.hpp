@@ -22,6 +22,6 @@ namespace Darius::Editor::Gui::Components
 		D_CONTAINERS::DList<D_RESOURCE::ResourceHandle> ChildResources;
 	};
 
-	void ContentWindowItemGrid(EditorContentWindowItem& data, float width, float height, _IN_OUT_ bool& selected, _OUT_ bool& doubleClicked, D_RESOURCE::ResourceHandle& selectedResource);
+	void ContentWindowItemGrid(EditorContentWindowItem& data, float width, float height, bool focus, _IN_OUT_ bool& selected, _OUT_ bool& doubleClicked, D_RESOURCE::ResourceHandle& selectedResource);
 
 }

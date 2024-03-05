@@ -12,7 +12,7 @@
 namespace Darius::Editor::Gui::Components
 {
 
-	void ContentWindowItemGrid(EditorContentWindowItem& data, float width, float height, bool& selected, bool& doubleClicked, D_RESOURCE::ResourceHandle& selectedResource)
+	void ContentWindowItemGrid(EditorContentWindowItem& data, float width, float height, bool focus, bool& selected, bool& doubleClicked, D_RESOURCE::ResourceHandle& selectedResource)
 	{
 
 		auto pathStr = data.Path.c_str();
@@ -28,9 +28,19 @@ namespace Darius::Editor::Gui::Components
 
 		auto startCurPos = ImGui::GetCursorPos();
 
+		if (focus)
+		{
+			ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.6f, 1.f, 0.f, 1.f));
+			ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.7f, 1.f, 0.f, 1.f));
+			ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(1.f, 1.f, 0.f, 1.f));
+		}
+
 		selected = ImGui::Button("##contentElBtn", ImVec2(-1, -1));
 		if (selected)
 			selectedResource = data.MainHandle;
+
+		if (focus)
+			ImGui::PopStyleColor(3);
 
 		// Drag and drop
 		if (!data.IsDirectory)
@@ -68,7 +78,7 @@ namespace Darius::Editor::Gui::Components
 
 		ImGui::TextWrapped(nameStr);
 
-		if (data.ChildResources.size() > 1)
+		if (data.ChildResources.size() > 0)
 		{
 			// Showing child elements
 			ImGui::SetCursorPos(ImVec2((availWidth - size.x) / 2 + startCurPos.x + size.x, startCurPos.y + 5));

@@ -90,6 +90,11 @@ namespace Darius::Scene
     class SceneManager;
 }
 
+namespace Darius::ResourceManager
+{
+    struct ResourceHandle;
+}
+
 namespace Darius::Scene::ECS::Components
 {
     class DClass(Serialize) ComponentBase
@@ -160,6 +165,13 @@ namespace Darius::Scene::ECS::Components
     protected:
 
         void                        SetClean() { mDirty = false; }
+
+
+    public:
+        
+#if _D_EDITOR
+        static D_CORE::Signal<void(D_FILE::Path const&, Darius::ResourceManager::ResourceHandle const&)> RequestPathChange;
+#endif // _D_EDITOR
 
 
     private:

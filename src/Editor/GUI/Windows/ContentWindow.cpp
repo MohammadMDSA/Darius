@@ -8,6 +8,8 @@
 #include <Core/Filesystem/FileUtils.hpp>
 #include <Engine/EngineContext.hpp>
 #include <Renderer/Resources/FBXPrefabResource.hpp>
+#include <ResourceManager/Resource.hpp>
+#include <Scene/EntityComponentSystem/Components/ComponentBase.hpp>
 
 #include <Libs/FontIcon/IconsFontAwesome6.h>
 
@@ -26,13 +28,29 @@ namespace Darius::Editor::Gui::Windows
 		mRightPanelWidth(-1.f)
 	{
 		auto assetsPath = D_ENGINE_CONTEXT::GetAssetsPath();
-		SetCurrentPath(assetsPath);
+		TrySetCurrentPath(assetsPath);
 
 		mTreeViewFolderMap[assetsPath] = { assetsPath, false, assetsPath.parent_path().filename().string() };
+
+		// Setup listeners
+		mComponentChangePathConnection = D_ECS_COMP::ComponentBase::RequestPathChange.connect([&](D_FILE::Path const& path, D_RESOURCE::ResourceHandle const& handle)
+			{
+				ContentWindow::TrySetCurrentPath(path);
+				mFocusedResource = handle;
+			});
+
+		mResourceChangePathConnection = D_RESOURCE::Resource::RequestPathChange.connect([&](D_FILE::Path const& path, D_RESOURCE::ResourceHandle const& handle)
+			{
+				ContentWindow::TrySetCurrentPath(path);
+				mFocusedResource = handle;
+			});
+
 	}
 
 	ContentWindow::~ContentWindow()
 	{
+		mComponentChangePathConnection.disconnect();
+		mResourceChangePathConnection.disconnect();
 	}
 
 	void ContentWindow::DrawGUI()
@@ -87,7 +105,7 @@ namespace Darius::Editor::Gui::Windows
 		if (ImGui::IsItemClicked())
 		{
 			mSelectedTreeNode = &entry;
-			SetCurrentPath(entry.Path);
+			TrySetCurrentPath(entry.Path);
 		}
 
 		if (nodeOpen)
@@ -144,7 +162,7 @@ namespace Darius::Editor::Gui::Windows
 		ImGui::Separator();
 
 		if (!newCurrentDir.empty())
-			SetCurrentPath(newCurrentDir);
+			TrySetCurrentPath(newCurrentDir);
 	}
 
 	void ContentWindow::DrawMainItems()
@@ -168,7 +186,22 @@ namespace Darius::Editor::Gui::Windows
 			bool selected = mSelectedItem == &dirItem;
 			D_RESOURCE::ResourceHandle selectedHandle = D_RESOURCE::EmptyResourceHandle;
 			bool clicked;
-			D_GUI_COMPONENT::ContentWindowItemGrid(dirItem, buttonWidth, buttonWidth, selected, clicked, selectedHandle);
+
+			bool focused = false;
+			if (mFocusedResource.IsValid())
+			{
+				for(auto const& subRes : dirItem.ChildResources)
+					if (mFocusedResource == subRes)
+					{
+						focused = true;
+						break;
+					}
+			}
+
+			D_GUI_COMPONENT::ContentWindowItemGrid(dirItem, buttonWidth, buttonWidth, focused, selected, clicked, selectedHandle);
+
+			if (selected)
+				mFocusedResource = D_RESOURCE::EmptyResourceHandle;
 
 			// Check if becomes selected
 			if (selected && mSelectedItem != &dirItem)
@@ -186,7 +219,7 @@ namespace Darius::Editor::Gui::Windows
 
 		// Switching to new director
 		if (!newContext.empty())
-			SetCurrentPath(newContext);
+			TrySetCurrentPath(newContext);
 
 	}
 
@@ -264,7 +297,7 @@ namespace Darius::Editor::Gui::Windows
 		}
 	}
 
-	bool ContentWindow::SetCurrentPath(D_FILE::Path const& path)
+	bool ContentWindow::TrySetCurrentPath(D_FILE::Path const& path)
 	{
 
 		if (!D_H_ENSURE_DIR(path))

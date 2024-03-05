@@ -92,6 +92,7 @@ static INLINE std::string const GetTypeName() { return D_NAMEOF(T); }
 { \
 	static char search[100]; \
 	static std::wstring searchStr; \
+	static D_CONTAINERS::DVector<D_RESOURCE::ResourcePreview> previews; \
     resourceType* currentResource = prop.Get(); \
      \
     std::string cuurrentResourceName; \
@@ -104,7 +105,8 @@ static INLINE std::string const GetTypeName() { return D_NAMEOF(T); }
         cuurrentResourceName = placeHolder; \
     auto availableSpace = ImGui::GetContentRegionAvail(); \
     auto selectorWidth = 20.f; \
-    ImGui::Button(cuurrentResourceName.c_str(), ImVec2(availableSpace.x - 2 * selectorWidth - 10.f, 0)); \
+    if(ImGui::Button(cuurrentResourceName.c_str(), ImVec2(availableSpace.x - 2 * selectorWidth - 10.f, 0)) && prop.IsValid()) \
+		RequestPathChange(prop->GetPath().parent_path(), prop->GetHandle()); \
     D_H_RESOURCE_DRAG_DROP_DESTINATION(resourceType, handleFunction) \
 	ImGui::SameLine(availableSpace.x - selectorWidth); \
 	if (ImGui::Button((std::string(ICON_FA_ELLIPSIS_VERTICAL) + ("##" placeHolder) + std::string(__VA_ARGS__)).c_str(), ImVec2(selectorWidth, 0))) \
@@ -112,20 +114,23 @@ static INLINE std::string const GetTypeName() { return D_NAMEOF(T); }
 		ImGui::OpenPopup(placeHolder " Res"); \
 		for(int i = 0; i < 100; i++) search[i] = 0; \
 		searchStr = L""; \
+		previews = D_RESOURCE::GetResourcePreviews(resourceType::GetResourceType()); \
 	} \
 	\
 	if (ImGui::BeginPopup(placeHolder " Res")) \
 	{ \
-		auto resources = D_RESOURCE::GetResourcePreviews(resourceType::GetResourceType()); \
 		int idx = 0; \
 		if(ImGui::InputText("##Search"#prop, search, 100)) \
 		{ \
 			std::string searchTmp(search); \
 			searchStr = STR2WSTR(std::string(searchTmp)); \
+			boost::algorithm::to_lower(searchStr); \
 		} \
-		for (auto prev : resources) \
+		for (auto prev : previews) \
 		{ \
-			if(!searchStr.empty() && !prev.Name.starts_with(searchStr)) \
+			if (searchStr.empty()) \
+				break; \
+			if(!boost::algorithm::to_lower_copy(prev.Name).starts_with(searchStr)) \
 				continue; \
 			bool selected = currentResource && prev.Handle.Id == currentResource->GetId() && prev.Handle.Type == currentResource->GetType(); \
 			\

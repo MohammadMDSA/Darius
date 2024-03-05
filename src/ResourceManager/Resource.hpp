@@ -30,7 +30,7 @@
 
 #define D_CH_RESOURCE_ABSTRACT_BODY(T) \
 public:
-	static INLINE std::string ClassName() { return D_NAMEOF(T); } \
+static INLINE std::string ClassName() { return D_NAMEOF(T); } \
 
 // TODO: Better resource allocation
 #define D_CH_RESOURCE_BODY(T, ResT, ...) \
@@ -103,7 +103,7 @@ namespace Darius::ResourceManager
 	struct ResourcePreview
 	{
 		std::wstring			Name;
-		std::wstring			Path;
+		D_FILE::Path			Path;
 		ResourceHandle			Handle;
 	};
 #endif
@@ -157,47 +157,55 @@ namespace Darius::ResourceManager
 		INLINE bool					IsLocked() const { return mLocked.load(); }
 		INLINE void					SetLocked(bool value) { mLocked.store(value); }
 
-		INLINE operator ResourceHandle() const { return { GetType(), mId }; }
+		INLINE operator ResourceHandle() const { return GetHandle(); }
+		INLINE ResourceHandle		GetHandle() const { return { GetType(), mId }; }
 #if _D_EDITOR
 		INLINE operator ResourcePreview() const { return GetPreview(); }
 #endif
-		INLINE D_FILE::Path const&	GetPath() const { return mPath; }
+		INLINE D_FILE::Path const& GetPath() const { return mPath; }
 		INLINE bool					IsLoaded() const { return mLoaded.load(); }
 		INLINE unsigned int			GetVersion() const { return mVersion; }
 		INLINE bool					IsDirtyDisk() const { return mDirtyDisk; }
 		INLINE DResourceId			GetId() const { return mId; }
-		INLINE D_CORE::Uuid const&	GetUuid() const { return mUuid; }
+		INLINE D_CORE::Uuid const& GetUuid() const { return mUuid; }
 		INLINE bool					IsDefault() const { return mDefault; }
-		INLINE std::wstring const&	GetName() const { return mName; }
+		INLINE std::wstring const& GetName() const { return mName; }
 
 		INLINE void					SetName(std::wstring const& name) { mName = name; }
-		
+
+	public:
+
+#if _D_EDITOR
+		static D_CORE::Signal<void(D_FILE::Path const&, ResourceHandle const&)> RequestPathChange;
+#endif // _D_EDITOR
+
+
 	private:
 
 		DField()
-		D_FILE::Path		mPath;
+			D_FILE::Path		mPath;
 
 		std::atomic_bool	mLoaded;
 
 		DField()
-		unsigned int		mVersion;
+			unsigned int		mVersion;
 
 		DField()
-		bool				mDirtyDisk;
+			bool				mDirtyDisk;
 
 		std::atomic_bool	mDirtyGPU;
-		
-		DField()
-		const DResourceId	mId;
-		
-		DField()
-		const D_CORE::Uuid	mUuid;
-		
-		DField()
-		const bool			mDefault;
 
 		DField()
-		std::wstring		mName;
+			const DResourceId	mId;
+
+		DField()
+			const D_CORE::Uuid	mUuid;
+
+		DField()
+			const bool			mDefault;
+
+		DField()
+			std::wstring		mName;
 
 		// For saving / loading / manipulation purposes
 		std::atomic_bool	mLocked;
@@ -240,7 +248,7 @@ namespace Darius::ResourceManager
 			return type;
 		}
 
-		INLINE void					MakeDiskDirty() { D_ASSERT_M(!mLocked, "Resource cannot be manipulated while locked."); if(!IsDefault()) mDirtyDisk = true; }
+		INLINE void					MakeDiskDirty() { D_ASSERT_M(!mLocked, "Resource cannot be manipulated while locked."); if (!IsDefault()) mDirtyDisk = true; }
 		INLINE void					MakeGpuDirty() { if (!IsDefault()) mDirtyGPU.store(true); }
 		INLINE void					MakeDiskClean() { mDirtyDisk = false; }
 		INLINE void					MakeGpuClean() { mDirtyGPU.store(false); }
@@ -272,7 +280,7 @@ namespace Darius::ResourceManager
 		// to a file and it's likely that you are loading seperate resources from seperate files of this resource without
 		// extra parameters, it is strongly suggested that you avoid writing/reading resource properties on/from the json
 		// param.
-		virtual void				WriteResourceToFile(D_SERIALIZATION::Json& j) const = 0;
+		virtual void				WriteResourceToFile(D_SERIALIZATION::Json & j) const = 0;
 		virtual void				ReadResourceFromFile(D_SERIALIZATION::Json const& j, bool& dirtyDisk) = 0;
 
 		virtual bool				UploadToGpu() = 0;
