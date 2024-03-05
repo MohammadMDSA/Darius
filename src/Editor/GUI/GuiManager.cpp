@@ -21,11 +21,16 @@
 #include <Engine/EngineContext.hpp>
 #include <Math/VectorMath.hpp>
 #include <Physics/Resources/PhysicsMaterialResource.hpp>
+#include <Physics/Components/BoxColliderComponent.hpp>
+#include <Physics/Components/SphereColliderComponent.hpp>
 #include <Graphics/GraphicsUtils/Profiling/Profiling.hpp>
 #include <Renderer/Geometry/ModelLoader/FbxLoader.hpp>
 #include <Renderer/Rasterization/Renderer.hpp>
 #include <Renderer/Resources/MaterialResource.hpp>
 #include <Renderer/Resources/TerrainResource.hpp>
+#include <Renderer/Components/LightComponent.hpp>
+#include <Renderer/Components/MeshRendererComponent.hpp>
+#include <Renderer/Components/SkeletalMeshRendererComponent.hpp>
 #include <ResourceManager/ResourceManager.hpp>
 #include <ResourceManager/ResourceLoader.hpp>
 #include <Scene/EntityComponentSystem/Components/TransformComponent.hpp>
@@ -342,7 +347,7 @@ namespace Darius::Editor::Gui::GuiManager
 				std::string _filePath = ImGuiFileDialog::Instance()->GetFilePathName();
 				std::wstring filePath = STR2WSTR(_filePath);
 
-				
+
 				auto prefabResHandle = D_RESOURCE::GetManager()->CreateResource<D_SCENE::PrefabResource>(filePath, D_FILE::GetFileName(filePath));
 
 				auto refGameObject = reinterpret_cast<D_SCENE::GameObject*>(ImGuiFileDialog::Instance()->GetUserDatas());
@@ -355,6 +360,106 @@ namespace Darius::Editor::Gui::GuiManager
 			ImGuiFileDialog::Instance()->Close();
 		}
 #pragma warning(pop)
+	}
+
+	void DrawGammAddMenu(GameObject* const contextGameObject)
+	{
+
+#define CreateParentedGameObject() \
+GameObject* created = D_WORLD::CreateGameObject(); \
+if (validContext) \
+	created->SetParent(contextGameObject); \
+
+		D_PROFILING::ScopedTimer _Prof(L"Draw Add GameObject Menu");
+
+		bool validContext = contextGameObject && contextGameObject->IsValid();
+		if (ImGui::BeginMenu(ICON_FA_PLUS "  Add"))
+		{
+			if (ImGui::MenuItem(ICON_FA_FILE "  Empty Game Object"))
+			{
+				CreateParentedGameObject();
+			}
+
+			if (!validContext)
+				ImGui::BeginDisabled();
+			if (ImGui::MenuItem(ICON_FA_ARROW_TURN_UP "  Parent Game Object"))
+			{
+				GameObject* created = D_WORLD::CreateGameObject();
+				D_ASSERT(created);
+				D_ASSERT(contextGameObject);
+				GameObject* currentParent = contextGameObject->GetParent();
+				created->SetParent(currentParent);
+				contextGameObject->SetParent(created);
+			}
+			if (!validContext)
+				ImGui::EndDisabled();
+
+			if (ImGui::MenuItem(ICON_FA_LIGHTBULB "  Light"))
+			{
+				CreateParentedGameObject();
+				created->AddComponent<D_RENDERER::LightComponent>();
+				created->SetName("Light");
+				D_EDITOR_CONTEXT::SetSelectedGameObject(created);
+			}
+
+			// 3D Menu
+			if (ImGui::BeginMenu(ICON_FA_CUBES " 3D"))
+			{
+				if (ImGui::MenuItem(ICON_FA_CUBE "  Cube"))
+				{
+					CreateParentedGameObject();
+					D_RENDERER::MeshRendererComponent* comp = created->AddComponent<D_RENDERER::MeshRendererComponent>();
+					D_RESOURCE::ResourceHandle resHandle = D_RENDERER::GetDefaultGraphicsResource(D_RENDERER::DefaultResource::BoxMesh);
+					D_RESOURCE::ResourceHandle matHandle = D_RENDERER::GetDefaultGraphicsResource(D_RENDERER::DefaultResource::Material);
+					auto boxMeshRes = D_RESOURCE::GetResourceSync<D_RENDERER::StaticMeshResource>(resHandle);
+					auto defaultMat = D_RESOURCE::GetResourceSync<D_RENDERER::MaterialResource>(matHandle);
+					comp->SetMesh(boxMeshRes.Get());
+					comp->SetMaterial(0, defaultMat.Get());
+					auto collider = created->AddComponent<D_PHYSICS::BoxColliderComponent>();
+					collider->SetTrigger(false);
+					created->SetName("Cube");
+					D_EDITOR_CONTEXT::SetSelectedGameObject(created);
+				}
+
+				if (ImGui::MenuItem(ICON_FA_CIRCLE "  Sphere"))
+				{
+					CreateParentedGameObject();
+					D_RENDERER::MeshRendererComponent* comp = created->AddComponent<D_RENDERER::MeshRendererComponent>();
+					D_RESOURCE::ResourceHandle resHandle = D_RENDERER::GetDefaultGraphicsResource(D_RENDERER::DefaultResource::SphereMesh);
+					D_RESOURCE::ResourceHandle matHandle = D_RENDERER::GetDefaultGraphicsResource(D_RENDERER::DefaultResource::Material);
+					auto spMeshRes = D_RESOURCE::GetResourceSync<D_RENDERER::StaticMeshResource>(resHandle);
+					auto defaultMat = D_RESOURCE::GetResourceSync<D_RENDERER::MaterialResource>(matHandle);
+					comp->SetMesh(spMeshRes.Get());
+					comp->SetMaterial(0, defaultMat.Get());
+					auto collider = created->AddComponent<D_PHYSICS::SphereColliderComponent>();
+					collider->SetTrigger(false);
+					created->SetName("Sphere");
+					D_EDITOR_CONTEXT::SetSelectedGameObject(created);
+				}
+
+				if (ImGui::MenuItem(ICON_FA_WEIGHT_HANGING "  Static Mesh"))
+				{
+					CreateParentedGameObject();
+					created->AddComponent<D_RENDERER::MeshRendererComponent>();
+					created->SetName("Static Mesh");
+					D_EDITOR_CONTEXT::SetSelectedGameObject(created);
+				}
+
+				if (ImGui::MenuItem(ICON_FA_BONE "  Skeletal Mesh"))
+				{
+					CreateParentedGameObject();
+					created->AddComponent<D_RENDERER::SkeletalMeshRendererComponent>();
+					created->SetName("Skeletal Mesh");
+					D_EDITOR_CONTEXT::SetSelectedGameObject(created);
+				}
+
+				ImGui::EndMenu();
+			}
+
+			ImGui::EndMenu();
+		}
+
+#undef CreateParentedGameObject
 	}
 
 	void _DrawMenuBar()

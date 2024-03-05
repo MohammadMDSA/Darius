@@ -1,8 +1,9 @@
 #include "Editor/pch.hpp"
 #include "SceneGraphWindow.hpp"
-#include "Editor/EditorContext.hpp"
 
+#include "Editor/EditorContext.hpp"
 #include "Editor/Simulation.hpp"
+#include "Editor/GUI/GuiManager.hpp"
 
 #include <Core/Input.hpp>
 #include <Core/Containers/List.hpp>
@@ -81,12 +82,9 @@ namespace Darius::Editor::Gui::Windows
 			ImGui::Text("Game Object");
 			ImGui::Separator();
 
-			if (ImGui::Selectable("Add Game Object"))
-			{
-				D_WORLD::CreateGameObject()->SetParent(go);
-			}
+			D_GUI_MANAGER::DrawGammAddMenu(go);
 
-			else if (ImGui::Selectable("Delete"))
+			if (ImGui::MenuItem(ICON_FA_TRASH "  Delete"))
 			{
 				if (D_SIMULATE::IsSimulating())
 					D_WORLD::DeleteGameObject(go);
@@ -99,7 +97,7 @@ namespace Darius::Editor::Gui::Windows
 				ImGui::TreePop();
 				return;
 			}
-			else if (ImGui::Selectable("Copy"))
+			else if (ImGui::MenuItem(ICON_FA_COPY "  Copy"))
 			{
 				D_EDITOR_CONTEXT::SetClipboard(go);
 			}
@@ -109,7 +107,7 @@ namespace Darius::Editor::Gui::Windows
 
 				if (!pasteEnable)
 					ImGui::BeginDisabled();
-				if (ImGui::Selectable("Paste"))
+				if (ImGui::Selectable(ICON_FA_PASTE "  Paste"))
 				{
 					if (D_EDITOR_CONTEXT::IsGameObjectInClipboard())
 					{
@@ -124,7 +122,7 @@ namespace Darius::Editor::Gui::Windows
 					ImGui::EndDisabled();
 			}
 
-			if (ImGui::Selectable("Create Prefab"))
+			if (ImGui::Selectable(ICON_FA_WRENCH "  Create Prefab"))
 			{
 				ImGuiFileDialog::Instance()->OpenDialog("SavePrefab", "Create Prefab", ".prefab", D_ENGINE_CONTEXT::GetAssetsPath().string(), 1, go);
 			}

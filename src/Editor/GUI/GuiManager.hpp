@@ -18,5 +18,6 @@ namespace Darius::Editor::Gui::GuiManager
 	void Render();
 	void DrawGUI();
 	void _DrawMenuBar();
+	void DrawGammAddMenu(D_SCENE::GameObject* const contextGameObject);
 	void SaveWindowsState();
 }
