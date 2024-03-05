@@ -441,7 +441,7 @@ namespace Darius::Scene
 	void GameObject::SetParent(GameObject* newParent)
 	{
 
-		if (!newParent) // Unparent
+		if (!newParent || !newParent->IsValid()) // Unparent
 		{
 			if (mParent) // Already has a parent
 			{
