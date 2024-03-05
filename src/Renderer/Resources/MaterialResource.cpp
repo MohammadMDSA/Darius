@@ -76,6 +76,7 @@ namespace Darius::Renderer
 			{ "Metallic", mMaterial.Metallic },
 			{ "Emission", std::vector<float>(ems, ems + 3) },
 			{ "AlphaCutout", mCutout },
+			{ "Opacity", mMaterial.Opacity },
 			{ "DisplacementAmount", mMaterial.DisplacementAmount }
 		};
 
@@ -129,6 +130,9 @@ namespace Darius::Renderer
 
 		if (data.contains("Metallic"))
 			mMaterial.Metallic = data["Metallic"];
+
+		if (data.contains("Opacity"))
+			mMaterial.Opacity = data["Opacity"];
 
 		mMaterial.Emissive = XMFLOAT3(data["Emission"].get<std::vector<float>>().data());
 
@@ -471,13 +475,13 @@ namespace Darius::Renderer
 		SetTexture(texture, k##type);\
 	}
 
-	TexSetterDefinition(BaseColor)
-		TexSetterDefinition(Metallic)
-		TexSetterDefinition(Roughness)
-		TexSetterDefinition(AmbientOcclusion)
-		TexSetterDefinition(Emissive)
-		TexSetterDefinition(Normal)
-		TexSetterDefinition(WorldDisplacement)
+	TexSetterDefinition(BaseColor);
+	TexSetterDefinition(Metallic);
+	TexSetterDefinition(Roughness);
+	TexSetterDefinition(AmbientOcclusion);
+	TexSetterDefinition(Emissive);
+	TexSetterDefinition(Normal);
+	TexSetterDefinition(WorldDisplacement);
 
 #undef TexSetterDefinition
 
@@ -647,6 +651,17 @@ namespace Darius::Renderer
 			}
 		}
 
+		// Opacity
+		if(mPsoFlags & RenderItem::AlphaBlend)
+		{
+			D_H_DETAILS_DRAW_PROPERTY("Shader Type");
+			float value = GetOpacity();
+			if (ImGui::DragFloat("##Opacity", &value, 0.1f, 0.f, 1.f, "%.2f"))
+			{
+				SetOpacity(value);
+			}
+		}
+
 		// Normal
 		ImGui::TableNextRow();
 		ImGui::TableSetColumnIndex(0);
@@ -747,6 +762,21 @@ namespace Darius::Renderer
 			return;
 
 		mMaterial.DisplacementAmount = value;
+
+		MakeDiskDirty();
+		MakeGpuDirty();
+
+		SignalChange();
+	}
+
+	void MaterialResource::SetOpacity(float value)
+	{
+		value = D_MATH::Clamp(value, 0.f, 1.f);
+
+		if (value == mMaterial.Opacity)
+			return;
+
+		mMaterial.Opacity = value;
 
 		MakeDiskDirty();
 		MakeGpuDirty();

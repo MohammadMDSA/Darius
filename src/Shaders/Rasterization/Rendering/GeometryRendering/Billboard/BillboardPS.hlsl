@@ -13,6 +13,7 @@ cbuffer cbMaterial : register(b0)
     float  gMetallic;
     float  gRoughness;
     float  gDisplacementAmount;
+    float  gOpacity;
     uint   gTexStats;
 };
 
@@ -131,7 +132,7 @@ MRT main(GSOutput gout) : SV_Target
                             emissive, ao, 1, gFresnelR0);
     
     // Common convention to take alpha from diffuse material.
-    mrt.Color = float4(litColor, diffuseAlbedo.a);
+    mrt.Color = float4(litColor, gOpacity);
     mrt.Normal = float4(gout.WorldNormal, 1.f);
     
     return mrt;

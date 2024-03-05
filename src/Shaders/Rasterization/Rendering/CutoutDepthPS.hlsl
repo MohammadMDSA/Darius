@@ -30,6 +30,7 @@ cbuffer cbMaterial : register(b0)
     float  gMetallic;
     float  gRoughness;
     float  gDisplacementAmount;
+    float  gOpacity;
     uint   gTexStats;
 }
 

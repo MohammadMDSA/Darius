@@ -80,6 +80,7 @@ namespace Darius::Renderer
 		float						Metallic = 0.f;
 		float						Roughness = 1.f;
 		float						DisplacementAmount = 0.f;
+		float						Opacity = 1.f;
 		struct
 		{
 			UINT					TextureStatusMask : 16 = 0;
