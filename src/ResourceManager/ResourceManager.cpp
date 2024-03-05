@@ -192,10 +192,16 @@ namespace Darius::ResourceManager
 	DVector<ResourcePreview> DResourceManager::GetResourcePreviews(ResourceType type)
 	{
 		DVector<ResourcePreview> res;
+		res.reserve(mResourceMap.at(type).size());
 		for (auto& resource : mResourceMap.at(type))
 		{
 			res.push_back(*resource.second);
 		}
+
+		std::sort(res.begin(), res.end(), [](ResourcePreview const& a, ResourcePreview const& b)
+			{
+				return a.Name < b.Name;
+			});
 
 		return res;
 	}
