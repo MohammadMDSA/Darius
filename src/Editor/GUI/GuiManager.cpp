@@ -394,12 +394,36 @@ if (validContext) \
 			if (!validContext)
 				ImGui::EndDisabled();
 
-			if (ImGui::MenuItem(ICON_FA_LIGHTBULB "  Light"))
+			if (ImGui::BeginMenu(ICON_FA_LIGHTBULB "  Light"))
 			{
-				CreateParentedGameObject();
-				created->AddComponent<D_RENDERER::LightComponent>();
-				created->SetName("Light");
-				D_EDITOR_CONTEXT::SetSelectedGameObject(created);
+				if (ImGui::MenuItem(ICON_FA_SUN "  Directional Light"))
+				{
+					CreateParentedGameObject();
+					auto lightComp = created->AddComponent<D_RENDERER::LightComponent>();
+					lightComp->SetLightType(D_RENDERER_LIGHT::LightSourceType::DirectionalLight);
+					created->SetName("Directional Light");
+					D_EDITOR_CONTEXT::SetSelectedGameObject(created);
+				}
+
+				if (ImGui::MenuItem(ICON_FA_LIGHTBULB "  Point Light"))
+				{
+					CreateParentedGameObject();
+					auto lightComp = created->AddComponent<D_RENDERER::LightComponent>();
+					lightComp->SetLightType(D_RENDERER_LIGHT::LightSourceType::PointLight);
+					created->SetName("Point Light");
+					D_EDITOR_CONTEXT::SetSelectedGameObject(created);
+				}
+
+				if (ImGui::MenuItem(ICON_FA_LIGHTBULB "  Spot Light"))
+				{
+					CreateParentedGameObject();
+					auto lightComp = created->AddComponent<D_RENDERER::LightComponent>();
+					lightComp->SetLightType(D_RENDERER_LIGHT::LightSourceType::SpotLight);
+					created->SetName("Spot Light");
+					D_EDITOR_CONTEXT::SetSelectedGameObject(created);
+				}
+
+				ImGui::EndMenu();
 			}
 
 			// 3D Menu
