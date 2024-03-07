@@ -29,6 +29,9 @@ namespace Darius::Editor::Gui::Windows
 		virtual void DrawGUI() override;
 		virtual void Update(float dt) override;
 
+		D_MATH::Vector3 SuggestSpawnPosition(float dist) const;
+		D_MATH::Vector3 SuggestSpawnPositionOnYPlane() const;
+
 	private:
 		void CreateBuffers();
 

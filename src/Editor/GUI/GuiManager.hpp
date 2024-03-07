@@ -28,8 +28,8 @@ namespace Darius::Editor::Gui::GuiManager
 	Darius::Editor::Gui::Windows::Window* GetWindow(std::string const& name);
 
 	template<class WIND>
-	Darius::Editor::Gui::Windows::Window* GetWindow()
+	WIND* GetWindow()
 	{
-		return GetWindow(dynamic_cast<WIND*>(WIND::SGetName()));
+		return dynamic_cast<WIND*>(GetWindow(WIND::SGetName()));
 	}
 }

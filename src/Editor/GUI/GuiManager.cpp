@@ -364,9 +364,10 @@ namespace Darius::Editor::Gui::GuiManager
 
 	void DrawGammAddMenu(GameObject* const contextGameObject)
 	{
-
+		
 #define CreateParentedGameObject() \
 GameObject* created = D_WORLD::CreateGameObject(); \
+created->GetTransform()->SetPosition(GetWindow<SceneWindow>()->SuggestSpawnPositionOnYPlane()); \
 if (validContext) \
 	created->SetParent(contextGameObject, GameObject::AttachmentType::KeepLocal); \
 

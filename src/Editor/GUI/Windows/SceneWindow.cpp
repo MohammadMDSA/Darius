@@ -11,6 +11,8 @@
 #include <Graphics/PostProcessing/PostProcessing.hpp>
 #include <Graphics/GraphicsCore.hpp>
 #include <Graphics/GraphicsDeviceManager.hpp>
+#include <Math/Bounds/BoundingPlane.hpp>
+#include <Math/Ray.hpp>
 #include <Renderer/Components/MeshRendererComponent.hpp>
 #include <Renderer/Components/SkeletalMeshRendererComponent.hpp>
 #include <Renderer/RendererManager.hpp>
@@ -699,4 +701,28 @@ namespace Darius::Editor::Gui::Windows
 
 	}
 
+	D_MATH::Vector3 SceneWindow::SuggestSpawnPosition(float dist) const
+	{
+		return mCamera.GetForwardVec() * dist + mCamera.GetPosition();
+	}
+
+	D_MATH::Vector3 SceneWindow::SuggestSpawnPositionOnYPlane() const
+	{
+		D_MATH::Ray cameraRay = mCamera.GetCameraRay();
+		D_MATH_BOUNDS::BoundingPlane yPlane(Vector3::Zero, Vector3::Up);
+
+		float dist;
+		if (cameraRay.Intersects(yPlane, dist))
+		{
+			return cameraRay.Resolve(dist);
+		}
+
+		Ray mirrorCameraRay(-cameraRay);
+		if (mirrorCameraRay.Intersects(yPlane, dist))
+		{
+			return mirrorCameraRay.Resolve(dist);
+		}
+
+		return Vector3::Zero;
+	}
 }
