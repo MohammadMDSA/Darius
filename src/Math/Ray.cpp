@@ -29,7 +29,7 @@ namespace Darius::Math
 		auto nd = plane.Dot(mDirection);
 
 		// Ray is in parallel with the plane
-		if (nd <= DirectX::g_RayEpsilon[0])
+		if (D_MATH::Abs(nd) <= DirectX::g_RayEpsilon[0])
 		{
 			dist = 0.f;
 			return false;
