@@ -115,7 +115,7 @@ namespace Darius::Editor::Gui::Windows
 						D_SERIALIZATION::Json goJson;
 						D_EDITOR_CONTEXT::GetClipboardJson(true, goJson);
 						D_WORLD::LoadGameObject(goJson, &pastedGo, true);
-						pastedGo->SetParent(go);
+						pastedGo->SetParent(go, GameObject::AttachmentType::KeepWorld);
 					}
 				}
 				if (!pasteEnable)
@@ -164,7 +164,7 @@ namespace Darius::Editor::Gui::Windows
 					if (prefabResource.IsValid() && prefabResource->GetPrefabGameObject() && prefabResource->GetPrefabGameObject()->IsValid() && ImGui::AcceptDragDropPayload(D_PAYLOAD_TYPE_RESOURCE))
 					{
 						auto newGo = D_WORLD::InstantiateGameObject(prefabResource->GetPrefabGameObject(), true);
-						newGo->SetParent(go);
+						newGo->SetParent(go, GameObject::AttachmentType::KeepLocal);
 					}
 
 
@@ -180,7 +180,7 @@ namespace Darius::Editor::Gui::Windows
 					if (prefabResource.IsValid() && prefabResource->GetPrefabGameObject() && prefabResource->GetPrefabGameObject()->IsValid() && ImGui::AcceptDragDropPayload(D_PAYLOAD_TYPE_RESOURCE))
 					{
 						auto newGo = D_WORLD::InstantiateGameObject(prefabResource->GetPrefabGameObject(), true);
-						newGo->SetParent(go);
+						newGo->SetParent(go, GameObject::AttachmentType::KeepLocal);
 					}
 
 

@@ -347,7 +347,7 @@ namespace Darius::Scene
 					Uuid childUuid;
 					D_CORE::from_json(childList[i], childUuid);
 					auto child = (*UuidMap)[childUuid];
-					child->SetParent(go);
+					child->SetParent(go, GameObject::AttachmentType::KeepLocal);
 				}
 			}
 
@@ -422,7 +422,7 @@ namespace Darius::Scene
 				Uuid childUuid;
 				D_CORE::UuidFromJson(childUuid, childrenList[i]);
 				auto childObj = addedObjs[childUuid];
-				childObj->SetParent(parentGo);
+				childObj->SetParent(parentGo, GameObject::AttachmentType::KeepLocal);
 			}
 		}
 

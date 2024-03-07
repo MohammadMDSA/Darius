@@ -53,13 +53,19 @@ namespace Darius::Scene
 			Movable
 		};
 
+		enum class DEnum() AttachmentType
+		{
+			KeepWorld,
+				KeepLocal
+		};
+
 		GENERATED_BODY();
 
 	public:
 
 		D_MATH::TransformComponent*			GetTransform() const;
 
-		void								SetParent(GameObject* newParent);
+		void								SetParent(GameObject* newParent, AttachmentType attachmentType);
 
 		void								SetActive(bool active);
 		bool								IsActive() const;

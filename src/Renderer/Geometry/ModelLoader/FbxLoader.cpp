@@ -1132,7 +1132,7 @@ namespace Darius::Renderer::Geometry::ModelLoader::Fbx
 		FbxNodeAttribute::EType lAttributeType;
 
 		auto go = D_WORLD::CreateGameObject(false);
-		go->SetParent(parentGo);
+		go->SetParent(parentGo, GameObject::AttachmentType::KeepLocal);
 		go->SetName(pNode->GetName());
 
 		bool skipChildren = false;

@@ -181,7 +181,7 @@ namespace Darius::Editor::Gui::GuiManager
 
 					if (selectedObj)
 					{
-						pastedGo->SetParent(selectedObj);
+						pastedGo->SetParent(selectedObj, GameObject::AttachmentType::KeepWorld);
 					}
 				}
 			}
@@ -368,7 +368,7 @@ namespace Darius::Editor::Gui::GuiManager
 #define CreateParentedGameObject() \
 GameObject* created = D_WORLD::CreateGameObject(); \
 if (validContext) \
-	created->SetParent(contextGameObject); \
+	created->SetParent(contextGameObject, GameObject::AttachmentType::KeepLocal); \
 
 		D_PROFILING::ScopedTimer _Prof(L"Draw Add GameObject Menu");
 
@@ -388,8 +388,8 @@ if (validContext) \
 				D_ASSERT(created);
 				D_ASSERT(contextGameObject);
 				GameObject* currentParent = contextGameObject->GetParent();
-				created->SetParent(currentParent);
-				contextGameObject->SetParent(created);
+				created->SetParent(currentParent, GameObject::AttachmentType::KeepLocal);
+				contextGameObject->SetParent(created, GameObject::AttachmentType::KeepWorld);
 			}
 			if (!validContext)
 				ImGui::EndDisabled();
@@ -678,10 +678,12 @@ if (validContext) \
 		D_FILE::WriteJsonFile(D_EDITOR_CONTEXT::GetEditorWindowsConfigPath(), config);
 	}
 
-	template<typename T>
-	T* GetWindow()
+	Window* GetWindow(std::string const& name)
 	{
-		return dynamic_cast<T*>(Windows[T::SGetName()]);
+		auto it = Windows.find(name);
+		if (it != Windows.end())
+			return it->second;
+		return nullptr;
 	}
 
 }

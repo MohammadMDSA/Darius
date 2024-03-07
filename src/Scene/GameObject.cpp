@@ -95,7 +95,7 @@ namespace Darius::Scene
 		}
 
 		bool isStatic = GetType() == Type::Static;
-		if(ImGui::Checkbox("Static", &isStatic))
+		if (ImGui::Checkbox("Static", &isStatic))
 		{
 			SetType(isStatic ? Type::Static : Type::Movable);
 			changeValue = true;
@@ -438,7 +438,7 @@ namespace Darius::Scene
 		return reinterpret_cast<D_ECS_COMP::ComponentBase*>(const_cast<void*>(mEntity.get(compT)));
 	}
 
-	void GameObject::SetParent(GameObject* newParent)
+	void GameObject::SetParent(GameObject* newParent, AttachmentType attachmentType)
 	{
 
 		if (!newParent || !newParent->IsValid()) // Unparent
@@ -454,7 +454,17 @@ namespace Darius::Scene
 
 		// New parent is legit
 		mEntity.child_of(newParent->mEntity);
-		mParent = newParent;
+
+		if (attachmentType == AttachmentType::KeepWorld)
+		{
+			auto trans = GetTransform();
+			auto world = trans->GetWorld();
+			mParent = newParent;
+			trans->SetWorld(world);
+		}
+		else
+			mParent = newParent;
+
 	}
 
 	void GameObject::VisitAncestors(std::function<void(GameObject*)> callback) const
@@ -576,7 +586,7 @@ namespace Darius::Scene
 	DVector<ComponentBase*> GameObject::GetComponents(bool sorted) const
 	{
 		DVector<ComponentBase*> result;
-		
+
 		VisitComponents([&result](ComponentBase* comp)
 			{
 				result.push_back(comp);
