@@ -118,12 +118,13 @@ namespace Darius::Editor::Gui::Windows
 
 		static constexpr UINT8						sSelectedGameObjectStencilValue = 255;
 
-		bool										mDrawGrid;
-		bool										mDrawSkybox;
-		bool										mMovingCam;
-		bool										mDrawDebug;
-		bool										mForceWireframe;
-		bool										mCustomDepthApplied;
+		int											mDrawGrid : 1;
+		int											mDrawSkybox : 1;
+		int											mMovingCam : 1;
+		int											mDrawDebug : 1;
+		int											mForceWireframe : 1;
+		int											mCustomDepthApplied : 1;
+		int											mDragSpawned : 1;
 	};
 
 }

@@ -46,6 +46,7 @@ namespace Darius::Editor::Gui::Windows
 		mDrawGrid(true),
 		mDrawDebug(true),
 		mDrawSkybox(true),
+		mDragSpawned(false),
 		mSceneNormals(D_MATH::Color(0.f, 0.f, 0.f, 1.f)),
 		mSSAOFullScreen(D_MATH::Color(1.f, 1.f, 1.f)),
 		mLineMeshResource(),
@@ -337,10 +338,28 @@ namespace Darius::Editor::Gui::Windows
 
 		if (selectedObj)
 		{
+			bool altDown = (D_KEYBOARD::GetKey(D_KEYBOARD::Keys::LeftAlt) || D_KEYBOARD::GetKey(D_KEYBOARD::Keys::RightAlt));
+
 			auto world = selectedObj->GetTransform()->GetWorld();
 			if (ImGuizmo::Manipulate((float*)&view, (float*)&proj, (ImGuizmo::OPERATION)mManipulateOperation, (ImGuizmo::MODE)mManipulateMode, (float*)&world))
 			{
-				selectedObj->GetTransform()->SetWorld(world);
+
+				// Drag spawn
+				if (!mDragSpawned && !ImGui::GetIO().WantTextInput && (D_KEYBOARD::GetKey(D_KEYBOARD::Keys::LeftAlt) || D_KEYBOARD::GetKey(D_KEYBOARD::Keys::RightAlt)))
+				{
+					auto dragSpawnedGo = D_WORLD::InstantiateGameObject(selectedObj, true);
+					dragSpawnedGo->SetParent(selectedObj->GetParent(), D_SCENE::GameObject::AttachmentType::KeepWorld);
+					D_EDITOR_CONTEXT::SetSelectedGameObject(dragSpawnedGo);
+					mDragSpawned = true;
+				}
+				// Set world if no drag spawn
+				else
+					selectedObj->GetTransform()->SetWorld(world);
+			}
+			else
+			{
+				if (!altDown)
+					mDragSpawned = false;
 			}
 		}
 
@@ -513,7 +532,7 @@ namespace Darius::Editor::Gui::Windows
 		}
 
 
-		if (mOrbitCam.IsAdjusting() || (D_KEYBOARD::GetKey(D_KEYBOARD::Keys::LeftAlt) && D_MOUSE::GetButton(D_MOUSE::Keys::Left) && mHovered))
+		if (mOrbitCam.IsAdjusting() || (D_KEYBOARD::GetKey(D_KEYBOARD::Keys::LeftAlt) && !mDragSpawned && D_MOUSE::GetButton(D_MOUSE::Keys::Left) && mHovered))
 		{
 			mOrbitCam.Update(dt);
 			mFlyingCam.SetOrientationDirty();
@@ -565,7 +584,7 @@ namespace Darius::Editor::Gui::Windows
 		mSceneTexture.Create(L"Scene Texture", (UINT)mBufferWidth, (UINT)mBufferHeight, 1, D_GRAPHICS::GetColorFormat());
 		mPostProcessedSceneTexture.Create(L"PostProcessed Scene Texture", (UINT)mBufferWidth, (UINT)mBufferHeight, 1u, D_GRAPHICS::GetColorFormat());
 		mSceneDepth.Create(L"Scene DepthStencil", (UINT)mBufferWidth, (UINT)mBufferHeight, D_GRAPHICS::GetDepthFormat());
-		if(mCustomDepthApplied)
+		if (mCustomDepthApplied)
 			mCustomDepth.Create(L"Scene CustomDepth", (UINT)mBufferWidth, (UINT)mBufferHeight, D_GRAPHICS::GetDepthFormat());
 		mSceneNormals.Create(L"Scene Normals", (UINT)mBufferWidth, (UINT)mBufferHeight, 1, DXGI_FORMAT_R16G16B16A16_FLOAT);
 
