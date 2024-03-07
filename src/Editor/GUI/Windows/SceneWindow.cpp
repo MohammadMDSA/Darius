@@ -47,6 +47,7 @@ namespace Darius::Editor::Gui::Windows
 		mDrawDebug(true),
 		mDrawSkybox(true),
 		mDragSpawned(false),
+		mForceWireframe(false),
 		mSceneNormals(D_MATH::Color(0.f, 0.f, 0.f, 1.f)),
 		mSSAOFullScreen(D_MATH::Color(1.f, 1.f, 1.f)),
 		mLineMeshResource(),
@@ -480,6 +481,38 @@ namespace Darius::Editor::Gui::Windows
 
 
 					ImGui::EndCombo();
+				}
+			}
+
+			ImGui::SameLine();
+
+			// Camera Settings
+			{
+
+				if (ImGui::Button(ICON_FA_VIDEO))
+					ImGui::OpenPopup("SceneWindowCameraSettings");
+
+				if (ImGui::BeginPopup("SceneWindowCameraSettings"))
+				{
+					// Near clip
+					{
+						float value = mCamera.GetNearClip();
+						if (ImGui::DragFloat("Near Clip", &value, 0.1f, 0.01f, mCamera.GetFarClip() + 0.1, "%.1f", ImGuiSliderFlags_AlwaysClamp))
+						{
+							mCamera.SetZRange(value, mCamera.GetFarClip());
+						}
+					}
+
+					// Far clip
+					{
+						float value = mCamera.GetFarClip();
+						if (ImGui::DragFloat("Far Clip", &value, 0.1f, mCamera.GetNearClip() + 0.1, FLT_MAX, "%.1f", ImGuiSliderFlags_AlwaysClamp))
+						{
+							mCamera.SetZRange(mCamera.GetNearClip(), value);
+						}
+					}
+
+					ImGui::EndPopup();
 				}
 			}
 
