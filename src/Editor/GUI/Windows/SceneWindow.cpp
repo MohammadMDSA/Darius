@@ -282,7 +282,7 @@ namespace Darius::Editor::Gui::Windows
 			mDrawSkybox && mSkyboxSpec.IsValid() ? mSkyboxSpec.Get() : nullptr,
 			mDrawSkybox && mSkyboxDiff.IsValid() ? mSkyboxDiff.Get() : nullptr,
 			riContext,
-			mDrawSkybox
+			(bool)mDrawSkybox
 		};
 
 		// Post Processing
