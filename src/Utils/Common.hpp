@@ -109,18 +109,19 @@ static INLINE std::string const GetTypeName() { return D_NAMEOF(T); }
 		RequestPathChange(prop->GetPath().parent_path(), prop->GetHandle()); \
     D_H_RESOURCE_DRAG_DROP_DESTINATION(resourceType, handleFunction) \
 	ImGui::SameLine(availableSpace.x - selectorWidth); \
-	if (ImGui::Button((std::string(ICON_FA_ELLIPSIS_VERTICAL) + ("##" placeHolder) + std::string(__VA_ARGS__)).c_str(), ImVec2(selectorWidth, 0))) \
+	std::string popupName = (std::string(placeHolder" Res ") + std::string(__VA_ARGS__)); \
+	if (ImGui::Button((std::string(ICON_FA_ELLIPSIS_VERTICAL) + std::string("##" placeHolder) + std::string(__VA_ARGS__)).c_str(), ImVec2(selectorWidth, 0))) \
 	{ \
-		ImGui::OpenPopup(placeHolder " Res"); \
+		ImGui::OpenPopup(popupName.c_str()); \
 		for(int i = 0; i < 100; i++) search[i] = 0; \
 		searchStr = L""; \
 		previews = D_RESOURCE::GetResourcePreviews(resourceType::GetResourceType()); \
 	} \
 	\
-	if (ImGui::BeginPopup(placeHolder " Res")) \
+	if (ImGui::BeginPopup(popupName.c_str())) \
 	{ \
 		int idx = 0; \
-		if(ImGui::InputText("##Search"#prop, search, 100)) \
+		if(ImGui::InputText((std::string("##Search"placeHolder) + std::string(__VA_ARGS__)).c_str(), search, 100)) \
 		{ \
 			std::string searchTmp(search); \
 			searchStr = STR2WSTR(std::string(searchTmp)); \
