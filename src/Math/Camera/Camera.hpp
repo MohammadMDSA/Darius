@@ -14,6 +14,7 @@
 #pragma once
 
 #include "Math/VectorMath.hpp"
+#include "Math/Ray.hpp"
 #include "Frustum.hpp"
 
 #include <rttr/rttr_enable.h>
@@ -43,11 +44,12 @@ namespace Darius::Math::Camera
         void SetTransform(const AffineTransform& xform);
         void SetTransform(const OrthogonalTransform& xform);
 
-        Quaternion GetRotation() const { return m_CameraToWorld.GetRotation(); }
-        Vector3 GetRightVec() const { return m_Basis.GetX(); }
-        Vector3 GetUpVec() const { return m_Basis.GetY(); }
-        Vector3 GetForwardVec() const { return -m_Basis.GetZ(); }
-        Vector3 GetPosition() const { return m_CameraToWorld.GetTranslation(); }
+        INLINE Quaternion GetRotation() const { return m_CameraToWorld.GetRotation(); }
+        INLINE Vector3 GetRightVec() const { return m_Basis.GetX(); }
+        INLINE Vector3 GetUpVec() const { return m_Basis.GetY(); }
+        INLINE Vector3 GetForwardVec() const { return -m_Basis.GetZ(); }
+        INLINE Vector3 GetPosition() const { return m_CameraToWorld.GetTranslation(); }
+        INLINE Ray GetCameraRay() const { return Ray(GetPosition(), GetForwardVec()); }
 
         // Accessors for reading the various matrices and frusta
         const Matrix4& GetViewMatrix() const { return m_ViewMatrix; }
