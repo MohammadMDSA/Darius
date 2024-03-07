@@ -32,6 +32,10 @@ namespace Darius::Math
 		bool operator== (Ray const& other) const;
 		bool operator!= (Ray const& other) const;
 
+		Ray operator- () const;
+
+		Vector3 Resolve(float distFromRayOrigin) const;
+
 		INLINE Vector3 const& GetOrigin() const { return mPosition; }
 		INLINE Vector3 const& GetDirection() const { return mDirection; }
 		
@@ -43,7 +47,12 @@ namespace Darius::Math
 		bool Intersects(Bounds::BoundingPlane const& plane, _OUT_ float& dist) const;
 
 	private:
-		Vector3 mPosition;
-		Vector3 mDirection;
+		const Vector3 mPosition;
+		const Vector3 mDirection;
 	};
+
+	inline bool Ray::operator==(Ray const& other) const { return mPosition.Equals(other.mPosition) && mDirection.Equals(other.mDirection); }
+	inline bool Ray::operator!=(Ray const& other) const { return !(*this == other); }
+	inline Ray Ray::operator-() const { return Ray(mPosition, -mDirection); }
+	inline Vector3 Ray::Resolve(float dist) const { return mPosition + (dist * mDirection); }
 }
