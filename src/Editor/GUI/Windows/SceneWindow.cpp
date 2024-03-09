@@ -349,7 +349,7 @@ namespace Darius::Editor::Gui::Windows
 				if (!mDragSpawned && !ImGui::GetIO().WantTextInput && (D_KEYBOARD::GetKey(D_KEYBOARD::Keys::LeftAlt) || D_KEYBOARD::GetKey(D_KEYBOARD::Keys::RightAlt)))
 				{
 					auto dragSpawnedGo = D_WORLD::InstantiateGameObject(selectedObj, true);
-					dragSpawnedGo->SetParent(selectedObj->GetParent(), D_SCENE::GameObject::AttachmentType::KeepWorld);
+					dragSpawnedGo->SetParent(selectedObj->GetParent(), D_SCENE::GameObject::AttachmentType::KeepLocal);
 					D_EDITOR_CONTEXT::SetSelectedGameObject(dragSpawnedGo);
 					mDragSpawned = true;
 				}

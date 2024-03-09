@@ -68,6 +68,8 @@ namespace Darius::Editor::Gui::Windows
 
 		Darius::ResourceManager::ResourceHandle mFocusedResource;
 
+		bool						mFocusScrollDone;
+
 	};
 }
 

@@ -25,7 +25,8 @@ namespace Darius::Editor::Gui::Windows
 	ContentWindow::ContentWindow(D_SERIALIZATION::Json& config) :
 		Window(config),
 		mTreeViewWidth(-1.f),
-		mRightPanelWidth(-1.f)
+		mRightPanelWidth(-1.f),
+		mFocusScrollDone(false)
 	{
 		auto assetsPath = D_ENGINE_CONTEXT::GetAssetsPath();
 		TrySetCurrentPath(assetsPath);
@@ -37,12 +38,14 @@ namespace Darius::Editor::Gui::Windows
 			{
 				ContentWindow::TrySetCurrentPath(path);
 				mFocusedResource = handle;
+				mFocusScrollDone = false;
 			});
 
 		mResourceChangePathConnection = D_RESOURCE::Resource::RequestPathChange.connect([&](D_FILE::Path const& path, D_RESOURCE::ResourceHandle const& handle)
 			{
 				ContentWindow::TrySetCurrentPath(path);
 				mFocusedResource = handle;
+				mFocusScrollDone = false;
 			});
 
 	}
@@ -199,6 +202,12 @@ namespace Darius::Editor::Gui::Windows
 			}
 
 			D_GUI_COMPONENT::ContentWindowItemGrid(dirItem, buttonWidth, buttonWidth, focused, selected, clicked, selectedHandle);
+
+			if (focused && !mFocusScrollDone)
+			{
+				ImGui::SetScrollHereY();
+				mFocusScrollDone = true;
+			}
 
 			if (selected)
 				mFocusedResource = D_RESOURCE::EmptyResourceHandle;

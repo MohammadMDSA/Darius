@@ -115,7 +115,7 @@ namespace Darius::Editor::Gui::Windows
 						D_SERIALIZATION::Json goJson;
 						D_EDITOR_CONTEXT::GetClipboardJson(true, goJson);
 						D_WORLD::LoadGameObject(goJson, &pastedGo, true);
-						pastedGo->SetParent(go, GameObject::AttachmentType::KeepWorld);
+						pastedGo->SetParent(go, GameObject::AttachmentType::KeepLocal);
 					}
 				}
 				if (!pasteEnable)

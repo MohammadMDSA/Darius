@@ -181,7 +181,7 @@ namespace Darius::Editor::Gui::GuiManager
 
 					if (selectedObj)
 					{
-						pastedGo->SetParent(selectedObj, GameObject::AttachmentType::KeepWorld);
+						pastedGo->SetParent(selectedObj, GameObject::AttachmentType::KeepLocal);
 					}
 				}
 			}
