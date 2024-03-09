@@ -1,8 +1,10 @@
 #include "Renderer/pch.hpp"
 #include "MeshResource.hpp"
 
+#include "MaterialResource.hpp"
 #include "SkeletalMeshResource.hpp"
 #include "Renderer/Geometry/ModelLoader/FbxLoader.hpp"
+#include "Renderer/RendererManager.hpp"
 
 #include <Core/Serialization/TypeSerializer.hpp>
 #include <Core/Filesystem/Path.hpp>
@@ -103,4 +105,31 @@ namespace Darius::Renderer
 		return valueChanged;
 	};
 
+	void MeshResource::SetMaterial(int index, MaterialResource* material)
+	{
+		D_ASSERT(index >= 0);
+		if (index >= mMaterials.size())
+			return;
+		
+		if (mMaterials.at(index).Get() == material)
+			return;
+
+		// What material to set?
+		MaterialResource* materialToSet;
+		if (material == nullptr)
+			materialToSet = D_RESOURCE::GetResourceSync<MaterialResource>(GetDefaultGraphicsResource(DefaultResource::Material)).Get();
+		else
+			materialToSet = material;
+
+		D_ASSERT(materialToSet);
+		mMaterials[index] = materialToSet;
+
+		if (!materialToSet->IsLoaded())
+			D_RESOURCE_LOADER::LoadResourceAsync(materialToSet, nullptr);
+
+		// No gpu dirty since it only concerns the mesh state
+		MakeDiskDirty();
+
+		SignalChange();
+	}
 }

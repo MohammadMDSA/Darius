@@ -1,5 +1,6 @@
 #pragma once
 
+#include "MaterialResource.hpp"
 #include "Renderer/VertexTypes.hpp"
 #include "Renderer/Geometry/Mesh.hpp"
 #include "Renderer/Geometry/MeshData.hpp"
@@ -43,6 +44,10 @@ namespace Darius::Renderer
 		INLINE bool						IsInverted() const { return mInverted; }
 		void							SetInverted(bool value);
 
+		INLINE MaterialResource* GetMaterial(int index) const {
+			D_ASSERT(index >= 0 && index < (int)mMaterials.size()); return mMaterials.at(index).Get(); }
+		void							SetMaterial(int index, MaterialResource* material);
+
 	protected:
 
 		MeshResource(D_CORE::Uuid uuid, std::wstring const& path, std::wstring const& name, D_RESOURCE::DResourceId id, bool isDefault = false) :
@@ -64,6 +69,9 @@ namespace Darius::Renderer
 
 		DField(Serialize)
 		bool							mInverted;
+
+		DField(Serialzie)
+		D_CONTAINERS::DVector<D_RESOURCE::ResourceRef<MaterialResource>> mMaterials;
 
 		friend class DResourceManager;
 	};
