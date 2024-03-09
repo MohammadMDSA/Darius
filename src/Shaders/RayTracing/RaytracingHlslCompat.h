@@ -61,6 +61,7 @@ struct PathTracerRayPayload
 {
     UINT                            RayRecursionDepth;
     XMFLOAT3                        Radiance;              // TODO encode
+    XMFLOAT3                        Tangent;
     PathTracerGBuffer               GBuffer;
     bool                            MissLatestRay;
 };

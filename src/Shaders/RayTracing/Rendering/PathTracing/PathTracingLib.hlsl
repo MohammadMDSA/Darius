@@ -486,11 +486,9 @@ float3 NormalMap(
     in float3 normal,
     in float2 texCoord,
     in RTVertexPositionNormalTangentTexture vertices[3],
-    in BuiltInTriangleIntersectionAttributes attr)
+    in BuiltInTriangleIntersectionAttributes attr,
+    in float3 tangent)
 {
-    float3 vertexTangents[3] = { vertices[0].Tangent.xyz, vertices[1].Tangent.xyz, vertices[2].Tangent.xyz };
-    float3 tangent = HitAttribute(vertexTangents, attr);
-    
 
     float3 texSample = l_TexNormal.SampleLevel(l_NormalSampler, texCoord, 0).xyz;
     float3 bumpNormal = normalize(texSample * 2.f - 1.f);
@@ -520,6 +518,7 @@ void MainRenderCHS(inout PathTracerRayPayload rayPayload, in BuiltInTriangleInte
     };
 
     float2 vertexTexCoords[3] = { vertices[0].Tex, vertices[1].Tex, vertices[2].Tex };
+    
     float2 texCoord = HitAttribute(vertexTexCoords, attr);
 
     PrimitiveMaterialBuffer material;
@@ -539,14 +538,19 @@ void MainRenderCHS(inout PathTracerRayPayload rayPayload, in BuiltInTriangleInte
         // BLAS Transforms in this sample are uniformly scaled so it's OK to directly apply the BLAS transform.
         float3x3 wit = (float3x3)l_worldIT;
         normal = normalize(mul((float3x3) wit, objectNormal));
+        
+        float3 vertexTangents[3] = { vertices[0].Tangent.xyz, vertices[1].Tangent.xyz, vertices[2].Tangent.xyz };
+        float3 tangent = HitAttribute(vertexTangents, attr);
+        rayPayload.Tangent = mul((float3x3)wit, tangent.xyz);
     }
     float3 hitPosition = HitWorldPosition();
 
-#define BitMasked(value, bitIdx) value & (1u << bitIdx)
-        
+                    
+#define BitMasked(value, bitIdx) value & (1u << bitIdx)             
+    
     if (BitMasked(l_TexStats, MaterialTextureType::Normal))
     {
-        normal = NormalMap(normal, texCoord, vertices, attr);
+        normal = NormalMap(normal, texCoord, vertices, attr, rayPayload.Tangent.xyz);
         normal = normalize(normal);
     }
 
