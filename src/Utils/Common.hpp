@@ -127,6 +127,12 @@ static INLINE std::string const GetTypeName() { return D_NAMEOF(T); }
 			searchStr = STR2WSTR(std::string(searchTmp)); \
 			boost::algorithm::to_lower(searchStr); \
 		} \
+		bool noneSelected = currentResource == nullptr; \
+		if(ImGui::Selectable("<None>", &noneSelected)) \
+		{ \
+			handleFunction(nullptr); \
+			valueChanged = true; \
+		} \
 		for (auto prev : previews) \
 		{ \
 			if (searchStr.empty()) \
