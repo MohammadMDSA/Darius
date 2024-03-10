@@ -22,3 +22,6 @@
 [submodule "src/Libs/enkiTS"]
 	path = src/Libs/enkiTS
 	url = https://github.com/dougbinks/enkiTS
+[submodule "Demo/Assets/PolygonMilitary"]
+	path = Demo/Assets/PolygonMilitary
+	url = https://github.com/MohammadMDSA/Darius-Polygon-Military.git
