@@ -38,7 +38,7 @@ namespace Darius::Renderer
 		INLINE StaticMeshResource*			GetMesh() const { return mMesh.Get(); }
 
 	protected:
-		virtual UINT						GetPsoIndex(UINT materialIndex) override;
+		virtual UINT						GetPsoIndex(UINT materialIndex, MaterialResource* material) override;
 
 	private:
 

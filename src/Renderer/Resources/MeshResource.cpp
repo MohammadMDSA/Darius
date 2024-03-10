@@ -15,8 +15,8 @@
 #include <Scene/EntityComponentSystem/Components/TransformComponent.hpp>
 
 #if _D_EDITOR
+#include <ResourceManager/ResourceDragDropPayload.hpp>
 #include <Libs/FontIcon/IconsFontAwesome6.h>
-
 #include <imgui.h>
 #endif
 
@@ -55,6 +55,9 @@ namespace Darius::Renderer
 		D_RENDERER_GEOMETRY_LOADER_FBX::ReadMeshByName(GetPath(), GetName(), IsInverted(), meshData);
 
 		CreateInternal(meshData);
+
+		mMaterials.resize(meshData.SubMeshes.size());
+
 		return true;
 	}
 
@@ -89,7 +92,7 @@ namespace Darius::Renderer
 		bool valueChanged = false;
 		D_H_DETAILS_DRAW_BEGIN_TABLE()
 
-		// Inverted
+			// Inverted
 		{
 			D_H_DETAILS_DRAW_PROPERTY("Inverted");
 			bool value = IsInverted();
@@ -97,6 +100,21 @@ namespace Darius::Renderer
 			{
 				SetInverted(value);
 				valueChanged = true;
+			}
+		}
+
+		// Materials
+		{
+			for (int i = 0; i < (int)mMaterials.size(); i++)
+			{
+				auto setter = [&, i](MaterialResource* resource)
+					{
+						SetMaterial(i, resource);
+					};
+
+				auto name = std::string("Material ") + std::to_string(i + 1);
+				D_H_DETAILS_DRAW_PROPERTY(name.c_str());
+				D_H_RESOURCE_SELECTION_DRAW(MaterialResource, mMaterials[i], "Select Material", setter, std::to_string(i));
 			}
 		}
 
@@ -110,7 +128,7 @@ namespace Darius::Renderer
 		D_ASSERT(index >= 0);
 		if (index >= mMaterials.size())
 			return;
-		
+
 		if (mMaterials.at(index).Get() == material)
 			return;
 

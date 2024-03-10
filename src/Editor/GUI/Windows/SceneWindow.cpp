@@ -506,7 +506,7 @@ namespace Darius::Editor::Gui::Windows
 					// Far clip
 					{
 						float value = mCamera.GetFarClip();
-						if (ImGui::DragFloat("Far Clip", &value, 0.1f, mCamera.GetNearClip() + 0.1, FLT_MAX, "%.1f", ImGuiSliderFlags_AlwaysClamp))
+						if (ImGui::DragFloat("Far Clip", &value, 0.1f, mCamera.GetNearClip() + 0.1f, FLT_MAX, "%.1f", ImGuiSliderFlags_AlwaysClamp))
 						{
 							mCamera.SetZRange(mCamera.GetNearClip(), value);
 						}

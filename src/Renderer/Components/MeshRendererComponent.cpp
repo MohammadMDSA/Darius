@@ -76,15 +76,22 @@ namespace Darius::Renderer
 
 		static auto incSize = D_GRAPHICS_DEVICE::GetDevice()->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 
+		D_CONTAINERS::DVector<ResourceRef<MaterialResource>> meshMaterials = mMesh->GetMaterials();
+
 		for (UINT i = 0; i < mesh->mDraw.size(); i++)
 		{
 			auto const& draw = mesh->mDraw[i];
-			auto const& material = mMaterials[i];
+
+			ResourceRef<MaterialResource> material = mMaterials[i];
+
+			if (!mMaterials[i].IsValid())
+				material = meshMaterials[i];
 
 			if (!material.IsValid() || material->IsDirtyGPU())
 				continue;
 
-			result.PsoType = GetPsoIndex(i);
+
+			result.PsoType = GetPsoIndex(i, material.Get());
 			result.DepthPsoIndex = mMaterialPsoData[i].DepthPsoIndex;
 			result.Material.MaterialCBV = *material.Get();
 			result.Material.MaterialSRV = material->GetTexturesHandle();
@@ -113,9 +120,9 @@ namespace Darius::Renderer
 		return any;
 	}
 
-	UINT MeshRendererComponent::GetPsoIndex(UINT materialIndex)
+	UINT MeshRendererComponent::GetPsoIndex(UINT materialIndex, MaterialResource* material)
 	{
-		auto materialPsoFlags = mMaterials[materialIndex]->GetPsoFlags();
+		auto materialPsoFlags = material->GetPsoFlags();
 
 		// Whether resource has changed
 		if (mMaterialPsoData[materialIndex].CachedMaterialPsoFlags != materialPsoFlags)
@@ -129,7 +136,7 @@ namespace Darius::Renderer
 		{
 			D_RENDERER_RAST::PsoConfig config;
 			config.PsoFlags = materialPsoFlags | mComponentPsoFlags;
-			if (mMaterials[materialIndex]->HasDisplacement())
+			if (material->HasDisplacement())
 			{
 				config.PsoFlags |= RenderItem::PointOnly | RenderItem::LineOnly; // Means patch
 				config.VSIndex = D_GRAPHICS::GetShaderIndex("WorldDisplacementVS");

@@ -56,6 +56,7 @@ namespace Darius::Renderer
 		bool any = false;
 		auto result = RenderItem();
 		const Mesh* mesh = mMesh.Get()->GetMeshData();
+		auto const& meshMaterials = mMesh->GetMaterials();
 		result.Mesh = mesh;
 		result.PrimitiveType = D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
 		result.MeshVsCBV = GetConstantsAddress();
@@ -89,12 +90,16 @@ namespace Darius::Renderer
 		for (UINT i = 0; i < mesh->mDraw.size(); i++)
 		{
 			auto const& draw = mesh->mDraw[i];
-			auto const& material = mMaterials[i];
+
+			ResourceRef<MaterialResource> material = mMaterials[i];
+
+			if (!mMaterials[i].IsValid())
+				material = meshMaterials[i];
 
 			if (!material.IsValid() || material->IsDirtyGPU())
 				continue;
 
-			result.PsoType = GetPsoIndex(i);
+			result.PsoType = GetPsoIndex(i, material.Get());
 			result.DepthPsoIndex = mMaterialPsoData[i].DepthPsoIndex;
 			result.Material.MaterialCBV = *material.Get();
 			result.Material.MaterialSRV = material->GetTexturesHandle();
@@ -158,7 +163,7 @@ namespace Darius::Renderer
 
 		if (meshValid && mMesh->IsLoaded())
 			LoadMeshData();
-		else if(meshValid)
+		else if (meshValid)
 		{
 			D_RESOURCE_LOADER::LoadResourceAsync(mesh, [&](auto resource)
 				{
@@ -186,7 +191,7 @@ namespace Darius::Renderer
 #if _D_EDITOR
 			mJointLocalPoses.resize(mMesh->GetJointCount());
 #endif
-			
+
 			for (auto const& skeletonNode : mMesh->GetSkeleton())
 			{
 				mSkeleton.push_back(skeletonNode);
@@ -221,7 +226,7 @@ namespace Darius::Renderer
 			skeletonJoint.StaleMatrix = false;
 
 			fbxsdk::FbxAMatrix mat;
-			mat.SetTRS({ 0, 0, 0 }, { skeletonJoint.Rotation.GetX(), skeletonJoint.Rotation.GetY(), skeletonJoint.Rotation.GetZ(), 1.f}, {1, 1, 1});
+			mat.SetTRS({ 0, 0, 0 }, { skeletonJoint.Rotation.GetX(), skeletonJoint.Rotation.GetY(), skeletonJoint.Rotation.GetZ(), 1.f }, { 1, 1, 1 });
 			auto quat = mat.GetQ();
 
 

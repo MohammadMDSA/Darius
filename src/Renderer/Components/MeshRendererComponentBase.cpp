@@ -71,9 +71,9 @@ namespace Darius::Renderer
 		mChangeSignal(this);
 	}
 
-	UINT MeshRendererComponentBase::GetPsoIndex(UINT materialIndex)
+	UINT MeshRendererComponentBase::GetPsoIndex(UINT materialIndex, MaterialResource* material)
 	{
-		auto materialPsoFlags = mMaterials[materialIndex]->GetPsoFlags();
+		auto materialPsoFlags = material->GetPsoFlags();
 
 		// Whether resource has changed
 		if (mMaterialPsoData[materialIndex].CachedMaterialPsoFlags != materialPsoFlags)

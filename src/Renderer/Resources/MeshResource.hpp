@@ -46,6 +46,7 @@ namespace Darius::Renderer
 
 		INLINE MaterialResource* GetMaterial(int index) const {
 			D_ASSERT(index >= 0 && index < (int)mMaterials.size()); return mMaterials.at(index).Get(); }
+		INLINE D_CONTAINERS::DVector<D_RESOURCE::ResourceRef<MaterialResource>> const& GetMaterials() const { return mMaterials; }
 		void							SetMaterial(int index, MaterialResource* material);
 
 	protected:
@@ -70,7 +71,7 @@ namespace Darius::Renderer
 		DField(Serialize)
 		bool							mInverted;
 
-		DField(Serialzie)
+		DField(Serialize)
 		D_CONTAINERS::DVector<D_RESOURCE::ResourceRef<MaterialResource>> mMaterials;
 
 		friend class DResourceManager;

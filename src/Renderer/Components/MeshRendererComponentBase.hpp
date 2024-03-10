@@ -47,7 +47,7 @@ namespace Darius::Renderer
 
 	protected:
 
-		virtual UINT							GetPsoIndex(UINT materialIndex);
+		virtual UINT							GetPsoIndex(UINT materialIndex, MaterialResource* material);
 		void									OnMeshChanged();
 		
 		DField(Serialize)
