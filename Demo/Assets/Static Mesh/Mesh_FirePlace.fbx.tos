@@ -1,1 +1,1 @@
-{"Path":"Mesh_FirePlace.fbx","Properties":{"Box001":{"Default":false,"Id":5298,"Inverted":true,"Uuid":"2eb7f156-6e90-4f15-94e7-b7ce1047344a"}},"Resources":[{"Name":"Box001","Type":"Static Mesh","Uuid":"2eb7f156-6e90-4f15-94e7-b7ce1047344a"}]}
+{"Path":"Mesh_FirePlace.fbx","Properties":{"Box001":{"Default":false,"Id":5304,"Inverted":true,"Materials":["694145a8-941d-4d77-9ce8-2f7fd4dc9b51"],"Uuid":"2eb7f156-6e90-4f15-94e7-b7ce1047344a"}},"Resources":[{"Name":"Box001","Type":"Static Mesh","Uuid":"2eb7f156-6e90-4f15-94e7-b7ce1047344a"}]}
