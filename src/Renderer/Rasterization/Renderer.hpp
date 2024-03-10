@@ -25,6 +25,7 @@ namespace Darius::Renderer::Rasterization
 		kMaterialSRVs,
 		kMaterialSamplers,
 		kCommonCBV,				// Holds global constants in all shaders
+		kLightConfig,
 		kCommonSRVs,
 		kSkinMatrices,
 

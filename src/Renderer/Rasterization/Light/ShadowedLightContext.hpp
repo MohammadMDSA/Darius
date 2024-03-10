@@ -26,6 +26,15 @@ namespace Darius::Renderer::Rasterization::Light
 {
 	class RasterizationShadowedLightContext : public D_RENDERER_LIGHT::LightContext
 	{
+
+	public:
+		ALIGN_DECL_256 struct LightConfigBuffer
+		{
+			float mDirectionalShadowBufferTexelSize;
+			float mPointShadowBufferTexelSize;
+			float mSpotShadowBufferTexelSize;
+		};
+
 	public:
 
 		RasterizationShadowedLightContext(UINT directionalShadowBufferDimansion = 4096u, UINT pointShadowBufferDimansion = 512u, UINT spotShadowBufferDimansion = 1024u, UINT shadowBufferDepthPercision = 16u);
@@ -36,6 +45,8 @@ namespace Darius::Renderer::Rasterization::Light
 		void									GetShadowTextureArraysHandles(D3D12_CPU_DESCRIPTOR_HANDLE& directional, D3D12_CPU_DESCRIPTOR_HANDLE& point, D3D12_CPU_DESCRIPTOR_HANDLE& spot) const;
 
 		void									RenderShadows(D_CONTAINERS::DVector<RenderItem> const& shadowRenderItems, D_GRAPHICS::GraphicsContext& shadowContext);
+
+		void									GetLightConfigBufferData(LightConfigBuffer& outLightConfig) const;
 
 	private:
 
@@ -49,13 +60,11 @@ namespace Darius::Renderer::Rasterization::Light
 		void RenderSpotShadow(Darius::Renderer::Rasterization::MeshSorter& sorter, D_GRAPHICS::GraphicsContext& context, D_RENDERER_LIGHT::LightData const& light, int spotLightIndex);
 		void RenderPointShadow(Darius::Renderer::Rasterization::MeshSorter& sorter, D_GRAPHICS::GraphicsContext& context, D_RENDERER_LIGHT::LightData const& light, int pointLightIndex);
 
-
-
 		// Config
 		uint32_t							mDirectionalShadowBufferWidth;
 		uint32_t							mPointShadowBufferWidth;
 		uint32_t							mSpotShadowBufferWidth;
-		uint32_t							mShadowBufferDepthPercision;
+		uint32_t							mShadowBufferDepthPrecision;
 
 		// SRV Shadow Buffers
 		D_CONTAINERS::DVector<D_GRAPHICS_BUFFERS::ShadowBuffer> mShadowBuffersDirectional;
@@ -71,6 +80,7 @@ namespace Darius::Renderer::Rasterization::Light
 		D_CONTAINERS::DVector<D_MATH_CAMERA::ShadowCamera>	mDirectionalShadowCameras;
 		D_CONTAINERS::DVector<D_MATH_CAMERA::Camera>		mSpotShadowCameras;
 		D_CONTAINERS::DVector<D_MATH_CAMERA::Camera>		mPointShadowCameras;
+
 	};
 
 
@@ -80,4 +90,5 @@ namespace Darius::Renderer::Rasterization::Light
 		point = mPointShadowTextureArrayBuffer.GetSRV();
 		spot = mSpotShadowTextureArrayBuffer.GetSRV();
 	}
+
 }

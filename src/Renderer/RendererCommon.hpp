@@ -26,7 +26,6 @@ namespace Darius::Renderer
 		DirectX::XMFLOAT4X4	InvViewProj;
 		DirectX::XMFLOAT4X4 InvViewProjEyeCenter;
 		DirectX::XMFLOAT4	FrustumPlanes[6] = { { 0.f, 0.f, 0.f, 0.f }, { 0.f, 0.f, 0.f, 0.f }, { 0.f, 0.f, 0.f, 0.f }, { 0.f, 0.f, 0.f, 0.f }, { 0.f, 0.f, 0.f, 0.f }, { 0.f, 0.f, 0.f, 0.f } };
-		DirectX::XMFLOAT4	ShadowTexelSize = { 0.f, 0.f, 0.f, 0.f };
 		DirectX::XMFLOAT3	CameraPos = { 0.f, 0.f, 0.f };
 		float				cbPerObjectPad1 = 0.0f;
 		DirectX::XMFLOAT2	RenderTargetSize = { 0.0f, 0.0f };

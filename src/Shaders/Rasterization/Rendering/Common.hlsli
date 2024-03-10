@@ -14,6 +14,7 @@
     "DescriptorTable(Sampler(s0, numDescriptors = 10), visibility = SHADER_VISIBILITY_PIXEL)," \
     "DescriptorTable(SRV(t10, numDescriptors = 10), visibility = SHADER_VISIBILITY_PIXEL)," \
     "CBV(b1), " \
+    "CBV(b10, visibility = SHADER_VISIBILITY_PIXEL), " \
     "SRV(t20, visibility = SHADER_VISIBILITY_VERTEX), " \
     "StaticSampler(s10, maxAnisotropy = 8, visibility = SHADER_VISIBILITY_PIXEL)," \
     "StaticSampler(s11, visibility = SHADER_VISIBILITY_PIXEL," \
@@ -43,7 +44,6 @@ cbuffer cbPass : register(b1)
     float4x4 gInvViewProj;
     float4x4 gInvViewProjEyeCenter;
     float4 gFrustumPlanes[6];
-    float4 gShadowTexelSize;
     float3 gCameraPosW;
     float cbPerObjectPad1;
     float2 gRenderTargetSize;

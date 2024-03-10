@@ -21,7 +21,7 @@ namespace Darius::Renderer::Rasterization::Light
 		mDirectionalShadowBufferWidth(directionalShadowBufferDimansion),
 		mPointShadowBufferWidth(pointShadowBufferDimansion),
 		mSpotShadowBufferWidth(spotShadowBufferDimansion),
-		mShadowBufferDepthPercision(shadowBufferDepthPercision)
+		mShadowBufferDepthPrecision(shadowBufferDepthPercision)
 	{
 		mShadowBuffersDirectional.resize(D_RENDERER_LIGHT::MaxNumDirectionalLight);
 		mShadowBuffersPoint.resize(D_RENDERER_LIGHT::MaxNumPointLight * 6);
@@ -127,7 +127,7 @@ namespace Darius::Renderer::Rasterization::Light
 		auto dim = shadowSpaceAABB.GetDimensions();
 
 		// Fitting directional light bounds to the frustom... With extra Z
-		cam.UpdateMatrix(lightDir, Vector3(camWorldPos), dim, mDirectionalShadowBufferWidth, mDirectionalShadowBufferWidth, mShadowBufferDepthPercision);
+		cam.UpdateMatrix(lightDir, Vector3(camWorldPos), dim, mDirectionalShadowBufferWidth, mDirectionalShadowBufferWidth, mShadowBufferDepthPrecision);
 
 		light.ShadowMatrix = cam.GetShadowMatrix();
 	}
@@ -139,7 +139,6 @@ namespace Darius::Renderer::Rasterization::Light
 		GlobalConstants globals;
 		globals.ViewProj = cam.GetViewProjMatrix();
 		globals.CameraPos = (DirectX::XMFLOAT3)cam.GetPosition();
-		globals.ShadowTexelSize.x = 1.f / mDirectionalShadowBufferWidth;
 		auto const& frustum = cam.GetWorldSpaceFrustum();
 		for (int i = 0; i < 6; i++)
 			globals.FrustumPlanes[i] = (Vector4)frustum.GetFrustumPlane((D_MATH_CAMERA::Frustum::PlaneID)i);
@@ -344,5 +343,13 @@ namespace Darius::Renderer::Rasterization::Light
 		shadowContext.TransitionResource(mSpotShadowTextureArrayBuffer, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
 		shadowContext.TransitionResource(mPointShadowTextureArrayBuffer, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, true);
 	}
+
+	void RasterizationShadowedLightContext::GetLightConfigBufferData(LightConfigBuffer& outLightConfig) const
+	{
+		outLightConfig.mDirectionalShadowBufferTexelSize = 1.f / mDirectionalShadowBufferWidth;
+		outLightConfig.mSpotShadowBufferTexelSize = 1.f / mSpotShadowBufferWidth;
+		outLightConfig.mPointShadowBufferTexelSize = 1.f / mPointShadowBufferWidth;
+	}
+
 }
 

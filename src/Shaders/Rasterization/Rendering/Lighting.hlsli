@@ -14,6 +14,11 @@ struct Material
     float               Roughness;
     float               SpecularMask;
 };
+        
+cbuffer LightConfig : register(b10)
+{
+    float4 gShodowTexelSizes; // x = Directional, y = Point, z = Spot
+}
 
 Texture2DArray<float>   DirectioanalightShadowArrayTex      : register(t12);
 TextureCubeArray<float> PointLightShadowArrayTex            : register(t13);
@@ -41,10 +46,10 @@ float GetDirectionalShadow(uint lightIndex, float3 ShadowCoord)
 #else
     
     const float Dilation = 2.0;
-    float d1 = Dilation * gShadowTexelSize.x * 0.125;
-    float d2 = Dilation * gShadowTexelSize.x * 0.875;
-    float d3 = Dilation * gShadowTexelSize.x * 0.625;
-    float d4 = Dilation * gShadowTexelSize.x * 0.375;
+    float d1 = Dilation * gShodowTexelSizes.x * 0.125;
+    float d2 = Dilation * gShodowTexelSizes.x * 0.875;
+    float d3 = Dilation * gShodowTexelSizes.x * 0.625;
+    float d4 = Dilation * gShodowTexelSizes.x * 0.375;
 
     float result = (
         2.0 * DirectioanalightShadowArrayTex.SampleCmpLevelZero(shadowSampler, coord, ShadowCoord.z) +
@@ -71,10 +76,10 @@ float GetShadowConeLight(uint lightIndex, float3 shadowCoord, float3 wPos)
 #else
 
     const float Dilation = 2.0;
-    float d1 = Dilation * gShadowTexelSize.x * 0.125;
-    float d2 = Dilation * gShadowTexelSize.x * 0.875;
-    float d3 = Dilation * gShadowTexelSize.x * 0.625;
-    float d4 = Dilation * gShadowTexelSize.x * 0.375;
+    float d1 = Dilation * gShodowTexelSizes.z * 0.125;
+    float d2 = Dilation * gShodowTexelSizes.z * 0.875;
+    float d3 = Dilation * gShodowTexelSizes.z * 0.625;
+    float d4 = Dilation * gShodowTexelSizes.z * 0.375;
     float3 coord = float3(scrCoord, lightIndex - NUM_POINT_LIGHTS - NUM_DIR_LIGHTS);
             
     float result = (
@@ -107,10 +112,10 @@ float GetShadowPointLight(uint lightIndex, float3 lightToPos)
     float result = PointLightShadowArrayTex.SampleCmpLevelZero(shadowSampler, float4(-lightToPos.x, lightToPos.y, lightToPos.z, lightIndex - NUM_DIR_LIGHTS), depth);
 #else
     const float Dilation = 2.0;
-    float d1 = Dilation * gShadowTexelSize.x * 0.125;
-    float d2 = Dilation * gShadowTexelSize.x * 0.875;
-    float d3 = Dilation * gShadowTexelSize.x * 0.625;
-    float d4 = Dilation * gShadowTexelSize.x * 0.375;
+    float d1 = Dilation * gShodowTexelSizes.y * 0.125;
+    float d2 = Dilation * gShodowTexelSizes.y * 0.875;
+    float d3 = Dilation * gShodowTexelSizes.y * 0.625;
+    float d4 = Dilation * gShodowTexelSizes.y * 0.375;
     float4 coord = float4(-lightToPos.x, lightToPos.y, lightToPos.z, lightIndex - NUM_DIR_LIGHTS);
     float result = (
         2.0 * PointLightShadowArrayTex.SampleCmpLevelZero(shadowSampler, coord, depth) +

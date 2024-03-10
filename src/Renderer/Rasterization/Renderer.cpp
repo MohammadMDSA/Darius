@@ -109,7 +109,7 @@ namespace Darius::Renderer::Rasterization
 
 		DefaultBlackCubeMap = D_RESOURCE::GetResourceSync<TextureResource>(GetDefaultGraphicsResource(D_RENDERER::DefaultResource::TextureCubeMapBlack));
 
-		// Initialize IBL Textrues on GPU
+		// Initialize IBL Textures on GPU
 		{
 			uint32_t DestCount = 2;
 			uint32_t SourceCounts[] = { 1, 1 };
@@ -501,6 +501,7 @@ namespace Darius::Renderer::Rasterization
 		def[kMaterialSRVs].InitAsDescriptorRange(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 0, 10, D3D12_SHADER_VISIBILITY_PIXEL);
 		def[kMaterialSamplers].InitAsDescriptorRange(D3D12_DESCRIPTOR_RANGE_TYPE_SAMPLER, 0, 10, D3D12_SHADER_VISIBILITY_PIXEL);
 		def[kCommonCBV].InitAsConstantBuffer(1);
+		def[kLightConfig].InitAsConstantBuffer(10, D3D12_SHADER_VISIBILITY_PIXEL);
 		def[kCommonSRVs].InitAsDescriptorRange(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 10, 8, D3D12_SHADER_VISIBILITY_PIXEL);
 		def[kSkinMatrices].InitAsBufferSRV(20, D3D12_SHADER_VISIBILITY_VERTEX);
 		def.Finalize(L"Main Root Sig", D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT);
@@ -762,7 +763,11 @@ namespace Darius::Renderer::Rasterization
 					ssao ? ssao->GetSRV() : (D3D12_CPU_DESCRIPTOR_HANDLE)0
 				};
 
+				using LightConfigBuffer = D_RENDERER_RAST_LIGHT::RasterizationShadowedLightContext::LightConfigBuffer;
+				LightConfigBuffer lightConfigBuffer;
+				LightContext->GetLightConfigBufferData(lightConfigBuffer);
 				LightContext->GetShadowTextureArraysHandles(lightHandles[2], lightHandles[3], lightHandles[4]);
+				context.SetDynamicConstantBufferView(kLightConfig, sizeof(LightConfigBuffer), &lightConfigBuffer);
 
 				D_GRAPHICS_DEVICE::GetDevice()->CopyDescriptors(1, &CommonTexture, &destCount, destCount, lightHandles, sourceCounts, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 			}

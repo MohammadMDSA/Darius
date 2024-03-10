@@ -20,7 +20,6 @@ cbuffer cbPass : register(b0, space0)
     float4x4 g_InvViewProj;
     float4x4 g_InvViewProjEyeCenter;
     float4 g_FrustumPlanes[6];
-    float4 g_ShadowTexelSize;
     float3 g_CameraPosW;
     float c_bPerObjectPad1;
     float2 g_RenderTargetSize;
