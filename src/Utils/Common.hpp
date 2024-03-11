@@ -226,7 +226,7 @@ return settingsChanged;
 	ImGui::SameLine(inputOffset); \
 	int value = variable; \
 	ImGui::PushItemWidth(inputWidth); \
-	if (ImGui::SliderInt("##" label, &value, min, max, "%d", ImGuiSliderFlags_AlwaysClamp)) \
+	if (ImGui::SliderInt("##" label, &value, min, max, "%d", ImGuiSliderFlags_AlwaysClamp | ImGuiSliderFlags_ClampOnInput)) \
 	{ \
 		options[tag] = variable = value; \
 		settingsChanged = true; \
