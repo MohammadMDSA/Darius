@@ -105,7 +105,7 @@ namespace Darius::Renderer::Rasterization
 		TextureHeap.Create(L"Rasterization SRV, UAV, CBV  Descriptor Heap", D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, 4096);
 		SamplerHeap.Create(L"Rasterization Sampler  Descriptor Heap", D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER, 2048);
 
-		CommonTexture = TextureHeap.Alloc(8);
+		CommonTexture = TextureHeap.Alloc(10);
 
 		DefaultBlackCubeMap = D_RESOURCE::GetResourceSync<TextureResource>(GetDefaultGraphicsResource(D_RENDERER::DefaultResource::TextureCubeMapBlack));
 
@@ -502,7 +502,7 @@ namespace Darius::Renderer::Rasterization
 		def[kMaterialSamplers].InitAsDescriptorRange(D3D12_DESCRIPTOR_RANGE_TYPE_SAMPLER, 0, 10, D3D12_SHADER_VISIBILITY_PIXEL);
 		def[kCommonCBV].InitAsConstantBuffer(1);
 		def[kLightConfig].InitAsConstantBuffer(10, D3D12_SHADER_VISIBILITY_PIXEL);
-		def[kCommonSRVs].InitAsDescriptorRange(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 10, 8, D3D12_SHADER_VISIBILITY_PIXEL);
+		def[kCommonSRVs].InitAsDescriptorRange(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 10, 10, D3D12_SHADER_VISIBILITY_PIXEL);
 		def[kSkinMatrices].InitAsBufferSRV(20, D3D12_SHADER_VISIBILITY_VERTEX);
 		def.Finalize(L"Main Root Sig", D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT);
 	}
@@ -764,12 +764,16 @@ namespace Darius::Renderer::Rasterization
 				};
 
 				using LightConfigBuffer = D_RENDERER_RAST_LIGHT::RasterizationShadowedLightContext::LightConfigBuffer;
-				LightConfigBuffer lightConfigBuffer;
-				LightContext->GetLightConfigBufferData(lightConfigBuffer);
+
+				LightConfigBuffer const& lightConfigBuffer = LightContext->GetLightConfigBufferData();
 				LightContext->GetShadowTextureArraysHandles(lightHandles[2], lightHandles[3], lightHandles[4]);
 				context.SetDynamicConstantBufferView(kLightConfig, sizeof(LightConfigBuffer), &lightConfigBuffer);
 
-				D_GRAPHICS_DEVICE::GetDevice()->CopyDescriptors(1, &CommonTexture, &destCount, destCount, lightHandles, sourceCounts, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+				auto device = D_GRAPHICS_DEVICE::GetDevice();
+				device->CopyDescriptors(1, &CommonTexture, &destCount, destCount, lightHandles, sourceCounts, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+
+				// Copy shadow data
+				device->CopyDescriptorsSimple(1, CommonTexture + 8 * TextureHeap.GetDescriptorSize(), LightContext->GetShadowDataBufferDescriptor(), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 			}
 
 			// Setup samplers

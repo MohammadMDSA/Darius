@@ -23,6 +23,55 @@ namespace Darius::Renderer::Rasterization::Light
 		mSpotShadowBufferWidth(spotShadowBufferDimansion),
 		mShadowBufferDepthPrecision(shadowBufferDepthPercision)
 	{
+
+		// Create buffer has been called in the parent constructor,
+		// however, since virtual methods don't work in constructors,
+		// we have to call CreateShadowBuffers separately
+		CreateShadowBuffers();
+
+		LightConfigBufferData.mDirectionalShadowBufferTexelSize = 1.f / mDirectionalShadowBufferWidth;
+		LightConfigBufferData.mSpotShadowBufferTexelSize = 1.f / mSpotShadowBufferWidth;
+		LightConfigBufferData.mPointShadowBufferTexelSize = 1.f / mPointShadowBufferWidth;
+	}
+
+	RasterizationShadowedLightContext::~RasterizationShadowedLightContext()
+	{
+		DestroyBuffers();
+	}
+
+	void RasterizationShadowedLightContext::DestroyBuffers()
+	{
+		DestroyShadowBuffers();
+
+		Super::DestroyBuffers();
+	}
+
+	void RasterizationShadowedLightContext::DestroyShadowBuffers()
+	{
+		mShadowDataUpload.Destroy();
+		mShadowDataGpu.Destroy();
+
+		mDirectionalShadowTextureArrayBuffer.Destroy();
+		mPointShadowTextureArrayBuffer.Destroy();
+		mSpotShadowTextureArrayBuffer.Destroy();
+
+		for (int i = 0; i < mShadowBuffersDirectional.size(); i++)
+			mShadowBuffersDirectional[i].Destroy();
+		for (int i = 0; i < mShadowBuffersPoint.size(); i++)
+			mShadowBuffersPoint[i].Destroy();
+		for (int i = 0; i < mShadowBuffersSpot.size(); i++)
+			mShadowBuffersSpot[i].Destroy();
+	}
+
+	void RasterizationShadowedLightContext::CreateBuffers()
+	{
+		Super::CreateBuffers();
+
+		CreateShadowBuffers();
+	}
+
+	void RasterizationShadowedLightContext::CreateShadowBuffers()
+	{
 		mShadowBuffersDirectional.resize(D_RENDERER_LIGHT::MaxNumDirectionalLight);
 		mShadowBuffersPoint.resize(D_RENDERER_LIGHT::MaxNumPointLight * 6);
 		mShadowBuffersSpot.resize(D_RENDERER_LIGHT::MaxNumSpotLight);
@@ -44,20 +93,28 @@ namespace Darius::Renderer::Rasterization::Light
 		mDirectionalShadowCameras.resize(D_RENDERER_LIGHT::MaxNumDirectionalLight);
 		mSpotShadowCameras.resize(D_RENDERER_LIGHT::MaxNumSpotLight);
 		mPointShadowCameras.resize(D_RENDERER_LIGHT::MaxNumPointLight * 6);
+
+		// Create shadow data buffers
+		UINT shadowDataCount = MaxNumDirectionalLight * MaxDirectionalCascades + MaxNumPointLight + MaxNumSpotLight;
+		mShadowData.resize(shadowDataCount);
+		mShadowDataUpload.Create(L"Shadow Data Upload", shadowDataCount * sizeof(ShadowData), D_GRAPHICS_DEVICE::gNumFrameResources);
+		mShadowDataGpu.Create(L"Shadow Data Gpu", shadowDataCount, sizeof(ShadowData));
 	}
 
-	RasterizationShadowedLightContext::~RasterizationShadowedLightContext()
+	void RasterizationShadowedLightContext::UpdateBuffers(D_GRAPHICS::CommandContext& context, D3D12_RESOURCE_STATES buffersReadyState)
 	{
-		mDirectionalShadowTextureArrayBuffer.Destroy();
-		mPointShadowTextureArrayBuffer.Destroy();
-		mSpotShadowTextureArrayBuffer.Destroy();
+		D_RENDERER_LIGHT::LightContext::UpdateBuffers(context, buffersReadyState);
 
-		for (int i = 0; i < mShadowBuffersDirectional.size(); i++)
-			mShadowBuffersDirectional[i].Destroy();
-		for (int i = 0; i < mShadowBuffersPoint.size(); i++)
-			mShadowBuffersPoint[i].Destroy();
-		for (int i = 0; i < mShadowBuffersSpot.size(); i++)
-			mShadowBuffersSpot[i].Destroy();
+		auto frameResourceIndex = D_GRAPHICS_DEVICE::GetCurrentFrameResourceIndex();
+
+		// Upload shadow data
+		ShadowData* mappedShadowData = (ShadowData*)mShadowDataUpload.MapInstance(frameResourceIndex);
+		std::memcpy(mappedShadowData, mShadowData.data(), mShadowDataUpload.GetBufferSize());
+		mShadowDataUpload.Unmap();
+		context.TransitionResource(mShadowDataGpu, D3D12_RESOURCE_STATE_COPY_DEST);
+		context.CopyBufferRegion(mShadowDataGpu, 0, mShadowDataUpload, frameResourceIndex * mShadowDataUpload.GetBufferSize(), mShadowDataUpload.GetBufferSize());
+		context.TransitionResource(mShadowDataGpu, buffersReadyState);
+
 	}
 
 	void RasterizationShadowedLightContext::Update(D_MATH_CAMERA::Camera const& viewerCamera)
@@ -129,7 +186,7 @@ namespace Darius::Renderer::Rasterization::Light
 		// Fitting directional light bounds to the frustom... With extra Z
 		cam.UpdateMatrix(lightDir, Vector3(camWorldPos), dim, mDirectionalShadowBufferWidth, mDirectionalShadowBufferWidth, mShadowBufferDepthPrecision);
 
-		light.ShadowMatrix = cam.GetShadowMatrix();
+		mShadowData[directionalIndex * MaxDirectionalCascades].ShadowMatrix = cam.GetShadowMatrix();
 	}
 
 	void RasterizationShadowedLightContext::RenderDirectionalShadow(D_RENDERER_RAST::MeshSorter& sorter, D_GRAPHICS::GraphicsContext& context, LightData const& light, int directionalIndex)
@@ -161,7 +218,7 @@ namespace Darius::Renderer::Rasterization::Light
 		shadowCamera.SetEyeAtUp(light.Position, Vector3(light.Position) + Vector3(light.Direction), Vector3::Up);
 		shadowCamera.SetPerspectiveMatrix(D_MATH::ACos(light.SpotAngles.y) * 2, 1.0f, light.Range * .001f, light.Range * 1.0f);
 		shadowCamera.Update();
-		light.ShadowMatrix = shadowCamera.GetViewProjMatrix();
+		mShadowData[spotLightIndex + SpotLightStartIndex].ShadowMatrix = shadowCamera.GetViewProjMatrix();
 	}
 
 	void RasterizationShadowedLightContext::RenderSpotShadow(D_RENDERER_RAST::MeshSorter& sorter, D_GRAPHICS::GraphicsContext& context, LightData const& light, int spotLightIndex)
@@ -198,7 +255,7 @@ namespace Darius::Renderer::Rasterization::Light
 			shadowCamera.SetLookDirection(Vector3::Left, Vector3::Up);
 			shadowCamera.SetPerspectiveMatrix(DirectX::XM_PIDIV2, 1.0f, nearDist, light.Range);
 			shadowCamera.Update();
-			light.ShadowMatrix = shadowCamera.GetProjMatrix();
+			mShadowData[pointLightIndex + PointLightStartIndex].ShadowMatrix = shadowCamera.GetProjMatrix();
 		}
 
 		// Right
@@ -342,13 +399,6 @@ namespace Darius::Renderer::Rasterization::Light
 		shadowContext.TransitionResource(mDirectionalShadowTextureArrayBuffer, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
 		shadowContext.TransitionResource(mSpotShadowTextureArrayBuffer, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
 		shadowContext.TransitionResource(mPointShadowTextureArrayBuffer, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, true);
-	}
-
-	void RasterizationShadowedLightContext::GetLightConfigBufferData(LightConfigBuffer& outLightConfig) const
-	{
-		outLightConfig.mDirectionalShadowBufferTexelSize = 1.f / mDirectionalShadowBufferWidth;
-		outLightConfig.mSpotShadowBufferTexelSize = 1.f / mSpotShadowBufferWidth;
-		outLightConfig.mPointShadowBufferTexelSize = 1.f / mPointShadowBufferWidth;
 	}
 
 }

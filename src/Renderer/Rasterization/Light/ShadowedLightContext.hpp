@@ -16,7 +16,7 @@ namespace Darius::Renderer
 
 	namespace Rasterization
 	{
-	
+
 		class MeshSorter;
 
 	}
@@ -26,14 +26,25 @@ namespace Darius::Renderer::Rasterization::Light
 {
 	class RasterizationShadowedLightContext : public D_RENDERER_LIGHT::LightContext
 	{
+		using Super = D_RENDERER_LIGHT::LightContext;
+
+		static constexpr int MaxDirectionalCascades = 6;
+		static constexpr int PointLightStartIndex = D_RENDERER_LIGHT::MaxNumDirectionalLight * MaxDirectionalCascades;
+		static constexpr int SpotLightStartIndex = PointLightStartIndex + D_RENDERER_LIGHT::MaxNumPointLight;
 
 	public:
+
+		struct ShadowData
+		{
+			DirectX::XMFLOAT4X4 ShadowMatrix;
+		};
+
 		ALIGN_DECL_256 struct LightConfigBuffer
 		{
 			float mDirectionalShadowBufferTexelSize;
 			float mPointShadowBufferTexelSize;
 			float mSpotShadowBufferTexelSize;
-		};
+		} LightConfigBufferData;
 
 	public:
 
@@ -46,7 +57,18 @@ namespace Darius::Renderer::Rasterization::Light
 
 		void									RenderShadows(D_CONTAINERS::DVector<RenderItem> const& shadowRenderItems, D_GRAPHICS::GraphicsContext& shadowContext);
 
-		void									GetLightConfigBufferData(LightConfigBuffer& outLightConfig) const;
+		INLINE LightConfigBuffer const& GetLightConfigBufferData() const { return LightConfigBufferData; }
+
+		virtual void							UpdateBuffers(D_GRAPHICS::CommandContext& context, D3D12_RESOURCE_STATES buffersReadyState = D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE) override;
+
+		INLINE D3D12_CPU_DESCRIPTOR_HANDLE		GetShadowDataBufferDescriptor() const { return mShadowDataGpu.GetSRV(); }
+
+	protected:
+
+		virtual void							CreateBuffers() override;
+		virtual void							CreateShadowBuffers();
+		virtual void							DestroyBuffers() override;
+		virtual void							DestroyShadowBuffers();
 
 	private:
 
@@ -80,6 +102,10 @@ namespace Darius::Renderer::Rasterization::Light
 		D_CONTAINERS::DVector<D_MATH_CAMERA::ShadowCamera>	mDirectionalShadowCameras;
 		D_CONTAINERS::DVector<D_MATH_CAMERA::Camera>		mSpotShadowCameras;
 		D_CONTAINERS::DVector<D_MATH_CAMERA::Camera>		mPointShadowCameras;
+
+		D_CONTAINERS::DVector<ShadowData>					mShadowData;
+		D_GRAPHICS_BUFFERS::UploadBuffer					mShadowDataUpload;
+		D_GRAPHICS_BUFFERS::StructuredBuffer				mShadowDataGpu;
 
 	};
 

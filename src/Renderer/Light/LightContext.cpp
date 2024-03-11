@@ -13,6 +13,15 @@ namespace Darius::Renderer::Light
 {
 	LightContext::LightContext()
 	{
+		mDirectionalLights.reserve(MaxNumDirectionalLight);
+		mPointLights.reserve(MaxNumPointLight);
+		mSpotLights.reserve(MaxNumSpotLight);
+
+		CreateBuffers();
+	}
+
+	void LightContext::CreateBuffers()
+	{
 		// Calculating how many bytes we require to store MaxNumLight number of light status
 		UINT elemSize = sizeof(UINT) * 8;
 		UINT count = (MaxNumLight + elemSize - 1) / elemSize; // Ceil MaxNum / elemSize
@@ -21,13 +30,14 @@ namespace Darius::Renderer::Light
 		mLightsDataUpload.Create(L"Lights Data Upload", MaxNumLight * sizeof(LightData), D_GRAPHICS_DEVICE::gNumFrameResources);
 		mLightsStatusGpuBuffer.Create(L"Active Light Gpu Buffer", (UINT)count, sizeof(UINT), nullptr);
 		mLightsDataGpuBuffer.Create(L"Lights Data Gpu Buffer", MaxNumLight, sizeof(LightData));
-
-		mDirectionalLights.reserve(MaxNumDirectionalLight);
-		mPointLights.reserve(MaxNumPointLight);
-		mSpotLights.reserve(MaxNumSpotLight);
 	}
 
 	LightContext::~LightContext()
+	{
+		DestroyBuffers();
+	}
+
+	void LightContext::DestroyBuffers()
 	{
 		mLightsStatusUpload.Destroy();
 		mLightsStatusGpuBuffer.Destroy();

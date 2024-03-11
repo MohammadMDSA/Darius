@@ -42,7 +42,6 @@ namespace Darius::Renderer::Light
 		float				Range = 10.f;								// Point/Spot light only
 
 		DirectX::XMFLOAT2	SpotAngles = { 1000.f, 0.8f };				// Spot light only
-		DirectX::XMFLOAT4X4	ShadowMatrix;
 		bool				CastsShadow = true;
 		DirectX::XMFLOAT3	padding;
 	};

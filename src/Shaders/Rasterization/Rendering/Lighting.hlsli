@@ -7,6 +7,19 @@
 #include "../../Lighting/LightHelpers.hlsli"
 #include "../../Utils/Fresnel.hlsli"
 
+
+#ifndef MAX_DIR_LIGHT_CASCADES
+#define MAX_DIR_LIGHT_CASCADES 6
+#endif
+
+#ifndef POINT_SHAODW_START_INDEX
+#define POINT_SHAODW_START_INDEX NUM_DIR_LIGHTS * MAX_DIR_LIGHT_CASCADES
+#endif
+
+#ifndef SPOT_SHAODW_START_INDEX
+#define SPOT_SHAODW_START_INDEX POINT_SHAODW_START_INDEX + NUM_POINT_LIGHTS 
+#endif
+
 struct Material
 {
     float4              DiffuseAlbedo;
@@ -14,11 +27,16 @@ struct Material
     float               Roughness;
     float               SpecularMask;
 };
+
+struct ShadowData
+{
+    float4x4 ShadowMatrix;
+};
         
 cbuffer LightConfig : register(b10)
 {
     float4 gShodowTexelSizes; // x = Directional, y = Point, z = Spot
-}
+};
 
 Texture2DArray<float>   DirectioanalightShadowArrayTex      : register(t12);
 TextureCubeArray<float> PointLightShadowArrayTex            : register(t13);
@@ -26,6 +44,7 @@ Texture2DArray<float>   SpotLightShadowArrayTex             : register(t14);
 Texture2D<float>        ssaoTexture                         : register(t15);
 TextureCube<float3>     radianceIBLTexture                  : register(t16);
 TextureCube<float3>     irradianceIBLTexture                : register(t17);
+StructuredBuffer<ShadowData> ShadowsData                    : register(t18);
 
 void AntiAliasSpecular(inout float3 texNormal, inout float gloss)
 {
@@ -99,7 +118,7 @@ float GetShadowConeLight(uint lightIndex, float3 shadowCoord, float3 wPos)
 
 float GetShadowPointLight(uint lightIndex, float3 lightToPos)
 {
-    float4x4 shadow = g_LightData[lightIndex].ShadowMatrix;
+    float4x4 shadow = ShadowsData[lightIndex - NUM_DIR_LIGHTS + POINT_SHAODW_START_INDEX].ShadowMatrix;
     
     float3 absToPixel = abs(lightToPos);
     float Z = -max(absToPixel.z, max(absToPixel.x, absToPixel.y));
@@ -222,14 +241,13 @@ float3 ApplyConeShadowedLight(
     uint lightIndex,
     float3 coneDir,
     float2 coneAngles,
-    float4x4 shadowTextureMatrix,
     bool castsShadow
     )
 {
     float shadow = 1.f;
     if (castsShadow)
     {
-        float4 shadowCoord = mul(shadowTextureMatrix, float4(worldPos, 1.0));
+        float4 shadowCoord = mul(ShadowsData[lightIndex - NUM_DIR_LIGHTS - NUM_POINT_LIGHTS + SPOT_SHAODW_START_INDEX].ShadowMatrix, float4(worldPos, 1.0));
         shadowCoord.xyz *= rcp(shadowCoord.w);
         shadow = GetShadowConeLight(lightIndex, shadowCoord.xyz, worldPos);
     }
@@ -299,7 +317,6 @@ float3 ComputeLighting(
 
 #define SHADOWED_LIGHT_ARGS \
     CONE_LIGHT_ARGS, \
-    light.ShadowMatrix, \
     light.CastsShadow
     
     for (uint i = 0; i < NUM_DIR_LIGHTS + NUM_POINT_LIGHTS + NUM_SPOT_LIGHTS; ++i)
@@ -324,7 +341,7 @@ float3 ComputeLighting(
                 -light.Direction,
                 light.Color,
                 light.Intencity,
-                light.ShadowMatrix,
+                ShadowsData[i * MAX_DIR_LIGHT_CASCADES].ShadowMatrix,
                 true,
                 i);
             continue;
@@ -341,7 +358,6 @@ float3 ComputeLighting(
         if (i < NUM_DIR_LIGHTS + NUM_POINT_LIGHTS)
             result += ApplyPointShadowedLight(POINT_LIGHT_ARGS, true);
         else
-            //result += ApplyConeLight(CONE_LIGHT_ARGS);
             result += ApplyConeShadowedLight(SHADOWED_LIGHT_ARGS);
         
     }

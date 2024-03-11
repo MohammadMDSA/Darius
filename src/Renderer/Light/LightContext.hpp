@@ -37,10 +37,12 @@ namespace Darius::Renderer::Light
 		LightData const&					GetPointLightData(UINT index) const;
 		LightData const&					GetSpotLightData(UINT index) const;
 
-		void								UpdateBuffers(D_GRAPHICS::CommandContext& context, D3D12_RESOURCE_STATES buffersReadyState = D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
+		virtual void						UpdateBuffers(D_GRAPHICS::CommandContext& context, D3D12_RESOURCE_STATES buffersReadyState = D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
 	
 	protected:
 
+		virtual void						CreateBuffers();
+		virtual void						DestroyBuffers();
 		void								Reset();
 
 	private:
