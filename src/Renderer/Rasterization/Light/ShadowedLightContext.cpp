@@ -401,5 +401,11 @@ namespace Darius::Renderer::Rasterization::Light
 		shadowContext.TransitionResource(mPointShadowTextureArrayBuffer, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, true);
 	}
 
+	void RasterizationShadowedLightContext::SetCascadeRange(UINT cascadeIndex, float range)
+	{
+		D_ASSERT(cascadeIndex <= mCascades.size());
+		mCascades[cascadeIndex] = range;
+	}
+
 }
 

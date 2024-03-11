@@ -50,6 +50,8 @@ using namespace Microsoft::WRL;
 #define VertexData(il) il::InputLayout.NumElements, il::InputLayout.pInputElementDescs
 #define ShaderData(name) D_GRAPHICS::GetShaderByName(name)->GetBufferPointer(), D_GRAPHICS::GetShaderByName(name)->GetBufferSize()
 
+#define CascadeOptionsKey "Renderer.Rasterization.Lighting.Shadows.Cascades"
+
 namespace Darius::Renderer::Rasterization
 {
 	bool												_initialized = false;
@@ -134,7 +136,18 @@ namespace Darius::Renderer::Rasterization
 		// Initializing Camera Manager
 		D_CAMERA_MANAGER::Initialize();
 
-		LightContext = std::make_unique<D_RENDERER_RAST_LIGHT::RasterizationShadowedLightContext>();
+		// Initializing Light Context
+		{
+			LightContext = std::make_unique<D_RENDERER_RAST_LIGHT::RasterizationShadowedLightContext>();
+
+			// Read cascades from settings
+			if (settings.contains(CascadeOptionsKey))
+			{
+				auto& cascadesRef = LightContext->ModifyCascades();
+				DVector<float> desCascades = settings.at(CascadeOptionsKey);
+				cascadesRef = desCascades;
+			}
+		}
 
 		ForcedPsoFlags = 0u;
 	}
@@ -405,6 +418,54 @@ namespace Darius::Renderer::Rasterization
 		D_H_OPTION_DRAW_BEGIN();
 
 		D_H_OPTION_DRAW_CHECKBOX("Separate Z Pass", "Renderer.Rasterization.Passes.SeparateZ", SeparateZPass);
+
+		if (ImGui::CollapsingHeader("Lighting"))
+		{
+			ImGui::Indent();
+			{
+				ImGui::BeginGroup();
+
+				// Shoadow settings
+				if (ImGui::CollapsingHeader("Shadow"))
+				{
+					// Cascades Count
+					{
+						ImGui::Text("Cascades Count");
+						ImGui::SameLine(inputOffset);
+						int value = (int)LightContext->GetCascadesCount();
+						ImGui::PushItemWidth(inputWidth);
+						if (ImGui::SliderInt("##Cascades Count", &value, 1, D_RENDERER_RAST_LIGHT::RasterizationShadowedLightContext::MaxDirectionalCascades, "%d", ImGuiSliderFlags_AlwaysClamp | ImGuiSliderFlags_ClampOnInput))
+						{
+							LightContext->SetCascadesCount((UINT)value);
+							options[CascadeOptionsKey] = LightContext->GetCascades();
+							settingsChanged = true;
+						}
+						ImGui::PopItemWidth();
+					}
+					{
+						auto cascades = LightContext->GetCascades();
+						// Cascade Ranges
+						for (int i = 0; i < (int)LightContext->GetCascadesCount() - 1; i++)
+						{
+							ImGui::Text((std::string("Cascade ") + std::to_string(i + 1)).c_str());
+							ImGui::SameLine(inputOffset);
+							float value = cascades.at(i);
+							ImGui::PushItemWidth(inputWidth);
+							if (ImGui::InputFloat((std::string("##Cascade") + std::to_string(i + 1)).c_str(), &value))
+							{
+								value = D_MATH::Max(0.f, value);
+								LightContext->SetCascadeRange((UINT)i, value);
+								options[CascadeOptionsKey] = LightContext->GetCascades();
+								settingsChanged = true;
+							}
+							ImGui::PopItemWidth();
+						}
+					}
+				}
+
+				ImGui::EndGroup();
+			}
+		}
 
 		D_H_OPTION_DRAW_END();
 	}

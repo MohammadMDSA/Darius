@@ -26,13 +26,15 @@ namespace Darius::Renderer::Rasterization::Light
 {
 	class RasterizationShadowedLightContext : public D_RENDERER_LIGHT::LightContext
 	{
+	public:
+
 		using Super = D_RENDERER_LIGHT::LightContext;
 
 		static constexpr int MaxDirectionalCascades = 6;
 		static constexpr int PointLightStartIndex = D_RENDERER_LIGHT::MaxNumDirectionalLight * MaxDirectionalCascades;
 		static constexpr int SpotLightStartIndex = PointLightStartIndex + D_RENDERER_LIGHT::MaxNumPointLight;
 
-	public:
+		D_STATIC_ASSERT(MaxDirectionalCascades >= 0);
 
 		struct ShadowData
 		{
@@ -62,6 +64,12 @@ namespace Darius::Renderer::Rasterization::Light
 		virtual void							UpdateBuffers(D_GRAPHICS::CommandContext& context, D3D12_RESOURCE_STATES buffersReadyState = D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE) override;
 
 		INLINE D3D12_CPU_DESCRIPTOR_HANDLE		GetShadowDataBufferDescriptor() const { return mShadowDataGpu.GetSRV(); }
+
+		INLINE UINT								GetCascadesCount() const { return (UINT)mCascades.size() + 1u; }
+		INLINE void								SetCascadesCount(UINT count) { D_ASSERT(count > 0); mCascades.resize(count - 1, 50u); }
+		void									SetCascadeRange(UINT cascadeIndex, float range);
+		INLINE D_CONTAINERS::DVector<float> const& GetCascades() const { return mCascades; }
+		INLINE D_CONTAINERS::DVector<float>&	ModifyCascades() { return mCascades; }
 
 	protected:
 
@@ -106,6 +114,8 @@ namespace Darius::Renderer::Rasterization::Light
 		D_CONTAINERS::DVector<ShadowData>					mShadowData;
 		D_GRAPHICS_BUFFERS::UploadBuffer					mShadowDataUpload;
 		D_GRAPHICS_BUFFERS::StructuredBuffer				mShadowDataGpu;
+
+		D_CONTAINERS::DVector<float>							mCascades;
 
 	};
 

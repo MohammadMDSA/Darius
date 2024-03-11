@@ -394,7 +394,10 @@ namespace Darius::Renderer
 
 		if (ImGui::CollapsingHeader("Rasterization"))
 		{
+			ImGui::Indent();
+			ImGui::BeginGroup();
 			settingsChanged |= D_RENDERER_RAST::OptionsDrawer(options);
+			ImGui::EndGroup();
 		}
 
 		D_H_OPTION_DRAW_END()
