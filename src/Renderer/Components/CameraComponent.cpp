@@ -2,6 +2,8 @@
 #include "CameraComponent.hpp"
 
 #include "Renderer/Camera/CameraManager.hpp"
+#include "Renderer/Rasterization/Light/ShadowedLightContext.hpp"
+#include "Renderer/RendererManager.hpp"
 
 #include <Debug/DebugDraw.hpp>
 #include <Scene/Utils/DetailsDrawer.hpp>
@@ -64,7 +66,16 @@ namespace Darius::Renderer
 		mCamera.SetRotation(transform->GetRotation());
 		mCamera.Update();
 
-		D_DEBUG_DRAW::DrawFrustum(mCamera.GetWorldSpaceFrustum());
+		if (D_RENDERER::GetActiveRendererType() == D_RENDERER::RendererType::Rasterization)
+		{
+			D_CONTAINERS::DVector<D_MATH_CAMERA::Frustum> frustums;
+			mCamera.CalculateSlicedFrustumes(D_RENDERER_RAST::GetLightContext()->GetCascades(), frustums);
+
+			for (auto& frust : frustums)
+				D_DEBUG_DRAW::DrawFrustum(frust);
+		}
+		else
+			D_DEBUG_DRAW::DrawFrustum(mCamera.GetWorldSpaceFrustum());
 	}
 
 #ifdef _D_EDITOR
@@ -94,7 +105,7 @@ namespace Darius::Renderer
 			}
 		}
 
-		if(!IsInfiniteZ())
+		if (!IsInfiniteZ())
 		{
 			D_H_DETAILS_DRAW_PROPERTY("Far Clip");
 			float farClip = GetFarClip();
@@ -105,7 +116,7 @@ namespace Darius::Renderer
 			}
 		}
 
-		if(IsOrthographic())
+		if (IsOrthographic())
 		{
 			D_H_DETAILS_DRAW_PROPERTY("Ortho Size");
 			float orthoSize = GetOrthographicSize();
