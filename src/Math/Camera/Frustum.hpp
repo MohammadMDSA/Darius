@@ -26,6 +26,8 @@ namespace Darius::Math::Camera
             kNearPlane, kFarPlane, kLeftPlane, kRightPlane, kTopPlane, kBottomPlane
         };
 
+        D_MATH_BOUNDS::AxisAlignedBox   GetAABB() const;
+
         Vector3 const&                  GetFrustumCorner(CornerID id) const { return m_FrustumCorners[id]; }
         D_MATH_BOUNDS::BoundingPlane const& GetFrustumPlane(PlaneID id) const { return m_FrustumPlanes[id]; }
 

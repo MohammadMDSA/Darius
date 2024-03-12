@@ -116,4 +116,15 @@ namespace Darius::Math::Camera
 		}
 	}
 
+	D_MATH_BOUNDS::AxisAlignedBox Frustum::GetAABB() const
+	{
+		D_MATH_BOUNDS::AxisAlignedBox result;
+		for (int corner = 0; corner < 8; corner++)
+		{
+			result.AddPoint(m_FrustumCorners[corner]);
+		}
+
+		return result;
+	}
+
 }
