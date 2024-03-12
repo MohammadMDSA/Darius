@@ -61,11 +61,21 @@ namespace Darius::Math::Camera
 
     protected:
 
-        BaseCamera() : m_CameraToWorld(kIdentity), m_Basis(kIdentity) {}
+        BaseCamera() :
+            m_CameraToWorld(kIdentity),
+            m_Basis(kIdentity),
+            mFrustumVSDirty(true),
+            mFrustumWSDirty(true)
+        {}
 
-        void SetProjMatrix(const Matrix4& ProjMat) { m_ProjMatrix = ProjMat; }
+        void SetProjMatrix(const Matrix4& ProjMat)
+        {
+            m_ProjMatrix = ProjMat;
+            mFrustumVSDirty = true;
+        }
 
         OrthogonalTransform m_CameraToWorld;
+        OrthogonalTransform m_PrevCameraToWorld;
 
         // Redundant data cached for faster lookups.
         Matrix3 m_Basis;
@@ -93,6 +103,10 @@ namespace Darius::Math::Camera
         Frustum m_FrustumVS;		// View-space view frustum
         Frustum m_FrustumWS;		// World-space view frustum
 
+    private:
+        UINT mFrustumVSDirty : 1;
+        UINT mFrustumWSDirty : 1;
+
         RTTR_REGISTRATION_FRIEND_PFX(BaseCamera);
         RTTR_ENABLE();
 
@@ -119,6 +133,12 @@ namespace Darius::Math::Camera
         float           GetClearDepth() const { return mReverseZ ? 0.0f : 1.0f; }
 
         void            UpdateProjMatrix();
+
+        // Does not support infinite Z
+        void            CalculateSlicedFrustumes(D_CONTAINERS::DVector<float> const& ranges, D_CONTAINERS::DVector<Frustum>& slicedFrustums) const;
+
+        static Matrix4 CalculatePerspectiveProjectionMatrix(float verticalFoV, float aspectRatio, float nearClip, float farClip, bool reverseZ, bool infiniteZ);
+        static Matrix4 CalculateOrthographicProjectionMatrix(float orthographicSize, float aspectRatio, float nearClip, float farClip, float reverseZ);
     private:
 
         DField(Serialize)

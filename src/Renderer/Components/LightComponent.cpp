@@ -131,12 +131,8 @@ namespace Darius::Renderer
 			auto lightViewMat = D_MATH::Invert(invLightViewMat);
 
 			// Creating shadow aabb
-			D_MATH_BOUNDS::AxisAlignedBox shadowAABB;
-			for (UINT i = 0; i < D_MATH_CAMERA::Frustum::_kNumCorners; i++)
-			{
-				auto corner = frustom.GetFrustumCorner((D_MATH_CAMERA::Frustum::CornerID)i);
-				shadowAABB.AddPoint(lightViewMat * corner);
-			}
+			auto shadowFrustom = lightViewMat * frustom;
+			auto shadowAABB = shadowFrustom.GetAABB();
 
 			auto shadowAABBMin = shadowAABB.GetMin();
 			auto shadowAABBMax = shadowAABB.GetMax();
