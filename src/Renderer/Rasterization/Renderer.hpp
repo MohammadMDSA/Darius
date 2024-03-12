@@ -14,6 +14,12 @@
 
 namespace Darius::Renderer::Rasterization
 {
+
+	namespace Light
+	{
+		class RasterizationShadowedLightContext;
+	}
+
 	enum RootBindings
 	{
 		kMeshConstantsVS,		// Holds mesh constants only in Vertex Shader
@@ -222,6 +228,8 @@ namespace Darius::Renderer::Rasterization
 
 	// PSO Getter
 	UINT					GetPso(PsoConfig const&);
+
+	Light::RasterizationShadowedLightContext* GetLightContext();
 
 	// Allocating from heaps
 	D_GRAPHICS_MEMORY::DescriptorHandle AllocateTextureDescriptor(UINT count = 1);

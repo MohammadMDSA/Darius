@@ -16,7 +16,7 @@ using namespace D_RENDERER_LIGHT;
 
 namespace Darius::Renderer::Rasterization::Light
 {
-	RasterizationShadowedLightContext::RasterizationShadowedLightContext(UINT directionalShadowBufferDimansion, UINT pointShadowBufferDimansion, UINT spotShadowBufferDimansion, UINT shadowBufferDepthPercision) :
+	RasterizationShadowedLightContext::RasterizationShadowedLightContext(bool createShadowBuffers, UINT directionalShadowBufferDimansion, UINT pointShadowBufferDimansion, UINT spotShadowBufferDimansion, UINT shadowBufferDepthPercision) :
 		LightContext(),
 		mDirectionalShadowBufferWidth(directionalShadowBufferDimansion),
 		mPointShadowBufferWidth(pointShadowBufferDimansion),
@@ -27,11 +27,13 @@ namespace Darius::Renderer::Rasterization::Light
 		// Create buffer has been called in the parent constructor,
 		// however, since virtual methods don't work in constructors,
 		// we have to call CreateShadowBuffers separately
-		CreateShadowBuffers();
+		if (createShadowBuffers)
+			CreateShadowBuffers();
 
-		LightConfigBufferData.mDirectionalShadowBufferTexelSize = 1.f / mDirectionalShadowBufferWidth;
-		LightConfigBufferData.mSpotShadowBufferTexelSize = 1.f / mSpotShadowBufferWidth;
-		LightConfigBufferData.mPointShadowBufferTexelSize = 1.f / mPointShadowBufferWidth;
+
+		LightConfigBufferData.DirectionalShadowBufferTexelSize = 1.f / mDirectionalShadowBufferWidth;
+		LightConfigBufferData.SpotShadowBufferTexelSize = 1.f / mSpotShadowBufferWidth;
+		LightConfigBufferData.PointShadowBufferTexelSize = 1.f / mPointShadowBufferWidth;
 	}
 
 	RasterizationShadowedLightContext::~RasterizationShadowedLightContext()
@@ -72,7 +74,7 @@ namespace Darius::Renderer::Rasterization::Light
 
 	void RasterizationShadowedLightContext::CreateShadowBuffers()
 	{
-		mShadowBuffersDirectional.resize(D_RENDERER_LIGHT::MaxNumDirectionalLight);
+		mShadowBuffersDirectional.resize(D_RENDERER_LIGHT::MaxNumDirectionalLight * GetCascadesCount());
 		mShadowBuffersPoint.resize(D_RENDERER_LIGHT::MaxNumPointLight * 6);
 		mShadowBuffersSpot.resize(D_RENDERER_LIGHT::MaxNumSpotLight);
 
@@ -85,17 +87,17 @@ namespace Darius::Renderer::Rasterization::Light
 
 		// Initializing main shadow buffers
 		auto shadowBufferFormat = D_GRAPHICS::GetShadowFormat();
-		mDirectionalShadowTextureArrayBuffer.CreateArray(L"Directional Shadow Texture Array Buffer", mDirectionalShadowBufferWidth, mDirectionalShadowBufferWidth, D_RENDERER_LIGHT::MaxNumDirectionalLight, DXGI_FORMAT_R16_UNORM);
+		mDirectionalShadowTextureArrayBuffer.CreateArray(L"Directional Shadow Texture Array Buffer", mDirectionalShadowBufferWidth, mDirectionalShadowBufferWidth, D_RENDERER_LIGHT::MaxNumDirectionalLight * GetCascadesCount(), DXGI_FORMAT_R16_UNORM);
 		mPointShadowTextureArrayBuffer.CreateArray(L"Point Shadow Texture Array Buffer", mPointShadowBufferWidth, mPointShadowBufferWidth, 6 * D_RENDERER_LIGHT::MaxNumPointLight, DXGI_FORMAT_R16_UNORM, true);
 		mSpotShadowTextureArrayBuffer.CreateArray(L"Spot Shadow Texture Array Buffer", mSpotShadowBufferWidth, mSpotShadowBufferWidth, D_RENDERER_LIGHT::MaxNumSpotLight, DXGI_FORMAT_R16_UNORM);
 
 		// Create shadow cameras
-		mDirectionalShadowCameras.resize(D_RENDERER_LIGHT::MaxNumDirectionalLight);
+		mDirectionalShadowCameras.resize(D_RENDERER_LIGHT::MaxNumDirectionalLight * GetCascadesCount());
 		mSpotShadowCameras.resize(D_RENDERER_LIGHT::MaxNumSpotLight);
 		mPointShadowCameras.resize(D_RENDERER_LIGHT::MaxNumPointLight * 6);
 
 		// Create shadow data buffers
-		UINT shadowDataCount = MaxNumDirectionalLight * MaxDirectionalCascades + MaxNumPointLight + MaxNumSpotLight;
+		UINT shadowDataCount = MaxNumDirectionalLight * GetCascadesCount() + MaxNumPointLight + MaxNumSpotLight;
 		mShadowData.resize(shadowDataCount);
 		mShadowDataUpload.Create(L"Shadow Data Upload", shadowDataCount * sizeof(ShadowData), D_GRAPHICS_DEVICE::gNumFrameResources);
 		mShadowDataGpu.Create(L"Shadow Data Gpu", shadowDataCount, sizeof(ShadowData));
@@ -120,6 +122,12 @@ namespace Darius::Renderer::Rasterization::Light
 	void RasterizationShadowedLightContext::Update(D_MATH_CAMERA::Camera const& viewerCamera)
 	{
 		Reset();
+
+
+		if ((UINT)mCascades.size() > MaxDirectionalCascades)
+			mCascades.resize(MaxDirectionalCascades);
+		if ((UINT)mCascades.size() == 0)
+			mCascades.resize(1);
 
 		D_CONTAINERS::DVector<std::function<void()>> updateFuncs;
 		updateFuncs.reserve(D_WORLD::CountComponents<D_RENDERER::LightComponent>());
@@ -155,61 +163,70 @@ namespace Darius::Renderer::Rasterization::Light
 					});
 			});
 
-
 		// Wait for processing all light sources
 		D_JOB::AddTaskSetAndWait(updateFuncs);
+
+		LightConfigBufferData.CascadesCount = GetCascadesCount();
 	}
 
 	void RasterizationShadowedLightContext::CalculateDirectionalShadowCamera(D_MATH_CAMERA::Camera const& viewerCamera, LightData& light, int directionalIndex)
 	{
-		auto& cam = mDirectionalShadowCameras[directionalIndex];
-		auto lightDir = Vector3(light.Direction);
-		cam.SetLookDirection(lightDir, Vector3::Up);
-		cam.SetPosition(Vector3(kZero));
-		cam.Update();
-		auto& shadowView = cam.GetViewMatrix();
+		D_CONTAINERS::DVector<D_MATH_CAMERA::Frustum> cascadeFrustums;
+		viewerCamera.CalculateSlicedFrustumes(mCascades, cascadeFrustums);
 
-		auto const& viewrFrustom = viewerCamera.GetWorldSpaceFrustum();
-		auto shadowSpaceAABB = D_MATH_BOUNDS::AxisAlignedBox();
-
-		// Finding frustum aabb in shadow space
-		for (int i = 0; i < D_MATH_CAMERA::Frustum::_kNumCorners; i++)
+		for (int i = 0; i < (int)cascadeFrustums.size(); i++)
 		{
-			auto corner = viewrFrustom.GetFrustumCorner((D_MATH_CAMERA::Frustum::CornerID)i);
-			auto shadowSpaceCorner = shadowView * corner;
-			shadowSpaceAABB.AddPoint(Vector3(shadowSpaceCorner));
+			auto const& frustum = cascadeFrustums.at(i);
+			auto& cam = mDirectionalShadowCameras[directionalIndex * GetCascadesCount() + i];
+			auto lightDir = Vector3(light.Direction);
+			cam.SetLookDirection(lightDir, Vector3::Up);
+			cam.SetPosition(Vector3(kZero));
+			cam.Update();
+			auto& shadowView = cam.GetViewMatrix();
+
+			// Finding frustum aabb in shadow space
+			auto shadowSpaceFrustum = shadowView * frustum;
+			auto shadowSpaceAABB = shadowSpaceFrustum.GetAABB();
+
+			auto camWorldPos = D_MATH::Invert(shadowView) * shadowSpaceAABB.GetCenter();
+			auto dim = shadowSpaceAABB.GetDimensions();
+
+			// Fitting directional light bounds to the frustom... With extra Z
+			cam.UpdateMatrix(lightDir, Vector3(camWorldPos), dim, mDirectionalShadowBufferWidth, mDirectionalShadowBufferWidth, mShadowBufferDepthPrecision);
+
+			mShadowData[directionalIndex * GetCascadesCount() + i].ShadowMatrix = cam.GetShadowMatrix();
 		}
-
-		auto camWorldPos = D_MATH::Invert(shadowView) * shadowSpaceAABB.GetCenter();
-		auto dim = shadowSpaceAABB.GetDimensions();
-
-		// Fitting directional light bounds to the frustom... With extra Z
-		cam.UpdateMatrix(lightDir, Vector3(camWorldPos), dim, mDirectionalShadowBufferWidth, mDirectionalShadowBufferWidth, mShadowBufferDepthPrecision);
-
-		mShadowData[directionalIndex * MaxDirectionalCascades].ShadowMatrix = cam.GetShadowMatrix();
 	}
 
 	void RasterizationShadowedLightContext::RenderDirectionalShadow(D_RENDERER_RAST::MeshSorter& sorter, D_GRAPHICS::GraphicsContext& context, LightData const& light, int directionalIndex)
 	{
-		auto const& cam = mDirectionalShadowCameras[directionalIndex];
 
 		GlobalConstants globals;
-		globals.ViewProj = cam.GetViewProjMatrix();
-		globals.CameraPos = (DirectX::XMFLOAT3)cam.GetPosition();
-		auto const& frustum = cam.GetWorldSpaceFrustum();
-		for (int i = 0; i < 6; i++)
-			globals.FrustumPlanes[i] = (Vector4)frustum.GetFrustumPlane((D_MATH_CAMERA::Frustum::PlaneID)i);
 
-		auto& shadowBuffer = mShadowBuffersDirectional[directionalIndex];
-		shadowBuffer.BeginRendering(context);
+		int lightIndexStart = directionalIndex * GetCascadesCount();
 
-		sorter.SetCamera(cam);
-		sorter.SetDepthStencilTarget(shadowBuffer, nullptr);
-		sorter.RenderMeshes(MeshSorter::kZPass, context, nullptr, globals);
+		for (UINT i = 0u; i < GetCascadesCount(); i++)
+		{
+			int resourceIndex = lightIndexStart + i;
+			auto const& cam = mDirectionalShadowCameras[resourceIndex];
 
-		context.TransitionResource(shadowBuffer, D3D12_RESOURCE_STATE_COPY_SOURCE);
+			globals.ViewProj = cam.GetViewProjMatrix();
+			globals.CameraPos = (DirectX::XMFLOAT3)cam.GetPosition();
+			auto const& frustum = cam.GetWorldSpaceFrustum();
+			for (int i = 0; i < 6; i++)
+				globals.FrustumPlanes[i] = (Vector4)frustum.GetFrustumPlane((D_MATH_CAMERA::Frustum::PlaneID)i);
 
-		context.CopySubresource(mDirectionalShadowTextureArrayBuffer, directionalIndex, shadowBuffer, 0);
+			auto& shadowBuffer = mShadowBuffersDirectional[resourceIndex];
+			shadowBuffer.BeginRendering(context);
+
+			sorter.SetCamera(cam);
+			sorter.SetDepthStencilTarget(shadowBuffer, nullptr);
+			sorter.RenderMeshes(MeshSorter::kZPass, context, nullptr, globals);
+
+			context.TransitionResource(shadowBuffer, D3D12_RESOURCE_STATE_COPY_SOURCE);
+
+			context.CopySubresource(mDirectionalShadowTextureArrayBuffer, resourceIndex, shadowBuffer, 0);
+		}
 	}
 
 	void RasterizationShadowedLightContext::CalculateSpotShadowCamera(LightData& light, int spotLightIndex)
@@ -405,6 +422,19 @@ namespace Darius::Renderer::Rasterization::Light
 	{
 		D_ASSERT(cascadeIndex <= mCascades.size());
 		mCascades[cascadeIndex] = range;
+	}
+
+	void RasterizationShadowedLightContext::SetCascadesCount(UINT count)
+	{
+		D_ASSERT(count > 0 && count <= MaxDirectionalCascades);
+		mCascades.resize(count - 1, 50u);
+		DestroyShadowBuffers();
+		CreateShadowBuffers();
+	}
+
+	D_CONTAINERS::DVector<float>& RasterizationShadowedLightContext::ModifyCascades()
+	{
+		return mCascades;
 	}
 
 }

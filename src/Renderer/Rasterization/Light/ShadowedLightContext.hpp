@@ -43,14 +43,16 @@ namespace Darius::Renderer::Rasterization::Light
 
 		ALIGN_DECL_256 struct LightConfigBuffer
 		{
-			float mDirectionalShadowBufferTexelSize;
-			float mPointShadowBufferTexelSize;
-			float mSpotShadowBufferTexelSize;
+			float			DirectionalShadowBufferTexelSize;
+			float			PointShadowBufferTexelSize;
+			float			SpotShadowBufferTexelSize;
+			float _pad;
+			UINT			CascadesCount;
 		} LightConfigBufferData;
 
 	public:
 
-		RasterizationShadowedLightContext(UINT directionalShadowBufferDimansion = 4096u, UINT pointShadowBufferDimansion = 512u, UINT spotShadowBufferDimansion = 1024u, UINT shadowBufferDepthPercision = 16u);
+		RasterizationShadowedLightContext(bool createShadowBuffers, UINT directionalShadowBufferDimansion = 4096u, UINT pointShadowBufferDimansion = 512u, UINT spotShadowBufferDimansion = 1024u, UINT shadowBufferDepthPercision = 16u);
 		virtual ~RasterizationShadowedLightContext();
 
 		virtual void							Update(D_MATH_CAMERA::Camera const& viewerCamera) override;
@@ -59,24 +61,24 @@ namespace Darius::Renderer::Rasterization::Light
 
 		void									RenderShadows(D_CONTAINERS::DVector<RenderItem> const& shadowRenderItems, D_GRAPHICS::GraphicsContext& shadowContext);
 
-		INLINE LightConfigBuffer const& GetLightConfigBufferData() const { return LightConfigBufferData; }
+		INLINE LightConfigBuffer const&			GetLightConfigBufferData() const { return LightConfigBufferData; }
 
 		virtual void							UpdateBuffers(D_GRAPHICS::CommandContext& context, D3D12_RESOURCE_STATES buffersReadyState = D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE) override;
 
 		INLINE D3D12_CPU_DESCRIPTOR_HANDLE		GetShadowDataBufferDescriptor() const { return mShadowDataGpu.GetSRV(); }
 
 		INLINE UINT								GetCascadesCount() const { return (UINT)mCascades.size() + 1u; }
-		INLINE void								SetCascadesCount(UINT count) { D_ASSERT(count > 0); mCascades.resize(count - 1, 50u); }
+		void									SetCascadesCount(UINT count);
 		void									SetCascadeRange(UINT cascadeIndex, float range);
 		INLINE D_CONTAINERS::DVector<float> const& GetCascades() const { return mCascades; }
-		INLINE D_CONTAINERS::DVector<float>&	ModifyCascades() { return mCascades; }
+		D_CONTAINERS::DVector<float>&			ModifyCascades();
 
+		virtual void							CreateShadowBuffers();
+		virtual void							DestroyShadowBuffers();
 	protected:
 
 		virtual void							CreateBuffers() override;
-		virtual void							CreateShadowBuffers();
 		virtual void							DestroyBuffers() override;
-		virtual void							DestroyShadowBuffers();
 
 	private:
 
@@ -115,7 +117,7 @@ namespace Darius::Renderer::Rasterization::Light
 		D_GRAPHICS_BUFFERS::UploadBuffer					mShadowDataUpload;
 		D_GRAPHICS_BUFFERS::StructuredBuffer				mShadowDataGpu;
 
-		D_CONTAINERS::DVector<float>							mCascades;
+		D_CONTAINERS::DVector<float>						mCascades;
 
 	};
 

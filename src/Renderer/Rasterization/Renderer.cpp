@@ -138,7 +138,7 @@ namespace Darius::Renderer::Rasterization
 
 		// Initializing Light Context
 		{
-			LightContext = std::make_unique<D_RENDERER_RAST_LIGHT::RasterizationShadowedLightContext>();
+			LightContext = std::make_unique<D_RENDERER_RAST_LIGHT::RasterizationShadowedLightContext>(false);
 
 			// Read cascades from settings
 			if (settings.contains(CascadeOptionsKey))
@@ -147,6 +147,7 @@ namespace Darius::Renderer::Rasterization
 				DVector<float> desCascades = settings.at(CascadeOptionsKey);
 				cascadesRef = desCascades;
 			}
+			LightContext->CreateShadowBuffers();
 		}
 
 		ForcedPsoFlags = 0u;
@@ -1495,6 +1496,11 @@ namespace Darius::Renderer::Rasterization
 	DescriptorHandle AllocateSamplerDescriptor(UINT count)
 	{
 		return SamplerHeap.Alloc(count);
+	}
+
+	Light::RasterizationShadowedLightContext* GetLightContext()
+	{
+		return LightContext.get();
 	}
 
 }

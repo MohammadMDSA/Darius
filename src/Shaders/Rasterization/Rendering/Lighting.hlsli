@@ -35,7 +35,8 @@ struct ShadowData
         
 cbuffer LightConfig : register(b10)
 {
-    float4 gShodowTexelSizes; // x = Directional, y = Point, z = Spot
+    float4  gShodowTexelSizes; // x = Directional, y = Point, z = Spot
+    uint    gCascadesCount;
 };
 
 Texture2DArray<float>   DirectioanalightShadowArrayTex      : register(t12);
@@ -58,7 +59,7 @@ void AntiAliasSpecular(inout float3 texNormal, inout float gloss)
 
 float GetDirectionalShadow(uint lightIndex, float3 ShadowCoord)
 {
-    float3 coord = float3(ShadowCoord.xy, lightIndex);
+    float3 coord = float3(ShadowCoord.xy, lightIndex * gCascadesCount);
 //#define SINGLE_SAMPLE
 #ifdef SINGLE_SAMPLE
     float result = DirectioanalightShadowArrayTex.SampleCmpLevelZero(shadowSampler, coord, ShadowCoord.z);
@@ -162,7 +163,6 @@ float3 ApplyDirectionalShadowedLight(
     float3 lightDir, // World-space vector from point to light
     float3 lightColor, // Radiance of directional light
     float lightIntencity,
-    float4x4 shadowTextureMatrix,
     bool castsShadow,
 	uint lightIndex
     )
@@ -170,7 +170,8 @@ float3 ApplyDirectionalShadowedLight(
     float shadow = 1.f;
     if (castsShadow)
     {
-        float4 shadowCoord = mul(shadowTextureMatrix, float4(worldPos, 1.0));
+        float4x4 shoadwMatrix = ShadowsData[lightIndex * gCascadesCount].ShadowMatrix;
+        float4 shadowCoord = mul(shoadwMatrix, float4(worldPos, 1.0));
         shadowCoord.xyz *= rcp(shadowCoord.w);
         shadow = GetDirectionalShadow(lightIndex, shadowCoord.xyz);
     }
@@ -341,7 +342,6 @@ float3 ComputeLighting(
                 -light.Direction,
                 light.Color,
                 light.Intencity,
-                ShadowsData[i * MAX_DIR_LIGHT_CASCADES].ShadowMatrix,
                 true,
                 i);
             continue;
