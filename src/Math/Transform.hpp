@@ -58,6 +58,10 @@ namespace Darius::Math
 				Vector4(SetWToZero(m_rotation * Vector3((DirectX::XMVECTOR)vec))) +
 				Vector4(SetWToOne(m_translation)) * vec.GetW();
 		}
+		INLINE bool operator== (OrthogonalTransform const& other) const
+		{
+			return m_rotation == other.m_rotation && m_translation.Equals(other.m_translation);
+		}
 
 		INLINE OrthogonalTransform operator* (const OrthogonalTransform& xform) const {
 			return OrthogonalTransform(m_rotation * xform.m_rotation, m_rotation * xform.m_translation + m_translation);
