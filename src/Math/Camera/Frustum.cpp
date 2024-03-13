@@ -116,13 +116,19 @@ namespace Darius::Math::Camera
 		}
 	}
 
-	D_MATH_BOUNDS::AxisAlignedBox Frustum::GetAABB() const
+	D_MATH_BOUNDS::AxisAlignedBox Frustum::GetAABB(float backwardsDepthBias) const
 	{
 		D_MATH_BOUNDS::AxisAlignedBox result;
 		for (int corner = 0; corner < 8; corner++)
 		{
-			result.AddPoint(m_FrustumCorners[corner]);
+			if (corner == 0)
+				result = D_MATH_BOUNDS::AxisAlignedBox(m_FrustumCorners[0], m_FrustumCorners[0]);
+			else
+				result.AddPoint(m_FrustumCorners[corner]);
 		}
+
+		Vector3 depthBias = result.GetCenter() + Vector3::Backward * backwardsDepthBias;
+		result.AddPoint(depthBias);
 
 		return result;
 	}
