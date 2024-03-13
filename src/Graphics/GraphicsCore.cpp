@@ -404,8 +404,6 @@ namespace Darius::Graphics
 		return DescriptorAllocators[type].Allocate(count);
 	}
 
-
-
 	CommandListManager* GetCommandManager()
 	{
 		D_ASSERT(_initialized);
@@ -502,7 +500,7 @@ namespace Darius::Graphics
 		RasterizerShadow = RasterizerDefault;
 		//RasterizerShadow.CullMode = D3D12_CULL_FRONT;  // Hacked here rather than fixing the content
 		RasterizerShadow.SlopeScaledDepthBias = -1.5f;
-		RasterizerShadow.DepthBias = -50;
+		RasterizerShadow.DepthBias = -10;
 
 		RasterizerShadowTwoSided = RasterizerShadow;
 		RasterizerShadowTwoSided.CullMode = D3D12_CULL_MODE_NONE;
