@@ -8,6 +8,28 @@ distribution of this software and related documentation without an express
 license agreement from NVIDIA CORPORATION is strictly prohibited.
 */
 
+static const float2 gPoison2D15[] =
+{
+
+    // Poisson disk with 16 points : 0 - 15
+    float2(-0.3935238f, 0.7530643f),
+    float2(-0.3022015f, 0.297664f),
+    float2(0.09813362f, 0.192451f),
+    float2(-0.7593753f, 0.518795f),
+    float2(0.2293134f, 0.7607011f),
+    float2(0.6505286f, 0.6297367f),
+    float2(0.5322764f, 0.2350069f),
+    float2(0.8581018f, -0.01624052f),
+    float2(-0.6928226f, 0.07119545f),
+    float2(-0.3114384f, -0.3017288f),
+    float2(0.2837671f, -0.179743f),
+    float2(-0.3093514f, -0.749256f),
+    float2(-0.7386893f, -0.5215692f),
+    float2(0.3988827f, -0.617012f),
+    float2(0.8114883f, -0.458026f),
+    float2(0.08265103f, -0.8939569f),
+
+};
 
 // samples = 8, min distance = 0.5, average samples on radius = 2
 static const float3 gPoisson8[8] =
