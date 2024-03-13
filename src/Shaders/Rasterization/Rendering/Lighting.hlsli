@@ -6,7 +6,7 @@
 #include "../../Lighting/LightBindings.hlsli"
 #include "../../Lighting/LightHelpers.hlsli"
 #include "../../Utils/Fresnel.hlsli"
-
+#include "../../Utils/Poisson.hlsli"
 
 #ifndef MAX_DIR_LIGHT_CASCADES
 #define MAX_DIR_LIGHT_CASCADES 6
@@ -88,23 +88,19 @@ float GetDirectionalShadow(uint lightIndex, uint cascadeIndex, float3 ShadowCoor
     float result = DirectioanalightShadowArrayTex.SampleCmpLevelZero(shadowSampler, coord, ShadowCoord.z);
 #else
     
-    const float Dilation = 2.0;
-    float d1 = Dilation * gShodowTexelSizes.x * 0.125;
-    float d2 = Dilation * gShodowTexelSizes.x * 0.875;
-    float d3 = Dilation * gShodowTexelSizes.x * 0.625;
-    float d4 = Dilation * gShodowTexelSizes.x * 0.375;
+    const float Dilation = 15.0;
+    const float ScaledDilation = Dilation * gShodowTexelSizes.x;
 
-    float result = (
-        2.0 * DirectioanalightShadowArrayTex.SampleCmpLevelZero(shadowSampler, coord, ShadowCoord.z) +
-        DirectioanalightShadowArrayTex.SampleCmpLevelZero(shadowSampler, coord + float3(-d2, d1, 0.f), ShadowCoord.z) +
-        DirectioanalightShadowArrayTex.SampleCmpLevelZero(shadowSampler, coord + float3(-d1, -d2, 0.f), ShadowCoord.z) +
-        DirectioanalightShadowArrayTex.SampleCmpLevelZero(shadowSampler, coord + float3(d2, -d1, 0.f), ShadowCoord.z) +
-        DirectioanalightShadowArrayTex.SampleCmpLevelZero(shadowSampler, coord + float3(d1, d2, 0.f), ShadowCoord.z) +
-        DirectioanalightShadowArrayTex.SampleCmpLevelZero(shadowSampler, coord + float3(-d4, d3, 0.f), ShadowCoord.z) +
-        DirectioanalightShadowArrayTex.SampleCmpLevelZero(shadowSampler, coord + float3(-d3, -d4, 0.f), ShadowCoord.z) +
-        DirectioanalightShadowArrayTex.SampleCmpLevelZero(shadowSampler, coord + float3(d4, -d3, 0.f), ShadowCoord.z) +
-        DirectioanalightShadowArrayTex.SampleCmpLevelZero(shadowSampler, coord + float3(d3, d4, 0.f), ShadowCoord.z)
-        ) / 10.0;
+    float result = 0.f;
+            
+    [unroll]
+    for (int i = 0; i < 16; i++)
+    {
+        result += DirectioanalightShadowArrayTex.SampleCmpLevelZero(shadowSampler, coord + float3((gPoison2D15[i] * ScaledDilation), 0.f), ShadowCoord.z);
+    }
+    result += 2 * DirectioanalightShadowArrayTex.SampleCmpLevelZero(shadowSampler, coord, ShadowCoord.z);
+            
+    result /= 18;
 #endif
     return result * result;
 }
@@ -197,11 +193,11 @@ float3 ApplyDirectionalShadowedLight(
     {
         shadow = GetDirectionalShadow(lightIndex, cascadeIndex, shadowCoord.xyz);
                 
-                uint nextCascade = min(gCascadesCount - 1, cascadeIndex + 1);
-                float blendBetweenCascadesAmount = 1.f;
-                float currentPixelsBlendBandLocation = 1.0f;
+        uint nextCascade = min(gCascadesCount - 1, cascadeIndex + 1);
+        float blendBetweenCascadesAmount = 1.f;
+        float currentPixelsBlendBandLocation = 1.0f;
                 
-            }
+    }
 
     return shadow * ApplyDirectionalLight(
         diffuseColor,
