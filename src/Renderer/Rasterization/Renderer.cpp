@@ -435,7 +435,7 @@ namespace Darius::Renderer::Rasterization
 						ImGui::SameLine(inputOffset);
 						int value = (int)LightContext->GetCascadesCount();
 						ImGui::PushItemWidth(inputWidth);
-						if (ImGui::SliderInt("##Cascades Count", &value, 1, D_RENDERER_RAST_LIGHT::RasterizationShadowedLightContext::MaxDirectionalCascades, "%d", ImGuiSliderFlags_AlwaysClamp | ImGuiSliderFlags_ClampOnInput))
+						if (ImGui::SliderInt("##Cascades Count", &value, 1, D_RENDERER_RAST_LIGHT::RasterizationShadowedLightContext::MaxDirectionalCascades, "%d", ImGuiSliderFlags_AlwaysClamp))
 						{
 							LightContext->SetCascadesCount((UINT)value);
 							options[CascadeOptionsKey] = LightContext->GetCascades();

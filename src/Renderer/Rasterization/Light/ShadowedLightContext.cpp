@@ -51,6 +51,8 @@ namespace Darius::Renderer::Rasterization::Light
 
 	void RasterizationShadowedLightContext::DestroyShadowBuffers()
 	{
+		D_GRAPHICS::GetCommandManager()->IdleGPU();
+
 		mShadowDataUpload.Destroy();
 		mShadowDataGpu.Destroy();
 

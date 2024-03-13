@@ -39,6 +39,8 @@ namespace Darius::Renderer::Light
 
 	void LightContext::DestroyBuffers()
 	{
+		D_GRAPHICS::GetCommandManager()->IdleGPU();
+
 		mLightsStatusUpload.Destroy();
 		mLightsStatusGpuBuffer.Destroy();
 		mLightsDataUpload.Destroy();
