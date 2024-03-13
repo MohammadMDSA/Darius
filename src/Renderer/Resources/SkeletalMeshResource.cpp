@@ -59,8 +59,8 @@ namespace Darius::Renderer
 		mMesh.mNumTotalVertices = (UINT)vertices.size();
 		mMesh.mNumTotalIndices = (UINT)indices.size();
 
-		mMesh.mBoundSp = mMesh.mBoundSp.Union(data.MeshData.CalcBoundingSphere());
-		mMesh.mBoundBox = mMesh.mBoundBox.Union(data.MeshData.CalcBoundingBox());
+		mMesh.mBoundSp = data.MeshData.CalcBoundingSphere();
+		mMesh.mBoundBox = data.MeshData.CalcBoundingBox();
 
 		mMesh.Name = GetName();
 

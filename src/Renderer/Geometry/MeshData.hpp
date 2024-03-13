@@ -49,10 +49,16 @@ namespace Darius::Renderer::Geometry
 		D_MATH_BOUNDS::BoundingSphere CalcBoundingSphere() const
 		{
 			D_MATH_BOUNDS::BoundingSphere res;
+			bool first = true;
 			for (auto const& vert : Vertices)
 			{
-				D_MATH_BOUNDS::BoundingSphere vertBound(vert.mPosition, 0.001f);
-				res = res.Union(vertBound);
+				if (first)
+				{
+					first = false;
+					res = D_MATH_BOUNDS::BoundingSphere(vert.mPosition, 0.001f);
+				}
+				else
+					res = res.Union(D_MATH_BOUNDS::BoundingSphere(vert.mPosition, 0.001f));
 			}
 			return res;
 		}
@@ -60,9 +66,16 @@ namespace Darius::Renderer::Geometry
 		D_MATH_BOUNDS::AxisAlignedBox CalcBoundingBox() const
 		{
 			D_MATH_BOUNDS::AxisAlignedBox box;
+			bool first = true;
 			for (auto const& vert : Vertices)
 			{
-				box.AddBoundingBox(D_MATH_BOUNDS::AxisAlignedBox(vert.mPosition, vert.mPosition));
+				if (first)
+				{
+					first = false;
+					box = D_MATH_BOUNDS::AxisAlignedBox(vert.mPosition, vert.mPosition);
+				}
+				else
+					box.AddPoint(vert.mPosition);
 			}
 
 			return box;
