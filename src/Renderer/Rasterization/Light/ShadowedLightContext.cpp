@@ -31,9 +31,10 @@ namespace Darius::Renderer::Rasterization::Light
 			CreateShadowBuffers();
 
 
-		LightConfigBufferData.DirectionalShadowBufferTexelSize = 1.f / mDirectionalShadowBufferWidth;
-		LightConfigBufferData.SpotShadowBufferTexelSize = 1.f / mSpotShadowBufferWidth;
-		LightConfigBufferData.PointShadowBufferTexelSize = 1.f / mPointShadowBufferWidth;
+		mLightConfigBufferData.DirectionalShadowBufferTexelSize = 1.f / mDirectionalShadowBufferWidth;
+		mLightConfigBufferData.SpotShadowBufferTexelSize = 1.f / mSpotShadowBufferWidth;
+		mLightConfigBufferData.PointShadowBufferTexelSize = 1.f / mPointShadowBufferWidth;
+
 	}
 
 	RasterizationShadowedLightContext::~RasterizationShadowedLightContext()
@@ -84,6 +85,9 @@ namespace Darius::Renderer::Rasterization::Light
 			mShadowBuffersPoint[i].Create(std::wstring(L"Point Shadow Buffer ") + std::to_wstring(i % 6) + L"/6 " + std::to_wstring(i / 6), mPointShadowBufferWidth, mPointShadowBufferWidth, D3D12_GPU_VIRTUAL_ADDRESS_UNKNOWN);
 		for (int i = 0; i < mShadowBuffersSpot.size(); i++)
 			mShadowBuffersSpot[i].Create(std::wstring(L"Spot Shadow Buffer ") + std::to_wstring(i), mSpotShadowBufferWidth, mSpotShadowBufferWidth, D3D12_GPU_VIRTUAL_ADDRESS_UNKNOWN);
+
+		mLightConfigBufferData.CascadeMinBorderPadding = 1.f / mDirectionalShadowBufferWidth;
+		mLightConfigBufferData.CascadeMaxBorderPadding = 1.f - mLightConfigBufferData.CascadeMinBorderPadding;
 
 		// Initializing main shadow buffers
 		auto shadowBufferFormat = D_GRAPHICS::GetShadowFormat();
@@ -166,7 +170,7 @@ namespace Darius::Renderer::Rasterization::Light
 		// Wait for processing all light sources
 		D_JOB::AddTaskSetAndWait(updateFuncs);
 
-		LightConfigBufferData.CascadesCount = GetCascadesCount();
+		mLightConfigBufferData.CascadesCount = GetCascadesCount();
 	}
 
 	void RasterizationShadowedLightContext::CalculateDirectionalShadowCamera(D_MATH_CAMERA::Camera const& viewerCamera, LightData& light, int directionalIndex)
@@ -176,8 +180,9 @@ namespace Darius::Renderer::Rasterization::Light
 
 		for (int i = 0; i < (int)cascadeFrustums.size(); i++)
 		{
+			int resourceIndex = directionalIndex * GetCascadesCount() + i;
 			auto const& frustum = cascadeFrustums.at(i);
-			auto& cam = mDirectionalShadowCameras[directionalIndex * GetCascadesCount() + i];
+			auto& cam = mDirectionalShadowCameras[resourceIndex];
 			auto lightDir = Vector3(light.Direction);
 			cam.SetLookDirection(lightDir, Vector3::Up);
 			cam.SetPosition(Vector3(kZero));
@@ -188,13 +193,15 @@ namespace Darius::Renderer::Rasterization::Light
 			auto shadowSpaceFrustum = shadowView * frustum;
 			auto shadowSpaceAABB = shadowSpaceFrustum.GetAABB();
 
-			auto camWorldPos = D_MATH::Invert(shadowView) * shadowSpaceAABB.GetCenter();
 			auto dim = shadowSpaceAABB.GetDimensions();
+			auto camSPPos = shadowSpaceAABB.GetCenter() + Vector3::Forward * shadowSpaceAABB.GetExtents().GetZ();
+			auto camWorldPos = D_MATH::Invert(shadowView) * camSPPos;
 
 			// Fitting directional light bounds to the frustom... With extra Z
 			cam.UpdateMatrix(lightDir, Vector3(camWorldPos), dim, mDirectionalShadowBufferWidth, mDirectionalShadowBufferWidth, mShadowBufferDepthPrecision);
 
-			mShadowData[directionalIndex * GetCascadesCount() + i].ShadowMatrix = cam.GetShadowMatrix();
+
+			mShadowData[resourceIndex].ShadowMatrix = cam.GetShadowMatrix();
 		}
 	}
 
@@ -207,6 +214,9 @@ namespace Darius::Renderer::Rasterization::Light
 
 		for (UINT i = 0u; i < GetCascadesCount(); i++)
 		{
+			sorter.Reset();
+
+			D_PROFILING::ScopedTimer _prof(std::to_wstring(i), context);
 			int resourceIndex = lightIndexStart + i;
 			auto const& cam = mDirectionalShadowCameras[resourceIndex];
 
@@ -369,48 +379,57 @@ namespace Darius::Renderer::Rasterization::Light
 		shadowContext.TransitionResource(mPointShadowTextureArrayBuffer, D3D12_RESOURCE_STATE_COPY_DEST, true);
 
 		// Rendering directional
-		for (UINT i = 0u; i < GetNumberOfDirectionalLights(); i++)
 		{
+			D_PROFILING::ScopedTimer _prof1(L"Directional Shadows", shadowContext);
+			for (UINT i = 0u; i < GetNumberOfDirectionalLights(); i++)
+			{
+				auto const& light = GetDirectionalLightData(i);
+				if (!light.CastsShadow)
+					continue;
 
-			sorter.Reset();
-
-			auto const& light = GetDirectionalLightData(i);
-			if (!light.CastsShadow)
-				continue;
-
-			RenderDirectionalShadow(sorter, shadowContext, light, i);
+				RenderDirectionalShadow(sorter, shadowContext, light, i);
+			}
 		}
-		sorter.SetViewport(D3D12_VIEWPORT());
-		sorter.SetScissor({ 1, 1, (long)mSpotShadowBufferWidth - 2l, (long)mSpotShadowBufferWidth - 2l });
 
 		// Rendering spot
-		for (UINT idx = 0u; idx < MaxNumSpotLight; idx++)
 		{
-			if (idx >= GetNumberOfSpotLights())
-				break;
+			D_PROFILING::ScopedTimer _prof1(L"Spont Shadows", shadowContext);
 
-			sorter.Reset();
-			auto const& light = GetSpotLightData(idx);
-			if (!light.CastsShadow)
-				continue;
+			sorter.SetViewport(D3D12_VIEWPORT());
+			sorter.SetScissor({ 1, 1, (long)mSpotShadowBufferWidth - 2l, (long)mSpotShadowBufferWidth - 2l });
+			for (UINT idx = 0u; idx < MaxNumSpotLight; idx++)
+			{
+				if (idx >= GetNumberOfSpotLights())
+					break;
 
-			RenderSpotShadow(sorter, shadowContext, light, idx);
+				sorter.Reset();
+				auto const& light = GetSpotLightData(idx);
+				if (!light.CastsShadow)
+					continue;
+
+				RenderSpotShadow(sorter, shadowContext, light, idx);
+			}
 		}
-		sorter.SetViewport(D3D12_VIEWPORT());
-		sorter.SetScissor({ 0l, 0l, (long)mPointShadowBufferWidth, (long)mPointShadowBufferWidth });
 
 		// Rendering point
-		for (UINT idx = 0u; idx < MaxNumPointLight; idx++)
 		{
-			if (idx >= GetNumberOfPointLights())
-				break;
+			D_PROFILING::ScopedTimer _prof1(L"Point Shadows", shadowContext);
 
-			sorter.Reset();
-			auto const& light = GetPointLightData(idx);
-			if (!light.CastsShadow)
-				continue;
+			sorter.SetViewport(D3D12_VIEWPORT());
+			sorter.SetScissor({ 0l, 0l, (long)mPointShadowBufferWidth, (long)mPointShadowBufferWidth });
 
-			RenderPointShadow(sorter, shadowContext, light, idx);
+			for (UINT idx = 0u; idx < MaxNumPointLight; idx++)
+			{
+				if (idx >= GetNumberOfPointLights())
+					break;
+
+				sorter.Reset();
+				auto const& light = GetPointLightData(idx);
+				if (!light.CastsShadow)
+					continue;
+
+				RenderPointShadow(sorter, shadowContext, light, idx);
+			}
 		}
 
 		shadowContext.TransitionResource(mDirectionalShadowTextureArrayBuffer, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);

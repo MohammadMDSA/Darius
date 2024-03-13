@@ -37,6 +37,8 @@ cbuffer LightConfig : register(b10)
 {
     float4  gShodowTexelSizes; // x = Directional, y = Point, z = Spot
     uint    gCascadesCount;
+    float   gCascadeMinBorderPadding;
+    float   gCascadeMaxBorderPadding;
 };
 
 Texture2DArray<float>   DirectioanalightShadowArrayTex      : register(t12);
@@ -57,9 +59,30 @@ void AntiAliasSpecular(inout float3 texNormal, inout float gloss)
     gloss = exp2(lerp(0, log2(gloss), flatness));
 }
 
-float GetDirectionalShadow(uint lightIndex, float3 ShadowCoord)
+bool FindBestCascadeIndex(uint directionalLightIndex, float3 worldPos, out uint cascadeIndex, out float4 shadowTexCoord)
 {
-    float3 coord = float3(ShadowCoord.xy, lightIndex * gCascadesCount);
+    cascadeIndex = 0;
+    for (int i = 0; i < gCascadesCount; i++)
+    {
+        float4x4 shadowMatrix = ShadowsData[directionalLightIndex * gCascadesCount + i].ShadowMatrix;
+        shadowTexCoord = mul(shadowMatrix, float4(worldPos, 1.f));
+        shadowTexCoord.xyz *= rcp(shadowTexCoord.w);
+        if (min(shadowTexCoord.x, shadowTexCoord.y) >= gCascadeMinBorderPadding &&
+            max(shadowTexCoord.x, shadowTexCoord.y) <= gCascadeMaxBorderPadding &&
+            shadowTexCoord.z >= 0.f)
+        {
+            cascadeIndex = i;
+            return true;
+        }
+
+    }
+            
+    return false;
+}
+        
+float GetDirectionalShadow(uint lightIndex, uint cascadeIndex, float3 ShadowCoord)
+{
+    float3 coord = float3(ShadowCoord.xy, lightIndex * gCascadesCount + cascadeIndex);
 //#define SINGLE_SAMPLE
 #ifdef SINGLE_SAMPLE
     float result = DirectioanalightShadowArrayTex.SampleCmpLevelZero(shadowSampler, coord, ShadowCoord.z);
@@ -168,13 +191,17 @@ float3 ApplyDirectionalShadowedLight(
     )
 {
     float shadow = 1.f;
-    if (castsShadow)
+    uint cascadeIndex = 0u;
+    float4 shadowCoord;
+    if (castsShadow && FindBestCascadeIndex(lightIndex, worldPos, cascadeIndex, shadowCoord))
     {
-        float4x4 shoadwMatrix = ShadowsData[lightIndex * gCascadesCount].ShadowMatrix;
-        float4 shadowCoord = mul(shoadwMatrix, float4(worldPos, 1.0));
-        shadowCoord.xyz *= rcp(shadowCoord.w);
-        shadow = GetDirectionalShadow(lightIndex, shadowCoord.xyz);
-    }
+        shadow = GetDirectionalShadow(lightIndex, cascadeIndex, shadowCoord.xyz);
+                
+                uint nextCascade = min(gCascadesCount - 1, cascadeIndex + 1);
+                float blendBetweenCascadesAmount = 1.f;
+                float currentPixelsBlendBandLocation = 1.0f;
+                
+            }
 
     return shadow * ApplyDirectionalLight(
         diffuseColor,

@@ -48,7 +48,9 @@ namespace Darius::Renderer::Rasterization::Light
 			float			SpotShadowBufferTexelSize;
 			float _pad;
 			UINT			CascadesCount;
-		} LightConfigBufferData;
+			float			CascadeMinBorderPadding;
+			float			CascadeMaxBorderPadding;
+		};
 
 	public:
 
@@ -61,7 +63,7 @@ namespace Darius::Renderer::Rasterization::Light
 
 		void									RenderShadows(D_CONTAINERS::DVector<RenderItem> const& shadowRenderItems, D_GRAPHICS::GraphicsContext& shadowContext);
 
-		INLINE LightConfigBuffer const&			GetLightConfigBufferData() const { return LightConfigBufferData; }
+		INLINE LightConfigBuffer const&			GetLightConfigBufferData() const { return mLightConfigBufferData; }
 
 		virtual void							UpdateBuffers(D_GRAPHICS::CommandContext& context, D3D12_RESOURCE_STATES buffersReadyState = D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE) override;
 
@@ -118,7 +120,7 @@ namespace Darius::Renderer::Rasterization::Light
 		D_GRAPHICS_BUFFERS::StructuredBuffer				mShadowDataGpu;
 
 		D_CONTAINERS::DVector<float>						mCascades;
-
+		LightConfigBuffer									mLightConfigBufferData;
 	};
 
 
