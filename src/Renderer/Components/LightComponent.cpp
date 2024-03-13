@@ -2,6 +2,8 @@
 #include "LightComponent.hpp"
 
 #include "Renderer/Camera/CameraManager.hpp"
+#include "Renderer/RendererManager.hpp"
+#include "Renderer/Rasterization/Light/ShadowedLightContext.hpp"
 
 #include <Debug/DebugDraw.hpp>
 #include <Math/Serialization.hpp>
@@ -119,40 +121,49 @@ namespace Darius::Renderer
 		{
 		case LightSourceType::DirectionalLight:
 		{
+			if (D_RENDERER::GetActiveRendererType() != D_RENDERER::RendererType::Rasterization)
+				break;
+
 			auto activeCam = D_CAMERA_MANAGER::GetActiveCamera();
 
 			if (!activeCam.IsValid())
 				break;
 
-			auto const& frustom = activeCam->GetCamera().GetWorldSpaceFrustum();
+			D_CONTAINERS::DVector<D_MATH_CAMERA::Frustum> frustums;
+			activeCam->GetCamera().CalculateSlicedFrustumes(D_RENDERER_RAST::GetLightContext()->GetCascades(), frustums);
 
-			// Creating view mat regardless of its position
-			auto invLightViewMat = D_MATH::OrthogonalTransform(trans->GetRotation(), D_MATH::Vector3(D_MATH::kZero));
-			auto lightViewMat = D_MATH::Invert(invLightViewMat);
+			int i = 1;
+			for (auto const& frustum : frustums)
+			{
+				
+				// Creating view mat regardless of its position
+				auto invLightViewMat = D_MATH::OrthogonalTransform(trans->GetRotation(), D_MATH::Vector3(D_MATH::kZero));
+				auto lightViewMat = D_MATH::Invert(invLightViewMat);
 
-			// Creating shadow aabb
-			auto shadowFrustom = lightViewMat * frustom;
-			auto shadowAABB = shadowFrustom.GetAABB();
+				// Creating shadow aabb
+				auto shadowFrustom = lightViewMat * frustum;
+				auto shadowAABB = shadowFrustom.GetAABB();
 
-			auto shadowAABBMin = shadowAABB.GetMin();
-			auto shadowAABBMax = shadowAABB.GetMax();
-			D_CONTAINERS::DVector<D_MATH::Vector3> verts;
+				auto shadowAABBMin = shadowAABB.GetMin();
+				auto shadowAABBMax = shadowAABB.GetMax();
+				D_CONTAINERS::DVector<D_MATH::Vector3> verts;
 
 #define ADD_TO_VERT_VEC(...) \
-			verts.push_back(invLightViewMat * D_MATH::Vector3(__VA_ARGS__));
+				verts.push_back(invLightViewMat * D_MATH::Vector3(__VA_ARGS__));
 
-			ADD_TO_VERT_VEC(shadowAABBMin.GetX(), shadowAABBMin.GetY(), shadowAABBMax.GetZ());
-			ADD_TO_VERT_VEC(shadowAABBMin.GetX(), shadowAABBMax.GetY(), shadowAABBMax.GetZ());
-			ADD_TO_VERT_VEC(shadowAABBMax.GetX(), shadowAABBMin.GetY(), shadowAABBMax.GetZ());
-			ADD_TO_VERT_VEC(shadowAABBMax.GetX(), shadowAABBMax.GetY(), shadowAABBMax.GetZ());
-			ADD_TO_VERT_VEC(shadowAABBMin.GetX(), shadowAABBMin.GetY(), shadowAABBMin.GetZ());
-			ADD_TO_VERT_VEC(shadowAABBMin.GetX(), shadowAABBMax.GetY(), shadowAABBMin.GetZ());
-			ADD_TO_VERT_VEC(shadowAABBMax.GetX(), shadowAABBMin.GetY(), shadowAABBMin.GetZ());
-			ADD_TO_VERT_VEC(shadowAABBMax.GetX(), shadowAABBMax.GetY(), shadowAABBMin.GetZ());
+				ADD_TO_VERT_VEC(shadowAABBMin.GetX(), shadowAABBMin.GetY(), shadowAABBMax.GetZ());
+				ADD_TO_VERT_VEC(shadowAABBMin.GetX(), shadowAABBMax.GetY(), shadowAABBMax.GetZ());
+				ADD_TO_VERT_VEC(shadowAABBMax.GetX(), shadowAABBMin.GetY(), shadowAABBMax.GetZ());
+				ADD_TO_VERT_VEC(shadowAABBMax.GetX(), shadowAABBMax.GetY(), shadowAABBMax.GetZ());
+				ADD_TO_VERT_VEC(shadowAABBMin.GetX(), shadowAABBMin.GetY(), shadowAABBMin.GetZ());
+				ADD_TO_VERT_VEC(shadowAABBMin.GetX(), shadowAABBMax.GetY(), shadowAABBMin.GetZ());
+				ADD_TO_VERT_VEC(shadowAABBMax.GetX(), shadowAABBMin.GetY(), shadowAABBMin.GetZ());
+				ADD_TO_VERT_VEC(shadowAABBMax.GetX(), shadowAABBMax.GetY(), shadowAABBMin.GetZ());
 #undef ADD_TO_VERT_VEC
 
-			// Draw box from verts
-			D_DEBUG_DRAW::DrawCubeLines(verts, 0.f, D_MATH::Color(mLightData.Color.x, mLightData.Color.y, mLightData.Color.z));
+				// Draw box from verts
+				D_DEBUG_DRAW::DrawCubeLines(verts, 0.f, D_MATH::Color(mLightData.Color.x, mLightData.Color.y, mLightData.Color.z));
+			}
 
 			break;
 		}
