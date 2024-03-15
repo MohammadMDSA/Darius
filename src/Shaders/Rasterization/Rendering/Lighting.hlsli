@@ -88,7 +88,7 @@ float GetDirectionalShadow(uint lightIndex, uint cascadeIndex, float3 ShadowCoor
     float result = DirectioanalightShadowArrayTex.SampleCmpLevelZero(shadowSampler, coord, ShadowCoord.z);
 #else
     
-    const float Dilation = 15.0;
+    const float Dilation = 3.0;
     const float ScaledDilation = Dilation * gShodowTexelSizes.x;
 
     float result = 0.f;
