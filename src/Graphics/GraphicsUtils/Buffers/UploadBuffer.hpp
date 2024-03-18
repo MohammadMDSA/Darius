@@ -30,6 +30,8 @@ namespace Darius::Graphics::Utils::Buffers
 
         INLINE size_t GetBufferSize() const { return mBufferSize; }
         INLINE size_t GetTotalBufferSize() const { return mBufferSize * mNumInstances; }
+        INLINE size_t GetInstanceOffset(UINT instance) { return instance * GetBufferSize(); }
+
 
         INLINE D3D12_GPU_VIRTUAL_ADDRESS GetGpuVirtualAddress(UINT instanceIndex = 0) const { return mGpuVirtualAddress + instanceIndex * mBufferSize; }
 

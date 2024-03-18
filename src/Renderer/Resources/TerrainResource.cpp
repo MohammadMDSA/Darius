@@ -40,6 +40,8 @@ namespace Darius::Renderer
 		DirectX::XMFLOAT2	InvHeightTexDim;
 	};
 
+	ALIGN_DECL_256 struct AlignedTerrainParametersConstants : public TerrainParametersConstants {};
+
 	TerrainResource::TerrainResource(D_CORE::Uuid uuid, std::wstring const& path, std::wstring const& name, D_RESOURCE::DResourceId id, bool isDefault) :
 		Resource(uuid, path, name, id, isDefault),
 		mHeightFactor(300.f),
@@ -161,52 +163,27 @@ namespace Darius::Renderer
 			mMesh.VertexDataGpu.Create(mMesh.Name + L" Vertex Buffer", (UINT)vertices.size(), sizeof(D_RENDERER_VERTEX::VertexPositionNormalTangentTexture), vertices.data());
 
 			// Create index buffer
-			mMesh.IndexDataGpu.Create(mMesh.Name + L" Index Buffer", (UINT)indices.size(), sizeof(std::uint32_t), indices.data());
+			mMesh.CreateIndexBuffers(indices.data());
 		}
 
 		if (!mHeightMap.IsValid())
 			mHeightMap = D_RESOURCE::GetResourceSync<TextureResource>(D_RENDERER::GetDefaultGraphicsResource(D_RENDERER::DefaultResource::Texture2DBlackOpaque));
 
-		if (!mHeightMap->IsDefault() && D_H_ENSURE_FILE(mHeightMap->GetPath()))
 		{
-			D_PROFILING::ScopedTimer _prof(L"Calculating Terrain Normal Map");
-
-			DirectX::TexMetadata info;
-			DirectX::ScratchImage heightImage;
-			DirectX::ScratchImage normalImage;
-
-			{
-				D_PROFILING::ScopedTimer _prof(L"Reading Height Map");
-
-				DirectX::LoadFromDDSFile(mHeightMap->GetPath().c_str(), DirectX::DDS_FLAGS_NONE, &info, heightImage);
-			}
-
-			DirectX::ComputeNormalMap(*heightImage.GetImage(0, 0, 0), DirectX::CNMAP_CHANNEL_RED, mHeightFactor, DXGI_FORMAT_R8G8B8A8_UNORM, normalImage);
-
-			auto normalImg = normalImage.GetImage(0, 0, 0);
-			mGeneratedNormalMap.Create2D(normalImg->rowPitch, info.width, info.height, normalImage.GetMetadata().format, normalImage.GetPixels());
-
-			heightImage.Release();
-			normalImage.Release();
-
-		}
-		else
-		{
-			uint32_t color = 0x00FF0000;
-			mGeneratedNormalMap.Create2D(4, 1, 1, DXGI_FORMAT_R8G8B8A8_UNORM, &color);
-		}
-
-		{
-			D_PROFILING::ScopedTimer _prof(L"Applying Terrain Height", context);
+			D_PROFILING::ScopedTimer _prof(L"Applying Terrain Height and Compute Normals", context);
 
 			context.TransitionResource(mMesh.VertexDataGpu, D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
 
 			context.SetPipelineState(TerrainMeshGenerationCS);
 			context.SetRootSignature(D_GRAPHICS::CommonRS);
 
-			context.SetConstants(0, mHeightFactor);
+			auto heightMapData = mHeightMap->GetTextureData();
+			AlignedTerrainParametersConstants constantParams;
+			constantParams.HeightFactor = mHeightFactor;
+			constantParams.InvHeightTexDim = { (float)heightMapData->GetWidth(), (float)heightMapData->GetHeight() };
+
+			context.SetDynamicConstantBufferView(3, sizeof(constantParams), &constantParams);
 			context.SetDynamicDescriptor(1, 0, mHeightMap->GetTextureData()->GetSRV());
-			context.SetDynamicDescriptor(1, 1, mGeneratedNormalMap.GetSRV());
 			context.SetDynamicDescriptor(2, 0, mMesh.VertexDataGpu.GetUAV());
 			context.Dispatch2D(mMesh.mNumTotalVertices, 1u, 8u, 1u);
 
@@ -252,7 +229,7 @@ namespace Darius::Renderer
 		mParametersConstantsCPU.Unmap();
 
 		// Uploading
-		auto& context = D_GRAPHICS::CommandContext::Begin(L"Terrain Params Uploadier");
+		auto& context = D_GRAPHICS::CommandContext::Begin(L"Terrain Params Uploader");
 		context.TransitionResource(mParametersConstantsGPU, D3D12_RESOURCE_STATE_COPY_DEST, true);
 		context.CopyBufferRegion(mParametersConstantsGPU, 0, mParametersConstantsCPU, frameResIndex * mParametersConstantsCPU.GetBufferSize(), mParametersConstantsCPU.GetBufferSize());
 		context.TransitionResource(mParametersConstantsGPU, D3D12_RESOURCE_STATE_GENERIC_READ);

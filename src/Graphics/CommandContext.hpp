@@ -121,6 +121,7 @@ namespace Darius::Graphics
 			return m_CommandList;
 		}
 
+		void UploadToBuffer(D_GRAPHICS_BUFFERS::GpuBuffer& Dest, D_GRAPHICS_BUFFERS::UploadBuffer& Src);
 		void CopyBuffer(D_GRAPHICS_UTILS::GpuResource& Dest, D_GRAPHICS_UTILS::GpuResource& Src);
 		void CopyBufferRegion(D_GRAPHICS_UTILS::GpuResource& Dest, size_t DestOffset, D_GRAPHICS_UTILS::GpuResource& Src, size_t SrcOffset, size_t NumBytes);
 		void CopySubresource(D_GRAPHICS_UTILS::GpuResource& Dest, UINT DestSubIndex, D_GRAPHICS_UTILS::GpuResource& Src, UINT SrcSubIndex);

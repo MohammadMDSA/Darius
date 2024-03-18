@@ -236,4 +236,26 @@ namespace Darius::Renderer
 		SetClean();
 	}
 
+	void MeshRendererComponent::GetOverriddenMaterials(D_CONTAINERS::DVector<MaterialResource*>& out) const
+	{
+		if (!mMesh.IsValid() || !mMesh->IsLoaded())
+		{
+			out.resize(0);
+			return;
+		}
+
+		out.resize(mMaterials.size());
+
+		for (int i = 0; i < out.size(); i++)
+		{
+			auto const& overrideMat = mMaterials[i];
+			if (overrideMat.IsValid())
+			{
+				out[i] = overrideMat.Get();
+				continue;
+			}
+			out[i] = mMesh->GetMaterial(i);
+		}
+	}
+
 }

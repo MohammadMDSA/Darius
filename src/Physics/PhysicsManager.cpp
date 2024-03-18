@@ -350,6 +350,7 @@ namespace Darius::Physics
 			// Creating debug mesh
 			{
 				auto& mesh = data.Mesh;
+				mesh.Name = L"Physics Convex Mesh Debug";
 
 				// Loading vertices buffer
 				{
@@ -390,9 +391,9 @@ namespace Darius::Physics
 
 					}
 
-					mesh.IndexDataGpu.Create(L"Physics Convex Mesh Debug Indices", (UINT)indices.size(), sizeof(UINT), indices.data());
 					mesh.mNumTotalIndices = (UINT)indices.size();
 					mesh.mDraw.push_back({ mesh.mNumTotalIndices, 0u, 0u });
+					mesh.CreateIndexBuffers(indices.data());
 				}
 			}
 #endif

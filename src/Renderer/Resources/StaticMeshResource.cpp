@@ -31,8 +31,7 @@ namespace Darius::Renderer
 
 		if (data.MeshData.Vertices.size() <= 0)
 		{
-			mMesh.VertexDataGpu.Destroy();
-			mMesh.IndexDataGpu.Destroy();
+			mMesh.Destroy();
 			return;
 		}
 
@@ -81,8 +80,7 @@ namespace Darius::Renderer
 		mMesh.VertexDataGpu.Create(mMesh.Name + L" Vertex Buffer", (UINT)vertices.size(), sizeof(D_RENDERER_VERTEX::VertexPositionNormalTangentTexture), vertices.data());
 
 		// Create index buffer
-		mMesh.IndexDataGpu.Create(mMesh.Name + L" Index Buffer", (UINT)indices.size(), sizeof(std::uint32_t), indices.data());
-
+		mMesh.CreateIndexBuffers(indices.data());
 	}
 
 	bool StaticMeshResource::DrawDetails(float params[])

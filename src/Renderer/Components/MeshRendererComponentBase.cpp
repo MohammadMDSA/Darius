@@ -44,12 +44,6 @@ namespace Darius::Renderer
 		mMeshConstantsCPU.Create(L"Mesh Constant Upload Buffer", sizeof(MeshConstants), 3);
 		mMeshConstantsGPU.Create(L"Mesh Constant GPU Buffer", 1, sizeof(MeshConstants));
 
-		for (UINT i = 0; i < mMaterials.size(); i++)
-		{
-			auto const& material = mMaterials[i];
-			if (!material.IsValid())
-				SetMaterial(i, static_cast<MaterialResource*>(D_RESOURCE::GetRawResourceSync(D_RENDERER::GetDefaultGraphicsResource(DefaultResource::Material))));
-		}
 	}
 
 	void MeshRendererComponentBase::SetMaterial(UINT index, MaterialResource* material)

@@ -169,7 +169,7 @@ namespace Darius::Physics
 
 		auto meshData = mReferenceMesh->GetMeshData();
 		auto& vertBuffer = const_cast<D_GRAPHICS_BUFFERS::StructuredBuffer&>(meshData->VertexDataGpu);
-		auto& indexBuffer = const_cast<D_GRAPHICS_BUFFERS::StructuredBuffer&>(meshData->IndexDataGpu);
+		auto& indexBuffer = const_cast<D_GRAPHICS_BUFFERS::StructuredBuffer&>(meshData->IndexDataGpu[0]);
 
 		mMeshVerticesReadback.Create(L"Convex Mesh Creation Vertices Readback", vertBuffer.GetElementCount(), vertBuffer.GetElementSize());
 		context.CopyBuffer(mMeshVerticesReadback, vertBuffer);

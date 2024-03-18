@@ -36,6 +36,7 @@ namespace Darius::Renderer
 
 		void								SetMesh(StaticMeshResource* mesh);
 		INLINE StaticMeshResource*			GetMesh() const { return mMesh.Get(); }
+		virtual void						GetOverriddenMaterials(D_CONTAINERS::DVector<MaterialResource*>& out) const override;
 
 	protected:
 		virtual UINT						GetPsoIndex(UINT materialIndex, MaterialResource* material) override;

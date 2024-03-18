@@ -41,21 +41,36 @@ namespace Darius::Renderer::Geometry
 			uint32_t				SkeletonRoot : 1;
 		};
 
+		Mesh() = default;
+
+		Mesh(Mesh const& other, std::wstring const& name, bool createVertexBuffer = true, bool perDrawIndexBuffer = false);
+
+		void CreateIndexBuffers(const void* initialData = nullptr, D3D12_RESOURCE_STATES initialState = D3D12_RESOURCE_STATE_COMMON);
+		void FillIndices(Mesh& other, class Darius::Graphics::CommandContext& context);
+
 		INLINE D3D12_VERTEX_BUFFER_VIEW	VertexBufferView() const
 		{
 			return VertexDataGpu.VertexBufferView();
 		}
 
-		INLINE D3D12_INDEX_BUFFER_VIEW IndexBufferView() const
+		INLINE D3D12_INDEX_BUFFER_VIEW IndexBufferView(UINT index = 0) const
 		{
-			return IndexDataGpu.IndexBufferView();
+			return IndexDataGpu[index].IndexBufferView();
+		}
+
+		INLINE void Destroy()
+		{
+			VertexDataGpu.Destroy();
+
+			for (auto& indexBuff : IndexDataGpu)
+				indexBuff.Destroy();
 		}
 
 		// Mesh name
 		std::wstring Name;
 
 		D_GRAPHICS_BUFFERS::StructuredBuffer	VertexDataGpu;
-		D_GRAPHICS_BUFFERS::StructuredBuffer	IndexDataGpu;
+		D_CONTAINERS::DVector<D_GRAPHICS_BUFFERS::StructuredBuffer> IndexDataGpu;
 
 		// Submesh
 		std::vector<Draw>				mDraw;
@@ -66,9 +81,12 @@ namespace Darius::Renderer::Geometry
 		UINT							mNumTotalVertices = 0u;
 		UINT							mNumTotalIndices = 0u;
 
+		// Only supported for ray tracing deformed meshes
+		UINT							mIndexBufferPerDraw : 1 = false;
+
 		static constexpr DXGI_FORMAT StandardIndexFormat = DXGI_FORMAT_R32_UINT;
 		static constexpr DXGI_FORMAT StandardVertexFormat = DXGI_FORMAT_R32G32B32_FLOAT;
-
+		static INLINE constexpr size_t GetIndexElementSize() { return sizeof(std::uint32_t); }
 	};
 
 }

@@ -44,6 +44,7 @@ namespace Darius::Renderer
 		void									SetMaterial(UINT index, MaterialResource* material);
 		D_CONTAINERS::DVector<D_RESOURCE::ResourceRef<MaterialResource>> const& GetMaterials() const { return mMaterials; }
 		D_RESOURCE::ResourceRef<MaterialResource> GetMaterial(UINT index) const { D_ASSERT(index < (UINT)mMaterials.size()); return mMaterials[index]; }
+		virtual void							GetOverriddenMaterials(D_CONTAINERS::DVector<MaterialResource*>& out) const {}
 
 	protected:
 

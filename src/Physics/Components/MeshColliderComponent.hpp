@@ -41,6 +41,7 @@ namespace Darius::Physics
 
 	private:
 
+		// Only uses the first index buffer.
 		void								CalculateMeshGeometry();
 
 		DField(Serialize)

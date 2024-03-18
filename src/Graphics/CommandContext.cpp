@@ -23,6 +23,12 @@ namespace Darius::Graphics
             sm_ContextPool[i].clear();
     }
 
+    void CommandContext::UploadToBuffer(D_GRAPHICS_BUFFERS::GpuBuffer& Dest, UploadBuffer& Src)
+    {
+        TransitionResource(Dest, D3D12_RESOURCE_STATE_COPY_DEST, true);
+        CopyBufferRegion(Dest, 0, Src, Src.GetInstanceOffset(D_GRAPHICS_DEVICE::GetCurrentFrameResourceIndex()), Src.GetBufferSize());
+    }
+
     CommandContext* ContextManager::AllocateContext(D3D12_COMMAND_LIST_TYPE Type)
     {
         std::lock_guard<std::mutex> LockGuard(sm_ContextAllocationMutex);
