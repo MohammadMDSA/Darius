@@ -1,9 +1,12 @@
 #include "Renderer/pch.hpp"
 #include "SkeletalMeshRendererComponent.hpp"
-#include "Scene/Utils/DetailsDrawer.hpp"
+
+#include "Renderer/RendererManager.hpp"
 
 #include <Core/TimeManager/TimeManager.hpp>
 #include <Debug/DebugDraw.hpp>
+#include <Graphics/GraphicsUtils/Profiling/Profiling.hpp>
+#include <Scene/Utils/DetailsDrawer.hpp>
 #include <ResourceManager/ResourceManager.hpp>
 
 #define FBXSDK_SHARED
@@ -19,6 +22,7 @@
 #include "SkeletalMeshRendererComponent.sgenerated.hpp"
 
 using namespace D_CORE;
+using namespace D_GRAPHICS_UTILS;
 using namespace D_MATH;
 using namespace D_MATH_BOUNDS;
 using namespace D_RENDERER;
@@ -30,6 +34,19 @@ namespace Darius::Renderer
 {
 	D_H_COMP_DEF(SkeletalMeshRendererComponent);
 
+	// Internal
+	ComputePSO				AsyncAnimationCS(L"Skeletal Mesh Async Animation CS");
+
+	void InitialziePSOs()
+	{
+		if (AsyncAnimationCS.GetPipelineStateObject())
+			return;
+
+		AsyncAnimationCS.SetRootSignature(D_GRAPHICS::CommonRS);
+		auto shader = D_GRAPHICS::GetShaderByName("SkeletalMeshAnimationDeformationCS");
+		AsyncAnimationCS.SetComputeShader(shader->GetBufferPointer(), shader->GetBufferSize());
+		AsyncAnimationCS.Finalize();
+	}
 
 	SkeletalMeshRendererComponent::SkeletalMeshRendererComponent() :
 		MeshRendererComponentBase(),
@@ -37,6 +54,9 @@ namespace Darius::Renderer
 		mMesh()
 	{
 		mComponentPsoFlags |= RenderItem::HasSkin;
+
+		if (AsyncAnimationCS.GetPipelineStateObject() == nullptr)
+			InitialziePSOs();
 	}
 
 	SkeletalMeshRendererComponent::SkeletalMeshRendererComponent(D_CORE::Uuid uuid) :
@@ -45,6 +65,9 @@ namespace Darius::Renderer
 		mMesh()
 	{
 		mComponentPsoFlags |= RenderItem::HasSkin;
+
+		if (AsyncAnimationCS.GetPipelineStateObject() == nullptr)
+			InitialziePSOs();
 	}
 
 	bool SkeletalMeshRendererComponent::AddRenderItems(std::function<void(D_RENDERER::RenderItem const&)> appendFunction, RenderItemContext const& riContext)
@@ -171,6 +194,10 @@ namespace Darius::Renderer
 				}, true);
 
 		}
+		else // To destroy deformed mesh buffer and 
+		{
+			LoadMeshData();
+		}
 
 		mChangeSignal(this);
 	}
@@ -215,6 +242,29 @@ namespace Darius::Renderer
 					mSkeletonRoot = &skeletonNode;
 				}
 			}
+
+			// Create deformed mesh buffer
+			if (D_RENDERER::GetActiveRendererType() == D_RENDERER::RendererType::RayTracing)
+			{
+				auto const* meshData = mMesh->GetMeshData();
+				mDeformedMesh = D_RENDERER_GEOMETRY::Mesh(*meshData, L"Skeletal Mesh Deformed Mesh", false, true);
+				mDeformedMesh.VertexDataGpu.Create(L"Skeletal Mesh Deformed Mesh Vertices", mDeformedMesh.mNumTotalVertices, sizeof(D_RENDERER_VERTEX::VertexPositionNormalTangentTexture));
+
+				auto& context = D_GRAPHICS::ComputeContext::Begin(L"Copy Index Buffer to for deformed mesh indices");
+				mDeformedMesh.FillIndices(const_cast<D_RENDERER_GEOMETRY::Mesh&>(*meshData), context);
+
+				context.Finish();
+			}
+
+			// Joints buffers
+			mJointsBufferGpu.Create(L"Skeletal Mesh Joint Buffer", (UINT)mJoints.size(), sizeof(D_RENDERER::Joint));
+			mJointsBufferUpload.Create(L"Skeletal Mesh Joint Buffer Upload", (UINT)(mJoints.size() * sizeof(D_RENDERER::Joint)), D_GRAPHICS_DEVICE::gNumFrameResources);
+		}
+		else
+		{
+			mDeformedMesh.Destroy();
+			mJointsBufferGpu.Destroy();
+			mJointsBufferUpload.Destroy();
 		}
 	}
 
@@ -258,6 +308,13 @@ namespace Darius::Renderer
 		}
 	}
 
+	void SkeletalMeshRendererComponent::OnDestroy()
+	{
+		mDeformedMesh.Destroy();
+
+		Super::OnDestroy();
+	}
+
 	void SkeletalMeshRendererComponent::Update(float dt)
 	{
 		if (!IsDirty() || !IsActive())
@@ -266,7 +323,8 @@ namespace Darius::Renderer
 		if (!mMesh.IsValid())
 			return;
 
-		auto& context = D_GRAPHICS::GraphicsContext::Begin();
+		auto& context = D_GRAPHICS::GraphicsContext::Begin(L"Skeletal Mesh Update");
+
 		auto frameResourceIndex = D_GRAPHICS_DEVICE::GetCurrentFrameResourceIndex();
 
 		// Updating mesh constants
@@ -292,19 +350,88 @@ namespace Darius::Renderer
 
 			// Uploading
 			context.TransitionResource(mMeshConstantsGPU, D3D12_RESOURCE_STATE_COPY_DEST, true);
-			context.GetCommandList()->CopyBufferRegion(mMeshConstantsGPU.GetResource(), 0, mMeshConstantsCPU.GetResource(), frameResourceIndex * mMeshConstantsCPU.GetBufferSize(), mMeshConstantsCPU.GetBufferSize());
+			context.CopyBufferRegion(mMeshConstantsGPU, 0, mMeshConstantsCPU, frameResourceIndex * mMeshConstantsCPU.GetBufferSize(), mMeshConstantsCPU.GetBufferSize());
 			context.TransitionResource(mMeshConstantsGPU, D3D12_RESOURCE_STATE_GENERIC_READ);
 		}
-		context.Finish();
+
+		// Uploading joints
+		{
+			D_PROFILING::ScopedTimer _prof2(L"Joints Upload", context);
+
+			// Storing to upload buffer
+			D_RENDERER::Joint* mapped = (D_RENDERER::Joint*)mJointsBufferUpload.MapInstance(frameResourceIndex);
+			std::memcpy(mapped, mJoints.data(), mJointsBufferUpload.GetBufferSize());
+			mJointsBufferUpload.Unmap();
+
+			context.UploadToBuffer(mJointsBufferGpu, mJointsBufferUpload);
+		}
+
+		bool isRayTracing = D_RENDERER::GetActiveRendererType() == D_RENDERER::RendererType::RayTracing;
+
+		auto& prototypeVertBuffer = const_cast<D_GRAPHICS_BUFFERS::StructuredBuffer&>(mMesh->GetMeshData()->VertexDataGpu);
+
+		if (isRayTracing)
+		{
+			context.TransitionResource(prototypeVertBuffer, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
+		}
+
+		uint64_t bufferPrep = context.Finish();
+
+
+		// Animating the deformed mesh
+		if (D_RENDERER::GetActiveRendererType() == D_RENDERER::RendererType::RayTracing)
+		{
+			
+			// Wait to have joint buffers ready
+			D_GRAPHICS::GetCommandManager()->GetComputeQueue().StallForFence(bufferPrep);
+
+			auto& compute = D_GRAPHICS::ComputeContext::Begin(L"Async Skeletal Animation Mesh Deformation", true);
+
+			compute.TransitionResource(mDeformedMesh.VertexDataGpu, D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
+			compute.TransitionResource(mJointsBufferGpu, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
+
+			compute.SetPipelineState(AsyncAnimationCS);
+			compute.SetRootSignature(D_GRAPHICS::CommonRS);
+			compute.SetDynamicDescriptor(1, 0, prototypeVertBuffer.GetSRV());
+			compute.SetDynamicDescriptor(1, 1, mJointsBufferGpu.GetSRV());
+			compute.SetDynamicDescriptor(2, 0, mDeformedMesh.VertexDataGpu.GetUAV());
+			compute.Dispatch2D(prototypeVertBuffer.GetElementCount(), 1u, 256u, 1u);
+			compute.Finish();
+		}
+
 		SetClean();
 	}
 
 	void SkeletalMeshRendererComponent::OnDeserialized()
 	{
+		Super::OnDeserialized();
+
 		for (UINT i = 0; i < mMaterialPsoData.size(); i++)
 			mMaterialPsoData[i].PsoIndexDirty = true;
 
 		LoadMeshData();
+	}
+
+	void SkeletalMeshRendererComponent::GetOverriddenMaterials(D_CONTAINERS::DVector<MaterialResource*>& out) const
+	{
+		if (!mMesh.IsValid() || !mMesh->IsLoaded())
+		{
+			out.resize(0);
+			return;
+		}
+
+		out.resize(mMaterials.size());
+		
+		for (int i = 0; i < out.size(); i++)
+		{
+			auto const& overrideMat = mMaterials[i];
+			if (overrideMat.IsValid())
+			{
+				out[i] = overrideMat.Get();
+				continue;
+			}
+			out[i] = mMesh->GetMaterial(i);
+		}
 	}
 
 }

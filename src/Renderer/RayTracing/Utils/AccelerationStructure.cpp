@@ -76,8 +76,9 @@ namespace Darius::Renderer::RayTracing::Utils
 		geometryDescTemplate.Triangles.IndexFormat = D_RENDERER_GEOMETRY::Mesh::StandardIndexFormat;
 		geometryDescTemplate.Triangles.VertexFormat = D_RENDERER_GEOMETRY::Mesh::StandardVertexFormat;
 
-		// TODO: Multiple geometries per buttom level acceleration buffer
-		//mGeometryDescs.reserve(bottomLevelASGeometry.m_geometryInstances.size());
+		auto const& mesh = bottomLevelASGeometry.Mesh;
+		mGeometryDescs.reserve(bottomLevelASGeometry.Mesh.mDraw.size());
+		D_ASSERT(mesh.mDraw.size() == mesh.IndexDataGpu.size());
 		/*for (auto& geometry : bottomLevelASGeometry.m_geometryInstances)
 		{
 			auto& geometryDesc = geometryDescTemplate;
@@ -91,14 +92,15 @@ namespace Darius::Renderer::RayTracing::Utils
 			mGeometryDescs.push_back(geometryDesc);
 		}*/
 
-		GeometryVertexIndexViews gviv;
+		for (int i = 0; i < mesh.mDraw.size(); i++)
 		{
-
-			geometryDescTemplate.Flags = bottomLevelASGeometry.Flags;
-			geometryDescTemplate.Triangles.IndexBuffer = bottomLevelASGeometry.Mesh.IndexDataGpu.GetGpuVirtualAddress();
-			geometryDescTemplate.Triangles.IndexCount = bottomLevelASGeometry.Mesh.mNumTotalIndices;
-			geometryDescTemplate.Triangles.VertexBuffer = bottomLevelASGeometry.Mesh.VertexDataGpu.GetGpuVirtualAddressAndStride();
-			geometryDescTemplate.Triangles.VertexCount = bottomLevelASGeometry.Mesh.mNumTotalVertices;
+			GeometryVertexIndexViews gviv;
+			D3D12_RAYTRACING_GEOMETRY_DESC geomDesc = geometryDescTemplate;
+			geomDesc.Flags = bottomLevelASGeometry.Flags;
+			geomDesc.Triangles.IndexBuffer = bottomLevelASGeometry.Mesh.IndexDataGpu[i].GetGpuVirtualAddress();
+			geomDesc.Triangles.IndexCount = bottomLevelASGeometry.Mesh.mDraw[i].IndexCount;
+			geomDesc.Triangles.VertexBuffer = bottomLevelASGeometry.Mesh.VertexDataGpu.GetGpuVirtualAddressAndStride();
+			geomDesc.Triangles.VertexCount = bottomLevelASGeometry.Mesh.mNumTotalVertices;
 
 			// Allocating SRV for vertex and index buffer
 			gviv = { D_RENDERER_RT::AllocateTextureDescriptor(2) };
@@ -106,12 +108,12 @@ namespace Darius::Renderer::RayTracing::Utils
 			UINT srcCount[] = { 1u, 1u };
 			UINT destCount = 2u;
 
-			D3D12_CPU_DESCRIPTOR_HANDLE srcDescriptors[] = { bottomLevelASGeometry.Mesh.IndexDataGpu.GetSRV(), bottomLevelASGeometry.Mesh.VertexDataGpu.GetSRV() };
+			D3D12_CPU_DESCRIPTOR_HANDLE srcDescriptors[] = { bottomLevelASGeometry.Mesh.IndexDataGpu[i].GetSRV(), bottomLevelASGeometry.Mesh.VertexDataGpu.GetSRV() };
 
 			D_GRAPHICS_DEVICE::GetDevice()->CopyDescriptors(1, &gviv.IndexVertexBufferSRV, &destCount, 2, srcDescriptors, srcCount, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+			mGeometryDescs.push_back(geomDesc);
+			mGeometryMeshViews.push_back(gviv);
 		}
-		mGeometryDescs.push_back(geometryDescTemplate);
-		mGeometryMeshViews.push_back(gviv);
 	}
 
 	void BottomLevelAccelerationStructure::ComputePrebuildInfo()

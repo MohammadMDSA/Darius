@@ -63,7 +63,7 @@ namespace Darius::Renderer::RayTracing
 
 		auto& bottomLevelAS = mVBottomLevelAS[bottomLevelASGeometry.Uuid];
 
-		bottomLevelAS.Initialize(buildFlags, bottomLevelASGeometry, allowUpdate);
+		bottomLevelAS.Initialize(buildFlags, bottomLevelASGeometry, allowUpdate, performUpdateOnBuild);
 
 		mASmemoryFootprint += bottomLevelAS.RequiredResultDataSizeInBytes();
 
@@ -80,7 +80,7 @@ namespace Darius::Renderer::RayTracing
 	// Requires a call InitializeTopLevelAS() call to be added to top-level AS.
 	UINT RayTracingScene::AddBottomLevelASInstance(
 		D_CORE::Uuid const& bottomLevelASUuid,
-		DVector<D_RESOURCE::ResourceRef<MaterialResource>> const& geometryMaterials,
+		DVector<MaterialResource*> const& geometryMaterials,
 		D3D12_GPU_VIRTUAL_ADDRESS constantsAddress,
 		D_MATH::Matrix4 const& transform,
 		BYTE instanceMask)
@@ -103,12 +103,12 @@ namespace Darius::Renderer::RayTracing
 		D_ASSERT((UINT)geometryMaterials.size() == bottomLevelAS.GetNumGeometries());
 
 		// Transforming materials
-		auto transformedRange = geometryMaterials | std::views::transform([](D_RESOURCE::ResourceRef<MaterialResource> const& materialRes) {
+		auto transformedRange = geometryMaterials | std::views::transform([](MaterialResource* materialRes) {
 			MaterialResource const* mat;
-			if (!materialRes.IsValid() || materialRes->IsDirtyGPU())
+			if (!materialRes || materialRes->IsDirtyGPU())
 				mat = DefaultMaterial.Get();
 			else
-				mat = materialRes.Get();
+				mat = materialRes;
 
 
 			return GeometryMaterialData{ mat->GetTexturesHandle(), mat->GetSamplersHandle(), mat->GetConstantsGpuAddress() };
@@ -127,7 +127,7 @@ namespace Darius::Renderer::RayTracing
 		UINT instanceContributionToHitGroupIndex = totalNumGeomsSoFar * mNumShaderSlotPerGeometrySegment;
 
 		instanceDesc.InstanceMask = instanceMask;
-		instanceDesc.Flags = geometryMaterials[0].IsValid() && geometryMaterials[0]->IsTwoSided() ? D3D12_RAYTRACING_INSTANCE_FLAG_TRIANGLE_CULL_DISABLE : D3D12_RAYTRACING_INSTANCE_FLAG_NONE;
+		instanceDesc.Flags = geometryMaterials[0] && geometryMaterials[0]->IsTwoSided() ? D3D12_RAYTRACING_INSTANCE_FLAG_TRIANGLE_CULL_DISABLE : D3D12_RAYTRACING_INSTANCE_FLAG_NONE;
 		instanceDesc.InstanceContributionToHitGroupIndex = instanceContributionToHitGroupIndex;
 		instanceDesc.AccelerationStructure = bottomLevelAS.GetResource()->GetGPUVirtualAddress();
 		XMStoreFloat3x4(reinterpret_cast<DirectX::XMFLOAT3X4*>(instanceDesc.Transform), transform);

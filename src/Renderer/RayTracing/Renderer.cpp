@@ -157,17 +157,21 @@ namespace Darius::Renderer::RayTracing
 	{
 		D_PROFILING::ScopedTimer _prof(L"Update Blas Instances", context);
 
-		auto createStaticMeshBlas = [scene = RTScene.get()](D_RENDERER_GEOMETRY::Mesh const& mesh, D_CORE::Uuid const& uuid)
+		auto commandManager = D_GRAPHICS::GetCommandManager();
+		commandManager->GetQueue().StallForProducer(commandManager->GetComputeQueue());
+
+		auto createStaticMeshBlas = [scene = RTScene.get()](D_RENDERER_GEOMETRY::Mesh const& mesh, D_CORE::Uuid const& uuid, bool allowUpdate = false)
 			{
 				BottomLevelAccelerationStructureGeometry BLASGeom = { mesh, uuid, D3D12_RAYTRACING_GEOMETRY_FLAG_OPAQUE };
 
 #ifdef _D_EDITOR
-				RTScene->AddBottomLevelAS(StaticBLASBuildFlags, BLASGeom, true, false);
+				RTScene->AddBottomLevelAS(StaticBLASBuildFlags, BLASGeom, true, true);
 #else
-				RTScene->AddBottomLevelAS(StaticBLASBuildFlags, BLASGeom, false, false);
+				RTScene->AddBottomLevelAS(StaticBLASBuildFlags, BLASGeom, allowUpdate, allowUpdate);
 #endif
 			};
 
+		// Updating static mesh AS
 		D_WORLD::IterateComponents<MeshRendererComponent>([scene = RTScene.get(), createBlasFunc = createStaticMeshBlas](D_RENDERER::MeshRendererComponent& comp)
 			{
 				if (!comp.IsActive())
@@ -178,7 +182,8 @@ namespace Darius::Renderer::RayTracing
 				if (!meshRes || meshRes->IsDirtyGPU())
 					return;
 
-				auto const& mats = comp.GetMaterials();
+				DVector<MaterialResource*> mats;
+				comp.GetOverriddenMaterials(mats);
 
 				auto uuid = meshRes->GetUuid();
 				auto const* blas = scene->GetBottomLevelAS(uuid);
@@ -194,6 +199,40 @@ namespace Darius::Renderer::RayTracing
 				scene->AddBottomLevelASInstance(uuid, mats, comp.GetConstantsAddress(), comp.GetTransform()->GetWorld(), mask);
 			});
 
+		// Updating skeletal mesh AS
+		D_WORLD::IterateComponents<SkeletalMeshRendererComponent>([scene = RTScene.get(), createBlasFunc = createStaticMeshBlas](D_RENDERER::SkeletalMeshRendererComponent& comp)
+			{
+				if (!comp.IsActive())
+					return;
+
+				auto const* meshRes = comp.GetMesh();
+				auto const* deformedMesh = comp.GetDeformedMeshData();
+
+				if (!meshRes || !deformedMesh || meshRes->IsDirtyGPU())
+					return;
+
+				DVector<MaterialResource*> mats;
+				comp.GetOverriddenMaterials(mats);
+
+				auto uuid = comp.GetUuid();
+				auto blas = scene->GetBottomLevelAS(uuid);
+
+				// Create blas if it's not there
+				if (!blas)
+				{
+					createBlasFunc(*deformedMesh, uuid, true);
+				}
+				else
+				{
+					blas->SetDirty(true);
+				}
+
+				// Submit BLAS instance with all associated data
+				BYTE mask = comp.IsCastingShadow() ? 0xff : (0xff & ~InstanceFlags::CastsShadow);
+				scene->AddBottomLevelASInstance(uuid, mats, comp.GetConstantsAddress(), comp.GetTransform()->GetWorld(), mask);
+			});
+
+		// Updating terrain AS
 		D_WORLD::IterateComponents<TerrainRendererComponent>([scene = RTScene.get(), createBlasFunc = createStaticMeshBlas](D_RENDERER::TerrainRendererComponent& comp)
 			{
 				if (!comp.IsActive())
@@ -225,7 +264,7 @@ namespace Darius::Renderer::RayTracing
 
 				// Submit BLAS instance with all associated data
 				BYTE mask = comp.IsCastingShadow() ? 0xff : (0xff & ~InstanceFlags::CastsShadow);
-				scene->AddBottomLevelASInstance(uuid, { mat }, comp.GetConstantsAddress(), comp.GetTransform()->GetWorld(), mask);
+				scene->AddBottomLevelASInstance(uuid, { mat.Get() }, comp.GetConstantsAddress(), comp.GetTransform()->GetWorld(), mask);
 			});
 
 	}

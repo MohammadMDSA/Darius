@@ -26,6 +26,7 @@ namespace Darius::Renderer
 
 		// States
 		virtual void						Update(float dt) override;
+		virtual void						OnDestroy() override;
 		virtual void						OnDeserialized() override;
 
 		virtual bool						AddRenderItems(std::function<void(D_RENDERER::RenderItem const&)> appendFunction, RenderItemContext const& riContext) override;
@@ -42,6 +43,9 @@ namespace Darius::Renderer
 		void								SetMesh(SkeletalMeshResource* mesh);
 		INLINE SkeletalMeshResource*		GetMesh() const { return mMesh.Get(); }
 
+		INLINE D_RENDERER_GEOMETRY::Mesh const* GetDeformedMeshData() const { return &mDeformedMesh; }
+		virtual void						GetOverriddenMaterials(D_CONTAINERS::DVector<MaterialResource*>& out) const override;
+
 
 	protected:
 
@@ -57,6 +61,10 @@ namespace Darius::Renderer
 		D_CONTAINERS::DVector<D_RENDERER_GEOMETRY::Mesh::SkeletonJoint> mSkeleton;
 		D_RENDERER_GEOMETRY::Mesh::SkeletonJoint*					mSkeletonRoot;
 		D_MATH_BOUNDS::BoundingSphere								mBounds;
+
+		D_GRAPHICS_BUFFERS::UploadBuffer							mJointsBufferUpload;
+		D_GRAPHICS_BUFFERS::StructuredBuffer						mJointsBufferGpu;
+		D_RENDERER_GEOMETRY::Mesh									mDeformedMesh;
 
 #if _D_EDITOR
 		D_CONTAINERS::DVector<D_MATH::Vector3>						mJointLocalPoses;

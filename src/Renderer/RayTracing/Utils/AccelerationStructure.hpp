@@ -42,7 +42,7 @@ namespace Darius::Renderer::RayTracing::Utils
         INLINE D_CORE::Uuid const&      GetUuid() const { return mUuid; }
         INLINE std::wstring const&      GetName() const { return mName; }
 
-        INLINE void                     SetDirty(bool isDirty) { mIsDirty = isDirty; }
+        INLINE void                     SetDirty(bool isDirty = true) { mIsDirty = isDirty; }
         INLINE bool                     IsDirty() const { return mIsDirty; }
 
         virtual void                    CreateDerivedViews() override;
