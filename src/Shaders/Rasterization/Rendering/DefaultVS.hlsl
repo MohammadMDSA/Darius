@@ -1,4 +1,8 @@
 #include "Common.hlsli"
+#ifdef ENABLE_SKINNING
+#include "../../Geometry/Joint.hlsli"
+#endif
+
 
 //#define NO_TANGENT_FRAME
 
@@ -9,12 +13,6 @@ cbuffer cbPerObject : register(b0)
 };
 
 #ifdef ENABLE_SKINNING
-struct Joint
-{
-    float4x4 PosMatrix;
-    float3x3 NrmMatrix; // Inverse-transpose of PosMatrix
-};
-
 StructuredBuffer<Joint> Joints : register(t20);
 #endif
 

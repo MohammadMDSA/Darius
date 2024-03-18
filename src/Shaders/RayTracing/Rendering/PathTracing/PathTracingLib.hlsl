@@ -61,7 +61,7 @@ RWTexture2D<float>                  l_GBufferDepth              : register(u3, s
 
 // Hit Group Main
 StructuredBuffer<uint32_t>          l_Indices                   : register(t10, space2);
-StructuredBuffer<RTVertexPositionNormalTangentTexture> l_Vertices : register(t11, space2);  
+StructuredBuffer<VertexPositionNormalTangentTexture> l_Vertices : register(t11, space2);  
 cbuffer                             l_MeshConstants             : register(b0, space2)
 {
     float4x4                        l_world;
@@ -484,7 +484,7 @@ void MainRenderRayGen()
 float3 NormalMap(
     in float3 normal,
     in float2 texCoord,
-    in RTVertexPositionNormalTangentTexture vertices[3],
+    in VertexPositionNormalTangentTexture vertices[3],
     in BuiltInTriangleIntersectionAttributes attr,
     in float3 tangent)
 {
@@ -509,7 +509,7 @@ void MainRenderCHS(inout PathTracerRayPayload rayPayload, in BuiltInTriangleInte
     const uint3 indices = { l_Indices[startIndex], l_Indices[startIndex + 1], l_Indices[startIndex + 2] };
 
     // Retrieve vertices for the hit triangle.
-    RTVertexPositionNormalTangentTexture vertices[3] =
+    VertexPositionNormalTangentTexture vertices[3] =
     {
         l_Vertices[indices[0]],
         l_Vertices[indices[1]],

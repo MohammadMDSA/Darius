@@ -5,7 +5,7 @@
 #include "../HlslCompat.h"
 #endif
 
-struct RTVertexPositionNormalTangentTexture
+struct VertexPositionNormalTangentTexture
 {
     XMFLOAT3					Position;
     XMFLOAT3					Normal;
