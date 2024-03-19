@@ -2,6 +2,8 @@
 #include "MeshColliderComponent.hpp"
 
 #include <Debug/DebugDraw.hpp>
+#include <Renderer/Components/SkeletalMeshRendererComponent.hpp>
+#include <Renderer/Components/MeshRendererComponent.hpp>
 
 #if _D_EDITOR
 #include <Libs/FontIcon/IconsFontAwesome6.h>
@@ -96,6 +98,27 @@ namespace Darius::Physics
 		auto rot = trans->GetRotation();
 		auto offset = rot * GetScaledCenterOffset();
 		D_DEBUG_DRAW::DrawMesh(trans->GetPosition() + offset, rot, trans->GetScale(), mDebugMesh, 0., { 0.f, 1.f, 0.f, 1.f });
+	}
+
+	void MeshColliderComponent::OnPostComponentAddInEditor()
+	{
+		Super::OnPostComponentAddInEditor();
+
+		bool addedDefault = false;
+
+		if (!addedDefault)
+		{
+			if (auto sm = GetGameObject()->GetComponent<D_RENDERER::MeshRendererComponent>())
+			{
+				auto mesh = sm->GetMesh();
+				if (mesh && mesh->IsLoaded())
+				{
+					SetReferenceMesh(mesh);
+
+					addedDefault = true;
+				}
+			}
+		}
 	}
 
 #endif // _D_EDITOR

@@ -25,6 +25,7 @@ namespace Darius::Physics
 #ifdef _D_EDITOR
 		virtual bool						DrawDetails(float params[]) override;
 		virtual void						OnGizmo() const override;
+		virtual void						OnPostComponentAddInEditor() override;
 #endif // _D_EDITOR
 
 		virtual bool						CalculateGeometry(_OUT_ physx::PxGeometry & geom) const override;
