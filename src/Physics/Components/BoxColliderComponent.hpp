@@ -21,11 +21,12 @@ namespace Darius::Physics
 #ifdef _D_EDITOR
 		virtual bool						DrawDetails(float params[]) override;
 		virtual void						OnGizmo() const override;
+		virtual void						OnPostComponentAddInEditor() override;
 #endif
 
 		INLINE D_MATH::Vector3 const&		GetHalfExtents() const { return mHalfExtents; }
 		INLINE D_MATH::Vector3 const&		GetScaledHalfExtents() const { return mScaledHalfExtents; }
-
+		
 		void								SetHalfExtents(D_MATH::Vector3 const& halfExtents);
 		virtual bool						CalculateGeometry(_OUT_ physx::PxGeometry& geom) const override;
 		INLINE virtual bool					UpdateGeometry() override { return CalculateGeometry(mGeometry); }
@@ -44,7 +45,6 @@ namespace Darius::Physics
 
 		physx::PxBoxGeometry				mGeometry;
 		D_MATH::Vector3						mScaledHalfExtents;
-
 
 	};
 }

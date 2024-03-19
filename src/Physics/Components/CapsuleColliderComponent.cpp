@@ -86,7 +86,9 @@ namespace Darius::Physics
 			return;
 
 		auto trans = GetTransform();
-		D_DEBUG_DRAW::DrawCapsule(trans->GetPosition(), mScaledRadius, mScaledHalfHeight, trans->GetRotation(), (D_DEBUG_DRAW::CapsuleOrientation)mOrientation, 16, 0., { 0.f, 1.f, 0.f, 1.f });
+		auto rot = trans->GetRotation();
+		auto offset = rot * GetScaledCenterOffset();
+		D_DEBUG_DRAW::DrawCapsule(trans->GetPosition() + offset, mScaledRadius, mScaledHalfHeight, rot, (D_DEBUG_DRAW::CapsuleOrientation)mOrientation, 16, 0., { 0.f, 1.f, 0.f, 1.f });
 	}
 
 #endif

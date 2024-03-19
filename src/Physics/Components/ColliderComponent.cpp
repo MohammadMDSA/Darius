@@ -26,7 +26,9 @@ namespace Darius::Physics
 		mDynamic(false),
 		mMaterial(),
 		mTrigger(false),
-		mUsedScale(D_MATH::kOne)
+		mUsedScale(D_MATH::kOne),
+		mCenterOffset(0.f),
+		mScaledCenterOffset(0.f)
 	{
 	}
 
@@ -35,11 +37,14 @@ namespace Darius::Physics
 		mDynamic(false),
 		mMaterial(),
 		mTrigger(false),
-		mUsedScale(D_MATH::kOne)
+		mUsedScale(D_MATH::kOne),
+		mCenterOffset(0.f),
+		mScaledCenterOffset(0.f)
 	{
 	}
 
 #ifdef _D_EDITOR
+
 	bool ColliderComponent::DrawDetails(float params[])
 	{
 		bool valueChanged = false;
@@ -64,11 +69,24 @@ namespace Darius::Physics
 
 		}
 
+		// Center offset
+		{
+			D_H_DETAILS_DRAW_PROPERTY("Center Offset");
+			auto offset = GetCenterOffset();
+			float drawParams[] = D_H_DRAW_DETAILS_MAKE_VEC_PARAM(0.f, false);
+			if (D_MATH::DrawDetails(offset, drawParams))
+			{
+				SetCenterOffset(offset);
+				valueChanged = true;
+			}
+		}
+
 		D_H_DETAILS_DRAW_END_TABLE();
 
 		return valueChanged;
 
 	}
+
 #endif
 
 	void ColliderComponent::Awake()
@@ -82,6 +100,19 @@ namespace Darius::Physics
 		if (!mActor)
 			InvalidatePhysicsActor();
 	}
+
+	void ColliderComponent::CalculateScaledParameters()
+	{
+		auto scale = GetTransform()->GetScale();
+
+		// Calc scaled center offset
+		{
+			mScaledCenterOffset = scale * GetCenterOffset();
+		}
+
+		mUsedScale = scale;
+	}
+
 
 	void ColliderComponent::PreUpdate(bool simulating)
 	{
@@ -97,8 +128,8 @@ namespace Darius::Physics
 			if (!IsDynamic() && mActor) // Dynamic objects are handled by their rigidbody component
 			{
 				auto trans = GetTransform();
-				auto pos = trans->GetPosition();
 				auto rot = trans->GetRotation() * GetBiasedRotation();
+				auto pos = trans->GetPosition() + (rot * GetScaledCenterOffset());
 				mActor->GetPxActor()->setGlobalPose(physx::PxTransform(D_PHYSICS::GetVec3(pos), D_PHYSICS::GetQuat(rot)));
 			}
 		}
@@ -113,6 +144,14 @@ namespace Darius::Physics
 		if (geomChanged && geom)
 		{
 			mShape->setGeometry(*geom);
+			auto rot = GetTransform()->GetRotation() * GetBiasedRotation();
+			auto offset = GetScaledCenterOffset();
+			
+			if (!offset.IsZero())
+			{
+				physx::PxTransform trans(D_PHYSICS::GetVec3(GetScaledCenterOffset()));
+				mShape->setLocalPose(trans);
+			}
 			SetClean();
 		}
 
@@ -152,6 +191,15 @@ namespace Darius::Physics
 		bool trigger = IsTrigger();
 		auto material = D_PHYSICS::GetDefaultMaterial();
 		mShape = D_PHYSICS::GetScene()->AddCollider(this, mDynamic, &mActor);
+
+		// Apply shape offset
+		auto offset = GetCenterOffset();
+		if (!offset.IsZero())
+		{
+			physx::PxTransform trans(D_PHYSICS::GetVec3(GetScaledCenterOffset()));
+			mShape->setLocalPose(trans);
+		}
+
 		if (!mShape)
 			return;
 
@@ -228,6 +276,16 @@ namespace Darius::Physics
 	void ColliderComponent::OnDeserialized()
 	{
 		ReloadMaterialData();
+	}
+
+	void ColliderComponent::SetCenterOffset(D_MATH::Vector3 const& centerOffset)
+	{
+		if (mCenterOffset == centerOffset)
+			return;
+
+		mCenterOffset = centerOffset;
+		SetDirty();
+		mChangeSignal(this);
 	}
 
 	physx::PxGeometry const* ColliderComponent::UpdateAndGetPhysicsGeometry(bool& changed)

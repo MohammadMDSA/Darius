@@ -93,7 +93,9 @@ namespace Darius::Physics
 			return;
 
 		auto trans = GetTransform();
-		D_DEBUG_DRAW::DrawMesh(trans->GetPosition(), trans->GetRotation(), trans->GetScale(), mDebugMesh, 0., { 0.f, 1.f, 0.f, 1.f });
+		auto rot = trans->GetRotation();
+		auto offset = rot * GetScaledCenterOffset();
+		D_DEBUG_DRAW::DrawMesh(trans->GetPosition() + offset, rot, trans->GetScale(), mDebugMesh, 0., { 0.f, 1.f, 0.f, 1.f });
 	}
 
 #endif // _D_EDITOR

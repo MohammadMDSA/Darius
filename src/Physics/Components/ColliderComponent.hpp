@@ -64,10 +64,15 @@ namespace Darius::Physics
 		virtual INLINE D_MATH::Quaternion					GetBiasedRotation() const { return D_MATH::Quaternion::Identity; }
 		INLINE D_MATH::Vector3 const& GetUsedScale() const { return mUsedScale; }
 
+		INLINE D_MATH::Vector3 const& GetCenterOffset() const { return mCenterOffset; }
+		INLINE D_MATH::Vector3 const& GetScaledCenterOffset() const { return mScaledCenterOffset; }
+
+		void								SetCenterOffset(D_MATH::Vector3 const& centerOffset);
+
 
 	protected:
 		virtual INLINE physx::PxGeometry const* GetPhysicsGeometry() const { return nullptr; };
-		virtual INLINE void									CalculateScaledParameters() { mUsedScale = GetTransform()->GetScale(); }
+		virtual void										CalculateScaledParameters();
 
 		void												InvalidatePhysicsActor();
 	private:
@@ -77,17 +82,22 @@ namespace Darius::Physics
 		void												ReloadMaterialData();
 
 		DField()
-			bool												mDynamic;
+		bool												mDynamic;
 
 		DField(Serialize)
-			bool												mTrigger;
+		bool												mTrigger;
 
 		DField(Serialize)
-			D_RESOURCE::ResourceRef<PhysicsMaterialResource>	mMaterial;
+		D_MATH::Vector3										mCenterOffset;
 
-		PhysicsActor* mActor;
-		physx::PxShape* mShape = nullptr;
+
+		DField(Serialize)
+		D_RESOURCE::ResourceRef<PhysicsMaterialResource>	mMaterial;
+
+		PhysicsActor*										mActor;
+		physx::PxShape*										mShape = nullptr;
 		D_MATH::Vector3										mUsedScale;
+		D_MATH::Vector3										mScaledCenterOffset;
 
 
 	};

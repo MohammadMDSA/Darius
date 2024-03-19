@@ -92,8 +92,9 @@ namespace Darius::Physics
 	void RigidbodyComponent::PreUpdate()
 	{
 		auto trans = GetTransform();
-		auto pos = trans->GetPosition();
 		auto rot = trans->GetRotation();
+		auto pos = trans->GetPosition();
+
 
 		auto capsule = GetGameObject()->GetComponent<CapsuleColliderComponent>();
 		if (capsule)

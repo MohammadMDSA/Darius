@@ -62,7 +62,9 @@ namespace Darius::Physics
 			return;
 
 		auto transform = GetTransform();
-		D_DEBUG_DRAW::DrawSphere(transform->GetPosition(), GetScaledRadius() + 0.03f, 0, { 0.f, 1.f, 0.f, 1.f });
+		auto rot = transform->GetRotation();
+		auto offset = rot * GetScaledCenterOffset();
+		D_DEBUG_DRAW::DrawSphere(transform->GetPosition() + offset, GetScaledRadius() + 0.03f, 0, { 0.f, 1.f, 0.f, 1.f });
 	}
 #endif
 
