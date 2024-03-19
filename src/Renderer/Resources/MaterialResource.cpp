@@ -654,7 +654,7 @@ namespace Darius::Renderer
 		// Opacity
 		if(mPsoFlags & RenderItem::AlphaBlend)
 		{
-			D_H_DETAILS_DRAW_PROPERTY("Shader Type");
+			D_H_DETAILS_DRAW_PROPERTY("Opacity");
 			float value = GetOpacity();
 			if (ImGui::DragFloat("##Opacity", &value, 0.1f, 0.f, 1.f, "%.2f"))
 			{

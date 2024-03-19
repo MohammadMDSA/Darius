@@ -61,7 +61,7 @@ PRIVATE
 
 
 target_link_libraries("Scene" PRIVATE ${Boost_LIBRARIES} IMGUI)
-target_link_libraries("Scene" PUBLIC flecs ResourceManager Job)
+target_link_libraries("Scene" PUBLIC flecs ResourceManager Job Graphics)
 
 target_include_directories("Scene" INTERFACE "${SOURCE_DIR}/Libs/flecs")
 
