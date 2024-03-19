@@ -69,7 +69,7 @@ namespace Darius::Scene
 
 		void								SetActive(bool active);
 		bool								IsActive() const;
-		INLINE bool							IsSelfActive() const { return mActive; }
+		INLINE bool							IsSelfActive() const { return mActive && !mDeleted; }
 
 		// Object states
 		void								Start();

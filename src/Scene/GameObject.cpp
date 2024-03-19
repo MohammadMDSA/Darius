@@ -176,6 +176,7 @@ namespace Darius::Scene
 
 					if (!isTransform && ImGui::MenuItem("Remove component"))
 					{
+						comp->OnPreComponentRemovInEditor();
 						RemoveComponent(comp);
 					}
 
@@ -246,7 +247,8 @@ namespace Darius::Scene
 
 			if (ImGui::MenuItem(compDisplay.c_str()))
 			{
-				AddComponent(compGroup.ComponentName);
+				auto addedComp = AddComponent(compGroup.ComponentName);
+				addedComp->OnPostComponentAddInEditor();
 			}
 		}
 	}

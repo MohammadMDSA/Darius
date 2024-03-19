@@ -124,6 +124,12 @@ namespace Darius::Scene::ECS::Components
         virtual INLINE void         OnSerialized() const { }
         virtual INLINE void         OnDeserialized() { }
 
+#if _D_EDITOR
+        virtual void                OnPostComponentAddInEditor() { }
+        virtual void                OnPreComponentRemovInEditor() { }
+#endif // _D_EDITOR
+
+
         // GameObject Events
         virtual INLINE void         OnActivate() {}
         virtual INLINE void         OnDeactivate() {}
