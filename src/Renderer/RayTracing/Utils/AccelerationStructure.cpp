@@ -79,18 +79,6 @@ namespace Darius::Renderer::RayTracing::Utils
 		auto const& mesh = bottomLevelASGeometry.Mesh;
 		mGeometryDescs.reserve(bottomLevelASGeometry.Mesh.mDraw.size());
 		D_ASSERT(mesh.mDraw.size() == mesh.IndexDataGpu.size());
-		/*for (auto& geometry : bottomLevelASGeometry.m_geometryInstances)
-		{
-			auto& geometryDesc = geometryDescTemplate;
-			geometryDescTemplate.Flags = geometry.geometryFlags;
-			geometryDesc.Triangles.IndexBuffer = geometry.ib.indexBuffer;
-			geometryDesc.Triangles.IndexCount = geometry.ib.count;
-			geometryDesc.Triangles.VertexBuffer = geometry.vb.vertexBuffer;
-			geometryDesc.Triangles.VertexCount = geometry.vb.count;
-			geometryDesc.Triangles.Transform3x4 = geometry.transform;
-
-			mGeometryDescs.push_back(geometryDesc);
-		}*/
 
 		for (int i = 0; i < mesh.mDraw.size(); i++)
 		{

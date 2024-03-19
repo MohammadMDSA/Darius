@@ -145,8 +145,6 @@ namespace Darius::Renderer
 	{
 		auto valueChanged = false;
 
-		valueChanged |= MeshRendererComponentBase::DrawDetails(params);
-
 		D_H_DETAILS_DRAW_BEGIN_TABLE();
 
 		// Mesh selection
@@ -154,6 +152,8 @@ namespace Darius::Renderer
 		D_H_RESOURCE_SELECTION_DRAW(SkeletalMeshResource, mMesh, "Select Mesh", SetMesh);
 
 		D_H_DETAILS_DRAW_END_TABLE();
+
+		valueChanged |= MeshRendererComponentBase::DrawDetails(params);
 
 		return valueChanged;
 
