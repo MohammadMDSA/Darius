@@ -20,7 +20,7 @@ inline float3 ApplyLightCommon(
 {
     
     // Legacy Shading
-#if 0
+#if 1
     float3 halfVec = normalize(lightDir - viewDir);
     float nDotH = saturate(dot(halfVec, normal));
     float cosine = saturate(dot(lightDir, halfVec));
