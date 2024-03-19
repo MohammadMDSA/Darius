@@ -220,7 +220,7 @@ namespace Darius::Scene
 	{
 		DeleteGameObject(go);
 
-		RemoveDeleted();
+		RemoveDeleted(true);
 		World.progress();
 	}
 
