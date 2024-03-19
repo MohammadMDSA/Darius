@@ -59,6 +59,8 @@ namespace Darius::Renderer::RayTracing
 
 	std::unique_ptr<D_RENDERER_RT_LIGHT::RayTracingLightContext> LightContext;
 
+	D_CORE::SignalConnection								SceneResetSignalConnection;
+
 	ALIGN_DECL_256 struct MeshConstants
 	{
 		DirectX::XMFLOAT4		colors[3];
@@ -76,6 +78,11 @@ namespace Darius::Renderer::RayTracing
 		SamplerHeap.Create(L"Ray Tracing Sampler  Descriptor Heap", D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER, 1024);
 
 		RTScene = std::make_unique<RayTracingScene>(MaxNumBottomLevelAS, (UINT)RayTypes::Count);
+
+		SceneResetSignalConnection = D_WORLD::OnSceneCleared.connect([rtScene = RTScene.get()]()
+			{
+				rtScene->Clear();
+			});
 
 		MainRenderPipeline = std::make_unique<Pipeline::PathTracingPipeline>();
 		MainRenderPipeline->Initialize(settings);
@@ -96,6 +103,8 @@ namespace Darius::Renderer::RayTracing
 	void Shutdown()
 	{
 		D_ASSERT(_initialized);
+
+		SceneResetSignalConnection.disconnect();
 
 		LightContext.reset();
 

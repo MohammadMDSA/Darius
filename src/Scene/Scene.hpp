@@ -3,6 +3,7 @@
 #include "EntityComponentSystem/Entity.hpp"
 
 #include <Core/Uuid.hpp>
+#include <Core/Signal.hpp>
 #include <Core/Containers/Vector.hpp>
 #include <Core/Filesystem/Path.hpp>
 #include <Utils/Assert.hpp>
@@ -119,11 +120,14 @@ namespace Darius::Scene
 		static void				DumpScene(D_SERIALIZATION::Json& sceneDump);
 		static void				LoadSceneDump(D_SERIALIZATION::Json const& sceneDump);
 
+		// Events
+		static D_CORE::Signal<void()>	OnSceneCleared;
+
 	private:
 		static void				DeleteGameObjectData(GameObject* go);
 		static void				RemoveDeletedPointers();
 		static void				StartScene();
-		static void				RemoveDeleted();
+		static void				RemoveDeleted(bool flush = false);
 		static void				RegisterComponentType(D_ECS::ComponentEntry componentId, rttr::type type);
 
 		static GameObject*		AddGameObject(D_CORE::Uuid const& uuid, bool addToScene = true);

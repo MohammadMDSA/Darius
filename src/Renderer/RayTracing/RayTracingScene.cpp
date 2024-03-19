@@ -274,4 +274,10 @@ namespace Darius::Renderer::RayTracing
 
 		mShaderTables[D_GRAPHICS_DEVICE::GetCurrentFrameResourceIndex()].clear();
 	}
+
+	void RayTracingScene::Clear()
+	{
+		Reset();
+		mVBottomLevelAS.clear();
+	}
 }

@@ -70,6 +70,7 @@ namespace Darius::Renderer::RayTracing
 
 		UINT                            GetMaxInstanceContributionToHitGroupIndex() const;
 		void							Reset();
+		void							Clear();
 
 		// Num miss and callabale shaders should be configured from the owning module
 		UINT							NumMissShaderSlots = 2u;

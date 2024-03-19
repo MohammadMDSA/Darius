@@ -14,6 +14,8 @@
 #include <Core/Serialization/Json.hpp>
 #include <Core/Serialization/TypeSerializer.hpp>
 #include <Core/Uuid.hpp>
+#include <Graphics/GraphicsDeviceManager.hpp>
+#include <Graphics/GraphicsCore.hpp>
 #include <Job/Job.hpp>
 #include <Utils/Assert.hpp>
 
@@ -37,7 +39,7 @@ namespace Darius::Scene
 	DVector<std::function<void(float, D_ECS::ECSRegistry&)>>			BehaviourLateUpdaterFunctions;
 	DUnorderedMap<D_ECS::ComponentEntry, rttr::type, std::hash<flecs::id_t>>					ComponentEntityReflectionTypeMapping;
 
-	DVector<GameObject*>												ToBeDeleted;
+	DVector<DVector<GameObject*>>										ToBeDeleted;
 	DVector<GameObject*>												ToBeStarted;
 	DSet<GameObject*>													DeletedObjects;
 
@@ -51,6 +53,9 @@ namespace Darius::Scene
 	// Static Init
 	D_ECS::Entity SceneManager::Root = D_ECS::Entity();
 	D_ECS::ECSRegistry SceneManager::World = D_ECS::ECSRegistry();
+
+	D_CORE::Signal<void()> SceneManager::OnSceneCleared;
+
 
 	void SceneManager::Initialize()
 	{
@@ -68,6 +73,8 @@ namespace Darius::Scene
 #endif // _DEBUG
 
 		PrefabResource::Register();
+
+		ToBeDeleted.resize(D_GRAPHICS_DEVICE::gNumFrameResources);
 
 		Root = World.entity("Root");
 
@@ -205,7 +212,8 @@ namespace Darius::Scene
 			});
 
 		go->mDeleted = true;
-		ToBeDeleted.push_back(go);
+		UINT index = (D_GRAPHICS_DEVICE::GetCurrentFrameResourceIndex() + D_GRAPHICS_DEVICE::gNumFrameResources - 1) % D_GRAPHICS_DEVICE::gNumFrameResources;
+		ToBeDeleted[index].push_back(go);
 	}
 
 	void SceneManager::DeleteGameObjectImmediately(GameObject* go)
@@ -551,10 +559,12 @@ namespace Darius::Scene
 		if (preClean)
 			preClean();
 
-		RemoveDeleted();
+		RemoveDeleted(true);
 		GOs->clear();
 		World.progress();
 		Running = false;
+
+		OnSceneCleared();
 	}
 
 	GameObject* SceneManager::GetGameObject(D_ECS::Entity entity)
@@ -572,17 +582,32 @@ namespace Darius::Scene
 		return UuidMap->at(uuid);
 	}
 
-	void SceneManager::RemoveDeleted()
+	void SceneManager::RemoveDeleted(bool flush)
 	{
-
-		// Delete game objects
-		for (auto go : ToBeDeleted)
+		if (flush)
 		{
-			DeleteGameObjectData(go);
-			GOs->erase(go);
+			D_GRAPHICS::GetCommandManager()->IdleGPU();
+			for (auto& instance : ToBeDeleted)
+			{
+				for (auto go : instance)
+				{
+					DeleteGameObjectData(go);
+					GOs->erase(go);
+				}
+				instance.clear();
+			}
 		}
+		else
+		{
+			auto currentResourceIndex = D_GRAPHICS_DEVICE::GetCurrentFrameResourceIndex();
+			for (auto go : ToBeDeleted[currentResourceIndex])
+			{
+				DeleteGameObjectData(go);
+				GOs->erase(go);
+			}
 
-		ToBeDeleted.clear();
+			ToBeDeleted[currentResourceIndex].clear();
+		}
 		RemoveDeletedPointers();
 	}
 
