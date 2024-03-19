@@ -48,19 +48,24 @@ namespace Darius::Renderer::Geometry
 
 		D_MATH_BOUNDS::BoundingSphere CalcBoundingSphere() const
 		{
-			D_MATH_BOUNDS::BoundingSphere res;
 			bool first = true;
+
+			D_MATH::Vector3 sumPos = D_MATH::Vector3::Zero;
 			for (auto const& vert : Vertices)
 			{
-				if (first)
-				{
-					first = false;
-					res = D_MATH_BOUNDS::BoundingSphere(vert.mPosition, 0.001f);
-				}
-				else
-					res = res.Union(D_MATH_BOUNDS::BoundingSphere(vert.mPosition, 0.001f));
+				sumPos += vert.mPosition;
 			}
-			return res;
+			sumPos = sumPos / (float)Vertices.size();
+
+			float radius = 0.f;
+			for (auto const& vert : Vertices)
+			{
+				float distToCenter = D_MATH::Vector3::Distance(vert.mPosition, sumPos);
+				if (distToCenter > radius)
+					radius = distToCenter;
+			}
+
+			return D_MATH_BOUNDS::BoundingSphere(sumPos, radius);
 		}
 
 		D_MATH_BOUNDS::AxisAlignedBox CalcBoundingBox() const

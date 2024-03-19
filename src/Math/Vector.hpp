@@ -224,6 +224,8 @@ namespace Darius::Math
 		INLINE friend Vector3 operator* (float   v1, Vector3 v2) { return Scalar(v1) * v2; }
 		INLINE friend Vector3 operator/ (float   v1, Vector3 v2) { return Scalar(v1) / v2; }
 
+		static float Distance(Vector3 const& v1, Vector3 const& v2);
+
 		static const Vector3 Up;
 		static const Vector3 Down;
 		static const Vector3 Left;
@@ -331,6 +333,11 @@ namespace Darius::Math
 	// Defined after Vector4 methods are declared
 	INLINE Vector3::Vector3(Vector4 const vec) : m_vec((DirectX::XMVECTOR)vec)
 	{
+	}
+
+	INLINE float Vector3::Distance(Vector3 const& v1, Vector3 const& v2)
+	{
+		return (v1 - v2).Length();
 	}
 
 	// For W != 1, divide XYZ by W.  If W == 0, do nothing
