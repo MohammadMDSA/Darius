@@ -32,11 +32,14 @@ DomainOut main(PatchTess patchTess,
     // UV
     dout.UV = ResolveParam(UV);
 
+    
     // Normal
-    float hL = getHeight(dout.UV - gDisplacementTexInvSize, linearClamp);
-    float hR = getHeight(dout.UV + gDisplacementTexInvSize, linearClamp);
-    float hD = getHeight(dout.UV - gDisplacementTexInvSize, linearClamp);
-    float hU = getHeight(dout.UV + gDisplacementTexInvSize, linearClamp);
+    float3 off = float3(1.f * gDisplacementTexInvSize.x, 0.f, 1.f * gDisplacementTexInvSize.y);
+    float hL = getHeight(dout.UV - off.xy, linearClamp);
+    float hR = getHeight(dout.UV + off.xy, linearClamp);
+    float hD = getHeight(dout.UV - off.yz, linearClamp);
+    float hU = getHeight(dout.UV + off.yz, linearClamp);
+    
     // Deduce terrain normal
     float3 normal; // = normalize(ResolveParam(Normal));
     normal.x = (hL - hR) * gDisplacementAmount;
