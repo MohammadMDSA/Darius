@@ -43,6 +43,20 @@ namespace Darius::Math::Bounds
         return BoundingSphere((extremeA + extremeB) * 0.5f, Length(extremeA - extremeB) * 0.5f);
     }
 
+    void BoundingSphere::AddPoint(Vector3 const& point)
+    {
+        Vector3 diff = point - GetCenter();
+        float distToCenter = diff.Length();
+
+        if (distToCenter <= Radius)
+            return;
+
+        float newRadius = (distToCenter + Radius) * 0.5f;
+
+        Center = (DirectX::XMFLOAT3)(diff.Normalize() * newRadius + Center);
+        Radius = newRadius;
+    }
+
     ContainmentType BoundingSphere::Contains(Vector3 const& point) const
     {
         return (ContainmentType)DirectX::BoundingSphere::Contains(point);

@@ -56,6 +56,8 @@ namespace Darius::Math::Bounds
         INLINE float GetRadius(void) const { return Radius; }
 
         BoundingSphere Union(const BoundingSphere& rhs);
+
+        void AddPoint(Vector3 const& point);
     };
 
     //=======================================================================================================
