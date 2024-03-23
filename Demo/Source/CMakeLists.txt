@@ -163,10 +163,17 @@ add_custom_command(TARGET ${GAME_PROJECT} POST_BUILD
         "$<TARGET_FILE_DIR:flecs>/flecs.dll"
         $<TARGET_FILE_DIR:${GAME_PROJECT}>)
 
-add_custom_command(TARGET ${GAME_PROJECT} POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E copy_directory
-        "${ENGINE_ROOT}/dll"
-        $<TARGET_FILE_DIR:${GAME_PROJECT}>)
+if(${CMAKE_BUILD_TYPE} MATCHES Release)
+    add_custom_command(TARGET ${GAME_PROJECT} POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy_directory
+            "${ENGINE_ROOT}/dll/release"
+            $<TARGET_FILE_DIR:${GAME_PROJECT}>)
+else()
+    add_custom_command(TARGET ${GAME_PROJECT} POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy_directory
+            "${ENGINE_ROOT}/dll/debug"
+            $<TARGET_FILE_DIR:${GAME_PROJECT}>)
+endif()
 
 add_custom_command(TARGET ${GAME_PROJECT} POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E make_directory
