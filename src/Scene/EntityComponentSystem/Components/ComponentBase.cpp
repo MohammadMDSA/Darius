@@ -22,7 +22,8 @@ namespace Darius::Scene::ECS::Components
 		mEnabled(true),
 		mGameObject(nullptr),
 		mDestroyed(false),
-		mDirty(false)
+		mDirty(false),
+		mChangeSignal()
 	{}
 
 	ComponentBase::ComponentBase(Uuid uuid) :
@@ -31,7 +32,8 @@ namespace Darius::Scene::ECS::Components
 		mEnabled(true),
 		mGameObject(nullptr),
 		mDestroyed(false),
-		mDirty(false)
+		mDirty(false),
+		mChangeSignal()
 	{}
 
 	void ComponentBase::SetEnable(bool value)
