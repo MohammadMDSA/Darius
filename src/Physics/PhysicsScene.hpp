@@ -34,10 +34,13 @@ namespace Darius::Physics
 		bool					CastBox_DebugDraw(D_MATH::Vector3 const& origin, D_MATH::Vector3 const& direction, D_MATH::Vector3 const& halfExtents, D_MATH::Quaternion const& boxRotation, float maxDistance, float secendsToDisplay, _OUT_ physx::PxSweepBuffer& hit);
 
 		void					Simulate(bool fetchResults, float deltaTime);
+		void					PreUpdate();
+		void					Update();
 
-		// Remove deleted actors and colliders
-		void					FlushDeleted();
-		INLINE bool				RequiresDeletedFlushing() const { return mToBeRemoved.size() > 0; }
+		PhysicsActor const*		FindPhysicsActor(D_SCENE::GameObject* go) const;
+		PhysicsActor*			FindPhysicsActor(D_SCENE::GameObject* go);
+		PhysicsActor*			FindOrCreatePhysicsActor(D_SCENE::GameObject* go);
+
 	private:
 
 		friend class ColliderComponent;
@@ -54,19 +57,9 @@ namespace Darius::Physics
 			virtual void onAdvance(physx::PxRigidBody const* const* bodyBuffer, physx::PxTransform const* poseBuffer, const physx::PxU32 count) override { }
 
 		};
-
-		physx::PxRigidDynamic*		AddDynamicActor(D_SCENE::GameObject* go, bool kinematic);
-		void						RemoveDynamicActor(D_SCENE::GameObject* go);
-		physx::PxShape*				AddCollider(ColliderComponent* collider, _OUT_ bool& nonStatic, _OUT_ PhysicsActor ** physicsActor = nullptr);
-		void						RemoveCollider(ColliderComponent const* collider);
-		void						AddActor(D_SCENE::GameObject const* go);
-		INLINE bool					IsRegistered(D_SCENE::GameObject const* go) { return mActorMap.contains(const_cast<D_SCENE::GameObject*>(go)); }
-
-		// Remove pending GOs
-		void						RemovePending();
+		void						RemoveActor(PhysicsActor* actor);
 
 		D_CONTAINERS::DUnorderedMap<D_SCENE::GameObject const*, PhysicsActor> mActorMap;
-		D_CONTAINERS::DSet<D_SCENE::GameObject const*> mToBeRemoved;
 
 		physx::PxScene*				mPxScene;
 		SimulationCallback			mCallbacks;

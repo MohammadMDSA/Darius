@@ -53,15 +53,11 @@ namespace Darius::Physics
 		virtual bool										DrawDetails(float params[]) override;
 #endif
 
-		INLINE physx::PxShape* GetShape() const { return mShape; }
-		INLINE bool											IsDynamic() const { return mDynamic; }
-
-		void												SetMaterial(PhysicsMaterialResource * material);
+		void												SetMaterial(PhysicsMaterialResource* material);
 		void												SetTrigger(bool trigger);
 		INLINE PhysicsMaterialResource* GetMaterial() const { return mMaterial.Get(); }
 		INLINE bool											IsTrigger() const { return mTrigger; }
 
-		virtual INLINE D_MATH::Quaternion					GetBiasedRotation() const { return D_MATH::Quaternion::Identity; }
 		INLINE D_MATH::Vector3 const& GetUsedScale() const { return mUsedScale; }
 
 		INLINE D_MATH::Vector3 const& GetCenterOffset() const { return mCenterOffset; }
@@ -69,20 +65,23 @@ namespace Darius::Physics
 
 		void								SetCenterOffset(D_MATH::Vector3 const& centerOffset);
 
+		virtual INLINE physx::PxGeometry const* GetPhysicsGeometry() const { return nullptr; };
 
 	protected:
-		virtual INLINE physx::PxGeometry const* GetPhysicsGeometry() const { return nullptr; };
 		virtual void										CalculateScaledParameters();
 
 		void												InvalidatePhysicsActor();
 	private:
 		friend class PhysicsScene;
 
-		physx::PxGeometry const* UpdateAndGetPhysicsGeometry(bool& changed);
+		physx::PxGeometry const*							UpdateAndGetPhysicsGeometry(bool& changed);
 		void												ReloadMaterialData();
 
-		DField()
-		bool												mDynamic;
+		INLINE void											OnTransformWorldChanged(D_MATH::TransformComponent* trans, D_MATH::Transform const& worldTransform)
+		{
+			if (trans->GetScale().NearEquals(mUsedScale, COLLIDER_SCALE_TOLERANCE))
+				SetDirty();
+		}
 
 		DField(Serialize)
 		bool												mTrigger;
@@ -95,11 +94,10 @@ namespace Darius::Physics
 		D_RESOURCE::ResourceRef<PhysicsMaterialResource>	mMaterial;
 
 		PhysicsActor*										mActor;
-		physx::PxShape*										mShape = nullptr;
 		D_MATH::Vector3										mUsedScale;
 		D_MATH::Vector3										mScaledCenterOffset;
 
-
+		D_CORE::SignalConnection							mTransformChangeSignalConnection;
 	};
 }
 

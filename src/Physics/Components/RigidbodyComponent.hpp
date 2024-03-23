@@ -22,8 +22,6 @@ namespace Darius::Physics
 		// Events
 		virtual void					Awake() override;
 		virtual void					OnPreDestroy() override;
-		virtual void					Update(float) override;
-		virtual void					PreUpdate();
 		virtual void					OnActivate() override;
 		virtual void					OnDeactivate() override;
 
@@ -71,12 +69,11 @@ namespace Darius::Physics
 	private:
 
 		// Internals
-		physx::PxRigidDynamic*			mActor = nullptr;
+		PhysicsActor*					mActor = nullptr;
 		bool							mKinematic;
 		bool							mUsingGravity;
 		bool							mRotationConstraints[3];
 		bool							mPositionConstraints[3];
-		D_MATH::Quaternion				mBiasedRotation;
 
 	};
 }

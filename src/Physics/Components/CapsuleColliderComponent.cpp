@@ -13,12 +13,11 @@ namespace Darius::Physics
 {
 
 	D_H_COMP_DEF(CapsuleColliderComponent);
-	
+
 	CapsuleColliderComponent::CapsuleColliderComponent() :
 		ColliderComponent(),
 		mRadius(0.5f),
-		mHalfHeight(0.5f),
-		mOrientation(CapsuleColliderOrientation::AlongY)
+		mHalfHeight(0.5f)
 	{
 		SetDirty();
 	}
@@ -26,8 +25,7 @@ namespace Darius::Physics
 	CapsuleColliderComponent::CapsuleColliderComponent(D_CORE::Uuid uuid) :
 		ColliderComponent(uuid),
 		mRadius(0.5f),
-		mHalfHeight(0.5f),
-		mOrientation(CapsuleColliderOrientation::AlongY)
+		mHalfHeight(0.5f)
 	{
 		SetDirty();
 	}
@@ -41,7 +39,7 @@ namespace Darius::Physics
 		valueChanged |= ColliderComponent::DrawDetails(params);
 
 		D_H_DETAILS_DRAW_BEGIN_TABLE();
-		
+
 		// Radius
 		{
 			float radius = GetRadius();
@@ -64,17 +62,6 @@ namespace Darius::Physics
 			}
 		}
 
-		// Orientation
-		{
-			D_H_DETAILS_DRAW_PROPERTY("Orientation");
-			int orientation = (int)GetOrientation();
-			if (ImGui::Combo("##Orientation", &orientation, "Along X\0Along Y\0Along Z\0\0"))
-			{
-				SetOrientation((CapsuleColliderOrientation)orientation);
-				valueChanged = true;
-			}
-		}
-
 		D_H_DETAILS_DRAW_END_TABLE();
 
 		return valueChanged;
@@ -88,19 +75,10 @@ namespace Darius::Physics
 		auto trans = GetTransform();
 		auto rot = trans->GetRotation();
 		auto offset = rot * GetScaledCenterOffset();
-		D_DEBUG_DRAW::DrawCapsule(trans->GetPosition() + offset, mScaledRadius, mScaledHalfHeight, rot, (D_DEBUG_DRAW::CapsuleOrientation)mOrientation, 16, 0., { 0.f, 1.f, 0.f, 1.f });
+		D_DEBUG_DRAW::DrawCapsule(trans->GetPosition() + offset, mScaledRadius, mScaledHalfHeight, rot, D_DEBUG_DRAW::CapsuleOrientation::AlongX, 16, 0., { 0.f, 1.f, 0.f, 1.f });
 	}
 
 #endif
-
-	void CapsuleColliderComponent::SetOrientation(CapsuleColliderOrientation orientation)
-	{
-		if (mOrientation == orientation)
-			return;
-		
-		mOrientation = orientation;
-		SetDirty();
-	}
 
 	void CapsuleColliderComponent::SetRadius(float radius)
 	{
@@ -131,24 +109,8 @@ namespace Darius::Physics
 		mScaledRadius = GetRadius();
 		mScaledHalfHeight = GetHalfHeight();
 
-		switch (mOrientation)
-		{
-		case Darius::Physics::CapsuleColliderComponent::CapsuleColliderOrientation::AlongX:
-			mScaledHalfHeight *= D_MATH::Abs(scale.GetX());
-			mScaledRadius *= D_MATH::Max(D_MATH::Abs(scale.GetY()), D_MATH::Abs(scale.GetZ()));
-			break;
-		case Darius::Physics::CapsuleColliderComponent::CapsuleColliderOrientation::AlongY:
-			mScaledHalfHeight *= D_MATH::Abs(scale.GetY());
-			mScaledRadius *= D_MATH::Max(D_MATH::Abs(scale.GetX()), D_MATH::Abs(scale.GetZ()));
-			break;
-		case Darius::Physics::CapsuleColliderComponent::CapsuleColliderOrientation::AlongZ:
-			mScaledHalfHeight *= D_MATH::Abs(scale.GetZ());
-			mScaledRadius *= D_MATH::Max(D_MATH::Abs(scale.GetY()), D_MATH::Abs(scale.GetX()));
-			break;
-		default:
-			mScaledRadius *= 0;
-			mScaledHalfHeight *= 0;
-		}
+		mScaledHalfHeight *= D_MATH::Abs(scale.GetX());
+		mScaledRadius *= D_MATH::Max(D_MATH::Abs(scale.GetY()), D_MATH::Abs(scale.GetZ()));
 
 		mScaledHalfHeight = D_MATH::Max(MinHalfHeight, mScaledHalfHeight);
 		mScaledRadius = D_MATH::Max(MinRadius, mScaledRadius);
@@ -164,19 +126,4 @@ namespace Darius::Physics
 		return true;
 	}
 
-	D_MATH::Quaternion CapsuleColliderComponent::GetBiasedRotation() const
-	{
-		switch (mOrientation)
-		{
-		case Darius::Physics::CapsuleColliderComponent::CapsuleColliderOrientation::AlongX:
-			return D_MATH::Quaternion::Identity;
-		case Darius::Physics::CapsuleColliderComponent::CapsuleColliderOrientation::AlongY:
-			return D_MATH::Quaternion(D_MATH::Vector3::Forward, DirectX::XM_PIDIV2);
-		case Darius::Physics::CapsuleColliderComponent::CapsuleColliderOrientation::AlongZ:
-			return D_MATH::Quaternion(D_MATH::Vector3::Up, DirectX::XM_PIDIV2);
-		default:
-			D_ASSERT(false);
-			return D_MATH::Quaternion();
-		}
-	}
 }

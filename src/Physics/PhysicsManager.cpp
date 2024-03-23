@@ -261,13 +261,6 @@ namespace Darius::Physics
 					colliderComp.PreUpdate(simulating);
 			}
 		);
-
-		D_WORLD::IterateComponents<RigidbodyComponent>([&](RigidbodyComponent& rigidbodyComp)
-			{
-				if (rigidbodyComp.IsActive())
-					rigidbodyComp.PreUpdate();
-			}
-		);
 	}
 
 	PhysicsScene* GetScene()

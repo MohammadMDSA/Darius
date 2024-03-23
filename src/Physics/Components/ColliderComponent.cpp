@@ -23,23 +23,23 @@ namespace Darius::Physics
 
 	ColliderComponent::ColliderComponent() :
 		ComponentBase(),
-		mDynamic(false),
 		mMaterial(),
 		mTrigger(false),
 		mUsedScale(D_MATH::kOne),
 		mCenterOffset(0.f),
-		mScaledCenterOffset(0.f)
+		mScaledCenterOffset(0.f),
+		mActor(nullptr)
 	{
 	}
 
 	ColliderComponent::ColliderComponent(D_CORE::Uuid uuid) :
 		ComponentBase(uuid),
-		mDynamic(false),
 		mMaterial(),
 		mTrigger(false),
 		mUsedScale(D_MATH::kOne),
 		mCenterOffset(0.f),
-		mScaledCenterOffset(0.f)
+		mScaledCenterOffset(0.f),
+		mActor(nullptr)
 	{
 	}
 
@@ -99,6 +99,11 @@ namespace Darius::Physics
 
 		if (!mActor)
 			InvalidatePhysicsActor();
+
+		mActor->AddCollider(this);
+
+		mTransformChangeSignalConnection =
+			GetTransform()->mWorldChanged.ConnectComponent(this, &ThisClass::OnTransformWorldChanged);
 	}
 
 	void ColliderComponent::CalculateScaledParameters()
@@ -116,25 +121,12 @@ namespace Darius::Physics
 
 	void ColliderComponent::PreUpdate(bool simulating)
 	{
-		if (!mShape)
-			return;
+		if (!mActor)
+			InvalidatePhysicsActor();
 
-		if (simulating)
-		{
-			if (IsDynamic() != GetGameObject()->HasComponent<RigidbodyComponent>())
-				InvalidatePhysicsActor();
+		bool dynamic = mActor->IsDynamic();
 
-			// Update rot pos
-			if (!IsDynamic() && mActor) // Dynamic objects are handled by their rigidbody component
-			{
-				auto trans = GetTransform();
-				auto rot = trans->GetRotation() * GetBiasedRotation();
-				auto pos = trans->GetPosition() + (rot * GetScaledCenterOffset());
-				mActor->GetPxActor()->setGlobalPose(physx::PxTransform(D_PHYSICS::GetVec3(pos), D_PHYSICS::GetQuat(rot)));
-			}
-		}
-
-		if (!IsDynamic() && simulating)
+		if (!dynamic && simulating)
 			return;
 
 		// Updating shape
@@ -143,14 +135,13 @@ namespace Darius::Physics
 
 		if (geomChanged && geom)
 		{
-			mShape->setGeometry(*geom);
-			auto rot = GetTransform()->GetRotation() * GetBiasedRotation();
+			auto shape = mActor->GetShape(GetComponentName());
+			shape->setGeometry(*geom);
 			auto offset = GetScaledCenterOffset();
-			
 			if (!offset.IsZero())
 			{
 				physx::PxTransform trans(D_PHYSICS::GetVec3(GetScaledCenterOffset()));
-				mShape->setLocalPose(trans);
+				shape->setLocalPose(trans);
 			}
 			SetClean();
 		}
@@ -159,25 +150,23 @@ namespace Darius::Physics
 
 	void ColliderComponent::OnPreDestroy()
 	{
-		if (mShape)
+		mTransformChangeSignalConnection.disconnect();
+		if (mActor)
 		{
-			D_PHYSICS::GetScene()->RemoveCollider(this);
-			mShape = nullptr;
+			mActor->RemoveCollider(this);
 		}
 	}
 
 	void ColliderComponent::OnActivate()
 	{
-		if (!mShape)
-			InvalidatePhysicsActor();
+		InvalidatePhysicsActor();
 	}
 
 	void ColliderComponent::OnDeactivate()
 	{
-		if (mShape)
+		if (mActor)
 		{
-			D_PHYSICS::GetScene()->RemoveCollider(this);
-			mShape = nullptr;
+			mActor->RemoveCollider(this);
 		}
 	}
 
@@ -186,32 +175,31 @@ namespace Darius::Physics
 		if (IsDestroyed())
 			return;
 
-		mShape = nullptr;
-
 		bool trigger = IsTrigger();
 		auto material = D_PHYSICS::GetDefaultMaterial();
-		mShape = D_PHYSICS::GetScene()->AddCollider(this, mDynamic, &mActor);
+
+		mActor = D_PHYSICS::GetScene()->FindOrCreatePhysicsActor(GetGameObject());
+		auto shape = mActor->AddCollider(this);
+
+		D_ASSERT(shape);
 
 		// Apply shape offset
 		auto offset = GetCenterOffset();
 		if (!offset.IsZero())
 		{
 			physx::PxTransform trans(D_PHYSICS::GetVec3(GetScaledCenterOffset()));
-			mShape->setLocalPose(trans);
+			shape->setLocalPose(trans);
 		}
-
-		if (!mShape)
-			return;
 
 		if (trigger)
 		{
-			mShape->setFlag(physx::PxShapeFlag::eSIMULATION_SHAPE, false);
-			mShape->setFlag(physx::PxShapeFlag::eTRIGGER_SHAPE, true);
+			shape->setFlag(physx::PxShapeFlag::eSIMULATION_SHAPE, false);
+			shape->setFlag(physx::PxShapeFlag::eTRIGGER_SHAPE, true);
 		}
 		else
 		{
-			mShape->setFlag(physx::PxShapeFlag::eTRIGGER_SHAPE, false);
-			mShape->setFlag(physx::PxShapeFlag::eSIMULATION_SHAPE, true);
+			shape->setFlag(physx::PxShapeFlag::eTRIGGER_SHAPE, false);
+			shape->setFlag(physx::PxShapeFlag::eSIMULATION_SHAPE, true);
 		}
 	}
 
@@ -246,18 +234,23 @@ namespace Darius::Physics
 
 		mTrigger = trigger;
 
-		if (mShape)
+		if (!mActor)
+			return;
+
+		auto shape = mActor->GetShape(this->GetComponentName());
+
+		if (shape)
 		{
 			auto trigger = IsTrigger();
 			if (trigger)
 			{
-				mShape->setFlag(physx::PxShapeFlag::eSIMULATION_SHAPE, false);
-				mShape->setFlag(physx::PxShapeFlag::eTRIGGER_SHAPE, true);
+				shape->setFlag(physx::PxShapeFlag::eSIMULATION_SHAPE, false);
+				shape->setFlag(physx::PxShapeFlag::eTRIGGER_SHAPE, true);
 			}
 			else
 			{
-				mShape->setFlag(physx::PxShapeFlag::eTRIGGER_SHAPE, false);
-				mShape->setFlag(physx::PxShapeFlag::eSIMULATION_SHAPE, true);
+				shape->setFlag(physx::PxShapeFlag::eTRIGGER_SHAPE, false);
+				shape->setFlag(physx::PxShapeFlag::eSIMULATION_SHAPE, true);
 			}
 		}
 
@@ -267,10 +260,15 @@ namespace Darius::Physics
 
 	void ColliderComponent::ReloadMaterialData()
 	{
-		if (!mShape)
+		if (!mActor)
 			return;
+
+		auto shape = mActor->GetShape(GetComponentName());
+
+		D_ASSERT(shape);
+
 		physx::PxMaterial* mats[] = { const_cast<physx::PxMaterial*>(mMaterial.Get()->GetMaterial()) };
-		mShape->setMaterials(mats, 1);
+		shape->setMaterials(mats, 1);
 	}
 
 	void ColliderComponent::OnDeserialized()
