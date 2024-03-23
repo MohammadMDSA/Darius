@@ -343,6 +343,10 @@ namespace Darius::ResourceManager
 			{
 				if (isDir)
 				{
+					auto pathName = _path.filename().string();
+					if (pathName.starts_with(".") || pathName.starts_with("_"))
+						return;
+
 					CheckDirectoryMeta(_path);
 					if (recursively)
 						VisitSubdirectory(_path, true, progress);
