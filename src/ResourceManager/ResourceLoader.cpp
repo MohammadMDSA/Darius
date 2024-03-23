@@ -341,11 +341,12 @@ namespace Darius::ResourceManager
 	{
 		D_FILE::VisitEntriesInDirectory(path, false, [&](Path const& _path, bool isDir)
 			{
+				auto pathName = _path.filename().string();
+				if (pathName.starts_with(".") || pathName.starts_with("_"))
+					return;
+
 				if (isDir)
 				{
-					auto pathName = _path.filename().string();
-					if (pathName.starts_with(".") || pathName.starts_with("_"))
-						return;
 
 					CheckDirectoryMeta(_path);
 					if (recursively)
