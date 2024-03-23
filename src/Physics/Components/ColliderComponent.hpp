@@ -79,7 +79,7 @@ namespace Darius::Physics
 
 		INLINE void											OnTransformWorldChanged(D_MATH::TransformComponent* trans, D_MATH::Transform const& worldTransform)
 		{
-			if (trans->GetScale().NearEquals(mUsedScale, COLLIDER_SCALE_TOLERANCE))
+			if (!trans->GetScale().NearEquals(mUsedScale, COLLIDER_SCALE_TOLERANCE))
 				SetDirty();
 		}
 
