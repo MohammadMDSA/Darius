@@ -166,6 +166,15 @@ namespace Darius::Scene
 		INLINE D_ECS::Entity				GetEntity() const { return mEntity; }
 		INLINE bool							IsInScene() const { return mInScene; }
 
+		INLINE std::string const&			GetName() const { return mName; }
+		INLINE D_CORE::Uuid const&			GetPrefab() const { return mPrefab; }
+		INLINE Type							GetType() const { return mType; }
+		INLINE D_CORE::Uuid const&			GetUuid() const { return mUuid; }
+		INLINE bool							IsDeleted() const { return mDeleted; }
+		INLINE bool							IsStarted() const { return mStarted; }
+		INLINE bool							IsAwake() const { return mAwake; }
+		INLINE GameObject*					GetParent() const { return mParent; }
+
 #ifdef _D_EDITOR
 		bool								DrawDetails(float params[]);
 		INLINE bool							IsEditableInDetailsWindow() const { return true; }
@@ -213,28 +222,28 @@ namespace Darius::Scene
 		DField(Serialize)
 		bool					mActive;
 
-		DField(Get[inline])
+		DField()
 		bool					mStarted;
 
-		DField(Get[inline])
+		DField()
 		bool					mAwake;
 
-		DField(Get[inline])
+		DField()
 		bool					mDeleted;
 
-		DField(Get[inline])
+		DField()
 		GameObject* mParent;
 
-		DField(Get[const, &, inline], Serialize)
+		DField(Serialize)
 		const D_CORE::Uuid		mUuid;
 
-		DField(Get[inline], Set[inline], Serialize)
+		DField(Set[inline], Serialize)
 		Type					mType;
 
-		DField(Get[inline, const, &], Set[inline], Serialize)
+		DField(Set[inline], Serialize)
 		std::string				mName;
 
-		DField(Get[inline], Serialize)
+		DField(Serialize)
 		D_CORE::Uuid			mPrefab;
 
 		DField()
