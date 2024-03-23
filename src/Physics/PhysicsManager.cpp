@@ -124,6 +124,7 @@ namespace Darius::Physics
 		gDispatcher = PxDefaultCpuDispatcherCreate(2);
 		sceneDesc.cpuDispatcher = gDispatcher;
 		sceneDesc.filterShader = PxDefaultSimulationFilterShader;
+		sceneDesc.broadPhaseType = PxBroadPhaseType::eGPU;
 		gScene = std::make_unique<PhysicsScene>(sceneDesc, gPhysics);
 
 		// Registering Resources

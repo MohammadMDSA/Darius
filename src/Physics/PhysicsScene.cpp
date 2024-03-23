@@ -78,6 +78,8 @@ namespace Darius::Physics
 		}
 #endif // _DEBUG
 
+		mPxScene->setFlag(PxSceneFlag::eENABLE_GPU_DYNAMICS, true);
+
 	}
 
 	PhysicsScene::~PhysicsScene()
@@ -280,9 +282,8 @@ namespace Darius::Physics
 			auto actor1 = PhysicsActor::GetFromPxActor(pairHeader.actors[0]);
 			auto actor2 = PhysicsActor::GetFromPxActor(pairHeader.actors[1]);
 
-			// At least one of the actor has been invalid
-			/*if (!actor1 || !actor2)
-				continue;*/
+			if (!actor1 || !actor2)
+				continue;
 
 				// Finding collider component names which generated the event
 			auto compName1 = actor1->mColliders.at(pair.shapes[0]);
@@ -358,6 +359,9 @@ namespace Darius::Physics
 			auto& pair = pairs[i];
 			auto actor1 = PhysicsActor::GetFromPxActor(pair.triggerActor);
 			auto actor2 = PhysicsActor::GetFromPxActor(pair.otherActor);
+
+			if (!actor1 || !actor2)
+				continue;
 
 			// Finding collider component names which generated the event
 			auto compName1 = actor1->mColliders.at(pair.triggerShape);

@@ -1,31 +1,31 @@
 #ifdef _DEBUG
 #include <iostream>
 #define D_LOG_IMPL(msg, lvl)
-#define D_LOG_TRACE_IMPL(msg) std::cout << "TRACE:\t" << msg << std::endl
-#define D_LOG_DEBUG_IMPL(msg) std::cout << "DEBUG:\t" << msg << std::endl
-#define D_LOG_INFO_IMPL(msg) std::cout << "INFO:\t" << msg << std::endl
-#define D_LOG_WARN_IMPL(msg) std::cerr << "WARN:\t" << msg << std::endl
-#define D_LOG_ERROR_IMPL(msg) std::cerr << "ERROR:\t" << msg << std::endl
-#define D_LOG_FATAL_IMPL(msg) std::cerr << "FATAL:\t" << msg <<  std::endl
+#define D_LOG_TRACE_IMPL(...) std::cout << "TRACE:\t" << __VA_ARGS__ << std::endl
+#define D_LOG_DEBUG_IMPL(...) std::cout << "DEBUG:\t" << __VA_ARGS__ << std::endl
+#define D_LOG_INFO_IMPL(...) std::cout << "INFO:\t" << __VA_ARGS__ << std::endl
+#define D_LOG_WARN_IMPL(...) std::cerr << "WARN:\t" << __VA_ARGS__ << std::endl
+#define D_LOG_ERROR_IMPL(...) std::cerr << "ERROR:\t" << __VA_ARGS__ << std::endl
+#define D_LOG_FATAL_IMPL(...) std::cerr << "FATAL:\t" << __VA_ARGS__ <<  std::endl
 #else
 #define D_LOG_IMPL(msg, lvl)
-#define D_LOG_TRACE_IMPL(msg)
-#define D_LOG_DEBUG_IMPL(msg)
-#define D_LOG_INFO_IMPL(msg)
-#define D_LOG_WARN_IMPL(msg)
-#define D_LOG_ERROR_IMPL(msg)
-#define D_LOG_FATAL_IMPL(msg)
+#define D_LOG_TRACE_IMPL(...)
+#define D_LOG_DEBUG_IMPL(...)
+#define D_LOG_INFO_IMPL(...)
+#define D_LOG_WARN_IMPL(...)
+#define D_LOG_ERROR_IMPL(...)
+#define D_LOG_FATAL_IMPL(...)
 
 #endif // _DEBUG
 
 
 #define D_LOG(msg, lvl) D_LOG_IMPL(msg, lvl)
-#define D_LOG_TRACE(msg) D_LOG_TRACE_IMPL(msg)
-#define D_LOG_DEBUG(msg) D_LOG_DEBUG_IMPL(msg)
-#define D_LOG_INFO(msg) D_LOG_INFO_IMPL(msg)
-#define D_LOG_WARN(msg) D_LOG_WARN_IMPL(msg)
-#define D_LOG_ERROR(msg) D_LOG_ERROR_IMPL(msg)
-#define D_LOG_FATAL(msg) D_LOG_FATAL_IMPL(msg)
+#define D_LOG_TRACE(...) D_LOG_TRACE_IMPL(__VA_ARGS__)
+#define D_LOG_DEBUG(...) D_LOG_DEBUG_IMPL(__VA_ARGS__)
+#define D_LOG_INFO(...) D_LOG_INFO_IMPL(__VA_ARGS__)
+#define D_LOG_WARN(...) D_LOG_WARN_IMPL(__VA_ARGS__)
+#define D_LOG_ERROR(...) D_LOG_ERROR_IMPL(__VA_ARGS__)
+#define D_LOG_FATAL(...) D_LOG_FATAL_IMPL(__VA_ARGS__)
 
 #ifndef _DEBUG
 
