@@ -1,6 +1,7 @@
 #pragma once
 #include <functional>
-#include <Core/Containers/ConcurrentQueue.hpp>
+
+#include <Utils/Common.hpp>
 
 #include <Libs/enkiTS/src/TaskScheduler.h>
 

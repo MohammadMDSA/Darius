@@ -3,6 +3,7 @@
 #include "ResourceManager.hpp"
 
 #include <Core/Serialization/Json.hpp>
+#include <Core/Containers/ConcurrentQueue.hpp>
 #include <Core/Exceptions/Exception.hpp>
 #include <Job/Job.hpp>
 #include <Utils/Common.hpp>
@@ -10,6 +11,7 @@
 
 #include <boost/algorithm/string.hpp>
 
+#include <concurrent_vector.h>
 #include <fstream>
 
 using namespace D_CONTAINERS;
@@ -88,22 +90,32 @@ namespace Darius::ResourceManager
 		auto extension = path.extension().string();
 		auto extString = boost::algorithm::to_lower_copy(extension);
 		auto resourceTypes = Resource::GetResourceTypeByExtension(extString);
+		auto resTypesVec = D_CONTAINERS::DVector<ResourceType>(resourceTypes.begin(), resourceTypes.end());
 
 		DVector<ResourceHandle> results;
+		std::mutex mutex;
 
-		for (auto type : resourceTypes)
-		{
-			auto resourcesToCreateFromProvider = D_RESOURCE::Resource::CanConstructTypeFromPath(type, path);
-
-			for (auto resourceToCreate : resourcesToCreateFromProvider)
+		D_JOB::AddTaskSetAndWait((UINT)resourceTypes.size(), [&results, &resTypesVec, &path, manager, &mutex](D_JOB::TaskPartition range, D_JOB::ThreadNumber threadNumber)
 			{
-				resourceToCreate.Uuid = GenerateUuid();
-				auto handle = manager->CreateResource(resourceToCreate.Type, resourceToCreate.Uuid, path, STR2WSTR(resourceToCreate.Name), false, true);
-				results.push_back(handle);
+				for (int i = range.start; i < range.end; i++)
+				{
+					auto type = resTypesVec.at(i);
+					auto resourcesToCreateFromProvider = D_RESOURCE::Resource::CanConstructTypeFromPath(type, path);
 
-			}
+					for (auto resourceToCreate : resourcesToCreateFromProvider)
+					{
+						resourceToCreate.Uuid = GenerateUuid();
+						auto handle = manager->CreateResource(resourceToCreate.Type, resourceToCreate.Uuid, path, STR2WSTR(resourceToCreate.Name), false, true);
 
-		}
+						{
+							std::scoped_lock lock(mutex);
+							results.push_back(handle);
+						}
+
+					}
+				}
+			});
+
 
 		return results;
 
