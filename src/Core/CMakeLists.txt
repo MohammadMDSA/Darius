@@ -5,6 +5,7 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ".")
 
 list(APPEND CORE_LIBS_INCLUDE
 	"Containers/ConcurrentQueue.hpp"
+	"Containers/EnumAsByte.hpp"
 	"Containers/Vector.hpp"
 	"Containers/Set.hpp"
 	"Containers/List.hpp"
