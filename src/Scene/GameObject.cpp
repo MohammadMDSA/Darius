@@ -171,6 +171,7 @@ namespace Darius::Scene
 				}
 				ImGui::PopStyleVar();
 
+				bool deleted = false;
 				if (ImGui::BeginPopup("ComponentSettings"))
 				{
 
@@ -178,6 +179,7 @@ namespace Darius::Scene
 					{
 						comp->OnPreComponentRemovInEditor();
 						RemoveComponent(comp);
+						deleted = true;
 					}
 
 					ImGui::EndPopup();
@@ -185,7 +187,9 @@ namespace Darius::Scene
 
 				if (open)
 				{
-					changeValue |= D_SCENE_DET_DRAW::DrawDetails(*comp, nullptr);
+					if (!deleted)
+						changeValue |= D_SCENE_DET_DRAW::DrawDetails(*comp, nullptr);
+
 					ImGui::TreePop();
 				}
 				ImGui::Spacing();

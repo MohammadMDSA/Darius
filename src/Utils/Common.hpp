@@ -7,6 +7,7 @@
 #define ALIGN_DECL_256 ALIGN_DECL(256)
 #define ALIGN_DECL_16 ALIGN_DECL(16)
 
+#define D_STRINGIFY(T) #T
 #define D_NAMEOF(T) #T
 #define D_NAMEOF_C(T) #T.c_str()
 
