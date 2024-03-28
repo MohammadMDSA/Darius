@@ -32,54 +32,53 @@ using namespace D_CONTAINERS;
 using namespace D_RENDERER_GEOMETRY;
 using namespace physx;
 
-struct ConvexMeshData
-{
-	UINT			RefCount = 0;
-	PxConvexMesh* PxMesh = nullptr;
-
-#if _D_EDITOR
-	Mesh			Mesh;
-#endif
-};
-
-DUnorderedMap<Uuid, ConvexMeshData, UuidHasher>		ConvexMeshCache;
-std::mutex												CacheAccessMutex;
 
 namespace Darius::Physics
 {
 	bool									_init = false;
 
 	bool									dirtyOptions = false;
+	bool									gGpuAccelerated = false;
 
 	PxDefaultAllocator						gAllocator;
 	PxDefaultErrorCallback					gErrorCallback;
 	PxTolerancesScale						gToleranceScale;
+	physx::PxCookingParams* gCookingParams;
 
 	PxFoundation* gFoundation = NULL;
 	PxPhysics* gPhysics = NULL;
-	PxCooking* gCooking = NULL;
 
 	PxDefaultCpuDispatcher* gDispatcher = NULL;
 	std::unique_ptr<PhysicsScene> gScene;
 
 	PxPvd* gPvd = NULL;
 
-	D_RESOURCE::ResourceHandle				gDefaultMaterial;
+	D_RESOURCE::ResourceHandle							gDefaultMaterial;
+
+	DUnorderedMap<Uuid, ConvexMeshData, UuidHasher>		ConvexMeshDataTable;
+	DUnorderedMap<Uuid, TriangleMeshData, UuidHasher>	TriangleMeshDataTable;
+
+	std::mutex											ConvexMeshTableAccessMutex;
+	std::mutex											TriangleMeshTableAccessMutex;
 
 	void					UpdatePostPhysicsTransforms();
 	void					UpdatePrePhysicsTransform(bool simulating);
 
 	struct AsyncConvexMeshCreationTask : public D_JOB::IPinnedTask
 	{
+		AsyncConvexMeshCreationTask(physx::PxCookingParams const& cooking) :
+			cookingParams(cooking) {}
+
+
 		virtual void Execute() override
 		{
 			if (cancellationToken && cancellationToken->IsCancelled())
 				return;
 
-			auto convexMesh = CreateConvexMesh(uuid, direct, desc);
+			auto handle = CreateConvexMesh(uuid, direct, desc);
 
 			if (callback)
-				callback(convexMesh);
+				callback(handle);
 		}
 
 		~AsyncConvexMeshCreationTask()
@@ -91,6 +90,36 @@ namespace Darius::Physics
 		bool direct = false;
 		Uuid uuid;
 		physx::PxConvexMeshDesc desc;
+		physx::PxCookingParams cookingParams;
+		MeshCreationCallback callback;
+	};
+
+	struct AsyncTriangleMeshCreationTask : public D_JOB::IPinnedTask
+	{
+
+		virtual void Execute() override
+		{
+			if (cancellationToken && cancellationToken->IsCancelled())
+				return;
+
+			auto handle = CreateTriangleMesh(uuid, direct, desc, skipMeshCleanup, skipEdgeData, numTrisPerLeaf);
+
+			if (callback)
+				callback(handle);
+		}
+
+		~AsyncTriangleMeshCreationTask()
+		{
+			D_LOG_DEBUG("AsyncTriangleMeshCreationTask destruction");
+		}
+
+		D_JOB::CancellationToken* cancellationToken = nullptr;
+		Uuid uuid;
+		UINT numTrisPerLeaf;
+		physx::PxTriangleMeshDesc desc;
+		bool direct = false;
+		bool skipMeshCleanup = false;
+		bool skipEdgeData = false;
 		MeshCreationCallback callback;
 	};
 
@@ -100,6 +129,7 @@ namespace Darius::Physics
 		_init = true;
 
 		// Initializing options
+		D_H_OPTIONS_LOAD_BASIC_DEFAULT("Physics.GpuAccelerated", gGpuAccelerated, true);
 		D_H_OPTIONS_LOAD_BASIC_DEFAULT("Physics.Tolerance.Length", gToleranceScale.length, 1.f);
 		D_H_OPTIONS_LOAD_BASIC_DEFAULT("Physics.Tolerance.Speed", gToleranceScale.speed, 10.f);
 
@@ -117,15 +147,18 @@ namespace Darius::Physics
 		gPhysics = PxCreatePhysics(PX_PHYSICS_VERSION, *gFoundation, gToleranceScale, true, gPvd);
 		D_ASSERT_M(gPhysics, "Could not initialize physics core.");
 
-		gCooking = PxCreateCooking(PX_PHYSICS_VERSION, *gFoundation, PxCookingParams(gToleranceScale));
-
 		PxSceneDesc sceneDesc(gPhysics->getTolerancesScale());
 		sceneDesc.gravity = PxVec3(0.f, -9.8f, 0.f);
 		gDispatcher = PxDefaultCpuDispatcherCreate(2);
 		sceneDesc.cpuDispatcher = gDispatcher;
 		sceneDesc.filterShader = PxDefaultSimulationFilterShader;
-		sceneDesc.broadPhaseType = PxBroadPhaseType::eGPU;
-		gScene = std::make_unique<PhysicsScene>(sceneDesc, gPhysics);
+
+		// Cooking params
+		gCookingParams = new PxCookingParams(gToleranceScale);
+		gCookingParams->buildGPUData = gGpuAccelerated;
+		gCookingParams->midphaseDesc = PxMeshMidPhase::eBVH34;
+
+		gScene = std::make_unique<PhysicsScene>(sceneDesc, gPhysics, gGpuAccelerated);
 
 		// Registering Resources
 		PhysicsMaterialResource::Register();
@@ -146,8 +179,10 @@ namespace Darius::Physics
 		D_ASSERT(_init);
 
 		gScene.reset();
+
+		delete gCookingParams;
+
 		PX_RELEASE(gDispatcher);
-		PX_RELEASE(gCooking);
 		PX_RELEASE(gPhysics);
 
 		if (gPvd)
@@ -172,6 +207,12 @@ namespace Darius::Physics
 			ImGui::TextColored({ 1.f, 1.f, 0.f, 1.f }, "You have to restart the engine for Physics options to take effect!");
 		}
 
+		// Gpu Accelerated
+		{
+			D_H_OPTION_DRAW_CHECKBOX("Gpu Accelerated", "Physics.GpuAccelerated", gGpuAccelerated);
+		}
+
+		ImGui::Spacing();
 		ImGui::Text("Tolerance");
 		ImGui::Separator();
 		{
@@ -279,9 +320,45 @@ namespace Darius::Physics
 		return gDefaultMaterial;
 	}
 
+	std::string GetConvexMeshCookingResultText(PxConvexMeshCookingResult::Enum value)
+	{
+		switch (value)
+		{
+		case physx::PxConvexMeshCookingResult::eSUCCESS:
+			return "Success";
+		case physx::PxConvexMeshCookingResult::eZERO_AREA_TEST_FAILED:
+			return "Zero Area Test Failed";
+		case physx::PxConvexMeshCookingResult::ePOLYGONS_LIMIT_REACHED:
+			return "Polygons Limit Reached";
+		case physx::PxConvexMeshCookingResult::eFAILURE:
+			return "Failure";
+		case physx::PxConvexMeshCookingResult::eNON_GPU_COMPATIBLE:
+			return "Non Gpu Compatible";
+		default:
+			return "";
+		}
+	}
+
+	std::string GetTriangleMeshCookingResultText(PxTriangleMeshCookingResult::Enum value)
+	{
+		switch (value)
+		{
+		case physx::PxTriangleMeshCookingResult::eSUCCESS:
+			return "Success";
+		case physx::PxTriangleMeshCookingResult::eLARGE_TRIANGLE:
+			return "Large Triangle";
+		case physx::PxTriangleMeshCookingResult::eEMPTY_MESH:
+			return "Empty Mesh";
+		case physx::PxTriangleMeshCookingResult::eFAILURE:
+			return "Failure";
+		default:
+			return "";
+		}
+	}
+
 	void CreateConvexMeshAsync(D_CORE::Uuid const& uuid, bool direct, physx::PxConvexMeshDesc const& desc, MeshCreationCallback callback, Darius::Job::CancellationToken* cancelleationToken)
 	{
-		auto task = new AsyncConvexMeshCreationTask();
+		auto task = new AsyncConvexMeshCreationTask(*gCookingParams);
 		task->callback = callback;
 		task->cancellationToken = cancelleationToken;
 		task->desc = desc;
@@ -291,22 +368,165 @@ namespace Darius::Physics
 		D_JOB::AddPinnedTask(task, D_JOB::ThreadType::FileIO);
 	}
 
-	PxConvexMesh* CreateConvexMesh(D_CORE::Uuid const& uuid, bool direct, physx::PxConvexMeshDesc const& desc)
+	void CreateTriangleMeshAsync(D_CORE::Uuid const& uuid, bool direct, physx::PxTriangleMeshDesc const& desc, bool skipMeshCleanup, bool skipEdgeData, UINT numTrisPerLeaf, MeshCreationCallback callback, D_JOB::CancellationToken* cancelleationToken)
+	{
+		auto task = new AsyncTriangleMeshCreationTask();
+		task->callback = callback;
+		task->cancellationToken = cancelleationToken;
+		task->desc = desc;
+		task->direct = direct;
+		task->uuid = uuid;
+		task->skipEdgeData = skipMeshCleanup;
+		task->skipEdgeData = skipEdgeData;
+		task->numTrisPerLeaf = numTrisPerLeaf;
+		
+		D_JOB::AddPinnedTask(task, D_JOB::ThreadType::FileIO);
+	}
+
+	MeshDataHandle CreateTriangleMesh(D_CORE::Uuid const& uuid, bool direct, physx::PxTriangleMeshDesc const& desc,
+		bool skipMeshCleanup, bool skipEdgeData, UINT numTrisPerLeaf)
+	{
+		// Lookup the cache to retreive the mesh if already created for the given uuid
+		{
+			std::scoped_lock accessLock(TriangleMeshTableAccessMutex);
+			if (TriangleMeshDataTable.contains(uuid))
+			{
+				auto& data = TriangleMeshDataTable.at(uuid);
+				return &data;
+			}
+		}
+
+		PxCookingParams cookParams(*gCookingParams);
+
+		// Setting up cooking params
+		if (skipMeshCleanup)
+			cookParams.meshPreprocessParams |= PxMeshPreprocessingFlag::eDISABLE_CLEAN_MESH;
+		else
+			cookParams.meshPreprocessParams &= ~static_cast<PxMeshPreprocessingFlags>(PxMeshPreprocessingFlag::eDISABLE_CLEAN_MESH);
+
+		if (!skipEdgeData)
+			cookParams.meshPreprocessParams &= ~static_cast<PxMeshPreprocessingFlags>(PxMeshPreprocessingFlag::eDISABLE_ACTIVE_EDGES_PRECOMPUTE);
+		else
+			cookParams.meshPreprocessParams |= PxMeshPreprocessingFlag::eDISABLE_ACTIVE_EDGES_PRECOMPUTE;
+
+		cookParams.midphaseDesc.mBVH34Desc.numPrimsPerLeaf = numTrisPerLeaf;
+
+		PxTriangleMesh* triMesh = nullptr;
+		PxTriangleMeshCookingResult::Enum condition;
+
+		if (direct)
+		{
+#if _DEBUG
+			if (skipMeshCleanup)
+			{
+				D_ASSERT(PxValidateTriangleMesh(cookParams, desc));
+			}
+#endif // _DEBUG
+
+			triMesh = PxCreateTriangleMesh(cookParams, desc, gPhysics->getPhysicsInsertionCallback(), &condition);
+
+			if (!D_VERIFY(triMesh))
+			{
+				auto log = std::format("Cooking triangle mesh failed with result: {}", GetTriangleMeshCookingResultText(condition));
+				D_LOG_WARN(log);
+			}
+		}
+		else
+		{
+			PxDefaultMemoryOutputStream outBuffer;
+			bool test = PxCookTriangleMesh(cookParams, desc, outBuffer, &condition);
+
+			if (!D_VERIFY(test))
+			{
+				D_LOG_WARN(std::format("Cooking convex mesh failed with result: {}", GetTriangleMeshCookingResultText(condition)));
+			}
+
+			PxDefaultMemoryInputData stream(outBuffer.getData(), outBuffer.getSize());
+			triMesh = gPhysics->createTriangleMesh(stream);
+		}
+
+		// Adding the created mesh to the cache
+		{
+			std::scoped_lock accessLock(TriangleMeshTableAccessMutex);
+			TriangleMeshDataTable.emplace(uuid, TriangleMeshData(triMesh, uuid));
+			auto& meshData = TriangleMeshDataTable.at(uuid);
+
+#if _D_EDITOR
+			// Creating debug mesh
+			{
+				auto& mesh = meshData.Mesh;
+				mesh.Name = L"Physics Convex Mesh Debug";
+
+				// Loading vertices buffer
+				{
+					// Loading positions only
+					DVector<D_RENDERER::StaticMeshResource::VertexType, boost::alignment::aligned_allocator<D_RENDERER::StaticMeshResource::VertexType, 16>> vertices;
+					vertices.resize(triMesh->getNbVertices());
+					auto pxVerts = triMesh->getVertices();
+					for (UINT i = 0; i < triMesh->getNbVertices(); i++)
+					{
+						vertices[i].mPosition = DirectX::XMFLOAT3((D_PHYSICS::GetVec3(pxVerts[i])));
+					}
+					// Create vertex buffer
+					mesh.VertexDataGpu.Create(L"Physics Triangle Mesh Debug Vertices", triMesh->getNbVertices(), sizeof(D_RENDERER::StaticMeshResource::VertexType), vertices.data());
+					mesh.mNumTotalVertices = triMesh->getNbVertices();
+				}
+
+				// Loading indices
+				{
+					DVector<UINT, boost::alignment::aligned_allocator<UINT, 16>> indices;
+					auto indexBuff = triMesh->getTriangles();
+
+					indices.resize(triMesh->getNbTriangles() * 3);
+					auto src = indices.data();
+
+					if (triMesh->getTriangleMeshFlags() & PxTriangleMeshFlag::e16_BIT_INDICES)
+					{
+						auto _16BitIndexBuff = reinterpret_cast<uint16_t const*>(indexBuff);
+
+						for (UINT i = 0; i < triMesh->getNbTriangles() * 3; i++)
+						{
+							indices[i] = static_cast<UINT>(_16BitIndexBuff[i]);
+						}
+					}
+					else
+					{
+						auto _32BitIndexBuff = reinterpret_cast<uint16_t const*>(indexBuff);
+
+						for (UINT i = 0; i < triMesh->getNbTriangles() * 3; i++)
+						{
+							indices[i] = _32BitIndexBuff[i];
+						}
+					}
+
+					mesh.mNumTotalIndices = (UINT)indices.size();
+					mesh.mDraw.push_back({ mesh.mNumTotalIndices, 0u, 0u });
+					mesh.CreateIndexBuffers(indices.data());
+				}
+			}
+#endif
+			return &meshData;
+
+		}
+	}
+
+	MeshDataHandle CreateConvexMesh(D_CORE::Uuid const& uuid, bool direct, physx::PxConvexMeshDesc const& desc)
 	{
 		D_ASSERT(desc.flags & PxConvexFlag::eCOMPUTE_CONVEX);
 
 		// Lookup the cache to retreive the mesh if already created for the given uuid
 		{
-			std::scoped_lock accessLock(CacheAccessMutex);
-			if (ConvexMeshCache.contains(uuid))
+			std::scoped_lock accessLock(ConvexMeshTableAccessMutex);
+			if (ConvexMeshDataTable.contains(uuid))
 			{
-				auto& data = ConvexMeshCache.at(uuid);
-				data.RefCount++;
-				return data.PxMesh;
+				auto& data = ConvexMeshDataTable.at(uuid);
+				return &data;
 			}
 		}
 
 		PxConvexMesh* convex;
+
+		PxConvexMeshCookingResult::Enum result;
 
 		// Creating convex mesh
 		if (direct)
@@ -315,18 +535,29 @@ namespace Darius::Physics
 			if (desc.flags & PxConvexFlag::eDISABLE_MESH_VALIDATION)
 			{
 				// mesh should be validated before cooking without the mesh cleaning
-				bool res = gCooking->validateConvexMesh(desc);
+				auto cookingParams = gCookingParams;
+				cookingParams->meshPreprocessParams |= PxMeshPreprocessingFlag::eDISABLE_CLEAN_MESH;
+				bool res = PxValidateConvexMesh(*gCookingParams, desc);
 				D_ASSERT(res);
 			}
 #endif
-			convex = gCooking->createConvexMesh(desc, gPhysics->getPhysicsInsertionCallback());
+			convex = PxCreateConvexMesh(*gCookingParams, desc, gPhysics->getPhysicsInsertionCallback(), &result);
+
+			if (!D_VERIFY(convex))
+			{
+				auto log = std::format("Cooking convex mesh failed with result: {}", GetConvexMeshCookingResultText(result));
+				D_LOG_WARN(log);
+			}
 		}
 		else
 		{
 			PxDefaultMemoryOutputStream buf;
-			PxConvexMeshCookingResult::Enum result;
-			bool test = gCooking->cookConvexMesh(desc, buf, &result);
-			D_ASSERT(test);
+			bool test = PxCookConvexMesh(*gCookingParams, desc, buf, &result);
+
+			if (!D_VERIFY(test))
+			{
+				D_LOG_WARN(std::format("Cooking convex mesh failed with result: {}", GetConvexMeshCookingResultText(result)));
+			}
 
 			PxDefaultMemoryInputData input(buf.getData(), buf.getSize());
 			convex = gPhysics->createConvexMesh(input);
@@ -334,16 +565,14 @@ namespace Darius::Physics
 
 		// Adding the created mesh to the cache
 		{
-			std::scoped_lock accessLock(CacheAccessMutex);
-			auto& data = ConvexMeshCache[uuid];
-			data.RefCount = 1u;
-			data.PxMesh = convex;
-
+			std::scoped_lock accessLock(ConvexMeshTableAccessMutex);
+			ConvexMeshDataTable.emplace(uuid, ConvexMeshData(convex, uuid));
+			auto& meshData = ConvexMeshDataTable.at(uuid);
 
 #if _D_EDITOR
 			// Creating debug mesh
 			{
-				auto& mesh = data.Mesh;
+				auto& mesh = meshData.Mesh;
 				mesh.Name = L"Physics Convex Mesh Debug";
 
 				// Loading vertices buffer
@@ -391,37 +620,54 @@ namespace Darius::Physics
 				}
 			}
 #endif
+			return &meshData;
+
 		}
-
-		return convex;
 	}
 
-#if _D_EDITOR
-	D_RENDERER_GEOMETRY::Mesh const* GetDebugMesh(D_CORE::Uuid const& uuid)
+	MeshDataHandle FindTriangleMesh(D_CORE::Uuid const& uuid)
 	{
-		std::scoped_lock accessLock(CacheAccessMutex);
-		if (!ConvexMeshCache.contains(uuid))
-			return nullptr;
+		if (!TriangleMeshDataTable.contains(uuid))
+			return InvalidMeshDataHandle;
 
-		return &ConvexMeshCache.at(uuid).Mesh;
+		return &TriangleMeshDataTable.at(uuid);
 	}
-#endif // _D_EDITOR
 
-
-	void ReleaseConvexMesh(D_CORE::Uuid const& uuid)
+	MeshDataHandle FindConvexMesh(D_CORE::Uuid const& uuid)
 	{
-		std::scoped_lock accessLock(CacheAccessMutex);
-		if (!ConvexMeshCache.contains(uuid))
-			return;
+		if (!ConvexMeshDataTable.contains(uuid))
+			return InvalidMeshDataHandle;
 
-		auto& data = ConvexMeshCache.at(uuid);
-		data.RefCount--;
+		return &ConvexMeshDataTable.at(uuid);
+	}
 
-		if (data.RefCount <= 0u)
+	template<typename T>
+	void RemoveMeshFromTable(T& table, D_CORE::Uuid const& uuid)
+	{
+		D_ASSERT(table.contains(uuid));
+
+		auto& el = table.at(uuid);
+
+		el.PxMesh->release();
+
+		table.erase(uuid);
+	}
+
+	bool BaseMeshData::Release()
+	{
+		switch (Type)
 		{
-			data.PxMesh->release();
-			ConvexMeshCache.erase(uuid);
+		case MeshType::ConvexMesh:
+			RemoveMeshFromTable(ConvexMeshDataTable, Uuid);
+			break;
+		case MeshType::TriangleMesh:
+			RemoveMeshFromTable(TriangleMeshDataTable, Uuid);
+			break;
+		default:
+			break;
 		}
+
+		return true;
 	}
 
 }

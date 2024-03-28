@@ -37,6 +37,7 @@ namespace Darius::Physics
 
 		// State Events
 		virtual void										Awake() override;
+		virtual void										Start() override;
 		virtual void										OnPreDestroy() override;
 
 		virtual void										PreUpdate(bool simulating);
@@ -48,6 +49,7 @@ namespace Darius::Physics
 		// Call when all the parameters are correctly set. Make sure to provide appropriate PxGeometry type for each component.
 		INLINE virtual bool									CalculateGeometry(_OUT_ physx::PxGeometry & geom) const { return false; }
 		INLINE virtual bool									UpdateGeometry() { return false; }
+		INLINE PhysicsActor const*							GetPhysicsActor() const { return mActor; }
 
 #ifdef _D_EDITOR
 		virtual bool										DrawDetails(float params[]) override;
@@ -55,17 +57,17 @@ namespace Darius::Physics
 
 		void												SetMaterial(PhysicsMaterialResource* material);
 		void												SetTrigger(bool trigger);
-		INLINE PhysicsMaterialResource* GetMaterial() const { return mMaterial.Get(); }
+		INLINE PhysicsMaterialResource*						GetMaterial() const { return mMaterial.Get(); }
 		INLINE bool											IsTrigger() const { return mTrigger; }
 
-		INLINE D_MATH::Vector3 const& GetUsedScale() const { return mUsedScale; }
+		INLINE D_MATH::Vector3 const&						GetUsedScale() const { return mUsedScale; }
 
-		INLINE D_MATH::Vector3 const& GetCenterOffset() const { return mCenterOffset; }
-		INLINE D_MATH::Vector3 const& GetScaledCenterOffset() const { return mScaledCenterOffset; }
+		INLINE D_MATH::Vector3 const&						GetCenterOffset() const { return mCenterOffset; }
+		INLINE D_MATH::Vector3 const&						GetScaledCenterOffset() const { return mScaledCenterOffset; }
 
-		void								SetCenterOffset(D_MATH::Vector3 const& centerOffset);
+		void												SetCenterOffset(D_MATH::Vector3 const& centerOffset);
 
-		virtual INLINE physx::PxGeometry const* GetPhysicsGeometry() const { return nullptr; };
+		virtual INLINE physx::PxGeometry const*				GetPhysicsGeometry() const { return nullptr; };
 
 	protected:
 		virtual void										CalculateScaledParameters();

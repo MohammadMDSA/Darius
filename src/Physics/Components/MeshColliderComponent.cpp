@@ -23,14 +23,18 @@ namespace Darius::Physics
 
 	MeshColliderComponent::MeshColliderComponent() :
 		ColliderComponent(),
-		mMesh(nullptr)
+		mMesh(InvalidMeshDataHandle),
+		mTightBounds(true),
+		mDirectMesh(false)
 	{
 		SetDirty();
 	}
 
 	MeshColliderComponent::MeshColliderComponent(D_CORE::Uuid uuid) :
 		ColliderComponent(uuid),
-		mMesh(nullptr)
+		mMesh(InvalidMeshDataHandle),
+		mTightBounds(true),
+		mDirectMesh(false)
 	{
 		SetDirty();
 	}
@@ -38,7 +42,9 @@ namespace Darius::Physics
 	void MeshColliderComponent::Awake()
 	{
 		if (mReferenceMesh.IsValid())
+		{
 			CalculateMeshGeometry();
+		}
 
 		Super::Awake();
 	}
@@ -53,27 +59,35 @@ namespace Darius::Physics
 
 		D_H_DETAILS_DRAW_BEGIN_TABLE();
 
-		// Is Convex
+		// Convex
 		{
-			ImGui::BeginDisabled(true);
-
-			D_H_DETAILS_DRAW_PROPERTY("Convex");
-			bool convex = true;
-			if (ImGui::Checkbox("##Convex", &convex))
+			bool value = IsConvex();
+			D_H_DETAILS_DRAW_PROPERTY("Convex Mesh");
+			if (ImGui::Checkbox("##Convex", &value))
 			{
+				SetConvex(value);
 				valueChanged = true;
 			}
-
-			ImGui::EndDisabled();
 		}
 
 		// Tight bounds
 		{
-			bool value = HasTightBounds();
+			bool value = IsTightBounds();
 			D_H_DETAILS_DRAW_PROPERTY("Tight Bounds");
 			if (ImGui::Checkbox("##TightBounds", &value))
 			{
 				SetTightBounds(value);
+				valueChanged = true;
+			}
+		}
+
+		// Direct Mesh
+		{
+			bool value = IsDirectMesh();
+			D_H_DETAILS_DRAW_PROPERTY("Direct Mesh");
+			if (ImGui::Checkbox("##DirectMesh", &value))
+			{
+				SetDirectMesh(value);
 				valueChanged = true;
 			}
 		}
@@ -94,10 +108,13 @@ namespace Darius::Physics
 		if (!IsActive())
 			return;
 
+		if (!mMesh.IsValid())
+			return;
+
 		auto trans = GetTransform();
 		auto rot = trans->GetRotation();
 		auto offset = rot * GetScaledCenterOffset();
-		D_DEBUG_DRAW::DrawMesh(trans->GetPosition() + offset, rot, trans->GetScale(), mDebugMesh, 0., { 0.f, 1.f, 0.f, 1.f });
+		D_DEBUG_DRAW::DrawMesh(trans->GetPosition() + offset, rot, trans->GetScale(), &mMesh->Mesh, 0., { 0.f, 1.f, 0.f, 1.f });
 	}
 
 	void MeshColliderComponent::OnPostComponentAddInEditor()
@@ -123,32 +140,82 @@ namespace Darius::Physics
 
 #endif // _D_EDITOR
 
+	void MeshColliderComponent::OnDestroy()
+	{
+
+		mMesh = InvalidMeshDataHandle;
+
+		Super::OnDestroy();
+	}
+
 	bool MeshColliderComponent::CalculateGeometry(physx::PxGeometry& geom) const
 	{
-		if (!mMesh)
+		if (!mMesh.IsValid())
 			return false;
 
-		PxConvexMeshGeometry& convMesh = reinterpret_cast<physx::PxConvexMeshGeometry&>(geom);
+		bool convex = IsConvex();
+
+		// The convex state of the component must be consistent with the handle state
+		D_ASSERT((convex && mMesh.Type == MeshType::ConvexMesh) ||
+			!(convex && mMesh.Type == MeshType::TriangleMesh));
 
 		PxMeshScale scale(D_PHYSICS::GetVec3(GetUsedScale()));
 
-		PxConvexMeshGeometryFlags flags;
-		if (mTightBounds)
-			flags |= PxConvexMeshGeometryFlag::eTIGHT_BOUNDS;
+		if (convex)
+		{
+			PxConvexMeshGeometry& convMesh = reinterpret_cast<physx::PxConvexMeshGeometry&>(geom);
 
-		convMesh = physx::PxConvexMeshGeometry(mMesh, scale, flags);
+			PxConvexMeshGeometryFlags flags;
+			if (IsTightBounds())
+				flags |= PxConvexMeshGeometryFlag::eTIGHT_BOUNDS;
+
+			convMesh = physx::PxConvexMeshGeometry(mMesh.ConvexMesh->PxMesh, scale, flags);
+		}
+		else
+		{
+			PxTriangleMeshGeometry& triMesh = reinterpret_cast<physx::PxTriangleMeshGeometry&>(geom);
+
+			PxMeshGeometryFlags flags;
+			if (IsTightBounds())
+				flags |= PxMeshGeometryFlag::eTIGHT_BOUNDS;
+
+			triMesh = physx::PxTriangleMeshGeometry(mMesh.TriangleMesh->PxMesh, scale, flags);
+		}
 
 		return true;
 	}
 
 	void MeshColliderComponent::SetTightBounds(bool tight)
 	{
-		if (mTightBounds = tight)
+		if ((bool)mTightBounds == tight)
 			return;
 
 		mTightBounds = tight;
 		SetDirty();
 
+		mChangeSignal(this);
+	}
+
+	void MeshColliderComponent::SetDirectMesh(bool direct)
+	{
+		if ((bool)mDirectMesh == direct)
+			return;
+
+		mDirectMesh = direct;
+		SetDirty();
+		mChangeSignal(this);
+	}
+
+	void MeshColliderComponent::SetConvex(bool convex)
+	{
+		if ((bool)mConvex == convex)
+			return;
+
+		mConvex = convex;
+
+		CalculateMeshGeometry();
+
+		SetDirty();
 		mChangeSignal(this);
 	}
 
@@ -162,7 +229,7 @@ namespace Darius::Physics
 
 		auto meshValid = mReferenceMesh.IsValid();
 
-		if (meshValid && mReferenceMesh->IsLoaded())
+		if (!meshValid || mReferenceMesh->IsLoaded())
 		{
 			// Mesh is already loaded
 			CalculateMeshGeometry();
@@ -181,15 +248,16 @@ namespace Darius::Physics
 		mChangeSignal(this);
 	}
 
-	void MeshColliderComponent::CalculateMeshGeometry()
+	void MeshColliderComponent::CalculateConvexMeshGeometry()
 	{
-		if (!mReferenceMesh.IsValid())
-			mMesh = nullptr;
+		mMesh = D_PHYSICS::FindConvexMesh(mReferenceMesh->GetUuid());
+		if (mMesh.IsValid())
+		{
+			CalculateScaledParameters();
+			UpdateGeometry();
+			return;
+		}
 
-		D_ASSERT(mReferenceMesh.IsValid());
-		D_ASSERT(mReferenceMesh->IsLoaded());
-
-		
 		auto& context = D_GRAPHICS::CommandContext::Begin(L"Convex Mesh Creation Mesh Readback");
 
 		auto meshData = mReferenceMesh->GetMeshData();
@@ -199,7 +267,6 @@ namespace Darius::Physics
 		mMeshVerticesReadback.Create(L"Convex Mesh Creation Vertices Readback", vertBuffer.GetElementCount(), vertBuffer.GetElementSize());
 		context.CopyBuffer(mMeshVerticesReadback, vertBuffer);
 
-		D_PHYSICS::ReleaseConvexMesh(mCurrentMeshUuid);
 		mMeshIndicesReadback.Create(L"Convex Mesh Creation Indices Readback", indexBuffer.GetElementCount(), indexBuffer.GetElementSize());
 		mCurrentMeshUuid = mReferenceMesh->GetUuid();
 
@@ -218,15 +285,11 @@ namespace Darius::Physics
 			convDesc.indices.data = mMeshIndicesReadback.Map();
 			convDesc.indices.stride = mMeshIndicesReadback.GetElementSize();
 			auto refUuid = mReferenceMesh->GetUuid();
-			mMesh = D_PHYSICS::CreateConvexMesh(refUuid, false, convDesc);
 
-#if _D_EDITOR
-			mDebugMesh = D_PHYSICS::GetDebugMesh(refUuid);
-#endif // _D_EDITOR
-
+			mMesh = D_PHYSICS::CreateConvexMesh(refUuid, IsDirectMesh(), convDesc);
 		}
 
-		D_ASSERT(mMesh);
+		D_ASSERT(mMesh.ConvexMesh);
 
 		mMeshVerticesReadback.Unmap();
 		mMeshIndicesReadback.Unmap();
@@ -234,9 +297,87 @@ namespace Darius::Physics
 		mMeshVerticesReadback.Destroy();
 		mMeshIndicesReadback.Destroy();
 
+	}
+
+	void MeshColliderComponent::CalculateTriangleMeshGeometry()
+	{
+		mMesh = D_PHYSICS::FindTriangleMesh(mReferenceMesh->GetUuid());
+		if (mMesh.IsValid())
+		{
+			CalculateScaledParameters();
+			UpdateGeometry();
+			return;
+		}
+
+		auto& context = D_GRAPHICS::CommandContext::Begin(L"Triangle Mesh Creation Mesh Readback");
+
+		auto meshData = mReferenceMesh->GetMeshData();
+		auto& vertBuffer = const_cast<D_GRAPHICS_BUFFERS::StructuredBuffer&>(meshData->VertexDataGpu);
+		auto& indexBuffer = const_cast<D_GRAPHICS_BUFFERS::StructuredBuffer&>(meshData->IndexDataGpu[0]);
+
+		mMeshVerticesReadback.Create(L"Triangle Mesh Creation Vertices Readback", vertBuffer.GetElementCount(), vertBuffer.GetElementSize());
+		context.CopyBuffer(mMeshVerticesReadback, vertBuffer);
+
+		mMeshIndicesReadback.Create(L"Triangle Mesh Creation Indices Readback", indexBuffer.GetElementCount(), indexBuffer.GetElementSize());
+		mCurrentMeshUuid = mReferenceMesh->GetUuid();
+
+		context.CopyBuffer(mMeshIndicesReadback, indexBuffer);
+
+		context.Finish(true);
+
+		// Creating conv mesh
+		{
+			physx::PxTriangleMeshDesc triDesc;
+			triDesc.points.count = mMeshVerticesReadback.GetElementCount();
+			triDesc.points.data = mMeshVerticesReadback.Map();
+			triDesc.points.stride = mMeshVerticesReadback.GetElementSize();
+
+			UINT numIndices = mMeshIndicesReadback.GetElementCount();
+			D_ASSERT(numIndices % 3 == 0);
+
+			triDesc.triangles.count = numIndices / 3;
+			triDesc.triangles.data = mMeshIndicesReadback.Map();
+			triDesc.triangles.stride = mMeshIndicesReadback.GetElementSize() * 3;
+			auto refUuid = mReferenceMesh->GetUuid();
+
+			mMesh = D_PHYSICS::CreateTriangleMesh(refUuid, IsDirectMesh(), triDesc);
+		}
+
+		D_ASSERT(mMesh.ConvexMesh);
+
+		mMeshVerticesReadback.Unmap();
+		mMeshIndicesReadback.Unmap();
+
+		mMeshVerticesReadback.Destroy();
+		mMeshIndicesReadback.Destroy();
+
+	}
+
+	bool MeshColliderComponent::CalculateMeshGeometry()
+	{
+		if (!mReferenceMesh.IsValid())
+		{
+			mMesh = InvalidMeshDataHandle;
+			return true;
+		}
+
+		D_ASSERT(mReferenceMesh.IsValid());
+		
+		if (!mReferenceMesh->IsLoaded())
+		{
+			mMesh = InvalidMeshDataHandle;
+			return false;
+		}
+
+		if (IsConvex())
+			CalculateConvexMeshGeometry();
+		else
+			CalculateTriangleMeshGeometry();
+
 		CalculateScaledParameters();
 		UpdateGeometry();
-		InvalidatePhysicsActor();
+
+		return true;
 	}
 
 }

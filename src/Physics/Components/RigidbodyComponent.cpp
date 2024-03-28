@@ -43,6 +43,13 @@ namespace Darius::Physics
 	{
 		mActor = D_PHYSICS::GetScene()->FindOrCreatePhysicsActor(GetGameObject());
 		D_ASSERT(mActor);
+		mActor->SetDynamic(true);
+		mActor->InitializeActor();
+	}
+
+	void RigidbodyComponent::Start()
+	{
+		D_ASSERT(mActor);
 
 		SetDirty();
 		SetKinematic(mKinematic);
@@ -57,10 +64,15 @@ namespace Darius::Physics
 		SetClean();
 	}
 
-	void RigidbodyComponent::OnPreDestroy()
+	void RigidbodyComponent::OnDestroy()
 	{
 		if (mActor)
-			mActor->ForceRemoveActor();
+		{
+			mActor->SetDynamic(false);
+
+			if (mActor->IsValid())
+				mActor->InitializeActor();
+		}
 	}
 
 	void RigidbodyComponent::OnActivate()

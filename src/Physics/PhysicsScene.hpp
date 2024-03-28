@@ -4,7 +4,12 @@
 
 #include <Core/Signal.hpp>
 #include <Scene/GameObject.hpp>
+#include <Utils/BuildWarnings.hpp>
+
+D_H_WARNING_SCOPE_BEGIN()
+D_H_WARNING_DISABLE(4435)
 #include <PxPhysicsAPI.h>
+D_H_WARNING_SCOPE_END()
 
 
 #ifndef D_PHYSICS
@@ -19,7 +24,7 @@ namespace Darius::Physics
 	class PhysicsScene : public NonCopyable
 	{
 	public:
-		PhysicsScene(physx::PxSceneDesc const& sceneDesc, physx::PxPhysics* core);
+		PhysicsScene(physx::PxSceneDesc const& sceneDesc, physx::PxPhysics* core, bool gpuAccelerated);
 		~PhysicsScene();
 
 	// Scene Queries
@@ -57,12 +62,12 @@ namespace Darius::Physics
 			virtual void onAdvance(physx::PxRigidBody const* const* bodyBuffer, physx::PxTransform const* poseBuffer, const physx::PxU32 count) override { }
 
 		};
-		void						RemoveActor(PhysicsActor* actor);
+		void					RemoveActor(PhysicsActor* actor);
 
 		D_CONTAINERS::DUnorderedMap<D_SCENE::GameObject const*, PhysicsActor> mActorMap;
 
-		physx::PxScene*				mPxScene;
-		SimulationCallback			mCallbacks;
+		physx::PxScene*			mPxScene;
+		SimulationCallback		mCallbacks;
 	};
 
 }

@@ -97,10 +97,14 @@ namespace Darius::Physics
 		if (!mMaterial.IsValid())
 			SetMaterial(static_cast<PhysicsMaterialResource*>(D_RESOURCE::GetRawResourceSync(D_PHYSICS::GetDefaultMaterial())));
 
+	}
+
+	void ColliderComponent::Start()
+	{
 		if (!mActor)
 			InvalidatePhysicsActor();
-
-		mActor->AddCollider(this);
+		else
+			mActor->AddCollider(this);
 
 		mTransformChangeSignalConnection =
 			GetTransform()->mWorldChanged.ConnectComponent(this, &ThisClass::OnTransformWorldChanged);
@@ -159,7 +163,8 @@ namespace Darius::Physics
 
 	void ColliderComponent::OnActivate()
 	{
-		InvalidatePhysicsActor();
+		if (mActor)
+			InvalidatePhysicsActor();
 	}
 
 	void ColliderComponent::OnDeactivate()

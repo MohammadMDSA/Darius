@@ -5,6 +5,7 @@
 #include <Utils/Common.hpp>
 
 #include <PxActor.h>
+#include <geometry/PxGeometry.h>
 
 #include "PhysicsActor.generated.hpp"
 
@@ -28,7 +29,9 @@ namespace Darius::Physics
 		
 		static PhysicsActor*			GetFromPxActor(physx::PxActor* actor);
 
+		INLINE bool						IsValid() const { return mValid; }
 		INLINE bool						IsDynamic() const { return mDynamic; }
+		void							SetDynamic(bool dynamic);
 
 		INLINE physx::PxRigidActor*		GetPxActor() const { return mPxActor; }
 		INLINE physx::PxRigidDynamic*	GetDynamicActor() const { return IsDynamic() ? reinterpret_cast<physx::PxRigidDynamic*>(mPxActor) : nullptr; }
@@ -45,19 +48,21 @@ namespace Darius::Physics
 		void							Update();
 
 		void							ForceRemoveActor();
+		bool							IsGeometryCompatible(physx::PxGeometryType::Enum type);
 
+		void							InitializeActor();
 	private:
 		friend class PhysicsScene;
 
-		void							InitializeActor();
 		void							UninitialzieActor();
 		void							TransferShapes(physx::PxRigidActor* transfareShapes);
 		bool							RemoveActorIfNecessary();
 		
 		physx::PxRigidActor*			mPxActor;
 
-		const UINT						mDynamic : 1;
+		UINT							mDynamic : 1;
 		UINT							mValid : 1;
+		UINT							mDynamicDirty : 1;
 		
 		D_SCENE::GameObject const* const mGameObject;
 		PhysicsScene* const				mScene;

@@ -60,11 +60,14 @@ PxFilterFlags triggersUsingFilterShader(PxFilterObjectAttributes /*attributes0*/
 namespace Darius::Physics
 {
 
-	PhysicsScene::PhysicsScene(PxSceneDesc const& sceneDesc, PxPhysics* core)
+	PhysicsScene::PhysicsScene(PxSceneDesc const& sceneDesc, PxPhysics* core, bool gpuAccelerated)
 	{
 		PxSceneDesc desc = sceneDesc;
 		desc.filterShader = triggersUsingFilterShader;
 		desc.simulationEventCallback = &mCallbacks;
+
+		if (gpuAccelerated)
+			desc.broadPhaseType = PxBroadPhaseType::eGPU;
 
 		mPxScene = core->createScene(desc);
 
@@ -78,7 +81,8 @@ namespace Darius::Physics
 		}
 #endif // _DEBUG
 
-		mPxScene->setFlag(PxSceneFlag::eENABLE_GPU_DYNAMICS, true);
+		if (gpuAccelerated)
+			mPxScene->setFlag(PxSceneFlag::eENABLE_GPU_DYNAMICS, true);
 
 	}
 
@@ -285,7 +289,7 @@ namespace Darius::Physics
 			if (!actor1 || !actor2)
 				continue;
 
-				// Finding collider component names which generated the event
+			// Finding collider component names which generated the event
 			auto compName1 = actor1->mColliders.at(pair.shapes[0]);
 			auto compName2 = actor2->mColliders.at(pair.shapes[1]);
 

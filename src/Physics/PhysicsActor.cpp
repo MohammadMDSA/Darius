@@ -24,6 +24,7 @@ namespace Darius::Physics
 		mPxActor(nullptr),
 		mGameObject(gameObject),
 		mScene(scene),
+		mDynamicDirty(true),
 		mDynamic(gameObject->HasComponent<RigidbodyComponent>())
 	{
 	}
@@ -31,6 +32,9 @@ namespace Darius::Physics
 	PhysicsActor::~PhysicsActor()
 	{
 		UninitialzieActor();
+
+		for (auto& [shape, _] : mColliders)
+			shape->release();
 	}
 
 	PhysicsActor* PhysicsActor::GetFromPxActor(physx::PxActor* actor)
@@ -54,6 +58,37 @@ namespace Darius::Physics
 		mPxActor = nullptr;
 	}
 
+	std::string GetGeometryTypeStr(physx::PxGeometryType::Enum type)
+	{
+		switch (type)
+		{
+		case physx::PxGeometryType::eSPHERE:
+			return "Shape";
+		case physx::PxGeometryType::ePLANE:
+			return "Plane";
+		case physx::PxGeometryType::eCAPSULE:
+			return "Capsule";
+		case physx::PxGeometryType::eBOX:
+			return "Box";
+		case physx::PxGeometryType::eCONVEXMESH:
+			return "Convex Mesh";
+		case physx::PxGeometryType::ePARTICLESYSTEM:
+			return "Particle System";
+		case physx::PxGeometryType::eTETRAHEDRONMESH:
+			return "TetrahedronMesh";
+		case physx::PxGeometryType::eTRIANGLEMESH:
+			return "Triangle Mesh";
+		case physx::PxGeometryType::eHEIGHTFIELD:
+			return "Height Field";
+		case physx::PxGeometryType::eHAIRSYSTEM:
+			return "Hair";
+		case physx::PxGeometryType::eCUSTOM:
+			return "Custom";
+		default:
+			return "";
+		}
+	}
+
 	physx::PxShape* PhysicsActor::AddCollider(ColliderComponent const* refComponent)
 	{
 		auto name = refComponent->GetComponentName();
@@ -66,12 +101,19 @@ namespace Darius::Physics
 
 		D_ASSERT(geom);
 
-		physx::PxShape* shape = physx::PxRigidActorExt::createExclusiveShape(*mPxActor, *geom, *refComponent->GetMaterial());
+		physx::PxShape* shape = physics->createShape(*geom, *refComponent->GetMaterial());
 
 		D_ASSERT(shape);
 
+		auto geomType = geom->getType();
+		if (IsGeometryCompatible(geomType))
+			D_VERIFY(mPxActor->attachShape(*shape));
+		else
+			D_LOG_WARN(std::format("Dyanmic actor is not compatible with geometry type {}", GetGeometryTypeStr(geomType)));
+
 		mColliders[shape] = refComponent->GetComponentName();
 		mCollidersLookup[name] = shape;
+		shape->acquireReference();
 
 		return shape;
 	}
@@ -97,8 +139,10 @@ namespace Darius::Physics
 		D_ASSERT(shape);
 		mCollidersLookup.erase(compName);
 		mColliders.erase(shape);
-		mPxActor->detachShape(*shape);
 
+		if (shape->getActor() == mPxActor)
+			mPxActor->detachShape(*shape);
+		shape->release();
 		D_ASSERT(mColliders.size() == mCollidersLookup.size());
 
 		RemoveActorIfNecessary();
@@ -106,7 +150,7 @@ namespace Darius::Physics
 
 	bool PhysicsActor::RemoveActorIfNecessary()
 	{
-		if (!IsDynamic() && mColliders.size() == 0)
+		if (mColliders.size() == 0)
 		{
 			mScene->RemoveActor(this);
 			mValid = false;
@@ -116,10 +160,34 @@ namespace Darius::Physics
 		return false;
 	}
 
+	void PhysicsActor::SetDynamic(bool dynamic)
+	{
+		if (mDynamic == dynamic)
+			return;
+
+		mDynamic = dynamic;
+		mDynamicDirty = true;
+	}
+
 	void PhysicsActor::ForceRemoveActor()
 	{
 		mScene->RemoveActor(this);
 		mValid = false;
+	}
+
+	bool PhysicsActor::IsGeometryCompatible(physx::PxGeometryType::Enum type)
+	{
+		switch (type)
+		{
+		case PxGeometryType::Enum::eSPHERE:
+		case PxGeometryType::Enum::eCAPSULE:
+		case PxGeometryType::Enum::eBOX:
+		case PxGeometryType::Enum::eCONVEXMESH:
+		case PxGeometryType::Enum::ePLANE:
+			return true;
+		default:
+			return !mDynamic;
+		}
 	}
 
 	void PhysicsActor::TransferShapes(physx::PxRigidActor* actor)
@@ -128,13 +196,23 @@ namespace Darius::Physics
 		D_ASSERT(actor);
 
 		D_ASSERT((UINT)mPxActor->getNbShapes() == (UINT)mColliders.size());
+
+		for (auto& [shape, _] : mColliders)
+		{
+			mPxActor->detachShape(*shape);
+
+			if (!IsGeometryCompatible(shape->getGeometry().getType()))
+				continue;
+
+			D_ASSERT(actor->attachShape(*shape));
+		}
 	}
 
 	void PhysicsActor::InitializeActor()
 	{
 		D_ASSERT(mGameObject && mGameObject->IsValid());
 
-		if (mPxActor)
+		if (mPxActor && !mDynamicDirty)
 			return;
 
 		auto physics = D_PHYSICS::GetCore();
@@ -166,6 +244,7 @@ namespace Darius::Physics
 		mScene->mPxScene->addActor(*mPxActor);
 
 		mValid = true;
+		mDynamicDirty = false;
 	}
 
 	void PhysicsActor::PreUpdate()
@@ -182,7 +261,7 @@ namespace Darius::Physics
 		D_MATH::Transform physicsTrans = D_PHYSICS::GetTransform(mPxActor->getGlobalPose());
 
 		physicsTrans.Scale = preTrans->GetScale();
-		
+
 		preTrans->SetWorld(D_MATH::Matrix4(physicsTrans.GetWorld()));
 	}
 }
