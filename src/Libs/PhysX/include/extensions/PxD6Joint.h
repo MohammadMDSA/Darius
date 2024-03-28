@@ -1,4 +1,3 @@
-//
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions
 // are met:
@@ -23,12 +22,12 @@
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
-// Copyright (c) 2008-2021 NVIDIA Corporation. All rights reserved.
+// Copyright (c) 2008-2023 NVIDIA Corporation. All rights reserved.
 // Copyright (c) 2004-2008 AGEIA Technologies, Inc. All rights reserved.
 // Copyright (c) 2001-2004 NovodeX AG. All rights reserved.  
 
-#ifndef PX_D6JOINT_H
-#define PX_D6JOINT_H
+#ifndef PX_D6_JOINT_H
+#define PX_D6_JOINT_H
 /** \addtogroup extensions
   @{
 */
@@ -144,13 +143,6 @@ PX_FLAGS_OPERATORS(PxD6JointDriveFlag::Enum, PxU32)
 */
 class PxD6JointDrive : public PxSpring
 {
-//= ATTENTION! =====================================================================================
-// Changing the data layout of this class breaks the binary serialization format.  See comments for 
-// PX_BINARY_SERIAL_VERSION.  If a modification is required, please adjust the getBinaryMetaData 
-// function.  If the modification is made on a custom branch, please change PX_BINARY_SERIAL_VERSION
-// accordingly.
-//==================================================================================================
-
 public:
 	PxReal					forceLimit;			//!< the force limit of the drive - may be an impulse or a force depending on PxConstraintFlag::eDRIVE_LIMITS_ARE_FORCES
 	PxD6JointDriveFlags		flags;				//!< the joint drive flags 
@@ -429,7 +421,8 @@ public:
 	<b>Default</b> the identity transform
 
 	\param[in] pose The goal drive pose if positional drive is in use. 
-	\param[in] autowake Whether to wake the joint rigids up if it is asleep.
+	\param[in] autowake If true and the attached actors are in a scene, this call wakes them up and increases their
+	wake counters to #PxSceneDesc::wakeCounterResetValue if the counter value is below the reset value.
 
 	@see setDrivePosition()
 	*/
@@ -449,7 +442,8 @@ public:
 
 	\param[in] linear The goal velocity for linear drive
 	\param[in] angular The goal velocity for angular drive
-	\param[in] autowake Whether to wake the joint rigids up if it is asleep.
+	\param[in] autowake If true and the attached actors are in a scene, this call wakes them up and increases their
+	wake counters to #PxSceneDesc::wakeCounterResetValue if the counter value is below the reset value.
 
 	@see getDriveVelocity()
 	*/
@@ -464,67 +458,6 @@ public:
 	@see setDriveVelocity()
 	*/
 	virtual void				getDriveVelocity(PxVec3& linear, PxVec3& angular)	const	= 0;
-	
-	/**
-	\brief Set the linear tolerance threshold for projection. Projection is enabled if PxConstraintFlag::ePROJECTION
-	is set for the joint.
-
-	If the joint separates by more than this distance along its locked degrees of freedom, the solver 
-	will move the bodies to close the distance.
-
-	Setting a very small tolerance may result in simulation jitter or other artifacts.
-
-	Sometimes it is not possible to project (for example when the joints form a cycle).
-
-	<b>Range:</b> [0, PX_MAX_F32)<br>
-	<b>Default:</b> 1e10f
-
-	\param[in] tolerance the linear tolerance threshold
-
-	@see getProjectionLinearTolerance() PxJoint::setConstraintFlags() PxConstraintFlag::ePROJECTION
-	*/
-	virtual void				setProjectionLinearTolerance(PxReal tolerance)	= 0;
-
-	/**
-	\brief Get the linear tolerance threshold for projection.
-
-	\return the linear tolerance threshold
-
-	@see setProjectionLinearTolerance()
-	*/
-	virtual PxReal				getProjectionLinearTolerance()	const	= 0;
-
-	/**
-	\brief Set the angular tolerance threshold for projection. Projection is enabled if 
-	PxConstraintFlag::ePROJECTION is set for the joint.
-
-	If the joint deviates by more than this angle around its locked angular degrees of freedom, 
-	the solver will move the bodies to close the angle.
-	
-	Setting a very small tolerance may result in simulation jitter or other artifacts.
-
-	Sometimes it is not possible to project (for example when the joints form a cycle).
-
-	<b>Range:</b> [0,Pi] <br>
-	<b>Default:</b> Pi
-
-	\param[in] tolerance the angular tolerance threshold in radians
-
-	\note 
-	Angular projection is implemented only for the case of two or three locked angular degrees of freedom.
-
-	@see getProjectionAngularTolerance() PxJoint::setConstraintFlag() PxConstraintFlag::ePROJECTION
-	*/
-	virtual void				setProjectionAngularTolerance(PxReal tolerance)	= 0;
-
-	/**
-	\brief Get the angular tolerance threshold for projection.
-
-	\return tolerance the angular tolerance threshold in radians
-
-	@see setProjectionAngularTolerance()
-	*/
-	virtual PxReal				getProjectionAngularTolerance()	const	= 0;
 
 	/**
 	\brief Returns string name of PxD6Joint, used for serialization
@@ -548,7 +481,7 @@ protected:
 	/**
 	\brief Returns whether a given type name matches with the type of this instance
 	*/
-	virtual	bool				isKindOf(const char* name) const { return !::strcmp("PxD6Joint", name) || PxJoint::isKindOf(name); }
+	virtual	bool				isKindOf(const char* name) const { PX_IS_KIND_OF(name, "PxD6Joint", PxJoint); }
 
 	//~serialization
 };

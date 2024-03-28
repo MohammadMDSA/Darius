@@ -1,4 +1,3 @@
-//
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions
 // are met:
@@ -23,12 +22,12 @@
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
-// Copyright (c) 2008-2021 NVIDIA Corporation. All rights reserved.
+// Copyright (c) 2008-2023 NVIDIA Corporation. All rights reserved.
 // Copyright (c) 2004-2008 AGEIA Technologies, Inc. All rights reserved.
 // Copyright (c) 2001-2004 NovodeX AG. All rights reserved.  
 
-#ifndef PX_PHYSICS_NX_CONSTRAINTDESC
-#define PX_PHYSICS_NX_CONSTRAINTDESC
+#ifndef PX_CONSTRAINT_DESC_H
+#define PX_CONSTRAINT_DESC_H
 
 /** \addtogroup physics
 @{
@@ -52,15 +51,8 @@ namespace physx
 {
 #endif
 
-class PxConstraintConnector;
-class PxRigidActor;
-class PxScene;
-class PxConstraintConnector;
-class PxRenderBuffer;
-class PxDeletionListener;
-
 /**
- \brief constraint row flags
+ \brief Constraint row flags
 
  These flags configure the post-processing of constraint rows and the behavior of the solver while solving constraints
 */
@@ -76,8 +68,8 @@ struct Px1DConstraintFlag
 		eKEEPBIAS				= 1<<3,	//!< whether to keep the error term when solving for velocity. Ignored if restitution generates bounce, or eSPRING is set.
 		eOUTPUT_FORCE			= 1<<4,	//!< whether to accumulate the force value from this constraint in the force total that is reported for the constraint and tested for breakage
 		eHAS_DRIVE_LIMIT		= 1<<5,	//!< whether the constraint has a drive force limit (which will be scaled by dt unless PxConstraintFlag::eLIMITS_ARE_FORCES is set)
-		eANGULAR_CONSTRAINT		= 1 << 6,//!< Whether this is an angular or linear constraint
-		eDRIVE_ROW				= 1 << 7
+		eANGULAR_CONSTRAINT		= 1<<6,	//!< whether this is an angular or linear constraint
+		eDEPRECATED_DRIVE_ROW	= 1<<7	//!< whether the constraint's geometric error should drive the target velocity
 	};
 };
 
@@ -85,7 +77,7 @@ typedef PxFlags<Px1DConstraintFlag::Type, PxU16> Px1DConstraintFlags;
 PX_FLAGS_OPERATORS(Px1DConstraintFlag::Type, PxU16)
 
 /**
-\brief constraint type hints which the solver uses to optimize constraint handling
+\brief Constraint type hints which the solver uses to optimize constraint handling
 */
 struct PxConstraintSolveHint
 {
@@ -104,7 +96,7 @@ struct PxConstraintSolveHint
 };
 
 /**
-\brief A constraint
+\brief A one-dimensional constraint
 
 A constraint is expressed as a set of 1-dimensional constraint rows which define the required constraint
 on the objects' velocities. 
@@ -140,36 +132,35 @@ All constraints support limits on the minimum or maximum impulse applied.
 PX_ALIGN_PREFIX(16)
 struct Px1DConstraint
 {
-	PxVec3				linear0;				//!< linear component of velocity jacobian in world space
-	PxReal				geometricError;			//!< geometric error of the constraint along this axis
-	PxVec3				angular0;				//!< angular component of velocity jacobian in world space
-	PxReal				velocityTarget;			//!< velocity target for the constraint along this axis
+	PxVec3			linear0;			//!< linear component of velocity jacobian in world space
+	PxReal			geometricError;		//!< geometric error of the constraint along this axis
+	PxVec3			angular0;			//!< angular component of velocity jacobian in world space
+	PxReal			velocityTarget;		//!< velocity target for the constraint along this axis
 
-	PxVec3				linear1;				//!< linear component of velocity jacobian in world space
-	PxReal				minImpulse;				//!< minimum impulse the solver may apply to enforce this constraint
-	PxVec3				angular1;				//!< angular component of velocity jacobian in world space
-	PxReal				maxImpulse;				//!< maximum impulse the solver may apply to enforce this constraint
+	PxVec3			linear1;			//!< linear component of velocity jacobian in world space
+	PxReal			minImpulse;			//!< minimum impulse the solver may apply to enforce this constraint
+	PxVec3			angular1;			//!< angular component of velocity jacobian in world space
+	PxReal			maxImpulse;			//!< maximum impulse the solver may apply to enforce this constraint
 
 	union
 	{
 		struct SpringModifiers
 		{
-			PxReal		stiffness;				//!< spring parameter, for spring constraints
-			PxReal		damping;				//!< damping parameter, for spring constraints
+			PxReal	stiffness;			//!< spring parameter, for spring constraints
+			PxReal	damping;			//!< damping parameter, for spring constraints
 		} spring;
 		struct RestitutionModifiers
 		{
-			PxReal		restitution;			//!< restitution parameter for determining additional "bounce"
-			PxReal		velocityThreshold;		//!< minimum impact velocity for bounce
+			PxReal	restitution;		//!< restitution parameter for determining additional "bounce"
+			PxReal	velocityThreshold;	//!< minimum impact velocity for bounce
 		} bounce;
 	} mods;
 
-	PxReal				forInternalUse;			//!< for internal use only
-	PxU16				flags;					//!< a set of Px1DConstraintFlags
-	PxU16				solveHint;				//!< constraint optimization hint, should be an element of PxConstraintSolveHint
-} 
+	PxReal			forInternalUse;		//!< for internal use only
+	PxU16			flags;				//!< a set of Px1DConstraintFlags
+	PxU16			solveHint;			//!< constraint optimization hint, should be an element of PxConstraintSolveHint
+}
 PX_ALIGN_SUFFIX(16);
-
 
 /** 
 \brief Flags for determining which components of the constraint should be visualized.
@@ -185,16 +176,12 @@ struct PxConstraintVisualizationFlag
 	};
 };
 
+/**
+\brief Struct for specifying mass scaling for a pair of rigids
+*/
 PX_ALIGN_PREFIX(16)
 struct PxConstraintInvMassScale
 {
-//= ATTENTION! =====================================================================================
-// Changing the data layout of this class breaks the binary serialization format.  See comments for 
-// PX_BINARY_SERIAL_VERSION.  If a modification is required, please adjust the getBinaryMetaData 
-// function.  If the modification is made on a custom branch, please change PX_BINARY_SERIAL_VERSION
-// accordingly.
-//==================================================================================================
-
 	PxReal linear0;		//!< multiplier for inverse mass of body0
 	PxReal angular0;	//!< multiplier for inverse MoI of body0
 	PxReal linear1;		//!< multiplier for inverse mass of body1
@@ -205,7 +192,8 @@ struct PxConstraintInvMassScale
 }
 PX_ALIGN_SUFFIX(16);
 
-/** solver constraint generation shader
+/**
+\brief Solver constraint generation shader
 
 This function is called by the constraint solver framework. The function must be reentrant, since it may be called simultaneously
 from multiple threads, and should access only the arguments passed into it.
@@ -226,82 +214,63 @@ Developers writing custom constraints are encouraged to read the documentation i
 \return the number of constraint rows written.
 */
 typedef PxU32 (*PxConstraintSolverPrep)(Px1DConstraint* constraints,
-										PxVec3& bodyAWorldOffset,
+										PxVec3p& bodyAWorldOffset,
 										PxU32 maxConstraints,
 										PxConstraintInvMassScale& invMassScale,
 										const void* constantBlock,
 										const PxTransform& bodyAToWorld,
 										const PxTransform& bodyBToWorld,
 										bool useExtendedLimits,
-										PxVec3& cAtW,
-										PxVec3& cBtW);
-
-/** solver constraint projection shader
-
-This function is called by the constraint post-solver framework. The function must be reentrant, since it may be called simultaneously
-from multiple threads and should access only the arguments passed into it.
-
-\param[in] constantBlock	The constant data block
-\param[out] bodyAToWorld	The center of mass frame of the first constrained body (the identity if the actor is static or a NULL pointer was provided for it)
-\param[out] bodyBToWorld	The center of mass frame of the second constrained body (the identity if the actor is static or a NULL pointer was provided for it)
-\param[in] projectToA		True if the constraint should be projected by moving the second body towards the first, false if the converse
-*/
-typedef void (*PxConstraintProject)(const void* constantBlock,
-									PxTransform& bodyAToWorld,
-									PxTransform& bodyBToWorld,
-									bool projectToA);
+										PxVec3p& cAtW,
+										PxVec3p& cBtW);
 
 /**
-	API used to visualize details about a constraint.
+\brief API used to visualize details about a constraint.
 */
 class PxConstraintVisualizer
 {
 protected:
 	virtual ~PxConstraintVisualizer(){}
 public:
-	/** Visualize joint frames
+	/** \brief Visualize joint frames
 
 	\param[in] parent	Parent transformation
 	\param[in] child	Child transformation
 	*/
 	virtual void visualizeJointFrames(const PxTransform& parent, const PxTransform& child) = 0;
 
-	/** Visualize joint linear limit
+	/** \brief Visualize joint linear limit
 
-	\param[in] t0	Base transformation
-	\param[in] t1	End transformation
+	\param[in] t0		Base transformation
+	\param[in] t1		End transformation
 	\param[in] value	Distance
-	\param[in] active	State of the joint - active/inactive
 	*/
-	virtual void visualizeLinearLimit(const PxTransform& t0, const PxTransform& t1, PxReal value, bool active) = 0;
+	virtual void visualizeLinearLimit(const PxTransform& t0, const PxTransform& t1, PxReal value) = 0;
 
-	/** Visualize joint angular limit
+	/** \brief Visualize joint angular limit
 
-	\param[in] t0	Transformation for the visualization
-	\param[in] lower Lower limit angle
-	\param[in] upper Upper limit angle
-	\param[in] active	State of the joint - active/inactive
+	\param[in] t0		Transformation for the visualization
+	\param[in] lower	Lower limit angle
+	\param[in] upper	Upper limit angle
 	*/
-	virtual void visualizeAngularLimit(const PxTransform& t0, PxReal lower, PxReal upper, bool active) = 0;
+	virtual void visualizeAngularLimit(const PxTransform& t0, PxReal lower, PxReal upper) = 0;
 
-	/** Visualize limit cone
+	/** \brief Visualize limit cone
 
-	\param[in] t	Transformation for the visualization
+	\param[in] t			Transformation for the visualization
 	\param[in] tanQSwingY	Tangent of the quarter Y angle 
 	\param[in] tanQSwingZ	Tangent of the quarter Z angle 
-	\param[in] active	State of the joint - active/inactive
 	*/
-	virtual void visualizeLimitCone(const PxTransform& t, PxReal tanQSwingY, PxReal tanQSwingZ, bool active) = 0;
+	virtual void visualizeLimitCone(const PxTransform& t, PxReal tanQSwingY, PxReal tanQSwingZ) = 0;
 
-	/** Visualize joint double cone
+	/** \brief Visualize joint double cone
 
-	\param[in] t	Transformation for the visualization
-	\param[in] angle Limit angle
-	\param[in] active	State of the joint - active/inactive
+	\param[in] t		Transformation for the visualization
+	\param[in] angle	Limit angle
 	*/
-	virtual void visualizeDoubleCone(const PxTransform& t, PxReal angle, bool active) = 0;
+	virtual void visualizeDoubleCone(const PxTransform& t, PxReal angle) = 0;
 
-	/** Visualize line
+	/** \brief Visualize line
 
 	\param[in] p0	Start position
 	\param[in] p1	End postion
@@ -310,7 +279,7 @@ public:
 	virtual void visualizeLine(const PxVec3& p0, const PxVec3& p1, PxU32 color) = 0;
 };
 
-/** solver constraint visualization function
+/** \brief Solver constraint visualization function
 
 This function is called by the constraint post-solver framework to visualize the constraint
 
@@ -328,20 +297,23 @@ typedef void (*PxConstraintVisualize)(PxConstraintVisualizer& visualizer,
 									  const PxTransform& body1Transform,
 									  PxU32 flags);
 
+/**
+\brief Flags for determining how PVD should serialize a constraint update
 
+@see PxConstraintConnector::updatePvdProperties, PvdSceneClient::updateConstraint
+*/
 struct PxPvdUpdateType
 {
 	enum Enum
 	{
-		CREATE_INSTANCE,
-		RELEASE_INSTANCE,
-		UPDATE_ALL_PROPERTIES,
-		UPDATE_SIM_PROPERTIES
+		CREATE_INSTANCE, //!< triggers createPvdInstance call, creates an instance of a constraint
+		RELEASE_INSTANCE, //!< triggers releasePvdInstance call, releases an instance of a constraint
+		UPDATE_ALL_PROPERTIES, //!< triggers updatePvdProperties call, updates all properties of a constraint
+		UPDATE_SIM_PROPERTIES //!< triggers simUpdate call, updates all simulation properties of a constraint
 	};
 };
 
-/** 
-
+/**
 \brief This class connects a custom constraint to the SDK
 
 This class connects a custom constraint to the SDK, and functions are called by the SDK
@@ -352,40 +324,50 @@ the custom constraint's internal implementation
 class PxConstraintConnector
 {
 public:
-	/** 
+	/** \brief Pre-simulation data preparation
 	when the constraint is marked dirty, this function is called at the start of the simulation
 	step for the SDK to copy the constraint data block.
 	*/
-	virtual void*					prepareData()											= 0;
+	virtual void*	prepareData()	= 0;
 
 	/** 
-	this function is called by the SDK to update PVD's view of it
+	\brief this function is called by the SDK to update PVD's view of it
 	*/
-	virtual bool					updatePvdProperties(physx::pvdsdk::PvdDataStream& pvdConnection,
-												const PxConstraint* c,
-												PxPvdUpdateType::Enum updateType) const		= 0;
+	virtual bool	updatePvdProperties(physx::pvdsdk::PvdDataStream& pvdConnection,
+										const PxConstraint* c,
+										PxPvdUpdateType::Enum updateType) const		= 0;
 
-	/** 
+	/**
+	\brief this function is called by the SDK to update OmniPVD's view of it
+	*/
+	virtual void	updateOmniPvdProperties() const		= 0;
+
+	/**
+	\brief Constraint release callback
+
 	When the SDK deletes a PxConstraint object this function is called by the SDK. In general
 	custom constraints should not be deleted directly by applications: rather, the constraint
 	should respond to a release() request by calling PxConstraint::release(), then wait for
-	this call to release its own resources, so that even if the release() call occurs during
-	a simulation step, the deletion of the constraint is buffered until that step completes.
+	this call to release its own resources.
 	
 	This function is also called when a PxConstraint object is deleted on cleanup due to 
 	destruction of the PxPhysics object.
 	*/
-	virtual void					onConstraintRelease()									= 0;
+	virtual void	onConstraintRelease()	= 0;
 
-	/** 
+	/**
+	\brief Center-of-mass shift callback
+
 	This function is called by the SDK when the CoM of one of the actors is moved. Since the
 	API specifies constraint positions relative to actors, and the constraint shader functions
 	are supplied with coordinates relative to bodies, some synchronization is usually required
 	when the application moves an object's center of mass.
 	*/
-	virtual void					onComShift(PxU32 actor)									= 0;
+	virtual void	onComShift(PxU32 actor)	= 0;
 
 	/** 
+	\brief Origin shift callback
+
 	This function is called by the SDK when the scene origin gets shifted and allows to adjust
 	custom data which contains world space transforms.
 
@@ -396,7 +378,7 @@ public:
 
 	@see PxScene.shiftOrigin()
 	*/
-	virtual void					onOriginShift(const PxVec3& shift)						= 0;
+	virtual void	onOriginShift(const PxVec3& shift)	= 0;
 
 	/**
 	\brief Fetches external data for a constraint.
@@ -410,29 +392,34 @@ public:
 
 	@see PxConstraintInfo PxSimulationEventCallback.onConstraintBreak()
 	*/
-	virtual void*					getExternalReference(PxU32& typeID)						= 0;
+	virtual void*	getExternalReference(PxU32& typeID)	= 0;
 
 	/**
 	\brief Obtain a reference to a PxBase interface if the constraint has one.
 
 	If the constraint does not implement the PxBase interface, it should return NULL. 
 	*/
-	virtual PxBase*					getSerializable()										= 0;
+	virtual PxBase*	getSerializable()	= 0;
 
 	/**
 	\brief Obtain the shader function pointer used to prep rows for this constraint
 	*/
-	virtual PxConstraintSolverPrep getPrep()	const										= 0;
+	virtual PxConstraintSolverPrep	getPrep()	const	= 0;
 
 	/**
 	\brief Obtain the pointer to the constraint's constant data
 	*/
-	virtual const void*				getConstantBlock()	const								= 0;
+	virtual const void*	getConstantBlock()	const	= 0;
+
+	/**
+	\brief Let the connector know it has been connected to a constraint.
+	*/
+	virtual	void	connectToConstraint(PxConstraint*)	{}
 
 	/**
 	\brief virtual destructor
 	*/
-	virtual							~PxConstraintConnector() {}
+	virtual	~PxConstraintConnector() {}
 };
 
 #if !PX_DOXYGEN

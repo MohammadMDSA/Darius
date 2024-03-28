@@ -1,4 +1,3 @@
-//
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions
 // are met:
@@ -23,12 +22,12 @@
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
-// Copyright (c) 2008-2021 NVIDIA Corporation. All rights reserved.
+// Copyright (c) 2008-2023 NVIDIA Corporation. All rights reserved.
 // Copyright (c) 2004-2008 AGEIA Technologies, Inc. All rights reserved.
 // Copyright (c) 2001-2004 NovodeX AG. All rights reserved.  
 
-#ifndef PX_DISTANCEJOINT_H
-#define PX_DISTANCEJOINT_H
+#ifndef PX_DISTANCE_JOINT_H
+#define PX_DISTANCE_JOINT_H
 /** \addtogroup extensions
   @{
 */
@@ -256,7 +255,7 @@ protected:
 	/**
 	\brief Returns whether a given type name matches with the type of this instance
 	*/							
-	virtual	bool					isKindOf(const char* name)	const { return !::strcmp("PxDistanceJoint", name) || PxJoint::isKindOf(name);	}
+	virtual	bool					isKindOf(const char* name)	const { PX_IS_KIND_OF(name, "PxDistanceJoint", PxJoint);	}
 
 	//~serialization
 };

@@ -1,4 +1,3 @@
-//
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions
 // are met:
@@ -23,13 +22,12 @@
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
-// Copyright (c) 2008-2021 NVIDIA Corporation. All rights reserved.
+// Copyright (c) 2008-2023 NVIDIA Corporation. All rights reserved.
 // Copyright (c) 2004-2008 AGEIA Technologies, Inc. All rights reserved.
 // Copyright (c) 2001-2004 NovodeX AG. All rights reserved.  
 
-
-#ifndef PX_PHYSICS_NX_FILTERING
-#define PX_PHYSICS_NX_FILTERING
+#ifndef PX_FILTERING_H
+#define PX_FILTERING_H
 /** \addtogroup physics
 @{
 */
@@ -44,8 +42,6 @@ namespace physx
 
 class PxActor;
 class PxShape;
-
-static const PxU32 INVALID_FILTER_PAIR_INDEX = 0xffffffff;
 
 /**
 \brief Collection of flags describing the actions to take for a collision pair.
@@ -365,13 +361,6 @@ PX_FLAGS_OPERATORS(PxFilterFlag::Enum, PxU16)
 */
 struct PxFilterData
 {
-//= ATTENTION! =====================================================================================
-// Changing the data layout of this class breaks the binary serialization format.  See comments for 
-// PX_BINARY_SERIAL_VERSION.  If a modification is required, please adjust the getBinaryMetaData 
-// function.  If the modification is made on a custom branch, please change PX_BINARY_SERIAL_VERSION
-// accordingly.
-//==================================================================================================
-
 	PX_INLINE PxFilterData(const PxEMPTY)
 	{
 	}
@@ -459,14 +448,40 @@ struct PxFilterObjectType
 
 		/**
 		\brief An articulation
-		@see PxArticulation
+		@see PxArticulationReducedCoordinate
 		*/
 		eARTICULATION,
 
-		//brief internal use only!
+		/**
+		\brief A particle system
+		@see PxParticleSystem
+		*/
+		ePARTICLESYSTEM,
+
+		/**
+		\brief A FEM-based soft body
+		@see PxSoftBody
+		*/
+		eSOFTBODY,
+
+		/**
+		\brief A FEM-based cloth
+		\note In development
+		@see PxFEMCloth
+		*/
+		eFEMCLOTH,
+
+		/**
+		\brief A hair system
+		\note In development
+		@see PxHairSystem
+		*/
+		eHAIRSYSTEM,
+
+		//! \brief internal use only!
 		eMAX_TYPE_COUNT = 16,
 
-		//brief internal use only!
+		//! \brief internal use only!
 		eUNDEFINED = eMAX_TYPE_COUNT-1
 	};
 };
@@ -477,8 +492,10 @@ struct PxFilterObjectFlag
 {
 	enum Enum
 	{
-		eKINEMATIC		= (1<<4),
-		eTRIGGER		= (1<<5)
+		eKINEMATIC	= (1<<4),
+		eTRIGGER	= (1<<5),
+
+		eNEXT_FREE	= (1<<6)	// Used internally
 	};
 };
 
@@ -532,25 +549,17 @@ PX_INLINE bool PxFilterObjectIsTrigger(PxFilterObjectAttributes attr)
 	return (attr & PxFilterObjectFlag::eTRIGGER) != 0;
 }
 
-
 /**
-\brief Filter shader to specify handling of collision pairs.
+\brief Filter method to specify how a pair of potentially colliding objects should be processed.
 
 Collision filtering is a mechanism to specify how a pair of potentially colliding objects should be processed by the
 simulation. A pair of objects is potentially colliding if the bounding volumes of the two objects overlap.
 In short, a collision filter decides whether a collision pair should get processed, temporarily ignored or discarded.
 If a collision pair should get processed, the filter can additionally specify how it should get processed, for instance,
 whether contacts should get resolved, which callbacks should get invoked or which reports should be sent etc.
+The function returns the PxFilterFlag flags and sets the PxPairFlag flags to define what the simulation should do with the given collision pair.
 
 \note A default implementation of a filter shader is provided in the PhysX extensions library, see #PxDefaultSimulationFilterShader.
-
-@see PxSceneDesc.filterShader PxSimulationFilterCallback
-*/
-
-/**
-\brief Filter method to specify how a pair of potentially colliding objects should be processed.
-
-Return the PxFilterFlag flags and set the PxPairFlag flags to define what the simulation should do with the given collision pair.
 
 This methods gets called when:
 \li The bounding volumes of two objects start to overlap.
@@ -582,9 +591,8 @@ logic to filter a collision pair then use the filter callback mechanism for this
 \return Filter flags defining whether the pair should be discarded, temporarily ignored, processed and whether the
 filter callback should get invoked for this pair.
 
-@see PxSimulationFilterCallback PxFilterData PxFilterObjectAttributes PxFilterFlag PxFilterFlags PxPairFlag PxPairFlags
+@see PxSimulationFilterCallback PxFilterData PxFilterObjectAttributes PxFilterFlag PxFilterFlags PxPairFlag PxPairFlags PxSceneDesc.filterShader
 */
-
 typedef PxFilterFlags (*PxSimulationFilterShader)
 	(PxFilterObjectAttributes attributes0, PxFilterData filterData0, 
 	 PxFilterObjectAttributes attributes1, PxFilterData filterData1,
@@ -626,25 +634,25 @@ public:
 	Return the PxFilterFlag flags and set the PxPairFlag flags to define what the simulation should do with the given 
 	collision pair.
 
-	\param[in] pairID Unique ID of the collision pair used to issue filter status changes for the pair (see #statusChange())
-	\param[in] attributes0 The filter attribute of the first object
-	\param[in] filterData0 The custom filter data of the first object
-	\param[in] a0 Actor pointer of the first object
-	\param[in] s0 Shape pointer of the first object (NULL if the object has no shapes)
-	\param[in] attributes1 The filter attribute of the second object
-	\param[in] filterData1 The custom filter data of the second object
-	\param[in] a1 Actor pointer of the second object
-	\param[in] s1 Shape pointer of the second object (NULL if the object has no shapes)
-	\param[in,out] pairFlags In: Pair flags returned by the filter shader. Out: Additional information on how an accepted pair should get processed
+	\param[in] pairID			Unique ID of the collision pair used to issue filter status changes for the pair (see #statusChange())
+	\param[in] attributes0		The filter attribute of the first object
+	\param[in] filterData0		The custom filter data of the first object
+	\param[in] a0				Actor pointer of the first object
+	\param[in] s0				Shape pointer of the first object (NULL if the object has no shapes)
+	\param[in] attributes1		The filter attribute of the second object
+	\param[in] filterData1		The custom filter data of the second object
+	\param[in] a1				Actor pointer of the second object
+	\param[in] s1				Shape pointer of the second object (NULL if the object has no shapes)
+	\param[in,out] pairFlags	In: Pair flags returned by the filter shader. Out: Additional information on how an accepted pair should get processed
 	\return Filter flags defining whether the pair should be discarded, temporarily ignored or processed and whether the pair
 	should be tracked and send a report on pair deletion through the filter callback
 
 	@see PxSimulationFilterShader PxFilterData PxFilterObjectAttributes PxFilterFlag PxPairFlag
 	*/
-	virtual		PxFilterFlags	pairFound(	PxU32 pairID,
-		PxFilterObjectAttributes attributes0, PxFilterData filterData0, const PxActor* a0, const PxShape* s0,
-		PxFilterObjectAttributes attributes1, PxFilterData filterData1, const PxActor* a1, const PxShape* s1,
-		PxPairFlags& pairFlags) = 0;
+	virtual		PxFilterFlags	pairFound(	PxU64 pairID,
+											PxFilterObjectAttributes attributes0, PxFilterData filterData0, const PxActor* a0, const PxShape* s0,
+											PxFilterObjectAttributes attributes1, PxFilterData filterData1, const PxActor* a1, const PxShape* s1,
+											PxPairFlags& pairFlags) = 0;
 
 	/**
 	\brief Callback to inform that a tracked collision pair is gone.
@@ -652,21 +660,19 @@ public:
 	This method gets called when a collision pair disappears or gets re-filtered. Only applies to
 	collision pairs which have been marked as filter callback pairs (#PxFilterFlag::eNOTIFY set in #pairFound()).
 
-	\param[in] pairID Unique ID of the collision pair that disappeared
-	\param[in] attributes0 The filter attribute of the first object
-	\param[in] filterData0 The custom filter data of the first object
-	\param[in] attributes1 The filter attribute of the second object
-	\param[in] filterData1 The custom filter data of the second object
-	\param[in] objectRemoved True if the pair was lost because one of the objects got removed from the scene
+	\param[in] pairID			Unique ID of the collision pair that disappeared
+	\param[in] attributes0		The filter attribute of the first object
+	\param[in] filterData0		The custom filter data of the first object
+	\param[in] attributes1		The filter attribute of the second object
+	\param[in] filterData1		The custom filter data of the second object
+	\param[in] objectRemoved	True if the pair was lost because one of the objects got removed from the scene
 
 	@see pairFound() PxSimulationFilterShader PxFilterData PxFilterObjectAttributes
 	*/
-	virtual		void			pairLost(	PxU32 pairID,
-		PxFilterObjectAttributes attributes0,
-		PxFilterData filterData0,
-		PxFilterObjectAttributes attributes1,
-		PxFilterData filterData1,
-		bool objectRemoved) = 0;
+	virtual		void			pairLost(	PxU64 pairID,
+											PxFilterObjectAttributes attributes0, PxFilterData filterData0,
+											PxFilterObjectAttributes attributes1, PxFilterData filterData1,
+											bool objectRemoved) = 0;
 
 	/**
 	\brief Callback to give the opportunity to change the filter state of a tracked collision pair.
@@ -682,15 +688,15 @@ public:
 	\note The application is responsible to ensure that this method does not get called for pairs that have been
 	reported as lost, see #pairLost().
 
-	\param[out] pairID ID of the collision pair for which the filter status should be changed
-	\param[out] pairFlags The new pairFlags to apply to the collision pair
-	\param[out] filterFlags The new filterFlags to apply to the collision pair
+	\param[out] pairID			ID of the collision pair for which the filter status should be changed
+	\param[out] pairFlags		The new pairFlags to apply to the collision pair
+	\param[out] filterFlags		The new filterFlags to apply to the collision pair
 	\return True if the changes should be applied. In this case the method will get called again. False if
 	no more status changes should be done in the current simulation step. In that case the provided flags will be discarded.
 
 	@see pairFound() pairLost() PxFilterFlag PxPairFlag
 	*/
-	virtual		bool			statusChange(PxU32& pairID, PxPairFlags& pairFlags, PxFilterFlags& filterFlags) = 0;
+	virtual		bool			statusChange(PxU64& pairID, PxPairFlags& pairFlags, PxFilterFlags& filterFlags) = 0;
 
 protected:
 	virtual						~PxSimulationFilterCallback() {}
@@ -701,7 +707,7 @@ struct PxPairFilteringMode
 	enum Enum
 	{
 		/**
-		Output pair from BP, potentially send to user callbacks, create regular interaction object.
+		\brief Output pair from BP, potentially send to user callbacks, create regular interaction object.
 
 		Enable contact pair filtering between kinematic/static or kinematic/kinematic rigid bodies.
 		
@@ -713,20 +719,56 @@ struct PxPairFilteringMode
 		eKEEP,
 
 		/**
-		Output pair from BP, create interaction marker. Can be later switched to regular interaction.
+		\brief Output pair from BP, create interaction marker. Can be later switched to regular interaction.
 		*/
 		eSUPPRESS,
 
 		/**
-		Don't output pair from BP. Cannot be later switched to regular interaction, needs "resetFiltering" call.
+		\brief Don't output pair from BP. Cannot be later switched to regular interaction, needs "resetFiltering" call.
 		*/
 		eKILL,
 
 		/**
-		Default is eSUPPRESS for compatibility with previous PhysX versions.
+		\brief Default is eSUPPRESS for compatibility with previous PhysX versions.
 		*/
 		eDEFAULT = eSUPPRESS
 	};
+};
+
+/**
+\brief Struct for storing a particle/vertex - rigid filter pair with comparison operators
+*/
+struct PxParticleRigidFilterPair
+{
+	PX_CUDA_CALLABLE PxParticleRigidFilterPair() {}
+
+	PX_CUDA_CALLABLE PxParticleRigidFilterPair(const PxU64 id0, const PxU64 id1): mID0(id0), mID1(id1) {}
+
+	PxU64 mID0; //!< Rigid node index
+	PxU64 mID1; //!< Particle/vertex id
+
+	PX_CUDA_CALLABLE bool operator<(const PxParticleRigidFilterPair& other) const
+	{
+		if(mID0 < other.mID0)
+			return true;
+		if(mID0 == other.mID0 && mID1 < other.mID1)
+			return true;
+		return false;
+	}
+
+	PX_CUDA_CALLABLE bool operator>(const PxParticleRigidFilterPair& other) const
+	{
+		if(mID0 > other.mID0)
+			return true;
+		if(mID0 == other.mID0 && mID1 > other.mID1)
+			return true;
+		return false;
+	}
+
+	PX_CUDA_CALLABLE bool operator==(const PxParticleRigidFilterPair& other) const
+	{
+		return (mID0 == other.mID0 && mID1 == other.mID1);
+	}
 };
 
 

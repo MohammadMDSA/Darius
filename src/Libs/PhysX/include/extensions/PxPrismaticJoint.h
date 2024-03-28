@@ -1,4 +1,3 @@
-//
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions
 // are met:
@@ -23,12 +22,12 @@
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
-// Copyright (c) 2008-2021 NVIDIA Corporation. All rights reserved.
+// Copyright (c) 2008-2023 NVIDIA Corporation. All rights reserved.
 // Copyright (c) 2004-2008 AGEIA Technologies, Inc. All rights reserved.
 // Copyright (c) 2001-2004 NovodeX AG. All rights reserved.  
 
-#ifndef PX_PRISMATICJOINT_H
-#define PX_PRISMATICJOINT_H
+#ifndef PX_PRISMATIC_JOINT_H
+#define PX_PRISMATIC_JOINT_H
 /** \addtogroup extensions
   @{
 */
@@ -146,63 +145,6 @@ public:
 	virtual PxPrismaticJointFlags	getPrismaticJointFlags()	const	= 0;
 
 	/**
-	\brief Set the linear tolerance threshold for projection.
-
-	If the joint separates by more than this distance along its locked degrees of freedom, the solver 
-	will move the bodies to close the distance. 
-
-	Setting a very small tolerance may result in simulation jitter or other artifacts.
-
-	Sometimes it is not possible to project (for example when the joints form a cycle).
-
-	This value must be nonnegative.
-
-	<b>Range:</b> [0, PX_MAX_F32)<br>
-	<b>Default:</b> 1e10f
-
-	\param[in] tolerance the linear tolerance threshold
-
-	@see getProjectionLinearTolerance()
-	*/
-	virtual void			setProjectionLinearTolerance(PxReal tolerance)	= 0;
-
-	/**
-	\brief Get the linear tolerance threshold for projection.
-
-	\return the linear tolerance threshold in radians
-
-	@see setProjectionLinearTolerance()
-	*/
-	virtual PxReal			getProjectionLinearTolerance()	const	= 0;
-
-	/**
-	\brief Set the angular tolerance threshold for projection. Projection is enabled if PxConstraintFlag::ePROJECTION
-	is set for the joint.
-
-	If the joint separates by more than this distance along its locked degrees of freedom, the solver 
-	will move the bodies to close the distance.
-
-	Setting a very small tolerance may result in simulation jitter or other artifacts.
-
-	Sometimes it is not possible to project (for example when the joints form a cycle).
-
-	<b>Range:</b> [0, PX_MAX_F32)<br>
-	<b>Default:</b> Pi
-
-	\param[in] tolerance the linear tolerance threshold
-
-	@see getProjectionLinearTolerance() PxJoint::setConstraintFlags()
-	*/
-	virtual void			setProjectionAngularTolerance(PxReal tolerance)	= 0;
-
-	/**
-	\brief Get the angular tolerance threshold for projection.
-
-	@see getProjectionAngularTolerance()
-	*/
-	virtual PxReal			getProjectionAngularTolerance()	const	= 0;
-
-	/**
 	\brief Returns string name of PxPrismaticJoint, used for serialization
 	*/
 	virtual	const char*		getConcreteTypeName() const { return "PxPrismaticJoint"; }
@@ -223,7 +165,7 @@ protected:
 	/**
 	\brief Returns whether a given type name matches with the type of this instance
 	*/
-	virtual	bool			isKindOf(const char* name) const {	return !::strcmp("PxPrismaticJoint", name) || PxJoint::isKindOf(name); }
+	virtual	bool			isKindOf(const char* name) const {	PX_IS_KIND_OF(name, "PxPrismaticJoint", PxJoint); }
 	
 	//~serialization
 };

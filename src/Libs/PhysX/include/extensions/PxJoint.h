@@ -1,4 +1,3 @@
-//
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions
 // are met:
@@ -23,12 +22,12 @@
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
-// Copyright (c) 2008-2021 NVIDIA Corporation. All rights reserved.
+// Copyright (c) 2008-2023 NVIDIA Corporation. All rights reserved.
 // Copyright (c) 2004-2008 AGEIA Technologies, Inc. All rights reserved.
 // Copyright (c) 2001-2004 NovodeX AG. All rights reserved.  
 
-#ifndef PX_JOINTCONSTRAINT_H
-#define PX_JOINTCONSTRAINT_H
+#ifndef PX_JOINT_H
+#define PX_JOINT_H
 /** \addtogroup extensions
   @{
 */
@@ -64,18 +63,22 @@ struct PxJointConcreteType
 		eDISTANCE,
 		eD6,
 		eCONTACT,
+		eGEAR,
+		eRACK_AND_PINION,
 		eLast
 	};
 };
 
-PX_DEFINE_TYPEINFO(PxJoint,				PxConcreteType::eUNDEFINED)
-PX_DEFINE_TYPEINFO(PxD6Joint,			PxJointConcreteType::eD6)
-PX_DEFINE_TYPEINFO(PxDistanceJoint,		PxJointConcreteType::eDISTANCE)
-PX_DEFINE_TYPEINFO(PxContactJoint,		PxJointConcreteType::eCONTACT)
-PX_DEFINE_TYPEINFO(PxFixedJoint,		PxJointConcreteType::eFIXED)
-PX_DEFINE_TYPEINFO(PxPrismaticJoint,	PxJointConcreteType::ePRISMATIC)
-PX_DEFINE_TYPEINFO(PxRevoluteJoint,		PxJointConcreteType::eREVOLUTE)
-PX_DEFINE_TYPEINFO(PxSphericalJoint,	PxJointConcreteType::eSPHERICAL)
+PX_DEFINE_TYPEINFO(PxJoint,					PxConcreteType::eUNDEFINED)
+PX_DEFINE_TYPEINFO(PxRackAndPinionJoint,	PxJointConcreteType::eRACK_AND_PINION)
+PX_DEFINE_TYPEINFO(PxGearJoint,				PxJointConcreteType::eGEAR)
+PX_DEFINE_TYPEINFO(PxD6Joint,				PxJointConcreteType::eD6)
+PX_DEFINE_TYPEINFO(PxDistanceJoint,			PxJointConcreteType::eDISTANCE)
+PX_DEFINE_TYPEINFO(PxContactJoint,			PxJointConcreteType::eCONTACT)
+PX_DEFINE_TYPEINFO(PxFixedJoint,			PxJointConcreteType::eFIXED)
+PX_DEFINE_TYPEINFO(PxPrismaticJoint,		PxJointConcreteType::ePRISMATIC)
+PX_DEFINE_TYPEINFO(PxRevoluteJoint,			PxJointConcreteType::eREVOLUTE)
+PX_DEFINE_TYPEINFO(PxSphericalJoint,		PxJointConcreteType::eSPHERICAL)
 
 
 /**
@@ -100,12 +103,6 @@ struct PxJointActorIndex
 
 class PxJoint : public PxBase
 {
-//= ATTENTION! =====================================================================================
-// Changing the data layout of this class breaks the binary serialization format.  See comments for 
-// PX_BINARY_SERIAL_VERSION.  If a modification is required, please adjust the getBinaryMetaData 
-// function.  If the modification is made on a custom branch, please change PX_BINARY_SERIAL_VERSION
-// accordingly.
-//==================================================================================================
 public:
 
 	/**
@@ -373,19 +370,13 @@ protected:
 	/**
 	\brief Returns whether a given type name matches with the type of this instance
 	*/
-	virtual	bool				isKindOf(const char* name) const { return !::strcmp("PxJoint", name) || PxBase::isKindOf(name); }
+	virtual	bool				isKindOf(const char* name) const { PX_IS_KIND_OF(name, "PxJoint", PxBase); }
 
 	//~serialization
 };
 
 class PxSpring
 {
-//= ATTENTION! =====================================================================================
-// Changing the data layout of this class breaks the binary serialization format.  See comments for 
-// PX_BINARY_SERIAL_VERSION.  If a modification is required, please adjust the getBinaryMetaData 
-// function.  If the modification is made on a custom branch, please change PX_BINARY_SERIAL_VERSION
-// accordingly.
-//==================================================================================================
 public:
 
 	PxReal	stiffness;	//!< the spring strength of the drive: that is, the force proportional to the position error
