@@ -15,11 +15,16 @@
 
 namespace Darius::Core::Serialization
 {
-
+	// Provides a context for serialization to know the strategy of changing references of nested entities
 	struct SerializationContext
 	{
+		// Maintain references between nested entities
 		bool							Rereference = false;
+
+		// Maintain references to external entities
 		bool							MaintainExternalReferences = true;
+
+		// Reference map to lookup from
 		D_CONTAINERS::DUnorderedMap<D_CORE::Uuid, D_CORE::Uuid, D_CORE::UuidHasher> const&	ReferenceMap;
 	};
 

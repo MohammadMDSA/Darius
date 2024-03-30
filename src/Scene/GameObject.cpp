@@ -54,7 +54,6 @@ namespace Darius::Scene
 			{
 				RemoveComponentRoutine(comp);
 			});
-
 	}
 
 	void GameObject::OnPreDestroy()
@@ -431,6 +430,16 @@ namespace Darius::Scene
 
 		RemoveComponentRoutine(comp);
 		mEntity.remove(compId);
+	}
+
+	bool GameObject::HasComponent(std::string const& compName) const
+	{
+		if (!RegisteredComponentNames.contains(compName))
+			return false;
+
+		auto compT = D_WORLD::GetComponentEntity(compName.c_str());
+
+		return mEntity.has(compT);
 	}
 
 	D_ECS_COMP::ComponentBase* GameObject::GetComponent(std::string const& compName) const

@@ -483,7 +483,10 @@ namespace Darius::Scene
 		DUnorderedMap<Uuid, Uuid, UuidHasher> newReferenceMap;
 #define NEW_UUID(gameObject) newReferenceMap.at(gameObject->GetUuid())
 
-		Serialization::SerializationContext serializationContext = { true, maintainContext, newReferenceMap };
+		Serialization::SerializationContext serializationContext = {
+			.Rereference = true,
+			.MaintainExternalReferences = maintainContext,
+			.ReferenceMap = newReferenceMap };
 
 		toBeSerialized.push_back(go);
 		go->VisitDescendants([&toBeSerialized](auto go)

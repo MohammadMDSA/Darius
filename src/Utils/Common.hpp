@@ -43,7 +43,7 @@ static INLINE std::string const GetTypeName() { return D_NAMEOF(T); }
 		{ \
 			if (ImGuiPayload const* acceptedPayload = ImGui::AcceptDragDropPayload(D_PAYLOAD_TYPE_GAMEOBJECT)) \
 			{ \
-				auto gameObject = reinterpret_cast<D_SCENE::GameObjectDragDropPayloadContent const*>(acceptedPayload->Data)->GameObject; \
+				auto gameObject = reinterpret_cast<D_SCENE::GameObjectDragDropPayloadContent const*>(acceptedPayload->Data)->GameObjectRef; \
 				setter(gameObject); \
 			} \
 		} \
@@ -79,10 +79,10 @@ static INLINE std::string const GetTypeName() { return D_NAMEOF(T); }
 	else \
 		displayText = "<None>"; \
 	\
-	auto availableSpalce = ImGui::GetContentRegionAvail(); \
+	auto availableSpace = ImGui::GetContentRegionAvail(); \
 	auto selectionWidth = 20.f; \
 	\
-	ImGui::Button(displayText.c_str(), ImVec2(availableSpalce.x - 2 * selectionWidth - 10.f, 0)); \
+	ImGui::Button(displayText.c_str(), ImVec2(availableSpace.x - 2 * selectionWidth - 10.f, 0)); \
 	if(ImGui::IsItemClicked(ImGuiMouseButton_Right)) \
 		setter(nullptr); \
 	\
@@ -159,6 +159,29 @@ static INLINE std::string const GetTypeName() { return D_NAMEOF(T); }
 }
 #define D_H_RESOURCE_SELECTION_DRAW_SHORT(type, name, label) D_H_RESOURCE_SELECTION_DRAW(type, m##name, label, Set##name)
 #define D_H_RESOURCE_SELECTION_DRAW_DEF(type, name) D_H_RESOURCE_SELECTION_DRAW_SHORT(type, name, "Select " #name)
+
+#define D_H_DETAILS_DRAW_ENUM_SELECTION(EnumType, GetterFunc, SetterFunc) \
+{ \
+	static auto enumeration = rttr::type::get<EnumType>().get_enumeration(); \
+	auto currentValue = GetterFunc(); \
+\
+	if (ImGui::BeginCombo("##" #SetterFunc, enumeration.value_to_name(currentValue).data())) \
+	{ \
+		for (auto value : enumeration.get_values()) \
+		{ \
+			bool selected = value.get_value<EnumType>() == currentValue; \
+			if (ImGui::Selectable(enumeration.value_to_name(value).data(), &selected)) \
+			{ \
+				SetterFunc(value.get_value<EnumType>()); \
+				valueChanged = true; \
+			} \
+		} \
+		ImGui::EndCombo(); \
+	} \
+}
+
+#define D_H_DETAILS_DRAW_ENUM_SELECTION_SIMPLE(EnumType, PropName) \
+D_H_DETAILS_DRAW_ENUM_SELECTION(EnumType, Get##PropName, Set##PropName)
 
 #define D_H_DETAILS_DRAW_BEGIN_TABLE(...) \
 if (ImGui::BeginTable((std::string("Layout" __VA_ARGS__) + ClassName()).c_str(), 2, ImGuiTableFlags_BordersInnerV | ImGuiTableFlags_PreciseWidths | ImGuiTableFlags_NoSavedSettings)) \

@@ -1,7 +1,6 @@
 #pragma once
 
 #include "EntityComponentSystem/Entity.hpp"
-#include "EntityComponentSystem/CompRef.hpp"
 
 #include <Core/Containers/Map.hpp>
 #include <Core/RefCounting/Ref.hpp>
@@ -98,6 +97,8 @@ namespace Darius::Scene
 			return mEntity.has<T>();
 		}
 
+		bool								HasComponent(std::string const& compName) const;
+
 		template<class T>
 		INLINE T*							GetComponent() const
 		{
@@ -107,7 +108,7 @@ namespace Darius::Scene
 			return const_cast<T*>(mEntity.get<T>());
 		}
 
-		ECS::Components::ComponentBase* GetComponent(std::string const& compName) const;
+		ECS::Components::ComponentBase*		GetComponent(std::string const& compName) const;
 
 		template<class T>
 		T* AddComponent()
@@ -136,12 +137,6 @@ namespace Darius::Scene
 		}
 
 		D_CONTAINERS::DVector<Darius::Scene::ECS::Components::ComponentBase*> GetComponents(bool sorted = false) const;
-
-		template<class T>
-		INLINE D_ECS::CompRef<T>			GetComponentRef() const
-		{
-			return D_ECS::CompRef<T>(mEntity);
-		}
 
 		Darius::Scene::ECS::Components::ComponentBase* AddComponent(std::string const& componentName);
 

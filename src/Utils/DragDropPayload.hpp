@@ -15,7 +15,8 @@ namespace Darius::Utils
 		{
 			Invalid = 0,
 			Resource,
-			GameObject
+			GameObject,
+			Component
 		};
 
 		BaseDragDropPayloadContent(Type type) :

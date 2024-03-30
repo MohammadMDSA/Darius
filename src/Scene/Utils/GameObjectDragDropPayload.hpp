@@ -12,6 +12,7 @@ namespace Darius::Scene
 #ifdef _D_EDITOR
 
 #define D_PAYLOAD_TYPE_GAMEOBJECT "$PAYLOAD$$GAMEOBJECT$"
+#define D_PAYLOAD_TYPE_COMPONENT "$PAYLOAD$$COMPONENT$"
 
 	struct GameObjectDragDropPayloadContent : public D_UTILS::BaseDragDropPayloadContent
 	{
@@ -21,11 +22,31 @@ namespace Darius::Scene
 
 		virtual inline bool IsCompatible(D_UTILS::BaseDragDropPayloadContent::Type payloadType, std::string const& type) const override
 		{
-			return payloadType == D_UTILS::BaseDragDropPayloadContent::Type::GameObject;
+
+			if (payloadType == D_UTILS::BaseDragDropPayloadContent::Type::GameObject)
+				return true;
+
+			if (payloadType == D_UTILS::BaseDragDropPayloadContent::Type::Component && GameObjectRef && GameObjectRef->IsValid())
+				return GameObjectRef->HasComponent(type);
+
+			return false;
 		}
 
-		D_SCENE::GameObject* GameObject = nullptr;
+		D_SCENE::GameObject* GameObjectRef = nullptr;
 	};
+
+	//struct ComponentDragDropPayloadContent : public D_UTILS::BaseDragDropPayloadContent
+	//{
+	//	ComponentDragDropPayloadContent() :
+	//		BaseDragDropPayloadContent(BaseDragDropPayloadContent::Type::Component) { }
+
+	//	virtual inline bool IsCompatible(D_UTILS::BaseDragDropPayloadContent::Type payloadType, std::string const& type) const override
+	//	{
+	//		
+	//	}
+
+	//	std::string ComponentName;
+	//};
 
 #endif
 

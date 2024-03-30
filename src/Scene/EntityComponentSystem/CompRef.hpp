@@ -2,8 +2,14 @@
 
 #include "Entity.hpp"
 
+#include "Scene/GameObjectRef.hpp"
+#include "Scene/GameObject.hpp"
+#include "Scene/Scene.hpp"
+
 #include <Utils/Assert.hpp>
 #include <Utils/Common.hpp>
+
+#include <sstream>
 
 #ifndef D_ECS
 #define D_ECS Darius::Scene::ECS
@@ -89,16 +95,29 @@ namespace Darius::Scene::ECS
 
 		CompRef() = default;
 
-		INLINE CompRef(Entity ent)
+		CompRef(T * comp)
 		{
-			using conv = std::is_convertible<T*, Darius::Scene::ECS::Components::ComponentBase*>;
-			using transCheck = std::is_same<T, Darius::Math::TransformComponent>;
-			D_STATIC_ASSERT(conv::value || transCheck::value);
-
-			if (ent.has<T>())
-				mRef = ent.get_ref<T>();
-			else
+			if (!comp)
+			{
 				mRef = flecs::ref<T>();
+				return;
+			}
+
+			auto go = comp->GetGameObject();
+			D_ASSERT(go);
+			auto ent = go->GetEntity();
+			mRef = ent.get_ref<T>();
+		}
+
+		explicit CompRef(GameObject const* go)
+		{
+			auto ent = go->GetEntity();
+			mRef = ent.get_ref<T>();
+		}
+
+		INLINE explicit CompRef(Entity ent)
+		{
+			mRef = ent.get_ref<T>();
 		}
 
 		INLINE CompRef(CompRef const& other)
@@ -116,7 +135,29 @@ namespace Darius::Scene::ECS
 		INLINE bool IsValid() const
 		{
 			auto ent = mRef.entity();
-			return ent.is_valid() && ent.has<T>();
+			auto go = D_WORLD::GetGameObject(ent);
+			return go && go->IsValid() && go->HasComponent<T>();
+		}
+
+		INLINE bool IsNull() const
+		{
+			return !mRef.entity().is_valid();
+		}
+
+		// When it is not null but still not valid
+		INLINE bool IsMissing() const
+		{
+			return !IsNull() && !IsValid();
+		}
+
+		INLINE Entity GetEntity() const
+		{
+			return mRef.entity();
+		}
+
+		INLINE GameObject* GetGameObject() const
+		{
+			return D_WORLD::GetGameObject(GetEntity());
 		}
 
 		INLINE T* operator->() { return Get(); }
@@ -128,10 +169,21 @@ namespace Darius::Scene::ECS
 			return mRef.entity() == other.mRef.entity();
 		}
 
+		INLINE bool operator==(T const* other) const
+		{
+			bool null = IsNull();
+			if (null && other == nullptr)
+				return true;
+			else if (null || other == nullptr)
+				return false;
+			else
+				return mRef.entity() == other->GetGameObject()->GetEntity();
+		}
+
 	private:
 		DField(Get[const, &, inline])
-		flecs::ref<T>						mRef;
+			flecs::ref<T>						mRef;
 	};
-
 }
+
 File_CompRef_GENERATED

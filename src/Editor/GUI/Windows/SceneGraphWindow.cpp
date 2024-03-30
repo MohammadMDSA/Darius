@@ -139,7 +139,7 @@ namespace Darius::Editor::Gui::Windows
 		if (ImGui::BeginDragDropSource(ImGuiDragDropFlags_AcceptBeforeDelivery))
 		{
 			D_SCENE::GameObjectDragDropPayloadContent payload;
-			payload.GameObject = go;
+			payload.GameObjectRef = go;
 			ImGui::SetDragDropPayload(D_PAYLOAD_TYPE_GAMEOBJECT, &payload, sizeof(D_SCENE::GameObjectDragDropPayloadContent), ImGuiCond_Once);
 			ImGui::Text((go->GetName() + " (Game Object)").c_str());
 			ImGui::EndDragDropSource();
