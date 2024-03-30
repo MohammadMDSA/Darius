@@ -11,6 +11,7 @@ list(APPEND PHYSICS_LIBS_INCLUDE
 	"CollisionCommon.hpp"
 	"Components/BoxColliderComponent.hpp"
 	"Components/CapsuleColliderComponent.hpp"
+	"Components/CharacterControllerComponent.hpp"
 	"Components/ColliderComponent.hpp"
 	"Components/MeshColliderComponent.hpp"
 	"Components/SphereColliderComponent.hpp"
@@ -25,6 +26,7 @@ list(APPEND PHYSICS_LIBS_SOURCES
 	"PhysicsActor.cpp"
  	"Components/BoxColliderComponent.cpp"
 	"Components/CapsuleColliderComponent.cpp"
+	"Components/CharacterControllerComponent.cpp"
 	"Components/ColliderComponent.cpp"
 	"Components/MeshColliderComponent.cpp"
  	"Components/SphereColliderComponent.cpp"
@@ -60,6 +62,7 @@ if(${CMAKE_BUILD_TYPE} MATCHES Release)
 	target_link_libraries("Physics" PRIVATE "${SOURCE_DIR}/Libs/PhysX/libs/win.x86_64.vc143/release/PhysXExtensions_static_64.lib")
 	target_link_libraries("Physics" PRIVATE "${SOURCE_DIR}/Libs/PhysX/libs/win.x86_64.vc143/release/PhysXPvdSDK_static_64.lib")
 	target_link_libraries("Physics" PRIVATE "${SOURCE_DIR}/Libs/PhysX/libs/win.x86_64.vc143/release/PhysXCooking_64.lib")
+	target_link_libraries("Physics" PRIVATE "${SOURCE_DIR}/Libs/PhysX/libs/win.x86_64.vc143/release/PhysXCharacterKinematic_static_64.lib")
 else()
 	target_link_libraries("Physics" PRIVATE "${SOURCE_DIR}/Libs/PhysX/libs/win.x86_64.vc143/debug/PhysX_64.lib")
 	target_link_libraries("Physics" PRIVATE "${SOURCE_DIR}/Libs/PhysX/libs/win.x86_64.vc143/debug/PhysXFoundation_64.lib")
@@ -67,6 +70,7 @@ else()
 	target_link_libraries("Physics" PRIVATE "${SOURCE_DIR}/Libs/PhysX/libs/win.x86_64.vc143/debug/PhysXExtensions_static_64.lib")
 	target_link_libraries("Physics" PRIVATE "${SOURCE_DIR}/Libs/PhysX/libs/win.x86_64.vc143/debug/PhysXPvdSDK_static_64.lib")
 	target_link_libraries("Physics" PRIVATE "${SOURCE_DIR}/Libs/PhysX/libs/win.x86_64.vc143/debug/PhysXCooking_64.lib")
+	target_link_libraries("Physics" PRIVATE "${SOURCE_DIR}/Libs/PhysX/libs/win.x86_64.vc143/debug/PhysXCharacterKinematic_static_64.lib")
 endif()
 
 target_link_libraries("Physics" PRIVATE ${Boost_LIBRARIES} IMGUI)
