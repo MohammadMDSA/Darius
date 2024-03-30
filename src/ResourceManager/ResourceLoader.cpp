@@ -90,31 +90,22 @@ namespace Darius::ResourceManager
 		auto extension = path.extension().string();
 		auto extString = boost::algorithm::to_lower_copy(extension);
 		auto resourceTypes = Resource::GetResourceTypeByExtension(extString);
-		auto resTypesVec = D_CONTAINERS::DVector<ResourceType>(resourceTypes.begin(), resourceTypes.end());
 
 		DVector<ResourceHandle> results;
-		std::mutex mutex;
 
-		D_JOB::AddTaskSetAndWait((UINT)resourceTypes.size(), [&results, &resTypesVec, &path, manager, &mutex](D_JOB::TaskPartition range, D_JOB::ThreadNumber threadNumber)
+		for (auto type : resourceTypes)
+		{
+			auto resourcesToCreateFromProvider = D_RESOURCE::Resource::CanConstructTypeFromPath(type, path);
+
+			for (auto resourceToCreate : resourcesToCreateFromProvider)
 			{
-				for (int i = range.start; i < range.end; i++)
-				{
-					auto type = resTypesVec.at(i);
-					auto resourcesToCreateFromProvider = D_RESOURCE::Resource::CanConstructTypeFromPath(type, path);
+				resourceToCreate.Uuid = GenerateUuid();
+				auto handle = manager->CreateResource(resourceToCreate.Type, resourceToCreate.Uuid, path, STR2WSTR(resourceToCreate.Name), false, true);
 
-					for (auto resourceToCreate : resourcesToCreateFromProvider)
-					{
-						resourceToCreate.Uuid = GenerateUuid();
-						auto handle = manager->CreateResource(resourceToCreate.Type, resourceToCreate.Uuid, path, STR2WSTR(resourceToCreate.Name), false, true);
+				results.push_back(handle);
 
-						{
-							std::scoped_lock lock(mutex);
-							results.push_back(handle);
-						}
-
-					}
-				}
-			});
+			}
+		}
 
 
 		return results;
