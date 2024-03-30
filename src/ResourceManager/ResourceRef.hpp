@@ -13,9 +13,6 @@ namespace Darius::ResourceManager
 	template<class T>
 	class ResourceRef : public D_CORE::Ref<T>
 	{
-		using __conv = std::is_convertible<T*, Resource*>;
-		D_STATIC_ASSERT(__conv::value);
-
 	public:
 
 		ResourceRef(ResourceRef const& other) : D_CORE::Ref<T>(other) { }

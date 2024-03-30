@@ -19,10 +19,6 @@ namespace Darius::Core
 	template<class T>
 	class Ref
 	{
-	private:
-		using __conv = std::is_convertible<T*, Counted*>;
-		D_STATIC_ASSERT(__conv::value);
-
 	public:
 
 		INLINE bool operator==(const T* ptr) const {
