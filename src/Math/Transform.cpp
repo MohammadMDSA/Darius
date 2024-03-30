@@ -26,8 +26,7 @@ namespace Darius::Math
 			ImGui::Text("Location");
 
 			ImGui::TableSetColumnIndex(1);
-			float defL[] = D_H_DRAW_DETAILS_MAKE_VEC_PARAM_VECTOR;
-			if (DrawDetails(elem.Translation, defL))
+			if (DrawDetails(elem.Translation, Vector3::Zero))
 			{
 				valueChanged = true;
 			}
@@ -38,8 +37,7 @@ namespace Darius::Math
 			ImGui::Text("Rotation");
 
 			ImGui::TableSetColumnIndex(1);
-			float defR[] = D_H_DRAW_DETAILS_MAKE_VEC_PARAM_VECTOR;
-			if (DrawDetails(elem.Rotation, defR))
+			if (DrawDetails(elem.Rotation, Quaternion::Identity))
 			{
 				valueChanged = true;
 			}
@@ -50,8 +48,7 @@ namespace Darius::Math
 			ImGui::Text("Scale");
 
 			ImGui::TableSetColumnIndex(1);
-			float defS[] = D_H_DRAW_DETAILS_MAKE_VEC_PARAM(1.f, 0);
-			if (DrawDetails(elem.Scale, defS))
+			if (DrawDetails(elem.Scale, Vector3::One))
 			{
 				valueChanged = true;
 			}

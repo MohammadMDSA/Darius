@@ -34,7 +34,7 @@ namespace Darius::Renderer
 		mCamera.SetOrthographic(false);
 	}
 
-	CameraComponent::CameraComponent(D_CORE::Uuid uuid) :
+	CameraComponent::CameraComponent(D_CORE::Uuid const& uuid) :
 		ComponentBase(uuid)
 	{
 		mCamera.SetFoV(XM_PI / 3);

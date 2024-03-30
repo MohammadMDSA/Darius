@@ -59,7 +59,7 @@ namespace Darius::Renderer
 			InitialziePSOs();
 	}
 
-	SkeletalMeshRendererComponent::SkeletalMeshRendererComponent(D_CORE::Uuid uuid) :
+	SkeletalMeshRendererComponent::SkeletalMeshRendererComponent(D_CORE::Uuid const& uuid) :
 		MeshRendererComponentBase(uuid),
 		mSkeletonRoot(nullptr),
 		mMesh()

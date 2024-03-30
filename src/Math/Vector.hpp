@@ -75,6 +75,7 @@ namespace Darius::Math
 		void Cross(const Vector2 & V, Vector2 & result) const;
 		Vector2 Cross(const Vector2 & V) const;
 
+		Vector2 Normal() const;
 		void Normalize();
 		void Normalize(Vector2 & result) const;
 
@@ -187,7 +188,8 @@ namespace Darius::Math
 		INLINE void SetX(float _x) { m_vec = DirectX::XMVectorPermute<4, 1, 2, 3>(m_vec, Scalar(_x)); }
 		INLINE void SetY(float _y) { m_vec = DirectX::XMVectorPermute<0, 5, 2, 3>(m_vec, Scalar(_y)); }
 		INLINE void SetZ(float _z) { m_vec = DirectX::XMVectorPermute<0, 1, 6, 3>(m_vec, Scalar(_z)); }
-		INLINE Vector3 Normalize() const { return Vector3(DirectX::XMVector3Normalize(m_vec)); }
+		INLINE Vector3 Normal() const { return Vector3(DirectX::XMVector3Normalize(m_vec)); }
+		INLINE void Normalize() { m_vec = DirectX::XMVector3Normalize(m_vec); }
 		INLINE float Length() const { return Scalar(DirectX::XMVector3Length(m_vec)); }
 		INLINE float LengthSquare() const { return Scalar(DirectX::XMVector3LengthSq(m_vec)); }
 		INLINE bool	Equals(Vector3 const& other) const { return DirectX::XMVector3Equal(m_vec, other.m_vec); }
@@ -365,15 +367,9 @@ namespace Darius::Math
 
 #ifdef _D_EDITOR
 
-#define D_H_DRAW_DETAILS_MAKE_VEC_PARAM(_default, hasColor) { _default, hasColor ? 1 : 0 }
-#define D_H_DRAW_DETAILS_MAKE_VEC_PARAM_COLOR D_H_DRAW_DETAILS_MAKE_VEC_PARAM(0, 1)
-#define D_H_DRAW_DETAILS_MAKE_VEC_PARAM_VECTOR D_H_DRAW_DETAILS_MAKE_VEC_PARAM(0, 0)
-
-	bool DrawDetails(D_MATH::Vector2& elem, float params[]);
-
-	bool DrawDetails(D_MATH::Vector3& elem, float params[]);
-
-	bool DrawDetails(D_MATH::Vector4& elem, float params[]);
+	bool DrawDetails(D_MATH::Vector2& elem, Vector2 const& defaultValue = Vector2::Zero);
+	bool DrawDetails(D_MATH::Vector3& elem, D_MATH::Vector3 const& defaultValue = Vector3::Zero, bool isColor = false);
+	bool DrawDetails(D_MATH::Vector4& elem, Vector4 const& defaultValue = Vector4::Zero, bool isColor = false);
 
 #endif // _D_EDITOR
 

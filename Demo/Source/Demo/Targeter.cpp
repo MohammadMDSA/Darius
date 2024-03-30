@@ -22,7 +22,7 @@ namespace Demo
 		mTargetObject()
 	{ }
 
-	Targeter::Targeter(D_CORE::Uuid uuid) :
+	Targeter::Targeter(D_CORE::Uuid const& uuid) :
 		D_ECS_COMP::BehaviourComponent(uuid),
 		mTargetObject()
 	{ }

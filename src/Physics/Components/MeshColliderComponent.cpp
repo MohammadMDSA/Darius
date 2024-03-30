@@ -30,7 +30,7 @@ namespace Darius::Physics
 		SetDirty();
 	}
 
-	MeshColliderComponent::MeshColliderComponent(D_CORE::Uuid uuid) :
+	MeshColliderComponent::MeshColliderComponent(D_CORE::Uuid const& uuid) :
 		ColliderComponent(uuid),
 		mMesh(InvalidMeshDataHandle),
 		mTightBounds(true),

@@ -41,7 +41,7 @@ namespace Darius::Renderer
 	{
 	}
 
-	BillboardRendererComponent::BillboardRendererComponent(D_CORE::Uuid uuid) :
+	BillboardRendererComponent::BillboardRendererComponent(D_CORE::Uuid const& uuid) :
 		RendererComponent(uuid),
 		mBoundDirty(true),
 		mWidth(1),

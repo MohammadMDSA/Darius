@@ -23,7 +23,7 @@ namespace Demo
 		mReference()
 	{ }
 
-	GameObjectReferencer::GameObjectReferencer(D_CORE::Uuid uuid) :
+	GameObjectReferencer::GameObjectReferencer(D_CORE::Uuid const& uuid) :
 		D_ECS_COMP::BehaviourComponent(uuid),
 		mReference()
 	{ }

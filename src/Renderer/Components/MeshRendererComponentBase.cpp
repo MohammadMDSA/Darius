@@ -30,7 +30,7 @@ namespace Darius::Renderer
 		SetDirty();
 	}
 
-	MeshRendererComponentBase::MeshRendererComponentBase(D_CORE::Uuid uuid) :
+	MeshRendererComponentBase::MeshRendererComponentBase(D_CORE::Uuid const& uuid) :
 		RendererComponent(uuid),
 		mComponentPsoFlags(0),
 		mLoD(1.f)

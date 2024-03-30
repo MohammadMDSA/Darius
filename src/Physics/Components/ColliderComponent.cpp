@@ -32,7 +32,7 @@ namespace Darius::Physics
 	{
 	}
 
-	ColliderComponent::ColliderComponent(D_CORE::Uuid uuid) :
+	ColliderComponent::ColliderComponent(D_CORE::Uuid const& uuid) :
 		ComponentBase(uuid),
 		mMaterial(),
 		mTrigger(false),
@@ -73,8 +73,7 @@ namespace Darius::Physics
 		{
 			D_H_DETAILS_DRAW_PROPERTY("Center Offset");
 			auto offset = GetCenterOffset();
-			float drawParams[] = D_H_DRAW_DETAILS_MAKE_VEC_PARAM(0.f, false);
-			if (D_MATH::DrawDetails(offset, drawParams))
+			if (D_MATH::DrawDetails(offset, D_MATH::Vector3::Zero))
 			{
 				SetCenterOffset(offset);
 				valueChanged = true;

@@ -205,6 +205,16 @@ inline Vector2 Vector2::Cross(const Vector2& V) const
     return result;
 }
 
+inline Vector2 Vector2::Normal() const
+{
+    using namespace DirectX;
+    using namespace DirectX;
+    const XMVECTOR v1 = XMLoadFloat2(&mData);
+    const XMVECTOR X = XMVector2Normalize(v1);
+    Vector2 result;
+    XMStoreFloat2(&result.mData, X);
+}
+
 inline void Vector2::Normalize()
 {
     using namespace DirectX;

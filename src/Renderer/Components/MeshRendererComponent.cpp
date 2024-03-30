@@ -32,7 +32,7 @@ namespace Darius::Renderer
 	{
 	}
 
-	MeshRendererComponent::MeshRendererComponent(D_CORE::Uuid uuid) :
+	MeshRendererComponent::MeshRendererComponent(D_CORE::Uuid const& uuid) :
 		MeshRendererComponentBase(uuid),
 		mMesh()
 	{

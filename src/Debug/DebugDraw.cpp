@@ -233,7 +233,7 @@ namespace Darius::Debug
 		D_CONTAINERS::DVector<Vector3> verticesLocations;
 		verticesLocations.reserve((horizontalSegments + 1) * (tessellation / 2) + 1);
 
-		auto baseRotation = Quaternion::GetShortestArcBetweenTwoVector(Vector3::Up, centerToTopDirection.Normalize());
+		auto baseRotation = Quaternion::GetShortestArcBetweenTwoVector(Vector3::Up, centerToTopDirection.Normal());
 
 		// Latitude rings, starting from main belt to top
 		for (UINT i = verticalSegments / 2; i <= verticalSegments; i++)

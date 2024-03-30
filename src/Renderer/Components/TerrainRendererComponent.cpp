@@ -35,7 +35,7 @@ namespace Darius::Renderer
 	{
 	}
 
-	TerrainRendererComponent::TerrainRendererComponent(D_CORE::Uuid uuid) :
+	TerrainRendererComponent::TerrainRendererComponent(D_CORE::Uuid const& uuid) :
 		RendererComponent(uuid),
 		mMaterial(),
 		mGridMesh(),

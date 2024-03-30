@@ -30,7 +30,7 @@
 #define D_H_COMP_BODY_RAW(T, parent, compName, shouldRegister, isBehaviour, receivesUpdates) \
 public: \
 T(); \
-T(D_CORE::Uuid uuid); \
+T(D_CORE::Uuid const& uuid); \
 using Super = parent; \
 using ThisClass = T; \
 static constexpr INLINE std::string ClassName() { return D_NAMEOF(T); } \
@@ -39,7 +39,7 @@ virtual INLINE D_ECS::ComponentEntry GetComponentEntry() const override { return
 virtual INLINE std::string GetDisplayName() const override { return T::DisplayName; } \
 virtual INLINE std::string GetComponentName() const override { return D_NAMEOF(T); } \
 virtual INLINE rttr::type GetComponentType() const override { return rttr::type::get<T>(); }; \
-INLINE operator D_ECS::CompRef<T>() { return GetGameObject()->GetComponentRef<T>(); } \
+INLINE operator D_ECS::CompRef<T>() { return D_ECS::CompRef<T>(GetGameObject()); } \
 static void StaticConstructor() \
 { \
     /* Registering component*/ \
@@ -79,7 +79,7 @@ std::string type::DisplayName = "";
 #define D_H_COMP_DEFAULT_CONSTRUCTOR_DEF_PAR(type, parent) \
 type::type() : \
     parent() {} \
-type::type(D_CORE::Uuid uuid) : \
+type::type(D_CORE::Uuid const& uuid) : \
     parent(uuid) {}
 
 #define D_H_COMP_DEFAULT_CONSTRUCTOR_DEF(type) D_H_COMP_DEFAULT_CONSTRUCTOR_DEF_PAR(type, ComponentBase)
@@ -140,9 +140,9 @@ namespace Darius::Scene::ECS
 			(*mSignal)(params...);
 		}
 
-		private:
-			std::shared_ptr<D_CORE::Signal<void(T...)>> mSignal;
-		};
+	private:
+		std::shared_ptr<D_CORE::Signal<void(T...)>> mSignal;
+	};
 
 #define D_H_SIGNAL_COMP(ClassName) \
 	class ClassName : public D_ECS::GenericComponentSignal<> { }
@@ -162,148 +162,196 @@ namespace Darius::Scene::ECS
 #define D_H_SIGNAL_COMP_FIVE_PARAM(ClassName, Param1Type, Param1Name, Param2Type, Param2Name, Param3Type, Param3Name, Param4Type, Param4Name, Param5Type, Param5Name) \
 	class ClassName : public D_ECS::GenericComponentSignal<Param1Type, Param2Type, Param3Type, Param4Type, Param5Type> { }
 
-	}
+}
 
 
-	namespace Darius::Scene::ECS::Components
+namespace Darius::Scene::ECS::Components
+{
+
+	D_H_SIGNAL_COMP_ONE_PARAM(ComponentChangeSignalType, ComponentBase*, thisComponent);
+
+	class DClass(Serialize) ComponentBase
 	{
+		GENERATED_BODY();
 
-		D_H_SIGNAL_COMP_ONE_PARAM(ComponentChangeSignalType, ComponentBase*, thisComponent);
+	public:
 
-		class DClass(Serialize) ComponentBase
-		{
-			GENERATED_BODY();
-
-		public:
-
-			ComponentBase();
-			ComponentBase(D_CORE::Uuid uuid);
+		ComponentBase();
+		ComponentBase(D_CORE::Uuid const& uuid);
 
 #ifdef _D_EDITOR
-			virtual INLINE bool         DrawDetails(float[]) { return false; }
-			virtual INLINE void         OnGizmo() const { }
+		virtual INLINE bool         DrawDetails(float[]) { return false; }
+		virtual INLINE void         OnGizmo() const { }
 #endif
-			virtual INLINE std::string  GetComponentName() const { return ""; }
-			virtual INLINE std::string  GetDisplayName() const { return ""; }
-			virtual INLINE rttr::type   GetComponentType() const { return rttr::type::get<ComponentBase>(); };
-			virtual INLINE ComponentEntry GetComponentEntry() const { return D_WORLD::GetComponentEntity(ClassName()); }
+		virtual INLINE std::string  GetComponentName() const { return ""; }
+		virtual INLINE std::string  GetDisplayName() const { return ""; }
+		virtual INLINE rttr::type   GetComponentType() const { return rttr::type::get<ComponentBase>(); };
+		virtual INLINE ComponentEntry GetComponentEntry() const { return D_WORLD::GetComponentEntity(ClassName()); }
 
 
-			virtual INLINE void         Start() { }
-			virtual INLINE void         Awake() { }
-			virtual INLINE void         OnDestroy() { }
-			virtual INLINE void         OnPreDestroy() { }
-			virtual INLINE void         OnSerialized() const { }
-			virtual INLINE void         OnDeserialized() { }
+		virtual INLINE void         Start() { }
+		virtual INLINE void         Awake() { }
+		virtual INLINE void         OnDestroy() { }
+		virtual INLINE void         OnPreDestroy() { }
+		virtual INLINE void         OnSerialized() const { }
+		virtual INLINE void         OnDeserialized() { }
 
 #if _D_EDITOR
-			virtual void                OnPostComponentAddInEditor() { }
-			virtual void                OnPreComponentRemovInEditor() { }
+		virtual void                OnPostComponentAddInEditor() { }
+		virtual void                OnPreComponentRemovInEditor() { }
 #endif // _D_EDITOR
 
 
-			// GameObject Events
-			virtual INLINE void         OnActivate() {}
-			virtual INLINE void         OnDeactivate() {}
+		// GameObject Events
+		virtual INLINE void         OnActivate() {}
+		virtual INLINE void         OnDeactivate() {}
 
-			virtual INLINE void         Update(float) { };
-			virtual INLINE void         LateUpdate(float) { };
-
-
-			void						SetDirty();
-			virtual INLINE bool			IsDirty() const { return mDirty; }
-			bool						CanChange() const;
-
-			bool                        IsActive() const;
-			INLINE bool                 IsEnabled() const { return mEnabled; }
-			INLINE bool                 IsDestroyed() const { return mDestroyed; }
-			INLINE bool                 IsStarted() const { return mStarted; }
-			INLINE GameObject* GetGameObject() const { return mGameObject; }
-			INLINE D_CORE::Uuid const& GetUuid() const { return mUuid; }
-
-			virtual INLINE bool         IsDisableable() const { return true; }
-
-			virtual void                SetEnable(bool value);
-
-			D_MATH::TransformComponent* GetTransform() const;
-
-			static INLINE std::string   ClassName() { return "ComponentBase"; }
-
-			static void                 StaticConstructor()
-			{
-				if (sInit)
-					return;
-
-				D_WORLD::RegisterComponent<ComponentBase>();
-				sInit = true;
-			}
-
-			static void                 ComponentUpdater(float, D_ECS::ECSRegistry&) {  }
-			static void                 ComponentLateUpdater(float, D_ECS::ECSRegistry&) {  }
-
-			static void                 StaticDestructor()
-			{
-			}
-
-		protected:
-
-			void                        SetClean() { mDirty = false; }
+		virtual INLINE void         Update(float) { };
+		virtual INLINE void         LateUpdate(float) { };
 
 
-		public:
+		void						SetDirty();
+		virtual INLINE bool			IsDirty() const { return mDirty; }
+		bool						CanChange() const;
 
-			ComponentChangeSignalType  mChangeSignal;
+		bool                        IsActive() const;
+		INLINE bool                 IsEnabled() const { return mEnabled; }
+		INLINE bool                 IsDestroyed() const { return mDestroyed; }
+		INLINE bool                 IsStarted() const { return mStarted; }
+		INLINE GameObject* GetGameObject() const { return mGameObject; }
+		INLINE D_CORE::Uuid const& GetUuid() const { return mUuid; }
+
+		virtual INLINE bool         IsDisableable() const { return true; }
+
+		virtual void                SetEnable(bool value);
+
+		D_MATH::TransformComponent* GetTransform() const;
+
+		static INLINE std::string   ClassName() { return "ComponentBase"; }
+
+		static void                 StaticConstructor()
+		{
+			if (sInit)
+				return;
+
+			D_WORLD::RegisterComponent<ComponentBase>();
+			sInit = true;
+		}
+
+		static void                 ComponentUpdater(float, D_ECS::ECSRegistry&) {  }
+		static void                 ComponentLateUpdater(float, D_ECS::ECSRegistry&) {  }
+
+		static void                 StaticDestructor()
+		{
+		}
+
+	protected:
+
+		void                        SetClean() { mDirty = false; }
+
+
+	public:
+
+		ComponentChangeSignalType  mChangeSignal;
 
 #if _D_EDITOR
-			static D_CORE::Signal<void(D_FILE::Path const&, Darius::ResourceManager::ResourceHandle const&)> RequestPathChange;
+		static D_CORE::Signal<void(D_FILE::Path const&, Darius::ResourceManager::ResourceHandle const&)> RequestPathChange;
 #endif // _D_EDITOR
 
 
-		private:
-			friend class Darius::Scene::GameObject;
-			friend class Darius::Scene::SceneManager;
+	private:
+		friend class Darius::Scene::GameObject;
+		friend class Darius::Scene::SceneManager;
 
 
-			DField(Serialize, NotAnimate)
-				D_CORE::Uuid                mUuid;
+		DField(Serialize, NotAnimate)
+		D_CORE::Uuid                mUuid;
 
-			DField()
-				Darius::Scene::GameObject* mGameObject;
+		DField()
+		Darius::Scene::GameObject* mGameObject;
 
-			DField()
-				bool                        mStarted;
+		DField()
+		bool                        mStarted;
 
-			DField(Serialize)
-				bool                        mEnabled;
+		DField(Serialize)
+		bool                        mEnabled;
 
-			DField()
-				bool                        mDestroyed;
+		DField()
+		bool                        mDestroyed;
 
-			bool						mDirty;
+		bool						mDirty;
 
-			static bool                 sInit;
-			static std::string          DisplayName;
+		static bool                 sInit;
+		static std::string          DisplayName;
 
-		};
+	};
 
 
-		INLINE void ComponentBase::SetDirty()
-		{
-			if (CanChange())
-				mDirty = true;
-		}
-
-		INLINE bool ComponentBase::CanChange() const
-		{
-#ifdef _D_EDITOR
-			if (!D_WORLD::IsRunning() || (GetGameObject() && GetGameObject()->GetType() != D_SCENE::GameObject::Type::Static))
-#else
-			if (GetGameObject() && GetGameObject()->GetType() != D_SCENE::GameObject::Type::Static)
-#endif
-				return true;
-			return false;
-		}
-
+	INLINE void ComponentBase::SetDirty()
+	{
+		if (CanChange())
+			mDirty = true;
 	}
 
-	File_ComponentBase_GENERATED
+	INLINE bool ComponentBase::CanChange() const
+	{
+#ifdef _D_EDITOR
+		if (!D_WORLD::IsRunning() || (GetGameObject() && GetGameObject()->GetType() != D_SCENE::GameObject::Type::Static))
+#else
+		if (GetGameObject() && GetGameObject()->GetType() != D_SCENE::GameObject::Type::Static)
+#endif
+			return true;
+		return false;
+	}
+
+}
+
+namespace rttr
+{
+	template<typename T>
+	struct wrapper_mapper<D_ECS::CompRef<T>>
+	{
+		using wrapped_type = D_SERIALIZATION::UuidWrapper;
+		using type = D_ECS::CompRef<T>;
+
+		INLINE static wrapped_type get(type const& obj)
+		{
+			if (!obj.IsValid())
+				return { D_CORE::Uuid(), D_SERIALIZATION_UUID_PARAM_GAMEOBJECT };
+
+			return { obj.GetGameObject()->GetUuid(), D_SERIALIZATION_UUID_PARAM_GAMEOBJECT};
+		}
+
+		INLINE static type create(wrapped_type const& value)
+		{
+			auto go = D_WORLD::GetGameObject(value.Uuid);
+			return D_ECS::CompRef<T>(go);
+		}
+
+		template<typename U>
+		INLINE static D_ECS::CompRef<U> convert(type const& source, bool& ok)
+		{
+			if (!source.IsValid())
+			{
+				ok = false;
+				return D_ECS::CompRef<U>();
+			}
+
+			type& src = const_cast<type&>(source);
+			if (auto conv = dynamic_cast<U*>(src.Get()))
+			{
+				auto ent = source.GetEntity();
+				if (ent.has<U>())
+				{
+					ok = true;
+					return D_ECS::CompRef<U>(ent);
+				}
+			}
+
+			ok = false;
+			return D_ECS::CompRef<U>();
+		}
+	};
+}
+
+File_ComponentBase_GENERATED

@@ -6,6 +6,7 @@
 #include <Demo/Targeter.hpp>
 #include <Demo/TriggerTest.hpp>
 #include <Demo/CollisionTest.hpp>
+#include <Demo/ComponentReferencer.hpp>
 
 void InitializeGame()
 {
@@ -17,4 +18,5 @@ void InitializeGame()
 	Demo::GameObjectReferencer::StaticConstructor();
 	Demo::TriggerTest::StaticConstructor();
 	Demo::CollisionTest::StaticConstructor();
+	Demo::ComponentReferencer::StaticConstructor();
 }

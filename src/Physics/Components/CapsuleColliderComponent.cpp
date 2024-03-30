@@ -22,7 +22,7 @@ namespace Darius::Physics
 		SetDirty();
 	}
 
-	CapsuleColliderComponent::CapsuleColliderComponent(D_CORE::Uuid uuid) :
+	CapsuleColliderComponent::CapsuleColliderComponent(D_CORE::Uuid const& uuid) :
 		ColliderComponent(uuid),
 		mRadius(0.5f),
 		mHalfHeight(0.5f)

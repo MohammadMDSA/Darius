@@ -26,7 +26,7 @@ namespace Darius::Scene::ECS::Components
 		mChangeSignal()
 	{}
 
-	ComponentBase::ComponentBase(Uuid uuid) :
+	ComponentBase::ComponentBase(Uuid const& uuid) :
 		mUuid(uuid),
 		mStarted(false),
 		mEnabled(true),

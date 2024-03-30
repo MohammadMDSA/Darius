@@ -33,7 +33,7 @@ namespace Darius::Renderer
 		UpdateAngleData();
 	}
 
-	LightComponent::LightComponent(D_CORE::Uuid uuid) :
+	LightComponent::LightComponent(D_CORE::Uuid const& uuid) :
 		D_ECS_COMP::ComponentBase(uuid),
 		mLightType(LightSourceType::PointLight),
 		mConeInnerAngle(XMConvertToRadians(30)),
@@ -65,8 +65,7 @@ namespace Darius::Renderer
 
 		// Light type
 		D_H_DETAILS_DRAW_PROPERTY("Color");
-		float defC[] = D_H_DRAW_DETAILS_MAKE_VEC_PARAM_COLOR;
-		changed |= D_MATH::DrawDetails(*(D_MATH::Vector3*)&mLightData.Color, defC);
+		changed |= D_MATH::DrawDetails(*(D_MATH::Vector3*)&mLightData.Color, D_MATH::Vector3::Zero, true);
 
 		if (mLightType == LightSourceType::SpotLight)
 		{

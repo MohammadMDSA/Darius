@@ -30,7 +30,7 @@ namespace Darius::Physics
 		ZeroMemory(mPositionConstraints, 3 * sizeof(bool));
 	}
 
-	RigidbodyComponent::RigidbodyComponent(D_CORE::Uuid uuid) :
+	RigidbodyComponent::RigidbodyComponent(D_CORE::Uuid const& uuid) :
 		ComponentBase(uuid),
 		mKinematic(false),
 		mUsingGravity(true)
@@ -369,20 +369,18 @@ namespace Darius::Physics
 
 			D_H_DETAILS_DRAW_BEGIN_TABLE("Details");
 
-			float simpleVecParams[] = D_H_DRAW_DETAILS_MAKE_VEC_PARAM(0.f, false);
-
 			// Linear Velocity
 			{
 				auto v = GetLinearVelocity();
 				D_H_DETAILS_DRAW_PROPERTY("Linear Velocity");
-				D_MATH::DrawDetails(v, simpleVecParams);
+				D_MATH::DrawDetails(v);
 			}
 
 			// Angular Velocity
 			{
 				auto v = GetAngularVelocity();
 				D_H_DETAILS_DRAW_PROPERTY("Angular Velocity");
-				D_MATH::DrawDetails(v, simpleVecParams);
+				D_MATH::DrawDetails(v);
 			}
 
 			ImGui::EndDisabled();

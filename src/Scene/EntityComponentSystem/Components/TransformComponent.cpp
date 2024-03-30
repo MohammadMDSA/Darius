@@ -23,7 +23,7 @@ namespace Darius::Math
 		SetDirty();
 	}
 
-	TransformComponent::TransformComponent(D_CORE::Uuid uuid) :
+	TransformComponent::TransformComponent(D_CORE::Uuid const& uuid) :
 		D_ECS_COMP::ComponentBase(uuid),
 		mTransformMath(Vector3::Zero, Quaternion::Identity, Vector3::One),
 		mWorldMatrix(kZero),

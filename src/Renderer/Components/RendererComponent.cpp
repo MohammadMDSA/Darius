@@ -22,7 +22,7 @@ namespace Darius::Renderer
 		SetDirty();
 	}
 
-	RendererComponent::RendererComponent(D_CORE::Uuid uuid) :
+	RendererComponent::RendererComponent(D_CORE::Uuid const& uuid) :
 		D_ECS_COMP::ComponentBase(uuid),
 		mCastsShadow(false),
 		mStencilValue(0u),

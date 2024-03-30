@@ -38,6 +38,7 @@ namespace Darius::Renderer
 	void MeshResource::Create(D_RENDERER_GEOMETRY::MultiPartMeshData<VertexType> const& data)
 	{
 		CreateInternal(data);
+		mMaterials.resize(D_MATH::Max((int)data.SubMeshes.size(), 1));
 
 		MakeDiskDirty();
 		MakeGpuDirty();
@@ -56,7 +57,7 @@ namespace Darius::Renderer
 
 		CreateInternal(meshData);
 
-		mMaterials.resize(meshData.SubMeshes.size());
+		mMaterials.resize(D_MATH::Max((int)meshData.SubMeshes.size(), 1));
 
 		return true;
 	}

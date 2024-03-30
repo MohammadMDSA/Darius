@@ -27,7 +27,7 @@ namespace Darius::Physics
 		SetDirty();
 	}
 
-	BoxColliderComponent::BoxColliderComponent(D_CORE::Uuid uuid) :
+	BoxColliderComponent::BoxColliderComponent(D_CORE::Uuid const& uuid) :
 		ColliderComponent(uuid),
 		mHalfExtents(0.5f),
 		mScaledHalfExtents(0.5f)
@@ -85,8 +85,7 @@ namespace Darius::Physics
 		{
 			D_H_DETAILS_DRAW_PROPERTY("Half Extents");
 			auto halfExt = GetHalfExtents();
-			float drawParams[] = D_H_DRAW_DETAILS_MAKE_VEC_PARAM(0.5f, false);
-			if (D_MATH::DrawDetails(halfExt, drawParams))
+			if (D_MATH::DrawDetails(halfExt, {0.5f, 0.5f, 0.5f}, false))
 			{
 				SetHalfExtents(halfExt);
 				valueChanged = true;

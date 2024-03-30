@@ -81,17 +81,23 @@ namespace Darius::Math
 
 #ifdef _D_EDITOR
 
-	bool DrawDetails(Quaternion& quat, float params[])
+	bool DrawDetails(Quaternion& quat, Quaternion const& defaultValue)
 	{
 		Vector3 radian = quat.Angles();
+		Vector3 defaultRadian = defaultValue.Angles();
+
 		Vector3 deg;
+		Vector3 degDefault;
 
 		deg.SetX(XMConvertToDegrees(radian.GetX()));
 		deg.SetY(XMConvertToDegrees(radian.GetY()));
 		deg.SetZ(XMConvertToDegrees(radian.GetZ()));
 
-		float def[] = D_H_DRAW_DETAILS_MAKE_VEC_PARAM_VECTOR;
-		if (DrawDetails(deg, def))
+		degDefault.SetX(XMConvertToDegrees(defaultRadian.GetX()));
+		degDefault.SetY(XMConvertToDegrees(defaultRadian.GetY()));
+		degDefault.SetZ(XMConvertToDegrees(defaultRadian.GetZ()));
+
+		if (DrawDetails(deg, degDefault))
 		{
 			quat = Quaternion(XMConvertToRadians(deg.GetX()), XMConvertToRadians(deg.GetY()), XMConvertToRadians(deg.GetZ()));
 			return true;

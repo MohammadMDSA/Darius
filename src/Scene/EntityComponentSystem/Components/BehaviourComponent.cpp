@@ -9,7 +9,7 @@ namespace Darius::Scene::ECS::Components
 		ComponentBase()
 	{ }
 
-	BehaviourComponent::BehaviourComponent(D_CORE::Uuid uuid) :
+	BehaviourComponent::BehaviourComponent(D_CORE::Uuid const& uuid) :
 		ComponentBase(uuid)
 	{ }
 

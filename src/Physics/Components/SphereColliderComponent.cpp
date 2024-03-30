@@ -25,7 +25,7 @@ namespace Darius::Physics
 		SetDirty();
 	}
 
-	SphereColliderComponent::SphereColliderComponent(D_CORE::Uuid uuid) :
+	SphereColliderComponent::SphereColliderComponent(D_CORE::Uuid const& uuid) :
 		ColliderComponent(uuid),
 		mRadius(0.5),
 		mScaledRadius(0.f)

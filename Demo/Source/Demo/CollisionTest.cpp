@@ -26,7 +26,7 @@ namespace Demo
 		D_ECS_COMP::BehaviourComponent()
 	{ }
 
-	CollisionTest::CollisionTest(D_CORE::Uuid uuid) :
+	CollisionTest::CollisionTest(D_CORE::Uuid const& uuid) :
 		D_ECS_COMP::BehaviourComponent(uuid)
 	{ }
 

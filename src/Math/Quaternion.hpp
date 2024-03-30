@@ -56,6 +56,8 @@ namespace Darius::Math
 		INLINE Vector3 GetRight() const { return *this * Vector3::Right; }
 		INLINE Vector3 GetUp() const { return *this * Vector3::Up; }
 
+		INLINE Vector4 Vector4() const { return D_MATH::Vector4(m_vec); }
+
 		INLINE Quaternion Invert() const { return Quaternion(DirectX::XMQuaternionInverse(m_vec)); }
 
 		// Unary operators
@@ -166,7 +168,7 @@ namespace Darius::Math
 
 #ifdef _D_EDITOR
 
-	bool DrawDetails(D_MATH::Quaternion& quat, float params[]);
+	bool DrawDetails(D_MATH::Quaternion& quat, Quaternion const& defaultValue);
 
 #endif // _D_EDITOR
 
