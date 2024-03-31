@@ -21,6 +21,11 @@
 
 #include <ComponentBase.generated.hpp>
 
+#if _D_EDITOR
+#include <Scene/Utils/GameObjectDragDropPayload.hpp>
+#endif // _D_EDITOR
+
+
 #ifndef D_ECS_COMP
 #define D_ECS_COMP Darius::Scene::ECS::Components
 #endif // !D_ECS_COMP
@@ -83,6 +88,88 @@ type::type(D_CORE::Uuid const& uuid) : \
     parent(uuid) {}
 
 #define D_H_COMP_DEFAULT_CONSTRUCTOR_DEF(type) D_H_COMP_DEFAULT_CONSTRUCTOR_DEF_PAR(type, ComponentBase)
+
+#if _D_EDITOR
+
+#define D_H_COMPONENT_DRAG_DROP_DESTINATION(CompType, setter) \
+if (ImGui::BeginDragDropTarget()) \
+{ \
+	ImGuiPayload const* imPayload = ImGui::GetDragDropPayload(); \
+	auto payload = reinterpret_cast<Darius::Utils::BaseDragDropPayloadContent const*>(imPayload->Data); \
+	if (payload && payload->PayloadType != D_UTILS::BaseDragDropPayloadContent::Type::Invalid && payload->IsCompatible(D_UTILS::BaseDragDropPayloadContent::Type::Component, CompType::ClassName())) \
+	{ \
+		if (ImGuiPayload const* acceptedPayload = ImGui::AcceptDragDropPayload(D_PAYLOAD_TYPE_GAMEOBJECT)) \
+		{ \
+			auto gameObject = reinterpret_cast<D_SCENE::GameObjectDragDropPayloadContent const*>(acceptedPayload->Data)->GameObjectRef; \
+			setter(gameObject->GetComponent<CompType>()); \
+		} \
+	} \
+	ImGui::EndDragDropTarget(); \
+}
+
+#define D_H_GAMEOBJECT_DRAG_DROP_DESTINATION(setter) \
+{ \
+	if (ImGui::BeginDragDropTarget()) \
+	{ \
+		ImGuiPayload const* imPayload = ImGui::GetDragDropPayload(); \
+		auto payload = reinterpret_cast<Darius::Utils::BaseDragDropPayloadContent const*>(imPayload->Data); \
+		if (payload && payload->PayloadType != D_UTILS::BaseDragDropPayloadContent::Type::Invalid && payload->IsCompatible(D_UTILS::BaseDragDropPayloadContent::Type::GameObject, "GameObject")) \
+		{ \
+			if (ImGuiPayload const* acceptedPayload = ImGui::AcceptDragDropPayload(D_PAYLOAD_TYPE_GAMEOBJECT)) \
+			{ \
+				auto gameObject = reinterpret_cast<D_SCENE::GameObjectDragDropPayloadContent const*>(acceptedPayload->Data)->GameObjectRef; \
+				setter(gameObject); \
+			} \
+		} \
+		ImGui::EndDragDropTarget(); \
+	} \
+}
+
+#define D_H_GAMEOBJECT_SELECTION_DRAW(prop, setter) \
+{ \
+	bool isMissing; \
+	std::string displayText; \
+	if (prop.IsValid(isMissing)) \
+		displayText = prop->GetName(); \
+	else if (isMissing) \
+		displayText = "Missing (Game Object)"; \
+	else \
+		displayText = "<None>"; \
+	\
+	auto availableSpace = ImGui::GetContentRegionAvail(); \
+	auto selectionWidth = 20.f; \
+	\
+	ImGui::Button((displayText + std::string("##"#prop)).c_str(), ImVec2(availableSpace.x - 2 * selectionWidth - 10.f, 0)); \
+	if(ImGui::IsItemClicked(ImGuiMouseButton_Right)) \
+		setter(nullptr); \
+	\
+	D_H_GAMEOBJECT_DRAG_DROP_DESTINATION(setter); \
+}
+
+#define D_H_COMPONENT_SELECTION_DRAW(compType, prop, setter) \
+{ \
+	ImGui::BeginGroup(); \
+	bool isMissing = prop.IsMissing(); \
+	std::string displayText; \
+	if (prop.IsValid()) \
+		displayText = prop.GetGameObject()->GetName(); \
+	else if (isMissing) \
+		displayText = "Missing"; \
+	else \
+		displayText = "<None>"; \
+	auto availableSpace = ImGui::GetContentRegionAvail(); \
+	auto selectionWidth = 20.f; \
+\
+	ImGui::Button(displayText.c_str(), ImVec2(availableSpace.x - 2 * selectionWidth - 10.f, 0)); \
+	if (ImGui::IsItemClicked(ImGuiMouseButton_Right)) \
+		setter(nullptr); \
+\
+	D_H_COMPONENT_DRAG_DROP_DESTINATION(compType, setter); \
+	ImGui::EndGroup(); \
+}
+
+#endif // _D_EDITOR
+
 
 namespace Darius::Scene
 {

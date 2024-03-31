@@ -141,7 +141,7 @@ namespace Darius::Scene::ECS
 
 		INLINE bool IsNull() const
 		{
-			return !mRef.entity().is_valid();
+			return mRef.entity().id() == 0u;
 		}
 
 		// When it is not null but still not valid
