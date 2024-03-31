@@ -12,6 +12,7 @@
 
 #include <PxPhysics.h>
 #include <PxPhysicsAPI.h>
+#include <characterkinematic/PxControllerManager.h>
 
 using namespace D_SCENE;
 
@@ -71,6 +72,8 @@ namespace Darius::Physics
 
 		mPxScene = core->createScene(desc);
 
+		D_ASSERT(mPxScene);
+
 #ifdef _DEBUG
 		PxPvdSceneClient* pvdClient = mPxScene->getScenePvdClient();
 		if (pvdClient)
@@ -84,11 +87,21 @@ namespace Darius::Physics
 		if (gpuAccelerated)
 			mPxScene->setFlag(PxSceneFlag::eENABLE_GPU_DYNAMICS, true);
 
+		mControllerManager = PxCreateControllerManager(*mPxScene);
+		mControllerManager->setOverlapRecoveryModule(true);
 	}
 
 	PhysicsScene::~PhysicsScene()
 	{
 		PX_RELEASE(mPxScene);
+	}
+
+	PxController* PhysicsScene::CreateController(physx::PxControllerDesc const& controllerDesc)
+	{
+		if (!mControllerManager)
+			return nullptr;
+		
+		return mControllerManager->createController(controllerDesc);
 	}
 
 	void PhysicsScene::PreUpdate()
@@ -178,20 +191,20 @@ namespace Darius::Physics
 	{
 		D_ASSERT(radius > 0);
 		D_ASSERT(halfHeight > 0);
-		return mPxScene->sweep(PxCapsuleGeometry(radius, halfHeight), PxTransform(GetVec3(origin), GetQuat(capsuleRotation)), GetVec3(direction.Normalize()), maxDistance, hit);
+		return mPxScene->sweep(PxCapsuleGeometry(radius, halfHeight), PxTransform(GetVec3(origin), GetQuat(capsuleRotation)), GetVec3(direction.Normal()), maxDistance, hit);
 	}
 
 	bool PhysicsScene::CastSphere(D_MATH::Vector3 const& origin, D_MATH::Vector3 const& direction, float radius, float maxDistance, _OUT_ physx::PxSweepBuffer& hit)
 	{
 		D_ASSERT(radius > 0);
-		return mPxScene->sweep(PxSphereGeometry(radius), PxTransform(GetVec3(origin)), GetVec3(direction.Normalize()), maxDistance, hit);
+		return mPxScene->sweep(PxSphereGeometry(radius), PxTransform(GetVec3(origin)), GetVec3(direction.Normal()), maxDistance, hit);
 	}
 
 	bool PhysicsScene::CastBox(D_MATH::Vector3 const& origin, D_MATH::Vector3 const& direction, D_MATH::Vector3 const& halfExtents, D_MATH::Quaternion const& boxRotation, float maxDistance, _OUT_ physx::PxSweepBuffer& hit)
 	{
 		D_ASSERT(DirectX::XMVector3Greater(halfExtents, DirectX::XMVectorZero()));
 
-		return mPxScene->sweep(PxBoxGeometry(GetVec3(halfExtents)), PxTransform(GetVec3(origin), GetQuat(boxRotation)), GetVec3(direction.Normalize()), maxDistance, hit);
+		return mPxScene->sweep(PxBoxGeometry(GetVec3(halfExtents)), PxTransform(GetVec3(origin), GetQuat(boxRotation)), GetVec3(direction.Normal()), maxDistance, hit);
 	}
 
 	bool PhysicsScene::CastRay_DebugDraw(_IN_ D_MATH::Vector3 const& origin, _IN_ D_MATH::Vector3 const& direction, _IN_ float maxDistance, float secendsToDisplay, _OUT_ physx::PxRaycastBuffer& hit)
@@ -207,7 +220,7 @@ namespace Darius::Physics
 		}
 
 		else
-			D_DEBUG_DRAW::DrawLine(origin, direction.Normalize() * maxDistance + origin, secendsToDisplay, D_MATH::Color::Red);
+			D_DEBUG_DRAW::DrawLine(origin, direction.Normal() * maxDistance + origin, secendsToDisplay, D_MATH::Color::Red);
 #endif
 		return result;
 
@@ -219,7 +232,7 @@ namespace Darius::Physics
 
 #if _D_EDITOR
 
-		auto dirNorm = direction.Normalize();
+		auto dirNorm = direction.Normal();
 
 		if (result)
 		{
@@ -240,7 +253,7 @@ namespace Darius::Physics
 
 #if _D_EDITOR
 
-		auto dirNorm = direction.Normalize();
+		auto dirNorm = direction.Normal();
 
 		if (result)
 		{
@@ -262,7 +275,7 @@ namespace Darius::Physics
 
 #if _D_EDITOR
 
-		auto dirNorm = direction.Normalize();
+		auto dirNorm = direction.Normal();
 
 		if (result)
 		{

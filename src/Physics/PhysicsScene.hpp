@@ -42,6 +42,8 @@ namespace Darius::Physics
 		void					PreUpdate();
 		void					Update();
 
+		physx::PxController*	CreateController(physx::PxControllerDesc const& controllerDesc);
+
 		PhysicsActor const*		FindPhysicsActor(D_SCENE::GameObject* go) const;
 		PhysicsActor*			FindPhysicsActor(D_SCENE::GameObject* go);
 		PhysicsActor*			FindOrCreatePhysicsActor(D_SCENE::GameObject* go);
@@ -67,6 +69,7 @@ namespace Darius::Physics
 		D_CONTAINERS::DUnorderedMap<D_SCENE::GameObject const*, PhysicsActor> mActorMap;
 
 		physx::PxScene*			mPxScene;
+		physx::PxControllerManager* mControllerManager;
 		SimulationCallback		mCallbacks;
 	};
 

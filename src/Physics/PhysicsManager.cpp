@@ -6,6 +6,7 @@
 #include "Components/SphereColliderComponent.hpp"
 #include "Components/CapsuleColliderComponent.hpp"
 #include "Components/MeshColliderComponent.hpp"
+#include "Components/CharacterControllerComponent.hpp"
 #include "Resources/PhysicsMaterialResource.hpp"
 
 #include <Core/Containers/Map.hpp>
@@ -169,6 +170,7 @@ namespace Darius::Physics
 		CapsuleColliderComponent::StaticConstructor();
 		MeshColliderComponent::StaticConstructor();
 		RigidbodyComponent::StaticConstructor();
+		CharacterControllerComponent::StaticConstructor();
 
 		// Create default resources
 		gDefaultMaterial = D_RESOURCE::GetManager()->CreateResource<PhysicsMaterialResource>(D_CORE::GenerateUuidFor("Default Physics Material"), L"Default Physics Material", L"Default Physics Material", true);
