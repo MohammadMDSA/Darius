@@ -24,11 +24,15 @@ namespace Demo
 		virtual void					Update(float deltaTime) override;
 
 		void							SetOtherTrans(D_MATH::TransformComponent* trans);
+		void							SetAnotherRef(ComponentReferencer * other);
 
 	private:
 
 		DField(Serialize)
 		D_ECS::CompRef<D_MATH::TransformComponent>	mOtherTrans;
+
+		DField(Serialize)
+		D_ECS::CompRef<ComponentReferencer>			mAnotherRef;
 
 	};
 }

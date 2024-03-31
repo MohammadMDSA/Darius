@@ -4,7 +4,6 @@
 #include <ResourceManager/Resource.hpp>
 
 #ifdef _D_EDITOR
-#include <Scene/Utils/GameObjectDragDropPayload.hpp>
 #include <ResourceManager/ResourceDragDropPayload.hpp>
 
 #include <imgui.h>
@@ -48,6 +47,17 @@ namespace Demo
 		mChangeSignal(this);
 	}
 
+	void ComponentReferencer::SetAnotherRef(ComponentReferencer* other)
+	{
+		if (mAnotherRef == other)
+			return;
+
+		mAnotherRef = other;
+
+		mChangeSignal(this);
+	}
+
+
 #ifdef _D_EDITOR
 	bool ComponentReferencer::DrawDetails(float params[])
 	{
@@ -59,41 +69,14 @@ namespace Demo
 		{
 			D_H_DETAILS_DRAW_PROPERTY("Other Trans");
 
-			ImGui::BeginGroup();
+			D_H_COMPONENT_SELECTION_DRAW(D_MATH::TransformComponent, mOtherTrans, SetOtherTrans);
+		}
 
-			bool isMissing = mOtherTrans.IsMissing();
-			std::string displayText;
-			if (mOtherTrans.IsValid())
-				displayText = mOtherTrans.GetGameObject()->GetName();
-			else if (isMissing)
-				displayText = "Missing Game Object";
-			else
-				displayText = "<None>";
-			auto availableSpace = ImGui::GetContentRegionAvail();
-			auto selectionWidth = 20.f;
+		// Another Comp Ref
+		{
+			D_H_DETAILS_DRAW_PROPERTY("Another ref");
 
-			ImGui::Button(displayText.c_str(), ImVec2(availableSpace.x - 2 * selectionWidth - 10.f, 0));
-			if (ImGui::IsItemClicked(ImGuiMouseButton_Right))
-				SetOtherTrans(nullptr);
-
-			{
-				if (ImGui::BeginDragDropTarget())
-				{
-					ImGuiPayload const* imPayload = ImGui::GetDragDropPayload();
-					auto payload = reinterpret_cast<Darius::Utils::BaseDragDropPayloadContent const*>(imPayload->Data);
-					if (payload && payload->PayloadType != D_UTILS::BaseDragDropPayloadContent::Type::Invalid && payload->IsCompatible(D_UTILS::BaseDragDropPayloadContent::Type::Component, D_MATH::TransformComponent::ClassName()))
-					{
-						if (ImGuiPayload const* acceptedPayload = ImGui::AcceptDragDropPayload(D_PAYLOAD_TYPE_GAMEOBJECT))
-						{
-							auto gameObject = reinterpret_cast<D_SCENE::GameObjectDragDropPayloadContent const*>(acceptedPayload->Data)->GameObjectRef;
-							SetOtherTrans(gameObject->GetComponent<D_MATH::TransformComponent>());
-						}
-					}
-					ImGui::EndDragDropTarget();
-				}
-			}
-
-			ImGui::EndGroup();
+			D_H_COMPONENT_SELECTION_DRAW(ComponentReferencer, mAnotherRef, SetAnotherRef);
 		}
 
 		D_H_DETAILS_DRAW_END_TABLE();
