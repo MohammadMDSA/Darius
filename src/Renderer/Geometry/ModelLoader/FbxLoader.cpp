@@ -32,10 +32,13 @@ namespace
 {
 	FbxManager* sdkManager;
 
+	DUnorderedMap<D_FILE::Path, FbxScene*> fileScenes;
+
 	struct StaticDestruct
 	{
 		~StaticDestruct()
 		{
+			fileScenes.clear();
 			if (sdkManager)
 				sdkManager->Destroy();
 		}
@@ -77,6 +80,19 @@ namespace Darius::Renderer::Geometry::ModelLoader::Fbx
 	bool InitializeFbxScene(D_FILE::Path const& path, FbxNode** rootNode, FbxAxisSystem::ECoordSystem& coordSystem)
 	{
 
+		{
+			auto sceneCacheLookup = fileScenes.find(path);
+			if (sceneCacheLookup != fileScenes.end())
+			{
+				auto scene = sceneCacheLookup->second;
+				coordSystem = scene->GetGlobalSettings().GetAxisSystem().GetCoorSystem();
+
+				*rootNode = scene->GetRootNode();
+
+				return true;
+			};
+		}
+
 		if (sdkManager == nullptr)
 		{
 			// Create the FBX SDK manager
@@ -107,6 +123,7 @@ namespace Darius::Renderer::Geometry::ModelLoader::Fbx
 
 		// Create a new scene so it can be populated by the imported file.
 		FbxScene* lScene = FbxScene::Create(sdkManager, "modelScene");
+		fileScenes[path] = lScene;
 
 		// Import the contents of the file into the scene.
 		lImporter->Import(lScene);
@@ -1212,13 +1229,19 @@ namespace Darius::Renderer::Geometry::ModelLoader::Fbx
 	void AddSkeletalMesh(FbxNode* node, GameObject* go, DUnorderedMap<std::string, Resource const*> const& resourceDic)
 	{
 		auto comp = go->AddComponent<D_RENDERER::SkeletalMeshRendererComponent>();
-		comp->SetMesh(FindRes<D_RENDERER::SkeletalMeshResource>(node->GetName(), resourceDic));
+		auto nodeName = node->GetName();
+		auto skeletalMesh = FindRes<D_RENDERER::SkeletalMeshResource>(node->GetName(), resourceDic);
+		D_RESOURCE_LOADER::LoadResourceSync(skeletalMesh);
+		comp->SetMesh(skeletalMesh);
 	}
 
 	void AddStaticMesh(FbxNode* node, GameObject* go, DUnorderedMap<std::string, Resource const*> const& resourceDic)
 	{
 		auto comp = go->AddComponent<D_RENDERER::MeshRendererComponent>();
-		comp->SetMesh(FindRes<D_RENDERER::StaticMeshResource>(node->GetName(), resourceDic));
+		auto nodeName = node->GetName();
+		auto staticMesh = FindRes<D_RENDERER::StaticMeshResource>(node->GetName(), resourceDic);
+		D_RESOURCE_LOADER::LoadResourceSync(staticMesh);
+		comp->SetMesh(staticMesh);
 	}
 
 	void AddCamera(FbxNode* node, GameObject* go)
