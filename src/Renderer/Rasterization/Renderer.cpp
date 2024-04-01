@@ -324,18 +324,28 @@ namespace Darius::Renderer::Rasterization
 		sorter.SetNormalTarget(rContext.NormalBuffer);
 
 		// Add meshes to sorter
-		AddRenderItems(sorter, rContext.Camera, rContext.RenderItemContext);
+		{
+			D_PROFILING::ScopedTimer _prof(L"Render items additions", context);
+
+			AddRenderItems(sorter, rContext.Camera, rContext.RenderItemContext);
+		}
 
 		{
 			// Creating shadows
 
 			DVector<RenderItem> shadowRenderItems;
-			AddShadowRenderItems(shadowRenderItems, rContext.RenderItemContext);
+			{
+				D_PROFILING::ScopedTimer _prof(L"Shadow render items addition", context);
+				AddShadowRenderItems(shadowRenderItems, rContext.RenderItemContext);
+			}
 
 			LightContext->RenderShadows(shadowRenderItems, context);
 		}
 
-		sorter.Sort();
+		{
+			D_PROFILING::ScopedTimer _prof(L"Mesh Sort", context);
+			sorter.Sort();
+		}
 
 		if (rContext.DrawSkybox)
 		{
@@ -775,8 +785,7 @@ namespace Darius::Renderer::Rasterization
 		GlobalConstants& globals)
 	{
 		D_ASSERT(m_DSV != nullptr);
-
-		context.PIXBeginEvent(L"Render Meshes");
+		D_PROFILING::ScopedTimer _prof(L"Render Meshes", context);
 
 		context.SetRootSignature(RootSigns[DefaultRootSig]);
 
@@ -1011,7 +1020,6 @@ namespace Darius::Renderer::Rasterization
 			}
 		}
 
-		context.PIXEndEvent();
 	}
 
 	void MeshSorter::SetupDefaultBatchTypeRenderTargetsAfterCustomDepth(D_GRAPHICS::GraphicsContext& context)
