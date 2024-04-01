@@ -12,7 +12,7 @@ namespace Darius::ResourceManager
 {
 
 #if _D_EDITOR
-	D_CORE::Signal<void(D_FILE::Path const&, Darius::ResourceManager::ResourceHandle const&)> Resource::RequestPathChange;
+	D_CORE::Signal<void(D_FILE::Path const&, Darius::ResourceManager::ResourceHandle const&, bool selected)> Resource::RequestPathChange;
 #endif // _D_EDITOR
 
 	DUnorderedMap<ResourceType, std::string> Resource::ResourceTypeMap =

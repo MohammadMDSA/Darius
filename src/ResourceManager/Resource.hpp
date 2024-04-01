@@ -104,7 +104,7 @@ std::shared_ptr<D_RESOURCE::Resource> T::T##Factory::Create(D_CORE::Uuid uuid, s
     auto availableSpace = ImGui::GetContentRegionAvail(); \
     auto selectorWidth = 20.f; \
     if(ImGui::Button(cuurrentResourceName.c_str(), ImVec2(availableSpace.x - 2 * selectorWidth - 10.f, 0)) && prop.IsValid()) \
-		RequestPathChange(prop->GetPath().parent_path(), prop->GetHandle()); \
+		RequestPathChange(prop->GetPath().parent_path(), prop->GetHandle(), ImGui::IsKeyDown(ImGuiKey_LeftCtrl)); \
     D_H_RESOURCE_DRAG_DROP_DESTINATION(resourceType, handleFunction) \
 	ImGui::SameLine(availableSpace.x - selectorWidth); \
 	std::string popupName = (std::string(placeHolder" Res ") + std::string(__VA_ARGS__)); \
@@ -271,7 +271,7 @@ namespace Darius::ResourceManager
 	public:
 
 #if _D_EDITOR
-		static D_CORE::Signal<void(D_FILE::Path const&, ResourceHandle const&)> RequestPathChange;
+		static D_CORE::Signal<void(D_FILE::Path const&, ResourceHandle const&, bool selected)> RequestPathChange;
 #endif // _D_EDITOR
 
 

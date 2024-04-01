@@ -342,7 +342,7 @@ namespace Darius::Scene::ECS::Components
 		ComponentChangeSignalType  mChangeSignal;
 
 #if _D_EDITOR
-		static D_CORE::Signal<void(D_FILE::Path const&, Darius::ResourceManager::ResourceHandle const&)> RequestPathChange;
+		static D_CORE::Signal<void(D_FILE::Path const&, Darius::ResourceManager::ResourceHandle const&, bool selected)> RequestPathChange;
 #endif // _D_EDITOR
 
 
