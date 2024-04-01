@@ -349,7 +349,7 @@ namespace Darius::Scene
 
 	void GameObject::AddComponentRoutine(Darius::Scene::ECS::Components::ComponentBase* comp)
 	{
-		if (!comp)
+		if (!D_VERIFY(comp))
 			return;
 		comp->mGameObject = this;
 
@@ -463,7 +463,16 @@ namespace Darius::Scene
 				mEntity.child_of(D_WORLD::GetRoot());
 			}
 
-			mParent = nullptr;
+			if (attachmentType == AttachmentType::KeepWorld)
+			{
+				auto trans = GetTransform();
+				auto world = trans->GetWorld();
+				mParent = nullptr;
+				trans->SetWorld(world);
+			}
+			else
+				mParent = nullptr;
+
 			return;
 		}
 

@@ -118,7 +118,8 @@ namespace Darius::Scene
 			D_STATIC_ASSERT(conv::value);
 
 			mEntity.add<T>();
-			auto ref = mEntity.get_ref<T>().get();
+			auto ref = const_cast<T*>(mEntity.get<T>());
+			D_VERIFY(ref);
 			AddComponentRoutine(ref);
 			return ref;
 		}
