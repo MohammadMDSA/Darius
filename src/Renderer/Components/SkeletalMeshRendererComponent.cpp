@@ -257,8 +257,11 @@ namespace Darius::Renderer
 			}
 
 			// Joints buffers
-			mJointsBufferGpu.Create(L"Skeletal Mesh Joint Buffer", (UINT)mJoints.size(), sizeof(D_RENDERER::Joint));
-			mJointsBufferUpload.Create(L"Skeletal Mesh Joint Buffer Upload", (UINT)(mJoints.size() * sizeof(D_RENDERER::Joint)), D_GRAPHICS_DEVICE::gNumFrameResources);
+			if (mJoints.size() > 0)
+			{
+				mJointsBufferGpu.Create(L"Skeletal Mesh Joint Buffer", (UINT)mJoints.size(), sizeof(D_RENDERER::Joint));
+				mJointsBufferUpload.Create(L"Skeletal Mesh Joint Buffer Upload", (UINT)(mJoints.size() * sizeof(D_RENDERER::Joint)), D_GRAPHICS_DEVICE::gNumFrameResources);
+			}
 		}
 		else
 		{
@@ -355,6 +358,7 @@ namespace Darius::Renderer
 		}
 
 		// Uploading joints
+		if(mJoints.size() > 0)
 		{
 			D_PROFILING::ScopedTimer _prof2(L"Joints Upload", context);
 

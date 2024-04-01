@@ -33,7 +33,7 @@ namespace Darius::Renderer
 
 		INLINE virtual UINT					GetNumberOfSubmeshes() const { return mMesh.IsValid() ? (UINT)mMesh->GetMeshData()->mDraw.size() : 0u; }
 
-		INLINE virtual bool					CanRender() const override { return MeshRendererComponentBase::CanRender() && mMesh.IsValid(); }
+		INLINE virtual bool					CanRender() const override { return mMesh.IsValid() && MeshRendererComponentBase::CanRender(); }
 		INLINE D_CONTAINERS::DVector<D_RENDERER_GEOMETRY::Mesh::SkeletonJoint>& GetSkeleton() { return mSkeleton; }
 		INLINE D_RENDERER_GEOMETRY::Mesh::SkeletonJoint* GetSkeletonRoot() { return mSkeletonRoot; }
 
