@@ -90,6 +90,9 @@ namespace Darius::Renderer
 		D_RENDERER_GEOMETRY_LOADER_FBX::ReadMeshByName(GetPath(), GetName(), IsInverted(), meshData, mSkeleton);
 
 		CreateInternal(meshData);
+
+		SetMaterialListSize((UINT)meshData.SubMeshes.size());
+
 		return true;
 	}
 

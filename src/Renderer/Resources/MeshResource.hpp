@@ -63,6 +63,7 @@ namespace Darius::Renderer
 		virtual bool					UploadToGpu() override;
 
 		INLINE virtual void				Unload() override { EvictFromGpu(); }
+		void							SetMaterialListSize(UINT size);
 
 		D_RENDERER_GEOMETRY::Mesh		mMesh;
 		
