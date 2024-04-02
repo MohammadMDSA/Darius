@@ -182,7 +182,7 @@ namespace Darius::ResourceManager
 		return true;
 	}
 
-	ResourceHandle ResourceLoader::LoadResourceSync(Resource* resource)
+	ResourceHandle ResourceLoader::LoadResourceSync(Resource* resource, bool forceLoad)
 	{
 
 		if (resource->mDefault)
@@ -194,7 +194,12 @@ namespace Darius::ResourceManager
 			return *resource;
 		}
 
-		auto loaded = LoadResourceSync(resource->GetPath(), false, *resource);
+		if (!forceLoad && resource->IsLoaded())
+		{
+			return *resource;
+		}
+
+		auto loaded = LoadResourceSync(resource->GetPath(), false, forceLoad, *resource);
 
 		ResourceHandle resourceHandle = *resource;
 		for (auto const& loadedHandle : loaded)
@@ -266,7 +271,7 @@ namespace Darius::ResourceManager
 		return CreateResourceObject(meta, manager, path.parent_path());
 	}
 
-	DVector<ResourceHandle> ResourceLoader::LoadResourceSync(Path const& path, bool metaOnly, ResourceHandle specificHandle)
+	DVector<ResourceHandle> ResourceLoader::LoadResourceSync(Path const& path, bool metaOnly, bool forceLoad, ResourceHandle specificHandle)
 	{
 		if (!D_H_ENSURE_FILE(path))
 			return { };
