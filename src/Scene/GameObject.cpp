@@ -77,10 +77,10 @@ namespace Darius::Scene
 
 		// Setting GameObject name
 		{
-			char name[32];
+			char name[1000];
 			size_t curNameSize = mName.size();
+			memset(name, 0, 1000 * sizeof(char));
 			memcpy(name, mName.c_str(), sizeof(char) * curNameSize);
-			ZeroMemory(name + curNameSize, 32 - curNameSize);
 			if (ImGui::InputText("##ObjectName", name, 30))
 				mName = std::string(name);
 		}
