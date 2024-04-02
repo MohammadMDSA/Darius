@@ -13,6 +13,8 @@ namespace Darius::Scene
 
 #define D_PAYLOAD_TYPE_GAMEOBJECT "$PAYLOAD$$GAMEOBJECT$"
 #define D_PAYLOAD_TYPE_COMPONENT "$PAYLOAD$$COMPONENT$"
+#define D_PAYLOAD_GAMEOBJECT_REF_TYPE "REF"
+#define D_PAYLOAD_GAMEOBJECT_HIERARCHY_TYPE "HIERARCHY"
 
 	struct GameObjectDragDropPayloadContent : public D_UTILS::BaseDragDropPayloadContent
 	{
@@ -20,10 +22,25 @@ namespace Darius::Scene
 		GameObjectDragDropPayloadContent() :
 			BaseDragDropPayloadContent(BaseDragDropPayloadContent::Type::GameObject) { }
 
+		bool IsHeirarchyCompatible(GameObject* destination) const
+		{
+			if (destination == GameObjectRef)
+				return false;
+
+			bool result = true;
+			destination->VisitAncestors([&](GameObject* parent)
+				{
+					if (parent == GameObjectRef)
+						result = false;
+				});
+
+			return result;
+		}
+
 		virtual inline bool IsCompatible(D_UTILS::BaseDragDropPayloadContent::Type payloadType, std::string const& type) const override
 		{
 
-			if (payloadType == D_UTILS::BaseDragDropPayloadContent::Type::GameObject)
+			if (payloadType == D_UTILS::BaseDragDropPayloadContent::Type::GameObject && type == D_PAYLOAD_GAMEOBJECT_REF_TYPE)
 				return true;
 
 			if (payloadType == D_UTILS::BaseDragDropPayloadContent::Type::Component && GameObjectRef && GameObjectRef->IsValid())

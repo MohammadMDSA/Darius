@@ -46,6 +46,7 @@ list(APPEND EDITOR_LIBS_INCLUDE
 	"GUI/Components/Common.hpp"
 	"GUI/Components/ContentWindowComponents.hpp"
 	"GUI/Components/PropertyAnimationCurve.hpp"
+	"GUI/Components/TreeClipper.hpp"
 	"GUI/DetailDrawer/DetailDrawer.hpp"
 	"GUI/PostProcessing/GuiPostProcessing.hpp"
 	"GUI/Windows/ContentWindow.hpp"

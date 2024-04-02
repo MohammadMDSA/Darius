@@ -22,7 +22,7 @@ namespace Darius::Editor::Gui::Windows
 
 	private:
 
-		void DrawObject(D_SCENE::GameObject* go, D_SCENE::GameObject* selectedObj);
+		void DrawObject(D_SCENE::GameObject* go, D_SCENE::GameObject* selectedObj, bool& abort);
 	};
 
 }

@@ -250,7 +250,7 @@ namespace Darius::Editor::Gui::GuiManager
 		}
 
 		{
-			static bool show_demo_window = true;
+			static bool show_demo_window = false;
 			if (show_demo_window)
 				ImGui::ShowDemoWindow(&show_demo_window);
 
@@ -364,7 +364,7 @@ namespace Darius::Editor::Gui::GuiManager
 
 	void DrawGammAddMenu(GameObject* const contextGameObject)
 	{
-		
+
 #define CreateParentedGameObject() \
 GameObject* created = D_WORLD::CreateGameObject(); \
 created->GetTransform()->SetPosition(GetWindow<SceneWindow>()->SuggestSpawnPositionOnYPlane()); \
@@ -487,6 +487,46 @@ if (validContext) \
 #undef CreateParentedGameObject
 	}
 
+	void GoHandler(GameObject* go, GameObject* refParent, D_RENDERER::MaterialResource* defaultMat, bool toRoot)
+	{
+
+		auto mod = false;
+		if (auto sk = go->GetComponent<D_RENDERER::SkeletalMeshRendererComponent>())
+		{
+			if (auto mesh = sk->GetMesh())
+			{
+				mesh->SetInverted(true);
+				for (int i = 0; i < mesh->GetMeshData()->mDraw.size(); i++)
+				{
+					mesh->SetMaterial(i, defaultMat);
+				}
+			}
+			mod = true;
+		}
+
+		if (auto sm = go->GetComponent<D_RENDERER::MeshRendererComponent>())
+		{
+			if (auto mesh = sm->GetMesh())
+			{
+				mesh->SetInverted(true);
+				for (int i = 0; i < mesh->GetMeshData()->mDraw.size(); i++)
+				{
+					mesh->SetMaterial(i, defaultMat);
+				}
+			}
+			mod = true;
+		}
+
+		if (mod)
+		{
+			auto parent = go->GetParent();
+			if (parent != refParent && parent)
+				go->SetName(parent->GetName());
+
+			go->SetParent(nullptr, GameObject::AttachmentType::KeepWorld);
+		}
+	}
+
 	void _DrawMenuBar()
 	{
 		D_PROFILING::ScopedTimer menubarProfiling(L"Draw Menubar");
@@ -581,6 +621,18 @@ if (validContext) \
 
 				if (ImGui::MenuItem("Debug Button"))
 				{
+					auto selected = D_EDITOR_CONTEXT::GetSelectedGameObject();
+
+					if (selected)
+					{
+						auto mat = selected->GetComponent<D_RENDERER::MeshRendererComponent>()->GetMaterial(0);
+
+						selected->VisitDescendants([=](auto go)
+							{
+								GoHandler(go, selected, mat.Get(), false);
+							});
+
+					}
 				}
 
 				ImGui::EndMenu();
