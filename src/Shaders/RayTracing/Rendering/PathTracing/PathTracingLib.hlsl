@@ -552,18 +552,26 @@ void MainRenderCHS(inout PathTracerRayPayload rayPayload, in BuiltInTriangleInte
         normal = NormalMap(normal, texCoord, vertices, attr, rayPayload.Tangent.xyz);
         normal = normalize(normal);
     }
-
+    
+    float opacity = l_Opacity;
+                    
     if (BitMasked(l_TexStats, MaterialTextureType::Diffuse))
     {
         float4 texSample = l_TexDiffuse.SampleLevel(l_DiffuseSampler, texCoord, 0);
         material.Albedo = texSample.xyz;
-        material.Transmissivity = material.Albedo * (1 - l_Opacity);
+                        
+        if (opacity == 0.f)
+            opacity = texSample.w;
+
     }
     else
     {
         material.Albedo = l_DiffuseAlbedo.xyz;
-                        material.Transmissivity = material.Albedo * (1 - l_Opacity);
-                    }
+                        
+        if (opacity == 0.f)
+            opacity = l_DiffuseAlbedo.w;
+    }
+    material.Transmissivity = material.Albedo * (1 - opacity);
   
     if (BitMasked(l_TexStats, MaterialTextureType::Metallic))
     {
