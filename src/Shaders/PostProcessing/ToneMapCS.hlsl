@@ -25,12 +25,17 @@ Texture2D<float3> SrcColor : register( t2 );
 #endif
 RWTexture2D<float> OutLuma : register( u1 );
 
-cbuffer CB0 : register(b0)
+cbuffer CB0 : register(b1)
 {
     float2 g_RcpBufferDim;
     float g_BloomStrength;
     float PaperWhiteRatio; // PaperWhite / MaxBrightness
     float MaxBrightness;
+    float FilmSlope;
+    float FilmToe;
+    float FilmShoulder;
+    float FilmBlackClip;
+    float FilmWhiteClip;
 };
 
 [RootSignature(PostEffects_RootSig)]
@@ -63,7 +68,7 @@ void main( uint3 DTid : SV_DispatchThreadID )
 #else
 
     // Tone map to SDR
-    float3 sdrColor = TM_Stanard(hdrColor);
+    float3 sdrColor = RemoveSRGBCurve(FilmToneMap(hdrColor, FilmSlope, FilmToe, FilmShoulder, FilmBlackClip, FilmWhiteClip));
 
 #if SUPPORT_TYPED_UAV_LOADS
     ColorRW[DTid.xy] = sdrColor;
