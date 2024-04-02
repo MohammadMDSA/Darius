@@ -359,18 +359,7 @@ namespace Darius::Editor::Gui::Windows
 		if (item->IsDirectory)
 			return;
 
-		auto containedResources = D_RESOURCE::ResourceLoader::LoadResourceSync(item->Path, false);
-
-		if (containedResources.size() == 0)
-		{
-			D_EDITOR_CONTEXT::SetSelectedDetailed(nullptr);
-			return;
-		}
-
-		auto resource = D_RESOURCE::GetRawResourceSync(selectedHandle);
-		D_EDITOR_CONTEXT::SetSelectedDetailed(resource);
-
-		/*D_RESOURCE::ResourceLoader::LoadResourceAsync(item->Path, [selectedHandle](auto containedResources)
+		D_RESOURCE::ResourceLoader::LoadResourceAsync(item->Path, [selectedHandle](auto containedResources)
 			{
 				if (containedResources.size() == 0)
 				{
@@ -380,7 +369,7 @@ namespace Darius::Editor::Gui::Windows
 
 				auto resource = D_RESOURCE::GetRawResourceSync(selectedHandle);
 				D_EDITOR_CONTEXT::SetSelectedDetailed(resource);
-			}, true);*/
+			});
 	}
 
 }

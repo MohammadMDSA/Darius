@@ -37,7 +37,7 @@ namespace Darius::Editor::Gui::Windows
 		{
 			if (!resource->IsLoaded())
 			{
-				D_RESOURCE_LOADER::LoadResourceAsync(resource, nullptr);
+				//D_RESOURCE_LOADER::LoadResourceAsync(resource, nullptr);
 
 				return;
 			}
