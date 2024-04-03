@@ -31,6 +31,18 @@ namespace Darius::Job
 
     typedef enki::TaskPriority              TaskPriority;
 
+    class GenericPinnedTask : public IPinnedTask
+    {
+    public:
+        PinnedTaskFunction mFunction;
+
+        virtual void Execute() override
+        {
+            if (mFunction)
+                mFunction();
+        }
+    };
+
     class CancellationToken
     {
     public:
