@@ -315,6 +315,7 @@ namespace Darius::Renderer::Rasterization
 
 		// Setting up sorter
 		auto viewPort = CD3DX12_VIEWPORT(0.f, 0.f, (float)width, (float)height, D3D12_MIN_DEPTH, D3D12_MAX_DEPTH);
+		D_GRAPHICS_AA_TEMPORAL::GetJitterOffset(viewPort.TopLeftX, viewPort.TopLeftY);
 		auto scissor = CD3DX12_RECT(0l, 0l, (long)width, (long)height);
 		sorter.SetCamera(rContext.Camera);
 		sorter.SetViewport(viewPort);
@@ -356,12 +357,13 @@ namespace Darius::Renderer::Rasterization
 		// Rendering depth
 		sorter.RenderMeshes(MeshSorter::kZPass, context, 0, rContext.Globals);
 
+		auto frameIdxMod2 = D_GRAPHICS_AA_TEMPORAL::GetFrameIndexMod2();
 		D_GRAPHICS_AO_SS::SSAORenderBuffers ssaoBuffers =
 		{
 			rContext.ColorBuffer,
 			rContext.SSAOFullScreen,
 			rContext.DepthBuffer,
-			*rContext.LinearDepth,
+			rContext.LinearDepth[frameIdxMod2],
 			rContext.DepthDownsize1,
 			rContext.DepthDownsize2,
 			rContext.DepthDownsize3,
@@ -388,7 +390,6 @@ namespace Darius::Renderer::Rasterization
 
 		sorter.RenderMeshes(MeshSorter::kTransparent, context, &rContext.SSAOFullScreen, rContext.Globals);
 
-		auto frameIdxMod2 = D_GRAPHICS_AA_TEMPORAL::GetFrameIndexMod2();
 		auto& commandContext = context.GetComputeContext();
 
 		D_GRAPHICS_PP_MOTION::MotionBlurBuffers motionBuffers = { rContext.ColorBuffer, rContext.LinearDepth[frameIdxMod2], rContext.VelocityBuffer, rContext.DepthBuffer };
