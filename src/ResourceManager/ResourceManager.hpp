@@ -90,13 +90,11 @@ namespace Darius::ResourceManager
 		if (handle.Type != T::GetResourceType())
 			throw D_EXCEPTION::Exception("Requested type and handle type are not compatible");
 
-		GetRawResourceAsync(handle, [callback](auto resource)
+
+		GetRawResourceAsync(handle, callback ? [callback](auto resource)
 			{
-				if (callback)
-				{
-					callback(static_cast<T*>(resource));
-				}
-			});
+				callback(static_cast<T*>(resource));
+			} : nullptr);
 	}
 
 	template<class T>
