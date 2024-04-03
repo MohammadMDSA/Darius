@@ -111,7 +111,7 @@ PRIVATE
 	${Boost_INCLUDE_DIRS}
 	${FBX_INCLUDE_DIRS})
 
-target_link_libraries("Renderer" PRIVATE ${Boost_LIBRARIES} ${FBX_LINK_LIBS} DirectXTex IMGUI PUBLIC Graphics Math Scene)
+target_link_libraries("Renderer" PRIVATE ${Boost_LIBRARIES} ${FBX_LIBS} DirectXTex IMGUI PUBLIC Graphics Math Scene)
 
 if(BUILD_TESTS)
 	set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/../../cmake")
