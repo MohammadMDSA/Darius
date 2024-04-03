@@ -109,6 +109,7 @@ namespace Darius::Renderer::Rasterization
 
 		void SetCamera(const D_MATH_CAMERA::BaseCamera& camera) { m_Camera = &camera; }
 		void SetViewport(const D3D12_VIEWPORT& viewport) { m_Viewport = viewport; }
+		D3D12_VIEWPORT const& GetViewport() const { return m_Viewport; }
 		void SetScissor(const D3D12_RECT& scissor) { m_Scissor = scissor; }
 		void AddRenderTarget(D_GRAPHICS_BUFFERS::ColorBuffer& RTV)
 		{

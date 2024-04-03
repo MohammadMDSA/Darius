@@ -409,6 +409,10 @@ namespace Darius::Renderer::Rasterization
 			context.TransitionResource(rContext.ColorBuffer, D3D12_RESOURCE_STATE_RENDER_TARGET, true);
 
 			MeshSorter additionalRenderSorter(sorter);
+			auto vp = additionalRenderSorter.GetViewport();
+			vp.TopLeftX = 0.5f;
+			vp.TopLeftY = 0.5f;
+			additionalRenderSorter.SetViewport(vp);
 
 			for (auto const& additionalItemsVec : rContext.AdditionalRenderItems)
 			{
