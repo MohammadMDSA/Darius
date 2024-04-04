@@ -202,7 +202,7 @@ namespace Darius::Graphics::Utils::Buffers
 			mCpuDescriptorHandle = AllocateDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 
 		HRESULT hr = CreateDDSTextureFromMemory(D_GRAPHICS_DEVICE::GetDevice(),
-			(const uint8_t*)filePtr, fileSize, 0, sRGB, &mResource, mCpuDescriptorHandle);
+			(const uint8_t*)filePtr, fileSize, 0, sRGB, mResource.ReleaseAndGetAddressOf(), mCpuDescriptorHandle);
 
 		DirectX::TexMetadata meta;
 		DirectX::GetMetadataFromDDSMemory(filePtr, fileSize, DirectX::DDS_FLAGS_NONE, meta);

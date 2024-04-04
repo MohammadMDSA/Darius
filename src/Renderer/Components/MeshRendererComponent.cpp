@@ -77,8 +77,11 @@ namespace Darius::Renderer
 		static auto incSize = D_GRAPHICS_DEVICE::GetDevice()->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 
 		D_CONTAINERS::DVector<ResourceRef<MaterialResource>> meshMaterials = mMesh->GetMaterials();
+		UINT draws = (UINT)mesh->mDraw.size();
+		if (draws != (UINT)mMaterials.size())
+			OnMeshChanged();
 
-		for (UINT i = 0; i < mesh->mDraw.size(); i++)
+		for (UINT i = 0; i < draws; i++)
 		{
 			auto const& draw = mesh->mDraw[i];
 

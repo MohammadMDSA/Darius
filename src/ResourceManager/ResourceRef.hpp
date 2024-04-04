@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Resource.hpp"
+#include "ResourceLoader.hpp"
 
 #include <Core/RefCounting/Ref.hpp>
 
@@ -54,8 +55,11 @@ namespace rttr
 		{
 			if (value.is_nil())
 				return D_RESOURCE::ResourceRef<T>(nullptr);
-			D_RESOURCE::GetRawResourceSync(value, true);
-			return D_RESOURCE::GetResourceSync<T>(value);
+			auto res = D_RESOURCE::GetRawResourceSync(value, false);
+			D_RESOURCE_LOADER::LoadResourceAsync(res, nullptr, true);
+			T* ref = dynamic_cast<T*>(res);
+			D_ASSERT(ref);
+			return ref;
 		}
 
 		template<typename U>

@@ -9,7 +9,6 @@
 #include <ResourceManager/ResourceManager.hpp>
 
 #define FBXSDK_SHARED
-
 #include <fbxsdk.h>
 #include <fbxsdk/fileio/fbxiosettings.h>
 

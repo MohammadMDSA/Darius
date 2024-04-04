@@ -4,6 +4,7 @@
 #include "Renderer/Geometry/ModelLoader/FbxLoader.hpp"
 
 #include <Scene/EntityComponentSystem/Components/TransformComponent.hpp>
+#include <Job/Job.hpp>
 
 #ifdef _D_EDITOR
 #include <imgui.h>
@@ -85,13 +86,23 @@ namespace Darius::Renderer
 
 	bool SkeletalMeshResource::UploadToGpu()
 	{
-		MultiPartMeshData<VertexType> meshData;
 
-		D_RENDERER_GEOMETRY_LOADER_FBX::ReadMeshByName(GetPath(), GetName(), IsInverted(), meshData, mSkeleton);
+		SetUploading();
+		auto task = new D_JOB::GenericPinnedTask();
+		task->mFunction = [&]()
+			{
+				MultiPartMeshData<VertexType> meshData;
 
-		CreateInternal(meshData);
+				D_RENDERER_GEOMETRY_LOADER_FBX::ReadMeshByName(GetPath(), GetName(), IsInverted(), meshData, mSkeleton);
 
-		SetMaterialListSize((UINT)meshData.SubMeshes.size());
+				CreateInternal(meshData);
+
+				SetMaterialListSize((UINT)meshData.SubMeshes.size());
+
+				SetUploadComplete();
+			};
+		
+		D_JOB::AddPinnedTask(task, D_JOB::ThreadType::FileIO);
 
 		return true;
 	}

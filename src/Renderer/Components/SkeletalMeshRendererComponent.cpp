@@ -110,7 +110,11 @@ namespace Darius::Renderer
 			result.CustomDepth = IsCustomDepthEnable();
 		}
 
-		for (UINT i = 0; i < mesh->mDraw.size(); i++)
+		UINT draws = (UINT)mesh->mDraw.size();
+		if (draws != (UINT)mMaterials.size())
+			OnMeshChanged();
+
+		for (UINT i = 0; i < draws; i++)
 		{
 			auto const& draw = mesh->mDraw[i];
 

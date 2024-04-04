@@ -58,7 +58,7 @@ namespace Darius::ResourceManager
 		}
 
 		// Is gpu already up to date
-		if (!IsSelfDirtyGPU())
+		if (mDirtyGPU.load() != GPUDirtyState::Dirty)
 			return ResourceGpuUpdateResult::AlreadyClean;
 
 		SetLocked(true);
@@ -93,8 +93,8 @@ namespace Darius::ResourceManager
 
 	bool Resource::Release()
 	{
-		Unload();
-		mLoaded.store(false);
+		//Unload();
+		//mLoaded.store(false);
 		return true;
 	}
 }

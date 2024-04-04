@@ -7,6 +7,7 @@
 #include <Core/Filesystem/FileUtils.hpp>
 #include <Core/Containers/Map.hpp>
 #include <Core/Exceptions/Exception.hpp>
+#include <Job/Job.hpp>
 #include <Utils/Assert.hpp>
 
 using namespace D_CONTAINERS;
@@ -53,7 +54,7 @@ namespace Darius::ResourceManager
 			D_RESOURCE_LOADER::LoadResourceSync(resource);
 		if (syncLoad && resource->IsDirtyGPU())
 		{
-			if (resource->UpdateGPU() == ResourceGpuUpdateResult::Success)
+			if (resource->UpdateGPU() == ResourceGpuUpdateResult::Success && resource->GetGpuState() != Resource::GPUDirtyState::Uploading)
 				resource->MakeGpuClean();
 		}
 		return resource;
@@ -68,7 +69,8 @@ namespace Darius::ResourceManager
 			D_RESOURCE_LOADER::LoadResourceSync(resource);
 		if (syncLoad && resource->IsDirtyGPU())
 		{
-			resource->UpdateGPU();
+			if(resource->UpdateGPU() == ResourceGpuUpdateResult::Success && resource->GetGpuState() != Resource::GPUDirtyState::Uploading)
+				resource->MakeGpuClean();
 		}
 		return resource;
 	}
@@ -254,13 +256,14 @@ namespace Darius::ResourceManager
 			for (auto& res : resType.second)
 			{
 				auto resource = res.second;
-				if (resource->IsLoaded() && resource->IsDirtyGPU() && !resource->IsLocked())
+				if (resource->IsLoaded() && resource->GetGpuState() == Resource::GPUDirtyState::Dirty && !resource->IsLocked())
 				{
 					switch (resource->UpdateGPU())
 					{
 						// It is successfully cleaned
 					case ResourceGpuUpdateResult::Success:
-						dirtyResources.push_back(resource.get());
+						if (resource->GetGpuState() == Resource::GPUDirtyState::Clean)
+							dirtyResources.push_back(resource.get());
 						break;
 
 						// It will be cleaned in the next round
@@ -283,6 +286,7 @@ namespace Darius::ResourceManager
 
 		while (!stillDirtyResources.empty())
 		{
+			UINT stillDirtyCount = (UINT)stillDirtyResources.size();
 			static DVector<Resource*> newStillDirtyResources;
 
 			for (auto resource : stillDirtyResources)
@@ -312,6 +316,8 @@ namespace Darius::ResourceManager
 
 			stillDirtyResources = newStillDirtyResources;
 			newStillDirtyResources.clear();
+			if ((UINT)stillDirtyResources.size() == stillDirtyCount)
+				break;
 		}
 	}
 

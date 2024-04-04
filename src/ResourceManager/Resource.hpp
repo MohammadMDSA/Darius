@@ -219,6 +219,13 @@ namespace Darius::ResourceManager
 
 	public:
 
+		enum class GPUDirtyState : uint8_t
+		{
+			Clean,
+			Uploading,
+			Dirty
+		};
+
 		class ResourceFactory
 		{
 		public:
@@ -246,8 +253,11 @@ namespace Darius::ResourceManager
 		virtual INLINE rttr::type	GetResourceReflectionType() const { return rttr::type::get<Resource>(); }
 		virtual INLINE std::string	GetResourceTypeName() const = 0;
 
-		INLINE bool					IsSelfDirtyGPU() const { return mDirtyGPU.load(); }
+		INLINE bool					IsSelfDirtyGPU() const { return mDirtyGPU.load() != GPUDirtyState::Clean; }
 		INLINE bool					IsDirtyGPU() const { return IsSelfDirtyGPU() || AreDependenciesDirty(); }
+		INLINE GPUDirtyState		GetGpuState() const { return mDirtyGPU.load(); }
+		INLINE void					SetUploading() { D_ASSERT(GetGpuState() == GPUDirtyState::Dirty); mDirtyGPU.store(GPUDirtyState::Uploading); }
+		INLINE void					SetUploadComplete() { D_ASSERT(GetGpuState() == GPUDirtyState::Uploading); mDirtyGPU.store(GPUDirtyState::Clean); }
 		INLINE virtual bool			AreDependenciesDirty() const = 0;
 		INLINE bool					IsLocked() const { return mLocked.load(); }
 		INLINE void					SetLocked(bool value) { mLocked.store(value); }
@@ -278,32 +288,32 @@ namespace Darius::ResourceManager
 	private:
 
 		DField()
-			D_FILE::Path		mPath;
+		D_FILE::Path				mPath;
 
-		std::atomic_bool	mLoaded;
-
-		DField()
-			unsigned int		mVersion;
+		std::atomic_bool			mLoaded;
 
 		DField()
-			bool				mDirtyDisk;
-
-		std::atomic_bool	mDirtyGPU;
+		unsigned int				mVersion;
 
 		DField()
-			const DResourceId	mId;
+		bool						mDirtyDisk;
+
+		std::atomic<GPUDirtyState>	mDirtyGPU;
 
 		DField()
-			const D_CORE::Uuid	mUuid;
+		const DResourceId			mId;
 
 		DField()
-			const bool			mDefault;
+		const D_CORE::Uuid			mUuid;
 
 		DField()
-			std::wstring		mName;
+		const bool					mDefault;
+
+		DField()
+		std::wstring				mName;
 
 		// For saving / loading / manipulation purposes
-		std::atomic_bool	mLocked;
+		std::atomic_bool			mLocked;
 
 
 	public:
@@ -344,9 +354,9 @@ namespace Darius::ResourceManager
 		}
 
 		INLINE void					MakeDiskDirty() { D_ASSERT_M(!mLocked, "Resource cannot be manipulated while locked."); if (!IsDefault()) mDirtyDisk = true; }
-		INLINE void					MakeGpuDirty() { if (!IsDefault()) mDirtyGPU.store(true); }
+		INLINE void					MakeGpuDirty() { if (!IsDefault()) mDirtyGPU.store(GPUDirtyState::Dirty); }
 		INLINE void					MakeDiskClean() { mDirtyDisk = false; }
-		INLINE void					MakeGpuClean() { mDirtyGPU.store(false); }
+		INLINE void					MakeGpuClean() { mDirtyGPU.store(GPUDirtyState::Clean); }
 
 		friend class DResourceManager;
 		friend class ResourceLoader;
@@ -363,7 +373,7 @@ namespace Darius::ResourceManager
 			mId(id),
 			mDefault(isDefault),
 			mDirtyDisk(false),
-			mDirtyGPU(true),
+			mDirtyGPU(GPUDirtyState::Dirty),
 			mUuid(uuid),
 			mLocked(false)
 		{

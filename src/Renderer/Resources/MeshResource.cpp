@@ -11,6 +11,7 @@
 #include <Core/Containers/Set.hpp>
 #include <Graphics/GraphicsDeviceManager.hpp>
 #include <Graphics/GraphicsCore.hpp>
+#include <Job/Job.hpp>
 #include <ResourceManager/ResourceManager.hpp>
 #include <Scene/EntityComponentSystem/Components/TransformComponent.hpp>
 
@@ -57,13 +58,22 @@ namespace Darius::Renderer
 		if (IsDefault())
 			return true;
 
-		MultiPartMeshData<VertexType> meshData;
+		SetUploading();
+		auto task = new D_JOB::GenericPinnedTask();
+		task->mFunction = [&]()
+			{
+				MultiPartMeshData<VertexType> meshData;
 
-		D_RENDERER_GEOMETRY_LOADER_FBX::ReadMeshByName(GetPath(), GetName(), IsInverted(), meshData);
+				D_RENDERER_GEOMETRY_LOADER_FBX::ReadMeshByName(GetPath(), GetName(), IsInverted(), meshData);
 
-		CreateInternal(meshData);
+				CreateInternal(meshData);
 
-		SetMaterialListSize((UINT)meshData.SubMeshes.size());
+				SetMaterialListSize((UINT)meshData.SubMeshes.size());
+
+				SetUploadComplete();
+			};
+
+		D_JOB::AddPinnedTask(task, D_JOB::ThreadType::FileIO);
 
 		return true;
 	}
