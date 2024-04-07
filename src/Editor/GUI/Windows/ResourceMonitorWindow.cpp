@@ -30,7 +30,7 @@ namespace Darius::Editor::Gui::Windows
 		DVector<Resource*> resources;
 		D_RESOURCE::GetAllResources(resources);
 
-		auto flags = ImGuiTableFlags_ScrollY | ImGuiTableFlags_RowBg | ImGuiTableFlags_BordersOuter | ImGuiTableFlags_BordersV | ImGuiTableFlags_Resizable | ImGuiTableFlags_Reorderable | ImGuiTableFlags_Hideable;
+		static auto flags = ImGuiTableFlags_ScrollY | ImGuiTableFlags_RowBg | ImGuiTableFlags_BordersOuter | ImGuiTableFlags_BordersV | ImGuiTableFlags_Resizable | ImGuiTableFlags_Reorderable | ImGuiTableFlags_Hideable;
 
 		if (ImGui::BeginTable("Resource Table", 11, flags))
 		{
@@ -49,8 +49,8 @@ namespace Darius::Editor::Gui::Windows
 
 			ImGui::TableHeadersRow();
 
-			ImGuiListClipper clipper;
-			clipper.Begin(200);
+			static ImGuiListClipper clipper;
+			clipper.Begin((int)resources.size());
 
 			static int selected;
 			while (clipper.Step())

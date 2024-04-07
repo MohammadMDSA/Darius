@@ -9,7 +9,7 @@
 #include <Core/Input.hpp>
 #include <Core/Containers/List.hpp>
 #include <Engine/EngineContext.hpp>
-#include <Renderer/Resources/FBXPrefabResource.hpp>
+#include <FBX/FBXPrefabResource.hpp>
 #include <ResourceManager/ResourceDragDropPayload.hpp>
 #include <ResourceManager/ResourceManager.hpp>
 #include <Scene/Scene.hpp>
@@ -57,15 +57,18 @@ namespace Darius::Editor::Gui::Windows
 				return (std::strcmp(a->GetName().c_str(), b->GetName().c_str()) < 0);
 			});
 
-		static D_GUI_COMPONENT::TreeViewClipper clipper;
 
 		bool abort = false;
-		clipper.Begin((UINT)children.size());
-		while (clipper.BeginNode())
+		static ImGuiListClipper clipper;
+		clipper.Begin((int)children.size());
+		while (clipper.Step())
 		{
-			if (!abort)
-				DrawObject(children[clipper.idx], selectedObj, abort);
-			clipper.EndNode();
+			for (int idx = clipper.DisplayStart; idx < D_MATH::Min((int)children.size(), clipper.DisplayEnd); idx++)
+			{
+
+				if (!abort)
+					DrawObject(children[idx], selectedObj, abort);
+			}
 		}
 		clipper.End();
 
@@ -195,11 +198,11 @@ namespace Darius::Editor::Gui::Windows
 				}
 
 				// In case it is a fbx prefab resource
-				else if (payload->IsCompatible(D_UTILS::BaseDragDropPayloadContent::Type::Resource, std::to_string(D_RENDERER::FBXPrefabResource::GetResourceType())))
+				else if (payload->IsCompatible(D_UTILS::BaseDragDropPayloadContent::Type::Resource, std::to_string(D_FBX::FBXPrefabResource::GetResourceType())))
 				{
 					auto payloadData = reinterpret_cast<D_RESOURCE::ResourceDragDropPayloadContent const*>(imPayload->Data);
 
-					auto prefabResource = D_RESOURCE::GetResourceSync<D_RENDERER::FBXPrefabResource>(payloadData->Handle, true);
+					auto prefabResource = D_RESOURCE::GetResourceSync<D_FBX::FBXPrefabResource>(payloadData->Handle, true);
 
 					if (prefabResource.IsValid() && prefabResource->GetPrefabGameObject() && prefabResource->GetPrefabGameObject()->IsValid() && ImGui::AcceptDragDropPayload(D_PAYLOAD_TYPE_RESOURCE))
 					{
