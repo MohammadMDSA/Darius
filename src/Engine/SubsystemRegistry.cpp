@@ -10,6 +10,7 @@
 #include <Core/TimeManager/TimeManager.hpp>
 #include <Debug/DebugDraw.hpp>
 #include <Graphics/GraphicsCore.hpp>
+#include <FBX/FBXSystem.hpp>
 #include <Job/Job.hpp>
 #include <Physics/PhysicsManager.hpp>
 #include <Renderer/RendererManager.hpp>
@@ -111,6 +112,9 @@ namespace Darius::Subsystems
 
 		// Initializing animation
 		D_ANIMATION::Initialize(settings["Animation"]);
+
+		// Initializing fbx
+		D_FBX::Initialize(settings["Fbx"]);
 	}
 
 	void ShutdownSubsystems()
@@ -121,7 +125,7 @@ namespace Darius::Subsystems
 		{
 			initializer();
 		}*/
-
+		D_FBX::Shutdown();
 		D_ANIMATION::Shutdown();
 		D_PHYSICS::Shutdown();
 #ifdef _DEBUG

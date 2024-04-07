@@ -89,6 +89,7 @@ list(APPEND DARIUS_LIBS
     "Debug"
     "Animation"
 	"Job"
+    "Fbx"
 	)
 
     	
@@ -174,6 +175,7 @@ list(APPEND DARIUS_LOW_LEVEL_LIBS
     "Debug"
     "Animation"
 	"Job"
+    "Fbx"
 	)
 if(EDITOR_BUILD)
 list(APPEND DARIUS_LOW_LEVEL_LIBS

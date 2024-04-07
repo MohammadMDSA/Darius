@@ -1,16 +1,20 @@
-#include "Graphics/pch.hpp"
+#include "FBX/pch.hpp"
 #include "FbxLoader.hpp"
 
-#include "Renderer/Components/CameraComponent.hpp"
-#include "Renderer/Components/LightComponent.hpp"
-#include "Renderer/Components/MeshRendererComponent.hpp"
-#include "Renderer/Components/SkeletalMeshRendererComponent.hpp"
-#include "Renderer/Resources/SkeletalMeshResource.hpp"
-#include "Renderer/Resources/StaticMeshResource.hpp"
+#include "FBXPrefabResource.hpp"
 
+#include <Animation/AnimationResource.hpp>
+#include <Core/Containers/Set.hpp>
+#include <Renderer/Components/CameraComponent.hpp>
+#include <Renderer/Components/LightComponent.hpp>
+#include <Renderer/Components/MeshRendererComponent.hpp>
+#include <Renderer/Components/SkeletalMeshRendererComponent.hpp>
+#include <Renderer/Resources/SkeletalMeshResource.hpp>
+#include <Renderer/Resources/StaticMeshResource.hpp>
 #include <ResourceManager/ResourceManager.hpp>
 #include <ResourceManager/ResourceLoader.hpp>
 #include <Scene/EntityComponentSystem/Components/TransformComponent.hpp>
+#include <Scene/GameObject.hpp>
 #include <Utils/Assert.hpp>
 
 #include <mutex>
@@ -21,7 +25,11 @@
 #include <fbxsdk/fileio/fbxiosettings.h>
 
 using namespace fbxsdk;
+using namespace D_ANIMATION;
 using namespace D_CONTAINERS;
+using namespace D_RENDERER;
+using namespace D_RENDERER_GEOMETRY;
+using namespace D_RENDERER_VERTEX;
 using namespace D_MATH;
 using namespace D_RESOURCE;
 using namespace D_SCENE;
@@ -46,7 +54,7 @@ namespace
 	} StaticDes;
 }
 
-namespace Darius::Renderer::Geometry::ModelLoader::Fbx
+namespace Darius::Fbx
 {
 	const int TRIANGLE_VERTEX_COUNT = 3;
 
@@ -69,11 +77,13 @@ namespace Darius::Renderer::Geometry::ModelLoader::Fbx
 	};
 
 	void TraverseNodes(FbxNode* nodeP, std::function<void(FbxNode*)> callback);
-	bool ReadMeshNode(FbxMesh* pMesh, bool inverted, MultiPartMeshData<D_RENDERER_VERTEX::VertexPositionNormalTangentTextureSkinned>& result, DUnorderedMap<int, DVector<int>>& controlPointIndexToVertexIndexMap, FbxAxisSystem::ECoordSystem coordSystem);
+	bool ReadMeshNode(FbxMesh* pMesh, MeshResource::NormalsReordering normalsReordering, bool inverted, MultiPartMeshData<D_RENDERER_VERTEX::VertexPositionNormalTangentTextureSkinned>& result, DUnorderedMap<int, DVector<int>>& controlPointIndexToVertexIndexMap, FbxAxisSystem::ECoordSystem coordSystem);
 	bool ReadMeshSkin(FbxMesh const* pMesh, MultiPartMeshData<D_RENDERER_VERTEX::VertexPositionNormalTangentTextureSkinned>& meshData, DList<D_RENDERER_GEOMETRY::Mesh::SkeletonJoint>& skeleton, DUnorderedMap<int, DVector<int>> const& controlPointIndexToVertexIndexMap);
 	void AddSkeletonChildren(FbxSkeleton const* skeletonNode, DList<Mesh::SkeletonJoint>& skeletonData, DMap<FbxSkeleton const*, UINT>& skeletonIndexMap);
 	void ReadFBXCacheVertexPositions(MultiPartMeshData<D_RENDERER_VERTEX::VertexPositionNormalTangentTextureSkinned>& meshDataVec, FbxMesh const* mesh, DUnorderedMap<int, DVector<int>> const& controlPointIndexToVertexIndexMap);
 	void AddJointWeightToVertices(VertexBlendWeightData const& skinData, MultiPartMeshData<D_RENDERER_VERTEX::VertexPositionNormalTangentTextureSkinned>& meshData, DUnorderedMap<int, DVector<int>> const& controlPointIndexToVertexIndexMap);
+	GameObject* LoadScene(FBXPrefabResource* resource, FbxScene* scene, DVector<ResourceHandle> handles);
+
 
 #pragma region Common
 	// Reads the scene from path and return a pointer to root node of the scene
@@ -141,8 +151,8 @@ namespace Darius::Renderer::Geometry::ModelLoader::Fbx
 		FbxAxisSystem OurAxisSystem(FbxAxisSystem::eYAxis, FbxAxisSystem::eParityOdd, FbxAxisSystem::eRightHanded);
 		if (SceneAxisSystem != OurAxisSystem)
 		{
+			//globalSettings.SetAxisSystem(OurAxisSystem);
 			OurAxisSystem.DeepConvertScene(lScene);
-			globalSettings.SetAxisSystem(SceneAxisSystem);
 		}
 
 		// Convert mesh, NURBS and patch into triangle mesh
@@ -265,6 +275,68 @@ namespace Darius::Renderer::Geometry::ModelLoader::Fbx
 		return lGlobalPosition;
 	}
 
+	D_CONTAINERS::DVector<D_RESOURCE::ResourceDataInFile> GetResourcesDataFromFile(D_FILE::Path const& path)
+	{
+		FbxNode* rootNode = nullptr;
+
+		FbxAxisSystem::ECoordSystem coordSystem;
+		if (!InitializeFbxScene(path, &rootNode, coordSystem))
+		{
+			return D_CONTAINERS::DVector<D_RESOURCE::ResourceDataInFile>();
+		}
+
+		DVector<ResourceDataInFile> results;
+		auto scene = rootNode->GetScene();
+		// Finding meshes
+		{
+			auto count = scene->GetMemberCount<FbxMesh>();
+			for (int i = 0; i < count; i++)
+			{
+				FbxMesh* mesh = scene->GetSrcObject<FbxMesh>(i);
+				bool skeletal = mesh->GetDeformerCount(FbxDeformer::eSkin) > 0;
+				std::string name;
+				if (skeletal)
+				{
+					auto node = mesh->GetNode(0);
+					node = node ? node->GetParent() : nullptr;
+					node = node ? node->GetChild(0) : nullptr;
+					name = node ? node->GetName() : mesh->GetName();
+				}
+				else
+				{
+					name = mesh->GetName();
+				}
+				results.push_back(ResourceDataInFile
+					{
+						.Name = name,
+						.Type = skeletal ? SkeletalMeshResource::GetResourceType() : StaticMeshResource::GetResourceType()
+					});
+			}
+		}
+		// Finding animations
+		{
+			for (int i = 0; i < scene->GetSrcObjectCount<FbxAnimStack>(); i++)
+			{
+				FbxAnimStack* animation = scene->GetSrcObject<FbxAnimStack>(i);
+				auto name = animation->GetName();
+				results.push_back(ResourceDataInFile
+					{
+						.Name = name,
+						.Type = D_ANIMATION::AnimationResource::GetResourceType()
+					});
+			}
+		}
+
+		// Add fbx prefab
+		results.push_back(ResourceDataInFile
+			{
+				.Name = WSTR2STR(D_FILE::GetFileName(path)),
+				.Type = FBXPrefabResource::GetResourceType()
+			});
+
+		return results;
+	}
+
 #pragma endregion Common
 
 #pragma region Mesh
@@ -306,7 +378,7 @@ namespace Darius::Renderer::Geometry::ModelLoader::Fbx
 		return results;
 	}
 
-	bool ReadMeshByName(D_FILE::Path const& path, std::wstring const& meshName, bool inverted, MultiPartMeshData<D_RENDERER_VERTEX::VertexPositionNormalTangentTextureSkinned>& result, DUnorderedMap<int, DVector<int>>& controlPointIndexToVertexIndexMap, FbxMesh** mesh)
+	bool ReadMeshByName(D_FILE::Path const& path, std::wstring const& meshName, MeshResource::NormalsReordering normalsReordering, bool inverted, MultiPartMeshData<D_RENDERER_VERTEX::VertexPositionNormalTangentTextureSkinned>& result, DUnorderedMap<int, DVector<int>>& controlPointIndexToVertexIndexMap, FbxMesh** mesh)
 	{
 		std::scoped_lock scope(nodeTraverseMutex);
 		FbxNode* rootNode = nullptr;
@@ -317,46 +389,57 @@ namespace Darius::Renderer::Geometry::ModelLoader::Fbx
 			return false;
 		}
 		auto namestr = WSTR2STR(meshName);
-
-		// Searching for a mesh node with our resource name
-		FbxNode* targetNode = 0;
-		TraverseNodes(rootNode, [&](FbxNode* node)
-			{
-				auto attr = node->GetNodeAttribute();
-				auto nodeName = std::string(node->GetName());
-				if (attr && attr->GetAttributeType() == FbxNodeAttribute::eMesh && nodeName == namestr)
-				{
-					targetNode = node;
-				}
-			});
-
-		if (!targetNode)
+		*mesh = rootNode->GetScene()->FindSrcObject<FbxMesh>(namestr.c_str());
+		if (*mesh == nullptr)
 			return false;
 
-		*mesh = targetNode->GetMesh();
-		ReadMeshNode(*mesh, inverted, result, controlPointIndexToVertexIndexMap, coordSystem);
+		ReadMeshNode(*mesh, normalsReordering, inverted, result, controlPointIndexToVertexIndexMap, coordSystem);
 		return true;
 	}
 
-	bool ReadMeshByName(D_FILE::Path const& path, std::wstring const& meshName, bool inverted, MultiPartMeshData<D_RENDERER_VERTEX::VertexPositionNormalTangentTextureSkinned>& result)
+	bool ReadMeshByName(D_FILE::Path const& path, std::wstring const& meshName, MeshResource::NormalsReordering normalsReordering, bool inverted, MultiPartMeshData<D_RENDERER_VERTEX::VertexPositionNormalTangentTextureSkinned>& result)
 	{
 		FbxMesh* mesh;
 
 		DUnorderedMap<int, DVector<int>> controlPointIndexToVertexIndexMap;
-		auto res = ReadMeshByName(path, meshName, inverted, result, controlPointIndexToVertexIndexMap, &mesh);
+		auto res = ReadMeshByName(path, meshName, normalsReordering, inverted, result, controlPointIndexToVertexIndexMap, &mesh);
 
 		return res;
 	}
 
-	bool ReadMeshNode(FbxMesh* pMesh, bool inverted, MultiPartMeshData<D_RENDERER_VERTEX::VertexPositionNormalTangentTextureSkinned>& result, DUnorderedMap<int, DVector<int>>& controlPointIndexToVertexIndexMap, FbxAxisSystem::ECoordSystem coordSystem)
+	template<int x, int y, int z>
+	Vector3 MakeReorderedVec(float const* data)
+	{
+		return Vector3(data[x], data[y], data[z]);
+	}
+
+	Vector3 MakeReorderedVec(float const* data, MeshResource::NormalsReordering normalReordering)
+	{
+		switch (normalReordering)
+		{
+		case MeshResource::NormalsReordering::XYZ:
+		default:
+			return MakeReorderedVec<0, 1, 2>(data);
+		case MeshResource::NormalsReordering::XZY:
+			return MakeReorderedVec<0, 2, 1>(data);
+		case MeshResource::NormalsReordering::YXZ:
+			return MakeReorderedVec<1, 0, 2>(data);
+		case MeshResource::NormalsReordering::YZX:
+			return MakeReorderedVec<1, 2, 0>(data);
+		case MeshResource::NormalsReordering::ZXY:
+			return MakeReorderedVec<2, 0, 1>(data);
+		case MeshResource::NormalsReordering::ZYX:
+			return MakeReorderedVec<2, 1, 0>(data);
+		}
+	}
+
+	bool ReadMeshNode(FbxMesh* pMesh, MeshResource::NormalsReordering normalsReordering, bool inverted, MultiPartMeshData<D_RENDERER_VERTEX::VertexPositionNormalTangentTextureSkinned>& result, DUnorderedMap<int, DVector<int>>& controlPointIndexToVertexIndexMap, FbxAxisSystem::ECoordSystem coordSystem)
 	{
 
 		if (!pMesh->GetNode())
 			return false;
 
-		pMesh->GenerateNormals();
-		auto f = pMesh->GenerateTangentsDataForAllUVSets();
-		D_VERIFY(f);
+		D_VERIFY(pMesh->GenerateTangentsData(0, true));
 
 		FbxArray<SubMesh*> subMeshes;
 		bool mHasNormal;
@@ -518,6 +601,8 @@ namespace Darius::Renderer::Geometry::ModelLoader::Fbx
 		{
 			lTangentElement = pMesh->GetElementTangent(0);
 		}
+
+		pMesh->GenerateNormals(false, mAllByControlPoint, inverted);
 
 		if (mAllByControlPoint)
 		{
@@ -687,6 +772,8 @@ namespace Darius::Renderer::Geometry::ModelLoader::Fbx
 			float* vert = &lVertices[i * VERTEX_STRIDE];
 			float* norm = &lNormals[i * NORMAL_STRIDE];
 
+			auto normalVec = MakeReorderedVec(norm, normalsReordering);
+
 			float* tang;
 			if (mHasTangent)
 				tang = &lTangents[i * TANGENT_STRIDE];
@@ -699,7 +786,7 @@ namespace Darius::Renderer::Geometry::ModelLoader::Fbx
 			else
 				uv = empty;
 
-			auto vertex = D_RENDERER_VERTEX::VertexPositionNormalTangentTextureSkinned(vert[0], vert[1], vert[2], norm[0], norm[1], norm[2], tang[0], tang[1], tang[2], tang[3], uv[0], 1 - uv[1]);
+			auto vertex = D_RENDERER_VERTEX::VertexPositionNormalTangentTextureSkinned(vert[0], vert[1], vert[2], normalVec.GetX(), normalVec.GetY(), normalVec.GetZ(), tang[0], tang[1], tang[2], tang[3], uv[0], 1 - uv[1]);
 
 			result.MeshData.Vertices.push_back(vertex);
 		}
@@ -740,14 +827,14 @@ namespace Darius::Renderer::Geometry::ModelLoader::Fbx
 
 #pragma region Skinned Mesh
 
-	bool ReadMeshByName(D_FILE::Path const& path, std::wstring const& meshName, bool inverted, MultiPartMeshData<D_RENDERER_VERTEX::VertexPositionNormalTangentTextureSkinned>& result, DList<D_RENDERER_GEOMETRY::Mesh::SkeletonJoint>& skeleton)
+	bool ReadMeshByName(D_FILE::Path const& path, std::wstring const& meshName, MeshResource::NormalsReordering normalsReordering, bool inverted, MultiPartMeshData<D_RENDERER_VERTEX::VertexPositionNormalTangentTextureSkinned>& result, DList<D_RENDERER_GEOMETRY::Mesh::SkeletonJoint>& skeleton)
 	{
 		DUnorderedMap<int, DVector<int>> controlPointIndexToVertexIndexMap;
 
 		// Read mesh data
 		FbxMesh* mesh;
 
-		if (!ReadMeshByName(path, meshName, inverted, result, controlPointIndexToVertexIndexMap, &mesh))
+		if (!ReadMeshByName(path, meshName, normalsReordering, inverted, result, controlPointIndexToVertexIndexMap, &mesh))
 		{
 			return false;
 		}
@@ -1086,31 +1173,326 @@ namespace Darius::Renderer::Geometry::ModelLoader::Fbx
 
 #pragma endregion Skinned Mesh
 
-#pragma region Scene
-
-	void AddSkeletalMesh(FbxNode* node, GameObject* go, DUnorderedMap<std::string, Resource const*> const& resourceDic);
-	void AddStaticMesh(FbxNode* node, GameObject* go, DUnorderedMap<std::string, Resource const*> const& resourceDic);
-	void AddCamera(FbxNode* node, GameObject* go);
-	void AddLight(FbxNode* node, GameObject* go);
-	GameObject* IterateSceneNodes(FbxScene* pScene, D_CORE::Uuid const& rootUuid, DUnorderedMap<std::string, Resource const*> const& resourceDic);
-	void ProcessSceneNode(FbxNode* pNode, GameObject* parentGo, DUnorderedMap<std::string, Resource const*> const& resourceDic);
-
-	GameObject* LoadScene(D_FILE::Path const& path, D_CORE::Uuid const& rootUuid)
+#pragma region Animation
+	bool GetPropertyData(void* propP, void* currentLayerP, Track& animCurve, const char* channelName)
 	{
+		FbxPropertyT<FbxDouble3>& prop = *(FbxPropertyT<FbxDouble3>*)propP;
+		FbxAnimLayer* currentLayer = (FbxAnimLayer*)currentLayerP;
+
+		animCurve.SetInterpolationMode(InterpolationMode::Linear);
+
+		auto curve = prop.GetCurve(currentLayer, channelName);
+		// No curve for this property
+		if (!curve)
+			return false;
+
+		int componentOffset = -1;
+		if (!std::strcmp(channelName, "X"))
+			componentOffset = 0;
+		else if (!std::strcmp(channelName, "Y"))
+			componentOffset = 1;
+		else if (!std::strcmp(channelName, "Z"))
+			componentOffset = 2;
+		else if (!std::strcmp(channelName, "T"))
+			componentOffset = 3;
+
+		// It is not x, y, z, w, so in this context it is invalid
+		if (componentOffset == -1)
+			return false;
+
+		for (UINT keyIndex = 0; keyIndex < (UINT)curve->KeyGetCount(); keyIndex++)
+		{
+			auto curveKey = curve->KeyGet(keyIndex);
+			auto keyTime = (float)curveKey.GetTime().GetSecondDouble();
+
+			Keyframe* keyframe = animCurve.FindOrCreateKeyframeByTime(keyTime);
+			keyframe->Time = keyTime;
+
+			switch (componentOffset)
+			{
+			case 0:
+				keyframe->GetValue<Vector4>().SetX(curveKey.GetValue());
+				break;
+			case 1:
+				keyframe->GetValue<Vector4>().SetY(curveKey.GetValue());
+				break;
+			case 2:
+				keyframe->GetValue<Vector4>().SetZ(curveKey.GetValue());
+				break;
+			case 3:
+				keyframe->GetValue<Vector4>().SetW(curveKey.GetValue());
+				break;
+
+			default:
+				break;
+			}
+		}
+
+		return true;
+	}
+
+	bool ReadFbxSkeletalAnimationFromFile(FbxScene* scene, FbxAnimStack* targetAnimStack, D_CONTAINERS::DUnorderedMap<std::string, int>& skeletonNameIndexMap, Sequence& seq, float& frameRate)
+	{
+		if (!targetAnimStack)
+		{
+			return false;
+		}
+
+		seq = Sequence();
+
+		// Getting the layer that we want to work with
+		auto currentLayer = targetAnimStack->GetMember<FbxAnimLayer>();
+
+		// Get frame rate from the scene.
+		FbxTime::EMode mode = scene->GetGlobalSettings().GetTimeMode();
+		frameRate =
+			static_cast<float>((mode == FbxTime::eCustom)
+				? scene->GetGlobalSettings().GetCustomFrameRate()
+				: FbxTime::GetFrameRate(mode));
+
+		// Creating a mapping from joint name to it's index (animations will use this index)
+		D_CONTAINERS::DVector<FbxSkeleton*> jointVec;
+		skeletonNameIndexMap.clear();
+		{
+			auto skeltCnt = scene->GetMemberCount<FbxSkeleton>();
+			jointVec.resize(skeltCnt);
+			int index = 0;
+			for (int skeletonIndex = 0; skeletonIndex < skeltCnt; skeletonIndex++)
+			{
+				auto skeleton = scene->GetMember<FbxSkeleton>(skeletonIndex);
+				auto node = skeleton->GetNode();
+				if (!node)
+					continue;
+
+				jointVec[index] = skeleton;
+				skeletonNameIndexMap[node->GetName()] = index;
+
+				index++;
+			}
+		}
+
+		// Adding translation, scale, and rotation curves of joints
+		for (int i = 0; i < jointVec.size(); i++)
+		{
+			FbxSkeleton* skeleton = jointVec[i];
+			auto node = skeleton->GetNode();
+			std::string nodeName = node->GetName();
+			// Translation
+			{
+				Track animCurve(InterpolationMode::Linear, KeyframeDataType::Vector3);
+				auto curveNode = node->LclTranslation.GetCurveNode(currentLayer);
+				if (curveNode)
+				{
+					for (UINT channelIdx = 0; channelIdx < curveNode->GetChannelsCount(); channelIdx++)
+					{
+						GetPropertyData(&node->LclTranslation, currentLayer, animCurve, curveNode->GetChannelName(channelIdx));
+					}
+
+					for (auto& kf : animCurve.GetKeyframes())
+						kf.GetValue<Vector4>().SetW(1.f);
+
+				}
+				seq.AddTrack(nodeName + ".Translation", animCurve);
+			}
+
+			// Scale
+			{
+				Track animCurve(InterpolationMode::Linear, KeyframeDataType::Vector3);
+				auto curveNode = node->LclScaling.GetCurveNode(currentLayer);
+				if (curveNode)
+				{
+					for (UINT channelIdx = 0; channelIdx < curveNode->GetChannelsCount(); channelIdx++)
+					{
+						GetPropertyData(&node->LclScaling, currentLayer, animCurve, curveNode->GetChannelName(channelIdx));
+					}
+
+				}
+				seq.AddTrack(nodeName + ".Scale", animCurve);
+			}
+
+			// Rotation
+			{
+				Track animCurve(InterpolationMode::Linear, KeyframeDataType::Vector3);
+				auto curveNode = node->LclRotation.GetCurveNode(currentLayer);
+				if (curveNode)
+				{
+					for (UINT channelIdx = 0; channelIdx < curveNode->GetChannelsCount(); channelIdx++)
+					{
+						GetPropertyData(&node->LclRotation, currentLayer, animCurve, curveNode->GetChannelName(channelIdx));
+					}
+				}
+
+				seq.AddTrack(nodeName + ".Rotation", animCurve);
+
+			}
+
+		}
+
+		return true;
+	}
+
+
+#pragma endregion Animation
+
+#pragma region Resource Loading
+
+	bool LoadSkeletalMesh(FbxScene* scene, SkeletalMeshResource* resource, FbxAxisSystem::ECoordSystem const& coordSystem)
+	{
+		auto name = WSTR2STR(resource->GetName());
+		FbxMesh* mesh = scene->FindSrcObject<FbxMesh>(name.c_str());
+		if (!mesh)
+		{
+			auto parentOrSibiling = scene->FindNodeByName(name.c_str());
+			if (!parentOrSibiling)
+				return false;
+
+			if (auto meshNode = parentOrSibiling->FindChild("SkeletalMeshComponent0", false))
+			{
+				// parentOrSibiling is actually its parent
+				mesh = meshNode->GetMesh();
+			}
+			else
+			{
+				// parentOrSibiling is actually its sibiling
+				auto child = parentOrSibiling->GetParent()->FindChild("SkeletalMeshComponent0", false);
+				
+				if (!child)
+					return false;
+
+				mesh = child->GetMesh();
+			}
+		}
+		if (!D_VERIFY(mesh))
+			return false;
+
+		DUnorderedMap<int, DVector<int>> controlPointIndexToVertexIndexMap;
+		MultiPartMeshData<VertexPositionNormalTangentTextureSkinned> meshData;
+		DList<Mesh::SkeletonJoint> skeleton;
+
+		// Read mesh data
+		ReadMeshNode(mesh, resource->GetNormalsReordering(), resource->IsInverted(), meshData, controlPointIndexToVertexIndexMap, coordSystem);
+
+		if (ReadMeshSkin(mesh, meshData, skeleton, controlPointIndexToVertexIndexMap))
+			ReadFBXCacheVertexPositions(meshData, mesh, controlPointIndexToVertexIndexMap);
+
+		resource->Create(meshData, skeleton);
+		resource->MakeDiskClean();
+		resource->MakeGpuClean();
+		return true;
+	}
+
+	bool LoadStaticMesh(FbxScene* scene, StaticMeshResource* resource, FbxAxisSystem::ECoordSystem const& coordSystem)
+	{
+		auto name = WSTR2STR(resource->GetName());
+		FbxMesh* mesh = scene->FindSrcObject<FbxMesh>(name.c_str());
+		if (!D_VERIFY(mesh))
+			return {};
+
+		DUnorderedMap<int, DVector<int>> controlPointIndexToVertexIndexMap;
+		MultiPartMeshData<VertexPositionNormalTangentTextureSkinned> meshData;
+
+		// Read mesh data
+		ReadMeshNode(mesh, resource->GetNormalsReordering(), resource->IsInverted(), meshData, controlPointIndexToVertexIndexMap, coordSystem);
+
+		resource->Create(meshData);
+		resource->MakeDiskClean();
+		resource->MakeGpuClean();
+		return true;
+	}
+
+	bool LoadAnimation(FbxScene* scene, AnimationResource* resource)
+	{
+		auto name = WSTR2STR(resource->GetName());
+		FbxAnimStack* animStack = scene->FindSrcObject<FbxAnimStack>(name.c_str());
+
+		if (!animStack)
+			return false;
+
+		DUnorderedMap<std::string, int> skeletonNameIndexMap;
+		Sequence seq;
+		float frameRate;
+
+		ReadFbxSkeletalAnimationFromFile(scene, animStack, skeletonNameIndexMap, seq, frameRate);
+
+		resource->CreateSkeletalAnimation(seq, skeletonNameIndexMap);
+		resource->SetFrameRate(frameRate);
+		resource->MakeDiskClean();
+		resource->MakeGpuClean();
+
+		return true;
+	}
+
+	bool LoadSubResources(D_FILE::Path const& path, D_RESOURCE::Resource* parentResource)
+	{
+		D_ASSERT(parentResource);
+
+		auto handles = D_RESOURCE_LOADER::LoadResourceSync(path, true, false, D_RESOURCE::EmptyResourceHandle, { parentResource->GetHandle() });
+
 		FbxNode* rootNode = nullptr;
 
 		FbxAxisSystem::ECoordSystem coordSystem;
 		if (!InitializeFbxScene(path, &rootNode, coordSystem))
 		{
-			return nullptr;
+			return false;
+		}
+		FbxScene* scene = rootNode->GetScene();
+
+		FBXPrefabResource* fbxPref;
+
+		for (auto const& handle : handles)
+		{
+			auto resType = handle.Type;
+
+			auto resource = D_RESOURCE::GetRawResourceSync(handle);
+			if (resType == SkeletalMeshResource::GetResourceType())
+			{
+				SkeletalMeshResource* skeletalMesh = static_cast<SkeletalMeshResource*>(resource);
+				D_ASSERT(skeletalMesh);
+				LoadSkeletalMesh(scene, skeletalMesh, coordSystem);
+			}
+			else if (resType == StaticMeshResource::GetResourceType())
+			{
+				StaticMeshResource* staticMesh = static_cast<StaticMeshResource*>(resource);
+				D_ASSERT(staticMesh);
+				LoadStaticMesh(scene, staticMesh, coordSystem);
+			}
+			else if (resType == AnimationResource::GetResourceType())
+			{
+				AnimationResource* animation = static_cast<AnimationResource*>(resource);
+				D_ASSERT(animation);
+				LoadAnimation(scene, animation);
+			}
+			else if (resType == FBXPrefabResource::GetResourceType())
+			{
+				fbxPref = static_cast<FBXPrefabResource*>(resource);
+				D_ASSERT(fbxPref);
+			}
 		}
 
+		// Load Fbx prefab
+		if (fbxPref)
+			LoadScene(fbxPref, scene, handles);
+
+		return true;
+	}
+#pragma endregion Resource Loading
+
+#pragma region Scene
+
+	void AddSkeletalMesh(std::string const& name, FbxMesh* node, GameObject* go, DUnorderedMap<std::string, Resource const*> const& resourceDic);
+	void AddStaticMesh(FbxMesh* node, GameObject* go, DUnorderedMap<std::string, Resource const*> const& resourceDic);
+	void AddCamera(FbxNode* node, GameObject* go);
+	void AddLight(FbxNode* node, GameObject* go);
+	GameObject* IterateSceneNodes(FbxScene* pScene, D_CORE::Uuid const& rootUuid, DUnorderedMap<std::string, Resource const*> const& resourceDic);
+	void ProcessSceneNode(FbxNode* pNode, GameObject* parentGo, DUnorderedMap<std::string, Resource const*> const& resourceDic);
+
+	GameObject* LoadScene(FBXPrefabResource* resource, FbxScene* scene, DVector<ResourceHandle> handles)
+	{
 		GameObject* result;
 
 		// Fetching resources
 		DUnorderedMap<std::string, Resource const*> resourceMap;
 		{
-			auto handles = D_RESOURCE_LOADER::LoadResourceSync(path, true);
 			for (auto const& handle : handles)
 			{
 				auto resource = D_RESOURCE::GetRawResourceSync(handle);
@@ -1119,7 +1501,10 @@ namespace Darius::Renderer::Geometry::ModelLoader::Fbx
 			}
 		}
 
-		result = IterateSceneNodes(rootNode->GetScene(), rootUuid, resourceMap);
+		resource->SetPrefabGameObject(nullptr);
+		result = IterateSceneNodes(scene, resource->GetPrefabGameObjectUuid(), resourceMap);
+		resource->SetPrefabGameObject(result);
+		resource->MakeDiskClean();
 
 		return result;
 
@@ -1132,7 +1517,6 @@ namespace Darius::Renderer::Geometry::ModelLoader::Fbx
 		FbxNode* lNode = pScene->GetRootNode();
 
 		GameObject* rootGo = nullptr;
-
 
 		if (lNode)
 		{
@@ -1180,9 +1564,9 @@ namespace Darius::Renderer::Geometry::ModelLoader::Fbx
 
 				// Skeletal or static mesh?
 				if (mesh->GetDeformerCount(FbxDeformer::eSkin) > 0)
-					AddSkeletalMesh(pNode, go, resourceDic);
+					AddSkeletalMesh(pNode->GetParent()->GetChild(0)->GetName(), mesh, go, resourceDic);
 				else
-					AddStaticMesh(pNode, go, resourceDic);
+					AddStaticMesh(mesh, go, resourceDic);
 				break;
 			}
 			case FbxNodeAttribute::eCamera:
@@ -1232,20 +1616,19 @@ namespace Darius::Renderer::Geometry::ModelLoader::Fbx
 		return const_cast<T*>(static_cast<T const*>(res));
 	}
 
-	void AddSkeletalMesh(FbxNode* node, GameObject* go, DUnorderedMap<std::string, Resource const*> const& resourceDic)
+	void AddSkeletalMesh(std::string const& name, FbxMesh* mesh, GameObject* go, DUnorderedMap<std::string, Resource const*> const& resourceDic)
 	{
 		auto comp = go->AddComponent<D_RENDERER::SkeletalMeshRendererComponent>();
-		auto nodeName = node->GetName();
-		auto skeletalMesh = FindRes<D_RENDERER::SkeletalMeshResource>(node->GetName(), resourceDic);
+		auto skeletalMesh = FindRes<D_RENDERER::SkeletalMeshResource>(name, resourceDic);
 		//D_RESOURCE_LOADER::LoadResourceSync(skeletalMesh);
 		comp->SetMesh(skeletalMesh);
 	}
 
-	void AddStaticMesh(FbxNode* node, GameObject* go, DUnorderedMap<std::string, Resource const*> const& resourceDic)
+	void AddStaticMesh(FbxMesh* mesh, GameObject* go, DUnorderedMap<std::string, Resource const*> const& resourceDic)
 	{
 		auto comp = go->AddComponent<D_RENDERER::MeshRendererComponent>();
-		auto nodeName = node->GetName();
-		auto staticMesh = FindRes<D_RENDERER::StaticMeshResource>(node->GetName(), resourceDic);
+		auto nodeName = mesh->GetName();
+		auto staticMesh = FindRes<D_RENDERER::StaticMeshResource>(mesh->GetName(), resourceDic);
 		//D_RESOURCE_LOADER::LoadResourceSync(staticMesh);
 		comp->SetMesh(staticMesh);
 	}
