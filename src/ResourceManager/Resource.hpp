@@ -29,7 +29,7 @@
 #define D_T_RESOURCE_ID UINT16
 
 #define D_CH_RESOURCE_ABSTRACT_BODY(T) \
-public:
+public:\
 static INLINE std::string ClassName() { return D_NAMEOF(T); } \
 
 // TODO: Better resource allocation
@@ -91,6 +91,7 @@ std::shared_ptr<D_RESOURCE::Resource> T::T##Factory::Create(D_CORE::Uuid uuid, s
 	static char search[100]; \
 	static std::wstring searchStr; \
 	static D_CONTAINERS::DVector<D_RESOURCE::ResourcePreview> previews; \
+	static D_CONTAINERS::DVector<D_RESOURCE::ResourcePreview> filteredPreviews; \
     resourceType* currentResource = prop.Get(); \
      \
     std::string cuurrentResourceName; \
@@ -108,22 +109,36 @@ std::shared_ptr<D_RESOURCE::Resource> T::T##Factory::Create(D_CORE::Uuid uuid, s
     D_H_RESOURCE_DRAG_DROP_DESTINATION(resourceType, handleFunction) \
 	ImGui::SameLine(availableSpace.x - selectorWidth); \
 	std::string popupName = (std::string(placeHolder" Res ") + std::string(__VA_ARGS__)); \
+	static bool gainSearchFocus; \
+	gainSearchFocus = false; \
 	if (ImGui::Button((std::string(ICON_FA_ELLIPSIS_VERTICAL) + std::string("##" placeHolder) + std::string(__VA_ARGS__)).c_str(), ImVec2(selectorWidth, 0))) \
 	{ \
 		ImGui::OpenPopup(popupName.c_str()); \
 		for(int i = 0; i < 100; i++) search[i] = 0; \
 		searchStr = L""; \
+		gainSearchFocus = true; \
 		previews = D_RESOURCE::GetResourcePreviews(resourceType::GetResourceType()); \
+		filteredPreviews = previews; \
 	} \
 	\
 	if (ImGui::BeginPopup(popupName.c_str())) \
 	{ \
 		int idx = 0; \
+		if(gainSearchFocus) ImGui::SetKeyboardFocusHere(); \
 		if(ImGui::InputText((std::string("##Search"placeHolder) + std::string(__VA_ARGS__)).c_str(), search, 100)) \
 		{ \
 			std::string searchTmp(search); \
 			searchStr = STR2WSTR(std::string(searchTmp)); \
 			boost::algorithm::to_lower(searchStr); \
+			filteredPreviews.clear(); \
+			if(!searchStr.empty()) \
+				for (auto const& prev : previews) \
+				{ \
+					if(boost::algorithm::to_lower_copy(prev.Name).starts_with(searchStr)) \
+						filteredPreviews.push_back(prev); \
+				} \
+			else \
+				filteredPreviews = previews; \
 		} \
 		bool noneSelected = currentResource == nullptr; \
 		if(ImGui::Selectable("<None>", &noneSelected)) \
@@ -131,24 +146,27 @@ std::shared_ptr<D_RESOURCE::Resource> T::T##Factory::Create(D_CORE::Uuid uuid, s
 			handleFunction(nullptr); \
 			valueChanged = true; \
 		} \
-		for (auto prev : previews) \
+		\
+		static ImGuiListClipper clipper; \
+		clipper.Begin((int)filteredPreviews.size()); \
+		while(clipper.Step()) \
 		{ \
-			if (searchStr.empty()) \
-				break; \
-			if(!boost::algorithm::to_lower_copy(prev.Name).starts_with(searchStr)) \
-				continue; \
-			bool selected = currentResource && prev.Handle.Id == currentResource->GetId() && prev.Handle.Type == currentResource->GetType(); \
-			\
-			auto Name = WSTR2STR(prev.Name); \
-			ImGui::PushID((Name + std::to_string(idx)).c_str()); \
-			if (ImGui::Selectable(Name.c_str(), &selected)) \
+			for (int idx = clipper.DisplayStart; idx < D_MATH::Min((int)filteredPreviews.size(), clipper.DisplayEnd); idx++) \
 			{ \
-				handleFunction(static_cast<resourceType*>(D_RESOURCE::GetRawResourceSync(prev.Handle))); \
-				valueChanged = true; \
+				auto const& prev = filteredPreviews[idx]; \
+				bool selected = currentResource && prev.Handle.Id == currentResource->GetId() && prev.Handle.Type == currentResource->GetType(); \
+				\
+				auto Name = WSTR2STR(prev.Name); \
+				ImGui::PushID((Name + std::to_string(idx)).c_str()); \
+				if (ImGui::Selectable(Name.c_str(), &selected)) \
+				{ \
+					handleFunction(static_cast<resourceType*>(D_RESOURCE::GetRawResourceSync(prev.Handle))); \
+					valueChanged = true; \
+				} \
+				ImGui::PopID(); \
+				\
+				idx++; \
 			} \
-			ImGui::PopID(); \
-			\
-			idx++; \
 		} \
 		\
 		ImGui::EndPopup(); \
@@ -258,7 +276,7 @@ namespace Darius::ResourceManager
 		INLINE GPUDirtyState		GetGpuState() const { return mDirtyGPU.load(); }
 		INLINE void					SetUploading() { D_ASSERT(GetGpuState() == GPUDirtyState::Dirty); mDirtyGPU.store(GPUDirtyState::Uploading); }
 		INLINE void					SetUploadComplete() { D_ASSERT(GetGpuState() == GPUDirtyState::Uploading); mDirtyGPU.store(GPUDirtyState::Clean); }
-		INLINE virtual bool			AreDependenciesDirty() const = 0;
+		virtual bool				AreDependenciesDirty() const = 0;
 		INLINE bool					IsLocked() const { return mLocked.load(); }
 		INLINE void					SetLocked(bool value) { mLocked.store(value); }
 
@@ -267,8 +285,8 @@ namespace Darius::ResourceManager
 #if _D_EDITOR
 		INLINE operator ResourcePreview() const { return GetPreview(); }
 #endif
-		INLINE D_FILE::Path const& GetPath() const { return mPath; }
-		INLINE bool					IsLoaded() const { return mLoaded.load(); }
+		INLINE D_FILE::Path const&	GetPath() const { return mPath; }
+		INLINE virtual bool			IsLoaded() const { return mLoaded.load(); }
 		INLINE unsigned int			GetVersion() const { return mVersion; }
 		INLINE bool					IsDirtyDisk() const { return mDirtyDisk; }
 		INLINE DResourceId			GetId() const { return mId; }
@@ -329,8 +347,8 @@ namespace Darius::ResourceManager
 		static INLINE ResourceType	GetResourceTypeFromName(std::string name) { return ResourceTypeMapR.contains(name) ? ResourceTypeMapR[name] : 0; }
 		static INLINE std::string	GetResourceName(ResourceType type) { return ResourceTypeMap[type]; }
 		static INLINE ResourceFactory* GetFactoryForResourceType(ResourceType type) { return ResourceFactories.contains(type) ? ResourceFactories[type] : nullptr; }
-		static INLINE void			RegisterResourceExtension(std::string ext, ResourceType type) { auto& key = ResourceExtensionMap[ext]; key.insert(type); }
-		static INLINE D_CONTAINERS::DSet<ResourceType>	GetResourceTypeByExtension(std::string ext) { return ResourceExtensionMap.contains(ext) ? ResourceExtensionMap[ext] : D_CONTAINERS::DSet<ResourceType>(); }
+		static INLINE void			RegisterResourceExtension(std::string ext, ResourceType type) { D_ASSERT_M(!ResourceExtensionMap.contains(ext), "Only one resource type per extension is allowed"); ResourceExtensionMap[ext] = type; }
+		static INLINE std::optional<ResourceType>	GetResourceTypeByExtension(std::string ext) { auto find = ResourceExtensionMap.find(ext); if (find == ResourceExtensionMap.end()) return std::nullopt; return find->second; }
 		static INLINE void			RegisterConstructionValidation(ResourceType type, std::function<D_CONTAINERS::DVector<ResourceDataInFile>(ResourceType, D_FILE::Path const&)> func) { ConstructValidationMap[type] = func; }
 		static INLINE D_CONTAINERS::DVector<ResourceDataInFile>	CanConstructTypeFromPath(ResourceType type, D_FILE::Path const& path) { return ConstructValidationMap.contains(type) ? ConstructValidationMap[type](type, path) : D_CONTAINERS::DVector<ResourceDataInFile>(); }
 #pragma endregion
@@ -408,7 +426,7 @@ namespace Darius::ResourceManager
 		static D_CONTAINERS::DUnorderedMap<ResourceType, std::string> ResourceTypeMap;
 		static D_CONTAINERS::DUnorderedMap<std::string, ResourceType> ResourceTypeMapR;
 		static D_CONTAINERS::DUnorderedMap<ResourceType, ResourceFactory*> ResourceFactories;
-		static D_CONTAINERS::DUnorderedMap<std::string, D_CONTAINERS::DSet<ResourceType>> ResourceExtensionMap;
+		static D_CONTAINERS::DUnorderedMap<std::string, ResourceType> ResourceExtensionMap;
 		static D_CONTAINERS::DUnorderedMap<ResourceType, std::function<D_CONTAINERS::DVector<ResourceDataInFile>(ResourceType type, D_FILE::Path const&)>> ConstructValidationMap;
 	};
 

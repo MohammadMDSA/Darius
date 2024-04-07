@@ -30,7 +30,7 @@ namespace Darius::ResourceManager
 		{ 0, nullptr }
 	};
 
-	DUnorderedMap<std::string, D_CONTAINERS::DSet<ResourceType>> Resource::ResourceExtensionMap = {};
+	DUnorderedMap<std::string, ResourceType> Resource::ResourceExtensionMap = {};
 
 	DUnorderedMap<ResourceType, std::function<DVector<ResourceDataInFile>(ResourceType type, Path const&)>> Resource::ConstructValidationMap = {};
 
