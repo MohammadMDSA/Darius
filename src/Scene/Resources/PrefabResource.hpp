@@ -35,6 +35,7 @@ namespace Darius::Scene
 		INLINE virtual bool				AreDependenciesDirty() const override { return false; }
 
 		INLINE GameObject*				GetPrefabGameObject() const { return mPrefabGameObject; }
+		void							SetPrefabGameObject(D_SCENE::GameObject* go);
 
 	protected:
 		PrefabResource(D_CORE::Uuid uuid, std::wstring const& path, std::wstring const& name, D_RESOURCE::DResourceId id, bool isDefault = false);
