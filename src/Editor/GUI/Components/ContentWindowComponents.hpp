@@ -19,7 +19,7 @@ namespace Darius::Editor::Gui::Components
 		bool				IsDirectory;
 		uint64_t			IconId;
 		D_RESOURCE::ResourceHandle MainHandle = D_RESOURCE::EmptyResourceHandle;
-		D_CONTAINERS::DList<D_RESOURCE::ResourceHandle> ChildResources;
+		D_CONTAINERS::DVector<D_RESOURCE::ResourceHandle> ChildResources;
 	};
 
 	void ContentWindowItemGrid(EditorContentWindowItem& data, float width, float height, bool focus, _IN_OUT_ bool& selected, _OUT_ bool& doubleClicked, D_RESOURCE::ResourceHandle& selectedResource);
