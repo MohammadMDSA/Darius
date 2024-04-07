@@ -39,7 +39,7 @@ namespace Darius::ResourceManager
 
 		// Resource Loading Sync
 		static ResourceHandle	LoadResourceSync(Resource* resource, bool forceLoad = false);
-		static D_CONTAINERS::DVector<ResourceHandle> LoadResourceSync(D_FILE::Path const& path, bool metaOnly = false, bool forceLoad = false, ResourceHandle specificHandle = EmptyResourceHandle);
+		static D_CONTAINERS::DVector<ResourceHandle> LoadResourceSync(D_FILE::Path const& path, bool metaOnly = false, bool forceLoad = false, ResourceHandle specificHandle = EmptyResourceHandle, D_CONTAINERS::DVector<ResourceHandle> exclude = {});
 		
 		// Resource Loading Async
 		static void				LoadResourceAsync(Resource* resource, ResourceLoadedResourceCalllback onLoaded, bool updateGpu = false);
