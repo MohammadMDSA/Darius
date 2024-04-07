@@ -77,6 +77,7 @@ namespace Darius::Renderer
 			{ "Emission", std::vector<float>(ems, ems + 3) },
 			{ "AlphaCutout", mCutout },
 			{ "Opacity", mMaterial.Opacity },
+			{ "Specular", mMaterial.Specular },
 			{ "DisplacementAmount", mMaterial.DisplacementAmount }
 		};
 
@@ -133,6 +134,9 @@ namespace Darius::Renderer
 
 		if (data.contains("Opacity"))
 			mMaterial.Opacity = data["Opacity"];
+
+		if (data.contains("Specular"))
+			mMaterial.Specular = data["Specular"];
 
 		mMaterial.Emissive = XMFLOAT3(data["Emission"].get<std::vector<float>>().data());
 
@@ -660,6 +664,16 @@ namespace Darius::Renderer
 			}
 		}
 
+		// Specular
+		{
+			D_H_DETAILS_DRAW_PROPERTY("Specular");
+			float value = GetSpecular();
+			if (ImGui::SliderFloat("##Specular", &value, 0.f, 1.f))
+			{
+				SetSpecular(value);
+			}
+		}
+
 		// Normal
 		ImGui::TableNextRow();
 		ImGui::TableSetColumnIndex(0);
@@ -775,6 +789,21 @@ namespace Darius::Renderer
 			return;
 
 		mMaterial.Opacity = value;
+
+		MakeDiskDirty();
+		MakeGpuDirty();
+
+		SignalChange();
+	}
+
+	void MaterialResource::SetSpecular(float value)
+	{
+		value = D_MATH::Clamp(value, 0.f, 1.f);
+		
+		if (value == mMaterial.Specular)
+			return;
+
+		mMaterial.Specular = value;
 
 		MakeDiskDirty();
 		MakeGpuDirty();

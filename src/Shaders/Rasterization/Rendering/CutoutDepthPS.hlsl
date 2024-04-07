@@ -31,6 +31,7 @@ cbuffer cbMaterial : register(b0)
     float  gRoughness;
     float  gDisplacementAmount;
     float  gOpacity;
+    float  gSpecular;
     uint   gTexStats;
 }
 

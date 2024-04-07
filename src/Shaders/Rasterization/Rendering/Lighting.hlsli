@@ -411,13 +411,13 @@ float3 ComputeLitColor(
     // TODO: Add specular anti-aliasing
     float3 directLight = ComputeLighting(mat, worldPos, normal, toEye, ao);
 
-    float3 c_diff = diffuseAlbedo.rgb * (1 - kDielectricSpecular) * (1 - metallic) * ao;
-    float3 c_spec = lerp(kDielectricSpecular, diffuseAlbedo.rgb, metallic) * ao;
+    float3 c_diff = diffuseAlbedo.rgb * (1 - kDielectricSpecular) * (1 - metallic);
+    float3 c_spec = lerp(kDielectricSpecular, diffuseAlbedo.rgb, roughness);
     
     float3 litColor = emissive + directLight;
 
-    float3 diffIbl = Diffuse_IBL(normal, toEye, c_diff, roughness);
-    float3 specIbl = Specular_IBL(c_spec, normal, toEye, roughness);
+    float3 diffIbl = Diffuse_IBL(normal, toEye, c_diff, roughness) * ao;
+    float3 specIbl = Specular_IBL(c_spec, normal, toEye, roughness) * ao * specularMask;
     return litColor + diffIbl + specIbl;
 }
 

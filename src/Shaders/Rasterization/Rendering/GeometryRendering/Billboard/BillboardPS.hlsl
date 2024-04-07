@@ -14,6 +14,7 @@ cbuffer cbMaterial : register(b0)
     float  gRoughness;
     float  gDisplacementAmount;
     float  gOpacity;
+    float  gSpecular;
     uint   gTexStats;
 };
 
@@ -129,7 +130,7 @@ MRT main(GSOutput gout) : SV_Target
     
     float3 litColor = ComputeLitColor(gout.WorldPos, uint2(gout.Pos.xy), normal,
                             toEyeW, diffuseAlbedo, metallic, roughness,
-                            emissive, ao, 1, gFresnelR0);
+                            emissive, ao, gSpecular, gFresnelR0);
     
     // Common convention to take alpha from diffuse material.
     mrt.Color = float4(litColor, gOpacity);

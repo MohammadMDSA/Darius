@@ -14,6 +14,7 @@ cbuffer cbMaterial : register(b0)
     float  gRoughness;
     float  gDisplacementAmount;
     float  gOpacity;
+    float  gSpecular;
     uint   gTexStats;
     
 };
@@ -130,7 +131,7 @@ MRT main(VertexOut pin) : SV_Target
     
     float3 litColor = ComputeLitColor(pin.WorldPos, uint2(pin.Pos.xy), normal,
                             toEyeW, diffuseAlbedo, metallic, roughness,
-                            emissive, ao, 1, gFresnelR0);
+                            emissive, ao, gSpecular, gFresnelR0);
     
     float opacity = gOpacity;
     if(opacity == 0.f)
