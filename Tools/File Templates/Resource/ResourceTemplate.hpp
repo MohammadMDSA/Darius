@@ -29,6 +29,8 @@ namespace %%NAMESPACE%%
 		virtual void					ReadResourceFromFile(D_SERIALIZATION::Json const& j, bool& dirtyDisk) override;
 		virtual bool					UploadToGpu() override;
 		virtual INLINE void				Unload() override { EvictFromGpu(); }
+		virtual INLINE bool				AreDependenciesDirty() const { return false; }
+
 
 	private:
 		%%CLASS_NAME%%(D_CORE::Uuid uuid, std::wstring const& path, std::wstring const& name, D_RESOURCE::DResourceId id, bool isDefault = false) :
