@@ -262,7 +262,7 @@ namespace Darius::ResourceManager
 					{
 						// It is successfully cleaned
 					case ResourceGpuUpdateResult::Success:
-						if (resource->GetGpuState() == Resource::GPUDirtyState::Clean)
+						if (resource->GetGpuState() == Resource::GPUDirtyState::Dirty)
 							dirtyResources.push_back(resource.get());
 						break;
 
