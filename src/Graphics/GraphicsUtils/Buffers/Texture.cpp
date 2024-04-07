@@ -64,7 +64,7 @@ namespace Darius::Graphics::Utils::Buffers
 		auto device = D_GRAPHICS_DEVICE::GetDevice();
 
 		D_HR_CHECK(device->CreateCommittedResource(&HeapProps, D3D12_HEAP_FLAG_NONE, &texDesc,
-			mUsageState, nullptr, IID_PPV_ARGS(mResource.ReleaseAndGetAddressOf())));
+			mUsageState, nullptr, IID_PPV_ARGS(mResource.GetAddressOf())));
 
 		mResource->SetName(L"Texture");
 
