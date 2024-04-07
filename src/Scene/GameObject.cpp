@@ -339,11 +339,14 @@ namespace Darius::Scene
 
 		auto compT = D_WORLD::GetComponentEntity(name.c_str());
 
+		PreEntityEdit();
 		mEntity.add(compT);
+		PostEntityEdit();
 		auto compP = const_cast<void*>(mEntity.get(compT));
 
 		auto ref = reinterpret_cast<ComponentBase*>(compP);
 		AddComponentRoutine(ref);
+
 		return ref;
 	}
 
@@ -351,6 +354,7 @@ namespace Darius::Scene
 	{
 		if (!D_VERIFY(comp))
 			return;
+
 		comp->mGameObject = this;
 
 		if (mAwake)
@@ -594,6 +598,16 @@ namespace Darius::Scene
 			currentLevel = &(*currentLevel)[splitted[i]].ChildrenNameMap;
 		}
 
+	}
+
+	void GameObject::PreEntityEdit()
+	{
+		//D_WORLD::SetDeferEnable(false);
+	}
+
+	void GameObject::PostEntityEdit()
+	{
+		//D_WORLD::SetDeferEnable(true);
 	}
 
 	void GameObject::RegisterBehaviourComponent(D_ECS::EntityId compId)

@@ -393,6 +393,14 @@ namespace Darius::Scene
 		StartScene();
 	}
 
+	void SceneManager::SetDeferEnable(bool value)
+	{
+		if (value)
+			World.defer_resume();
+		else
+			World.defer_suspend();
+	}
+
 	void SceneManager::LoadGameObject(Json const& json, GameObject** go, bool addToScene)
 	{
 

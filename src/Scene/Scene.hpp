@@ -44,6 +44,8 @@ namespace Darius::Scene
 
 		static void				DumpGameObject(GameObject const* go, _OUT_ D_SERIALIZATION::Json& json, bool maintainContext = false);
 		static void				LoadGameObject(D_SERIALIZATION::Json const& json, _OUT_ GameObject** go, bool addToScene = true);
+		static bool				BeginStaging();
+		static void				EndStaging();
 
 		static void				FrameInitialization();
 		static void				Update(float deltaTime);
@@ -64,7 +66,9 @@ namespace Darius::Scene
 		template<typename COMP>
 		static INLINE void		IterateComponents(std::function<void(COMP&)> callback)
 		{
+			World.readonly_begin();
 			World.each(FLECS_MOV(callback));
+			World.readonly_end();
 		}
 
 		template<typename COMP>
@@ -115,6 +119,8 @@ namespace Darius::Scene
 
 		static void				SetAwake();
 
+		static void				SetDeferEnable(bool enable);
+
 	public:
 		// Dumping and reloading scene for simulation
 		static void				DumpScene(D_SERIALIZATION::Json& sceneDump);
@@ -135,6 +141,7 @@ namespace Darius::Scene
 		static D_ECS::Entity	Root;
 		static D_ECS::ECSRegistry World;
 
+		friend class GameObject;
 	};
 
 }

@@ -117,7 +117,9 @@ namespace Darius::Scene
 			using conv = std::is_convertible<T*, Darius::Scene::ECS::Components::ComponentBase*>;
 			D_STATIC_ASSERT(conv::value);
 
+			PreEntityEdit();
 			mEntity.add<T>();
+			PostEntityEdit();
 			auto ref = const_cast<T*>(mEntity.get<T>());
 			D_VERIFY(ref);
 			AddComponentRoutine(ref);
@@ -131,7 +133,9 @@ namespace Darius::Scene
 			using conv = std::is_convertible<T*, Darius::Scene::ECS::Components::ComponentBase*>;
 			D_STATIC_ASSERT(conv::value);
 
+			PreEntityEdit();
 			mEntity.add<T>(value);
+			PostEntityEdit();
 			auto ref = mEntity.get_ref<T>().get();
 			AddComponentRoutine(ref);
 			return ref;
@@ -151,9 +155,9 @@ namespace Darius::Scene
 			if (std::is_same<T, Darius::Math::TransformComponent>::value)
 				return;
 
-			mEntity.remove<T>();
-
 			RemoveComponentRoutine(mEntity.get_ref<T>());
+
+			mEntity.remove<T>();
 		}
 
 		void								RemoveComponent(Darius::Scene::ECS::Components::ComponentBase*);
@@ -208,6 +212,9 @@ namespace Darius::Scene
 
 		GameObject(D_CORE::Uuid uuid, D_ECS::Entity entity, bool inScene = true);
 
+		void								PreEntityEdit();
+		void								PostEntityEdit();
+
 		void								AddComponentRoutine(Darius::Scene::ECS::Components::ComponentBase*);
 		void								RemoveComponentRoutine(Darius::Scene::ECS::Components::ComponentBase*);
 
@@ -247,6 +254,9 @@ namespace Darius::Scene
 
 		DField()
 		const bool				mInScene;
+
+		D_CONTAINERS::DVector<std::string> mToRemove;
+		D_CONTAINERS::DVector<std::string> mToAdd;
 
 		// Comp name and display name
 #if _D_EDITOR
