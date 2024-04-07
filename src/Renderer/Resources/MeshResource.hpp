@@ -25,12 +25,21 @@ namespace Darius::Renderer
 
 	public:
 		using VertexType = D_RENDERER_VERTEX::VertexPositionNormalTangentTextureSkinned;
+
+		enum class DEnum(Serialize) NormalsReordering
+		{
+			XYZ,
+			XZY,
+			YXZ,
+			YZX,
+			ZXY,
+			ZYX
+		};
+
 	public:
 		INLINE D_RENDERER_GEOMETRY::Mesh*	ModifyMeshData() { MakeDiskDirty(); MakeGpuDirty(); return &mMesh; }
 		INLINE D_RENDERER_GEOMETRY::Mesh const*	GetMeshData() const { return &mMesh; }
 		virtual void						Create(D_RENDERER_GEOMETRY::MultiPartMeshData<VertexType> const& data);
-
-		static D_CONTAINERS::DVector<D_RESOURCE::ResourceDataInFile> CanConstructFrom(D_RESOURCE::ResourceType type, D_FILE::Path const& path);
 
 #ifdef _D_EDITOR
 		virtual bool					DrawDetails(float params[]) override;
@@ -44,15 +53,18 @@ namespace Darius::Renderer
 		INLINE bool						IsInverted() const { return mInverted; }
 		void							SetInverted(bool value);
 
+		INLINE NormalsReordering		GetNormalsReordering() const { return mNormalsReordering; }
+		void							SetNormalsReordering(NormalsReordering order);
+
 		INLINE MaterialResource* GetMaterial(int index) const {
 			D_ASSERT(index >= 0 && index < (int)mMaterials.size()); return mMaterials.at(index).Get(); }
 		INLINE D_CONTAINERS::DVector<D_RESOURCE::ResourceRef<MaterialResource>> const& GetMaterials() const { return mMaterials; }
 		void							SetMaterial(int index, MaterialResource* material);
-
 	protected:
 
 		MeshResource(D_CORE::Uuid uuid, std::wstring const& path, std::wstring const& name, D_RESOURCE::DResourceId id, bool isDefault = false) :
 			Resource(uuid, path, name, id, isDefault),
+			mNormalsReordering(NormalsReordering::XYZ),
 			mInverted(false)
 		{}
 
@@ -60,9 +72,10 @@ namespace Darius::Renderer
 
 		virtual void					WriteResourceToFile(D_SERIALIZATION::Json&) const override;
 		virtual void					ReadResourceFromFile(D_SERIALIZATION::Json const&, bool& dirtyDisk) override;
-		virtual bool					UploadToGpu() override;
 
 		INLINE virtual void				Unload() override { EvictFromGpu(); }
+		INLINE virtual bool				UploadToGpu() override { return true; }
+
 		void							SetMaterialListSize(UINT size);
 
 		D_RENDERER_GEOMETRY::Mesh		mMesh;
@@ -71,6 +84,9 @@ namespace Darius::Renderer
 
 		DField(Serialize)
 		bool							mInverted;
+
+		DField(Serialize)
+		NormalsReordering				mNormalsReordering;
 
 		DField(Serialize)
 		D_CONTAINERS::DVector<D_RESOURCE::ResourceRef<MaterialResource>> mMaterials;
