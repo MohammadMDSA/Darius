@@ -11,7 +11,6 @@
 #include "RayTracing/Renderer.hpp"
 #include "Rasterization/Renderer.hpp"
 #include "Resources/BatchResource.hpp"
-#include "Resources/FBXPrefabResource.hpp"
 #include "Resources/MaterialResource.hpp"
 #include "Resources/SkeletalMeshResource.hpp"
 #include "Resources/StaticMeshResource.hpp"
@@ -63,7 +62,6 @@ namespace Darius::Renderer
 		MaterialResource::Register();
 		BatchResource::Register();
 		TerrainResource::Register();
-		FBXPrefabResource::Register();
 
 		LoadDefaultResources();
 
