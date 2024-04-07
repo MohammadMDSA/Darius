@@ -28,7 +28,7 @@ namespace Darius::Animation
 
 	class DClass(Serialize, Resource) AnimationResource : public D_RESOURCE::Resource
 	{
-		D_CH_RESOURCE_BODY(AnimationResource, "Animation", ".fbx", ".anim");
+		D_CH_RESOURCE_BODY(AnimationResource, "Animation", ".anim");
 		GENERATED_BODY();
 
 	public:
@@ -43,6 +43,9 @@ namespace Darius::Animation
 		virtual INLINE void				Unload() override;
 
 		INLINE virtual bool				AreDependenciesDirty() const override { return false; }
+
+		void							CreateSkeletalAnimation(Sequence const& seq, D_CONTAINERS::DUnorderedMap<std::string, int> const& jointNameIndexMap);
+		void							SetFrameRate(float frameRate);
 
 		INLINE Sequence const&			GetSkeletalAnimationSequence() const { return mSkeletalAnimationSequence; }
 		INLINE D_CONTAINERS::DVector<ComponentAnimationData> const& GetComponentAnimationData() const { return mComponentAnimation; }
@@ -68,7 +71,6 @@ namespace Darius::Animation
 			mFramesPerSecond(60u)
 		{}
 
-		virtual void					ReadFbxAnimationFromFile(D_SERIALIZATION::Json const& json);
 		virtual void					ReadNativeAnimationFromFile(D_SERIALIZATION::Json const& json);
 		
 		DField()
@@ -86,8 +88,6 @@ namespace Darius::Animation
 		DField()
 		bool									mSkeletalAnimation;
 
-	private:
-		bool						GetPropertyData(void* propP, void* currentLayerP, Track& animCurve, const char* channelName);
 	};
 }
 
