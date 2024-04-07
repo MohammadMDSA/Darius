@@ -21,7 +21,7 @@ namespace Darius::Renderer
 		GENERATED_BODY();
 
 	public:
-		D_CH_RESOURCE_BODY(StaticMeshResource, "Static Mesh", ".fbx")
+		D_CH_RESOURCE_BODY(StaticMeshResource, "Static Mesh", "")
 
 
 	public:
