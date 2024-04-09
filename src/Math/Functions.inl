@@ -47,16 +47,12 @@ namespace Darius::Math
 	INLINE BoolVector operator>  ( TYPE const& lhs, TYPE const& rhs ) { return DirectX::XMVectorGreater(lhs, rhs); } \
 	INLINE BoolVector operator>= ( TYPE const& lhs, TYPE const& rhs ) { return DirectX::XMVectorGreaterOrEqual(lhs, rhs); } \
 	INLINE TYPE Select( TYPE const& lhs, TYPE const& rhs, BoolVector const& mask ) { return TYPE(DirectX::XMVectorSelect(lhs, rhs, mask)); } \
-	//INLINE BoolVector operator== ( TYPE const& lhs, TYPE const& rhs ) { return DirectX::XMVectorEqual(lhs, rhs); }
+	INLINE BoolVector operator== ( TYPE const& lhs, TYPE const& rhs ) { return DirectX::XMVectorEqual(lhs, rhs); }
 
 	CREATE_SIMD_FUNCTIONS(Scalar);
 	CREATE_SIMD_FUNCTIONS(Vector2);
 	CREATE_SIMD_FUNCTIONS(Vector3);
 	CREATE_SIMD_FUNCTIONS(Vector4);
-
-	INLINE bool operator== (Scalar const& lhs, Scalar const& rhs) { return (float)lhs == (float)rhs; }
-	INLINE bool operator== (Vector3 const& lhs, Vector3 const& rhs) { return DirectX::XMVector3Equal(lhs, rhs); }
-	INLINE bool operator== (Vector4 const& lhs, Vector4 const& rhs) { return DirectX::XMVector4Equal(lhs, rhs); }
 
 	INLINE Vector2 Deg2Rad(Vector2 const& deg) { return Vector2(DirectX::XMConvertToRadians(deg.GetX()), DirectX::XMConvertToRadians(deg.GetY())); }
 	INLINE Vector2 Rad2Deg(Vector2 const& rad) { return Vector2(DirectX::XMConvertToDegrees(rad.GetX()), DirectX::XMConvertToDegrees(rad.GetY())); }
@@ -148,7 +144,7 @@ namespace Darius::Math
 
 	INLINE Matrix4 Transpose(const Matrix4& mat) { return Matrix4(DirectX::XMMatrixTranspose(mat)); }
 	INLINE Matrix4 Invert(const Matrix4& mat) { return Matrix4(DirectX::XMMatrixInverse(nullptr, mat)); }
-	
+
 
 	INLINE Quaternion LookTowards(Vector3 const& dir, Vector3 const& up)
 	{
@@ -423,6 +419,16 @@ namespace Darius::Math
 	INLINE UINT RoundUpToPowerOfTwo(UINT arg)
 	{
 		return 1 << CeilLogTwo(arg);
+	}
+
+	INLINE int GetShiftFromPowerOfTwo(UINT bits)
+	{
+		for (UINT i = 0; i < 32u; i++)
+		{
+			if (bits == (UINT)(1 << i))
+				return i;
+		}
+		return -1;
 	}
 
 }

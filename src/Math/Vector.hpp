@@ -49,10 +49,6 @@ namespace Darius::Math
 		operator DirectX::XMVECTOR() const { return XMLoadFloat2(&mData); }
 		operator DirectX::XMFLOAT2 const&() const { return mData; }
 
-		// Comparison operators
-		bool operator == (const Vector2 & V) const;
-		bool operator != (const Vector2 & V) const;
-
 		// Assignment operators
 		Vector2& operator= (const DirectX::XMVECTORF32 & F) { mData.x = F.f[0]; mData.y = F.f[1]; return *this; }
 		Vector2& operator+= (const Vector2 & V);
@@ -171,7 +167,7 @@ namespace Darius::Math
 		INLINE Vector3(DirectX::XMFLOAT3 const& v) { m_vec = DirectX::XMLoadFloat3(&v); }
 		INLINE Vector3(const Vector3 & v) { m_vec = v; }
 		INLINE Vector3(Scalar s) { m_vec = s; }
-		INLINE explicit Vector3(Vector4 const vec);
+		explicit Vector3(Vector4 const& vec);
 		INLINE explicit Vector3(DirectX::FXMVECTOR const& vec) { m_vec = vec; }
 		INLINE explicit Vector3(EZeroTag) { m_vec = SplatZero(); }
 		INLINE explicit Vector3(EIdentityTag) { m_vec = SplatOne(); }
@@ -185,6 +181,10 @@ namespace Darius::Math
 		INLINE float GetX() const { return Scalar(DirectX::XMVectorSplatX(m_vec)); }
 		INLINE float GetY() const { return Scalar(DirectX::XMVectorSplatY(m_vec)); }
 		INLINE float GetZ() const { return Scalar(DirectX::XMVectorSplatZ(m_vec)); }
+
+		INLINE float Sum() const { return GetX() + GetY() + GetZ(); }
+		INLINE float Mult() const { return GetX() * GetY() * GetZ(); }
+
 		INLINE void SetX(float _x) { m_vec = DirectX::XMVectorPermute<4, 1, 2, 3>(m_vec, Scalar(_x)); }
 		INLINE void SetY(float _y) { m_vec = DirectX::XMVectorPermute<0, 5, 2, 3>(m_vec, Scalar(_y)); }
 		INLINE void SetZ(float _z) { m_vec = DirectX::XMVectorPermute<0, 1, 6, 3>(m_vec, Scalar(_z)); }
@@ -196,6 +196,8 @@ namespace Darius::Math
 		INLINE bool NearEquals(Vector3 const& other, float const& epsilon = DirectX::g_XMEpsilon[0]) const { return DirectX::XMVector3NearEqual(m_vec, other.m_vec, Scalar(epsilon)); }
 		INLINE bool IsNearZero(float epsilon) const { return NearEquals(Vector3::Zero, epsilon); }
 		INLINE bool IsZero() const { return DirectX::XMVector3Equal(m_vec, DirectX::g_XMZero); }
+
+		INLINE float _GetFast(int index) const { return ((float*)&m_vec)[index]; }
 
 		INLINE Vector3 operator- () const { return Vector3(DirectX::XMVectorNegate(m_vec)); }
 		INLINE Vector3 operator+ (Vector3 v2) const { return Vector3(DirectX::XMVectorAdd(m_vec, v2)); }
@@ -333,7 +335,7 @@ namespace Darius::Math
 	D_STATIC_ASSERT(sizeof(Vector4) == 16);
 
 	// Defined after Vector4 methods are declared
-	INLINE Vector3::Vector3(Vector4 const vec) : m_vec((DirectX::XMVECTOR)vec)
+	INLINE Vector3::Vector3(Vector4 const& vec) : m_vec((DirectX::XMVECTOR)vec)
 	{
 	}
 
