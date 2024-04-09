@@ -53,7 +53,7 @@
 
 #define WARN_ONCE_IF_NOT( isTrue, ... ) WARN_ONCE_IF(!(isTrue), __VA_ARGS__)
 
-#define ERROR( ... ) \
+#define ERROR_MSG( ... ) \
         D_LOG_ERROR("\nError reported in " STRINGIFY_BUILTIN(__FILE__) " @ " STRINGIFY_BUILTIN(__LINE__) "\n"); \
         D_LOG_ERROR(__VA_ARGS__); \
         D_LOG_ERROR("\n");
