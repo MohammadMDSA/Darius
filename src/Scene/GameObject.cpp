@@ -32,7 +32,7 @@ namespace Darius::Scene
 	D_CONTAINERS::DSet<D_ECS::EntityId> GameObject::RegisteredBehaviours = D_CONTAINERS::DSet<D_ECS::EntityId>();
 	D_CONTAINERS::DSet<std::string> GameObject::RegisteredComponentNames = D_CONTAINERS::DSet<std::string>();
 
-	GameObject::GameObject(D_CORE::Uuid uuid, D_ECS::Entity entity, bool inScene) :
+	GameObject::GameObject(D_CORE::Uuid const& uuid, D_ECS::Entity entity, bool inScene) :
 		mActive(true),
 		mType(Type::Movable),
 		mName("GameObject"),

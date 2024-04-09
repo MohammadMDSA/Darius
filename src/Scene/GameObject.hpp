@@ -37,6 +37,12 @@ namespace Darius::Math
 	class TransformComponent;
 }
 
+namespace Darius::Core::Memory
+{
+	template<class T, bool ThreadSafe>
+	class PagedAllocator;
+}
+
 namespace Darius::Scene
 {
 	class SceneManager;
@@ -206,11 +212,12 @@ namespace Darius::Scene
 	private:
 		friend class D_SCENE::SceneManager;
 		friend class Darius::Scene::ECS::Components::ComponentBase;
+		friend class Darius::Core::Memory::PagedAllocator<GameObject, true>;
 
 		template<class T>
 		friend class D_CORE::Ref;
 
-		GameObject(D_CORE::Uuid uuid, D_ECS::Entity entity, bool inScene = true);
+		GameObject(D_CORE::Uuid const& uuid, D_ECS::Entity entity, bool inScene = true);
 
 		void								PreEntityEdit();
 		void								PostEntityEdit();
