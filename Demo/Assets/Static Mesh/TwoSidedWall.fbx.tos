@@ -1,1 +1,1 @@
-{"Path":"TwoSidedWall.fbx","Properties":null,"Resources":[{"Name":"Wall_400x300","Type":"Static Mesh","Uuid":"b019c16a-43e5-4db7-8acc-5118b779c197"}]}
+{"Path":"TwoSidedWall.fbx","Properties":{"TwoSidedWall":null},"Resources":[{"Name":"","Type":"Static Mesh","Uuid":"2ad9adb0-6dbd-44c4-8bd1-86a3ebb28b88"},{"Name":"TwoSidedWall","Type":"FBX Scene","Uuid":"af4a23ec-e9cb-4e27-9cfa-6a03b4276457"},{"Name":"TwoSidedWall","Type":"FBX Resource","Uuid":"03def78d-876f-410c-8269-afe2941f978b"}]}
