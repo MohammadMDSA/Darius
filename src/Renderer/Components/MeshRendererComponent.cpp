@@ -123,6 +123,19 @@ namespace Darius::Renderer
 		return any;
 	}
 
+	D_MATH_BOUNDS::Aabb MeshRendererComponent::GetAabb() const
+	{
+		auto transform = GetTransform();
+
+		if (!mMesh.IsValid())
+			return D_MATH_BOUNDS::Aabb(transform->GetPosition());
+
+		auto localAabb = mMesh->GetMeshData()->mBoundBox;
+		auto affineTransform = AffineTransform(transform->GetWorld());
+
+		return localAabb.CalculateTransformed(affineTransform);
+	}
+
 	UINT MeshRendererComponent::GetPsoIndex(UINT materialIndex, MaterialResource* material)
 	{
 		auto materialPsoFlags = material->GetPsoFlags();

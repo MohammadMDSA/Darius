@@ -45,6 +45,8 @@ namespace Darius::Renderer
 
 		INLINE virtual bool				AreDependenciesDirty() const override { return mHeightMap.IsValidAndGpuDirty(); }
 
+		void							GetDimensions(float& width, float& height);
+
 
 	protected:
 
@@ -53,6 +55,7 @@ namespace Darius::Renderer
 		virtual bool					UploadToGpu() override;
 		virtual INLINE void				Unload() override { EvictFromGpu(); }
 
+		void							UpdateBoundsMath();
 	private:
 
 		TerrainResource(D_CORE::Uuid uuid, std::wstring const& path, std::wstring const& name, D_RESOURCE::DResourceId id, bool isDefault = false);

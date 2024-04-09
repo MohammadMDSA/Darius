@@ -34,7 +34,6 @@ namespace Darius::Renderer
 
 	BillboardRendererComponent::BillboardRendererComponent() :
 		RendererComponent(),
-		mBoundDirty(true),
 		mWidth(1),
 		mHeight(1),
 		mMaterial()
@@ -43,7 +42,6 @@ namespace Darius::Renderer
 
 	BillboardRendererComponent::BillboardRendererComponent(D_CORE::Uuid const& uuid) :
 		RendererComponent(uuid),
-		mBoundDirty(true),
 		mWidth(1),
 		mHeight(1),
 		mMaterial()
@@ -53,7 +51,7 @@ namespace Darius::Renderer
 	void BillboardRendererComponent::Awake()
 	{
 		// Initializing Mesh Constants buffers
-		mMeshConstantsCPU.Create(L"Mesh Constant Upload Buffer", sizeof(BillboardConstants));
+		mMeshConstantsCPU.Create(L"Mesh Constant Upload Buffer", sizeof(BillboardConstants), D_GRAPHICS_DEVICE::gNumFrameResources);
 		mMeshConstantsGPU.Create(L"Mesh Constant GPU Buffer", 1, sizeof(BillboardConstants));
 
 	}
@@ -67,15 +65,15 @@ namespace Darius::Renderer
 
 		// Updating mesh constants
 		// Mapping upload buffer
-		BillboardConstants* cb = reinterpret_cast<BillboardConstants*>(mMeshConstantsCPU.Map());
+		auto frameResourceIndex = D_GRAPHICS_DEVICE::GetCurrentFrameResourceIndex();
+		BillboardConstants* cb = reinterpret_cast<BillboardConstants*>(mMeshConstantsCPU.MapInstance(frameResourceIndex));
 		auto& world = GetTransform()->GetWorld();
 		cb->world = world;
 		cb->size = { mWidth, mHeight };
 		mMeshConstantsCPU.Unmap();
 
 		// Uploading
-		context.TransitionResource(mMeshConstantsGPU, D3D12_RESOURCE_STATE_COPY_DEST, true);
-		context.CopyBufferRegion(mMeshConstantsGPU, 0, mMeshConstantsCPU, 0, mMeshConstantsCPU.GetBufferSize());
+		context.UploadToBuffer(mMeshConstantsGPU, mMeshConstantsCPU);
 		context.TransitionResource(mMeshConstantsGPU, D3D12_RESOURCE_STATE_GENERIC_READ);
 
 		context.Finish();
@@ -191,7 +189,6 @@ namespace Darius::Renderer
 			mMaterialPsoData.PsoIndexDirty = false;
 
 		}
-
 	}
 
 	void BillboardRendererComponent::SetMaterial(MaterialResource* material)
@@ -205,6 +202,12 @@ namespace Darius::Renderer
 			D_RESOURCE_LOADER::LoadResourceAsync(material, nullptr, true);
 
 		mChangeSignal(this);
+	}
+
+	D_MATH_BOUNDS::Aabb BillboardRendererComponent::GetAabb() const
+	{
+		float radius = D_MATH::Length(D_MATH::Vector3::Up * mWidth + D_MATH::Vector3::Forward * mHeight);
+		return D_MATH_BOUNDS::Aabb::CreateFromCenterAndExtents(GetTransform()->GetPosition(), Vector3(radius));
 	}
 
 #ifdef _D_EDITOR

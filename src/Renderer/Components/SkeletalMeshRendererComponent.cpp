@@ -306,8 +306,7 @@ namespace Darius::Renderer
 		Scalar scaleXSqr = LengthSquare((Vector3)xform.GetX());
 		Scalar scaleYSqr = LengthSquare((Vector3)xform.GetY());
 		Scalar scaleZSqr = LengthSquare((Vector3)xform.GetZ());
-		Scalar sphereScale = Sqrt(Max(Max(scaleXSqr, scaleYSqr), scaleZSqr));
-		mBounds = mBounds.Union(BoundingSphere((Vector3)xform.GetW(), sphereScale));
+		mBounds = mBounds.Union(Aabb::CreateFromCenterAndExtents((Vector3)xform.GetW(), Sqrt(Vector3(scaleXSqr, scaleYSqr, scaleZSqr))));
 
 		for (auto childJoint : skeletonJoint.Children)
 		{
@@ -338,16 +337,16 @@ namespace Darius::Renderer
 		// Mapping upload buffer
 		MeshConstants* cb = (MeshConstants*)mMeshConstantsCPU.MapInstance(frameResourceIndex);
 
-
-		Matrix4 world = GetTransform()->GetWorld();
+		auto transform = GetTransform();
+		Matrix4 world = transform->GetWorld();
 		cb->World = world;
 		cb->WorldIT = InverseTranspose(world.Get3x3());
 		cb->Lod = mLoD;
 
-		// Updating joints matrices on gpu
+		// Updating joints matrices for gpu
 		if (mSkeletonRoot)
 		{
-
+			mBounds = Aabb(transform->GetPosition());
 			JointUpdateRecursion(Matrix4::Identity, *mSkeletonRoot);
 		}
 
@@ -441,5 +440,4 @@ namespace Darius::Renderer
 			out[i] = mMesh->GetMaterial(i);
 		}
 	}
-
 }

@@ -21,6 +21,9 @@
 
 #include "TerrainResource.sgenerated.hpp"\
 
+#define GRID_WIDTH 100.f
+#define GRID_DEPTH 100.f
+
 using namespace D_CONTAINERS;
 using namespace D_GRAPHICS_UTILS;
 using namespace D_RENDERER_GEOMETRY;
@@ -55,6 +58,12 @@ namespace Darius::Renderer
 			TerrainMeshGenerationCS.SetComputeShader(shader->GetBufferPointer(), shader->GetBufferSize());
 			TerrainMeshGenerationCS.Finalize();
 		}
+	}
+
+	void TerrainResource::GetDimensions(float& width, float& height)
+	{
+		width = GRID_WIDTH;
+		height = GRID_DEPTH;
 	}
 
 	void TerrainResource::WriteResourceToFile(D_SERIALIZATION::Json& j) const
@@ -92,7 +101,6 @@ namespace Darius::Renderer
 
 	bool TerrainResource::UploadToGpu()
 	{
-
 		auto renderType = D_RENDERER::GetActiveRendererType();
 
 		switch (renderType)
@@ -107,9 +115,15 @@ namespace Darius::Renderer
 		return false;
 	}
 
+	void TerrainResource::UpdateBoundsMath()
+	{
+		D_MATH::Vector3 extents = D_MATH::Vector3(GRID_WIDTH, mHeightFactor, GRID_DEPTH);
+		mMesh.mBoundBox = D_MATH_BOUNDS::Aabb::CreateFromCenterAndExtents(D_MATH::Vector3::Zero, extents);
+		mMesh.mBoundSp = D_MATH_BOUNDS::BoundingSphere(D_MATH::Vector3::Zero, extents.Length());
+	}
+
 	bool TerrainResource::InitRayTracing()
 	{
-
 		auto& context = D_GRAPHICS::ComputeContext::Begin(L"Initializing Ray Tracing Terrain Resource");
 
 		if (mParametersConstantsGPU.GetGpuVirtualAddress() != D3D12_GPU_VIRTUAL_ADDRESS_NULL)
@@ -129,7 +143,7 @@ namespace Darius::Renderer
 
 			auto name = GetName() + L"Terrain Mesh";
 
-			auto grid = D_RENDERER_GEOMETRY_GENERATOR::CreateGrid(100, 100, 64 * 8, 64 * 8);
+			auto grid = D_RENDERER_GEOMETRY_GENERATOR::CreateGrid(GRID_WIDTH, GRID_DEPTH, 64 * 8, 64 * 8);
 
 			DVector<D_RENDERER_VERTEX::VertexPositionNormalTangentTexture> vertices;
 			DVector<std::uint32_t> indices;
@@ -165,6 +179,8 @@ namespace Darius::Renderer
 			// Create index buffer
 			mMesh.CreateIndexBuffers(indices.data());
 		}
+
+		UpdateBoundsMath();
 
 		if (!mHeightMap.IsValid())
 			mHeightMap = D_RESOURCE::GetResourceSync<TextureResource>(D_RENDERER::GetDefaultGraphicsResource(D_RENDERER::DefaultResource::Texture2DBlackOpaque));

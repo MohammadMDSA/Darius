@@ -204,6 +204,7 @@ namespace Darius::Renderer::Rasterization
 	void AddRenderItems(D_RENDERER_RAST::MeshSorter& sorter, D_MATH_CAMERA::BaseCamera const& cam, RenderItemContext const& riContext)
 	{
 		auto frustum = cam.GetViewSpaceFrustum();
+		int items = 0;
 
 		// Iterating over static meshes
 #define ADD_RENDERER_COMPONENT_RENDER_ITEMS(type) \
@@ -214,23 +215,26 @@ namespace Darius::Renderer::Rasterization
 					return; \
 \
 				/* Is it in our frustum */ \
-				auto sphereWorldSpace = AffineTransform(meshComp.GetTransform()->GetWorld()) * meshComp.GetBounds(); \
-				auto sphereViewSpace = BoundingSphere(Vector3(cam.GetViewMatrix() * sphereWorldSpace.GetCenter()), sphereWorldSpace.GetRadius()); \
-				if (!frustum.Intersects(sphereViewSpace)) \
+				auto worldAabb = meshComp.GetAabb(); \
+				auto aabbViewSpace = worldAabb.CalculateTransformed(AffineTransform(cam.GetViewMatrix())); \
+				if (!frustum.Intersects(aabbViewSpace)) \
 					return; \
 \
-				auto distance = -sphereViewSpace.GetCenter().GetZ() - sphereViewSpace.GetRadius(); \
+				auto distance = -aabbViewSpace.GetCenter().GetZ() - aabbViewSpace.GetExtents().GetZ(); \
 \
 				meshComp.AddRenderItems([distance, &sorter](auto const& ri) \
 					{ \
 						sorter.AddMesh(ri, distance); \
 					}, riContext); \
+				items++; \
 			}); \
 
 		ADD_RENDERER_COMPONENT_RENDER_ITEMS(MeshRendererComponent);
 		ADD_RENDERER_COMPONENT_RENDER_ITEMS(SkeletalMeshRendererComponent);
 		ADD_RENDERER_COMPONENT_RENDER_ITEMS(BillboardRendererComponent);
 		ADD_RENDERER_COMPONENT_RENDER_ITEMS(TerrainRendererComponent);
+
+		D_LOG_DEBUG(std::format("Items visible: {}", items));
 
 #undef ADD_RENDERER_COMPONENT_RENDER_ITEMS
 

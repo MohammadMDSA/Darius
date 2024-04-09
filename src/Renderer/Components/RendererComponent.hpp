@@ -19,7 +19,7 @@ namespace Darius::Renderer
 		
 	public:
 		INLINE virtual bool									CanRender() const override { return IsActive(); }
-		INLINE virtual D_MATH_BOUNDS::BoundingSphere const& GetBounds() override { return *reinterpret_cast<D_MATH_BOUNDS::BoundingSphere*>(nullptr); }
+		INLINE virtual D_MATH_BOUNDS::Aabb					GetAabb() const override { D_ASSERT(false); return D_MATH_BOUNDS::Aabb(); }
 		INLINE virtual D3D12_GPU_VIRTUAL_ADDRESS			GetConstantsAddress() const override { return D3D12_GPU_VIRTUAL_ADDRESS_UNKNOWN; }
 		INLINE virtual bool									AddRenderItems(std::function<void(D_RENDERER::RenderItem const&)> appendFunction, RenderItemContext const& riContext) override { return false; }
 		INLINE virtual bool									IsCastingShadow() const override { return mCastsShadow; }

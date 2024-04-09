@@ -2,7 +2,7 @@
 
 #include "Renderer/RendererCommon.hpp"
 
-#include <Math/Bounds/BoundingSphere.hpp>
+#include <Math/Bounds/BoundingBox.hpp>
 
 #include <rttr/rttr_enable.h>
 
@@ -22,7 +22,7 @@ namespace Darius::Renderer
 
 	public:
 		virtual bool						CanRender() const = 0;
-		virtual D_MATH_BOUNDS::BoundingSphere const& GetBounds() = 0;
+		virtual D_MATH_BOUNDS::Aabb			GetAabb() const = 0;
 		virtual D3D12_GPU_VIRTUAL_ADDRESS	GetConstantsAddress() const = 0;
 		virtual bool						AddRenderItems(std::function<void(D_RENDERER::RenderItem const&)> appendFunction, RenderItemContext const& riContext) = 0;
 		virtual bool						IsCastingShadow() const = 0;

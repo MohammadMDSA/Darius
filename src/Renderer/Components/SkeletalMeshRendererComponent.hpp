@@ -38,7 +38,7 @@ namespace Darius::Renderer
 		INLINE D_RENDERER_GEOMETRY::Mesh::SkeletonJoint* GetSkeletonRoot() { return mSkeletonRoot; }
 
 
-		INLINE virtual D_MATH_BOUNDS::BoundingSphere const& GetBounds() override { return mBounds; }
+		INLINE virtual D_MATH_BOUNDS::Aabb	GetAabb() const override { return mBounds; }
 
 		void								SetMesh(SkeletalMeshResource* mesh);
 		INLINE SkeletalMeshResource*		GetMesh() const { return mMesh.Get(); }
@@ -60,7 +60,7 @@ namespace Darius::Renderer
 		D_CONTAINERS::DVector<D_RENDERER::Joint>					mJoints;
 		D_CONTAINERS::DVector<D_RENDERER_GEOMETRY::Mesh::SkeletonJoint> mSkeleton;
 		D_RENDERER_GEOMETRY::Mesh::SkeletonJoint*					mSkeletonRoot;
-		D_MATH_BOUNDS::BoundingSphere								mBounds;
+		D_MATH_BOUNDS::Aabb											mBounds;
 
 		D_GRAPHICS_BUFFERS::UploadBuffer							mJointsBufferUpload;
 		D_GRAPHICS_BUFFERS::StructuredBuffer						mJointsBufferGpu;

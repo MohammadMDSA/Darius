@@ -227,6 +227,25 @@ namespace Darius::Renderer
 		mGridMesh = D_RESOURCE::GetResourceSync<D_RENDERER::StaticMeshResource>(D_RENDERER::GetDefaultGraphicsResource(defaultResourceType));
 	}
 
+	D_MATH_BOUNDS::Aabb TerrainRendererComponent::GetAabb() const
+	{
+		auto transform = GetTransform();
+		auto pos = transform->GetPosition();
+
+		if (!mTerrainData.IsValid())
+			return D_MATH_BOUNDS::Aabb(pos);
+
+		float width, depth;
+		mTerrainData->GetDimensions(width, depth);
+
+		Vector3 extents(width, mTerrainData->GetHeightFactor(), depth);
+
+		auto localAabb = D_MATH_BOUNDS::Aabb::CreateFromCenterAndExtents(pos, extents);
+		auto affineTransform = AffineTransform(transform->GetWorld());
+
+		return localAabb.CalculateTransformed(affineTransform);
+
+	}
 
 #ifdef _D_EDITOR
 	bool TerrainRendererComponent::DrawDetails(float params[])
