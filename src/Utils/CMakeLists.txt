@@ -6,6 +6,7 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ".")
 list(APPEND UTILS_LIBS_INCLUDE
     "Assert.hpp"
 	"Common.hpp"
+	"BuildWarnings.hpp"
 	"Log.hpp"
 	"Debug.hpp"
 	"Detailed.hpp"

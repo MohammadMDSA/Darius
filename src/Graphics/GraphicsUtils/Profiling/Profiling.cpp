@@ -204,7 +204,7 @@ namespace Darius::Graphics::Utils::Profiling
 				}
 			}
 
-			ERROR("All attempts to find a previous timing sample failed");
+			ERROR_MSG("All attempts to find a previous timing sample failed");
 			return nullptr;
 		}
 

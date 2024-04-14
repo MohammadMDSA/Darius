@@ -1,21 +1,5 @@
 #pragma once
 
-inline bool Vector2::operator == (const Vector2& V) const
-{
-    using namespace DirectX;
-    const XMVECTOR v1 = XMLoadFloat2(&mData);
-    const XMVECTOR v2 = XMLoadFloat2(&static_cast<XMFLOAT2 const&>(V));
-    return XMVector2Equal(v1, v2);
-}
-
-inline bool Vector2::operator != (const Vector2& V) const
-{
-    using namespace DirectX;
-    const XMVECTOR v1 = XMLoadFloat2(&mData);
-    const XMVECTOR v2 = XMLoadFloat2(&static_cast<XMFLOAT2 const&>(V));
-    return XMVector2NotEqual(v1, v2);
-}
-
 //------------------------------------------------------------------------------
 // Assignment operators
 //------------------------------------------------------------------------------
@@ -203,6 +187,16 @@ inline Vector2 Vector2::Cross(const Vector2& V) const
     Vector2 result;
     XMStoreFloat2(reinterpret_cast<XMFLOAT2*>(&result), R);
     return result;
+}
+
+inline Vector2 Vector2::Normal() const
+{
+    using namespace DirectX;
+    using namespace DirectX;
+    const XMVECTOR v1 = XMLoadFloat2(&mData);
+    const XMVECTOR X = XMVector2Normalize(v1);
+    Vector2 result;
+    XMStoreFloat2(&result.mData, X);
 }
 
 inline void Vector2::Normalize()

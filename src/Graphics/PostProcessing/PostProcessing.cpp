@@ -32,6 +32,11 @@ namespace Darius::Graphics::PostProcessing
 	float												MaxExposure;
 	float												TargetLuminance;
 	float												AdaptationRate;
+	float												FilmSlope;
+	float												FilmToe;
+	float												FilmShoulder;
+	float												FilmBlackClip;
+	float												FilmWhiteClip;
 
 	// Options Bloom
 	bool												EnableBloom;			// Whether enable
@@ -83,6 +88,11 @@ namespace Darius::Graphics::PostProcessing
 		D_H_OPTIONS_LOAD_BASIC_DEFAULT("PostProcessing.HDR.MaxExposure", MaxExposure, 64.f);
 		D_H_OPTIONS_LOAD_BASIC_DEFAULT("PostProcessing.HDR.TargetLuminance", TargetLuminance, 0.08f);
 		D_H_OPTIONS_LOAD_BASIC_DEFAULT("PostProcessing.HDR.AdaptationRate", AdaptationRate, 0.05f);
+		D_H_OPTIONS_LOAD_BASIC_DEFAULT("PostProcessing.ToneMapper.FilmSlope", FilmSlope, 0.88f);
+		D_H_OPTIONS_LOAD_BASIC_DEFAULT("PostProcessing.ToneMapper.FilmToe", FilmToe, 0.55f);
+		D_H_OPTIONS_LOAD_BASIC_DEFAULT("PostProcessing.ToneMapper.FilmShoulder", FilmShoulder, 0.26f);
+		D_H_OPTIONS_LOAD_BASIC_DEFAULT("PostProcessing.ToneMapper.FilmBlackClip", FilmBlackClip, 0.f);
+		D_H_OPTIONS_LOAD_BASIC_DEFAULT("PostProcessing.ToneMapper.FilmWhiteClip", FilmWhiteClip, 0.04f);
 
 		D_H_OPTIONS_LOAD_BASIC_DEFAULT("PostProcessing.Bloom.Enable", EnableBloom, true);
 		D_H_OPTIONS_LOAD_BASIC_DEFAULT("PostProcessing.Bloom.Threshold", BloomThreshold, 4.f);
@@ -364,14 +374,34 @@ namespace Darius::Graphics::PostProcessing
 
 		context.SetPipelineState(ToneMapCS);
 
-		// Set constants
-		context.SetConstants(0,
-			1.f / contextBuffers.SceneColor.GetWidth(),
-			1.f / contextBuffers.SceneColor.GetHeight(),
-			BloomStrength);
+		ALIGN_DECL_256 struct ToneMapperConstants
+		{
+			float RcpBufferDimX;
+			float RcpBufferDimY;
+			float BloomStrength;
+			float PaperWhiteRatio;
+			float MaxBrightness;
+			float FilmSlope;
+			float FilmToe;
+			float FilmShoulder;
+			float FilmBlackClip;
+			float FilmWhiteClip;
+		} toneMapperConstants =
+		{
+			.RcpBufferDimX = 1.f / contextBuffers.SceneColor.GetWidth(),
+			.RcpBufferDimY = 1.f / contextBuffers.SceneColor.GetHeight(),
+			.BloomStrength = BloomStrength,
+			.PaperWhiteRatio = 200.f / 1000.f,
+			.MaxBrightness = 1000.f,
+			.FilmSlope = FilmSlope,
+			.FilmToe = FilmToe,
+			.FilmShoulder = FilmShoulder,
+			.FilmBlackClip = FilmBlackClip,
+			.FilmWhiteClip = FilmWhiteClip
+		};
 
-		context.SetConstant(0, 3, 200.f / 1000.f);
-		context.SetConstant(0, 4, 1000.f);
+		// Set constants
+		context.SetDynamicConstantBufferView(3, sizeof(ToneMapperConstants), &toneMapperConstants);
 
 		// Separaate out SDR result from its perceived luminance
 		if (D_GRAPHICS_DEVICE::SupportsTypedUAVLoadSupport_R11G11B10_FLOAT())
@@ -519,6 +549,12 @@ namespace Darius::Graphics::PostProcessing
 
 			D_H_OPTION_DRAW_FLOAT_SLIDER("Adaptation Rate", "PostProcessing.HDR.AdaptationRate", AdaptationRate, 0.01f, 1.f);
 		}
+
+		D_H_OPTION_DRAW_FLOAT_SLIDER("Film Slope", "PostProcessing.ToneMapper.FilmSlope", FilmSlope, 0.f, 1.f);
+		D_H_OPTION_DRAW_FLOAT_SLIDER("Film Toe", "PostProcessing.ToneMapper.FilmToe", FilmToe, 0.f, 1.f);
+		D_H_OPTION_DRAW_FLOAT_SLIDER("Film Shoulder", "PostProcessing.ToneMapper.FilmShoulder", FilmShoulder, 0.f, 1.f);
+		D_H_OPTION_DRAW_FLOAT_SLIDER("Film BlackClip", "PostProcessing.ToneMapper.FilmBlackClip", FilmBlackClip, 0.f, 1.f);
+		D_H_OPTION_DRAW_FLOAT_SLIDER("Film WhiteClip", "PostProcessing.ToneMapper.FilmWhiteClip", FilmWhiteClip, 0.f, 1.f);
 
 		ImGui::Spacing();
 

@@ -100,12 +100,12 @@ namespace Darius::Editor::Gui::Windows
 		D_RESOURCE_LOADER::LoadResourceAsync(D_ENGINE_CONTEXT::GetAssetsPath() / "PBR/DefaultSkyboxDiffuseIBL_HDR.dds", [&](auto const& resourceHandles)
 			{
 				auto diffIBLHandle = resourceHandles[0];
-				mSkyboxDiff = D_RESOURCE::GetResourceSync<D_RENDERER::TextureResource>(diffIBLHandle);
+				mSkyboxDiff = D_RESOURCE::GetResourceSync<D_RENDERER::TextureResource>(diffIBLHandle, true);
 
 				D_RESOURCE_LOADER::LoadResourceAsync(D_ENGINE_CONTEXT::GetAssetsPath() / "PBR/DefaultSkyboxSpecularIBL.dds", [&](auto const& resourceHandles2)
 					{
 						auto specIBLHandle = resourceHandles2[0];
-						mSkyboxSpec = D_RESOURCE::GetResourceSync<D_RENDERER::TextureResource>(specIBLHandle);
+						mSkyboxSpec = D_RESOURCE::GetResourceSync<D_RENDERER::TextureResource>(specIBLHandle, true);
 
 						D_RENDERER::SetIBLTextures(
 							mSkyboxDiff.Get(),

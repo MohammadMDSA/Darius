@@ -1,6 +1,5 @@
 #pragma once
 
-#include "GameObject.hpp"
 #include "Scene.hpp"
 
 #include <Core/RefCounting/Ref.hpp>
@@ -12,6 +11,8 @@
 
 namespace Darius::Scene
 {
+	class GameObject;
+
 	class GameObjectRef : public D_CORE::Ref<GameObject>
 	{
 	public:
@@ -27,20 +28,11 @@ namespace Darius::Scene
 
 		GameObjectRef& operator= (GameObjectRef const&) = default;
 
-		INLINE virtual bool IsValid() const override
-		{
-			if (!D_CORE::Ref<GameObject>::IsValid())
-				return false;
-			auto sceneObj = D_WORLD::GetGameObject(Get()->GetEntity());
-			return sceneObj && sceneObj->IsValid();
-		}
+		D_CORE::Uuid GetUuid() const;
 
-		INLINE bool IsValid(_OUT_ bool& isMissing) const
-		{
-			auto sceneObj = IsNull() ? nullptr : D_WORLD::GetGameObject(Get()->GetEntity());
-			isMissing = sceneObj == nullptr;
-			return D_CORE::Ref<GameObject>::IsValid() && sceneObj && sceneObj->IsValid();
-		}
+		virtual bool IsValid() const;
+
+		bool IsValid(_OUT_ bool& isMissing) const;
 
 	};
 }
@@ -57,7 +49,7 @@ namespace rttr
 		{
 			if (!obj.IsValid())
 				return { D_CORE::Uuid(), D_SERIALIZATION_UUID_PARAM_GAMEOBJECT };
-			return { obj->GetUuid(), D_SERIALIZATION_UUID_PARAM_GAMEOBJECT };
+			return { obj.GetUuid(), D_SERIALIZATION_UUID_PARAM_GAMEOBJECT };
 		}
 
 		static INLINE type create(wrapped_type const& value)

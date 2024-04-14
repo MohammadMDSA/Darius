@@ -24,7 +24,7 @@ namespace Darius::Renderer
 		GENERATED_BODY();
 
 	public:
-		D_CH_RESOURCE_BODY(SkeletalMeshResource, "Skeletal Mesh", ".fbx")
+		D_CH_RESOURCE_BODY(SkeletalMeshResource, "Skeletal Mesh", "")
 
 
 #ifdef _D_EDITOR
@@ -33,6 +33,8 @@ namespace Darius::Renderer
 
 		INLINE D_RENDERER_GEOMETRY::Mesh::SkeletonJoint const* GetSkeletonRoot() const { return mSkeletonRoot; }
 		INLINE D_CONTAINERS::DList<D_RENDERER_GEOMETRY::Mesh::SkeletonJoint> const& GetSkeleton() const { return mSkeleton; }
+		
+		virtual void					Create(D_RENDERER_GEOMETRY::MultiPartMeshData<VertexType> const& data, D_CONTAINERS::DList<D_RENDERER_GEOMETRY::Mesh::SkeletonJoint> const& skeleton);
 
 	private:
 		DField()
@@ -52,8 +54,6 @@ namespace Darius::Renderer
 			mSkeletonRoot(nullptr) {}
 
 		virtual void					CreateInternal(D_RENDERER_GEOMETRY::MultiPartMeshData<VertexType> const& data) override;
-
-		virtual bool					UploadToGpu() override;
 
 	};
 }

@@ -3,8 +3,10 @@
 
 #include "PhysicsManager.hpp"
 #include "PhysicsScene.hpp"
+#include "Components/ColliderComponent.hpp"
+#include "Components/RigidbodyComponent.hpp"
 
-#include <Core\Containers\Map.hpp>
+#include <Core/Containers/Map.hpp>
 #include <Scene/EntityComponentSystem/Components/TransformComponent.hpp>
 
 #include "PhysicsActor.sgenerated.hpp"
@@ -17,14 +19,13 @@ namespace Darius::Physics
 {
 
 	DUnorderedMap<PxActor*, PhysicsActor*> ActorMap;
-	DSet<PhysicsActor*>	RequireDelete;
 
-
-	PhysicsActor::PhysicsActor(D_SCENE::GameObject const* gameObject, PhysicsActorType type) :
-		mActorType(type),
+	PhysicsActor::PhysicsActor(D_SCENE::GameObject const* gameObject, PhysicsScene* scene) :
 		mPxActor(nullptr),
 		mGameObject(gameObject),
-		mDirty(true)
+		mScene(scene),
+		mDynamicDirty(true),
+		mDynamic(gameObject->HasComponent<RigidbodyComponent>())
 	{
 	}
 
@@ -32,25 +33,8 @@ namespace Darius::Physics
 	{
 		UninitialzieActor();
 
-		RequireDelete.erase(this);
-
-		if (!mPxActor)
-			return;
-		ActorMap.erase(mPxActor);
-		mPxActor = nullptr;
-	}
-
-	void PhysicsActor::RemoveDeleted()
-	{
-		for (auto actor : RequireDelete)
-		{
-			for (auto collider : actor->mToBeRemoved)
-			{
-				actor->mCollider.erase(collider);
-			}
-			actor->mToBeRemoved.clear();
-		}
-		RequireDelete.clear();
+		for (auto& [shape, _] : mColliders)
+			shape->release();
 	}
 
 	PhysicsActor* PhysicsActor::GetFromPxActor(physx::PxActor* actor)
@@ -63,48 +47,221 @@ namespace Darius::Physics
 
 	void PhysicsActor::UninitialzieActor()
 	{
-		mDirty = true;
 		if (!mPxActor)
 			return;
-		auto scene = D_PHYSICS::GetScene();
-		scene->mPxScene->removeActor(*mPxActor);
+
+		ActorMap.erase(mPxActor);
+		mScene->mPxScene->removeActor(*mPxActor);
+		if (mPxActor->isReleasable())
+			mPxActor->release();
+
+		mPxActor = nullptr;
 	}
 
-	void PhysicsActor::RemoveCollider(void* shape)
+	std::string GetGeometryTypeStr(physx::PxGeometryType::Enum type)
 	{
-		mToBeRemoved.insert(reinterpret_cast<PxShape*>(shape));
-		RequireDelete.insert(this);
+		switch (type)
+		{
+		case physx::PxGeometryType::eSPHERE:
+			return "Shape";
+		case physx::PxGeometryType::ePLANE:
+			return "Plane";
+		case physx::PxGeometryType::eCAPSULE:
+			return "Capsule";
+		case physx::PxGeometryType::eBOX:
+			return "Box";
+		case physx::PxGeometryType::eCONVEXMESH:
+			return "Convex Mesh";
+		case physx::PxGeometryType::ePARTICLESYSTEM:
+			return "Particle System";
+		case physx::PxGeometryType::eTETRAHEDRONMESH:
+			return "TetrahedronMesh";
+		case physx::PxGeometryType::eTRIANGLEMESH:
+			return "Triangle Mesh";
+		case physx::PxGeometryType::eHEIGHTFIELD:
+			return "Height Field";
+		case physx::PxGeometryType::eHAIRSYSTEM:
+			return "Hair";
+		case physx::PxGeometryType::eCUSTOM:
+			return "Custom";
+		default:
+			return "";
+		}
+	}
+
+	physx::PxShape* PhysicsActor::AddCollider(ColliderComponent const* refComponent)
+	{
+		auto name = refComponent->GetComponentName();
+		auto search = mCollidersLookup.find(name);
+		if (search != mCollidersLookup.end())
+			return search->second;
+
+		auto physics = D_PHYSICS::GetCore();
+		auto geom = refComponent->GetPhysicsGeometry();
+
+		D_ASSERT(geom);
+
+		physx::PxShape* shape = physics->createShape(*geom, *refComponent->GetMaterial());
+
+		D_ASSERT(shape);
+
+		auto geomType = geom->getType();
+		if (IsGeometryCompatible(geomType))
+			D_VERIFY(mPxActor->attachShape(*shape));
+		else
+			D_LOG_WARN(std::format("Dyanmic actor is not compatible with geometry type {}", GetGeometryTypeStr(geomType)));
+
+		mColliders[shape] = refComponent->GetComponentName();
+		mCollidersLookup[name] = shape;
+		shape->acquireReference();
+
+		return shape;
+	}
+
+	physx::PxShape* PhysicsActor::GetShape(std::string const& compName)
+	{
+		auto search = mCollidersLookup.find(compName);
+		if (search == mCollidersLookup.end())
+			return nullptr;
+
+		return search->second;
+	}
+
+	void PhysicsActor::RemoveCollider(ColliderComponent const* refComponent)
+	{
+		D_ASSERT(refComponent);
+
+		auto compName = refComponent->GetComponentName();
+		if (!mCollidersLookup.contains(compName))
+			return;
+
+		auto shape = GetShape(compName);
+		D_ASSERT(shape);
+		mCollidersLookup.erase(compName);
+		mColliders.erase(shape);
+
+		if (shape->getActor() == mPxActor)
+			mPxActor->detachShape(*shape);
+		shape->release();
+		D_ASSERT(mColliders.size() == mCollidersLookup.size());
+
+		RemoveActorIfNecessary();
+	}
+
+	bool PhysicsActor::RemoveActorIfNecessary()
+	{
+		if (mColliders.size() == 0)
+		{
+			mScene->RemoveActor(this);
+			mValid = false;
+			return true;
+		}
+
+		return false;
+	}
+
+	void PhysicsActor::SetDynamic(bool dynamic)
+	{
+		if (mDynamic == dynamic)
+			return;
+
+		mDynamic = dynamic;
+		mDynamicDirty = true;
+	}
+
+	void PhysicsActor::ForceRemoveActor()
+	{
+		mScene->RemoveActor(this);
+		mValid = false;
+	}
+
+	bool PhysicsActor::IsGeometryCompatible(physx::PxGeometryType::Enum type)
+	{
+		switch (type)
+		{
+		case PxGeometryType::Enum::eSPHERE:
+		case PxGeometryType::Enum::eCAPSULE:
+		case PxGeometryType::Enum::eBOX:
+		case PxGeometryType::Enum::eCONVEXMESH:
+		case PxGeometryType::Enum::ePLANE:
+			return true;
+		default:
+			return !mDynamic;
+		}
+	}
+
+	void PhysicsActor::TransferShapes(physx::PxRigidActor* actor)
+	{
+		D_ASSERT(mPxActor);
+		D_ASSERT(actor);
+
+		D_ASSERT((UINT)mPxActor->getNbShapes() == (UINT)mColliders.size());
+
+		for (auto& [shape, _] : mColliders)
+		{
+			mPxActor->detachShape(*shape);
+
+			if (!IsGeometryCompatible(shape->getGeometry().getType()))
+				continue;
+
+			D_ASSERT(actor->attachShape(*shape));
+		}
 	}
 
 	void PhysicsActor::InitializeActor()
 	{
-		D_ASSERT(mGameObject);
-		if (mPxActor && !mDirty)
+		D_ASSERT(mGameObject && mGameObject->IsValid());
+
+		if (mPxActor && !mDynamicDirty)
 			return;
 
-		auto scene = D_PHYSICS::GetScene();
 		auto physics = D_PHYSICS::GetCore();
 
 		// Create actor initial transform
 		auto mainTransform = mGameObject->GetTransform()->GetTransformData();
 		auto transform = D_PHYSICS::GetTransform(mainTransform);
 
+		physx::PxRigidActor* newActor;
 		// Create proper actor if doesn't exist
-		if (IsStatic())
+		if (mDynamic)
 		{
-			mPxActor = physics->createRigidStatic(transform);
+			newActor = physics->createRigidDynamic(transform);
 		}
 		else
 		{
-			mPxActor = physics->createRigidDynamic(transform);
+			newActor = physics->createRigidStatic(transform);
 		}
 
-		ActorMap[mPxActor] = this;
-		mCollider.clear();
+		if (mPxActor)
+			TransferShapes(newActor);
 
-		scene->mPxScene->addActor(*mPxActor);
+		UninitialzieActor();
 
-		mDirty = false;
+		mPxActor = newActor;
 
+		ActorMap.emplace(mPxActor, this);
+
+		mScene->mPxScene->addActor(*mPxActor);
+
+		mValid = true;
+		mDynamicDirty = false;
+	}
+
+	void PhysicsActor::PreUpdate()
+	{
+		auto trans = mGameObject->GetTransform();
+		auto rot = trans->GetRotation();
+		auto pos = trans->GetPosition();
+		mPxActor->setGlobalPose(physx::PxTransform(GetVec3(pos), GetQuat(rot)));
+	}
+
+	void PhysicsActor::Update()
+	{
+		auto preTrans = mGameObject->GetTransform();
+		D_MATH::Transform physicsTrans = D_PHYSICS::GetTransform(mPxActor->getGlobalPose());
+
+		physicsTrans.Scale = preTrans->GetScale();
+
+		preTrans->SetWorld(D_MATH::Matrix4(physicsTrans.GetWorld()));
 	}
 }

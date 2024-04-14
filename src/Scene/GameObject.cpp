@@ -32,7 +32,7 @@ namespace Darius::Scene
 	D_CONTAINERS::DSet<D_ECS::EntityId> GameObject::RegisteredBehaviours = D_CONTAINERS::DSet<D_ECS::EntityId>();
 	D_CONTAINERS::DSet<std::string> GameObject::RegisteredComponentNames = D_CONTAINERS::DSet<std::string>();
 
-	GameObject::GameObject(D_CORE::Uuid uuid, D_ECS::Entity entity, bool inScene) :
+	GameObject::GameObject(D_CORE::Uuid const& uuid, D_ECS::Entity entity, bool inScene) :
 		mActive(true),
 		mType(Type::Movable),
 		mName("GameObject"),
@@ -54,7 +54,6 @@ namespace Darius::Scene
 			{
 				RemoveComponentRoutine(comp);
 			});
-
 	}
 
 	void GameObject::OnPreDestroy()
@@ -78,10 +77,10 @@ namespace Darius::Scene
 
 		// Setting GameObject name
 		{
-			char name[32];
+			char name[1000];
 			size_t curNameSize = mName.size();
+			memset(name, 0, 1000 * sizeof(char));
 			memcpy(name, mName.c_str(), sizeof(char) * curNameSize);
-			ZeroMemory(name + curNameSize, 32 - curNameSize);
 			if (ImGui::InputText("##ObjectName", name, 30))
 				mName = std::string(name);
 		}
@@ -171,6 +170,7 @@ namespace Darius::Scene
 				}
 				ImGui::PopStyleVar();
 
+				bool deleted = false;
 				if (ImGui::BeginPopup("ComponentSettings"))
 				{
 
@@ -178,6 +178,7 @@ namespace Darius::Scene
 					{
 						comp->OnPreComponentRemovInEditor();
 						RemoveComponent(comp);
+						deleted = true;
 					}
 
 					ImGui::EndPopup();
@@ -185,7 +186,9 @@ namespace Darius::Scene
 
 				if (open)
 				{
-					changeValue |= D_SCENE_DET_DRAW::DrawDetails(*comp, nullptr);
+					if (!deleted)
+						changeValue |= D_SCENE_DET_DRAW::DrawDetails(*comp, nullptr);
+
 					ImGui::TreePop();
 				}
 				ImGui::Spacing();
@@ -336,18 +339,22 @@ namespace Darius::Scene
 
 		auto compT = D_WORLD::GetComponentEntity(name.c_str());
 
+		PreEntityEdit();
 		mEntity.add(compT);
+		PostEntityEdit();
 		auto compP = const_cast<void*>(mEntity.get(compT));
 
 		auto ref = reinterpret_cast<ComponentBase*>(compP);
 		AddComponentRoutine(ref);
+
 		return ref;
 	}
 
 	void GameObject::AddComponentRoutine(Darius::Scene::ECS::Components::ComponentBase* comp)
 	{
-		if (!comp)
+		if (!D_VERIFY(comp))
 			return;
+
 		comp->mGameObject = this;
 
 		if (mAwake)
@@ -429,6 +436,16 @@ namespace Darius::Scene
 		mEntity.remove(compId);
 	}
 
+	bool GameObject::HasComponent(std::string const& compName) const
+	{
+		if (!RegisteredComponentNames.contains(compName))
+			return false;
+
+		auto compT = D_WORLD::GetComponentEntity(compName.c_str());
+
+		return mEntity.has(compT);
+	}
+
 	D_ECS_COMP::ComponentBase* GameObject::GetComponent(std::string const& compName) const
 	{
 		if (!RegisteredComponentNames.contains(compName))
@@ -450,7 +467,16 @@ namespace Darius::Scene
 				mEntity.child_of(D_WORLD::GetRoot());
 			}
 
-			mParent = nullptr;
+			if (attachmentType == AttachmentType::KeepWorld)
+			{
+				auto trans = GetTransform();
+				auto world = trans->GetWorld();
+				mParent = nullptr;
+				trans->SetWorld(world);
+			}
+			else
+				mParent = nullptr;
+
 			return;
 		}
 
@@ -572,6 +598,16 @@ namespace Darius::Scene
 			currentLevel = &(*currentLevel)[splitted[i]].ChildrenNameMap;
 		}
 
+	}
+
+	void GameObject::PreEntityEdit()
+	{
+		//D_WORLD::SetDeferEnable(false);
+	}
+
+	void GameObject::PostEntityEdit()
+	{
+		//D_WORLD::SetDeferEnable(true);
 	}
 
 	void GameObject::RegisterBehaviourComponent(D_ECS::EntityId compId)

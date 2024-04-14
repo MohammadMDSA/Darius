@@ -212,7 +212,7 @@ namespace Darius::Editor::Gui::Components
             ValueType& destination = kf->GetValue<ValueType>();
 
             // Neither Keyframe created nor value changed
-            if (!created && destination == value)
+            if (!created && (bool)(destination == value))
                 return false;
 
             destination = value;

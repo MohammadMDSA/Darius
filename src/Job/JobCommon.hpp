@@ -1,6 +1,7 @@
 #pragma once
 #include <functional>
-#include <Core/Containers/ConcurrentQueue.hpp>
+
+#include <Utils/Common.hpp>
 
 #include <Libs/enkiTS/src/TaskScheduler.h>
 
@@ -29,6 +30,18 @@ namespace Darius::Job
     typedef std::function<void()>           OnFinishCallback;
 
     typedef enki::TaskPriority              TaskPriority;
+
+    class GenericPinnedTask : public IPinnedTask
+    {
+    public:
+        PinnedTaskFunction mFunction;
+
+        virtual void Execute() override
+        {
+            if (mFunction)
+                mFunction();
+        }
+    };
 
     class CancellationToken
     {

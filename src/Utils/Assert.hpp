@@ -10,8 +10,8 @@
 #define D_ASSERT_IMPL(expr)			assert(expr)
 #define D_ASSERT_M_IMPL(expr, msg)	assert((expr)&&(msg))
 #else
-#define D_ASSERT(expr)				D_ASSUME(expr)
-#define D_ASSERT_M(expr, msg)		D_ASSUME(expr)
+#define D_ASSERT_IMPL(expr)			D_ASSUME(expr)
+#define D_ASSERT_M_IMPL(expr, msg)	D_ASSUME(expr)
 #endif
 
 #define D_ASSERT(expr)			D_ASSERT_IMPL(expr)

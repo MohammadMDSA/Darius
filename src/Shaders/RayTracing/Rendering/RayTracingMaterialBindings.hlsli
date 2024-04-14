@@ -13,6 +13,7 @@ cbuffer                             l_MaterialConstants         : register(b1, s
     float                           l_Roughness;
     float                           l_DisplacementAmount;
     float                           l_Opacity;
+    float                           l_Specular;
     uint                            l_TexStats;
 };
      

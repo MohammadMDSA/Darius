@@ -32,7 +32,7 @@ namespace Darius::Renderer
 	{
 	}
 
-	MeshRendererComponent::MeshRendererComponent(D_CORE::Uuid uuid) :
+	MeshRendererComponent::MeshRendererComponent(D_CORE::Uuid const& uuid) :
 		MeshRendererComponentBase(uuid),
 		mMesh()
 	{
@@ -77,8 +77,11 @@ namespace Darius::Renderer
 		static auto incSize = D_GRAPHICS_DEVICE::GetDevice()->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 
 		D_CONTAINERS::DVector<ResourceRef<MaterialResource>> meshMaterials = mMesh->GetMaterials();
+		UINT draws = (UINT)mesh->mDraw.size();
+		if (draws != (UINT)mMaterials.size())
+			OnMeshChanged();
 
-		for (UINT i = 0; i < mesh->mDraw.size(); i++)
+		for (UINT i = 0; i < draws; i++)
 		{
 			auto const& draw = mesh->mDraw[i];
 
@@ -118,6 +121,19 @@ namespace Darius::Renderer
 		}
 
 		return any;
+	}
+
+	D_MATH_BOUNDS::Aabb MeshRendererComponent::GetAabb() const
+	{
+		auto transform = GetTransform();
+
+		if (!mMesh.IsValid())
+			return D_MATH_BOUNDS::Aabb(transform->GetPosition());
+
+		auto localAabb = mMesh->GetMeshData()->mBoundBox;
+		auto affineTransform = AffineTransform(transform->GetWorld());
+
+		return localAabb.CalculateTransformed(affineTransform);
 	}
 
 	UINT MeshRendererComponent::GetPsoIndex(UINT materialIndex, MaterialResource* material)
@@ -213,6 +229,9 @@ namespace Darius::Renderer
 			return;
 
 		auto& context = D_GRAPHICS::GraphicsContext::Begin();
+
+		Super::Update(dt);
+
 		auto frameResourceIndex = D_GRAPHICS_DEVICE::GetCurrentFrameResourceIndex();
 
 		// Updating mesh constants

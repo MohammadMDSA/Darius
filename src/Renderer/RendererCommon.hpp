@@ -42,9 +42,10 @@ namespace Darius::Renderer
 	struct RenderItemContext
 	{
 #if _D_EDITOR
-		bool				IsEditor;
+		uint8_t				IsEditor : 1;
+		uint8_t				PickerDraw : 1 = false;
 		void*				SelectedGameObject;
-		UINT8				StencilOverride;
+		uint8_t				StencilOverride;
 #endif
 		bool				Shadow;
 	};
@@ -80,6 +81,7 @@ namespace Darius::Renderer
 		float						Roughness = 1.f;
 		float						DisplacementAmount = 0.f;
 		float						Opacity = 1.f;
+		float						Specular = 1.f;
 		struct
 		{
 			UINT					TextureStatusMask : 16 = 0;

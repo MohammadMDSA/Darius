@@ -59,7 +59,7 @@ test/test_runner
 out/
 build/
 
-!dll/*.dll
+!dll/**/*.dll
 
 ## Generated Headers
 Generated/

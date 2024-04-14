@@ -7,7 +7,7 @@
 
 #include <Core/Filesystem/FileUtils.hpp>
 #include <Engine/EngineContext.hpp>
-#include <Renderer/Resources/FBXPrefabResource.hpp>
+#include <FBX/FBXPrefabResource.hpp>
 #include <ResourceManager/Resource.hpp>
 #include <Scene/EntityComponentSystem/Components/ComponentBase.hpp>
 
@@ -34,15 +34,21 @@ namespace Darius::Editor::Gui::Windows
 		mTreeViewFolderMap[assetsPath] = { assetsPath, false, assetsPath.parent_path().filename().string() };
 
 		// Setup listeners
-		mComponentChangePathConnection = D_ECS_COMP::ComponentBase::RequestPathChange.connect([&](D_FILE::Path const& path, D_RESOURCE::ResourceHandle const& handle)
+		mComponentChangePathConnection = D_ECS_COMP::ComponentBase::RequestPathChange.connect([&](D_FILE::Path const& path, D_RESOURCE::ResourceHandle const& handle, bool select)
 			{
+				if (select)
+					D_EDITOR_CONTEXT::SetSelectedDetailed(D_RESOURCE::GetRawResourceSync(handle));
+
 				ContentWindow::TrySetCurrentPath(path);
 				mFocusedResource = handle;
 				mFocusScrollDone = false;
 			});
 
-		mResourceChangePathConnection = D_RESOURCE::Resource::RequestPathChange.connect([&](D_FILE::Path const& path, D_RESOURCE::ResourceHandle const& handle)
+		mResourceChangePathConnection = D_RESOURCE::Resource::RequestPathChange.connect([&](D_FILE::Path const& path, D_RESOURCE::ResourceHandle const& handle, bool select)
 			{
+				if (select)
+					D_EDITOR_CONTEXT::SetSelectedDetailed(D_RESOURCE::GetRawResourceSync(handle));
+
 				ContentWindow::TrySetCurrentPath(path);
 				mFocusedResource = handle;
 				mFocusScrollDone = false;
@@ -193,7 +199,7 @@ namespace Darius::Editor::Gui::Windows
 			bool focused = false;
 			if (mFocusedResource.IsValid())
 			{
-				for(auto const& subRes : dirItem.ChildResources)
+				for (auto const& subRes : dirItem.ChildResources)
 					if (mFocusedResource == subRes)
 					{
 						focused = true;
@@ -278,7 +284,7 @@ namespace Darius::Editor::Gui::Windows
 
 					for (auto const& handle : containedResources)
 					{
-						if (handle.Type == D_RENDERER::FBXPrefabResource::GetResourceType())
+						if (handle.Type == D_FBX::FBXPrefabResource::GetResourceType())
 						{
 							lastItem.MainHandle = handle;
 							lastItem.IconId = D_THUMBNAIL::GetResourceTextureId(handle);
@@ -353,7 +359,17 @@ namespace Darius::Editor::Gui::Windows
 		if (item->IsDirectory)
 			return;
 
-		D_RESOURCE::ResourceLoader::LoadResourceAsync(item->Path, [selectedHandle](auto containedResources)
+		auto containedResources = D_RESOURCE_LOADER::LoadResourceSync(item->Path);
+		if (containedResources.size() == 0)
+		{
+			D_EDITOR_CONTEXT::SetSelectedDetailed(nullptr);
+			return;
+		}
+
+		auto resource = D_RESOURCE::GetRawResourceSync(selectedHandle, true);
+		D_EDITOR_CONTEXT::SetSelectedDetailed(resource);
+
+		/*D_RESOURCE::ResourceLoader::LoadResourceAsync(item->Path, [selectedHandle](auto containedResources)
 			{
 				if (containedResources.size() == 0)
 				{
@@ -363,7 +379,7 @@ namespace Darius::Editor::Gui::Windows
 
 				auto resource = D_RESOURCE::GetRawResourceSync(selectedHandle);
 				D_EDITOR_CONTEXT::SetSelectedDetailed(resource);
-			}, true);
+			});*/
 	}
 
 }

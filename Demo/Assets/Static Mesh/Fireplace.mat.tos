@@ -1,10 +1,1 @@
-{
-  "Path": "Fireplace.mat",
-  "Resources": [
-    {
-      "Name": "Fireplace",
-      "Type": "Material",
-      "Uuid": "694145a8-941d-4d77-9ce8-2f7fd4dc9b51"
-    }
-  ]
-}
+{"Path":"Fireplace.mat","Properties":{"Fireplace":null},"Resources":[{"Name":"Fireplace","Type":"Material","Uuid":"694145a8-941d-4d77-9ce8-2f7fd4dc9b51"}]}

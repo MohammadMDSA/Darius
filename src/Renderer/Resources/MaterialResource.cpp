@@ -77,6 +77,7 @@ namespace Darius::Renderer
 			{ "Emission", std::vector<float>(ems, ems + 3) },
 			{ "AlphaCutout", mCutout },
 			{ "Opacity", mMaterial.Opacity },
+			{ "Specular", mMaterial.Specular },
 			{ "DisplacementAmount", mMaterial.DisplacementAmount }
 		};
 
@@ -133,6 +134,9 @@ namespace Darius::Renderer
 
 		if (data.contains("Opacity"))
 			mMaterial.Opacity = data["Opacity"];
+
+		if (data.contains("Specular"))
+			mMaterial.Specular = data["Specular"];
 
 		mMaterial.Emissive = XMFLOAT3(data["Emission"].get<std::vector<float>>().data());
 
@@ -591,8 +595,7 @@ namespace Darius::Renderer
 			{
 				auto value = *reinterpret_cast<Vector4*>(GetAlbedoColor().GetPtr());
 				ImGui::TableSetColumnIndex(1);
-				float defL[] = D_H_DRAW_DETAILS_MAKE_VEC_PARAM_COLOR;
-				if (D_MATH::DrawDetails(value, defL))
+				if (D_MATH::DrawDetails(value, Vector4::Zero, true))
 				{
 					SetAlbedoColor(D_MATH::Color(value));
 				}
@@ -610,7 +613,7 @@ namespace Darius::Renderer
 			{
 				float value = GetMetallic();
 				ImGui::TableSetColumnIndex(1);
-				if (ImGui::SliderFloat("##Metallic", &value, 0.f, 1.f, "% .3f"))
+				if (ImGui::SliderFloat("##Metallic", &value, 0.f, 1.f, "%.3f"))
 					SetMetallic(value);
 
 			}
@@ -627,7 +630,7 @@ namespace Darius::Renderer
 			{
 				ImGui::TableSetColumnIndex(1);
 				float value = GetRoughness();
-				if (ImGui::SliderFloat("##Roughness", &value, 0.f, 1.f, "% .3f"))
+				if (ImGui::SliderFloat("##Roughness", &value, 0.f, 1.f, "%.3f"))
 					SetRoughness(value);
 			}
 		}
@@ -643,8 +646,7 @@ namespace Darius::Renderer
 			{
 				ImGui::TableSetColumnIndex(1);
 				auto value = *reinterpret_cast<Vector3*>(GetEmissiveColor().GetPtr());
-				float emS[] = D_H_DRAW_DETAILS_MAKE_VEC_PARAM_COLOR;
-				if (D_MATH::DrawDetails(value, emS))
+				if (D_MATH::DrawDetails(value, Vector3::Zero, true))
 				{
 					SetEmissiveColor(D_MATH::Color(value));
 				}
@@ -656,9 +658,19 @@ namespace Darius::Renderer
 		{
 			D_H_DETAILS_DRAW_PROPERTY("Opacity");
 			float value = GetOpacity();
-			if (ImGui::DragFloat("##Opacity", &value, 0.1f, 0.f, 1.f, "%.2f"))
+			if (ImGui::SliderFloat("##Opacity", &value, 0.f, 1.f, "%.3f"))
 			{
 				SetOpacity(value);
+			}
+		}
+
+		// Specular
+		{
+			D_H_DETAILS_DRAW_PROPERTY("Specular");
+			float value = GetSpecular();
+			if (ImGui::SliderFloat("##Specular", &value, 0.f, 1.f))
+			{
+				SetSpecular(value);
 			}
 		}
 
@@ -777,6 +789,21 @@ namespace Darius::Renderer
 			return;
 
 		mMaterial.Opacity = value;
+
+		MakeDiskDirty();
+		MakeGpuDirty();
+
+		SignalChange();
+	}
+
+	void MaterialResource::SetSpecular(float value)
+	{
+		value = D_MATH::Clamp(value, 0.f, 1.f);
+		
+		if (value == mMaterial.Specular)
+			return;
+
+		mMaterial.Specular = value;
 
 		MakeDiskDirty();
 		MakeGpuDirty();

@@ -51,9 +51,26 @@ namespace Darius::Scene
 		dirtyDisk = false;
 	}
 
+	void PrefabResource::SetPrefabGameObject(D_SCENE::GameObject* go)
+	{
+		if (go)
+		{
+			if (go->IsInScene() || !go->GetPrefab().is_nil() || go == mPrefabGameObject)
+				return;
+		}
+
+		if (mPrefabGameObject)
+			D_WORLD::DeleteGameObjectImmediately(mPrefabGameObject);
+		mPrefabGameObject = go;
+
+		MakeDiskDirty();
+		SignalChange();
+	}
+
 	void PrefabResource::Unload()
 	{
-		D_WORLD::DeleteGameObject(mPrefabGameObject);
+		if (mPrefabGameObject)
+			D_WORLD::DeleteGameObject(mPrefabGameObject);
 		mPrefabGameObject = nullptr;
 		EvictFromGpu();
 	}
@@ -77,7 +94,7 @@ namespace Darius::Scene
 		auto valueChanged = false;
 
 		valueChanged |= mPrefabGameObject->DrawDetails(params);
-		
+
 		if (valueChanged)
 			MakeDiskDirty();
 

@@ -15,14 +15,6 @@ namespace Darius::Physics
 		GENERATED_BODY();
 		D_H_COMP_BODY(CapsuleColliderComponent, ColliderComponent, "Physics/Capsule Collider", true);
 	public:
-		enum class DEnum(Serialize) CapsuleColliderOrientation
-		{
-			AlongX = 0,
-			AlongY = 1,
-			AlongZ = 2
-		};
-
-	public:
 
 #ifdef _D_EDITOR
 		virtual bool						DrawDetails(float params[]) override;
@@ -31,16 +23,12 @@ namespace Darius::Physics
 
 		INLINE float						GetRadius() const { return mRadius; }
 		INLINE float						GetHalfHeight() const { return mHalfHeight; }
-		INLINE CapsuleColliderOrientation	GetOrientation() const { return mOrientation; }
 
-		void								SetOrientation(CapsuleColliderOrientation orientation);
 		void								SetRadius(float radius);
 		void								SetHalfHeight(float halfHeight);
 
 		virtual bool						CalculateGeometry(_OUT_ physx::PxGeometry& geom) const override;
 		INLINE virtual bool					UpdateGeometry() override { return CalculateGeometry(mGeometry); }
-
-		virtual D_MATH::Quaternion			GetBiasedRotation() const override;
 
 		static constexpr float				MinRadius = 0.01f;
 		static constexpr float				MinHalfHeight = 0.01f;
@@ -51,9 +39,6 @@ namespace Darius::Physics
 		virtual void						CalculateScaledParameters() override;
 
 	private:
-
-		DField(Serialize)
-		CapsuleColliderOrientation			mOrientation;
 
 		DField(Serialize)
 		float								mRadius;

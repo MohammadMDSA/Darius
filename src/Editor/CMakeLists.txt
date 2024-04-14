@@ -21,6 +21,7 @@ list(APPEND EDITOR_LIBS_SOURCES
 	"GUI/Components/PropertyAnimationCurve.cpp"
 	"GUI/DetailDrawer/DetailDrawer.cpp"
 	"GUI/PostProcessing/GuiPostProcessing.cpp"
+	"GUI/Utils/CommonGuiUtils.cpp"
 	"GUI/Windows/ContentWindow.cpp"
 	"GUI/Windows/DetailsWindow.cpp"
 	"GUI/Windows/GameWindow.cpp"
@@ -33,7 +34,6 @@ list(APPEND EDITOR_LIBS_SOURCES
 	"GUI/Windows/Window.cpp"
 )
 list(APPEND EDITOR_LIBS_INCLUDE
-	"GUI/Utils/Buffers.hpp"
 	"pch.hpp"
 	"Camera.hpp"
 	"Editor.hpp"
@@ -46,8 +46,11 @@ list(APPEND EDITOR_LIBS_INCLUDE
 	"GUI/Components/Common.hpp"
 	"GUI/Components/ContentWindowComponents.hpp"
 	"GUI/Components/PropertyAnimationCurve.hpp"
+	"GUI/Components/TreeClipper.hpp"
 	"GUI/DetailDrawer/DetailDrawer.hpp"
 	"GUI/PostProcessing/GuiPostProcessing.hpp"
+	"GUI/Utils/Buffers.hpp"
+	"GUI/Utils/CommonGuiUtils.hpp"
 	"GUI/Windows/ContentWindow.hpp"
 	"GUI/Windows/DetailsWindow.hpp"
 	"GUI/Windows/GameWindow.hpp"
@@ -90,7 +93,7 @@ PRIVATE
 	${Boost_INCLUDE_DIRS}
 )
 
-target_link_libraries("Editor" PUBLIC rttr_core Utils Graphics Scene Physics Animation Renderer PRIVATE ${Boost_LIBRARIES} IMGUI IMGUI_FLAME_GRAPH IMGUIFILEDIALOG)
+target_link_libraries("Editor" PUBLIC rttr_core Utils Graphics Scene Physics Animation Renderer Fbx PRIVATE ${Boost_LIBRARIES} IMGUI IMGUI_FLAME_GRAPH IMGUIFILEDIALOG)
 
 if(BUILD_TESTS)
 	set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/../../cmake")

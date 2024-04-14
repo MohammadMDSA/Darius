@@ -34,7 +34,7 @@ namespace Darius::Animation
 	{
 	}
 
-	AnimationComponent::AnimationComponent(D_CORE::Uuid uuid) :
+	AnimationComponent::AnimationComponent(D_CORE::Uuid const& uuid) :
 		ComponentBase(uuid),
 		mMeshId(),
 		mRootMotion(false),

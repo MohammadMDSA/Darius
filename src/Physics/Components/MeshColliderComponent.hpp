@@ -13,7 +13,7 @@
 
 namespace Darius::Physics
 {
-	class DClass(Serialize) MeshColliderComponent : public ColliderComponent
+	class DClass(Serialize[bTightBounds, bDirectMesh, bConvex]) MeshColliderComponent : public ColliderComponent
 	{
 		GENERATED_BODY();
 		D_H_COMP_BODY(MeshColliderComponent, ColliderComponent, "Physics/Mesh Collider", true);
@@ -21,6 +21,7 @@ namespace Darius::Physics
 	public:
 
 		void								Awake() override;
+		void								OnDestroy() override;
 
 #ifdef _D_EDITOR
 		virtual bool						DrawDetails(float params[]) override;
@@ -31,8 +32,16 @@ namespace Darius::Physics
 		virtual bool						CalculateGeometry(_OUT_ physx::PxGeometry & geom) const override;
 		INLINE virtual bool					UpdateGeometry() override { return CalculateGeometry(mGeometry); }
 
-		INLINE bool							HasTightBounds() const { return mTightBounds; }
+		INLINE bool							IsTightBounds() const { return mTightBounds; }
 		void								SetTightBounds(bool tight);
+
+		// Direct
+		INLINE bool							IsDirectMesh() const { return mDirectMesh; }
+		void								SetDirectMesh(bool direct);
+
+		// Convex
+		INLINE bool							IsConvex() const { return mConvex; }
+		void								SetConvex(bool convex);
 
 		D_RENDERER::StaticMeshResource*		GetReferenceMesh() const { return mReferenceMesh.Get(); }
 		void								SetReferenceMesh(D_RENDERER::StaticMeshResource* staticMesh);
@@ -43,24 +52,25 @@ namespace Darius::Physics
 	private:
 
 		// Only uses the first index buffer.
-		void								CalculateMeshGeometry();
+		bool								CalculateMeshGeometry();
+		// Only uses the first index buffer.
+		void								CalculateConvexMeshGeometry();
+		// Only uses the first index buffer.
+		void								CalculateTriangleMeshGeometry();
 
-		DField(Serialize)
-		bool										mTightBounds;
+		UINT										mTightBounds : 1;
+		UINT										mDirectMesh : 1;
+		UINT										mConvex : 1;
 
 		DField(Serialize)
 		D_RESOURCE::ResourceRef<D_RENDERER::StaticMeshResource> mReferenceMesh;
 
 		D_CORE::Uuid								mCurrentMeshUuid;
 		physx::PxConvexMeshGeometry					mGeometry;
-		physx::PxConvexMesh*						mMesh;
+		MeshDataHandle								mMesh;
 
 		D_GRAPHICS_BUFFERS::ReadbackBuffer			mMeshVerticesReadback;
 		D_GRAPHICS_BUFFERS::ReadbackBuffer			mMeshIndicesReadback;
-
-#if _D_EDITOR
-		D_RENDERER_GEOMETRY::Mesh const*			mDebugMesh;
-#endif
 
 	};
 }

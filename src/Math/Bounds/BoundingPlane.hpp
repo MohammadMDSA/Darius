@@ -37,21 +37,26 @@ namespace Darius::Math::Bounds
         INLINE operator Vector4() const { return m_repr; }
 
         // Returns the direction the plane is facing.  (Warning:  might not be normalized.)
-        Vector3 GetNormal(void) const { return Vector3(DirectX::XMVECTOR(m_repr)); }
+        INLINE Vector3 GetNormal(void) const { return Vector3(DirectX::XMVECTOR(m_repr)); }
 
         // Returns the point on the plane closest to the origin
-        Vector3 GetPointOnPlane(void) const { return -GetNormal() * m_repr.GetW(); }
+        INLINE Vector3 GetPointOnPlane(void) const { return -GetNormal() * m_repr.GetW(); }
 
         // Distance from 3D point
-        Scalar DistanceFromPoint(Vector3 point) const
+        INLINE Scalar DistanceFromPoint(Vector3 const& point) const
         {
             return Math::Dot(point, GetNormal()) + m_repr.GetW();
         }
 
         // Distance from homogeneous point
-        Scalar DistanceFromPoint(Vector4 point) const
+        INLINE Scalar DistanceFromPoint(Vector4 const& point) const
         {
             return Math::Dot(point, m_repr);
+        }
+
+        Scalar IsPointOver(Vector3 const& point) const
+        {
+            return DistanceFromPoint(point) > 0.f;
         }
 
         INLINE float Dot(Vector3 const& vec) const
@@ -77,6 +82,8 @@ namespace Darius::Math::Bounds
 
         Vector4 m_repr;
     };
+
+    using Plane = BoundingPlane;
 
     //=======================================================================================================
     // Inline implementations

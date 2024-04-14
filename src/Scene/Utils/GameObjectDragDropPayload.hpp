@@ -12,6 +12,9 @@ namespace Darius::Scene
 #ifdef _D_EDITOR
 
 #define D_PAYLOAD_TYPE_GAMEOBJECT "$PAYLOAD$$GAMEOBJECT$"
+#define D_PAYLOAD_TYPE_COMPONENT "$PAYLOAD$$COMPONENT$"
+#define D_PAYLOAD_GAMEOBJECT_REF_TYPE "REF"
+#define D_PAYLOAD_GAMEOBJECT_HIERARCHY_TYPE "HIERARCHY"
 
 	struct GameObjectDragDropPayloadContent : public D_UTILS::BaseDragDropPayloadContent
 	{
@@ -19,13 +22,48 @@ namespace Darius::Scene
 		GameObjectDragDropPayloadContent() :
 			BaseDragDropPayloadContent(BaseDragDropPayloadContent::Type::GameObject) { }
 
-		virtual inline bool IsCompatible(D_UTILS::BaseDragDropPayloadContent::Type payloadType, std::string const& type) const override
+		bool IsHeirarchyCompatible(GameObject* destination) const
 		{
-			return payloadType == D_UTILS::BaseDragDropPayloadContent::Type::GameObject;
+			if (destination == GameObjectRef)
+				return false;
+
+			bool result = true;
+			destination->VisitAncestors([&](GameObject* parent)
+				{
+					if (parent == GameObjectRef)
+						result = false;
+				});
+
+			return result;
 		}
 
-		D_SCENE::GameObject* GameObject = nullptr;
+		virtual inline bool IsCompatible(D_UTILS::BaseDragDropPayloadContent::Type payloadType, std::string const& type) const override
+		{
+
+			if (payloadType == D_UTILS::BaseDragDropPayloadContent::Type::GameObject && type == D_PAYLOAD_GAMEOBJECT_REF_TYPE)
+				return true;
+
+			if (payloadType == D_UTILS::BaseDragDropPayloadContent::Type::Component && GameObjectRef && GameObjectRef->IsValid())
+				return GameObjectRef->HasComponent(type);
+
+			return false;
+		}
+
+		D_SCENE::GameObject* GameObjectRef = nullptr;
 	};
+
+	//struct ComponentDragDropPayloadContent : public D_UTILS::BaseDragDropPayloadContent
+	//{
+	//	ComponentDragDropPayloadContent() :
+	//		BaseDragDropPayloadContent(BaseDragDropPayloadContent::Type::Component) { }
+
+	//	virtual inline bool IsCompatible(D_UTILS::BaseDragDropPayloadContent::Type payloadType, std::string const& type) const override
+	//	{
+	//		
+	//	}
+
+	//	std::string ComponentName;
+	//};
 
 #endif
 

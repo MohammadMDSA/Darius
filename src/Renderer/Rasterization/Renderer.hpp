@@ -109,6 +109,7 @@ namespace Darius::Renderer::Rasterization
 
 		void SetCamera(const D_MATH_CAMERA::BaseCamera& camera) { m_Camera = &camera; }
 		void SetViewport(const D3D12_VIEWPORT& viewport) { m_Viewport = viewport; }
+		D3D12_VIEWPORT const& GetViewport() const { return m_Viewport; }
 		void SetScissor(const D3D12_RECT& scissor) { m_Scissor = scissor; }
 		void AddRenderTarget(D_GRAPHICS_BUFFERS::ColorBuffer& RTV)
 		{
@@ -142,7 +143,8 @@ namespace Darius::Renderer::Rasterization
 		void RenderMeshes(DrawPass pass,
 			D_GRAPHICS::GraphicsContext& context,
 			D_GRAPHICS_BUFFERS::ColorBuffer* ssao,
-			D_RENDERER::GlobalConstants& globals);
+			D_RENDERER::GlobalConstants& globals,
+			bool profile = true);
 
 		size_t CountObjects() const { return m_SortObjects.size(); }
 
@@ -212,11 +214,11 @@ namespace Darius::Renderer::Rasterization
 	void Shutdown();
 	void Update(D_GRAPHICS::CommandContext& context);
 	void Render(std::wstring const& jobId, SceneRenderContext& rContext, std::function<void()> postAntiAliasing = nullptr);
-
+	void AddShadowRenderItems(D_RENDERER_RAST::MeshSorter& sorter, D_MATH_CAMERA::BaseCamera const& lightCam, RenderItemContext const& riContext);
 #ifdef _D_EDITOR
-	bool OptionsDrawer(_IN_OUT_ D_SERIALIZATION::Json& options);
+	bool					OptionsDrawer(_IN_OUT_ D_SERIALIZATION::Json& options);
 
-	UINT16 const& GetForcedPsoFlags();
+	UINT16 const&			GetForcedPsoFlags();
 	void					SetForceWireframe(bool val);
 #endif
 

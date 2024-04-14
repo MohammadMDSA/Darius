@@ -4,11 +4,12 @@
 #include "Editor/EditorContext.hpp"
 #include "Editor/Simulation.hpp"
 #include "Editor/GUI/GuiManager.hpp"
+#include "Editor/GUI/Components/TreeClipper.hpp"
 
 #include <Core/Input.hpp>
 #include <Core/Containers/List.hpp>
 #include <Engine/EngineContext.hpp>
-#include <Renderer/Resources/FBXPrefabResource.hpp>
+#include <FBX/FBXPrefabResource.hpp>
 #include <ResourceManager/ResourceDragDropPayload.hpp>
 #include <ResourceManager/ResourceManager.hpp>
 #include <Scene/Scene.hpp>
@@ -45,15 +46,31 @@ namespace Darius::Editor::Gui::Windows
 
 		// Iterating over root game objects
 		auto root = D_WORLD::GetRoot();
-		DList<GameObject*> children;
+		DVector<GameObject*> children;
 		root.children([&](D_ECS::Entity e)
 			{
 				children.push_back(D_WORLD::GetGameObject(e));
 			});
-		for (auto it = children.begin(); it != children.end(); it++)
+
+		std::sort(children.begin(), children.end(), [](GameObject* a, GameObject* b)
+			{
+				return (std::strcmp(a->GetName().c_str(), b->GetName().c_str()) < 0);
+			});
+
+
+		bool abort = false;
+		static ImGuiListClipper clipper;
+		clipper.Begin((int)children.size());
+		while (clipper.Step())
 		{
-			DrawObject(*it, selectedObj);
+			for (int idx = clipper.DisplayStart; idx < D_MATH::Min((int)children.size(), clipper.DisplayEnd); idx++)
+			{
+
+				if (!abort)
+					DrawObject(children[idx], selectedObj, abort);
+			}
 		}
+		clipper.End();
 
 		if (!ImGui::IsAnyItemHovered() && mHovered && ImGui::IsMouseClicked(ImGuiMouseButton_Left))
 		{
@@ -62,7 +79,7 @@ namespace Darius::Editor::Gui::Windows
 
 	}
 
-	void SceneGraphWindow::DrawObject(GameObject* go, GameObject* selectedObj)
+	void SceneGraphWindow::DrawObject(GameObject* go, GameObject* selectedObj, bool& abort)
 	{
 		ImGuiTreeNodeFlags baseFlag = ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_SpanAvailWidth | ImGuiTreeNodeFlags_FramePadding;
 
@@ -139,7 +156,7 @@ namespace Darius::Editor::Gui::Windows
 		if (ImGui::BeginDragDropSource(ImGuiDragDropFlags_AcceptBeforeDelivery))
 		{
 			D_SCENE::GameObjectDragDropPayloadContent payload;
-			payload.GameObject = go;
+			payload.GameObjectRef = go;
 			ImGui::SetDragDropPayload(D_PAYLOAD_TYPE_GAMEOBJECT, &payload, sizeof(D_SCENE::GameObjectDragDropPayloadContent), ImGuiCond_Once);
 			ImGui::Text((go->GetName() + " (Game Object)").c_str());
 			ImGui::EndDragDropSource();
@@ -154,8 +171,18 @@ namespace Darius::Editor::Gui::Windows
 			if (payload && payload->PayloadType != D_UTILS::BaseDragDropPayloadContent::Type::Invalid)
 			{
 
+				if (auto goPayload = dynamic_cast<D_SCENE::GameObjectDragDropPayloadContent const*>(payload))
+				{
+					if (goPayload->IsHeirarchyCompatible(go) && goPayload->GameObjectRef->IsValid() && ImGui::AcceptDragDropPayload(D_PAYLOAD_TYPE_GAMEOBJECT))
+					{
+
+						goPayload->GameObjectRef->SetParent(go, GameObject::AttachmentType::KeepWorld);
+						abort = true;
+					}
+				}
+
 				// In case it is a prefab resource
-				if (payload->IsCompatible(D_UTILS::BaseDragDropPayloadContent::Type::Resource, std::to_string(D_SCENE::PrefabResource::GetResourceType())))
+				else if (payload->IsCompatible(D_UTILS::BaseDragDropPayloadContent::Type::Resource, std::to_string(D_SCENE::PrefabResource::GetResourceType())))
 				{
 					auto payloadData = reinterpret_cast<D_RESOURCE::ResourceDragDropPayloadContent const*>(imPayload->Data);
 
@@ -171,11 +198,11 @@ namespace Darius::Editor::Gui::Windows
 				}
 
 				// In case it is a fbx prefab resource
-				else if (payload->IsCompatible(D_UTILS::BaseDragDropPayloadContent::Type::Resource, std::to_string(D_RENDERER::FBXPrefabResource::GetResourceType())))
+				else if (payload->IsCompatible(D_UTILS::BaseDragDropPayloadContent::Type::Resource, std::to_string(D_FBX::FBXPrefabResource::GetResourceType())))
 				{
 					auto payloadData = reinterpret_cast<D_RESOURCE::ResourceDragDropPayloadContent const*>(imPayload->Data);
 
-					auto prefabResource = D_RESOURCE::GetResourceSync<D_RENDERER::FBXPrefabResource>(payloadData->Handle, true);
+					auto prefabResource = D_RESOURCE::GetResourceSync<D_FBX::FBXPrefabResource>(payloadData->Handle, true);
 
 					if (prefabResource.IsValid() && prefabResource->GetPrefabGameObject() && prefabResource->GetPrefabGameObject()->IsValid() && ImGui::AcceptDragDropPayload(D_PAYLOAD_TYPE_RESOURCE))
 					{
@@ -192,17 +219,24 @@ namespace Darius::Editor::Gui::Windows
 
 		if (nodeOpen)
 		{
-			auto children = DList<GameObject*>();
-			go->VisitChildren([&](GameObject* child)
-				{
-					children.push_back(child);
-				});
-
-			for (auto child : children)
+			if (!abort)
 			{
-				DrawObject(child, selectedObj);
+				auto children = DVector<GameObject*>();
+				children.reserve(go->CountChildren());
+				go->VisitChildren([&](GameObject* child)
+					{
+						children.push_back(child);
+					});
+				std::sort(children.begin(), children.end(), [](GameObject* a, GameObject* b)
+					{
+						return std::strcmp(a->GetName().c_str(), b->GetName().c_str()) < 0;
+					});
+				for (auto child : children)
+				{
+					if (!abort)
+						DrawObject(child, selectedObj, abort);
+				}
 			}
-
 			ImGui::TreePop();
 		}
 	}

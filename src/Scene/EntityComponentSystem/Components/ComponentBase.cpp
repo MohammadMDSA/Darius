@@ -13,7 +13,7 @@ namespace Darius::Scene::ECS::Components
 	D_H_COMP_DEF(ComponentBase);
 
 #if _D_EDITOR
-	D_CORE::Signal<void(D_FILE::Path const&, Darius::ResourceManager::ResourceHandle const&)> ComponentBase::RequestPathChange;
+	D_CORE::Signal<void(D_FILE::Path const&, Darius::ResourceManager::ResourceHandle const&, bool select)> ComponentBase::RequestPathChange;
 #endif // _D_EDITOR
 
 	ComponentBase::ComponentBase() :
@@ -22,16 +22,18 @@ namespace Darius::Scene::ECS::Components
 		mEnabled(true),
 		mGameObject(nullptr),
 		mDestroyed(false),
-		mDirty(false)
+		mDirty(false),
+		mChangeSignal()
 	{}
 
-	ComponentBase::ComponentBase(Uuid uuid) :
+	ComponentBase::ComponentBase(Uuid const& uuid) :
 		mUuid(uuid),
 		mStarted(false),
 		mEnabled(true),
 		mGameObject(nullptr),
 		mDestroyed(false),
-		mDirty(false)
+		mDirty(false),
+		mChangeSignal()
 	{}
 
 	void ComponentBase::SetEnable(bool value)

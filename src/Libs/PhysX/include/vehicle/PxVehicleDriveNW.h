@@ -1,4 +1,3 @@
-//
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions
 // are met:
@@ -23,15 +22,12 @@
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
-// Copyright (c) 2008-2021 NVIDIA Corporation. All rights reserved.
+// Copyright (c) 2008-2023 NVIDIA Corporation. All rights reserved.
 // Copyright (c) 2004-2008 AGEIA Technologies, Inc. All rights reserved.
 // Copyright (c) 2001-2004 NovodeX AG. All rights reserved.  
 
 #ifndef PX_VEHICLE_NWDRIVE_H
 #define PX_VEHICLE_NWDRIVE_H
-/** \addtogroup vehicle
-  @{
-*/
 
 #include "vehicle/PxVehicleDrive.h"
 #include "vehicle/PxVehicleWheels.h"
@@ -55,14 +51,8 @@ class PxRigidDynamic;
 engine, clutch, gears, autobox, differential.
 @see PxVehicleDriveSimData
 */
-class PxVehicleDriveSimDataNW : public PxVehicleDriveSimData
+class PX_DEPRECATED PxVehicleDriveSimDataNW : public PxVehicleDriveSimData
 {
-//= ATTENTION! =====================================================================================
-// Changing the data layout of this class breaks the binary serialization format.  See comments for 
-// PX_BINARY_SERIAL_VERSION.  If a modification is required, please adjust the getBinaryMetaData 
-// function.  If the modification is made on a custom branch, please change PX_BINARY_SERIAL_VERSION
-// accordingly.
-//==================================================================================================
 public:
 
 	friend class PxVehicleDriveNW;
@@ -115,7 +105,7 @@ PX_COMPILE_TIME_ASSERT(0==(sizeof(PxVehicleDriveSimDataNW) & 15));
 
 @see PxVehicleDriveDynData::setAnalogInput, PxVehicleDriveDynData::getAnalogInput
 */
-struct PxVehicleDriveNWControl
+struct PX_DEPRECATED PxVehicleDriveNWControl
 {
 	enum Enum
 	{
@@ -131,14 +121,8 @@ struct PxVehicleDriveNWControl
 /**
 \brief Data structure with instanced dynamics data and configuration data of a vehicle with up to PX_MAX_NB_WHEELS driven wheels.
 */
-class PxVehicleDriveNW : public PxVehicleDrive
+class PX_DEPRECATED PxVehicleDriveNW : public PxVehicleDrive
 {
-//= ATTENTION! =====================================================================================
-// Changing the data layout of this class breaks the binary serialization format.  See comments for 
-// PX_BINARY_SERIAL_VERSION.  If a modification is required, please adjust the getBinaryMetaData 
-// function.  If the modification is made on a custom branch, please change PX_BINARY_SERIAL_VERSION
-// accordingly.
-//==================================================================================================
 public:
 
 	friend class PxVehicleUpdate;
@@ -221,7 +205,7 @@ public:
 	static	PxVehicleDriveNW*	createObject(PxU8*& address, PxDeserializationContext& context);
 	static	void				getBinaryMetaData(PxOutputStream& stream);
 	virtual	const char*			getConcreteTypeName() const			{ return "PxVehicleDriveNW";	}
-	virtual	bool				isKindOf(const char* name)	const	{ return !::strcmp("PxVehicleDriveNW", name) || PxBase::isKindOf(name); }
+	virtual	bool				isKindOf(const char* name)	const	{ PX_IS_KIND_OF(name, "PxVehicleDriveNW", PxVehicleDrive); }
 //~serialization
 };
 PX_COMPILE_TIME_ASSERT(0==(sizeof(PxVehicleDriveNW) & 15));
@@ -232,5 +216,4 @@ PX_COMPILE_TIME_ASSERT(0==(sizeof(PxVehicleDriveNW) & 15));
 } // namespace physx
 #endif
 
-/** @} */
-#endif //PX_VEHICLE_NWDRIVE_H
+#endif

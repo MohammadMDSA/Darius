@@ -20,10 +20,12 @@ list(APPEND SCENE_LIBS_INCLUDE
 	)
 
 list(APPEND SCENE_LIBS_SOURCES
+	"EntityComponentSystem/CompRef.cpp"
 	"EntityComponentSystem/Components/ComponentBase.cpp"
 	"EntityComponentSystem/Components/BehaviourComponent.cpp"
 	"EntityComponentSystem/Components/TransformComponent.cpp"
 	"GameObject.cpp"
+	"GameObjectRef.cpp"
 	"Resources/PrefabResource.cpp"
 	"Scene.cpp"
     "Utils/DetailsDrawer.cpp"

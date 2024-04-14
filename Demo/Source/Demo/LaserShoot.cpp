@@ -24,7 +24,7 @@ namespace Demo
 		mCastType(0)
 	{ }
 
-	LaserShoot::LaserShoot(D_CORE::Uuid uuid) :
+	LaserShoot::LaserShoot(D_CORE::Uuid const& uuid) :
 		D_ECS_COMP::BehaviourComponent(uuid),
 		mCastType(0)
 	{ }

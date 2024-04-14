@@ -1,4 +1,3 @@
-//
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions
 // are met:
@@ -23,13 +22,12 @@
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
-// Copyright (c) 2008-2021 NVIDIA Corporation. All rights reserved.
+// Copyright (c) 2008-2023 NVIDIA Corporation. All rights reserved.
 // Copyright (c) 2004-2008 AGEIA Technologies, Inc. All rights reserved.
 // Copyright (c) 2001-2004 NovodeX AG. All rights reserved.  
 
-
-#ifndef PX_PHYSICS_COMMON_NX_SERIAL_FRAMEWORK
-#define PX_PHYSICS_COMMON_NX_SERIAL_FRAMEWORK
+#ifndef PX_SERIAL_FRAMEWORK_H
+#define PX_SERIAL_FRAMEWORK_H
 
 /** \addtogroup common
 @{
@@ -48,6 +46,7 @@ class PxSerializationContext;
 class PxRepXSerializer;
 class PxSerializer;
 class PxPhysics;
+class PxCollection;
 
 //! Default serialization alignment
 #define PX_SERIAL_ALIGN	16
@@ -256,7 +255,7 @@ public:
 	*/
 	PX_INLINE	void			alignExtraData(PxU32 alignment = PX_SERIAL_ALIGN)
 	{
-		size_t addr = reinterpret_cast<size_t>(mExtraDataAddress);
+		size_t addr = size_t(mExtraDataAddress);
 		addr = (addr+alignment-1)&~size_t(alignment-1);
 		mExtraDataAddress = reinterpret_cast<PxU8*>(addr);
 	}
@@ -271,11 +270,13 @@ protected:
 
 /**
 \brief Callback type for exporting binary meta data for a serializable type.
+\deprecated Binary conversion and binary meta data are deprecated.
+
 @see PxSerializationRegistry::registerBinaryMetaDataCallback
 
 \param stream	Stream to store binary meta data. 
 */
-typedef void (*PxBinaryMetaDataCallback)(PxOutputStream& stream);
+typedef PX_DEPRECATED void (*PxBinaryMetaDataCallback)(PxOutputStream& stream);
 
 /**
 \brief Class serving as a registry for XML (RepX) and binary serializable types.
@@ -319,13 +320,15 @@ public:
 	/**
 	\brief Register binary meta data callback
 
+	\deprecated Binary conversion and binary meta data are deprecated.
+
 	The callback is executed when calling PxSerialization::dumpBinaryMetaData.
 
 	\param	callback PxBinaryMetaDataCallback to be registered.
 
 	@see PxBinaryMetaDataCallback, PxSerialization::dumpBinaryMetaData
 	*/
-	virtual void						registerBinaryMetaDataCallback(PxBinaryMetaDataCallback callback) = 0;
+	PX_DEPRECATED virtual void			registerBinaryMetaDataCallback(PxBinaryMetaDataCallback callback) = 0;
 	
 	/**
 	\brief Returns PxSerializer corresponding to type
@@ -347,32 +350,38 @@ public:
 	/**
 	\brief Register a RepX serializer for a concrete type
 
+	\deprecated Xml serialization is deprecated. An alternative serialization system is provided through USD Physics.
+
 	\param	type PxConcreteType corresponding to the RepX serializer
 	\param	serializer The PxRepXSerializer to be registered
 	
 	@see PxConcreteType, PxRepXSerializer
 	*/
-	virtual void						registerRepXSerializer(PxType type, PxRepXSerializer& serializer) = 0;
+	PX_DEPRECATED virtual void registerRepXSerializer(PxType type, PxRepXSerializer& serializer) = 0;
 
 	/**
 	\brief Unregister a RepX serializer for a concrete type, and retrieves the corresponding serializer object.
+
+	\deprecated Xml serialization is deprecated. An alternative serialization system is provided through USD Physics.
 
 	\param	type PxConcreteType for which the RepX serializer should be unregistered
 	\return	Unregistered PxRepxSerializer corresponding to type, NULL for types for which no RepX serializer has been registered.
 	
 	@see PxConcreteType, PxSerializationRegistry::registerRepXSerializer, PxSerializationRegistry::release
 	*/
-	virtual PxRepXSerializer*			unregisterRepXSerializer(PxType type) = 0;
+	PX_DEPRECATED virtual PxRepXSerializer* unregisterRepXSerializer(PxType type) = 0;
 
 	/**
 	\brief Returns RepX serializer given the corresponding type name
+
+	\deprecated Xml serialization is deprecated. An alternative serialization system is provided through USD Physics.
 
 	\param	typeName Name of the type
 	\return	Registered PxRepXSerializer object corresponding to type name
 
 	@see PxRepXSerializer, PxTypeInfo, PX_DEFINE_TYPEINFO
 	*/
-	virtual PxRepXSerializer*			getRepXSerializer(const char* typeName) const = 0;  
+	PX_DEPRECATED virtual PxRepXSerializer*	getRepXSerializer(const char* typeName) const = 0;  
 	
 	//@}
 	/************************************************************************************************/

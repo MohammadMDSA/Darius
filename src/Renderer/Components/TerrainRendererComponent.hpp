@@ -36,16 +36,16 @@ namespace Darius::Renderer
 
 		virtual void						Update(float dt) override;
 		virtual void						Awake() override;
+		virtual void						OnDestroy() override;
 
 #ifdef _D_EDITOR
 		virtual bool						DrawDetails(float params[]) override;
 #endif // _D_EDITOR
 
-
 		virtual bool						AddRenderItems(std::function<void(D_RENDERER::RenderItem const&)> appendFunction, RenderItemContext const& riContext) override;
 
 		INLINE virtual D3D12_GPU_VIRTUAL_ADDRESS GetConstantsAddress() const override { return mMeshConstantsGPU.GetGpuVirtualAddress(); }
-		INLINE virtual D_MATH_BOUNDS::BoundingSphere const& GetBounds() override { return mGridMesh->GetMeshData()->mBoundSp; }
+		virtual D_MATH_BOUNDS::Aabb			GetAabb() const override;
 
 		INLINE virtual bool					IsDirty() const override { return D_ECS_COMP::ComponentBase::IsDirty() || GetTransform()->IsDirty(); }
 

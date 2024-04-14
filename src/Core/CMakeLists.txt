@@ -5,6 +5,7 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ".")
 
 list(APPEND CORE_LIBS_INCLUDE
 	"Containers/ConcurrentQueue.hpp"
+	"Containers/EnumAsByte.hpp"
 	"Containers/Vector.hpp"
 	"Containers/Set.hpp"
 	"Containers/List.hpp"
@@ -15,7 +16,9 @@ list(APPEND CORE_LIBS_INCLUDE
 	"TimeManager/TimeManager.hpp"
 	"TimeManager/SystemTime.hpp"
 	"Memory/Memory.hpp"
-	"Memory/Allocator.hpp"
+	"Memory/Allocators/PagedAllocator.hpp"
+	"MultiThreading/SafeNumeric.hpp"
+	"MultiThreading/SpinLock.hpp"
 	"Filesystem/FileUtils.hpp"
 	"Filesystem/Path.hpp"
     "Signal.hpp"

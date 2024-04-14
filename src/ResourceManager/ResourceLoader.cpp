@@ -3,6 +3,7 @@
 #include "ResourceManager.hpp"
 
 #include <Core/Serialization/Json.hpp>
+#include <Core/Containers/ConcurrentQueue.hpp>
 #include <Core/Exceptions/Exception.hpp>
 #include <Job/Job.hpp>
 #include <Utils/Common.hpp>
@@ -10,6 +11,7 @@
 
 #include <boost/algorithm/string.hpp>
 
+#include <concurrent_vector.h>
 #include <fstream>
 
 using namespace D_CONTAINERS;
@@ -34,7 +36,7 @@ namespace Darius::ResourceManager
 				ResourceLoader::LoadResourceSync(mPendingToLoad);
 
 			if (mUpdateGpu && mPendingToLoad->IsDirtyGPU())
-				if (mPendingToLoad->UpdateGPU() == ResourceGpuUpdateResult::Success)
+				if (mPendingToLoad->UpdateGPU() == ResourceGpuUpdateResult::Success && mPendingToLoad->GetGpuState() != Resource::GPUDirtyState::Uploading)
 					mPendingToLoad->MakeGpuClean();
 
 			if (mCallback)
@@ -87,21 +89,21 @@ namespace Darius::ResourceManager
 	{
 		auto extension = path.extension().string();
 		auto extString = boost::algorithm::to_lower_copy(extension);
-		auto resourceTypes = Resource::GetResourceTypeByExtension(extString);
+		auto resourceType = Resource::GetResourceTypeByExtension(extString);
 
 		DVector<ResourceHandle> results;
 
-		for (auto type : resourceTypes)
+		if (!resourceType.has_value())
+			return results;
+
+		auto resourcesToCreateFromProvider = D_RESOURCE::Resource::CanConstructTypeFromPath(resourceType.value(), path);
+
+		for (auto resourceToCreate : resourcesToCreateFromProvider)
 		{
-			auto resourcesToCreateFromProvider = D_RESOURCE::Resource::CanConstructTypeFromPath(type, path);
+			resourceToCreate.Uuid = GenerateUuid();
+			auto handle = manager->CreateResource(resourceToCreate.Type, resourceToCreate.Uuid, path, STR2WSTR(resourceToCreate.Name), false, true);
 
-			for (auto resourceToCreate : resourcesToCreateFromProvider)
-			{
-				resourceToCreate.Uuid = GenerateUuid();
-				auto handle = manager->CreateResource(resourceToCreate.Type, resourceToCreate.Uuid, path, STR2WSTR(resourceToCreate.Name), false, true);
-				results.push_back(handle);
-
-			}
+			results.push_back(handle);
 
 		}
 
@@ -167,6 +169,8 @@ namespace Darius::ResourceManager
 			is.close();
 
 			auto name = resource->GetName();
+			if (name.empty())
+				name = L"__";;
 			jmeta["Properties"][WSTR2STR(name)] = resourceProps;
 
 			std::ofstream os(path);
@@ -179,7 +183,7 @@ namespace Darius::ResourceManager
 		return true;
 	}
 
-	ResourceHandle ResourceLoader::LoadResourceSync(Resource* resource)
+	ResourceHandle ResourceLoader::LoadResourceSync(Resource* resource, bool forceLoad)
 	{
 
 		if (resource->mDefault)
@@ -191,7 +195,12 @@ namespace Darius::ResourceManager
 			return *resource;
 		}
 
-		auto loaded = LoadResourceSync(resource->GetPath(), false, *resource);
+		if (!forceLoad && resource->IsLoaded())
+		{
+			return *resource;
+		}
+
+		auto loaded = LoadResourceSync(resource->GetPath(), false, forceLoad, *resource);
 
 		ResourceHandle resourceHandle = *resource;
 		for (auto const& loadedHandle : loaded)
@@ -209,6 +218,13 @@ namespace Darius::ResourceManager
 		if (resource == nullptr)
 		{
 			D_LOG_WARN("Trying to load a null resource");
+			return;
+		}
+
+		if (resource->IsLoaded())
+		{
+			if (onLoaded)
+				onLoaded(resource);
 			return;
 		}
 
@@ -263,7 +279,7 @@ namespace Darius::ResourceManager
 		return CreateResourceObject(meta, manager, path.parent_path());
 	}
 
-	DVector<ResourceHandle> ResourceLoader::LoadResourceSync(Path const& path, bool metaOnly, ResourceHandle specificHandle)
+	DVector<ResourceHandle> ResourceLoader::LoadResourceSync(Path const& path, bool metaOnly, bool forceLoad, ResourceHandle specificHandle, DVector<ResourceHandle> exclude)
 	{
 		if (!D_H_ENSURE_FILE(path))
 			return { };
@@ -289,36 +305,41 @@ namespace Darius::ResourceManager
 		for (auto handle : handles)
 		{
 			// Resource not supported
-			if (handle.Type != 0)
+			if (handle.Type == 0 || std::find(exclude.begin(), exclude.end(), handle) != exclude.end())
+				continue;
+			/*if (specific && handle != specificHandle)
+				continue;*/
+
+			// Fetch pointer to resource
+			auto resource = manager->GetRawResource(handle);
+
+			// Already loaded?
+			if (resource->IsLoaded() && !forceLoad)
+				continue;
+
+			resource->SetLocked(true);
+
+			if (!hasMeta)
+				// Save meta to file
+				SaveResource(resource, true);
+
+			bool dirtyDisk = false;
+
+			// Load if not loaded and should load, do it!
+			if (!metaOnly && !resource->IsLoaded())
 			{
-				if (specific && handle != specificHandle)
-					continue;
-
-				// Fetch pointer to resource
-				auto resource = manager->GetRawResource(handle);
-
-				resource->SetLocked(true);
-
-				if (!hasMeta)
-					// Save meta to file
-					SaveResource(resource, true);
-
-				bool dirtyDisk = false;
-
-				// Load if not loaded and should load, do it!
-				if (!metaOnly && !resource->IsLoaded())
-				{
-					auto resWName = resource->GetName();
-					auto resName = WSTR2STR(resWName);
-					resource->ReadResourceFromFile(properties.contains(resName) ? properties[resName] : Json(), dirtyDisk);
-					resource->mLoaded = true;
-				}
-
-				resource->SetLocked(false);
-
-				if (dirtyDisk)
-					resource->MakeDiskDirty();
+				auto resWName = resource->GetName();
+				auto resName = WSTR2STR(resWName);
+				if (resName.empty())
+					resName = "__";
+				resource->ReadResourceFromFile(properties.contains(resName) ? properties[resName] : Json(), dirtyDisk);
+				resource->mLoaded = true;
 			}
+
+			resource->SetLocked(false);
+
+			if (dirtyDisk)
+				resource->MakeDiskDirty();
 		}
 		if (specific)
 			return { specificHandle };
@@ -341,8 +362,13 @@ namespace Darius::ResourceManager
 	{
 		D_FILE::VisitEntriesInDirectory(path, false, [&](Path const& _path, bool isDir)
 			{
+				auto pathName = _path.filename().string();
+				if (pathName.starts_with(".") || pathName.starts_with("_"))
+					return;
+
 				if (isDir)
 				{
+
 					CheckDirectoryMeta(_path);
 					if (recursively)
 						VisitSubdirectory(_path, true, progress);

@@ -7,6 +7,7 @@ list(APPEND MATH_LIBS_INCLUDE
 	"Bounds/BoundingBox.hpp"
 	"Bounds/BoundingPlane.hpp"
 	"Bounds/BoundingSphere.hpp"
+	"Bounds/DynamicBVH.hpp"
 	"Color.hpp"
 	"Common.hpp"
 	"Functions.inl"

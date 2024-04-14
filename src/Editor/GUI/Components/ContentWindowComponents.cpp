@@ -82,40 +82,45 @@ namespace Darius::Editor::Gui::Components
 		{
 			// Showing child elements
 			ImGui::SetCursorPos(ImVec2((availWidth - size.x) / 2 + startCurPos.x + size.x, startCurPos.y + 5));
-			
+
 			if (ImGui::Button(ICON_FA_CHEVRON_DOWN))
 				ImGui::OpenPopup("ChildResourcesInContentWindowComponent");
 
 			if (ImGui::BeginPopup("ChildResourcesInContentWindowComponent"))
 			{
-				for (auto const& handle : data.ChildResources)
+				static ImGuiListClipper clipper;
+				clipper.Begin((int)data.ChildResources.size());
+				while (clipper.Step())
 				{
-					auto prev = D_RESOURCE::GetResourcePreview(handle);
-					auto name = WSTR2STR(prev.Name);
-					if (ImGui::Selectable((name + " (" + D_RESOURCE::Resource::GetResourceName(handle.Type) + ")").c_str()))
+					for (int idx = clipper.DisplayStart; idx < std::min((int)data.ChildResources.size(), clipper.DisplayEnd); idx++)
 					{
-						selected = true;
-						selectedResource = handle;
-					}
-					
-					// Drag and drop source
-					if (handle.IsValid() && ImGui::BeginDragDropSource(ImGuiDragDropFlags_AcceptBeforeDelivery))
-					{
-						D_RESOURCE::ResourceDragDropPayloadContent payload;
-						payload.Handle = handle;
-						payload.Type = std::to_string(handle.Type);
+						auto const& handle = data.ChildResources[idx];
+						auto prev = D_RESOURCE::GetResourcePreview(handle);
+						auto name = WSTR2STR(prev.Name);
+						if (ImGui::Selectable((name + " (" + D_RESOURCE::Resource::GetResourceName(handle.Type) + ")").c_str()))
+						{
+							selected = true;
+							selectedResource = handle;
+						}
 
-						ImGui::SetDragDropPayload(D_PAYLOAD_TYPE_RESOURCE, &payload, sizeof(D_RESOURCE::ResourceDragDropPayloadContent), ImGuiCond_Once);
-						ImGui::Text((name + " (Resource)").c_str());
-						ImGui::EndDragDropSource();
-					}
+						// Drag and drop source
+						if (handle.IsValid() && ImGui::BeginDragDropSource(ImGuiDragDropFlags_AcceptBeforeDelivery))
+						{
+							D_RESOURCE::ResourceDragDropPayloadContent payload;
+							payload.Handle = handle;
+							payload.Type = std::to_string(handle.Type);
 
+							ImGui::SetDragDropPayload(D_PAYLOAD_TYPE_RESOURCE, &payload, sizeof(D_RESOURCE::ResourceDragDropPayloadContent), ImGuiCond_Once);
+							ImGui::Text((name + " (Resource)").c_str());
+							ImGui::EndDragDropSource();
+						}
+
+					}
 				}
-
 				ImGui::EndPopup();
 			}
 		}
-		
+
 
 		ImGui::EndChildFrame();
 

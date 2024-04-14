@@ -5,6 +5,7 @@
 #include <Utils/Common.hpp>
 
 #include <PxActor.h>
+#include <geometry/PxGeometry.h>
 
 #include "PhysicsActor.generated.hpp"
 
@@ -15,58 +16,58 @@
 namespace Darius::Physics
 {
 	class PhysicsScene;
+	class ColliderComponent;
 
-	class DClass(Serialize) PhysicsActor
+	class PhysicsActor
 	{
-		GENERATED_BODY();
-
 	public:
 
-		enum class PhysicsActorType
-		{
-			Dynamic,
-			Static,
-			Kinematic
-		};
-
 	public:
-		PhysicsActor(D_SCENE::GameObject const* gameObject, PhysicsActorType type);
-		
-		INLINE PhysicsActor() :
-			mGameObject(nullptr),
-			mPxActor(nullptr),
-			mActorType(PhysicsActorType::Static) {}
+		PhysicsActor(D_SCENE::GameObject const* gameObject, PhysicsScene* scene);
 
 		~PhysicsActor();
 		
 		static PhysicsActor*			GetFromPxActor(physx::PxActor* actor);
 
-		INLINE bool						IsDynamic() const { return mActorType == PhysicsActorType::Dynamic; }
-		INLINE bool						IsKinematic() const { return mActorType == PhysicsActorType::Kinematic; }
-		INLINE bool						IsStatic() const { return mActorType == PhysicsActorType::Static; }
-		INLINE physx::PxRigidActor*		GetPxActor() const { return mPxActor; }
-		INLINE PhysicsActorType 		GetActorType() const { return mActorType; }
-		INLINE int						ColliderCount() const { return (int)mCollider.size() - (int)mToBeRemoved.size(); }
+		INLINE bool						IsValid() const { return mValid; }
+		INLINE bool						IsDynamic() const { return mDynamic; }
+		void							SetDynamic(bool dynamic);
 
+		INLINE physx::PxRigidActor*		GetPxActor() const { return mPxActor; }
+		INLINE physx::PxRigidDynamic*	GetDynamicActor() const { return IsDynamic() ? reinterpret_cast<physx::PxRigidDynamic*>(mPxActor) : nullptr; }
+		INLINE UINT						ColliderCount() const { return (UINT)mColliders.size(); }
+
+		physx::PxShape*					AddCollider(ColliderComponent const* refComponent);
+		void							RemoveCollider(ColliderComponent const* refComponent);
+		physx::PxShape*					GetShape(std::string const& compName);
+		
+		template<typename T>
+		physx::PxShape*					GetShape() { return GetShape(T::ClassName()); }
+
+		void							PreUpdate();
+		void							Update();
+
+		void							ForceRemoveActor();
+		bool							IsGeometryCompatible(physx::PxGeometryType::Enum type);
+
+		void							InitializeActor();
 	private:
 		friend class PhysicsScene;
 
-		void							InitializeActor();
 		void							UninitialzieActor();
-		void							RemoveCollider(void* shape);
-		static void						RemoveDeleted();
+		void							TransferShapes(physx::PxRigidActor* transfareShapes);
+		bool							RemoveActorIfNecessary();
 		
-		DField()
 		physx::PxRigidActor*			mPxActor;
 
-		DField()
-		const PhysicsActorType			mActorType;
-
-		bool							mDirty;
+		UINT							mDynamic : 1;
+		UINT							mValid : 1;
+		UINT							mDynamicDirty : 1;
 		
 		D_SCENE::GameObject const* const mGameObject;
-		D_CONTAINERS::DUnorderedMap<physx::PxShape*, std::string> mCollider;
-		D_CONTAINERS::DSet<physx::PxShape*> mToBeRemoved;
+		PhysicsScene* const				mScene;
+		D_CONTAINERS::DUnorderedMap<physx::PxShape*, std::string> mColliders;
+		D_CONTAINERS::DUnorderedMap<std::string, physx::PxShape*> mCollidersLookup;
 	};
 
 }

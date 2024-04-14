@@ -53,7 +53,7 @@ namespace Darius::Math::Bounds
 
         float newRadius = (distToCenter + Radius) * 0.5f;
 
-        Center = (DirectX::XMFLOAT3)(diff.Normalize() * newRadius + Center);
+        Center = (DirectX::XMFLOAT3)(diff.Normal() * newRadius + Center);
         Radius = newRadius;
     }
 

@@ -17,16 +17,18 @@ namespace Darius::Math
 		D_ECS_COMP::ComponentBase(),
 		mTransformMath(Vector3::Zero, Quaternion::Identity, Vector3::One),
 		mWorldMatrix(kZero),
-		mWorldDirty(true)
+		mWorldDirty(true),
+		mWorldChanged()
 	{
 		SetDirty();
 	}
 
-	TransformComponent::TransformComponent(D_CORE::Uuid uuid) :
+	TransformComponent::TransformComponent(D_CORE::Uuid const& uuid) :
 		D_ECS_COMP::ComponentBase(uuid),
 		mTransformMath(Vector3::Zero, Quaternion::Identity, Vector3::One),
 		mWorldMatrix(kZero),
-		mWorldDirty(true)
+		mWorldDirty(true),
+		mWorldChanged()
 	{
 		SetDirty();
 	}
@@ -49,6 +51,7 @@ namespace Darius::Math
 			mTransformMath = Transform(localWorld);
 
 		}
+		mWorldChanged(this, mTransformMath);
 	}
 
 	void TransformComponent::SetLocalWorld(Matrix4 const& mat)
@@ -59,6 +62,7 @@ namespace Darius::Math
 		mTransformMath = Transform(mat);
 		mWorldDirty = true;
 		SetDirty();
+		mWorldChanged(this, mTransformMath);
 	}
 
 #ifdef _D_EDITOR

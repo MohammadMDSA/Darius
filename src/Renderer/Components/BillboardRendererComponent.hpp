@@ -25,6 +25,7 @@ namespace Darius::Renderer
 
 		virtual void						Update(float dt) override;
 		virtual void						Awake() override;
+		virtual void						OnDestroy() override;
 
 #ifdef _D_EDITOR
 		virtual bool						DrawDetails(float params[]) override;
@@ -34,16 +35,7 @@ namespace Darius::Renderer
 		virtual bool						AddRenderItems(std::function<void(D_RENDERER::RenderItem const&)> appendFunction, RenderItemContext const& riContext) override;
 
 		INLINE virtual D3D12_GPU_VIRTUAL_ADDRESS GetConstantsAddress() const override { return mMeshConstantsGPU.GetGpuVirtualAddress(); }
-		INLINE virtual D_MATH_BOUNDS::BoundingSphere const& GetBounds() override
-		{
-			if (mBoundDirty)
-			{
-				UpdateBound();
-				mBoundDirty = false;
-			}
-			return mBoundingSphere;
-		}
-
+		virtual D_MATH_BOUNDS::Aabb			GetAabb() const override;
 		void								SetWidth(float const& value);
 		void								SetHeight(float const& value);
 
@@ -59,20 +51,14 @@ namespace Darius::Renderer
 
 	private:
 		
-		INLINE void							UpdateBound() { mBoundingSphere = D_MATH_BOUNDS::BoundingSphere(D_MATH::Vector3::Zero, D_MATH::Length(D_MATH::Vector3::Up * mWidth + D_MATH::Vector3::Forward * mHeight)); }
-
 		DField(Serialize, Get[inline])
 		float								mWidth;
 
 		DField(Serialize, Get[inline])
 		float								mHeight;
 
-		bool								mBoundDirty;
-		D_MATH_BOUNDS::BoundingSphere		mBoundingSphere;
-
-
 		// Gpu buffers
-		D_GRAPHICS_BUFFERS::UploadBuffer		mMeshConstantsCPU;
+		D_GRAPHICS_BUFFERS::UploadBuffer	mMeshConstantsCPU;
 		D_GRAPHICS_BUFFERS::ByteAddressBuffer	mMeshConstantsGPU;
 
 

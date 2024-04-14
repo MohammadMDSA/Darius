@@ -1,7 +1,6 @@
 #pragma once
 
 #include "EntityComponentSystem/Entity.hpp"
-#include "EntityComponentSystem/CompRef.hpp"
 
 #include <Core/Containers/Map.hpp>
 #include <Core/RefCounting/Ref.hpp>
@@ -36,6 +35,12 @@ namespace Darius::Scene::ECS::Components
 namespace Darius::Math
 {
 	class TransformComponent;
+}
+
+namespace Darius::Core::Memory
+{
+	template<class T, bool ThreadSafe>
+	class PagedAllocator;
 }
 
 namespace Darius::Scene
@@ -98,6 +103,8 @@ namespace Darius::Scene
 			return mEntity.has<T>();
 		}
 
+		bool								HasComponent(std::string const& compName) const;
+
 		template<class T>
 		INLINE T*							GetComponent() const
 		{
@@ -107,7 +114,7 @@ namespace Darius::Scene
 			return const_cast<T*>(mEntity.get<T>());
 		}
 
-		ECS::Components::ComponentBase* GetComponent(std::string const& compName) const;
+		ECS::Components::ComponentBase*		GetComponent(std::string const& compName) const;
 
 		template<class T>
 		T* AddComponent()
@@ -116,8 +123,11 @@ namespace Darius::Scene
 			using conv = std::is_convertible<T*, Darius::Scene::ECS::Components::ComponentBase*>;
 			D_STATIC_ASSERT(conv::value);
 
+			PreEntityEdit();
 			mEntity.add<T>();
-			auto ref = mEntity.get_ref<T>().get();
+			PostEntityEdit();
+			auto ref = const_cast<T*>(mEntity.get<T>());
+			D_VERIFY(ref);
 			AddComponentRoutine(ref);
 			return ref;
 		}
@@ -129,19 +139,15 @@ namespace Darius::Scene
 			using conv = std::is_convertible<T*, Darius::Scene::ECS::Components::ComponentBase*>;
 			D_STATIC_ASSERT(conv::value);
 
+			PreEntityEdit();
 			mEntity.add<T>(value);
+			PostEntityEdit();
 			auto ref = mEntity.get_ref<T>().get();
 			AddComponentRoutine(ref);
 			return ref;
 		}
 
 		D_CONTAINERS::DVector<Darius::Scene::ECS::Components::ComponentBase*> GetComponents(bool sorted = false) const;
-
-		template<class T>
-		INLINE D_ECS::CompRef<T>			GetComponentRef() const
-		{
-			return D_ECS::CompRef<T>(mEntity);
-		}
 
 		Darius::Scene::ECS::Components::ComponentBase* AddComponent(std::string const& componentName);
 
@@ -155,9 +161,9 @@ namespace Darius::Scene
 			if (std::is_same<T, Darius::Math::TransformComponent>::value)
 				return;
 
-			mEntity.remove<T>();
-
 			RemoveComponentRoutine(mEntity.get_ref<T>());
+
+			mEntity.remove<T>();
 		}
 
 		void								RemoveComponent(Darius::Scene::ECS::Components::ComponentBase*);
@@ -165,6 +171,15 @@ namespace Darius::Scene
 	public:
 		INLINE D_ECS::Entity				GetEntity() const { return mEntity; }
 		INLINE bool							IsInScene() const { return mInScene; }
+
+		INLINE std::string const&			GetName() const { return mName; }
+		INLINE D_CORE::Uuid const&			GetPrefab() const { return mPrefab; }
+		INLINE Type							GetType() const { return mType; }
+		INLINE D_CORE::Uuid const&			GetUuid() const { return mUuid; }
+		INLINE bool							IsDeleted() const { return mDeleted; }
+		INLINE bool							IsStarted() const { return mStarted; }
+		INLINE bool							IsAwake() const { return mAwake; }
+		INLINE GameObject*					GetParent() const { return mParent; }
 
 #ifdef _D_EDITOR
 		bool								DrawDetails(float params[]);
@@ -197,11 +212,15 @@ namespace Darius::Scene
 	private:
 		friend class D_SCENE::SceneManager;
 		friend class Darius::Scene::ECS::Components::ComponentBase;
+		friend class Darius::Core::Memory::PagedAllocator<GameObject, true>;
 
 		template<class T>
 		friend class D_CORE::Ref;
 
-		GameObject(D_CORE::Uuid uuid, D_ECS::Entity entity, bool inScene = true);
+		GameObject(D_CORE::Uuid const& uuid, D_ECS::Entity entity, bool inScene = true);
+
+		void								PreEntityEdit();
+		void								PostEntityEdit();
 
 		void								AddComponentRoutine(Darius::Scene::ECS::Components::ComponentBase*);
 		void								RemoveComponentRoutine(Darius::Scene::ECS::Components::ComponentBase*);
@@ -213,28 +232,28 @@ namespace Darius::Scene
 		DField(Serialize)
 		bool					mActive;
 
-		DField(Get[inline])
+		DField()
 		bool					mStarted;
 
-		DField(Get[inline])
+		DField()
 		bool					mAwake;
 
-		DField(Get[inline])
+		DField()
 		bool					mDeleted;
 
-		DField(Get[inline])
+		DField()
 		GameObject* mParent;
 
-		DField(Get[const, &, inline], Serialize)
+		DField(Serialize)
 		const D_CORE::Uuid		mUuid;
 
-		DField(Get[inline], Set[inline], Serialize)
+		DField(Set[inline], Serialize)
 		Type					mType;
 
-		DField(Get[inline, const, &], Set[inline], Serialize)
+		DField(Set[inline], Serialize)
 		std::string				mName;
 
-		DField(Get[inline], Serialize)
+		DField(Serialize)
 		D_CORE::Uuid			mPrefab;
 
 		DField()
@@ -242,6 +261,9 @@ namespace Darius::Scene
 
 		DField()
 		const bool				mInScene;
+
+		D_CONTAINERS::DVector<std::string> mToRemove;
+		D_CONTAINERS::DVector<std::string> mToAdd;
 
 		// Comp name and display name
 #if _D_EDITOR

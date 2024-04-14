@@ -8,6 +8,18 @@
 
 namespace Darius::Math::Bounds
 {
+    AxisAlignedBox AxisAlignedBox::CreateFromSphere(BoundingSphere const& sp)
+    {
+        Vector3 center = sp.GetCenter();
+        Vector3 extents = Vector3(sp.GetRadius());
+        return AxisAlignedBox(center - extents, center + extents);
+    }
+
+    AxisAlignedBox AxisAlignedBox::CreateFromCenterAndExtents(Vector3 const& center, Vector3 const& extents)
+    {
+        return AxisAlignedBox(center - extents, center + extents);
+    }
+
     ContainmentType AxisAlignedBox::Contains(Vector3 const& point) const
     {
         return (ContainmentType)DirectX::BoundingBox::Contains(point);

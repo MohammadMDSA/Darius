@@ -12,7 +12,7 @@ namespace Darius::ResourceManager
 {
 
 #if _D_EDITOR
-	D_CORE::Signal<void(D_FILE::Path const&, Darius::ResourceManager::ResourceHandle const&)> Resource::RequestPathChange;
+	D_CORE::Signal<void(D_FILE::Path const&, Darius::ResourceManager::ResourceHandle const&, bool selected)> Resource::RequestPathChange;
 #endif // _D_EDITOR
 
 	DUnorderedMap<ResourceType, std::string> Resource::ResourceTypeMap =
@@ -30,7 +30,7 @@ namespace Darius::ResourceManager
 		{ 0, nullptr }
 	};
 
-	DUnorderedMap<std::string, D_CONTAINERS::DSet<ResourceType>> Resource::ResourceExtensionMap = {};
+	DUnorderedMap<std::string, ResourceType> Resource::ResourceExtensionMap = {};
 
 	DUnorderedMap<ResourceType, std::function<DVector<ResourceDataInFile>(ResourceType type, Path const&)>> Resource::ConstructValidationMap = {};
 
@@ -58,7 +58,7 @@ namespace Darius::ResourceManager
 		}
 
 		// Is gpu already up to date
-		if (!IsSelfDirtyGPU())
+		if (mDirtyGPU.load() != GPUDirtyState::Dirty)
 			return ResourceGpuUpdateResult::AlreadyClean;
 
 		SetLocked(true);
@@ -93,8 +93,8 @@ namespace Darius::ResourceManager
 
 	bool Resource::Release()
 	{
-		Unload();
-		mLoaded.store(false);
+		//Unload();
+		//mLoaded.store(false);
 		return true;
 	}
 }

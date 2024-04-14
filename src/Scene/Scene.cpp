@@ -11,6 +11,7 @@
 #include <Core/Containers/Set.hpp>
 #include <Core/Filesystem/FileUtils.hpp>
 #include <Core/Memory/Memory.hpp>
+#include <Core/Memory/Allocators/PagedAllocator.hpp>
 #include <Core/Serialization/Json.hpp>
 #include <Core/Serialization/TypeSerializer.hpp>
 #include <Core/Uuid.hpp>
@@ -55,7 +56,7 @@ namespace Darius::Scene
 	D_ECS::ECSRegistry SceneManager::World = D_ECS::ECSRegistry();
 
 	D_CORE::Signal<void()> SceneManager::OnSceneCleared;
-
+	D_MEMORY::PagedAllocator<GameObject, true>							GoAllocator;
 
 	void SceneManager::Initialize()
 	{
@@ -87,6 +88,7 @@ namespace Darius::Scene
 	{
 		D_ASSERT(GOs);
 
+		GoAllocator.Reset();
 		GOs.reset();
 		UuidMap.reset();
 	}
@@ -155,7 +157,7 @@ namespace Darius::Scene
 		D_LOG_DEBUG("Created entity: " << entity.id());
 
 		// TODO: Better allocation
-		auto go = new GameObject(uuid, entity, addToScene);
+		auto go = GoAllocator.Alloc(std::move(uuid), std::move(entity), std::move(addToScene));
 
 		if (addToScene)
 			GOs->insert(go);
@@ -236,7 +238,7 @@ namespace Darius::Scene
 	void SceneManager::RemoveDeletedPointers()
 	{
 		for (GameObject* go : DeletedObjects)
-			delete go;
+			GoAllocator.Free(go);
 
 		DeletedObjects.clear();
 	}
@@ -393,6 +395,14 @@ namespace Darius::Scene
 		StartScene();
 	}
 
+	void SceneManager::SetDeferEnable(bool value)
+	{
+		if (value)
+			World.defer_resume();
+		else
+			World.defer_suspend();
+	}
+
 	void SceneManager::LoadGameObject(Json const& json, GameObject** go, bool addToScene)
 	{
 
@@ -483,7 +493,10 @@ namespace Darius::Scene
 		DUnorderedMap<Uuid, Uuid, UuidHasher> newReferenceMap;
 #define NEW_UUID(gameObject) newReferenceMap.at(gameObject->GetUuid())
 
-		Serialization::SerializationContext serializationContext = { true, maintainContext, newReferenceMap };
+		Serialization::SerializationContext serializationContext = {
+			.Rereference = true,
+			.MaintainExternalReferences = maintainContext,
+			.ReferenceMap = newReferenceMap };
 
 		toBeSerialized.push_back(go);
 		go->VisitDescendants([&toBeSerialized](auto go)

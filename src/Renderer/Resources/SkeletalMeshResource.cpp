@@ -1,9 +1,8 @@
 #include "Renderer/pch.hpp"
 #include "SkeletalMeshResource.hpp"
 
-#include "Renderer/Geometry/ModelLoader/FbxLoader.hpp"
-
 #include <Scene/EntityComponentSystem/Components/TransformComponent.hpp>
+#include <Job/Job.hpp>
 
 #ifdef _D_EDITOR
 #include <imgui.h>
@@ -83,14 +82,28 @@ namespace Darius::Renderer
 
 	}
 
-	bool SkeletalMeshResource::UploadToGpu()
+	void SkeletalMeshResource::Create(D_RENDERER_GEOMETRY::MultiPartMeshData<VertexType> const& data, D_CONTAINERS::DList<D_RENDERER_GEOMETRY::Mesh::SkeletonJoint> const& skeleton)
 	{
-		MultiPartMeshData<VertexType> meshData;
 
-		D_RENDERER_GEOMETRY_LOADER_FBX::ReadMeshByName(GetPath(), GetName(), IsInverted(), meshData, mSkeleton);
+		D_CONTAINERS::DUnorderedMap<Mesh::SkeletonJoint const*, Mesh::SkeletonJoint*> equivalentMap;
 
-		CreateInternal(meshData);
-		return true;
+		mSkeleton.clear();
+		for (auto const& refJoint : skeleton)
+		{
+			Mesh::SkeletonJoint joint = refJoint;
+			mSkeleton.push_back(joint);
+			equivalentMap[&refJoint] = &mSkeleton.back();
+		}
+		for (auto& joint : mSkeleton)
+		{
+			for (int i = 0; i < (int)joint.Children.size(); i++)
+			{
+				joint.Children[i] = equivalentMap[joint.Children[i]];
+			}
+		}
+
+		CreateInternal(data);
+		SetMaterialListSize((UINT)data.SubMeshes.size());
 	}
 
 #ifdef _D_EDITOR

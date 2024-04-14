@@ -16,7 +16,7 @@ namespace Demo
 		D_ECS_COMP::BehaviourComponent()
 	{ }
 
-	MovementBehaviour::MovementBehaviour(D_CORE::Uuid uuid) :
+	MovementBehaviour::MovementBehaviour(D_CORE::Uuid const& uuid) :
 		D_ECS_COMP::BehaviourComponent(uuid)
 	{ }
 

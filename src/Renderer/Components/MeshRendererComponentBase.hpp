@@ -35,8 +35,6 @@ namespace Darius::Renderer
 		
 		INLINE virtual UINT						GetNumberOfSubmeshes() const { return 0; }
 
-		INLINE virtual D_MATH_BOUNDS::BoundingSphere const& GetBounds() override { return (D_MATH_BOUNDS::BoundingSphere&)*this; }
-
 		INLINE D3D12_GPU_VIRTUAL_ADDRESS		GetConstantsAddress() const override { return mMeshConstantsGPU.GetGpuVirtualAddress(); }
 		INLINE virtual bool						CanRender() const override { return Super::CanRender(); }
 		INLINE virtual bool						IsDirty() const override { return D_ECS_COMP::ComponentBase::IsDirty() || GetTransform()->IsDirty(); }

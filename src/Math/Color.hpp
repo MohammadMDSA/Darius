@@ -46,6 +46,9 @@ namespace Darius::Math
 		float GetB() const { return DirectX::XMVectorGetZ(m_value); }
 		float GetA() const { return DirectX::XMVectorGetW(m_value); }
 
+		Vector3 Vector3() const { return D_MATH::Vector3(m_value.v); }
+		Vector4 Vector4() const { return D_MATH::Vector4(m_value.v); }
+
 		bool operator==(const Color & rhs) const { return DirectX::XMVector4Equal(m_value, rhs.m_value); }
 		bool operator!=(const Color & rhs) const { return !DirectX::XMVector4Equal(m_value, rhs.m_value); }
 

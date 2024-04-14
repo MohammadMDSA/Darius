@@ -20,7 +20,7 @@ namespace Darius::Math
 	{
 	public:
 		Ray() : mPosition(kZero), mDirection(Vector3::Forward) {}
-		Ray(Vector3 const& pos, Vector3 const& dir) : mPosition(pos), mDirection(dir.Normalize()) {}
+		Ray(Vector3 const& pos, Vector3 const& dir) : mPosition(pos), mDirection(dir.Normal()) {}
 
 		Ray(Ray const&) = default;
 		Ray& operator=(Ray const&) = default;

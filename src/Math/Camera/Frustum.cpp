@@ -52,22 +52,22 @@ namespace Darius::Math::Camera
 	void Frustum::ConstructOrthographicFrustum(float Left, float Right, float Top, float Bottom, float Front, float Back)
 	{
 		// Define the frustum corners
-		m_FrustumCorners[kNearLowerLeft] = Vector3(Left, Bottom, -Front);	// Near lower left
-		m_FrustumCorners[kNearUpperLeft] = Vector3(Left, Top, -Front);	// Near upper left
-		m_FrustumCorners[kNearLowerRight] = Vector3(Right, Bottom, -Front);	// Near lower right
-		m_FrustumCorners[kNearUpperRight] = Vector3(Right, Top, -Front);	// Near upper right
-		m_FrustumCorners[kFarLowerLeft] = Vector3(Left, Bottom, -Back);	// Far lower left
-		m_FrustumCorners[kFarUpperLeft] = Vector3(Left, Top, -Back);	// Far upper left
-		m_FrustumCorners[kFarLowerRight] = Vector3(Right, Bottom, -Back);	// Far lower right
-		m_FrustumCorners[kFarUpperRight] = Vector3(Right, Top, -Back);	// Far upper right
+		m_FrustumCorners[kNearLowerLeft] = Vector3(Left, Bottom, Back);	// Near lower left
+		m_FrustumCorners[kNearUpperLeft] = Vector3(Left, Top, Back);	// Near upper left
+		m_FrustumCorners[kNearLowerRight] = Vector3(Right, Bottom, Back);	// Near lower right
+		m_FrustumCorners[kNearUpperRight] = Vector3(Right, Top, Back);	// Near upper right
+		m_FrustumCorners[kFarLowerLeft] = Vector3(Left, Bottom, Front);	// Far lower left
+		m_FrustumCorners[kFarUpperLeft] = Vector3(Left, Top, Front);	// Far upper left
+		m_FrustumCorners[kFarLowerRight] = Vector3(Right, Bottom, Front);	// Far lower right
+		m_FrustumCorners[kFarUpperRight] = Vector3(Right, Top, Front);	// Far upper right
 
 		// Define the bounding planes
-		m_FrustumPlanes[kNearPlane] = D_MATH_BOUNDS::BoundingPlane(0.0f, 0.0f, -1.0f, -Front);
-		m_FrustumPlanes[kFarPlane] = D_MATH_BOUNDS::BoundingPlane(0.0f, 0.0f, 1.0f, Back);
-		m_FrustumPlanes[kLeftPlane] = D_MATH_BOUNDS::BoundingPlane(1.0f, 0.0f, 0.0f, -Left);
-		m_FrustumPlanes[kRightPlane] = D_MATH_BOUNDS::BoundingPlane(-1.0f, 0.0f, 0.0f, Right);
-		m_FrustumPlanes[kTopPlane] = D_MATH_BOUNDS::BoundingPlane(0.0f, -1.0f, 0.0f, Bottom);
-		m_FrustumPlanes[kBottomPlane] = D_MATH_BOUNDS::BoundingPlane(0.0f, 1.0f, 0.0f, -Top);
+		m_FrustumPlanes[kNearPlane] = D_MATH_BOUNDS::BoundingPlane(Vector3::Forward, Back);
+		m_FrustumPlanes[kFarPlane] = D_MATH_BOUNDS::BoundingPlane(Vector3::Backward, -Front);
+		m_FrustumPlanes[kLeftPlane] = D_MATH_BOUNDS::BoundingPlane(Vector3::Right, -Left);
+		m_FrustumPlanes[kRightPlane] = D_MATH_BOUNDS::BoundingPlane(Vector3::Left, Right);
+		m_FrustumPlanes[kTopPlane] = D_MATH_BOUNDS::BoundingPlane(Vector3::Down, -Bottom);
+		m_FrustumPlanes[kBottomPlane] = D_MATH_BOUNDS::BoundingPlane(Vector3::Up, Top);
 	}
 
 

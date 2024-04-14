@@ -61,7 +61,7 @@ namespace Darius::Renderer::Rasterization::Light
 
 		void									GetShadowTextureArraysHandles(D3D12_CPU_DESCRIPTOR_HANDLE& directional, D3D12_CPU_DESCRIPTOR_HANDLE& point, D3D12_CPU_DESCRIPTOR_HANDLE& spot) const;
 
-		void									RenderShadows(D_CONTAINERS::DVector<RenderItem> const& shadowRenderItems, D_GRAPHICS::GraphicsContext& shadowContext);
+		void									RenderShadows(D_GRAPHICS::GraphicsContext& shadowContext);
 
 		INLINE LightConfigBuffer const&			GetLightConfigBufferData() const { return mLightConfigBufferData; }
 
@@ -90,9 +90,9 @@ namespace Darius::Renderer::Rasterization::Light
 		void CalculatePointShadowCamera(D_RENDERER_LIGHT::LightData& light, int pointLightIndex);
 
 		// Render Light Shadow Funcs
-		void RenderDirectionalShadow(Darius::Renderer::Rasterization::MeshSorter& sorter, D_GRAPHICS::GraphicsContext& context, D_RENDERER_LIGHT::LightData const& light, int directionalIndex);
-		void RenderSpotShadow(Darius::Renderer::Rasterization::MeshSorter& sorter, D_GRAPHICS::GraphicsContext& context, D_RENDERER_LIGHT::LightData const& light, int spotLightIndex);
-		void RenderPointShadow(Darius::Renderer::Rasterization::MeshSorter& sorter, D_GRAPHICS::GraphicsContext& context, D_RENDERER_LIGHT::LightData const& light, int pointLightIndex);
+		void RenderDirectionalShadow(D_GRAPHICS::GraphicsContext& context, D_RENDERER_LIGHT::LightData const& light, int directionalIndex, int cascadeIndex);
+		void RenderSpotShadow(D_GRAPHICS::GraphicsContext& context, D_RENDERER_LIGHT::LightData const& light, int spotLightIndex);
+		void RenderPointShadow(D_GRAPHICS::GraphicsContext& context, D_RENDERER_LIGHT::LightData const& light, int pointLightIndex);
 
 		// Config
 		uint32_t							mDirectionalShadowBufferWidth;
@@ -121,6 +121,8 @@ namespace Darius::Renderer::Rasterization::Light
 
 		D_CONTAINERS::DVector<float>						mCascades;
 		LightConfigBuffer									mLightConfigBufferData;
+
+		D_CONTAINERS::DVector<std::function<void()>>		mShadowRenderJobs;
 	};
 
 

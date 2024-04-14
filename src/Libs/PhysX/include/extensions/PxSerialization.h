@@ -1,4 +1,3 @@
-//
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions
 // are met:
@@ -23,10 +22,9 @@
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
-// Copyright (c) 2008-2021 NVIDIA Corporation. All rights reserved.
+// Copyright (c) 2008-2023 NVIDIA Corporation. All rights reserved.
 // Copyright (c) 2004-2008 AGEIA Technologies, Inc. All rights reserved.
 // Copyright (c) 2001-2004 NovodeX AG. All rights reserved.  
-
 
 #ifndef PX_SERIALIZATION_H
 #define PX_SERIALIZATION_H
@@ -46,7 +44,7 @@
 PX_BINARY_SERIAL_VERSION is used to version the PhysX binary data and meta data. The global unique identifier of the PhysX SDK needs to match 
 the one in the data and meta data, otherwise they are considered incompatible. A 32 character wide GUID can be generated with https://www.guidgenerator.com/ for example. 
 */
-#define PX_BINARY_SERIAL_VERSION "77E92B17A4084033A0FDB51332D5A6BB"
+#define PX_BINARY_SERIAL_VERSION "F57A6B4570DF49E38116AB1E0284A98B"
 
 
 #if !PX_DOXYGEN
@@ -67,11 +65,14 @@ public:
 	/**
 	\brief Additional PxScene and PxPhysics options stored in XML serialized data.
 
+	\deprecated Xml serialization is deprecated. An alternative serialization system is provided through USD Physics.
+
 	The PxXmlMiscParameter parameter can be serialized and deserialized along with PxCollection instances (XML only).
 	This is for application use only and has no impact on how objects are serialized or deserialized. 
+
 	@see PxSerialization::createCollectionFromXml, PxSerialization::serializeCollectionToXml
 	*/
-	struct PxXmlMiscParameter
+	struct PX_DEPRECATED PxXmlMiscParameter
 	{
 		/**
 		\brief Up vector for the scene reference coordinate system.
@@ -156,9 +157,11 @@ public:
 			
 	/**
 	\brief Creates a PxCollection from XML data.
+	
+	\deprecated Xml serialization is deprecated. An alternative serialization system is provided through USD Physics.
 
 	\param inputData The input data containing the XML collection.
-	\param cooking PxCooking instance used for sdk object instantiation.
+	\param params Cooking parameters used for sdk object instantiation.
 	\param sr PxSerializationRegistry instance with information about registered classes.
 	\param externalRefs PxCollection used to resolve external references.
 	\param stringTable PxStringTable instance used for storing object names.
@@ -167,7 +170,7 @@ public:
 
 	@see PxCollection, PxSerializationRegistry, PxInputData, PxStringTable, PxCooking, PxSerialization::PxXmlMiscParameter
 	*/
-	static	PxCollection*	createCollectionFromXml(PxInputData& inputData, PxCooking& cooking, PxSerializationRegistry& sr, const PxCollection* externalRefs = NULL, PxStringTable* stringTable = NULL, PxXmlMiscParameter* outArgs = NULL);
+	PX_DEPRECATED static PxCollection* createCollectionFromXml(PxInputData& inputData, const PxCookingParams& params, PxSerializationRegistry& sr, const PxCollection* externalRefs = NULL, PxStringTable* stringTable = NULL, PxXmlMiscParameter* outArgs = NULL);
 	
 	/**
 	\brief Deserializes a PxCollection from memory.
@@ -191,6 +194,8 @@ public:
 	/**
 	\brief Serializes a physics collection to an XML output stream.
 
+	\deprecated Xml serialization is deprecated. An alternative serialization system is provided through USD Physics.
+
 	The collection to be serialized needs to be complete @see PxSerialization.complete.
 	Optionally the XML may contain meshes in binary cooked format for fast loading. It does this when providing a valid non-null PxCooking pointer.
 
@@ -199,14 +204,14 @@ public:
 	\param outputStream Stream to save collection to.
 	\param collection PxCollection instance which is serialized. The collection needs to be complete with respect to the externalRefs collection.
 	\param sr PxSerializationRegistry instance with information about registered classes.
-	\param cooking Optional pointer to cooking instance. If provided, cooked mesh data is cached for fast loading.
+	\param params Optional pointer to cooking params. If provided, cooked mesh data is cached for fast loading.
 	\param externalRefs Collection containing external references.
 	\param inArgs Optional parameters of physics and scene serialized to XML along with the collection. See #PxSerialization::PxXmlMiscParameter
 	\return true if the collection is successfully serialized.
 
 	@see PxCollection, PxOutputStream, PxSerializationRegistry, PxCooking, PxSerialization::PxXmlMiscParameter
 	*/
-	static	bool			serializeCollectionToXml(PxOutputStream& outputStream, PxCollection& collection,  PxSerializationRegistry& sr, PxCooking* cooking = NULL, const PxCollection* externalRefs = NULL, PxXmlMiscParameter* inArgs = NULL);
+	PX_DEPRECATED static bool serializeCollectionToXml(PxOutputStream& outputStream, PxCollection& collection,  PxSerializationRegistry& sr, const PxCookingParams* params = NULL, const PxCollection* externalRefs = NULL, PxXmlMiscParameter* inArgs = NULL);
 	
 	/**
 	\brief Serializes a collection to a binary stream.
@@ -235,6 +240,8 @@ public:
 	/**
 	\brief Serializes a collection to a binary stream.
 
+	\deprecated Deterministic binary serialization is deprecated. PxSerialization::serializeCollectionToBinary might become deterministic in the future.
+
 	Convenience function that serializes a collection to a stream while rebasing memory addresses and handles
 	to achieve a deterministic output, independent of the PhysX runtime environment the objects have been created in. 
 
@@ -245,10 +252,12 @@ public:
 
 	@see PxSerialization::serializeCollectionToBinary, PxSerialization::dumpBinaryMetaData, PxBinaryConverter
 	*/
-	static bool				serializeCollectionToBinaryDeterministic(PxOutputStream& outputStream, PxCollection& collection, PxSerializationRegistry& sr, const PxCollection* externalRefs = NULL, bool exportNames = false);
+	PX_DEPRECATED static bool serializeCollectionToBinaryDeterministic(PxOutputStream& outputStream, PxCollection& collection, PxSerializationRegistry& sr, const PxCollection* externalRefs = NULL, bool exportNames = false);
 
 	/** 
 	\brief Dumps the binary meta-data to a stream.
+
+	\deprecated Binary conversion and binary meta data are deprecated.
 
 	A meta-data file contains information about the SDK's internal classes and about custom user types ready 
 	for serialization. Such a file is needed to convert binary-serialized data from one platform to another (re-targeting). 
@@ -261,14 +270,16 @@ public:
 	
 	@see PxOutputStream, PxSerializationRegistry
 	*/
-	static	void			dumpBinaryMetaData(PxOutputStream& outputStream, PxSerializationRegistry& sr);
+	PX_DEPRECATED static void dumpBinaryMetaData(PxOutputStream& outputStream, PxSerializationRegistry& sr);
 
 	/**
 	\brief Creates binary converter for re-targeting binary-serialized data.
 	
+	\deprecated Binary conversion and binary meta data are deprecated.
+
 	\return Binary converter instance.
 	*/
-	static PxBinaryConverter* createBinaryConverter();
+	PX_DEPRECATED static PxBinaryConverter* createBinaryConverter();
 
 	/**
 	\brief Creates an application managed registry for serialization.

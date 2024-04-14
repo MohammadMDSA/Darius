@@ -3,7 +3,6 @@
 
 #include "MaterialResource.hpp"
 #include "SkeletalMeshResource.hpp"
-#include "Renderer/Geometry/ModelLoader/FbxLoader.hpp"
 #include "Renderer/RendererManager.hpp"
 
 #include <Core/Serialization/TypeSerializer.hpp>
@@ -11,6 +10,7 @@
 #include <Core/Containers/Set.hpp>
 #include <Graphics/GraphicsDeviceManager.hpp>
 #include <Graphics/GraphicsCore.hpp>
+#include <Job/Job.hpp>
 #include <ResourceManager/ResourceManager.hpp>
 #include <Scene/EntityComponentSystem/Components/TransformComponent.hpp>
 
@@ -29,15 +29,11 @@ using namespace D_RESOURCE;
 
 namespace Darius::Renderer
 {
-
-	DVector<ResourceDataInFile> MeshResource::CanConstructFrom(ResourceType type, Path const& path)
-	{
-		return D_RENDERER_GEOMETRY_LOADER_FBX::GetMeshResourcesDataFromFile(type, path);
-	}
-
 	void MeshResource::Create(D_RENDERER_GEOMETRY::MultiPartMeshData<VertexType> const& data)
 	{
 		CreateInternal(data);
+
+		SetMaterialListSize((UINT)data.SubMeshes.size());
 
 		MakeDiskDirty();
 		MakeGpuDirty();
@@ -45,20 +41,9 @@ namespace Darius::Renderer
 		SignalChange();
 	}
 
-	bool MeshResource::UploadToGpu()
+	void MeshResource::SetMaterialListSize(UINT size)
 	{
-		if (IsDefault())
-			return true;
-
-		MultiPartMeshData<VertexType> meshData;
-
-		D_RENDERER_GEOMETRY_LOADER_FBX::ReadMeshByName(GetPath(), GetName(), IsInverted(), meshData);
-
-		CreateInternal(meshData);
-
-		mMaterials.resize(meshData.SubMeshes.size());
-
-		return true;
+		mMaterials.resize(D_MATH::Max(size, 1u));
 	}
 
 	void MeshResource::WriteResourceToFile(D_SERIALIZATION::Json& json) const
@@ -87,21 +72,23 @@ namespace Darius::Renderer
 		SignalChange();
 	}
 
+	void MeshResource::SetNormalsReordering(NormalsReordering order)
+	{
+		if (mNormalsReordering == order)
+			return;
+
+		mNormalsReordering = order;
+
+		MakeGpuDirty();
+		MakeDiskDirty();
+
+		SignalChange();
+	}
+
 	bool MeshResource::DrawDetails(float params[])
 	{
 		bool valueChanged = false;
-		D_H_DETAILS_DRAW_BEGIN_TABLE()
-
-			// Inverted
-		{
-			D_H_DETAILS_DRAW_PROPERTY("Inverted");
-			bool value = IsInverted();
-			if (ImGui::Checkbox("##Inverted", &value))
-			{
-				SetInverted(value);
-				valueChanged = true;
-			}
-		}
+		D_H_DETAILS_DRAW_BEGIN_TABLE();
 
 		// Materials
 		{
@@ -116,6 +103,28 @@ namespace Darius::Renderer
 				D_H_DETAILS_DRAW_PROPERTY(name.c_str());
 				D_H_RESOURCE_SELECTION_DRAW(MaterialResource, mMaterials[i], "Select Material", setter, std::to_string(i));
 			}
+		}
+
+		ImGui::Spacing();
+		ImGui::Text("Import Settings");
+		ImGui::Separator();
+		
+		// Inverted
+		{
+			D_H_DETAILS_DRAW_PROPERTY("Inverted");
+			bool value = IsInverted();
+			if (ImGui::Checkbox("##Inverted", &value))
+			{
+				SetInverted(value);
+				valueChanged = true;
+			}
+		}
+
+		// Normal Reordering
+		{
+			D_H_DETAILS_DRAW_PROPERTY("Normals");
+			auto value = GetNormalsReordering();
+			D_H_DETAILS_DRAW_ENUM_SELECTION_SIMPLE(NormalsReordering, NormalsReordering);
 		}
 
 		D_H_DETAILS_DRAW_END_TABLE();

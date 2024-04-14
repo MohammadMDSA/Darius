@@ -18,7 +18,6 @@ list(APPEND RENDERER_LIBS_INCLUDE
 	"Geometry/GeometryGenerator.hpp"
 	"Geometry/Mesh.hpp"
 	"Geometry/MeshData.hpp"
-	"Geometry/ModelLoader/FbxLoader.hpp"
 	"Light/LightContext.hpp"
 	"Rasterization/Light/ShadowedLightContext.hpp"
 	"Rasterization/Renderer.hpp"
@@ -35,7 +34,6 @@ list(APPEND RENDERER_LIBS_INCLUDE
 	"RendererCommon.hpp"
 	"RendererManager.hpp"
 	"Resources/BatchResource.hpp"
-	"Resources/FBXPrefabResource.hpp"
 	"Resources/MaterialResource.hpp"
 	"Resources/MeshResource.hpp"
 	"Resources/SkeletalMeshResource.hpp"
@@ -58,7 +56,6 @@ list(APPEND RENDERER_LIBS_SOURCES
 	"Components/TerrainRendererComponent.cpp"
 	"Geometry/GeometryGenerator.cpp"
 	"Geometry/Mesh.cpp"
-	"Geometry/ModelLoader/FbxLoader.cpp"
 	"Light/LightContext.cpp"
 	"Rasterization/Renderer.cpp"
 	"Rasterization/Light/ShadowedLightContext.cpp"
@@ -72,7 +69,6 @@ list(APPEND RENDERER_LIBS_SOURCES
 	"RayTracing/Utils/ShaderTable.cpp"
 	"RendererManager.cpp"
 	"Resources/BatchResource.cpp"
-	"Resources/FBXPrefabResource.cpp"
 	"Resources/MaterialResource.cpp"
 	"Resources/MeshResource.cpp"
 	"Resources/SkeletalMeshResource.cpp"
@@ -111,7 +107,7 @@ PRIVATE
 	${Boost_INCLUDE_DIRS}
 	${FBX_INCLUDE_DIRS})
 
-target_link_libraries("Renderer" PRIVATE ${Boost_LIBRARIES} ${FBX_LINK_LIBS} DirectXTex IMGUI PUBLIC Graphics Math Scene)
+target_link_libraries("Renderer" PRIVATE ${Boost_LIBRARIES} ${FBX_LIBS} DirectXTex IMGUI PUBLIC Graphics Math Scene)
 
 if(BUILD_TESTS)
 	set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/../../cmake")

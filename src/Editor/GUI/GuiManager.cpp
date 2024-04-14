@@ -24,10 +24,11 @@
 #include <Physics/Components/BoxColliderComponent.hpp>
 #include <Physics/Components/SphereColliderComponent.hpp>
 #include <Graphics/GraphicsUtils/Profiling/Profiling.hpp>
-#include <Renderer/Geometry/ModelLoader/FbxLoader.hpp>
 #include <Renderer/Rasterization/Renderer.hpp>
 #include <Renderer/Resources/MaterialResource.hpp>
 #include <Renderer/Resources/TerrainResource.hpp>
+#include <Renderer/Resources/StaticMeshResource.hpp>
+#include <Renderer/Components/CameraComponent.hpp>
 #include <Renderer/Components/LightComponent.hpp>
 #include <Renderer/Components/MeshRendererComponent.hpp>
 #include <Renderer/Components/SkeletalMeshRendererComponent.hpp>
@@ -71,7 +72,7 @@ namespace Darius::Editor::Gui::GuiManager
 		D_EDITOR_CONTEXT::SubscribeOnEditorDeactivated(SaveWindowsState);
 
 		auto winConfigPath = D_EDITOR_CONTEXT::GetEditorWindowsConfigPath();
-		if (D_H_ENSURE_FILE(winConfigPath))
+		if(D_H_ENSURE_FILE(winConfigPath))
 			D_FILE::ReadJsonFile(winConfigPath, windowsConfig);
 
 #define RegisterWindow(type) \
@@ -99,7 +100,7 @@ namespace Darius::Editor::Gui::GuiManager
 		ImFontConfig fontConf;
 		io.Fonts->AddFontDefault(&fontConf);
 		// Merge fontawesom fonts
-		static const ImWchar icons_ranges[] = { ICON_MIN_FA, ICON_MAX_16_FA, 0 };
+		static const ImWchar icons_ranges[] = {ICON_MIN_FA, ICON_MAX_16_FA, 0};
 		ImFontConfig icons_config;
 		icons_config.MergeMode = true;
 		icons_config.PixelSnapH = true;
@@ -121,12 +122,12 @@ namespace Darius::Editor::Gui::GuiManager
 
 		// Unallocating windows objects
 		D_CONTAINERS::DVector<Window*> toBeRemoved;
-		for (auto& keyVal : Windows)
+		for(auto& keyVal : Windows)
 		{
 			toBeRemoved.push_back(keyVal.second);
 		}
 		Windows.clear();
-		for (int i = 0; i < toBeRemoved.size(); i++)
+		for(int i = 0; i < toBeRemoved.size(); i++)
 		{
 			Window* win = toBeRemoved[i];
 			delete win;
@@ -141,7 +142,7 @@ namespace Darius::Editor::Gui::GuiManager
 
 		{
 			D_PROFILING::ScopedTimer windowProfiling(L"Update Windows");
-			for (auto& kv : Windows)
+			for(auto& kv : Windows)
 				kv.second->Update(deltaTime);
 		}
 
@@ -156,30 +157,30 @@ namespace Darius::Editor::Gui::GuiManager
 		DrawGUI();
 
 		// Handle global shortcuts
-		if (!ImGui::GetIO().WantTextInput)
+		if(!ImGui::GetIO().WantTextInput)
 		{
 			GameObject* selectedObj = D_EDITOR_CONTEXT::GetSelectedGameObject();
 
 			// Copy
-			if ((D_KEYBOARD::GetKey(D_KEYBOARD::Keys::LeftControl) || D_KEYBOARD::GetKey(D_KEYBOARD::Keys::RightControl)) && D_KEYBOARD::IsKeyDown(D_KEYBOARD::Keys::C))
+			if((D_KEYBOARD::GetKey(D_KEYBOARD::Keys::LeftControl) || D_KEYBOARD::GetKey(D_KEYBOARD::Keys::RightControl)) && D_KEYBOARD::IsKeyDown(D_KEYBOARD::Keys::C))
 			{
-				if (selectedObj)
+				if(selectedObj)
 				{
 					D_EDITOR_CONTEXT::SetClipboard(selectedObj);
 				}
 			}
 
 			// Paste
-			if ((D_KEYBOARD::GetKey(D_KEYBOARD::Keys::LeftControl) || D_KEYBOARD::GetKey(D_KEYBOARD::Keys::RightControl)) && D_KEYBOARD::IsKeyDown(D_KEYBOARD::Keys::V))
+			if((D_KEYBOARD::GetKey(D_KEYBOARD::Keys::LeftControl) || D_KEYBOARD::GetKey(D_KEYBOARD::Keys::RightControl)) && D_KEYBOARD::IsKeyDown(D_KEYBOARD::Keys::V))
 			{
-				if (D_EDITOR_CONTEXT::IsGameObjectInClipboard())
+				if(D_EDITOR_CONTEXT::IsGameObjectInClipboard())
 				{
 					GameObject* pastedGo;
 					D_SERIALIZATION::Json goJson;
 					D_EDITOR_CONTEXT::GetClipboardJson(true, goJson);
 					D_WORLD::LoadGameObject(goJson, &pastedGo, true);
 
-					if (selectedObj)
+					if(selectedObj)
 					{
 						pastedGo->SetParent(selectedObj, GameObject::AttachmentType::KeepLocal);
 					}
@@ -187,11 +188,11 @@ namespace Darius::Editor::Gui::GuiManager
 			}
 
 			// Delete
-			if ((D_KEYBOARD::IsKeyDown(D_KEYBOARD::Keys::Delete)))
+			if((D_KEYBOARD::IsKeyDown(D_KEYBOARD::Keys::Delete)))
 			{
-				if (selectedObj)
+				if(selectedObj)
 				{
-					if (D_SIMULATE::IsSimulating())
+					if(D_SIMULATE::IsSimulating())
 						D_WORLD::DeleteGameObject(selectedObj);
 					else
 						D_WORLD::DeleteGameObjectImmediately(selectedObj);
@@ -207,8 +208,8 @@ namespace Darius::Editor::Gui::GuiManager
 
 	void Render()
 	{
-		for (auto& kv : Windows)
-			if (kv.second->IsOpened())
+		for(auto& kv : Windows)
+			if(kv.second->IsOpened())
 				kv.second->Render();
 	}
 
@@ -250,8 +251,8 @@ namespace Darius::Editor::Gui::GuiManager
 		}
 
 		{
-			static bool show_demo_window = true;
-			if (show_demo_window)
+			static bool show_demo_window = false;
+			if(show_demo_window)
 				ImGui::ShowDemoWindow(&show_demo_window);
 
 		}
@@ -259,24 +260,24 @@ namespace Darius::Editor::Gui::GuiManager
 		{
 			D_PROFILING::ScopedTimer windowDrawProfiling(L"Draw Window Gui");
 
-			for (auto& kv : Windows)
+			for(auto& kv : Windows)
 			{
 				auto wind = kv.second;
 
 				ImGui::SetNextWindowBgAlpha(1.f);
 
-				if (wind->IsOpened())
+				if(wind->IsOpened())
 				{
 					ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(wind->mPadding[0], wind->mPadding[1]));
 
 					bool opened = true;
-					if (ImGui::Begin(wind->GetName().c_str(), &opened))
+					if(ImGui::Begin(wind->GetName().c_str(), &opened))
 					{
 						wind->PrepareGUI();
 
 						wind->DrawGUI();
 					}
-					if (!opened)
+					if(!opened)
 						wind->SetOpened(false);
 
 					ImGui::End();
@@ -290,15 +291,15 @@ namespace Darius::Editor::Gui::GuiManager
 	void ShowDialogs()
 	{
 
-		if (ImGuiFileDialog::Instance()->Display("LoadScene"))
+		if(ImGuiFileDialog::Instance()->Display("LoadScene"))
 		{
 			// action if OK
-			if (ImGuiFileDialog::Instance()->IsOk())
+			if(ImGuiFileDialog::Instance()->IsOk())
 			{
 				std::string filePathName = ImGuiFileDialog::Instance()->GetFilePathName();
 				D_WORLD::Unload();
 
-				if (D_WORLD::Load(STR2WSTR(filePathName)))
+				if(D_WORLD::Load(STR2WSTR(filePathName)))
 					D_EDITOR_CONTEXT::SetSelectedGameObject(nullptr);
 			}
 
@@ -306,13 +307,13 @@ namespace Darius::Editor::Gui::GuiManager
 			ImGuiFileDialog::Instance()->Close();
 		}
 
-		if (ImGuiFileDialog::Instance()->Display("SaveScene"))
+		if(ImGuiFileDialog::Instance()->Display("SaveScene"))
 		{
 			// action if OK
-			if (ImGuiFileDialog::Instance()->IsOk())
+			if(ImGuiFileDialog::Instance()->IsOk())
 			{
 				std::string filePathName = ImGuiFileDialog::Instance()->GetFilePathName();
-				if (D_WORLD::Create(STR2WSTR(filePathName)))
+				if(D_WORLD::Create(STR2WSTR(filePathName)))
 				{
 					D_WORLD::Save();
 				}
@@ -324,10 +325,10 @@ namespace Darius::Editor::Gui::GuiManager
 
 #pragma warning(push)
 #pragma warning(disable: 4616 4302)
-		if (ImGuiFileDialog::Instance()->Display("SaveResource"))
+		if(ImGuiFileDialog::Instance()->Display("SaveResource"))
 		{
 			// action if OK
-			if (ImGuiFileDialog::Instance()->IsOk())
+			if(ImGuiFileDialog::Instance()->IsOk())
 			{
 				std::string _filePathName = ImGuiFileDialog::Instance()->GetFilePathName();
 				std::wstring filePathName = STR2WSTR(_filePathName);
@@ -340,9 +341,9 @@ namespace Darius::Editor::Gui::GuiManager
 			ImGuiFileDialog::Instance()->Close();
 		}
 
-		if (ImGuiFileDialog::Instance()->Display("SavePrefab"))
+		if(ImGuiFileDialog::Instance()->Display("SavePrefab"))
 		{
-			if (ImGuiFileDialog::Instance()->IsOk())
+			if(ImGuiFileDialog::Instance()->IsOk())
 			{
 				std::string _filePath = ImGuiFileDialog::Instance()->GetFilePathName();
 				std::wstring filePath = STR2WSTR(_filePath);
@@ -364,7 +365,7 @@ namespace Darius::Editor::Gui::GuiManager
 
 	void DrawGammAddMenu(GameObject* const contextGameObject)
 	{
-		
+
 #define CreateParentedGameObject() \
 GameObject* created = D_WORLD::CreateGameObject(); \
 created->GetTransform()->SetPosition(GetWindow<SceneWindow>()->SuggestSpawnPositionOnYPlane()); \
@@ -374,16 +375,17 @@ if (validContext) \
 		D_PROFILING::ScopedTimer _Prof(L"Draw Add GameObject Menu");
 
 		bool validContext = contextGameObject && contextGameObject->IsValid();
-		if (ImGui::BeginMenu(ICON_FA_PLUS "  Add"))
+		if(ImGui::BeginMenu(ICON_FA_PLUS "  Add"))
 		{
-			if (ImGui::MenuItem(ICON_FA_FILE "  Empty Game Object"))
+			if(ImGui::MenuItem(ICON_FA_FILE "  Empty Game Object"))
 			{
 				CreateParentedGameObject();
+				D_EDITOR_CONTEXT::SetSelectedGameObject(created);
 			}
 
-			if (!validContext)
+			if(!validContext)
 				ImGui::BeginDisabled();
-			if (ImGui::MenuItem(ICON_FA_ARROW_TURN_UP "  Parent Game Object"))
+			if(ImGui::MenuItem(ICON_FA_ARROW_TURN_UP "  Parent Game Object"))
 			{
 				GameObject* created = D_WORLD::CreateGameObject();
 				D_ASSERT(created);
@@ -391,13 +393,14 @@ if (validContext) \
 				GameObject* currentParent = contextGameObject->GetParent();
 				created->SetParent(currentParent, GameObject::AttachmentType::KeepLocal);
 				contextGameObject->SetParent(created, GameObject::AttachmentType::KeepWorld);
+				D_EDITOR_CONTEXT::SetSelectedGameObject(created);
 			}
-			if (!validContext)
+			if(!validContext)
 				ImGui::EndDisabled();
 
-			if (ImGui::BeginMenu(ICON_FA_LIGHTBULB "  Light"))
+			if(ImGui::BeginMenu(ICON_FA_LIGHTBULB "  Light"))
 			{
-				if (ImGui::MenuItem(ICON_FA_SUN "  Directional Light"))
+				if(ImGui::MenuItem(ICON_FA_SUN "  Directional Light"))
 				{
 					CreateParentedGameObject();
 					auto lightComp = created->AddComponent<D_RENDERER::LightComponent>();
@@ -406,7 +409,7 @@ if (validContext) \
 					D_EDITOR_CONTEXT::SetSelectedGameObject(created);
 				}
 
-				if (ImGui::MenuItem(ICON_FA_LIGHTBULB "  Point Light"))
+				if(ImGui::MenuItem(ICON_FA_LIGHTBULB "  Point Light"))
 				{
 					CreateParentedGameObject();
 					auto lightComp = created->AddComponent<D_RENDERER::LightComponent>();
@@ -415,7 +418,7 @@ if (validContext) \
 					D_EDITOR_CONTEXT::SetSelectedGameObject(created);
 				}
 
-				if (ImGui::MenuItem(ICON_FA_LIGHTBULB "  Spot Light"))
+				if(ImGui::MenuItem(ICON_FA_LIGHTBULB "  Spot Light"))
 				{
 					CreateParentedGameObject();
 					auto lightComp = created->AddComponent<D_RENDERER::LightComponent>();
@@ -427,10 +430,18 @@ if (validContext) \
 				ImGui::EndMenu();
 			}
 
-			// 3D Menu
-			if (ImGui::BeginMenu(ICON_FA_CUBES " 3D"))
+			if(ImGui::MenuItem(ICON_FA_VIDEO "  Camera"))
 			{
-				if (ImGui::MenuItem(ICON_FA_CUBE "  Cube"))
+				CreateParentedGameObject();
+				created->AddComponent<D_RENDERER::CameraComponent>();
+				created->SetName("Camera");
+				D_EDITOR_CONTEXT::SetSelectedGameObject(created);
+			}
+
+			// 3D Menu
+			if(ImGui::BeginMenu(ICON_FA_CUBES " 3D"))
+			{
+				if(ImGui::MenuItem(ICON_FA_CUBE "  Cube"))
 				{
 					CreateParentedGameObject();
 					D_RENDERER::MeshRendererComponent* comp = created->AddComponent<D_RENDERER::MeshRendererComponent>();
@@ -446,7 +457,7 @@ if (validContext) \
 					D_EDITOR_CONTEXT::SetSelectedGameObject(created);
 				}
 
-				if (ImGui::MenuItem(ICON_FA_CIRCLE "  Sphere"))
+				if(ImGui::MenuItem(ICON_FA_CIRCLE "  Sphere"))
 				{
 					CreateParentedGameObject();
 					D_RENDERER::MeshRendererComponent* comp = created->AddComponent<D_RENDERER::MeshRendererComponent>();
@@ -462,7 +473,7 @@ if (validContext) \
 					D_EDITOR_CONTEXT::SetSelectedGameObject(created);
 				}
 
-				if (ImGui::MenuItem(ICON_FA_WEIGHT_HANGING "  Static Mesh"))
+				if(ImGui::MenuItem(ICON_FA_WEIGHT_HANGING "  Static Mesh"))
 				{
 					CreateParentedGameObject();
 					created->AddComponent<D_RENDERER::MeshRendererComponent>();
@@ -470,7 +481,7 @@ if (validContext) \
 					D_EDITOR_CONTEXT::SetSelectedGameObject(created);
 				}
 
-				if (ImGui::MenuItem(ICON_FA_BONE "  Skeletal Mesh"))
+				if(ImGui::MenuItem(ICON_FA_BONE "  Skeletal Mesh"))
 				{
 					CreateParentedGameObject();
 					created->AddComponent<D_RENDERER::SkeletalMeshRendererComponent>();
@@ -487,61 +498,96 @@ if (validContext) \
 #undef CreateParentedGameObject
 	}
 
+	void GoHandler(GameObject* go, GameObject* refParent, D_RENDERER::MaterialResource* defaultMat, bool toRoot)
+	{
+
+		auto mod = false;
+		if(auto sk = go->GetComponent<D_RENDERER::SkeletalMeshRendererComponent>())
+		{
+			if(auto mesh = sk->GetMesh())
+			{
+				mesh->SetInverted(true);
+				for(int i = 0; i < mesh->GetMeshData()->mDraw.size(); i++)
+				{
+					mesh->SetMaterial(i, defaultMat);
+				}
+			}
+			mod = true;
+		}
+
+		if(auto sm = go->GetComponent<D_RENDERER::MeshRendererComponent>())
+		{
+			if(auto mesh = sm->GetMesh())
+			{
+				mesh->SetInverted(true);
+				for(int i = 0; i < mesh->GetMeshData()->mDraw.size(); i++)
+				{
+					mesh->SetMaterial(i, defaultMat);
+				}
+			}
+			mod = true;
+		}
+
+		if(mod)
+		{
+			auto parent = go->GetParent();
+			if(parent != refParent && parent)
+				go->SetName(parent->GetName());
+
+			go->SetParent(nullptr, GameObject::AttachmentType::KeepWorld);
+		}
+	}
+
 	void _DrawMenuBar()
 	{
 		D_PROFILING::ScopedTimer menubarProfiling(L"Draw Menubar");
 
-		if (ImGui::BeginMenuBar())
+		if(ImGui::BeginMenuBar())
 		{
-			if (ImGui::BeginMenu(ICON_FA_FILE "  File"))
+			if(ImGui::BeginMenu(ICON_FA_FILE "  File"))
 			{
-				/*if (ImGui::MenuItem("Load"))
-				{
-					D_RESOURCE_LOADER::LoadResource(L"ff.fbx");
-				}*/
-
-				if (ImGui::MenuItem(ICON_FA_FLOPPY_DISK "  Save Project"))
+				if(ImGui::MenuItem(ICON_FA_FLOPPY_DISK "  Save Project"))
 					D_RESOURCE::SaveAll();
 
 				ImGui::Separator();
 
 				auto simulating = D_SIMULATE::IsSimulating();
 
-				if (simulating)
+				if(simulating)
 					ImGui::BeginDisabled();
 
-				if (ImGui::MenuItem(ICON_FA_XMARK"  Close Scene"))
+				if(ImGui::MenuItem(ICON_FA_XMARK"  Close Scene"))
 				{
 					D_WORLD::Unload();
 					D_EDITOR_CONTEXT::SetSelectedGameObject(nullptr);
 				}
 
-				if (ImGui::MenuItem(ICON_FA_FLOPPY_DISK "  Save Scene"))
+				if(ImGui::MenuItem(ICON_FA_FLOPPY_DISK "  Save Scene"))
 				{
-					if (D_WORLD::IsLoaded())
+					if(D_WORLD::IsLoaded())
 						D_WORLD::Save();
 					else
 						ImGuiFileDialog::Instance()->OpenDialog("SaveScene", "Create Scene File", ".dar", D_ENGINE_CONTEXT::GetAssetsPath().string());
 				}
 
-				if (ImGui::MenuItem(ICON_FA_FOLDER "  Load Scene"))
+				if(ImGui::MenuItem(ICON_FA_FOLDER "  Load Scene"))
 				{
 
 					ImGuiFileDialog::Instance()->OpenDialog("LoadScene", "Choose Scene File", ".dar", D_ENGINE_CONTEXT::GetAssetsPath().string(), 1, nullptr);
 
 				}
 
-				if (simulating)
+				if(simulating)
 					ImGui::EndDisabled();
 
 				ImGui::EndMenu();
 			}
 
-			if (ImGui::BeginMenu("Game Object"))
+			if(ImGui::BeginMenu("Game Object"))
 			{
 				DrawGammAddMenu(D_EDITOR_CONTEXT::GetSelectedGameObject());
 
-				if (ImGui::MenuItem(ICON_FA_TRASH "  Delete Game Object", (const char*)0, false, D_EDITOR_CONTEXT::GetSelectedGameObject() != nullptr))
+				if(ImGui::MenuItem(ICON_FA_TRASH "  Delete Game Object", (const char*)0, false, D_EDITOR_CONTEXT::GetSelectedGameObject() != nullptr))
 				{
 					D_WORLD::DeleteGameObject(D_EDITOR_CONTEXT::GetSelectedGameObject());
 					D_EDITOR_CONTEXT::SetSelectedGameObject(nullptr);
@@ -550,28 +596,28 @@ if (validContext) \
 				ImGui::EndMenu();
 			}
 
-			if (ImGui::BeginMenu("Resource"))
+			if(ImGui::BeginMenu("Resource"))
 			{
-				if (ImGui::BeginMenu("Create"))
+				if(ImGui::BeginMenu("Create"))
 				{
-					if (ImGui::MenuItem("Material"))
+					if(ImGui::MenuItem("Material"))
 					{
 						ImGuiFileDialog::Instance()->OpenDialog("SaveResource", "Create Material", ".mat", D_ENGINE_CONTEXT::GetAssetsPath().string(), 1, (void*)D_RENDERER::MaterialResource::GetResourceType());
 					}
 
-					if (ImGui::MenuItem("Terrain"))
+					if(ImGui::MenuItem("Terrain"))
 					{
 						ImGuiFileDialog::Instance()->OpenDialog("SaveResource", "Create Terrain", ".terrain", D_ENGINE_CONTEXT::GetAssetsPath().string(), 1, (void*)D_RENDERER::TerrainResource::GetResourceType());
 					}
 
-					if (ImGui::MenuItem("Animation"))
+					if(ImGui::MenuItem("Animation"))
 					{
 						ImGuiFileDialog::Instance()->OpenDialog("SaveResource", "Create Animation", ".anim", D_ENGINE_CONTEXT::GetAssetsPath().string(), 1, (void*)D_ANIMATION::AnimationResource::GetResourceType());
 					}
 
 					ImGui::Separator();
 
-					if (ImGui::MenuItem("Physics Material"))
+					if(ImGui::MenuItem("Physics Material"))
 					{
 						ImGuiFileDialog::Instance()->OpenDialog("SaveResource", "Create Physics Material", ".physmat", D_ENGINE_CONTEXT::GetAssetsPath().string(), 1, (void*)D_PHYSICS::PhysicsMaterialResource::GetResourceType());
 					}
@@ -579,17 +625,62 @@ if (validContext) \
 					ImGui::EndMenu();
 				}
 
-				if (ImGui::MenuItem("Debug Button"))
+				if(ImGui::MenuItem("Debug Button"))
 				{
+					auto selected = D_EDITOR_CONTEXT::GetSelectedGameObject();
+
+					if(selected)
+					{
+						auto mat = selected->GetComponent<D_RENDERER::MeshRendererComponent>()->GetMaterial(0);
+
+						selected->VisitDescendants([=](auto go)
+							{
+								GoHandler(go, selected, mat.Get(), false);
+							});
+
+					}
+				}
+
+				if(ImGui::MenuItem("Debug Button 2"))
+				{
+					auto selected = D_EDITOR_CONTEXT::GetSelectedGameObject();
+					auto mat = selected->GetComponent<D_RENDERER::MeshRendererComponent>()->GetMaterial(0).Get();
+
+					D_WORLD::IterateComponents<D_RENDERER::MeshRendererComponent>([material = mat](auto& comp)
+						{
+							D_RENDERER::StaticMeshResource* mesh = comp.GetMesh();
+							mesh->SetInverted(true);
+							for(int i = 0; i < (int)mesh->GetMeshData()->mDraw.size(); i++)
+							{
+								mesh->SetMaterial(i, material);
+							}
+						});
+				}
+
+				if(ImGui::MenuItem("Debug Button 3"))
+				{
+					auto selected = D_EDITOR_CONTEXT::GetSelectedGameObject();
+					auto mat = selected->GetComponent<D_RENDERER::MeshRendererComponent>()->GetMaterial(0).Get();
+
+					D_WORLD::IterateComponents<D_RENDERER::SkeletalMeshRendererComponent>([material = mat](auto& comp)
+						{
+							D_RENDERER::SkeletalMeshResource* mesh = comp.GetMesh();
+							mesh->SetInverted(true);
+							mesh->SetNormalsReordering(D_RENDERER::MeshResource::NormalsReordering::ZYX);
+							for(int i = 0; i < (int)mesh->GetMeshData()->mDraw.size(); i++)
+							{
+								mesh->SetMaterial(i, material);
+							}
+						});
 				}
 
 				ImGui::EndMenu();
 			}
-			if (ImGui::BeginMenu("Window"))
+			if(ImGui::BeginMenu("Window"))
 			{
-				for (auto& kv : Windows)
+				for(auto& kv : Windows)
 				{
-					if (ImGui::MenuItem(kv.second->GetName().c_str()))
+					if(ImGui::MenuItem(kv.second->GetName().c_str()))
 					{
 						kv.second->SetOpened(true);
 					}
@@ -617,7 +708,7 @@ if (validContext) \
 
 		// Play button
 		ImGui::SameLine(offset);
-		if (ImGui::Button(isSimulating ? ICON_FA_STOP : ICON_FA_PLAY, ImVec2(buttonSize, 0)))
+		if(ImGui::Button(isSimulating ? ICON_FA_STOP : ICON_FA_PLAY, ImVec2(buttonSize, 0)))
 			isSimulating ? D_SIMULATE::Stop() : D_SIMULATE::Run();
 
 		// Update states
@@ -628,23 +719,23 @@ if (validContext) \
 
 		// Pause button
 		// Deciding puase button color
-		if (isPaused)
-			ImGui::PushStyleColor(ImGuiCol_Button, { 0.26f, 0.59f, 1.f, 1.f });
+		if(isPaused)
+			ImGui::PushStyleColor(ImGuiCol_Button, {0.26f, 0.59f, 1.f, 1.f});
 
 		ImGui::SameLine();
 
 		// Disable if not simulating
-		if (!isSimulating)
+		if(!isSimulating)
 			ImGui::BeginDisabled();
 
 		// The button itself
-		if (ImGui::Button(ICON_FA_PAUSE, ImVec2(buttonSize, 0)))
+		if(ImGui::Button(ICON_FA_PAUSE, ImVec2(buttonSize, 0)))
 			isPaused ? D_SIMULATE::Resume() : D_SIMULATE::Pause();
 
 		// Cleaning up disabled and color status if necessary
-		if (!isSimulating)
+		if(!isSimulating)
 			ImGui::EndDisabled();
-		if (isPaused)
+		if(isPaused)
 			ImGui::PopStyleColor();
 
 		isPaused = D_SIMULATE::IsPaused();
@@ -652,11 +743,11 @@ if (validContext) \
 		// Step button
 		ImGui::SameLine();
 
-		if (!isPaused)
+		if(!isPaused)
 			ImGui::BeginDisabled();
-		if (ImGui::Button(ICON_FA_FORWARD_STEP, ImVec2(buttonSize, 0)))
+		if(ImGui::Button(ICON_FA_FORWARD_STEP, ImVec2(buttonSize, 0)))
 			D_SIMULATE::Step();
-		if (!isPaused)
+		if(!isPaused)
 			ImGui::EndDisabled();
 
 		ImGui::PopStyleVar();
@@ -666,7 +757,7 @@ if (validContext) \
 	{
 		D_SERIALIZATION::Json config;
 
-		for (auto const& wPair : Windows)
+		for(auto const& wPair : Windows)
 		{
 			auto const& window = wPair.second;
 			D_SERIALIZATION::Json winConfig;
@@ -682,7 +773,7 @@ if (validContext) \
 	Window* GetWindow(std::string const& name)
 	{
 		auto it = Windows.find(name);
-		if (it != Windows.end())
+		if(it != Windows.end())
 			return it->second;
 		return nullptr;
 	}

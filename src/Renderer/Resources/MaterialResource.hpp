@@ -51,6 +51,9 @@ namespace Darius::Renderer
 		INLINE float						GetOpacity() const { return mMaterial.Opacity; }
 		void								SetOpacity(float value);
 
+		INLINE float						GetSpecular() const { return mMaterial.Specular; }
+		void								SetSpecular(float value);
+
 		// Displacement
 		INLINE bool							HasDisplacement() const { return (mMaterial.TextureStatusMask & (1 << D_RENDERER_RAST::kWorldDisplacement)) != 0; }
 		INLINE float						GetDisplacementAmount() const { return mMaterial.DisplacementAmount; }

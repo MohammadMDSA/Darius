@@ -26,7 +26,7 @@ namespace Demo
 		D_ECS_COMP::BehaviourComponent()
 	{ }
 
-	TriggerTest::TriggerTest(D_CORE::Uuid uuid) :
+	TriggerTest::TriggerTest(D_CORE::Uuid const& uuid) :
 		D_ECS_COMP::BehaviourComponent(uuid)
 	{ }
 

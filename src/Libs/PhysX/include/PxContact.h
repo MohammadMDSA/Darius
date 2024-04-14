@@ -1,4 +1,3 @@
-//
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions
 // are met:
@@ -23,16 +22,21 @@
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
-// Copyright (c) 2008-2021 NVIDIA Corporation. All rights reserved.
+// Copyright (c) 2008-2023 NVIDIA Corporation. All rights reserved.
 // Copyright (c) 2004-2008 AGEIA Technologies, Inc. All rights reserved.
 // Copyright (c) 2001-2004 NovodeX AG. All rights reserved.  
-
 
 #ifndef PX_CONTACT_H
 #define PX_CONTACT_H
 
+/** \addtogroup physics
+  @{
+*/
+
 #include "foundation/PxVec3.h"
 #include "foundation/PxAssert.h"
+#include "PxConstraintDesc.h"
+#include "PxNodeIndex.h"
 
 #if !PX_DOXYGEN
 namespace physx
@@ -46,20 +50,11 @@ namespace physx
 
 #define PXC_CONTACT_NO_FACE_INDEX 0xffffffff
 
-PX_ALIGN_PREFIX(16)
-struct PxMassModificationProps
-{
-	PxReal mInvMassScale0;
-	PxReal mInvInertiaScale0;
-	PxReal mInvMassScale1;
-	PxReal mInvInertiaScale1;
-}
-PX_ALIGN_SUFFIX(16);
+class PxActor;
 
 /**
-\brief Header for contact patch where all points share same material and normal
+\brief Header for a contact patch where all points share same material and normal
 */
-
 PX_ALIGN_PREFIX(16)
 struct PxContactPatch
 {
@@ -71,64 +66,106 @@ struct PxContactPatch
 		eHAS_MODIFIED_MASS_RATIOS = 8,		//!< Indicates this contact stream has modified mass ratios
 		eHAS_TARGET_VELOCITY = 16,			//!< Indicates this contact stream has target velocities set
 		eHAS_MAX_IMPULSE = 32,				//!< Indicates this contact stream has max impulses set
-		eREGENERATE_PATCHES = 64,		//!< Indicates this contact stream needs patches re-generated. 
-											//!< This is required if the application modified either the contact normal or the material properties
+		eREGENERATE_PATCHES = 64,			//!< Indicates this contact stream needs patches re-generated. This is required if the application modified either the contact normal or the material properties
 		eCOMPRESSED_MODIFIED_CONTACT = 128
 	};
 
-	PX_ALIGN(16, PxMassModificationProps mMassModification);			//16
+	/**
+	\brief Modifiers for scaling the inertia of the involved bodies
+	*/
+	PX_ALIGN(16, PxConstraintInvMassScale mMassModification);
+
 	/**
 	\brief Contact normal
 	*/
-	PX_ALIGN(16, PxVec3	normal);									//28
+	PX_ALIGN(16, PxVec3	normal);
+
 	/**
 	\brief Restitution coefficient
 	*/
-	PxReal	restitution;											//32
+	PxReal	restitution;
 
-	PxReal	dynamicFriction;										//36
-	PxReal	staticFriction;											//40
-	PxU8	startContactIndex;										//41
-	PxU8	nbContacts;												//42  //Can be a U8
+	/**
+	\brief Dynamic friction coefficient
+	*/
+	PxReal	dynamicFriction;
 
-	PxU8	materialFlags;											//43  //Can be a U16
-	PxU8	internalFlags;											//44  //Can be a U16
-	PxU16	materialIndex0;											//46  //Can be a U16
-	PxU16	materialIndex1;											//48  //Can be a U16
+	/**
+	\brief Static friction coefficient
+	*/
+	PxReal	staticFriction;
+
+	/**
+	\brief Damping coefficient (for compliant contacts)
+	*/
+	PxReal	damping;
+
+	/**
+	\brief Index of the first contact in the patch
+	*/
+	PxU16	startContactIndex;
 	
-	
+	/**
+	\brief The number of contacts in this patch
+	*/
+	PxU8	nbContacts;
+
+	/**
+	\brief The combined material flag of two actors that come in contact
+	@see PxMaterialFlag, PxCombineMode
+	*/
+	PxU8	materialFlags;
+
+	/**
+	\brief The PxContactPatchFlags for this patch
+	*/
+	PxU16	internalFlags;
+
+	/**
+	\brief Material index of first body
+	*/
+	PxU16	materialIndex0;
+
+	/**
+	\brief Material index of second body
+	*/
+	PxU16	materialIndex1;
+
+	PxU16	pad[5];
 }
 PX_ALIGN_SUFFIX(16);
 
 /**
-\brief Contact point data including face (feature) indices
+\brief Contact point data
 */
-
 PX_ALIGN_PREFIX(16)
 struct PxContact
 {
 	/**
 	\brief Contact point in world space
 	*/
-	PxVec3	contact;							//12
+	PxVec3	contact;
 	/**
 	\brief Separation value (negative implies penetration).
 	*/
-	PxReal	separation;							//16
+	PxReal	separation;
 }
 PX_ALIGN_SUFFIX(16);
 
+/**
+\brief Contact point data with additional target and max impulse values
+*/
 PX_ALIGN_PREFIX(16)
 struct PxExtendedContact : public PxContact
 {
 	/**
 	\brief Target velocity
 	*/
-	PX_ALIGN(16, PxVec3 targetVelocity);		//28
+	PX_ALIGN(16, PxVec3 targetVelocity);
 	/**
 	\brief Maximum impulse
 	*/
-	PxReal	maxImpulse;							//32
+	PxReal	maxImpulse;
 }
 PX_ALIGN_SUFFIX(16);
 
@@ -142,33 +179,33 @@ struct PxModifiableContact : public PxExtendedContact
 	/**
 	\brief Contact normal
 	*/
-	PX_ALIGN(16, PxVec3	normal);					//44
+	PX_ALIGN(16, PxVec3	normal);
 	/**
 	\brief Restitution coefficient
 	*/
-	PxReal	restitution;							//48
+	PxReal	restitution;
 	
 	/**
 	\brief Material Flags
 	*/
-	PxU32	materialFlags;							//52
+	PxU32	materialFlags;
 	
 	/**
 	\brief Shape A's material index
 	*/
-	PxU16	materialIndex0;							//54
+	PxU16	materialIndex0;
 	/**
 	\brief Shape B's material index
 	*/
-	PxU16	materialIndex1;							//56
+	PxU16	materialIndex1;
 	/**
 	\brief static friction coefficient
 	*/
-	PxReal	staticFriction;							//60
+	PxReal	staticFriction;
 	/**
 	\brief dynamic friction coefficient
 	*/	
-	PxReal dynamicFriction;							//64
+	PxReal dynamicFriction;
 }
 PX_ALIGN_SUFFIX(16);
 
@@ -189,6 +226,7 @@ struct PxContactStreamIterator
 	cause performance issues on certain platforms.
 	*/
 	PxVec3 zero;
+
 	/**
 	\brief The patch headers.
 	*/
@@ -203,7 +241,6 @@ struct PxContactStreamIterator
 	\brief The contact triangle face index
 	*/
 	const PxU32* faceIndice;
-
 
 	/**
 	\brief The total number of patches in this contact stream
@@ -225,27 +262,37 @@ struct PxContactStreamIterator
 	*/
 	PxU32 nextPatchIndex;
 
-	/*
+	/**
 	\brief Size of contact patch header 
 	\note This varies whether the patch is modifiable or not.
 	*/
 	PxU32 contactPatchHeaderSize;
+
 	/**
 	\brief Contact point size
 	\note This varies whether the patch has feature indices or is modifiable.
 	*/
 	PxU32 contactPointSize;
+
 	/**
 	\brief The stream format
 	*/
 	StreamFormat mStreamFormat;
+
 	/**
 	\brief Indicates whether this stream is notify-only or not.
 	*/
 	PxU32 forceNoResponse;
 
+	/**
+	\brief Internal helper for stepping the contact stream iterator
+	*/
 	bool pointStepped;
 
+	/**
+	\brief Specifies if this contactPatch has face indices (handled as bool)
+	@see faceIndice
+	*/
 	PxU32 hasFaceIndices;
 
 	/**
@@ -314,6 +361,10 @@ struct PxContactStreamIterator
 		return totalContacts;
 	}
 
+	/**
+	\brief Returns the total patch count.
+	\return Total patch count.
+	*/
 	PX_CUDA_CALLABLE PX_FORCE_INLINE PxU32 getTotalPatchCount() const
 	{
 		return totalPatches;
@@ -362,7 +413,6 @@ struct PxContactStreamIterator
 		pointStepped = true;
 	}
 
-
 	/**
 	\brief Gets the current contact's normal
 	\return The current contact's normal.
@@ -378,7 +428,7 @@ struct PxContactStreamIterator
 	*/
 	PX_CUDA_CALLABLE PX_FORCE_INLINE PxReal getInvMassScale0() const
 	{
-		return patch->mMassModification.mInvMassScale0;
+		return patch->mMassModification.linear0;
 	}
 
 	/**
@@ -387,7 +437,7 @@ struct PxContactStreamIterator
 	*/
 	PX_CUDA_CALLABLE PX_FORCE_INLINE PxReal getInvMassScale1() const
 	{
-		return patch->mMassModification.mInvMassScale1;
+		return patch->mMassModification.linear1;
 	}
 
 	/**
@@ -396,7 +446,7 @@ struct PxContactStreamIterator
 	*/
 	PX_CUDA_CALLABLE PX_FORCE_INLINE PxReal getInvInertiaScale0() const
 	{
-		return patch->mMassModification.mInvInertiaScale0;
+		return patch->mMassModification.angular0;
 	}
 
 	/**
@@ -405,7 +455,7 @@ struct PxContactStreamIterator
 	*/
 	PX_CUDA_CALLABLE PX_FORCE_INLINE PxReal getInvInertiaScale1() const
 	{
-		return patch->mMassModification.mInvInertiaScale1;
+		return patch->mMassModification.angular1;
 	}
 
 	/**
@@ -472,8 +522,8 @@ struct PxContactStreamIterator
 	}
 
 	/**
-	\brief Gets the contact's static dynamic coefficient.
-	\return The contact's static dynamic coefficient.
+	\brief Gets the contact's dynamic friction coefficient.
+	\return The contact's dynamic friction coefficient.
 	*/
 	PX_CUDA_CALLABLE PX_FORCE_INLINE PxReal getDynamicFriction() const
 	{
@@ -487,6 +537,15 @@ struct PxContactStreamIterator
 	PX_CUDA_CALLABLE PX_FORCE_INLINE PxReal getRestitution() const
 	{
 		return getContactPatch().restitution;
+	}
+
+	/**
+	\brief Gets the contact's damping value.
+	\return The contact's damping value.
+	*/
+	PX_CUDA_CALLABLE PX_FORCE_INLINE PxReal getDamping() const
+	{
+		return getContactPatch().damping;
 	}
 
 	/**
@@ -518,6 +577,7 @@ struct PxContactStreamIterator
 
 	/**
 	\brief Advances the contact stream iterator to a specific contact index.
+	\return True if advancing was possible
 	*/
 	bool advanceToIndex(const PxU32 initialIndex)
 	{
@@ -571,6 +631,25 @@ private:
 
 };
 
+/**
+\brief Contains contact information for a contact reported by the direct-GPU contact report API. See PxScene::copyContactData().
+*/
+struct PxGpuContactPair
+{
+	PxU8* contactPatches;				//!< Ptr to contact patches. Type: PxContactPatch*, size: nbPatches.
+	PxU8* contactPoints;				//!< Ptr to contact points. Type: PxContact*, size: nbContacts.
+	PxReal* contactForces;				//!< Ptr to contact forces. Size: nbContacts.
+	PxU32 transformCacheRef0;			//!< Ref to shape0's transform in transform cache.
+	PxU32 transformCacheRef1;			//!< Ref to shape1's transform in transform cache.
+	PxNodeIndex nodeIndex0;				//!< Unique Id for actor0 if the actor is dynamic.
+	PxNodeIndex nodeIndex1;				//!< Unique Id for actor1 if the actor is dynamic.
+	PxActor* actor0;					//!< Ptr to PxActor for actor0.
+	PxActor* actor1;					//!< Ptr to PxActor for actor1.
+
+	PxU16 nbContacts;					//!< Num contacts.
+	PxU16 nbPatches;					//!< Num patches.
+};
+
 
 #if PX_VC
 #pragma warning(pop)
@@ -580,4 +659,5 @@ private:
 } // namespace physx
 #endif
 
+/** @} */
 #endif

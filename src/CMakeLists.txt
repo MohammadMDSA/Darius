@@ -89,6 +89,7 @@ list(APPEND DARIUS_LIBS
     "Debug"
     "Animation"
 	"Job"
+    "Fbx"
 	)
 
     	
@@ -114,7 +115,7 @@ endif(EDITOR_BUILD)
 # add_subdirectory("${SOURCE_DIR}/Libs/MemAll")
 
 # Adding FBX SDK
-include("../cmake/AddFBXSDK.cmake")
+include("${SOURCE_DIR}/Libs/FBXSDK/FBXSDK.cmake")
 set(BUILD_TOOLS off)
 set(BUILD_SAMPLE off)
 set(BUILD_DX11 off)
@@ -174,6 +175,7 @@ list(APPEND DARIUS_LOW_LEVEL_LIBS
     "Debug"
     "Animation"
 	"Job"
+    "Fbx"
 	)
 if(EDITOR_BUILD)
 list(APPEND DARIUS_LOW_LEVEL_LIBS
@@ -236,6 +238,7 @@ if(MSVC)
     string(REPLACE "/W3 " "/Wall " CMAKE_CXX_FLAGS_RELEASE ${CMAKE_CXX_FLAGS_RELEASE})
     add_definitions(/WX)
     add_definitions(/MP)
+    add_definitions(/MDd)
     target_compile_options(${DariusEngine} PRIVATE /fp:fast "$<$<NOT:$<CONFIG:DEBUG>>:/guard:cf>")
     target_link_options(${DariusEngine} PRIVATE /DYNAMICBASE /NXCOMPAT)
 

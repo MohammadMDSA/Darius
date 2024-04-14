@@ -13,6 +13,10 @@
 
 namespace Darius::Math
 {
+	class TransformComponent;
+
+	D_H_SIGNAL_COMP_TWO_PARAM(TransformChangeSignalType, TransformComponent*, thisTransform, Transform const&, newTrans);
+
 	class DClass(Serialize[LocalPosition, LocalRotation, LocalScale]) TransformComponent : public D_ECS_COMP::ComponentBase
 	{
 		D_H_COMP_BODY(TransformComponent, D_ECS_COMP::ComponentBase, "Math/Transform", true);
@@ -48,6 +52,9 @@ namespace Darius::Math
 		INLINE virtual bool					IsDisableable() const override { return false; }
 
 		INLINE virtual bool					IsDirty() const override { auto parent = GetGameObject()->GetParent(); return parent ? ComponentBase::IsDirty() || parent->GetTransform()->IsDirty() : ComponentBase::IsDirty(); }
+
+	public:
+		TransformChangeSignalType			mWorldChanged;
 
 	private:
 		bool								IsWorldDirty() const;
@@ -96,6 +103,7 @@ namespace Darius::Math
 		mTransformMath.Translation = value;
 		mWorldDirty = true;
 		SetDirty();
+		mWorldChanged(this, mTransformMath);
 	}
 
 	INLINE void TransformComponent::SetLocalRotation(Quaternion const& val)
@@ -105,6 +113,7 @@ namespace Darius::Math
 		mTransformMath.Rotation = val;
 		mWorldDirty = true;
 		SetDirty();
+		mWorldChanged(this, mTransformMath);
 	}
 
 	INLINE void TransformComponent::SetLocalScale(Vector3 const& val)
@@ -114,6 +123,7 @@ namespace Darius::Math
 		mTransformMath.Scale = val;
 		mWorldDirty = true;
 		SetDirty();
+		mWorldChanged(this, mTransformMath);
 	}
 
 	INLINE void TransformComponent::SetPosition(Vector3 const& val)

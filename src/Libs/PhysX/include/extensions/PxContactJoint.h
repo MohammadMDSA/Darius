@@ -1,4 +1,3 @@
-//
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions
 // are met:
@@ -23,12 +22,12 @@
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
-// Copyright (c) 2008-2021 NVIDIA Corporation. All rights reserved.
+// Copyright (c) 2008-2023 NVIDIA Corporation. All rights reserved.
 // Copyright (c) 2004-2008 AGEIA Technologies, Inc. All rights reserved.
 // Copyright (c) 2001-2004 NovodeX AG. All rights reserved.  
 
-#ifndef PX_CONTACTJOINT_H
-#define PX_CONTACTJOINT_H
+#ifndef PX_CONTACT_JOINT_H
+#define PX_CONTACT_JOINT_H
 
 #include "extensions/PxJoint.h"
 
@@ -40,7 +39,7 @@ namespace physx
 	class PxContactJoint;
 
 	/**
-	\brief Create a distance Joint.
+	\brief Create a contact Joint.
 
 	\param[in] physics		The physics SDK
 	\param[in] actor0		An actor to which the joint is attached. NULL may be used to attach the joint to a specific point in the world frame
@@ -50,15 +49,9 @@ namespace physx
 
 	@see PxContactJoint
 	*/
-	PxContactJoint*	PxContactJointCreate(PxPhysics& physics, PxRigidActor* actor0, const PxTransform& localFrame0, PxRigidActor* actor1, const PxTransform& localFrame1);
+	PX_DEPRECATED PxContactJoint*	PxContactJointCreate(PxPhysics& physics, PxRigidActor* actor0, const PxTransform& localFrame0, PxRigidActor* actor1, const PxTransform& localFrame1);
 
-	/**
-	\brief a joint that maintains an upper or lower bound (or both) on the distance between two points on different objects
-
-	@see PxContactJointCreate PxJoint
-	*/
-
-	struct PxJacobianRow
+	struct PX_DEPRECATED PxJacobianRow
 	{
 		PxVec3 linear0;
 		PxVec3 linear1;
@@ -88,11 +81,12 @@ namespace physx
 	};
 
 	/**
-	\brief a joint that maintains an upper or lower bound (or both) on the distance between two points on different objects
+	\brief PxContactJoint is best viewed as a helper function for the inverse dynamics of articulations. The expected use case 
+	is to use PxContactJoint::getConstraint() in conjunction with PxArticulationReducedCoordinate::addLoopJoint().
 
 	@see PxContactJointCreate PxJoint
 	*/
-	class PxContactJoint : public PxJoint
+	PX_DEPRECATED class PxContactJoint : public PxJoint
 	{
 	public:
 
@@ -126,8 +120,8 @@ namespace physx
 		*/
 		virtual PxReal					getPenetration() const = 0;
 
-		virtual	PxReal					getResititution()	const = 0;
-		virtual	void					setResititution(const PxReal resititution) = 0;
+		virtual	PxReal					getRestitution()	const = 0;
+		virtual	void					setRestitution(const PxReal restitution) = 0;
 		virtual PxReal					getBounceThreshold() const = 0;
 		virtual void					setBounceThreshold(const PxReal bounceThreshold) = 0;
 
@@ -155,7 +149,7 @@ namespace physx
 		/**
 		\brief Returns whether a given type name matches with the type of this instance
 		*/
-		virtual	bool					isKindOf(const char* name)	const { return !::strcmp("PxContactJoint", name) || PxJoint::isKindOf(name); }
+		virtual	bool					isKindOf(const char* name)	const { PX_IS_KIND_OF(name, "PxContactJoint", PxJoint); }
 
 		//~serialization
 	};

@@ -59,7 +59,7 @@ namespace Darius::Renderer
 			InitialziePSOs();
 	}
 
-	SkeletalMeshRendererComponent::SkeletalMeshRendererComponent(D_CORE::Uuid uuid) :
+	SkeletalMeshRendererComponent::SkeletalMeshRendererComponent(D_CORE::Uuid const& uuid) :
 		MeshRendererComponentBase(uuid),
 		mSkeletonRoot(nullptr),
 		mMesh()
@@ -110,7 +110,11 @@ namespace Darius::Renderer
 			result.CustomDepth = IsCustomDepthEnable();
 		}
 
-		for (UINT i = 0; i < mesh->mDraw.size(); i++)
+		UINT draws = (UINT)mesh->mDraw.size();
+		if (draws != (UINT)mMaterials.size())
+			OnMeshChanged();
+
+		for (UINT i = 0; i < draws; i++)
 		{
 			auto const& draw = mesh->mDraw[i];
 
@@ -209,6 +213,7 @@ namespace Darius::Renderer
 		mSkeleton.clear();
 		mJointLocalPoses.clear();
 		mSkeletonRoot = nullptr;
+		mBounds = D_MATH_BOUNDS::Aabb(GetTransform()->GetPosition());
 		if (mMesh.IsValid())
 		{
 			// Copying skeleton to component
@@ -257,8 +262,11 @@ namespace Darius::Renderer
 			}
 
 			// Joints buffers
-			mJointsBufferGpu.Create(L"Skeletal Mesh Joint Buffer", (UINT)mJoints.size(), sizeof(D_RENDERER::Joint));
-			mJointsBufferUpload.Create(L"Skeletal Mesh Joint Buffer Upload", (UINT)(mJoints.size() * sizeof(D_RENDERER::Joint)), D_GRAPHICS_DEVICE::gNumFrameResources);
+			if (mJoints.size() > 0)
+			{
+				mJointsBufferGpu.Create(L"Skeletal Mesh Joint Buffer", (UINT)mJoints.size(), sizeof(D_RENDERER::Joint));
+				mJointsBufferUpload.Create(L"Skeletal Mesh Joint Buffer Upload", (UINT)(mJoints.size() * sizeof(D_RENDERER::Joint)), D_GRAPHICS_DEVICE::gNumFrameResources);
+			}
 		}
 		else
 		{
@@ -299,8 +307,7 @@ namespace Darius::Renderer
 		Scalar scaleXSqr = LengthSquare((Vector3)xform.GetX());
 		Scalar scaleYSqr = LengthSquare((Vector3)xform.GetY());
 		Scalar scaleZSqr = LengthSquare((Vector3)xform.GetZ());
-		Scalar sphereScale = Sqrt(Max(Max(scaleXSqr, scaleYSqr), scaleZSqr));
-		mBounds = mBounds.Union(BoundingSphere((Vector3)xform.GetW(), sphereScale));
+		mBounds = mBounds.Union(Aabb::CreateFromCenterAndExtents((Vector3)xform.GetW(), Sqrt(Vector3(scaleXSqr, scaleYSqr, scaleZSqr))));
 
 		for (auto childJoint : skeletonJoint.Children)
 		{
@@ -331,16 +338,16 @@ namespace Darius::Renderer
 		// Mapping upload buffer
 		MeshConstants* cb = (MeshConstants*)mMeshConstantsCPU.MapInstance(frameResourceIndex);
 
-
-		Matrix4 world = GetTransform()->GetWorld();
+		auto transform = GetTransform();
+		Matrix4 world = transform->GetWorld();
 		cb->World = world;
 		cb->WorldIT = InverseTranspose(world.Get3x3());
 		cb->Lod = mLoD;
 
-		// Updating joints matrices on gpu
+		// Updating joints matrices for gpu
 		if (mSkeletonRoot)
 		{
-
+			mBounds = Aabb(transform->GetPosition());
 			JointUpdateRecursion(Matrix4::Identity, *mSkeletonRoot);
 		}
 
@@ -355,6 +362,7 @@ namespace Darius::Renderer
 		}
 
 		// Uploading joints
+		if(mJoints.size() > 0)
 		{
 			D_PROFILING::ScopedTimer _prof2(L"Joints Upload", context);
 
@@ -399,7 +407,21 @@ namespace Darius::Renderer
 			compute.Finish();
 		}
 
+		Super::Update(dt);
+
 		SetClean();
+	}
+
+	D_MATH_BOUNDS::Aabb SkeletalMeshRendererComponent::GetAabb() const
+	{
+		auto transform = GetTransform();
+
+		if(!mMesh.IsValid())
+			return D_MATH_BOUNDS::Aabb(transform->GetPosition());
+
+		auto affiteTransform = AffineTransform(transform->GetWorld());
+
+		return mBounds.CalculateTransformed(affiteTransform);
 	}
 
 	void SkeletalMeshRendererComponent::OnDeserialized()
@@ -433,5 +455,4 @@ namespace Darius::Renderer
 			out[i] = mMesh->GetMaterial(i);
 		}
 	}
-
 }
