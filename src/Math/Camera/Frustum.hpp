@@ -38,6 +38,9 @@ namespace Darius::Math::Camera
 
         bool                            Intersects(D_MATH_BOUNDS::AxisAlignedBox const& aabb) const;
 
+        Vector3 const*                  _GetCorners() const { return m_FrustumCorners; }
+        D_MATH_BOUNDS::BoundingPlane const* _GetPlanes() const { return m_FrustumPlanes; }
+
         friend Frustum  operator* (const OrthogonalTransform& xform, const Frustum& frustum);	// Fast
         friend Frustum  operator* (const AffineTransform& xform, const Frustum& frustum);		// Slow
         friend Frustum  operator* (const Matrix4& xform, const Frustum& frustum);				// Slowest (and most general)
@@ -73,7 +76,7 @@ namespace Darius::Math::Camera
     {
         for (int i = 0; i < 6; ++i)
         {
-            D_MATH_BOUNDS::BoundingPlane p = m_FrustumPlanes[i];
+            D_MATH_BOUNDS::BoundingPlane const& p = m_FrustumPlanes[i];
             Vector3 farCorner = Select(aabb.GetMin(), aabb.GetMax(), p.GetNormal() > Vector3(kZero));
             if (p.DistanceFromPoint(farCorner) < 0.0f)
                 return false;
