@@ -13,6 +13,7 @@
 #include "Renderer/VertexTypes.hpp"
 
 #include <Core/TimeManager/TimeManager.hpp>
+#include <Debug/DebugDraw.hpp>
 #include <Graphics/AntiAliasing/TemporalEffect.hpp>
 #include <Graphics/AmbientOcclusion/ScreenSpaceAmbientOcclusion.hpp>
 #include <Graphics/GraphicsCore.hpp>
@@ -114,7 +115,7 @@ namespace Darius::Renderer::Rasterization
 		// Initialize IBL Textures on GPU
 		{
 			uint32_t DestCount = 2;
-			uint32_t SourceCounts[] = { 1, 1 };
+			uint32_t SourceCounts[] = {1, 1};
 
 			D3D12_CPU_DESCRIPTOR_HANDLE specHandle = DefaultBlackCubeMap->GetTextureData()->GetSRV();
 			D3D12_CPU_DESCRIPTOR_HANDLE diffHandle = DefaultBlackCubeMap->GetTextureData()->GetSRV();
@@ -125,7 +126,7 @@ namespace Darius::Renderer::Rasterization
 				diffHandle
 			};
 
-			for (int i = 0; i < D_GRAPHICS_DEVICE::gNumFrameResources; i++)
+			for(int i = 0; i < D_GRAPHICS_DEVICE::gNumFrameResources; i++)
 			{
 				DescriptorHandle dest = CommonTexture + 6 * TextureHeap.GetDescriptorSize();
 
@@ -141,7 +142,7 @@ namespace Darius::Renderer::Rasterization
 			LightContext = std::make_unique<D_RENDERER_RAST_LIGHT::RasterizationShadowedLightContext>(false);
 
 			// Read cascades from settings
-			if (settings.contains(CascadeOptionsKey))
+			if(settings.contains(CascadeOptionsKey))
 			{
 				auto& cascadesRef = LightContext->ModifyCascades();
 				DVector<float> desCascades = settings.at(CascadeOptionsKey);
@@ -203,82 +204,80 @@ namespace Darius::Renderer::Rasterization
 
 	void AddRenderItems(D_RENDERER_RAST::MeshSorter& sorter, D_MATH_CAMERA::BaseCamera const& cam, RenderItemContext const& riContext)
 	{
-		auto frustum = cam.GetViewSpaceFrustum();
-		int items = 0;
+		auto frustum = cam.GetWorldSpaceFrustum();
+		auto camPos = cam.GetPosition();
 
-		// Iterating over static meshes
-#define ADD_RENDERER_COMPONENT_RENDER_ITEMS(type) \
-		D_WORLD::IterateComponents<type>([&](D_RENDERER::type& meshComp) \
-			{ \
-				/* Can't render */ \
-				if (!meshComp.CanRender()) \
-					return; \
-\
-				/* Is it in our frustum */ \
-				auto worldAabb = meshComp.GetAabb(); \
-				auto aabbViewSpace = worldAabb.CalculateTransformed(AffineTransform(cam.GetViewMatrix())); \
-				if (!frustum.Intersects(aabbViewSpace)) \
-					return; \
-\
-				auto distance = -aabbViewSpace.GetCenter().GetZ() - aabbViewSpace.GetExtents().GetZ(); \
-\
-				meshComp.AddRenderItems([distance, &sorter](auto const& ri) \
-					{ \
-						sorter.AddMesh(ri, distance); \
-					}, riContext); \
-				items++; \
-			}); \
+		GetSceneBvh().FrustumQuery(frustum, [=, &sorter](D_ECS::UntypedCompRef const& compRef, D_MATH_BOUNDS::Aabb const& aabb)
+			{
+				auto rendererComp = reinterpret_cast<RendererComponent*>(compRef.Get());
 
-		ADD_RENDERER_COMPONENT_RENDER_ITEMS(MeshRendererComponent);
-		ADD_RENDERER_COMPONENT_RENDER_ITEMS(SkeletalMeshRendererComponent);
-		ADD_RENDERER_COMPONENT_RENDER_ITEMS(BillboardRendererComponent);
-		ADD_RENDERER_COMPONENT_RENDER_ITEMS(TerrainRendererComponent);
+				if(!rendererComp->CanRender())
+					return true;
 
-		D_LOG_DEBUG(std::format("Items visible: {}", items));
+				float distance = (camPos - aabb.GetCenter()).Length();
+
+				rendererComp->AddRenderItems([=, &sorter](RenderItem const& ri)
+					{
+						sorter.AddMesh(ri, distance);
+					}, riContext);
+
+				return true;
+			});
 
 #undef ADD_RENDERER_COMPONENT_RENDER_ITEMS
 
 	}
 
-	void AddShadowRenderItems(D_CONTAINERS::DVector<RenderItem>& items, RenderItemContext const& riContext)
+	void AddShadowRenderItems(D_RENDERER_RAST::MeshSorter& sorter, D_MATH_CAMERA::BaseCamera const& lightCam, RenderItemContext const& riContext)
 	{
+		auto const& frustum = lightCam.GetWorldSpaceFrustum();
+		auto const& camPos = lightCam.GetPosition();
 
-		RenderItemContext shadowRiContext = riContext;
-		shadowRiContext.Shadow = true;
+		GetSceneBvh().FrustumQuery(frustum, [=, &sorter](D_ECS::UntypedCompRef const& compRef, D_MATH_BOUNDS::Aabb const& aabb)
+			{
+				auto rendererComp = reinterpret_cast<RendererComponent*>(compRef.Get());
 
-		UINT shadowCompsCount = 0;
-		shadowCompsCount += D_WORLD::CountComponents<D_RENDERER::MeshRendererComponent>();
-		shadowCompsCount += D_WORLD::CountComponents<D_RENDERER::SkeletalMeshRendererComponent>();
-		shadowCompsCount += D_WORLD::CountComponents<D_RENDERER::BillboardRendererComponent>();
-		shadowCompsCount += D_WORLD::CountComponents<D_RENDERER::TerrainRendererComponent>();
-		items.reserve(shadowCompsCount);
+				if(!rendererComp->CanRender() || !rendererComp->IsCastingShadow())
+					return true;
+
+				float distance = (camPos - aabb.GetCenter()).Length();
+
+				rendererComp->AddRenderItems([=, &sorter](RenderItem const& ri)
+					{
+						auto item = ri;
+						item.Material.SamplersSRV.ptr = 0;
+						sorter.AddMesh(item, distance);
+					}, riContext);
+
+				return true;
+			});
 
 
-#define ADD_RENDERER_COMPONENT_RENDER_ITMES(type) \
-		/* Iterating over meshes */ \
-		D_WORLD::IterateComponents<type>([&](D_RENDERER::type& meshComp) \
-			{ \
-				/* Can't render */ \
-				if (!meshComp.CanRender()) \
-					return; \
- \
-				if (!meshComp.IsCastingShadow()) \
-					return; \
-\
-				meshComp.AddRenderItems([&items](auto const& ri) \
-					{ \
-						auto item = ri; \
-						item.Material.SamplersSRV.ptr = 0; \
-						items.push_back(item); \
-					}, shadowRiContext); \
-			}); \
-
-		ADD_RENDERER_COMPONENT_RENDER_ITMES(MeshRendererComponent);
-		ADD_RENDERER_COMPONENT_RENDER_ITMES(SkeletalMeshRendererComponent);
-		ADD_RENDERER_COMPONENT_RENDER_ITMES(BillboardRendererComponent);
-		ADD_RENDERER_COMPONENT_RENDER_ITMES(TerrainRendererComponent);
-
-#undef ADD_RENDERER_COMPONENT_RENDER_ITMES
+		//#define ADD_RENDERER_COMPONENT_RENDER_ITMES(type) \
+		//		/* Iterating over meshes */ \
+		//		D_WORLD::IterateComponents<type>([&](D_RENDERER::type& meshComp) \
+		//			{ \
+		//				/* Can't render */ \
+		//				if (!meshComp.CanRender()) \
+		//					return; \
+		// \
+		//				if (!meshComp.IsCastingShadow()) \
+		//					return; \
+		//\
+		//				meshComp.AddRenderItems([&sorter](auto const& ri) \
+		//					{ \
+		//						auto item = ri; \
+		//						item.Material.SamplersSRV.ptr = 0; \
+		//						sorter.AddMesh(item, -1); \
+		//					}, riContext); \
+		//			}); \
+		//
+		//		ADD_RENDERER_COMPONENT_RENDER_ITMES(MeshRendererComponent);
+		//		ADD_RENDERER_COMPONENT_RENDER_ITMES(SkeletalMeshRendererComponent);
+		//		ADD_RENDERER_COMPONENT_RENDER_ITMES(BillboardRendererComponent);
+		//		ADD_RENDERER_COMPONENT_RENDER_ITMES(TerrainRendererComponent);
+		//
+		//#undef ADD_RENDERER_COMPONENT_RENDER_ITMES
 	}
 
 	void Render(std::wstring const& jobId, SceneRenderContext& rContext, std::function<void()> postAntiAliasing)
@@ -300,15 +299,15 @@ namespace Darius::Renderer::Rasterization
 			D_PROFILING::ScopedTimer _prof1(L"Clearing render targets", context);
 			// Clearing depth and scene color textures
 			context.TransitionResource(rContext.DepthBuffer, D3D12_RESOURCE_STATE_DEPTH_WRITE);
-			if (rContext.CustomDepthBuffer)
+			if(rContext.CustomDepthBuffer)
 				context.TransitionResource(*rContext.CustomDepthBuffer, D3D12_RESOURCE_STATE_DEPTH_WRITE);
 
 			context.TransitionResource(rContext.ColorBuffer, D3D12_RESOURCE_STATE_RENDER_TARGET);
 			context.TransitionResource(rContext.NormalBuffer, D3D12_RESOURCE_STATE_RENDER_TARGET, true);
 			context.ClearDepth(rContext.DepthBuffer);
-			if (D_GRAPHICS::IsStencilEnable())
+			if(D_GRAPHICS::IsStencilEnable())
 				context.ClearStencil(rContext.DepthBuffer);
-			if (rContext.CustomDepthBuffer)
+			if(rContext.CustomDepthBuffer)
 				context.ClearDepth(*rContext.CustomDepthBuffer);
 			context.ClearColor(rContext.ColorBuffer);
 			context.ClearColor(rContext.NormalBuffer);
@@ -335,24 +334,15 @@ namespace Darius::Renderer::Rasterization
 			AddRenderItems(sorter, rContext.Camera, rContext.RenderItemContext);
 		}
 
-		{
-			// Creating shadows
-
-			DVector<RenderItem> shadowRenderItems;
-			{
-				D_PROFILING::ScopedTimer _prof(L"Shadow render items addition", context);
-				AddShadowRenderItems(shadowRenderItems, rContext.RenderItemContext);
-			}
-
-			LightContext->RenderShadows(shadowRenderItems, context);
-		}
+		// Creating shadows
+		LightContext->RenderShadows(context);
 
 		{
 			D_PROFILING::ScopedTimer _prof(L"Mesh Sort", context);
 			sorter.Sort();
 		}
 
-		if (rContext.DrawSkybox)
+		if(rContext.DrawSkybox)
 		{
 			D_RENDERER_RAST::SetIBLTextures(rContext.IrradianceIBL, rContext.RadianceIBL);
 			DrawSkybox(context, rContext.Camera, rContext.ColorBuffer, rContext.DepthBuffer, viewPort, scissor);
@@ -396,7 +386,7 @@ namespace Darius::Renderer::Rasterization
 
 		auto& commandContext = context.GetComputeContext();
 
-		D_GRAPHICS_PP_MOTION::MotionBlurBuffers motionBuffers = { rContext.ColorBuffer, rContext.LinearDepth[frameIdxMod2], rContext.VelocityBuffer, rContext.DepthBuffer };
+		D_GRAPHICS_PP_MOTION::MotionBlurBuffers motionBuffers = {rContext.ColorBuffer, rContext.LinearDepth[frameIdxMod2], rContext.VelocityBuffer, rContext.DepthBuffer};
 
 		D_GRAPHICS_PP_MOTION::GenerateCameraVelocityBuffer(commandContext, motionBuffers, rContext.Camera);
 
@@ -404,11 +394,11 @@ namespace Darius::Renderer::Rasterization
 
 
 		// Calling post anti-aliasing callback
-		if (postAntiAliasing)
+		if(postAntiAliasing)
 			postAntiAliasing();
 
 		// Additional renders
-		if (rContext.AdditionalRenderItems.size() > 0)
+		if(rContext.AdditionalRenderItems.size() > 0)
 		{
 			context.TransitionResource(rContext.ColorBuffer, D3D12_RESOURCE_STATE_RENDER_TARGET, true);
 
@@ -418,9 +408,9 @@ namespace Darius::Renderer::Rasterization
 			vp.TopLeftY = 0.5f;
 			additionalRenderSorter.SetViewport(vp);
 
-			for (auto const& additionalItemsVec : rContext.AdditionalRenderItems)
+			for(auto const& additionalItemsVec : rContext.AdditionalRenderItems)
 			{
-				for (auto& ri : *additionalItemsVec)
+				for(auto& ri : *additionalItemsVec)
 				{
 					additionalRenderSorter.AddMesh(ri, -1);
 				}
@@ -439,14 +429,14 @@ namespace Darius::Renderer::Rasterization
 
 		D_H_OPTION_DRAW_CHECKBOX("Separate Z Pass", "Renderer.Rasterization.Passes.SeparateZ", SeparateZPass);
 
-		if (ImGui::CollapsingHeader("Lighting"))
+		if(ImGui::CollapsingHeader("Lighting"))
 		{
 			ImGui::Indent();
 			{
 				ImGui::BeginGroup();
 
 				// Shoadow settings
-				if (ImGui::CollapsingHeader("Shadow"))
+				if(ImGui::CollapsingHeader("Shadow"))
 				{
 					// Cascades Count
 					{
@@ -454,7 +444,7 @@ namespace Darius::Renderer::Rasterization
 						ImGui::SameLine(inputOffset);
 						int value = (int)LightContext->GetCascadesCount();
 						ImGui::PushItemWidth(inputWidth);
-						if (ImGui::SliderInt("##Cascades Count", &value, 1, D_RENDERER_RAST_LIGHT::RasterizationShadowedLightContext::MaxDirectionalCascades, "%d", ImGuiSliderFlags_AlwaysClamp))
+						if(ImGui::SliderInt("##Cascades Count", &value, 1, D_RENDERER_RAST_LIGHT::RasterizationShadowedLightContext::MaxDirectionalCascades, "%d", ImGuiSliderFlags_AlwaysClamp))
 						{
 							LightContext->SetCascadesCount((UINT)value);
 							options[CascadeOptionsKey] = LightContext->GetCascades();
@@ -465,13 +455,13 @@ namespace Darius::Renderer::Rasterization
 					{
 						auto cascades = LightContext->GetCascades();
 						// Cascade Ranges
-						for (int i = 0; i < (int)LightContext->GetCascadesCount() - 1; i++)
+						for(int i = 0; i < (int)LightContext->GetCascadesCount() - 1; i++)
 						{
 							ImGui::Text((std::string("Cascade ") + std::to_string(i + 1)).c_str());
 							ImGui::SameLine(inputOffset);
 							float value = cascades.at(i);
 							ImGui::PushItemWidth(inputWidth);
-							if (ImGui::InputFloat((std::string("##Cascade") + std::to_string(i + 1)).c_str(), &value))
+							if(ImGui::InputFloat((std::string("##Cascade") + std::to_string(i + 1)).c_str(), &value))
 							{
 								value = D_MATH::Max(0.f, value);
 								LightContext->SetCascadeRange((UINT)i, value);
@@ -527,7 +517,7 @@ namespace Darius::Renderer::Rasterization
 		DXGI_FORMAT DepthFormat = D_GRAPHICS::GetDepthFormat();
 		DXGI_FORMAT ShadowFormat = D_GRAPHICS::GetShadowFormat();
 
-		DXGI_FORMAT rtFormats[] = { D_GRAPHICS::GetColorFormat(), DXGI_FORMAT_R16G16B16A16_FLOAT }; // Color and normal
+		DXGI_FORMAT rtFormats[] = {D_GRAPHICS::GetColorFormat(), DXGI_FORMAT_R16G16B16A16_FLOAT}; // Color and normal
 
 		// For Opaque objects
 		DefaultPso = GraphicsPSO(L"Opaque PSO");
@@ -596,11 +586,11 @@ namespace Darius::Renderer::Rasterization
 
 		// Set default texture if ibl textures are not loaded and
 		// have them loaded if necessary
-		if (diffuseIBL == nullptr || !diffuseIBL->GetTextureData()->IsCubeMap())
+		if(diffuseIBL == nullptr || !diffuseIBL->GetTextureData()->IsCubeMap())
 		{
 			IrradianceCubeMap = DefaultBlackCubeMap;
 		}
-		else if (!diffuseIBL->IsLoaded() || diffuseIBL->IsDirtyGPU())
+		else if(!diffuseIBL->IsLoaded() || diffuseIBL->IsDirtyGPU())
 		{
 			IrradianceCubeMap = DefaultBlackCubeMap;
 			loadIrradiance = true;
@@ -610,11 +600,11 @@ namespace Darius::Renderer::Rasterization
 			IrradianceCubeMap = diffuseIBL;
 		}
 
-		if (specularIBL == nullptr || !specularIBL->GetTextureData()->IsCubeMap())
+		if(specularIBL == nullptr || !specularIBL->GetTextureData()->IsCubeMap())
 		{
 			RadianceCubeMap = DefaultBlackCubeMap;
 		}
-		else if (!specularIBL->IsLoaded() || specularIBL->IsDirtyGPU())
+		else if(!specularIBL->IsLoaded() || specularIBL->IsDirtyGPU())
 		{
 			RadianceCubeMap = DefaultBlackCubeMap;
 			loadRadiance = true;
@@ -653,7 +643,7 @@ namespace Darius::Renderer::Rasterization
 
 			};
 
-		if (loadRadiance)
+		if(loadRadiance)
 		{
 			D_RESOURCE::ResourceLoader::LoadResourceAsync(specularIBL, nullptr, true);
 		}
@@ -662,7 +652,7 @@ namespace Darius::Renderer::Rasterization
 			setRadiance(specularIBL);
 		}
 
-		if (loadIrradiance)
+		if(loadIrradiance)
 		{
 			D_RESOURCE::ResourceLoader::LoadResourceAsync(diffuseIBL, nullptr, true);
 		}
@@ -729,12 +719,12 @@ namespace Darius::Renderer::Rasterization
 		union float_or_int { float f; uint32_t u; } dist;
 		dist.f = Max(distance, 0.0f);
 
-		if (m_BatchType == kShadows)
+		if(m_BatchType == kShadows)
 		{
-			if (alphaBlend)
+			if(alphaBlend)
 				return;
 
-			UINT shadowDepthPSO = renderItem.DepthPsoIndex > 0 ? renderItem.DepthPsoIndex + 1 : GetPso({ renderItem.PsoFlags, 0 }) + 1;
+			UINT shadowDepthPSO = renderItem.DepthPsoIndex > 0 ? renderItem.DepthPsoIndex + 1 : GetPso({renderItem.PsoFlags, 0}) + 1;
 
 			key.passID = kZPass;
 			key.psoIdx = shadowDepthPSO;
@@ -742,7 +732,7 @@ namespace Darius::Renderer::Rasterization
 			m_SortKeys.push_back(key.value);
 			m_PassCounts[kZPass]++;
 		}
-		else if (renderItem.PsoFlags & RenderItem::AlphaBlend)
+		else if(renderItem.PsoFlags & RenderItem::AlphaBlend)
 		{
 			key.passID = kTransparent;
 			key.psoIdx = renderItem.PsoType;
@@ -750,10 +740,10 @@ namespace Darius::Renderer::Rasterization
 			m_SortKeys.push_back(key.value);
 			m_PassCounts[kTransparent]++;
 		}
-		else if (SeparateZPass || alphaTest)
+		else if(SeparateZPass || alphaTest)
 		{
 			UINT16 flags = renderItem.PsoFlags | RenderItem::DepthOnly;
-			UINT depthPSO = renderItem.DepthPsoIndex > 0 ? renderItem.DepthPsoIndex : GetPso({ flags, 0u });
+			UINT depthPSO = renderItem.DepthPsoIndex > 0 ? renderItem.DepthPsoIndex : GetPso({flags, 0u});
 
 			key.passID = kZPass;
 			key.psoIdx = depthPSO;
@@ -777,7 +767,7 @@ namespace Darius::Renderer::Rasterization
 
 		}
 
-		SortObject object = { renderItem };
+		SortObject object = {renderItem};
 		m_SortObjects.push_back(object);
 	}
 
@@ -791,10 +781,14 @@ namespace Darius::Renderer::Rasterization
 		DrawPass pass,
 		D_GRAPHICS::GraphicsContext& context,
 		D_GRAPHICS_BUFFERS::ColorBuffer* ssao,
-		GlobalConstants& globals)
+		GlobalConstants& globals,
+		bool profile
+	)
 	{
 		D_ASSERT(m_DSV != nullptr);
-		D_PROFILING::ScopedTimer _prof(L"Render Meshes", context);
+
+		if(profile)
+			D_PROFILING::ScopedTimer _prof(L"Render Meshes", context);
 
 		context.SetRootSignature(RootSigns[DefaultRootSig]);
 
@@ -805,13 +799,13 @@ namespace Darius::Renderer::Rasterization
 		context.SetDescriptorHeap(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, TextureHeap.GetHeapPointer());
 		context.SetDescriptorTable(kCommonSRVs, CommonTexture);
 
-		if (m_BatchType == kShadows)
+		if(m_BatchType == kShadows)
 		{
 			context.TransitionResource(*m_DSV, D3D12_RESOURCE_STATE_DEPTH_WRITE, true);
 			context.ClearDepth(*m_DSV);
 			context.SetDepthStencilTarget(m_DSV->GetDSV());
 
-			if (m_Viewport.Width == 0)
+			if(m_Viewport.Width == 0)
 			{
 				m_Viewport.TopLeftX = 0.0f;
 				m_Viewport.TopLeftY = 0.0f;
@@ -829,10 +823,10 @@ namespace Darius::Renderer::Rasterization
 		else
 		{
 			// Copying light data
-			if (pass >= kOpaque)
+			if(pass >= kOpaque)
 			{
 				UINT destCount = ssao ? 6 : 5;
-				UINT sourceCounts[] = { 1, 1, 1, 1, 1, 1 };
+				UINT sourceCounts[] = {1, 1, 1, 1, 1, 1};
 				D3D12_CPU_DESCRIPTOR_HANDLE lightHandles[] =
 				{
 					LightContext->GetLightsStatusBufferDescriptor(),
@@ -859,14 +853,14 @@ namespace Darius::Renderer::Rasterization
 			// Setup samplers
 			context.SetDescriptorHeap(D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER, SamplerHeap.GetHeapPointer());
 
-			for (uint32_t i = 0; i < m_NumRTVs; ++i)
+			for(uint32_t i = 0; i < m_NumRTVs; ++i)
 			{
 				D_ASSERT(m_RTV[i] != nullptr);
 				D_ASSERT(m_DSV->GetWidth() == m_RTV[i]->GetWidth());
 				D_ASSERT(m_DSV->GetHeight() == m_RTV[i]->GetHeight());
 			}
 
-			if (m_Viewport.Width == 0)
+			if(m_Viewport.Width == 0)
 			{
 				m_Viewport.TopLeftX = 0.0f;
 				m_Viewport.TopLeftY = 0.0f;
@@ -882,23 +876,23 @@ namespace Darius::Renderer::Rasterization
 			}
 		}
 
-		for (; m_CurrentPass <= pass; m_CurrentPass = (DrawPass)(m_CurrentPass + 1))
+		for(; m_CurrentPass <= pass; m_CurrentPass = (DrawPass)(m_CurrentPass + 1))
 		{
 			const uint32_t passCount = m_PassCounts[m_CurrentPass];
-			if (passCount == 0)
+			if(passCount == 0)
 				continue;
 
 			bool customDepthWriteAvailable = false;
 
-			if (m_BatchType == kDefault)
+			if(m_BatchType == kDefault)
 			{
-				switch (m_CurrentPass)
+				switch(m_CurrentPass)
 				{
 				case kZPass:
 					context.TransitionResource(*m_DSV, D3D12_RESOURCE_STATE_DEPTH_WRITE);
 					context.SetDepthStencilTarget(m_DSV->GetDSV());
 
-					if (m_DSVCustom)
+					if(m_DSVCustom)
 					{
 						context.TransitionResource(*m_DSVCustom, D3D12_RESOURCE_STATE_DEPTH_WRITE);
 						customDepthWriteAvailable = true;
@@ -906,25 +900,25 @@ namespace Darius::Renderer::Rasterization
 
 					break;
 				case kOpaque:
-					if (SeparateZPass)
+					if(SeparateZPass)
 					{
 						context.TransitionResource(*m_DSV, D3D12_RESOURCE_STATE_DEPTH_READ);
 						context.TransitionResource(*m_RTV[0], D3D12_RESOURCE_STATE_RENDER_TARGET);
 						context.TransitionResource(*m_Norm, D3D12_RESOURCE_STATE_RENDER_TARGET);
-						D3D12_CPU_DESCRIPTOR_HANDLE RTs[] = { m_RTV[0]->GetRTV(), m_Norm->GetRTV() };
+						D3D12_CPU_DESCRIPTOR_HANDLE RTs[] = {m_RTV[0]->GetRTV(), m_Norm->GetRTV()};
 						context.SetRenderTargets(2, RTs, m_DSV->GetDSV_DepthReadOnly());
 					}
 					else
 					{
 						context.TransitionResource(*m_DSV, D3D12_RESOURCE_STATE_DEPTH_WRITE);
-						if (m_DSVCustom)
+						if(m_DSVCustom)
 						{
 							context.TransitionResource(*m_DSVCustom, D3D12_RESOURCE_STATE_DEPTH_WRITE);
 							customDepthWriteAvailable = true;
 						}
 						context.TransitionResource(*m_RTV[0], D3D12_RESOURCE_STATE_RENDER_TARGET);
 						context.TransitionResource(*m_Norm, D3D12_RESOURCE_STATE_RENDER_TARGET);
-						D3D12_CPU_DESCRIPTOR_HANDLE RTs[] = { m_RTV[0]->GetRTV(), m_Norm->GetRTV() };
+						D3D12_CPU_DESCRIPTOR_HANDLE RTs[] = {m_RTV[0]->GetRTV(), m_Norm->GetRTV()};
 						context.SetRenderTargets(2, RTs, m_DSV->GetDSV());
 						//context.SetRenderTarget(m_RTV[0]->GetRTV(), m_DSV->GetDSV());
 					}
@@ -944,31 +938,31 @@ namespace Darius::Renderer::Rasterization
 
 			bool dirtyRenderTarget = false;
 
-			while (m_CurrentDraw < lastDraw)
+			while(m_CurrentDraw < lastDraw)
 			{
 				SortKey key;
 				key.value = m_SortKeys[m_CurrentDraw];
 				const SortObject& object = m_SortObjects[key.objectIdx];
 				RenderItem const& ri = object.renderItem;
 
-				if (dirtyRenderTarget)
+				if(dirtyRenderTarget)
 					SetupDefaultBatchTypeRenderTargetsAfterCustomDepth(context);
 
-				if (ri.MeshVsCBV != D3D12_GPU_VIRTUAL_ADDRESS_UNKNOWN)
+				if(ri.MeshVsCBV != D3D12_GPU_VIRTUAL_ADDRESS_UNKNOWN)
 					context.SetConstantBuffer(kMeshConstantsVS, ri.MeshVsCBV);
 
-				if (ri.MeshHsCBV != D3D12_GPU_VIRTUAL_ADDRESS_UNKNOWN)
+				if(ri.MeshHsCBV != D3D12_GPU_VIRTUAL_ADDRESS_UNKNOWN)
 					context.SetConstantBuffer(kMeshConstantsHS, ri.MeshHsCBV);
 
-				if (ri.MeshDsCBV != D3D12_GPU_VIRTUAL_ADDRESS_UNKNOWN)
+				if(ri.MeshDsCBV != D3D12_GPU_VIRTUAL_ADDRESS_UNKNOWN)
 					context.SetConstantBuffer(kMeshConstantsDS, ri.MeshDsCBV);
 
-				if (ri.ParamsDsCBV != D3D12_GPU_VIRTUAL_ADDRESS_UNKNOWN)
+				if(ri.ParamsDsCBV != D3D12_GPU_VIRTUAL_ADDRESS_UNKNOWN)
 					context.SetConstantBuffer(kDomainConstantsDs, ri.ParamsDsCBV);
 
-				if (ri.PsoFlags & RenderItem::ColorOnly)
+				if(ri.PsoFlags & RenderItem::ColorOnly)
 				{
-					D_RENDERER::ColorConstants color = { ri.Color };
+					D_RENDERER::ColorConstants color = {ri.Color};
 					context.SetDynamicConstantBufferView(kMaterialConstantsPs, sizeof(ColorConstants), &color);
 				}
 				else
@@ -976,16 +970,16 @@ namespace Darius::Renderer::Rasterization
 					context.SetConstantBuffer(kMaterialConstantsPs, ri.Material.MaterialCBV);
 					context.SetDescriptorTable(kMaterialSRVs, ri.Material.MaterialSRV);
 
-					if (ri.Material.SamplersSRV.ptr != 0)
+					if(ri.Material.SamplersSRV.ptr != 0)
 						context.SetDescriptorTable(kMaterialSamplers, ri.Material.SamplersSRV);
 				}
 
-				if (ri.TextureDomainSRV.ptr != 0)
+				if(ri.TextureDomainSRV.ptr != 0)
 				{
 					context.SetDescriptorTable(kTextureDsSRVs, ri.TextureDomainSRV);
 				}
 
-				if (ri.mNumJoints > 0)
+				if(ri.mNumJoints > 0)
 				{
 					context.SetDynamicSRV(kSkinMatrices, sizeof(Joint) * ri.mNumJoints, ri.mJointData);
 				}
@@ -994,31 +988,31 @@ namespace Darius::Renderer::Rasterization
 
 				context.SetPrimitiveTopology(ri.PrimitiveType);
 
-				if (!(ri.PsoFlags & RenderItem::SkipVertexIndex))
+				if(!(ri.PsoFlags & RenderItem::SkipVertexIndex))
 				{
 					context.SetVertexBuffer(0, ri.Mesh->VertexBufferView());
 					context.SetIndexBuffer(ri.Mesh->IndexBufferView());
 				}
 
-				if (m_CurrentPass == kZPass)
+				if(m_CurrentPass == kZPass)
 				{
-					if (ri.StencilEnable)
+					if(ri.StencilEnable)
 						context.SetStencilRef(ri.StencilValue);
 					else
 						context.SetStencilRef(0u);
 				}
 
 				// Main render
-				if (ri.PsoFlags & RenderItem::SkipVertexIndex)
+				if(ri.PsoFlags & RenderItem::SkipVertexIndex)
 					context.DrawInstanced(ri.IndexCount, 1, ri.BaseVertexLocation, 0);
 				else
 					context.DrawIndexedInstanced(ri.IndexCount, 1, ri.StartIndexLocation, ri.BaseVertexLocation, 0);
 
 				// Custom depth
-				if (ri.CustomDepth && customDepthWriteAvailable)
+				if(ri.CustomDepth && customDepthWriteAvailable)
 				{
 					context.SetDepthStencilTarget(m_DSVCustom->GetDSV());
-					if (ri.PsoFlags & RenderItem::SkipVertexIndex)
+					if(ri.PsoFlags & RenderItem::SkipVertexIndex)
 						context.DrawInstanced(ri.IndexCount, 1, ri.BaseVertexLocation, 0);
 					else
 						context.DrawIndexedInstanced(ri.IndexCount, 1, ri.StartIndexLocation, ri.BaseVertexLocation, 0);
@@ -1033,15 +1027,15 @@ namespace Darius::Renderer::Rasterization
 
 	void MeshSorter::SetupDefaultBatchTypeRenderTargetsAfterCustomDepth(D_GRAPHICS::GraphicsContext& context)
 	{
-		switch (m_CurrentPass)
+		switch(m_CurrentPass)
 		{
 		case kZPass:
 			context.SetDepthStencilTarget(m_DSV->GetDSV());
 			break;
 		case kOpaque:
-			if (!SeparateZPass)
+			if(!SeparateZPass)
 			{
-				D3D12_CPU_DESCRIPTOR_HANDLE RTs[] = { m_RTV[0]->GetRTV(), m_Norm->GetRTV() };
+				D3D12_CPU_DESCRIPTOR_HANDLE RTs[] = {m_RTV[0]->GetRTV(), m_Norm->GetRTV()};
 				context.SetRenderTargets(2, RTs, m_DSV->GetDSV());
 			}
 			break;
@@ -1057,7 +1051,7 @@ namespace Darius::Renderer::Rasterization
 
 	void SetForceWireframe(bool val)
 	{
-		if (val)
+		if(val)
 			ForcedPsoFlags |= RenderItem::Wireframe;
 		else
 			ForcedPsoFlags &= ~RenderItem::Wireframe;
@@ -1084,17 +1078,17 @@ namespace Darius::Renderer::Rasterization
 		depthPSO.SetSampleMask(UINT_MAX);
 
 		// Handling VS and PS shader
-		if ((psoConfig.PSIndex | psoConfig.VSIndex) == 0)
+		if((psoConfig.PSIndex | psoConfig.VSIndex) == 0)
 		{
 			// Alpha testing
-			if (psoConfig.PsoFlags & RenderItem::AlphaTest)
+			if(psoConfig.PsoFlags & RenderItem::AlphaTest)
 			{
 				name += L" Cutout";
 
 				depthPSO.SetPixelShader(ShaderData("CutoutDepthPS"));
 
 				// Has skin
-				if (psoConfig.PsoFlags & RenderItem::HasSkin)
+				if(psoConfig.PsoFlags & RenderItem::HasSkin)
 				{
 					name += L" Skinned";
 					depthPSO.SetVertexShader(ShaderData("CutoutDepthSkinVS"));
@@ -1107,7 +1101,7 @@ namespace Darius::Renderer::Rasterization
 			else // No alpha testing
 			{
 				// Has skin
-				if (psoConfig.PsoFlags & RenderItem::HasSkin)
+				if(psoConfig.PsoFlags & RenderItem::HasSkin)
 				{
 					name += L" Skinned";
 					depthPSO.SetVertexShader(ShaderData("DepthOnlySkinVS"));
@@ -1123,27 +1117,27 @@ namespace Darius::Renderer::Rasterization
 			auto vShader = GetShaderByIndex(psoConfig.VSIndex);
 			auto pShader = GetShaderByIndex(psoConfig.PSIndex);
 
-			if (vShader)
+			if(vShader)
 				depthPSO.SetVertexShader(vShader->GetBufferPointer(), vShader->GetBufferSize());
 
-			if (pShader)
+			if(pShader)
 				depthPSO.SetPixelShader(pShader->GetBufferPointer(), pShader->GetBufferSize());
 		}
 
 		// Setting Geometry Shader
-		if (psoConfig.GSIndex > 0)
+		if(psoConfig.GSIndex > 0)
 		{
 			auto gShader = GetShaderByIndex(psoConfig.GSIndex);
 			depthPSO.SetGeometryShader(gShader->GetBufferPointer(), gShader->GetBufferSize());
 		}
 
-		if (psoConfig.HSIndex > 0)
+		if(psoConfig.HSIndex > 0)
 		{
 			auto gShader = GetShaderByIndex(psoConfig.HSIndex);
 			depthPSO.SetHullShader(gShader->GetBufferPointer(), gShader->GetBufferSize());
 		}
 
-		if (psoConfig.DSIndex > 0)
+		if(psoConfig.DSIndex > 0)
 		{
 			auto gShader = GetShaderByIndex(psoConfig.DSIndex);
 			depthPSO.SetDomainShader(gShader->GetBufferPointer(), gShader->GetBufferSize());
@@ -1152,11 +1146,11 @@ namespace Darius::Renderer::Rasterization
 		// Handling Rasterizer
 
 		// Is two sided
-		if (psoConfig.PsoFlags & RenderItem::TwoSided)
+		if(psoConfig.PsoFlags & RenderItem::TwoSided)
 		{
 			name += L" TwoSided";
 			// Is wireframed
-			if (psoConfig.PsoFlags & RenderItem::Wireframe)
+			if(psoConfig.PsoFlags & RenderItem::Wireframe)
 			{
 				name += L" Wireframe";
 				depthPSO.SetRasterizerState(RasterizerTwoSidedWireframe);
@@ -1169,7 +1163,7 @@ namespace Darius::Renderer::Rasterization
 		else // Not two sided
 		{
 			// Is wireframed
-			if (psoConfig.PsoFlags & RenderItem::Wireframe)
+			if(psoConfig.PsoFlags & RenderItem::Wireframe)
 			{
 				name += L" Wireframe";
 				depthPSO.SetRasterizerState(RasterizerDefaultWireframe);
@@ -1181,9 +1175,9 @@ namespace Darius::Renderer::Rasterization
 		}
 
 		// Handling input layout
-		if ((psoConfig.InputLayout.NumElements == 0) && (psoConfig.PsoFlags & RenderItem::SkipVertexIndex) == 0)
+		if((psoConfig.InputLayout.NumElements == 0) && (psoConfig.PsoFlags & RenderItem::SkipVertexIndex) == 0)
 		{
-			if (psoConfig.PsoFlags & RenderItem::HasSkin)
+			if(psoConfig.PsoFlags & RenderItem::HasSkin)
 			{
 				depthPSO.SetInputLayout(VertexData(D_RENDERER_VERTEX::VertexPositionNormalTangentTextureSkinned));
 			}
@@ -1198,17 +1192,17 @@ namespace Darius::Renderer::Rasterization
 		}
 
 		// Setting primitive topology (line / triangle)
-		if (psoConfig.PsoFlags & RenderItem::LineOnly && psoConfig.PsoFlags & RenderItem::PointOnly)
+		if(psoConfig.PsoFlags & RenderItem::LineOnly && psoConfig.PsoFlags & RenderItem::PointOnly)
 		{
 			name += L" Patch";
 			depthPSO.SetPrimitiveTopologyType(D3D12_PRIMITIVE_TOPOLOGY_TYPE_PATCH);
 		}
-		else if (psoConfig.PsoFlags & RenderItem::LineOnly)
+		else if(psoConfig.PsoFlags & RenderItem::LineOnly)
 		{
 			name += L" Line";
 			depthPSO.SetPrimitiveTopologyType(D3D12_PRIMITIVE_TOPOLOGY_TYPE_LINE);
 		}
-		else if (psoConfig.PsoFlags & RenderItem::PointOnly)
+		else if(psoConfig.PsoFlags & RenderItem::PointOnly)
 		{
 			name += L" Point";
 			depthPSO.SetPrimitiveTopologyType(D3D12_PRIMITIVE_TOPOLOGY_TYPE_POINT);
@@ -1225,9 +1219,9 @@ namespace Darius::Renderer::Rasterization
 
 
 		// Look for an existing PSO
-		for (uint32_t i = 0; i < Psos.size(); ++i)
+		for(uint32_t i = 0; i < Psos.size(); ++i)
 		{
-			if (depthPSO.GetPipelineStateObject() == Psos[i].GetPipelineStateObject())
+			if(depthPSO.GetPipelineStateObject() == Psos[i].GetPipelineStateObject())
 			{
 				return i;
 			}
@@ -1241,10 +1235,10 @@ namespace Darius::Renderer::Rasterization
 
 		// Handling Shadow Rasterizer
 		// Is two sided
-		if (psoConfig.PsoFlags & RenderItem::TwoSided)
+		if(psoConfig.PsoFlags & RenderItem::TwoSided)
 		{
 			// Is wireframed
-			if (psoConfig.PsoFlags & RenderItem::Wireframe)
+			if(psoConfig.PsoFlags & RenderItem::Wireframe)
 			{
 				depthPSO.SetRasterizerState(RasterizerShadowTwoSidedWireframe);
 			}
@@ -1256,7 +1250,7 @@ namespace Darius::Renderer::Rasterization
 		else // Not two sided
 		{
 			// Is wireframed
-			if (psoConfig.PsoFlags & RenderItem::Wireframe)
+			if(psoConfig.PsoFlags & RenderItem::Wireframe)
 			{
 				depthPSO.SetRasterizerState(RasterizerShadowWireframe);
 			}
@@ -1289,9 +1283,9 @@ namespace Darius::Renderer::Rasterization
 		std::wstring psoName;
 
 		// Setting input layout
-		if (psoConfig.InputLayout.NumElements == 0 && (psoConfig.PsoFlags & RenderItem::SkipVertexIndex) == 0)
+		if(psoConfig.InputLayout.NumElements == 0 && (psoConfig.PsoFlags & RenderItem::SkipVertexIndex) == 0)
 		{
-			if (psoConfig.PsoFlags & RenderItem::HasSkin)
+			if(psoConfig.PsoFlags & RenderItem::HasSkin)
 			{
 				ColorPSO.SetInputLayout(VertexData(D_RENDERER_VERTEX::VertexPositionNormalTangentTextureSkinned));
 			}
@@ -1301,9 +1295,9 @@ namespace Darius::Renderer::Rasterization
 
 #define GET_SHADER(name) Psos[name]
 
-		if ((psoConfig.PSIndex | psoConfig.VSIndex) == 0)
+		if((psoConfig.PSIndex | psoConfig.VSIndex) == 0)
 		{
-			if (psoConfig.PsoFlags & RenderItem::ColorOnly)
+			if(psoConfig.PsoFlags & RenderItem::ColorOnly)
 			{
 				ColorPSO.SetVertexShader(ShaderData("ColorVS"));
 				ColorPSO.SetPixelShader(ShaderData("ColorPS"));
@@ -1312,11 +1306,11 @@ namespace Darius::Renderer::Rasterization
 			}
 			else
 			{
-				if (psoConfig.PsoFlags & RenderItem::HasSkin)
+				if(psoConfig.PsoFlags & RenderItem::HasSkin)
 				{
-					if (psoConfig.PsoFlags & RenderItem::HasTangent)
+					if(psoConfig.PsoFlags & RenderItem::HasTangent)
 					{
-						if (psoConfig.PsoFlags & RenderItem::HasUV1)
+						if(psoConfig.PsoFlags & RenderItem::HasUV1)
 						{
 							// TODO: Change to a shader supporting UV1
 							D_ASSERT_M(true, "UV1 is currently not supported");
@@ -1330,7 +1324,7 @@ namespace Darius::Renderer::Rasterization
 					else
 					{
 						// TODO: Change all these to a shader without tangent parameter for every vertext
-						if (psoConfig.PsoFlags & RenderItem::HasUV1)
+						if(psoConfig.PsoFlags & RenderItem::HasUV1)
 						{
 							D_ASSERT_M(true, "UV1 is currently not supported");
 						}
@@ -1344,9 +1338,9 @@ namespace Darius::Renderer::Rasterization
 				}
 				else
 				{
-					if (psoConfig.PsoFlags & RenderItem::HasTangent)
+					if(psoConfig.PsoFlags & RenderItem::HasTangent)
 					{
-						if (psoConfig.PsoFlags & RenderItem::HasUV1)
+						if(psoConfig.PsoFlags & RenderItem::HasUV1)
 						{
 							// TODO: Change to a shader supporting UV1
 							D_ASSERT_M(true, "UV1 is currently not supported");
@@ -1360,7 +1354,7 @@ namespace Darius::Renderer::Rasterization
 					else
 					{
 						// TODO: Change all these to a shader without tangent parameter for every vertext
-						if (psoConfig.PsoFlags & RenderItem::HasUV1)
+						if(psoConfig.PsoFlags & RenderItem::HasUV1)
 						{
 							D_ASSERT_M(true, "Higher level UV sets are not supported yet");
 						}
@@ -1378,15 +1372,15 @@ namespace Darius::Renderer::Rasterization
 			auto vShader = GetShaderByIndex(psoConfig.VSIndex);
 			auto pShader = GetShaderByIndex(psoConfig.PSIndex);
 
-			if (vShader)
+			if(vShader)
 				ColorPSO.SetVertexShader(vShader->GetBufferPointer(), vShader->GetBufferSize());
 
-			if (pShader)
+			if(pShader)
 				ColorPSO.SetPixelShader(pShader->GetBufferPointer(), pShader->GetBufferSize());
 		}
 
 		// Setting Geometry Shader
-		if (psoConfig.GSIndex > 0)
+		if(psoConfig.GSIndex > 0)
 		{
 			auto gShader = GetShaderByIndex(psoConfig.GSIndex);
 			ColorPSO.SetGeometryShader(gShader->GetBufferPointer(), gShader->GetBufferSize());
@@ -1394,7 +1388,7 @@ namespace Darius::Renderer::Rasterization
 			psoName += L"Geometry:" + std::to_wstring(psoConfig.GSIndex);
 		}
 
-		if (psoConfig.HSIndex > 0)
+		if(psoConfig.HSIndex > 0)
 		{
 			auto gShader = GetShaderByIndex(psoConfig.HSIndex);
 			ColorPSO.SetHullShader(gShader->GetBufferPointer(), gShader->GetBufferSize());
@@ -1402,7 +1396,7 @@ namespace Darius::Renderer::Rasterization
 			psoName += L"Hull:" + std::to_wstring(psoConfig.HSIndex);
 		}
 
-		if (psoConfig.DSIndex > 0)
+		if(psoConfig.DSIndex > 0)
 		{
 			auto gShader = GetShaderByIndex(psoConfig.DSIndex);
 			ColorPSO.SetDomainShader(gShader->GetBufferPointer(), gShader->GetBufferSize());
@@ -1410,15 +1404,15 @@ namespace Darius::Renderer::Rasterization
 			psoName += L"Domain:" + std::to_wstring(psoConfig.DSIndex);
 		}
 
-		if (psoConfig.PsoFlags & RenderItem::AlphaBlend)
+		if(psoConfig.PsoFlags & RenderItem::AlphaBlend)
 		{
 			ColorPSO.SetBlendState(BlendTraditional);
 			ColorPSO.SetDepthStencilState(DepthStateReadOnly);
 			psoName += L"AlphaBlended ";
 		}
-		if (psoConfig.PsoFlags & RenderItem::TwoSided)
+		if(psoConfig.PsoFlags & RenderItem::TwoSided)
 		{
-			if (psoConfig.PsoFlags & RenderItem::Wireframe)
+			if(psoConfig.PsoFlags & RenderItem::Wireframe)
 			{
 				ColorPSO.SetRasterizerState(RasterizerTwoSidedWireframe);
 				psoName += L"Wireframed ";
@@ -1430,7 +1424,7 @@ namespace Darius::Renderer::Rasterization
 		}
 		else
 		{
-			if (psoConfig.PsoFlags & RenderItem::Wireframe)
+			if(psoConfig.PsoFlags & RenderItem::Wireframe)
 			{
 				ColorPSO.SetRasterizerState(RasterizerDefaultWireframe);
 				psoName += L"Wireframed ";
@@ -1440,17 +1434,17 @@ namespace Darius::Renderer::Rasterization
 		}
 
 		// Setting primitive topology (line / triangle)
-		if (psoConfig.PsoFlags & RenderItem::LineOnly && psoConfig.PsoFlags & RenderItem::PointOnly)
+		if(psoConfig.PsoFlags & RenderItem::LineOnly && psoConfig.PsoFlags & RenderItem::PointOnly)
 		{
 			ColorPSO.SetPrimitiveTopologyType(D3D12_PRIMITIVE_TOPOLOGY_TYPE_PATCH);
 			psoName += L" Patch";
 		}
-		else if (psoConfig.PsoFlags & RenderItem::LineOnly)
+		else if(psoConfig.PsoFlags & RenderItem::LineOnly)
 		{
 			ColorPSO.SetPrimitiveTopologyType(D3D12_PRIMITIVE_TOPOLOGY_TYPE_LINE);
 			psoName += L"Line ";
 		}
-		else if (psoConfig.PsoFlags & RenderItem::PointOnly)
+		else if(psoConfig.PsoFlags & RenderItem::PointOnly)
 		{
 			ColorPSO.SetPrimitiveTopologyType(D3D12_PRIMITIVE_TOPOLOGY_TYPE_POINT);
 			psoName += L"Point ";
@@ -1463,9 +1457,9 @@ namespace Darius::Renderer::Rasterization
 		ColorPSO.Finalize(psoName);
 
 		// Look for an existing PSO
-		for (uint32_t i = 0; i < Psos.size(); ++i)
+		for(uint32_t i = 0; i < Psos.size(); ++i)
 		{
-			if (ColorPSO.GetPipelineStateObject() == Psos[i].GetPipelineStateObject())
+			if(ColorPSO.GetPipelineStateObject() == Psos[i].GetPipelineStateObject())
 			{
 				return i;
 			}
@@ -1478,7 +1472,7 @@ namespace Darius::Renderer::Rasterization
 		ColorPSO.SetDepthStencilState(DepthStateTestEqual);
 		ColorPSO.Finalize();
 #ifdef _DEBUG
-		for (uint32_t i = 0; i < Psos.size(); ++i)
+		for(uint32_t i = 0; i < Psos.size(); ++i)
 			D_ASSERT(ColorPSO.GetPipelineStateObject() != Psos[i].GetPipelineStateObject());
 #endif
 		Psos.push_back(ColorPSO);
@@ -1491,10 +1485,10 @@ namespace Darius::Renderer::Rasterization
 
 	UINT GetPso(PsoConfig const& psoConfig)
 	{
-		if (D_RENDERER::GetActiveRendererType() != D_RENDERER::RendererType::Rasterization)
+		if(D_RENDERER::GetActiveRendererType() != D_RENDERER::RendererType::Rasterization)
 			return UINT_MAX;
 
-		if (psoConfig.PsoFlags & RenderItem::DepthOnly)
+		if(psoConfig.PsoFlags & RenderItem::DepthOnly)
 			return GetDepthOnlyPso(psoConfig);
 		else
 			return GetRenderPso(psoConfig);

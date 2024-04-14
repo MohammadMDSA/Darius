@@ -213,6 +213,7 @@ namespace Darius::Renderer
 		mSkeleton.clear();
 		mJointLocalPoses.clear();
 		mSkeletonRoot = nullptr;
+		mBounds = D_MATH_BOUNDS::Aabb(GetTransform()->GetPosition());
 		if (mMesh.IsValid())
 		{
 			// Copying skeleton to component
@@ -406,7 +407,21 @@ namespace Darius::Renderer
 			compute.Finish();
 		}
 
+		Super::Update(dt);
+
 		SetClean();
+	}
+
+	D_MATH_BOUNDS::Aabb SkeletalMeshRendererComponent::GetAabb() const
+	{
+		auto transform = GetTransform();
+
+		if(!mMesh.IsValid())
+			return D_MATH_BOUNDS::Aabb(transform->GetPosition());
+
+		auto affiteTransform = AffineTransform(transform->GetWorld());
+
+		return mBounds.CalculateTransformed(affiteTransform);
 	}
 
 	void SkeletalMeshRendererComponent::OnDeserialized()

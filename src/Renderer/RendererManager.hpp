@@ -4,7 +4,9 @@
 #include "Resources/TextureResource.hpp"
 
 #include <Core/Serialization/Json.hpp>
+#include <Math/Bounds/DynamicBVH.hpp>
 #include <ResourceManager/Resource.hpp>
+#include <Scene/EntityComponentSystem/CompRef.hpp>
 
 #ifndef D_RENDERER
 #define D_RENDERER Darius::Renderer
@@ -69,7 +71,11 @@ namespace Darius::Renderer
 	// Set render options
 	void						SetForceWireframe(bool val);
 
-
 	D_RESOURCE::ResourceHandle	GetDefaultGraphicsResource(DefaultResource type);
 
+	D_MATH_BOUNDS::DynamicBVH<D_ECS::UntypedCompRef>::ID RegisterComponent(D_ECS::UntypedCompRef const& compRef);
+	bool						UpdateComponentBounds(D_MATH_BOUNDS::DynamicBVH<D_ECS::UntypedCompRef>::ID const& id, D_MATH_BOUNDS::Aabb const& aabb);
+	void						UnregisterComponent(D_MATH_BOUNDS::DynamicBVH<D_ECS::UntypedCompRef>::ID const& id);
+
+	D_MATH_BOUNDS::DynamicBVH<D_ECS::UntypedCompRef> const& GetSceneBvh();
 }

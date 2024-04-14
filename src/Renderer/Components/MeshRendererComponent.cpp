@@ -229,6 +229,9 @@ namespace Darius::Renderer
 			return;
 
 		auto& context = D_GRAPHICS::GraphicsContext::Begin();
+
+		Super::Update(dt);
+
 		auto frameResourceIndex = D_GRAPHICS_DEVICE::GetCurrentFrameResourceIndex();
 
 		// Updating mesh constants

@@ -38,7 +38,7 @@ namespace Darius::Renderer
 		INLINE D_RENDERER_GEOMETRY::Mesh::SkeletonJoint* GetSkeletonRoot() { return mSkeletonRoot; }
 
 
-		INLINE virtual D_MATH_BOUNDS::Aabb	GetAabb() const override { return mBounds; }
+		virtual D_MATH_BOUNDS::Aabb			GetAabb() const override;
 
 		void								SetMesh(SkeletalMeshResource* mesh);
 		INLINE SkeletalMeshResource*		GetMesh() const { return mMesh.Get(); }

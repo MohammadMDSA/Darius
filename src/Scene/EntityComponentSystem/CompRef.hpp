@@ -82,6 +82,8 @@ namespace Darius::Scene::ECS
 
 	private:
 
+		friend struct std::hash<UntypedCompRef>;
+
 		Entity					mEntity;
 		ComponentEntry			mComponent;
 	};
@@ -185,5 +187,19 @@ namespace Darius::Scene::ECS
 			flecs::ref<T>						mRef;
 	};
 }
+
+namespace std
+{
+	template<>
+	struct hash<D_ECS::UntypedCompRef>
+	{
+		INLINE size_t operator() (D_ECS::UntypedCompRef const& ref)
+		{
+			hash<flecs::id_t> hasher;
+			return hasher(ref.mEntity) + hasher(ref.mComponent);
+		}
+	};
+}
+
 
 File_CompRef_GENERATED

@@ -50,6 +50,8 @@ namespace Darius::Renderer
 
 	void BillboardRendererComponent::Awake()
 	{
+		Super::Awake();
+
 		// Initializing Mesh Constants buffers
 		mMeshConstantsCPU.Create(L"Mesh Constant Upload Buffer", sizeof(BillboardConstants), D_GRAPHICS_DEVICE::gNumFrameResources);
 		mMeshConstantsGPU.Create(L"Mesh Constant GPU Buffer", 1, sizeof(BillboardConstants));
@@ -62,6 +64,8 @@ namespace Darius::Renderer
 			return;
 
 		auto& context = D_GRAPHICS::GraphicsContext::Begin();
+
+		Super::Update(dt);
 
 		// Updating mesh constants
 		// Mapping upload buffer
@@ -104,6 +108,12 @@ namespace Darius::Renderer
 		this->mHeight = value;
 
 		SetDirty();
+	}
+
+	void BillboardRendererComponent::OnDestroy()
+	{
+		mMeshConstantsCPU.Destroy();
+		mMeshConstantsGPU.Destroy();
 	}
 
 	bool BillboardRendererComponent::AddRenderItems(std::function<void(D_RENDERER::RenderItem const&)> appendFunction, RenderItemContext const& riContext)

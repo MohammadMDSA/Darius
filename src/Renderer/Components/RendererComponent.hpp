@@ -2,6 +2,7 @@
 
 #include "IRenderable.hpp"
 
+#include <Math/Bounds/DynamicBVH.hpp>
 #include <Scene/EntityComponentSystem/Components/ComponentBase.hpp>
 
 #include "RendererComponent.generated.hpp"
@@ -18,6 +19,13 @@ namespace Darius::Renderer
 		D_H_COMP_BODY(RendererComponent, D_ECS_COMP::ComponentBase, "Rendering/Renderable", false);
 		
 	public:
+
+		virtual void										Start() override;
+		virtual void										Update(float dt) override;
+		virtual void										OnActivate() override;
+		virtual void										OnDeactivate() override;
+		virtual void										OnPreDestroy() override;
+
 		INLINE virtual bool									CanRender() const override { return IsActive(); }
 		INLINE virtual D_MATH_BOUNDS::Aabb					GetAabb() const override { D_ASSERT(false); return D_MATH_BOUNDS::Aabb(); }
 		INLINE virtual D3D12_GPU_VIRTUAL_ADDRESS			GetConstantsAddress() const override { return D3D12_GPU_VIRTUAL_ADDRESS_UNKNOWN; }
@@ -51,5 +59,7 @@ namespace Darius::Renderer
 
 		DField(Serialize)
 		UINT8												mStencilValue;
+
+		D_MATH_BOUNDS::DynamicBVH<D_ECS::UntypedCompRef>::ID mBvhNodeId;
 	};
 }

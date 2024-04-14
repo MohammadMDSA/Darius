@@ -25,6 +25,7 @@ namespace Darius::Renderer
 
 		virtual void						Update(float dt) override;
 		virtual void						Awake() override;
+		virtual void						OnDestroy() override;
 
 #ifdef _D_EDITOR
 		virtual bool						DrawDetails(float params[]) override;

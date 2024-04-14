@@ -18,7 +18,9 @@
 #include "Resources/TextureResource.hpp"
 
 #include <Core/Containers/Map.hpp>
+#include <Core/Containers/Set.hpp>
 #include <Core/Uuid.hpp>
+#include <Graphics/GraphicsUtils/Profiling/Profiling.hpp>
 #include <Math/VectorMath.hpp>
 #include <Utils/Assert.hpp>
 
@@ -31,6 +33,7 @@ using namespace D_CORE;
 using namespace D_GRAPHICS;
 using namespace D_GRAPHICS_MEMORY;
 using namespace D_MATH;
+using namespace D_MATH_BOUNDS;
 using namespace D_RENDERER_GEOMETRY;
 using namespace D_RESOURCE;
 
@@ -47,6 +50,7 @@ namespace Darius::Renderer
 	DUnorderedMap<DefaultResource, ResourceHandle>		DefaultResourceMap;
 
 	void												LoadDefaultResources();
+	D_MATH_BOUNDS::DynamicBVH<D_ECS::UntypedCompRef>	SceneBVH;
 
 	void Initialize(D_SERIALIZATION::Json const& settings)
 	{
@@ -67,7 +71,7 @@ namespace Darius::Renderer
 
 		ActiveRendererType = HardwareRayTracing ? RendererType::RayTracing : RendererType::Rasterization;
 
-		if (ActiveRendererType == RendererType::Rasterization)
+		if(ActiveRendererType == RendererType::Rasterization)
 			D_RENDERER_RAST::Initialize(settings);
 		else
 			D_RENDERER_RT::Initialize(settings);
@@ -85,7 +89,7 @@ namespace Darius::Renderer
 	{
 		D_ASSERT(_initialized);
 
-		if (ActiveRendererType == RendererType::Rasterization)
+		if(ActiveRendererType == RendererType::Rasterization)
 			D_RENDERER_RAST::Shutdown();
 		else
 			D_RENDERER_RT::Shutdown();
@@ -95,7 +99,7 @@ namespace Darius::Renderer
 	{
 		auto& context = D_GRAPHICS::GraphicsContext::Begin(L"Update Renderer");
 
-		switch (ActiveRendererType)
+		switch(ActiveRendererType)
 		{
 		case Darius::Renderer::RendererType::Rasterization:
 			D_RENDERER_RAST::Update(context);
@@ -107,12 +111,17 @@ namespace Darius::Renderer
 			D_ASSERT_M(true, "Update method not been implemented for this renderer type");
 		}
 
+		{
+			D_PROFILING::ScopedTimer _prof(L"Optimizing Scene BVH", context);
+			SceneBVH.OptimizeIncremental(1);
+		}
+
 		context.Finish();
 	}
 
 	void Render(std::wstring const& jobId, SceneRenderContext& renderContext, std::function<void()> postAntiAliasing)
 	{
-		switch (ActiveRendererType)
+		switch(ActiveRendererType)
 		{
 		case Darius::Renderer::RendererType::Rasterization:
 			D_RENDERER_RAST::Render(jobId, renderContext, postAntiAliasing);
@@ -154,7 +163,7 @@ namespace Darius::Renderer
 			res->MakeGpuClean();
 			res->MakeDiskClean();
 			((StaticMeshResource*)res)->Create(meshData);
-			DefaultResourceMap.insert({ DefaultResource::BoxMesh, { StaticMeshResource::GetResourceType(), res->GetId()} });
+			DefaultResourceMap.insert({DefaultResource::BoxMesh, { StaticMeshResource::GetResourceType(), res->GetId()}});
 
 			resHandle = D_RESOURCE::GetManager()->CreateResource<StaticMeshResource>(GenerateUuidFor("Cylinder Mesh"), L"Cylinder Mesh", L"Cylinder Mesh", true);
 			meshData.MeshData = cylinder;
@@ -162,7 +171,7 @@ namespace Darius::Renderer
 			res->MakeGpuClean();
 			res->MakeDiskClean();
 			((StaticMeshResource*)res)->Create(meshData);
-			DefaultResourceMap.insert({ DefaultResource::CylinderMesh, { StaticMeshResource::GetResourceType(), res->GetId() } });
+			DefaultResourceMap.insert({DefaultResource::CylinderMesh, { StaticMeshResource::GetResourceType(), res->GetId() }});
 
 			resHandle = D_RESOURCE::GetManager()->CreateResource<StaticMeshResource>(GenerateUuidFor("Geosphere Mesh"), L"Geosphere Mesh", L"Geosphere Mesh", true);
 			meshData.MeshData = geosphere;
@@ -170,7 +179,7 @@ namespace Darius::Renderer
 			res->MakeGpuClean();
 			res->MakeDiskClean();
 			((StaticMeshResource*)res)->Create(meshData);
-			DefaultResourceMap.insert({ DefaultResource::GeosphereMesh, { StaticMeshResource::GetResourceType(), res->GetId() } });
+			DefaultResourceMap.insert({DefaultResource::GeosphereMesh, { StaticMeshResource::GetResourceType(), res->GetId() }});
 
 			{
 				resHandle = D_RESOURCE::GetManager()->CreateResource<StaticMeshResource>(GenerateUuidFor("Grid 2x2 Mesh"), L"Grid 2x2 Mesh", L"Grid 2x2 Mesh", true);
@@ -179,7 +188,7 @@ namespace Darius::Renderer
 				res->MakeGpuClean();
 				res->MakeDiskClean();
 				((StaticMeshResource*)res)->Create(meshData);
-				DefaultResourceMap.insert({ DefaultResource::GridPatch2x2Mesh, { StaticMeshResource::GetResourceType(), res->GetId() } });
+				DefaultResourceMap.insert({DefaultResource::GridPatch2x2Mesh, { StaticMeshResource::GetResourceType(), res->GetId() }});
 
 				resHandle = D_RESOURCE::GetManager()->CreateResource<StaticMeshResource>(GenerateUuidFor("Grid 4x4 Mesh"), L"Grid 4x4 Mesh", L"Grid 4x4 Mesh", true);
 				meshData.MeshData = gridp4;
@@ -187,7 +196,7 @@ namespace Darius::Renderer
 				res->MakeGpuClean();
 				res->MakeDiskClean();
 				((StaticMeshResource*)res)->Create(meshData);
-				DefaultResourceMap.insert({ DefaultResource::GridPatch4x4Mesh, { StaticMeshResource::GetResourceType(), res->GetId() } });
+				DefaultResourceMap.insert({DefaultResource::GridPatch4x4Mesh, { StaticMeshResource::GetResourceType(), res->GetId() }});
 
 				resHandle = D_RESOURCE::GetManager()->CreateResource<StaticMeshResource>(GenerateUuidFor("Grid 8x8 Mesh"), L"Grid 8x8 Mesh", L"Grid 8x8 Mesh", true);
 				meshData.MeshData = gridp8;
@@ -195,7 +204,7 @@ namespace Darius::Renderer
 				res->MakeGpuClean();
 				res->MakeDiskClean();
 				((StaticMeshResource*)res)->Create(meshData);
-				DefaultResourceMap.insert({ DefaultResource::GridPatch8x8Mesh, { StaticMeshResource::GetResourceType(), res->GetId() } });
+				DefaultResourceMap.insert({DefaultResource::GridPatch8x8Mesh, { StaticMeshResource::GetResourceType(), res->GetId() }});
 
 				resHandle = D_RESOURCE::GetManager()->CreateResource<StaticMeshResource>(GenerateUuidFor("Grid 16x16 Mesh"), L"Grid 16x16 Mesh", L"Grid 16x16 Mesh", true);
 				meshData.MeshData = gridp16;
@@ -203,7 +212,7 @@ namespace Darius::Renderer
 				res->MakeGpuClean();
 				res->MakeDiskClean();
 				((StaticMeshResource*)res)->Create(meshData);
-				DefaultResourceMap.insert({ DefaultResource::GridPatch16x16Mesh, { StaticMeshResource::GetResourceType(), res->GetId() } });
+				DefaultResourceMap.insert({DefaultResource::GridPatch16x16Mesh, { StaticMeshResource::GetResourceType(), res->GetId() }});
 
 				resHandle = D_RESOURCE::GetManager()->CreateResource<StaticMeshResource>(GenerateUuidFor("Grid 100x100 Mesh"), L"Grid 100x100 Mesh", L"Grid 100x100 Mesh", true);
 				meshData.MeshData = grid100;
@@ -211,7 +220,7 @@ namespace Darius::Renderer
 				res->MakeGpuClean();
 				res->MakeDiskClean();
 				((StaticMeshResource*)res)->Create(meshData);
-				DefaultResourceMap.insert({ DefaultResource::Grid100x100Mesh, { StaticMeshResource::GetResourceType(), res->GetId() } });
+				DefaultResourceMap.insert({DefaultResource::Grid100x100Mesh, { StaticMeshResource::GetResourceType(), res->GetId() }});
 			}
 
 			resHandle = D_RESOURCE::GetManager()->CreateResource<StaticMeshResource>(GenerateUuidFor("Quad Mesh"), L"Quad Mesh", L"Quad Mesh", true);
@@ -220,7 +229,7 @@ namespace Darius::Renderer
 			res->MakeGpuClean();
 			res->MakeDiskClean();
 			((StaticMeshResource*)res)->Create(meshData);
-			DefaultResourceMap.insert({ DefaultResource::QuadMesh, { StaticMeshResource::GetResourceType(), res->GetId() } });
+			DefaultResourceMap.insert({DefaultResource::QuadMesh, { StaticMeshResource::GetResourceType(), res->GetId() }});
 
 			resHandle = D_RESOURCE::GetManager()->CreateResource<StaticMeshResource>(GenerateUuidFor("Sphere Mesh"), L"Sphere Mesh", L"Sphere Mesh", true);
 			meshData.MeshData = sphere;
@@ -228,7 +237,7 @@ namespace Darius::Renderer
 			res->MakeGpuClean();
 			res->MakeDiskClean();
 			((StaticMeshResource*)res)->Create(meshData);
-			DefaultResourceMap.insert({ DefaultResource::SphereMesh, { StaticMeshResource::GetResourceType(), res->GetId() } });
+			DefaultResourceMap.insert({DefaultResource::SphereMesh, { StaticMeshResource::GetResourceType(), res->GetId() }});
 
 			resHandle = D_RESOURCE::GetManager()->CreateResource<StaticMeshResource>(GenerateUuidFor("Low Poly Sphere Mesh"), L"Low Poly Sphere Mesh", L"Low Poly Sphere Mesh", true);
 			meshData.MeshData = lowSphere;
@@ -236,7 +245,7 @@ namespace Darius::Renderer
 			res->MakeGpuClean();
 			res->MakeDiskClean();
 			((StaticMeshResource*)res)->Create(meshData);
-			DefaultResourceMap.insert({ DefaultResource::LowPolySphereMesh, { StaticMeshResource::GetResourceType(), res->GetId() } });
+			DefaultResourceMap.insert({DefaultResource::LowPolySphereMesh, { StaticMeshResource::GetResourceType(), res->GetId() }});
 
 			resHandle = D_RESOURCE::GetManager()->CreateResource<BatchResource>(GenerateUuidFor("Line Mesh"), L"Line Mesh", L"Line Mesh", true);
 			meshData.MeshData = line;
@@ -244,7 +253,7 @@ namespace Darius::Renderer
 			res->MakeGpuClean();
 			res->MakeDiskClean();
 			((BatchResource*)res)->Create(meshData);
-			DefaultResourceMap.insert({ DefaultResource::LineMesh, { BatchResource::GetResourceType(), res->GetId() } });
+			DefaultResourceMap.insert({DefaultResource::LineMesh, { BatchResource::GetResourceType(), res->GetId() }});
 		}
 
 		// Create default textures
@@ -291,7 +300,7 @@ namespace Darius::Renderer
 			mat->Metallic = 0.f;
 			mat->Roughness = 0.f;
 			auto rRes = dynamic_cast<Resource*>(materialRes);
-			DefaultResourceMap.insert({ DefaultResource::Material, { MaterialResource::GetResourceType(), materialRes->GetId() } });
+			DefaultResourceMap.insert({DefaultResource::Material, { MaterialResource::GetResourceType(), materialRes->GetId() }});
 		}
 
 	}
@@ -303,7 +312,7 @@ namespace Darius::Renderer
 
 	void SetIBLTextures(D_RENDERER::TextureResource* diffuseIBL, D_RENDERER::TextureResource* specularIBL)
 	{
-		switch (ActiveRendererType)
+		switch(ActiveRendererType)
 		{
 		case Darius::Renderer::RendererType::Rasterization:
 			D_RENDERER_RAST::SetIBLTextures(diffuseIBL, specularIBL);
@@ -317,7 +326,7 @@ namespace Darius::Renderer
 
 	void SetIBLBias(float LODBias)
 	{
-		switch (ActiveRendererType)
+		switch(ActiveRendererType)
 		{
 		case Darius::Renderer::RendererType::Rasterization:
 			D_RENDERER_RAST::SetIBLBias(LODBias);
@@ -331,7 +340,7 @@ namespace Darius::Renderer
 
 	void SetForceWireframe(bool val)
 	{
-		switch (ActiveRendererType)
+		switch(ActiveRendererType)
 		{
 		case Darius::Renderer::RendererType::Rasterization:
 			D_RENDERER_RAST::SetForceWireframe(val);
@@ -345,7 +354,7 @@ namespace Darius::Renderer
 
 	DescriptorHandle AllocateTextureDescriptor(UINT count)
 	{
-		switch (ActiveRendererType)
+		switch(ActiveRendererType)
 		{
 		case Darius::Renderer::RendererType::Rasterization:
 			return D_RENDERER_RAST::AllocateTextureDescriptor(count);
@@ -361,7 +370,7 @@ namespace Darius::Renderer
 
 	DescriptorHandle AllocateSamplerDescriptor(UINT count)
 	{
-		switch (ActiveRendererType)
+		switch(ActiveRendererType)
 		{
 		case Darius::Renderer::RendererType::Rasterization:
 			return D_RENDERER_RAST::AllocateSamplerDescriptor(count);
@@ -375,6 +384,27 @@ namespace Darius::Renderer
 		}
 	}
 
+	DynamicBVH<D_ECS::UntypedCompRef>::ID RegisterComponent(D_ECS::UntypedCompRef const& compRef)
+	{
+		D_ASSERT(compRef.IsValid());
+		auto comp = reinterpret_cast<RendererComponent*>(compRef.Get());
+		return SceneBVH.Insert(comp->GetAabb(), compRef);
+	}
+
+	bool UpdateComponentBounds(DynamicBVH<D_ECS::UntypedCompRef>::ID const& id, Aabb const& aabb)
+	{
+		return SceneBVH.Update(id, aabb);
+	}
+
+	void UnregisterComponent(DynamicBVH<D_ECS::UntypedCompRef>::ID const& id)
+	{
+		SceneBVH.Remove(id);
+	}
+
+	D_MATH_BOUNDS::DynamicBVH<D_ECS::UntypedCompRef> const& GetSceneBvh()
+	{
+		return SceneBVH;
+	}
 
 #ifdef _D_EDITOR
 	bool OptionsDrawer(_IN_OUT_ D_SERIALIZATION::Json& options)
@@ -382,15 +412,15 @@ namespace Darius::Renderer
 		D_H_OPTION_DRAW_BEGIN();
 
 		D_H_OPTION_DRAW_CHECKBOX("Hardware Ray Tracing", "Renderer.HardwareRayTracing", HardwareRayTracing);
-		if ((HardwareRayTracing && ActiveRendererType != RendererType::RayTracing) || (!HardwareRayTracing && ActiveRendererType == RendererType::RayTracing))
+		if((HardwareRayTracing && ActiveRendererType != RendererType::RayTracing) || (!HardwareRayTracing && ActiveRendererType == RendererType::RayTracing))
 		{
 			ImGui::SameLine();
-			ImGui::TextColored({ 1.f, 1.f, 0.f, 1.f }, "You have to restart the engine for this option to take effect!");
+			ImGui::TextColored({1.f, 1.f, 0.f, 1.f}, "You have to restart the engine for this option to take effect!");
 		}
 
 		ImGui::Separator();
 
-		if (ImGui::CollapsingHeader("Rasterization"))
+		if(ImGui::CollapsingHeader("Rasterization"))
 		{
 			ImGui::Indent();
 			ImGui::BeginGroup();
@@ -399,7 +429,7 @@ namespace Darius::Renderer
 		}
 
 		D_H_OPTION_DRAW_END()
-	}
+}
 #endif
 
 }

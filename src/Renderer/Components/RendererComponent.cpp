@@ -1,6 +1,8 @@
 #include "Renderer/pch.hpp"
 #include "RendererComponent.hpp"
 
+#include "Renderer/RendererManager.hpp"
+
 #ifdef _D_EDITOR
 #include <Libs/FontIcon/IconsFontAwesome6.h>
 #include <imgui.h>
@@ -32,6 +34,47 @@ namespace Darius::Renderer
 		SetDirty();
 	}
 
+	void RendererComponent::Start()
+	{
+		if(!mBvhNodeId.IsValid())
+		{
+			mBvhNodeId = D_RENDERER::RegisterComponent(D_ECS::UntypedCompRef(GetGameObject()->GetEntity(), GetComponentEntry()));
+		}
+		SetDirty();
+	}
+
+	void RendererComponent::Update(float dt)
+	{
+		if(mBvhNodeId.IsValid())
+			D_RENDERER::UpdateComponentBounds(mBvhNodeId, GetAabb());
+	}
+
+	void RendererComponent::OnActivate()
+	{
+		if(!mBvhNodeId.IsValid())
+		{
+			mBvhNodeId = D_RENDERER::RegisterComponent(D_ECS::UntypedCompRef(GetGameObject()->GetEntity(), GetComponentEntry()));
+		}
+	}
+
+	void RendererComponent::OnDeactivate()
+	{
+		if(mBvhNodeId.IsValid())
+		{
+			D_RENDERER::UnregisterComponent(mBvhNodeId);
+			mBvhNodeId = {};
+		}
+	}
+
+	void RendererComponent::OnPreDestroy()
+	{
+		if(mBvhNodeId.IsValid())
+		{
+			D_RENDERER::UnregisterComponent(mBvhNodeId);
+			mBvhNodeId = {};
+		}
+	}
+
 #ifdef _D_EDITOR
 	bool RendererComponent::DrawDetails(float[])
 	{
@@ -44,7 +87,7 @@ namespace Darius::Renderer
 		{
 			bool value = IsCastingShadow();
 			D_H_DETAILS_DRAW_PROPERTY("Casts Shadow");
-			if (ImGui::Checkbox("##CastsShadow", &value))
+			if(ImGui::Checkbox("##CastsShadow", &value))
 			{
 				SetCastsShadow(value);
 				valueChanged = true;
@@ -55,7 +98,7 @@ namespace Darius::Renderer
 		{
 			bool value = IsStencilWriteEnable();
 			D_H_DETAILS_DRAW_PROPERTY("Stencil Write");
-			if (ImGui::Checkbox("##StencilWrite", &value))
+			if(ImGui::Checkbox("##StencilWrite", &value))
 			{
 				SetStencilWriteEnable(value);
 				valueChanged = true;
@@ -66,7 +109,7 @@ namespace Darius::Renderer
 		{
 			UINT8 value = GetStencilValue();
 			D_H_DETAILS_DRAW_PROPERTY("Stencil Value");
-			if (ImGui::DragScalar("##StencilValue", ImGuiDataType_U8, &value))
+			if(ImGui::DragScalar("##StencilValue", ImGuiDataType_U8, &value))
 			{
 				SetStencilValue(value);
 				valueChanged = true;
@@ -77,7 +120,7 @@ namespace Darius::Renderer
 		{
 			bool value = IsCustomDepthEnable();
 			D_H_DETAILS_DRAW_PROPERTY("Custom Depth");
-			if (ImGui::Checkbox("##CustomDepth", &value))
+			if(ImGui::Checkbox("##CustomDepth", &value))
 			{
 				SetCustomDepthEnable(value);
 				valueChanged = true;
@@ -93,10 +136,10 @@ namespace Darius::Renderer
 
 	void RendererComponent::SetCastsShadow(bool value)
 	{
-		if (!CanChange())
+		if(!CanChange())
 			return;
 
-		if (mCastsShadow == value)
+		if(mCastsShadow == value)
 			return;
 
 		mCastsShadow = value;
@@ -106,10 +149,10 @@ namespace Darius::Renderer
 
 	void RendererComponent::SetStencilValue(UINT8 value)
 	{
-		if (!CanChange())
+		if(!CanChange())
 			return;
 
-		if (mStencilValue == value)
+		if(mStencilValue == value)
 			return;
 
 		mStencilValue = value;
@@ -119,10 +162,10 @@ namespace Darius::Renderer
 
 	void RendererComponent::SetStencilWriteEnable(bool value)
 	{
-		if (!CanChange())
+		if(!CanChange())
 			return;
 
-		if (mStencilWriteEnable == value)
+		if(mStencilWriteEnable == value)
 			return;
 
 		mStencilWriteEnable = value;
@@ -132,10 +175,10 @@ namespace Darius::Renderer
 
 	void RendererComponent::SetCustomDepthEnable(bool value)
 	{
-		if (!CanChange())
+		if(!CanChange())
 			return;
 
-		if (mCustomDepthEnable == value)
+		if(mCustomDepthEnable == value)
 			return;
 
 		mCustomDepthEnable = value;
