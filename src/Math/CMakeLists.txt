@@ -33,7 +33,6 @@ list(APPEND MATH_LIBS_INCLUDE
 list(APPEND MATH_LIBS_SOURCES
 	"Bounds/BoundingBox.cpp"
 	"Bounds/BoundingSphere.cpp"
-	"Bounds/DynamicBVH.cpp"
 	"pch.cpp"
 	"Color.cpp"
 	"Vector.cpp"

@@ -4,10 +4,10 @@
 namespace Darius::Math::Camera
 {
     void ShadowCamera::UpdateMatrix(
-        Vector3 LightDirection, Vector3 ShadowCenter, Vector3 ShadowBounds,
+        Vector3 const& LightDirection, Vector3 const& ShadowCenter, Vector3 const& ShadowBounds,
         uint32_t BufferWidth, uint32_t BufferHeight, uint32_t BufferPrecision)
     {
-        SetLookDirection(LightDirection, Vector3(kYUnitVector));
+        SetLookDirection(LightDirection, Vector3::Up);
 
         // Converts world units to texel units so we can quantize the camera position to whole texel units
         Vector3 RcpDimensions = Recip(ShadowBounds);
@@ -18,14 +18,15 @@ namespace Darius::Math::Camera
         //
 
         // Transform to view space
-        ShadowCenter = ~GetRotation() * ShadowCenter;
+        Vector3 center = ~GetRotation() * ShadowCenter;
         // Scale to texel units, truncate fractional part, and scale back to world units
-        ShadowCenter = Floor(ShadowCenter * QuantizeScale) / QuantizeScale;
+        center = Floor(center * QuantizeScale) / QuantizeScale;
         // Transform back into world space
-        ShadowCenter = GetRotation() * ShadowCenter;
-        SetPosition(ShadowCenter);
+        center = GetRotation() * center;
+        SetPosition(center);
 
-        SetProjMatrix(Matrix4::MakeScale(Vector3(2.0f, 2.0f, 1.0f) * RcpDimensions));
+        Vector3 scale = Vector3(2.f, 2.f, 1.f) * RcpDimensions;
+        SetProjMatrix(Matrix4(DirectX::XMMatrixOrthographicRH(ShadowBounds.GetX(), ShadowBounds.GetY(), ShadowBounds.GetZ(), 0.f)));
 
         Update();
 
