@@ -57,3 +57,16 @@ namespace Darius::Core
 	void UuidFromJson(D_CORE::Uuid& value, D_SERIALIZATION::Json const& j);
 
 }
+
+namespace std
+{
+	template<>
+	struct hash<D_CORE::Uuid>
+	{
+		INLINE size_t operator() (D_CORE::Uuid const& uuid) const
+		{
+			boost::hash<D_CORE::Uuid> hasher;
+			return hasher(uuid);
+		}
+	};
+}
