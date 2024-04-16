@@ -93,7 +93,7 @@ namespace Darius::Graphics::AmbientOcclusion::ScreenSpace
 
 		// Initializing root signature
 		RootSig.Reset(5, 2);
-		RootSig.InitStaticSampler(0, SamplerLinearClampDesc);
+		RootSig.InitStaticSampler(0, SamplerTrilinearClampDesc);
 		RootSig.InitStaticSampler(1, SamplerLinearBorderDesc);
 		RootSig[0].InitAsConstants(0, 4);
 		RootSig[1].InitAsConstantBuffer(1);

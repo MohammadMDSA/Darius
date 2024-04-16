@@ -20,7 +20,7 @@ namespace Darius::Editor::Gui::PostProcessing
 
 		// Initialize root signature
 		sRootSignature.Reset(4, 2);
-		sRootSignature.InitStaticSampler(0, D_GRAPHICS::SamplerLinearClampDesc);
+		sRootSignature.InitStaticSampler(0, D_GRAPHICS::SamplerTrilinearClampDesc);
 		sRootSignature.InitStaticSampler(1, D_GRAPHICS::SamplerLinearBorderDesc);
 		sRootSignature[0].InitAsConstants(0, 10);
 		sRootSignature[1].InitAsDescriptorRange(D3D12_DESCRIPTOR_RANGE_TYPE_UAV, 0, 4);

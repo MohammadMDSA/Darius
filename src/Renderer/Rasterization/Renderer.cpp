@@ -560,7 +560,7 @@ namespace Darius::Renderer::Rasterization
 		def.InitStaticSampler(11, SamplerShadowDesc, D3D12_SHADER_VISIBILITY_PIXEL);
 		def.InitStaticSampler(12, cubeMapSamplerDesc, D3D12_SHADER_VISIBILITY_PIXEL);
 		def.InitStaticSampler(13, SamplerLinearWrapDesc);
-		def.InitStaticSampler(14, SamplerLinearClampDesc);
+		def.InitStaticSampler(14, SamplerTrilinearClampDesc);
 
 		// Create root CBVs.
 		def[kMeshConstantsVS].InitAsConstantBuffer(0, D3D12_SHADER_VISIBILITY_VERTEX);

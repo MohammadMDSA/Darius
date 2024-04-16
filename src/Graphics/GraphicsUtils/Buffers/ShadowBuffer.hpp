@@ -12,7 +12,10 @@ namespace Darius::Graphics::Utils::Buffers
     class ShadowBuffer : public DepthBuffer
     {
     public:
-        ShadowBuffer() {}
+        ShadowBuffer() :
+            mViewport({}),
+            mScissor({})
+        {}
 
         void Create(const std::wstring& Name, uint32_t Width, uint32_t Height,
             D3D12_GPU_VIRTUAL_ADDRESS VidMemPtr = D3D12_GPU_VIRTUAL_ADDRESS_UNKNOWN);

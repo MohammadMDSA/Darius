@@ -53,7 +53,8 @@ namespace Darius::Graphics
 	extern D_GRAPHICS_UTILS::SamplerDesc	SamplerLinearWrapDesc;
 	extern D_GRAPHICS_UTILS::SamplerDesc	SamplerAnisoWrapDesc;
 	extern D_GRAPHICS_UTILS::SamplerDesc	SamplerShadowDesc;
-	extern D_GRAPHICS_UTILS::SamplerDesc	SamplerLinearClampDesc;
+	extern D_GRAPHICS_UTILS::SamplerDesc	SamplerBilinearClampDesc;
+	extern D_GRAPHICS_UTILS::SamplerDesc	SamplerTrilinearClampDesc;
 	extern D_GRAPHICS_UTILS::SamplerDesc	SamplerVolumeWrapDesc;
 	extern D_GRAPHICS_UTILS::SamplerDesc	SamplerPointClampDesc;
 	extern D_GRAPHICS_UTILS::SamplerDesc	SamplerPointBorderDesc;

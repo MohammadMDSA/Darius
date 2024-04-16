@@ -67,7 +67,8 @@ namespace Darius::Graphics
 	SamplerDesc								SamplerLinearWrapDesc;
 	SamplerDesc								SamplerAnisoWrapDesc;
 	SamplerDesc								SamplerShadowDesc;
-	SamplerDesc								SamplerLinearClampDesc;
+	SamplerDesc								SamplerTrilinearClampDesc;
+	SamplerDesc								SamplerBilinearClampDesc;
 	SamplerDesc								SamplerVolumeWrapDesc;
 	SamplerDesc								SamplerPointClampDesc;
 	SamplerDesc								SamplerPointBorderDesc;
@@ -429,9 +430,13 @@ namespace Darius::Graphics
 		SamplerShadowDesc.SetTextureAddressMode(D3D12_TEXTURE_ADDRESS_MODE_CLAMP);
 		SamplerShadow = SamplerShadowDesc.CreateDescriptor();
 
-		SamplerLinearClampDesc.Filter = D3D12_FILTER_MIN_MAG_MIP_LINEAR;
-		SamplerLinearClampDesc.SetTextureAddressMode(D3D12_TEXTURE_ADDRESS_MODE_CLAMP);
-		SamplerLinearClamp = SamplerLinearClampDesc.CreateDescriptor();
+		SamplerBilinearClampDesc.Filter = D3D12_FILTER_MIN_MAG_MIP_LINEAR;
+		SamplerBilinearClampDesc.SetTextureAddressMode(D3D12_TEXTURE_ADDRESS_MODE_CLAMP);
+		SamplerLinearClamp = SamplerBilinearClampDesc.CreateDescriptor();
+
+		SamplerTrilinearClampDesc.Filter = D3D12_FILTER_COMPARISON_MIN_MAG_LINEAR_MIP_POINT;
+		SamplerTrilinearClampDesc.SetTextureAddressMode(D3D12_TEXTURE_ADDRESS_MODE_CLAMP);
+		SamplerLinearClamp = SamplerTrilinearClampDesc.CreateDescriptor();
 
 		SamplerVolumeWrapDesc.Filter = D3D12_FILTER_MIN_MAG_MIP_POINT;
 		SamplerVolumeWrap = SamplerVolumeWrapDesc.CreateDescriptor();
@@ -582,7 +587,7 @@ namespace Darius::Graphics
 		CommonRS[1].InitAsDescriptorRange(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 0, 10);
 		CommonRS[2].InitAsDescriptorRange(D3D12_DESCRIPTOR_RANGE_TYPE_UAV, 0, 10);
 		CommonRS[3].InitAsConstantBuffer(1);
-		CommonRS.InitStaticSampler(0, SamplerLinearClampDesc);
+		CommonRS.InitStaticSampler(0, SamplerTrilinearClampDesc);
 		CommonRS.InitStaticSampler(1, SamplerPointBorderDesc);
 		CommonRS.InitStaticSampler(2, SamplerLinearBorderDesc);
 		CommonRS.Finalize(L"GraphicsCommonRS");
