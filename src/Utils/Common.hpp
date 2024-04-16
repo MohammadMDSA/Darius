@@ -10,11 +10,23 @@
 #define D_STRINGIFY(T) #T
 #define D_NAMEOF(T) #T
 #define D_NAMEOF_C(T) #T.c_str()
+#define D_PREPROCESSOR_JOIN
 
 #define D_CH_TYPE_NAME_GETTER(T) \
 public: \
 static INLINE std::string const GetTypeName() { return D_NAMEOF(T); }
 
+#ifdef __COUNTER__
+// Created a variable with a unique name
+#define ANONYMOUS_VARIABLE( Name ) D_PREPROCESSOR_JOIN(Name, __COUNTER__)
+#else
+// Created a variable with a unique name.
+// Less reliable than the __COUNTER__ version.
+#define ANONYMOUS_VARIABLE( Name ) D_PREPROCESSOR_JOIN(Name, __LINE__)
+#endif
+
+/** Thread-safe call once helper for void functions, similar to std::call_once without the std::once_flag */
+#define D_CALL_ONCE(Func, ...) static int32 ANONYMOUS_VARIABLE(ThreadSafeOnce) = ((Func)(__VA_ARGS__), 1)
 
 ///////////////////////////// Function Helpers
 #define _IN_
