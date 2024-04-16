@@ -116,14 +116,22 @@ namespace Darius::Graphics::PostProcessing
 			ComputeColorLUT::Params computeColorLUTParams = ComputeLUT.GetParams();
 			D_H_OPTIONS_LOAD_BASIC_DEFAULT("PostProcessing.ToneMapper.ColorGrading.Enable", EnableColorGrading, true);
 			D_H_OPTIONS_LOAD_COLOR_DEFAULT("PostProcessing.ToneMapper.ColorGrading.ColorScale", computeColorLUTParams.ColorScale, D_MATH::Color::White);
-			D_H_OPTIONS_LOAD_COLOR_DEFAULT("PostProcessing.ToneMapper.ColorGrading.OverlayColor", computeColorLUTParams.OverlayColor, D_MATH::Color::Black);
-			D_H_OPTIONS_LOAD_BASIC_DEFAULT("PostProcessing.ToneMapper.ColorGrading.DisplayGamma", computeColorLUTParams.DisplayGamma, 2.2f);
-			D_H_OPTIONS_LOAD_BASIC_DEFAULT("PostProcessing.ToneMapper.ColorGrading.ToneMapperGamma", computeColorLUTParams.ToneMapperGamma, 2.2f);
 			D_H_OPTIONS_LOAD_BASIC_DEFAULT("PostProcessing.ToneMapper.ColorGrading.IsTemperatureWhiteBalance", computeColorLUTParams.IsTemperatureWhiteBalance, true);
 			D_H_OPTIONS_LOAD_BASIC_DEFAULT("PostProcessing.ToneMapper.ColorGrading.LUTSize", computeColorLUTParams.LUTSize, 32u);
+			D_H_OPTIONS_LOAD_BASIC_DEFAULT("PostProcessing.ToneMapper.ColorGrading.DisplayGamma", computeColorLUTParams.DisplayGamma, 2.2f);
+			D_H_OPTIONS_LOAD_BASIC_DEFAULT("PostProcessing.ToneMapper.ColorGrading.ToneMapperGamma", computeColorLUTParams.ToneMapperGamma, 2.2f);
 			D_H_OPTIONS_LOAD_BASIC_DEFAULT("PostProcessing.ToneMapper.ColorGrading.WhiteTemp", computeColorLUTParams.WhiteTemp, 6500.f);
 			D_H_OPTIONS_LOAD_BASIC_DEFAULT("PostProcessing.ToneMapper.ColorGrading.WhiteTint", computeColorLUTParams.WhiteTint, 0.f);
-			D_H_OPTIONS_LOAD_BASIC_DEFAULT("PostProcessing.ToneMapper.ColorGrading.OutputGamut", computeColorLUTParams.OutputGamut, 0);
+			D_H_OPTIONS_LOAD_BASIC_DEFAULT("PostProcessing.ToneMapper.ColorGrading.ColorCorrectionShadowsMax", computeColorLUTParams.ColorCorrectionShadowsMax, 0.09f);
+			D_H_OPTIONS_LOAD_BASIC_DEFAULT("PostProcessing.ToneMapper.ColorGrading.ColorCorrectionHighlightsMin", computeColorLUTParams.ColorCorrectionHighlightsMin, 0.5f);
+			D_H_OPTIONS_LOAD_BASIC_DEFAULT("PostProcessing.ToneMapper.ColorGrading.ColorCorrectionHighlightsMax", computeColorLUTParams.ColorCorrectionHighlightsMax, 1.0f);
+			D_H_OPTIONS_LOAD_BASIC_DEFAULT("PostProcessing.ToneMapper.ColorGrading.BlueCorrection", computeColorLUTParams.BlueCorrection, 0.6f);
+			D_H_OPTIONS_LOAD_BASIC_DEFAULT("PostProcessing.ToneMapper.ColorGrading.ExpandGamut", computeColorLUTParams.ExpandGamut, 1.0f);
+			D_H_OPTIONS_LOAD_BASIC_DEFAULT("PostProcessing.ToneMapper.ColorGrading.ToneCurveAmount", computeColorLUTParams.ToneCurveAmount, 0.f);
+			D_H_OPTIONS_LOAD_BASIC_DEFAULT("PostProcessing.ToneMapper.ColorGrading.ACESCoefsLow_4", computeColorLUTParams.ACESCoefsLow_4, 1.84773231f);
+			D_H_OPTIONS_LOAD_BASIC_DEFAULT("PostProcessing.ToneMapper.ColorGrading.ACESCoefsHigh_4", computeColorLUTParams.ACESCoefsHigh_4, 3.0f);
+			D_H_OPTIONS_LOAD_BASIC_DEFAULT("PostProcessing.ToneMapper.ColorGrading.ACESSceneColorMultiplier", computeColorLUTParams.ACESSceneColorMultiplier, 1.5f);
+			D_H_OPTIONS_LOAD_COLOR_DEFAULT("PostProcessing.ToneMapper.ColorGrading.OverlayColor", computeColorLUTParams.OverlayColor, D_MATH::Color(0.f, 0.f, 0.f, 0.f));
 			D_H_OPTIONS_LOAD_COLOR_DEFAULT("PostProcessing.ToneMapper.ColorGrading.ColorSaturation", computeColorLUTParams.ColorSaturation, D_MATH::Color(1.0f, 1.0f, 1.0f, 1.0f));
 			D_H_OPTIONS_LOAD_COLOR_DEFAULT("PostProcessing.ToneMapper.ColorGrading.ColorContrast", computeColorLUTParams.ColorContrast, D_MATH::Color(1.0f, 1.0f, 1.0f, 1.0f));
 			D_H_OPTIONS_LOAD_COLOR_DEFAULT("PostProcessing.ToneMapper.ColorGrading.ColorGamma", computeColorLUTParams.ColorGamma, D_MATH::Color(1.0f, 1.0f, 1.0f, 1.0f));
@@ -144,19 +152,11 @@ namespace Darius::Graphics::PostProcessing
 			D_H_OPTIONS_LOAD_COLOR_DEFAULT("PostProcessing.ToneMapper.ColorGrading.ColorGammaHighlights", computeColorLUTParams.ColorGammaHighlights, D_MATH::Color(1.0f, 1.0f, 1.0f, 1.0f));
 			D_H_OPTIONS_LOAD_COLOR_DEFAULT("PostProcessing.ToneMapper.ColorGrading.ColorGainHighlights", computeColorLUTParams.ColorGainHighlights, D_MATH::Color(1.0f, 1.0f, 1.0f, 1.0f));
 			D_H_OPTIONS_LOAD_COLOR_DEFAULT("PostProcessing.ToneMapper.ColorGrading.ColorOffsetHighlights", computeColorLUTParams.ColorOffsetHighlights, D_MATH::Color(0.0f, 0.0f, 0.0f, 0.0f));
-			D_H_OPTIONS_LOAD_BASIC_DEFAULT("PostProcessing.ToneMapper.ColorGrading.ColorCorrectionShadowsMax", computeColorLUTParams.ColorCorrectionShadowsMax, 0.09f);
-			D_H_OPTIONS_LOAD_BASIC_DEFAULT("PostProcessing.ToneMapper.ColorGrading.ColorCorrectionHighlightsMin", computeColorLUTParams.ColorCorrectionHighlightsMin, 0.5f);
-			D_H_OPTIONS_LOAD_BASIC_DEFAULT("PostProcessing.ToneMapper.ColorGrading.ColorCorrectionHighlightsMax", computeColorLUTParams.ColorCorrectionHighlightsMax, 1.0f);
-			D_H_OPTIONS_LOAD_BASIC_DEFAULT("PostProcessing.ToneMapper.ColorGrading.BlueCorrection", computeColorLUTParams.BlueCorrection, 0.6f);
-			D_H_OPTIONS_LOAD_BASIC_DEFAULT("PostProcessing.ToneMapper.ColorGrading.ExpandGamut", computeColorLUTParams.ExpandGamut, 1.0f);
-			D_H_OPTIONS_LOAD_BASIC_DEFAULT("PostProcessing.ToneMapper.ColorGrading.ToneCurveAmount", computeColorLUTParams.ToneCurveAmount, 0.f);
 			D_H_OPTIONS_LOAD_COLOR_DEFAULT("PostProcessing.ToneMapper.ColorGrading.ACESMinMaxData", computeColorLUTParams.ACESMinMaxData, D_MATH::Color(2.50898620e-06f, 1e-4f, 692.651123f, 1000.0f));
 			D_H_OPTIONS_LOAD_COLOR_DEFAULT("PostProcessing.ToneMapper.ColorGrading.ACESMidData", computeColorLUTParams.ACESMidData, D_MATH::Color(0.0822144598f, 4.80000019f, 1.55f, 1.0f));
 			D_H_OPTIONS_LOAD_COLOR_DEFAULT("PostProcessing.ToneMapper.ColorGrading.ACESCoefsLow_0", computeColorLUTParams.ACESCoefsLow_0, D_MATH::Color(-4.00000000f, -4.00000000f, -3.15737653f, -0.485249996f));
 			D_H_OPTIONS_LOAD_COLOR_DEFAULT("PostProcessing.ToneMapper.ColorGrading.ACESCoefsHigh_0", computeColorLUTParams.ACESCoefsHigh_0, D_MATH::Color(-0.332863420f, 1.69534576f, 2.75812411f, 3.00000000f));
-			D_H_OPTIONS_LOAD_BASIC_DEFAULT("PostProcessing.ToneMapper.ColorGrading.ACESCoefsLow_4", computeColorLUTParams.ACESCoefsLow_4, 1.84773231f);
-			D_H_OPTIONS_LOAD_BASIC_DEFAULT("PostProcessing.ToneMapper.ColorGrading.ACESCoefsHigh_4", computeColorLUTParams.ACESCoefsHigh_4, 3.0f);
-			D_H_OPTIONS_LOAD_BASIC_DEFAULT("PostProcessing.ToneMapper.ColorGrading.ACESSceneColorMultiplier", computeColorLUTParams.ACESSceneColorMultiplier, 1.5f);
+			ComputeLUT.SetParams(computeColorLUTParams);
 		}
 
 		// Initializing Root Signature
@@ -621,10 +621,11 @@ namespace Darius::Graphics::PostProcessing
 	{
 		D_H_OPTION_DRAW_BEGIN();
 
-		ImGui::Text("HDR Tone Mapping");
-		ImGui::Separator();
+		D_H_OPTION_DRAW_CHECKBOX("Enable Tone Mapping", "PostProcessing.HDR.Enable", EnableHDR);
 
-		D_H_OPTION_DRAW_CHECKBOX("Enable HDR", "PostProcessing.HDR.Enable", EnableHDR);
+		ImGui::Spacing();
+		ImGui::Text("Eye Adaptation");
+		ImGui::Separator();
 
 		D_H_OPTION_DRAW_CHECKBOX("Adaptive Exposure", "PostProcessing.HDR.Adaptation", EnableAdaptation);
 
@@ -645,6 +646,9 @@ namespace Darius::Graphics::PostProcessing
 			D_H_OPTION_DRAW_FLOAT_SLIDER("Adaptation Rate", "PostProcessing.HDR.AdaptationRate", AdaptationRate, 0.01f, 1.f);
 		}
 
+		ImGui::Spacing();
+		ImGui::Text("Tone Mapper");
+		ImGui::Separator();
 		D_H_OPTION_DRAW_FLOAT_SLIDER("Film Slope", "PostProcessing.ToneMapper.FilmSlope", FilmSlope, 0.f, 1.f);
 		D_H_OPTION_DRAW_FLOAT_SLIDER("Film Toe", "PostProcessing.ToneMapper.FilmToe", FilmToe, 0.f, 1.f);
 		D_H_OPTION_DRAW_FLOAT_SLIDER("Film Shoulder", "PostProcessing.ToneMapper.FilmShoulder", FilmShoulder, 0.f, 1.f);
@@ -652,10 +656,86 @@ namespace Darius::Graphics::PostProcessing
 		D_H_OPTION_DRAW_FLOAT_SLIDER("Film WhiteClip", "PostProcessing.ToneMapper.FilmWhiteClip", FilmWhiteClip, 0.f, 1.f);
 
 		ImGui::Spacing();
+		ImGui::Text("Color Grading");
+		ImGui::Separator();
 		D_H_OPTION_DRAW_CHECKBOX("Enable Color Grading", "PostProcessing.ToneMapper.ColorGrading.Enable", EnableColorGrading);
+		{
+			bool colorGradingSettingsInitialClean = !settingsChanged;
+			auto& colorGradingParams = ComputeLUT.GetParams();
+
+			D_H_OPTION_DRAW_COLOR3("Color Scale", "PostProcessing.ToneMapper.ColorGrading.ColorScale", colorGradingParams.ColorScale, false);
+			D_H_OPTION_DRAW_CHECKBOX("Temperature White Balance", "PostProcessing.ToneMapper.ColorGrading.IsTemperatureWhiteBalance", colorGradingParams.IsTemperatureWhiteBalance);
+			D_H_OPTION_DRAW_INT_SLIDER("LUT Size", "PostProcessing.ToneMapper.ColorGrading.LUTSize", colorGradingParams.LUTSize, 16, 128);
+			D_H_OPTION_DRAW_FLOAT_SLIDER("Display Gamma", "PostProcessing.ToneMapper.ColorGrading.DisplayGamma", colorGradingParams.DisplayGamma, 0.1f, 10.f);
+			D_H_OPTION_DRAW_FLOAT_SLIDER("Tone Mapper Gamma", "PostProcessing.ToneMapper.ColorGrading.ToneMapperGamma", colorGradingParams.ToneMapperGamma, 0.1f, 10.f);
+			D_H_OPTION_DRAW_FLOAT_SLIDER("White Temperature", "PostProcessing.ToneMapper.ColorGrading.WhiteTemp", colorGradingParams.WhiteTemp, 1500.f, 15000.f);
+			D_H_OPTION_DRAW_FLOAT_SLIDER("White Tint", "PostProcessing.ToneMapper.ColorGrading.WhiteTint", colorGradingParams.WhiteTint, -1.f, 1.f);
+			D_H_OPTION_DRAW_FLOAT_SLIDER("Color Correction Shadows Max", "PostProcessing.ToneMapper.ColorGrading.ColorCorrectionShadowsMax", colorGradingParams.WhiteTint, -1.f, 1.f);
+			D_H_OPTION_DRAW_FLOAT_SLIDER("Color Correction Highlights Min", "PostProcessing.ToneMapper.ColorGrading.ColorCorrectionHighlightsMin", colorGradingParams.ColorCorrectionHighlightsMin, -1.f, 1.f);
+			D_H_OPTION_DRAW_FLOAT_SLIDER("Color Correction Highlights Max", "PostProcessing.ToneMapper.ColorGrading.ColorCorrectionHighlightsMax", colorGradingParams.ColorCorrectionHighlightsMax, 1.f, 10.f);
+			D_H_OPTION_DRAW_FLOAT_SLIDER("Blue Correction", "PostProcessing.ToneMapper.ColorGrading.BlueCorrection", colorGradingParams.BlueCorrection, 0.f, 1.f);
+			D_H_OPTION_DRAW_FLOAT_SLIDER("Expand Gamut", "PostProcessing.ToneMapper.ColorGrading.ExpandGamut", colorGradingParams.ExpandGamut, 0.f, 1.f);
+			D_H_OPTION_DRAW_FLOAT_SLIDER("ToneCurveAmount", "PostProcessing.ToneMapper.ColorGrading.ToneCurveAmount", colorGradingParams.ToneCurveAmount, 0.f, 1.f);
+
+			D_H_OPTION_DRAW_COLOR4("OverlayColor", "PostProcessing.ToneMapper.ColorGrading.OverlayColor", colorGradingParams.OverlayColor, true);
+			if(ImGui::CollapsingHeader("Color"))
+			{
+				ImGui::Indent();
+				ImGui::BeginGroup();
+				D_H_OPTION_DRAW_COLOR4("Saturation", "PostProcessing.ToneMapper.ColorGrading.ColorSaturation", colorGradingParams.ColorSaturation, true);
+				D_H_OPTION_DRAW_COLOR4("Contrast", "PostProcessing.ToneMapper.ColorGrading.ColorContrast", colorGradingParams.ColorContrast, true);
+				D_H_OPTION_DRAW_COLOR4("Gamma", "PostProcessing.ToneMapper.ColorGrading.ColorGamma", colorGradingParams.ColorGamma, true);
+				D_H_OPTION_DRAW_COLOR4("Gain", "PostProcessing.ToneMapper.ColorGrading.ColorGain", colorGradingParams.ColorGain, true);
+				D_H_OPTION_DRAW_COLOR4("Offset", "PostProcessing.ToneMapper.ColorGrading.ColorOffset", colorGradingParams.ColorOffset, true);
+
+				ImGui::EndGroup();
+				ImGui::Unindent();
+			}
+			if(ImGui::CollapsingHeader("Shadows"))
+			{
+				ImGui::Indent();
+				ImGui::BeginGroup();
+				D_H_OPTION_DRAW_COLOR4("Saturation", "PostProcessing.ToneMapper.ColorGrading.ColorSaturationShadows", colorGradingParams.ColorSaturationShadows, true);
+				D_H_OPTION_DRAW_COLOR4("Contrast", "PostProcessing.ToneMapper.ColorGrading.ColorContrastShadows", colorGradingParams.ColorContrastShadows, true);
+				D_H_OPTION_DRAW_COLOR4("Gamma", "PostProcessing.ToneMapper.ColorGrading.ColorGammaShadows", colorGradingParams.ColorGammaShadows, true);
+				D_H_OPTION_DRAW_COLOR4("Gain", "PostProcessing.ToneMapper.ColorGrading.ColorGainShadows", colorGradingParams.ColorGainShadows, true);
+				D_H_OPTION_DRAW_COLOR4("Offset", "PostProcessing.ToneMapper.ColorGrading.ColorOffsetShadows", colorGradingParams.ColorOffsetShadows, true);
+
+				ImGui::EndGroup();
+				ImGui::Unindent();
+			}
+			if(ImGui::CollapsingHeader("Midtones"))
+			{
+				ImGui::Indent();
+				ImGui::BeginGroup();
+				D_H_OPTION_DRAW_COLOR4("Saturation", "PostProcessing.ToneMapper.ColorGrading.ColorSaturationMidtones", colorGradingParams.ColorSaturationMidtones, true);
+				D_H_OPTION_DRAW_COLOR4("Contrast", "PostProcessing.ToneMapper.ColorGrading.ColorContrastMidtones", colorGradingParams.ColorContrastMidtones, true);
+				D_H_OPTION_DRAW_COLOR4("Gamma", "PostProcessing.ToneMapper.ColorGrading.ColorGammaMidtones", colorGradingParams.ColorGammaMidtones, true);
+				D_H_OPTION_DRAW_COLOR4("Gain", "PostProcessing.ToneMapper.ColorGrading.ColorGainMidtones", colorGradingParams.ColorGainMidtones, true);
+				D_H_OPTION_DRAW_COLOR4("Offset", "PostProcessing.ToneMapper.ColorGrading.ColorOffsetMidtones", colorGradingParams.ColorOffsetMidtones, true);
+
+				ImGui::EndGroup();
+				ImGui::Unindent();
+			}
+			if(ImGui::CollapsingHeader("Hightlights"))
+			{
+				ImGui::Indent();
+				ImGui::BeginGroup();
+				D_H_OPTION_DRAW_COLOR4("Saturation", "PostProcessing.ToneMapper.ColorGrading.ColorSaturationHighlights", colorGradingParams.ColorSaturationHighlights, true);
+				D_H_OPTION_DRAW_COLOR4("Contrast", "PostProcessing.ToneMapper.ColorGrading.ColorContrastHighlights", colorGradingParams.ColorContrastHighlights, true);
+				D_H_OPTION_DRAW_COLOR4("Gamma", "PostProcessing.ToneMapper.ColorGrading.ColorGammaHighlights", colorGradingParams.ColorGammaHighlights, true);
+				D_H_OPTION_DRAW_COLOR4("Gain", "PostProcessing.ToneMapper.ColorGrading.ColorGainHighlights", colorGradingParams.ColorGainHighlights, true);
+				D_H_OPTION_DRAW_COLOR4("Offset", "PostProcessing.ToneMapper.ColorGrading.ColorOffsetHighlights", colorGradingParams.ColorOffsetHighlights, true);
+
+				ImGui::EndGroup();
+				ImGui::Unindent();
+			}
+
+			if(colorGradingSettingsInitialClean && settingsChanged)
+				ComputeLUT.SetDirty();
+		}
 
 		ImGui::Spacing();
-
 		ImGui::Text("Bloom");
 		ImGui::Separator();
 
