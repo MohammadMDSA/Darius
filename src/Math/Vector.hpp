@@ -373,8 +373,8 @@ namespace Darius::Math
 #ifdef _D_EDITOR
 
 	bool DrawDetails(D_MATH::Vector2& elem, Vector2 const& defaultValue = Vector2::Zero);
-	bool DrawDetails(D_MATH::Vector3& elem, D_MATH::Vector3 const& defaultValue = Vector3::Zero, bool isColor = false);
-	bool DrawDetails(D_MATH::Vector4& elem, Vector4 const& defaultValue = Vector4::Zero, bool isColor = false);
+	bool DrawDetails(D_MATH::Vector3& elem, D_MATH::Vector3 const& defaultValue = Vector3::Zero);
+	bool DrawDetails(D_MATH::Vector4& elem, Vector4 const& defaultValue = Vector4::Zero);
 
 #endif // _D_EDITOR
 

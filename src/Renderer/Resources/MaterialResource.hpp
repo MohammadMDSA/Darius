@@ -60,7 +60,7 @@ namespace Darius::Renderer
 		void								SetDisplacementAmount(float value);
 
 		// Emissive
-		INLINE D_MATH::Color				GetEmissiveColor() const { return D_MATH::Color(D_MATH::Vector3(mMaterial.Emissive)); }
+		INLINE D_MATH::Color				GetEmissiveColor() const { return D_MATH::Color(mMaterial.Emissive); }
 		void								SetEmissiveColor(D_MATH::Color const& value);
 		INLINE bool							HasEmissiveTexture() const { return mMaterial.TextureStatusMask & (1 << D_RENDERER_RAST::kEmissive); }
 

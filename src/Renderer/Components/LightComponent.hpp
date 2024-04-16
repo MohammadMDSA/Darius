@@ -35,7 +35,7 @@ namespace Darius::Renderer
 
 		INLINE D_MATH::Color const&		GetColor() const
 		{
-			return D_MATH::Color(D_MATH::Vector3(mLightData.Color));
+			return D_MATH::Color(mLightData.Color);
 		}
 
 		INLINE void						SetRenge(float const& value) { mLightData.Range = value; }

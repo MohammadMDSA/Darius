@@ -15,9 +15,36 @@
 #include "Color.hpp"
 #include "VectorMath.hpp"
 
+#ifdef _D_EDITOR
+#include "imgui.h"
+#include "imgui_internal.h"
+#endif
+
 #include "Color.sgenerated.hpp"
 
 using DirectX::XMVECTORU32;
+
+#define ColorElementEdit(Comp) \
+{ \
+	if(normalizedValue) \
+	{ \
+		float val = elem.Get##Comp(); \
+		if(ImGui::DragFloat("##"#Comp, &val, 0.01f, 0, hdrDisplay ? FLT_MAX : 1.f)) \
+		{ \
+			elem.Set##Comp(val); \
+			valueChanged = true; \
+		} \
+	} \
+	else \
+	{ \
+		int val = (int)(elem.Get##Comp() * 255); \
+		if(ImGui::DragInt("##"#Comp, &val, 1, 0, hdrDisplay ? FLT_MAX : 255)) \
+		{ \
+			elem.Set##Comp(val / 255.f); \
+			valueChanged = true; \
+		} \
+	} \
+}
 
 namespace Darius::Math
 {
@@ -40,7 +67,7 @@ namespace Darius::Math
 		G.f = D_MATH::Clamp(m_value.f[1], 0.0f, kMaxVal) * kF32toF16;
 		B.f = D_MATH::Clamp(m_value.f[2], 0.0f, kMaxVal) * kF32toF16;
 
-		if (RoundToEven)
+		if(RoundToEven)
 		{
 			// Bankers rounding:  2.5 -> 2.0  ;  3.5 -> 4.0
 			R.u += 0x0FFFF + ((R.u >> 16) & 1);
@@ -63,10 +90,10 @@ namespace Darius::Math
 
 #else // SSE
 
-		static XMVECTORU32 Scale = { 0x07800000, 0x07800000, 0x07800000, 0 }; // 2^-112
-		static XMVECTORU32 Round1 = { 0x00010000, 0x00010000, 0x00020000, 0 };
-		static XMVECTORU32 Round2 = { 0x0000FFFF, 0x0000FFFF, 0x0001FFFF, 0 };
-		static XMVECTORU32 Mask = { 0x0FFE0000, 0x0FFE0000, 0x0FFC0000, 0 };
+		static XMVECTORU32 Scale = {0x07800000, 0x07800000, 0x07800000, 0}; // 2^-112
+		static XMVECTORU32 Round1 = {0x00010000, 0x00010000, 0x00020000, 0};
+		static XMVECTORU32 Round2 = {0x0000FFFF, 0x0000FFFF, 0x0001FFFF, 0};
+		static XMVECTORU32 Mask = {0x0FFE0000, 0x0FFE0000, 0x0FFC0000, 0};
 
 		// Treat the values like integers as we clamp to [0, +Inf].  This translates 32-bit specials
 		// to 16-bit specials (while also turning anything greater than MAX_HALF into +INF).
@@ -76,7 +103,7 @@ namespace Darius::Math
 		// Bias the exponent by -112 (-127 + 15) to denormalize values < 2^-14
 		ti = _mm_castps_si128(_mm_mul_ps(_mm_castsi128_ps(ti), Scale));
 
-		if (RoundToEven)
+		if(RoundToEven)
 		{
 			// Add 0x10000 when odd, 0x0FFFF when even (before truncating bits)
 			ti = _mm_add_epi32(ti, _mm_max_epi32(_mm_and_si128(_mm_srli_epi32(ti, 1), Round1), Round2));
@@ -162,5 +189,163 @@ namespace Darius::Math
 
 #endif
 	}
+
+#ifdef _D_EDITOR
+	bool DrawDetails(Color& elem, bool hasAlphaChannel, Color const& defaultValue, bool normalizedValue, bool hdrDisplay)
+	{
+		auto valueChanged = false;
+
+		ImGuiIO& io = ImGui::GetIO();
+		auto boldFont = io.Fonts->Fonts[0];
+
+		ImGui::PushID(&elem);
+		ImGui::BeginGroup();
+
+		ImGui::PushMultiItemsWidths(hasAlphaChannel ? 5 : 4, ImGui::CalcItemWidth());
+		ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2 {0, 0});
+
+		float lineHeight = GImGui->Font->FontSize + GImGui->Style.FramePadding.y * 2.0f;
+		ImVec2 buttonSize = {lineHeight + 3.0f, lineHeight};
+
+		ImGui::PushStyleColor(ImGuiCol_Button, ImVec4 {0.8f, 0.1f, 0.15f, 1.0f});
+		ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4 {0.9f, 0.2f, 0.2f, 1.0f});
+		ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4 {0.8f, 0.1f, 0.15f, 1.0f});
+		ImGui::PushFont(boldFont);
+		if(ImGui::Button("R", buttonSize))
+		{
+			elem.SetR(defaultValue.GetR());
+			valueChanged = true;
+		}
+		ImGui::PopFont();
+		ImGui::PopStyleColor(3);
+		ImGui::PopStyleVar();
+		ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2 {0, 0});
+
+		ImGui::SameLine();
+
+		ColorElementEdit(R);
+
+		ImGui::PopItemWidth();
+		ImGui::PopStyleVar();
+		ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2 {5, 0});
+		ImGui::SameLine();
+
+		ImGui::PushStyleColor(ImGuiCol_Button, ImVec4 {0.2f, 0.7f, 0.2f, 1.0f});
+		ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4 {0.3f, 0.8f, 0.3f, 1.0f});
+		ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4 {0.2f, 0.7f, 0.2f, 1.0f});
+		ImGui::PushFont(boldFont);
+		if(ImGui::Button("G", buttonSize))
+		{
+			elem.SetG(defaultValue.GetG());
+			valueChanged = true;
+		}
+		ImGui::PopFont();
+		ImGui::PopStyleColor(3);
+		ImGui::PopStyleVar();
+		ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2 {0, 0});
+
+		ImGui::SameLine();
+
+		ColorElementEdit(G);
+
+		ImGui::PopItemWidth();
+		ImGui::PopStyleVar();
+		ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2 {5, 0});
+		ImGui::SameLine();
+
+		ImGui::PushStyleColor(ImGuiCol_Button, ImVec4 {0.1f, 0.25f, 0.8f, 1.0f});
+		ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4 {0.2f, 0.35f, 0.9f, 1.0f});
+		ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4 {0.1f, 0.25f, 0.8f, 1.0f});
+		ImGui::PushFont(boldFont);
+		if(ImGui::Button("B", buttonSize))
+		{
+			elem.SetB(defaultValue.GetB());
+			valueChanged = true;
+		}
+
+		ImGui::PopFont();
+		ImGui::PopStyleColor(3);
+		ImGui::PopStyleVar();
+		ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2 {0, 0});
+
+		ImGui::SameLine();
+
+		ColorElementEdit(B);
+
+		ImGui::PopItemWidth();
+		ImGui::PopStyleVar();
+
+		if(hasAlphaChannel)
+		{
+			ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2 {5, 0});
+			ImGui::SameLine();
+
+			ImGui::PushStyleColor(ImGuiCol_Button, ImVec4 {0.8f, 0.8f, 0.15f, 1.0f});
+			ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4 {0.9f, 0.9f, 0.2f, 1.0f});
+			ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4 {0.8f, 0.8f, 0.1f, 1.0f});
+			ImGui::PushFont(boldFont);
+			if(ImGui::Button("A", buttonSize))
+			{
+				elem.SetA(defaultValue.GetA());
+				valueChanged = true;
+			}
+
+			ImGui::PopFont();
+			ImGui::PopStyleColor(3);
+			ImGui::PopStyleVar();
+			ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2 {0, 0});
+
+			ImGui::SameLine();
+
+			ColorElementEdit(A);
+
+			ImGui::PopItemWidth();
+			ImGui::PopStyleVar();
+		}
+		{
+			ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2 {5, 0});
+			ImGui::SameLine();
+
+			float* values = elem.GetPtr();
+			static const ImGuiColorEditFlags flagBase = ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_NoLabel;
+
+			ImGuiColorEditFlags flags = flagBase;
+
+			if(hdrDisplay)
+				flags |= ImGuiColorEditFlags_HDR;
+			if(hdrDisplay)
+				flags |= ImGuiColorEditFlags_Float;
+
+			if(hasAlphaChannel)
+			{
+				flags |= ImGuiColorEditFlags_AlphaBar | ImGuiColorEditFlags_AlphaPreview;
+				if(ImGui::ColorEdit4("##ColorPallet4", values, flags))
+				{
+					elem.SetRGB(values[0], values[1], values[2]);
+					elem.SetA(values[3]);
+					valueChanged = true;
+				}
+			}
+			else
+			{
+				if(ImGui::ColorEdit3("##ColorPallet3", values, flags))
+				{
+					elem.SetRGB(values[0], values[1], values[2]);
+					valueChanged = true;
+				}
+			}
+
+			ImGui::PopItemWidth();
+
+			ImGui::PopStyleVar();
+		}
+
+		ImGui::EndGroup();
+		ImGui::PopID();
+		return valueChanged;
+	}
+
+#endif // _D_EDITOR
+
 }
 

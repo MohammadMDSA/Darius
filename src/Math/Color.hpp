@@ -37,6 +37,7 @@ namespace Darius::Math
 		Color() : m_value(DirectX::g_XMOne) {}
 		explicit Color(DirectX::FXMVECTOR vec);
 		explicit Color(const DirectX::XMVECTORF32 & vec);
+		explicit Color(DirectX::XMFLOAT3 const& val, float a = 1.f) : Color(val.x, val.y, val.z, a) { }
 		Color(float r, float g, float b, float a = 1.0f);
 		Color(uint16_t r, uint16_t g, uint16_t b, uint16_t a = 255, uint16_t bitDepth = 8);
 		explicit Color(uint32_t rgbaLittleEndian);
@@ -269,4 +270,10 @@ namespace Darius::Math
 	INLINE BoolVector operator>  (Color const& lhs, Color const& rhs) { return DirectX::XMVectorGreater(lhs, rhs); }
 	INLINE BoolVector operator>= (Color const& lhs, Color const& rhs) { return DirectX::XMVectorGreaterOrEqual(lhs, rhs); }
 	INLINE Color Select(Color const& lhs, Color const& rhs, BoolVector const& mask) { return Color(DirectX::XMVectorSelect(lhs, rhs, mask)); }
+
+#ifdef _D_EDITOR
+
+	bool DrawDetails(Color& elem, bool hasAlphaChannel = true, Color const& defaultValue = Color::Black, bool normalizedValue = false, bool hdrDisplay = false);
+
+#endif // _D_EDITOR
 }

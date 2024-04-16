@@ -85,7 +85,7 @@ namespace Darius::Physics
 		{
 			D_H_DETAILS_DRAW_PROPERTY("Half Extents");
 			auto halfExt = GetHalfExtents();
-			if (D_MATH::DrawDetails(halfExt, {0.5f, 0.5f, 0.5f}, false))
+			if (D_MATH::DrawDetails(halfExt, Vector3(0.5f, 0.5f, 0.5f)))
 			{
 				SetHalfExtents(halfExt);
 				valueChanged = true;

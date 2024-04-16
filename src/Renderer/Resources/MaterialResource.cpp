@@ -593,11 +593,11 @@ namespace Darius::Renderer
 			ImGui::Text("Albedo");
 			if (!HasAlbedoTexture())
 			{
-				auto value = *reinterpret_cast<Vector4*>(GetAlbedoColor().GetPtr());
+				auto value = GetAlbedoColor();
 				ImGui::TableSetColumnIndex(1);
-				if (D_MATH::DrawDetails(value, Vector4::Zero, true))
+				if (D_MATH::DrawDetails(value, true, Color::Black))
 				{
-					SetAlbedoColor(D_MATH::Color(value));
+					SetAlbedoColor(value);
 				}
 			}
 		}
@@ -645,10 +645,10 @@ namespace Darius::Renderer
 			if (!HasEmissiveTexture())
 			{
 				ImGui::TableSetColumnIndex(1);
-				auto value = *reinterpret_cast<Vector3*>(GetEmissiveColor().GetPtr());
-				if (D_MATH::DrawDetails(value, Vector3::Zero, true))
+				auto value = GetEmissiveColor();
+				if (D_MATH::DrawDetails(value, false, Color::Black, true, true))
 				{
-					SetEmissiveColor(D_MATH::Color(value));
+					SetEmissiveColor(value);
 				}
 			}
 		}
