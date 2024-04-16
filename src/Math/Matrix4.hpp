@@ -15,6 +15,7 @@
 
 #include "Common.hpp"
 #include "Transform.hpp"
+#include "Color.hpp"
 
 namespace Darius::Math
 {
@@ -76,8 +77,8 @@ namespace Darius::Math
 		INLINE void SetZ(Vector4 z) { m_mat.r[2] = z; }
 		INLINE void SetW(Vector4 w) { m_mat.r[3] = w; }
 
-		INLINE Matrix4 Transpose() { return Matrix4(DirectX::XMMatrixTranspose(m_mat)); }
-		INLINE Matrix4 Inverse() { auto det = DirectX::XMMatrixDeterminant(m_mat); return Matrix4(DirectX::XMMatrixInverse(&det, m_mat)); }
+		INLINE Matrix4 Transpose() const { return Matrix4(DirectX::XMMatrixTranspose(m_mat)); }
+		INLINE Matrix4 Inverse() const { auto det = DirectX::XMMatrixDeterminant(m_mat); return Matrix4(DirectX::XMMatrixInverse(&det, m_mat)); }
 
 		// Consty, don't use too often
 		INLINE D_CONTAINERS::DVector<D_CONTAINERS::DVector<float>> GetData() const
@@ -108,7 +109,12 @@ namespace Darius::Math
 
 		INLINE Vector4 operator* (Vector3 const& vec) const { return Vector4(DirectX::XMVector3Transform(vec, m_mat)); }
 		INLINE Vector4 operator* (Vector4 const& vec) const { return Vector4(DirectX::XMVector4Transform(vec, m_mat)); }
+		INLINE Color operator* (Color const& col) const { return Color(DirectX::XMVector4Transform(col, m_mat)); }
 		INLINE Matrix4 operator* (const Matrix4& mat) const { return Matrix4(DirectX::XMMatrixMultiply(mat, m_mat)); }
+
+		INLINE float GetElement(int row, int col) const { return m_mat.r[row].m128_f32[col]; }
+		INLINE float& GetElement(int row, int col) { return m_mat.r[row].m128_f32[col]; }
+		INLINE Vector4 GetColumn(int col) const { D_ASSERT(col >= 0 && col < 3); return Vector4(m_mat.r[0].m128_f32[col], m_mat.r[1].m128_f32[col], m_mat.r[2].m128_f32[col], m_mat.r[3].m128_f32[col]); }
 
 		static INLINE Matrix4 MakeScale(float scale) { return Matrix4(DirectX::XMMatrixScaling(scale, scale, scale)); }
 		static INLINE Matrix4 MakeScale(Vector3 scale) { return Matrix4(DirectX::XMMatrixScalingFromVector(scale)); }
