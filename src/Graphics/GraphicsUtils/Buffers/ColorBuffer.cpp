@@ -10,9 +10,9 @@ using namespace DirectX;
 
 namespace Darius::Graphics::Utils::Buffers
 {
-    void ColorBuffer::CreateDerivedViews(ID3D12Device* Device, DXGI_FORMAT Format, uint32_t ArraySize, uint32_t NumMips, bool cube)
+    void ColorBuffer::CreateDerivedViews(ID3D12Device* Device, DXGI_FORMAT Format, uint32_t ArraySizeOrDepth, uint32_t NumMips, bool cube, bool dim3d)
     {
-        D_ASSERT_M(ArraySize == 1 || NumMips == 1, "We don't support auto-mips on texture arrays");
+        D_ASSERT_M(ArraySizeOrDepth == 1 || NumMips == 1, "We don't support auto-mips on texture arrays");
 
         mNumMipMaps = NumMips - 1;
 
@@ -25,43 +25,61 @@ namespace Darius::Graphics::Utils::Buffers
         SRVDesc.Format = Format;
         SRVDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
 
-        if (ArraySize > 1 && cube)
+        if(dim3d)
         {
-            D_ASSERT_M(ArraySize % 6 == 0, "The array size should be a multiple of 6");
+            RTVDesc.ViewDimension = D3D12_RTV_DIMENSION_TEXTURE3D;
+            RTVDesc.Texture3D.MipSlice = 0;
+            RTVDesc.Texture3D.FirstWSlice = 0;
+            RTVDesc.Texture3D.WSize = ArraySizeOrDepth;
+
+            UAVDesc.ViewDimension = D3D12_UAV_DIMENSION_TEXTURE3D;
+            UAVDesc.Texture3D.MipSlice = 0;
+            UAVDesc.Texture3D.FirstWSlice = 0;
+            UAVDesc.Texture3D.WSize = ArraySizeOrDepth;
+
+            SRVDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE3D;
+            SRVDesc.Texture3D.MipLevels = NumMips;
+            SRVDesc.Texture3D.MostDetailedMip = 0u;
+            SRVDesc.Texture3D.ResourceMinLODClamp = 0u;
+
+        }
+        else if (ArraySizeOrDepth > 1 && cube)
+        {
+            D_ASSERT_M(ArraySizeOrDepth % 6 == 0, "The array size should be a multiple of 6");
             RTVDesc.ViewDimension = D3D12_RTV_DIMENSION_TEXTURE2DARRAY;
             RTVDesc.Texture2DArray.MipSlice = 0;
             RTVDesc.Texture2DArray.FirstArraySlice = 0;
-            RTVDesc.Texture2DArray.ArraySize = (UINT)ArraySize;
+            RTVDesc.Texture2DArray.ArraySize = ArraySizeOrDepth;
 
             UAVDesc.ViewDimension = D3D12_UAV_DIMENSION_TEXTURE2DARRAY;
             UAVDesc.Texture2DArray.MipSlice = 0;
             UAVDesc.Texture2DArray.FirstArraySlice = 0;
-            UAVDesc.Texture2DArray.ArraySize = (UINT)ArraySize;
+            UAVDesc.Texture2DArray.ArraySize = ArraySizeOrDepth;
 
             SRVDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURECUBEARRAY;
             SRVDesc.TextureCubeArray.MipLevels = NumMips;
             SRVDesc.TextureCubeArray.MostDetailedMip = 0;
             SRVDesc.TextureCubeArray.First2DArrayFace = 0;
-            SRVDesc.TextureCubeArray.NumCubes = (UINT)ArraySize / 6u;
+            SRVDesc.TextureCubeArray.NumCubes = ArraySizeOrDepth / 6u;
             SRVDesc.TextureCubeArray.ResourceMinLODClamp = 0.f;
         }
-        else if (ArraySize > 1)
+        else if (ArraySizeOrDepth > 1)
         {
             RTVDesc.ViewDimension = D3D12_RTV_DIMENSION_TEXTURE2DARRAY;
             RTVDesc.Texture2DArray.MipSlice = 0;
             RTVDesc.Texture2DArray.FirstArraySlice = 0;
-            RTVDesc.Texture2DArray.ArraySize = (UINT)ArraySize;
+            RTVDesc.Texture2DArray.ArraySize = ArraySizeOrDepth;
 
             UAVDesc.ViewDimension = D3D12_UAV_DIMENSION_TEXTURE2DARRAY;
             UAVDesc.Texture2DArray.MipSlice = 0;
             UAVDesc.Texture2DArray.FirstArraySlice = 0;
-            UAVDesc.Texture2DArray.ArraySize = (UINT)ArraySize;
+            UAVDesc.Texture2DArray.ArraySize = ArraySizeOrDepth;
 
             SRVDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2DARRAY;
             SRVDesc.Texture2DArray.MipLevels = NumMips;
             SRVDesc.Texture2DArray.MostDetailedMip = 0;
             SRVDesc.Texture2DArray.FirstArraySlice = 0;
-            SRVDesc.Texture2DArray.ArraySize = (UINT)ArraySize;
+            SRVDesc.Texture2DArray.ArraySize = ArraySizeOrDepth;
         }
         else if (mFragmentCount > 1)
         {
@@ -142,6 +160,29 @@ namespace Darius::Graphics::Utils::Buffers
 
         CreateTextureResource(D_GRAPHICS_DEVICE::GetDevice(), Name, ResourceDesc, ClearValue, VidMem);
         CreateDerivedViews(D_GRAPHICS_DEVICE::GetDevice(), Format, 1, NumMips);
+    }
+
+    void ColorBuffer::Create(std::wstring const& name, uint32_t width, uint32_t height, uint32_t depth, uint32_t numMips, DXGI_FORMAT format, D3D12_GPU_VIRTUAL_ADDRESS vidMemPtr)
+    {
+        width = XMMax(width, 1u);
+        height = XMMax(height, 1u);
+        depth = XMMax(depth, 1u);
+        numMips = (numMips == 0 ? ComputeNumMips(width, height, depth) : numMips);
+        D3D12_RESOURCE_FLAGS Flags = CombineResourceFlags();
+        D3D12_RESOURCE_DESC ResourceDesc = DescribeTex3D(width, height, depth, numMips, format, Flags);
+
+        ResourceDesc.SampleDesc.Count = mFragmentCount;
+        ResourceDesc.SampleDesc.Quality = 0;
+
+        D3D12_CLEAR_VALUE ClearValue = {};
+        ClearValue.Format = format;
+        ClearValue.Color[0] = mClearColor.GetR();
+        ClearValue.Color[1] = mClearColor.GetG();
+        ClearValue.Color[2] = mClearColor.GetB();
+        ClearValue.Color[3] = mClearColor.GetA();
+
+        CreateTextureResource(D_GRAPHICS_DEVICE::GetDevice(), name, ResourceDesc, ClearValue, vidMemPtr);
+        CreateDerivedViews(D_GRAPHICS_DEVICE::GetDevice(), format, depth, numMips, false, true);
     }
 
     void ColorBuffer::CreateArray(const std::wstring& Name, uint32_t Width, uint32_t Height, uint32_t ArrayCount,

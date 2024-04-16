@@ -19,9 +19,30 @@ namespace Darius::Graphics::Utils::Buffers
 
 		D3D12_RESOURCE_DESC desc = {};
 		desc.Alignment = 0;
-		desc.DepthOrArraySize = 0;
 		desc.DepthOrArraySize = (UINT16)depthOrArraySize;
 		desc.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
+		desc.Flags = (D3D12_RESOURCE_FLAGS)flags;
+		desc.Format = GetBaseFormat(format);
+		desc.Height = (UINT)height;
+		desc.Layout = D3D12_TEXTURE_LAYOUT_UNKNOWN;
+		desc.MipLevels = (UINT16)numMips;
+		desc.SampleDesc.Count = 1;
+		desc.SampleDesc.Quality = 0;
+		desc.Width = (UINT64)width;
+		return desc;
+	}
+
+	D3D12_RESOURCE_DESC PixelBuffer::DescribeTex3D(uint32_t width, uint32_t height, uint32_t depthOrArraySize, uint32_t numMips, DXGI_FORMAT format, UINT flags)
+	{
+		mWidth = width;
+		mHeight = height;
+		mArraySize = depthOrArraySize;
+		mFormat = format;
+
+		D3D12_RESOURCE_DESC desc = {};
+		desc.Alignment = 0;
+		desc.DepthOrArraySize = (UINT16)depthOrArraySize;
+		desc.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE3D;
 		desc.Flags = (D3D12_RESOURCE_FLAGS)flags;
 		desc.Format = GetBaseFormat(format);
 		desc.Height = (UINT)height;

@@ -52,6 +52,8 @@ namespace Darius::Graphics::Utils::Buffers
 		// reusing ESRAM across a frame.).
 		void Create(const std::wstring& name, uint32_t width, uint32_t height, uint32_t numMips, DXGI_FORMAT format, D3D12_GPU_VIRTUAL_ADDRESS vidMemPtr = D3D12_GPU_VIRTUAL_ADDRESS_UNKNOWN);
 
+		void Create(std::wstring const& name, uint32_t width, uint32_t height, uint32_t depth, uint32_t numMips, DXGI_FORMAT format, D3D12_GPU_VIRTUAL_ADDRESS vidMemPtr = D3D12_GPU_VIRTUAL_ADDRESS_UNKNOWN);
+
 		// Create a color buffer. If an address is supplied, memory will not be allocated.
 		// The vmem address allows you to alias buffers (which can be especially useful for reusing ESRAM across a frame.).
 		void CreateArray(const std::wstring& name, uint32_t width, uint32_t height, uint32_t arrayCount, DXGI_FORMAT format, bool cube = false, D3D12_GPU_VIRTUAL_ADDRESS vidMemPtr = D3D12_GPU_VIRTUAL_ADDRESS_UNKNOWN);
@@ -100,7 +102,14 @@ namespace Darius::Graphics::Utils::Buffers
 			return hightBit + 1;
 		}
 
-		void CreateDerivedViews(ID3D12Device* device, DXGI_FORMAT format, uint32_t arraySize, uint32_t numMips = 1, bool cube = false);
+		static inline uint32_t ComputeNumMips(uint32_t width, uint32_t height, uint32_t depth)
+		{
+			uint32_t hightBit;
+			_BitScanReverse((unsigned long*)&hightBit, width | height | depth);
+			return hightBit + 1;
+		}
+
+		void CreateDerivedViews(ID3D12Device* device, DXGI_FORMAT format, uint32_t arraySizeOrDepth, uint32_t numMips = 1, bool cube = false, bool dim3d = false);
 
 		D_MATH::Color mClearColor;
 		D3D12_CPU_DESCRIPTOR_HANDLE mSrvHandle;
