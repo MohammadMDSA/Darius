@@ -185,6 +185,8 @@ return settingsChanged;
 	ImGui::PopItemWidth(); \
 } \
 
+#endif // _D_EDITOR
+
 // Subsystem Settings Loader
 #define D_H_OPTIONS_LOAD_BASIC(key, variable) \
 if(settings.contains(key)) variable = settings.at(key);
@@ -193,9 +195,28 @@ if(settings.contains(key)) variable = settings.at(key);
 #define D_H_OPTIONS_LOAD_BASIC_DEFAULT(key, variable, defaultValue) \
 D_H_OPTIONS_LOAD_BASIC(key, variable) else variable = defaultValue;
 
+#define D_H_OPTIONS_LOAD_COLOR(key, variable) \
+if(settings.contains(key)) \
+{ \
+	D_CONTAINERS::DVector<float> vec;\
+	settings[key].get_to(vec); \
+	variable = D_MATH::Color(vec[0], vec[1], vec[2]); \
+}
 
+#define D_H_OPTIONS_LOAD_COLOR_DEFAULT(key, variable, defaultValue) \
+D_H_OPTIONS_LOAD_COLOR(key, variable) else variable = defaultValue;
 
-#endif // _D_EDITOR
+#define D_H_OPTIONS_LOAD_VEC3(key, variable) \
+if(settings.contains(key)) \
+{ \
+	D_CONTAINERS::DVector<float> vec;\
+	settings[key].get_to(vec); \
+	variable = D_MATH::Vector3(vec[0], vec[1], vec[2]); \
+}
+
+#define D_H_OPTIONS_LOAD_VEC3_DEFAULT(key, variable, defaultValue) \
+D_H_OPTIONS_LOAD_VEC3(key, variable) else variable = defaultValue;
+
 
 /////////////////////////////////
 //// Code Generation ////////////
