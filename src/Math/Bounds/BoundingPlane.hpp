@@ -26,11 +26,11 @@ namespace Darius::Math::Bounds
     public:
 
         BoundingPlane() {}
-        BoundingPlane(Vector3 normalToPlane, float distanceFromOrigin) : m_repr(normalToPlane, distanceFromOrigin) {}
-        BoundingPlane(Vector3 pointOnPlane, Vector3 normalToPlane);
+        BoundingPlane(Vector3 const& normalToPlane, float distanceFromOrigin) : m_repr(normalToPlane, distanceFromOrigin) {}
+        BoundingPlane(Vector3 const& pointOnPlane, Vector3 const& normalToPlane);
         BoundingPlane(float A, float B, float C, float D) : m_repr(A, B, C, D) {}
         BoundingPlane(const BoundingPlane& plane) : m_repr(plane.m_repr) {}
-        explicit BoundingPlane(Vector4 plane) : m_repr(plane) {}
+        explicit BoundingPlane(Vector4 const& plane) : m_repr(plane) {}
 
         BoundingPlane& operator=(BoundingPlane const& other) = default;
 
@@ -88,11 +88,11 @@ namespace Darius::Math::Bounds
     //=======================================================================================================
     // Inline implementations
     //
-    inline BoundingPlane::BoundingPlane(Vector3 pointOnPlane, Vector3 normalToPlane)
+    inline BoundingPlane::BoundingPlane(Vector3 const& pointOnPlane, Vector3 const& normalToPlane)
     {
         // Guarantee a normal.  This constructor isn't meant to be called frequently, but if it is, we can change this.
-        normalToPlane = Normalize(normalToPlane);
-        m_repr = Vector4(normalToPlane, -Math::Dot(pointOnPlane, normalToPlane));
+        Vector3 normal = Normalize(normalToPlane);
+        m_repr = Vector4(normal, -Math::Dot(pointOnPlane, normal));
     }
 
     //=======================================================================================================
