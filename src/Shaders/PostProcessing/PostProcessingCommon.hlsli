@@ -1,0 +1,6 @@
+#ifndef __POST_PROCESSING_COMMON_HLSLI__
+#define __POST_PROCESSING_COMMON_HLSLI__
+
+
+
+#endif

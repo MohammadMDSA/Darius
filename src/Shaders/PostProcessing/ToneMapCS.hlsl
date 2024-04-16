@@ -12,11 +12,13 @@
 //
 
 #include "ToneMappingUtility.hlsli"
+#include "ToneMapCommon.hlsli"
 #include "PostEffectsRS.hlsli"
 #include "../Utils/PixelPacking/PixelPacking.hlsli"
 
 StructuredBuffer<float> Exposure : register( t0 );
-Texture2D<float3> Bloom : register( t1 );
+Texture2D<float3> Bloom     : register( t1 );
+Texture3D<float3> LUT       : register( t3 );
 #if SUPPORT_TYPED_UAV_LOADS
 RWTexture2D<float3> ColorRW : register( u0 );
 #else
@@ -31,12 +33,27 @@ cbuffer CB0 : register(b1)
     float g_BloomStrength;
     float PaperWhiteRatio; // PaperWhite / MaxBrightness
     float MaxBrightness;
-    float FilmSlope;
-    float FilmToe;
-    float FilmShoulder;
-    float FilmBlackClip;
-    float FilmWhiteClip;
+    float LUTSize;
+    float InvLUTSize; // 1 / LUTSize
+    float LUTScale; // (LUTSize - 1) / LUTSize
+    float LUTOffset; // 0.5 / LUTSize
+    uint ColorGradingEnable;
 };
+
+float3 ColorLookupTable(float3 LinearColor)
+{
+    float3 LUTEncodedColor;
+
+    LUTEncodedColor = LinToLog(LinearColor + LogToLin(0));
+
+
+    float3 UVW = LUTEncodedColor * LUTScale + LUTOffset;
+
+    float3 OutDeviceColor = LUT.SampleLevel(BilinearSampler, UVW, 0.f).rgb;
+    
+    return OutDeviceColor * 1.05;
+}
+
 
 [RootSignature(PostEffects_RootSig)]
 [numthreads( 8, 8, 1 )]
@@ -67,8 +84,21 @@ void main( uint3 DTid : SV_DispatchThreadID )
 
 #else
 
-    // Tone map to SDR
-    float3 sdrColor = RemoveSRGBCurve(FilmToneMap(hdrColor, FilmSlope, FilmToe, FilmShoulder, FilmBlackClip, FilmWhiteClip));
+    const float3x3 sRGB_2_AP1 = mul(XYZ_2_AP1_MAT, mul(D65_2_D60_CAT, sRGB_2_XYZ_MAT));
+    const float3x3 AP1_2_sRGB = mul(XYZ_2_sRGB_MAT, mul(D60_2_D65_CAT, AP1_2_XYZ_MAT));
+    
+    float3 toneMappedAP1 = FilmToneMap(mul(sRGB_2_AP1, hdrColor));
+    float3 toneMappedSRGB = mul(AP1_2_sRGB, toneMappedAP1);
+    float3 outColor;
+    
+    // Applying color grading
+    if (ColorGradingEnable)
+        outColor = mul(AP1_2_sRGB, ColorLookupTable(toneMappedSRGB));
+    else
+        outColor = toneMappedSRGB;
+    
+    float3 sdrColor = RemoveSRGBCurve(outColor);
+    OutLuma[DTid.xy] = RGBToLogLuminance(sdrColor);
 
 #if SUPPORT_TYPED_UAV_LOADS
     ColorRW[DTid.xy] = sdrColor;
@@ -76,7 +106,6 @@ void main( uint3 DTid : SV_DispatchThreadID )
     DstColor[DTid.xy] = Pack_R11G11B10_FLOAT(sdrColor);
 #endif
 
-    OutLuma[DTid.xy] = RGBToLogLuminance(sdrColor);
 
 #endif
 }
