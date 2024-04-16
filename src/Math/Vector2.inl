@@ -461,98 +461,15 @@ inline Vector2 Vector2::Refract(const Vector2& ivec, const Vector2& nvec, float 
     XMStoreFloat2(reinterpret_cast<XMFLOAT2*>(&result), X);
     return result;
 }
-//
-//inline void Vector2::Transform(const Vector2& v, const Quaternion& quat, Vector2& result)
-//{
-//    using namespace DirectX;
-//    const XMVECTOR v1 = XMLoadFloat2(&static_cast<XMFLOAT2 const&>(v));
-//    const XMVECTOR q = XMLoadFloat4(&static_cast<XMFLOAT2 const&>(quat));
-//    const XMVECTOR X = XMVector3Rotate(v1, q);
-//    XMStoreFloat2(reinterpret_cast<XMFLOAT2*>(&result), X);
-//}
-//
-//inline Vector2 Vector2::Transform(const Vector2& v, const Quaternion& quat)
-//{
-//    using namespace DirectX;
-//    const XMVECTOR v1 = XMLoadFloat2(&static_cast<XMFLOAT2 const&>(v));
-//    const XMVECTOR q = XMLoadFloat4(&static_cast<XMFLOAT2 const&>(quat));
-//    const XMVECTOR X = XMVector3Rotate(v1, q);
-//
-//    Vector2 result;
-//    XMStoreFloat2(reinterpret_cast<XMFLOAT2*>(&result), X);
-//    return result;
-//}
-//
-//inline void Vector2::Transform(const Vector2& v, const Matrix4& m, Vector2& result)
-//{
-//    using namespace DirectX;
-//    const XMVECTOR v1 = XMLoadFloat2(&v);
-//    const XMMATRIX M = XMLoadFloat4x4(&m);
-//    const XMVECTOR X = XMVector2TransformCoord(v1, M);
-//    XMStoreFloat2(reinterpret_cast<XMFLOAT2*>(&result), X);
-//}
-//
-//inline Vector2 Vector2::Transform(const Vector2& v, const Matrix4& m)
-//{
-//    using namespace DirectX;
-//    const XMVECTOR v1 = XMLoadFloat2(&v);
-//    const XMMATRIX M = XMLoadFloat4x4(&m);
-//    const XMVECTOR X = XMVector2TransformCoord(v1, M);
-//
-//    Vector2 result;
-//    XMStoreFloat2(reinterpret_cast<XMFLOAT2*>(&result), X);
-//    return result;
-//}
-//
-//_Use_decl_annotations_
-//inline void Vector2::Transform(const Vector2* varray, size_t count, const Matrix4& m, Vector2* resultArray)
-//{
-//    using namespace DirectX;
-//    const XMMATRIX M = XMLoadFloat4x4(&m);
-//    XMVector2TransformCoordStream(resultArray, sizeof(XMFLOAT2), varray, sizeof(XMFLOAT2), count, M);
-//}
-//
-//inline void Vector2::Transform(const Vector2& v, const Matrix4& m, Vector4& result)
-//{
-//    using namespace DirectX;
-//    const XMVECTOR v1 = XMLoadFloat2(&v);
-//    const XMMATRIX M = XMLoadFloat4x4(&m);
-//    const XMVECTOR X = XMVector2Transform(v1, M);
-//    XMStoreFloat4(reinterpret_cast<XMFLOAT2*>(&result), X);
-//}
-//
-//_Use_decl_annotations_
-//inline void Vector2::Transform(const Vector2* varray, size_t count, const Matrix4& m, Vector4* resultArray)
-//{
-//    using namespace DirectX;
-//    const XMMATRIX M = XMLoadFloat4x4(&m);
-//    XMVector2TransformStream(resultArray, sizeof(XMFLOAT4), varray, sizeof(XMFLOAT2), count, M);
-//}
-//
-//inline void Vector2::TransformNormal(const Vector2& v, const Matrix4& m, Vector2& result)
-//{
-//    using namespace DirectX;
-//    const XMVECTOR v1 = XMLoadFloat2(&v);
-//    const XMMATRIX M = XMLoadFloat4x4(&m);
-//    const XMVECTOR X = XMVector2TransformNormal(v1, M);
-//    XMStoreFloat2(reinterpret_cast<XMFLOAT2*>(&result), X);
-//}
-//
-//inline Vector2 Vector2::TransformNormal(const Vector2& v, const Matrix4& m)
-//{
-//    using namespace DirectX;
-//    const XMVECTOR v1 = XMLoadFloat2(&v);
-//    const XMMATRIX M = XMLoadFloat4x4(&m);
-//    const XMVECTOR X = XMVector2TransformNormal(v1, M);
-//
-//    Vector2 result;
-//    XMStoreFloat2(reinterpret_cast<XMFLOAT2*>(&result), X);
-//    return result;
-//}
-//
-//inline void Vector2::TransformNormal(const Vector2* varray, size_t count, const Matrix4& m, Vector2* resultArray)
-//{
-//    using namespace DirectX;
-//    const XMMATRIX M = XMLoadFloat4x4(&m);
-//    XMVector2TransformNormalStream(resultArray, sizeof(XMFLOAT2), varray, sizeof(XMFLOAT2), count, M);
-//}
+
+inline bool Vector2::Equals(Vector2 const& other) const
+{
+    return mData.x == other.mData.x &&
+        mData.y == other.mData.y;
+}
+
+inline bool Vector2::NearEquals(Vector2 const& other, float epsilon) const
+{
+    return std::abs(mData.x - other.mData.x) < epsilon &&
+        std::abs(mData.y - other.mData.y) < epsilon;
+}

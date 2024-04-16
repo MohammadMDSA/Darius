@@ -51,9 +51,9 @@ namespace Darius::Math
 
 		// Assignment operators
 		Vector2& operator= (const DirectX::XMVECTORF32 & F) { mData.x = F.f[0]; mData.y = F.f[1]; return *this; }
-		Vector2& operator+= (const Vector2 & V);
-		Vector2& operator-= (const Vector2 & V);
-		Vector2& operator*= (const Vector2 & V);
+		Vector2& operator+= (Vector2 const& V);
+		Vector2& operator-= (Vector2 const& V);
+		Vector2& operator*= (Vector2 const& V);
 		Vector2& operator*= (float S);
 		Vector2& operator/= (float S);
 
@@ -62,21 +62,24 @@ namespace Darius::Math
 		Vector2 operator- () const { return Vector2(-mData.x, -mData.y); }
 
 		// Vector operations
-		bool InBounds(const Vector2 & Bounds) const;
+		bool InBounds(Vector2 const& Bounds) const;
+
+		bool Equals(Vector2 const& other) const;
+		bool NearEquals(Vector2 const& other, float epsilon = DirectX::g_XMEpsilon[0]) const;
 
 		float Length() const;
 		float LengthSquared() const;
 
-		float Dot(const Vector2 & V) const;
-		void Cross(const Vector2 & V, Vector2 & result) const;
-		Vector2 Cross(const Vector2 & V) const;
+		float Dot(Vector2 const& V) const;
+		void Cross(Vector2 const& V, Vector2 & result) const;
+		Vector2 Cross(Vector2 const& V) const;
 
 		Vector2 Normal() const;
 		void Normalize();
 		void Normalize(Vector2 & result) const;
 
-		void Clamp(const Vector2 & vmin, const Vector2 & vmax);
-		void Clamp(const Vector2 & vmin, const Vector2 & vmax, Vector2 & result) const;
+		void Clamp(Vector2 const& vmin, Vector2 const& vmax);
+		void Clamp(Vector2 const& vmin, Vector2 const& vmax, Vector2 & result) const;
 
 		INLINE float GetX() const { return mData.x; }
 		INLINE float GetY() const { return mData.y; }
@@ -89,48 +92,48 @@ namespace Darius::Math
 		INLINE void SetData(D_CONTAINERS::DVector<float> data) { SetX(data[0]); SetY(data[1]); }
 
 		// Static functions
-		static float Distance(const Vector2 & v1, const Vector2 & v2);
-		static float DistanceSquared(const Vector2 & v1, const Vector2 & v2);
+		static float Distance(Vector2 const& v1, Vector2 const& v2);
+		static float DistanceSquared(Vector2 const& v1, Vector2 const& v2);
 
-		static void Min(const Vector2 & v1, const Vector2 & v2, Vector2 & result);
-		static Vector2 Min(const Vector2 & v1, const Vector2 & v2);
+		static void Min(Vector2 const& v1, Vector2 const& v2, Vector2 & result);
+		static Vector2 Min(Vector2 const& v1, Vector2 const& v2);
 
-		static void Max(const Vector2 & v1, const Vector2 & v2, Vector2 & result);
-		static Vector2 Max(const Vector2 & v1, const Vector2 & v2);
+		static void Max(Vector2 const& v1, Vector2 const& v2, Vector2 & result);
+		static Vector2 Max(Vector2 const& v1, Vector2 const& v2);
 
-		static void Lerp(const Vector2 & v1, const Vector2 & v2, float t, Vector2 & result);
-		static Vector2 Lerp(const Vector2 & v1, const Vector2 & v2, float t);
+		static void Lerp(Vector2 const& v1, Vector2 const& v2, float t, Vector2 & result);
+		static Vector2 Lerp(Vector2 const& v1, Vector2 const& v2, float t);
 
-		static void SmoothStep(const Vector2 & v1, const Vector2 & v2, float t, Vector2 & result);
-		static Vector2 SmoothStep(const Vector2 & v1, const Vector2 & v2, float t);
+		static void SmoothStep(Vector2 const& v1, Vector2 const& v2, float t, Vector2 & result);
+		static Vector2 SmoothStep(Vector2 const& v1, Vector2 const& v2, float t);
 
-		static void Barycentric(const Vector2 & v1, const Vector2 & v2, const Vector2 & v3, float f, float g, Vector2 & result);
-		static Vector2 Barycentric(const Vector2 & v1, const Vector2 & v2, const Vector2 & v3, float f, float g);
+		static void Barycentric(Vector2 const& v1, Vector2 const& v2, Vector2 const& v3, float f, float g, Vector2 & result);
+		static Vector2 Barycentric(Vector2 const& v1, Vector2 const& v2, Vector2 const& v3, float f, float g);
 
-		static void CatmullRom(const Vector2 & v1, const Vector2 & v2, const Vector2 & v3, const Vector2 & v4, float t, Vector2 & result);
-		static Vector2 CatmullRom(const Vector2 & v1, const Vector2 & v2, const Vector2 & v3, const Vector2 & v4, float t);
+		static void CatmullRom(Vector2 const& v1, Vector2 const& v2, Vector2 const& v3, Vector2 const& v4, float t, Vector2 & result);
+		static Vector2 CatmullRom(Vector2 const& v1, Vector2 const& v2, Vector2 const& v3, Vector2 const& v4, float t);
 
-		static void Hermite(const Vector2 & v1, const Vector2 & t1, const Vector2 & v2, const Vector2 & t2, float t, Vector2 & result);
-		static Vector2 Hermite(const Vector2 & v1, const Vector2 & t1, const Vector2 & v2, const Vector2 & t2, float t);
+		static void Hermite(Vector2 const& v1, Vector2 const& t1, Vector2 const& v2, Vector2 const& t2, float t, Vector2 & result);
+		static Vector2 Hermite(Vector2 const& v1, Vector2 const& t1, Vector2 const& v2, Vector2 const& t2, float t);
 
-		static void Reflect(const Vector2 & ivec, const Vector2 & nvec, Vector2 & result);
-		static Vector2 Reflect(const Vector2 & ivec, const Vector2 & nvec);
+		static void Reflect(Vector2 const& ivec, Vector2 const& nvec, Vector2 & result);
+		static Vector2 Reflect(Vector2 const& ivec, Vector2 const& nvec);
 
-		static void Refract(const Vector2 & ivec, const Vector2 & nvec, float refractionIndex, Vector2 & result);
-		static Vector2 Refract(const Vector2 & ivec, const Vector2 & nvec, float refractionIndex);
+		static void Refract(Vector2 const& ivec, Vector2 const& nvec, float refractionIndex, Vector2 & result);
+		static Vector2 Refract(Vector2 const& ivec, Vector2 const& nvec, float refractionIndex);
 
-		//static void Transform(const Vector2 & v, const Quaternion & quat, Vector2 & result);
-		//static Vector2 Transform(const Vector2 & v, const Quaternion & quat);
+		//static void Transform(Vector2 const& v, const Quaternion & quat, Vector2 & result);
+		//static Vector2 Transform(Vector2 const& v, const Quaternion & quat);
 
-		/*static void Transform(const Vector2 & v, const Matrix4 & m, Vector2 & result);
-		static Vector2 Transform(const Vector2 & v, const Matrix4 & m);
+		/*static void Transform(Vector2 const& v, const Matrix4 & m, Vector2 & result);
+		static Vector2 Transform(Vector2 const& v, const Matrix4 & m);
 		static void Transform(_In_reads_(count) const Vector2 * varray, size_t count, const Matrix4 & m, _Out_writes_(count) Vector2 * resultArray);
 
-		static void Transform(const Vector2 & v, const Matrix4 & m, Vector4 & result);
+		static void Transform(Vector2 const& v, const Matrix4 & m, Vector4 & result);
 		static void Transform(_In_reads_(count) const Vector2 * varray, size_t count, const Matrix4 & m, _Out_writes_(count) Vector4 * resultArray);
 
-		static void TransformNormal(const Vector2 & v, const Matrix4& m, Vector2 & result);
-		static Vector2 TransformNormal(const Vector2 & v, const Matrix4& m);
+		static void TransformNormal(Vector2 const& v, const Matrix4& m, Vector2 & result);
+		static Vector2 TransformNormal(Vector2 const& v, const Matrix4& m);
 		static void TransformNormal(_In_reads_(count) const Vector2 * varray, size_t count, const Matrix4& m, _Out_writes_(count) Vector2 * resultArray);*/
 
 		// Constants
