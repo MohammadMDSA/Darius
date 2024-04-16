@@ -29,7 +29,7 @@ using DirectX::XMVECTORU32;
 	if(normalizedValue) \
 	{ \
 		float val = elem.Get##Comp(); \
-		if(ImGui::DragFloat("##"#Comp, &val, 0.01f, 0, hdrDisplay ? FLT_MAX : 1.f)) \
+		if(ImGui::DragFloat("##"#Comp, &val, 0.01f, 0.f, hdrDisplay ? FLT_MAX : 1.f)) \
 		{ \
 			elem.Set##Comp(val); \
 			valueChanged = true; \
@@ -38,7 +38,7 @@ using DirectX::XMVECTORU32;
 	else \
 	{ \
 		int val = (int)(elem.Get##Comp() * 255); \
-		if(ImGui::DragInt("##"#Comp, &val, 1, 0, hdrDisplay ? FLT_MAX : 255)) \
+		if(ImGui::DragInt("##"#Comp, &val, 1, 0, hdrDisplay ? INT_MAX : 255)) \
 		{ \
 			elem.Set##Comp(val / 255.f); \
 			valueChanged = true; \

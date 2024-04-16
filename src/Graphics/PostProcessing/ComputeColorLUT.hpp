@@ -89,14 +89,13 @@ namespace Darius::Graphics::PostProcessing
         struct Params
         {
             D_MATH::Color       ColorScale = D_MATH::Color::White;
-            D_MATH::Color       OverlayColor = D_MATH::Color::Black;
+            D_MATH::Color       OverlayColor = D_MATH::Color(0.f, 0.f, 0.f, 0.f);
             float               DisplayGamma = 2.2f;
             float               ToneMapperGamma = 2.2f;
             bool                IsTemperatureWhiteBalance = true;
             uint32_t            LUTSize = 32u;
             float               WhiteTemp = 6500.f;
             float               WhiteTint = 0.f;
-            uint32_t            OutputGamut = 0;
             D_MATH::Color       ColorSaturation = D_MATH::Color(1.0f, 1.0f, 1.0f, 1.0f);
             D_MATH::Color       ColorContrast = D_MATH::Color(1.0f, 1.0f, 1.0f, 1.0f);
             D_MATH::Color       ColorGamma = D_MATH::Color(1.0f, 1.0f, 1.0f, 1.0f);
@@ -143,7 +142,7 @@ namespace Darius::Graphics::PostProcessing
                     .LUTSize = (float)LUTSize,
                     .WhiteTemp = WhiteTemp,
                     .WhiteTint = WhiteTint,
-                    .OutputGamut = OutputGamut,
+                    .OutputGamut = 0u,
                     .ColorSaturation = ColorSaturation.Vector4(),
                     .ColorContrast = ColorContrast.Vector4(),
                     .ColorGamma = ColorGamma.Vector4(),
@@ -190,7 +189,9 @@ namespace Darius::Graphics::PostProcessing
             LUTDirty = true;
         }
 
-        INLINE Params const& GetParams() const { return Parameters; }
+        INLINE Params const&                    GetParams() const { return Parameters; }
+        INLINE Params&                          GetParams() { return Parameters; }
+        INLINE void                             SetDirty() { LUTDirty = true; }
 
         void                                    ComputeLut(ToneMapperCommonConstants const& toneMapeerConstants, WorkingColorSpaceShaderParameters const& workingColorSpace, Darius::Graphics::ComputeContext& context, Darius::Graphics::Utils::RootSignature const& rs, bool force = false);
         D3D12_CPU_DESCRIPTOR_HANDLE             ComputeAndGetLutSrv(ToneMapperCommonConstants const& toneMapeerConstants, WorkingColorSpaceShaderParameters const& workingColorSpace, Darius::Graphics::ComputeContext& context, Darius::Graphics::Utils::RootSignature const& rs);
