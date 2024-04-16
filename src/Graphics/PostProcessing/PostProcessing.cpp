@@ -105,13 +105,59 @@ namespace Darius::Graphics::PostProcessing
 		D_H_OPTIONS_LOAD_BASIC_DEFAULT("PostProcessing.ToneMapper.FilmBlackClip", FilmBlackClip, 0.f);
 		D_H_OPTIONS_LOAD_BASIC_DEFAULT("PostProcessing.ToneMapper.FilmWhiteClip", FilmWhiteClip, 0.04f);
 
-		D_H_OPTIONS_LOAD_BASIC_DEFAULT("PostProcessing.ToneMapper.ColorGrading.Enable", EnableColorGrading, true);
-
 		D_H_OPTIONS_LOAD_BASIC_DEFAULT("PostProcessing.Bloom.Enable", EnableBloom, true);
 		D_H_OPTIONS_LOAD_BASIC_DEFAULT("PostProcessing.Bloom.Threshold", BloomThreshold, 4.f);
 		D_H_OPTIONS_LOAD_BASIC_DEFAULT("PostProcessing.Bloom.Strength", BloomStrength, 0.1f);
 		D_H_OPTIONS_LOAD_BASIC_DEFAULT("PostProcessing.Bloom.Scatter", BloomUpsampleFactor, 0.65f);
 		D_H_OPTIONS_LOAD_BASIC_DEFAULT("PostProcessing.Bloom.HighQuality", HighQualityBloom, true);
+
+		// Color grading
+		{
+			ComputeColorLUT::Params computeColorLUTParams = ComputeLUT.GetParams();
+			D_H_OPTIONS_LOAD_BASIC_DEFAULT("PostProcessing.ToneMapper.ColorGrading.Enable", EnableColorGrading, true);
+			D_H_OPTIONS_LOAD_COLOR_DEFAULT("PostProcessing.ToneMapper.ColorGrading.ColorScale", computeColorLUTParams.ColorScale, D_MATH::Color::White);
+			D_H_OPTIONS_LOAD_COLOR_DEFAULT("PostProcessing.ToneMapper.ColorGrading.OverlayColor", computeColorLUTParams.OverlayColor, D_MATH::Color::Black);
+			D_H_OPTIONS_LOAD_BASIC_DEFAULT("PostProcessing.ToneMapper.ColorGrading.DisplayGamma", computeColorLUTParams.DisplayGamma, 2.2f);
+			D_H_OPTIONS_LOAD_BASIC_DEFAULT("PostProcessing.ToneMapper.ColorGrading.ToneMapperGamma", computeColorLUTParams.ToneMapperGamma, 2.2f);
+			D_H_OPTIONS_LOAD_BASIC_DEFAULT("PostProcessing.ToneMapper.ColorGrading.IsTemperatureWhiteBalance", computeColorLUTParams.IsTemperatureWhiteBalance, true);
+			D_H_OPTIONS_LOAD_BASIC_DEFAULT("PostProcessing.ToneMapper.ColorGrading.LUTSize", computeColorLUTParams.LUTSize, 32u);
+			D_H_OPTIONS_LOAD_BASIC_DEFAULT("PostProcessing.ToneMapper.ColorGrading.WhiteTemp", computeColorLUTParams.WhiteTemp, 6500.f);
+			D_H_OPTIONS_LOAD_BASIC_DEFAULT("PostProcessing.ToneMapper.ColorGrading.WhiteTint", computeColorLUTParams.WhiteTint, 0.f);
+			D_H_OPTIONS_LOAD_BASIC_DEFAULT("PostProcessing.ToneMapper.ColorGrading.OutputGamut", computeColorLUTParams.OutputGamut, 0);
+			D_H_OPTIONS_LOAD_COLOR_DEFAULT("PostProcessing.ToneMapper.ColorGrading.ColorSaturation", computeColorLUTParams.ColorSaturation, D_MATH::Color(1.0f, 1.0f, 1.0f, 1.0f));
+			D_H_OPTIONS_LOAD_COLOR_DEFAULT("PostProcessing.ToneMapper.ColorGrading.ColorContrast", computeColorLUTParams.ColorContrast, D_MATH::Color(1.0f, 1.0f, 1.0f, 1.0f));
+			D_H_OPTIONS_LOAD_COLOR_DEFAULT("PostProcessing.ToneMapper.ColorGrading.ColorGamma", computeColorLUTParams.ColorGamma, D_MATH::Color(1.0f, 1.0f, 1.0f, 1.0f));
+			D_H_OPTIONS_LOAD_COLOR_DEFAULT("PostProcessing.ToneMapper.ColorGrading.ColorGain", computeColorLUTParams.ColorGain, D_MATH::Color(1.0f, 1.0f, 1.0f, 1.0f));
+			D_H_OPTIONS_LOAD_COLOR_DEFAULT("PostProcessing.ToneMapper.ColorGrading.ColorOffset", computeColorLUTParams.ColorOffset, D_MATH::Color(0.0f, 0.0f, 0.0f, 0.0f));
+			D_H_OPTIONS_LOAD_COLOR_DEFAULT("PostProcessing.ToneMapper.ColorGrading.ColorSaturationShadows", computeColorLUTParams.ColorSaturationShadows, D_MATH::Color(1.0f, 1.0f, 1.0f, 1.0f));
+			D_H_OPTIONS_LOAD_COLOR_DEFAULT("PostProcessing.ToneMapper.ColorGrading.ColorContrastShadows", computeColorLUTParams.ColorContrastShadows, D_MATH::Color(1.0f, 1.0f, 1.0f, 1.0f));
+			D_H_OPTIONS_LOAD_COLOR_DEFAULT("PostProcessing.ToneMapper.ColorGrading.ColorGammaShadows", computeColorLUTParams.ColorGammaShadows, D_MATH::Color(1.0f, 1.0f, 1.0f, 1.0f));
+			D_H_OPTIONS_LOAD_COLOR_DEFAULT("PostProcessing.ToneMapper.ColorGrading.ColorGainShadows", computeColorLUTParams.ColorGainShadows, D_MATH::Color(1.0f, 1.0f, 1.0f, 1.0f));
+			D_H_OPTIONS_LOAD_COLOR_DEFAULT("PostProcessing.ToneMapper.ColorGrading.ColorOffsetShadows", computeColorLUTParams.ColorOffsetShadows, D_MATH::Color(0.0f, 0.0f, 0.0f, 0.0f));
+			D_H_OPTIONS_LOAD_COLOR_DEFAULT("PostProcessing.ToneMapper.ColorGrading.ColorSaturationMidtones", computeColorLUTParams.ColorSaturationMidtones, D_MATH::Color(1.0f, 1.0f, 1.0f, 1.0f));
+			D_H_OPTIONS_LOAD_COLOR_DEFAULT("PostProcessing.ToneMapper.ColorGrading.ColorContrastMidtones", computeColorLUTParams.ColorContrastMidtones, D_MATH::Color(1.0f, 1.0f, 1.0f, 1.0f));
+			D_H_OPTIONS_LOAD_COLOR_DEFAULT("PostProcessing.ToneMapper.ColorGrading.ColorGammaMidtones", computeColorLUTParams.ColorGammaMidtones, D_MATH::Color(1.0f, 1.0f, 1.0f, 1.0f));
+			D_H_OPTIONS_LOAD_COLOR_DEFAULT("PostProcessing.ToneMapper.ColorGrading.ColorGainMidtones", computeColorLUTParams.ColorGainMidtones, D_MATH::Color(1.0f, 1.0f, 1.0f, 1.0f));
+			D_H_OPTIONS_LOAD_COLOR_DEFAULT("PostProcessing.ToneMapper.ColorGrading.ColorOffsetMidtones", computeColorLUTParams.ColorOffsetMidtones, D_MATH::Color(0.f, 0.0f, 0.0f, 0.0f));
+			D_H_OPTIONS_LOAD_COLOR_DEFAULT("PostProcessing.ToneMapper.ColorGrading.ColorSaturationHighlights", computeColorLUTParams.ColorSaturationHighlights, D_MATH::Color(1.0f, 1.0f, 1.0f, 1.0f));
+			D_H_OPTIONS_LOAD_COLOR_DEFAULT("PostProcessing.ToneMapper.ColorGrading.ColorContrastHighlights", computeColorLUTParams.ColorContrastHighlights, D_MATH::Color(1.0f, 1.0f, 1.0f, 1.0f));
+			D_H_OPTIONS_LOAD_COLOR_DEFAULT("PostProcessing.ToneMapper.ColorGrading.ColorGammaHighlights", computeColorLUTParams.ColorGammaHighlights, D_MATH::Color(1.0f, 1.0f, 1.0f, 1.0f));
+			D_H_OPTIONS_LOAD_COLOR_DEFAULT("PostProcessing.ToneMapper.ColorGrading.ColorGainHighlights", computeColorLUTParams.ColorGainHighlights, D_MATH::Color(1.0f, 1.0f, 1.0f, 1.0f));
+			D_H_OPTIONS_LOAD_COLOR_DEFAULT("PostProcessing.ToneMapper.ColorGrading.ColorOffsetHighlights", computeColorLUTParams.ColorOffsetHighlights, D_MATH::Color(0.0f, 0.0f, 0.0f, 0.0f));
+			D_H_OPTIONS_LOAD_BASIC_DEFAULT("PostProcessing.ToneMapper.ColorGrading.ColorCorrectionShadowsMax", computeColorLUTParams.ColorCorrectionShadowsMax, 0.09f);
+			D_H_OPTIONS_LOAD_BASIC_DEFAULT("PostProcessing.ToneMapper.ColorGrading.ColorCorrectionHighlightsMin", computeColorLUTParams.ColorCorrectionHighlightsMin, 0.5f);
+			D_H_OPTIONS_LOAD_BASIC_DEFAULT("PostProcessing.ToneMapper.ColorGrading.ColorCorrectionHighlightsMax", computeColorLUTParams.ColorCorrectionHighlightsMax, 1.0f);
+			D_H_OPTIONS_LOAD_BASIC_DEFAULT("PostProcessing.ToneMapper.ColorGrading.BlueCorrection", computeColorLUTParams.BlueCorrection, 0.6f);
+			D_H_OPTIONS_LOAD_BASIC_DEFAULT("PostProcessing.ToneMapper.ColorGrading.ExpandGamut", computeColorLUTParams.ExpandGamut, 1.0f);
+			D_H_OPTIONS_LOAD_BASIC_DEFAULT("PostProcessing.ToneMapper.ColorGrading.ToneCurveAmount", computeColorLUTParams.ToneCurveAmount, 0.f);
+			D_H_OPTIONS_LOAD_COLOR_DEFAULT("PostProcessing.ToneMapper.ColorGrading.ACESMinMaxData", computeColorLUTParams.ACESMinMaxData, D_MATH::Color(2.50898620e-06f, 1e-4f, 692.651123f, 1000.0f));
+			D_H_OPTIONS_LOAD_COLOR_DEFAULT("PostProcessing.ToneMapper.ColorGrading.ACESMidData", computeColorLUTParams.ACESMidData, D_MATH::Color(0.0822144598f, 4.80000019f, 1.55f, 1.0f));
+			D_H_OPTIONS_LOAD_COLOR_DEFAULT("PostProcessing.ToneMapper.ColorGrading.ACESCoefsLow_0", computeColorLUTParams.ACESCoefsLow_0, D_MATH::Color(-4.00000000f, -4.00000000f, -3.15737653f, -0.485249996f));
+			D_H_OPTIONS_LOAD_COLOR_DEFAULT("PostProcessing.ToneMapper.ColorGrading.ACESCoefsHigh_0", computeColorLUTParams.ACESCoefsHigh_0, D_MATH::Color(-0.332863420f, 1.69534576f, 2.75812411f, 3.00000000f));
+			D_H_OPTIONS_LOAD_BASIC_DEFAULT("PostProcessing.ToneMapper.ColorGrading.ACESCoefsLow_4", computeColorLUTParams.ACESCoefsLow_4, 1.84773231f);
+			D_H_OPTIONS_LOAD_BASIC_DEFAULT("PostProcessing.ToneMapper.ColorGrading.ACESCoefsHigh_4", computeColorLUTParams.ACESCoefsHigh_4, 3.0f);
+			D_H_OPTIONS_LOAD_BASIC_DEFAULT("PostProcessing.ToneMapper.ColorGrading.ACESSceneColorMultiplier", computeColorLUTParams.ACESSceneColorMultiplier, 1.5f);
+		}
 
 		// Initializing Root Signature
 		PostEffectRS.Reset(6, 3);
@@ -135,7 +181,7 @@ namespace Darius::Graphics::PostProcessing
         ObjName.Finalize(); \
     }
 
-		if (D_GRAPHICS_DEVICE::SupportsTypedUAVLoadSupport_R11G11B10_FLOAT())
+		if(D_GRAPHICS_DEVICE::SupportsTypedUAVLoadSupport_R11G11B10_FLOAT())
 		{
 			CreatePSO(ToneMapCS, ToneMap2CS);
 			CreatePSO(ApplyBloomCS, ApplyBloom2CS);
@@ -201,7 +247,7 @@ namespace Darius::Graphics::PostProcessing
 		// Set the input textures and output UAV
 		Context.TransitionResource(buffer[1], D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
 		Context.SetDynamicDescriptor(1, 0, buffer[1].GetUAV());
-		D3D12_CPU_DESCRIPTOR_HANDLE SRVs[2] = { buffer[0].GetSRV(), lowerResBuf.GetSRV() };
+		D3D12_CPU_DESCRIPTOR_HANDLE SRVs[2] = {buffer[0].GetSRV(), lowerResBuf.GetSRV()};
 		Context.SetDynamicDescriptors(2, 0, 2, SRVs);
 
 		// Set the shader:  upsample and blur or just blur
@@ -252,7 +298,7 @@ namespace Darius::Graphics::PostProcessing
 
 		// The difference between high and low quality bloom is that high quality sums 5 octaves with a 2x frequency scale, and the low quality
 		// sums 3 octaves with a 4x frequency scale.
-		if (HighQualityBloom)
+		if(HighQualityBloom)
 		{
 			context.TransitionResource(buffers.BloomUAV2[0], D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
 			context.TransitionResource(buffers.BloomUAV3[0], D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
@@ -261,7 +307,7 @@ namespace Darius::Graphics::PostProcessing
 
 			// Set the UAVs
 			D3D12_CPU_DESCRIPTOR_HANDLE UAVs[4] = {
-				buffers.BloomUAV2[0].GetUAV(), buffers.BloomUAV3[0].GetUAV(), buffers.BloomUAV4[0].GetUAV(), buffers.BloomUAV5[0].GetUAV() };
+				buffers.BloomUAV2[0].GetUAV(), buffers.BloomUAV3[0].GetUAV(), buffers.BloomUAV4[0].GetUAV(), buffers.BloomUAV5[0].GetUAV()};
 			context.SetDynamicDescriptors(1, 0, 4, UAVs);
 
 			// Each dispatch group is 8x8 threads, but each thread reads in 2x2 source texels (bilinear filter).
@@ -285,7 +331,7 @@ namespace Darius::Graphics::PostProcessing
 		else
 		{
 			// Set the UAVs
-			D3D12_CPU_DESCRIPTOR_HANDLE UAVs[2] = { buffers.BloomUAV3[0].GetUAV(), buffers.BloomUAV5[0].GetUAV() };
+			D3D12_CPU_DESCRIPTOR_HANDLE UAVs[2] = {buffers.BloomUAV3[0].GetUAV(), buffers.BloomUAV5[0].GetUAV()};
 			context.SetDynamicDescriptors(1, 0, 2, UAVs);
 
 			context.TransitionResource(buffers.BloomUAV3[0], D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
@@ -328,7 +374,7 @@ namespace Darius::Graphics::PostProcessing
 	{
 		D_PROFILING::ScopedTimer _prof(L"Update Exposure", context);
 
-		if (!EnableAdaptation)
+		if(!EnableAdaptation)
 		{
 			ALIGN_DECL_16 float initExposure[] =
 			{
@@ -387,12 +433,12 @@ namespace Darius::Graphics::PostProcessing
 	{
 		D_PROFILING::ScopedTimer _prof(L"HDR Tone Mapping", context);
 
-		if (EnableBloom)
+		if(EnableBloom)
 		{
 			GenerateBloom(context, contextBuffers);
 			context.TransitionResource(contextBuffers.BloomUAV1[1], D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
 		}
-		else if (EnableAdaptation)
+		else if(EnableAdaptation)
 			ExtractLuma(context, contextBuffers);
 
 		ToneMapperCommonConstants toneMapperCommonConstants
@@ -409,7 +455,7 @@ namespace Darius::Graphics::PostProcessing
 			ComputeLUT.ComputeLut(toneMapperCommonConstants, WorkingColorSpaceParams, context, PostEffectRS);
 		}
 
-		if (D_GRAPHICS_DEVICE::SupportsTypedUAVLoadSupport_R11G11B10_FLOAT())
+		if(D_GRAPHICS_DEVICE::SupportsTypedUAVLoadSupport_R11G11B10_FLOAT())
 			context.TransitionResource(contextBuffers.SceneColor, D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
 		else
 			context.TransitionResource(contextBuffers.PostEffectsBuffer, D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
@@ -452,7 +498,7 @@ namespace Darius::Graphics::PostProcessing
 		context.SetDynamicConstantBufferView(5, sizeof(WorkingColorSpaceParams), &WorkingColorSpaceParams);
 
 		// Separaate out SDR result from its perceived luminance
-		if (D_GRAPHICS_DEVICE::SupportsTypedUAVLoadSupport_R11G11B10_FLOAT())
+		if(D_GRAPHICS_DEVICE::SupportsTypedUAVLoadSupport_R11G11B10_FLOAT())
 			context.SetDynamicDescriptor(1, 0, contextBuffers.SceneColor.GetUAV());
 		else
 		{
@@ -476,14 +522,14 @@ namespace Darius::Graphics::PostProcessing
 	{
 		D_PROFILING::ScopedTimer _prof(L"SDR Processing", context);
 
-		if (EnableBloom)
+		if(EnableBloom)
 			GenerateBloom(context, contextBuffers);
 
 		bool supportR11G11B10 = D_GRAPHICS_DEVICE::SupportsTypedUAVLoadSupport_R11G11B10_FLOAT();
 
-		if (EnableBloom || !supportR11G11B10)
+		if(EnableBloom || !supportR11G11B10)
 		{
-			if (supportR11G11B10)
+			if(supportR11G11B10)
 				context.TransitionResource(contextBuffers.SceneColor, D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
 			else
 				context.TransitionResource(contextBuffers.PostEffectsBuffer, D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
@@ -498,7 +544,7 @@ namespace Darius::Graphics::PostProcessing
 				BloomStrength);
 
 			// Separate out SDR result from its perceived luminance
-			if (supportR11G11B10)
+			if(supportR11G11B10)
 				context.SetDynamicDescriptor(1, 0, contextBuffers.SceneColor.GetUAV());
 			else
 			{
@@ -537,7 +583,7 @@ namespace Darius::Graphics::PostProcessing
 
 		context.SetRootSignature(PostEffectRS);
 
-		if (EnableHDR)
+		if(EnableHDR)
 			ProcessHDR(context, buffers);
 		else
 			ProcessLDR(context, buffers);
@@ -550,10 +596,10 @@ namespace Darius::Graphics::PostProcessing
 	// changed, and some of them rely on texture filtering, which won't work with UINT.  Since this
 	// is only to support legacy hardware and a single buffer copy isn't that big of a deal, this
 	// is the most economical solution.
-		if (!D_GRAPHICS_DEVICE::SupportsTypedUAVLoadSupport_R11G11B10_FLOAT())
+		if(!D_GRAPHICS_DEVICE::SupportsTypedUAVLoadSupport_R11G11B10_FLOAT())
 			CopyBackPostBuffer(context, buffers);
 
-		if (DrawHistogram)
+		if(DrawHistogram)
 		{
 			D_PROFILING::ScopedTimer _prof(L"Draw Debug Histogram", context);
 			context.SetRootSignature(PostEffectRS);
@@ -562,7 +608,7 @@ namespace Darius::Graphics::PostProcessing
 			context.TransitionResource(buffers.HistogramBuffer, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
 			context.TransitionResource(buffers.ExposureBuffer, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
 			context.SetDynamicDescriptor(1, 0, buffers.SceneColor.GetUAV());
-			D3D12_CPU_DESCRIPTOR_HANDLE SRVs[2] = { buffers.HistogramBuffer.GetSRV(), buffers.ExposureBuffer.GetSRV() };
+			D3D12_CPU_DESCRIPTOR_HANDLE SRVs[2] = {buffers.HistogramBuffer.GetSRV(), buffers.ExposureBuffer.GetSRV()};
 			context.SetDynamicDescriptors(2, 0, 2, SRVs);
 			context.Dispatch(1, 32);
 		}
@@ -584,7 +630,7 @@ namespace Darius::Graphics::PostProcessing
 
 		D_H_OPTION_DRAW_CHECKBOX("Draw Histogram", "PostProcessing.HDR.DrawHistogram", DrawHistogram);
 
-		if (!EnableAdaptation)
+		if(!EnableAdaptation)
 		{
 			D_H_OPTION_DRAW_FLOAT_SLIDER_EXP("Exposure", "PostProcessing.HDR.Exposure", Exposure, 1.f / 128, 128.f);
 		}
