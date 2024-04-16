@@ -6,7 +6,10 @@
 #include "Graphics/GraphicsUtils/PipelineState.hpp"
 #include "Graphics/GraphicsUtils/Profiling/Profiling.hpp"
 #include "Graphics/GraphicsUtils/Buffers/Texture.hpp"
+#include "ToneMapCommon.hpp"
+#include "ComputeColorLUT.hpp"
 
+#include <Math/ColorSpace.hpp>
 #include <Utils/Assert.hpp>
 #include <Utils/Common.hpp>
 
@@ -17,6 +20,7 @@
 using namespace D_GRAPHICS;
 using namespace D_GRAPHICS_BUFFERS;
 using namespace D_GRAPHICS_UTILS;
+using namespace D_MATH;
 
 namespace Darius::Graphics::PostProcessing
 {
@@ -45,6 +49,8 @@ namespace Darius::Graphics::PostProcessing
 	float												BloomUpsampleFactor;	// Controls the focus of the blur. High values spread out more causing a haze.
 	bool												HighQualityBloom;		// High quality blurs 5 octaves of bloom; low quality only blurs 3.
 
+	bool												EnableColorGrading;
+
 	// PSOs
 	RootSignature										PostEffectRS;
 	ComputePSO											ToneMapCS(L"Post Effects: Tone Map CS");
@@ -66,6 +72,9 @@ namespace Darius::Graphics::PostProcessing
 	const float											InitialMaxLog = 4.0f;
 	Texture												DefaultBlackOpaquTexture;
 
+	WorkingColorSpaceShaderParameters					WorkingColorSpaceParams;
+	ComputeColorLUT										ComputeLUT;
+
 	// Funcs
 	void ExtractLuma(ComputeContext& context, PostProcessContextBuffers& contextBuffers);
 	void UpdateExposure(ComputeContext& context, PostProcessContextBuffers& contextBuffers);
@@ -73,6 +82,8 @@ namespace Darius::Graphics::PostProcessing
 	void ProcessLDR(ComputeContext&, PostProcessContextBuffers& contextBuffers);
 	void GenerateBloom(ComputeContext&, PostProcessContextBuffers& contextBuffers);
 	void BlurBuffer(ComputeContext&, ColorBuffer buffer[2], ColorBuffer const& lowerResBuf, float upsampleBlendFactor);
+
+	void CalcWorkingColorSpaceParams();
 
 	void Initialize(D_SERIALIZATION::Json const& settings)
 	{
@@ -94,6 +105,8 @@ namespace Darius::Graphics::PostProcessing
 		D_H_OPTIONS_LOAD_BASIC_DEFAULT("PostProcessing.ToneMapper.FilmBlackClip", FilmBlackClip, 0.f);
 		D_H_OPTIONS_LOAD_BASIC_DEFAULT("PostProcessing.ToneMapper.FilmWhiteClip", FilmWhiteClip, 0.04f);
 
+		D_H_OPTIONS_LOAD_BASIC_DEFAULT("PostProcessing.ToneMapper.ColorGrading.Enable", EnableColorGrading, true);
+
 		D_H_OPTIONS_LOAD_BASIC_DEFAULT("PostProcessing.Bloom.Enable", EnableBloom, true);
 		D_H_OPTIONS_LOAD_BASIC_DEFAULT("PostProcessing.Bloom.Threshold", BloomThreshold, 4.f);
 		D_H_OPTIONS_LOAD_BASIC_DEFAULT("PostProcessing.Bloom.Strength", BloomStrength, 0.1f);
@@ -101,15 +114,17 @@ namespace Darius::Graphics::PostProcessing
 		D_H_OPTIONS_LOAD_BASIC_DEFAULT("PostProcessing.Bloom.HighQuality", HighQualityBloom, true);
 
 		// Initializing Root Signature
-		PostEffectRS.Reset(4, 2);
-		PostEffectRS.InitStaticSampler(0, SamplerLinearClampDesc);
+		PostEffectRS.Reset(6, 3);
+		PostEffectRS.InitStaticSampler(0, SamplerTrilinearClampDesc);
 		PostEffectRS.InitStaticSampler(1, SamplerLinearBorderDesc);
+		PostEffectRS.InitStaticSampler(2, SamplerBilinearClampDesc);
 		PostEffectRS[0].InitAsConstants(0, 5);
 		PostEffectRS[1].InitAsDescriptorRange(D3D12_DESCRIPTOR_RANGE_TYPE_UAV, 0, 4);
 		PostEffectRS[2].InitAsDescriptorRange(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 0, 4);
 		PostEffectRS[3].InitAsConstantBuffer(1);
+		PostEffectRS[4].InitAsConstantBuffer(2);
+		PostEffectRS[5].InitAsConstantBuffer(3);
 		PostEffectRS.Finalize(L"Post Effect");
-
 
 		// Initializing Shaders
 #define CreatePSO(ObjName, ShaderName) \
@@ -147,12 +162,28 @@ namespace Darius::Graphics::PostProcessing
 
 		uint32_t blackColor = 0xFF000000;
 		DefaultBlackOpaquTexture.Create2D(4, 1, 1, DXGI_FORMAT_R8G8B8A8_UNORM, &blackColor);
+
+		CalcWorkingColorSpaceParams();
 	}
 
 	void Shutdown()
 	{
 		D_ASSERT(_initialized);
 
+	}
+
+	void CalcWorkingColorSpaceParams()
+	{
+		ColorSpace workingColorSpace(D_MATH::ColorSpaceType::sRGB);
+		const Vector2& White = workingColorSpace.GetWhiteChromaticity();
+		const Vector2 ACES_D60 = GetWhitePoint(WhitePoint::ACES_D60);
+
+		WorkingColorSpaceParams.ToXYZ = workingColorSpace.GetRgbToXYZ();
+		WorkingColorSpaceParams.FromXYZ = workingColorSpace.GetXYZToRgb();
+		WorkingColorSpaceParams.ToAP1 = ColorSpaceTransform(workingColorSpace, ColorSpace(ColorSpaceType::ACESAP1));
+		WorkingColorSpaceParams.ToAP0 = ColorSpaceTransform(workingColorSpace, ColorSpace(ColorSpaceType::ACESAP0));
+		WorkingColorSpaceParams.FromAP1 = WorkingColorSpaceParams.ToAP1.Inverse();
+		WorkingColorSpaceParams.IsSRGB = workingColorSpace.IsSRGB();
 	}
 
 	float GetExposure()
@@ -364,6 +395,20 @@ namespace Darius::Graphics::PostProcessing
 		else if (EnableAdaptation)
 			ExtractLuma(context, contextBuffers);
 
+		ToneMapperCommonConstants toneMapperCommonConstants
+		{
+			.FilmSlope = FilmSlope,
+			.FilmToe = FilmToe,
+			.FilmShoulder = FilmShoulder,
+			.FilmBlackClip = FilmBlackClip,
+			.FilmWhiteClip = FilmWhiteClip
+		};
+
+		if(EnableColorGrading)
+		{
+			ComputeLUT.ComputeLut(toneMapperCommonConstants, WorkingColorSpaceParams, context, PostEffectRS);
+		}
+
 		if (D_GRAPHICS_DEVICE::SupportsTypedUAVLoadSupport_R11G11B10_FLOAT())
 			context.TransitionResource(contextBuffers.SceneColor, D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
 		else
@@ -374,6 +419,7 @@ namespace Darius::Graphics::PostProcessing
 
 		context.SetPipelineState(ToneMapCS);
 
+		uint32_t lutSize = ComputeLUT.GetParams().LUTSize;
 		ALIGN_DECL_256 struct ToneMapperConstants
 		{
 			float RcpBufferDimX;
@@ -381,11 +427,11 @@ namespace Darius::Graphics::PostProcessing
 			float BloomStrength;
 			float PaperWhiteRatio;
 			float MaxBrightness;
-			float FilmSlope;
-			float FilmToe;
-			float FilmShoulder;
-			float FilmBlackClip;
-			float FilmWhiteClip;
+			float LUTSize;
+			float InvLUTSize;	// 1 / LUTSize
+			float LUTScale;		// (LUTSize - 1) / LUTSize
+			float LUTOffset;	// 0.5 / LUTSize
+			uint32_t ColorGradingEnable;
 		} toneMapperConstants =
 		{
 			.RcpBufferDimX = 1.f / contextBuffers.SceneColor.GetWidth(),
@@ -393,15 +439,17 @@ namespace Darius::Graphics::PostProcessing
 			.BloomStrength = BloomStrength,
 			.PaperWhiteRatio = 200.f / 1000.f,
 			.MaxBrightness = 1000.f,
-			.FilmSlope = FilmSlope,
-			.FilmToe = FilmToe,
-			.FilmShoulder = FilmShoulder,
-			.FilmBlackClip = FilmBlackClip,
-			.FilmWhiteClip = FilmWhiteClip
+			.LUTSize = (float)lutSize,
+			.InvLUTSize = 1.f / lutSize,
+			.LUTScale = (lutSize - 1.f) / lutSize,
+			.LUTOffset = 0.5f / lutSize,
+			.ColorGradingEnable = EnableColorGrading
 		};
 
 		// Set constants
 		context.SetDynamicConstantBufferView(3, sizeof(ToneMapperConstants), &toneMapperConstants);
+		context.SetDynamicConstantBufferView(4, sizeof(ToneMapperCommonConstants), &toneMapperCommonConstants);
+		context.SetDynamicConstantBufferView(5, sizeof(WorkingColorSpaceParams), &WorkingColorSpaceParams);
 
 		// Separaate out SDR result from its perceived luminance
 		if (D_GRAPHICS_DEVICE::SupportsTypedUAVLoadSupport_R11G11B10_FLOAT())
@@ -416,6 +464,7 @@ namespace Darius::Graphics::PostProcessing
 		// Read in original HDR value and blurred bloom buffer
 		context.SetDynamicDescriptor(2, 0, contextBuffers.ExposureBuffer.GetSRV());
 		context.SetDynamicDescriptor(2, 1, EnableBloom ? contextBuffers.BloomUAV1[1].GetSRV() : DefaultBlackOpaquTexture.GetSRV());
+		context.SetDynamicDescriptor(2, 3, ComputeLUT.GetLutSrv());
 
 		context.Dispatch2D(contextBuffers.SceneColor.GetWidth(), contextBuffers.SceneColor.GetHeight());
 
@@ -555,6 +604,9 @@ namespace Darius::Graphics::PostProcessing
 		D_H_OPTION_DRAW_FLOAT_SLIDER("Film Shoulder", "PostProcessing.ToneMapper.FilmShoulder", FilmShoulder, 0.f, 1.f);
 		D_H_OPTION_DRAW_FLOAT_SLIDER("Film BlackClip", "PostProcessing.ToneMapper.FilmBlackClip", FilmBlackClip, 0.f, 1.f);
 		D_H_OPTION_DRAW_FLOAT_SLIDER("Film WhiteClip", "PostProcessing.ToneMapper.FilmWhiteClip", FilmWhiteClip, 0.f, 1.f);
+
+		ImGui::Spacing();
+		D_H_OPTION_DRAW_CHECKBOX("Enable Color Grading", "PostProcessing.ToneMapper.ColorGrading.Enable", EnableColorGrading);
 
 		ImGui::Spacing();
 

@@ -37,6 +37,8 @@ list(APPEND GRAPHICS_LIBS_INCLUDE
 	"GraphicsUtils/StateObject.hpp"
 	"PostProcessing/MotionBlur.hpp"
 	"PostProcessing/PostProcessing.hpp"
+	"PostProcessing/ComputeColorLUT.hpp"
+	"PostProcessing/ToneMapCommon.hpp"
 	)
 
 list(APPEND GRAPHICS_LIBS_SOURCES
@@ -72,6 +74,7 @@ list(APPEND GRAPHICS_LIBS_SOURCES
 	"GraphicsUtils/StateObject.cpp"
 	"PostProcessing/MotionBlur.cpp"
 	"PostProcessing/PostProcessing.cpp"
+	"PostProcessing/ComputeColorLUT.cpp"
 	)
 
 
