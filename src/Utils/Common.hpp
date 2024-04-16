@@ -157,6 +157,40 @@ return settingsChanged;
 	ImGui::PopItemWidth(); \
 } \
 
+#define D_H_OPTION_DRAW_COLOR3(label, tag, variable, hdr) \
+{ \
+	ImGui::Text(label); \
+	ImGui::SameLine(inputOffset); \
+	float* value = variable.GetPtr(); \
+	ImGui::PushItemWidth(inputWidth); \
+	static ImGuiColorEditFlags flag = ImGuiColorEditFlags_Float; \
+	if(hdr) flag |= ImGuiColorEditFlags_HDR; \
+	if(ImGui::ColorEdit3("##" label, value, flag)) \
+	{ \
+		variable = D_MATH::Color(value[0], value[1], value[2]); \
+		options[tag] = {value[0], value[1], value[2]}; \
+		settingsChanged = true; \
+	} \
+	ImGui::PopItemWidth(); \
+} \
+
+#define D_H_OPTION_DRAW_COLOR4(label, tag, variable, hdr) \
+{ \
+	ImGui::Text(label); \
+	ImGui::SameLine(inputOffset); \
+	float* value = variable.GetPtr(); \
+	ImGui::PushItemWidth(inputWidth); \
+	static ImGuiColorEditFlags flag = ImGuiColorEditFlags_Float | ImGuiColorEditFlags_AlphaBar | ImGuiColorEditFlags_AlphaPreview; \
+	if(hdr) flag |= ImGuiColorEditFlags_HDR; \
+	if(ImGui::ColorEdit4("##" label, value, flag)) \
+	{ \
+		variable = D_MATH::Color(value[0], value[1], value[2], value[3]); \
+		options[tag] = {value[0], value[1], value[2], value[3]}; \
+		settingsChanged = true; \
+	} \
+	ImGui::PopItemWidth(); \
+} \
+
 #define D_H_OPTION_DRAW_FLOAT_SLIDER(label, tag, variable, min, max) \
 { \
 	ImGui::Text(label); \
