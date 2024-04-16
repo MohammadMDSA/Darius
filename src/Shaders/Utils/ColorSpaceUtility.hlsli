@@ -60,14 +60,26 @@ float3 RemoveSRGBCurve_Fast( float3 x )
 // The OETF recommended for content shown on HDTVs.  This "gamma ramp" may increase contrast as
 // appropriate for viewing in a dark environment.  Always use this curve with Limited RGB as it is
 // used in conjunction with HDTVs.
-float3 ApplyREC709Curve( float3 x )
+float3 ApplyREC709Curve(float3 x)
 {
     return select(x < 0.0181, 4.5 * x, 1.0993 * pow(x, 0.45) - 0.0993);
 }
 
-float3 RemoveREC709Curve( float3 x )
+float3 RemoveREC709Curve(float3 x)
 {
     return select(x < 0.08145, x / 4.5, pow((x + 0.0993) / 1.0993, 1.0 / 0.45));
+}
+
+float3 ApplyREC709CurveBranchless( float3 lin )
+{
+    lin = max(6.10352e-5, lin); // minimum positive non-denormal (fixes black problem on DX11 AMD and NV)
+    return min(lin * 4.5, pow(max(lin, 0.018), 0.45) * 1.099 - 0.099);
+}
+
+float3 RemoveREC709CurveBranchless(float3 Color)
+{
+    Color = max(6.10352e-5, Color); // minimum positive non-denormal (fixes black problem on DX11 AMD and NV)
+    return select(Color > 0.081, pow((Color + 0.099) / 1.099, 1.0 / 0.45), Color / 4.5);
 }
 
 // This is the new HDR transfer function, also called "PQ" for perceptual quantizer.  Note that REC2084
@@ -159,6 +171,83 @@ float3 DCIP3toREC709( float3 RGBP3 )
         -0.019641, -0.078651, 1.098291
     };
     return mul(ConvMat, RGBP3);
+}
+
+//
+// Dolby PQ transforms
+//
+float3 ST2084ToLinear(float3 pq)
+{
+    const float m1 = 0.1593017578125; // = 2610. / 4096. * .25;
+    const float m2 = 78.84375; // = 2523. / 4096. *  128;
+    const float c1 = 0.8359375; // = 2392. / 4096. * 32 - 2413./4096.*32 + 1;
+    const float c2 = 18.8515625; // = 2413. / 4096. * 32;
+    const float c3 = 18.6875; // = 2392. / 4096. * 32;
+    const float C = 10000.;
+
+    float3 Np = pow(pq, 1. / m2);
+    float3 L = Np - c1;
+    L = max(0., L);
+    L = L / (c2 - c3 * Np);
+    L = pow(L, 1. / m1);
+    float3 P = L * C;
+
+    return P;
+}
+
+float3 LinearToST2084(float3 lin)
+{
+    const float m1 = 0.1593017578125; // = 2610. / 4096. * .25;
+    const float m2 = 78.84375; // = 2523. / 4096. *  128;
+    const float c1 = 0.8359375; // = 2392. / 4096. * 32 - 2413./4096.*32 + 1;
+    const float c2 = 18.8515625; // = 2413. / 4096. * 32;
+    const float c3 = 18.6875; // = 2392. / 4096. * 32;
+    const float C = 10000.;
+
+    float3 L = lin / C;
+    float3 Lm = pow(L, m1);
+    float3 N1 = (c1 + c2 * Lm);
+    float3 N2 = (1.0 + c3 * Lm);
+    float3 N = N1 * rcp(N2);
+    float3 P = pow(N, m2);
+	
+    return P;
+}
+
+
+//
+// Generic log lin transforms
+//
+float3 LogToLin(float3 LogColor)
+{
+    const float LinearRange = 14;
+    const float LinearGrey = 0.18;
+    const float ExposureGrey = 444;
+
+	// Using stripped down, 'pure log', formula. Parameterized by grey points and dynamic range covered.
+    float3 LinearColor = exp2((LogColor - ExposureGrey / 1023.0) * LinearRange) * LinearGrey;
+	//float3 LinearColor = 2 * ( pow(10.0, ((LogColor - 0.616596 - 0.03) / 0.432699)) - 0.037584 );	// SLog
+	//float3 LinearColor = ( pow( 10, ( 1023 * LogColor - 685 ) / 300) - .0108 ) / (1 - .0108);	// Cineon
+	//LinearColor = max( 0, LinearColor );
+
+    return LinearColor;
+}
+
+float3 LinToLog(float3 LinearColor)
+{
+    const float LinearRange = 14;
+    const float LinearGrey = 0.18;
+    const float ExposureGrey = 444;
+
+	// Using stripped down, 'pure log', formula. Parameterized by grey points and dynamic range covered.
+    float3 LogColor = log2(LinearColor) / LinearRange - log2(LinearGrey) / LinearRange + ExposureGrey / 1023.0; // scalar: 3log2 3mad
+	//float3 LogColor = (log2(LinearColor) - log2(LinearGrey)) / LinearRange + ExposureGrey / 1023.0;
+	//float3 LogColor = log2( LinearColor / LinearGrey ) / LinearRange + ExposureGrey / 1023.0;
+	//float3 LogColor = (0.432699 * log10(0.5 * LinearColor + 0.037584) + 0.616596) + 0.03;	// SLog
+	//float3 LogColor = ( 300 * log10( LinearColor * (1 - .0108) + .0108 ) + 685 ) / 1023;	// Cineon
+    LogColor = saturate(LogColor);
+
+    return LogColor;
 }
 
 #endif // __COLOR_SPACE_UTILITY_HLSLI__
