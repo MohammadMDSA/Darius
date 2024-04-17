@@ -52,6 +52,9 @@ namespace Darius::Renderer
 
 		INLINE bool						IsInverted() const { return mInverted; }
 		void							SetInverted(bool value);
+		
+		INLINE D_MATH::Vector3			GetAabbExtentsBias() const { return mAabbExtentsBias; }
+		void							SetAabbExtentsBias(D_MATH::Vector3 const& bias);
 
 		INLINE NormalsReordering		GetNormalsReordering() const { return mNormalsReordering; }
 		void							SetNormalsReordering(NormalsReordering order);
@@ -65,7 +68,8 @@ namespace Darius::Renderer
 		MeshResource(D_CORE::Uuid uuid, std::wstring const& path, std::wstring const& name, D_RESOURCE::DResourceId id, bool isDefault = false) :
 			Resource(uuid, path, name, id, isDefault),
 			mNormalsReordering(NormalsReordering::XYZ),
-			mInverted(false)
+			mInverted(false),
+			mAabbExtentsBias(D_MATH::Vector3::Zero)
 		{}
 
 		virtual void					CreateInternal(D_RENDERER_GEOMETRY::MultiPartMeshData<VertexType> const& data) = 0;
@@ -90,6 +94,9 @@ namespace Darius::Renderer
 
 		DField(Serialize)
 		D_CONTAINERS::DVector<D_RESOURCE::ResourceRef<MaterialResource>> mMaterials;
+
+		DField(Serialize)
+		D_MATH::Vector3					mAabbExtentsBias;
 
 		friend class DResourceManager;
 	};

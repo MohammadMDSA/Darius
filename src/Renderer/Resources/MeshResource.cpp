@@ -24,6 +24,7 @@
 
 using namespace D_CONTAINERS;
 using namespace D_FILE;
+using namespace D_MATH;
 using namespace D_RENDERER_GEOMETRY;
 using namespace D_RESOURCE;
 
@@ -85,6 +86,17 @@ namespace Darius::Renderer
 		SignalChange();
 	}
 
+	void MeshResource::SetAabbExtentsBias(Vector3 const& bias)
+	{
+		if(bias.Equals(mAabbExtentsBias))
+			return;
+
+		mAabbExtentsBias = bias;
+
+		MakeDiskDirty();
+		SignalChange();
+	}
+
 	bool MeshResource::DrawDetails(float params[])
 	{
 		bool valueChanged = false;
@@ -125,6 +137,17 @@ namespace Darius::Renderer
 			D_H_DETAILS_DRAW_PROPERTY("Normals");
 			auto value = GetNormalsReordering();
 			D_H_DETAILS_DRAW_ENUM_SELECTION_SIMPLE(NormalsReordering, NormalsReordering);
+		}
+
+		// Aabb bias
+		{
+			D_H_DETAILS_DRAW_PROPERTY("AABB Extension Bias");
+			auto value = GetAabbExtentsBias();
+			if(D_MATH::DrawDetails(value, Vector3::Zero))
+			{
+				SetAabbExtentsBias(value);
+				valueChanged = true;
+			}
 		}
 
 		D_H_DETAILS_DRAW_END_TABLE();

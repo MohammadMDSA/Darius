@@ -66,7 +66,8 @@ namespace Darius::Renderer
 		mMesh.mNumTotalIndices = (UINT)indices.size();
 
 		mMesh.mBoundSp = data.MeshData.CalcBoundingSphere();
-		mMesh.mBoundBox = data.MeshData.CalcBoundingBox();
+		auto fitAabb = data.MeshData.CalcBoundingBox();
+		mMesh.mBoundBox = D_MATH_BOUNDS::Aabb::CreateFromCenterAndExtents(fitAabb.GetCenter(), fitAabb.GetExtents() + GetAabbExtentsBias());
 
 		mMesh.Name = GetName();
 
