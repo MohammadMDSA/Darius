@@ -265,7 +265,7 @@ float4 CombineLUTsCommon(float2 InUV, uint InLayerIndex)
 	// Note: Any changes to the following device encoding logic must also be made 
 	// in PostProcessDeviceEncodingOnly.usf's corresponding pixel shader.
     float3 OutDeviceColor = 0;
-    [branch]
+
 
 	// sRGB, user specified gamut
     //if (GetOutputDevice() == TONEMAPPER_OUTPUT_sRGB)
