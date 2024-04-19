@@ -40,6 +40,8 @@ namespace Darius::Editor::Gui::Windows
 
 		void UpdateGlobalConstants(D_RENDERER::GlobalConstants& globals) const;
 
+		bool SelectPickedGameObject();
+
 		D_MATH_CAMERA::Camera						mCamera;
 		D_EDITOR::FlyingFPSCamera					mFlyingCam;
 		D_EDITOR::OrbitCamera						mOrbitCam;
@@ -53,6 +55,8 @@ namespace Darius::Editor::Gui::Windows
 		D_GRAPHICS_BUFFERS::DepthBuffer				mSceneDepth;
 		D_GRAPHICS_BUFFERS::DepthBuffer				mCustomDepth;
 		D_GRAPHICS_BUFFERS::ColorBuffer				mSceneNormals;
+		D_GRAPHICS_BUFFERS::ColorBuffer				mPickerColor;
+		D_GRAPHICS_BUFFERS::DepthBuffer				mPickerDepth;
 
 		// TAA Buffers
 		D_GRAPHICS_BUFFERS::ColorBuffer				mTemporalColor[2];
@@ -109,12 +113,16 @@ namespace Darius::Editor::Gui::Windows
 		D_CONTAINERS::DVector<D_RENDERER::RenderItem> mWindowRenderItems;
 		D_RENDERER::GlobalConstants					mSceneGlobals;
 
+		D_GRAPHICS_BUFFERS::ReadbackBuffer			mPickerReadback;
+
 		D_EDITOR::Gui::PostProcessing::GuiPostProcessing mGuiPostProcess;
 
 		float										mMouseWheelPerspectiveSensitivity;
 
 		float										mBufferWidth;
 		float										mBufferHeight;
+
+		D_MATH::Vector2								mMouseSceneTexturePos;
 
 		static constexpr UINT8						sSelectedGameObjectStencilValue = 255;
 

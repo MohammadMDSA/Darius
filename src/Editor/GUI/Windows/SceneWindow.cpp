@@ -11,6 +11,7 @@
 #include <Graphics/PostProcessing/PostProcessing.hpp>
 #include <Graphics/GraphicsCore.hpp>
 #include <Graphics/GraphicsDeviceManager.hpp>
+#include <Graphics/GraphicsUtils/Buffers/ReadbackBuffer.hpp>
 #include <Math/Bounds/BoundingPlane.hpp>
 #include <Math/Ray.hpp>
 #include <Renderer/Components/MeshRendererComponent.hpp>
@@ -59,13 +60,13 @@ namespace Darius::Editor::Gui::Windows
 
 		// Loading config
 		Vector3 camPos;
-		if (!ReadVector3Config(CameraPositionKey, camPos))
+		if(!ReadVector3Config(CameraPositionKey, camPos))
 		{
 			camPos = Vector3(2.f, 2.f, 2.f);
 		}
 
 		Quaternion camRot;
-		if (!ReadQuaternionConfig(CameraRotationKey, camRot))
+		if(!ReadQuaternionConfig(CameraRotationKey, camRot))
 		{
 			camRot = Quaternion::FromForwardAndAngle(Vector3(-2));
 		}
@@ -102,7 +103,7 @@ namespace Darius::Editor::Gui::Windows
 				auto diffIBLHandle = resourceHandles[0];
 				mSkyboxDiff = D_RESOURCE::GetResourceSync<D_RENDERER::TextureResource>(diffIBLHandle, true);
 
-				D_RESOURCE_LOADER::LoadResourceAsync(D_ENGINE_CONTEXT::GetAssetsPath() / "PBR/DefaultSkyboxSpecularIBL.dds", [&](auto const& resourceHandles2)
+				D_RESOURCE_LOADER::LoadResourceAsync(D_ENGINE_CONTEXT::GetAssetsPath() / "PBR/DaylightBox.dds", [&](auto const& resourceHandles2)
 					{
 						auto specIBLHandle = resourceHandles2[0];
 						mSkyboxSpec = D_RESOURCE::GetResourceSync<D_RENDERER::TextureResource>(specIBLHandle, true);
@@ -127,6 +128,8 @@ namespace Darius::Editor::Gui::Windows
 		mSceneTexture.Destroy();
 		mPostProcessedSceneTexture.Destroy();
 		mSceneNormals.Destroy();
+		mPickerColor.Destroy();
+		mPickerDepth.Destroy();
 		mTemporalColor[0].Destroy();
 		mTemporalColor[1].Destroy();
 		mVelocityBuffer.Destroy();
@@ -171,6 +174,8 @@ namespace Darius::Editor::Gui::Windows
 		mWorldPos.Destroy();
 		mNormalDepth.Destroy();
 
+		mPickerReadback.Destroy();
+
 		// Setting camera position to config
 		WriteVector3Config(CameraPositionKey, mCamera.GetPosition());
 		WriteQuaternionConfig(CameraRotationKey, mCamera.GetRotation());
@@ -206,16 +211,16 @@ namespace Darius::Editor::Gui::Windows
 		globals.FarZ = mCamera.GetFarClip();
 		globals.TotalTime = (float)time.GetTotalSeconds();
 		globals.DeltaTime = (float)time.GetElapsedSeconds();
-		globals.AmbientLight = { 0.1f, 0.1f, 0.1f, 0.1f };
+		globals.AmbientLight = {0.1f, 0.1f, 0.1f, 0.1f};
 		globals.IBLBias = 0;
-		if (mSkyboxDiff.IsValid() && mDrawSkybox)
+		if(mSkyboxDiff.IsValid() && mDrawSkybox)
 			globals.IBLRange = std::max(0.f, (float)const_cast<ID3D12Resource*>(mSkyboxDiff->GetTextureData()->GetResource())->GetDesc().MipLevels - 1);
 		else
 			globals.IBLRange = 0;
 
 		auto const& frustum = mCamera.GetWorldSpaceFrustum();
 
-		for (int i = 0; i < 6; i++)
+		for(int i = 0; i < 6; i++)
 		{
 			globals.FrustumPlanes[i] = (Vector4)frustum.GetFrustumPlane((D_MATH_CAMERA::Frustum::PlaneID)i);
 		}
@@ -232,11 +237,11 @@ namespace Darius::Editor::Gui::Windows
 		DVector<DVector<RenderItem> const*> additional;
 
 		// Draw grid
-		if (mDrawGrid)
+		if(mDrawGrid)
 			additional.push_back(&mWindowRenderItems);
 
 		// Add debug draw items
-		if (mDrawDebug)
+		if(mDrawDebug)
 			additional.push_back(&D_DEBUG_DRAW::GetRenderItems());
 
 		D_RENDERER::RenderItemContext riContext;
@@ -247,43 +252,46 @@ namespace Darius::Editor::Gui::Windows
 
 		SceneRenderContext rc =
 		{
-			mSceneDepth,
-			mCustomDepthApplied ? &mCustomDepth : nullptr,
-			mSceneTexture,
-			mSceneNormals,
-			mVelocityBuffer,
-			mTemporalColor,
-			mLinearDepth,
-			mSSAOFullScreen,
-			mDepthDownsize1,
-			mDepthDownsize2,
-			mDepthDownsize3,
-			mDepthDownsize4,
-			mDepthTiled1,
-			mDepthTiled2,
-			mDepthTiled3,
-			mDepthTiled4,
-			mAOMerged1,
-			mAOMerged2,
-			mAOMerged3,
-			mAOMerged4,
-			mAOSmooth1,
-			mAOSmooth2,
-			mAOSmooth3,
-			mAOHighQuality1,
-			mAOHighQuality2,
-			mAOHighQuality3,
-			mAOHighQuality4,
-			mWorldPos,
-			mNormalDepth,
-			context,
-			mCamera,
-			mSceneGlobals,
-			additional,
-			mDrawSkybox && mSkyboxSpec.IsValid() ? mSkyboxSpec.Get() : nullptr,
-			mDrawSkybox && mSkyboxDiff.IsValid() ? mSkyboxDiff.Get() : nullptr,
-			riContext,
-			(bool)mDrawSkybox
+			.DepthBuffer = mSceneDepth,
+			.CustomDepthBuffer = mCustomDepthApplied ? &mCustomDepth : nullptr,
+			.ColorBuffer = mSceneTexture,
+			.NormalBuffer = mSceneNormals,
+			.VelocityBuffer = mVelocityBuffer,
+			.TemporalColor = mTemporalColor,
+			.LinearDepth = mLinearDepth,
+			.SSAOFullScreen = mSSAOFullScreen,
+			.DepthDownsize1 = mDepthDownsize1,
+			.DepthDownsize2 = mDepthDownsize2,
+			.DepthDownsize3 = mDepthDownsize3,
+			.DepthDownsize4 = mDepthDownsize4,
+			.DepthTiled1 = mDepthTiled1,
+			.DepthTiled2 = mDepthTiled2,
+			.DepthTiled3 = mDepthTiled3,
+			.DepthTiled4 = mDepthTiled4,
+			.AOMerged1 = mAOMerged1,
+			.AOMerged2 = mAOMerged2,
+			.AOMerged3 = mAOMerged3,
+			.AOMerged4 = mAOMerged4,
+			.AOSmooth1 = mAOSmooth1,
+			.AOSmooth2 = mAOSmooth2,
+			.AOSmooth3 = mAOSmooth3,
+			.AOHighQuality1 = mAOHighQuality1,
+			.AOHighQuality2 = mAOHighQuality2,
+			.AOHighQuality3 = mAOHighQuality3,
+			.AOHighQuality4 = mAOHighQuality4,
+			.WorldPos = mWorldPos,
+			.NormalDepth = mNormalDepth,
+			.PickerDepthBuffer = &mPickerDepth,
+			.PickerColorBuffer = &mPickerColor,
+			.CommandContext = context,
+			.Camera = mCamera,
+			.Globals = mSceneGlobals,
+			.AdditionalRenderItems = additional,
+			.RadianceIBL = mDrawSkybox && mSkyboxSpec.IsValid() ? mSkyboxSpec.Get() : nullptr,
+			.IrradianceIBL = mDrawSkybox && mSkyboxDiff.IsValid() ? mSkyboxDiff.Get() : nullptr,
+			.RenderItemContext = riContext,
+			.DrawSkybox = (bool)mDrawSkybox,
+			.RenderPickerData = true
 		};
 
 		// Post Processing
@@ -328,28 +336,31 @@ namespace Darius::Editor::Gui::Windows
 		D_PROFILING::ScopedTimer profiling(L"Scene Window Draw GUI");
 		auto min = ImGui::GetWindowContentRegionMin();
 		auto max = ImGui::GetWindowContentRegionMax();
-
+		auto windowContentMinX = mPosX + min.x;
+		auto windowContentMinY = mPosY + min.y;
 		ImGui::Image((ImTextureID)mTextureHandle.GetGpuPtr(), ImVec2(mWidth, mHeight));
 		ImGuizmo::SetDrawlist();
-		ImGuizmo::SetRect(mPosX + min.x, mPosY + min.y, mWidth, mHeight);
+		ImGuizmo::SetRect(windowContentMinX, windowContentMinY, mWidth, mHeight);
 		auto view = mCamera.GetViewMatrix();
 		auto proj = mCamera.GetProjMatrix();
 
 		auto selectedObj = D_EDITOR_CONTEXT::GetSelectedGameObject();
 
-		if (selectedObj)
+		bool manipulating = false;
+		if(selectedObj)
 		{
 			bool altDown = (D_KEYBOARD::GetKey(D_KEYBOARD::Keys::LeftAlt) || D_KEYBOARD::GetKey(D_KEYBOARD::Keys::RightAlt));
 
 			auto world = selectedObj->GetTransform()->GetWorld();
-			if (ImGuizmo::Manipulate((float*)&view, (float*)&proj, (ImGuizmo::OPERATION)mManipulateOperation, (ImGuizmo::MODE)mManipulateMode, (float*)&world))
+			if(ImGuizmo::Manipulate((float*)&view, (float*)&proj, (ImGuizmo::OPERATION)mManipulateOperation, (ImGuizmo::MODE)mManipulateMode, (float*)&world))
 			{
+				manipulating = true;
 
 				// Drag spawn
-				if (!mDragSpawned && !ImGui::GetIO().WantTextInput && (D_KEYBOARD::GetKey(D_KEYBOARD::Keys::LeftAlt) || D_KEYBOARD::GetKey(D_KEYBOARD::Keys::RightAlt)))
+				if(!mDragSpawned && !ImGui::GetIO().WantTextInput && (D_KEYBOARD::GetKey(D_KEYBOARD::Keys::LeftAlt) || D_KEYBOARD::GetKey(D_KEYBOARD::Keys::RightAlt)))
 				{
 					auto dragSpawnedGo = D_WORLD::InstantiateGameObject(selectedObj, true);
-					dragSpawnedGo->SetParent(selectedObj->GetParent(), D_SCENE::GameObject::AttachmentType::KeepLocal);
+					dragSpawnedGo->SetParent(selectedObj->GetParent(), D_SCENE::GameObject::AttachmentType::KeepWorld);
 					D_EDITOR_CONTEXT::SetSelectedGameObject(dragSpawnedGo);
 					mDragSpawned = true;
 				}
@@ -359,13 +370,21 @@ namespace Darius::Editor::Gui::Windows
 			}
 			else
 			{
-				if (!altDown)
+				if(!altDown)
 					mDragSpawned = false;
 			}
+
+		}
+		
+		// Picker
+		if(!ImGuizmo::IsOver() && !D_KEYBOARD::GetKey(D_KEYBOARD::Keys::LeftAlt) && mHovered && D_MOUSE::GetButtonDown(D_MOUSE::Keys::Left))
+		{
+			SelectPickedGameObject();
 		}
 
+
 		// Drawing tool buttons
-		ImGui::SetCursorPos({ 20.f, 30.f });
+		ImGui::SetCursorPos({20.f, 30.f});
 		{
 			// Gizmo manipulation operation
 			ImGuizmo::OPERATION operations[] =
@@ -380,16 +399,16 @@ namespace Darius::Editor::Gui::Windows
 				ICON_FA_ROTATE,
 				ICON_FA_RULER
 			};
-			for (size_t i = 0; i < 3; i++)
+			for(size_t i = 0; i < 3; i++)
 			{
 				bool selected = (ImGuizmo::OPERATION)mManipulateOperation == operations[i];
-				if (selected)
-					ImGui::PushStyleColor(ImGuiCol_Button, { 0.26f, 0.59f, 1.f, 1.f });
-				if (ImGui::Button(OperationnNames[i].c_str()))
+				if(selected)
+					ImGui::PushStyleColor(ImGuiCol_Button, {0.26f, 0.59f, 1.f, 1.f});
+				if(ImGui::Button(OperationnNames[i].c_str()))
 				{
 					mManipulateOperation = operations[i];
 				}
-				if (selected)
+				if(selected)
 					ImGui::PopStyleColor();
 
 				ImGui::SameLine();
@@ -409,16 +428,16 @@ namespace Darius::Editor::Gui::Windows
 				ICON_FA_CUBE
 			};
 
-			for (size_t i = 0; i < 2; i++)
+			for(size_t i = 0; i < 2; i++)
 			{
 				bool selected = (ImGuizmo::MODE)mManipulateMode == modes[i];
-				if (selected)
-					ImGui::PushStyleColor(ImGuiCol_Button, { 0.26f, 0.59f, 1.f, 1.f });
-				if (ImGui::Button(modeNames[i].c_str()))
+				if(selected)
+					ImGui::PushStyleColor(ImGuiCol_Button, {0.26f, 0.59f, 1.f, 1.f});
+				if(ImGui::Button(modeNames[i].c_str()))
 				{
 					mManipulateMode = modes[i];
 				}
-				if (selected)
+				if(selected)
 					ImGui::PopStyleColor();
 
 				ImGui::SameLine();
@@ -429,13 +448,13 @@ namespace Darius::Editor::Gui::Windows
 			// Grid settings
 			{
 				auto preDrawGrid = mDrawGrid;
-				if (mDrawGrid)
-					ImGui::PushStyleColor(ImGuiCol_Button, { 0.26f, 0.59f, 1.f, 1.f });
-				if (ImGui::Button(ICON_FA_TABLE_CELLS))
+				if(mDrawGrid)
+					ImGui::PushStyleColor(ImGuiCol_Button, {0.26f, 0.59f, 1.f, 1.f});
+				if(ImGui::Button(ICON_FA_TABLE_CELLS))
 				{
 					mDrawGrid = !mDrawGrid;
 				}
-				if (preDrawGrid)
+				if(preDrawGrid)
 					ImGui::PopStyleColor();
 			}
 
@@ -443,12 +462,12 @@ namespace Darius::Editor::Gui::Windows
 			// Skybox settings
 			{
 				auto preDrawSkybox = mDrawSkybox;
-				if (mDrawSkybox)
-					ImGui::PushStyleColor(ImGuiCol_Button, { 0.26f, 0.59f, 1.f, 1.f });
-				if (ImGui::Button(ICON_FA_MOUNTAIN_SUN))
+				if(mDrawSkybox)
+					ImGui::PushStyleColor(ImGuiCol_Button, {0.26f, 0.59f, 1.f, 1.f});
+				if(ImGui::Button(ICON_FA_MOUNTAIN_SUN))
 				{
 					mDrawSkybox = !mDrawSkybox;
-					if (!mDrawSkybox)
+					if(!mDrawSkybox)
 					{
 						auto invTex = D_RESOURCE::ResourceRef<D_RENDERER::TextureResource>();
 						D_RENDERER::SetIBLTextures(invTex.Get(), invTex.Get());
@@ -458,20 +477,20 @@ namespace Darius::Editor::Gui::Windows
 						D_RENDERER::SetIBLTextures(mSkyboxDiff.Get(), mSkyboxSpec.Get());
 					}
 				}
-				if (preDrawSkybox)
+				if(preDrawSkybox)
 					ImGui::PopStyleColor();
 			}
 
 			ImGui::SameLine();
 			// Options drop down
 			{
-				if (ImGui::BeginCombo("##SceneWindowOptionsDropDown", "Options", ImGuiComboFlags_HeightLarge))
+				if(ImGui::BeginCombo("##SceneWindowOptionsDropDown", "Options", ImGuiComboFlags_HeightLarge))
 				{
 					// Wireframe
 					{
 						static char const* const selectedValue = ICON_FA_SQUARE_CHECK " Wireframe";
 						static char const* const unselectedValue = ICON_FA_SQUARE " Wireframe";
-						if (ImGui::Selectable(mForceWireframe ? selectedValue : unselectedValue, false, 0))
+						if(ImGui::Selectable(mForceWireframe ? selectedValue : unselectedValue, false, 0))
 						{
 							mForceWireframe = !mForceWireframe;
 							D_RENDERER::SetForceWireframe(mForceWireframe);
@@ -489,15 +508,15 @@ namespace Darius::Editor::Gui::Windows
 			// Camera Settings
 			{
 
-				if (ImGui::Button(ICON_FA_VIDEO))
+				if(ImGui::Button(ICON_FA_VIDEO))
 					ImGui::OpenPopup("SceneWindowCameraSettings");
 
-				if (ImGui::BeginPopup("SceneWindowCameraSettings"))
+				if(ImGui::BeginPopup("SceneWindowCameraSettings"))
 				{
 					// Near clip
 					{
 						float value = mCamera.GetNearClip();
-						if (ImGui::DragFloat("Near Clip", &value, 0.1f, 0.01f, mCamera.GetFarClip() + 0.1f, "%.1f", ImGuiSliderFlags_AlwaysClamp))
+						if(ImGui::DragFloat("Near Clip", &value, 0.1f, 0.01f, mCamera.GetFarClip() + 0.1f, "%.1f", ImGuiSliderFlags_AlwaysClamp))
 						{
 							mCamera.SetZRange(value, mCamera.GetFarClip());
 						}
@@ -506,7 +525,7 @@ namespace Darius::Editor::Gui::Windows
 					// Far clip
 					{
 						float value = mCamera.GetFarClip();
-						if (ImGui::DragFloat("Far Clip", &value, 0.1f, mCamera.GetNearClip() + 0.1f, FLT_MAX, "%.1f", ImGuiSliderFlags_AlwaysClamp))
+						if(ImGui::DragFloat("Far Clip", &value, 0.1f, mCamera.GetNearClip() + 0.1f, FLT_MAX, "%.1f", ImGuiSliderFlags_AlwaysClamp))
 						{
 							mCamera.SetZRange(mCamera.GetNearClip(), value);
 						}
@@ -517,6 +536,9 @@ namespace Darius::Editor::Gui::Windows
 			}
 
 		}
+		ImGui::SetCursorPos({20.f, 70.f});
+		auto scrPos = ImGui::GetMousePos();
+		mMouseSceneTexturePos = D_MATH::Vector2(scrPos.x - windowContentMinX, scrPos.y - windowContentMinY);
 
 		// Drawing compass
 		{
@@ -529,16 +551,16 @@ namespace Darius::Editor::Gui::Windows
 			ImGui::SetCursorPos(ImVec2(min.x + padding.x + (compassSize.x - projButtonSize.x) / 2,
 				min.y - 1.5f * padding.y + mHeight));
 
-			if (mCamera.IsOrthographic())
+			if(mCamera.IsOrthographic())
 			{
-				if (ImGui::Button(ICON_FA_BARS "ISO", projButtonSize))
+				if(ImGui::Button(ICON_FA_BARS "ISO", projButtonSize))
 				{
 					mCamera.SetOrthographic(false);
 				}
 			}
 			else
 			{
-				if (ImGui::Button(ICON_FA_CHEVRON_LEFT "Pers", projButtonSize))
+				if(ImGui::Button(ICON_FA_CHEVRON_LEFT "Pers", projButtonSize))
 				{
 					mCamera.SetOrthographic(true);
 				}
@@ -550,28 +572,27 @@ namespace Darius::Editor::Gui::Windows
 
 	void SceneWindow::Update(float dt)
 	{
-		if (mBufferHeight != mHeight || mBufferWidth != mWidth)
+		if(mBufferHeight != mHeight || mBufferWidth != mWidth)
 		{
 			mCamera.SetAspectRatio(mHeight / mWidth);
 			CreateBuffers();
 		}
 
 
-		if (mCamera.IsOrthographic())
+		if(mCamera.IsOrthographic())
 		{
 			float orthoZoom = (float)D_MOUSE::GetWheel() * mMouseWheelPerspectiveSensitivity;
-			if (orthoZoom != 0.f)
+			if(orthoZoom != 0.f)
 				mCamera.SetOrthographicSize(mCamera.GetOrthographicSize() + orthoZoom);
 		}
 
-
-		if (mOrbitCam.IsAdjusting() || (D_KEYBOARD::GetKey(D_KEYBOARD::Keys::LeftAlt) && !mDragSpawned && D_MOUSE::GetButton(D_MOUSE::Keys::Left) && mHovered))
+		if(mOrbitCam.IsAdjusting() || (D_KEYBOARD::GetKey(D_KEYBOARD::Keys::LeftAlt) && !mDragSpawned && D_MOUSE::GetButton(D_MOUSE::Keys::Left) && mHovered))
 		{
 			mOrbitCam.Update(dt);
 			mFlyingCam.SetOrientationDirty();
 			mMovingCam = true;
 		}
-		else if (D_MOUSE::GetButton(D_MOUSE::Keys::Right) && mHovered)
+		else if(D_MOUSE::GetButton(D_MOUSE::Keys::Right) && mHovered)
 		{
 			mFlyingCam.Update(dt);
 			mOrbitCam.SetTargetLocationDirty();
@@ -584,25 +605,25 @@ namespace Darius::Editor::Gui::Windows
 			mMovingCam = false;
 		}
 
-		if (mMovingCam)
+		if(mMovingCam)
 			return;
 
 		// Shortcuts
-		if (!mFocused)
+		if(ImGui::GetIO().WantTextInput)
 			return;
 
 		// Focusing on object
 		auto selectedGameObject = D_EDITOR_CONTEXT::GetSelectedGameObject();
-		if (D_KEYBOARD::IsKeyDown(D_KEYBOARD::Keys::F) && selectedGameObject)
+		if(D_KEYBOARD::IsKeyDown(D_KEYBOARD::Keys::F) && selectedGameObject)
 		{
 			mOrbitCam.SetTarget(selectedGameObject->GetTransform()->GetPosition());
 		}
 
-		if (D_KEYBOARD::IsKeyDown(D_KEYBOARD::Keys::W))
+		if(D_KEYBOARD::IsKeyDown(D_KEYBOARD::Keys::W))
 			mManipulateOperation = ImGuizmo::OPERATION::TRANSLATE;
-		else if (D_KEYBOARD::IsKeyDown(D_KEYBOARD::Keys::E))
+		else if(D_KEYBOARD::IsKeyDown(D_KEYBOARD::Keys::E))
 			mManipulateOperation = ImGuizmo::OPERATION::ROTATE;
-		else if (D_KEYBOARD::IsKeyDown(D_KEYBOARD::Keys::R))
+		else if(D_KEYBOARD::IsKeyDown(D_KEYBOARD::Keys::R))
 			mManipulateOperation = ImGuizmo::OPERATION::SCALE;
 	}
 
@@ -615,9 +636,11 @@ namespace Darius::Editor::Gui::Windows
 		mBufferWidth = mWidth;
 		mBufferHeight = mHeight;
 		mSceneTexture.Create(L"Scene Texture", (UINT)mBufferWidth, (UINT)mBufferHeight, 1, D_GRAPHICS::GetColorFormat());
+		mPickerColor.Create(L"Editor Picker Color", (UINT)mBufferWidth, (UINT)mBufferHeight, 1, DXGI_FORMAT_R32G32_UINT);
 		mPostProcessedSceneTexture.Create(L"PostProcessed Scene Texture", (UINT)mBufferWidth, (UINT)mBufferHeight, 1u, D_GRAPHICS::GetColorFormat());
 		mSceneDepth.Create(L"Scene DepthStencil", (UINT)mBufferWidth, (UINT)mBufferHeight, D_GRAPHICS::GetDepthFormat());
-		if (mCustomDepthApplied)
+		mPickerDepth.Create(L"Editor Picker Depth", (UINT)mBufferWidth, (UINT)mBufferHeight, D_GRAPHICS::GetDepthFormat());
+		if(mCustomDepthApplied)
 			mCustomDepth.Create(L"Scene CustomDepth", (UINT)mBufferWidth, (UINT)mBufferHeight, D_GRAPHICS::GetDepthFormat());
 		mSceneNormals.Create(L"Scene Normals", (UINT)mBufferWidth, (UINT)mBufferHeight, 1, DXGI_FORMAT_R16G16B16A16_FLOAT);
 
@@ -698,6 +721,8 @@ namespace Darius::Editor::Gui::Windows
 
 		mWorldPos.Create(L"Scene World Pos", (UINT)mBufferWidth, (UINT)mBufferHeight, 1u, DXGI_FORMAT_R32G32B32A32_FLOAT);
 		mNormalDepth.Create(L"Scene Normal Depth", (UINT)mBufferWidth, (UINT)mBufferHeight, 1u, DXGI_FORMAT_R32_UINT);
+
+		mPickerReadback.Create(L"Editor Picker Readback", (UINT)(mBufferWidth * mBufferHeight), (UINT)D_GRAPHICS_BUFFERS::PixelBuffer::BytesPerPixel(DXGI_FORMAT_R32G32_UINT));
 	}
 
 	void SceneWindow::CalcGridLineConstants(DVector<MeshConstants>& constants, int count)
@@ -705,22 +730,22 @@ namespace Darius::Editor::Gui::Windows
 		auto scale = Matrix4::MakeScale((float)count * 2);
 		auto rot = Matrix4::MakeLookAt(Vector3(kZero), Vector3(-1.f, 0.f, 0.f), Vector3::Up);
 
-		for (short i = 0; i <= count; i++)
+		for(short i = 0; i <= count; i++)
 		{
 			// Along +x
-			constants.push_back({ Matrix4::MakeTranslation((float)i, 0.f, (float)count) * scale });
+			constants.push_back({Matrix4::MakeTranslation((float)i, 0.f, (float)count) * scale});
 
 			// Along +z
-			constants.push_back({ Matrix4::MakeTranslation(-(float)count, 0.f, (float)i) * rot * scale });
+			constants.push_back({Matrix4::MakeTranslation(-(float)count, 0.f, (float)i) * rot * scale});
 
-			if (i == 0)
+			if(i == 0)
 				continue;
 
 			// Along -x
-			constants.push_back({ Matrix4::MakeTranslation(-(float)i, 0.f, (float)count) * scale });
+			constants.push_back({Matrix4::MakeTranslation(-(float)i, 0.f, (float)count) * scale});
 
 			// Along -z
-			constants.push_back({ Matrix4::MakeTranslation(-(float)count, 0.f, -(float)i) * rot * scale });
+			constants.push_back({Matrix4::MakeTranslation(-(float)count, 0.f, -(float)i) * rot * scale});
 		}
 	}
 
@@ -733,19 +758,19 @@ namespace Darius::Editor::Gui::Windows
 		item.StartIndexLocation = mesh->mDraw[0].StartIndexLocation;
 		item.Mesh = mesh;
 		item.PsoFlags = RenderItem::HasPosition | RenderItem::HasNormal | RenderItem::HasTangent | RenderItem::HasUV0 | RenderItem::ColorOnly | RenderItem::TwoSided | RenderItem::LineOnly | RenderItem::AlphaBlend;
-		item.PsoType = D_RENDERER_RAST::GetPso({ item.PsoFlags });
-		item.DepthPsoIndex = D_RENDERER_RAST::GetPso({ (UINT16)(item.PsoFlags | RenderItem::DepthOnly) });
+		item.PsoType = D_RENDERER_RAST::GetPso({item.PsoFlags});
+		item.DepthPsoIndex = D_RENDERER_RAST::GetPso({(UINT16)(item.PsoFlags | RenderItem::DepthOnly)});
 		item.PrimitiveType = D3D_PRIMITIVE_TOPOLOGY_LINELIST;
 		item.MeshVsCBV = mLineConstantsGPU.GetGpuVirtualAddress();
 
-		for (int i = 0; i < count; i++)
+		for(int i = 0; i < count; i++)
 		{
-			if (i / 2 == 0)
-				item.Color = { 1.f, 1.f, 1.f, 0.8f };
-			else if (((i - 2) / 4) % 10 == 9)
-				item.Color = { 0.501f, 0.501f, 0.501f, 0.8f };
+			if(i / 2 == 0)
+				item.Color = {1.f, 1.f, 1.f, 0.8f};
+			else if(((i - 2) / 4) % 10 == 9)
+				item.Color = {0.501f, 0.501f, 0.501f, 0.8f};
 			else
-				item.Color = { 0.3f, 0.3f, 0.3f, 0.8f };
+				item.Color = {0.3f, 0.3f, 0.3f, 0.8f};
 
 			items.push_back(item);
 			item.MeshVsCBV += sizeof(MeshConstants);
@@ -764,17 +789,51 @@ namespace Darius::Editor::Gui::Windows
 		D_MATH_BOUNDS::BoundingPlane yPlane(Vector3::Zero, Vector3::Up);
 
 		float dist;
-		if (cameraRay.Intersects(yPlane, dist))
+		if(cameraRay.Intersects(yPlane, dist))
 		{
 			return cameraRay.Resolve(dist);
 		}
 
 		Ray mirrorCameraRay(-cameraRay);
-		if (mirrorCameraRay.Intersects(yPlane, dist))
+		if(mirrorCameraRay.Intersects(yPlane, dist))
 		{
 			return mirrorCameraRay.Resolve(dist);
 		}
 
 		return Vector3::Zero;
+	}
+
+	bool SceneWindow::SelectPickedGameObject()
+	{
+		auto& context = GraphicsContext::Begin(L"Picker Readback Fill");
+		
+		auto rowPitch = context.ReadbackTexture(mPickerReadback, mPickerColor);
+		context.Finish(true);
+
+		DirectX::XMUINT2 pixelPos =
+		{
+			D_MATH::Clamp((uint32_t)mMouseSceneTexturePos.GetX(), 0u, (uint32_t)mWidth),
+			D_MATH::Clamp((uint32_t)mMouseSceneTexturePos.GetY(), 0u, (uint32_t)mHeight)
+		};
+
+		uint32_t pixelOffset = (pixelPos.y * (rowPitch / sizeof(DirectX::XMUINT2)) + pixelPos.x);
+
+		auto pixelsData = mPickerReadback.Map();
+
+		auto pixelData = ((DirectX::XMUINT2*)pixelsData)[pixelOffset];
+
+
+		mPickerReadback.Unmap();
+
+		uint64_t entityIdVal;
+		std::memcpy(&entityIdVal, &pixelData, sizeof(uint64_t));
+
+		D_ECS::Entity ent(entityIdVal);
+
+		auto pickedGameObject = D_WORLD::GetGameObject(ent);
+
+		D_EDITOR_CONTEXT::SetSelectedGameObject(pickedGameObject);
+
+		return pickedGameObject != nullptr;
 	}
 }

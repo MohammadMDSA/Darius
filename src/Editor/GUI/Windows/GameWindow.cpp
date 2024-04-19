@@ -116,46 +116,44 @@ namespace Darius::Editor::Gui::Windows
 		riContext.Shadow = false;
 		riContext.StencilOverride = 0;
 
-
 		SceneRenderContext rc =
 		{
-			mSceneDepth,
-			mCustomDepthApplied ? &mCustomDepth : nullptr,
-			mSceneTexture,
-			mSceneNormals,
-			mVelocityBuffer,
-			mTemporalColor,
-			mLinearDepth,
-			mSSAOFullScreen,
-			mDepthDownsize1,
-			mDepthDownsize2,
-			mDepthDownsize3,
-			mDepthDownsize4,
-			mDepthTiled1,
-			mDepthTiled2,
-			mDepthTiled3,
-			mDepthTiled4,
-			mAOMerged1,
-			mAOMerged2,
-			mAOMerged3,
-			mAOMerged4,
-			mAOSmooth1,
-			mAOSmooth2,
-			mAOSmooth3,
-			mAOHighQuality1,
-			mAOHighQuality2,
-			mAOHighQuality3,
-			mAOHighQuality4,
-			mWorldPos,
-			mNormalDepth,
-			context,
-			c,
-			mSceneGlobals,
-			{},
-			nullptr, // TODO: Skybox For Game Window
-			nullptr, // TODO: Skybox For Game Window
-			riContext,
-			true
+			.DepthBuffer = mSceneDepth,
+			.CustomDepthBuffer = mCustomDepthApplied ? &mCustomDepth : nullptr,
+			.ColorBuffer = mSceneTexture,
+			.NormalBuffer = mSceneNormals,
+			.VelocityBuffer = mVelocityBuffer,
+			.TemporalColor = mTemporalColor,
+			.LinearDepth = mLinearDepth,
+			.SSAOFullScreen = mSSAOFullScreen,
+			.DepthDownsize1 = mDepthDownsize1,
+			.DepthDownsize2 = mDepthDownsize2,
+			.DepthDownsize3 = mDepthDownsize3,
+			.DepthDownsize4 = mDepthDownsize4,
+			.DepthTiled1 = mDepthTiled1,
+			.DepthTiled2 = mDepthTiled2,
+			.DepthTiled3 = mDepthTiled3,
+			.DepthTiled4 = mDepthTiled4,
+			.AOMerged1 = mAOMerged1,
+			.AOMerged2 = mAOMerged2,
+			.AOMerged3 = mAOMerged3,
+			.AOMerged4 = mAOMerged4,
+			.AOSmooth1 = mAOSmooth1,
+			.AOSmooth2 = mAOSmooth2,
+			.AOSmooth3 = mAOSmooth3,
+			.AOHighQuality1 = mAOHighQuality1,
+			.AOHighQuality2 = mAOHighQuality2,
+			.AOHighQuality3 = mAOHighQuality3,
+			.AOHighQuality4 = mAOHighQuality4,
+			.WorldPos = mWorldPos,
+			.NormalDepth = mNormalDepth,
+			.CommandContext = context,
+			.Camera = c,
+			.Globals = mSceneGlobals,
+			.RadianceIBL = nullptr, // TODO: Skybox For Game Window
+			.IrradianceIBL = nullptr, // TODO: Skybox For Game Window
+			.RenderItemContext = riContext,
+			.DrawSkybox = true
 		};
 
 		// Post Processing
