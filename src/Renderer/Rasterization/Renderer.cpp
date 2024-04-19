@@ -83,6 +83,7 @@ namespace Darius::Renderer::Rasterization
 	//////////////////////////////////////////////////////
 	// Options
 	bool												SeparateZPass = true;
+	float												SkyboxGain;
 
 	//////////////////////////////////////////////////////
 	// Functions
@@ -100,6 +101,7 @@ namespace Darius::Renderer::Rasterization
 		D_ASSERT(!_initialized);
 
 		D_H_OPTIONS_LOAD_BASIC("Renderer.Rasterization.Passes.SeparateZ", SeparateZPass);
+		D_H_OPTIONS_LOAD_BASIC_DEFAULT("Renderer.Rasterization.SkyboxGain", SkyboxGain, 1.f);
 
 		BuildRootSignature();
 		BuildDefaultPSOs();
@@ -202,12 +204,16 @@ namespace Darius::Renderer::Rasterization
 		}
 	}
 
-	void AddRenderItems(D_RENDERER_RAST::MeshSorter& sorter, D_MATH_CAMERA::BaseCamera const& cam, RenderItemContext const& riContext)
+	void AddRenderItems(SorterContext const& sorterContext, D_MATH_CAMERA::BaseCamera const& cam, RenderItemContext const& riContext)
 	{
 		auto frustum = cam.GetWorldSpaceFrustum();
 		auto camPos = cam.GetPosition();
 
-		GetSceneBvh().FrustumQuery(frustum, [=, &sorter](D_ECS::UntypedCompRef const& compRef, D_MATH_BOUNDS::Aabb const& aabb)
+#if _D_EDITOR
+		bool addEditorPicker = sorterContext.EditorPickerRenderSorter != nullptr;
+#endif
+
+		GetSceneBvh().FrustumQuery(frustum, [=, &sorterContext](D_ECS::UntypedCompRef const& compRef, D_MATH_BOUNDS::Aabb const& aabb)
 			{
 				auto rendererComp = reinterpret_cast<RendererComponent*>(compRef.Get());
 
@@ -216,9 +222,17 @@ namespace Darius::Renderer::Rasterization
 
 				float distance = (camPos - aabb.GetCenter()).Length();
 
-				rendererComp->AddRenderItems([=, &sorter](RenderItem const& ri)
+#if _D_EDITOR
+				// Add editor picker render item
+				if(addEditorPicker)
+				{
+					sorterContext.EditorPickerRenderSorter->AddMesh(rendererComp->GetPickerRenderItem(), distance);
+				}
+#endif // _D_EDITOR
+
+				rendererComp->AddRenderItems([=, &sorterContext](RenderItem const& ri)
 					{
-						sorter.AddMesh(ri, distance);
+						sorterContext.RenderSorter.AddMesh(ri, distance);
 					}, riContext);
 
 				return true;
@@ -311,6 +325,19 @@ namespace Darius::Renderer::Rasterization
 				context.ClearDepth(*rContext.CustomDepthBuffer);
 			context.ClearColor(rContext.ColorBuffer);
 			context.ClearColor(rContext.NormalBuffer);
+
+#if _D_EDITOR
+			if(rContext.RenderPickerData)
+			{
+				context.TransitionResource(*rContext.PickerColorBuffer, D3D12_RESOURCE_STATE_RENDER_TARGET);
+				context.TransitionResource(*rContext.PickerDepthBuffer, D3D12_RESOURCE_STATE_DEPTH_WRITE);
+				context.ClearColor(*rContext.PickerColorBuffer);
+				context.ClearDepth(*rContext.PickerDepthBuffer);
+
+			}
+#endif // _D_EDITOR
+
+
 		}
 
 		auto width = rContext.ColorBuffer.GetWidth();
@@ -327,11 +354,35 @@ namespace Darius::Renderer::Rasterization
 		sorter.AddRenderTarget(rContext.ColorBuffer);
 		sorter.SetNormalTarget(rContext.NormalBuffer);
 
+		SorterContext sorterContext =
+		{
+			.RenderSorter = sorter
+		};
+
+#if _D_EDITOR
+		MeshSorter pickerSorter(MeshSorter::kDefault);
+
+		if(rContext.RenderPickerData)
+		{
+			D_ASSERT_M(rContext.PickerDepthBuffer, "Picker Depth Buffer has not been assigned.");
+			D_ASSERT_M(rContext.PickerColorBuffer, "Picker Color Buffer has not been assigned.");
+
+			pickerSorter.SetCamera(rContext.Camera);
+			pickerSorter.SetViewport(viewPort);
+			pickerSorter.SetScissor(scissor);
+			pickerSorter.SetDepthStencilTarget(*rContext.PickerDepthBuffer, nullptr);
+			pickerSorter.AddRenderTarget(*rContext.PickerColorBuffer);
+
+			sorterContext.EditorPickerRenderSorter = &pickerSorter;
+		}
+#endif // _D_EDITOR
+
+
 		// Add meshes to sorter
 		{
 			D_PROFILING::ScopedTimer _prof(L"Render items additions", context);
 
-			AddRenderItems(sorter, rContext.Camera, rContext.RenderItemContext);
+			AddRenderItems(sorterContext, rContext.Camera, rContext.RenderItemContext);
 		}
 
 		// Creating shadows
@@ -342,6 +393,15 @@ namespace Darius::Renderer::Rasterization
 			sorter.Sort();
 		}
 
+#if _D_EDITOR
+		if(rContext.RenderPickerData)
+		{
+			D_PROFILING::ScopedTimer _prof(L"Picker Mesh Sort", context);
+			pickerSorter.Sort();
+		}
+#endif // _D_EDITOR
+
+
 		if(rContext.DrawSkybox)
 		{
 			D_RENDERER_RAST::SetIBLTextures(rContext.IrradianceIBL, rContext.RadianceIBL);
@@ -350,6 +410,13 @@ namespace Darius::Renderer::Rasterization
 
 		// Rendering depth
 		sorter.RenderMeshes(MeshSorter::kZPass, context, 0, rContext.Globals);
+
+#if _D_EDITOR
+		if(rContext.RenderPickerData)
+		{
+			pickerSorter.RenderMeshes(MeshSorter::kOpaque, context, nullptr, rContext.Globals);
+		}
+#endif // _D_EDITOR
 
 		auto frameIdxMod2 = D_GRAPHICS_AA_TEMPORAL::GetFrameIndexMod2();
 		D_GRAPHICS_AO_SS::SSAORenderBuffers ssaoBuffers =
@@ -428,6 +495,7 @@ namespace Darius::Renderer::Rasterization
 		D_H_OPTION_DRAW_BEGIN();
 
 		D_H_OPTION_DRAW_CHECKBOX("Separate Z Pass", "Renderer.Rasterization.Passes.SeparateZ", SeparateZPass);
+		D_H_OPTION_DRAW_FLOAT_SLIDER("Skybox Gain", "Renderer.Rasterization.SkyboxGain", SkyboxGain, 0.1f, 10.f);
 
 		if(ImGui::CollapsingHeader("Lighting"))
 		{
@@ -678,8 +746,10 @@ namespace Darius::Renderer::Rasterization
 		ALIGN_DECL_16 struct SkyboxPSCB
 		{
 			float TextureLevel;
+			float Gain;
 		} skyPSVB;
 		skyPSVB.TextureLevel = SpecularIBLBias;
+		skyPSVB.Gain = SkyboxGain;
 
 		// Setting root signature and pso
 		context.SetRootSignature(RootSigns[(size_t)RootSignatureTypes::DefaultRootSig]);
@@ -904,9 +974,18 @@ namespace Darius::Renderer::Rasterization
 					{
 						context.TransitionResource(*m_DSV, D3D12_RESOURCE_STATE_DEPTH_READ);
 						context.TransitionResource(*m_RTV[0], D3D12_RESOURCE_STATE_RENDER_TARGET);
-						context.TransitionResource(*m_Norm, D3D12_RESOURCE_STATE_RENDER_TARGET);
-						D3D12_CPU_DESCRIPTOR_HANDLE RTs[] = {m_RTV[0]->GetRTV(), m_Norm->GetRTV()};
-						context.SetRenderTargets(2, RTs, m_DSV->GetDSV_DepthReadOnly());
+
+						if(m_Norm)
+						{
+							context.TransitionResource(*m_Norm, D3D12_RESOURCE_STATE_RENDER_TARGET);
+							D3D12_CPU_DESCRIPTOR_HANDLE RTs[] = {m_RTV[0]->GetRTV(), m_Norm->GetRTV()};
+							context.SetRenderTargets(2, RTs, m_DSV->GetDSV_DepthReadOnly());
+						}
+						else
+						{
+							D3D12_CPU_DESCRIPTOR_HANDLE RTs[] = {m_RTV[0]->GetRTV()};
+							context.SetRenderTargets(1, RTs, m_DSV->GetDSV_DepthReadOnly());
+						}
 					}
 					else
 					{
@@ -968,7 +1047,9 @@ namespace Darius::Renderer::Rasterization
 				else
 				{
 					context.SetConstantBuffer(kMaterialConstantsPs, ri.Material.MaterialCBV);
-					context.SetDescriptorTable(kMaterialSRVs, ri.Material.MaterialSRV);
+
+					if(ri.Material.MaterialSRV.ptr != 0)
+						context.SetDescriptorTable(kMaterialSRVs, ri.Material.MaterialSRV);
 
 					if(ri.Material.SamplersSRV.ptr != 0)
 						context.SetDescriptorTable(kMaterialSamplers, ri.Material.SamplersSRV);
@@ -1454,6 +1535,9 @@ namespace Darius::Renderer::Rasterization
 			ColorPSO.SetPrimitiveTopologyType(D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE);
 			psoName += L"Triangle ";
 		}
+
+		ColorPSO.SetRenderTargetFormats((UINT)psoConfig.RenderRargetFormats.size(), psoConfig.RenderRargetFormats.data(), GetDepthFormat());
+
 		ColorPSO.Finalize(psoName);
 
 		// Look for an existing PSO

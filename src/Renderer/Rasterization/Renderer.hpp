@@ -116,6 +116,7 @@ namespace Darius::Renderer::Rasterization
 			D_ASSERT(m_NumRTVs < 8);
 			m_RTV[m_NumRTVs++] = &RTV;
 		}
+
 		void SetDepthStencilTarget(D_GRAPHICS_BUFFERS::DepthBuffer& DSV, D_GRAPHICS_BUFFERS::DepthBuffer* DSVCustom)
 		{
 			m_DSV = &DSV;
@@ -206,9 +207,17 @@ namespace Darius::Renderer::Rasterization
 			nullptr,
 			0
 		};
+		D_CONTAINERS::DVector<DXGI_FORMAT> RenderRargetFormats = {D_GRAPHICS::GetColorFormat(), DXGI_FORMAT_R16G16B16A16_FLOAT}; // Color and normal
 	};
 
-	D_STATIC_ASSERT(sizeof(PsoConfig) == 8u + sizeof(D3D12_INPUT_LAYOUT_DESC));
+	struct SorterContext
+	{
+		MeshSorter& RenderSorter;
+#if _D_EDITOR
+		MeshSorter* EditorPickerRenderSorter = nullptr;
+#endif // _D_EDITOR
+
+	};
 
 	void Initialize(D_SERIALIZATION::Json const& settings);
 	void Shutdown();
