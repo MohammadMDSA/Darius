@@ -145,6 +145,51 @@ namespace Darius::Renderer
 	}
 
 #ifdef _D_EDITOR
+
+	RenderItem SkeletalMeshRendererComponent::GetPickerRenderItem() const
+	{
+		static RenderItem ri;
+		struct PsoInitializer
+		{
+			PsoInitializer()
+			{
+				uint32_t flags = RenderItem::HasPosition | RenderItem::HasNormal | RenderItem::HasTangent | RenderItem::HasUV0 | RenderItem::HasSkin;
+
+				D_RENDERER_RAST::PsoConfig config;
+				config.PsoFlags = flags;
+
+				config.PSIndex = D_GRAPHICS::GetShaderIndex("EditorPickerPS");
+				config.VSIndex = D_GRAPHICS::GetShaderIndex("SkinnedVS");
+				config.RenderRargetFormats = {DXGI_FORMAT_R32G32_UINT};
+
+				uint32_t psoIndex = D_RENDERER_RAST::GetPso(config);
+				config.PsoFlags |= RenderItem::DepthOnly;
+				config.PSIndex = 0;
+				uint32_t depthPsoIndex = D_RENDERER_RAST::GetPso(config);
+
+				ri.PsoType = psoIndex;
+				ri.DepthPsoIndex = depthPsoIndex;
+				ri.Material.MaterialSRV = {0};
+				ri.Material.SamplersSRV = {0};
+				ri.PsoFlags = flags;
+				ri.BaseVertexLocation = 0u;
+				ri.StartIndexLocation = 0u;
+			}
+		};
+
+		static PsoInitializer initializer;
+
+		const Mesh* mesh = mMesh.Get()->GetMeshData();
+		ri.MeshVsCBV = GetConstantsAddress();
+		ri.Material.MaterialCBV = GetPickerDrawPsConstant();
+		ri.Mesh = mesh;
+		ri.mJointData = mJoints.data();
+		ri.mNumJoints = (UINT)mJoints.size();
+		ri.IndexCount = mesh->mNumTotalIndices;
+
+		return ri;
+	}
+
 	bool SkeletalMeshRendererComponent::DrawDetails(float params[])
 	{
 		auto valueChanged = false;

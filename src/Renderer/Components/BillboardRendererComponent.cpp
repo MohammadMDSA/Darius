@@ -114,6 +114,8 @@ namespace Darius::Renderer
 	{
 		mMeshConstantsCPU.Destroy();
 		mMeshConstantsGPU.Destroy();
+
+		Super::OnDestroy();
 	}
 
 	bool BillboardRendererComponent::AddRenderItems(std::function<void(D_RENDERER::RenderItem const&)> appendFunction, RenderItemContext const& riContext)
@@ -221,6 +223,48 @@ namespace Darius::Renderer
 	}
 
 #ifdef _D_EDITOR
+
+	RenderItem BillboardRendererComponent::GetPickerRenderItem() const
+	{
+		static RenderItem ri;
+		struct PsoInitializer
+		{
+			PsoInitializer()
+			{
+				uint32_t psoIndex, depthPsoIndex;
+				uint32_t flags = RenderItem::HasPosition | RenderItem::HasNormal | RenderItem::HasTangent | RenderItem::HasUV0 | RenderItem::SkipVertexIndex | RenderItem::PointOnly;
+
+				D_RENDERER_RAST::PsoConfig config;
+				config.PsoFlags = flags;
+
+				config.PSIndex = GetShaderIndex("EditorPickerPS");
+				config.VSIndex = GetShaderIndex("BillboardVS");
+				config.GSIndex = GetShaderIndex("BillboardGS");
+				config.RenderRargetFormats = {DXGI_FORMAT_R32G32_UINT};
+
+				psoIndex = D_RENDERER_RAST::GetPso(config);
+				config.PsoFlags |= RenderItem::DepthOnly;
+				config.PSIndex = 0;
+				depthPsoIndex = D_RENDERER_RAST::GetPso(config);
+
+				ri.PrimitiveType = D3D_PRIMITIVE_TOPOLOGY_POINTLIST;
+				ri.PsoType = psoIndex;
+				ri.DepthPsoIndex = depthPsoIndex;
+				ri.Material.MaterialSRV = {0};
+				ri.Material.SamplersSRV = {0};
+				ri.PsoFlags = flags;
+				ri.BaseVertexLocation = 0;
+				ri.IndexCount = 1;
+			}
+		};
+
+		static PsoInitializer initializer;
+		ri.MeshVsCBV = GetConstantsAddress();
+		ri.Material.MaterialCBV = GetPickerDrawPsConstant();
+
+		return ri;
+	}
+
 	bool BillboardRendererComponent::DrawDetails(float params[])
 	{
 		bool valueChanged = false;

@@ -201,6 +201,49 @@ namespace Darius::Renderer
 	}
 
 #ifdef _D_EDITOR
+
+	RenderItem MeshRendererComponent::GetPickerRenderItem() const
+	{
+		static uint32_t flags = RenderItem::HasPosition | RenderItem::HasNormal | RenderItem::HasTangent | RenderItem::HasUV0;
+		static RenderItem ri;
+		struct PsoInitializer
+		{
+			PsoInitializer()
+			{
+				uint32_t psoIndex, depthPsoIndex;
+				D_RENDERER_RAST::PsoConfig config;
+				config.PsoFlags = flags;
+
+				config.PSIndex = D_GRAPHICS::GetShaderIndex("EditorPickerPS");
+				config.VSIndex = D_GRAPHICS::GetShaderIndex("DefaultVS");
+				config.RenderRargetFormats = {DXGI_FORMAT_R32G32_UINT};
+
+				psoIndex = D_RENDERER_RAST::GetPso(config);
+				config.PsoFlags |= RenderItem::DepthOnly;
+				config.PSIndex = 0;
+				depthPsoIndex = D_RENDERER_RAST::GetPso(config);
+
+				ri.PsoType = psoIndex;
+				ri.DepthPsoIndex = depthPsoIndex;
+				ri.Material.MaterialSRV = {0};
+				ri.Material.SamplersSRV = {0};
+				ri.PsoFlags = flags;
+				ri.BaseVertexLocation = 0;
+				ri.StartIndexLocation = 0;
+			}
+		};
+
+		static PsoInitializer initializer;
+
+		const Mesh* mesh = mMesh.Get()->GetMeshData();
+		ri.MeshVsCBV = GetConstantsAddress();
+		ri.Material.MaterialCBV = GetPickerDrawPsConstant();
+		ri.Mesh = mesh;
+		ri.IndexCount = mesh->mNumTotalIndices;
+		
+		return ri;
+	}
+
 	bool MeshRendererComponent::DrawDetails(float params[])
 	{
 		auto valueChanged = false;

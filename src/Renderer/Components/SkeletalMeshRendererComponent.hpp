@@ -30,6 +30,9 @@ namespace Darius::Renderer
 		virtual void						OnDeserialized() override;
 
 		virtual bool						AddRenderItems(std::function<void(D_RENDERER::RenderItem const&)> appendFunction, RenderItemContext const& riContext) override;
+#if _D_EDITOR
+		virtual D_RENDERER::RenderItem		GetPickerRenderItem() const override;
+#endif
 
 		INLINE virtual UINT					GetNumberOfSubmeshes() const { return mMesh.IsValid() ? (UINT)mMesh->GetMeshData()->mDraw.size() : 0u; }
 

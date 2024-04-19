@@ -34,6 +34,20 @@ namespace Darius::Renderer
 		SetDirty();
 	}
 
+	void RendererComponent::Awake()
+	{
+
+		// Setting up picker draw ps constants
+#if _D_EDITOR
+		D_STATIC_ASSERT(sizeof(DirectX::XMUINT2) == sizeof(uint64_t));
+
+		uint64_t entityId = GetGameObject()->GetEntity().id();
+		PickerPsMeshConstants constants;
+		std::memcpy(&constants.Id, &entityId, sizeof(entityId));
+		mPickerDrawPsConstant.Create(L"Picker PS Mesh Constants", 1u, sizeof(PickerPsMeshConstants), &constants);
+#endif // _D_EDITOR
+	}
+
 	void RendererComponent::Start()
 	{
 		if(!mBvhNodeId.IsValid())
@@ -73,6 +87,14 @@ namespace Darius::Renderer
 			D_RENDERER::UnregisterComponent(mBvhNodeId);
 			mBvhNodeId = {};
 		}
+	}
+
+	void RendererComponent::OnDestroy()
+	{
+#if _D_EDITOR
+		mPickerDrawPsConstant.Destroy();
+#endif // _D_EDITOR
+
 	}
 
 #ifdef _D_EDITOR
@@ -131,6 +153,7 @@ namespace Darius::Renderer
 
 		return valueChanged;
 	}
+
 #endif
 
 

@@ -133,6 +133,8 @@ namespace Darius::Renderer
 	{
 		mMeshConstantsCPU.Destroy();
 		mMeshConstantsGPU.Destroy();
+
+		Super::OnDestroy();
 	}
 
 	void MeshRendererComponentBase::OnDeserialized()

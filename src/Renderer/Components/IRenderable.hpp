@@ -26,6 +26,9 @@ namespace Darius::Renderer
 		virtual D3D12_GPU_VIRTUAL_ADDRESS	GetConstantsAddress() const = 0;
 		virtual bool						AddRenderItems(std::function<void(D_RENDERER::RenderItem const&)> appendFunction, RenderItemContext const& riContext) = 0;
 		virtual bool						IsCastingShadow() const = 0;
+#if _D_EDITOR
+		virtual D_RENDERER::RenderItem		GetPickerRenderItem() const = 0;
+#endif
 	};
 
 	struct MaterialPsoData

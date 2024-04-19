@@ -57,6 +57,14 @@ namespace Darius::Renderer
 		float					Lod = 1.f;
 	};
 
+#if _D_EDITOR
+	ALIGN_DECL_16 struct PickerPsMeshConstants
+	{
+		DirectX::XMUINT2		Id;
+	};
+#endif // _D_EDITOR
+
+
 	struct Joint
 	{
 		DirectX::XMFLOAT4X4				mWorld;
@@ -192,13 +200,20 @@ namespace Darius::Renderer
 		D_GRAPHICS_BUFFERS::ColorBuffer&	AOHighQuality4;
 		D_GRAPHICS_BUFFERS::ColorBuffer&	WorldPos;
 		D_GRAPHICS_BUFFERS::ColorBuffer&	NormalDepth;
+#if _D_EDITOR
+		D_GRAPHICS_BUFFERS::DepthBuffer*	PickerDepthBuffer = nullptr;
+		D_GRAPHICS_BUFFERS::ColorBuffer*	PickerColorBuffer = nullptr;
+#endif
 		D_GRAPHICS::CommandContext&			CommandContext;
 		D_MATH_CAMERA::Camera const&		Camera;
 		GlobalConstants&					Globals;
-		D_CONTAINERS::DVector<D_CONTAINERS::DVector<RenderItem> const*> const& AdditionalRenderItems;
+		D_CONTAINERS::DVector<D_CONTAINERS::DVector<RenderItem> const*> const& AdditionalRenderItems = {};
 		TextureResource*					RadianceIBL;
 		TextureResource*					IrradianceIBL;
 		RenderItemContext const&			RenderItemContext;
-		bool								DrawSkybox;
+		uint32_t							DrawSkybox : 1;
+#if _D_EDITOR
+		uint32_t							RenderPickerData : 1 = false;
+#endif
 	};
 }

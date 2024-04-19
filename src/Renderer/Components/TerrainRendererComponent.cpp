@@ -29,7 +29,6 @@ namespace Darius::Renderer
 		RendererComponent(),
 		mMaterial(),
 		mGridMesh(),
-		//mHeightMap(GetAsCountedOwner()),
 		mGridSize(TerrainGridSize::Cells8x8),
 		mTerrainData()
 	{
@@ -39,7 +38,6 @@ namespace Darius::Renderer
 		RendererComponent(uuid),
 		mMaterial(),
 		mGridMesh(),
-		//mHeightMap(GetAsCountedOwner()),
 		mGridSize(TerrainGridSize::Cells8x8),
 		mTerrainData()
 	{
@@ -255,9 +253,60 @@ namespace Darius::Renderer
 	{
 		mMeshConstantsCPU.Destroy();
 		mMeshConstantsGPU.Destroy();
+
+		Super::OnDestroy();
 	}
 
 #ifdef _D_EDITOR
+
+	RenderItem TerrainRendererComponent::GetPickerRenderItem() const
+	{
+		static RenderItem ri;
+		struct PsoInitializer
+		{
+			PsoInitializer()
+			{
+				uint32_t flags = RenderItem::HasPosition | RenderItem::HasNormal | RenderItem::HasTangent | RenderItem::HasUV0 | RenderItem::PointOnly | RenderItem::LineOnly;
+
+				D_RENDERER_RAST::PsoConfig config;
+				config.PsoFlags = flags;
+
+				config.PSIndex = GetShaderIndex("EditorPickerPS");
+				config.VSIndex = GetShaderIndex("TerrainVS");
+				config.HSIndex = GetShaderIndex("TerrainHS");
+				config.DSIndex = GetShaderIndex("TerrainDS");
+				config.RenderRargetFormats = {DXGI_FORMAT_R32G32_UINT};
+
+
+				uint32_t psoIndex = D_RENDERER_RAST::GetPso(config);
+				config.PsoFlags |= RenderItem::DepthOnly;
+				config.PSIndex = 0;
+				uint32_t depthPsoIndex = D_RENDERER_RAST::GetPso(config);
+
+				ri.PrimitiveType = D3D_PRIMITIVE_TOPOLOGY_4_CONTROL_POINT_PATCHLIST;
+				ri.PsoType = psoIndex;
+				ri.DepthPsoIndex = depthPsoIndex;
+				ri.Material.MaterialSRV = {0};
+				ri.Material.SamplersSRV = {0};
+				ri.PsoFlags = flags;
+				ri.BaseVertexLocation = 0u;
+				ri.StartIndexLocation = 0u;
+			}
+		};
+
+		static PsoInitializer initializer;
+
+		ri.MeshHsCBV = GetConstantsAddress();
+		ri.MeshDsCBV = GetConstantsAddress();
+		ri.ParamsDsCBV = GetTerrainData()->GetParamsConstantsAddress();
+		ri.Material.MaterialCBV = GetPickerDrawPsConstant();
+		ri.TextureDomainSRV = GetTerrainData()->GetTexturesHandle();
+		ri.Mesh = mGridMesh->GetMeshData();
+		ri.IndexCount = ri.Mesh->mNumTotalIndices;
+
+		return ri;
+	}
+
 	bool TerrainRendererComponent::DrawDetails(float params[])
 	{
 		bool valueChanged = false;

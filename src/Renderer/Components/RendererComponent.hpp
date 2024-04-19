@@ -21,15 +21,20 @@ namespace Darius::Renderer
 	public:
 
 		virtual void										Start() override;
+		virtual void										Awake() override;
 		virtual void										Update(float dt) override;
 		virtual void										OnActivate() override;
 		virtual void										OnDeactivate() override;
 		virtual void										OnPreDestroy() override;
+		virtual void										OnDestroy() override;
 
 		INLINE virtual bool									CanRender() const override { return IsActive(); }
 		INLINE virtual D_MATH_BOUNDS::Aabb					GetAabb() const override { D_ASSERT(false); return D_MATH_BOUNDS::Aabb(); }
 		INLINE virtual D3D12_GPU_VIRTUAL_ADDRESS			GetConstantsAddress() const override { return D3D12_GPU_VIRTUAL_ADDRESS_UNKNOWN; }
 		INLINE virtual bool									AddRenderItems(std::function<void(D_RENDERER::RenderItem const&)> appendFunction, RenderItemContext const& riContext) override { return false; }
+#if _D_EDITOR
+		INLINE virtual D_RENDERER::RenderItem				GetPickerRenderItem() const override { D_ASSERT_NOENTRY(); return {}; }
+#endif
 		INLINE virtual bool									IsCastingShadow() const override { return mCastsShadow; }
 
 		void												SetCastsShadow(bool value);
@@ -44,7 +49,10 @@ namespace Darius::Renderer
 
 #ifdef _D_EDITOR
 		virtual bool										DrawDetails(float[]) override;
-#endif
+
+		INLINE D3D12_GPU_VIRTUAL_ADDRESS							GetPickerDrawPsConstant() const { return mPickerDrawPsConstant.GetGpuVirtualAddress(); }
+#endif // _D_EDITOR
+
 
 	private:
 
@@ -59,6 +67,10 @@ namespace Darius::Renderer
 
 		DField(Serialize)
 		UINT8												mStencilValue;
+
+#if _D_EDITOR
+		D_GRAPHICS_BUFFERS::ByteAddressBuffer				mPickerDrawPsConstant;
+#endif
 
 		D_MATH_BOUNDS::DynamicBVH<D_ECS::UntypedCompRef>::ID mBvhNodeId;
 	};
