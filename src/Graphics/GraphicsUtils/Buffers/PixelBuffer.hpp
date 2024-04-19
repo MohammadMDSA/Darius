@@ -34,6 +34,7 @@ namespace Darius::Graphics::Utils::Buffers
 		// Note that data is preceded by a 16-byte header: { DXGI_FORMAT, Pitch (in pixels), Width (in pixels), Height }
 		void ExportToFile(const std::wstring& filePath);
 
+		static size_t BytesPerPixel(DXGI_FORMAT format);
 	protected:
 
 		D3D12_RESOURCE_DESC DescribeTex2D(uint32_t width, uint32_t height, uint32_t depthOrArraySize, uint32_t numMips, DXGI_FORMAT format, UINT flags);
@@ -48,7 +49,6 @@ namespace Darius::Graphics::Utils::Buffers
 		static DXGI_FORMAT GetDSVFormat(DXGI_FORMAT format);
 		static DXGI_FORMAT GetDepthFormat(DXGI_FORMAT format);
 		static DXGI_FORMAT GetStencilFormat(DXGI_FORMAT format);
-		static size_t BytesPerPixel(DXGI_FORMAT format);
 
 		uint32_t mWidth;
 		uint32_t mHeight;

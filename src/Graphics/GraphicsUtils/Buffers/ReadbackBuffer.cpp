@@ -1,5 +1,7 @@
 #include "Graphics/pch.hpp"
 #include "ReadbackBuffer.hpp"
+
+#include "PixelBuffer.hpp"
 #include "Graphics/GraphicsCore.hpp"
 #include "Graphics/GraphicsDeviceManager.hpp"
 
@@ -35,8 +37,13 @@ namespace Darius::Graphics::Utils::Buffers
         ResourceDesc.Layout = D3D12_TEXTURE_LAYOUT_ROW_MAJOR;
         ResourceDesc.Flags = D3D12_RESOURCE_FLAG_NONE;
 
-        D_HR_CHECK(D_GRAPHICS_DEVICE::GetDevice()->CreateCommittedResource(&HeapProps, D3D12_HEAP_FLAG_NONE, &ResourceDesc,
-            D3D12_RESOURCE_STATE_COPY_DEST, nullptr, IID_PPV_ARGS(&mResource)));
+        D_HR_CHECK(D_GRAPHICS_DEVICE::GetDevice()->CreateCommittedResource(
+            &HeapProps,
+            D3D12_HEAP_FLAG_NONE,
+            &ResourceDesc,
+            D3D12_RESOURCE_STATE_COPY_DEST,
+            nullptr,
+            IID_PPV_ARGS(&mResource)));
 
         mGpuVirtualAddress = mResource->GetGPUVirtualAddress();
 
@@ -46,7 +53,6 @@ namespace Darius::Graphics::Utils::Buffers
         mResource->SetName(name.c_str());
 #endif
     }
-
 
     void* ReadbackBuffer::Map(void)
     {
