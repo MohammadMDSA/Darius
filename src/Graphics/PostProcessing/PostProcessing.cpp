@@ -670,7 +670,7 @@ namespace Darius::Graphics::PostProcessing
 			D_H_OPTION_DRAW_FLOAT_SLIDER("Tone Mapper Gamma", "PostProcessing.ToneMapper.ColorGrading.ToneMapperGamma", colorGradingParams.ToneMapperGamma, 0.1f, 10.f);
 			D_H_OPTION_DRAW_FLOAT_SLIDER("White Temperature", "PostProcessing.ToneMapper.ColorGrading.WhiteTemp", colorGradingParams.WhiteTemp, 1500.f, 15000.f);
 			D_H_OPTION_DRAW_FLOAT_SLIDER("White Tint", "PostProcessing.ToneMapper.ColorGrading.WhiteTint", colorGradingParams.WhiteTint, -1.f, 1.f);
-			D_H_OPTION_DRAW_FLOAT_SLIDER("Color Correction Shadows Max", "PostProcessing.ToneMapper.ColorGrading.ColorCorrectionShadowsMax", colorGradingParams.WhiteTint, -1.f, 1.f);
+			D_H_OPTION_DRAW_FLOAT_SLIDER("Color Correction Shadows Max", "PostProcessing.ToneMapper.ColorGrading.ColorCorrectionShadowsMax", colorGradingParams.ColorCorrectionHighlightsMax, -1.f, 1.f);
 			D_H_OPTION_DRAW_FLOAT_SLIDER("Color Correction Highlights Min", "PostProcessing.ToneMapper.ColorGrading.ColorCorrectionHighlightsMin", colorGradingParams.ColorCorrectionHighlightsMin, -1.f, 1.f);
 			D_H_OPTION_DRAW_FLOAT_SLIDER("Color Correction Highlights Max", "PostProcessing.ToneMapper.ColorGrading.ColorCorrectionHighlightsMax", colorGradingParams.ColorCorrectionHighlightsMax, 1.f, 10.f);
 			D_H_OPTION_DRAW_FLOAT_SLIDER("Blue Correction", "PostProcessing.ToneMapper.ColorGrading.BlueCorrection", colorGradingParams.BlueCorrection, 0.f, 1.f);
