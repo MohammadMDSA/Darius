@@ -7,6 +7,7 @@
 #include <Demo/TriggerTest.hpp>
 #include <Demo/CollisionTest.hpp>
 #include <Demo/ComponentReferencer.hpp>
+#include <Demo/CharacterControllerInput.hpp>
 
 void InitializeGame()
 {
@@ -19,4 +20,5 @@ void InitializeGame()
 	Demo::TriggerTest::StaticConstructor();
 	Demo::CollisionTest::StaticConstructor();
 	Demo::ComponentReferencer::StaticConstructor();
+	Demo::CharacterControllerInput::StaticConstructor();
 }
