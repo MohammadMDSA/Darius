@@ -40,9 +40,12 @@ namespace Darius::Physics
 
 		void					Simulate(bool fetchResults, float deltaTime);
 		void					PreUpdate();
+		void					UpdateControllers(float dt);
 		void					Update();
+		INLINE D_MATH::Vector3	GetGravityVector() const { return mGravityVec; }
 
 		physx::PxController*	CreateController(physx::PxControllerDesc const& controllerDesc);
+		bool					ReleaseController(physx::PxController* controller);
 
 		PhysicsActor const*		FindPhysicsActor(D_SCENE::GameObject* go) const;
 		PhysicsActor*			FindPhysicsActor(D_SCENE::GameObject* go);
@@ -67,10 +70,12 @@ namespace Darius::Physics
 		void					RemoveActor(PhysicsActor* actor);
 
 		D_CONTAINERS::DUnorderedMap<D_SCENE::GameObject const*, PhysicsActor> mActorMap;
+		D_CONTAINERS::DSet<physx::PxController*> mControllers;
 
 		physx::PxScene*			mPxScene;
 		physx::PxControllerManager* mControllerManager;
 		SimulationCallback		mCallbacks;
+		D_MATH::Vector3			mGravityVec;
 	};
 
 }
