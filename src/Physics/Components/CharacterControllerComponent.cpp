@@ -141,6 +141,7 @@ namespace Darius::Physics
 			return false;
 
 		mFallSpeed -= speed;
+		return true;
 	}
 
 	void CharacterControllerComponent::Update(float dt)
