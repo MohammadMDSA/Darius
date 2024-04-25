@@ -103,7 +103,8 @@ namespace Darius::Physics
 
 		physx::PxShape* shape = physics->createShape(*geom, *refComponent->GetMaterial());
 
-		D_ASSERT(shape);
+		if(!shape)
+			return nullptr;
 
 		auto geomType = geom->getType();
 		if (IsGeometryCompatible(geomType))
