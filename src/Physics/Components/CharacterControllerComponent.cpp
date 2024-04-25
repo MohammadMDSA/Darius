@@ -394,6 +394,17 @@ namespace Darius::Physics
 			}
 		}
 
+		//
+		{
+			D_H_DETAILS_DRAW_PROPERTY("Gravity Scale");
+			auto value = GetGravityScale();
+			if(ImGui::DragFloat("##GravityScale", &value, 0.1f))
+			{
+				SetGravityScale(value);
+				valueChanged = true;
+			}
+		}
+
 		// Up Direcrion
 		{
 			D_H_DETAILS_DRAW_PROPERTY("Up Direction");
