@@ -135,6 +135,14 @@ namespace Darius::Physics
 		mController->setPosition({pos.GetX(), pos.GetY(), pos.GetZ()});
 	}
 
+	bool CharacterControllerComponent::Jump(float speed, bool ifNoFalling)
+	{
+		if(ifNoFalling && D_MATH::Abs(mFallSpeed) > 0.01f)
+			return false;
+
+		mFallSpeed -= speed;
+	}
+
 	void CharacterControllerComponent::Update(float dt)
 	{
 		D_ASSERT(mController);
@@ -152,7 +160,7 @@ namespace Darius::Physics
 		auto newPos = Vector3((float)newPost.x, (float)newPost.y, (float)newPost.z);
 
 		auto actualMovement = newPos - prePos;
-		mFallSpeed = D_MATH::Max((float)D_MATH::Dot(actualMovement, gravityDir), 0.f);
+		mFallSpeed = D_MATH::Dot(actualMovement, gravityDir);
 
 		trans->SetPosition(newPos);
 	}

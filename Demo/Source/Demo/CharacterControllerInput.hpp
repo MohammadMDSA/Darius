@@ -34,6 +34,9 @@ namespace Demo
 		DField(Serialize)
 		float							mMouseSpeed;
 
+		DField(Serialize)
+		float							mJumpSpeed;
+
 		D_ECS::CompRef<D_PHYSICS::CharacterControllerComponent> mController;
 
 	};

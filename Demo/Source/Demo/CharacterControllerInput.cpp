@@ -23,13 +23,15 @@ namespace Demo
 	CharacterControllerInput::CharacterControllerInput() :
 		D_ECS_COMP::BehaviourComponent(),
 		mSpeed(10.f),
-		mMouseSpeed(0.001f)
+		mMouseSpeed(0.001f),
+		mJumpSpeed(1.f)
 	{ }
 
 	CharacterControllerInput::CharacterControllerInput(D_CORE::Uuid const& uuid) :
 		D_ECS_COMP::BehaviourComponent(uuid),
 		mSpeed(10.f),
-		mMouseSpeed(0.001f)
+		mMouseSpeed(0.001f),
+		mJumpSpeed(1.f)
 	{ }
 
 	void CharacterControllerInput::Start()
@@ -66,6 +68,9 @@ namespace Demo
 
 		if(mController.IsValid())
 			mController->Move((newRot * movement) * mSpeed * deltaTime);
+
+		if(D_KEYBOARD::IsKeyDown(D_KEYBOARD::Keys::Space))
+			mController->Jump(mJumpSpeed);
 	}
 
 #ifdef _D_EDITOR
@@ -88,6 +93,13 @@ namespace Demo
 			D_H_DETAILS_DRAW_PROPERTY("Mouse Speed");
 
 			valueChanged |= ImGui::DragFloat("##MouseSpeed", &mMouseSpeed);
+		}
+
+		// Jum Speed
+		{
+			D_H_DETAILS_DRAW_PROPERTY("Jump Speed");
+
+			valueChanged |= ImGui::DragFloat("##JumpSpeed", &mJumpSpeed);
 		}
 
 		D_H_DETAILS_DRAW_END_TABLE();

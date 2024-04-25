@@ -89,6 +89,8 @@ namespace Darius::Physics
 
 		INLINE D_MATH::Vector3					GetScaledGravity() const { D_ASSERT(mScene); return mScene->GetGravityVector() * mGravityScale; }
 
+		bool									Jump(float speed = 1.f, bool ifNoFalling = true);
+
 	private:
 
 		DField(Serialize)
