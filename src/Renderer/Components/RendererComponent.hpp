@@ -25,7 +25,6 @@ namespace Darius::Renderer
 		virtual void										Update(float dt) override;
 		virtual void										OnActivate() override;
 		virtual void										OnDeactivate() override;
-		virtual void										OnPreDestroy() override;
 		virtual void										OnDestroy() override;
 
 		INLINE virtual bool									CanRender() const override { return IsActive(); }

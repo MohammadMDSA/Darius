@@ -38,7 +38,7 @@ namespace Darius::Physics
 		// State Events
 		virtual void										Awake() override;
 		virtual void										Start() override;
-		virtual void										OnPreDestroy() override;
+		virtual void										OnDestroy() override;
 
 		virtual void										PreUpdate(bool simulating);
 

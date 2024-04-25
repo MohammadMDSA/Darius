@@ -80,21 +80,17 @@ namespace Darius::Renderer
 		}
 	}
 
-	void RendererComponent::OnPreDestroy()
-	{
-		if(mBvhNodeId.IsValid())
-		{
-			D_RENDERER::UnregisterComponent(mBvhNodeId);
-			mBvhNodeId = {};
-		}
-	}
-
 	void RendererComponent::OnDestroy()
 	{
 #if _D_EDITOR
 		mPickerDrawPsConstant.Destroy();
 #endif // _D_EDITOR
-
+		
+		if(mBvhNodeId.IsValid())
+		{
+			D_RENDERER::UnregisterComponent(mBvhNodeId);
+			mBvhNodeId = {};
+		}
 	}
 
 #ifdef _D_EDITOR

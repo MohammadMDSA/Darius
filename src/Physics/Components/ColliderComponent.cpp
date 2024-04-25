@@ -151,7 +151,7 @@ namespace Darius::Physics
 
 	}
 
-	void ColliderComponent::OnPreDestroy()
+	void ColliderComponent::OnDestroy()
 	{
 		mTransformChangeSignalConnection.disconnect();
 		if (mActor)
@@ -185,7 +185,8 @@ namespace Darius::Physics
 		mActor = D_PHYSICS::GetScene()->FindOrCreatePhysicsActor(GetGameObject());
 		auto shape = mActor->AddCollider(this);
 
-		D_ASSERT(shape);
+		if(!shape)
+			return;
 
 		// Apply shape offset
 		auto offset = GetCenterOffset();
