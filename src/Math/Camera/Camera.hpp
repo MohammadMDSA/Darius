@@ -129,8 +129,15 @@ namespace Darius::Math::Camera
         INLINE void     SetOrthographicSize(float size) { mOrthographicSize = size; UpdateProjMatrix(); }
         INLINE void     SetInfiniteZ(bool val) { mInfiniteZ = val; UpdateProjMatrix(); }
 
-        float const&    GetFoV() const { return mVerticalFoV; }
+        float           GetFoV() const { return mVerticalFoV; }
         float           GetClearDepth() const { return mReverseZ ? 0.0f : 1.0f; }
+        INLINE float    GetAspectRatio() const { return mAspectRatio; }
+        INLINE float    GetNearClip() const { return mNearClip; }
+        INLINE float    GetFarClip() const { return mFarClip; }
+        INLINE float    GetOrthographicSize() const { return mOrthographicSize; }
+        INLINE bool     IsReverseZ() const { return mReverseZ; }
+        INLINE bool     IsInfiniteZ() const { return mInfiniteZ; }
+        INLINE bool     IsOrthographic() const { return mOrthographic; }
 
         void            UpdateProjMatrix();
 
@@ -144,25 +151,25 @@ namespace Darius::Math::Camera
         DField(Serialize)
         float mVerticalFoV;	// Field of view angle in radians
 
-        DField(Get[const, &, inline], Serialize)
+        DField(Serialize)
         float mAspectRatio;
 
-        DField(Get[const, &, inline], Serialize)
+        DField(Serialize)
         float mNearClip;
 
-        DField(Get[const, &, inline], Serialize)
+        DField(Serialize)
         float mFarClip;
 
-        DField(Get[const, &, inline], Serialize)
+        DField(Serialize)
         float mOrthographicSize;
 
-        DField(Get[const, &, inline], Serialize)
+        DField(Serialize)
         bool mReverseZ;		// Invert near and far clip distances so that Z=1 at the near plane
 
-        DField(Get[const, &, inline], Serialize)
+        DField(Serialize)
         bool mInfiniteZ;       // Move the far plane to infinity
 
-        DField(Get[const, &, inline], Serialize)
+        DField(Serialize)
         bool mOrthographic;
 
     };
