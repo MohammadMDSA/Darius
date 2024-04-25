@@ -44,10 +44,11 @@ namespace Darius::Physics
 	PxDefaultAllocator						gAllocator;
 	PxDefaultErrorCallback					gErrorCallback;
 	PxTolerancesScale						gToleranceScale;
-	physx::PxCookingParams* gCookingParams;
+	PxCookingParams*						gCookingParams;
 
-	PxFoundation* gFoundation = NULL;
-	PxPhysics* gPhysics = NULL;
+	PxFoundation*							gFoundation = NULL;
+	PxPhysics*								gPhysics = NULL;
+	PxCudaContextManager*					gCudaContextManager = NULL;
 
 	PxDefaultCpuDispatcher* gDispatcher = NULL;
 	std::unique_ptr<PhysicsScene> gScene;
@@ -148,18 +149,38 @@ namespace Darius::Physics
 		gPhysics = PxCreatePhysics(PX_PHYSICS_VERSION, *gFoundation, gToleranceScale, true, gPvd);
 		D_ASSERT_M(gPhysics, "Could not initialize physics core.");
 
+		// Initializing Cuda
+		if(gGpuAccelerated)
+		{
+			PxCudaContextManagerDesc cudaContextManagerDesc;
+			cudaContextManagerDesc.graphicsDevice = D_GRAPHICS_DEVICE::GetDevice();
+			gCudaContextManager = PxCreateCudaContextManager(*gFoundation, cudaContextManagerDesc, PxGetProfilerCallback());	//Create the CUDA context manager, required for GRB to dispatch CUDA kernels.
+			if(gCudaContextManager)
+			{
+				if(!gCudaContextManager->contextIsValid())
+					PX_RELEASE(gCudaContextManager);
+			}
+		}
+
 		PxSceneDesc sceneDesc(gPhysics->getTolerancesScale());
 		sceneDesc.gravity = PxVec3(0.f, -9.8f, 0.f);
 		gDispatcher = PxDefaultCpuDispatcherCreate(std::thread::hardware_concurrency());
 		sceneDesc.cpuDispatcher = gDispatcher;
 		sceneDesc.filterShader = PxDefaultSimulationFilterShader;
+		if(gGpuAccelerated && gCudaContextManager)
+		{
+			sceneDesc.flags |= PxSceneFlag::eENABLE_GPU_DYNAMICS;
+			sceneDesc.broadPhaseType = PxBroadPhaseType::eGPU;
+			sceneDesc.cudaContextManager = gCudaContextManager;
+		}
+
 
 		// Cooking params
 		gCookingParams = new PxCookingParams(gToleranceScale);
 		gCookingParams->buildGPUData = gGpuAccelerated;
 		gCookingParams->midphaseDesc = PxMeshMidPhase::eBVH34;
 
-		gScene = std::make_unique<PhysicsScene>(sceneDesc, gPhysics, gGpuAccelerated);
+		gScene = std::make_unique<PhysicsScene>(sceneDesc, gPhysics);
 
 		// Registering Resources
 		PhysicsMaterialResource::Register();
@@ -184,6 +205,7 @@ namespace Darius::Physics
 
 		delete gCookingParams;
 
+		PX_RELEASE(gCudaContextManager);
 		PX_RELEASE(gDispatcher);
 		PX_RELEASE(gPhysics);
 

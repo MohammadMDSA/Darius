@@ -62,14 +62,11 @@ PxFilterFlags triggersUsingFilterShader(PxFilterObjectAttributes /*attributes0*/
 namespace Darius::Physics
 {
 
-	PhysicsScene::PhysicsScene(PxSceneDesc const& sceneDesc, PxPhysics* core, bool gpuAccelerated)
+	PhysicsScene::PhysicsScene(PxSceneDesc const& sceneDesc, PxPhysics* core)
 	{
 		PxSceneDesc desc = sceneDesc;
 		desc.filterShader = triggersUsingFilterShader;
 		desc.simulationEventCallback = &mCallbacks;
-
-		if(gpuAccelerated)
-			desc.broadPhaseType = PxBroadPhaseType::eGPU;
 
 		mPxScene = core->createScene(desc);
 		mGravityVec = D_PHYSICS::GetVec3(desc.gravity);
@@ -85,9 +82,6 @@ namespace Darius::Physics
 			pvdClient->setScenePvdFlag(PxPvdSceneFlag::eTRANSMIT_SCENEQUERIES, true);
 		}
 #endif // _DEBUG
-
-		if(gpuAccelerated)
-			mPxScene->setFlag(PxSceneFlag::eENABLE_GPU_DYNAMICS, true);
 
 		mControllerManager = PxCreateControllerManager(*mPxScene);
 		mControllerManager->setOverlapRecoveryModule(true);

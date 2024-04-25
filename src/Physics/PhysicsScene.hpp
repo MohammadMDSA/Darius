@@ -24,7 +24,7 @@ namespace Darius::Physics
 	class PhysicsScene : public NonCopyable
 	{
 	public:
-		PhysicsScene(physx::PxSceneDesc const& sceneDesc, physx::PxPhysics* core, bool gpuAccelerated);
+		PhysicsScene(physx::PxSceneDesc const& sceneDesc, physx::PxPhysics* core);
 		~PhysicsScene();
 
 	// Scene Queries
