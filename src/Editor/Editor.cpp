@@ -48,7 +48,7 @@ namespace Darius::Editor
 	void Editor::Initialize(HWND window, int width, int height, D_FILE::Path const& projectPath)
 	{
 #ifdef _DEBUG
-		D_DEBUG::AttachWinPixGpuCapturer();
+		//D_DEBUG::AttachWinPixGpuCapturer();
 #endif
 
 		// Initializing engine
