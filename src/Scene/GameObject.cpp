@@ -457,8 +457,28 @@ namespace Darius::Scene
 		return reinterpret_cast<D_ECS_COMP::ComponentBase*>(const_cast<void*>(mEntity.get(compT)));
 	}
 
+	bool GameObject::CanAttachTo(GameObject const* parent) const
+	{
+		if(!parent)
+			return true;
+
+		if(parent == this)
+			return false;
+
+		bool result = true;
+		parent->VisitAncestors([&](GameObject* parent)
+			{
+				if(parent == this)
+					result = false;
+			});
+
+		return result;
+	}
+
 	void GameObject::SetParent(GameObject* newParent, AttachmentType attachmentType)
 	{
+		if(!D_VERIFY(CanAttachTo(newParent)))
+			D_LOG_WARN("Circular pattern in hierarchy");
 
 		if (!newParent || !newParent->IsValid()) // Unparent
 		{

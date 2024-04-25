@@ -22,21 +22,6 @@ namespace Darius::Scene
 		GameObjectDragDropPayloadContent() :
 			BaseDragDropPayloadContent(BaseDragDropPayloadContent::Type::GameObject) { }
 
-		bool IsHeirarchyCompatible(GameObject* destination) const
-		{
-			if (destination == GameObjectRef)
-				return false;
-
-			bool result = true;
-			destination->VisitAncestors([&](GameObject* parent)
-				{
-					if (parent == GameObjectRef)
-						result = false;
-				});
-
-			return result;
-		}
-
 		virtual inline bool IsCompatible(D_UTILS::BaseDragDropPayloadContent::Type payloadType, std::string const& type) const override
 		{
 

@@ -180,6 +180,7 @@ namespace Darius::Scene
 		INLINE bool							IsStarted() const { return mStarted; }
 		INLINE bool							IsAwake() const { return mAwake; }
 		INLINE GameObject*					GetParent() const { return mParent; }
+		bool								CanAttachTo(GameObject const* go) const;
 
 #ifdef _D_EDITOR
 		bool								DrawDetails(float params[]);
