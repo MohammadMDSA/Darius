@@ -101,6 +101,20 @@ namespace Darius::Editor::Gui::Windows
 
 			D_GUI_MANAGER::DrawGammAddMenu(go);
 
+			{
+				auto selectedGo = D_EDITOR_CONTEXT::GetSelectedGameObject();
+				bool valid = selectedGo && selectedGo->IsValid() && selectedGo->CanAttachTo(go);
+				if(!valid)
+					ImGui::BeginDisabled();
+				if(ImGui::MenuItem(ICON_FA_ARROW_TURN_UP "  Set Parent"))
+				{
+					selectedGo->SetParent(go, GameObject::AttachmentType::KeepWorld);
+					abort = true;
+				}
+				if(!valid)
+					ImGui::EndDisabled();
+			}
+
 			if (ImGui::MenuItem(ICON_FA_TRASH "  Delete"))
 			{
 				if (D_SIMULATE::IsSimulating())
@@ -173,7 +187,7 @@ namespace Darius::Editor::Gui::Windows
 
 				if (auto goPayload = dynamic_cast<D_SCENE::GameObjectDragDropPayloadContent const*>(payload))
 				{
-					if (goPayload->IsHeirarchyCompatible(go) && goPayload->GameObjectRef->IsValid() && ImGui::AcceptDragDropPayload(D_PAYLOAD_TYPE_GAMEOBJECT))
+					if (goPayload->GameObjectRef->CanAttachTo(go) && goPayload->GameObjectRef->IsValid() && ImGui::AcceptDragDropPayload(D_PAYLOAD_TYPE_GAMEOBJECT))
 					{
 
 						goPayload->GameObjectRef->SetParent(go, GameObject::AttachmentType::KeepWorld);

@@ -23,6 +23,7 @@
 #include <Physics/Resources/PhysicsMaterialResource.hpp>
 #include <Physics/Components/BoxColliderComponent.hpp>
 #include <Physics/Components/SphereColliderComponent.hpp>
+#include <Physics/Components/MeshColliderComponent.hpp>
 #include <Graphics/GraphicsUtils/Profiling/Profiling.hpp>
 #include <Renderer/Rasterization/Renderer.hpp>
 #include <Renderer/Resources/MaterialResource.hpp>
@@ -398,6 +399,7 @@ if (validContext) \
 			if(!validContext)
 				ImGui::EndDisabled();
 
+
 			if(ImGui::BeginMenu(ICON_FA_LIGHTBULB "  Light"))
 			{
 				if(ImGui::MenuItem(ICON_FA_SUN "  Directional Light"))
@@ -672,6 +674,62 @@ if (validContext) \
 								mesh->SetMaterial(i, material);
 							}
 						});
+				}
+
+				if(ImGui::MenuItem("Add mesh collider"))
+				{
+					auto selected = D_EDITOR_CONTEXT::GetSelectedGameObject();
+
+					if(selected)
+					{
+						selected->VisitChildren([](auto go)
+							{
+								D_ECS::CompRef<D_RENDERER::MeshRendererComponent> mesh = go->GetComponent<D_RENDERER::MeshRendererComponent>();
+								if(!mesh.IsValid() || !mesh->GetMesh())
+									return;
+
+								D_PHYSICS::MeshColliderComponent* meshCollider = go->AddComponent<D_PHYSICS::MeshColliderComponent>();
+								meshCollider->SetReferenceMesh(mesh->GetMesh());
+								meshCollider->SetConvex(false);
+							});
+					}
+				}
+
+				if(ImGui::MenuItem("Add convex mesh collider"))
+				{
+					auto selected = D_EDITOR_CONTEXT::GetSelectedGameObject();
+
+					if(selected)
+					{
+						selected->VisitChildren([](auto go)
+							{
+								D_ECS::CompRef<D_RENDERER::MeshRendererComponent> mesh = go->GetComponent<D_RENDERER::MeshRendererComponent>();
+								if(!mesh.IsValid() || !mesh->GetMesh())
+									return;
+
+								D_PHYSICS::MeshColliderComponent* meshCollider = go->AddComponent<D_PHYSICS::MeshColliderComponent>();
+								meshCollider->SetReferenceMesh(mesh->GetMesh());
+								meshCollider->SetConvex(true);
+							});
+					}
+				}
+
+				if(ImGui::MenuItem("Add box collider"))
+				{
+					auto selected = D_EDITOR_CONTEXT::GetSelectedGameObject();
+
+					if(selected)
+					{
+						selected->VisitChildren([](auto go)
+							{
+								D_ECS::CompRef<D_RENDERER::MeshRendererComponent> mesh = go->GetComponent<D_RENDERER::MeshRendererComponent>();
+								if(!mesh.IsValid() || !mesh->GetMesh())
+									return;
+
+								D_PHYSICS::BoxColliderComponent* box = go->AddComponent<D_PHYSICS::BoxColliderComponent>();
+								box->OnPostComponentAddInEditor();
+							});
+					}
 				}
 
 				ImGui::EndMenu();
