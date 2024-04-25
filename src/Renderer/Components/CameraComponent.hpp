@@ -28,23 +28,23 @@ namespace Darius::Renderer
 		virtual void					OnDestroy() override;
 
 		// Virtual properties
-		INLINE float const&				GetFoV() const { return mCamera.GetFoV(); }
-		INLINE float const&				GetNearClip() const { return mCamera.GetNearClip(); }
-		INLINE float const&				GetFarClip() const { return mCamera.GetFarClip(); }
-		INLINE float const&				GetOrthographicSize() const { return mCamera.GetOrthographicSize(); }
-		INLINE float const&				GetAspectRatio() const { return mCamera.GetAspectRatio(); }
-		INLINE bool	const&				IsInfiniteZ() const { return mCamera.IsInfiniteZ(); }
-		INLINE bool const&				IsOrthographic() const { return mCamera.IsOrthographic(); }
+		INLINE float					GetFoV() const { return mCamera.GetFoV(); }
+		INLINE float					GetNearClip() const { return mCamera.GetNearClip(); }
+		INLINE float					GetFarClip() const { return mCamera.GetFarClip(); }
+		INLINE float					GetOrthographicSize() const { return mCamera.GetOrthographicSize(); }
+		INLINE float					GetAspectRatio() const { return mCamera.GetAspectRatio(); }
+		INLINE bool						IsInfiniteZ() const { return mCamera.IsInfiniteZ(); }
+		INLINE bool						IsOrthographic() const { return mCamera.IsOrthographic(); }
 
-		INLINE void						SetFoV(float const& val) { mCamera.SetFoV(val); }
-		INLINE void						SetNearClip(float const& val) { mCamera.SetZRange(val, mCamera.GetFarClip()); }
-		INLINE void						SetFarClip(float const& val) { mCamera.SetZRange(mCamera.GetNearClip(), val); }
-		INLINE void						SetOrthographicSize(float const& val) { mCamera.SetOrthographicSize(val); }
+		INLINE void						SetFoV(float val) { mCamera.SetFoV(val); }
+		INLINE void						SetNearClip(float val) { mCamera.SetZRange(val, mCamera.GetFarClip()); }
+		INLINE void						SetFarClip(float val) { mCamera.SetZRange(mCamera.GetNearClip(), val); }
+		INLINE void						SetOrthographicSize(float val) { mCamera.SetOrthographicSize(val); }
 
 		// For internal use. DO NOT CALL!
-		INLINE void						SetAspectRatio(float const& val) { mCamera.SetAspectRatio(val); }
-		INLINE void						SetInfiniteZ(bool const& val) { mCamera.SetInfiniteZ(val); }
-		INLINE void						SetOrthographic(bool const& val) { mCamera.SetOrthographic(val); }
+		INLINE void						SetAspectRatio(float val) { mCamera.SetAspectRatio(val); }
+		INLINE void						SetInfiniteZ(bool val) { mCamera.SetInfiniteZ(val); }
+		INLINE void						SetOrthographic(bool val) { mCamera.SetOrthographic(val); }
 
 	private:
 		DField(Get[const, &, inline])

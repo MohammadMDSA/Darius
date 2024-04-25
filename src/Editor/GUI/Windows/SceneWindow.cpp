@@ -375,7 +375,7 @@ namespace Darius::Editor::Gui::Windows
 			}
 
 		}
-		
+
 		// Picker
 		if(!ImGuizmo::IsOver() && !D_KEYBOARD::GetKey(D_KEYBOARD::Keys::LeftAlt) && mHovered && D_MOUSE::GetButtonDown(D_MOUSE::Keys::Left))
 		{
@@ -531,6 +531,15 @@ namespace Darius::Editor::Gui::Windows
 						}
 					}
 
+					// Camera speed
+					{
+						float value = mFlyingCam.GetMoveSpeed();
+						if(ImGui::DragFloat("Camera Speed", &value, 0.1f, 0.001f, 128.f, "%.3f", ImGuiSliderFlags_Logarithmic))
+						{
+							mFlyingCam.SetMoveSpeed(value);
+						}
+					}
+
 					ImGui::EndPopup();
 				}
 			}
@@ -594,6 +603,15 @@ namespace Darius::Editor::Gui::Windows
 		}
 		else if(D_MOUSE::GetButton(D_MOUSE::Keys::Right) && mHovered)
 		{
+			// Change camera speed with wheel
+			{
+				auto wheel = D_MOUSE::GetWheel();
+				float currentSpeed = mFlyingCam.GetMoveSpeed();
+				currentSpeed += wheel / 10.f; // +5%
+				mFlyingCam.SetMoveSpeed(D_MATH::Max(currentSpeed, 0.f));
+			}
+
+
 			mFlyingCam.Update(dt);
 			mOrbitCam.SetTargetLocationDirty();
 			mMovingCam = true;
@@ -806,7 +824,7 @@ namespace Darius::Editor::Gui::Windows
 	bool SceneWindow::SelectPickedGameObject()
 	{
 		auto& context = GraphicsContext::Begin(L"Picker Readback Fill");
-		
+
 		auto rowPitch = context.ReadbackTexture(mPickerReadback, mPickerColor);
 		context.Finish(true);
 

@@ -50,6 +50,8 @@ namespace Darius::Editor
 
         void SlowMovement(bool enable) { mFineMovement = enable; }
         void SlowRotation(bool enable) { mFineRotation = enable; }
+        INLINE float GetMoveSpeed() const { return mMoveSpeed; }
+        INLINE void SetMoveSpeed(float speed) { mMoveSpeed = speed; }
 
         void EnableMomentum(bool enable) { mMomentum = enable; }
 
