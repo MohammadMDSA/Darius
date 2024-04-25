@@ -78,7 +78,7 @@ PRIVATE
 	${Boost_INCLUDE_DIRS}
 )
 
-target_link_libraries("Core" PUBLIC Utils rttr_core PRIVATE ${Boost_LIBRARIES} DirectXTK12)
+target_link_libraries("Core" PUBLIC Utils rttr_core foonathan_string_id PRIVATE ${Boost_LIBRARIES} DirectXTK12)
 
 # Adding Nlohmann Json
 target_include_directories("Core" PUBLIC "${SOURCE_DIR}/Libs/nlohmann_json/single_include")

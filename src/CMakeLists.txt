@@ -102,6 +102,9 @@ PUBLIC
 ####### 3rd Party Libs #######
 ##############################
 
+# Adding String Id
+add_subdirectory("${SOURCE_DIR}/Libs/StringId")
+
 # Adding Flecs
 set(FLECS_STATIC FALSE)
 add_subdirectory("${SOURCE_DIR}/Libs/flecs")
