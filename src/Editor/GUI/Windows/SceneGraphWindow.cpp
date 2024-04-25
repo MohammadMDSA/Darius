@@ -91,7 +91,7 @@ namespace Darius::Editor::Gui::Windows
 		if (selected)
 			baseFlag |= ImGuiTreeNodeFlags_Selected;
 
-		auto objName = (go->GetPrefab().is_nil() ? ICON_FA_OBJECT_UNGROUP : ICON_FA_BOX) + (" " + go->GetName());
+		auto objName = (go->GetPrefab().is_nil() ? ICON_FA_OBJECT_UNGROUP : ICON_FA_BOX) + std::string(std::string(" ") + std::string(go->GetName()));
 		auto nodeOpen = ImGui::TreeNodeEx((void*)(go), baseFlag, objName.c_str());
 
 		if (ImGui::BeginPopupContextItem())
@@ -172,7 +172,7 @@ namespace Darius::Editor::Gui::Windows
 			D_SCENE::GameObjectDragDropPayloadContent payload;
 			payload.GameObjectRef = go;
 			ImGui::SetDragDropPayload(D_PAYLOAD_TYPE_GAMEOBJECT, &payload, sizeof(D_SCENE::GameObjectDragDropPayloadContent), ImGuiCond_Once);
-			ImGui::Text((go->GetName() + " (Game Object)").c_str());
+			ImGui::Text((std::string(go->GetName()) + std::string(" (Game Object)")).c_str());
 			ImGui::EndDragDropSource();
 		}
 

@@ -2,6 +2,7 @@
 
 #include "EntityComponentSystem/Entity.hpp"
 
+#include <Core/StringId.hpp>
 #include <Core/Containers/Map.hpp>
 #include <Core/RefCounting/Ref.hpp>
 #include <Core/Uuid.hpp>
@@ -47,7 +48,7 @@ namespace Darius::Scene
 {
 	class SceneManager;
 
-	class DClass(Serialize) GameObject sealed : public Detailed, public D_CORE::Counted, public D_SERIALIZATION::ICopyable
+	class DClass(Serialize[Name]) GameObject sealed : public Detailed, public D_CORE::Counted, public D_SERIALIZATION::ICopyable
 	{
 
 	public:
@@ -172,7 +173,8 @@ namespace Darius::Scene
 		INLINE D_ECS::Entity				GetEntity() const { return mEntity; }
 		INLINE bool							IsInScene() const { return mInScene; }
 
-		INLINE std::string const&			GetName() const { return mName; }
+		INLINE D_CORE::StringId const&		GetNameId() const { return mName; }
+		INLINE std::string					GetName() const { return mName.string(); }
 		INLINE D_CORE::Uuid const&			GetPrefab() const { return mPrefab; }
 		INLINE Type							GetType() const { return mType; }
 		INLINE D_CORE::Uuid const&			GetUuid() const { return mUuid; }
@@ -181,6 +183,11 @@ namespace Darius::Scene
 		INLINE bool							IsAwake() const { return mAwake; }
 		INLINE GameObject*					GetParent() const { return mParent; }
 		bool								CanAttachTo(GameObject const* go) const;
+		
+		INLINE void							SetNameId(D_CORE::StringId const& name) { mName = name; }
+		// Call SetNameId instead
+		INLINE void							SetName(std::string str) { SetNameId(D_CORE::StringId(str.c_str(), NameDatabase)); }
+		INLINE void							SetType(Type type) { mType = type; }
 
 #ifdef _D_EDITOR
 		bool								DrawDetails(float params[]);
@@ -206,6 +213,8 @@ namespace Darius::Scene
 		D_CORE::Signal<void(GameObject*, Darius::Scene::ECS::Components::ComponentBase*)> OnComponentRemove;
 		D_CORE::Signal<void(GameObject*, Darius::Scene::ECS::Components::ComponentBase*)> OnComponentAdd;
 		D_CORE::Signal<void(GameObject*)> OnComponentSetChange;
+		
+		static D_CORE::StringIdDatabase NameDatabase;
 
 	protected:
 		virtual bool Release() override;
@@ -248,11 +257,10 @@ namespace Darius::Scene
 		DField(Serialize)
 		const D_CORE::Uuid		mUuid;
 
-		DField(Set[inline], Serialize)
+		DField(Serialize)
 		Type					mType;
 
-		DField(Set[inline], Serialize)
-		std::string				mName;
+		D_CORE::StringId		mName;
 
 		DField(Serialize)
 		D_CORE::Uuid			mPrefab;
@@ -272,7 +280,6 @@ namespace Darius::Scene
 #endif
 		static D_CONTAINERS::DSet<D_ECS::EntityId> RegisteredBehaviours;
 		static D_CONTAINERS::DSet<std::string> RegisteredComponentNames;
-
 	};
 
 	D_H_SERIALIZE_ENUM(GameObject::Type, {

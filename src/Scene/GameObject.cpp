@@ -31,11 +31,12 @@ namespace Darius::Scene
 	D_CONTAINERS::DMap<std::string, GameObject::ComponentAddressNode> GameObject::RegisteredComponents = D_CONTAINERS::DMap<std::string, GameObject::ComponentAddressNode>();
 	D_CONTAINERS::DSet<D_ECS::EntityId> GameObject::RegisteredBehaviours = D_CONTAINERS::DSet<D_ECS::EntityId>();
 	D_CONTAINERS::DSet<std::string> GameObject::RegisteredComponentNames = D_CONTAINERS::DSet<std::string>();
+	D_CORE::StringIdDatabase GameObject::NameDatabase;
 
 	GameObject::GameObject(D_CORE::Uuid const& uuid, D_ECS::Entity entity, bool inScene) :
 		mActive(true),
 		mType(Type::Movable),
-		mName("GameObject"),
+		mName("GameObject", NameDatabase),
 		mUuid(uuid),
 		mEntity(entity),
 		mStarted(false),
@@ -78,11 +79,10 @@ namespace Darius::Scene
 		// Setting GameObject name
 		{
 			char name[1000];
-			size_t curNameSize = mName.size();
 			memset(name, 0, 1000 * sizeof(char));
-			memcpy(name, mName.c_str(), sizeof(char) * curNameSize);
+			std::strcpy(name, mName.string());
 			if (ImGui::InputText("##ObjectName", name, 30))
-				mName = std::string(name);
+				mName = StringId(name, NameDatabase);
 		}
 
 		bool active = mActive;
@@ -109,7 +109,7 @@ namespace Darius::Scene
 			ImGui::Text("Prefab:");
 			ImGui::SameLine(0, 50.f);
 			auto prefabGo = D_WORLD::GetGameObject(mPrefab);
-			ImGui::Button(prefabGo->GetName().c_str());
+			ImGui::Button(prefabGo->GetNameId().string());
 
 			ImGui::Spacing();
 		}
