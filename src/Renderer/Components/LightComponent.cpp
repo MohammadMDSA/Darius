@@ -67,7 +67,11 @@ namespace Darius::Renderer
 		{
 			D_H_DETAILS_DRAW_PROPERTY("Color");
 			D_MATH::Color value(mLightData.Color);
-			changed |= D_MATH::DrawDetails(value, false, D_MATH::Color::White);
+			if(D_MATH::DrawDetails(value, false, D_MATH::Color::White))
+			{
+				mLightData.Color = (DirectX::XMFLOAT3)D_MATH::Vector3(value);
+				changed = true;
+			}
 		}
 
 		if (mLightType == LightSourceType::SpotLight)
