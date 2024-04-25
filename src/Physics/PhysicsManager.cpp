@@ -150,7 +150,7 @@ namespace Darius::Physics
 
 		PxSceneDesc sceneDesc(gPhysics->getTolerancesScale());
 		sceneDesc.gravity = PxVec3(0.f, -9.8f, 0.f);
-		gDispatcher = PxDefaultCpuDispatcherCreate(2);
+		gDispatcher = PxDefaultCpuDispatcherCreate(std::thread::hardware_concurrency());
 		sceneDesc.cpuDispatcher = gDispatcher;
 		sceneDesc.filterShader = PxDefaultSimulationFilterShader;
 
