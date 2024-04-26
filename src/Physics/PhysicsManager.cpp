@@ -167,6 +167,7 @@ namespace Darius::Physics
 		gDispatcher = PxDefaultCpuDispatcherCreate(std::thread::hardware_concurrency());
 		sceneDesc.cpuDispatcher = gDispatcher;
 		sceneDesc.filterShader = PxDefaultSimulationFilterShader;
+		sceneDesc.broadPhaseType = PxBroadPhaseType::eLAST;
 		if(gGpuAccelerated && gCudaContextManager)
 		{
 			sceneDesc.flags |= PxSceneFlag::eENABLE_GPU_DYNAMICS;
