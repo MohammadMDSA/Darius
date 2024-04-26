@@ -163,7 +163,7 @@ namespace Darius::Editor::Gui::GuiManager
 			GameObject* selectedObj = D_EDITOR_CONTEXT::GetSelectedGameObject();
 
 			// Copy
-			if((D_KEYBOARD::GetKey(D_KEYBOARD::Keys::LeftControl) || D_KEYBOARD::GetKey(D_KEYBOARD::Keys::RightControl)) && D_KEYBOARD::IsKeyDown(D_KEYBOARD::Keys::C))
+			if((D_INPUT::IsPressed(D_INPUT::DigitalInput::KeyLControl) || D_INPUT::IsPressed(D_INPUT::DigitalInput::KeyRControl)) && D_INPUT::IsFirstPressed(D_INPUT::DigitalInput::KeyC))
 			{
 				if(selectedObj)
 				{
@@ -172,7 +172,7 @@ namespace Darius::Editor::Gui::GuiManager
 			}
 
 			// Paste
-			if((D_KEYBOARD::GetKey(D_KEYBOARD::Keys::LeftControl) || D_KEYBOARD::GetKey(D_KEYBOARD::Keys::RightControl)) && D_KEYBOARD::IsKeyDown(D_KEYBOARD::Keys::V))
+			if((D_INPUT::IsPressed(D_INPUT::DigitalInput::KeyLControl) || D_INPUT::IsPressed(D_INPUT::DigitalInput::KeyRControl)) && D_INPUT::IsFirstPressed(D_INPUT::DigitalInput::KeyV))
 			{
 				if(D_EDITOR_CONTEXT::IsGameObjectInClipboard())
 				{
@@ -189,7 +189,7 @@ namespace Darius::Editor::Gui::GuiManager
 			}
 
 			// Delete
-			if((D_KEYBOARD::IsKeyDown(D_KEYBOARD::Keys::Delete)))
+			if((D_INPUT::IsPressed(D_INPUT::DigitalInput::KeyDelete)))
 			{
 				if(selectedObj)
 				{

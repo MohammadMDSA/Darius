@@ -47,18 +47,18 @@ namespace Demo
 	{
 		
 		Vector3 movement = Vector3::Zero;
-		if(D_KEYBOARD::GetKey(D_KEYBOARD::Keys::W))
+		if(D_INPUT::IsPressed(D_INPUT::DigitalInput::KeyW))
 			movement += Vector3::Forward;
-		if(D_KEYBOARD::GetKey(D_KEYBOARD::Keys::S))
+		if(D_INPUT::IsPressed(D_INPUT::DigitalInput::KeyS))
 			movement += Vector3::Backward;
-		if(D_KEYBOARD::GetKey(D_KEYBOARD::Keys::A))
+		if(D_INPUT::IsPressed(D_INPUT::DigitalInput::KeyA))
 			movement += Vector3::Left;
-		if(D_KEYBOARD::GetKey(D_KEYBOARD::Keys::D))
+		if(D_INPUT::IsPressed(D_INPUT::DigitalInput::KeyD))
 			movement += Vector3::Right;
 
 		movement.Normalize();
 
-		int horizontal = D_MOUSE::GetMovement(D_MOUSE::Axis::Horizontal);
+		float horizontal = D_INPUT::GetAnalogInput(D_INPUT::AnalogInput::MouseX);
 		auto rot = Quaternion(Vector3::Up, D_MATH::Rad2Deg(-horizontal * mMouseSpeed));
 
 		auto trans = GetTransform();
@@ -69,7 +69,7 @@ namespace Demo
 		if(mController.IsValid())
 			mController->Move((newRot * movement) * mSpeed * deltaTime);
 
-		if(D_KEYBOARD::IsKeyDown(D_KEYBOARD::Keys::Space))
+		if(D_INPUT::IsFirstPressed(D_INPUT::DigitalInput::KeySpace))
 			mController->Jump(mJumpSpeed);
 	}
 

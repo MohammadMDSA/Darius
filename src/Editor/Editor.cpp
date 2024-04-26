@@ -60,7 +60,7 @@ namespace Darius::Editor
 		// Setting V-Sync
 		D_TIME::EnableFixedTimeStep(1.0 / 60);
 
-		//mTimer.SetFixedTimeStep(true);
+		mTimer.SetFixedTimeStep(true);
 		mTimer.SetTargetElapsedSeconds(1.f / 60.f);
 		mTimer.Resume();
 	}
@@ -87,7 +87,7 @@ namespace Darius::Editor
 
 		{
 			D_PROFILING::ScopedTimer inputProfiling(L"Update Input");
-			D_INPUT::Update();
+			D_INPUT::Update(elapsedTime);
 		}
 
 		D_EDITOR_CONTEXT::Update(elapsedTime);

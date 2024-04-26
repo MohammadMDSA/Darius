@@ -349,7 +349,7 @@ namespace Darius::Editor::Gui::Windows
 		bool manipulating = false;
 		if(selectedObj)
 		{
-			bool altDown = (D_KEYBOARD::GetKey(D_KEYBOARD::Keys::LeftAlt) || D_KEYBOARD::GetKey(D_KEYBOARD::Keys::RightAlt));
+			bool altDown = (D_INPUT::IsPressed(D_INPUT::DigitalInput::KeyLAlt) || D_INPUT::IsPressed(D_INPUT::DigitalInput::KeyRAlt));
 
 			auto world = selectedObj->GetTransform()->GetWorld();
 			if(ImGuizmo::Manipulate((float*)&view, (float*)&proj, (ImGuizmo::OPERATION)mManipulateOperation, (ImGuizmo::MODE)mManipulateMode, (float*)&world))
@@ -357,7 +357,7 @@ namespace Darius::Editor::Gui::Windows
 				manipulating = true;
 
 				// Drag spawn
-				if(!mDragSpawned && !ImGui::GetIO().WantTextInput && (D_KEYBOARD::GetKey(D_KEYBOARD::Keys::LeftAlt) || D_KEYBOARD::GetKey(D_KEYBOARD::Keys::RightAlt)))
+				if(!mDragSpawned && !ImGui::GetIO().WantTextInput && (D_INPUT::IsPressed(D_INPUT::DigitalInput::KeyLAlt) || D_INPUT::IsPressed(D_INPUT::DigitalInput::KeyRAlt)))
 				{
 					auto dragSpawnedGo = D_WORLD::InstantiateGameObject(selectedObj, true);
 					dragSpawnedGo->SetParent(selectedObj->GetParent(), D_SCENE::GameObject::AttachmentType::KeepWorld);
@@ -377,7 +377,7 @@ namespace Darius::Editor::Gui::Windows
 		}
 
 		// Picker
-		if(!ImGuizmo::IsOver() && !D_KEYBOARD::GetKey(D_KEYBOARD::Keys::LeftAlt) && mHovered && D_MOUSE::GetButtonDown(D_MOUSE::Keys::Left))
+		if(!ImGuizmo::IsOver() && !D_INPUT::IsPressed(D_INPUT::DigitalInput::KeyLAlt) && mHovered && D_INPUT::IsFirstPressed(D_INPUT::DigitalInput::Mouse0))
 		{
 			SelectPickedGameObject();
 		}
@@ -452,7 +452,7 @@ namespace Darius::Editor::Gui::Windows
 					ImGui::PushStyleColor(ImGuiCol_Button, {0.26f, 0.59f, 1.f, 1.f});
 				if(ImGui::Button(ICON_FA_TABLE_CELLS))
 				{
-					mDrawGrid = !mDrawGrid;
+					mDrawGrid = ~mDrawGrid;
 				}
 				if(preDrawGrid)
 					ImGui::PopStyleColor();
@@ -466,7 +466,7 @@ namespace Darius::Editor::Gui::Windows
 					ImGui::PushStyleColor(ImGuiCol_Button, {0.26f, 0.59f, 1.f, 1.f});
 				if(ImGui::Button(ICON_FA_MOUNTAIN_SUN))
 				{
-					mDrawSkybox = !mDrawSkybox;
+					mDrawSkybox = ~mDrawSkybox;
 					if(!mDrawSkybox)
 					{
 						auto invTex = D_RESOURCE::ResourceRef<D_RENDERER::TextureResource>();
@@ -492,7 +492,7 @@ namespace Darius::Editor::Gui::Windows
 						static char const* const unselectedValue = ICON_FA_SQUARE " Wireframe";
 						if(ImGui::Selectable(mForceWireframe ? selectedValue : unselectedValue, false, 0))
 						{
-							mForceWireframe = !mForceWireframe;
+							mForceWireframe = ~mForceWireframe;
 							D_RENDERER::SetForceWireframe(mForceWireframe);
 						}
 
@@ -590,22 +590,22 @@ namespace Darius::Editor::Gui::Windows
 
 		if(mCamera.IsOrthographic())
 		{
-			float orthoZoom = (float)D_MOUSE::GetWheel() * mMouseWheelPerspectiveSensitivity;
+			float orthoZoom = D_INPUT::GetAnalogInput(D_INPUT::AnalogInput::MouseScroll) * mMouseWheelPerspectiveSensitivity;
 			if(orthoZoom != 0.f)
 				mCamera.SetOrthographicSize(mCamera.GetOrthographicSize() + orthoZoom);
 		}
 
-		if(mOrbitCam.IsAdjusting() || (D_KEYBOARD::GetKey(D_KEYBOARD::Keys::LeftAlt) && !mDragSpawned && D_MOUSE::GetButton(D_MOUSE::Keys::Left) && mHovered))
+		if(mOrbitCam.IsAdjusting() || (D_INPUT::IsPressed(D_INPUT::DigitalInput::KeyLAlt) && !mDragSpawned && D_INPUT::IsPressed(D_INPUT::DigitalInput::Mouse0) && mHovered))
 		{
 			mOrbitCam.Update(dt);
 			mFlyingCam.SetOrientationDirty();
 			mMovingCam = true;
 		}
-		else if(D_MOUSE::GetButton(D_MOUSE::Keys::Right) && mHovered)
+		else if(D_INPUT::IsPressed(D_INPUT::DigitalInput::Mouse1) && mHovered)
 		{
 			// Change camera speed with wheel
 			{
-				auto wheel = D_MOUSE::GetWheel();
+				auto wheel = D_INPUT::GetAnalogInput(D_INPUT::AnalogInput::MouseScroll) * 50.f;
 				float currentSpeed = mFlyingCam.GetMoveSpeed();
 				currentSpeed += wheel / 10.f; // +5%
 				mFlyingCam.SetMoveSpeed(D_MATH::Max(currentSpeed, 0.f));
@@ -632,16 +632,16 @@ namespace Darius::Editor::Gui::Windows
 
 		// Focusing on object
 		auto selectedGameObject = D_EDITOR_CONTEXT::GetSelectedGameObject();
-		if(D_KEYBOARD::IsKeyDown(D_KEYBOARD::Keys::F) && selectedGameObject)
+		if(D_INPUT::IsFirstPressed(D_INPUT::DigitalInput::KeyF) && selectedGameObject)
 		{
 			mOrbitCam.SetTarget(selectedGameObject->GetTransform()->GetPosition());
 		}
 
-		if(D_KEYBOARD::IsKeyDown(D_KEYBOARD::Keys::W))
+		if(D_INPUT::IsFirstPressed(D_INPUT::DigitalInput::KeyW))
 			mManipulateOperation = ImGuizmo::OPERATION::TRANSLATE;
-		else if(D_KEYBOARD::IsKeyDown(D_KEYBOARD::Keys::E))
+		else if(D_INPUT::IsFirstPressed(D_INPUT::DigitalInput::KeyE))
 			mManipulateOperation = ImGuizmo::OPERATION::ROTATE;
-		else if(D_KEYBOARD::IsKeyDown(D_KEYBOARD::Keys::R))
+		else if(D_INPUT::IsFirstPressed(D_INPUT::DigitalInput::KeyR))
 			mManipulateOperation = ImGuizmo::OPERATION::SCALE;
 	}
 

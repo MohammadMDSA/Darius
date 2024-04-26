@@ -34,8 +34,8 @@ namespace D_EDITOR
 		mVerticalLookSensitivity = 2.0f;
 		mMoveSpeed = 10.0f;
 		mStrafeSpeed = 10.0f;
-		mMouseSensitivityX = 0.002f;
-		mMouseSensitivityY = 0.002f;
+		mMouseSensitivityX = 1.f;
+		mMouseSensitivityY = 1.f;
 
 		mCurrentPitch = Sin(Dot(camera.GetForwardVec(), mWorldUp));
 
@@ -75,7 +75,7 @@ namespace D_EDITOR
 
 		float timeScale = 1.0f;
 		(timeScale);
-		if (D_KEYBOARD::IsKeyDown(D_KEYBOARD::Keys::LeftShift))
+		if (D_INPUT::IsFirstPressed(D_INPUT::DigitalInput::KeyLshift))
 			mFineMovement = !mFineMovement;
 
 		float speedScale = (mFineMovement ? 0.1f : 1.0f) * timeScale;
@@ -83,16 +83,16 @@ namespace D_EDITOR
 		float yaw = 0.f;
 		float pitch = 0.f;
 		float forward = mMoveSpeed * speedScale * (
-			(D_KEYBOARD::GetKey(D_KEYBOARD::Keys::W) ? deltaTime : 0.0f) +
-			(D_KEYBOARD::GetKey(D_KEYBOARD::Keys::S) ? -deltaTime : 0.0f)
+			(D_INPUT::IsPressed(D_INPUT::DigitalInput::KeyW) ? deltaTime : 0.0f) +
+			(D_INPUT::IsPressed(D_INPUT::DigitalInput::KeyS) ? -deltaTime : 0.0f)
 			);
 		float strafe = mStrafeSpeed * speedScale * (
-			(D_KEYBOARD::GetKey(D_KEYBOARD::Keys::D) ? deltaTime : 0.0f) +
-			(D_KEYBOARD::GetKey(D_KEYBOARD::Keys::A) ? -deltaTime : 0.0f)
+			(D_INPUT::IsPressed(D_INPUT::DigitalInput::KeyD) ? deltaTime : 0.0f) +
+			(D_INPUT::IsPressed(D_INPUT::DigitalInput::KeyA) ? -deltaTime : 0.0f)
 			);
 		float ascent = mStrafeSpeed * speedScale * (
-			(D_KEYBOARD::GetKey(D_KEYBOARD::Keys::E) ? deltaTime : 0.0f) +
-			(D_KEYBOARD::GetKey(D_KEYBOARD::Keys::Q) ? -deltaTime : 0.0f)
+			(D_INPUT::IsPressed(D_INPUT::DigitalInput::KeyE) ? deltaTime : 0.0f) +
+			(D_INPUT::IsPressed(D_INPUT::DigitalInput::KeyQ) ? -deltaTime : 0.0f)
 			);
 
 		if (mMomentum)
@@ -103,8 +103,8 @@ namespace D_EDITOR
 		}
 
 		// don't apply momentum to mouse inputs
-		yaw += (float)D_MOUSE::GetMovement(D_MOUSE::Axis::Horizontal) * mMouseSensitivityX;
-		pitch = (float)D_MOUSE::GetMovement(D_MOUSE::Axis::Vertical) * mMouseSensitivityY;
+		yaw += D_INPUT::GetAnalogInput(D_INPUT::AnalogInput::MouseX) * mMouseSensitivityX;
+		pitch = -D_INPUT::GetAnalogInput(D_INPUT::AnalogInput::MouseY) * mMouseSensitivityY;
 
 		mCurrentPitch -= pitch;
 
@@ -164,9 +164,9 @@ namespace D_EDITOR
 		mJoystickSensitivityX = 2.0f;
 		mJoystickSensitivityY = 2.0f;
 
-		mMouseSensitivityX = 0.002f;
-		mMouseSensitivityY = 0.002f;
-		mMouseSensitivityWheel = 0.001f;
+		mMouseSensitivityX = 1.f;
+		mMouseSensitivityY = 1.f;
+		mMouseSensitivityWheel = 1.f;
 
 		mCurrentCloseness = 0.5f;
 
@@ -212,9 +212,9 @@ namespace D_EDITOR
 		}
 
 		// don't apply momentum to mouse inputs
-		float yaw = (float)D_MOUSE::GetMovement(D_MOUSE::Axis::Horizontal) * mMouseSensitivityX;
-		float pitch = -(float)D_MOUSE::GetMovement(D_MOUSE::Axis::Vertical) * mMouseSensitivityY;
-		float closeness = (float)D_MOUSE::GetWheel() * mMouseSensitivityWheel;
+		float yaw = D_INPUT::GetAnalogInput(D_INPUT::AnalogInput::MouseX) * mMouseSensitivityX;
+		float pitch = -D_INPUT::GetAnalogInput(D_INPUT::AnalogInput::MouseY) * mMouseSensitivityY;
+		float closeness = D_INPUT::GetAnalogInput(D_INPUT::AnalogInput::MouseScroll) * mMouseSensitivityWheel;
 
 		auto rotationAngles = mTargetCamera.GetRotation().Angles();
 
