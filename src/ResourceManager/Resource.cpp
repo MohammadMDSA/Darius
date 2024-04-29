@@ -32,7 +32,7 @@ namespace Darius::ResourceManager
 
 	DUnorderedMap<std::string, ResourceType> Resource::ResourceExtensionMap = {};
 
-	DUnorderedMap<ResourceType, std::function<DVector<ResourceDataInFile>(ResourceType type, Path const&)>> Resource::ConstructValidationMap = {};
+	DUnorderedMap<ResourceType, std::function<SubResourceConstructionData(ResourceType type, Path const&)>> Resource::ConstructValidationMap = {};
 
 	std::string ResourceTypeToString(ResourceType type)
 	{
@@ -82,13 +82,13 @@ namespace Darius::ResourceManager
 		mChangeSignal(this);
 	}
 
-	DVector<ResourceDataInFile> Resource::CanConstructFrom(ResourceType type, Path const& path)
+	SubResourceConstructionData Resource::CanConstructFrom(ResourceType type, Path const& path)
 	{
 		ResourceDataInFile data;
 		auto name = D_FILE::GetFileName(path);
 		data.Name = WSTR2STR(name);
 		data.Type = type;
-		return { data };
+		return SubResourceConstructionData {.SubResources = { data }};
 	}
 
 	bool Resource::Release()

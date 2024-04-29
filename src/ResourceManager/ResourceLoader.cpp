@@ -25,21 +25,21 @@ namespace Darius::ResourceManager
 	{
 		virtual void Execute() override
 		{
-			if (!mPendingToLoad)
+			if(!mPendingToLoad)
 			{
-				if (mCallback)
+				if(mCallback)
 					mCallback(nullptr);
 				return;
 			}
 
-			if (!mPendingToLoad->IsLoaded())
+			if(!mPendingToLoad->IsLoaded())
 				ResourceLoader::LoadResourceSync(mPendingToLoad);
 
-			if (mUpdateGpu && mPendingToLoad->IsDirtyGPU())
-				if (mPendingToLoad->UpdateGPU() == ResourceGpuUpdateResult::Success && mPendingToLoad->GetGpuState() != Resource::GPUDirtyState::Uploading)
+			if(mUpdateGpu && mPendingToLoad->IsDirtyGPU())
+				if(mPendingToLoad->UpdateGPU() == ResourceGpuUpdateResult::Success && mPendingToLoad->GetGpuState() != Resource::GPUDirtyState::Uploading)
 					mPendingToLoad->MakeGpuClean();
 
-			if (mCallback)
+			if(mCallback)
 				mCallback(mPendingToLoad);
 		}
 
@@ -54,7 +54,7 @@ namespace Darius::ResourceManager
 		{
 			auto loaded = ResourceLoader::LoadResourceSync(mPath, mMetaOnly);
 
-			if (mCallback)
+			if(mCallback)
 				mCallback(loaded);
 
 		}
@@ -68,15 +68,34 @@ namespace Darius::ResourceManager
 	DVector<ResourceHandle> ResourceLoader::CreateResourceObject(ResourceFileMeta const& meta, DResourceManager* manager, Path const& directory)
 	{
 		auto result = DVector<ResourceHandle>();
-		for (auto resourceMeta : meta.Resources)
+
+
+		Resource* parentRes = nullptr;
+		if(meta.Parent.Type != 0)
+		{
+			auto const& parent = meta.Parent;
+
+			auto factory = Resource::GetFactoryForResourceType(parent.Type);
+			D_ASSERT(factory);
+
+			auto resouceHandle = manager->CreateResource(parent.Type, parent.Uuid, directory / meta.FileName, STR2WSTR(parent.Name), nullptr, false, true);
+
+			if(resouceHandle.IsValid())
+			{
+				result.push_back(resouceHandle);
+				parentRes = manager->GetRawResource(resouceHandle);
+			}
+		}
+
+		for(auto resourceMeta : meta.Resources)
 		{
 			auto factory = Resource::GetFactoryForResourceType(resourceMeta.Type);
-			if (!factory)
+			if(!factory)
 				continue;
 
-			auto resouceHandle = manager->CreateResource(resourceMeta.Type, resourceMeta.Uuid, directory / meta.FileName, STR2WSTR(resourceMeta.Name), false, true);
+			auto resouceHandle = manager->CreateResource(resourceMeta.Type, resourceMeta.Uuid, directory / meta.FileName, STR2WSTR(resourceMeta.Name), parentRes, false, true);
 
-			if (resouceHandle.Type != 0)
+			if(resouceHandle.Type != 0)
 
 				result.push_back(resouceHandle);
 		}
@@ -93,18 +112,32 @@ namespace Darius::ResourceManager
 
 		DVector<ResourceHandle> results;
 
-		if (!resourceType.has_value())
+		if(!resourceType.has_value())
 			return results;
 
 		auto resourcesToCreateFromProvider = D_RESOURCE::Resource::CanConstructTypeFromPath(resourceType.value(), path);
 
-		for (auto resourceToCreate : resourcesToCreateFromProvider)
+		Resource* parentRes = nullptr;
+		if(resourcesToCreateFromProvider.Parent.Type != 0)
+		{
+			auto& parent = resourcesToCreateFromProvider.Parent;
+
+			parent.Uuid = GenerateUuid();
+			auto handle = manager->CreateResource(parent.Type, parent.Uuid, path, STR2WSTR(parent.Name), nullptr, false, true);
+
+			if(handle.IsValid())
+			{
+				results.push_back(handle);
+				parentRes = manager->GetRawResource(handle);
+			}
+		}
+
+		for(auto resourceToCreate : resourcesToCreateFromProvider.SubResources)
 		{
 			resourceToCreate.Uuid = GenerateUuid();
-			auto handle = manager->CreateResource(resourceToCreate.Type, resourceToCreate.Uuid, path, STR2WSTR(resourceToCreate.Name), false, true);
+			auto handle = manager->CreateResource(resourceToCreate.Type, resourceToCreate.Uuid, path, STR2WSTR(resourceToCreate.Name), parentRes, false, true);
 
 			results.push_back(handle);
-
 		}
 
 		return results;
@@ -118,13 +151,13 @@ namespace Darius::ResourceManager
 
 	bool ResourceLoader::SaveResource(Resource* resource, bool metaOnly = false)
 	{
-		if (resource->GetType() == 0)
+		if(resource->GetType() == 0)
 			throw D_CORE::Exception::Exception("Bad resource type to save");
 
 		/*if (resource->IsLocked())
 			return false;*/
 
-		if (resource->mDefault)
+		if(resource->mDefault)
 		{
 			resource->SetLocked(true);
 			resource->mDirtyDisk = false;
@@ -138,14 +171,14 @@ namespace Darius::ResourceManager
 		resource->SetLocked(true);
 
 		Json resourceProps;
-		if (!metaOnly)
+		if(!metaOnly)
 		{
 			resource->WriteResourceToFile(resourceProps);
 			resource->mDirtyDisk = false;
 		}
 
 		// Meta already exists
-		if (!D_H_ENSURE_FILE(path))
+		if(!D_H_ENSURE_FILE(path))
 		{
 
 			ResourceFileMeta meta = GetResourceFileMetaFromResource(resource);
@@ -156,7 +189,7 @@ namespace Darius::ResourceManager
 			jmeta["Properties"] = resourceProps;
 
 			std::ofstream os(path);
-			if (os)
+			if(os)
 				os << jmeta;
 			os.close();
 		}
@@ -169,7 +202,7 @@ namespace Darius::ResourceManager
 			is.close();
 
 			auto name = resource->GetName();
-			if (name.empty())
+			if(name.empty())
 				name = L"__";;
 			jmeta["Properties"][WSTR2STR(name)] = resourceProps;
 
@@ -183,10 +216,10 @@ namespace Darius::ResourceManager
 		return true;
 	}
 
-	ResourceHandle ResourceLoader::LoadResourceSync(Resource* resource, bool forceLoad)
+	ResourceHandle ResourceLoader::LoadResourceSync(Resource* resource, bool loadParent, bool forceLoad)
 	{
 
-		if (resource->mDefault)
+		if(resource->mDefault)
 		{
 			resource->SetLocked(true);
 			resource->mDirtyDisk = false;
@@ -195,7 +228,7 @@ namespace Darius::ResourceManager
 			return *resource;
 		}
 
-		if (!forceLoad && resource->IsLoaded())
+		if(!forceLoad && resource->IsLoaded())
 		{
 			return *resource;
 		}
@@ -203,9 +236,9 @@ namespace Darius::ResourceManager
 		auto loaded = LoadResourceSync(resource->GetPath(), false, forceLoad, *resource);
 
 		ResourceHandle resourceHandle = *resource;
-		for (auto const& loadedHandle : loaded)
+		for(auto const& loadedHandle : loaded)
 		{
-			if (loadedHandle == resourceHandle)
+			if(loadedHandle == resourceHandle)
 				return resourceHandle;
 		}
 
@@ -215,15 +248,15 @@ namespace Darius::ResourceManager
 
 	void ResourceLoader::LoadResourceAsync(Resource* resource, ResourceLoadedResourceCalllback onLoaded, bool updateGpu)
 	{
-		if (resource == nullptr)
+		if(resource == nullptr)
 		{
 			D_LOG_WARN("Trying to load a null resource");
 			return;
 		}
 
-		if (resource->IsLoaded())
+		if(resource->IsLoaded())
 		{
-			if (onLoaded)
+			if(onLoaded)
 				onLoaded(resource);
 			return;
 		}
@@ -248,7 +281,7 @@ namespace Darius::ResourceManager
 		auto manager = D_RESOURCE::GetManager();
 
 		DVector<ResourceHandle>const* existingResources;
-		if (manager->TryGetHandleFromPath(path, &existingResources))
+		if(manager->TryGetHandleFromPath(path, &existingResources))
 		{
 			foundMeta = true;
 			alreadyExists = true;
@@ -258,7 +291,7 @@ namespace Darius::ResourceManager
 
 		// Meta file exists?
 		D_FILE::Path tosPath = D_FILE::Path(path).wstring() + L".tos";
-		if (!D_H_ENSURE_FILE(tosPath))
+		if(!D_H_ENSURE_FILE(tosPath))
 		{
 			return {};
 		}
@@ -273,7 +306,7 @@ namespace Darius::ResourceManager
 
 		meta = jMeta;
 
-		if (alreadyExists)
+		if(alreadyExists)
 			return *existingResources;
 
 		return CreateResourceObject(meta, manager, path.parent_path());
@@ -281,7 +314,7 @@ namespace Darius::ResourceManager
 
 	DVector<ResourceHandle> ResourceLoader::LoadResourceSync(Path const& path, bool metaOnly, bool forceLoad, ResourceHandle specificHandle, DVector<ResourceHandle> exclude)
 	{
-		if (!D_H_ENSURE_FILE(path))
+		if(!D_H_ENSURE_FILE(path))
 			return { };
 
 		// Read meta
@@ -291,7 +324,7 @@ namespace Darius::ResourceManager
 
 		auto manager = D_RESOURCE::GetManager();
 
-		if (!hasMeta)
+		if(!hasMeta)
 		{
 			// No meta available for resource
 			// Create resource object
@@ -302,35 +335,35 @@ namespace Darius::ResourceManager
 
 		bool specific = specificHandle.IsValid();
 
-		for (auto handle : handles)
+		for(auto handle : handles)
 		{
 			// Resource not supported
-			if (handle.Type == 0 || std::find(exclude.begin(), exclude.end(), handle) != exclude.end())
+			if(handle.Type == 0 || std::find(exclude.begin(), exclude.end(), handle) != exclude.end())
 				continue;
 			/*if (specific && handle != specificHandle)
 				continue;*/
 
-			// Fetch pointer to resource
+				// Fetch pointer to resource
 			auto resource = manager->GetRawResource(handle);
 
 			// Already loaded?
-			if (resource->IsLoaded() && !forceLoad)
+			if(resource->IsLoaded() && !forceLoad)
 				continue;
 
 			resource->SetLocked(true);
 
-			if (!hasMeta)
+			if(!hasMeta)
 				// Save meta to file
 				SaveResource(resource, true);
 
 			bool dirtyDisk = false;
 
 			// Load if not loaded and should load, do it!
-			if (!metaOnly && !resource->IsLoaded())
+			if(!metaOnly && !resource->IsLoaded())
 			{
 				auto resWName = resource->GetName();
 				auto resName = WSTR2STR(resWName);
-				if (resName.empty())
+				if(resName.empty())
 					resName = "__";
 				resource->ReadResourceFromFile(properties.contains(resName) ? properties[resName] : Json(), dirtyDisk);
 				resource->mLoaded = true;
@@ -338,11 +371,11 @@ namespace Darius::ResourceManager
 
 			resource->SetLocked(false);
 
-			if (dirtyDisk)
+			if(dirtyDisk)
 				resource->MakeDiskDirty();
 		}
-		if (specific)
-			return { specificHandle };
+		if(specific)
+			return {specificHandle};
 
 		return handles;
 	}
@@ -363,14 +396,14 @@ namespace Darius::ResourceManager
 		D_FILE::VisitEntriesInDirectory(path, false, [&](Path const& _path, bool isDir)
 			{
 				auto pathName = _path.filename().string();
-				if (pathName.starts_with(".") || pathName.starts_with("_"))
+				if(pathName.starts_with(".") || pathName.starts_with("_"))
 					return;
 
-				if (isDir)
+				if(isDir)
 				{
 
 					CheckDirectoryMeta(_path);
-					if (recursively)
+					if(recursively)
 						VisitSubdirectory(_path, true, progress);
 				}
 				else
@@ -390,7 +423,18 @@ namespace Darius::ResourceManager
 
 		result.FileName = path.filename();
 
-		for (auto resouceHandle : resourceHandleVec)
+		if(resource->mParent)
+		{
+			auto parent = resource->mParent;
+			ResourceDataInFile data;
+			auto name = parent->GetName();
+			data.Name = WSTR2STR(name);
+			data.Type = parent->GetType();
+			data.Uuid = parent->GetUuid();
+			result.Parent = data;
+		}
+
+		for(auto resouceHandle : resourceHandleVec)
 		{
 			auto resource = manager->GetRawResource(resouceHandle);
 
@@ -409,7 +453,7 @@ namespace Darius::ResourceManager
 
 	void ResourceLoader::CheckDirectoryMeta(Path const& path)
 	{
-		if (!D_H_ENSURE_DIR(path))
+		if(!D_H_ENSURE_DIR(path))
 			return;
 
 		auto parent = path.parent_path();
@@ -418,7 +462,7 @@ namespace Darius::ResourceManager
 
 		auto metaPath = parent / metaName;
 
-		if (D_H_ENSURE_FILE(metaPath))
+		if(D_H_ENSURE_FILE(metaPath))
 			return;
 
 		Json metaData;
@@ -426,29 +470,29 @@ namespace Darius::ResourceManager
 		metaData["Folder"] = true;
 
 		std::ofstream os(metaPath);
-		if (os)
+		if(os)
 			os << metaData;
 		os.close();
 	}
 
 	void ResourceLoader::VisitFile(Path const& path, DirectoryVisitProgress* progress)
 	{
-		if (path.extension() == ".tos")
+		if(path.extension() == ".tos")
 			return;
-		if (!D_H_ENSURE_FILE(path))
+		if(!D_H_ENSURE_FILE(path))
 			throw D_EXCEPTION::FileNotFoundException("Resource on location " + path.string() + " not found");
 
-		if (progress)
+		if(progress)
 		{
 			progress->Total++;
 			LoadResourceAsync(path, [progress](auto _)
 				{
 					progress->Done++;
-					if (progress->Done.load() % 100 == 0)
+					if(progress->Done.load() % 100 == 0)
 						D_LOG_INFO(progress->String("Updating resource database {} / {}"));
-					if (progress->IsFinished())
+					if(progress->IsFinished())
 					{
-						if (progress->Done.load() % 100)
+						if(progress->Done.load() % 100)
 							D_LOG_INFO(progress->String("Updating resource database {} / {}"));
 						delete progress;
 					}
@@ -460,6 +504,7 @@ namespace Darius::ResourceManager
 	void to_json(D_SERIALIZATION::Json& j, const ResourceFileMeta& value)
 	{
 		j["Path"] = WSTR2STR(value.FileName);
+		j["Parent"] = value.Parent;
 		j["Resources"] = value.Resources;
 	}
 
@@ -475,6 +520,9 @@ namespace Darius::ResourceManager
 		std::string fname = j["Path"];
 		value.FileName = STR2WSTR(fname);
 		value.Resources = j["Resources"];
+
+		if(j.contains("Parent"))
+			value.Parent = j["Parent"];
 	}
 
 	void from_json(const D_SERIALIZATION::Json& j, ResourceDataInFile& value)

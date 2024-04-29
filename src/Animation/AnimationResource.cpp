@@ -20,9 +20,9 @@ namespace Darius::Animation
 
 	D_CH_RESOURCE_DEF(AnimationResource);
 
-	DVector<ResourceDataInFile> AnimationResource::CanConstructFrom(ResourceType type, Path const& path)
+	D_RESOURCE::SubResourceConstructionData AnimationResource::CanConstructFrom(ResourceType type, Path const& path)
 	{
-		DVector<ResourceDataInFile> result;
+		DVector<ResourceDataInFile> subRes;
 		auto ext = path.extension();
 		if (ext == ".anim")
 		{
@@ -30,7 +30,11 @@ namespace Darius::Animation
 			res.Name = WSTR2STR(D_FILE::GetFileName(path));
 			res.Type = AnimationResource::GetResourceType();
 		}
-		return result;
+		D_RESOURCE::SubResourceConstructionData res
+		{
+			.SubResources = subRes
+		};
+		return res;
 	}
 
 	void AnimationResource::ReadResourceFromFile(D_SERIALIZATION::Json const& json, bool& dirtyDisk)

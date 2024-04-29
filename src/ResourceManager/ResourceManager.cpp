@@ -218,7 +218,7 @@ namespace Darius::ResourceManager
 	}
 #endif
 
-	ResourceHandle DResourceManager::CreateResource(ResourceType type, Uuid const& uuid, std::wstring const& path, std::wstring const& name, bool isDefault, bool fromFile)
+	ResourceHandle DResourceManager::CreateResource(ResourceType type, Uuid const& uuid, std::wstring const& path, std::wstring const& name, Resource* parent, bool isDefault, bool fromFile)
 
 	{
 		if (!fromFile && D_H_ENSURE_FILE(path))
@@ -228,7 +228,7 @@ namespace Darius::ResourceManager
 		if (!factory)
 			return EmptyResourceHandle;
 
-		auto res = factory->Create(uuid, path, name, GetNewId(), isDefault);
+		auto res = factory->Create(uuid, path, name, GetNewId(), parent, isDefault);
 
 		if (isDefault)
 			mDefaultResourcesSet.push_back(res.get());

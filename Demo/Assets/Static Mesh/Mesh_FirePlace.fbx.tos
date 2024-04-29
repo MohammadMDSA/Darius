@@ -1,1 +1,31 @@
-{"Path":"Mesh_FirePlace.fbx","Properties":{"Mesh_FirePlace":null,"__":{"Default":false,"Id":9099,"Inverted":true,"Materials":["694145a8-941d-4d77-9ce8-2f7fd4dc9b51"],"Uuid":"8ac05bfe-8937-48d4-a482-eea0cd86fec0"}},"Resources":[{"Name":"","Type":"Static Mesh","Uuid":"8ac05bfe-8937-48d4-a482-eea0cd86fec0"},{"Name":"Mesh_FirePlace","Type":"FBX Scene","Uuid":"dd4402e6-fd42-4cac-9d55-8d27ae912f82"},{"Name":"Mesh_FirePlace","Type":"FBX Resource","Uuid":"c8f0d08e-403a-4b47-969f-22b73256b8e7"}]}
+{
+  "Path": "Mesh_FirePlace.fbx",
+  "Properties": {
+    "Mesh_FirePlace": null,
+    "__": {
+      "Default": false,
+      "Id": 9099,
+      "Inverted": true,
+      "Materials": [ "694145a8-941d-4d77-9ce8-2f7fd4dc9b51" ],
+      "Uuid": "8ac05bfe-8937-48d4-a482-eea0cd86fec0"
+    }
+  },
+  "Parent":
+  {
+    "Name": "Mesh_FirePlace",
+    "Type": "FBX Resource",
+    "Uuid": "c8f0d08e-403a-4b47-969f-22b73256b8e7"
+  },
+  "Resources": [
+    {
+      "Name": "",
+      "Type": "Static Mesh",
+      "Uuid": "8ac05bfe-8937-48d4-a482-eea0cd86fec0"
+    },
+    {
+      "Name": "Mesh_FirePlace",
+      "Type": "FBX Scene",
+      "Uuid": "dd4402e6-fd42-4cac-9d55-8d27ae912f82"
+    }
+  ]
+}

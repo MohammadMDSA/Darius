@@ -70,8 +70,8 @@ namespace Darius::Renderer
 		INLINE virtual bool							AreDependenciesDirty() const override { return false; }
 
 	protected:
-		TextureResource(D_CORE::Uuid uuid, std::wstring const& path, std::wstring const& name, D_RESOURCE::DResourceId id, bool isDefault = false) :
-			Resource(uuid, path, name, id, isDefault),
+		TextureResource(D_CORE::Uuid uuid, std::wstring const& path, std::wstring const& name, D_RESOURCE::DResourceId id, D_RESOURCE::Resource* parent, bool isDefault = false) :
+			Resource(uuid, path, name, id, parent, isDefault),
 			mSRGB(false),
 			mFilter(TextureFilterType::Trilinear),
 			mAnisotropicLevel(16),

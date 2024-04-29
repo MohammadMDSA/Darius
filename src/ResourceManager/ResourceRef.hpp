@@ -55,8 +55,8 @@ namespace rttr
 		{
 			if (value.is_nil())
 				return D_RESOURCE::ResourceRef<T>(nullptr);
-			auto res = D_RESOURCE::GetRawResourceSync(value, false);
-			D_RESOURCE_LOADER::LoadResourceAsync(res, nullptr, true);
+			auto res = D_RESOURCE::GetRawResourceSync(value, true);
+			//D_RESOURCE_LOADER::LoadResourceAsync(res, nullptr, true);
 			T* ref = dynamic_cast<T*>(res);
 			D_ASSERT(ref);
 			return ref;

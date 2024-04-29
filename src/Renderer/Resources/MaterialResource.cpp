@@ -42,8 +42,8 @@ namespace Darius::Renderer
 {
 	D_CH_RESOURCE_DEF(MaterialResource);
 
-	MaterialResource::MaterialResource(Uuid uuid, std::wstring const& path, std::wstring const& name, DResourceId id, bool isDefault) :
-		Resource(uuid, path, name, id, isDefault),
+	MaterialResource::MaterialResource(Uuid uuid, std::wstring const& path, std::wstring const& name, DResourceId id, D_RESOURCE::Resource* parent, bool isDefault) :
+		Resource(uuid, path, name, id, parent, isDefault),
 		mPsoFlags(RenderItem::HasPosition | RenderItem::HasNormal | RenderItem::HasTangent | RenderItem::HasUV0),
 		mCutout(0),
 		mBaseColorTexture(),

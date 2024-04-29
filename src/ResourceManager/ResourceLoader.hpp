@@ -38,7 +38,7 @@ namespace Darius::ResourceManager
 		static D_CONTAINERS::DVector<ResourceHandle> CreateReourceFromMeta(D_FILE::Path const& path, bool& foundMeta, D_SERIALIZATION::Json& jMeta);
 
 		// Resource Loading Sync
-		static ResourceHandle	LoadResourceSync(Resource* resource, bool forceLoad = false);
+		static ResourceHandle	LoadResourceSync(Resource* resource, bool loadParent = true, bool forceLoad = false);
 		static D_CONTAINERS::DVector<ResourceHandle> LoadResourceSync(D_FILE::Path const& path, bool metaOnly = false, bool forceLoad = false, ResourceHandle specificHandle = EmptyResourceHandle, D_CONTAINERS::DVector<ResourceHandle> exclude = {});
 		
 		// Resource Loading Async

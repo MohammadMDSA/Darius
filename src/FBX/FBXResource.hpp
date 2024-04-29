@@ -27,7 +27,7 @@ namespace Darius::Fbx
 
 		INLINE virtual bool				AreDependenciesDirty() const override { return false; }
 
-		static D_CONTAINERS::DVector<D_RESOURCE::ResourceDataInFile> CanConstructFrom(D_RESOURCE::ResourceType type, D_FILE::Path const& path);
+		static D_RESOURCE::SubResourceConstructionData CanConstructFrom(D_RESOURCE::ResourceType type, D_FILE::Path const& path);
 
 	protected:
 		INLINE virtual bool				UploadToGpu() override { return true; }
@@ -35,8 +35,8 @@ namespace Darius::Fbx
 
 
 	private:
-		FBXResource(D_CORE::Uuid uuid, std::wstring const& path, std::wstring const& name, D_RESOURCE::DResourceId id, bool isDefault = false) :
-			Resource(uuid, path, name, id, isDefault)
+		FBXResource(D_CORE::Uuid uuid, std::wstring const& path, std::wstring const& name, D_RESOURCE::DResourceId id, D_RESOURCE::Resource* parent, bool isDefault = false) :
+			Resource(uuid, path, name, id, parent, isDefault)
 		{}
 
 

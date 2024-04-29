@@ -48,8 +48,8 @@ namespace Darius::Renderer
 
 	protected:
 
-		SkeletalMeshResource(D_CORE::Uuid uuid, std::wstring const& path, std::wstring const& name, D_RESOURCE::DResourceId id, bool isDefault = false) :
-			MeshResource(uuid, path, name, id, isDefault),
+		SkeletalMeshResource(D_CORE::Uuid uuid, std::wstring const& path, std::wstring const& name, D_RESOURCE::DResourceId id, D_RESOURCE::Resource* parent, bool isDefault = false) :
+			MeshResource(uuid, path, name, id, parent, isDefault),
 			mJointCount(0),
 			mSkeletonRoot(nullptr) {}
 

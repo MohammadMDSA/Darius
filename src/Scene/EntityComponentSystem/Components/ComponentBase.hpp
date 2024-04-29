@@ -113,7 +113,7 @@ if (ImGui::BeginDragDropTarget()) \
 	{ \
 		ImGuiPayload const* imPayload = ImGui::GetDragDropPayload(); \
 		auto payload = reinterpret_cast<Darius::Utils::BaseDragDropPayloadContent const*>(imPayload->Data); \
-		if (payload && payload->PayloadType != D_UTILS::BaseDragDropPayloadContent::Type::Invalid && payload->IsCompatible(D_UTILS::BaseDragDropPayloadContent::Type::GameObject, "GameObject")) \
+		if (payload && payload->PayloadType != D_UTILS::BaseDragDropPayloadContent::Type::Invalid && payload->IsCompatible(D_UTILS::BaseDragDropPayloadContent::Type::GameObject, D_PAYLOAD_TYPE_GAMEOBJECT)) \
 		{ \
 			if (ImGuiPayload const* acceptedPayload = ImGui::AcceptDragDropPayload(D_PAYLOAD_TYPE_GAMEOBJECT)) \
 			{ \
@@ -145,6 +145,9 @@ if (ImGui::BeginDragDropTarget()) \
 	\
 	D_H_GAMEOBJECT_DRAG_DROP_DESTINATION(setter); \
 }
+
+#define D_H_GAMEOBJECT_SELECTION_DRAW_SIMPLE(prop) \
+D_H_GAMEOBJECT_SELECTION_DRAW(prop, [&](D_SCENE::GameObject* go) { prop = go; })
 
 #define D_H_COMPONENT_SELECTION_DRAW(compType, prop, setter) \
 { \

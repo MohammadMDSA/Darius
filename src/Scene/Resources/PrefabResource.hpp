@@ -38,7 +38,7 @@ namespace Darius::Scene
 		void							SetPrefabGameObject(D_SCENE::GameObject* go);
 
 	protected:
-		PrefabResource(D_CORE::Uuid uuid, std::wstring const& path, std::wstring const& name, D_RESOURCE::DResourceId id, bool isDefault = false);
+		PrefabResource(D_CORE::Uuid uuid, std::wstring const& path, std::wstring const& name, D_RESOURCE::DResourceId id, D_RESOURCE::Resource* parent, bool isDefault = false);
 
 	private:
 

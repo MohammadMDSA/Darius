@@ -58,7 +58,7 @@ namespace Darius::Renderer
 		void							UpdateBoundsMath();
 	private:
 
-		TerrainResource(D_CORE::Uuid uuid, std::wstring const& path, std::wstring const& name, D_RESOURCE::DResourceId id, bool isDefault = false);
+		TerrainResource(D_CORE::Uuid uuid, std::wstring const& path, std::wstring const& name, D_RESOURCE::DResourceId id, D_RESOURCE::Resource* parent, bool isDefault = false);
 
 		bool							InitRasterization();
 		bool							InitRayTracing();

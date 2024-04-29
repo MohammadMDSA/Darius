@@ -17,8 +17,8 @@ namespace Darius::Physics
 
 	D_CH_RESOURCE_DEF(PhysicsMaterialResource);
 
-	PhysicsMaterialResource::PhysicsMaterialResource(D_CORE::Uuid uuid, std::wstring const& path, std::wstring const& name, D_RESOURCE::DResourceId id, bool isDefault) :
-		Resource(uuid, path, name, id, isDefault)
+	PhysicsMaterialResource::PhysicsMaterialResource(D_CORE::Uuid uuid, std::wstring const& path, std::wstring const& name, D_RESOURCE::DResourceId id, D_RESOURCE::Resource* parent, bool isDefault) :
+		Resource(uuid, path, name, id, parent, isDefault)
 	{
 		auto core = D_PHYSICS::GetCore();
 		mPxData = core->createMaterial(0.5f, 0.5f, 0.5f);

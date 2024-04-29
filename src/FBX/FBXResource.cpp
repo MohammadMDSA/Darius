@@ -16,16 +16,21 @@ namespace Darius::Fbx
 
 	D_CH_RESOURCE_DEF(FBXResource);
 
-	D_CONTAINERS::DVector<D_RESOURCE::ResourceDataInFile> FBXResource::CanConstructFrom(D_RESOURCE::ResourceType type, D_FILE::Path const& path)
+	D_RESOURCE::SubResourceConstructionData FBXResource::CanConstructFrom(D_RESOURCE::ResourceType type, D_FILE::Path const& path)
 	{
-		auto res = GetResourcesDataFromFile(path);
+		auto subs = GetResourcesDataFromFile(path);
 		auto name = WSTR2STR(D_FILE::GetFileName(path));
-		res.push_back(D_RESOURCE::ResourceDataInFile
+		D_RESOURCE::ResourceDataInFile parent = D_RESOURCE::ResourceDataInFile
 			{
 				.Name = name,
 				.Type = FBXResource::GetResourceType()
-			});
-		return res;
+			};
+		D_RESOURCE::SubResourceConstructionData result
+		{
+			.Parent = parent,
+			.SubResources = subs
+		};
+		return result;
 	}
 
 	void FBXResource::ReadResourceFromFile(D_SERIALIZATION::Json const&, bool& dirtyDisk)

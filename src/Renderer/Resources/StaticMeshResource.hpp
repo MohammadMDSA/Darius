@@ -36,8 +36,8 @@ namespace Darius::Renderer
 
 	protected:
 		
-		StaticMeshResource(D_CORE::Uuid uuid, std::wstring const& path, std::wstring const& name, D_RESOURCE::DResourceId id, bool isDefault = false) :
-			MeshResource(uuid, path, name, id, isDefault) {}
+		StaticMeshResource(D_CORE::Uuid uuid, std::wstring const& path, std::wstring const& name, D_RESOURCE::DResourceId id, D_RESOURCE::Resource* parent, bool isDefault = false) :
+			MeshResource(uuid, path, name, id, parent, isDefault) {}
 
 		virtual void							CreateInternal(D_RENDERER_GEOMETRY::MultiPartMeshData<VertexType> const& data) override;
 

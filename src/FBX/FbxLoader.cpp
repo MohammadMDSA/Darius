@@ -1426,7 +1426,7 @@ namespace Darius::Fbx
 	{
 		D_ASSERT(parentResource);
 
-		auto handles = D_RESOURCE_LOADER::LoadResourceSync(path, true, false, D_RESOURCE::EmptyResourceHandle, { parentResource->GetHandle() });
+		auto handles = D_RESOURCE_LOADER::LoadResourceSync(path, false, false, D_RESOURCE::EmptyResourceHandle, { parentResource->GetHandle() });
 
 		FbxNode* rootNode = nullptr;
 

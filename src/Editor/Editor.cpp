@@ -60,7 +60,7 @@ namespace Darius::Editor
 		// Setting V-Sync
 		D_TIME::EnableFixedTimeStep(1.0 / 60);
 
-		mTimer.SetFixedTimeStep(true);
+		mTimer.SetFixedTimeStep(false);
 		mTimer.SetTargetElapsedSeconds(1.f / 60.f);
 		mTimer.Resume();
 	}

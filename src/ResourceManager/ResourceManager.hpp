@@ -154,7 +154,7 @@ namespace Darius::ResourceManager
 		{
 			if (D_H_ENSURE_DIR(path))
 				throw D_EXCEPTION::Exception(("A file with the same name already exists: " + WSTR2STR(path)).c_str());
-			return CreateResource(type, D_CORE::GenerateUuid(), path, name, false, false);
+			return CreateResource(type, D_CORE::GenerateUuid(), path, name, nullptr, false, false);
 		}
 
 		void						UpdateGPUResources();
@@ -179,7 +179,7 @@ namespace Darius::ResourceManager
 		Resource* GetRawResource(ResourceHandle handle);
 		Resource* GetRawResource(D_CORE::Uuid const& uuid);
 
-		ResourceHandle				CreateResource(ResourceType type, D_CORE::Uuid const& uuid, std::wstring const& path, std::wstring const& name, bool isDefault, bool fromFile);
+		ResourceHandle				CreateResource(ResourceType type, D_CORE::Uuid const& uuid, std::wstring const& path, std::wstring const& name, Resource* parent, bool isDefault, bool fromFile);
 
 		template<class T>
 		INLINE ResourceHandle		CreateResource(D_CORE::Uuid const& uuid, std::wstring const& path, std::wstring const& name, bool isDefault, bool fromFile)
@@ -188,7 +188,7 @@ namespace Darius::ResourceManager
 			using conv = std::is_convertible<T*, Resource*>;
 			D_STATIC_ASSERT(conv::value);
 
-			return CreateResource(T::GetResourceType(), uuid, path, name, isDefault, fromFile);
+			return CreateResource(T::GetResourceType(), uuid, path, name, nullptr, isDefault, fromFile);
 		}
 
 		Resource* GetRawResourceSafe(ResourceHandle handle);
