@@ -37,7 +37,18 @@ namespace Demo
 		DField(Serialize)
 		float							mJumpSpeed;
 
+		DField(Serialize)
+		bool							mUseMouseKeyboard;
+
+		DField(Serialize)
+		float							mGamepadLookSens;
+
+		DField(Serialize)
+		D_SCENE::GameObjectRef			mUpperBody;
+
 		D_ECS::CompRef<D_PHYSICS::CharacterControllerComponent> mController;
+
+		float							mLookPitch;
 
 	};
 }
