@@ -78,7 +78,7 @@ namespace Darius::Editor::Gui::Windows
 					ImGui::TableSetColumnIndex(1);
 					ImGui::Text(resNameStr.c_str());
 					ImGui::TableSetColumnIndex(2);
-					ImGui::Text(ResourceTypeToString(resource->GetType()).c_str());
+					ImGui::Text(ResourceTypeToString(resource->GetType()).string());
 					ImGui::TableSetColumnIndex(3);
 					ImGui::Text(ToString(resource->GetUuid()).c_str());
 					ImGui::TableSetColumnIndex(4);

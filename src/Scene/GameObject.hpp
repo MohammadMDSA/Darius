@@ -104,7 +104,7 @@ namespace Darius::Scene
 			return mEntity.has<T>();
 		}
 
-		bool								HasComponent(std::string const& compName) const;
+		bool								HasComponent(D_CORE::StringId const& compName) const;
 
 		template<class T>
 		INLINE T*							GetComponent() const
@@ -115,7 +115,7 @@ namespace Darius::Scene
 			return const_cast<T*>(mEntity.get<T>());
 		}
 
-		ECS::Components::ComponentBase*		GetComponent(std::string const& compName) const;
+		ECS::Components::ComponentBase*		GetComponent(D_CORE::StringId const& compName) const;
 
 		template<class T>
 		T* AddComponent()
@@ -150,7 +150,7 @@ namespace Darius::Scene
 
 		D_CONTAINERS::DVector<Darius::Scene::ECS::Components::ComponentBase*> GetComponents(bool sorted = false) const;
 
-		Darius::Scene::ECS::Components::ComponentBase* AddComponent(std::string const& componentName);
+		Darius::Scene::ECS::Components::ComponentBase* AddComponent(D_CORE::StringId const& componentName);
 
 		template<class T>
 		void								RemoveComponent()
@@ -195,13 +195,13 @@ namespace Darius::Scene
 		void								OnGizmo() const;
 #endif // _EDITOR
 
-		static void							RegisterComponent(std::string name, D_CONTAINERS::DVector<std::string>& displayName);
+		static void							RegisterComponent(D_CORE::StringId const& name, D_CONTAINERS::DVector<std::string>& displayName);
 		static void							RegisterBehaviourComponent(D_ECS::EntityId componentId);
 
 #ifdef _D_EDITOR
 		struct ComponentAddressNode
 		{
-			std::string							ComponentName;
+			D_CORE::StringId					ComponentName;
 			D_CONTAINERS::DMap<std::string, ComponentAddressNode> ChildrenNameMap;
 			bool								IsBranch;
 		};
@@ -279,7 +279,7 @@ namespace Darius::Scene
 		static D_CONTAINERS::DMap<std::string, GameObject::ComponentAddressNode> RegisteredComponents;
 #endif
 		static D_CONTAINERS::DSet<D_ECS::EntityId> RegisteredBehaviours;
-		static D_CONTAINERS::DSet<std::string> RegisteredComponentNames;
+		static D_CONTAINERS::DSet<D_CORE::StringId> RegisteredComponentNames;
 	};
 
 	D_H_SERIALIZE_ENUM(GameObject::Type, {

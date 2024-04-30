@@ -7,6 +7,7 @@
 
 #include <Core/Serialization/Json.hpp>
 #include <Core/Signal.hpp>
+#include <Core/StringId.hpp>
 #include <Core/Uuid.hpp>
 #include <Math/VectorMath.hpp>
 #include <Utils/Assert.hpp>
@@ -30,6 +31,13 @@
 #define D_ECS_COMP Darius::Scene::ECS::Components
 #endif // !D_ECS_COMP
 
+#if _D_EDITOR
+#define _D_H_COMP_DISPLAYNAME_DEC() \
+static std::string DisplayName;
+#else
+#define _D_H_COMP_DISPLAYNAME_DEC()
+#endif
+
 #define D_H_COMP_BODY(type, parent, compName, shouldRegister) D_H_COMP_BODY_RAW(type, parent, compName, shouldRegister, false, false)
 
 #define D_H_COMP_BODY_RAW(T, parent, compName, shouldRegister, isBehaviour, receivesUpdates) \
@@ -39,10 +47,10 @@ T(D_CORE::Uuid const& uuid); \
 using Super = parent; \
 using ThisClass = T; \
 static constexpr INLINE std::string ClassName() { return D_NAMEOF(T); } \
-static INLINE D_ECS::ComponentEntry GetComponentEntryStatic() { return D_WORLD::GetComponentEntity(ClassName()); } \
-virtual INLINE D_ECS::ComponentEntry GetComponentEntry() const override { return D_WORLD::GetComponentEntity(ClassName()); } \
+static INLINE D_ECS::ComponentEntry GetComponentEntryStatic() { return D_WORLD::GetComponentEntity(T::GetComponentNameStatic()); } \
 virtual INLINE std::string GetDisplayName() const override { return T::DisplayName; } \
-virtual INLINE std::string GetComponentName() const override { return D_NAMEOF(T); } \
+virtual INLINE D_CORE::StringId GetComponentName() const override { return T::GetComponentNameStatic(); } \
+static INLINE D_CORE::StringId GetComponentNameStatic() { return CompName; } \
 virtual INLINE rttr::type GetComponentType() const override { return rttr::type::get<T>(); }; \
 INLINE operator D_ECS::CompRef<T>() { return D_ECS::CompRef<T>(GetGameObject()); } \
 static void StaticConstructor() \
@@ -50,14 +58,15 @@ static void StaticConstructor() \
     /* Registering component*/ \
     if(sInit) \
         return; \
-    D_LOG_INFO("Registering " << D_NAMEOF(T) << " child of " << D_NAMEOF(parent)); \
+    D_LOG_INFO("Registering " D_NAMEOF(T) " child of " D_NAMEOF(parent)); \
     parent::StaticConstructor(); \
+	CompName = D_CORE::StringId(D_NAMEOF(T), D_ECS_COMP::NameDatabase); \
     auto comp = D_WORLD::RegisterComponent<T, parent>(); \
     D_CONTAINERS::DVector<std::string> splitted; \
     boost::split(splitted, compName, boost::is_any_of("/")); \
     T::DisplayName = splitted[splitted.size() - 1]; \
     if(shouldRegister) \
-        D_SCENE::GameObject::RegisterComponent(D_NAMEOF(T), splitted); \
+        D_SCENE::GameObject::RegisterComponent(CompName, splitted); \
     if(isBehaviour) \
     { \
         D_SCENE::GameObject::RegisterBehaviourComponent(comp); \
@@ -73,13 +82,26 @@ static void StaticConstructor() \
 static void StaticDistructor() \
 {} \
 private: \
+static D_CORE::StringId CompName; \
 static bool sInit; \
-static std::string DisplayName;
+_D_H_COMP_DISPLAYNAME_DEC()
+
+#if _D_EDITOR
+
+#define _D_H_COMP_DISPLAYNAME_DEF(type) \
+std::string type::DisplayName = "";
+
+#else
+
+#define _D_H_COMP_DISPLAYNAME_DEF(type)
+
+#endif // _D_EDITOR
+
 
 #define D_H_COMP_DEF(type) \
+D_CORE::StringId type::CompName; \
 bool type::sInit = false; \
-std::string type::DisplayName = "";
-//INVOKE_STATIC_CONSTRUCTOR(type);
+_D_H_COMP_DISPLAYNAME_DEF(type)
 
 #define D_H_COMP_DEFAULT_CONSTRUCTOR_DEF_PAR(type, parent) \
 type::type() : \
@@ -96,7 +118,7 @@ if (ImGui::BeginDragDropTarget()) \
 { \
 	ImGuiPayload const* imPayload = ImGui::GetDragDropPayload(); \
 	auto payload = reinterpret_cast<Darius::Utils::BaseDragDropPayloadContent const*>(imPayload->Data); \
-	if (payload && payload->PayloadType != D_UTILS::BaseDragDropPayloadContent::Type::Invalid && payload->IsCompatible(D_UTILS::BaseDragDropPayloadContent::Type::Component, CompType::ClassName())) \
+	if (payload && payload->PayloadType != D_UTILS::BaseDragDropPayloadContent::Type::Invalid && payload->IsCompatible(D_UTILS::BaseDragDropPayloadContent::Type::Component, CompType::GetComponentNameStatic())) \
 	{ \
 		if (ImGuiPayload const* acceptedPayload = ImGui::AcceptDragDropPayload(D_PAYLOAD_TYPE_GAMEOBJECT)) \
 		{ \
@@ -113,7 +135,7 @@ if (ImGui::BeginDragDropTarget()) \
 	{ \
 		ImGuiPayload const* imPayload = ImGui::GetDragDropPayload(); \
 		auto payload = reinterpret_cast<Darius::Utils::BaseDragDropPayloadContent const*>(imPayload->Data); \
-		if (payload && payload->PayloadType != D_UTILS::BaseDragDropPayloadContent::Type::Invalid && payload->IsCompatible(D_UTILS::BaseDragDropPayloadContent::Type::GameObject, D_PAYLOAD_TYPE_GAMEOBJECT)) \
+		if (payload && payload->PayloadType != D_UTILS::BaseDragDropPayloadContent::Type::Invalid && payload->IsCompatible(D_UTILS::BaseDragDropPayloadContent::Type::GameObject, D_CORE::StringId(D_PAYLOAD_TYPE_GAMEOBJECT, D_SCENE::GameObject::NameDatabase))) \
 		{ \
 			if (ImGuiPayload const* acceptedPayload = ImGui::AcceptDragDropPayload(D_PAYLOAD_TYPE_GAMEOBJECT)) \
 			{ \
@@ -191,7 +213,6 @@ namespace Darius::Scene::ECS::Components
 
 namespace Darius::Scene::ECS
 {
-
 	template<typename ...T>
 	class GenericComponentSignal
 	{
@@ -257,6 +278,7 @@ namespace Darius::Scene::ECS
 
 namespace Darius::Scene::ECS::Components
 {
+	extern D_CORE::StringIdDatabase NameDatabase;
 
 	D_H_SIGNAL_COMP_ONE_PARAM(ComponentChangeSignalType, ComponentBase*, thisComponent);
 
@@ -273,10 +295,10 @@ namespace Darius::Scene::ECS::Components
 		virtual INLINE bool         DrawDetails(float[]) { return false; }
 		virtual INLINE void         OnGizmo() const { }
 #endif
-		virtual INLINE std::string  GetComponentName() const { return ""; }
+		virtual INLINE D_CORE::StringId GetComponentName() const { D_ASSERT_NOENTRY(); return D_CORE::StringId("", NameDatabase); }
 		virtual INLINE std::string  GetDisplayName() const { return ""; }
 		virtual INLINE rttr::type   GetComponentType() const { return rttr::type::get<ComponentBase>(); };
-		virtual INLINE ComponentEntry GetComponentEntry() const { return D_WORLD::GetComponentEntity(ClassName()); }
+		INLINE ComponentEntry		GetComponentEntry() const { return D_WORLD::GetComponentEntity(GetComponentName()); }
 
 
 		virtual INLINE void         Start() { }
@@ -308,8 +330,8 @@ namespace Darius::Scene::ECS::Components
 		INLINE bool                 IsEnabled() const { return mEnabled; }
 		INLINE bool                 IsDestroyed() const { return mDestroyed; }
 		INLINE bool                 IsStarted() const { return mStarted; }
-		INLINE GameObject* GetGameObject() const { return mGameObject; }
-		INLINE D_CORE::Uuid const& GetUuid() const { return mUuid; }
+		INLINE GameObject*			GetGameObject() const { return mGameObject; }
+		INLINE D_CORE::Uuid const&	GetUuid() const { return mUuid; }
 
 		virtual INLINE bool         IsDisableable() const { return true; }
 
@@ -348,7 +370,6 @@ namespace Darius::Scene::ECS::Components
 		static D_CORE::Signal<void(D_FILE::Path const&, Darius::ResourceManager::ResourceHandle const&, bool selected)> RequestPathChange;
 #endif // _D_EDITOR
 
-
 	private:
 		friend class Darius::Scene::GameObject;
 		friend class Darius::Scene::SceneManager;
@@ -372,8 +393,10 @@ namespace Darius::Scene::ECS::Components
 		bool						mDirty;
 
 		static bool                 sInit;
+		static D_CORE::StringId		CompName;
+#if _D_EDITOR
 		static std::string          DisplayName;
-
+#endif
 	};
 
 
@@ -394,6 +417,11 @@ namespace Darius::Scene::ECS::Components
 		return false;
 	}
 
+}
+
+INLINE D_CORE::StringId operator ""_Comp(char const* str, std::size_t)
+{
+	return D_CORE::StringId(str, D_ECS_COMP::NameDatabase);
 }
 
 namespace rttr

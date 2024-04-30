@@ -97,7 +97,7 @@ namespace Darius::Editor::Gui::Components
 						auto const& handle = data.ChildResources[idx];
 						auto prev = D_RESOURCE::GetResourcePreview(handle);
 						auto name = WSTR2STR(prev.Name);
-						if (ImGui::Selectable((name + " (" + D_RESOURCE::Resource::GetResourceName(handle.Type) + ")").c_str()))
+						if (ImGui::Selectable((name + " (" + D_RESOURCE::Resource::GetResourceName(handle.Type).string() + ")").c_str()))
 						{
 							selected = true;
 							selectedResource = handle;

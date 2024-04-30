@@ -15,14 +15,16 @@ namespace Darius::ResourceManager
 	D_CORE::Signal<void(D_FILE::Path const&, Darius::ResourceManager::ResourceHandle const&, bool selected)> Resource::RequestPathChange;
 #endif // _D_EDITOR
 
-	DUnorderedMap<ResourceType, std::string> Resource::ResourceTypeMap =
+	D_CORE::StringIdDatabase Resource::NameDatabase;
+
+	DUnorderedMap<ResourceType, D_CORE::StringId> Resource::ResourceTypeMap =
 	{
-		{ 0, "" }
+		{ 0, ""_Res }
 	};
 
-	DUnorderedMap<std::string, ResourceType> Resource::ResourceTypeMapR =
+	DUnorderedMap<D_CORE::StringId, ResourceType> Resource::ResourceTypeMapR =
 	{
-		{ "", 0 }
+		{ ""_Res, 0}
 	};
 
 	DUnorderedMap<ResourceType, Resource::ResourceFactory*> Resource::ResourceFactories =
@@ -34,15 +36,15 @@ namespace Darius::ResourceManager
 
 	DUnorderedMap<ResourceType, std::function<SubResourceConstructionData(ResourceType type, Path const&)>> Resource::ConstructValidationMap = {};
 
-	std::string ResourceTypeToString(ResourceType type)
+	D_CORE::StringId ResourceTypeToString(ResourceType type)
 	{
 		auto name = Resource::GetResourceName(type);
-		if(name == "")
+		if(name == ""_Id)
 			throw D_CORE::Exception::Exception("Resource type not defined");
 		return name;
 	}
 
-	ResourceType StringToResourceType(std::string name)
+	ResourceType StringToResourceType(D_CORE::StringId name)
 	{
 		return Resource::GetResourceTypeFromName(name);
 	}

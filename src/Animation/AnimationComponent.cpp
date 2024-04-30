@@ -177,7 +177,7 @@ if(!optValue.has_value()) \
 	return; \
 if(!prop.set_value(*targetComponent, optValue.value())) \
 { \
-	D_LOG_WARN("Failed to set value for animated property " + prop.get_name().to_string() + " on component " + targetComponent->GetComponentName() + " with type " + D_NAMEOF(type)); \
+	D_LOG_WARN("Failed to set value for animated property " << prop.get_name().to_string() << " on component " << targetComponent->GetComponentName().string() << " with type " D_NAMEOF(type)); \
 }
 
 		if (propTypeId == boolType)
@@ -221,7 +221,7 @@ if(!prop.set_value(*targetComponent, optValue.value())) \
 
 			if (!prop.set_value(*targetComponent, optValue.value()))
 			{
-				D_LOG_WARN("Failed to set value for animated property " + prop.get_name().to_string() + " on component " + targetComponent->GetComponentName() + " with type " + D_NAMEOF(type));
+				D_LOG_WARN("Failed to set value for animated property " << prop.get_name().to_string() << " on component " << targetComponent->GetComponentName().string() << " with type " D_NAMEOF(type));
 			}
 		}
 		else if (propTypeId == vector4Type)
@@ -240,7 +240,7 @@ if(!prop.set_value(*targetComponent, optValue.value())) \
 			
 			if (!prop.set_value(*targetComponent, Quaternion(optValue->GetX(), optValue->GetY(), optValue->GetZ())))
 			{
-				D_LOG_WARN("Failed to set value for animated property " + prop.get_name().to_string() + " on component " + targetComponent->GetComponentName() + " with type " + D_NAMEOF(type));
+				D_LOG_WARN("Failed to set value for animated property " << prop.get_name().to_string() << " on component " << targetComponent->GetComponentName().string() << " with type " D_NAMEOF(type));
 			}
 		}
 		else
@@ -270,7 +270,7 @@ if(!prop.set_value(*targetComponent, optValue.value())) \
 			ComponentBase* targetComponent = GetGameObject()->GetComponent(componentAnimation.ComponentName);
 			if (!targetComponent)
 			{
-				D_LOG_WARN("Component " + componentAnimation.ComponentName + " has animated properties but does not exist on the target gameobject.");
+				D_LOG_WARN("Component " << componentAnimation.ComponentName.string() << " has animated properties but does not exist on the target gameobject.");
 				continue;
 			}
 

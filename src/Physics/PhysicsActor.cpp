@@ -112,14 +112,14 @@ namespace Darius::Physics
 		else
 			D_LOG_WARN(std::format("Dyanmic actor is not compatible with geometry type {}", GetGeometryTypeStr(geomType)));
 
-		mColliders[shape] = refComponent->GetComponentName();
+		mColliders.insert({shape, refComponent->GetComponentName()});
 		mCollidersLookup[name] = shape;
 		shape->acquireReference();
 
 		return shape;
 	}
 
-	physx::PxShape* PhysicsActor::GetShape(std::string const& compName)
+	physx::PxShape* PhysicsActor::GetShape(D_CORE::StringId const& compName)
 	{
 		auto search = mCollidersLookup.find(compName);
 		if (search == mCollidersLookup.end())

@@ -511,7 +511,7 @@ namespace Darius::ResourceManager
 	void to_json(D_SERIALIZATION::Json& j, const ResourceDataInFile& value)
 	{
 		j["Name"] = value.Name;
-		j["Type"] = Resource::GetResourceName(value.Type);
+		j["Type"] = Resource::GetResourceName(value.Type).string();
 		j["Uuid"] = D_CORE::ToString(value.Uuid);
 	}
 
@@ -528,7 +528,7 @@ namespace Darius::ResourceManager
 	void from_json(const D_SERIALIZATION::Json& j, ResourceDataInFile& value)
 	{
 		value.Name = j["Name"];
-		value.Type = Resource::GetResourceTypeFromName(j["Type"].get<std::string>());
+		value.Type = Resource::GetResourceTypeFromName(D_CORE::StringId(j["Type"].get<std::string>().c_str(), Resource::NameDatabase));
 		value.Uuid = D_CORE::FromString(j["Uuid"]);
 	}
 }

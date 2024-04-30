@@ -22,6 +22,7 @@ list(APPEND CORE_LIBS_INCLUDE
 	"Filesystem/FileUtils.hpp"
 	"Filesystem/Path.hpp"
     "Signal.hpp"
+	"StringId.hpp"
 	"Input.hpp"
 	"RefCounting/Counted.hpp"
 	"RefCounting/Ref.hpp"
@@ -40,6 +41,7 @@ list(APPEND CORE_LIBS_SOURCES
 	"Memory/Memory.cpp"
 	"RefCounting/Counted.cpp"
 	"Signal.cpp"
+	"StringId.cpp"
 	"Input.cpp"
 	"Uuid.cpp"
 	)

@@ -23,8 +23,8 @@ namespace Darius::Renderer
 	{
 		GENERATED_BODY();
 
-	public:
 		D_CH_RESOURCE_BODY(SkeletalMeshResource, "Skeletal Mesh", "")
+	public:
 
 
 #ifdef _D_EDITOR

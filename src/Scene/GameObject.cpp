@@ -30,7 +30,7 @@ namespace Darius::Scene
 	// Comp name and display name
 	D_CONTAINERS::DMap<std::string, GameObject::ComponentAddressNode> GameObject::RegisteredComponents = D_CONTAINERS::DMap<std::string, GameObject::ComponentAddressNode>();
 	D_CONTAINERS::DSet<D_ECS::EntityId> GameObject::RegisteredBehaviours = D_CONTAINERS::DSet<D_ECS::EntityId>();
-	D_CONTAINERS::DSet<std::string> GameObject::RegisteredComponentNames = D_CONTAINERS::DSet<std::string>();
+	D_CONTAINERS::DSet<D_CORE::StringId> GameObject::RegisteredComponentNames = D_CONTAINERS::DSet<D_CORE::StringId>();
 	D_CORE::StringIdDatabase GameObject::NameDatabase;
 
 	GameObject::GameObject(D_CORE::Uuid const& uuid, D_ECS::Entity entity, bool inScene) :
@@ -241,7 +241,7 @@ namespace Darius::Scene
 				continue;
 			}
 
-			auto compGeneric = D_WORLD::GetComponentEntity(compGroup.ComponentName.c_str());
+			auto compGeneric = D_WORLD::GetComponentEntity(compGroup.ComponentName);
 			if (!D_WORLD::IsIdValid(compGeneric))
 				continue;
 
@@ -301,7 +301,7 @@ namespace Darius::Scene
 
 		compList.push_back(const_cast<D_MATH::TransformComponent*>(mEntity.get<D_MATH::TransformComponent>()));
 
-		auto transId = D_WORLD::GetTypeId<D_MATH::TransformComponent>();
+		static auto transId = D_WORLD::GetTypeId<D_MATH::TransformComponent>();
 
 		mEntity.each([&](flecs::id compId)
 			{
@@ -332,12 +332,12 @@ namespace Darius::Scene
 		}
 	}
 
-	D_ECS_COMP::ComponentBase* GameObject::AddComponent(std::string const& name)
+	D_ECS_COMP::ComponentBase* GameObject::AddComponent(StringId const& name)
 	{
 		if (!RegisteredComponentNames.contains(name))
 			return nullptr;
 
-		auto compT = D_WORLD::GetComponentEntity(name.c_str());
+		auto compT = D_WORLD::GetComponentEntity(name);
 
 		PreEntityEdit();
 		mEntity.add(compT);
@@ -426,7 +426,7 @@ namespace Darius::Scene
 
 	void GameObject::RemoveComponent(D_ECS_COMP::ComponentBase* comp)
 	{
-		auto compId = D_WORLD::GetComponentEntity(comp->GetComponentName().c_str());
+		auto compId = D_WORLD::GetComponentEntity(comp->GetComponentName());
 
 		// Abort if transform
 		if (D_WORLD::GetTypeId<D_MATH::TransformComponent>() == compId)
@@ -436,22 +436,22 @@ namespace Darius::Scene
 		mEntity.remove(compId);
 	}
 
-	bool GameObject::HasComponent(std::string const& compName) const
+	bool GameObject::HasComponent(StringId const& compName) const
 	{
 		if (!RegisteredComponentNames.contains(compName))
 			return false;
 
-		auto compT = D_WORLD::GetComponentEntity(compName.c_str());
+		auto compT = D_WORLD::GetComponentEntity(compName);
 
 		return mEntity.has(compT);
 	}
 
-	D_ECS_COMP::ComponentBase* GameObject::GetComponent(std::string const& compName) const
+	D_ECS_COMP::ComponentBase* GameObject::GetComponent(StringId const& compName) const
 	{
 		if (!RegisteredComponentNames.contains(compName))
 			return nullptr;
 
-		auto compT = D_WORLD::GetComponentEntity(compName.c_str());
+		auto compT = D_WORLD::GetComponentEntity(compName);
 
 
 		return reinterpret_cast<D_ECS_COMP::ComponentBase*>(const_cast<void*>(mEntity.get(compT)));
@@ -588,9 +588,9 @@ namespace Darius::Scene
 
 	}
 
-	void GameObject::RegisterComponent(std::string name, D_CONTAINERS::DVector<std::string>& displayName)
+	void GameObject::RegisterComponent(StringId const& name, D_CONTAINERS::DVector<std::string>& displayName)
 	{
-		if (!D_WORLD::IsIdValid(D_WORLD::GetComponentEntity(name.c_str())))
+		if (!D_WORLD::IsIdValid(D_WORLD::GetComponentEntity(name)))
 			throw D_EXCEPTION::Exception("Found no component using provided name");
 
 		RegisteredComponentNames.insert(name);
@@ -603,19 +603,22 @@ namespace Darius::Scene
 			// This is the last part of name (what we want to show)
 			if (i == splitted.size() - 1)
 			{
-				auto& node = (*currentLevel)[splitted[i]];
-				node.IsBranch = false;
+				ComponentAddressNode node;
 				node.ComponentName = name;
+				node.IsBranch = false;
+
+				currentLevel->insert({splitted[i], node});
 				break;
 			}
 
 			// Add to a child cat
 			if (!currentLevel->contains(splitted[i]))
 			{
-				auto& node = (*currentLevel)[splitted[i]];
+				ComponentAddressNode node;
 				node.IsBranch = true;
+				currentLevel->insert({splitted[i], node});
 			}
-			currentLevel = &(*currentLevel)[splitted[i]].ChildrenNameMap;
+			currentLevel = &currentLevel->at(splitted[i]).ChildrenNameMap;
 		}
 
 	}

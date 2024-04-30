@@ -16,6 +16,8 @@ namespace Darius::Scene::ECS::Components
 	D_CORE::Signal<void(D_FILE::Path const&, Darius::ResourceManager::ResourceHandle const&, bool select)> ComponentBase::RequestPathChange;
 #endif // _D_EDITOR
 
+	StringIdDatabase NameDatabase;
+
 	ComponentBase::ComponentBase() :
 		mUuid(GenerateUuid()),
 		mStarted(false),

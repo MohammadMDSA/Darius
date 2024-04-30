@@ -4,7 +4,9 @@
 
 #include <Core/Uuid.hpp>
 #include <Core/Signal.hpp>
+#include <Core/StringId.hpp>
 #include <Core/Containers/Vector.hpp>
+#include <Core/Containers/Map.hpp>
 #include <Core/Filesystem/Path.hpp>
 #include <Utils/Assert.hpp>
 
@@ -88,9 +90,20 @@ namespace Darius::Scene
 			return World.is_valid(id);
 		}
 
-		static INLINE D_ECS::ComponentEntry GetComponentEntity(std::string const& compName)
+		static INLINE D_ECS::ComponentEntry GetComponentEntity(D_CORE::StringId const& compName)
 		{
-			return World.component(compName.c_str());
+			auto search = ComponentEntryCache.find(compName);
+
+			// Add to cache if not present
+			if(search == ComponentEntryCache.end())
+			{
+				auto result = World.component(compName.string());
+				ComponentEntryCache[compName] = result;
+
+				return result;
+			}
+
+			return search->second;
 		}
 
 		template<class COMP, class PARENT>
@@ -138,6 +151,7 @@ namespace Darius::Scene
 
 		static D_ECS::Entity	Root;
 		static D_ECS::ECSRegistry World;
+		static D_CONTAINERS::DUnorderedMap<D_CORE::StringId, D_ECS::ComponentEntry> ComponentEntryCache;
 
 		friend class GameObject;
 	};

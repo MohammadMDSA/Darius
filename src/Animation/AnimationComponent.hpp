@@ -85,7 +85,7 @@ namespace Darius::Animation
 
 		D_CORE::Uuid							mMeshId;
 
-		D_CONTAINERS::DUnorderedMap<std::string, rttr::type> mComponentNameTypeIdMap;;
+		D_CONTAINERS::DUnorderedMap<D_CORE::StringId, rttr::type> mComponentNameTypeIdMap;
 	};
 
 }

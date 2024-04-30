@@ -77,7 +77,7 @@ namespace Darius::Fbx
 					ImGui::Text(item.Name.c_str());
 
 					ImGui::TableSetColumnIndex(2);
-					ImGui::Text(D_RESOURCE::ResourceTypeToString(item.Type).c_str());
+					ImGui::Text(D_RESOURCE::ResourceTypeToString(item.Type).string());
 				}
 			}
 

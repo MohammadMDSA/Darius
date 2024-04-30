@@ -39,7 +39,7 @@ namespace Darius::Physics
 
 		physx::PxShape*					AddCollider(ColliderComponent const* refComponent);
 		void							RemoveCollider(ColliderComponent const* refComponent);
-		physx::PxShape*					GetShape(std::string const& compName);
+		physx::PxShape*					GetShape(D_CORE::StringId const& compName);
 		
 		template<typename T>
 		physx::PxShape*					GetShape() { return GetShape(T::ClassName()); }
@@ -66,8 +66,8 @@ namespace Darius::Physics
 		
 		D_SCENE::GameObject const* const mGameObject;
 		PhysicsScene* const				mScene;
-		D_CONTAINERS::DUnorderedMap<physx::PxShape*, std::string> mColliders;
-		D_CONTAINERS::DUnorderedMap<std::string, physx::PxShape*> mCollidersLookup;
+		D_CONTAINERS::DUnorderedMap<physx::PxShape*, D_CORE::StringId> mColliders;
+		D_CONTAINERS::DUnorderedMap<D_CORE::StringId, physx::PxShape*> mCollidersLookup;
 	};
 
 }

@@ -38,7 +38,8 @@ namespace Darius::Scene
 
 	DVector<std::function<void(float, D_ECS::ECSRegistry&)>>			BehaviourUpdaterFunctions;
 	DVector<std::function<void(float, D_ECS::ECSRegistry&)>>			BehaviourLateUpdaterFunctions;
-	DUnorderedMap<D_ECS::ComponentEntry, rttr::type, std::hash<flecs::id_t>>					ComponentEntityReflectionTypeMapping;
+	DUnorderedMap<D_ECS::ComponentEntry, rttr::type, std::hash<flecs::id_t>> ComponentEntityReflectionTypeMapping;
+
 
 	DVector<DVector<GameObject*>>										ToBeDeleted;
 	DVector<GameObject*>												ToBeStarted;
@@ -54,6 +55,7 @@ namespace Darius::Scene
 	// Static Init
 	D_ECS::Entity SceneManager::Root = D_ECS::Entity();
 	D_ECS::ECSRegistry SceneManager::World = D_ECS::ECSRegistry();
+	DUnorderedMap<D_CORE::StringId, D_ECS::ComponentEntry> SceneManager::ComponentEntryCache;
 
 	D_CORE::Signal<void()> SceneManager::OnSceneCleared;
 	D_MEMORY::PagedAllocator<GameObject, true>							GoAllocator;
@@ -323,7 +325,7 @@ namespace Darius::Scene
 					D_SERIALIZATION::Serialize(comp, componentJson);
 					comp->OnSerialized();
 					D_CORE::to_json(componentJson["Uuid"], comp->mUuid);
-					objectComps[comp->GetComponentName()] = componentJson;
+					objectComps[comp->GetComponentName().string()] = componentJson;
 				});
 			sceneJson["ObjectComponent"][ToString(go->GetUuid())] = objectComps;
 		}
@@ -534,7 +536,7 @@ namespace Darius::Scene
 					D_SERIALIZATION::Serialize(comp, componentJson, serializationContext);
 					comp->OnSerialized();
 					D_CORE::UuidToJson(newCompUuid, componentJson["Uuid"]);
-					objectComps[comp->GetComponentName()] = componentJson;
+					objectComps[comp->GetComponentName().string()] = componentJson;
 				});
 			json["ObjectComponent"][ToString(NEW_UUID(go))] = objectComps;
 		}

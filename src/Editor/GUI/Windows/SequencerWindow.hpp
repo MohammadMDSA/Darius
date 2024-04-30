@@ -66,7 +66,7 @@ namespace Darius::Editor::Gui::Windows
         D_CONTAINERS::DVector<ComponentBase*> mReferenceComponents;
         D_CONTAINERS::DVector<std::string> mReferenceComponentNames;
 
-        D_CONTAINERS::DUnorderedMap<std::string, D_GUI_COMPONENT::AnimationSequence> mComponentSequencers;
+        D_CONTAINERS::DUnorderedMap<D_CORE::StringId, D_GUI_COMPONENT::AnimationSequence> mComponentSequencers;
 
         D_CORE::SignalConnection    mComponentChangeSignalConnection;
 

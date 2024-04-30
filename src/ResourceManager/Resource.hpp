@@ -1,5 +1,6 @@
 #pragma once
 
+#include <Core/StringId.hpp>
 #include <Core/Containers/Map.hpp>
 #include <Core/Containers/Set.hpp>
 #include <Core/Containers/Vector.hpp>
@@ -44,13 +45,15 @@ public: \
 public: \
 	friend class Factory; \
 	virtual INLINE rttr::type GetResourceReflectionType() const override { return rttr::type::get<T>(); } \
-	static INLINE D_RESOURCE::ResourceType GetResourceType() { return D_RESOURCE::Resource::GetResourceTypeFromName(ResT); } \
-	INLINE D_RESOURCE::ResourceType GetType() const override { return D_RESOURCE::Resource::GetResourceTypeFromName(ResT); } \
-	virtual INLINE std::string GetResourceTypeName() const override { return ResT; } \
+	static INLINE D_RESOURCE::ResourceType GetResourceType() { return D_RESOURCE::Resource::GetResourceTypeFromName(T::NameId); } \
+	INLINE D_RESOURCE::ResourceType GetType() const override { return D_RESOURCE::Resource::GetResourceTypeFromName(T::NameId); } \
+	virtual INLINE D_CORE::StringId GetResourceTypeName() const override { return T::NameId; } \
+	static INLINE D_CORE::StringId GetResourceTypeNameStatic() { return T::NameId; } \
 	static void Register() \
 	{ \
-		D_ASSERT_M(!D_RESOURCE::Resource::GetResourceTypeFromName(ResT), "Resource " #T " is already registered."); \
-		auto resType = D_RESOURCE::Resource::RegisterResourceTypeName<T, T::T##Factory>(ResT); \
+		T::NameId = D_CORE::StringId(ResT, D_RESOURCE::Resource::NameDatabase); \
+		D_ASSERT_M(!D_RESOURCE::Resource::GetResourceTypeFromName(NameId), "Resource " #T " is already registered."); \
+		auto resType = D_RESOURCE::Resource::RegisterResourceTypeName<T, T::T##Factory>(NameId); \
 		D_RESOURCE::Resource::AddTypeContainer(resType); \
 		RegisterConstructionValidation(resType, CanConstructFrom); \
 		\
@@ -62,9 +65,13 @@ public: \
 		} \
 	} \
 	\
+	private: \
+	static D_CORE::StringId NameId;
+
 // TODO: Better resource allocation
 #define D_CH_RESOURCE_DEF(T) \
-std::shared_ptr<D_RESOURCE::Resource> T::T##Factory::Create(D_CORE::Uuid uuid, std::wstring const& path, std::wstring const& name, D_RESOURCE::DResourceId id, D_RESOURCE::Resource* parent, bool isDefault) const { return std::shared_ptr<D_RESOURCE::Resource>(new T(uuid, path, name, id, parent, isDefault)); }
+D_CORE::StringId T::NameId; \
+std::shared_ptr<D_RESOURCE::Resource> T::T##Factory::Create(D_CORE::Uuid uuid, std::wstring const& path, std::wstring const& name, D_RESOURCE::DResourceId id, D_RESOURCE::Resource* parent, bool isDefault) const { return std::shared_ptr<D_RESOURCE::Resource>(new T(uuid, path, name, id, parent, isDefault)); } \
 
 #if _D_EDITOR
 
@@ -74,7 +81,7 @@ std::shared_ptr<D_RESOURCE::Resource> T::T##Factory::Create(D_CORE::Uuid uuid, s
     { \
         ImGuiPayload const* imPayload = ImGui::GetDragDropPayload(); \
         D_UTILS::BaseDragDropPayloadContent const* payload = (D_UTILS::BaseDragDropPayloadContent const*)(imPayload->Data); \
-		if(payload && payload->PayloadType != D_UTILS::BaseDragDropPayloadContent::Type::Invalid && payload->IsCompatible(Darius::Utils::BaseDragDropPayloadContent::Type::Resource, std::to_string(resourceType::GetResourceType()))) \
+		if(payload && payload->PayloadType != D_UTILS::BaseDragDropPayloadContent::Type::Invalid && payload->IsCompatible(Darius::Utils::BaseDragDropPayloadContent::Type::Resource, resourceType::GetResourceTypeNameStatic())) \
 		{ \
 			if (ImGuiPayload const* payload = ImGui::AcceptDragDropPayload(D_PAYLOAD_TYPE_RESOURCE)) \
 			{ \
@@ -215,7 +222,7 @@ namespace Darius::ResourceManager
 		INLINE bool operator== (ResourceHandle const& other) const { return other.Id == Id && other.Type == Type; }
 	};
 
-	constexpr ResourceHandle EmptyResourceHandle = { 0, 0 };
+	constexpr ResourceHandle EmptyResourceHandle = {0, 0};
 
 	struct SubResourceConstructionData
 	{
@@ -236,8 +243,8 @@ namespace Darius::ResourceManager
 	};
 #endif
 
-	std::string ResourceTypeToString(ResourceType type);
-	ResourceType StringToResourceType(std::string type);
+	D_CORE::StringId ResourceTypeToString(ResourceType type);
+	ResourceType StringToResourceType(D_CORE::StringId type);
 
 	enum class ResourceGpuUpdateResult
 	{
@@ -277,14 +284,14 @@ namespace Darius::ResourceManager
 #if _D_EDITOR
 		INLINE ResourcePreview		GetPreview() const
 		{
-			return { mName, mPath, { GetType(), mId } };
+			return {mName, mPath, { GetType(), mId }};
 		}
 #endif
 
 		virtual ResourceType		GetType() const = 0;
 
 		virtual INLINE rttr::type	GetResourceReflectionType() const { return rttr::type::get<Resource>(); }
-		virtual INLINE std::string	GetResourceTypeName() const = 0;
+		virtual INLINE D_CORE::StringId	GetResourceTypeName() const = 0;
 
 		INLINE bool					IsSelfDirtyGPU() const { return mDirtyGPU.load() != GPUDirtyState::Clean; }
 		INLINE bool					IsDirtyGPU() const { return IsSelfDirtyGPU() || AreDependenciesDirty(); }
@@ -298,18 +305,18 @@ namespace Darius::ResourceManager
 		INLINE void					_SetLoaded(bool loaded) { mLoaded.store(loaded); }
 
 		INLINE operator ResourceHandle() const { return GetHandle(); }
-		INLINE ResourceHandle		GetHandle() const { return { GetType(), mId }; }
+		INLINE ResourceHandle		GetHandle() const { return {GetType(), mId}; }
 #if _D_EDITOR
 		INLINE operator ResourcePreview() const { return GetPreview(); }
 #endif
-		INLINE D_FILE::Path const&	GetPath() const { return mPath; }
+		INLINE D_FILE::Path const& GetPath() const { return mPath; }
 		INLINE virtual bool			IsLoaded() const { return mLoaded.load(); }
 		INLINE unsigned int			GetVersion() const { return mVersion; }
 		INLINE bool					IsDirtyDisk() const { return mDirtyDisk; }
 		INLINE DResourceId			GetId() const { return mId; }
-		INLINE D_CORE::Uuid const&	GetUuid() const { return mUuid; }
+		INLINE D_CORE::Uuid const& GetUuid() const { return mUuid; }
 		INLINE bool					IsDefault() const { return mDefault; }
-		INLINE std::wstring const&	GetName() const { return mName; }
+		INLINE std::wstring const& GetName() const { return mName; }
 
 		INLINE void					SetName(std::wstring const& name) { mName = name; }
 
@@ -363,17 +370,17 @@ namespace Darius::ResourceManager
 #endif // _D_EDITOR
 
 #pragma region Registeration
-		static INLINE ResourceType	GetResourceTypeFromName(std::string name) { return ResourceTypeMapR.contains(name) ? ResourceTypeMapR[name] : 0; }
-		static INLINE std::string	GetResourceName(ResourceType type) { return ResourceTypeMap[type]; }
+		static INLINE ResourceType	GetResourceTypeFromName(D_CORE::StringId name) { return ResourceTypeMapR.contains(name) ? ResourceTypeMapR[name] : 0; }
+		static INLINE D_CORE::StringId	GetResourceName(ResourceType type) { return ResourceTypeMap.at(type); }
 		static INLINE ResourceFactory* GetFactoryForResourceType(ResourceType type) { return ResourceFactories.contains(type) ? ResourceFactories[type] : nullptr; }
 		static INLINE void			RegisterResourceExtension(std::string ext, ResourceType type) { D_ASSERT_M(!ResourceExtensionMap.contains(ext), "Only one resource type per extension is allowed"); ResourceExtensionMap[ext] = type; }
-		static INLINE std::optional<ResourceType>	GetResourceTypeByExtension(std::string ext) { auto find = ResourceExtensionMap.find(ext); if (find == ResourceExtensionMap.end()) return std::nullopt; return find->second; }
+		static INLINE std::optional<ResourceType>	GetResourceTypeByExtension(std::string ext) { auto find = ResourceExtensionMap.find(ext); if(find == ResourceExtensionMap.end()) return std::nullopt; return find->second; }
 		static INLINE void			RegisterConstructionValidation(ResourceType type, std::function<SubResourceConstructionData(ResourceType, D_FILE::Path const&)> func) { ConstructValidationMap[type] = func; }
 		static INLINE SubResourceConstructionData	CanConstructTypeFromPath(ResourceType type, D_FILE::Path const& path) { return ConstructValidationMap.contains(type) ? ConstructValidationMap[type](type, path) : SubResourceConstructionData(); }
 #pragma endregion
 
 		template<class R, class FAC>
-		static ResourceType			RegisterResourceTypeName(std::string name)
+		static ResourceType			RegisterResourceTypeName(D_CORE::StringId const& name)
 		{
 			// Checking if T is a resource type
 			using conv = std::is_convertible<R*, Resource*>;
@@ -383,17 +390,19 @@ namespace Darius::ResourceManager
 
 			// TODO: Better allocation
 			ResourceType type = (ResourceType)(ResourceTypeMap.size() + 1);
-			ResourceTypeMap[type] = name;
+			ResourceTypeMap.insert({type, name});
 			ResourceTypeMapR[name] = type;
-			ResourceFactories.insert({ type, new FAC });
+			ResourceFactories.insert({type, new FAC});
 
 			return type;
 		}
 
-		INLINE void					MakeDiskDirty() { D_ASSERT_M(!mLocked, "Resource cannot be manipulated while locked."); if (!IsDefault()) mDirtyDisk = true; }
-		INLINE void					MakeGpuDirty() { if (!IsDefault()) mDirtyGPU.store(GPUDirtyState::Dirty); }
+		INLINE void					MakeDiskDirty() { D_ASSERT_M(!mLocked, "Resource cannot be manipulated while locked."); if(!IsDefault()) mDirtyDisk = true; }
+		INLINE void					MakeGpuDirty() { if(!IsDefault()) mDirtyGPU.store(GPUDirtyState::Dirty); }
 		INLINE void					MakeDiskClean() { mDirtyDisk = false; }
 		INLINE void					MakeGpuClean() { mDirtyGPU.store(GPUDirtyState::Clean); }
+
+		static D_CORE::StringIdDatabase NameDatabase;
 
 		friend class DResourceManager;
 		friend class ResourceLoader;
@@ -402,7 +411,7 @@ namespace Darius::ResourceManager
 		friend class D_CORE::Ref;
 
 	protected:
-		Resource(D_CORE::Uuid uuid, std::wstring const& path, std::wstring const& name, DResourceId id, Resource* parent, bool isDefault) :
+		Resource(D_CORE::Uuid uuid, std::wstring const& path, std::wstring const& name, DResourceId id, Resource * parent, bool isDefault) :
 			mLoaded(isDefault),
 			mPath(path),
 			mName(name),
@@ -414,8 +423,7 @@ namespace Darius::ResourceManager
 			mUuid(uuid),
 			mLocked(false),
 			mParent(parent)
-		{
-		}
+		{ }
 
 		// Serialization methods get a json param as an input/output to write variation properties of the resource
 		// in case the main resource file is a third-party format whose resources are being read with extra 
@@ -429,7 +437,7 @@ namespace Darius::ResourceManager
 		virtual bool				UploadToGpu() = 0;
 
 		// Unload and Evict need implementation for every resource
-		virtual void				EvictFromGpu() {}
+		virtual void				EvictFromGpu() { }
 		virtual void				Unload() = 0;
 
 		// Don't trigger change signal inside this. It'll break the whole thing!
@@ -443,8 +451,8 @@ namespace Darius::ResourceManager
 
 		static SubResourceConstructionData CanConstructFrom(ResourceType type, D_FILE::Path const& path);
 
-		static D_CONTAINERS::DUnorderedMap<ResourceType, std::string> ResourceTypeMap;
-		static D_CONTAINERS::DUnorderedMap<std::string, ResourceType> ResourceTypeMapR;
+		static D_CONTAINERS::DUnorderedMap<ResourceType, D_CORE::StringId> ResourceTypeMap;
+		static D_CONTAINERS::DUnorderedMap<D_CORE::StringId, ResourceType> ResourceTypeMapR;
 		static D_CONTAINERS::DUnorderedMap<ResourceType, ResourceFactory*> ResourceFactories;
 		static D_CONTAINERS::DUnorderedMap<std::string, ResourceType> ResourceExtensionMap;
 		static D_CONTAINERS::DUnorderedMap<ResourceType, std::function<SubResourceConstructionData(ResourceType type, D_FILE::Path const&)>> ConstructValidationMap;
@@ -453,12 +461,17 @@ namespace Darius::ResourceManager
 #if _D_EDITOR
 	INLINE bool Resource::IsEditableInDetailsWindow() const
 	{
-		if (IsDefault())
+		if(IsDefault())
 			return false;
 		return true;
 	}
 #endif
 
+}
+
+INLINE D_CORE::StringId operator ""_Res(char const* str, std::size_t)
+{
+	return D_CORE::StringId(str, D_RESOURCE::Resource::NameDatabase);
 }
 
 File_Resource_GENERATED

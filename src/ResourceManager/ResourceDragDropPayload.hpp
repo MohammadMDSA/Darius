@@ -19,9 +19,9 @@ namespace Darius::ResourceManager
 		ResourceDragDropPayloadContent() :
 			BaseDragDropPayloadContent(BaseDragDropPayloadContent::Type::Resource) { }
 
-		virtual inline bool IsCompatible(D_UTILS::BaseDragDropPayloadContent::Type payloadType, std::string const& type) const override
+		virtual inline bool IsCompatible(D_UTILS::BaseDragDropPayloadContent::Type payloadType, D_CORE::StringId const& type) const override
 		{
-			return payloadType == D_UTILS::BaseDragDropPayloadContent::Type::Resource && type == Type;
+			return payloadType == D_UTILS::BaseDragDropPayloadContent::Type::Resource && std::strcmp(type.string(), Type.c_str());
 		}
 
 		std::string Type;

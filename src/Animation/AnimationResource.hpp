@@ -4,7 +4,7 @@
 
 #include <Core/Containers/Map.hpp>
 #include <ResourceManager/ResourceManager.hpp>
-#include <ResourceManager/Resource.hpp>
+#include <Scene/EntityComponentSystem/Components/ComponentBase.hpp>
 
 #include "AnimationResource.generated.hpp"
 
@@ -19,8 +19,9 @@ namespace Darius::Animation
 		GENERATED_BODY();
 
 	public:
+
 		DField(Serialize)
-		std::string									ComponentName;
+		D_CORE::StringId							ComponentName = ""_Comp;
 
 		DField(Serialize)
 		Sequence									AnimationSequence;

@@ -342,8 +342,15 @@ namespace Darius::Physics
 				continue;
 
 			// Finding collider component names which generated the event
-			auto compName1 = actor1->mColliders.at(pair.shapes[0]);
-			auto compName2 = actor2->mColliders.at(pair.shapes[1]);
+			auto compName1Search = actor1->mColliders.find(pair.shapes[0]);
+			if(compName1Search == actor1->mColliders.end())
+				continue;
+			auto compName1 = compName1Search->second;
+
+			auto compName2Search = actor2->mColliders.find(pair.shapes[1]);
+			if(compName2Search == actor2->mColliders.end())
+				continue;
+			auto compName2 = compName2Search->second;
 
 			// Finding the corresponding game objects
 			auto go1 = actor1->mGameObject;

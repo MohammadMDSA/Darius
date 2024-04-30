@@ -1,5 +1,7 @@
 #pragma once
 
+#include <Core/StringId.hpp>
+
 #ifndef D_UTILS
 #define D_UTILS Darius::Utils
 #endif
@@ -24,7 +26,7 @@ namespace Darius::Utils
 		{ }
 
 		Type const PayloadType = Type::Invalid;
-		virtual bool IsCompatible(Type payloadType, std::string const& type) const = 0;
+		virtual bool IsCompatible(Type payloadType, D_CORE::StringId const& type) const = 0;
 	};
 
 #endif

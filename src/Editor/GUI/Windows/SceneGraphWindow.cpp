@@ -196,7 +196,7 @@ namespace Darius::Editor::Gui::Windows
 				}
 
 				// In case it is a prefab resource
-				else if (payload->IsCompatible(D_UTILS::BaseDragDropPayloadContent::Type::Resource, std::to_string(D_SCENE::PrefabResource::GetResourceType())))
+				else if (payload->IsCompatible(D_UTILS::BaseDragDropPayloadContent::Type::Resource, D_SCENE::PrefabResource::GetResourceTypeNameStatic()))
 				{
 					auto payloadData = reinterpret_cast<D_RESOURCE::ResourceDragDropPayloadContent const*>(imPayload->Data);
 
@@ -212,7 +212,7 @@ namespace Darius::Editor::Gui::Windows
 				}
 
 				// In case it is a fbx prefab resource
-				else if (payload->IsCompatible(D_UTILS::BaseDragDropPayloadContent::Type::Resource, std::to_string(D_FBX::FBXPrefabResource::GetResourceType())))
+				else if (payload->IsCompatible(D_UTILS::BaseDragDropPayloadContent::Type::Resource, D_FBX::FBXPrefabResource::GetResourceTypeNameStatic()))
 				{
 					auto payloadData = reinterpret_cast<D_RESOURCE::ResourceDragDropPayloadContent const*>(imPayload->Data);
 
