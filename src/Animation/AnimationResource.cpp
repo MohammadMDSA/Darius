@@ -57,7 +57,7 @@ namespace Darius::Animation
 		mSkeletalAnimationSequence = Sequence();
 	}
 
-	void AnimationResource::CreateSkeletalAnimation(Sequence const& seq, D_CONTAINERS::DUnorderedMap<std::string, int> const& jointNameIndexMap)
+	void AnimationResource::CreateSkeletalAnimation(Sequence const& seq, D_CONTAINERS::DUnorderedMap<D_CORE::StringId, int> const& jointNameIndexMap)
 	{
 		mSkeletalAnimationSequence = seq;
 		mSkeletonNameIndexMap = jointNameIndexMap;

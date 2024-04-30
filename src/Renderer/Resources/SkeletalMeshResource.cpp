@@ -111,7 +111,7 @@ namespace Darius::Renderer
 	void DrawJoint(const Mesh::SkeletonJoint* joint)
 	{
 		ImGuiTreeNodeFlags flag = joint->Children.size() ? 0 : ImGuiTreeNodeFlags_Leaf;
-		if (ImGui::TreeNodeEx(joint->Name.c_str(), flag))
+		if (ImGui::TreeNodeEx(joint->Name.string(), flag))
 		{
 
 			for (auto childNode : joint->Children)

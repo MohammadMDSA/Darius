@@ -44,13 +44,13 @@ namespace Darius::Animation
 
 		INLINE virtual bool				AreDependenciesDirty() const override { return false; }
 
-		void							CreateSkeletalAnimation(Sequence const& seq, D_CONTAINERS::DUnorderedMap<std::string, int> const& jointNameIndexMap);
+		void							CreateSkeletalAnimation(Sequence const& seq, D_CONTAINERS::DUnorderedMap<D_CORE::StringId, int> const& jointNameIndexMap);
 		void							SetFrameRate(float frameRate);
 
 		INLINE Sequence const&			GetSkeletalAnimationSequence() const { return mSkeletalAnimationSequence; }
 		INLINE D_CONTAINERS::DVector<ComponentAnimationData> const& GetComponentAnimationData() const { return mComponentAnimation; }
 		INLINE D_CONTAINERS::DVector<ComponentAnimationData>& GetComponentAnimationData() { return mComponentAnimation; }
-		INLINE D_CONTAINERS::DUnorderedMap<std::string, int> GetSkeletonNameIndexMap() const { return mSkeletonNameIndexMap; }
+		INLINE D_CONTAINERS::DUnorderedMap<D_CORE::StringId, int> GetSkeletonNameIndexMap() const { return mSkeletonNameIndexMap; }
 
 		INLINE bool						IsSkeletalAnimation() const { return mSkeletalAnimation; }
 		NODISCARD float					GetStartTime() const;
@@ -83,7 +83,7 @@ namespace Darius::Animation
 		UINT									mFramesPerSecond;
 
 		DField()
-		D_CONTAINERS::DUnorderedMap<std::string, int> mSkeletonNameIndexMap;
+		D_CONTAINERS::DUnorderedMap<D_CORE::StringId, int> mSkeletonNameIndexMap;
 
 		DField()
 		bool									mSkeletalAnimation;

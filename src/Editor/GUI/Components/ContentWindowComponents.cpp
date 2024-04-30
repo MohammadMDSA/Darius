@@ -92,7 +92,7 @@ namespace Darius::Editor::Gui::Components
 				clipper.Begin((int)data.ChildResources.size());
 				while (clipper.Step())
 				{
-					for (int idx = clipper.DisplayStart; idx < std::min((int)data.ChildResources.size(), clipper.DisplayEnd); idx++)
+					for (int idx = clipper.DisplayStart; idx < clipper.DisplayEnd; idx++)
 					{
 						auto const& handle = data.ChildResources[idx];
 						auto prev = D_RESOURCE::GetResourcePreview(handle);

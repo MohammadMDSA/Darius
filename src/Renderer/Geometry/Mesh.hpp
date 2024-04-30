@@ -3,6 +3,7 @@
 #include "Graphics/GraphicsUtils/Buffers/GpuBuffer.hpp"
 
 #include <Core/Containers/Vector.hpp>
+#include <Core/StringId.hpp>
 #include <Math/Bounds/BoundingSphere.hpp>
 #include <Math/Bounds/BoundingBox.hpp>
 #include <Utils/Common.hpp>
@@ -28,17 +29,21 @@ namespace Darius::Renderer::Geometry
 
 		struct SkeletonJoint
 		{
+			static D_CORE::StringIdDatabase JointNameDatabase;
+
 			D_MATH::Matrix4			Xform = D_MATH::Matrix4::Identity;
 			D_MATH::Vector3			Rotation = D_MATH::Vector3::Zero;
 			D_MATH::Vector3			Scale = D_MATH::Vector3::One;
-			std::string				Name;
 			D_MATH::Matrix4			IBM = D_MATH::Matrix4::Identity;
+			D_CORE::StringId		Name = D_CORE::StringId("", JointNameDatabase);
 
 			D_CONTAINERS::DVector<SkeletonJoint*> Children;
 
 			uint32_t				MatrixIdx : 30;
 			uint32_t				StaleMatrix : 1;
 			uint32_t				SkeletonRoot : 1;
+
+			void SetName(char const* nameStr) { Name = D_CORE::StringId(nameStr, JointNameDatabase); }
 		};
 
 		Mesh() = default;

@@ -1078,7 +1078,7 @@ namespace Darius::Fbx
 		currentSceneGraphNode.Scale = { (float)fbxSclae.mData[0], (float)fbxSclae.mData[1], (float)fbxSclae.mData[2] };
 		currentSceneGraphNode.Rotation = XMFLOAT3((float)fbxRot.mData[0], (float)fbxRot.mData[1], (float)fbxRot.mData[2]);
 
-		currentSceneGraphNode.Name = node->GetInitialName();
+		currentSceneGraphNode.SetName(node->GetInitialName());
 
 		// Compute ibm
 		{
@@ -1231,7 +1231,7 @@ namespace Darius::Fbx
 		return true;
 	}
 
-	bool ReadFbxSkeletalAnimationFromFile(FbxScene* scene, FbxAnimStack* targetAnimStack, D_CONTAINERS::DUnorderedMap<std::string, int>& skeletonNameIndexMap, Sequence& seq, float& frameRate)
+	bool ReadFbxSkeletalAnimationFromFile(FbxScene* scene, FbxAnimStack* targetAnimStack, D_CONTAINERS::DUnorderedMap<D_CORE::StringId, int>& skeletonNameIndexMap, Sequence& seq, float& frameRate)
 	{
 		if (!targetAnimStack)
 		{
@@ -1265,7 +1265,7 @@ namespace Darius::Fbx
 					continue;
 
 				jointVec[index] = skeleton;
-				skeletonNameIndexMap[node->GetName()] = index;
+				skeletonNameIndexMap[D_CORE::StringId(node->GetName(), D_RENDERER_GEOMETRY::Mesh::SkeletonJoint::JointNameDatabase)] = index;
 
 				index++;
 			}
@@ -1287,7 +1287,7 @@ namespace Darius::Fbx
 					{
 						GetPropertyData(&node->LclTranslation, currentLayer, animCurve, curveNode->GetChannelName(channelIdx));
 					}
-
+					 
 					for (auto& kf : animCurve.GetKeyframes())
 						kf.GetValue<Vector4>().SetW(1.f);
 
@@ -1408,7 +1408,7 @@ namespace Darius::Fbx
 		if (!animStack)
 			return false;
 
-		DUnorderedMap<std::string, int> skeletonNameIndexMap;
+		DUnorderedMap<D_CORE::StringId, int> skeletonNameIndexMap;
 		Sequence seq;
 		float frameRate;
 

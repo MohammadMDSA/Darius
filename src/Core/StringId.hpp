@@ -1,4 +1,4 @@
-#include "pch.hpp"
+#pragma once
 
 #include <Libs/StringId/string_id.hpp>
 #include "Libs/StringId/database.hpp"

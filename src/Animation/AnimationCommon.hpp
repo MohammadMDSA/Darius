@@ -2,6 +2,7 @@
 
 #include <Core/Containers/Map.hpp>
 #include <Core/Serialization/Json.hpp>
+#include <Core/StringId.hpp>
 #include <Math/VectorMath.hpp>
 #include <Math/Color.hpp>
 
@@ -18,6 +19,8 @@
 
 namespace Darius::Animation
 {
+    extern D_CORE::StringIdDatabase AnimDataStringDatabase;
+
     struct DStruct(Serialize) Keyframe
     {
 
@@ -726,15 +729,16 @@ namespace Darius::Animation
         Sequence() = default;
         virtual ~Sequence() = default;
         
-        INLINE Track const*                     GetTrack(std::string const& name) const { return mTracksNameIndex.contains(name) ? &mTracks.at(mTracksNameIndex.at(name)) : nullptr; }
+        INLINE Track const*                     GetTrack(D_CORE::StringId const& name) const { return mTracksNameIndex.contains(name) ? &mTracks.at(mTracksNameIndex.at(name)) : nullptr; }
         
         template<typename T>
-        std::optional<T>                        Evaluate(std::string const& name, float time, bool extrapolateLastValue = false) const;
+        std::optional<T>                        Evaluate(D_CORE::StringId const& name, float time, bool extrapolateLastValue = false) const;
 
+        UINT                                    AddTrack(D_CORE::StringId const& name, Track const& track);
         UINT                                    AddTrack(std::string const& name, Track const& track);
-        bool                                    RemoveTrack(std::string const& name);
+        bool                                    RemoveTrack(D_CORE::StringId const& name);
 
-        D_CONTAINERS::DUnorderedMap<std::string, UINT> const& GetNameIndexMapping() const { return mTracksNameIndex; }
+        D_CONTAINERS::DUnorderedMap<D_CORE::StringId, UINT> const& GetNameIndexMapping() const { return mTracksNameIndex; }
 
         D_CONTAINERS::DVector<Track> const&     GetTracks() const { return mTracks; }
 
@@ -745,7 +749,7 @@ namespace Darius::Animation
     protected:
 
         DField(Serialize)
-        D_CONTAINERS::DUnorderedMap<std::string, UINT> mTracksNameIndex;
+        D_CONTAINERS::DUnorderedMap<D_CORE::StringId, UINT> mTracksNameIndex;
 
         DField(Serialize)
         D_CONTAINERS::DVector<Track>            mTracks;
@@ -755,7 +759,7 @@ namespace Darius::Animation
     };
 
     template<typename T>
-    INLINE std::optional<T> Sequence::Evaluate(std::string const& name, float time, bool extrapolateLastValue) const
+    INLINE std::optional<T> Sequence::Evaluate(D_CORE::StringId const& name, float time, bool extrapolateLastValue) const
     {
         Track const* track = GetTrack(name);
         if (!track)

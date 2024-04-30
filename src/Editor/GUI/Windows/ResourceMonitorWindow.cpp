@@ -55,7 +55,7 @@ namespace Darius::Editor::Gui::Windows
 			static int selected;
 			while (clipper.Step())
 			{
-				for (int row = clipper.DisplayStart; row < (int)resources.size() && row < clipper.DisplayEnd; row++)
+				for (int row = clipper.DisplayStart; row < clipper.DisplayEnd; row++)
 				{
 					auto resource = resources[row];
 					auto resourceName = resource->GetName();

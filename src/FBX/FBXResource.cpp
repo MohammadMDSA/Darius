@@ -64,7 +64,7 @@ namespace Darius::Fbx
 
 			while (clipper.Step())
 			{
-				for (int row = clipper.DisplayStart; row < D_MATH::Min(clipper.DisplayEnd, (int)mResourceDataInFile.size()); row++)
+				for (int row = clipper.DisplayStart; row < clipper.DisplayEnd; row++)
 				{
 					auto item = mResourceDataInFile.at(row);
 

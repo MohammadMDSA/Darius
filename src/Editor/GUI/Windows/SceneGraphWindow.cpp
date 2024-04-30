@@ -63,7 +63,7 @@ namespace Darius::Editor::Gui::Windows
 		clipper.Begin((int)children.size());
 		while (clipper.Step())
 		{
-			for (int idx = clipper.DisplayStart; idx < D_MATH::Min((int)children.size(), clipper.DisplayEnd); idx++)
+			for (int idx = clipper.DisplayStart; idx < clipper.DisplayEnd; idx++)
 			{
 
 				if (!abort)

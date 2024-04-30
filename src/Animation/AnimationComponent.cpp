@@ -280,11 +280,11 @@ if(!prop.set_value(*targetComponent, optValue.value())) \
 			for (auto& [propertyName, trackIndex] : componentAnimation.AnimationSequence.GetNameIndexMapping())
 			{
 
-				rttr::property prop = componentTypeResult->second.get_property(propertyName);
+				rttr::property prop = componentTypeResult->second.get_property(propertyName.string());
 
 				if (!prop.is_valid())
 				{
-					D_LOG_WARN("Property " + propertyName + " animated property was not found in component properties.");
+					D_LOG_WARN("Property " + std::string(propertyName.string()) + " animated property was not found in component properties.");
 					continue;
 				}
 

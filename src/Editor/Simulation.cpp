@@ -73,37 +73,39 @@ namespace Darius::Editor::Simulate
 				D_PHYSICS::Update(!Timer->IsPaused());
 			}
 
-			Timer->Tick([]() {});
-			if (!Timer->IsPaused())
-			{
-				auto deltaTime = (float)Timer->GetElapsedSeconds();
+			Timer->Tick([&]()
+				{
+					if(!Timer->IsPaused())
+					{
+						auto deltaTime = (float)Timer->GetElapsedSeconds();
 
-				// World Logic
-				{
-					D_PROFILING::ScopedTimer SceneUpdateProfiling(L"Behaviour Update");
-					D_WORLD::Update(deltaTime);
-				}
-				{
-					D_PROFILING::ScopedTimer SceneUpdateProfiling(L"Behaviour Late Update");
-					D_WORLD::LateUpdate(deltaTime);
-				}
+						// World Logic
+						{
+							D_PROFILING::ScopedTimer SceneUpdateProfiling(L"Behaviour Update");
+							D_WORLD::Update(deltaTime);
+						}
+						{
+							D_PROFILING::ScopedTimer SceneUpdateProfiling(L"Behaviour Late Update");
+							D_WORLD::LateUpdate(deltaTime);
+						}
 
-				{
-					// Updating animations
-					D_PROFILING::ScopedTimer animProf(L"Update Animations");
-					D_ANIMATION::Update(deltaTime);
-				}
+						{
+							// Updating animations
+							D_PROFILING::ScopedTimer animProf(L"Update Animations");
+							D_ANIMATION::Update(deltaTime);
+						}
 
-				if (Stepping)
-				{
-					PauseTime();
-					Stepping = false;
-				}
-			}
+						if(Stepping)
+						{
+							PauseTime();
+							Stepping = false;
+						}
+					}
+				});
 
 		}
 
-		
+
 
 		// Update GPU and upload stuff
 		{
@@ -113,7 +115,7 @@ namespace Darius::Editor::Simulate
 			// Call on gizmo
 			{
 				auto selectedGo = D_EDITOR_CONTEXT::GetSelectedGameObject();
-				if (selectedGo)
+				if(selectedGo)
 					selectedGo->OnGizmo();
 			}
 
@@ -125,7 +127,7 @@ namespace Darius::Editor::Simulate
 
 	void Run()
 	{
-		if (Running)
+		if(Running)
 			return;
 
 		// Saving a dump of scene to be able to reload after simulation stop
@@ -145,7 +147,7 @@ namespace Darius::Editor::Simulate
 
 	void Stop()
 	{
-		if (!Running)
+		if(!Running)
 			return;
 
 		PauseTime();
@@ -166,7 +168,7 @@ namespace Darius::Editor::Simulate
 
 	void Pause()
 	{
-		if (!Running || Paused)
+		if(!Running || Paused)
 			return;
 
 		PauseTime();
@@ -176,7 +178,7 @@ namespace Darius::Editor::Simulate
 
 	void Resume()
 	{
-		if (!Running || !Paused)
+		if(!Running || !Paused)
 			return;
 
 		ResumeTime();
@@ -186,7 +188,7 @@ namespace Darius::Editor::Simulate
 
 	void Step()
 	{
-		if (!Paused || Stepping)
+		if(!Paused || Stepping)
 			return;
 
 		ResumeTime();

@@ -151,7 +151,7 @@ std::shared_ptr<D_RESOURCE::Resource> T::T##Factory::Create(D_CORE::Uuid uuid, s
 		clipper.Begin((int)filteredPreviews.size()); \
 		while(clipper.Step()) \
 		{ \
-			for (int idx = clipper.DisplayStart; idx < D_MATH::Min((int)filteredPreviews.size(), clipper.DisplayEnd); idx++) \
+			for (int idx = clipper.DisplayStart; idx < clipper.DisplayEnd; idx++) \
 			{ \
 				auto const& prev = filteredPreviews[idx]; \
 				bool selected = currentResource && prev.Handle.Id == currentResource->GetId() && prev.Handle.Type == currentResource->GetType(); \

@@ -8,6 +8,8 @@ using namespace D_SERIALIZATION;
 
 namespace Darius::Animation
 {
+	D_CORE::StringIdDatabase AnimDataStringDatabase;
+
 	Track::Track() :
 		mKeyframes(),
 		mMode(InterpolationMode::Linear),
@@ -126,6 +128,11 @@ namespace Darius::Animation
 
 	UINT Sequence::AddTrack(std::string const& name, Track const& track)
 	{
+		return AddTrack(D_CORE::StringId(name.c_str(), AnimDataStringDatabase), track);
+	}
+
+	UINT Sequence::AddTrack(D_CORE::StringId const& name, Track const& track)
+	{
 
 		UINT trackIndex = (UINT)mTracks.size();
 		mTracks.push_back(Track(track));
@@ -134,7 +141,7 @@ namespace Darius::Animation
 		return trackIndex;
 	}
 
-	bool Sequence::RemoveTrack(std::string const& name)
+	bool Sequence::RemoveTrack(D_CORE::StringId const& name)
 	{
 		auto search = mTracksNameIndex.find(name);
 
