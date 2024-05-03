@@ -16,7 +16,8 @@ elseif(CMAKE_GENERATOR_PLATFORM MATCHES "^[Aa][Rr][Mm]64$")
     set(DIRECTX_ARCH arm64)
 endif()
 
-FILE(GLOB SRC_FILES ${GAME_DIR}/${GAME_PROJECT}/*.cpp)
+FILE(GLOB ROOT_SRC_FILES ${GAME_DIR}/${GAME_PROJECT}/*.cpp)
+FILE(GLOB SRC_FILES ${GAME_DIR}/${GAME_PROJECT}/**/*.cpp)
 
 if(${EDITOR_BUILD})
     add_definitions(-D_D_EDITOR)
@@ -26,7 +27,7 @@ endif(${EDITOR_BUILD})
 
 add_executable(${GAME_PROJECT} WIN32
     ${EXEC_SRC}
-    ${ENGINE_DIR}/Editor/Main.cpp
+    ${ROOT_SRC_FILES}
     ${SRC_FILES}
     pch.hpp)
 
