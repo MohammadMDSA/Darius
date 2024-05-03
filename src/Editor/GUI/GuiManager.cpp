@@ -500,6 +500,61 @@ if (validContext) \
 #undef CreateParentedGameObject
 	}
 
+	void AddBoxColliderToAllMeshInstances(D_RENDERER::StaticMeshResource* mesh)
+	{
+		if(!mesh)
+			return;
+
+		D_CONTAINERS::DList<GameObject*> gos;
+
+		D_WORLD::IterateComponents<D_RENDERER::MeshRendererComponent>([=, &gos](D_RENDERER::MeshRendererComponent& comp)
+			{
+				auto go = comp.GetGameObject();
+				if(comp.GetMesh() != mesh)
+					return;
+
+				if(go->HasComponent<D_PHYSICS::BoxColliderComponent>())
+					return;
+
+				gos.push_back(go);
+			});
+
+		for(auto go : gos)
+		{
+			auto boxComp = go->AddComponent<D_PHYSICS::BoxColliderComponent>();
+			boxComp->OnPostComponentAddInEditor();
+		}
+
+	}
+
+	void AddMeshColliderToAllMeshInstances(D_RENDERER::StaticMeshResource* mesh, bool convex)
+	{
+		if(!mesh)
+			return;
+
+		D_CONTAINERS::DList<GameObject*> gos;
+
+		D_WORLD::IterateComponents<D_RENDERER::MeshRendererComponent>([=, &gos](D_RENDERER::MeshRendererComponent& comp)
+			{
+				auto go = comp.GetGameObject();
+				if(comp.GetMesh() != mesh)
+					return;
+
+				if(go->HasComponent<D_PHYSICS::MeshColliderComponent>())
+					return;
+
+				gos.push_back(go);
+			});
+
+		for(auto go : gos)
+		{
+			auto meshComp = go->AddComponent<D_PHYSICS::MeshColliderComponent>();
+			meshComp->SetConvex(convex);
+			meshComp->OnPostComponentAddInEditor();
+		}
+
+	}
+
 	void GoHandler(GameObject* go, GameObject* refParent, D_RENDERER::MaterialResource* defaultMat, bool toRoot)
 	{
 
@@ -732,6 +787,30 @@ if (validContext) \
 					}
 				}
 
+				{
+					auto mesh = dynamic_cast<D_RENDERER::StaticMeshResource*>(D_EDITOR_CONTEXT::GetSelectedDetailed());
+					bool meshColliderSelected = mesh;
+
+					if(!meshColliderSelected)
+						ImGui::BeginDisabled();
+
+					if(ImGui::BeginMenu("Mesh Resource Collider"))
+					{
+						if(ImGui::MenuItem("Box Collider"))
+							AddBoxColliderToAllMeshInstances(mesh);
+
+						if(ImGui::MenuItem("Convex Mesh Collider"))
+							AddMeshColliderToAllMeshInstances(mesh, true);
+
+						if(ImGui::MenuItem("Mesh Collider"))
+							AddMeshColliderToAllMeshInstances(mesh, false);
+
+						ImGui::EndMenu();
+					}
+
+					if(!meshColliderSelected)
+						ImGui::EndDisabled();
+				}
 				ImGui::EndMenu();
 			}
 			if(ImGui::BeginMenu("Window"))
