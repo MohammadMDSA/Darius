@@ -185,8 +185,14 @@ namespace Darius::Physics
 		PreUpdate();
 		UpdateControllers(deltaTime);
 
-		mPxScene->simulate(deltaTime);
-		mPxScene->fetchResults(fetchResults);
+		{
+			D_PROFILING::ScopedTimer _prof(L"Dynamics Simulation");
+			mPxScene->simulate(deltaTime);
+		}
+		{
+			D_PROFILING::ScopedTimer _prof(L"Fetch Contact Results");
+			mPxScene->fetchResults(fetchResults);
+		}
 
 		Update();
 	}
@@ -331,6 +337,8 @@ namespace Darius::Physics
 
 	void PhysicsScene::SimulationCallback::onContact(physx::PxContactPairHeader const& pairHeader, physx::PxContactPair const* pairs, physx::PxU32 nbPairs)
 	{
+		D_PROFILING::ScopedTimer _prof(L"Handle Collision Callbacks");
+
 		for(UINT i = 0u; i < nbPairs; i++)
 		{
 			// Finding physics actors
@@ -416,6 +424,8 @@ namespace Darius::Physics
 
 	void PhysicsScene::SimulationCallback::onTrigger(physx::PxTriggerPair* pairs, physx::PxU32 count)
 	{
+		D_PROFILING::ScopedTimer _prof(L"Handle Triggers Callbacks");
+
 		for(UINT i = 0u; i < count; i++)
 		{
 			// Finding physics actors
@@ -427,7 +437,12 @@ namespace Darius::Physics
 				continue;
 
 			// Finding collider component names which generated the event
-			auto compName1 = actor1->mColliders.at(pair.triggerShape);
+			auto compSearch = actor1->mColliders.find(pair.triggerShape);
+			D_CORE::StringId compName1;
+			if(compSearch != actor1->mColliders.end())
+				compName1 = compSearch->second;
+			else
+				continue;
 
 			// Finding the corresponding game objects
 			auto go1 = actor1->mGameObject;
