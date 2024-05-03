@@ -26,20 +26,20 @@ namespace Darius::Physics
 		mScene(scene),
 		mDynamicDirty(true),
 		mDynamic(gameObject->HasComponent<RigidbodyComponent>())
-	{
-	}
+	{ }
 
 	PhysicsActor::~PhysicsActor()
 	{
 		UninitialzieActor();
 
-		for (auto& [shape, _] : mColliders)
-			shape->release();
+		for(auto& [shape, _] : mColliders)
+			if(shape->getReferenceCount() > 0)
+				shape->release();
 	}
 
 	PhysicsActor* PhysicsActor::GetFromPxActor(physx::PxActor* actor)
 	{
-		if (!ActorMap.contains(actor))
+		if(!ActorMap.contains(actor))
 			return nullptr;
 
 		return ActorMap.at(actor);
@@ -47,12 +47,12 @@ namespace Darius::Physics
 
 	void PhysicsActor::UninitialzieActor()
 	{
-		if (!mPxActor)
+		if(!mPxActor)
 			return;
 
 		ActorMap.erase(mPxActor);
 		mScene->mPxScene->removeActor(*mPxActor);
-		if (mPxActor->isReleasable())
+		if(mPxActor->isReleasable())
 			mPxActor->release();
 
 		mPxActor = nullptr;
@@ -60,7 +60,7 @@ namespace Darius::Physics
 
 	std::string GetGeometryTypeStr(physx::PxGeometryType::Enum type)
 	{
-		switch (type)
+		switch(type)
 		{
 		case physx::PxGeometryType::eSPHERE:
 			return "Shape";
@@ -93,7 +93,7 @@ namespace Darius::Physics
 	{
 		auto name = refComponent->GetComponentName();
 		auto search = mCollidersLookup.find(name);
-		if (search != mCollidersLookup.end())
+		if(search != mCollidersLookup.end())
 			return search->second;
 
 		auto physics = D_PHYSICS::GetCore();
@@ -101,20 +101,20 @@ namespace Darius::Physics
 
 		D_ASSERT(geom);
 
-		physx::PxShape* shape = physics->createShape(*geom, *refComponent->GetMaterial());
+		physx::PxShape* shape = physics->createShape(*geom, *refComponent->GetMaterial(), true);
 
 		if(!shape)
 			return nullptr;
 
 		auto geomType = geom->getType();
-		if (IsGeometryCompatible(geomType))
+		if(IsGeometryCompatible(geomType))
 			D_VERIFY(mPxActor->attachShape(*shape));
 		else
 			D_LOG_WARN(std::format("Dyanmic actor is not compatible with geometry type {}", GetGeometryTypeStr(geomType)));
 
 		mColliders.insert({shape, refComponent->GetComponentName()});
 		mCollidersLookup[name] = shape;
-		shape->acquireReference();
+		shape->release();
 
 		return shape;
 	}
@@ -122,7 +122,7 @@ namespace Darius::Physics
 	physx::PxShape* PhysicsActor::GetShape(D_CORE::StringId const& compName)
 	{
 		auto search = mCollidersLookup.find(compName);
-		if (search == mCollidersLookup.end())
+		if(search == mCollidersLookup.end())
 			return nullptr;
 
 		return search->second;
@@ -133,7 +133,7 @@ namespace Darius::Physics
 		D_ASSERT(refComponent);
 
 		auto compName = refComponent->GetComponentName();
-		if (!mCollidersLookup.contains(compName))
+		if(!mCollidersLookup.contains(compName))
 			return;
 
 		auto shape = GetShape(compName);
@@ -141,9 +141,9 @@ namespace Darius::Physics
 		mCollidersLookup.erase(compName);
 		mColliders.erase(shape);
 
-		if (shape->getActor() == mPxActor)
+		if(shape->getActor() == mPxActor)
 			mPxActor->detachShape(*shape);
-		shape->release();
+
 		D_ASSERT(mColliders.size() == mCollidersLookup.size());
 
 		RemoveActorIfNecessary();
@@ -151,7 +151,7 @@ namespace Darius::Physics
 
 	bool PhysicsActor::RemoveActorIfNecessary()
 	{
-		if (mColliders.size() == 0)
+		if(mColliders.size() == 0)
 		{
 			mScene->RemoveActor(this);
 			mValid = false;
@@ -163,7 +163,7 @@ namespace Darius::Physics
 
 	void PhysicsActor::SetDynamic(bool dynamic)
 	{
-		if (mDynamic == dynamic)
+		if(mDynamic == dynamic)
 			return;
 
 		mDynamic = dynamic;
@@ -178,7 +178,7 @@ namespace Darius::Physics
 
 	bool PhysicsActor::IsGeometryCompatible(physx::PxGeometryType::Enum type)
 	{
-		switch (type)
+		switch(type)
 		{
 		case PxGeometryType::Enum::eSPHERE:
 		case PxGeometryType::Enum::eCAPSULE:
@@ -198,14 +198,20 @@ namespace Darius::Physics
 
 		D_ASSERT((UINT)mPxActor->getNbShapes() == (UINT)mColliders.size());
 
-		for (auto& [shape, _] : mColliders)
+		for(auto& [shape, _] : mColliders)
 		{
+			bool compatible = IsGeometryCompatible(shape->getGeometry().getType());
+
+			if(compatible)
+				shape->acquireReference();
+
 			mPxActor->detachShape(*shape);
 
-			if (!IsGeometryCompatible(shape->getGeometry().getType()))
+			if(!compatible)
 				continue;
 
 			D_ASSERT(actor->attachShape(*shape));
+			shape->release();
 		}
 	}
 
@@ -213,7 +219,7 @@ namespace Darius::Physics
 	{
 		D_ASSERT(mGameObject && mGameObject->IsValid());
 
-		if (mPxActor && !mDynamicDirty)
+		if(mPxActor && !mDynamicDirty)
 			return;
 
 		auto physics = D_PHYSICS::GetCore();
@@ -224,7 +230,7 @@ namespace Darius::Physics
 
 		physx::PxRigidActor* newActor;
 		// Create proper actor if doesn't exist
-		if (mDynamic)
+		if(mDynamic)
 		{
 			newActor = physics->createRigidDynamic(transform);
 		}
@@ -233,7 +239,7 @@ namespace Darius::Physics
 			newActor = physics->createRigidStatic(transform);
 		}
 
-		if (mPxActor)
+		if(mPxActor)
 			TransferShapes(newActor);
 
 		UninitialzieActor();
