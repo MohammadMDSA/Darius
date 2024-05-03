@@ -68,7 +68,6 @@ namespace Darius::Editor
         float mHorizontalLookSensitivity;
         float mVerticalLookSensitivity;
         float mMoveSpeed;
-        float mStrafeSpeed;
         float mMouseSensitivityX;
         float mMouseSensitivityY;
 
