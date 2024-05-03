@@ -156,7 +156,7 @@ namespace Darius::Math
 	Vector2 operator/ (const Vector2& V, float S);
 	Vector2 operator* (float S, const Vector2& V);
 
-	// A 3-vector with an unspecified fourth component.  Depending on the context, the W can be 0 or 1, but both are implicit.
+	// A 3-vector with an unspecified fourth component. Depending on the context, the W can be 0 or 1, but both are implicit.
 	// The actual value of the fourth component is undefined for performance reasons.
 	class DClass() Vector3
 	{
@@ -207,10 +207,10 @@ namespace Darius::Math
 		INLINE Vector3 operator- (Vector3 v2) const { return Vector3(DirectX::XMVectorSubtract(m_vec, v2)); }
 		INLINE Vector3 operator* (Vector3 v2) const { return Vector3(DirectX::XMVectorMultiply(m_vec, v2)); }
 		INLINE Vector3 operator/ (Vector3 v2) const { return Vector3(DirectX::XMVectorDivide(m_vec, v2)); }
-		INLINE Vector3 operator* (Scalar  v2) const { return *this * Vector3(v2); }
-		INLINE Vector3 operator/ (Scalar  v2) const { return *this / Vector3(v2); }
-		INLINE Vector3 operator* (float  v2) const { return *this * Scalar(v2); }
-		INLINE Vector3 operator/ (float  v2) const { return *this / Scalar(v2); }
+		INLINE Vector3 operator* (Scalar v2) const { return *this * Vector3(v2); }
+		INLINE Vector3 operator/ (Scalar v2) const { return *this / Vector3(v2); }
+		INLINE Vector3 operator* (float v2) const { return *this * Scalar(v2); }
+		INLINE Vector3 operator/ (float v2) const { return *this / Scalar(v2); }
 
 		INLINE Vector3& operator += (Vector3 v) { *this = *this + v; return *this; }
 		INLINE Vector3& operator -= (Vector3 v) { *this = *this - v; return *this; }
@@ -226,10 +226,10 @@ namespace Darius::Math
 		INLINE operator DirectX::XMVECTOR const& () { return m_vec; }
 		INLINE operator DirectX::XMFLOAT3& () { return *(DirectX::XMFLOAT3*)&m_vec; }
 
-		INLINE friend Vector3 operator* (Scalar  v1, Vector3 v2) { return Vector3(v1) * v2; }
-		INLINE friend Vector3 operator/ (Scalar  v1, Vector3 v2) { return Vector3(v1) / v2; }
-		INLINE friend Vector3 operator* (float   v1, Vector3 v2) { return Scalar(v1) * v2; }
-		INLINE friend Vector3 operator/ (float   v1, Vector3 v2) { return Scalar(v1) / v2; }
+		INLINE friend Vector3 operator* (Scalar v1, Vector3 v2) { return Vector3(v1) * v2; }
+		INLINE friend Vector3 operator/ (Scalar v1, Vector3 v2) { return Vector3(v1) / v2; }
+		INLINE friend Vector3 operator* (float v1, Vector3 v2) { return Scalar(v1) * v2; }
+		INLINE friend Vector3 operator/ (float v1, Vector3 v2) { return Scalar(v1) / v2; }
 
 		static float Distance(Vector3 const& v1, Vector3 const& v2);
 
@@ -303,18 +303,22 @@ namespace Darius::Math
 		INLINE Vector4 operator- (Vector4 v2) const { return Vector4(DirectX::XMVectorSubtract(m_vec, v2)); }
 		INLINE Vector4 operator* (Vector4 v2) const { return Vector4(DirectX::XMVectorMultiply(m_vec, v2)); }
 		INLINE Vector4 operator/ (Vector4 v2) const { return Vector4(DirectX::XMVectorDivide(m_vec, v2)); }
-		INLINE Vector4 operator* (Scalar  v2) const { return *this * Vector4(v2); }
-		INLINE Vector4 operator/ (Scalar  v2) const { return *this / Vector4(v2); }
-		INLINE Vector4 operator* (float   v2) const { return *this * Scalar(v2); }
-		INLINE Vector4 operator/ (float   v2) const { return *this / Scalar(v2); }
+		INLINE Vector4 operator* (Scalar v2) const { return *this * Vector4(v2); }
+		INLINE Vector4 operator/ (Scalar v2) const { return *this / Vector4(v2); }
+		INLINE Vector4 operator* (float v2) const { return *this * Scalar(v2); }
+		INLINE Vector4 operator/ (float v2) const { return *this / Scalar(v2); }
 
-		INLINE void operator*= (float   v2) { *this = *this * Scalar(v2); }
-		INLINE void operator/= (float   v2) { *this = *this / Scalar(v2); }
+		INLINE Vector4& operator*= (float v2) { *this = *this * Scalar(v2); return *this; }
+		INLINE Vector4& operator/= (float v2) { *this = *this / Scalar(v2); return *this; }
+		INLINE Vector4& operator += (Vector4 v) { *this = *this + v; return *this; }
+		INLINE Vector4& operator -= (Vector4 v) { *this = *this - v; return *this; }
+		INLINE Vector4& operator *= (Vector4 v) { *this = *this * v; return *this; }
+		INLINE Vector4& operator /= (Vector4 v) { *this = *this / v; return *this; }
 
-		INLINE friend Vector4 operator* (Scalar  v1, Vector4 v2) { return Vector4(v1) * v2; }
-		INLINE friend Vector4 operator/ (Scalar  v1, Vector4 v2) { return Vector4(v1) / v2; }
-		INLINE friend Vector4 operator* (float   v1, Vector4 v2) { return Scalar(v1) * v2; }
-		INLINE friend Vector4 operator/ (float   v1, Vector4 v2) { return Scalar(v1) / v2; }
+		INLINE friend Vector4 operator* (Scalar v1, Vector4 v2) { return Vector4(v1) * v2; }
+		INLINE friend Vector4 operator/ (Scalar v1, Vector4 v2) { return Vector4(v1) / v2; }
+		INLINE friend Vector4 operator* (float v1, Vector4 v2) { return Scalar(v1) * v2; }
+		INLINE friend Vector4 operator/ (float v1, Vector4 v2) { return Scalar(v1) / v2; }
 
 		static const Vector4 Up;
 		static const Vector4 Down;
@@ -347,7 +351,7 @@ namespace Darius::Math
 		return (v1 - v2).Length();
 	}
 
-	// For W != 1, divide XYZ by W.  If W == 0, do nothing
+	// For W != 1, divide XYZ by W. If W == 0, do nothing
 	INLINE Vector3 MakeHomogeneous(Vector4 v)
 	{
 		Scalar W = v.GetW();

@@ -112,12 +112,15 @@ namespace Darius::Math
 		INLINE Color operator* (Color const& col) const { return Color(DirectX::XMVector4Transform(col, m_mat)); }
 		INLINE Matrix4 operator* (const Matrix4& mat) const { return Matrix4(DirectX::XMMatrixMultiply(mat, m_mat)); }
 
+		INLINE Matrix4& operator *= (Matrix4 const& other) { *this = *this * other; return *this; }
+
 		INLINE float GetElement(int row, int col) const { return m_mat.r[row].m128_f32[col]; }
 		INLINE float& GetElement(int row, int col) { return m_mat.r[row].m128_f32[col]; }
 		INLINE Vector4 GetColumn(int col) const { D_ASSERT(col >= 0 && col < 3); return Vector4(m_mat.r[0].m128_f32[col], m_mat.r[1].m128_f32[col], m_mat.r[2].m128_f32[col], m_mat.r[3].m128_f32[col]); }
 
 		static INLINE Matrix4 MakeScale(float scale) { return Matrix4(DirectX::XMMatrixScaling(scale, scale, scale)); }
 		static INLINE Matrix4 MakeScale(Vector3 scale) { return Matrix4(DirectX::XMMatrixScalingFromVector(scale)); }
+		static INLINE Matrix4 MakeScale(Vector4 scale) { return Matrix4(DirectX::XMMatrixScalingFromVector(scale)); }
 		static INLINE Matrix4 MakeLookAt(Vector3 eyePos, Vector3 target, Vector3 up) { return Matrix4(DirectX::XMMatrixLookAtRH(eyePos, target, up)); }
 		static INLINE Matrix4 MakeLookToward(Vector3 eyePos, Vector3 dir, Vector3 up) { return Matrix4(DirectX::XMMatrixLookToRH(eyePos, dir, up)); }
 		static INLINE Matrix4 MakeProjection(float fov, float ratio, float nearP, float farP) { return Matrix4(DirectX::XMMatrixPerspectiveFovRH(fov, ratio, nearP, farP)); }
