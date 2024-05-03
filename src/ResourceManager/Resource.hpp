@@ -308,15 +308,22 @@ namespace Darius::ResourceManager
 		INLINE ResourceHandle		GetHandle() const { return {GetType(), mId}; }
 #if _D_EDITOR
 		INLINE operator ResourcePreview() const { return GetPreview(); }
+		INLINE virtual std::string	GetDetailedName() const override
+		{
+			std::string name = WSTR2STR(GetName());
+			return name;
+		}
+
+		INLINE virtual Detailed*	GetDetailedParent() const override { return mParent; }
 #endif
-		INLINE D_FILE::Path const& GetPath() const { return mPath; }
+		INLINE D_FILE::Path const&	GetPath() const { return mPath; }
 		INLINE virtual bool			IsLoaded() const { return mLoaded.load(); }
 		INLINE unsigned int			GetVersion() const { return mVersion; }
 		INLINE bool					IsDirtyDisk() const { return mDirtyDisk; }
 		INLINE DResourceId			GetId() const { return mId; }
-		INLINE D_CORE::Uuid const& GetUuid() const { return mUuid; }
+		INLINE D_CORE::Uuid const&	GetUuid() const { return mUuid; }
 		INLINE bool					IsDefault() const { return mDefault; }
-		INLINE std::wstring const& GetName() const { return mName; }
+		INLINE std::wstring const&	GetName() const { return mName; }
 
 		INLINE void					SetName(std::wstring const& name) { mName = name; }
 

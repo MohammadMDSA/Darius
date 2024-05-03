@@ -47,6 +47,28 @@ namespace Darius::Editor::Gui::Windows
 		if (!editable)
 			ImGui::BeginDisabled(true);
 		
+		ImGui::Text("Name: ");
+		ImGui::SameLine();
+		ImGui::Text(obj->GetDetailedName().c_str());
+
+		// Parent
+		{
+			auto parent = obj->GetDetailedParent();
+			ImGui::Text("Parent:");
+			ImGui::SameLine();
+			if(!parent)
+				ImGui::Button("<None>");
+			else
+			{
+				if(ImGui::Button(parent->GetDetailedName().c_str()))
+					D_EDITOR_CONTEXT::SetSelectedDetailed(parent);
+			}
+		}
+
+		ImGui::Separator();
+		ImGui::Spacing();
+		ImGui::Spacing();
+
 		obj->DrawDetails(nullptr);
 
 		if (!editable)

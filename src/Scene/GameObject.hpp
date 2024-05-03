@@ -193,6 +193,12 @@ namespace Darius::Scene
 		bool								DrawDetails(float params[]);
 		INLINE bool							IsEditableInDetailsWindow() const { return true; }
 		void								OnGizmo() const;
+		INLINE virtual std::string			GetDetailedName() const override
+		{
+			return mName.string();
+		}
+
+		INLINE virtual Detailed*				GetDetailedParent() const override { return GetParent(); }
 #endif // _EDITOR
 
 		static void							RegisterComponent(D_CORE::StringId const& name, D_CONTAINERS::DVector<std::string>& displayName);
