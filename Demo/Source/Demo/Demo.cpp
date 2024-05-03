@@ -8,6 +8,7 @@
 #include <Demo/CollisionTest.hpp>
 #include <Demo/ComponentReferencer.hpp>
 #include <Demo/CharacterControllerInput.hpp>
+#include <Demo/Utils/RotatingMovementComponent.hpp>
 
 void InitializeGame()
 {
@@ -21,4 +22,5 @@ void InitializeGame()
 	Demo::CollisionTest::StaticConstructor();
 	Demo::ComponentReferencer::StaticConstructor();
 	Demo::CharacterControllerInput::StaticConstructor();
+	Demo::RotatingMovementComponent::StaticConstructor();
 }

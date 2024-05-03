@@ -186,11 +186,11 @@ namespace Darius::Renderer::Rasterization
 #define RENDERER_COMPONENT_UPDATE_ITER(T) \
 			D_WORLD::IterateComponents<T>([&](D_RENDERER::T& meshComp) \
 				{ \
-					updateFuncs.push_back([&]() \
-						{ \
-							if(meshComp.IsActive()) \
-								meshComp.Update(-1.f); \
-						}); \
+					if(meshComp.IsDirty() && meshComp.IsActive()) \
+						updateFuncs.push_back([&]() \
+							{ \
+									meshComp.Update(-1.f); \
+							}); \
 				} \
 			) \
 
@@ -266,32 +266,6 @@ namespace Darius::Renderer::Rasterization
 				return true;
 			});
 
-
-		//#define ADD_RENDERER_COMPONENT_RENDER_ITMES(type) \
-		//		/* Iterating over meshes */ \
-		//		D_WORLD::IterateComponents<type>([&](D_RENDERER::type& meshComp) \
-		//			{ \
-		//				/* Can't render */ \
-		//				if (!meshComp.CanRender()) \
-		//					return; \
-		// \
-		//				if (!meshComp.IsCastingShadow()) \
-		//					return; \
-		//\
-		//				meshComp.AddRenderItems([&sorter](auto const& ri) \
-		//					{ \
-		//						auto item = ri; \
-		//						item.Material.SamplersSRV.ptr = 0; \
-		//						sorter.AddMesh(item, -1); \
-		//					}, riContext); \
-		//			}); \
-		//
-		//		ADD_RENDERER_COMPONENT_RENDER_ITMES(MeshRendererComponent);
-		//		ADD_RENDERER_COMPONENT_RENDER_ITMES(SkeletalMeshRendererComponent);
-		//		ADD_RENDERER_COMPONENT_RENDER_ITMES(BillboardRendererComponent);
-		//		ADD_RENDERER_COMPONENT_RENDER_ITMES(TerrainRendererComponent);
-		//
-		//#undef ADD_RENDERER_COMPONENT_RENDER_ITMES
 	}
 
 	void Render(std::wstring const& jobId, SceneRenderContext& rContext, std::function<void()> postAntiAliasing)

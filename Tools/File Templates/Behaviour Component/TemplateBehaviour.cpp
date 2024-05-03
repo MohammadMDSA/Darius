@@ -17,11 +17,11 @@ namespace %%NAMESPACE%%
 	D_H_BEHAVIOUR_COMP_DEF(%%CLASS_NAME%%);
 
 	%%CLASS_NAME%%::%%CLASS_NAME%%() :
-		D_ECS_COMP::BehaviourComponent()
+		Super()
 	{ }
 
 	%%CLASS_NAME%%::%%CLASS_NAME%%(D_CORE::Uuid const& uuid) :
-		D_ECS_COMP::BehaviourComponent(uuid)
+		Super(uuid)
 	{ }
 
 	void %%CLASS_NAME%%::Start()

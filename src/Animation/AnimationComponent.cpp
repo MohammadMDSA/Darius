@@ -284,7 +284,7 @@ if(!prop.set_value(*targetComponent, optValue.value())) \
 
 				if (!prop.is_valid())
 				{
-					D_LOG_WARN("Property " + std::string(propertyName.string()) + " animated property was not found in component properties.");
+					D_LOG_WARN("Property " << propertyName.string() << " animated property was not found in component properties.");
 					continue;
 				}
 

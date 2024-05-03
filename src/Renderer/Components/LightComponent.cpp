@@ -136,7 +136,7 @@ namespace Darius::Renderer
 				break;
 
 			D_CONTAINERS::DVector<D_MATH_CAMERA::Frustum> frustums;
-			activeCam->GetCamera().CalculateSlicedFrustumes(D_RENDERER_RAST::GetLightContext()->GetCascades(), frustums);
+			activeCam->GetCameraMath().CalculateSlicedFrustumes(D_RENDERER_RAST::GetLightContext()->GetCascades(), frustums);
 
 			int i = 1;
 			for (auto const& frustum : frustums)

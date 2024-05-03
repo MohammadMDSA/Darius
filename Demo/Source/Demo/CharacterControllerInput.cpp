@@ -89,8 +89,6 @@ namespace Demo
 		mLookPitch += vertical;
 		mLookPitch = D_MATH::Clamp(mLookPitch, -89.9f, 89.9f);
 
-		D_LOG_DEBUG(mLookPitch);
-
 		auto rot = Quaternion(Vector3::Up, D_MATH::Deg2Rad(-horizontal));
 		auto lookRot = Quaternion(Vector3::Right, D_MATH::Deg2Rad(mLookPitch));
 
