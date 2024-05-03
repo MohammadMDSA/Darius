@@ -36,6 +36,13 @@ namespace Darius::Renderer
 			ZYX
 		};
 
+		struct MeshImportConfig
+		{
+			NormalsReordering					NormalsReordering;
+			D_MATH::Vector3						Scale;
+			bool								InvertedFaces;
+		};
+
 	public:
 		INLINE D_RENDERER_GEOMETRY::Mesh*	ModifyMeshData() { MakeDiskDirty(); MakeGpuDirty(); return &mMesh; }
 		INLINE D_RENDERER_GEOMETRY::Mesh const*	GetMeshData() const { return &mMesh; }
@@ -59,6 +66,9 @@ namespace Darius::Renderer
 		INLINE NormalsReordering		GetNormalsReordering() const { return mNormalsReordering; }
 		void							SetNormalsReordering(NormalsReordering order);
 
+		INLINE D_MATH::Vector3			GetScale() const { return mScale; }
+		void							SetScale(D_MATH::Vector3 const& scale);
+
 		INLINE MaterialResource* GetMaterial(int index) const {
 			D_ASSERT(index >= 0 && index < (int)mMaterials.size()); return mMaterials.at(index).Get(); }
 		INLINE D_CONTAINERS::DVector<D_RESOURCE::ResourceRef<MaterialResource>> const& GetMaterials() const { return mMaterials; }
@@ -69,7 +79,8 @@ namespace Darius::Renderer
 			Resource(uuid, path, name, id, parent, isDefault),
 			mNormalsReordering(NormalsReordering::XYZ),
 			mInverted(false),
-			mAabbExtentsBias(D_MATH::Vector3::Zero)
+			mAabbExtentsBias(D_MATH::Vector3::Zero),
+			mScale(D_MATH::Vector3::One)
 		{}
 
 		virtual void					CreateInternal(D_RENDERER_GEOMETRY::MultiPartMeshData<VertexType> const& data) = 0;
@@ -88,6 +99,9 @@ namespace Darius::Renderer
 
 		DField(Serialize)
 		bool							mInverted;
+
+		DField(Serialize)
+		D_MATH::Vector3					mScale;
 
 		DField(Serialize)
 		NormalsReordering				mNormalsReordering;

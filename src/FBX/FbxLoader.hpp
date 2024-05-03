@@ -21,8 +21,8 @@ namespace Darius::Fbx
 
 	bool		LoadSubResources(D_FILE::Path const& path, D_RESOURCE::Resource* parentResource);
 
-	bool		ReadMeshByName(D_FILE::Path const& path, std::wstring const& meshName, D_RENDERER::MeshResource::NormalsReordering normalsReordering, bool inverted, D_RENDERER_GEOMETRY::MultiPartMeshData<D_RENDERER_VERTEX::VertexPositionNormalTangentTextureSkinned>& result);
+	bool		ReadMeshByName(D_FILE::Path const& path, std::wstring const& meshName, D_RENDERER::MeshResource::MeshImportConfig const& importConfig, D_RENDERER_GEOMETRY::MultiPartMeshData<D_RENDERER_VERTEX::VertexPositionNormalTangentTextureSkinned>& result);
 
-	bool		ReadMeshByName(D_FILE::Path const& path, std::wstring const& meshName, D_RENDERER::MeshResource::NormalsReordering normalsReordering, bool inverted, D_RENDERER_GEOMETRY::MultiPartMeshData<D_RENDERER_VERTEX::VertexPositionNormalTangentTextureSkinned>& result, D_CONTAINERS::DList<D_RENDERER_GEOMETRY::Mesh::SkeletonJoint>& skeleton);
+	bool		ReadMeshByName(D_FILE::Path const& path, std::wstring const& meshName, D_RENDERER::MeshResource::MeshImportConfig const& importConfig, D_RENDERER_GEOMETRY::MultiPartMeshData<D_RENDERER_VERTEX::VertexPositionNormalTangentTextureSkinned>& result, D_CONTAINERS::DList<D_RENDERER_GEOMETRY::Mesh::SkeletonJoint>& skeleton);
 
 }

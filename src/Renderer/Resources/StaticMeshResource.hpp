@@ -41,6 +41,8 @@ namespace Darius::Renderer
 
 		virtual void							CreateInternal(D_RENDERER_GEOMETRY::MultiPartMeshData<VertexType> const& data) override;
 
+		virtual void							MakeVertexList(D_CONTAINERS::DVector<VertexType> const& inputVerts, D_CONTAINERS::DVector<D_RENDERER_VERTEX::VertexPositionNormalTangentTexture>& outVertices) const;
+
 	private:
 		friend class DResourceManager;
 

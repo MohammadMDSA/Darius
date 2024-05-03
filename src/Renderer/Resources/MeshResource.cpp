@@ -86,6 +86,17 @@ namespace Darius::Renderer
 		SignalChange();
 	}
 
+	void MeshResource::SetScale(Vector3 const& scale)
+	{
+		if(mScale.Equals(scale))
+			return;
+
+		mScale = scale;
+
+		MakeDiskDirty();
+		SignalChange();
+	}
+
 	void MeshResource::SetAabbExtentsBias(Vector3 const& bias)
 	{
 		if(bias.Equals(mAabbExtentsBias))
@@ -137,6 +148,17 @@ namespace Darius::Renderer
 			D_H_DETAILS_DRAW_PROPERTY("Normals");
 			auto value = GetNormalsReordering();
 			D_H_DETAILS_DRAW_ENUM_SELECTION_SIMPLE(NormalsReordering, NormalsReordering);
+		}
+
+		// Scale
+		{
+			D_H_DETAILS_DRAW_PROPERTY("Scale");
+			auto value = GetScale();
+			if(D_MATH::DrawDetails(value, Vector3::One))
+			{
+				SetScale(value);
+				valueChanged = true;
+			}
 		}
 
 		// Aabb bias

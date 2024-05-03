@@ -23,6 +23,47 @@ namespace Darius::Renderer
 
 	D_CH_RESOURCE_DEF(StaticMeshResource);
 
+	void StaticMeshResource::MakeVertexList(D_CONTAINERS::DVector<VertexType> const& inputVerts, D_CONTAINERS::DVector<D_RENDERER_VERTEX::VertexPositionNormalTangentTexture>& outVertices) const
+	{
+		Vector3 scale = GetScale();
+		
+		// For optimization purposes. If no scale, then process raw vec values
+		if(scale.Equals(Vector3::One))
+		{
+			for(int i = 0; i < inputVerts.size(); i++)
+			{
+				auto const& meshVertex = inputVerts[i];
+				outVertices.push_back(D_RENDERER_VERTEX::VertexPositionNormalTangentTexture(meshVertex.mPosition, D_MATH::Normalize(meshVertex.mNormal), meshVertex.mTangent, meshVertex.mTexC));
+			}
+			return;
+		}
+
+		// Dealing with uniform scale, no need to scale normals
+		if(scale.GetX() == scale.GetY() && scale.GetY() == scale.GetZ())
+		{
+			for(int i = 0; i < inputVerts.size(); i++)
+			{
+				auto const& meshVertex = inputVerts[i];
+				Vector3 scaledPos = Vector3(meshVertex.mPosition) * scale;
+				outVertices.push_back(D_RENDERER_VERTEX::VertexPositionNormalTangentTexture(scaledPos, D_MATH::Normalize(meshVertex.mNormal), meshVertex.mTangent, meshVertex.mTexC));
+			}
+			return;
+		}
+
+		Vector3 invScale = D_MATH::Recip(scale);
+		Vector4 invScale4 = Vector4(invScale, 1.f);
+
+		for(int i = 0; i < inputVerts.size(); i++)
+		{
+			auto const& meshVertex = inputVerts[i];
+			Vector3 pos = Vector3(meshVertex.mPosition) * scale;
+			Vector3 normal = Vector3(meshVertex.mNormal) * invScale;
+			Vector4 tangent = Vector4(meshVertex.mTangent) * invScale4;
+
+			outVertices.push_back(D_RENDERER_VERTEX::VertexPositionNormalTangentTexture(pos, D_MATH::Normalize(normal), tangent, meshVertex.mTexC));
+		}
+	}
+
 	void StaticMeshResource::CreateInternal(D_RENDERER_GEOMETRY::MultiPartMeshData<VertexType> const& data)
 	{
 		Destroy();
@@ -41,11 +82,7 @@ namespace Darius::Renderer
 		indices.reserve(data.MeshData.Indices32.size());
 
 		// Filling vertex and index data
-		for (int i = 0; i < data.MeshData.Vertices.size(); i++)
-		{
-			auto const& meshVertex = data.MeshData.Vertices[i];
-			vertices.push_back(D_RENDERER_VERTEX::VertexPositionNormalTangentTexture(meshVertex.mPosition, D_MATH::Normalize(meshVertex.mNormal), meshVertex.mTangent, meshVertex.mTexC));
-		}
+		MakeVertexList(data.MeshData.Vertices, vertices);
 		for (int i = 0; i < data.MeshData.Indices32.size(); i++)
 		{
 			indices.push_back(data.MeshData.Indices32[i]);

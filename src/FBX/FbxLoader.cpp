@@ -77,7 +77,7 @@ namespace Darius::Fbx
 	};
 
 	void TraverseNodes(FbxNode* nodeP, std::function<void(FbxNode*)> callback);
-	bool ReadMeshNode(FbxMesh* pMesh, MeshResource::NormalsReordering normalsReordering, bool inverted, MultiPartMeshData<D_RENDERER_VERTEX::VertexPositionNormalTangentTextureSkinned>& result, DUnorderedMap<int, DVector<int>>& controlPointIndexToVertexIndexMap, FbxAxisSystem::ECoordSystem coordSystem);
+	bool ReadMeshNode(FbxMesh* pMesh, D_RENDERER::MeshResource::MeshImportConfig const& importConfig, MultiPartMeshData<D_RENDERER_VERTEX::VertexPositionNormalTangentTextureSkinned>& result, DUnorderedMap<int, DVector<int>>& controlPointIndexToVertexIndexMap, FbxAxisSystem::ECoordSystem coordSystem);
 	bool ReadMeshSkin(FbxMesh const* pMesh, MultiPartMeshData<D_RENDERER_VERTEX::VertexPositionNormalTangentTextureSkinned>& meshData, DList<D_RENDERER_GEOMETRY::Mesh::SkeletonJoint>& skeleton, DUnorderedMap<int, DVector<int>> const& controlPointIndexToVertexIndexMap);
 	void AddSkeletonChildren(FbxSkeleton const* skeletonNode, DList<Mesh::SkeletonJoint>& skeletonData, DMap<FbxSkeleton const*, UINT>& skeletonIndexMap);
 	void ReadFBXCacheVertexPositions(MultiPartMeshData<D_RENDERER_VERTEX::VertexPositionNormalTangentTextureSkinned>& meshDataVec, FbxMesh const* mesh, DUnorderedMap<int, DVector<int>> const& controlPointIndexToVertexIndexMap);
@@ -378,7 +378,7 @@ namespace Darius::Fbx
 		return results;
 	}
 
-	bool ReadMeshByName(D_FILE::Path const& path, std::wstring const& meshName, MeshResource::NormalsReordering normalsReordering, bool inverted, MultiPartMeshData<D_RENDERER_VERTEX::VertexPositionNormalTangentTextureSkinned>& result, DUnorderedMap<int, DVector<int>>& controlPointIndexToVertexIndexMap, FbxMesh** mesh)
+	bool ReadMeshByName(D_FILE::Path const& path, std::wstring const& meshName, D_RENDERER::MeshResource::MeshImportConfig const& importConfig, MultiPartMeshData<D_RENDERER_VERTEX::VertexPositionNormalTangentTextureSkinned>& result, DUnorderedMap<int, DVector<int>>& controlPointIndexToVertexIndexMap, FbxMesh** mesh)
 	{
 		std::scoped_lock scope(nodeTraverseMutex);
 		FbxNode* rootNode = nullptr;
@@ -393,16 +393,16 @@ namespace Darius::Fbx
 		if (*mesh == nullptr)
 			return false;
 
-		ReadMeshNode(*mesh, normalsReordering, inverted, result, controlPointIndexToVertexIndexMap, coordSystem);
+		ReadMeshNode(*mesh, importConfig, result, controlPointIndexToVertexIndexMap, coordSystem);
 		return true;
 	}
 
-	bool ReadMeshByName(D_FILE::Path const& path, std::wstring const& meshName, MeshResource::NormalsReordering normalsReordering, bool inverted, MultiPartMeshData<D_RENDERER_VERTEX::VertexPositionNormalTangentTextureSkinned>& result)
+	bool ReadMeshByName(D_FILE::Path const& path, std::wstring const& meshName, D_RENDERER::MeshResource::MeshImportConfig const& importConfig, MultiPartMeshData<D_RENDERER_VERTEX::VertexPositionNormalTangentTextureSkinned>& result)
 	{
 		FbxMesh* mesh;
 
 		DUnorderedMap<int, DVector<int>> controlPointIndexToVertexIndexMap;
-		auto res = ReadMeshByName(path, meshName, normalsReordering, inverted, result, controlPointIndexToVertexIndexMap, &mesh);
+		auto res = ReadMeshByName(path, meshName, importConfig, result, controlPointIndexToVertexIndexMap, &mesh);
 
 		return res;
 	}
@@ -433,13 +433,14 @@ namespace Darius::Fbx
 		}
 	}
 
-	bool ReadMeshNode(FbxMesh* pMesh, MeshResource::NormalsReordering normalsReordering, bool inverted, MultiPartMeshData<D_RENDERER_VERTEX::VertexPositionNormalTangentTextureSkinned>& result, DUnorderedMap<int, DVector<int>>& controlPointIndexToVertexIndexMap, FbxAxisSystem::ECoordSystem coordSystem)
+	bool ReadMeshNode(FbxMesh* pMesh, D_RENDERER::MeshResource::MeshImportConfig const& importConfig, MultiPartMeshData<D_RENDERER_VERTEX::VertexPositionNormalTangentTextureSkinned>& result, DUnorderedMap<int, DVector<int>>& controlPointIndexToVertexIndexMap, FbxAxisSystem::ECoordSystem coordSystem)
 	{
 
 		if (!pMesh->GetNode())
 			return false;
 
-		D_VERIFY(pMesh->GenerateTangentsData(0, true));
+		if(!pMesh->GenerateTangentsData(0, true))
+			D_LOG_WARN("Could not generate tangent data for mesh mesh \"" << pMesh->GetName() << "\".");
 
 		FbxArray<SubMesh*> subMeshes;
 		bool mHasNormal;
@@ -602,7 +603,7 @@ namespace Darius::Fbx
 			lTangentElement = pMesh->GetElementTangent(0);
 		}
 
-		pMesh->GenerateNormals(false, mAllByControlPoint, inverted);
+		pMesh->GenerateNormals(false, mAllByControlPoint, importConfig.InvertedFaces);
 
 		if (mAllByControlPoint)
 		{
@@ -766,6 +767,8 @@ namespace Darius::Fbx
 		D_ASSERT(lNormals);
 
 		float empty[] = { 0.f, 1.f, 0.f, 1.f };
+		bool inverted = importConfig.InvertedFaces;
+		auto normalsReordering = importConfig.NormalsReordering;
 
 		for (int i = 0; i < lPolygonVertexCount; i++)
 		{
@@ -827,14 +830,14 @@ namespace Darius::Fbx
 
 #pragma region Skinned Mesh
 
-	bool ReadMeshByName(D_FILE::Path const& path, std::wstring const& meshName, MeshResource::NormalsReordering normalsReordering, bool inverted, MultiPartMeshData<D_RENDERER_VERTEX::VertexPositionNormalTangentTextureSkinned>& result, DList<D_RENDERER_GEOMETRY::Mesh::SkeletonJoint>& skeleton)
+	bool ReadMeshByName(D_FILE::Path const& path, std::wstring const& meshName, D_RENDERER::MeshResource::MeshImportConfig const& importConfig, MultiPartMeshData<D_RENDERER_VERTEX::VertexPositionNormalTangentTextureSkinned>& result, DList<D_RENDERER_GEOMETRY::Mesh::SkeletonJoint>& skeleton)
 	{
 		DUnorderedMap<int, DVector<int>> controlPointIndexToVertexIndexMap;
 
 		// Read mesh data
 		FbxMesh* mesh;
 
-		if (!ReadMeshByName(path, meshName, normalsReordering, inverted, result, controlPointIndexToVertexIndexMap, &mesh))
+		if (!ReadMeshByName(path, meshName, importConfig, result, controlPointIndexToVertexIndexMap, &mesh))
 		{
 			return false;
 		}
@@ -1369,8 +1372,15 @@ namespace Darius::Fbx
 		MultiPartMeshData<VertexPositionNormalTangentTextureSkinned> meshData;
 		DList<Mesh::SkeletonJoint> skeleton;
 
+		MeshResource::MeshImportConfig importConfig
+		{
+			.NormalsReordering = resource->GetNormalsReordering(),
+			.Scale = resource->GetScale(),
+			.InvertedFaces = resource->IsInverted(),
+		};
+
 		// Read mesh data
-		ReadMeshNode(mesh, resource->GetNormalsReordering(), resource->IsInverted(), meshData, controlPointIndexToVertexIndexMap, coordSystem);
+		ReadMeshNode(mesh, importConfig, meshData, controlPointIndexToVertexIndexMap, coordSystem);
 
 		if (ReadMeshSkin(mesh, meshData, skeleton, controlPointIndexToVertexIndexMap))
 			ReadFBXCacheVertexPositions(meshData, mesh, controlPointIndexToVertexIndexMap);
@@ -1391,8 +1401,15 @@ namespace Darius::Fbx
 		DUnorderedMap<int, DVector<int>> controlPointIndexToVertexIndexMap;
 		MultiPartMeshData<VertexPositionNormalTangentTextureSkinned> meshData;
 
+		MeshResource::MeshImportConfig importConfig
+		{
+			.NormalsReordering = resource->GetNormalsReordering(),
+			.Scale = resource->GetScale(),
+			.InvertedFaces = resource->IsInverted(),
+		};
+
 		// Read mesh data
-		ReadMeshNode(mesh, resource->GetNormalsReordering(), resource->IsInverted(), meshData, controlPointIndexToVertexIndexMap, coordSystem);
+		ReadMeshNode(mesh, importConfig, meshData, controlPointIndexToVertexIndexMap, coordSystem);
 
 		resource->Create(meshData);
 		resource->MakeDiskClean();

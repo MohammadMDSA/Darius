@@ -11,11 +11,53 @@
 #include "SkeletalMeshResource.sgenerated.hpp"
 
 using namespace D_RENDERER_GEOMETRY;
+using namespace D_MATH;
 
 namespace Darius::Renderer
 {
 
 	D_CH_RESOURCE_DEF(SkeletalMeshResource);
+
+	void SkeletalMeshResource::MakeVertexList(D_CONTAINERS::DVector<VertexType> const& inputVerts, D_CONTAINERS::DVector<D_RENDERER_VERTEX::VertexPositionNormalTangentTextureSkinned>& outVertices) const
+	{
+		Vector3 scale = GetScale();
+
+		// For optimization purposes. If no scale, then process raw vec values
+		if(scale.Equals(Vector3::One))
+		{
+			for(int i = 0; i < inputVerts.size(); i++)
+			{
+				auto const& meshVertex = inputVerts[i];
+				outVertices.push_back(D_RENDERER_VERTEX::VertexPositionNormalTangentTextureSkinned(meshVertex.mPosition, D_MATH::Normalize(meshVertex.mNormal), meshVertex.mTangent, meshVertex.mTexC, meshVertex.mBlendIndices, meshVertex.mBlendWeights));
+			}
+			return;
+		}
+
+		// Dealing with uniform scale, no need to scale normals
+		if(scale.GetX() == scale.GetY() && scale.GetY() == scale.GetZ())
+		{
+			for(int i = 0; i < inputVerts.size(); i++)
+			{
+				auto const& meshVertex = inputVerts[i];
+				Vector3 scaledPos = Vector3(meshVertex.mPosition) * scale;
+				outVertices.push_back(D_RENDERER_VERTEX::VertexPositionNormalTangentTextureSkinned(scaledPos, D_MATH::Normalize(meshVertex.mNormal), meshVertex.mTangent, meshVertex.mTexC, meshVertex.mBlendIndices, meshVertex.mBlendWeights));
+			}
+			return;
+		}
+
+		Vector3 invScale = D_MATH::Recip(scale);
+		Vector4 invScale4 = Vector4(invScale, 1.f);
+
+		for(int i = 0; i < inputVerts.size(); i++)
+		{
+			auto const& meshVertex = inputVerts[i];
+			Vector3 pos = Vector3(meshVertex.mPosition) * scale;
+			Vector3 normal = Vector3(meshVertex.mNormal) * invScale;
+			Vector4 tangent = Vector4(meshVertex.mTangent) * invScale4;
+
+			outVertices.push_back(D_RENDERER_VERTEX::VertexPositionNormalTangentTextureSkinned(pos, D_MATH::Normalize(normal), tangent, meshVertex.mTexC, meshVertex.mBlendIndices, meshVertex.mBlendWeights));
+		}
+	}
 
 	void SkeletalMeshResource::CreateInternal(MultiPartMeshData<VertexType> const& data)
 	{
@@ -36,11 +78,12 @@ namespace Darius::Renderer
 		indices.reserve(data.MeshData.Indices32.size());
 
 		// Filling vertex and index data
-		for (int i = 0; i < data.MeshData.Vertices.size(); i++)
+		/*for (int i = 0; i < data.MeshData.Vertices.size(); i++)
 		{
 			auto const& meshVertex = data.MeshData.Vertices[i];
 			vertices.push_back(D_RENDERER_VERTEX::VertexPositionNormalTangentTextureSkinned(meshVertex.mPosition, D_MATH::Normalize(meshVertex.mNormal), meshVertex.mTangent, meshVertex.mTexC, meshVertex.mBlendIndices, meshVertex.mBlendWeights));
-		}
+		}*/
+		MakeVertexList(data.MeshData.Vertices, vertices);
 		for (int i = 0; i < data.MeshData.Indices32.size(); i++)
 		{
 			indices.push_back(data.MeshData.Indices32[i]);
@@ -89,9 +132,21 @@ namespace Darius::Renderer
 		D_CONTAINERS::DUnorderedMap<Mesh::SkeletonJoint const*, Mesh::SkeletonJoint*> equivalentMap;
 
 		mSkeleton.clear();
+
+		Vector4 scale = Vector4(GetScale(), 1.f);
+		Matrix4 scaleMat = Matrix4::MakeScale(scale);
+		Matrix4 invScale = Matrix4::MakeScale(D_MATH::Recip(scale));
+
 		for (auto const& refJoint : skeleton)
 		{
 			Mesh::SkeletonJoint joint = refJoint;
+			
+			// Applying 
+			Vector4 pos = joint.Xform.GetW();
+			pos *= scale;
+			joint.Xform.SetW(pos);
+			/*joint.IBM = invScale * joint.IBM;*/
+
 			mSkeleton.push_back(joint);
 			equivalentMap[&refJoint] = &mSkeleton.back();
 		}
