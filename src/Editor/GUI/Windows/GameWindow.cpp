@@ -107,7 +107,7 @@ namespace Darius::Editor::Gui::Windows
 			return;
 		}
 
-		D_MATH_CAMERA::Camera const& c = camera.Get()->GetCamera();
+		D_MATH_CAMERA::Camera const& c = camera->GetCameraMath();
 
 
 		D_RENDERER::RenderItemContext riContext;
@@ -115,6 +115,11 @@ namespace Darius::Editor::Gui::Windows
 		riContext.SelectedGameObject = nullptr;
 		riContext.Shadow = false;
 		riContext.StencilOverride = 0;
+
+		auto skyboxSpecular = camera->GetSkyboxSpecularTexture();
+		auto skyboxDiffuse = camera->GetSkyboxDiffuseTexture();
+
+		bool drawSkybox = true;
 
 		SceneRenderContext rc =
 		{
@@ -150,10 +155,10 @@ namespace Darius::Editor::Gui::Windows
 			.CommandContext = context,
 			.Camera = c,
 			.Globals = mSceneGlobals,
-			.RadianceIBL = nullptr, // TODO: Skybox For Game Window
-			.IrradianceIBL = nullptr, // TODO: Skybox For Game Window
+			.RadianceIBL = drawSkybox ? skyboxSpecular : nullptr,
+			.IrradianceIBL = drawSkybox ? skyboxDiffuse : nullptr,
 			.RenderItemContext = riContext,
-			.DrawSkybox = true
+			.DrawSkybox = drawSkybox
 		};
 
 		// Post Processing
@@ -313,7 +318,7 @@ namespace Darius::Editor::Gui::Windows
 		if (!cameraP.IsValid() || !cameraP->IsActive())
 			return false;
 
-		D_MATH_CAMERA::Camera const& camera = cameraP->GetCamera();
+		D_MATH_CAMERA::Camera const& camera = cameraP->GetCameraMath();
 
 		temp = camera.GetViewMatrix(); // View
 		globals.View = temp;
