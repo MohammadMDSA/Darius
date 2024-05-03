@@ -1,6 +1,9 @@
 #pragma once
 
+#include "Renderer/Resources/TextureResource.hpp"
+
 #include <Math/Camera/Camera.hpp>
+#include <ResourceManager/ResourceRef.hpp>
 #include <Scene/EntityComponentSystem/Components/ComponentBase.hpp>
 
 #include "CameraComponent.generated.hpp"
@@ -36,19 +39,32 @@ namespace Darius::Renderer
 		INLINE bool						IsInfiniteZ() const { return mCamera.IsInfiniteZ(); }
 		INLINE bool						IsOrthographic() const { return mCamera.IsOrthographic(); }
 
-		INLINE void						SetFoV(float val) { mCamera.SetFoV(val); }
-		INLINE void						SetNearClip(float val) { mCamera.SetZRange(val, mCamera.GetFarClip()); }
-		INLINE void						SetFarClip(float val) { mCamera.SetZRange(mCamera.GetNearClip(), val); }
-		INLINE void						SetOrthographicSize(float val) { mCamera.SetOrthographicSize(val); }
+		void							SetFoV(float val);
+		void							SetNearClip(float val);
+		void							SetFarClip(float val);
+		void							SetOrthographicSize(float val);
 
 		// For internal use. DO NOT CALL!
-		INLINE void						SetAspectRatio(float val) { mCamera.SetAspectRatio(val); }
-		INLINE void						SetInfiniteZ(bool val) { mCamera.SetInfiniteZ(val); }
-		INLINE void						SetOrthographic(bool val) { mCamera.SetOrthographic(val); }
+		void							SetAspectRatio(float val);
+		void							SetInfiniteZ(bool val);
+		void							SetOrthographic(bool val);
+
+		INLINE TextureResource*			GetSkyboxSpecularTexture() const { return mSkyboxSpecular.Get(); }
+		INLINE TextureResource*			GetSkyboxDiffuseTexture() const { return mSkyboxDiffuse.Get(); }
+		void							SetSkyboxSpecularTexture(TextureResource* texture);
+		void							SetSkyboxDiffuseTexture(TextureResource* texture);
+
+		INLINE D_MATH_CAMERA::Camera const& GetCameraMath() const { return mCamera; }
 
 	private:
-		DField(Get[const, &, inline])
+		DField()
 		D_MATH_CAMERA::Camera			mCamera;
+
+		DField(Serialize)
+		D_RESOURCE::ResourceRef<TextureResource> mSkyboxSpecular;
+
+		DField(Serialize)
+		D_RESOURCE::ResourceRef<TextureResource> mSkyboxDiffuse;
 
 	};
 }
