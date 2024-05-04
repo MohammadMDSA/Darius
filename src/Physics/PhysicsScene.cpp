@@ -70,6 +70,8 @@ namespace Darius::Physics
 
 		mPxScene = core->createScene(desc);
 		mGravityVec = D_PHYSICS::GetVec3(desc.gravity);
+		mPxScene->setVisualizationParameter(PxVisualizationParameter::eSCALE, -1.0f);
+
 
 		D_ASSERT(mPxScene);
 
@@ -85,6 +87,7 @@ namespace Darius::Physics
 
 		mControllerManager = PxCreateControllerManager(*mPxScene);
 		mControllerManager->setOverlapRecoveryModule(true);
+		mControllerManager->setTessellation(true, 5.f);
 	}
 
 	PhysicsScene::~PhysicsScene()

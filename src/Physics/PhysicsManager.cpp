@@ -167,7 +167,10 @@ namespace Darius::Physics
 		gDispatcher = PxDefaultCpuDispatcherCreate(std::thread::hardware_concurrency());
 		sceneDesc.cpuDispatcher = gDispatcher;
 		sceneDesc.filterShader = PxDefaultSimulationFilterShader;
-		sceneDesc.broadPhaseType = PxBroadPhaseType::eLAST;
+		sceneDesc.staticNbObjectsPerNode = 8;
+		sceneDesc.dynamicBVHBuildStrategy = PxBVHBuildStrategy::eSAH;
+		sceneDesc.flags |= PxSceneFlag::eENABLE_PCM;
+		sceneDesc.broadPhaseType = PxBroadPhaseType::ePABP;
 		if(gGpuAccelerated && gCudaContextManager)
 		{
 			sceneDesc.flags |= PxSceneFlag::eENABLE_GPU_DYNAMICS;
