@@ -716,17 +716,80 @@ if (validContext) \
 
 				if(ImGui::MenuItem("Debug Button 3"))
 				{
-					auto selected = D_EDITOR_CONTEXT::GetSelectedGameObject();
-					auto mat = selected->GetComponent<D_RENDERER::MeshRendererComponent>()->GetMaterial(0).Get();
-
-					D_WORLD::IterateComponents<D_RENDERER::SkeletalMeshRendererComponent>([material = mat](auto& comp)
+					auto scale = D_MATH::Vector3(0.01f);
+					auto invScale = D_MATH::Vector3(100.f);
+					D_WORLD::IterateComponents<D_MATH::TransformComponent>([=](D_MATH::TransformComponent& comp)
 						{
-							D_RENDERER::SkeletalMeshResource* mesh = comp.GetMesh();
-							mesh->SetInverted(true);
-							mesh->SetNormalsReordering(D_RENDERER::MeshResource::NormalsReordering::ZYX);
-							for(int i = 0; i < (int)mesh->GetMeshData()->mDraw.size(); i++)
+							auto localScale = comp.GetLocalScale();
+							if(!(localScale < D_MATH::Vector3(0.1f)).All3())
+								return;
+							auto go = comp.GetGameObject();
+
+							bool reposition = false;
+
+							auto staticMeshRenderer = go->GetComponent<D_RENDERER::MeshRendererComponent>();
+							if(staticMeshRenderer)
 							{
-								mesh->SetMaterial(i, material);
+								reposition = true;
+								comp.SetLocalScale(localScale * invScale);
+								auto staticMesh = staticMeshRenderer->GetMesh();
+								if(staticMesh)
+									staticMesh->SetScale(scale);
+							}
+
+
+							go->VisitDescendants([=](GameObject* desc)
+								{
+									auto staticMeshRenderer = desc->GetComponent<D_RENDERER::MeshRendererComponent>();
+									if(!staticMeshRenderer)
+										return;
+
+									auto staticMesh = staticMeshRenderer->GetMesh();
+									if(!staticMesh)
+										return;
+
+									staticMesh->SetScale(scale);
+
+									//if(desc->GetParent() == go)
+									{
+										auto trans = desc->GetTransform();
+										trans->SetLocalPosition(trans->GetLocalPosition() * scale);
+									}
+								});
+
+						});
+				}
+
+				if(ImGui::MenuItem("Fix box collider sizes"))
+				{
+					D_WORLD::IterateComponents<D_PHYSICS::BoxColliderComponent>([](D_PHYSICS::BoxColliderComponent& box)
+						{
+							auto go = box.GetGameObject();
+							auto meshComp = go->GetComponent<D_RENDERER::MeshRendererComponent>();
+
+							if(!meshComp)
+							{
+								auto goname = go->GetName();
+								(goname);
+								D_PLATFORM_BREAK();
+								return;
+							}
+
+							auto mesh = meshComp->GetMesh();
+							if(!mesh)
+								return;
+							static auto scl = D_MATH::Vector3(0.01f);
+							if(mesh->GetScale().NearEquals(scl, 0.1f))
+							{
+								box.SetHalfExtents(box.GetHalfExtents() * scl);
+								box.SetCenterOffset(box.GetCenterOffset() * scl);
+							}
+							else
+							{
+								auto goname = go->GetName();
+								(goname);
+								D_PLATFORM_BREAK();
+								return;
 							}
 						});
 				}
