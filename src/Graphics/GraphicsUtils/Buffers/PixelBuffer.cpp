@@ -72,7 +72,7 @@ namespace Darius::Graphics::Utils::Buffers
 #ifdef _DEBUG
 		mResource->SetName(name.c_str());
 #else
-		(Name);
+		(name);
 #endif
 	}
 

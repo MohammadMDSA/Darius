@@ -54,6 +54,25 @@ namespace Darius::Math
 		mWorldChanged(this, mTransformMath);
 	}
 
+	Matrix4 const& TransformComponent::GetWorld()
+	{
+		// Should update world first
+		if(IsWorldDirty())
+		{
+			auto parent = GetGameObject()->GetParent();
+
+			mWorldMatrix = Matrix4(mTransformMath.GetWorld());
+
+			// If has parent, should apply their world too
+			if(parent != nullptr)
+				mWorldMatrix = parent->GetTransform()->GetWorld() * mWorldMatrix;
+
+			mWorldDirty = false;
+		}
+
+		return mWorldMatrix;
+	}
+
 	void TransformComponent::SetLocalWorld(Matrix4 const& mat)
 	{
 		if (!CanChange())

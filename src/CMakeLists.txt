@@ -241,7 +241,11 @@ if(MSVC)
     string(REPLACE "/W3 " "/Wall " CMAKE_CXX_FLAGS_RELEASE ${CMAKE_CXX_FLAGS_RELEASE})
     add_definitions(/WX)
     add_definitions(/MP)
-    add_definitions(/MDd)
+    if(${CMAKE_BUILD_TYPE} MATCHES Debug)
+        add_definitions(/MDd)
+    else()
+        add_definitions(/MD)
+    endif()
     target_compile_options(${DariusEngine} PRIVATE /fp:fast "$<$<NOT:$<CONFIG:DEBUG>>:/guard:cf>")
     target_link_options(${DariusEngine} PRIVATE /DYNAMICBASE /NXCOMPAT)
 
@@ -292,7 +296,7 @@ if ( CMAKE_CXX_COMPILER_ID MATCHES "MSVC" )
          "/wd4265" "/wd4625" "/wd4626" "/wd4986" "/wd5204" "/wd5220"
          "/wd4324" "/wd4623" "/wd5262" "/wd5264"
          "/wd5026" "/wd5027" "/wd5038"
-         "/wd4464" "/wd4127" "/wd4371" "/wd5205" "/wd5032" "/wd5219" "/wd4868" "/wd5267")
+         "/wd4464" "/wd4127" "/wd4371" "/wd5205" "/wd5032" "/wd5219" "/wd4868" "/wd5267" "/wd4711" "/wd4702")
 
     if(ENABLE_CODE_ANALYSIS)
         target_compile_options(${DariusEngine} PRIVATE /analyze)

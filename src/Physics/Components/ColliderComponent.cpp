@@ -283,7 +283,7 @@ namespace Darius::Physics
 
 	void ColliderComponent::SetCenterOffset(D_MATH::Vector3 const& centerOffset)
 	{
-		if (mCenterOffset == centerOffset)
+		if (mCenterOffset.Equals(centerOffset))
 			return;
 
 		mCenterOffset = centerOffset;

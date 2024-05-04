@@ -60,13 +60,14 @@ namespace Darius::Debug
 
 		static INLINE void DrawCube(D_MATH::Vector3 const& position, D_MATH::Quaternion const& rotation, D_MATH::Vector3 const& scale, double duration = 0.f, D_MATH::Color const& color = { 1.f, 1.f, 1.f, 1.f }) {}
 		static INLINE void DrawCube(D_MATH::Vector3 const& position, float radius, double duration = 0.f, D_MATH::Color const& color = { 1.f, 1.f, 1.f, 1.f }) {}
+		static INLINE void DrawSphere(D_MATH::Vector3 const& position, float radius, double duration = 0.f, D_MATH::Color const& color = {1.f, 1.f, 1.f, 1.f}) {}
 		static INLINE void DrawLine(D_MATH::Vector3 const& p1, D_MATH::Vector3 const& p2, double duration = 0.f, D_MATH::Color const& color = { 1.f, 1.f, 1.f, 1.f }) {}
 		static INLINE void DrawFrustum(D_MATH_CAMERA::Frustum const& frus, double duration = 0.f, D_MATH::Color const& color = { 1.f, 1.f, 1.f, 1.f }) {}
 		static INLINE void DrawCubeLines(D_CONTAINERS::DVector<D_MATH::Vector3> const& vertices, double duration = 0.f, D_MATH::Color const& color = { 1.f, 1.f, 1.f, 1.f }) {}
 		static INLINE void DrawConeLines(D_MATH::Vector3 const& tipLocation, D_MATH::Vector3 const& tipToBaseDirection, float height, float baseRadius, double duration = 0., D_MATH::Color const& color = { 1.f, 1.f, 1.f, 1.f }) {}
 		static INLINE void DrawHemisphere(D_MATH::Vector3 const& centerLocation, D_MATH::Vector3 const& centerToTopDirection, float radius, UINT tessellation = 16, double duration = 0., D_MATH::Color const& color = { 1.f, 1.f, 1.f, 1.f }) {}
 		static INLINE void DrawCapsule(D_MATH::Vector3 const& centerLocation, float radius, float halfHeight, D_MATH::Quaternion const& rotation, CapsuleOrientation orientation, UINT tessellation = 16, double duration = 0., D_MATH::Color const& color = { 1.f, 1.f, 1.f, 1.f }) {}
-		static INLINE void DrawMesh(D_MATH::Vector3 const& position, D_MATH::Quaternion const& rotation, D_MATH::Vector3 const& scale, D_RENDERER_GEOMETRY::Mesh const* mesh, double duration = 0., D_MATH::Color const& color = { 1.f, 1.f, 1.f, 1.f });
+		static INLINE void DrawMesh(D_MATH::Vector3 const& position, D_MATH::Quaternion const& rotation, D_MATH::Vector3 const& scale, D_RENDERER_GEOMETRY::Mesh const* mesh, double duration = 0., D_MATH::Color const& color = { 1.f, 1.f, 1.f, 1.f }) {}
 
 
 

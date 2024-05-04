@@ -319,7 +319,7 @@ namespace Darius::Math::Bounds
 			if(leaf == mBvhRoot)
 			{
 				mBvhRoot = nullptr;
-				return (nullptr);
+				return nullptr;
 			}
 			else
 			{

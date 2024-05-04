@@ -254,13 +254,16 @@ namespace Darius::Graphics::Utils
 		{
 			FILE* fp = NULL;
 
-			std::wstring name = pPDBName->GetStringPointer();
+			if(pPDBName)
+			{
+				std::wstring name = pPDBName->GetStringPointer();
 
-			// Note that if you don't specify -Fd, a pdb name will be automatically generated.
-			// Use this file name to save the pdb so that PIX can find it quickly.
-			_wfopen_s(&fp, pPDBName->GetStringPointer(), L"wb");
-			fwrite(pPDB->GetBufferPointer(), pPDB->GetBufferSize(), 1, fp);
-			fclose(fp);
+				// Note that if you don't specify -Fd, a pdb name will be automatically generated.
+				// Use this file name to save the pdb so that PIX can find it quickly.
+				_wfopen_s(&fp, pPDBName->GetStringPointer(), L"wb");
+				fwrite(pPDB->GetBufferPointer(), pPDB->GetBufferSize(), 1, fp);
+				fclose(fp);
+			}
 		}
 
 		//

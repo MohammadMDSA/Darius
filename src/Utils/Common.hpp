@@ -1,4 +1,9 @@
 #pragma once
+
+#if !_DEBUG && !NDEBUG
+#define _DEBUG
+#endif
+
 #include "StaticConstructor.hpp"
 
 #define INLINE __forceinline

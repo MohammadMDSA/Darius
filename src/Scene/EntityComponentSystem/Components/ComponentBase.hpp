@@ -326,7 +326,7 @@ namespace Darius::Scene::ECS::Components
 		virtual INLINE bool			IsDirty() const { return mDirty; }
 		bool						CanChange() const;
 
-		bool                        IsActive() const;
+		INLINE bool                 IsActive() const { return mGameObject->IsActive() && mGameObject->IsInScene() && mEnabled; }
 		INLINE bool                 IsEnabled() const { return mEnabled; }
 		INLINE bool                 IsDestroyed() const { return mDestroyed; }
 		INLINE bool                 IsStarted() const { return mStarted; }

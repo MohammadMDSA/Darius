@@ -57,7 +57,6 @@
 #include <boost/algorithm/string.hpp>
 #include <Libs/DirectXTK12/Inc/Keyboard.h>
 
-#include <locale>
 #include <codecvt>
 
 inline std::wstring STR2WSTR(const std::string& str)

@@ -153,6 +153,9 @@ using wrapper_address_return_type_t = conditional_t<is_wrapper<T>::value,
 
 //////////////////////////////////////////////////////////////////////////////////////
 
+
+#pragma warning(push)
+#pragma warning(disable: 4172)
 template<typename T>
 typename std::enable_if<is_wrapper<T>::value, raw_addressof_return_type_t< wrapper_mapper_t<T>> >::type wrapped_raw_addressof(T& obj)
 {
@@ -160,6 +163,7 @@ typename std::enable_if<is_wrapper<T>::value, raw_addressof_return_type_t< wrapp
     wrapper_mapper_t<T> value = wrapper_mapper<raw_wrapper_type>::get(obj);
     return raw_addressof(value);
 }
+#pragma warning(pop)
 
 //////////////////////////////////////////////////////////////////////////////////////
 

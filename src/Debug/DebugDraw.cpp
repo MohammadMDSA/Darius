@@ -84,8 +84,10 @@ namespace Darius::Debug
 
 	void DebugDraw::Shutdown()
 	{
+#ifdef _DEBUG
 		MeshConstantsCPU.Destroy();
 		MeshConstantsGPU.Destroy();
+#endif // _DEBUG
 	}
 
 #ifdef _D_EDITOR
@@ -95,6 +97,7 @@ namespace Darius::Debug
 	}
 #endif
 
+#ifdef _DEBUG
 	void DebugDraw::DrawCube(D_MATH::Vector3 const& position, D_MATH::Quaternion const& rotation, D_MATH::Vector3 const& scale, double duration, D_MATH::Color const& color)
 	{
 		const std::lock_guard<std::mutex> lock(AdditionMutex);
@@ -412,5 +415,5 @@ namespace Darius::Debug
 			}
 		}
 	}
-
+#endif
 }

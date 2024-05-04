@@ -1,0 +1,58 @@
+﻿{
+  "configurations": [
+    {
+      "name": "x64-Debug",
+      "generator": "Ninja",
+      "configurationType": "Debug",
+      "inheritEnvironments": [ "msvc_x64_x64" ],
+      "buildRoot": "${projectDir}\\out\\build\\${name}",
+      "installRoot": "${projectDir}\\out\\install\\${name}",
+      "cmakeCommandArgs": "",
+      "buildCommandArgs": "",
+      "ctestCommandArgs": ""
+    },
+    {
+      "name": "x64-Release",
+      "generator": "Ninja",
+      "configurationType": "RelWithDebInfo",
+      "buildRoot": "${projectDir}\\out\\build\\${name}",
+      "installRoot": "${projectDir}\\out\\install\\${name}",
+      "cmakeCommandArgs": "",
+      "buildCommandArgs": "",
+      "ctestCommandArgs": "",
+      "inheritEnvironments": [ "msvc_x64_x64" ],
+      "variables": [
+        {
+          "name": "BUILD_EXAMPLES",
+          "value": "False",
+          "type": "BOOL"
+        },
+        {
+          "name": "BUILD_DOCUMENTATION",
+          "value": "False",
+          "type": "BOOL"
+        },
+        {
+          "name": "BUILD_UNIT_TESTS",
+          "value": "False",
+          "type": "BOOL"
+        },
+        {
+          "name": "ENKITS_BUILD_C_INTERFACE",
+          "value": "False",
+          "type": "BOOL"
+        },
+        {
+          "name": "BUILD_PACKAGE",
+          "value": "False",
+          "type": "BOOL"
+        },
+        {
+          "name": "BUILD_DXIL_SHADERS",
+          "value": "False",
+          "type": "BOOL"
+        }
+      ]
+    }
+  ]
+}

@@ -35,7 +35,6 @@ namespace Darius::Fbx
 	void FBXPrefabResource::ReadResourceFromFile(D_SERIALIZATION::Json const& j, bool& dirtyDisk)
 	{
 		dirtyDisk = false;
-		D_CORE::Uuid prefabUuid;
 
 		if (j.contains("PrefabUuid"))
 			mPrefabGoUuid = D_CORE::FromString(j["PrefabUuid"]);

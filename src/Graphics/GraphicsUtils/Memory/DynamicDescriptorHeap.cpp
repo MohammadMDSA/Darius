@@ -130,8 +130,10 @@ namespace Darius::Graphics::Utils::Memory
             StaleParams ^= (1 << RootIndex);
 
             uint32_t MaxSetHandle;
-            D_ASSERT_M(TRUE == _BitScanReverse((unsigned long*)&MaxSetHandle, m_RootDescriptorTable[RootIndex].AssignedHandlesBitMap),
+            BOOLEAN check = _BitScanReverse((unsigned long*)&MaxSetHandle, m_RootDescriptorTable[RootIndex].AssignedHandlesBitMap);
+            D_ASSERT_M(TRUE == check,
                 "Root entry marked as stale but has no stale descriptors");
+            (check);
 
             NeededSpace += MaxSetHandle + 1;
         }
@@ -157,8 +159,10 @@ namespace Darius::Graphics::Utils::Memory
             StaleParams ^= (1 << RootIndex);
 
             uint32_t MaxSetHandle;
-            D_ASSERT_M(TRUE == _BitScanReverse((unsigned long*)&MaxSetHandle, m_RootDescriptorTable[RootIndex].AssignedHandlesBitMap),
+            BOOLEAN check = _BitScanReverse((unsigned long*)&MaxSetHandle, m_RootDescriptorTable[RootIndex].AssignedHandlesBitMap);
+            D_ASSERT_M(TRUE == check,
                 "Root entry marked as stale but has no stale descriptors");
+            (check);
 
             NeededSpace += MaxSetHandle + 1;
             TableSize[StaleParamCount] = MaxSetHandle + 1;

@@ -3,6 +3,11 @@ project(Demo)
 
 set(GAME_PROJECT "Demo")
 
+add_compile_definitions("$<$<NOT:$<CONFIG:Debug>>:NDEBUG>")
+set(CMAKE_MAP_IMPORTED_CONFIG_RELWITHDEBINFO Release)
+set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS_RELEASE}")
+set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS_RELWITHDEBINFO} /Zi /DEBUG")
+
 if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
     set(WINDOWS TRUE)
 endif()
@@ -25,20 +30,15 @@ if(WINDOWS)
 endif(WINDOWS)
 
 message(STATUS "Build type is ${CMAKE_BUILD_TYPE}")
-if(NOT WINDOWS)
-    if(${CMAKE_BUILD_TYPE} MATCHES Release)
-        add_definitions(-DNDEBUG)
-    else()
-        add_definitions(-D_DEBUG)
-    endif()
+if(${CMAKE_BUILD_TYPE} MATCHES "Debug")
+else()
+    add_definitions(-D_ITERATOR_DEBUG_LEVEL=0)
 endif()
 
-set(CMAKE_MAP_IMPORTED_CONFIG_RELWITHDEBINFO Release)
 
 if(BUILD_EDITOR)
     add_definitions(-D_D_EDITOR)
 endif(BUILD_EDITOR)
-
 
 # Adding Darius Header Tool
 add_subdirectory("DariusHeaderTool")

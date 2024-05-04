@@ -132,7 +132,7 @@ namespace Darius::Physics
 
 	void BoxColliderComponent::SetHalfExtents(D_MATH::Vector3 const& halfExtents)
 	{
-		if (mHalfExtents == halfExtents)
+		if (mHalfExtents.Equals(halfExtents))
 			return;
 
 		mHalfExtents = halfExtents;

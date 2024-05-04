@@ -77,25 +77,6 @@ namespace Darius::Math
 		return false;
 	}
 
-	INLINE Matrix4 const& TransformComponent::GetWorld()
-	{
-		// Should update world first
-		if (IsWorldDirty())
-		{
-			auto parent = GetGameObject()->GetParent();
-
-			mWorldMatrix = Matrix4(mTransformMath.GetWorld());
-
-			// If has parent, should apply their world too
-			if (parent != nullptr)
-				mWorldMatrix = parent->GetTransform()->GetWorld() * mWorldMatrix;
-
-			mWorldDirty = false;
-		}
-
-		return mWorldMatrix;
-	}
-
 	INLINE void TransformComponent::SetLocalPosition(Vector3 const& value)
 	{
 		if (!CanChange())

@@ -6,6 +6,7 @@
 
 #include <Core/Containers/Map.hpp>
 #include <Core/TimeManager/SystemTime.hpp>
+#include <Utils/Log.hpp>
 
 using namespace D_GRAPHICS;
 using namespace D_MATH;
@@ -204,7 +205,7 @@ namespace Darius::Graphics::Utils::Profiling
 				}
 			}
 
-			ERROR_MSG("All attempts to find a previous timing sample failed");
+			D_LOG_ERROR_FULL("All attempts to find a previous timing sample failed");
 			return nullptr;
 		}
 

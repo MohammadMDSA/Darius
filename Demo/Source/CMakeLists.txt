@@ -118,7 +118,7 @@ if ( CMAKE_CXX_COMPILER_ID MATCHES "MSVC" )
          "/wd4265" "/wd4625" "/wd4626" "/wd4986" "/wd5204" "/wd5220"
          "/wd4324" "/wd4623" "/wd5262" "/wd5264"
          "/wd5026" "/wd5027" "/wd5038"
-         "/wd4464" "/wd4127" "/wd4371" "/wd5205" "/wd5032" "/wd5219" "/wd4868" "/wd5267")
+         "/wd4464" "/wd4127" "/wd4371" "/wd5205" "/wd5032" "/wd5219" "/wd4868" "/wd5267" "/wd4711" "/wd4702")
 
     if(ENABLE_CODE_ANALYSIS)
         target_compile_options(${GAME_PROJECT} PRIVATE /analyze)
@@ -154,25 +154,32 @@ set_property(DIRECTORY PROPERTY VS_STARTUP_PROJECT ${GAME_PROJECT})
 #################################
 ## Copy dlls and stuff
 
-add_custom_command(TARGET ${GAME_PROJECT} POST_BUILD
+if(${CMAKE_BUILD_TYPE} MATCHES Debug)
+    add_custom_command(TARGET ${GAME_PROJECT} POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy_if_different 
         "$<TARGET_FILE_DIR:rttr_core>/rttr_core_d.dll"
         $<TARGET_FILE_DIR:${GAME_PROJECT}>)
+else()
+    add_custom_command(TARGET ${GAME_PROJECT} POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different 
+            "$<TARGET_FILE_DIR:rttr_core>/rttr_core.dll"
+        $<TARGET_FILE_DIR:${GAME_PROJECT}>)
+endif()
 
 add_custom_command(TARGET ${GAME_PROJECT} POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy_if_different
         "$<TARGET_FILE_DIR:flecs>/flecs.dll"
         $<TARGET_FILE_DIR:${GAME_PROJECT}>)
 
-if(${CMAKE_BUILD_TYPE} MATCHES Release)
+if(${CMAKE_BUILD_TYPE} MATCHES Debug)
     add_custom_command(TARGET ${GAME_PROJECT} POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E copy_directory
-            "${ENGINE_ROOT}/dll/release"
+            "${ENGINE_ROOT}/dll/debug"
             $<TARGET_FILE_DIR:${GAME_PROJECT}>)
 else()
     add_custom_command(TARGET ${GAME_PROJECT} POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E copy_directory
-            "${ENGINE_ROOT}/dll/debug"
+            "${ENGINE_ROOT}/dll/release"
             $<TARGET_FILE_DIR:${GAME_PROJECT}>)
 endif()
 
