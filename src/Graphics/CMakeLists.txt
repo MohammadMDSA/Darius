@@ -111,7 +111,11 @@ PRIVATE
 
 target_link_libraries("Graphics" PRIVATE "${ENGINE_DIR}/Libs/DirectXShaderCompiler/lib/dxcompiler.lib")
 
-target_link_libraries("Graphics" PRIVATE ${Boost_LIBRARIES} DirectXTex IMGUI PUBLIC ResourceManager PIX::WinPixEventRuntime)
+target_link_libraries("Graphics" PRIVATE ${Boost_LIBRARIES} DirectXTex IMGUI PUBLIC ResourceManager)
+
+if(${CMAKE_BUILD_TYPE} MATCHES "Debug")
+	target_link_libraries("Graphics" PUBLIC PIX::WinPixEventRuntime)
+endif()
 
 if(BUILD_TESTS)
 	set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/../../cmake")
