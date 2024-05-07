@@ -6,13 +6,15 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ".")
 list(APPEND AUDIO_LIBS_INCLUDE
 	"pch.hpp"
 	"AudioManager.hpp"
-	"AudioSourceResource.hpp"
+	"AudioResource.hpp"
+	"AudioSourceComponent.hpp"
 	)
 
 list(APPEND AUDIO_LIBS_SOURCES
 	"pch.cpp"
 	"AudioManager.cpp"
-	"AudioSourceResource.cpp"
+	"AudioResource.cpp"
+	"AudioSourceComponent.cpp"
 	)
 
 add_library("Audio")

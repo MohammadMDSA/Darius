@@ -3,7 +3,7 @@
 #include <ResourceManager/Resource.hpp>
 #include <ResourceManager/ResourceRef.hpp>
 
-#include "AudioSourceResource.generated.hpp"
+#include "AudioResource.generated.hpp"
 
 #ifndef D_AUDIO
 #define D_AUDIO Darius::Audio
@@ -16,11 +16,11 @@ namespace DirectX
 
 namespace Darius::Audio
 {
-	class DClass(Serialize, Resource) AudioSourceResource : public D_RESOURCE::Resource
+	class DClass(Serialize, Resource) AudioResource : public D_RESOURCE::Resource
 	{
 		GENERATED_BODY();
 
-		D_CH_RESOURCE_BODY(AudioSourceResource, "Audio Source", ".wav");
+		D_CH_RESOURCE_BODY(AudioResource, "Audio", ".wav");
 
 	public:
 
@@ -28,7 +28,9 @@ namespace Darius::Audio
 		virtual bool					DrawDetails(float params[]) override;
 #endif // _D_EDITOR
 
-		~AudioSourceResource();
+		~AudioResource();
+
+		INLINE DirectX::SoundEffect*	GetSoundEffect() const { return mSoundEffectData.get(); }
 
 	protected:
 
@@ -40,14 +42,14 @@ namespace Darius::Audio
 
 
 	private:
-		AudioSourceResource(D_CORE::Uuid uuid, std::wstring const& path, std::wstring const& name, D_RESOURCE::DResourceId id, D_RESOURCE::Resource* parent, bool isDefault = false) :
+		AudioResource(D_CORE::Uuid uuid, std::wstring const& path, std::wstring const& name, D_RESOURCE::DResourceId id, D_RESOURCE::Resource* parent, bool isDefault = false) :
 			D_RESOURCE::Resource(uuid, path, name, id, parent, isDefault),
 			mSoundEffectData(nullptr)
 		{}
 
 
-		DirectX::SoundEffect*			mSoundEffectData;
+		std::unique_ptr<DirectX::SoundEffect> mSoundEffectData;
 	};
 }
 
-File_AudioSourceResource_GENERATED
+File_AudioResource_GENERATED

@@ -1,5 +1,5 @@
 #include "pch.hpp"
-#include "AudioSourceResource.hpp"
+#include "AudioResource.hpp"
 
 #include "AudioManager.hpp"
 
@@ -12,7 +12,7 @@
 #include <imgui.h>
 #endif
 
-#include "AudioSourceResource.sgenerated.hpp"
+#include "AudioResource.sgenerated.hpp"
 
 using namespace DirectX;
 
@@ -557,31 +557,31 @@ std::string GetFormatName(WORD format)
 namespace Darius::Audio
 {
 
-	D_CH_RESOURCE_DEF(AudioSourceResource);
+	D_CH_RESOURCE_DEF(AudioResource);
 
-	AudioSourceResource::~AudioSourceResource()
+	AudioResource::~AudioResource()
 	{
-		delete mSoundEffectData;
+		mSoundEffectData.reset();
 	}
 
-	void AudioSourceResource::WriteResourceToFile(D_SERIALIZATION::Json& j) const
+	void AudioResource::WriteResourceToFile(D_SERIALIZATION::Json& j) const
 	{
 		
 	}
 
-	void AudioSourceResource::ReadResourceFromFile(D_SERIALIZATION::Json const& j, bool& dirtyDisk)
+	void AudioResource::ReadResourceFromFile(D_SERIALIZATION::Json const& j, bool& dirtyDisk)
 	{
 		dirtyDisk = false;
-		mSoundEffectData = new SoundEffect(D_AUDIO::GetEngineInstance(), GetPath().c_str());
+		mSoundEffectData = std::make_unique<SoundEffect>(D_AUDIO::GetEngineInstance(), GetPath().c_str());
 	}
 
-	bool AudioSourceResource::UploadToGpu()
+	bool AudioResource::UploadToGpu()
 	{
 		return true;
 	}
 
 #ifdef _D_EDITOR
-	bool AudioSourceResource::DrawDetails(float params[])
+	bool AudioResource::DrawDetails(float params[])
 	{
 		bool valueChanged = false;
 		

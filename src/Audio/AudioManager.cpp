@@ -1,7 +1,8 @@
 #include "pch.hpp"
 #include "AudioManager.hpp"
 
-#include "AudioSourceResource.hpp"
+#include "AudioResource.hpp"
+#include "AudioSourceComponent.hpp"
 
 #include <Core/Application.hpp>
 #include <Utils/Assert.hpp>
@@ -31,17 +32,37 @@ namespace Darius::Audio
 		ShouldReset = false;
 
 		// Setting up audio engine
-		AUDIO_ENGINE_FLAGS eflags = AudioEngine_EnvironmentalReverb | AudioEngine_ReverbUseFilters;
+		AUDIO_ENGINE_FLAGS eflags = AudioEngine_Default;
 #ifdef _DEBUG
 		eflags |= AudioEngine_Debug;
 #endif
-		AudioEngineInst = std::make_unique<DirectX::AudioEngine>(eflags);
+
+		auto enumList = AudioEngine::GetRendererDetails();
+
+		DirectX::AudioEngine::RendererDetail det;
+		if(enumList.empty())
+		{
+			// No audio devices
+		}
+		else
+		{
+			for(const auto& it : enumList)
+			{
+				det = it;
+				int i = 1;
+				if(i)
+					continue;
+			}
+		}
+
+		AudioEngineInst = std::make_unique<DirectX::AudioEngine>(eflags, nullptr, det.deviceId.c_str());
 
 		AppSuspendSignalConnection = D_APP::SubscribeOnAppSuspended(SuspendAudioEngine);
 		AppResumeSignalConnection = D_APP::SubscribeOnAppResuming(ResumeAudioEngine);
 		NewDeviceSignalConnection = D_APP::SubscribeOnNewAudioDeviceConnected(NewAudioDeviceConnected);
 
-		AudioSourceResource::Register();
+		AudioResource::Register();
+		AudioSourceComponent::StaticConstructor();
 	}
 
 	void Shutdown()
@@ -49,7 +70,7 @@ namespace Darius::Audio
 		D_ASSERT(_initialize);
 
 		AudioEngineInst->Suspend();
-		AudioEngineInst.release();
+		AudioEngineInst.reset();
 
 		AppResumeSignalConnection.disconnect();
 		AppSuspendSignalConnection.disconnect();
