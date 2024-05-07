@@ -1,6 +1,7 @@
 #pragma once
 
 #include <Core/StringId.hpp>
+#include <Core/Memory/Memory.hpp>
 #include <Core/Containers/Map.hpp>
 #include <Core/Containers/Set.hpp>
 #include <Core/Containers/Vector.hpp>

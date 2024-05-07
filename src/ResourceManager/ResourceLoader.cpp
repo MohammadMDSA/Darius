@@ -118,6 +118,7 @@ namespace Darius::ResourceManager
 		auto resourcesToCreateFromProvider = D_RESOURCE::Resource::CanConstructTypeFromPath(resourceType.value(), path);
 
 		Resource* parentRes = nullptr;
+		D_ASSERT(resourcesToCreateFromProvider.Parent.Type != 0);
 		if(resourcesToCreateFromProvider.Parent.Type != 0)
 		{
 			auto& parent = resourcesToCreateFromProvider.Parent;

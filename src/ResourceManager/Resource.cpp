@@ -90,7 +90,7 @@ namespace Darius::ResourceManager
 		auto name = D_FILE::GetFileName(path);
 		data.Name = WSTR2STR(name);
 		data.Type = type;
-		return SubResourceConstructionData {.SubResources = { data }};
+		return SubResourceConstructionData {.Parent = data, .SubResources = { }};
 	}
 
 	bool Resource::Release()
