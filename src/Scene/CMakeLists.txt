@@ -58,7 +58,6 @@ PUBLIC
 PRIVATE
 	".."
 	${Boost_INCLUDE_DIRS}
-	${FBX_INCLUDE_DIRS}
 )
 
 

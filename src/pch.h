@@ -52,7 +52,6 @@
 #include <unordered_map>
 
 #include <boost/algorithm/string.hpp>
-#include <Libs/DirectXTK12/Inc/Keyboard.h>
 
 #include <codecvt>
 

@@ -90,6 +90,7 @@ list(APPEND DARIUS_LIBS
     "Animation"
 	"Job"
     "Fbx"
+    "Audio"
 	)
 
     	
@@ -155,9 +156,6 @@ else()
     message(FATAL_ERROR "Boost not found!")
 endif()
 
-# Adding DirectXTK 12
-add_subdirectory("${SOURCE_DIR}/Libs/DirectXTK12" "${CMAKE_BINARY_DIR}/bin/CMake/DirectXTK12")
-
 # Adding fjs
 # add_subdirectory("${SOURCE_DIR}/Libs/fjs")
 
@@ -179,6 +177,7 @@ list(APPEND DARIUS_LOW_LEVEL_LIBS
     "Animation"
 	"Job"
     "Fbx"
+    "Audio"
 	)
 if(EDITOR_BUILD)
 list(APPEND DARIUS_LOW_LEVEL_LIBS

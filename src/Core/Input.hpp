@@ -3,8 +3,6 @@
 #include <Core/Serialization/Json.hpp>
 #include <Utils/Common.hpp>
 
-#include "Libs/DirectXTK12/Inc/Keyboard.h"
-
 #ifndef D_INPUT
 #define D_INPUT Darius::InputManager
 #endif // !D_INPUT
