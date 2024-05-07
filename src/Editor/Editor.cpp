@@ -10,6 +10,7 @@
 #include "GUI/GuiRenderer.hpp"
 
 #include <Core/Input.hpp>
+#include <Core/Application.hpp>
 #include <Core/Containers/Vector.hpp>
 #include <Core/TimeManager/TimeManager.hpp>
 #include <Engine/EngineContext.hpp>
@@ -119,29 +120,34 @@ namespace Darius::Editor
 	// Message handlers
 	void Editor::OnActivated()
 	{
-		D_EDITOR_CONTEXT::EditorActivated();
+		D_APP::_AppActivated();
 	}
 
 	void Editor::OnDeactivated()
 	{
-		D_EDITOR_CONTEXT::EditorDeactivated();
+		D_APP::_AppDeactivated();
 	}
 
 	void Editor::OnSuspending()
 	{
-		D_EDITOR_CONTEXT::EditorSuspended();
+		D_APP::_AppSuspended();
+	}
+
+	void Editor::OnNewAudioDeviceConnected()
+	{
+		D_APP::_NewAudioDeviceConnected();
 	}
 
 	void Editor::OnResuming()
 	{
 		D_TIME::GetStepTimer()->ResetElapsedTime();
 
-		D_EDITOR_CONTEXT::EditorResuming();
+		D_APP::_AppResuming();
 	}
 
 	void Editor::OnQuit()
 	{
-		D_EDITOR_CONTEXT::EditorQuitting();
+		D_APP::_AppQuitting();
 	}
 
 	void Editor::OnWindowMoved()

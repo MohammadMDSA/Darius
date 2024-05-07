@@ -14,6 +14,7 @@
 #include "Editor/Simulation.hpp"
 
 #include <Animation/AnimationResource.hpp>
+#include <Core/Application.hpp>
 #include <Core/Input.hpp>
 #include <Core/Containers/Map.hpp>
 #include <Core/TimeManager/TimeManager.hpp>
@@ -70,7 +71,7 @@ namespace Darius::Editor::Gui::GuiManager
 		D_ASSERT(!initialzied);
 		initialzied = true;
 
-		D_EDITOR_CONTEXT::SubscribeOnEditorDeactivated(SaveWindowsState);
+		D_APP::SubscribeOnAppDeactivated(SaveWindowsState);
 
 		auto winConfigPath = D_EDITOR_CONTEXT::GetEditorWindowsConfigPath();
 		if(D_H_ENSURE_FILE(winConfigPath))

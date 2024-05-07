@@ -4,6 +4,7 @@ set(CORE_LIBS_INCLUDE)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ".")
 
 list(APPEND CORE_LIBS_INCLUDE
+	"Application.hpp"
 	"Containers/ConcurrentQueue.hpp"
 	"Containers/EnumAsByte.hpp"
 	"Containers/Vector.hpp"
@@ -32,6 +33,7 @@ list(APPEND CORE_LIBS_INCLUDE
 	)
 
 list(APPEND CORE_LIBS_SOURCES
+	"Application.cpp"
 	"TimeManager/TimeManager.cpp"
 	"TimeManager/SystemTime.cpp"
 	"Containers/Containers.cpp"
@@ -80,7 +82,7 @@ PRIVATE
 	${Boost_INCLUDE_DIRS}
 )
 
-target_link_libraries("Core" PUBLIC Utils rttr_core foonathan_string_id PRIVATE ${Boost_LIBRARIES} DirectXTK12)
+target_link_libraries("Core" PUBLIC Utils rttr_core foonathan_string_id PRIVATE ${Boost_LIBRARIES})
 
 # Adding Nlohmann Json
 target_include_directories("Core" PUBLIC "${SOURCE_DIR}/Libs/nlohmann_json/single_include")

@@ -1,7 +1,6 @@
 #pragma once
 
 #include <Core/Filesystem/Path.hpp>
-#include <Core/Signal.hpp>
 #include <Scene/GameObject.hpp>
 #include <Utils/Detailed.hpp>
 
@@ -28,18 +27,4 @@ namespace Darius::Editor::Context
 	D_FILE::Path					GetProjectPath();
 	D_FILE::Path					GetEditorConfigPath();
 	D_FILE::Path					GetEditorWindowsConfigPath();
-
-	// Events
-	D_H_SIGNAL_DECL(EditorSuspended, void());
-	D_H_SIGNAL_DECL(EditorResuming, void());
-	D_H_SIGNAL_DECL(EditorDeactivated, void());
-	D_H_SIGNAL_DECL(EditorActivated, void());
-	D_H_SIGNAL_DECL(EditorQuitting, void());
-
-	// Internal
-	void							EditorSuspended();
-	void							EditorResuming();
-	void							EditorDeactivated();
-	void							EditorActivated();
-	void							EditorQuitting();
 }

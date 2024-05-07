@@ -48,6 +48,7 @@ namespace Darius::Editor
 		void OnDeactivated();
 		void OnSuspending();
 		void OnResuming();
+		void OnNewAudioDeviceConnected();
 		void OnQuit();
 		void OnWindowMoved();
 		void OnDisplayChange();

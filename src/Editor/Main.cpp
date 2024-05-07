@@ -8,6 +8,9 @@
 #include <Core/Input.hpp>
 #include <Utils/Debug.hpp>
 
+#include <Dbt.h>
+#include <ks.h>
+#include <ksmedia.h>
 #include <iostream>
 #include <stdio.h>
 #include <imgui_impl_win32.h>
@@ -112,6 +115,14 @@ int WINAPI wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, 
 
 		GetClientRect(hwnd, &rc);
 
+		DEV_BROADCAST_DEVICEINTERFACE filter = {};
+		filter.dbcc_size = sizeof(filter);
+		filter.dbcc_devicetype = DBT_DEVTYP_DEVICEINTERFACE;
+		filter.dbcc_classguid = KSCATEGORY_AUDIO;
+
+		RegisterDeviceNotification(hwnd, &filter,
+			DEVICE_NOTIFY_WINDOW_HANDLE);
+
 		g_game->Initialize(hwnd, rc.right - rc.left, rc.bottom - rc.top, D_FILE::Path(_PROJ_ROOT));
 		InitializeGame();
 	}
@@ -174,6 +185,24 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		if (game)
 		{
 			game->OnWindowMoved();
+		}
+		break;
+
+	// New Device Connected
+	case WM_DEVICECHANGE:
+		if(wParam == DBT_DEVICEARRIVAL)
+		{
+			auto pDev = reinterpret_cast<PDEV_BROADCAST_HDR>(lParam);
+			if(pDev)
+			{
+				if(pDev->dbch_devicetype == DBT_DEVTYP_DEVICEINTERFACE)
+				{
+					auto pInter =
+						reinterpret_cast<const PDEV_BROADCAST_DEVICEINTERFACE>(pDev);
+					if(pInter->dbcc_classguid == KSCATEGORY_AUDIO)
+						game->OnNewAudioDeviceConnected();
+				}
+			}
 		}
 		break;
 
