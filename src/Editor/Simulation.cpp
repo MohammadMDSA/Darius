@@ -3,6 +3,7 @@
 #include "Simulation.hpp"
 #include "EditorContext.hpp"
 
+#include <Audio/AudioManager.hpp>
 #include <Animation/AnimationManager.hpp>
 #include <Core/TimeManager/TimeManager.hpp>
 #include <Core/Signal.hpp>
@@ -105,6 +106,10 @@ namespace Darius::Editor::Simulate
 
 		}
 
+		{
+			D_PROFILING::ScopedTimer _prof(L"Update Audio");
+			D_AUDIO::Update();
+		}
 
 
 		// Update GPU and upload stuff
