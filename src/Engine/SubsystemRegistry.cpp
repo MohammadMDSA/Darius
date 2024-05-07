@@ -3,6 +3,7 @@
 #include "EngineContext.hpp"
 
 #include <Animation/AnimationManager.hpp>
+#include <Audio/AudioManager.hpp>
 #include <Core/Containers/List.hpp>
 #include <Core/Containers/Map.hpp>
 #include <Core/Input.hpp>
@@ -54,6 +55,7 @@ namespace Darius::Subsystems
 	void RegisterSubsystems()
 	{
 		REGISTER_SUBSYSTEM("Animation", D_ANIMATION);
+		REGISTER_SUBSYSTEM("Audio", D_AUDIO);
 		REGISTER_SUBSYSTEM("Physics", D_PHYSICS);
 #ifdef _DEBUG
 		REGISTER_SUBSYSTEM("Debug Draw", D_DEBUG_DRAW);
@@ -113,6 +115,9 @@ namespace Darius::Subsystems
 		// Initializing animation
 		D_ANIMATION::Initialize(settings["Animation"]);
 
+		// Initializing audio
+		D_AUDIO::Initialize(settings["Audio"]);
+
 		// Initializing fbx
 		D_FBX::Initialize(settings["Fbx"]);
 	}
@@ -126,6 +131,7 @@ namespace Darius::Subsystems
 			initializer();
 		}*/
 		D_FBX::Shutdown();
+		D_AUDIO::Shutdown();
 		D_ANIMATION::Shutdown();
 		D_PHYSICS::Shutdown();
 #ifdef _DEBUG

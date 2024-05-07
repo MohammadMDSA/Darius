@@ -1,0 +1,640 @@
+#include "pch.hpp"
+#include "AudioSourceResource.hpp"
+
+#include "AudioManager.hpp"
+
+#include <Utils/Common.hpp>
+
+#include <Audio.h>
+
+#ifdef _D_EDITOR
+#include <Utils/DragDropPayload.hpp>
+#include <imgui.h>
+#endif
+
+#include "AudioSourceResource.sgenerated.hpp"
+
+using namespace DirectX;
+
+std::string GetFormatName(WORD format)
+{
+	switch(format)
+	{
+	default:
+	case WAVE_FORMAT_UNKNOWN:
+		return "UNKNOWN";
+	case WAVE_FORMAT_ADPCM:
+		return "ADPCM";
+	case WAVE_FORMAT_IEEE_FLOAT:
+		return "IEEE FLOAT";
+	case WAVE_FORMAT_VSELP:
+		return "VSELP";
+	case WAVE_FORMAT_IBM_CVSD:
+		return "IBM CVSD";
+	case WAVE_FORMAT_ALAW:
+		return "ALAW";
+	case WAVE_FORMAT_MULAW:
+		return "MULAW";
+	case WAVE_FORMAT_DTS:
+		return "DTS";
+	case WAVE_FORMAT_DRM:
+		return "DRM";
+	case WAVE_FORMAT_WMAVOICE9:
+		return "WMAVOICE9";
+	case WAVE_FORMAT_WMAVOICE10:
+		return "WMAVOICE10";
+	case WAVE_FORMAT_OKI_ADPCM:
+		return "OKI ADPCM";
+	case WAVE_FORMAT_DVI_ADPCM:
+		return "DVI/IMA ADPCM";
+	case WAVE_FORMAT_MEDIASPACE_ADPCM:
+		return "MEDIASPACE ADPCM";
+	case WAVE_FORMAT_SIERRA_ADPCM:
+		return "SIERRA ADPCM";
+	case WAVE_FORMAT_G723_ADPCM:
+		return "G723 ADPCM";
+	case WAVE_FORMAT_DIGISTD:
+		return "DIGISTD";
+	case WAVE_FORMAT_DIGIFIX:
+		return "DIGIFIX";
+	case WAVE_FORMAT_DIALOGIC_OKI_ADPCM:
+		return "DIALOGIC OKI ADPCM";
+	case WAVE_FORMAT_MEDIAVISION_ADPCM:
+		return "MEDIAVISION ADPCM";
+	case WAVE_FORMAT_CU_CODEC:
+		return "CU CODEC";
+	case WAVE_FORMAT_HP_DYN_VOICE:
+		return "HP DYN VOICE";
+	case WAVE_FORMAT_YAMAHA_ADPCM:
+		return "YAMAHA ADPCM";
+	case WAVE_FORMAT_SONARC:
+		return "SONARC";
+	case WAVE_FORMAT_DSPGROUP_TRUESPEECH:
+		return "DSPGROUP TRUESPEECH";
+	case WAVE_FORMAT_ECHOSC1:
+		return "ECHOSC1";
+	case WAVE_FORMAT_AUDIOFILE_AF36:
+		return "AUDIOFILE AF36";
+	case WAVE_FORMAT_APTX:
+		return "APTX";
+	case WAVE_FORMAT_AUDIOFILE_AF10:
+		return "AUDIOFILE AF10";
+	case WAVE_FORMAT_PROSODY_1612:
+		return "PROSODY 1612";
+	case WAVE_FORMAT_LRC:
+		return "LRC";
+	case WAVE_FORMAT_DOLBY_AC2:
+		return "DOLBY AC2";
+	case WAVE_FORMAT_GSM610:
+		return "GSM610";
+	case WAVE_FORMAT_MSNAUDIO:
+		return "MSNAUDIO";
+	case WAVE_FORMAT_ANTEX_ADPCME:
+		return "ANTEX ADPCME";
+	case WAVE_FORMAT_CONTROL_RES_VQLPC:
+		return "CONTROL RES VQLPC";
+	case WAVE_FORMAT_DIGIREAL:
+		return "DIGIREAL";
+	case WAVE_FORMAT_DIGIADPCM:
+		return "DIGIADPCM";
+	case WAVE_FORMAT_CONTROL_RES_CR10:
+		return "CONTROL RES CR10";
+	case WAVE_FORMAT_NMS_VBXADPCM:
+		return "NMS VBXADPCM";
+	case WAVE_FORMAT_CS_IMAADPCM:
+		return "CS IMAADPCM";
+	case WAVE_FORMAT_ECHOSC3:
+		return "ECHOSC3";
+	case WAVE_FORMAT_ROCKWELL_ADPCM:
+		return "ROCKWELL ADPCM";
+	case WAVE_FORMAT_ROCKWELL_DIGITALK:
+		return "ROCKWELL DIGITALK";
+	case WAVE_FORMAT_XEBEC:
+		return "XEBEC";
+	case WAVE_FORMAT_G721_ADPCM:
+		return "G721 ADPCM";
+	case WAVE_FORMAT_G728_CELP:
+		return "G728 CELP";
+	case WAVE_FORMAT_MSG723:
+		return "MSG723";
+	case WAVE_FORMAT_INTEL_G723_1:
+		return "INTEL G723 1";
+	case WAVE_FORMAT_INTEL_G729:
+		return "INTEL G729";
+	case WAVE_FORMAT_SHARP_G726:
+		return "SHARP G726";
+	case WAVE_FORMAT_MPEG:
+		return "MPEG";
+	case WAVE_FORMAT_RT24:
+		return "RT24";
+	case WAVE_FORMAT_PAC:
+		return "PAC";
+	case WAVE_FORMAT_MPEGLAYER3:
+		return "MPEGLAYER3";
+	case WAVE_FORMAT_LUCENT_G723:
+		return "LUCENT G723";
+	case WAVE_FORMAT_CIRRUS:
+		return "CIRRUS";
+	case WAVE_FORMAT_ESPCM:
+		return "ESPCM";
+	case WAVE_FORMAT_VOXWARE:
+		return "VOXWARE";
+	case WAVE_FORMAT_CANOPUS_ATRAC:
+		return "CANOPUS ATRAC";
+	case WAVE_FORMAT_G726_ADPCM:
+		return "G726 ADPCM";
+	case WAVE_FORMAT_G722_ADPCM:
+		return "G722 ADPCM";
+	case WAVE_FORMAT_DSAT:
+		return "DSAT";
+	case WAVE_FORMAT_DSAT_DISPLAY:
+		return "DSAT DISPLAY";
+	case WAVE_FORMAT_VOXWARE_BYTE_ALIGNED:
+		return "VOXWARE BYTE ALIGNED";
+	case WAVE_FORMAT_VOXWARE_AC8:
+		return "VOXWARE AC8";
+	case WAVE_FORMAT_VOXWARE_AC10:
+		return "VOXWARE AC10";
+	case WAVE_FORMAT_VOXWARE_AC16:
+		return "VOXWARE AC16";
+	case WAVE_FORMAT_VOXWARE_AC20:
+		return "VOXWARE AC20";
+	case WAVE_FORMAT_VOXWARE_RT24:
+		return "VOXWARE RT24";
+	case WAVE_FORMAT_VOXWARE_RT29:
+		return "VOXWARE RT29";
+	case WAVE_FORMAT_VOXWARE_RT29HW:
+		return "VOXWARE RT29HW";
+	case WAVE_FORMAT_VOXWARE_VR12:
+		return "VOXWARE VR12";
+	case WAVE_FORMAT_VOXWARE_VR18:
+		return "VOXWARE VR18";
+	case WAVE_FORMAT_VOXWARE_TQ40:
+		return "VOXWARE TQ40";
+	case WAVE_FORMAT_VOXWARE_SC3:
+		return "VOXWARE SC3";
+	case WAVE_FORMAT_VOXWARE_SC3_1:
+		return "VOXWARE SC3 1";
+	case WAVE_FORMAT_SOFTSOUND:
+		return "SOFTSOUND";
+	case WAVE_FORMAT_VOXWARE_TQ60:
+		return "VOXWARE TQ60";
+	case WAVE_FORMAT_MSRT24:
+		return "MSRT24";
+	case WAVE_FORMAT_G729A:
+		return "G729A";
+	case WAVE_FORMAT_MVI_MVI2:
+		return "MVI MVI2";
+	case WAVE_FORMAT_DF_G726:
+		return "DF G726";
+	case WAVE_FORMAT_DF_GSM610:
+		return "DF GSM610";
+	case WAVE_FORMAT_ISIAUDIO:
+		return "ISIAUDIO";
+	case WAVE_FORMAT_ONLIVE:
+		return "ONLIVE";
+	case WAVE_FORMAT_MULTITUDE_FT_SX20:
+		return "MULTITUDE FT SX20";
+	case WAVE_FORMAT_INFOCOM_ITS_G721_ADPCM:
+		return "INFOCOM ITS G721 ADPCM";
+	case WAVE_FORMAT_CONVEDIA_G729:
+		return "CONVEDIA G729";
+	case WAVE_FORMAT_CONGRUENCY:
+		return "CONGRUENCY";
+	case WAVE_FORMAT_SBC24:
+		return "SBC24";
+	case WAVE_FORMAT_DOLBY_AC3_SPDIF:
+		return "DOLBY AC3 SPDIF";
+	case WAVE_FORMAT_MEDIASONIC_G723:
+		return "MEDIASONIC G723";
+	case WAVE_FORMAT_PROSODY_8KBPS:
+		return "PROSODY 8KBPS";
+	case WAVE_FORMAT_ZYXEL_ADPCM:
+		return "ZYXEL ADPCM";
+	case WAVE_FORMAT_PHILIPS_LPCBB:
+		return "PHILIPS LPCBB";
+	case WAVE_FORMAT_PACKED:
+		return "PACKED";
+	case WAVE_FORMAT_MALDEN_PHONYTALK:
+		return "MALDEN PHONYTALK";
+	case WAVE_FORMAT_RACAL_RECORDER_GSM:
+		return "RACAL RECORDER GSM";
+	case WAVE_FORMAT_RACAL_RECORDER_G720_A:
+		return "RACAL RECORDER G720 A";
+	case WAVE_FORMAT_RACAL_RECORDER_G723_1:
+		return "RACAL RECORDER G723 1";
+	case WAVE_FORMAT_RACAL_RECORDER_TETRA_ACELP:
+		return "RACAL RECORDER TETRA ACELP";
+	case WAVE_FORMAT_NEC_AAC:
+		return "NEC AAC";
+	case WAVE_FORMAT_RAW_AAC1:
+		return "RAW AAC1";
+	case WAVE_FORMAT_RHETOREX_ADPCM:
+		return "RHETOREX ADPCM";
+	case WAVE_FORMAT_IRAT:
+		return "IRAT";
+	case WAVE_FORMAT_VIVO_G723:
+		return "VIVO G723";
+	case WAVE_FORMAT_VIVO_SIREN:
+		return "VIVO SIREN";
+	case WAVE_FORMAT_PHILIPS_CELP:
+		return "PHILIPS CELP";
+	case WAVE_FORMAT_PHILIPS_GRUNDIG:
+		return "PHILIPS GRUNDIG";
+	case WAVE_FORMAT_DIGITAL_G723:
+		return "DIGITAL G723";
+	case WAVE_FORMAT_SANYO_LD_ADPCM:
+		return "SANYO LD ADPCM";
+	case WAVE_FORMAT_SIPROLAB_ACEPLNET:
+		return "SIPROLAB ACEPLNET";
+	case WAVE_FORMAT_SIPROLAB_ACELP4800:
+		return "SIPROLAB ACELP4800";
+	case WAVE_FORMAT_SIPROLAB_ACELP8V3:
+		return "SIPROLAB ACELP8V3";
+	case WAVE_FORMAT_SIPROLAB_G729:
+		return "SIPROLAB G729";
+	case WAVE_FORMAT_SIPROLAB_G729A:
+		return "SIPROLAB G729A";
+	case WAVE_FORMAT_SIPROLAB_KELVIN:
+		return "SIPROLAB KELVIN";
+	case WAVE_FORMAT_VOICEAGE_AMR:
+		return "VOICEAGE AMR";
+	case WAVE_FORMAT_G726ADPCM:
+		return "G726ADPCM";
+	case WAVE_FORMAT_DICTAPHONE_CELP68:
+		return "DICTAPHONE CELP68";
+	case WAVE_FORMAT_DICTAPHONE_CELP54:
+		return "DICTAPHONE CELP54";
+	case WAVE_FORMAT_QUALCOMM_PUREVOICE:
+		return "QUALCOMM PUREVOICE";
+	case WAVE_FORMAT_QUALCOMM_HALFRATE:
+		return "QUALCOMM HALFRATE";
+	case WAVE_FORMAT_TUBGSM:
+		return "TUBGSM";
+	case WAVE_FORMAT_MSAUDIO1:
+		return "MSAUDIO1";
+	case WAVE_FORMAT_WMAUDIO2:
+		return "WMAUDIO2";
+	case WAVE_FORMAT_WMAUDIO3:
+		return "WMAUDIO3";
+	case WAVE_FORMAT_WMAUDIO_LOSSLESS:
+		return "WMAUDIO LOSSLESS";
+	case WAVE_FORMAT_WMASPDIF:
+		return "WMASPDIF";
+	case WAVE_FORMAT_UNISYS_NAP_ADPCM:
+		return "UNISYS NAP ADPCM";
+	case WAVE_FORMAT_UNISYS_NAP_ULAW:
+		return "UNISYS NAP ULAW";
+	case WAVE_FORMAT_UNISYS_NAP_ALAW:
+		return "UNISYS NAP ALAW";
+	case WAVE_FORMAT_UNISYS_NAP_16K:
+		return "UNISYS NAP 16K";
+	case WAVE_FORMAT_SYCOM_ACM_SYC008:
+		return "SYCOM ACM SYC008";
+	case WAVE_FORMAT_SYCOM_ACM_SYC701_G726L:
+		return "SYCOM ACM SYC701 G726L";
+	case WAVE_FORMAT_SYCOM_ACM_SYC701_CELP54:
+		return "SYCOM ACM SYC701 CELP54";
+	case WAVE_FORMAT_SYCOM_ACM_SYC701_CELP68:
+		return "SYCOM ACM SYC701 CELP68";
+	case WAVE_FORMAT_KNOWLEDGE_ADVENTURE_ADPCM:
+		return "KNOWLEDGE ADVENTURE ADPCM";
+	case WAVE_FORMAT_FRAUNHOFER_IIS_MPEG2_AAC:
+		return "FRAUNHOFER IIS MPEG2 AAC";
+	case WAVE_FORMAT_DTS_DS:
+		return "DTS DS";
+	case WAVE_FORMAT_CREATIVE_ADPCM:
+		return "CREATIVE ADPCM";
+	case WAVE_FORMAT_CREATIVE_FASTSPEECH8:
+		return "CREATIVE FASTSPEECH8";
+	case WAVE_FORMAT_CREATIVE_FASTSPEECH10:
+		return "CREATIVE FASTSPEECH10";
+	case WAVE_FORMAT_UHER_ADPCM:
+		return "UHER ADPCM";
+	case WAVE_FORMAT_ULEAD_DV_AUDIO:
+		return "ULEAD DV AUDIO";
+	case WAVE_FORMAT_ULEAD_DV_AUDIO_1:
+		return "ULEAD DV AUDIO 1";
+	case WAVE_FORMAT_QUARTERDECK:
+		return "QUARTERDECK";
+	case WAVE_FORMAT_ILINK_VC:
+		return "ILINK VC";
+	case WAVE_FORMAT_RAW_SPORT:
+		return "RAW SPORT";
+	case WAVE_FORMAT_ESST_AC3:
+		return "ESST AC3";
+	case WAVE_FORMAT_GENERIC_PASSTHRU:
+		return "GENERIC PASSTHRU";
+	case WAVE_FORMAT_IPI_HSX:
+		return "IPI HSX";
+	case WAVE_FORMAT_IPI_RPELP:
+		return "IPI RPELP";
+	case WAVE_FORMAT_CS2:
+		return "CS2";
+	case WAVE_FORMAT_SONY_SCX:
+		return "SONY SCX";
+	case WAVE_FORMAT_SONY_SCY:
+		return "SONY SCY";
+	case WAVE_FORMAT_SONY_ATRAC3:
+		return "SONY ATRAC3";
+	case WAVE_FORMAT_SONY_SPC:
+		return "SONY SPC";
+	case WAVE_FORMAT_TELUM_AUDIO:
+		return "TELUM AUDIO";
+	case WAVE_FORMAT_TELUM_IA_AUDIO:
+		return "TELUM IA AUDIO";
+	case WAVE_FORMAT_NORCOM_VOICE_SYSTEMS_ADPCM:
+		return "NORCOM VOICE SYSTEMS ADPCM";
+	case WAVE_FORMAT_FM_TOWNS_SND:
+		return "FM TOWNS SND";
+	case WAVE_FORMAT_MICRONAS:
+		return "MICRONAS";
+	case WAVE_FORMAT_MICRONAS_CELP833:
+		return "MICRONAS CELP833";
+	case WAVE_FORMAT_BTV_DIGITAL:
+		return "BTV DIGITAL";
+	case WAVE_FORMAT_INTEL_MUSIC_CODER:
+		return "INTEL MUSIC CODER";
+	case WAVE_FORMAT_INDEO_AUDIO:
+		return "INDEO AUDIO";
+	case WAVE_FORMAT_QDESIGN_MUSIC:
+		return "QDESIGN MUSIC";
+	case WAVE_FORMAT_ON2_VP7_AUDIO:
+		return "ON2 VP7 AUDIO";
+	case WAVE_FORMAT_ON2_VP6_AUDIO:
+		return "ON2 VP6 AUDIO";
+	case WAVE_FORMAT_VME_VMPCM:
+		return "VME VMPCM";
+	case WAVE_FORMAT_TPC:
+		return "TPC";
+	case WAVE_FORMAT_LIGHTWAVE_LOSSLESS:
+		return "LIGHTWAVE LOSSLESS";
+	case WAVE_FORMAT_OLIGSM:
+		return "OLIGSM";
+	case WAVE_FORMAT_OLIADPCM:
+		return "OLIADPCM";
+	case WAVE_FORMAT_OLICELP:
+		return "OLICELP";
+	case WAVE_FORMAT_OLISBC:
+		return "OLISBC";
+	case WAVE_FORMAT_OLIOPR:
+		return "OLIOPR";
+	case WAVE_FORMAT_LH_CODEC:
+		return "LH CODEC";
+	case WAVE_FORMAT_LH_CODEC_CELP:
+		return "LH CODEC CELP";
+	case WAVE_FORMAT_LH_CODEC_SBC8:
+		return "LH CODEC SBC8";
+	case WAVE_FORMAT_LH_CODEC_SBC12:
+		return "LH CODEC SBC12";
+	case WAVE_FORMAT_LH_CODEC_SBC16:
+		return "LH CODEC SBC16";
+	case WAVE_FORMAT_NORRIS:
+		return "NORRIS";
+	case WAVE_FORMAT_ISIAUDIO_2:
+		return "ISIAUDIO 2";
+	case WAVE_FORMAT_SOUNDSPACE_MUSICOMPRESS:
+		return "SOUNDSPACE MUSICOMPRESS";
+	case WAVE_FORMAT_MPEG_ADTS_AAC:
+		return "MPEG ADTS AAC";
+	case WAVE_FORMAT_MPEG_RAW_AAC:
+		return "MPEG RAW AAC";
+	case WAVE_FORMAT_MPEG_LOAS:
+		return "MPEG LOAS";
+	case WAVE_FORMAT_NOKIA_MPEG_ADTS_AAC:
+		return "NOKIA MPEG ADTS AAC";
+	case WAVE_FORMAT_NOKIA_MPEG_RAW_AAC:
+		return "NOKIA MPEG RAW AAC";
+	case WAVE_FORMAT_VODAFONE_MPEG_ADTS_AAC:
+		return "VODAFONE MPEG ADTS AAC";
+	case WAVE_FORMAT_VODAFONE_MPEG_RAW_AAC:
+		return "VODAFONE MPEG RAW AAC";
+	case WAVE_FORMAT_MPEG_HEAAC:
+		return "MPEG HEAAC";
+	case WAVE_FORMAT_VOXWARE_RT24_SPEECH:
+		return "VOXWARE RT24 SPEECH";
+	case WAVE_FORMAT_SONICFOUNDRY_LOSSLESS:
+		return "SONICFOUNDRY LOSSLESS";
+	case WAVE_FORMAT_INNINGS_TELECOM_ADPCM:
+		return "INNINGS TELECOM ADPCM";
+	case WAVE_FORMAT_LUCENT_SX8300P:
+		return "LUCENT SX8300P";
+	case WAVE_FORMAT_LUCENT_SX5363S:
+		return "LUCENT SX5363S";
+	case WAVE_FORMAT_CUSEEME:
+		return "CUSEEME";
+	case WAVE_FORMAT_NTCSOFT_ALF2CM_ACM:
+		return "NTCSOFT ALF2CM ACM";
+	case WAVE_FORMAT_DVM:
+		return "DVM";
+	case WAVE_FORMAT_DTS2:
+		return "DTS2";
+	case WAVE_FORMAT_MAKEAVIS:
+		return "MAKEAVIS";
+	case WAVE_FORMAT_DIVIO_MPEG4_AAC:
+		return "DIVIO MPEG4 AAC";
+	case WAVE_FORMAT_NOKIA_ADAPTIVE_MULTIRATE:
+		return "NOKIA ADAPTIVE MULTIRATE";
+	case WAVE_FORMAT_DIVIO_G726:
+		return "DIVIO G726";
+	case WAVE_FORMAT_LEAD_SPEECH:
+		return "LEAD SPEECH";
+	case WAVE_FORMAT_LEAD_VORBIS:
+		return "LEAD VORBIS";
+	case WAVE_FORMAT_WAVPACK_AUDIO:
+		return "WAVPACK AUDIO";
+	case WAVE_FORMAT_ALAC:
+		return "ALAC";
+	case WAVE_FORMAT_OGG_VORBIS_MODE_1:
+		return "OGG VORBIS MODE 1";
+	case WAVE_FORMAT_OGG_VORBIS_MODE_2:
+		return "OGG VORBIS MODE 2";
+	case WAVE_FORMAT_OGG_VORBIS_MODE_3:
+		return "OGG VORBIS MODE 3";
+	case WAVE_FORMAT_OGG_VORBIS_MODE_1_PLUS:
+		return "OGG VORBIS MODE 1 PLUS";
+	case WAVE_FORMAT_OGG_VORBIS_MODE_2_PLUS:
+		return "OGG VORBIS MODE 2 PLUS";
+	case WAVE_FORMAT_OGG_VORBIS_MODE_3_PLUS:
+		return "OGG VORBIS MODE 3 PLUS";
+	case WAVE_FORMAT_3COM_NBX:
+		return "3COM NBX";
+	case WAVE_FORMAT_OPUS:
+		return "OPUS";
+	case WAVE_FORMAT_FAAD_AAC:
+		return "FAAD AAC";
+	case WAVE_FORMAT_AMR_NB:
+		return "AMR NB";
+	case WAVE_FORMAT_AMR_WB:
+		return "AMR WB";
+	case WAVE_FORMAT_AMR_WP:
+		return "AMR WP";
+	case WAVE_FORMAT_GSM_AMR_CBR:
+		return "GSM AMR CBR";
+	case WAVE_FORMAT_GSM_AMR_VBR_SID:
+		return "GSM AMR VBR SID";
+	case WAVE_FORMAT_COMVERSE_INFOSYS_G723_1:
+		return "COMVERSE INFOSYS G723 1";
+	case WAVE_FORMAT_COMVERSE_INFOSYS_AVQSBC:
+		return "COMVERSE INFOSYS AVQSBC";
+	case WAVE_FORMAT_COMVERSE_INFOSYS_SBC:
+		return "COMVERSE INFOSYS SBC";
+	case WAVE_FORMAT_SYMBOL_G729_A:
+		return "SYMBOL G729 A";
+	case WAVE_FORMAT_VOICEAGE_AMR_WB:
+		return "VOICEAGE AMR WB";
+	case WAVE_FORMAT_INGENIENT_G726:
+		return "INGENIENT G726";
+	case WAVE_FORMAT_MPEG4_AAC:
+		return "MPEG4 AAC";
+	case WAVE_FORMAT_ENCORE_G726:
+		return "ENCORE G726";
+	case WAVE_FORMAT_ZOLL_ASAO:
+		return "ZOLL ASAO";
+	case WAVE_FORMAT_SPEEX_VOICE:
+		return "SPEEX VOICE";
+	case WAVE_FORMAT_VIANIX_MASC:
+		return "VIANIX MASC";
+	case WAVE_FORMAT_WM9_SPECTRUM_ANALYZER:
+		return "WM9 SPECTRUM ANALYZER";
+	case WAVE_FORMAT_WMF_SPECTRUM_ANAYZER:
+		return "WMF SPECTRUM ANAYZER";
+	case WAVE_FORMAT_GSM_610:
+		return "GSM 610";
+	case WAVE_FORMAT_GSM_620:
+		return "GSM 620";
+	case WAVE_FORMAT_GSM_660:
+		return "GSM 660";
+	case WAVE_FORMAT_GSM_690:
+		return "GSM 690";
+	case WAVE_FORMAT_GSM_ADAPTIVE_MULTIRATE_WB:
+		return "GSM ADAPTIVE MULTIRATE WB";
+	case WAVE_FORMAT_POLYCOM_G722:
+		return "POLYCOM G722";
+	case WAVE_FORMAT_POLYCOM_G728:
+		return "POLYCOM G728";
+	case WAVE_FORMAT_POLYCOM_G729_A:
+		return "POLYCOM G729 A";
+	case WAVE_FORMAT_POLYCOM_SIREN:
+		return "POLYCOM SIREN";
+	case WAVE_FORMAT_GLOBAL_IP_ILBC:
+		return "GLOBAL IP ILBC";
+	case WAVE_FORMAT_RADIOTIME_TIME_SHIFT_RADIO:
+		return "RADIOTIME TIME SHIFT RADIO";
+	case WAVE_FORMAT_NICE_ACA:
+		return "NICE ACA";
+	case WAVE_FORMAT_NICE_ADPCM:
+		return "NICE ADPCM";
+	case WAVE_FORMAT_VOCORD_G721:
+		return "VOCORD G721";
+	case WAVE_FORMAT_VOCORD_G726:
+		return "VOCORD G726";
+	case WAVE_FORMAT_VOCORD_G722_1:
+		return "VOCORD G722 1";
+	case WAVE_FORMAT_VOCORD_G728:
+		return "VOCORD G728";
+	case WAVE_FORMAT_VOCORD_G729:
+		return "VOCORD G729";
+	case WAVE_FORMAT_VOCORD_G729_A:
+		return "VOCORD G729 A";
+	case WAVE_FORMAT_VOCORD_G723_1:
+		return "VOCORD G723 1";
+	case WAVE_FORMAT_VOCORD_LBC:
+		return "VOCORD LBC";
+	case WAVE_FORMAT_NICE_G728:
+		return "NICE G728";
+	case WAVE_FORMAT_FRACE_TELECOM_G729:
+		return "FRACE TELECOM G729";
+	case WAVE_FORMAT_CODIAN:
+		return "CODIAN";
+	case WAVE_FORMAT_DOLBY_AC4:
+		return "DOLBY AC4";
+	case WAVE_FORMAT_FLAC:
+		return "FLAC";
+	}
+}
+
+namespace Darius::Audio
+{
+
+	D_CH_RESOURCE_DEF(AudioSourceResource);
+
+	AudioSourceResource::~AudioSourceResource()
+	{
+		delete mSoundEffectData;
+	}
+
+	void AudioSourceResource::WriteResourceToFile(D_SERIALIZATION::Json& j) const
+	{
+		
+	}
+
+	void AudioSourceResource::ReadResourceFromFile(D_SERIALIZATION::Json const& j, bool& dirtyDisk)
+	{
+		dirtyDisk = false;
+		mSoundEffectData = new SoundEffect(D_AUDIO::GetEngineInstance(), GetPath().c_str());
+	}
+
+	bool AudioSourceResource::UploadToGpu()
+	{
+		return true;
+	}
+
+#ifdef _D_EDITOR
+	bool AudioSourceResource::DrawDetails(float params[])
+	{
+		bool valueChanged = false;
+		
+		if(!mSoundEffectData)
+			return false;
+
+		auto dataP = mSoundEffectData->GetFormat();
+		if(!dataP)
+			return false;
+
+		auto data = *dataP;
+
+		D_H_DETAILS_DRAW_BEGIN_TABLE();
+
+		// Format
+		{
+			D_H_DETAILS_DRAW_PROPERTY("Format");
+			ImGui::Text(GetFormatName(data.wFormatTag).c_str());
+		}
+			
+		// Channels
+		{
+			D_H_DETAILS_DRAW_PROPERTY("Channels Count");
+			ImGui::Text(std::to_string(data.nChannels).c_str());
+		}
+
+		// Samples per Second
+		{
+			D_H_DETAILS_DRAW_PROPERTY("Samples per Second Count");
+			ImGui::Text(std::to_string(data.nSamplesPerSec).c_str());
+		}
+
+		// Avg byte per Second
+		{
+			D_H_DETAILS_DRAW_PROPERTY("Average Bytes per Second");
+			ImGui::Text(std::to_string(data.nAvgBytesPerSec).c_str());
+		}
+
+		// Blog Align
+		{
+			D_H_DETAILS_DRAW_PROPERTY("Block Size");
+			ImGui::Text(std::to_string(data.nBlockAlign).c_str());
+		}
+
+		// Bits per Sample
+		{
+			D_H_DETAILS_DRAW_PROPERTY("Bits per Sample");
+			ImGui::Text(std::to_string(data.wBitsPerSample).c_str());
+		}
+
+		D_H_DETAILS_DRAW_END_TABLE();
+
+		return valueChanged;
+	}
+#endif
+}

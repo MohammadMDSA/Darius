@@ -379,7 +379,7 @@ float3 ComputeLighting(
             continue;
         
         if (i < NUM_DIR_LIGHTS + NUM_POINT_LIGHTS)
-            result += ApplyPointShadowedLight(POINT_LIGHT_ARGS, true);
+            result += ApplyPointShadowedLight(POINT_LIGHT_ARGS, light.CastsShadow);
         else
             result += ApplyConeShadowedLight(SHADOWED_LIGHT_ARGS);
         
