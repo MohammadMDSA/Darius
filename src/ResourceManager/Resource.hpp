@@ -277,6 +277,8 @@ namespace Darius::ResourceManager
 		};
 	public:
 
+		virtual ~Resource() { };
+
 		void Destroy()
 		{
 			mVersion++;
