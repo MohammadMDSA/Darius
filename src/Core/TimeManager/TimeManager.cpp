@@ -21,7 +21,7 @@ namespace Darius::Core::TimeManager
 	{
 		D_ASSERT(Timer);
 
-		Timer.release();
+		Timer.reset();
 	}
 
 #ifdef _D_EDITOR
