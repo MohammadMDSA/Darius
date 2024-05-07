@@ -20,9 +20,9 @@ namespace %%NAMESPACE%%
 		
 	}
 
-	void %%CLASS_NAME%%::ReadResourceFromFile(D_SERIALIZATION::Json const& j)
+	void %%CLASS_NAME%%::ReadResourceFromFile(D_SERIALIZATION::Json const& j, bool& dirtyDisk)
 	{
-		
+		dirtyDisk = false;
 	}
 
 	bool %%CLASS_NAME%%::UploadToGpu()
@@ -42,12 +42,6 @@ namespace %%NAMESPACE%%
 			valueChanged |= ImGui::InputFloat("##dummy", &dummy);
 
 		D_H_DETAILS_DRAW_END_TABLE();
-
-		if (valueChanged)
-		{
-			MakeDiskDirty();
-			MakeGpuDirty();
-		}
 
 		return valueChanged;
 	}
