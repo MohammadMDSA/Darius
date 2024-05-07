@@ -24,7 +24,6 @@ list(APPEND MATH_LIBS_INCLUDE
 	"Vector.hpp"
 	"Vector2.Inl"
 	"VectorMath.hpp"
-	"Viewport.hpp"
 	"Camera/Camera.hpp"
 	"Camera/Frustum.hpp"
 	"Camera/ShadowCamera.hpp"
@@ -81,7 +80,6 @@ PRIVATE
 )
 
 target_link_libraries("Math" PRIVATE ${Boost_LIBRARIES})
-# target_link_libraries("Math" PRIVATE DirectXTK12)
 target_link_libraries("Math" PRIVATE IMGUI PUBLIC Utils Core)
 
 

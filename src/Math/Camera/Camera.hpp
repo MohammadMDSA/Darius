@@ -17,6 +17,8 @@
 #include "Math/Ray.hpp"
 #include "Frustum.hpp"
 
+#include <Utils/Common.hpp>
+
 #include <rttr/rttr_enable.h>
 
 #include "Camera.generated.hpp"
