@@ -246,6 +246,21 @@ namespace Darius::Scene::ECS
 			return mSignal->connect(slot);
 		}
 
+		template<class Obj, typename FUNCTION>
+		INLINE D_CORE::SignalConnection ConnectGenericObject(Obj* obj, FUNCTION func)
+		{
+			// Checking if FUNCTION is a member function
+			D_STATIC_ASSERT(std::is_member_function_pointer<FUNCTION>::value);
+			// Checking if FUNCTION signature is the same with the signal signature
+			D_STATIC_ASSERT(std::is_same_v<FUNCTION, void(Obj::*)(T...)>);
+			D_ASSERT(obj);
+			
+			return mSignal->connect([target = obj, callback = func](T... args)
+				{
+					(target->*callback)(args...);
+				});
+		}
+
 		INLINE void operator() (T... params) const
 		{
 			(*mSignal)(params...);
