@@ -6,6 +6,8 @@
 #define D_AUDIO Darius::Audio
 #endif // !D_AUDIO
 
+struct X3DAUDIO_LISTENER;
+
 namespace DirectX
 {
 	class AudioEngine;
@@ -13,13 +15,19 @@ namespace DirectX
 
 namespace Darius::Audio
 {
+	class AudioScene;
+
 	void					Initialize(D_SERIALIZATION::Json const& settings);
 	void					Shutdown();
-	void					Update();
+	void					Update(float dt);
+
+	X3DAUDIO_LISTENER const& GetListenerData();
 
 #ifdef _D_EDITOR
 	bool					OptionsDrawer(D_SERIALIZATION::Json& options);
 #endif
 
 	DirectX::AudioEngine*	GetEngineInstance();
+
+	AudioScene*				GetAudioScene();
 }

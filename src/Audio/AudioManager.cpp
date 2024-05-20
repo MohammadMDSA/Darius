@@ -3,8 +3,12 @@
 
 #include "AudioResource.hpp"
 #include "AudioSourceComponent.hpp"
+#include "AudioListenerComponent.hpp"
+#include "AudioScene.hpp"
 
 #include <Core/Application.hpp>
+#include <Physics/Components/RigidbodyComponent.hpp>
+#include <Scene/EntityComponentSystem/Components/TransformComponent.hpp>
 #include <Utils/Assert.hpp>
 #include <Utils/Log.hpp>
 
@@ -21,6 +25,10 @@ std::atomic_bool								ShouldReset = false;
 D_CORE::SignalConnection						AppSuspendSignalConnection;
 D_CORE::SignalConnection						AppResumeSignalConnection;
 D_CORE::SignalConnection						NewDeviceSignalConnection;
+
+D_AUDIO::AudioScene* AudioSceneManager;
+
+DirectX::AudioListener							CachedListenerData;
 
 // Options
 std::string										PreferredDeviceId = "";
@@ -75,8 +83,11 @@ namespace Darius::Audio
 		AppResumeSignalConnection = D_APP::SubscribeOnAppActivated(ResumeAudioEngine);
 		NewDeviceSignalConnection = D_APP::SubscribeOnNewAudioDeviceConnected(NewAudioDeviceConnected);
 
+		AudioSceneManager = new AudioScene(nullptr);
+
 		AudioResource::Register();
 		AudioSourceComponent::StaticConstructor();
+		AudioListenerComponent::StaticConstructor();
 	}
 
 	void Shutdown()
@@ -86,9 +97,38 @@ namespace Darius::Audio
 		AudioEngineInst->Suspend();
 		AudioEngineInst.reset();
 
+		delete AudioSceneManager;
+
 		AppResumeSignalConnection.disconnect();
 		AppSuspendSignalConnection.disconnect();
 		NewDeviceSignalConnection.disconnect();
+	}
+
+	bool CalculateListenerData(D_MATH::Vector3* listenerPos, float dt)
+	{
+		bool abort = false;
+		D_ECS::CompRef<AudioListenerComponent> listener;
+		D_WORLD::IterateComponents<AudioListenerComponent>([=, &abort, &listener](AudioListenerComponent& comp)
+			{
+				if(abort || !comp.IsActive())
+					return;
+
+				abort = true;
+
+				listener = &comp;
+			});
+
+		if(listener.IsNull())
+			return false;
+
+		auto transform = listener->GetTransform();
+
+		D_MATH::Vector3 pos = transform->GetPosition();
+		if(listenerPos)
+			*listenerPos = pos;
+
+		CachedListenerData.Update(pos, transform->GetUp(), dt);
+		CachedListenerData.SetOrientation((DirectX::XMVECTOR)transform->GetForward(), (DirectX::XMVECTOR)transform->GetUp());
 	}
 
 #ifdef _D_EDITOR
@@ -122,7 +162,7 @@ namespace Darius::Audio
 	}
 #endif
 
-	void Update()
+	void Update(float dt)
 	{
 		if(!AudioEngineInst->Update())
 		{
@@ -145,6 +185,26 @@ namespace Darius::Audio
 				D_LOG_INFO("Audio engine reset successfully; all sound instances have been stoped and need resetting.");
 			}
 		}
+
+		D_MATH::Vector3 listenerPos;
+		if(CalculateListenerData(&listenerPos, dt))
+		{
+			static D_CONTAINERS::DVector<D_ECS::CompRef<AudioSourceComponent>> sources;
+			AudioSceneManager->GetInRangeAudioSources(listenerPos, 0.1f, sources);
+
+			for(auto& src : sources)
+			{
+				if(!src->IsActive() || !src->IsSpatialize())
+					return;
+
+				src->Apply3D(CachedListenerData, dt);
+			}
+		}
+	}
+
+	AudioScene* GetAudioScene()
+	{
+		return AudioSceneManager;
 	}
 
 	void SuspendAudioEngine()
@@ -172,4 +232,10 @@ namespace Darius::Audio
 	{
 		return AudioEngineInst.get();
 	}
+
+	X3DAUDIO_LISTENER const& GetListenerData()
+	{
+		return CachedListenerData;
+	}
+
 }

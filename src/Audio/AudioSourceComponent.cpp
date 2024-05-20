@@ -2,8 +2,12 @@
 #include "AudioSourceComponent.hpp"
 
 #include "AudioResource.hpp"
+#include "AudioManager.hpp"
+#include "AudioScene.hpp"
 
+#include <Physics/Components/RigidbodyComponent.hpp>
 #include <ResourceManager/ResourceManager.hpp>
+#include <Scene/EntityComponentSystem/Components/TransformComponent.hpp>
 
 #include <Audio.h>
 
@@ -22,6 +26,14 @@ namespace Darius::Audio
 
 	D_H_COMP_DEF(AudioSourceComponent);
 
+	struct AudioSourceComponent::Impl
+	{
+		std::unique_ptr<DirectX::SoundEffectInstance> mSoundInstance = nullptr;
+		std::unique_ptr<DirectX::AudioEmitter>	mEmitterData = nullptr;
+	};
+
+	D_MEMORY::PagedAllocator<AudioSourceComponent::Impl> AudioSourceComponent::DataAllocator;
+
 	AudioSourceComponent::AudioSourceComponent() :
 		Super(),
 		mVolume(1.f),
@@ -30,7 +42,9 @@ namespace Darius::Audio
 		mPlayOnStart(false),
 		mSpatialize(true),
 		mLoop(false),
-		mMute(false)
+		mMute(false),
+		mDataImpl(nullptr),
+		mMaxRange(100.f)
 	{ }
 
 	AudioSourceComponent::AudioSourceComponent(D_CORE::Uuid const& uuid) :
@@ -41,37 +55,47 @@ namespace Darius::Audio
 		mPlayOnStart(false),
 		mSpatialize(true),
 		mLoop(false),
-		mMute(false)
+		mMute(false),
+		mDataImpl(nullptr),
+		mMaxRange(100.f)
 	{ }
+
+	void AudioSourceComponent::Awake()
+	{
+		if(!mDataImpl)
+			mDataImpl = DataAllocator.Alloc();
+	}
 
 	void AudioSourceComponent::Start()
 	{
-		if(IsPlayOnStart() && mSoundInstance)
-			mSoundInstance->Play(IsLoop());
+		if(IsPlayOnStart() && mDataImpl->mSoundInstance)
+			mDataImpl->mSoundInstance->Play(IsLoop());
+
+		D_AUDIO::GetAudioScene()->RegisterAudioSource(this);
 	}
 
 	void AudioSourceComponent::Stop(bool immediate)
 	{
-		if(mSoundInstance)
-			mSoundInstance->Stop(immediate);
+		if(mDataImpl->mSoundInstance)
+			mDataImpl->mSoundInstance->Stop(immediate);
 	}
 
 	void AudioSourceComponent::Play()
 	{
-		if(mSoundInstance)
-			mSoundInstance->Play(IsLoop());
+		if(mDataImpl->mSoundInstance)
+			mDataImpl->mSoundInstance->Play(IsLoop());
 	}
 
 	void AudioSourceComponent::Pause()
 	{
-		if(mSoundInstance)
-			mSoundInstance->Pause();
+		if(mDataImpl->mSoundInstance)
+			mDataImpl->mSoundInstance->Pause();
 	}
 
 	void AudioSourceComponent::Resume()
 	{
-		if(mSoundInstance)
-			mSoundInstance->Resume();
+		if(mDataImpl->mSoundInstance)
+			mDataImpl->mSoundInstance->Resume();
 	}
 
 	void AudioSourceComponent::SetPan(float pan)
@@ -82,8 +106,8 @@ namespace Darius::Audio
 			return;
 
 		mPan = pan;
-		if(mSoundInstance)
-			mSoundInstance->SetPan(mPan);
+		if(mDataImpl->mSoundInstance)
+			mDataImpl->mSoundInstance->SetPan(mPan);
 
 		mChangeSignal(this);
 	}
@@ -97,8 +121,8 @@ namespace Darius::Audio
 
 		mVolume = vol;
 
-		if(mSoundInstance)
-			mSoundInstance->SetVolume(vol);
+		if(mDataImpl->mSoundInstance)
+			mDataImpl->mSoundInstance->SetVolume(vol);
 
 		mChangeSignal(this);
 	}
@@ -111,8 +135,8 @@ namespace Darius::Audio
 			return;
 
 		mPitch = pitch;
-		if(mSoundInstance)
-			mSoundInstance->SetPitch(pitch);
+		if(mDataImpl->mSoundInstance)
+			mDataImpl->mSoundInstance->SetPitch(pitch);
 
 		mChangeSignal(this);
 	}
@@ -124,12 +148,17 @@ namespace Darius::Audio
 
 		mAudioResource = audio;
 
-		if(mAudioResource.IsNull())
-			mSoundInstance.reset();
-		else
+		if(mAudioResource.IsValid() && !mAudioResource->IsLoaded())
 		{
-			OnAudioResourceChanged();
+			D_RESOURCE_LOADER::LoadResourceAsync(mAudioResource.Get(), [&](D_RESOURCE::Resource* loadedRes)
+				{
+					OnAudioResourceChanged();
+
+				}, true);
 		}
+		else
+			OnAudioResourceChanged();
+
 
 		mChangeSignal(this);
 	}
@@ -137,33 +166,40 @@ namespace Darius::Audio
 	void AudioSourceComponent::OnAudioResourceChanged()
 	{
 		if(mAudioResource.IsNull())
-			return;
-
-		auto sf = mAudioResource->GetSoundEffect();
-		D_ASSERT(sf);
-		mSoundInstance = sf->CreateInstance();
-		D_ASSERT(mSoundInstance.get());
-		SetupInstance();
+			mDataImpl->mSoundInstance.reset();
+		else
+			SetupInstance();
 	}
 
 	void AudioSourceComponent::OnDeserialized()
 	{
+		if(!mDataImpl)
+			mDataImpl = DataAllocator.Alloc();
+
 		OnAudioResourceChanged();
 	}
 
 	void AudioSourceComponent::SetupInstance()
 	{
-		if(!mSoundInstance)
+		auto sf = mAudioResource->GetSoundEffect();
+		D_ASSERT(sf);
+
+		DirectX::SOUND_EFFECT_INSTANCE_FLAGS flags = IsSpatialize() ? DirectX::SoundEffectInstance_Use3D : DirectX::SoundEffectInstance_Default;
+
+		mDataImpl->mSoundInstance = sf->CreateInstance(flags);
+		if(!D_VERIFY(mDataImpl->mSoundInstance.get()))
 			return;
 
-		mSoundInstance->SetPitch(GetPitch());
-		mSoundInstance->SetPan(GetPan());
-		mSoundInstance->SetVolume(GetVolume());
+		mDataImpl->mSoundInstance->SetPitch(GetPitch());
+		mDataImpl->mSoundInstance->SetPan(GetPan());
+		mDataImpl->mSoundInstance->SetVolume(GetVolume());
+		SetupEmitter();
 	}
 
 	void AudioSourceComponent::OnDestroy()
 	{
-		mSoundInstance.reset();
+		D_AUDIO::GetAudioScene()->RemoveAudioSource(this);
+		DataAllocator.Free(mDataImpl);
 	}
 
 	void AudioSourceComponent::SetPlayOnStart(bool playOnStart)
@@ -202,8 +238,50 @@ namespace Darius::Audio
 			return;
 
 		mSpatialize = spatialize;
+		SetupInstance();
 
 		mChangeSignal(this);
+	}
+
+	void AudioSourceComponent::SetupEmitter()
+	{
+		if(!mSpatialize)
+		{
+			mDataImpl->mEmitterData.reset();
+			return;
+		}
+
+		mDataImpl->mEmitterData = std::make_unique<DirectX::AudioEmitter>();
+		mDataImpl->mEmitterData->SetOmnidirectional();
+		mDataImpl->mEmitterData->EnableLinearCurves();
+		mDataImpl->mEmitterData->CurveDistanceScaler = GetMaxRange();
+	}
+
+	void AudioSourceComponent::SetMaxRange(float range)
+	{
+		range = D_MATH::Max(0.f, range);
+		if(range == mMaxRange)
+			return;
+
+		mMaxRange = range;
+
+		if(mDataImpl->mEmitterData)
+			mDataImpl->mEmitterData->CurveDistanceScaler = GetMaxRange();
+
+		mChangeSignal(this);
+	}
+
+	void AudioSourceComponent::Apply3D(X3DAUDIO_LISTENER const& listener, float dt)
+	{
+		using namespace DirectX;
+
+		auto trans = GetTransform();
+
+		mDataImpl->mEmitterData->SetOrientationFromQuaternion(trans->GetRotation());
+		mDataImpl->mEmitterData->Update(trans->GetPosition(), trans->GetUp(), dt);
+
+		if(mDataImpl->mSoundInstance)
+			mDataImpl->mSoundInstance->Apply3D(listener, *mDataImpl->mEmitterData);
 	}
 
 #if _D_EDITOR
@@ -248,6 +326,17 @@ namespace Darius::Audio
 			if(ImGui::SliderFloat("##Pitch", &value, -1.f, 1.f))
 			{
 				SetPitch(value);
+				valueChanged = true;
+			}
+		}
+
+		// Max Range
+		{
+			D_H_DETAILS_DRAW_PROPERTY("Max Range");
+			float value = GetMaxRange();
+			if(ImGui::DragFloat("##MaxRange", &value, 0.5f, 0.f, FLT_MAX))
+			{
+				SetMaxRange(value);
 				valueChanged = true;
 			}
 		}

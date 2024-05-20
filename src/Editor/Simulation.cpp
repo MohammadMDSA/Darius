@@ -108,7 +108,7 @@ namespace Darius::Editor::Simulate
 
 		{
 			D_PROFILING::ScopedTimer _prof(L"Update Audio");
-			D_AUDIO::Update();
+			D_AUDIO::Update(Timer->IsPaused() ? 0.f : (float)Timer->GetElapsedSeconds());
 		}
 
 

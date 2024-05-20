@@ -1,5 +1,9 @@
 #pragma once
 
+#include "AudioResource.hpp"
+
+#include <Math/VectorMath.hpp>
+#include <Core/Memory/Allocators/PagedAllocator.hpp>
 #include <Scene/EntityComponentSystem/Components/ComponentBase.hpp>
 #include <ResourceManager/ResourceRef.hpp>
 
@@ -9,15 +13,16 @@
 #define D_AUDIO Darius::Audio
 #endif // !D_AUDIO
 
+struct X3DAUDIO_LISTENER;
+
 namespace DirectX
 {
 	class SoundEffectInstance;
+	struct AudioEmitter;
 }
 
 namespace Darius::Audio
 {
-	class AudioResource;
-
 	class DClass(Serialize[bPlayOnStart, bLoop, bSpatialize, bMute, Pan, Volume, Pitch]) AudioSourceComponent : public D_ECS_COMP::ComponentBase
 	{
 		GENERATED_BODY();
@@ -25,8 +30,8 @@ namespace Darius::Audio
 
 	public:
 
+		virtual void							Awake() override;
 		virtual void							Start() override;
-		virtual	void							Update(float dt) override { }
 		virtual void							OnDestroy() override;
 		virtual void							OnDeserialized() override;
 
@@ -67,6 +72,12 @@ namespace Darius::Audio
 		INLINE float							GetPitch() const { return mPitch; }
 		void									SetPitch(float pitch);
 
+		// MaxRange
+		INLINE float							GetMaxRange() const { return mMaxRange; }
+		void									SetMaxRange(float maxRange);
+
+		void									Apply3D(X3DAUDIO_LISTENER const& listener, float dt);
+
 		// If is looped, plays until the end of the clip. If Immediate is set, stops immediately
 		void									Stop(bool immediate);
 		void									Play();
@@ -76,6 +87,7 @@ namespace Darius::Audio
 	protected:
 
 		void									SetupInstance();
+		void									SetupEmitter();
 		void									OnAudioResourceChanged();
 
 	private:
@@ -83,16 +95,20 @@ namespace Darius::Audio
 		DField(Serialize)
 		D_RESOURCE::ResourceRef<AudioResource>	mAudioResource;
 
-		std::unique_ptr<DirectX::SoundEffectInstance> mSoundInstance;
+		struct Impl;
+		Impl*									mDataImpl;
 
 		float									mPan;
 		float									mVolume;
 		float									mPitch;
+		float									mMaxRange;
 
 		uint8_t									mPlayOnStart : 1;
 		uint8_t									mLoop : 1;
 		uint8_t									mSpatialize : 1;
 		uint8_t									mMute : 1;
+
+		static D_MEMORY::PagedAllocator<AudioSourceComponent::Impl> DataAllocator;
 	};
 }
 

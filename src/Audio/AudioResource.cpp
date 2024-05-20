@@ -559,6 +559,11 @@ namespace Darius::Audio
 
 	D_CH_RESOURCE_DEF(AudioResource);
 
+	AudioResource::AudioResource(D_CORE::Uuid uuid, std::wstring const& path, std::wstring const& name, D_RESOURCE::DResourceId id, D_RESOURCE::Resource* parent, bool isDefault) :
+		D_RESOURCE::Resource(uuid, path, name, id, parent, isDefault),
+		mSoundEffectData(nullptr)
+	{ }
+
 	AudioResource::~AudioResource()
 	{
 		mSoundEffectData.reset();
