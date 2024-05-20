@@ -8,6 +8,7 @@
 
 #include <Core/Containers/List.hpp>
 #include <Core/Memory/Allocators/PagedAllocator.hpp>
+#include <Core/MultiThreading/RWLock.hpp>
 
 #ifndef D_MATH_BOUNDS
 #define D_MATH_BOUNDS Darius::Math::Bounds
@@ -201,7 +202,7 @@ namespace Darius::Math::Bounds
 				}
 				else
 				{
-					return (1);
+					return 1;
 				}
 			}
 
@@ -224,6 +225,7 @@ namespace Darius::Math::Bounds
 		int mTotalLeaves = 0;
 		uint32_t mOpath = 0;
 		uint32_t mIndex = 0;
+		D_CORE_THREADING::RWLock mRWLock;
 
 		enum
 		{
@@ -638,6 +640,8 @@ namespace Darius::Math::Bounds
 		// Methods
 		void Clear()
 		{
+			D_CORE_THREADING::RWLockWrite lock(mRWLock);
+
 			if(mBvhRoot)
 			{
 				RecurseDeleteNodeInternal(mBvhRoot);
@@ -646,9 +650,16 @@ namespace Darius::Math::Bounds
 			mOpath = 0;
 		}
 
-		bool IsEmpty() const { return (nullptr == mBvhRoot); }
+		bool IsEmpty() const
+		{
+			D_CORE_THREADING::RWLockRead lock(mRWLock);
+			return (nullptr == mBvhRoot);
+		}
+
 		void OptimizeBottomUp()
 		{
+			D_CORE_THREADING::RWLockWrite lock(mRWLock);
+
 			if(mBvhRoot)
 			{
 				D_CONTAINERS::DVector<Node*> leaves;
@@ -660,6 +671,8 @@ namespace Darius::Math::Bounds
 
 		void OptimizeTopDown(int buThreshold = 128)
 		{
+			D_CORE_THREADING::RWLockWrite lock(mRWLock);
+
 			if(mBvhRoot)
 			{
 				D_CONTAINERS::DVector<Node*> leaves;
@@ -670,6 +683,8 @@ namespace Darius::Math::Bounds
 
 		void OptimizeIncremental(int passes)
 		{
+			D_CORE_THREADING::RWLockWrite lock(mRWLock);
+
 			if(passes < 0)
 			{
 				passes = mTotalLeaves;
@@ -697,6 +712,8 @@ namespace Darius::Math::Bounds
 
 		ID Insert(Aabb const& box, T const& userdata)
 		{
+			D_CORE_THREADING::RWLockWrite lock(mRWLock);
+
 			Volume volume {box};
 
 			Node* leaf = CreateNodeWithVolumeInternal(nullptr, volume, userdata);
@@ -711,6 +728,8 @@ namespace Darius::Math::Bounds
 
 		bool Update(ID const& id, Aabb const& box)
 		{
+			D_CORE_THREADING::RWLockWrite lock(mRWLock);
+
 			if(!id.IsValid())
 				return false;
 
@@ -747,6 +766,8 @@ namespace Darius::Math::Bounds
 
 		void Remove(ID const& id)
 		{
+			D_CORE_THREADING::RWLockWrite lock(mRWLock);
+
 			if(!id.IsValid())
 				return;
 
@@ -758,15 +779,25 @@ namespace Darius::Math::Bounds
 
 		void GetElements(D_CONTAINERS::DList<ID>* elements)
 		{
+			D_CORE_THREADING::RWLockRead lock(mRWLock);
+
 			if(mBvhRoot)
 			{
 				ExtractLeaves(mBvhRoot, elements);
 			}
 		}
 
-		int GetLeafCount() const { return mTotalLeaves; }
+		int GetLeafCount() const
+		{
+			D_CORE_THREADING::RWLockRead lock(mRWLock);
+
+			return mTotalLeaves;
+		}
+
 		int GetMaxDepth() const
 		{
+			D_CORE_THREADING::RWLockRead lock(mRWLock);
+
 			if(mBvhRoot)
 			{
 				int depth = 1;
@@ -788,13 +819,20 @@ namespace Darius::Math::Bounds
 
 		void SetIndex(uint32_t index)
 		{
+			D_CORE_THREADING::RWLockWrite lock(mRWLock);
+
 			if(mBvhRoot != nullptr)
 				return;
 
 			mIndex = index;
 		}
 
-		uint32_t GetIndex() const { return mIndex; }
+		uint32_t GetIndex() const
+		{
+			D_CORE_THREADING::RWLockRead lock(mRWLock);
+
+			return mIndex;
+		}
 
 		~DynamicBVH()
 		{
@@ -805,6 +843,8 @@ namespace Darius::Math::Bounds
 	template <typename T>
 	void DynamicBVH<T>::SphereQuery(BoundingSphere const& sphere, QueryResult result) const
 	{
+		D_CORE_THREADING::RWLockRead lock(mRWLock);
+
 		if(!mBvhRoot)
 		{
 			return;
@@ -856,6 +896,8 @@ namespace Darius::Math::Bounds
 	template <typename T>
 	void DynamicBVH<T>::AabbQuery(Aabb const& box, QueryResult result) const
 	{
+		D_CORE_THREADING::RWLockRead lock(mRWLock);
+
 		if(!mBvhRoot)
 		{
 			return;
@@ -910,6 +952,8 @@ namespace Darius::Math::Bounds
 	template <typename T>
 	void DynamicBVH<T>::FrustumQuery(D_MATH_CAMERA::Frustum const& frustum, QueryResult result) const
 	{
+		D_CORE_THREADING::RWLockRead lock(mRWLock);
+
 		if(!mBvhRoot)
 		{
 			return;
@@ -975,6 +1019,8 @@ namespace Darius::Math::Bounds
 	template <typename T>
 	void DynamicBVH<T>::ConvexQuery(Plane const* planes, int planeCount, Vector3 const* points, int pointCount, QueryResult result) const
 	{
+		D_CORE_THREADING::RWLockRead lock(mRWLock);
+
 		if(!mBvhRoot)
 		{
 			return;
@@ -1040,6 +1086,8 @@ namespace Darius::Math::Bounds
 	template <typename T>
 	void DynamicBVH<T>::RayQuery(Vector3 const& from, Vector3 const& to, QueryResult result) const
 	{
+		D_CORE_THREADING::RWLockRead lock(mRWLock);
+
 		if(!mBvhRoot)
 		{
 			return;
