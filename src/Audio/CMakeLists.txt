@@ -7,14 +7,18 @@ list(APPEND AUDIO_LIBS_INCLUDE
 	"pch.hpp"
 	"AudioManager.hpp"
 	"AudioResource.hpp"
+	"AudioScene.hpp"
 	"AudioSourceComponent.hpp"
+	"AudioListenerComponent.hpp"
 	)
 
 list(APPEND AUDIO_LIBS_SOURCES
 	"pch.cpp"
 	"AudioManager.cpp"
 	"AudioResource.cpp"
+	"AudioScene.cpp"
 	"AudioSourceComponent.cpp"
+	"AudioListenerComponent.cpp"
 	)
 
 add_library("Audio")
@@ -46,7 +50,7 @@ PRIVATE
 
 add_subdirectory("${SOURCE_DIR}/Libs/DirectXTK12" "${CMAKE_BINARY_DIR}/bin/CMake/DirectXTK12")
 
-target_link_libraries("Audio" PUBLIC Scene PRIVATE DirectXTK12 IMGUI)
+target_link_libraries("Audio" PUBLIC Scene Physics PRIVATE DirectXTK12 IMGUI)
 
 if(BUILD_TESTS)
 	set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/../../cmake")
