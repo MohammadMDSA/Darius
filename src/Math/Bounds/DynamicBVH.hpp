@@ -2,6 +2,7 @@
 
 #include "BoundingBox.hpp"
 #include "BoundingPlane.hpp"
+#include "BoundingSphere.hpp"
 #include "Math/Ray.hpp"
 #include "Math/Camera/Frustum.hpp"
 
@@ -780,6 +781,7 @@ namespace Darius::Math::Bounds
 		}
 
 		INLINE void FrustumQuery(D_MATH_CAMERA::Frustum const& frustum, QueryResult result) const;
+		INLINE void SphereQuery(BoundingSphere const& sphere, QueryResult result) const;
 		INLINE void AabbQuery(Aabb const& aabb, QueryResult result) const;
 		INLINE void ConvexQuery(Plane const* planes, int planeCount, Vector3 const* points, int pointCount, QueryResult result) const;
 		INLINE void RayQuery(Vector3 const& from, Vector3 const& to, QueryResult result) const;
@@ -799,6 +801,57 @@ namespace Darius::Math::Bounds
 			Clear();
 		}
 	};
+
+	template <typename T>
+	void DynamicBVH<T>::SphereQuery(BoundingSphere const& sphere, QueryResult result) const
+	{
+		if(!mBvhRoot)
+		{
+			return;
+		}
+
+		const Node** stack = (const Node**)alloca(ALLOCA_STACK_SIZE * sizeof(const Node*));
+		stack[0] = mBvhRoot;
+		int32_t depth = 1;
+		int32_t threshold = ALLOCA_STACK_SIZE - 2u;
+
+		D_CONTAINERS::DVector<const Node*> auxStack; //only used in rare occasions when you run out of alloca memory because tree is too unbalanced. Should correct itself over time.
+
+		do
+		{
+			depth--;
+			const Node* n = stack[depth];
+			if(n->Volume.Aabb.Intersects(sphere))
+			{
+				if(n->IsInternal())
+				{
+					if(depth > threshold)
+					{
+						if(auxStack.empty())
+						{
+							auxStack.resize(ALLOCA_STACK_SIZE * 2);
+							memcpy(auxStack.data(), stack, ALLOCA_STACK_SIZE * sizeof(const Node*));
+						}
+						else
+						{
+							auxStack.resize(auxStack.size() * 2);
+						}
+						stack = auxStack.data();
+						threshold = (UINT)auxStack.size() - 2;
+					}
+					stack[depth++] = n->Child0;
+					stack[depth++] = n->Child1;
+				}
+				else
+				{
+					if(!result(n->Data, n->Volume.Aabb))
+					{
+						return;
+					}
+				}
+			}
+		} while(depth > 0);
+	}
 
 	template <typename T>
 	void DynamicBVH<T>::AabbQuery(Aabb const& box, QueryResult result) const
