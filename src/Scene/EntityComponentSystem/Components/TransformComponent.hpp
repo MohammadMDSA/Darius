@@ -43,6 +43,11 @@ namespace Darius::Math
 		Quaternion							GetRotation();
 		Vector3								GetScale();
 		Vector3								GetForward();
+		Vector3								GetRight();
+		Vector3								GetUp();
+		Vector3								GetLeft();
+		Vector3								GetBackward();
+		Vector3								GetDown();
 		INLINE Transform const&				GetTransformData() const { return mTransformMath; }
 
 #ifdef _D_EDITOR
@@ -148,6 +153,31 @@ namespace Darius::Math
 	INLINE Vector3 TransformComponent::GetForward()
 	{
 		return GetRotation().GetForward();
+	}
+
+	INLINE Vector3 TransformComponent::GetRight()
+	{
+		return GetRotation().GetRight();
+	}
+
+	INLINE Vector3 TransformComponent::GetUp()
+	{
+		return GetRotation().GetUp();
+	}
+
+	INLINE Vector3 TransformComponent::GetLeft()
+	{
+		return -GetRotation().GetRight();
+	}
+
+	INLINE Vector3 TransformComponent::GetBackward()
+	{
+		return -GetRotation().GetForward();
+	}
+
+	INLINE Vector3 TransformComponent::GetDown()
+	{
+		return -GetRotation().GetUp();
 	}
 
 }
