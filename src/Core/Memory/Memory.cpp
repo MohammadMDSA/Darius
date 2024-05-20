@@ -40,7 +40,7 @@ namespace Darius::Core::Memory
 
 
     void* MemoryManager::AllocStatic(size_t bytes, bool padAlign) {
-#ifdef DEBUG_ENABLED
+#ifdef _DEBUG
         bool prepad = true;
 #else
         bool prepad = padAlign;
@@ -48,7 +48,7 @@ namespace Darius::Core::Memory
 
         void* mem = malloc(bytes + (prepad ? D_PAD_ALIGN : 0));
 
-        if (mem == nullptr)
+        if (!D_VERIFY(mem))
             return nullptr; 
 
         AllocCount.Increment();
@@ -59,9 +59,9 @@ namespace Darius::Core::Memory
 
             uint8_t* s8 = (uint8_t*)mem;
 
-#ifdef DEBUG_ENABLED
-            uint64_t new_mem_usage = mem_usage.add(p_bytes);
-            max_usage.exchange_if_greater(new_mem_usage);
+#ifdef _DEBUG
+            uint64_t new_MemUsage = MemUsage.Add(bytes);
+            MaxUsage.ExchangeIfGreater(new_MemUsage);
 #endif
             return s8 + D_PAD_ALIGN;
         }
@@ -77,7 +77,7 @@ namespace Darius::Core::Memory
 
         uint8_t* mem = (uint8_t*)memory;
 
-#ifdef DEBUG_ENABLED
+#ifdef _DEBUG
         bool prepad = true;
 #else
         bool prepad = padAlign;
@@ -87,13 +87,14 @@ namespace Darius::Core::Memory
             mem -= D_PAD_ALIGN;
             uint64_t* s = (uint64_t*)mem;
 
-#ifdef DEBUG_ENABLED
-            if (p_bytes > *s) {
-                uint64_t new_mem_usage = mem_usage.add(p_bytes - *s);
-                max_usage.exchange_if_greater(new_mem_usage);
+#ifdef _DEBUG
+            if (bytes > *s) {
+                uint64_t new_MemUsage = MemUsage.Add(bytes - *s);
+                MaxUsage.ExchangeIfGreater(new_MemUsage);
             }
-            else {
-                mem_usage.sub(*s - p_bytes);
+            else
+            {
+                MemUsage.Sub(*s - bytes);
             }
 #endif
 
@@ -105,7 +106,7 @@ namespace Darius::Core::Memory
                 *s = bytes;
 
                 mem = (uint8_t*)realloc(mem, bytes + D_PAD_ALIGN);
-                if(mem == nullptr)
+                if(!D_VERIFY(mem))
                     return nullptr;
 
                 s = (uint64_t*)mem;
@@ -132,7 +133,7 @@ namespace Darius::Core::Memory
 
         uint8_t* mem = (uint8_t*)ptr;
 
-#ifdef DEBUG_ENABLED
+#ifdef _DEBUG
         bool prepad = true;
 #else
         bool prepad = padAlign;
@@ -143,9 +144,9 @@ namespace Darius::Core::Memory
         if (prepad) {
             mem -= D_PAD_ALIGN;
 
-#ifdef DEBUG_ENABLED
+#ifdef _DEBUG
             uint64_t* s = (uint64_t*)mem;
-            mem_usage.sub(*s);
+            MemUsage.Sub(*s);
 #endif
 
             free(mem);
@@ -160,16 +161,16 @@ namespace Darius::Core::Memory
     }
 
     uint64_t MemoryManager::GetMemUsage() {
-#ifdef DEBUG_ENABLED
-        return mem_usage.get();
+#ifdef _DEBUG
+        return MemUsage.Get();
 #else
         return 0;
 #endif
     }
 
     uint64_t MemoryManager::GetMemMaxUsage() {
-#ifdef DEBUG_ENABLED
-        return max_usage.get();
+#ifdef _DEBUG
+        return MaxUsage.Get();
 #else
         return 0;
 #endif

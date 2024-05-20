@@ -129,6 +129,7 @@ namespace Darius::Audio
 
 		CachedListenerData.Update(pos, transform->GetUp(), dt);
 		CachedListenerData.SetOrientation((DirectX::XMVECTOR)transform->GetForward(), (DirectX::XMVECTOR)transform->GetUp());
+		return true;
 	}
 
 #ifdef _D_EDITOR

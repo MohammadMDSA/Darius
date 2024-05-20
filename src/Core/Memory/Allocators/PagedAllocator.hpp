@@ -120,10 +120,10 @@ namespace Darius::Core::Memory
 				mSpinLock.Lock();
 			}
 
-			if (mPagePool != nullptr) //sanity check
+			if (!D_VERIFY(mPagePool == nullptr)) //sanity check
 				return;
 
-			if (pageSize == 0)
+			if (!D_VERIFY(pageSize))
 				return;
 
 			mPageSize = D_MATH::RoundUpToPowerOfTwo(pageSize);
