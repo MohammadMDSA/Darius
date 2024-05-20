@@ -12,6 +12,8 @@ list(APPEND SCENE_LIBS_INCLUDE
 	"EntityComponentSystem/Components/TransformComponent.hpp"
 	"GameObject.hpp"
 	"GameObjectRef.hpp"
+	"Proxy/SceneProxy.hpp"
+	"Proxy/SpacialSceneProxy.hpp"
 	"Resources/PrefabResource.hpp"
 	"Scene.hpp"
     "Utils/DetailsDrawer.hpp"
