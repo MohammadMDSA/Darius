@@ -30,7 +30,7 @@ namespace Darius::Debug
 		static bool OptionsDrawer(_IN_OUT_ D_SERIALIZATION::Json& options);
 #endif
 
-#ifdef _DEBUG
+#ifdef _D_EDITOR
 		static void FinalizeUpload();
 		static void Clear(bool clearCache = false);
 
@@ -71,11 +71,11 @@ namespace Darius::Debug
 
 
 
-#endif // _DEBUG
+#endif // _D_EDITOR
 
 
 	private:
-#ifdef _DEBUG
+#ifdef _D_EDITOR
 		static void PopulateRenderItemFromMesh(D_RENDERER::RenderItem& renderItem, D_RENDERER_GEOMETRY::Mesh const* mesh);
 		static void UploadTransform(D_MATH::Transform const& trans, UINT index);
 
@@ -87,7 +87,7 @@ namespace Darius::Debug
 		static INLINE void PopulateRenderItemFromMesh(D_RENDERER::RenderItem& renderItem, D_RENDERER_GEOMETRY::Mesh const* mesh) {}
 		static INLINE void UploadTransform(D_MATH::Transform const& trans, UINT index) {}
 
-#endif // _DEBUG
+#endif // _D_EDITOR
 
 	};
 }

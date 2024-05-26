@@ -47,7 +47,7 @@ using namespace D_RESOURCE;
 namespace Darius::Debug
 {
 
-#ifdef _DEBUG
+#ifdef _D_EDITOR
 
 	// Gpu buffers
 	D_GRAPHICS_BUFFERS::UploadBuffer		MeshConstantsCPU;
@@ -63,11 +63,11 @@ namespace Darius::Debug
 	D_RESOURCE::ResourceRef<D_RENDERER::StaticMeshResource>	DebugDraw::SphereMeshResource;
 	D_RESOURCE::ResourceRef<D_RENDERER::BatchResource>		DebugDraw::LineMeshResource;
 
-#endif // _DEBUG
+#endif // _D_EDITOR
 
 	void DebugDraw::Initialize(D_SERIALIZATION::Json const& settings)
 	{
-#ifdef _DEBUG
+#ifdef _D_EDITOR
 		CubeMeshResource = GetResourceSync<D_RENDERER::StaticMeshResource>(D_RENDERER::GetDefaultGraphicsResource(D_RENDERER::DefaultResource::BoxMesh));
 		SphereMeshResource = GetResourceSync<D_RENDERER::StaticMeshResource>(D_RENDERER::GetDefaultGraphicsResource(D_RENDERER::DefaultResource::LowPolySphereMesh));
 		LineMeshResource = GetResourceSync<D_RENDERER::BatchResource>(D_RENDERER::GetDefaultGraphicsResource(D_RENDERER::DefaultResource::LineMesh));
@@ -78,16 +78,16 @@ namespace Darius::Debug
 
 		DrawPending.reserve(500);
 
-#endif // _DEBUG
+#endif // _D_EDITOR
 
 	}
 
 	void DebugDraw::Shutdown()
 	{
-#ifdef _DEBUG
+#ifdef _D_EDITOR
 		MeshConstantsCPU.Destroy();
 		MeshConstantsGPU.Destroy();
-#endif // _DEBUG
+#endif // _D_EDITOR
 	}
 
 #ifdef _D_EDITOR
@@ -95,9 +95,9 @@ namespace Darius::Debug
 	{
 		return false;
 	}
-#endif
+#endif // _D_EDITOR
 
-#ifdef _DEBUG
+#ifdef _D_EDITOR
 	void DebugDraw::DrawCube(D_MATH::Vector3 const& position, D_MATH::Quaternion const& rotation, D_MATH::Vector3 const& scale, double duration, D_MATH::Color const& color)
 	{
 		const std::lock_guard<std::mutex> lock(AdditionMutex);
@@ -415,5 +415,5 @@ namespace Darius::Debug
 			}
 		}
 	}
-#endif
+#endif // _D_EDITOR
 }

@@ -57,9 +57,9 @@ namespace Darius::Subsystems
 		REGISTER_SUBSYSTEM("Animation", D_ANIMATION);
 		REGISTER_SUBSYSTEM("Audio", D_AUDIO);
 		REGISTER_SUBSYSTEM("Physics", D_PHYSICS);
-#ifdef _DEBUG
+#ifdef _D_EDITOR
 		REGISTER_SUBSYSTEM("Debug Draw", D_DEBUG_DRAW);
-#endif // _DEBUG
+#endif // _D_EDITOR
 		REGISTER_SUBSYSTEM("Input", D_INPUT);
 		REGISTER_SUBSYSTEM("Time", D_TIME);
 		REGISTER_SUBSYSTEM("Job", D_JOB);
@@ -105,9 +105,9 @@ namespace Darius::Subsystems
 		D_INPUT::Initialize(window, settings["Input"]);
 
 		// Initialize Debug Drawer
-#ifdef _DEBUG
+#ifdef _D_EDITOR
 		D_DEBUG_DRAW::Initialize(settings["Debug Draw"]);
-#endif // _DEBUG
+#endif // _D_EDITOR
 
 		// Initializeing physics
 		D_PHYSICS::Initialize(settings["Physics"]);
@@ -134,9 +134,9 @@ namespace Darius::Subsystems
 		D_AUDIO::Shutdown();
 		D_ANIMATION::Shutdown();
 		D_PHYSICS::Shutdown();
-#ifdef _DEBUG
+#ifdef _D_EDITOR
 		D_DEBUG_DRAW::Shutdown();
-#endif // _DEBUG
+#endif // _D_EDITOR
 		D_INPUT::Shutdown();
 		D_TIME::Shutdown();
 		D_JOB::Shutdown();

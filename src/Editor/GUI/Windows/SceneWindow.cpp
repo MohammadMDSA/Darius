@@ -241,11 +241,8 @@ namespace Darius::Editor::Gui::Windows
 			additional.push_back(&mWindowRenderItems);
 
 		// Add debug draw items
-
-#if _DEBUG
 		if(mDrawDebug)
 			additional.push_back(&D_DEBUG_DRAW::GetRenderItems());
-#endif
 
 		D_RENDERER::RenderItemContext riContext;
 		riContext.IsEditor = true;
