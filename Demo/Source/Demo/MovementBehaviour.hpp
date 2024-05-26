@@ -9,7 +9,7 @@ namespace Demo
 	
 	class DClass(Serialize) MovementBehaviour : public D_ECS_COMP::BehaviourComponent
 	{
-		D_H_BEHAVIOUR_COMP_BODY(MovementBehaviour, D_ECS_COMP::BehaviourComponent, "Movement", true, true);
+		D_H_BEHAVIOUR_COMP_BODY(MovementBehaviour, D_ECS_COMP::BehaviourComponent, "Gameplay/Movement", true, true);
 		GENERATED_BODY();
 
 	public:
@@ -30,6 +30,12 @@ namespace Demo
 
 		DField(Get[inline], Set[inline])
 		bool							mRotate;
+
+		DField(Serialize)
+		D_MATH::Vector3					mAxis;
+
+		DField(Serialize)
+		float							mRange;
 	};
 }
 
