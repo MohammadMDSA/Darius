@@ -62,6 +62,8 @@ namespace Darius::Editor::Gui::Windows
 		void						WriteColorConfig(std::string const&, D_MATH::Color const& input);
 		void						WriteQuaternionConfig(std::string const&, D_MATH::Quaternion const& input);
 
+		INLINE bool					IsAppearing() const { return mAppearing; }
+
 	protected:
 
 		friend void Darius::Editor::Gui::GuiManager::DrawGUI();
@@ -80,8 +82,9 @@ namespace Darius::Editor::Gui::Windows
 
 		D_SERIALIZATION::Json&		mConfig;
 
-		bool						mHovered;
-		bool						mFocused;
+		uint8_t						mHovered : 1;
+		uint8_t						mFocused : 1;
+		uint8_t						mAppearing : 1;
 
 	};
 

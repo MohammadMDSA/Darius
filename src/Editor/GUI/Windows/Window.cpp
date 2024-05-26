@@ -32,7 +32,7 @@ namespace Darius::Editor::Gui::Windows
 
 		mFocused = ImGui::IsWindowFocused();
 		mHovered = ImGui::IsWindowHovered();
-
+		mAppearing = !ImGui::IsWindowCollapsed();
 	}
 
 	bool Window::ReadFloatConfig(std::string const& key, float& output)

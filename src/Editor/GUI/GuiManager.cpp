@@ -211,7 +211,7 @@ namespace Darius::Editor::Gui::GuiManager
 	void Render()
 	{
 		for(auto& kv : Windows)
-			if(kv.second->IsOpened())
+			if(kv.second->IsAppearing())
 				kv.second->Render();
 	}
 
