@@ -16,6 +16,7 @@ namespace Darius::Audio
 		D_ASSERT(mRefComp.IsValid());
 
 		mRefComp->mChangeSignal.ConnectGenericObject(this, &AudioSceneObject::OnAudioSourceChanged);
+		mRange = mRefComp->GetMaxRange();
 	}
 
 	AudioSceneObject::~AudioSceneObject()
@@ -25,14 +26,14 @@ namespace Darius::Audio
 
 	void AudioSceneObject::OnAudioSourceChanged(D_ECS_COMP::ComponentBase* src)
 	{
-		mAabb = D_MATH_BOUNDS::Aabb::CreateFromCenterAndExtents(GetGameObject()->GetTransform()->GetPosition(), D_MATH::Vector3(mRefComp->GetMaxRange()));
-
 		UpdateBvhNode();
+		mRange = mRefComp->GetMaxRange();
 	}
 
 	D_MATH_BOUNDS::Aabb AudioSceneObject::GetAabb() const
 	{
-		return mAabb;
+		auto trans = mRefComp.GetGameObject()->GetTransform();
+		return D_MATH_BOUNDS::Aabb::CreateFromCenterAndExtents(trans->GetPosition(), D_MATH::Vector3(mRange));
 	}
 
 	bool AudioScene::RegisterAudioSource(AudioSourceComponent* src)

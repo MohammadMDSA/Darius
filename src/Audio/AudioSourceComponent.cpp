@@ -253,8 +253,34 @@ namespace Darius::Audio
 
 		mDataImpl->mEmitterData = std::make_unique<DirectX::AudioEmitter>();
 		mDataImpl->mEmitterData->SetOmnidirectional();
-		mDataImpl->mEmitterData->EnableLinearCurves();
+		mDataImpl->mEmitterData->pLPFDirectCurve = nullptr;
+		mDataImpl->mEmitterData->pLPFReverbCurve = nullptr;
+		mDataImpl->mEmitterData->pReverbCurve = nullptr;
 		mDataImpl->mEmitterData->CurveDistanceScaler = GetMaxRange();
+
+		static D_CONTAINERS::DVector<X3DAUDIO_DISTANCE_CURVE_POINT> curvePoints;
+		static X3DAUDIO_DISTANCE_CURVE invCubicCurve;
+		struct CurveInitializer
+		{
+			CurveInitializer()
+			{
+				const UINT NumPts = 6;
+				curvePoints.resize(NumPts);
+
+				for(int i = 0; i < NumPts; i++)
+				{
+					float dist = 1.f * i / (NumPts - 1);
+					float intensity = 1.f - (dist * dist);
+					curvePoints[i] = {dist, intensity};
+				}
+				invCubicCurve = {curvePoints.data(), NumPts};
+			}
+		};
+		static CurveInitializer _initializer;
+		(_initializer);
+
+		mDataImpl->mEmitterData->pVolumeCurve = &invCubicCurve;
+		mDataImpl->mEmitterData->pLFECurve = &invCubicCurve;
 	}
 
 	void AudioSourceComponent::SetMaxRange(float range)

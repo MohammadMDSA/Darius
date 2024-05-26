@@ -36,7 +36,7 @@ namespace Darius::Audio
 
 		D_ECS::CompRef<AudioSourceComponent>	mRefComp;
 		D_CORE::SignalConnection				mChangeConnection;
-		D_MATH_BOUNDS::Aabb						mAabb;
+		float									mRange;
 	};
 
 	class AudioScene : public D_SCENE::SpacialSceneProxy<AudioSceneObject>
