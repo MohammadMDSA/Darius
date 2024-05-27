@@ -8,8 +8,15 @@
 #include <Core/TimeManager/SystemTime.hpp>
 #include <Utils/Log.hpp>
 
+#include <chrono>
+
 using namespace D_GRAPHICS;
 using namespace D_MATH;
+
+float GetDurationInSeconds(std::chrono::high_resolution_clock::duration const& duration)
+{
+	return std::chrono::duration_cast<std::chrono::nanoseconds>(duration).count() * (float)1e-9;
+}
 
 namespace Darius::Graphics::Utils::Profiling
 {
@@ -181,7 +188,9 @@ namespace Darius::Graphics::Utils::Profiling
 
 		inline ScopeTimeData GetScopeData()
 		{
-			return { m_Name, m_LastStartTick - s_preLastFrameTick, m_LastEndTick - s_preLastFrameTick, (unsigned char)m_Level };
+			auto start = m_LastStartTime - s_preLastFrameTime;
+			auto end = m_LastEndTime - s_preLastFrameTime;
+			return { m_Name, std::chrono::duration_cast<std::chrono::nanoseconds>(start).count() * (float)1e-6, std::chrono::duration_cast<std::chrono::nanoseconds>(end).count() * (float)1e-6, (unsigned char)m_Level};
 		}
 
 		NestedTimingTree* PrevChild(NestedTimingTree* curChild)
@@ -212,7 +221,7 @@ namespace Darius::Graphics::Utils::Profiling
 		void StartTiming(D_GRAPHICS::CommandContext* Context)
 		{
 			D_ASSERT(!AwaitingUpdate);
-			m_StartTick = D_TIME::SystemTime::GetCurrentTick();
+			m_StartTime = std::chrono::high_resolution_clock::now();
 			if (Context == nullptr)
 				return;
 
@@ -224,7 +233,7 @@ namespace Darius::Graphics::Utils::Profiling
 		void StopTiming(D_GRAPHICS::CommandContext* Context)
 		{
 			D_ASSERT(!AwaitingUpdate);
-			m_EndTick = D_TIME::SystemTime::GetCurrentTick();
+			m_EndTime = std::chrono::high_resolution_clock::now();
 			if (Context == nullptr)
 				return;
 
@@ -235,22 +244,22 @@ namespace Darius::Graphics::Utils::Profiling
 
 		void GatherTimes(uint32_t FrameIndex)
 		{
-			if (Paused)
+ 			if (Paused)
 			{
 				for (auto node : m_Children)
 					node->GatherTimes(FrameIndex);
 				return;
 			}
-			m_CpuTime.RecordStat(FrameIndex, 1000.0f * (float)D_TIME::SystemTime::TimeBetweenTicks(m_StartTick, m_EndTick));
+			m_CpuTime.RecordStat(FrameIndex, 1000.0f * GetDurationInSeconds(m_EndTime - m_StartTime));
 			m_GpuTime.RecordStat(FrameIndex, 1000.0f * m_GpuTimer.GetTime());
 
 			for (auto node : m_Children)
 				node->GatherTimes(FrameIndex);
 
-			m_LastStartTick = m_StartTick;
-			m_LastEndTick = m_EndTick;
-			m_StartTick = 0;
-			m_EndTick = 0;
+			m_LastStartTime = m_StartTime;
+			m_LastEndTime = m_EndTime;
+			m_StartTime = std::chrono::high_resolution_clock::time_point();
+			m_EndTime = std::chrono::high_resolution_clock::time_point();
 		}
 
 		void ScopeTimerSnapshot(D_CONTAINERS::DVector<ScopeTimeData>& container)
@@ -277,14 +286,14 @@ namespace Darius::Graphics::Utils::Profiling
 		static void UpdateTimes(void)
 		{
 			uint32_t FrameIndex = (uint32_t)D_GRAPHICS::GetFrameCount();
-			uint64_t frameTick = D_TIME::SystemTime::GetCurrentTick();
+			auto frameTime = std::chrono::high_resolution_clock::now();
 
 			D_PROFILING_GPU::BeginReadBack();
 			auto delta =
-				sm_RootScope.m_StartTick = s_lastFrameTick;
-			sm_RootScope.m_EndTick = frameTick;
+				sm_RootScope.m_StartTime = s_lastFrameTime;
+			sm_RootScope.m_EndTime = frameTime;
 			sm_RootScope.GatherTimes(FrameIndex);
-			s_FrameDelta.RecordStat(FrameIndex, (float)D_TIME::SystemTime::TimeBetweenTicks(s_lastFrameTick, frameTick));
+			s_FrameDelta.RecordStat(FrameIndex, GetDurationInSeconds(frameTime - s_lastFrameTime));
 			D_PROFILING_GPU::EndReadBack();
 
 			float TotalCpuTime, TotalGpuTime;
@@ -292,8 +301,8 @@ namespace Darius::Graphics::Utils::Profiling
 			s_TotalCpuTime.RecordStat(FrameIndex, TotalCpuTime);
 			s_TotalGpuTime.RecordStat(FrameIndex, TotalGpuTime);
 
-			s_preLastFrameTick = s_lastFrameTick;
-			s_lastFrameTick = frameTick;
+			s_preLastFrameTime = s_lastFrameTime;
+			s_lastFrameTime = frameTime;
 		}
 
 		static float GetAvgCpuTime() { return s_TotalCpuTime.GetAvg(); }
@@ -309,9 +318,9 @@ namespace Darius::Graphics::Utils::Profiling
 		static float GetMaxGpuTime() { return s_TotalGpuTime.GetMax(); }
 		static float GetMaxFrameDelta() { return s_FrameDelta.GetMax(); }
 
-		static INLINE void SetLastFrameTick(uint64_t tick)
+		static INLINE void SetLastFrameTime(std::chrono::high_resolution_clock::time_point const& time)
 		{
-			s_lastFrameTick = tick;
+			s_lastFrameTime = time;
 		}
 
 
@@ -331,10 +340,10 @@ namespace Darius::Graphics::Utils::Profiling
 		NestedTimingTree* m_Parent;
 		D_CONTAINERS::DVector<NestedTimingTree*> m_Children;
 		D_CONTAINERS::DUnorderedMap<std::wstring, NestedTimingTree*> m_LUT;
-		uint64_t m_StartTick;
-		uint64_t m_EndTick;
-		uint64_t m_LastStartTick;
-		uint64_t m_LastEndTick;
+		std::chrono::high_resolution_clock::time_point m_StartTime;
+		std::chrono::high_resolution_clock::time_point m_EndTime;
+		std::chrono::high_resolution_clock::time_point m_LastStartTime;
+		std::chrono::high_resolution_clock::time_point m_LastEndTime;
 		StatHistory m_CpuTime;
 		StatHistory m_GpuTime;
 		int m_Level = 1;
@@ -346,8 +355,8 @@ namespace Darius::Graphics::Utils::Profiling
 		static NestedTimingTree sm_RootScope;
 		static NestedTimingTree* sm_CurrentNode;
 		static NestedTimingTree* sm_SelectedScope;
-		static uint64_t s_lastFrameTick;
-		static uint64_t s_preLastFrameTick;
+		static std::chrono::high_resolution_clock::time_point s_lastFrameTime;
+		static std::chrono::high_resolution_clock::time_point s_preLastFrameTime;
 	};
 
 	StatHistory NestedTimingTree::s_TotalCpuTime;
@@ -356,8 +365,8 @@ namespace Darius::Graphics::Utils::Profiling
 	NestedTimingTree NestedTimingTree::sm_RootScope(L"");
 	NestedTimingTree* NestedTimingTree::sm_CurrentNode = &NestedTimingTree::sm_RootScope;
 	NestedTimingTree* NestedTimingTree::sm_SelectedScope = &NestedTimingTree::sm_RootScope;
-	uint64_t NestedTimingTree::s_lastFrameTick = D_TIME::SystemTime::GetCurrentTick();
-	uint64_t NestedTimingTree::s_preLastFrameTick = s_lastFrameTick;
+	std::chrono::high_resolution_clock::time_point NestedTimingTree::s_lastFrameTime = std::chrono::high_resolution_clock::now();
+	std::chrono::high_resolution_clock::time_point NestedTimingTree::s_preLastFrameTime = s_lastFrameTime;
 
 	const bool DrawPerfGraph = false;
 
@@ -397,17 +406,17 @@ namespace Darius::Graphics::Utils::Profiling
 
 		if (startTimestamp)
 		{
-			auto value = D_TIME::SystemTime::TicksToMillisecs(nestedTree.StartTick);
+			auto value = nestedTree.StartTime;
 
-			*startTimestamp = value >= 0 ? (float)value : 0;
+			*startTimestamp = value >= 0 ? value : 0.f;
 		}
 
 		if (endTimestamp)
 		{
 
-			auto value = D_TIME::SystemTime::TicksToMillisecs(nestedTree.EndTick);
+			auto value = nestedTree.EndTime;
 
-			*endTimestamp = value >= 0 ? (float)value : 0;
+			*endTimestamp = value >= 0 ? value : 0.f;
 		}
 
 		if (level)
@@ -441,7 +450,7 @@ namespace Darius::Graphics::Utils::Profiling
 		if (!Paused)
 			return;
 		Paused = false;
-		NestedTimingTree::SetLastFrameTick(D_TIME::SystemTime::GetCurrentTick());
+		NestedTimingTree::SetLastFrameTime(std::chrono::high_resolution_clock::now());
 	}
 
 	bool IsPaused()

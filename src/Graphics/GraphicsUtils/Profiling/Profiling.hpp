@@ -18,8 +18,8 @@ namespace Darius::Graphics::Utils::Profiling
 	struct ScopeTimeData
 	{
 		std::wstring		Name;
-		unsigned long long	StartTick;
-		unsigned long long	EndTick;
+		float				StartTime;
+		float				EndTime;
 		unsigned char		Depth;
 	};
 
