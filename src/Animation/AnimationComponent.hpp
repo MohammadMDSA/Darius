@@ -44,6 +44,7 @@ namespace Darius::Animation
 
 		virtual void							Update(float deltaTime) override;
 		virtual void							Awake() override;
+		virtual void							Start() override;
 
 		INLINE AnimationResource*				GetAnimation() const { return mAnimation.Get(); }
 		void									SetAnimation(AnimationResource* animation);

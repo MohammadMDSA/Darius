@@ -20,6 +20,35 @@ namespace Darius::Animation
 
 	D_CH_RESOURCE_DEF(AnimationResource);
 
+	AnimationResource::AnimationResource(D_CORE::Uuid uuid, std::wstring const& path, std::wstring const& name, D_RESOURCE::DResourceId id, D_RESOURCE::Resource* parent, bool isDefault) :
+		Resource(uuid, path, name, id, parent, isDefault),
+		mSkeletalAnimationSequence(),
+		mSkeletalAnimation(false),
+		mFramesPerSecond(60u)
+	{
+		struct StaticInitializer
+		{
+			StaticInitializer()
+			{
+				D_SERIALIZATION::RegisterSerializer<ComponentAnimationData>(
+					[](ComponentAnimationData const& data, D_SERIALIZATION::Json& j)
+					{
+						j["ComponentName"] = data.ComponentName.string();
+						D_SERIALIZATION::Serialize(data.AnimationSequence, j["AnimationSequence"]);
+					},
+					[](ComponentAnimationData& data, D_SERIALIZATION::Json const& j)
+					{
+						data.ComponentName = D_CORE::StringId(j["ComponentName"].get<std::string>().c_str(), D_ECS_COMP::NameDatabase);
+						D_SERIALIZATION::Deserialize(data.AnimationSequence, j["AnimationSequence"]);
+					}
+				);
+			}
+		};
+	
+		static StaticInitializer _Initializer;
+		(_Initializer);
+	}
+
 	D_RESOURCE::SubResourceConstructionData AnimationResource::CanConstructFrom(ResourceType type, Path const& path)
 	{
 		DVector<ResourceDataInFile> subRes;

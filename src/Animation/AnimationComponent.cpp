@@ -354,8 +354,16 @@ if(!prop.set_value(*targetComponent, optValue.value())) \
 
 	void AnimationComponent::Awake()
 	{
+		Super::Awake();
+
 		mAnimState.Time = 0.f;
 		mAnimState.State = AnimationState::kLooping;
+	}
+
+	void AnimationComponent::Start()
+	{
+		Super::Start();
+		LoadAnimationCache();
 	}
 
 	void AnimationComponent::SetAnimation(AnimationResource* animation)

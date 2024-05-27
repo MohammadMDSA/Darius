@@ -89,6 +89,7 @@ namespace Darius::Editor::Gui::Windows
 		if (!associatedAnimation)
 		{
 			DrawNullObjectMessage();
+			mCachedAnimation = nullptr;
 			return;
 		}
 
