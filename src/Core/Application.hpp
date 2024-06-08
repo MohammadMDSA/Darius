@@ -23,4 +23,11 @@ namespace Darius::Core::Application
 	void							_AppActivated();
 	void							_AppQuitting();
 	void							_NewAudioDeviceConnected();
+
+	class GameProject
+	{
+	public:
+		virtual void Initialize() = 0;
+		virtual void Shutdown() = 0;
+	};
 }
