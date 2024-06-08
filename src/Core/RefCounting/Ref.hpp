@@ -116,6 +116,8 @@ namespace Darius::Core
 		INLINE virtual bool IsValid() const { return mReference != nullptr; }
 		INLINE bool IsNull() const { return mReference == nullptr; }
 
+		virtual bool operator! () const { return IsNull(); }
+
 		void Unref()
 		{
 			if (mReference && mReference->Unreference())
