@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include <Core/Application.hpp>
 #include <Core/Filesystem/Path.hpp>
 #include <Core/TimeManager/StepTimer.hpp>
 #include <Graphics/DeviceResources.hpp>
@@ -34,7 +35,7 @@ namespace Darius::Editor
 		Editor& operator= (Editor const&) = delete;
 
 		// Initialization and management
-		void Initialize(HWND window, int width, int height, D_FILE::Path const& projectPath);
+		void Initialize(D_APP::GameProject* game, HWND window, int width, int height, D_FILE::Path const& projectPath);
 
 		// Basic game loop
 		void Tick();
@@ -66,5 +67,7 @@ namespace Darius::Editor
 		void CreateWindowSizeDependentResources();
 
 		D_TIME::StepTimer						mTimer;
+
+		D_APP::GameProject*						mGame;
 	};
 }

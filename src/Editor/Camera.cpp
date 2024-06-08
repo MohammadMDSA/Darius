@@ -52,7 +52,7 @@ namespace D_EDITOR
 		mLastAscent = 0.0f;
 	}
 
-	void FlyingFPSCamera::Update(float deltaTime)
+	void FlyingFPSCamera::Update(float deltaTime)	
 	{
 		if (mDirtyOrientation)
 		{

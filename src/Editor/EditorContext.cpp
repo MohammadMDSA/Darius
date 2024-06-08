@@ -12,7 +12,6 @@
 #include <Graphics/GraphicsUtils/Profiling/Profiling.hpp>
 #include <ResourceManager/ResourceLoader.hpp>
 #include <Scene/Scene.hpp>
-#include <Scene/EntityComponentSystem/Components/TransformComponent.hpp>
 #include <Utils/Assert.hpp>
 
 using namespace D_CORE;
@@ -42,11 +41,13 @@ namespace Darius::Editor::Context
 
 		D_GUI_RENDERER::Initialize();
 
-		D_WORLD::Initialize();
-
 		auto directoryVisitProgress = new D_RESOURCE::DirectoryVisitProgress();
-		D_RESOURCE_LOADER::VisitSubdirectory(D_ENGINE_CONTEXT::GetAssetsPath(), true, directoryVisitProgress);
+		directoryVisitProgress->OnFinish = []()
+			{
+				D_WORLD::LoadPrefabs();
+			};
 		directoryVisitProgress->Deletable.store(true);
+		D_RESOURCE_LOADER::VisitSubdirectory(D_ENGINE_CONTEXT::GetAssetsPath(), true, directoryVisitProgress);
 
 		D_THUMBNAIL::Initialize();
 		D_GUI_MANAGER::Initialize();
@@ -81,7 +82,7 @@ namespace Darius::Editor::Context
 		D_GUI_MANAGER::Update(elapsedTime);
 
 		// Updating the simulator
-		D_SIMULATE::Update();
+		D_SIMULATE::Update(elapsedTime);
 
 	}
 

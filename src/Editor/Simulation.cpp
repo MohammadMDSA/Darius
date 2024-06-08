@@ -5,6 +5,7 @@
 
 #include <Audio/AudioManager.hpp>
 #include <Animation/AnimationManager.hpp>
+#include <Core/Input.hpp>
 #include <Core/TimeManager/TimeManager.hpp>
 #include <Core/Signal.hpp>
 #include <Debug/DebugDraw.hpp>
@@ -37,7 +38,7 @@ namespace Darius::Editor::Simulate
 		D_ASSERT(!_Initialized);
 
 		Timer = D_TIME::GetStepTimer();
-		Timer->SetFixedTimeStep(true);
+		Timer->SetFixedTimeStep(false);
 
 		_Initialized = true;
 
@@ -61,17 +62,25 @@ namespace Darius::Editor::Simulate
 		D_PROFILING::Resume();
 	}
 
-	void Update()
+	void Update(float editorDeltaTime)
 	{
 
 		D_DEBUG_DRAW::Clear();
 		{
 			D_PROFILING::ScopedTimer simProfiler(L"Update Simulation");
 
+			static float lastElapse = 0.f;
+			
+			if(Timer->IsPaused())
+			{
+				D_PROFILING::ScopedTimer inputProfiling(L"Update Input");
+				D_INPUT::Update(editorDeltaTime);
+			}
+
 			// Physics
 			{
 				D_PROFILING::ScopedTimer simPhysProf(L"Update Physics");
-				D_PHYSICS::Update(!Timer->IsPaused());
+				D_PHYSICS::Update(!Timer->IsPaused(), editorDeltaTime);
 			}
 
 			Timer->Tick([&]()
@@ -79,6 +88,11 @@ namespace Darius::Editor::Simulate
 					if(!Timer->IsPaused())
 					{
 						auto deltaTime = (float)Timer->GetElapsedSeconds();
+
+						{
+							D_PROFILING::ScopedTimer inputProfiling(L"Update Input");
+							D_INPUT::Update(deltaTime);
+						}
 
 						// World Logic
 						{
@@ -101,7 +115,7 @@ namespace Darius::Editor::Simulate
 							PauseTime();
 							Stepping = false;
 						}
-					}
+					};
 				});
 
 		}
@@ -160,7 +174,7 @@ namespace Darius::Editor::Simulate
 
 		// Resetting scene to what it originally was
 		D_EDITOR_CONTEXT::SetSelectedGameObject(nullptr);
-		D_WORLD::ClearScene([]() { D_PHYSICS::Update(true); });
+		D_WORLD::ClearScene([]() { D_PHYSICS::Update(true, 0.01f); });
 		D_WORLD::LoadSceneDump(SceneDump);
 		D_DEBUG_DRAW::Clear(true);
 

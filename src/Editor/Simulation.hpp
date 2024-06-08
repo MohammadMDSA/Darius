@@ -12,7 +12,7 @@ namespace Darius::Editor::Simulate
 	void Initialize();
 	void Shutdown();
 
-	void Update();
+	void Update(float editorDeltaTime);
 
 	void Run();
 	void Stop();

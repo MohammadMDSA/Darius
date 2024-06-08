@@ -9,8 +9,6 @@
 #include "GUI/GuiManager.hpp"
 #include "GUI/GuiRenderer.hpp"
 
-#include <Core/Input.hpp>
-#include <Core/Application.hpp>
 #include <Core/Containers/Vector.hpp>
 #include <Core/TimeManager/TimeManager.hpp>
 #include <Engine/EngineContext.hpp>
@@ -41,19 +39,26 @@ namespace Darius::Editor
 	{
 		D_EDITOR_CONTEXT::Shutdown();
 
+		mGame->Shutdown();
+
 		// Shuting down engine
 		D_ENGINE_CONTEXT::Shutdown();
 	}
 
 	// Initialize the Direct3D resources required to run.
-	void Editor::Initialize(HWND window, int width, int height, D_FILE::Path const& projectPath)
+	void Editor::Initialize(D_APP::GameProject* game, HWND window, int width, int height, D_FILE::Path const& projectPath)
 	{
+		mGame = game;
+
 #ifdef _DEBUG
 		//D_DEBUG::AttachWinPixGpuCapturer();
 #endif
 
 		// Initializing engine
 		D_ENGINE_CONTEXT::Initialize(projectPath, window, width, height);
+
+		// Initialize game project
+		game->Initialize();
 
 		// Initializing the editor context manager
 		D_EDITOR_CONTEXT::Initialize();
@@ -85,11 +90,6 @@ namespace Darius::Editor
 		D_PROFILING::ScopedTimer _profiler(L"Update CPU");
 
 		float elapsedTime = float(timer.GetElapsedSeconds());
-
-		{
-			D_PROFILING::ScopedTimer inputProfiling(L"Update Input");
-			D_INPUT::Update(elapsedTime);
-		}
 
 		D_EDITOR_CONTEXT::Update(elapsedTime);
 

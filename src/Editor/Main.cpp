@@ -37,7 +37,8 @@ extern "C"
 
 namespace
 {
-	std::unique_ptr<Editor> g_game;
+	std::unique_ptr<Editor> g_editor;
+	std::unique_ptr<DemoProject> g_game;
 }
 
 LPCWSTR g_szAppName = L"Darius";
@@ -73,7 +74,8 @@ int WINAPI wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, 
 		return 1;
 #endif
 
-	g_game = std::make_unique<Editor>();
+	g_editor = std::make_unique<Editor>();
+	g_game = std::make_unique<DemoProject>();
 
 	// Register class and create window
 	{
@@ -93,7 +95,7 @@ int WINAPI wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, 
 
 		// Create window
 		int w, h;
-		g_game->GetDefaultSize(w, h);
+		g_editor->GetDefaultSize(w, h);
 
 		RECT rc = { 0, 0, static_cast<LONG>(w), static_cast<LONG>(h) };
 
@@ -123,8 +125,7 @@ int WINAPI wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, 
 		RegisterDeviceNotification(hwnd, &filter,
 			DEVICE_NOTIFY_WINDOW_HANDLE);
 
-		g_game->Initialize(hwnd, rc.right - rc.left, rc.bottom - rc.top, D_FILE::Path(_PROJ_ROOT));
-		InitializeGame();
+		g_editor->Initialize(g_game.get(), hwnd, rc.right - rc.left, rc.bottom - rc.top, D_FILE::Path(_PROJ_ROOT));
 	}
 
 	// Main message loop
@@ -137,11 +138,11 @@ int WINAPI wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, 
 			DispatchMessage(&msg);
 		}
 
-		if (g_game.get())
-			g_game->Tick();
+		if (g_editor.get())
+			g_editor->Tick();
 	}
 
-	g_game.reset();
+	g_editor.reset();
 
 	return static_cast<int>(msg.wParam);
 }
@@ -344,6 +345,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 // Exit helper
 void ExitGame() noexcept
 {
+	g_editor.reset();
 	g_game.reset();
 	PostQuitMessage(0);
 }
