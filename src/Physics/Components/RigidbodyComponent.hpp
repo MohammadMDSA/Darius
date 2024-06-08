@@ -70,7 +70,7 @@ namespace Darius::Physics
 	private:
 
 		// Internals
-		PhysicsActor*					mActor = nullptr;
+		D_CORE::Ref<PhysicsActor>		mActor = nullptr;
 		bool							mKinematic;
 		bool							mUsingGravity;
 		bool							mRotationConstraints[3];

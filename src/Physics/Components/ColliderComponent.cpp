@@ -100,7 +100,7 @@ namespace Darius::Physics
 
 	void ColliderComponent::Start()
 	{
-		if (!mActor)
+		if (!mActor.IsValid())
 			InvalidatePhysicsActor();
 		else
 			mActor->AddCollider(this);
@@ -124,8 +124,11 @@ namespace Darius::Physics
 
 	void ColliderComponent::PreUpdate(bool simulating)
 	{
-		if (!mActor)
-			InvalidatePhysicsActor();
+		if(!mActor.IsValid())
+		{
+			if(!InvalidatePhysicsActor())
+				return;
+		}
 
 		bool dynamic = mActor->IsDynamic();
 
@@ -154,7 +157,7 @@ namespace Darius::Physics
 	void ColliderComponent::OnDestroy()
 	{
 		mTransformChangeSignalConnection.disconnect();
-		if (mActor)
+		if (mActor.IsValid())
 		{
 			mActor->RemoveCollider(this);
 		}
@@ -162,22 +165,22 @@ namespace Darius::Physics
 
 	void ColliderComponent::OnActivate()
 	{
-		if (mActor)
+		if (mActor.IsValid())
 			InvalidatePhysicsActor();
 	}
 
 	void ColliderComponent::OnDeactivate()
 	{
-		if (mActor)
+		if (mActor.IsValid())
 		{
 			mActor->RemoveCollider(this);
 		}
 	}
 
-	void ColliderComponent::InvalidatePhysicsActor()
+	bool ColliderComponent::InvalidatePhysicsActor()
 	{
 		if (IsDestroyed())
-			return;
+			return false;
 
 		bool trigger = IsTrigger();
 		auto material = D_PHYSICS::GetDefaultMaterial();
@@ -186,7 +189,10 @@ namespace Darius::Physics
 		auto shape = mActor->AddCollider(this);
 
 		if(!shape)
-			return;
+		{
+			mActor = nullptr;
+			return false;
+		}
 
 		// Apply shape offset
 		auto offset = GetCenterOffset();
@@ -206,6 +212,8 @@ namespace Darius::Physics
 			shape->setFlag(physx::PxShapeFlag::eTRIGGER_SHAPE, false);
 			shape->setFlag(physx::PxShapeFlag::eSIMULATION_SHAPE, true);
 		}
+
+		return true;
 	}
 
 	void ColliderComponent::SetMaterial(PhysicsMaterialResource* material)
@@ -239,7 +247,7 @@ namespace Darius::Physics
 
 		mTrigger = trigger;
 
-		if (!mActor)
+		if (!mActor.IsValid())
 			return;
 
 		auto shape = mActor->GetShape(this->GetComponentName());

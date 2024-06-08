@@ -103,14 +103,17 @@ namespace Darius::Physics
 
 		physx::PxShape* shape = physics->createShape(*geom, *refComponent->GetMaterial(), true);
 
-		if(!shape)
-			return nullptr;
-
 		auto geomType = geom->getType();
 		if(IsGeometryCompatible(geomType))
 			D_VERIFY(mPxActor->attachShape(*shape));
 		else
+		{
 			D_LOG_WARN(std::format("Dyanmic actor is not compatible with geometry type {}", GetGeometryTypeStr(geomType)));
+			return nullptr;
+		}
+
+		if(!shape)
+			return nullptr;
 
 		mColliders.insert({shape, refComponent->GetComponentName()});
 		mCollidersLookup[name] = shape;
@@ -145,13 +148,11 @@ namespace Darius::Physics
 			mPxActor->detachShape(*shape);
 
 		D_ASSERT(mColliders.size() == mCollidersLookup.size());
-
-		RemoveActorIfNecessary();
 	}
 
 	bool PhysicsActor::RemoveActorIfNecessary()
 	{
-		if(mColliders.size() == 0)
+		if(mColliders.size() == 0 && !IsDynamic())
 		{
 			mScene->RemoveActor(this);
 			mValid = false;
@@ -161,6 +162,11 @@ namespace Darius::Physics
 		return false;
 	}
 
+	bool PhysicsActor::Release()
+	{
+		return D_VERIFY(RemoveActorIfNecessary());
+	}
+
 	void PhysicsActor::SetDynamic(bool dynamic)
 	{
 		if(mDynamic == dynamic)
@@ -168,12 +174,9 @@ namespace Darius::Physics
 
 		mDynamic = dynamic;
 		mDynamicDirty = true;
-	}
 
-	void PhysicsActor::ForceRemoveActor()
-	{
-		mScene->RemoveActor(this);
-		mValid = false;
+		if(mGameObject && mGameObject->IsValid())
+			InitializeActor();
 	}
 
 	bool PhysicsActor::IsGeometryCompatible(physx::PxGeometryType::Enum type)

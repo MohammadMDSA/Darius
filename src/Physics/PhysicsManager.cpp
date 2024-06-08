@@ -260,7 +260,7 @@ namespace Darius::Physics
 		gScene->Simulate(true, D_TIME::GetTargetElapsedSeconds());
 	}
 
-	void Update(bool running)
+	void Update(bool running, float dt)
 	{
 		D_PROFILING::ScopedTimer physicsProfiler(L"Physics Update");
 
@@ -268,7 +268,7 @@ namespace Darius::Physics
 
 		if (running)
 		{
-			gScene->Simulate(true, D_TIME::GetTargetElapsedSeconds());
+			gScene->Simulate(true, dt);
 
 			UpdatePostPhysicsTransforms();
 		}

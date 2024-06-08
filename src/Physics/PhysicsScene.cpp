@@ -121,7 +121,7 @@ namespace Darius::Physics
 		D_PROFILING::ScopedTimer _prof(L"Physics Simulation Pre Update");
 		for(auto& [_, actor] : mActorMap)
 		{
-			actor.PreUpdate();
+			actor->PreUpdate();
 		}
 
 		D_WORLD::IterateComponents<CharacterControllerComponent>([](CharacterControllerComponent& comp)
@@ -168,11 +168,11 @@ namespace Darius::Physics
 		for(auto& [_, actor] : mActorMap)
 		{
 
-			if(actor.IsDynamic())
+			if(actor->IsDynamic())
 			{
 				updateFuncs.push_back([&]()
 					{
-						actor.Update();
+						actor->Update();
 
 					});
 			}
@@ -202,18 +202,22 @@ namespace Darius::Physics
 
 	PhysicsActor const* PhysicsScene::FindPhysicsActor(GameObject* go) const
 	{
-		if(!mActorMap.contains(go))
+		auto search = mActorMap.find(go);
+
+		if(search == mActorMap.end())
 			return nullptr;
 
-		return &mActorMap.at(go);
+		return search->second;
 	}
 
 	PhysicsActor* PhysicsScene::FindPhysicsActor(GameObject* go)
 	{
-		if(!mActorMap.contains(go))
+		auto search = mActorMap.find(go);
+
+		if(search == mActorMap.end())
 			return nullptr;
 
-		return &mActorMap.at(go);
+		return search->second;
 	}
 
 	PhysicsActor* PhysicsScene::FindOrCreatePhysicsActor(GameObject* go)
@@ -224,10 +228,10 @@ namespace Darius::Physics
 			return result;
 
 		// Create and initialize the actor
-		mActorMap.emplace(go, PhysicsActor(go, this));
-		result = &mActorMap.at(go);
-		result->InitializeActor();
-		return result;
+		auto newActor = mActorAllocator.Alloc(std::move(go), std::move(this));
+		mActorMap.emplace(go, newActor);
+		newActor->InitializeActor();
+		return newActor;
 	}
 
 	bool PhysicsScene::CastRay(_IN_ D_MATH::Vector3 const& origin, _IN_ D_MATH::Vector3 const& direction, _IN_ float maxDistance, _OUT_ physx::PxRaycastBuffer& hit)
@@ -476,5 +480,6 @@ namespace Darius::Physics
 		auto pxActor = actor->mPxActor;
 
 		mActorMap.erase(actor->mGameObject);
+		mActorAllocator.Free(actor);
 	}
 }

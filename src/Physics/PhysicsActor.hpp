@@ -1,6 +1,7 @@
 #pragma once
 
 #include <Core/Containers/Set.hpp>
+#include <Core/RefCounting/Counted.hpp>
 #include <Scene/GameObject.hpp>
 #include <Utils/Common.hpp>
 
@@ -18,7 +19,7 @@ namespace Darius::Physics
 	class PhysicsScene;
 	class ColliderComponent;
 
-	class PhysicsActor
+	class PhysicsActor : public D_CORE::Counted
 	{
 	public:
 
@@ -47,10 +48,11 @@ namespace Darius::Physics
 		void							PreUpdate();
 		void							Update();
 
-		void							ForceRemoveActor();
 		bool							IsGeometryCompatible(physx::PxGeometryType::Enum type);
 
 		void							InitializeActor();
+
+		virtual bool					Release() override;
 	private:
 		friend class PhysicsScene;
 

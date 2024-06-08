@@ -2,6 +2,7 @@
 
 #include "PhysicsActor.hpp"
 
+#include <Core/Memory/Allocators/PagedAllocator.hpp>
 #include <Core/Signal.hpp>
 #include <Scene/GameObject.hpp>
 #include <Utils/BuildWarnings.hpp>
@@ -69,13 +70,14 @@ namespace Darius::Physics
 		};
 		void					RemoveActor(PhysicsActor* actor);
 
-		D_CONTAINERS::DUnorderedMap<D_SCENE::GameObject const*, PhysicsActor> mActorMap;
-		D_CONTAINERS::DSet<physx::PxController*> mControllers;
+		D_CONTAINERS::DUnorderedMap<D_SCENE::GameObject const*, PhysicsActor*> mActorMap;
+		D_CONTAINERS::DSet<physx::PxController*>	mControllers;
 
-		physx::PxScene*			mPxScene;
-		physx::PxControllerManager* mControllerManager;
-		SimulationCallback		mCallbacks;
-		D_MATH::Vector3			mGravityVec;
+		physx::PxScene*								mPxScene;
+		physx::PxControllerManager*					mControllerManager;
+		SimulationCallback							mCallbacks;
+		D_MATH::Vector3								mGravityVec;
+		D_MEMORY::PagedAllocator<PhysicsActor>		mActorAllocator;
 	};
 
 }

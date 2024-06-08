@@ -114,7 +114,7 @@ namespace Darius::Physics
 	bool							OptionsDrawer(_IN_OUT_ D_SERIALIZATION::Json& options);
 #endif
 
-	void							Update(bool running);
+	void							Update(bool running, float dt);
 	void							Flush();
 
 	PhysicsScene* GetScene();

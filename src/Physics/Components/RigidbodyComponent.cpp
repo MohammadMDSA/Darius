@@ -42,14 +42,14 @@ namespace Darius::Physics
 	void RigidbodyComponent::Awake()
 	{
 		mActor = D_PHYSICS::GetScene()->FindOrCreatePhysicsActor(GetGameObject());
-		D_ASSERT(mActor);
+		D_ASSERT(mActor.IsValid());
 		mActor->SetDynamic(true);
 		mActor->InitializeActor();
 	}
 
 	void RigidbodyComponent::Start()
 	{
-		D_ASSERT(mActor);
+		D_ASSERT(mActor.IsValid());
 
 		SetDirty();
 		SetKinematic(mKinematic);
@@ -66,18 +66,16 @@ namespace Darius::Physics
 
 	void RigidbodyComponent::OnDestroy()
 	{
-		if (mActor)
+		if (mActor.IsValid())
 		{
 			mActor->SetDynamic(false);
 
-			if (mActor->IsValid())
-				mActor->InitializeActor();
 		}
 	}
 
 	void RigidbodyComponent::OnActivate()
 	{
-		if (mActor)
+		if (mActor.IsValid())
 		{
 			mActor->GetDynamicActor()->setActorFlag(physx::PxActorFlag::eDISABLE_SIMULATION, false);
 		}
@@ -85,7 +83,7 @@ namespace Darius::Physics
 
 	void RigidbodyComponent::OnDeactivate()
 	{
-		if (mActor)
+		if (mActor.IsValid())
 		{
 			mActor->GetDynamicActor()->setActorFlag(physx::PxActorFlag::eDISABLE_SIMULATION, true);
 		}
@@ -93,7 +91,7 @@ namespace Darius::Physics
 
 	bool RigidbodyComponent::IsUsingGravity() const
 	{
-		if (!mActor)
+		if (!mActor.IsValid())
 			return mUsingGravity;
 
 		auto flags = mActor->GetDynamicActor()->getActorFlags();
@@ -106,7 +104,7 @@ namespace Darius::Physics
 		if (mUsingGravity == enable && !IsDirty())
 			return;
 
-		if (mActor)
+		if (mActor.IsValid())
 			mActor->GetDynamicActor()->setActorFlag(PxActorFlag::eDISABLE_GRAVITY, !enable);
 
 		mUsingGravity = enable;
@@ -118,7 +116,7 @@ namespace Darius::Physics
 		if (mKinematic == value && !IsDirty())
 			return;
 
-		if (mActor)
+		if (mActor.IsValid())
 			mActor->GetDynamicActor()->setRigidBodyFlag(PxRigidBodyFlag::eKINEMATIC, value);
 		mKinematic = value;
 		mChangeSignal(this);
@@ -126,7 +124,7 @@ namespace Darius::Physics
 
 	bool RigidbodyComponent::IsKinematic() const
 	{
-		if (!mActor)
+		if (!mActor.IsValid())
 			return mKinematic;
 
 		return mActor->GetDynamicActor()->getRigidBodyFlags().isSet(PxRigidBodyFlag::eKINEMATIC);
@@ -134,7 +132,7 @@ namespace Darius::Physics
 
 	Vector3 RigidbodyComponent::GetLinearVelocity() const
 	{
-		if (!mActor)
+		if (!mActor.IsValid())
 			return Vector3(kZero);
 
 		auto v = mActor->GetDynamicActor()->getLinearVelocity();
@@ -143,7 +141,7 @@ namespace Darius::Physics
 
 	void RigidbodyComponent::SetLinearVelocity(Vector3 const& v, bool autoWake)
 	{
-		if (!mActor)
+		if (!mActor.IsValid())
 			return;
 
 		mActor->GetDynamicActor()->setLinearVelocity(VEC3_2_PX(v));
@@ -152,7 +150,7 @@ namespace Darius::Physics
 
 	Vector3 RigidbodyComponent::GetAngularVelocity() const
 	{
-		if (!mActor)
+		if (!mActor.IsValid())
 			return Vector3(kZero);
 
 		auto v = mActor->GetDynamicActor()->getAngularVelocity();
@@ -161,7 +159,7 @@ namespace Darius::Physics
 
 	bool RigidbodyComponent::GetRotationConstraintsX() const
 	{
-		if (!mActor)
+		if (!mActor.IsValid())
 			return mRotationConstraints[0];
 
 		auto flags = mActor->GetDynamicActor()->getRigidDynamicLockFlags();
@@ -170,7 +168,7 @@ namespace Darius::Physics
 
 	bool RigidbodyComponent::GetRotationConstraintsY() const
 	{
-		if (!mActor)
+		if (!mActor.IsValid())
 			return mRotationConstraints[1];
 
 		auto flags = mActor->GetDynamicActor()->getRigidDynamicLockFlags();
@@ -179,7 +177,7 @@ namespace Darius::Physics
 
 	bool RigidbodyComponent::GetRotationConstraintsZ() const
 	{
-		if (!mActor)
+		if (!mActor.IsValid())
 			return mRotationConstraints[2];
 
 		auto flags = mActor->GetDynamicActor()->getRigidDynamicLockFlags();
@@ -191,7 +189,7 @@ namespace Darius::Physics
 		if (mRotationConstraints[0] == enable && !IsDirty())
 			return;
 
-		if (mActor)
+		if (mActor.IsValid())
 			mActor->GetDynamicActor()->setRigidDynamicLockFlag(PxRigidDynamicLockFlag::eLOCK_ANGULAR_X, enable);
 
 		mRotationConstraints[0] = enable;
@@ -203,7 +201,7 @@ namespace Darius::Physics
 		if (mRotationConstraints[1] == enable && !IsDirty())
 			return;
 
-		if (mActor)
+		if (mActor.IsValid())
 			mActor->GetDynamicActor()->setRigidDynamicLockFlag(PxRigidDynamicLockFlag::eLOCK_ANGULAR_Y, enable);
 
 		mRotationConstraints[1] = enable;
@@ -215,7 +213,7 @@ namespace Darius::Physics
 		if (mRotationConstraints[2] == enable && !IsDirty())
 			return;
 
-		if (mActor)
+		if (mActor.IsValid())
 			mActor->GetDynamicActor()->setRigidDynamicLockFlag(PxRigidDynamicLockFlag::eLOCK_ANGULAR_Z, enable);
 
 		mRotationConstraints[2] = enable;
@@ -224,7 +222,7 @@ namespace Darius::Physics
 
 	bool RigidbodyComponent::GetPositionConstraintsX() const
 	{
-		if (!mActor)
+		if (!mActor.IsValid())
 			return mPositionConstraints[0];
 
 		auto flags = mActor->GetDynamicActor()->getRigidDynamicLockFlags();
@@ -233,7 +231,7 @@ namespace Darius::Physics
 
 	bool RigidbodyComponent::GetPositionConstraintsY() const
 	{
-		if (!mActor)
+		if (!mActor.IsValid())
 			return mPositionConstraints[1];
 
 		auto flags = mActor->GetDynamicActor()->getRigidDynamicLockFlags();
@@ -242,7 +240,7 @@ namespace Darius::Physics
 
 	bool RigidbodyComponent::GetPositionConstraintsZ() const
 	{
-		if (!mActor)
+		if (!mActor.IsValid())
 			return mPositionConstraints[2];
 
 		auto flags = mActor->GetDynamicActor()->getRigidDynamicLockFlags();
@@ -254,7 +252,7 @@ namespace Darius::Physics
 		if (mPositionConstraints[0] == enable && !IsDirty())
 			return;
 
-		if (mActor)
+		if (mActor.IsValid())
 			mActor->GetDynamicActor()->setRigidDynamicLockFlag(PxRigidDynamicLockFlag::eLOCK_LINEAR_X, enable);
 
 		mPositionConstraints[0] = enable;
@@ -266,7 +264,7 @@ namespace Darius::Physics
 		if (mPositionConstraints[1] == enable && !IsDirty())
 			return;
 
-		if (mActor)
+		if (mActor.IsValid())
 			mActor->GetDynamicActor()->setRigidDynamicLockFlag(PxRigidDynamicLockFlag::eLOCK_LINEAR_Y, enable);
 
 		mPositionConstraints[1] = enable;
@@ -278,7 +276,7 @@ namespace Darius::Physics
 		if (mPositionConstraints[2] == enable && !IsDirty())
 			return;
 
-		if (mActor)
+		if (mActor.IsValid())
 			mActor->GetDynamicActor()->setRigidDynamicLockFlag(PxRigidDynamicLockFlag::eLOCK_LINEAR_Z, enable);
 
 		mPositionConstraints[2] = enable;
@@ -287,7 +285,7 @@ namespace Darius::Physics
 
 	void RigidbodyComponent::SetAngularVelocity(Vector3 const& v, bool autoWake)
 	{
-		if (!mActor)
+		if (!mActor.IsValid())
 			return;
 
 		mActor->GetDynamicActor()->setAngularVelocity(VEC3_2_PX(v), autoWake);
