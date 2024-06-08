@@ -100,5 +100,12 @@ namespace Darius::Scene
 
 		return valueChanged;
 	}
+
+	Darius::Scene::GameObject* PrefabResourceDragDropPayloadContent::GetAssociatedGameObject() const
+	{
+		auto res = D_RESOURCE::GetResourceSync<PrefabResource>(Handle, true);
+		return res->GetPrefabGameObject();
+	}
+
 #endif
 }

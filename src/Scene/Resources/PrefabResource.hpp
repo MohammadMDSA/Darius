@@ -5,6 +5,11 @@
 
 #include <ResourceManager/ResourceManager.hpp>
 
+#if _D_EDITOR
+#include <ResourceManager/ResourceDragDropPayload.hpp>
+#endif // _D_EDITOR
+
+
 #include "PrefabResource.generated.hpp"
 
 #ifndef D_SCENE
@@ -46,6 +51,27 @@ namespace Darius::Scene
 		GameObject* mPrefabGameObject;
 
 	};
+
+#if _D_EDITOR
+
+	struct PrefabResourceDragDropPayloadContent : public D_RESOURCE::ResourceDragDropPayloadContent
+	{
+		virtual inline bool IsCompatible(D_UTILS::BaseDragDropPayloadContent::Type payloadType, D_CORE::StringId const& type) const override
+		{
+			if(D_RESOURCE::ResourceDragDropPayloadContent::IsCompatible(payloadType, type))
+				return true;
+
+			if(payloadType == D_UTILS::BaseDragDropPayloadContent::Type::GameObject)
+				return true;
+
+			return false;
+
+		}
+
+		virtual Darius::Scene::GameObject* GetAssociatedGameObject() const override;
+	};
+#endif // _D_EDITOR
+
 }
 
 File_PrefabResource_GENERATED

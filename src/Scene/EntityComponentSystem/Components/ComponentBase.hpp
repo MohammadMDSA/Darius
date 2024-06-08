@@ -137,9 +137,14 @@ if (ImGui::BeginDragDropTarget()) \
 		auto payload = reinterpret_cast<Darius::Utils::BaseDragDropPayloadContent const*>(imPayload->Data); \
 		if (payload && payload->PayloadType != D_UTILS::BaseDragDropPayloadContent::Type::Invalid && payload->IsCompatible(D_UTILS::BaseDragDropPayloadContent::Type::GameObject, D_CORE::StringId(D_PAYLOAD_TYPE_GAMEOBJECT, D_SCENE::GameObject::NameDatabase))) \
 		{ \
-			if (ImGuiPayload const* acceptedPayload = ImGui::AcceptDragDropPayload(D_PAYLOAD_TYPE_GAMEOBJECT)) \
+			if (ImGuiPayload const* acceptedGoPayload = ImGui::AcceptDragDropPayload(D_PAYLOAD_TYPE_GAMEOBJECT)) \
 			{ \
-				auto gameObject = reinterpret_cast<D_SCENE::GameObjectDragDropPayloadContent const*>(acceptedPayload->Data)->GameObjectRef; \
+				auto gameObject = reinterpret_cast<Darius::Utils::BaseDragDropPayloadContent const*>(acceptedGoPayload->Data)->GetAssociatedGameObject(); \
+				setter(gameObject); \
+			} \
+			else if (ImGuiPayload const* acceptedResPayload = ImGui::AcceptDragDropPayload(D_PAYLOAD_TYPE_RESOURCE)) \
+			{ \
+				auto gameObject = reinterpret_cast<Darius::Utils::BaseDragDropPayloadContent const*>(acceptedResPayload->Data)->GetAssociatedGameObject(); \
 				setter(gameObject); \
 			} \
 		} \

@@ -24,7 +24,7 @@ namespace Darius::Scene
 		virtual inline bool IsCompatible(D_UTILS::BaseDragDropPayloadContent::Type payloadType, D_CORE::StringId const& type) const override
 		{
 
-			if (payloadType == D_UTILS::BaseDragDropPayloadContent::Type::GameObject && std::strcmp(type.string(), D_PAYLOAD_TYPE_GAMEOBJECT))
+			if (payloadType == D_UTILS::BaseDragDropPayloadContent::Type::GameObject && !std::strcmp(type.string(), D_PAYLOAD_TYPE_GAMEOBJECT))
 				return true;
 
 			if (payloadType == D_UTILS::BaseDragDropPayloadContent::Type::Component && GameObjectRef && GameObjectRef->IsValid())
@@ -32,6 +32,8 @@ namespace Darius::Scene
 
 			return false;
 		}
+
+		virtual inline Darius::Scene::GameObject* GetAssociatedGameObject() const { return GameObjectRef; }
 
 		D_SCENE::GameObject* GameObjectRef = nullptr;
 	};
