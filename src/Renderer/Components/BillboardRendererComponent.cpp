@@ -126,7 +126,8 @@ namespace Darius::Renderer
 
 		UpdatePsoIndex();
 
-		static const uint16_t psoFlags = mMaterial->GetPsoFlags() | RenderItem::SkipVertexIndex | RenderItem::PointOnly;
+		static const uint16_t basePsoFlags = RenderItem::SkipVertexIndex | RenderItem::PointOnly;
+		uint16_t psoFlags = mMaterial->GetPsoFlags() | basePsoFlags;
 
 		RenderItem ri;
 		ri.PrimitiveType = D3D_PRIMITIVE_TOPOLOGY_POINTLIST;
@@ -223,6 +224,14 @@ namespace Darius::Renderer
 	}
 
 #ifdef _D_EDITOR
+
+	bool BillboardRendererComponent::CanRenderForPicker() const
+	{
+		if(!mMaterial.IsValid() || mMaterial->IsDirtyGPU())
+			return false;
+
+		return true;
+	}
 
 	RenderItem BillboardRendererComponent::GetPickerRenderItem() const
 	{

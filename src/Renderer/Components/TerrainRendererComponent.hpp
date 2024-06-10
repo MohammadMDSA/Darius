@@ -45,6 +45,7 @@ namespace Darius::Renderer
 		virtual bool						AddRenderItems(std::function<void(D_RENDERER::RenderItem const&)> appendFunction, RenderItemContext const& riContext) override;
 #if _D_EDITOR
 		virtual D_RENDERER::RenderItem		GetPickerRenderItem() const override;
+		virtual bool						CanRenderForPicker() const override;
 #endif
 
 		INLINE virtual D3D12_GPU_VIRTUAL_ADDRESS GetConstantsAddress() const override { return mMeshConstantsGPU.GetGpuVirtualAddress(); }

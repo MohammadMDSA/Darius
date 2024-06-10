@@ -28,6 +28,7 @@ namespace Darius::Renderer
 		virtual bool						IsCastingShadow() const = 0;
 #if _D_EDITOR
 		virtual D_RENDERER::RenderItem		GetPickerRenderItem() const = 0;
+		virtual bool						CanRenderForPicker() const = 0;
 #endif
 	};
 

@@ -33,6 +33,8 @@ namespace Darius::Renderer
 		INLINE virtual bool									AddRenderItems(std::function<void(D_RENDERER::RenderItem const&)> appendFunction, RenderItemContext const& riContext) override { return false; }
 #if _D_EDITOR
 		INLINE virtual D_RENDERER::RenderItem				GetPickerRenderItem() const override { D_ASSERT_NOENTRY(); return {}; }
+
+		virtual bool										CanRenderForPicker() const override { D_ASSERT_NOENTRY(); return false; }
 #endif
 		INLINE virtual bool									IsCastingShadow() const override { return mCastsShadow; }
 

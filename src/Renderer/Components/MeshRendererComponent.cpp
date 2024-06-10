@@ -202,6 +202,14 @@ namespace Darius::Renderer
 
 #ifdef _D_EDITOR
 
+	bool MeshRendererComponent::CanRenderForPicker() const
+	{
+		if(mMesh.IsNull() || mMesh->IsDirtyGPU())
+			return false;
+
+		return true;
+	}
+
 	RenderItem MeshRendererComponent::GetPickerRenderItem() const
 	{
 		static uint32_t flags = RenderItem::HasPosition | RenderItem::HasNormal | RenderItem::HasTangent | RenderItem::HasUV0;

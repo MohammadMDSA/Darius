@@ -146,6 +146,14 @@ namespace Darius::Renderer
 
 #ifdef _D_EDITOR
 
+	bool SkeletalMeshRendererComponent::CanRenderForPicker() const
+	{
+		if(mMesh.IsNull() || mMesh->IsDirtyGPU())
+			return false;
+
+		return true;
+	}
+
 	RenderItem SkeletalMeshRendererComponent::GetPickerRenderItem() const
 	{
 		static RenderItem ri;

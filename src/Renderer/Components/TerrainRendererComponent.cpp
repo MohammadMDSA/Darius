@@ -259,6 +259,14 @@ namespace Darius::Renderer
 
 #ifdef _D_EDITOR
 
+	bool TerrainRendererComponent::CanRenderForPicker() const
+	{
+		if(!mTerrainData.IsValid() || mTerrainData->IsDirtyGPU() || !mMaterial.IsValid() || mMaterial->IsDirtyGPU())
+			return false;
+
+		return true;
+	}
+
 	RenderItem TerrainRendererComponent::GetPickerRenderItem() const
 	{
 		static RenderItem ri;

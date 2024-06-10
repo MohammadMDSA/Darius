@@ -226,7 +226,8 @@ namespace Darius::Renderer::Rasterization
 				// Add editor picker render item
 				if(addEditorPicker)
 				{
-					sorterContext.EditorPickerRenderSorter->AddMesh(rendererComp->GetPickerRenderItem(), distance);
+					if(rendererComp->CanRenderForPicker())
+						sorterContext.EditorPickerRenderSorter->AddMesh(rendererComp->GetPickerRenderItem(), distance);
 				}
 #endif // _D_EDITOR
 

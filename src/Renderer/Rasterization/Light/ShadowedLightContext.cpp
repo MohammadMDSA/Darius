@@ -472,7 +472,7 @@ namespace Darius::Renderer::Rasterization::Light
 				mShadowRenderJobs.push_back([&, lightIdx = idx]()
 					{
 						D_GRAPHICS::GraphicsContext& shadowDrawContext = D_GRAPHICS::GraphicsContext::Begin();
-						RenderPointShadow(shadowContext, light, lightIdx);
+						RenderPointShadow(shadowDrawContext, light, lightIdx);
 						shadowDrawContext.Finish();
 					});
 			}
