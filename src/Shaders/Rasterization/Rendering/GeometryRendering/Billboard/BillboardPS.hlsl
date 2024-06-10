@@ -132,8 +132,13 @@ MRT main(GSOutput gout) : SV_Target
                             toEyeW, diffuseAlbedo, metallic, roughness,
                             emissive, ao, gSpecular, gFresnelR0);
     
+
+    float opacity = gOpacity;
+    if(opacity == 0.f)
+        opacity = diffuseAlbedo.a;
+            
     // Common convention to take alpha from diffuse material.
-    mrt.Color = float4(litColor, gOpacity);
+    mrt.Color = float4(litColor, opacity);
     mrt.Normal = float4(gout.WorldNormal, 1.f);
     
     return mrt;
