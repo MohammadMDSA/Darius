@@ -510,7 +510,9 @@ namespace Darius::Graphics::PostProcessing
 		// Read in original HDR value and blurred bloom buffer
 		context.SetDynamicDescriptor(2, 0, contextBuffers.ExposureBuffer.GetSRV());
 		context.SetDynamicDescriptor(2, 1, EnableBloom ? contextBuffers.BloomUAV1[1].GetSRV() : DefaultBlackOpaquTexture.GetSRV());
-		context.SetDynamicDescriptor(2, 3, ComputeLUT.GetLutSrv());
+
+		if(EnableColorGrading)
+			context.SetDynamicDescriptor(2, 3, ComputeLUT.GetLutSrv());
 
 		context.Dispatch2D(contextBuffers.SceneColor.GetWidth(), contextBuffers.SceneColor.GetHeight());
 
