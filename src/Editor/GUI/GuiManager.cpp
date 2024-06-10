@@ -370,9 +370,13 @@ namespace Darius::Editor::Gui::GuiManager
 
 #define CreateParentedGameObject() \
 GameObject* created = D_WORLD::CreateGameObject(); \
-created->GetTransform()->SetPosition(GetWindow<SceneWindow>()->SuggestSpawnPositionOnYPlane()); \
 if (validContext) \
+{ \
+	created->GetTransform()->SetLocalPosition(D_MATH::Vector3::Zero); \
 	created->SetParent(contextGameObject, GameObject::AttachmentType::KeepLocal); \
+} \
+else \
+	created->GetTransform()->SetPosition(GetWindow<SceneWindow>()->SuggestSpawnPositionOnYPlane()); \
 
 		D_PROFILING::ScopedTimer _Prof(L"Draw Add GameObject Menu");
 
