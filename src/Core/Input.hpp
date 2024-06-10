@@ -189,4 +189,5 @@ namespace Darius::InputManager
     float GetAnalogInput(AnalogInput ai);
     float GetTimeCorrectedAnalogInput(AnalogInput ai);
 
+    bool SetExclusiveCursor(bool exclusive);
 }

@@ -418,6 +418,12 @@ namespace Darius::InputManager
 
     }
 
+    bool SetExclusiveCursor(bool exclusive)
+    {
+        DWORD flags = exclusive ? (DISCL_FOREGROUND | DISCL_EXCLUSIVE) : (DISCL_FOREGROUND | DISCL_NONEXCLUSIVE);
+        return SUCCEEDED(s_Mouse->SetCooperativeLevel(hwnd, flags));
+    }
+
     bool IsAnyPressed()
     {
         return s_Buttons[0] != 0;
