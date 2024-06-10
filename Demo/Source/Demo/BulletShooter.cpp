@@ -36,7 +36,7 @@ namespace Demo
 			if(!mGun.IsValid())
 				return;
 			
-			mGun->Fire(mGun->GetTransform()->GetForward());
+			mGun->Fire(mRefAim->GetForward());
 		}
 	}
 
