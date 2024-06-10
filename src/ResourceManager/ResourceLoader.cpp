@@ -424,29 +424,35 @@ namespace Darius::ResourceManager
 
 		result.FileName = path.filename();
 
-		if(resource->mParent)
-		{
-			auto parent = resource->mParent;
-			ResourceDataInFile data;
-			auto name = parent->GetName();
-			data.Name = WSTR2STR(name);
-			data.Type = parent->GetType();
-			data.Uuid = parent->GetUuid();
-			result.Parent = data;
-		}
+		Resource* parent = nullptr;
+		D_CONTAINERS::DVector<Resource*> resources;
 
 		for(auto resouceHandle : resourceHandleVec)
 		{
 			auto resource = manager->GetRawResource(resouceHandle);
 
+			auto currentParent = resource->mParent;
+			if(currentParent)
+			{
+				D_ASSERT(!parent || parent == currentParent);
+				parent = currentParent;
+			}
+
+			resources.push_back(resource);
+		}
+
+		for(auto resource : resources)
+		{
 			ResourceDataInFile data;
 			auto name = resource->GetName();
 			data.Name = WSTR2STR(name);
 			data.Type = resource->GetType();
 			data.Uuid = resource->GetUuid();
 
-			result.Resources.push_back(data);
-
+			if(resource == parent)
+				result.Parent = data;
+			else
+				result.Resources.push_back(data);
 		}
 
 		return result;
@@ -495,7 +501,11 @@ namespace Darius::ResourceManager
 					{
 						if(progress->Done.load() % 100)
 							D_LOG_INFO(progress->String("Updating resource database {} / {}"));
-						delete progress;
+						{
+							if(progress->OnFinish)
+								progress->OnFinish();
+							delete progress;
+						}
 					}
 
 				}, true);
@@ -505,7 +515,8 @@ namespace Darius::ResourceManager
 	void to_json(D_SERIALIZATION::Json& j, const ResourceFileMeta& value)
 	{
 		j["Path"] = WSTR2STR(value.FileName);
-		j["Parent"] = value.Parent;
+		if(!value.Parent.Uuid.is_nil())
+			j["Parent"] = value.Parent;
 		j["Resources"] = value.Resources;
 	}
 

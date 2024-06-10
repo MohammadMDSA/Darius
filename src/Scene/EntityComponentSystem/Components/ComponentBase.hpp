@@ -198,6 +198,9 @@ D_H_GAMEOBJECT_SELECTION_DRAW(prop, [&](D_SCENE::GameObject* go) { prop = go; })
 	ImGui::EndGroup(); \
 }
 
+#define D_H_COMPONENT_SELECTION_DRAW_SIMPLE(compType, prop) \
+D_H_COMPONENT_SELECTION_DRAW(compType, prop, [&](compType* comp) { prop = comp; })
+
 #endif // _D_EDITOR
 
 
@@ -259,7 +262,7 @@ namespace Darius::Scene::ECS
 			// Checking if FUNCTION signature is the same with the signal signature
 			D_STATIC_ASSERT(std::is_same_v<FUNCTION, void(Obj::*)(T...)>);
 			D_ASSERT(obj);
-			
+
 			return mSignal->connect([target = obj, callback = func](T... args)
 				{
 					(target->*callback)(args...);
@@ -335,8 +338,8 @@ namespace Darius::Scene::ECS::Components
 
 
 		// GameObject Events
-		virtual INLINE void         OnActivate() {}
-		virtual INLINE void         OnDeactivate() {}
+		virtual INLINE void         OnActivate() { }
+		virtual INLINE void         OnDeactivate() { }
 
 		virtual INLINE void         Update(float) { };
 		virtual INLINE void         LateUpdate(float) { };
@@ -350,8 +353,8 @@ namespace Darius::Scene::ECS::Components
 		INLINE bool                 IsEnabled() const { return mEnabled; }
 		INLINE bool                 IsDestroyed() const { return mDestroyed; }
 		INLINE bool                 IsStarted() const { return mStarted; }
-		INLINE GameObject*			GetGameObject() const { return mGameObject; }
-		INLINE D_CORE::Uuid const&	GetUuid() const { return mUuid; }
+		INLINE GameObject* GetGameObject() const { return mGameObject; }
+		INLINE D_CORE::Uuid const& GetUuid() const { return mUuid; }
 
 		virtual INLINE bool         IsDisableable() const { return true; }
 
@@ -363,19 +366,18 @@ namespace Darius::Scene::ECS::Components
 
 		static void                 StaticConstructor()
 		{
-			if (sInit)
+			if(sInit)
 				return;
 
 			D_WORLD::RegisterComponent<ComponentBase>();
 			sInit = true;
 		}
 
-		static void                 ComponentUpdater(float, D_ECS::ECSRegistry&) {  }
-		static void                 ComponentLateUpdater(float, D_ECS::ECSRegistry&) {  }
+		static void                 ComponentUpdater(float, D_ECS::ECSRegistry&) { }
+		static void                 ComponentLateUpdater(float, D_ECS::ECSRegistry&) { }
 
 		static void                 StaticDestructor()
-		{
-		}
+		{ }
 
 	protected:
 
@@ -396,19 +398,19 @@ namespace Darius::Scene::ECS::Components
 
 
 		DField(Serialize, NotAnimate)
-		D_CORE::Uuid                mUuid;
+			D_CORE::Uuid                mUuid;
 
 		DField()
-		Darius::Scene::GameObject* mGameObject;
+			Darius::Scene::GameObject* mGameObject;
 
 		DField()
-		bool                        mStarted;
+			bool                        mStarted;
 
 		DField(Serialize)
-		bool                        mEnabled;
+			bool                        mEnabled;
 
 		DField()
-		bool                        mDestroyed;
+			bool                        mDestroyed;
 
 		bool						mDirty;
 
@@ -422,16 +424,16 @@ namespace Darius::Scene::ECS::Components
 
 	INLINE void ComponentBase::SetDirty()
 	{
-		if (CanChange())
+		if(CanChange())
 			mDirty = true;
 	}
 
 	INLINE bool ComponentBase::CanChange() const
 	{
 #ifdef _D_EDITOR
-		if (!D_WORLD::IsRunning() || (GetGameObject() && GetGameObject()->GetType() != D_SCENE::GameObject::Type::Static))
+		if(!D_WORLD::IsRunning() || (GetGameObject() && GetGameObject()->GetType() != D_SCENE::GameObject::Type::Static))
 #else
-		if (GetGameObject() && GetGameObject()->GetType() != D_SCENE::GameObject::Type::Static)
+		if(GetGameObject() && GetGameObject()->GetType() != D_SCENE::GameObject::Type::Static)
 #endif
 			return true;
 		return false;
@@ -454,14 +456,17 @@ namespace rttr
 
 		INLINE static wrapped_type get(type const& obj)
 		{
-			if (!obj.IsValid())
-				return { D_CORE::Uuid(), D_SERIALIZATION_UUID_PARAM_GAMEOBJECT };
+			if(!obj.IsValid())
+				return {D_CORE::Uuid(), D_SERIALIZATION_UUID_PARAM_GAMEOBJECT};
 
-			return { obj.GetGameObject()->GetUuid(), D_SERIALIZATION_UUID_PARAM_GAMEOBJECT};
+			return {obj.GetGameObject()->GetUuid(), D_SERIALIZATION_UUID_PARAM_GAMEOBJECT};
 		}
 
 		INLINE static type create(wrapped_type const& value)
 		{
+			if(value.Uuid.is_nil())
+				return D_ECS::CompRef<T>();
+
 			auto go = D_WORLD::GetGameObject(value.Uuid);
 			return D_ECS::CompRef<T>(go);
 		}
@@ -469,17 +474,17 @@ namespace rttr
 		template<typename U>
 		INLINE static D_ECS::CompRef<U> convert(type const& source, bool& ok)
 		{
-			if (!source.IsValid())
+			if(!source.IsValid())
 			{
 				ok = false;
 				return D_ECS::CompRef<U>();
 			}
 
 			type& src = const_cast<type&>(source);
-			if (auto conv = dynamic_cast<U*>(src.Get()))
+			if(auto conv = dynamic_cast<U*>(src.Get()))
 			{
 				auto ent = source.GetEntity();
-				if (ent.has<U>())
+				if(ent.has<U>())
 				{
 					ok = true;
 					return D_ECS::CompRef<U>(ent);

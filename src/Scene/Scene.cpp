@@ -95,6 +95,16 @@ namespace Darius::Scene
 		UuidMap.reset();
 	}
 
+	void SceneManager::LoadPrefabs()
+	{
+		auto prevs = D_RESOURCE::GetResourcePreviews(PrefabResource::GetResourceType());
+
+		for(auto const& prev : prevs)
+		{
+			D_RESOURCE_LOADER::LoadResourceAsync(prev.Path, nullptr);
+		}
+	}
+
 	void SceneManager::FrameInitialization()
 	{
 		World.each([&](D_MATH::TransformComponent& trans)
@@ -105,7 +115,7 @@ namespace Darius::Scene
 
 	void SceneManager::Update(float deltaTime)
 	{
-		if (!GOs)
+		if(!GOs)
 			return;
 
 		World.progress(deltaTime);
@@ -113,12 +123,12 @@ namespace Darius::Scene
 		RemoveDeleted();
 
 		// Start to-be-started objects
-		for (auto go : ToBeStarted)
+		for(auto go : ToBeStarted)
 			go->Start();
 		ToBeStarted.clear();
 
 		// Update each component
-		for (auto& updater : BehaviourUpdaterFunctions)
+		for(auto& updater : BehaviourUpdaterFunctions)
 			updater(deltaTime, World);
 
 	}
@@ -127,13 +137,13 @@ namespace Darius::Scene
 	{
 		RemoveDeleted();
 
-		for (auto& updater : BehaviourLateUpdaterFunctions)
+		for(auto& updater : BehaviourLateUpdaterFunctions)
 			updater(deltaTime, World);
 	}
 
 	bool SceneManager::Create(D_FILE::Path const& path)
 	{
-		if (Loaded)
+		if(Loaded)
 			Unload();
 		auto filename = D_FILE::GetFileName(path);
 		SceneName = WSTR2STR(filename);
@@ -151,7 +161,7 @@ namespace Darius::Scene
 
 		D_ECS::Entity entity;
 
-		if (addToScene)
+		if(addToScene)
 			entity = World.entity().child_of(Root);
 		else
 			entity = World.entity();
@@ -161,7 +171,7 @@ namespace Darius::Scene
 		// TODO: Better allocation
 		auto go = GoAllocator.Alloc(std::move(uuid), std::move(entity), std::move(addToScene));
 
-		if (addToScene)
+		if(addToScene)
 			GOs->insert(go);
 
 		// Update maps
@@ -178,7 +188,7 @@ namespace Darius::Scene
 		DumpGameObject(go, refGoJson, maintainContext);
 		LoadGameObject(refGoJson, &result, true);
 
-		if (!go->IsInScene())
+		if(!go->IsInScene())
 			result->mPrefab = go->GetUuid();
 
 		return result;
@@ -194,9 +204,9 @@ namespace Darius::Scene
 	{
 		auto go = AddGameObject(uuid, addToScene);
 
-		if (Started)
+		if(Started)
 			go->Awake();
-		if (Running)
+		if(Running)
 			go->Start();
 
 		return go;
@@ -204,10 +214,10 @@ namespace Darius::Scene
 
 	void SceneManager::DeleteGameObject(GameObject* go)
 	{
-		if (go->mDeleted || !go->mEntity.is_valid())
+		if(go->mDeleted || !go->mEntity.is_valid())
 			return;
 
-		if (!go->mDeleted)
+		if(!go->mDeleted)
 			go->OnPreDestroy();
 
 		go->VisitChildren([&](GameObject* child)
@@ -239,7 +249,7 @@ namespace Darius::Scene
 
 	void SceneManager::RemoveDeletedPointers()
 	{
-		for (GameObject* go : DeletedObjects)
+		for(GameObject* go : DeletedObjects)
 			GoAllocator.Free(go);
 
 		DeletedObjects.clear();
@@ -250,7 +260,7 @@ namespace Darius::Scene
 	{
 		UINT index = 0;
 		container.resize(GOs->size());
-		for (auto& go : *GOs)
+		for(auto& go : *GOs)
 		{
 			container[index++] = go;
 		}
@@ -261,7 +271,7 @@ namespace Darius::Scene
 		D_SERIALIZATION::Json sceneJson;
 		auto ifs = std::ifstream(path);
 
-		if (!ifs)
+		if(!ifs)
 			return false;
 
 		ifs >> sceneJson;
@@ -287,7 +297,7 @@ namespace Darius::Scene
 		auto pathName = Path(ScenePath);
 
 		auto ofs = std::ofstream(pathName);
-		if (!ofs)
+		if(!ofs)
 			return false;
 
 		ofs << sceneJson;
@@ -299,7 +309,7 @@ namespace Darius::Scene
 	{
 		// Serializing objects and hierarchy
 		DVector<GameObject const*> rawGos;
-		for (GameObject const* go : *GOs)
+		for(GameObject const* go : *GOs)
 		{
 			rawGos.push_back(go);
 
@@ -316,16 +326,17 @@ namespace Darius::Scene
 		D_SERIALIZATION::SerializeSequentialContainer(rawGos, sceneJson["Objects"]);
 
 		// Serializing components
-		for (GameObject const* go : *GOs)
+		for(GameObject const* go : *GOs)
 		{
 			D_SERIALIZATION::Json objectComps;
 			go->VisitComponents([&](D_ECS_COMP::ComponentBase const* comp)
 				{
+					auto compName = comp->GetComponentName().string();
 					D_SERIALIZATION::Json componentJson;
 					D_SERIALIZATION::Serialize(comp, componentJson);
 					comp->OnSerialized();
 					D_CORE::to_json(componentJson["Uuid"], comp->mUuid);
-					objectComps[comp->GetComponentName().string()] = componentJson;
+					objectComps[compName] = componentJson;
 				});
 			sceneJson["ObjectComponent"][ToString(go->GetUuid())] = objectComps;
 		}
@@ -337,8 +348,8 @@ namespace Darius::Scene
 		Running = false;
 
 		// Loading Objects
-		if (sceneJson.contains("Objects"))
-			for (int i = 0; i < sceneJson["Objects"].size(); i++)
+		if(sceneJson.contains("Objects"))
+			for(int i = 0; i < sceneJson["Objects"].size(); i++)
 			{
 				D_SERIALIZATION::Json const& jObj = sceneJson["Objects"][i];
 
@@ -350,11 +361,11 @@ namespace Darius::Scene
 			}
 
 		// Loading hierarchy
-		if (sceneJson.contains("Hierarchy"))
-			for (auto& [obUuid, childList] : sceneJson["Hierarchy"].items())
+		if(sceneJson.contains("Hierarchy"))
+			for(auto& [obUuid, childList] : sceneJson["Hierarchy"].items())
 			{
 				auto go = (*UuidMap)[FromString(obUuid)];
-				for (int i = 0; i < childList.size(); i++)
+				for(int i = 0; i < childList.size(); i++)
 				{
 					Uuid childUuid;
 					D_CORE::from_json(childList[i], childUuid);
@@ -364,13 +375,13 @@ namespace Darius::Scene
 			}
 
 		// Loading Components
-		if (sceneJson.contains("ObjectComponent"))
-			for (auto const& [objUuidStr, objCompsJ] : sceneJson["ObjectComponent"].items())
+		if(sceneJson.contains("ObjectComponent"))
+			for(auto const& [objUuidStr, objCompsJ] : sceneJson["ObjectComponent"].items())
 			{
 				Uuid objUuid = FromString(objUuidStr);
 				auto gameObject = (*UuidMap)[objUuid];
 
-				for (auto const& [compName, compJ] : objCompsJ.items())
+				for(auto const& [compName, compJ] : objCompsJ.items())
 				{
 					auto compR = World.component(compName.c_str());
 					auto compId = World.id(compR);
@@ -399,7 +410,7 @@ namespace Darius::Scene
 
 	void SceneManager::SetDeferEnable(bool value)
 	{
-		if (value)
+		if(value)
 			World.defer_resume();
 		else
 			World.defer_suspend();
@@ -421,7 +432,7 @@ namespace Darius::Scene
 		DUnorderedMap<Uuid, GameObject*, UuidHasher> addedObjs;
 
 		// Creating game object instances
-		for (int i = 0; i < json["Objects"].size(); i++)
+		for(int i = 0; i < json["Objects"].size(); i++)
 		{
 			Json const& objJson = json["Objects"][i];
 
@@ -434,10 +445,10 @@ namespace Darius::Scene
 		}
 
 		// Loading hierarchy
-		for (auto& [obUuidStr, childrenList] : json["Hierarchy"].items())
+		for(auto& [obUuidStr, childrenList] : json["Hierarchy"].items())
 		{
 			auto parentGo = addedObjs[FromString(obUuidStr)];
-			for (int i = 0; i < childrenList.size(); i++)
+			for(int i = 0; i < childrenList.size(); i++)
 			{
 				Uuid childUuid;
 				D_CORE::UuidFromJson(childUuid, childrenList[i]);
@@ -447,12 +458,12 @@ namespace Darius::Scene
 		}
 
 		// Loading Components
-		for (auto const& [objUuidStr, objCompsJson] : json["ObjectComponent"].items())
+		for(auto const& [objUuidStr, objCompsJson] : json["ObjectComponent"].items())
 		{
 			Uuid objUuid = D_CORE::FromString(objUuidStr);
 			auto gameObject = addedObjs[objUuid];
 
-			for (auto const& [compName, compJson] : objCompsJson.items())
+			for(auto const& [compName, compJson] : objCompsJson.items())
 			{
 				auto compR = World.component(compName.c_str());
 				auto compId = World.id(compR);
@@ -460,6 +471,7 @@ namespace Darius::Scene
 				// Adding component to entity
 				gameObject->mEntity.add(compR);
 				auto compP = const_cast<void*>(gameObject->mEntity.get(compId));
+				D_ASSERT(compP);
 
 				// Get component pointer
 				auto comp = reinterpret_cast<D_ECS_COMP::ComponentBase*>(compP);
@@ -472,7 +484,7 @@ namespace Darius::Scene
 			}
 		}
 
-		for (auto& [_, go] : addedObjs)
+		for(auto& [_, go] : addedObjs)
 		{
 			go->Awake();
 			ToBeStarted.push_back(go);
@@ -480,7 +492,7 @@ namespace Darius::Scene
 
 		auto rootGameObject = addedObjs[rootUuid];
 
-		if (!addToScene)
+		if(!addToScene)
 			rootGameObject->mPrefab = rootUuid;
 
 		*go = rootGameObject;
@@ -498,7 +510,7 @@ namespace Darius::Scene
 		Serialization::SerializationContext serializationContext = {
 			.Rereference = true,
 			.MaintainExternalReferences = maintainContext,
-			.ReferenceMap = newReferenceMap };
+			.ReferenceMap = newReferenceMap};
 
 		toBeSerialized.push_back(go);
 		go->VisitDescendants([&toBeSerialized](auto go)
@@ -507,7 +519,7 @@ namespace Darius::Scene
 			});
 
 		// Create uuid maps for rereferencing
-		for (GameObject const* go : toBeSerialized)
+		for(GameObject const* go : toBeSerialized)
 		{
 			auto goUuid = D_CORE::GenerateUuid();
 			newReferenceMap[go->GetUuid()] = goUuid;
@@ -515,7 +527,7 @@ namespace Darius::Scene
 
 		D_CORE::UuidToJson(NEW_UUID(go), json["Root"]);
 
-		for (GameObject const* go : toBeSerialized)
+		for(GameObject const* go : toBeSerialized)
 		{
 			// Serialize hierarchy
 			Json& goContext = json["Hierarchy"][ToString(NEW_UUID(go))];
@@ -544,7 +556,7 @@ namespace Darius::Scene
 		D_SERIALIZATION::SerializeSequentialContainer(toBeSerialized, json["Objects"], serializationContext);
 
 		// Replacing objects uuid with the new ones
-		for (int i = 0; i < json["Objects"].size(); i++)
+		for(int i = 0; i < json["Objects"].size(); i++)
 		{
 			Uuid currentUuid;
 			D_CORE::UuidFromJson(currentUuid, json["Objects"][i]["Uuid"]);
@@ -571,7 +583,7 @@ namespace Darius::Scene
 				DeleteGameObject((*EntityMap)[ent]);
 			});
 
-		if (preClean)
+		if(preClean)
 			preClean();
 
 		RemoveDeleted(true);
@@ -584,14 +596,14 @@ namespace Darius::Scene
 
 	GameObject* SceneManager::GetGameObject(D_ECS::Entity entity)
 	{
-		if (!EntityMap->contains(entity))
+		if(!EntityMap->contains(entity))
 			return nullptr;
 		return EntityMap->at(entity);
 	}
 
 	GameObject* SceneManager::GetGameObject(D_CORE::Uuid const& uuid)
 	{
-		if (!UuidMap->contains(uuid))
+		if(!UuidMap->contains(uuid))
 			return nullptr;
 
 		return UuidMap->at(uuid);
@@ -599,12 +611,12 @@ namespace Darius::Scene
 
 	void SceneManager::RemoveDeleted(bool flush)
 	{
-		if (flush)
+		if(flush)
 		{
 			D_GRAPHICS::GetCommandManager()->IdleGPU();
-			for (auto& instance : ToBeDeleted)
+			for(auto& instance : ToBeDeleted)
 			{
-				for (auto go : instance)
+				for(auto go : instance)
 				{
 					DeleteGameObjectData(go);
 					GOs->erase(go);
@@ -615,7 +627,7 @@ namespace Darius::Scene
 		else
 		{
 			auto currentResourceIndex = D_GRAPHICS_DEVICE::GetCurrentFrameResourceIndex();
-			for (auto go : ToBeDeleted[currentResourceIndex])
+			for(auto go : ToBeDeleted[currentResourceIndex])
 			{
 				DeleteGameObjectData(go);
 				GOs->erase(go);
@@ -643,12 +655,12 @@ namespace Darius::Scene
 
 	void SceneManager::StartScene()
 	{
-		if (Started)
+		if(Started)
 			return;
 
 		Started = true;
 
-		for (auto& [_, go] : *UuidMap)
+		for(auto& [_, go] : *UuidMap)
 		{
 			go->Awake();
 		}
@@ -658,7 +670,7 @@ namespace Darius::Scene
 	{
 		Running = true;
 
-		for (auto go : *GOs)
+		for(auto go : *GOs)
 		{
 			go->Start();
 		}
@@ -683,7 +695,7 @@ namespace Darius::Scene
 	{
 		auto result = ComponentEntityReflectionTypeMapping.find(comp);
 
-		if (result == ComponentEntityReflectionTypeMapping.end())
+		if(result == ComponentEntityReflectionTypeMapping.end())
 		{
 			D_ASSERT_M(false, "Given component is not registered via its static constructor.");
 			return rttr::type::get<rttr::detail::invalid_type>();

@@ -814,7 +814,7 @@ namespace Darius::Renderer
 	void MaterialResource::SetEmissiveColor(D_MATH::Color const& value)
 	{
 		auto valueVector = D_MATH::Vector3(value);
-		if (valueVector == mMaterial.Emissive)
+		if (valueVector.Equals(mMaterial.Emissive))
 			return;
 
 		mMaterial.Emissive = (XMFLOAT3)valueVector;

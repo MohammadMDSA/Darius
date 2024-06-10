@@ -51,6 +51,9 @@ namespace Darius::Scene
 
 	void GameObject::OnDestroy()
 	{
+		if(!IsInScene())
+			return;
+
 		VisitComponents([&](auto comp)
 			{
 				RemoveComponentRoutine(comp);
@@ -59,6 +62,9 @@ namespace Darius::Scene
 
 	void GameObject::OnPreDestroy()
 	{
+		if(!IsInScene())
+			return;
+
 		VisitComponents([](auto comp)
 			{
 				comp->OnPreDestroy();
@@ -81,20 +87,20 @@ namespace Darius::Scene
 			char name[1000];
 			memset(name, 0, 1000 * sizeof(char));
 			std::strcpy(name, mName.string());
-			if (ImGui::InputText("##ObjectName", name, 30))
+			if(ImGui::InputText("##ObjectName", name, 30))
 				mName = StringId(name, NameDatabase);
 		}
 
 		bool active = mActive;
 		ImGui::SameLine(contentRegionAvailable.x - lineHeight * 0.5f);
-		if (ImGui::Checkbox("##Active", &active))
+		if(ImGui::Checkbox("##Active", &active))
 		{
 			SetActive(active);
 			changeValue = true;
 		}
 
 		bool isStatic = GetType() == Type::Static;
-		if (ImGui::Checkbox("Static", &isStatic))
+		if(ImGui::Checkbox("Static", &isStatic))
 		{
 			SetType(isStatic ? Type::Static : Type::Movable);
 			changeValue = true;
@@ -103,7 +109,7 @@ namespace Darius::Scene
 		ImGui::Spacing();
 
 		// Show parent prefab
-		if (!mPrefab.is_nil() && mPrefab != mUuid)
+		if(!mPrefab.is_nil() && mPrefab != mUuid)
 		{
 
 			ImGui::Text("Prefab:");
@@ -120,12 +126,12 @@ namespace Darius::Scene
 		// Drawing components
 		VisitComponents([&](auto comp)
 			{
-				if (!comp || !comp->GetGameObject())
+				if(!comp || !comp->GetGameObject())
 					return;
 
 				auto label = comp->GetDisplayName();
 
-				if (label == "")
+				if(label == "")
 					return;
 
 				bool isTransform = dynamic_cast<D_MATH::TransformComponent*>(comp);
@@ -135,7 +141,7 @@ namespace Darius::Scene
 
 				ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 8.f);
 
-				ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2{ 4, 4 });
+				ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2 {4, 4});
 
 				bool open = ImGui::TreeNodeEx(label.c_str(), treeNodeFlags);
 				ImGui::PopStyleVar();
@@ -145,11 +151,11 @@ namespace Darius::Scene
 				{
 					auto canDisable = comp->IsDisableable();
 
-					if (canDisable)
+					if(canDisable)
 					{
 						ImGui::SameLine(contentRegionAvailable.x - 2 * lineHeight);
 						auto enabled = comp->IsEnabled();
-						if (ImGui::Checkbox("##Enabled", &enabled))
+						if(ImGui::Checkbox("##Enabled", &enabled))
 						{
 							comp->SetEnable(enabled);
 							changeValue = true;
@@ -164,17 +170,17 @@ namespace Darius::Scene
 
 				}
 
-				if (ImGui::Button(ICON_FA_ELLIPSIS_VERTICAL, { lineHeight, lineHeight }))
+				if(ImGui::Button(ICON_FA_ELLIPSIS_VERTICAL, {lineHeight, lineHeight}))
 				{
 					ImGui::OpenPopup("ComponentSettings");
 				}
 				ImGui::PopStyleVar();
 
 				bool deleted = false;
-				if (ImGui::BeginPopup("ComponentSettings"))
+				if(ImGui::BeginPopup("ComponentSettings"))
 				{
 
-					if (!isTransform && ImGui::MenuItem("Remove component"))
+					if(!isTransform && ImGui::MenuItem("Remove component"))
 					{
 						comp->OnPreComponentRemovInEditor();
 						RemoveComponent(comp);
@@ -184,9 +190,9 @@ namespace Darius::Scene
 					ImGui::EndPopup();
 				}
 
-				if (open)
+				if(open)
 				{
-					if (!deleted)
+					if(!deleted)
 						changeValue |= D_SCENE_DET_DRAW::DrawDetails(*comp, nullptr);
 
 					ImGui::TreePop();
@@ -201,7 +207,7 @@ namespace Darius::Scene
 			});
 
 		// Component selection popup
-		if (ImGui::BeginPopup("ComponentAdditionPopup", ImGuiPopupFlags_NoOpenOverExistingPopup))
+		if(ImGui::BeginPopup("ComponentAdditionPopup", ImGuiPopupFlags_NoOpenOverExistingPopup))
 		{
 			DrawComponentNameContext(RegisteredComponents);
 			ImGui::EndPopup();
@@ -216,7 +222,7 @@ namespace Darius::Scene
 		float addCompButtonWidth = 100.f;
 		ImGui::SameLine(std::max((contentRegionAvailable.x - addCompButtonWidth) / 2, 0.f));
 
-		if (ImGui::Button("Add Component", ImVec2(addCompButtonWidth, 0)))
+		if(ImGui::Button("Add Component", ImVec2(addCompButtonWidth, 0)))
 		{
 			ImGui::OpenPopup("ComponentAdditionPopup");
 		}
@@ -227,12 +233,12 @@ namespace Darius::Scene
 	void GameObject::DrawComponentNameContext(D_CONTAINERS::DMap<std::string, ComponentAddressNode> const& componentNameTree)
 	{
 
-		for (auto const& [compDisplay, compGroup] : componentNameTree)
+		for(auto const& [compDisplay, compGroup] : componentNameTree)
 		{
 
-			if (compGroup.IsBranch)
+			if(compGroup.IsBranch)
 			{
-				if (compGroup.ChildrenNameMap.size() && ImGui::BeginMenu(compDisplay.c_str()))
+				if(compGroup.ChildrenNameMap.size() && ImGui::BeginMenu(compDisplay.c_str()))
 				{
 					DrawComponentNameContext(compGroup.ChildrenNameMap);
 					ImGui::EndMenu();
@@ -242,13 +248,13 @@ namespace Darius::Scene
 			}
 
 			auto compGeneric = D_WORLD::GetComponentEntity(compGroup.ComponentName);
-			if (!D_WORLD::IsIdValid(compGeneric))
+			if(!D_WORLD::IsIdValid(compGeneric))
 				continue;
 
-			if (mEntity.has(compGeneric))
+			if(mEntity.has(compGeneric))
 				continue;
 
-			if (ImGui::MenuItem(compDisplay.c_str()))
+			if(ImGui::MenuItem(compDisplay.c_str()))
 			{
 				auto addedComp = AddComponent(compGroup.ComponentName);
 				addedComp->OnPostComponentAddInEditor();
@@ -271,10 +277,10 @@ namespace Darius::Scene
 		auto compList = DVector<BehaviourComponent*>();
 		mEntity.each([&](flecs::id compId)
 			{
-				if (!D_WORLD::IsIdValid(compId))
+				if(!D_WORLD::IsIdValid(compId))
 					return;
 
-				if (!RegisteredBehaviours.contains(compId))
+				if(!RegisteredBehaviours.contains(compId))
 					return;
 
 				auto compP = const_cast<void*>(mEntity.get(compId));
@@ -284,14 +290,14 @@ namespace Darius::Scene
 					compList.push_back(comp);
 
 				}
-				catch (const D_EXCEPTION::Exception& e)
+				catch(const D_EXCEPTION::Exception& e)
 				{
-					if (onException)
+					if(onException)
 						onException(e);
 				}
 			});
 
-		for (auto comp : compList)
+		for(auto comp : compList)
 			callback(comp);
 	}
 
@@ -305,10 +311,10 @@ namespace Darius::Scene
 
 		mEntity.each([&](flecs::id compId)
 			{
-				if (!D_WORLD::IsIdValid(compId))
+				if(!D_WORLD::IsIdValid(compId))
 					return;
 
-				if (transId == compId || !mEntity.has(compId))
+				if(transId == compId || !mEntity.has(compId))
 					return;
 
 				auto compP = const_cast<void*>(mEntity.get(compId));
@@ -318,14 +324,14 @@ namespace Darius::Scene
 					compList.push_back(comp);
 
 				}
-				catch (const D_EXCEPTION::Exception& e)
+				catch(const D_EXCEPTION::Exception& e)
 				{
-					if (onException)
+					if(onException)
 						onException(e);
 				}
 			});
 
-		for (auto comp : compList)
+		for(auto comp : compList)
 		{
 			D_VERIFY(comp);
 			callback(comp);
@@ -334,7 +340,7 @@ namespace Darius::Scene
 
 	D_ECS_COMP::ComponentBase* GameObject::AddComponent(StringId const& name)
 	{
-		if (!RegisteredComponentNames.contains(name))
+		if(!RegisteredComponentNames.contains(name))
 			return nullptr;
 
 		auto compT = D_WORLD::GetComponentEntity(name);
@@ -352,19 +358,19 @@ namespace Darius::Scene
 
 	void GameObject::AddComponentRoutine(Darius::Scene::ECS::Components::ComponentBase* comp)
 	{
-		if (!D_VERIFY(comp))
+		if(!D_VERIFY(comp))
 			return;
 
 		comp->mGameObject = this;
 
-		if (mAwake)
+		if(mAwake)
 		{
 			comp->Awake();
-			if (comp->IsActive())
+			if(comp->IsActive())
 				comp->OnActivate();
 		}
 
-		if (mStarted && comp->IsActive())
+		if(mStarted && comp->IsActive())
 		{
 			comp->mStarted = true;
 			comp->Start();
@@ -385,12 +391,12 @@ namespace Darius::Scene
 
 	void GameObject::Start()
 	{
-		if (mStarted)
+		if(!IsInScene() || mStarted)
 			return;
 
 		VisitComponents([](ComponentBase* comp)
 			{
-				if (!comp->IsActive())
+				if(!comp->IsActive())
 					return;
 				comp->mStarted = true;
 				comp->Start();
@@ -401,7 +407,7 @@ namespace Darius::Scene
 
 	void GameObject::Awake()
 	{
-		if (mAwake)
+		if(!IsInScene() || mAwake)
 			return;
 
 		mAwake = true;
@@ -409,17 +415,17 @@ namespace Darius::Scene
 		VisitComponents([](ComponentBase* comp)
 			{
 				comp->Awake();
-				if (comp->IsActive())
+				if(comp->IsActive())
 					comp->OnActivate();
 			});
 	}
 
 	bool GameObject::IsActive() const
 	{
-		if (!IsSelfActive())
+		if(!IsSelfActive())
 			return false;
 		auto parent = GetParent();
-		if (parent)
+		if(parent)
 			return parent->IsActive();
 		return true;
 	}
@@ -429,7 +435,7 @@ namespace Darius::Scene
 		auto compId = D_WORLD::GetComponentEntity(comp->GetComponentName());
 
 		// Abort if transform
-		if (D_WORLD::GetTypeId<D_MATH::TransformComponent>() == compId)
+		if(D_WORLD::GetTypeId<D_MATH::TransformComponent>() == compId)
 			return;
 
 		RemoveComponentRoutine(comp);
@@ -438,7 +444,7 @@ namespace Darius::Scene
 
 	bool GameObject::HasComponent(StringId const& compName) const
 	{
-		if (!RegisteredComponentNames.contains(compName))
+		if(!RegisteredComponentNames.contains(compName))
 			return false;
 
 		auto compT = D_WORLD::GetComponentEntity(compName);
@@ -448,7 +454,7 @@ namespace Darius::Scene
 
 	D_ECS_COMP::ComponentBase* GameObject::GetComponent(StringId const& compName) const
 	{
-		if (!RegisteredComponentNames.contains(compName))
+		if(!RegisteredComponentNames.contains(compName))
 			return nullptr;
 
 		auto compT = D_WORLD::GetComponentEntity(compName);
@@ -480,14 +486,14 @@ namespace Darius::Scene
 		if(!D_VERIFY(CanAttachTo(newParent)))
 			D_LOG_WARN("Circular pattern in hierarchy");
 
-		if (!newParent || !newParent->IsValid()) // Unparent
+		if(!newParent || !newParent->IsValid()) // Unparent
 		{
-			if (mParent) // Already has a parent
+			if(mParent) // Already has a parent
 			{
 				mEntity.child_of(D_WORLD::GetRoot());
 			}
 
-			if (attachmentType == AttachmentType::KeepWorld)
+			if(attachmentType == AttachmentType::KeepWorld)
 			{
 				auto trans = GetTransform();
 				auto world = trans->GetWorld();
@@ -503,7 +509,7 @@ namespace Darius::Scene
 		// New parent is legit
 		mEntity.child_of(newParent->mEntity);
 
-		if (attachmentType == AttachmentType::KeepWorld)
+		if(attachmentType == AttachmentType::KeepWorld)
 		{
 			auto trans = GetTransform();
 			auto world = trans->GetWorld();
@@ -521,13 +527,13 @@ namespace Darius::Scene
 
 		auto ancestorList = DVector<GameObject*>();
 
-		while (current)
+		while(current)
 		{
 			ancestorList.push_back(current);
 			current = current->mParent;
 		}
 
-		for (auto anc : ancestorList)
+		for(auto anc : ancestorList)
 			callback(anc);
 	}
 
@@ -540,7 +546,7 @@ namespace Darius::Scene
 				childrenList.push_back(D_WORLD::GetGameObject(childEnt));
 			});
 
-		for (auto child : childrenList)
+		for(auto child : childrenList)
 			callback(child);
 	}
 
@@ -568,12 +574,12 @@ namespace Darius::Scene
 	{
 		this->mActive = active;
 
-		if (active)
+		if(active)
 			VisitComponents([&](auto comp)
 				{
 					comp->OnActivate();
 
-					if (comp->mStarted || !mStarted)
+					if(comp->mStarted || !mStarted)
 						return;
 
 					comp->mStarted = true;
@@ -590,7 +596,7 @@ namespace Darius::Scene
 
 	void GameObject::RegisterComponent(StringId const& name, D_CONTAINERS::DVector<std::string>& displayName)
 	{
-		if (!D_WORLD::IsIdValid(D_WORLD::GetComponentEntity(name)))
+		if(!D_WORLD::IsIdValid(D_WORLD::GetComponentEntity(name)))
 			throw D_EXCEPTION::Exception("Found no component using provided name");
 
 		RegisteredComponentNames.insert(name);
@@ -598,10 +604,10 @@ namespace Darius::Scene
 		// Add component name to names list respecting categories
 		auto currentLevel = &RegisteredComponents;
 		auto& splitted = displayName;
-		for (int i = 0; i < splitted.size(); i++)
+		for(int i = 0; i < splitted.size(); i++)
 		{
 			// This is the last part of name (what we want to show)
-			if (i == splitted.size() - 1)
+			if(i == splitted.size() - 1)
 			{
 				ComponentAddressNode node;
 				node.ComponentName = name;
@@ -612,7 +618,7 @@ namespace Darius::Scene
 			}
 
 			// Add to a child cat
-			if (!currentLevel->contains(splitted[i]))
+			if(!currentLevel->contains(splitted[i]))
 			{
 				ComponentAddressNode node;
 				node.IsBranch = true;
@@ -640,7 +646,8 @@ namespace Darius::Scene
 
 	bool GameObject::Release()
 	{
-		D_WORLD::DeleteGameObject(this);
+		if(IsInScene())
+			D_WORLD::DeleteGameObject(this);
 		return true;
 	}
 
@@ -654,7 +661,7 @@ namespace Darius::Scene
 			});
 
 		// Sort components based on their display name
-		if (sorted)
+		if(sorted)
 		{
 			std::sort(result.begin(), result.end(), [](ComponentBase const* a, ComponentBase const* b)
 				{

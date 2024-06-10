@@ -11,9 +11,6 @@ namespace Darius::ResourceManager
 
 #ifdef _D_EDITOR
 
-#define	D_PAYLOAD_TYPE_RESOURCE "$PAYLOAD$$RESOURCE$"
-
-
 	struct ResourceDragDropPayloadContent : public D_UTILS::BaseDragDropPayloadContent
 	{
 		ResourceDragDropPayloadContent() :

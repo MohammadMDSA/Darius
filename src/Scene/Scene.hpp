@@ -63,6 +63,8 @@ namespace Darius::Scene
 		static bool				IsLoaded();
 		static bool				IsRunning();
 
+		static void				LoadPrefabs();
+
 		static INLINE D_ECS::Entity	GetRoot() { return Root; }
 		
 		template<typename COMP>

@@ -113,6 +113,9 @@ namespace Darius::Scene::ECS
 
 		explicit CompRef(GameObject const* go)
 		{
+			if(!go)
+				mRef = flecs::ref<T>();
+
 			auto ent = go->GetEntity();
 			mRef = ent.get_ref<T>();
 		}

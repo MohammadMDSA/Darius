@@ -89,7 +89,7 @@ namespace Darius::Renderer
 		virtual void					ReadResourceFromFile(D_SERIALIZATION::Json const&, bool& dirtyDisk) override;
 
 		INLINE virtual void				Unload() override { EvictFromGpu(); }
-		INLINE virtual bool				UploadToGpu() override { return true; }
+		INLINE virtual bool				UploadToGpu() override { SetUploading(); return true; }
 
 		void							SetMaterialListSize(UINT size);
 
