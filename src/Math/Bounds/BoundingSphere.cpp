@@ -57,6 +57,28 @@ namespace Darius::Math::Bounds
         Radius = newRadius;
     }
 
+    BoundingSphere BoundingSphere::CreateFromPointList(Vector3 const* points, uint32_t count)
+    {
+        D_MATH::Vector3 sumPos = D_MATH::Vector3::Zero;
+        for(int i = 0; i < count; i++)
+        {
+            auto const& point = points[i];
+            sumPos += point;
+        }
+        sumPos = sumPos / (float)count;
+
+        float radius = 0.f;
+        for(int i = 0; i < count; i++)
+        {
+            auto const& point = points[i];
+            float distToCenter = D_MATH::Vector3::Distance(point, sumPos);
+            if(distToCenter > radius)
+                radius = distToCenter;
+        }
+
+        return D_MATH_BOUNDS::BoundingSphere(sumPos, radius);
+    }
+
     ContainmentType BoundingSphere::Contains(Vector3 const& point) const
     {
         return (ContainmentType)DirectX::BoundingSphere::Contains(point);

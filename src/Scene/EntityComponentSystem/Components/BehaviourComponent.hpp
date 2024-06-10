@@ -17,7 +17,7 @@ void type::ComponentUpdater(float dt, D_ECS::ECSRegistry& reg) \
 { \
 	reg.each([&](type& comp) \
 		{ \
-			if(comp.IsActive()) \
+			if(comp.IsStarted() && comp.IsActive()) \
 				comp.Update(dt); \
 		} \
 	); \
@@ -26,7 +26,7 @@ void type::ComponentLateUpdater(float dt, D_ECS::ECSRegistry& reg) \
 { \
 	reg.each([&](type& comp) \
 		{ \
-			if(comp.IsActive()) \
+			if(comp.IsStarted() && comp.IsActive()) \
 				comp.LateUpdate(dt); \
 		} \
 	); \

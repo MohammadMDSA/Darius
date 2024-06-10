@@ -168,8 +168,8 @@ namespace Darius::Math
 		INLINE Vector3(float _x, float _y, float _z) { m_vec = DirectX::XMVectorSet(_x, _y, _z, _z); }
 		explicit INLINE Vector3(float const* data) : Vector3(DirectX::XMFLOAT3(data)) {}
 		INLINE Vector3(DirectX::XMFLOAT3 const& v) { m_vec = DirectX::XMLoadFloat3(&v); }
-		INLINE Vector3(const Vector3 & v) { m_vec = v; }
-		INLINE Vector3(Scalar s) { m_vec = s; }
+		INLINE Vector3(Vector3 const& v) { m_vec = v; }
+		INLINE Vector3(Scalar const& s) { m_vec = s; }
 		explicit Vector3(Vector4 const& vec);
 		INLINE explicit Vector3(DirectX::FXMVECTOR const& vec) { m_vec = vec; }
 		INLINE explicit Vector3(EZeroTag) { m_vec = SplatZero(); }
@@ -203,20 +203,20 @@ namespace Darius::Math
 		INLINE float _GetFast(int index) const { return ((float*)&m_vec)[index]; }
 
 		INLINE Vector3 operator- () const { return Vector3(DirectX::XMVectorNegate(m_vec)); }
-		INLINE Vector3 operator+ (Vector3 v2) const { return Vector3(DirectX::XMVectorAdd(m_vec, v2)); }
-		INLINE Vector3 operator- (Vector3 v2) const { return Vector3(DirectX::XMVectorSubtract(m_vec, v2)); }
-		INLINE Vector3 operator* (Vector3 v2) const { return Vector3(DirectX::XMVectorMultiply(m_vec, v2)); }
-		INLINE Vector3 operator/ (Vector3 v2) const { return Vector3(DirectX::XMVectorDivide(m_vec, v2)); }
-		INLINE Vector3 operator* (Scalar v2) const { return *this * Vector3(v2); }
-		INLINE Vector3 operator/ (Scalar v2) const { return *this / Vector3(v2); }
+		INLINE Vector3 operator+ (Vector3 const& v2) const { return Vector3(DirectX::XMVectorAdd(m_vec, v2)); }
+		INLINE Vector3 operator- (Vector3 const& v2) const { return Vector3(DirectX::XMVectorSubtract(m_vec, v2)); }
+		INLINE Vector3 operator* (Vector3 const& v2) const { return Vector3(DirectX::XMVectorMultiply(m_vec, v2)); }
+		INLINE Vector3 operator/ (Vector3 const& v2) const { return Vector3(DirectX::XMVectorDivide(m_vec, v2)); }
+		INLINE Vector3 operator* (Scalar const& v2) const { return *this * Vector3(v2); }
+		INLINE Vector3 operator/ (Scalar const& v2) const { return *this / Vector3(v2); }
 		INLINE Vector3 operator* (float v2) const { return *this * Scalar(v2); }
 		INLINE Vector3 operator/ (float v2) const { return *this / Scalar(v2); }
 
-		INLINE Vector3& operator += (Vector3 v) { *this = *this + v; return *this; }
-		INLINE Vector3& operator -= (Vector3 v) { *this = *this - v; return *this; }
-		INLINE Vector3& operator *= (Vector3 v) { *this = *this * v; return *this; }
+		INLINE Vector3& operator += (Vector3 const& v) { *this = *this + v; return *this; }
+		INLINE Vector3& operator -= (Vector3 const& v) { *this = *this - v; return *this; }
+		INLINE Vector3& operator *= (Vector3 const& v) { *this = *this * v; return *this; }
 		INLINE Vector3& operator *= (float v) { *this = *this * v; return *this; }
-		INLINE Vector3& operator /= (Vector3 v) { *this = *this / v; return *this; }
+		INLINE Vector3& operator /= (Vector3 const& v) { *this = *this / v; return *this; }
 
 		// Costy, don't use too often
 		INLINE D_CONTAINERS::DVector<float> GetData() const { return { GetX(), GetY(), GetZ() }; }
@@ -226,10 +226,10 @@ namespace Darius::Math
 		INLINE operator DirectX::XMVECTOR const& () { return m_vec; }
 		INLINE operator DirectX::XMFLOAT3& () { return *(DirectX::XMFLOAT3*)&m_vec; }
 
-		INLINE friend Vector3 operator* (Scalar v1, Vector3 v2) { return Vector3(v1) * v2; }
-		INLINE friend Vector3 operator/ (Scalar v1, Vector3 v2) { return Vector3(v1) / v2; }
-		INLINE friend Vector3 operator* (float v1, Vector3 v2) { return Scalar(v1) * v2; }
-		INLINE friend Vector3 operator/ (float v1, Vector3 v2) { return Scalar(v1) / v2; }
+		INLINE friend Vector3 operator* (Scalar const& v1, Vector3 const& v2) { return Vector3(v1) * v2; }
+		INLINE friend Vector3 operator/ (Scalar const& v1, Vector3 const& v2) { return Vector3(v1) / v2; }
+		INLINE friend Vector3 operator* (float v1, Vector3 const& v2) { return Scalar(v1) * v2; }
+		INLINE friend Vector3 operator/ (float v1, Vector3 const& v2) { return Scalar(v1) / v2; }
 
 		static float Distance(Vector3 const& v1, Vector3 const& v2);
 
@@ -299,26 +299,26 @@ namespace Darius::Math
 		INLINE bool IsZero() const { return DirectX::XMVector4Equal(m_vec, DirectX::g_XMZero); }
 
 		INLINE Vector4 operator- () const { return Vector4(DirectX::XMVectorNegate(m_vec)); }
-		INLINE Vector4 operator+ (Vector4 v2) const { return Vector4(DirectX::XMVectorAdd(m_vec, v2)); }
-		INLINE Vector4 operator- (Vector4 v2) const { return Vector4(DirectX::XMVectorSubtract(m_vec, v2)); }
-		INLINE Vector4 operator* (Vector4 v2) const { return Vector4(DirectX::XMVectorMultiply(m_vec, v2)); }
-		INLINE Vector4 operator/ (Vector4 v2) const { return Vector4(DirectX::XMVectorDivide(m_vec, v2)); }
-		INLINE Vector4 operator* (Scalar v2) const { return *this * Vector4(v2); }
-		INLINE Vector4 operator/ (Scalar v2) const { return *this / Vector4(v2); }
+		INLINE Vector4 operator+ (Vector4 const& v2) const { return Vector4(DirectX::XMVectorAdd(m_vec, v2)); }
+		INLINE Vector4 operator- (Vector4 const& v2) const { return Vector4(DirectX::XMVectorSubtract(m_vec, v2)); }
+		INLINE Vector4 operator* (Vector4 const& v2) const { return Vector4(DirectX::XMVectorMultiply(m_vec, v2)); }
+		INLINE Vector4 operator/ (Vector4 const& v2) const { return Vector4(DirectX::XMVectorDivide(m_vec, v2)); }
+		INLINE Vector4 operator* (Scalar const& v2) const { return *this * Vector4(v2); }
+		INLINE Vector4 operator/ (Scalar const& v2) const { return *this / Vector4(v2); }
 		INLINE Vector4 operator* (float v2) const { return *this * Scalar(v2); }
 		INLINE Vector4 operator/ (float v2) const { return *this / Scalar(v2); }
 
 		INLINE Vector4& operator*= (float v2) { *this = *this * Scalar(v2); return *this; }
 		INLINE Vector4& operator/= (float v2) { *this = *this / Scalar(v2); return *this; }
-		INLINE Vector4& operator += (Vector4 v) { *this = *this + v; return *this; }
-		INLINE Vector4& operator -= (Vector4 v) { *this = *this - v; return *this; }
-		INLINE Vector4& operator *= (Vector4 v) { *this = *this * v; return *this; }
-		INLINE Vector4& operator /= (Vector4 v) { *this = *this / v; return *this; }
+		INLINE Vector4& operator += (Vector4 const& v) { *this = *this + v; return *this; }
+		INLINE Vector4& operator -= (Vector4 const& v) { *this = *this - v; return *this; }
+		INLINE Vector4& operator *= (Vector4 const& v) { *this = *this * v; return *this; }
+		INLINE Vector4& operator /= (Vector4 const& v) { *this = *this / v; return *this; }
 
-		INLINE friend Vector4 operator* (Scalar v1, Vector4 v2) { return Vector4(v1) * v2; }
-		INLINE friend Vector4 operator/ (Scalar v1, Vector4 v2) { return Vector4(v1) / v2; }
-		INLINE friend Vector4 operator* (float v1, Vector4 v2) { return Scalar(v1) * v2; }
-		INLINE friend Vector4 operator/ (float v1, Vector4 v2) { return Scalar(v1) / v2; }
+		INLINE friend Vector4 operator* (Scalar const& v1, Vector4 const& v2) { return Vector4(v1) * v2; }
+		INLINE friend Vector4 operator/ (Scalar const& v1, Vector4 const& v2) { return Vector4(v1) / v2; }
+		INLINE friend Vector4 operator* (float v1, Vector4 const& v2) { return Scalar(v1) * v2; }
+		INLINE friend Vector4 operator/ (float v1, Vector4 const& v2) { return Scalar(v1) / v2; }
 
 		static const Vector4 Up;
 		static const Vector4 Down;

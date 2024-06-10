@@ -58,6 +58,8 @@ namespace Darius::Math::Bounds
         BoundingSphere Union(const BoundingSphere& rhs);
 
         void AddPoint(Vector3 const& point);
+
+        static BoundingSphere CreateFromPointList(Vector3 const* points, uint32_t count);
     };
 
     //=======================================================================================================
