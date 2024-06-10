@@ -1,0 +1,16 @@
+{
+  "Parent": {
+    "Name": "",
+    "Type": "",
+    "Uuid": "00000000-0000-0000-0000-000000000000"
+  },
+  "Path": "M_DiamondMetal.mat",
+  "Properties": { "M_DiamondMetal": null },
+  "Resources": [
+    {
+      "Name": "M_DiamondMetal",
+      "Type": "Material",
+      "Uuid": "7112128b-3d89-4405-8f62-4c877665fe49"
+    }
+  ]
+}
