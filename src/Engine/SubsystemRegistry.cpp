@@ -12,6 +12,7 @@
 #include <Debug/DebugDraw.hpp>
 #include <Graphics/GraphicsCore.hpp>
 #include <FBX/FBXSystem.hpp>
+#include <Scene/Scene.hpp>
 #include <Job/Job.hpp>
 #include <Physics/PhysicsManager.hpp>
 #include <Renderer/RendererManager.hpp>
@@ -96,6 +97,8 @@ namespace Darius::Subsystems
 		/*CreateDeviceDependentResources();
 		CreateWindowSizeDependentResources();*/
 
+		D_WORLD::Initialize();
+
 		D_JOB::Initialize(settings["Job"]);
 
 		// Initialing the tiem manager
@@ -140,6 +143,7 @@ namespace Darius::Subsystems
 		D_INPUT::Shutdown();
 		D_TIME::Shutdown();
 		D_JOB::Shutdown();
+		D_WORLD::Shutdown();
 		D_RENDERER::Shutdown();
 		D_GRAPHICS::Shutdown();
 		D_RESOURCE::Shutdown();
