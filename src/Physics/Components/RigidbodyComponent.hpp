@@ -12,7 +12,7 @@
 
 namespace Darius::Physics
 {
-	class DClass(Serialize[bKinematic, bUsingGravity, RotationConstraintsX, RotationConstraintsY, RotationConstraintsZ, PositionConstraintsX, PositionConstraintsY, PositionConstraintsZ]) RigidbodyComponent : public D_ECS_COMP::ComponentBase
+	class DClass(Serialize[bKinematic, bUsingGravity, RotationConstraintsX, RotationConstraintsY, RotationConstraintsZ, PositionConstraintsX, PositionConstraintsY, PositionConstraintsZ, CenterOfMass]) RigidbodyComponent : public D_ECS_COMP::ComponentBase
 	{
 		D_H_COMP_BODY(RigidbodyComponent, ComponentBase, "Physics/Rigidbody", true);
 		GENERATED_BODY();
@@ -30,6 +30,7 @@ namespace Darius::Physics
 		virtual bool					DrawDetails(float[]) override;
 		bool							DrawRotationConstraints();
 		bool							DrawPositionConstraints();
+		virtual void					OnPostComponentAddInEditor() override;
 #endif
 
 		// Kinematic
@@ -51,6 +52,9 @@ namespace Darius::Physics
 		D_MATH::Vector3					GetAngularVelocity() const;
 		void							SetAngularVelocity(D_MATH::Vector3 const& v, bool autoWake = true);
 
+		D_MATH::Vector3					GetCenterOfMass() const;
+		void							SetCenterOfMass(D_MATH::Vector3 const& c);
+
 		// Rotation Constraints
 		bool							GetRotationConstraintsX() const;
 		bool							GetRotationConstraintsY() const;
@@ -71,10 +75,15 @@ namespace Darius::Physics
 
 		// Internals
 		D_CORE::Ref<PhysicsActor>		mActor = nullptr;
-		bool							mKinematic;
-		bool							mUsingGravity;
-		bool							mRotationConstraints[3];
-		bool							mPositionConstraints[3];
+		uint8_t							mKinematic : 1;
+		uint8_t							mUsingGravity : 1;
+		uint8_t							mRotationConstraintsX : 1;
+		uint8_t							mRotationConstraintsY : 1;
+		uint8_t							mRotationConstraintsZ : 1;
+		uint8_t							mPositionConstraintsX : 1;
+		uint8_t							mPositionConstraintsY : 1;
+		uint8_t							mPositionConstraintsZ : 1;
+		
 
 	};
 }

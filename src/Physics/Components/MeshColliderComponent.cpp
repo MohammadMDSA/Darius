@@ -41,7 +41,7 @@ namespace Darius::Physics
 
 	void MeshColliderComponent::Awake()
 	{
-		if (mReferenceMesh.IsValid())
+		if(mReferenceMesh.IsValid())
 		{
 			CalculateMeshGeometry();
 		}
@@ -63,7 +63,7 @@ namespace Darius::Physics
 		{
 			bool value = IsConvex();
 			D_H_DETAILS_DRAW_PROPERTY("Convex Mesh");
-			if (ImGui::Checkbox("##Convex", &value))
+			if(ImGui::Checkbox("##Convex", &value))
 			{
 				SetConvex(value);
 				valueChanged = true;
@@ -74,7 +74,7 @@ namespace Darius::Physics
 		{
 			bool value = IsTightBounds();
 			D_H_DETAILS_DRAW_PROPERTY("Tight Bounds");
-			if (ImGui::Checkbox("##TightBounds", &value))
+			if(ImGui::Checkbox("##TightBounds", &value))
 			{
 				SetTightBounds(value);
 				valueChanged = true;
@@ -85,7 +85,7 @@ namespace Darius::Physics
 		{
 			bool value = IsDirectMesh();
 			D_H_DETAILS_DRAW_PROPERTY("Direct Mesh");
-			if (ImGui::Checkbox("##DirectMesh", &value))
+			if(ImGui::Checkbox("##DirectMesh", &value))
 			{
 				SetDirectMesh(value);
 				valueChanged = true;
@@ -105,35 +105,29 @@ namespace Darius::Physics
 
 	void MeshColliderComponent::OnGizmo() const
 	{
-		if (!IsActive())
+		if(!IsActive())
 			return;
 
-		if (!mMesh.IsValid())
+		if(!mMesh.IsValid())
 			return;
 
 		auto trans = GetTransform();
 		auto rot = trans->GetRotation();
 		auto offset = rot * GetScaledCenterOffset();
-		D_DEBUG_DRAW::DrawMesh(trans->GetPosition() + offset, rot, trans->GetScale(), &mMesh->Mesh, 0., { 0.f, 1.f, 0.f, 1.f });
+		D_DEBUG_DRAW::DrawMesh(trans->GetPosition() + offset, rot, trans->GetScale(), &mMesh->Mesh, 0., {0.f, 1.f, 0.f, 1.f});
 	}
 
 	void MeshColliderComponent::OnPostComponentAddInEditor()
 	{
 		Super::OnPostComponentAddInEditor();
 
-		bool addedDefault = false;
-
-		if (!addedDefault)
+		if(auto sm = GetGameObject()->GetComponent<D_RENDERER::MeshRendererComponent>())
 		{
-			if (auto sm = GetGameObject()->GetComponent<D_RENDERER::MeshRendererComponent>())
+			auto mesh = sm->GetMesh();
+			if(mesh && mesh->IsLoaded())
 			{
-				auto mesh = sm->GetMesh();
-				if (mesh && mesh->IsLoaded())
-				{
-					SetReferenceMesh(mesh);
+				SetReferenceMesh(mesh);
 
-					addedDefault = true;
-				}
 			}
 		}
 	}
@@ -150,7 +144,7 @@ namespace Darius::Physics
 
 	bool MeshColliderComponent::CalculateGeometry(physx::PxGeometry& geom) const
 	{
-		if (!mMesh.IsValid())
+		if(!mMesh.IsValid())
 			return false;
 
 		bool convex = IsConvex();
@@ -161,12 +155,12 @@ namespace Darius::Physics
 
 		PxMeshScale scale(D_PHYSICS::GetVec3(GetUsedScale()));
 
-		if (convex)
+		if(convex)
 		{
 			PxConvexMeshGeometry& convMesh = reinterpret_cast<physx::PxConvexMeshGeometry&>(geom);
 
 			PxConvexMeshGeometryFlags flags;
-			if (IsTightBounds())
+			if(IsTightBounds())
 				flags |= PxConvexMeshGeometryFlag::eTIGHT_BOUNDS;
 
 			convMesh = physx::PxConvexMeshGeometry(mMesh.ConvexMesh->PxMesh, scale, flags);
@@ -176,7 +170,7 @@ namespace Darius::Physics
 			PxTriangleMeshGeometry& triMesh = reinterpret_cast<physx::PxTriangleMeshGeometry&>(geom);
 
 			PxMeshGeometryFlags flags;
-			if (IsTightBounds())
+			if(IsTightBounds())
 				flags |= PxMeshGeometryFlag::eTIGHT_BOUNDS;
 
 			triMesh = physx::PxTriangleMeshGeometry(mMesh.TriangleMesh->PxMesh, scale, flags);
@@ -187,7 +181,7 @@ namespace Darius::Physics
 
 	void MeshColliderComponent::SetTightBounds(bool tight)
 	{
-		if ((bool)mTightBounds == tight)
+		if((bool)mTightBounds == tight)
 			return;
 
 		mTightBounds = tight;
@@ -198,7 +192,7 @@ namespace Darius::Physics
 
 	void MeshColliderComponent::SetDirectMesh(bool direct)
 	{
-		if ((bool)mDirectMesh == direct)
+		if((bool)mDirectMesh == direct)
 			return;
 
 		mDirectMesh = direct;
@@ -208,7 +202,7 @@ namespace Darius::Physics
 
 	void MeshColliderComponent::SetConvex(bool convex)
 	{
-		if ((bool)mConvex == convex)
+		if((bool)mConvex == convex)
 			return;
 
 		mConvex = convex;
@@ -222,19 +216,19 @@ namespace Darius::Physics
 	void MeshColliderComponent::SetReferenceMesh(D_RENDERER::StaticMeshResource* staticMesh)
 	{
 
-		if (mReferenceMesh == staticMesh)
+		if(mReferenceMesh == staticMesh)
 			return;
 
 		mReferenceMesh = staticMesh;
 
 		auto meshValid = mReferenceMesh.IsValid();
 
-		if (!meshValid || mReferenceMesh->IsLoaded())
+		if(!meshValid || mReferenceMesh->IsLoaded())
 		{
 			// Mesh is already loaded
 			CalculateMeshGeometry();
 		}
-		else if (meshValid)
+		else if(meshValid)
 		{
 			// Mesh needs to be loaded
 			D_RESOURCE_LOADER::LoadResourceAsync(mReferenceMesh.Get(), [&](auto _)
@@ -251,7 +245,7 @@ namespace Darius::Physics
 	void MeshColliderComponent::CalculateConvexMeshGeometry()
 	{
 		mMesh = D_PHYSICS::FindConvexMesh(mReferenceMesh->GetUuid());
-		if (mMesh.IsValid())
+		if(mMesh.IsValid())
 		{
 			CalculateScaledParameters();
 			UpdateGeometry();
@@ -277,7 +271,7 @@ namespace Darius::Physics
 		// Creating conv mesh
 		{
 			physx::PxConvexMeshDesc convDesc;
-			convDesc.flags = physx::PxConvexFlag::eCOMPUTE_CONVEX | physx::PxConvexFlag::eGPU_COMPATIBLE | physx::PxConvexFlag::eFAST_INERTIA_COMPUTATION;
+			convDesc.flags = physx::PxConvexFlag::eCOMPUTE_CONVEX | physx::PxConvexFlag::eGPU_COMPATIBLE | physx::PxConvexFlag::eSHIFT_VERTICES;//  | physx::PxConvexFlag::eFAST_INERTIA_COMPUTATION;
 			convDesc.points.count = mMeshVerticesReadback.GetElementCount();
 			convDesc.points.data = mMeshVerticesReadback.Map();
 			convDesc.points.stride = mMeshVerticesReadback.GetElementSize();
@@ -302,7 +296,7 @@ namespace Darius::Physics
 	void MeshColliderComponent::CalculateTriangleMeshGeometry()
 	{
 		mMesh = D_PHYSICS::FindTriangleMesh(mReferenceMesh->GetUuid());
-		if (mMesh.IsValid())
+		if(mMesh.IsValid())
 		{
 			CalculateScaledParameters();
 			UpdateGeometry();
@@ -355,21 +349,21 @@ namespace Darius::Physics
 
 	bool MeshColliderComponent::CalculateMeshGeometry()
 	{
-		if (!mReferenceMesh.IsValid())
+		if(!mReferenceMesh.IsValid())
 		{
 			mMesh = InvalidMeshDataHandle;
 			return true;
 		}
 
 		D_ASSERT(mReferenceMesh.IsValid());
-		
-		if (!mReferenceMesh->IsLoaded())
+
+		if(!mReferenceMesh->IsLoaded())
 		{
 			mMesh = InvalidMeshDataHandle;
 			return false;
 		}
 
-		if (IsConvex())
+		if(IsConvex())
 			CalculateConvexMeshGeometry();
 		else
 			CalculateTriangleMeshGeometry();

@@ -5,6 +5,8 @@
 #include "Physics/PhysicsScene.hpp"
 #include "Physics/Components/CapsuleColliderComponent.hpp"
 
+#include <Renderer/Components/MeshRendererComponent.hpp>
+
 #ifdef _D_EDITOR
 #include <imgui.h>
 #include <imgui_internal.h>
@@ -26,8 +28,12 @@ namespace Darius::Physics
 		mKinematic(false),
 		mUsingGravity(true)
 	{
-		ZeroMemory(mRotationConstraints, 3 * sizeof(bool));
-		ZeroMemory(mPositionConstraints, 3 * sizeof(bool));
+		mRotationConstraintsX = false;
+		mRotationConstraintsY = false;
+		mRotationConstraintsZ = false;
+		mPositionConstraintsX = false;
+		mPositionConstraintsY = false;
+		mPositionConstraintsZ = false;
 	}
 
 	RigidbodyComponent::RigidbodyComponent(D_CORE::Uuid const& uuid) :
@@ -35,8 +41,12 @@ namespace Darius::Physics
 		mKinematic(false),
 		mUsingGravity(true)
 	{
-		ZeroMemory(mRotationConstraints, 3 * sizeof(bool));
-		ZeroMemory(mPositionConstraints, 3 * sizeof(bool));
+		mRotationConstraintsX = false;
+		mRotationConstraintsY = false;
+		mRotationConstraintsZ = false;
+		mPositionConstraintsX = false;
+		mPositionConstraintsY = false;
+		mPositionConstraintsZ = false;
 	}
 
 	void RigidbodyComponent::Awake()
@@ -54,19 +64,19 @@ namespace Darius::Physics
 		SetDirty();
 		SetKinematic(mKinematic);
 		SetUsingGravity(mUsingGravity);
-		SetRotationConstraintsX(mRotationConstraints[0]);
-		SetRotationConstraintsY(mRotationConstraints[1]);
-		SetRotationConstraintsZ(mRotationConstraints[2]);
-		SetPositionConstraintsX(mPositionConstraints[0]);
-		SetPositionConstraintsY(mPositionConstraints[1]);
-		SetPositionConstraintsZ(mPositionConstraints[2]);
+		SetRotationConstraintsX(mRotationConstraintsX);
+		SetRotationConstraintsY(mRotationConstraintsY);
+		SetRotationConstraintsZ(mRotationConstraintsZ);
+		SetPositionConstraintsX(mPositionConstraintsX);
+		SetPositionConstraintsY(mPositionConstraintsY);
+		SetPositionConstraintsZ(mPositionConstraintsZ);
 		mActor->GetDynamicActor()->setActorFlag(physx::PxActorFlag::eDISABLE_SIMULATION, false);
 		SetClean();
 	}
 
 	void RigidbodyComponent::OnDestroy()
 	{
-		if (mActor.IsValid())
+		if(mActor.IsValid())
 		{
 			mActor->SetDynamic(false);
 
@@ -75,7 +85,7 @@ namespace Darius::Physics
 
 	void RigidbodyComponent::OnActivate()
 	{
-		if (mActor.IsValid())
+		if(mActor.IsValid())
 		{
 			mActor->GetDynamicActor()->setActorFlag(physx::PxActorFlag::eDISABLE_SIMULATION, false);
 		}
@@ -83,7 +93,7 @@ namespace Darius::Physics
 
 	void RigidbodyComponent::OnDeactivate()
 	{
-		if (mActor.IsValid())
+		if(mActor.IsValid())
 		{
 			mActor->GetDynamicActor()->setActorFlag(physx::PxActorFlag::eDISABLE_SIMULATION, true);
 		}
@@ -91,7 +101,7 @@ namespace Darius::Physics
 
 	bool RigidbodyComponent::IsUsingGravity() const
 	{
-		if (!mActor.IsValid())
+		if(!mActor.IsValid())
 			return mUsingGravity;
 
 		auto flags = mActor->GetDynamicActor()->getActorFlags();
@@ -101,10 +111,10 @@ namespace Darius::Physics
 
 	void RigidbodyComponent::SetUsingGravity(bool enable)
 	{
-		if (mUsingGravity == enable && !IsDirty())
+		if(mUsingGravity == enable && !IsDirty())
 			return;
 
-		if (mActor.IsValid())
+		if(mActor.IsValid())
 			mActor->GetDynamicActor()->setActorFlag(PxActorFlag::eDISABLE_GRAVITY, !enable);
 
 		mUsingGravity = enable;
@@ -113,10 +123,10 @@ namespace Darius::Physics
 
 	void RigidbodyComponent::SetKinematic(bool value)
 	{
-		if (mKinematic == value && !IsDirty())
+		if(mKinematic == value && !IsDirty())
 			return;
 
-		if (mActor.IsValid())
+		if(mActor.IsValid())
 			mActor->GetDynamicActor()->setRigidBodyFlag(PxRigidBodyFlag::eKINEMATIC, value);
 		mKinematic = value;
 		mChangeSignal(this);
@@ -124,7 +134,7 @@ namespace Darius::Physics
 
 	bool RigidbodyComponent::IsKinematic() const
 	{
-		if (!mActor.IsValid())
+		if(!mActor.IsValid())
 			return mKinematic;
 
 		return mActor->GetDynamicActor()->getRigidBodyFlags().isSet(PxRigidBodyFlag::eKINEMATIC);
@@ -132,7 +142,7 @@ namespace Darius::Physics
 
 	Vector3 RigidbodyComponent::GetLinearVelocity() const
 	{
-		if (!mActor.IsValid())
+		if(!mActor.IsValid())
 			return Vector3(kZero);
 
 		auto v = mActor->GetDynamicActor()->getLinearVelocity();
@@ -141,7 +151,10 @@ namespace Darius::Physics
 
 	void RigidbodyComponent::SetLinearVelocity(Vector3 const& v, bool autoWake)
 	{
-		if (!mActor.IsValid())
+		if(!mActor.IsValid())
+			return;
+
+		if(v.Equals(GetLinearVelocity()))
 			return;
 
 		mActor->GetDynamicActor()->setLinearVelocity(VEC3_2_PX(v));
@@ -150,17 +163,38 @@ namespace Darius::Physics
 
 	Vector3 RigidbodyComponent::GetAngularVelocity() const
 	{
-		if (!mActor.IsValid())
-			return Vector3(kZero);
+		if(!mActor.IsValid())
+			return Vector3::Zero;
 
 		auto v = mActor->GetDynamicActor()->getAngularVelocity();
 		return Vector3(reinterpret_cast<float*>(&v));
 	}
 
+	void RigidbodyComponent::SetCenterOfMass(Vector3 const& c)
+	{
+		if(!mActor.IsValid())
+			return;
+
+		if(c.Equals(GetCenterOfMass()))
+			return;
+
+		mActor->GetDynamicActor()->setCMassLocalPose(PxTransform(VEC3_2_PX(c)));
+		mChangeSignal(this);
+	}
+
+	Vector3 RigidbodyComponent::GetCenterOfMass() const
+	{
+		if(!mActor.IsValid())
+			return Vector3::Zero;
+
+		auto c = mActor->GetDynamicActor()->getCMassLocalPose().p;
+		return Vector3(reinterpret_cast<float*>(&c));
+	}
+
 	bool RigidbodyComponent::GetRotationConstraintsX() const
 	{
-		if (!mActor.IsValid())
-			return mRotationConstraints[0];
+		if(!mActor.IsValid())
+			return mRotationConstraintsX;
 
 		auto flags = mActor->GetDynamicActor()->getRigidDynamicLockFlags();
 		return flags.isSet(PxRigidDynamicLockFlag::eLOCK_ANGULAR_X);
@@ -168,8 +202,8 @@ namespace Darius::Physics
 
 	bool RigidbodyComponent::GetRotationConstraintsY() const
 	{
-		if (!mActor.IsValid())
-			return mRotationConstraints[1];
+		if(!mActor.IsValid())
+			return mRotationConstraintsY;
 
 		auto flags = mActor->GetDynamicActor()->getRigidDynamicLockFlags();
 		return flags.isSet(PxRigidDynamicLockFlag::eLOCK_ANGULAR_Y);
@@ -177,8 +211,8 @@ namespace Darius::Physics
 
 	bool RigidbodyComponent::GetRotationConstraintsZ() const
 	{
-		if (!mActor.IsValid())
-			return mRotationConstraints[2];
+		if(!mActor.IsValid())
+			return mRotationConstraintsZ;
 
 		auto flags = mActor->GetDynamicActor()->getRigidDynamicLockFlags();
 		return flags.isSet(PxRigidDynamicLockFlag::eLOCK_ANGULAR_Z);
@@ -186,44 +220,44 @@ namespace Darius::Physics
 
 	void RigidbodyComponent::SetRotationConstraintsX(bool enable)
 	{
-		if (mRotationConstraints[0] == enable && !IsDirty())
+		if(mRotationConstraintsX == enable && !IsDirty())
 			return;
 
-		if (mActor.IsValid())
+		if(mActor.IsValid())
 			mActor->GetDynamicActor()->setRigidDynamicLockFlag(PxRigidDynamicLockFlag::eLOCK_ANGULAR_X, enable);
 
-		mRotationConstraints[0] = enable;
+		mRotationConstraintsX = enable;
 		mChangeSignal(this);
 	}
 
 	void RigidbodyComponent::SetRotationConstraintsY(bool enable)
 	{
-		if (mRotationConstraints[1] == enable && !IsDirty())
+		if(mRotationConstraintsY == enable && !IsDirty())
 			return;
 
-		if (mActor.IsValid())
+		if(mActor.IsValid())
 			mActor->GetDynamicActor()->setRigidDynamicLockFlag(PxRigidDynamicLockFlag::eLOCK_ANGULAR_Y, enable);
 
-		mRotationConstraints[1] = enable;
+		mRotationConstraintsY = enable;
 		mChangeSignal(this);
 	}
 
 	void RigidbodyComponent::SetRotationConstraintsZ(bool enable)
 	{
-		if (mRotationConstraints[2] == enable && !IsDirty())
+		if(mRotationConstraintsZ == enable && !IsDirty())
 			return;
 
-		if (mActor.IsValid())
+		if(mActor.IsValid())
 			mActor->GetDynamicActor()->setRigidDynamicLockFlag(PxRigidDynamicLockFlag::eLOCK_ANGULAR_Z, enable);
 
-		mRotationConstraints[2] = enable;
+		mRotationConstraintsZ = enable;
 		mChangeSignal(this);
 	}
 
 	bool RigidbodyComponent::GetPositionConstraintsX() const
 	{
-		if (!mActor.IsValid())
-			return mPositionConstraints[0];
+		if(!mActor.IsValid())
+			return mPositionConstraintsX;
 
 		auto flags = mActor->GetDynamicActor()->getRigidDynamicLockFlags();
 		return flags.isSet(PxRigidDynamicLockFlag::eLOCK_LINEAR_X);
@@ -231,8 +265,8 @@ namespace Darius::Physics
 
 	bool RigidbodyComponent::GetPositionConstraintsY() const
 	{
-		if (!mActor.IsValid())
-			return mPositionConstraints[1];
+		if(!mActor.IsValid())
+			return mPositionConstraintsY;
 
 		auto flags = mActor->GetDynamicActor()->getRigidDynamicLockFlags();
 		return flags.isSet(PxRigidDynamicLockFlag::eLOCK_LINEAR_Y);
@@ -240,8 +274,8 @@ namespace Darius::Physics
 
 	bool RigidbodyComponent::GetPositionConstraintsZ() const
 	{
-		if (!mActor.IsValid())
-			return mPositionConstraints[2];
+		if(!mActor.IsValid())
+			return mPositionConstraintsZ;
 
 		auto flags = mActor->GetDynamicActor()->getRigidDynamicLockFlags();
 		return flags.isSet(PxRigidDynamicLockFlag::eLOCK_LINEAR_Z);
@@ -249,43 +283,46 @@ namespace Darius::Physics
 
 	void RigidbodyComponent::SetPositionConstraintsX(bool enable)
 	{
-		if (mPositionConstraints[0] == enable && !IsDirty())
+		if(mPositionConstraintsX == enable && !IsDirty())
 			return;
 
-		if (mActor.IsValid())
+		if(mActor.IsValid())
 			mActor->GetDynamicActor()->setRigidDynamicLockFlag(PxRigidDynamicLockFlag::eLOCK_LINEAR_X, enable);
 
-		mPositionConstraints[0] = enable;
+		mPositionConstraintsX = enable;
 		mChangeSignal(this);
 	}
 
 	void RigidbodyComponent::SetPositionConstraintsY(bool enable)
 	{
-		if (mPositionConstraints[1] == enable && !IsDirty())
+		if(mPositionConstraintsY == enable && !IsDirty())
 			return;
 
-		if (mActor.IsValid())
+		if(mActor.IsValid())
 			mActor->GetDynamicActor()->setRigidDynamicLockFlag(PxRigidDynamicLockFlag::eLOCK_LINEAR_Y, enable);
 
-		mPositionConstraints[1] = enable;
+		mPositionConstraintsY = enable;
 		mChangeSignal(this);
 	}
 
 	void RigidbodyComponent::SetPositionConstraintsZ(bool enable)
 	{
-		if (mPositionConstraints[2] == enable && !IsDirty())
+		if(mPositionConstraintsZ == enable && !IsDirty())
 			return;
 
-		if (mActor.IsValid())
+		if(mActor.IsValid())
 			mActor->GetDynamicActor()->setRigidDynamicLockFlag(PxRigidDynamicLockFlag::eLOCK_LINEAR_Z, enable);
 
-		mPositionConstraints[2] = enable;
+		mPositionConstraintsZ = enable;
 		mChangeSignal(this);
 	}
 
 	void RigidbodyComponent::SetAngularVelocity(Vector3 const& v, bool autoWake)
 	{
-		if (!mActor.IsValid())
+		if(!mActor.IsValid())
+			return;
+
+		if(v.Equals(GetAngularVelocity()))
 			return;
 
 		mActor->GetDynamicActor()->setAngularVelocity(VEC3_2_PX(v), autoWake);
@@ -305,6 +342,19 @@ namespace Darius::Physics
 	}
 
 #ifdef _D_EDITOR
+
+	void RigidbodyComponent::OnPostComponentAddInEditor()
+	{
+		Super::OnPostComponentAddInEditor();
+
+		bool addedDefault = false;
+
+		if(auto sm = GetGameObject()->GetComponent<D_RENDERER::MeshRendererComponent>())
+		{
+			SetCenterOfMass(sm->GetAabb().GetCenter());
+		}
+	}
+
 	bool RigidbodyComponent::DrawDetails(float[])
 	{
 		bool valueChanged = false;
@@ -315,7 +365,7 @@ namespace Darius::Physics
 		{
 			D_H_DETAILS_DRAW_PROPERTY("Kinematic");
 			bool kinematic = IsKinematic();
-			if (ImGui::Checkbox("##kinematic", &kinematic))
+			if(ImGui::Checkbox("##kinematic", &kinematic))
 			{
 				SetKinematic(kinematic);
 				valueChanged = true;
@@ -327,9 +377,20 @@ namespace Darius::Physics
 		{
 			D_H_DETAILS_DRAW_PROPERTY("Use Gravity");
 			bool gravity = IsUsingGravity();
-			if (ImGui::Checkbox("##gravity", &gravity))
+			if(ImGui::Checkbox("##gravity", &gravity))
 			{
 				SetUsingGravity(gravity);
+				valueChanged = true;
+			}
+		}
+
+		// Center of Mas
+		{
+			D_H_DETAILS_DRAW_PROPERTY("Center of Mass");
+			auto value = GetCenterOfMass();
+			if(D_MATH::DrawDetails(value, Vector3::Zero))
+			{
+				SetCenterOfMass(value);
 				valueChanged = true;
 			}
 		}
@@ -337,7 +398,7 @@ namespace Darius::Physics
 		D_H_DETAILS_DRAW_END_TABLE();
 
 		ImGui::Separator();
-		if (ImGui::TreeNode("Constraints"))
+		if(ImGui::TreeNode("Constraints"))
 		{
 			D_H_DETAILS_DRAW_BEGIN_TABLE("Constraints");
 
@@ -361,7 +422,7 @@ namespace Darius::Physics
 
 		ImGui::Separator();
 
-		if (ImGui::TreeNode("Details"))
+		if(ImGui::TreeNode("Details"))
 		{
 			ImGui::BeginDisabled();
 
@@ -399,7 +460,7 @@ namespace Darius::Physics
 
 		ImGui::BeginGroup();
 		bool lockX = GetRotationConstraintsX();
-		if (ImGui::Checkbox("X", &lockX))
+		if(ImGui::Checkbox("X", &lockX))
 		{
 			valueChanged = true;
 			SetRotationConstraintsX(lockX);
@@ -410,7 +471,7 @@ namespace Darius::Physics
 
 		ImGui::BeginGroup();
 		bool lockY = GetRotationConstraintsY();
-		if (ImGui::Checkbox("Y", &lockY))
+		if(ImGui::Checkbox("Y", &lockY))
 		{
 			valueChanged = true;
 			SetRotationConstraintsY(lockY);
@@ -421,7 +482,7 @@ namespace Darius::Physics
 
 		ImGui::BeginGroup();
 		bool lockZ = GetRotationConstraintsZ();
-		if (ImGui::Checkbox("Z", &lockZ))
+		if(ImGui::Checkbox("Z", &lockZ))
 		{
 			valueChanged = true;
 			SetRotationConstraintsZ(lockZ);
@@ -442,7 +503,7 @@ namespace Darius::Physics
 
 		ImGui::BeginGroup();
 		bool lockX = GetPositionConstraintsX();
-		if (ImGui::Checkbox("X", &lockX))
+		if(ImGui::Checkbox("X", &lockX))
 		{
 			valueChanged = true;
 			SetPositionConstraintsX(lockX);
@@ -453,7 +514,7 @@ namespace Darius::Physics
 
 		ImGui::BeginGroup();
 		bool lockY = GetPositionConstraintsY();
-		if (ImGui::Checkbox("Y", &lockY))
+		if(ImGui::Checkbox("Y", &lockY))
 		{
 			valueChanged = true;
 			SetPositionConstraintsY(lockY);
@@ -464,7 +525,7 @@ namespace Darius::Physics
 
 		ImGui::BeginGroup();
 		bool lockZ = GetPositionConstraintsZ();
-		if (ImGui::Checkbox("Z", &lockZ))
+		if(ImGui::Checkbox("Z", &lockZ))
 		{
 			valueChanged = true;
 			SetPositionConstraintsZ(lockZ);
