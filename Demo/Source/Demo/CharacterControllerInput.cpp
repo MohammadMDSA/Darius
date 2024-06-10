@@ -148,10 +148,13 @@ namespace Demo
 		{
 			D_H_DETAILS_DRAW_PROPERTY("Use Mouse & Keyboard");
 
-			valueChanged |= ImGui::Checkbox("##UseMouseKeyboard", &mUseMouseKeyboard);
+			if(ImGui::Checkbox("##UseMouseKeyboard", &mUseMouseKeyboard))
+			{
+				valueChanged = true;
+			}
 		}
 
-		// Mouse Keyboard
+		// Gamepad Look Sensitivity
 		{
 			D_H_DETAILS_DRAW_PROPERTY("Gamepad Look Sensitivity");
 

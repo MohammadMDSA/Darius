@@ -1,3 +1,5 @@
+#include "pch.hpp"
+#include "Demo.hpp"
 
 #include <Demo/DetailDrawTest.hpp>
 #include <Demo/MovementBehaviour.hpp>
@@ -8,9 +10,12 @@
 #include <Demo/CollisionTest.hpp>
 #include <Demo/ComponentReferencer.hpp>
 #include <Demo/CharacterControllerInput.hpp>
+#include <Demo/BulletShooter.hpp>
 #include <Demo/Utils/RotatingMovementComponent.hpp>
+#include <Demo/LimitedLifeTimeComponent.hpp>
+#include <Demo/Gun.hpp>
 
-void InitializeGame()
+void DemoProject::Initialize()
 {
 	// Registering components
 	Demo::MovementBehaviour::StaticConstructor();
@@ -23,4 +28,10 @@ void InitializeGame()
 	Demo::ComponentReferencer::StaticConstructor();
 	Demo::CharacterControllerInput::StaticConstructor();
 	Demo::RotatingMovementComponent::StaticConstructor();
+	Demo::BulletShooter::StaticConstructor();
+	Demo::LimitedLifeTimeComponent::StaticConstructor();
+	Demo::Gun::StaticConstructor();
 }
+
+void DemoProject::Shutdown()
+{ }
