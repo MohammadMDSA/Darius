@@ -8,6 +8,8 @@
 
 namespace Darius::Math::Bounds
 {
+    AxisAlignedBox AxisAlignedBox::Zero(kZero);
+
     AxisAlignedBox AxisAlignedBox::CreateFromSphere(BoundingSphere const& sp)
     {
         Vector3 center = sp.GetCenter();

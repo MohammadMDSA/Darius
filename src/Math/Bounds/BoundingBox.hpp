@@ -80,8 +80,8 @@ namespace Darius::Math::Bounds
 		bool Intersects(Darius::Math::Ray const& ray, _OUT_ float& dist) const;
 		bool Intersects(BoundingPlane const& plane) const;
 
-		bool Equals(AxisAlignedBox const& other) const { return GetCenter().Equals(other.GetCenter()) && GetExtents().Equals(other.GetExtents()); }
-		bool NearEquals(AxisAlignedBox const& other, float epsilon = DirectX::g_XMEpsilon[0]) const { return GetCenter().NearEquals(other.GetCenter(), epsilon) && GetExtents().NearEquals(other.GetExtents(), epsilon); }
+		INLINE bool Equals(AxisAlignedBox const& other) const { return GetCenter().Equals(other.GetCenter()) && GetExtents().Equals(other.GetExtents()); }
+		INLINE bool NearEquals(AxisAlignedBox const& other, float epsilon = DirectX::g_XMEpsilon[0]) const { return GetCenter().NearEquals(other.GetCenter(), epsilon) && GetExtents().NearEquals(other.GetExtents(), epsilon); }
 
 		Vector3 GetCenter() const { return Center; }
 		Vector3 GetDimensions() const { return GetExtents() * 2; }
@@ -94,10 +94,12 @@ namespace Darius::Math::Bounds
 
 		AxisAlignedBox CalculateTransformed(AffineTransform const& transform) const;
 
+		INLINE bool IsZero() const { return *this == Zero; }
+		INLINE bool operator== (AxisAlignedBox const& other) const { return Equals(other); }
+
 		static AxisAlignedBox CreateFromCenterAndExtents(Vector3 const& center, Vector3 const& extents);
 		static AxisAlignedBox CreateFromSphere(BoundingSphere const& sp);
-
-		INLINE bool operator== (AxisAlignedBox const& other) const { return Equals(other); }
+		static AxisAlignedBox Zero;
 	};
 
 	using Aabb = AxisAlignedBox;
@@ -134,7 +136,13 @@ namespace Darius::Math::Bounds
 		INLINE Vector3 GetDimensions() const { return GetExtents() * 2; }
 		INLINE Vector3 GetCenter() const { return DirectX::BoundingOrientedBox::Center; }
 		INLINE Vector3 GetExtents() const { return DirectX::BoundingOrientedBox::Extents; }
+		INLINE Quaternion GetOrientation() const { return Quaternion(DirectX::BoundingOrientedBox::Orientation); }
+		AxisAlignedBox GetAabb() const;
+		AxisAlignedBox GetAabbFast() const;
 
+		// Index from 0 to 7 for 8 corners
+		Vector3 GetCornerLocal(UINT index) const;
+		Vector3 GetCorner(UINT index) const;
 	};
 
 	INLINE AxisAlignedBox AxisAlignedBox::CalculateTransformed(AffineTransform const& transform) const
@@ -191,6 +199,47 @@ namespace Darius::Math::Bounds
 	INLINE Vector3 AxisAlignedBox::GetCorner(UINT index) const
 	{
 		return GetCornerLocal(index) + GetCenter();
+	}
+
+	INLINE Vector3 OrientedBox::GetCornerLocal(uint32_t index) const
+	{
+		D_ASSERT_M(index < 8, "Out of bounds index of the box corner");
+
+		static const Vector3 boxOffset[8] =
+		{
+			{ -1.0f, -1.0f,  1.0f },
+			{  1.0f, -1.0f,  1.0f },
+			{  1.0f,  1.0f,  1.0f },
+			{ -1.0f,  1.0f,  1.0f },
+			{ -1.0f, -1.0f, -1.0f },
+			{  1.0f, -1.0f, -1.0f },
+			{  1.0f,  1.0f, -1.0f },
+			{ -1.0f,  1.0f, -1.0f },
+		};
+
+		return GetOrientation() * (GetExtents() * boxOffset[index]);
+	}
+
+	INLINE Vector3 OrientedBox::GetCorner(uint32_t index) const
+	{
+		return GetCornerLocal(index) + GetCenter();
+	}
+
+	INLINE AxisAlignedBox OrientedBox::GetAabbFast() const
+	{
+		Vector3 extent = Vector3(GetExtents().Length());
+		return AxisAlignedBox::CreateFromCenterAndExtents(GetCenter(), extent);
+	}
+
+	INLINE AxisAlignedBox OrientedBox::GetAabb() const
+	{
+		AxisAlignedBox result(GetCorner(0));
+		for(int i = 1; i < 8; i++)
+		{
+			result.AddPoint(GetCorner(i));
+		}
+
+		return result;
 	}
 
 } // namespace Math

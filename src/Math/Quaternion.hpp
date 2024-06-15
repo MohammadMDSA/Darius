@@ -30,8 +30,9 @@ namespace Darius::Math
 		INLINE explicit Quaternion(const DirectX::XMMATRIX & matrix) { m_vec = DirectX::XMQuaternionRotationMatrix(matrix); }
 		INLINE explicit Quaternion(DirectX::FXMVECTOR vec) { m_vec = vec; }
 		INLINE explicit Quaternion(EIdentityTag) { m_vec = DirectX::XMQuaternionIdentity(); }
+		INLINE explicit Quaternion(DirectX::XMFLOAT4 const& vec) { m_vec = DirectX::XMLoadFloat4(&vec); }
 		explicit Quaternion(Rotator const& rot);
-
+		
 		// Costy, don't use too often
 		INLINE D_CONTAINERS::DVector<float> GetData() const { return { GetX(), GetY(), GetZ(), GetW() }; }
 		// Costy, don't use too often

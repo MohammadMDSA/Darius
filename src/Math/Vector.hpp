@@ -169,7 +169,7 @@ namespace Darius::Math
 		explicit INLINE Vector3(float const* data) : Vector3(DirectX::XMFLOAT3(data)) {}
 		INLINE Vector3(DirectX::XMFLOAT3 const& v) { m_vec = DirectX::XMLoadFloat3(&v); }
 		INLINE Vector3(Vector3 const& v) { m_vec = v; }
-		INLINE Vector3(Scalar const& s) { m_vec = s; }
+		INLINE Vector3(Scalar f) { m_vec = f; }
 		explicit Vector3(Vector4 const& vec);
 		INLINE explicit Vector3(DirectX::FXMVECTOR const& vec) { m_vec = vec; }
 		INLINE explicit Vector3(EZeroTag) { m_vec = SplatZero(); }
