@@ -51,7 +51,8 @@ namespace Darius::Renderer
 	SkeletalMeshRendererComponent::SkeletalMeshRendererComponent() :
 		MeshRendererComponentBase(),
 		mSkeletonRoot(nullptr),
-		mMesh()
+		mMesh(),
+		mFitBounds(false)
 	{
 		mComponentPsoFlags |= RenderItem::HasSkin;
 
@@ -62,7 +63,8 @@ namespace Darius::Renderer
 	SkeletalMeshRendererComponent::SkeletalMeshRendererComponent(D_CORE::Uuid const& uuid) :
 		MeshRendererComponentBase(uuid),
 		mSkeletonRoot(nullptr),
-		mMesh()
+		mMesh(),
+		mFitBounds(false)
 	{
 		mComponentPsoFlags |= RenderItem::HasSkin;
 
@@ -204,9 +206,22 @@ namespace Darius::Renderer
 
 		D_H_DETAILS_DRAW_BEGIN_TABLE();
 
-		// Mesh selection
-		D_H_DETAILS_DRAW_PROPERTY("Mesh");
-		D_H_RESOURCE_SELECTION_DRAW(SkeletalMeshResource, mMesh, "Select Mesh", SetMesh);
+		// Mesh 
+		{
+			D_H_DETAILS_DRAW_PROPERTY("Mesh");
+			D_H_RESOURCE_SELECTION_DRAW(SkeletalMeshResource, mMesh, "Select Mesh", SetMesh);
+		}
+
+		// Fit Bounds
+		{
+			D_H_DETAILS_DRAW_PROPERTY("Fit Bounds");
+			auto value = IsFitBounds();
+			if(ImGui::Checkbox("##FitBounds", &value))
+			{
+				SetFitBounds(value);
+				valueChanged = true;
+			}
+		}
 
 		D_H_DETAILS_DRAW_END_TABLE();
 
@@ -218,13 +233,21 @@ namespace Darius::Renderer
 
 	void SkeletalMeshRendererComponent::OnGizmo() const
 	{
+#if 0 // Rendering debug joints and joint bounds
 		auto transform = GetTransform();
-		for (auto& joint : mJointLocalPoses)
+		auto world = transform->GetWorld();
+		for (auto const& joint : mJointLocalPoses)
 		{
-
-			Vector3 loc = Vector3(transform->GetWorld() * joint);
+			Vector3 loc = Vector3(world * joint);
 			D_DEBUG_DRAW::DrawSphere(loc, 0.01f, 0., Color::Red);
 		}
+
+		for(auto const& bound : mJointBounds)
+		{
+			auto worldSp = AffineTransform(world) * bound;
+			D_DEBUG_DRAW::DrawCube(worldSp.GetCenter(), worldSp.GetOrientation(), 2 * worldSp.GetExtents());
+		}
+#endif
 	}
 #endif
 
@@ -259,12 +282,23 @@ namespace Darius::Renderer
 		mChangeSignal(this);
 	}
 
+	void SkeletalMeshRendererComponent::SetFitBounds(bool fitBounds)
+	{
+		if(mFitBounds == fitBounds)
+			return;
+
+		mFitBounds = fitBounds;
+
+		mChangeSignal(this);
+	}
+
 	void SkeletalMeshRendererComponent::LoadMeshData()
 	{
 		OnMeshChanged();
 		mJoints.clear();
 		mSkeleton.clear();
 		mJointLocalPoses.clear();
+		mJointBounds.clear();
 		mSkeletonRoot = nullptr;
 		mBounds = D_MATH_BOUNDS::Aabb(GetTransform()->GetPosition());
 		if (mMesh.IsValid())
@@ -275,12 +309,11 @@ namespace Darius::Renderer
 
 #if _D_EDITOR
 			mJointLocalPoses.resize(mMesh->GetJointCount());
+			mJointBounds.resize(mMesh->GetJointCount());
 #endif
 
-			for (auto const& skeletonNode : mMesh->GetSkeleton())
-			{
-				mSkeleton.push_back(skeletonNode);
-			}
+			auto refSkeleton = mMesh->GetSkeleton();
+			std::ranges::copy(refSkeleton.begin(), refSkeleton.end(), std::back_inserter(mSkeleton));
 
 			// Attaching new children refrences and finding the root
 			for (auto& skeletonNode : mSkeleton)
@@ -349,18 +382,27 @@ namespace Darius::Renderer
 			xform = parent * xform;
 
 		auto& joint = mJoints[skeletonJoint.MatrixIdx];
-#if _D_EDITOR
-		mJointLocalPoses[skeletonJoint.MatrixIdx] = Vector3(xform.GetW());
-#endif
 		auto withOffset = xform * skeletonJoint.IBM;
 		joint.mWorld = withOffset;
 		joint.mWorldIT = InverseTranspose(withOffset.Get3x3());
 
-
+		OrientedBox jointBounds = AffineTransform(withOffset) * OrientedBox(skeletonJoint.Aabb);
+#if _D_EDITOR
+		mJointLocalPoses[skeletonJoint.MatrixIdx] = Vector3(xform.GetW());
+		mJointBounds[skeletonJoint.MatrixIdx] = jointBounds;
+#endif
+		
 		Scalar scaleXSqr = LengthSquare((Vector3)xform.GetX());
 		Scalar scaleYSqr = LengthSquare((Vector3)xform.GetY());
 		Scalar scaleZSqr = LengthSquare((Vector3)xform.GetZ());
-		mBounds = mBounds.Union(Aabb::CreateFromCenterAndExtents((Vector3)xform.GetW(), Sqrt(Vector3(scaleXSqr, scaleYSqr, scaleZSqr))));
+
+		Aabb jointAabb;
+		if(mFitBounds)
+			jointAabb = jointBounds.GetAabb();
+		else
+			jointAabb = jointBounds.GetAabbFast();
+
+		mBounds = mBounds.Union(jointAabb);
 
 		for (auto childJoint : skeletonJoint.Children)
 		{

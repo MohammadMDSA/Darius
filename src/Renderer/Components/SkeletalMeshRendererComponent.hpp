@@ -47,6 +47,9 @@ namespace Darius::Renderer
 		void								SetMesh(SkeletalMeshResource* mesh);
 		INLINE SkeletalMeshResource*		GetMesh() const { return mMesh.Get(); }
 
+		void								SetFitBounds(bool fitBounds);
+		INLINE bool							IsFitBounds() const { return mFitBounds; }
+
 		INLINE D_RENDERER_GEOMETRY::Mesh const* GetDeformedMeshData() const { return &mDeformedMesh; }
 		virtual void						GetOverriddenMaterials(D_CONTAINERS::DVector<MaterialResource*>& out) const override;
 
@@ -55,6 +58,9 @@ namespace Darius::Renderer
 
 		DField(Serialize)
 		D_RESOURCE::ResourceRef<SkeletalMeshResource>				mMesh;
+
+		DField(Serialize)
+		bool														mFitBounds;
 
 	private:
 
@@ -72,6 +78,7 @@ namespace Darius::Renderer
 
 #if _D_EDITOR
 		D_CONTAINERS::DVector<D_MATH::Vector3>						mJointLocalPoses;
+		D_CONTAINERS::DVector<D_MATH_BOUNDS::OrientedBox>			mJointBounds;
 #endif
 
 	};
