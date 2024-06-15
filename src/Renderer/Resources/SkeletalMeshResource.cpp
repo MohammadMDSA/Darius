@@ -108,8 +108,8 @@ namespace Darius::Renderer
 		mMesh.mNumTotalVertices = (UINT)vertices.size();
 		mMesh.mNumTotalIndices = (UINT)indices.size();
 
-		mMesh.mBoundSp = data.MeshData.CalcBoundingSphere();
-		auto fitAabb = data.MeshData.CalcBoundingBox();
+		mMesh.mBoundSp = data.MeshData.CalcBoundingSphere(GetScale());
+		auto fitAabb = data.MeshData.CalcBoundingBox(GetScale());
 		mMesh.mBoundBox = D_MATH_BOUNDS::Aabb::CreateFromCenterAndExtents(fitAabb.GetCenter(), fitAabb.GetExtents() + GetAabbExtentsBias());
 
 		mMesh.Name = GetName();

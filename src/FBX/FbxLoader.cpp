@@ -48,7 +48,7 @@ namespace
 		~StaticDestruct()
 		{
 			fileScenes.clear();
-			if (sdkManager)
+			if(sdkManager)
 				sdkManager->Destroy();
 		}
 	} StaticDes;
@@ -70,7 +70,7 @@ namespace Darius::Fbx
 	// For every material, record the offsets in every VBO and triangle counts
 	struct SubMesh
 	{
-		SubMesh() : IndexOffset(0), TriangleCount(0) {}
+		SubMesh() : IndexOffset(0), TriangleCount(0) { }
 
 		UINT IndexOffset;
 		UINT TriangleCount;
@@ -81,7 +81,7 @@ namespace Darius::Fbx
 	bool ReadMeshSkin(FbxMesh const* pMesh, MultiPartMeshData<D_RENDERER_VERTEX::VertexPositionNormalTangentTextureSkinned>& meshData, DList<D_RENDERER_GEOMETRY::Mesh::SkeletonJoint>& skeleton, DUnorderedMap<int, DVector<int>> const& controlPointIndexToVertexIndexMap);
 	void AddSkeletonChildren(FbxSkeleton const* skeletonNode, DList<Mesh::SkeletonJoint>& skeletonData, DMap<FbxSkeleton const*, UINT>& skeletonIndexMap);
 	void ReadFBXCacheVertexPositions(MultiPartMeshData<D_RENDERER_VERTEX::VertexPositionNormalTangentTextureSkinned>& meshDataVec, FbxMesh const* mesh, DUnorderedMap<int, DVector<int>> const& controlPointIndexToVertexIndexMap);
-	void AddJointWeightToVertices(VertexBlendWeightData const& skinData, MultiPartMeshData<D_RENDERER_VERTEX::VertexPositionNormalTangentTextureSkinned>& meshData, DUnorderedMap<int, DVector<int>> const& controlPointIndexToVertexIndexMap);
+	void AddJointWeightToVertices(VertexBlendWeightData& skinData, DList<Mesh::SkeletonJoint>& skeletonData, MultiPartMeshData<D_RENDERER_VERTEX::VertexPositionNormalTangentTextureSkinned>& meshData, DUnorderedMap<int, DVector<int>> const& controlPointIndexToVertexIndexMap);
 	GameObject* LoadScene(FBXPrefabResource* resource, FbxScene* scene, DVector<ResourceHandle> handles);
 
 
@@ -93,7 +93,7 @@ namespace Darius::Fbx
 		std::scoped_lock lock(initializationMutex);
 		{
 			auto sceneCacheLookup = fileScenes.find(path);
-			if (sceneCacheLookup != fileScenes.end())
+			if(sceneCacheLookup != fileScenes.end())
 			{
 				auto scene = sceneCacheLookup->second;
 				coordSystem = scene->GetGlobalSettings().GetAxisSystem().GetCoorSystem();
@@ -104,7 +104,7 @@ namespace Darius::Fbx
 			};
 		}
 
-		if (sdkManager == nullptr)
+		if(sdkManager == nullptr)
 		{
 			// Create the FBX SDK manager
 			sdkManager = FbxManager::Create();
@@ -125,7 +125,8 @@ namespace Darius::Fbx
 		// Initialize the importer.
 		bool lImportStatus = lImporter->Initialize(lFilename, -1, sdkManager->GetIOSettings());
 
-		if (!lImportStatus) {
+		if(!lImportStatus)
+		{
 			D_LOG_ERROR("Call to FbxImporter::Initialize() failed. Tried to load resource from " << pathStr);
 			std::string msg = "Error returned: " + std::string(lImporter->GetStatus().GetErrorString());
 			D_LOG_ERROR(msg);
@@ -149,7 +150,7 @@ namespace Darius::Fbx
 		FbxAxisSystem SceneAxisSystem = globalSettings.GetAxisSystem();
 		coordSystem = SceneAxisSystem.GetCoorSystem();
 		FbxAxisSystem OurAxisSystem(FbxAxisSystem::eYAxis, FbxAxisSystem::eParityOdd, FbxAxisSystem::eRightHanded);
-		if (SceneAxisSystem != OurAxisSystem)
+		if(SceneAxisSystem != OurAxisSystem)
 		{
 			//globalSettings.SetAxisSystem(OurAxisSystem);
 			OurAxisSystem.DeepConvertScene(lScene);
@@ -157,10 +158,12 @@ namespace Darius::Fbx
 
 		// Convert mesh, NURBS and patch into triangle mesh
 		FbxGeometryConverter lGeomConverter(sdkManager);
-		try {
+		try
+		{
 			lGeomConverter.Triangulate(lScene, /*replace*/true);
 		}
-		catch (std::runtime_error) {
+		catch(std::runtime_error)
+		{
 			FBXSDK_printf("Scene integrity verification failed.\n");
 			return false;
 		}
@@ -177,7 +180,7 @@ namespace Darius::Fbx
 	{
 		callback(node);
 
-		for (int i = 0; i < node->GetChildCount(); i++)
+		for(int i = 0; i < node->GetChildCount(); i++)
 		{
 			TraverseNodes(node->GetChild(i), callback);
 		}
@@ -186,8 +189,8 @@ namespace Darius::Fbx
 	INLINE Matrix4 GetMat4(FbxAMatrix const& mat)
 	{
 		float matData[16];
-		for (int row = 0; row < 4; row++)
-			for (int col = 0; col < 4; col++)
+		for(int row = 0; row < 4; row++)
+			for(int col = 0; col < 4; col++)
 				matData[row * 4 + col] = (float)mat.Get(row, col);
 		return Matrix4(matData);
 	}
@@ -221,16 +224,16 @@ namespace Darius::Fbx
 		FbxAMatrix lGlobalPosition;
 		bool        lPositionFound = false;
 
-		if (pPose)
+		if(pPose)
 		{
 			int lNodeIndex = pPose->Find(pNode);
 
-			if (lNodeIndex > -1)
+			if(lNodeIndex > -1)
 			{
 				// The bind pose is always a global matrix.
 				// If we have a rest pose, we need to check if it is
 				// stored in global or local space.
-				if (pPose->IsBindPose() || !pPose->IsLocalMatrix(lNodeIndex))
+				if(pPose->IsBindPose() || !pPose->IsLocalMatrix(lNodeIndex))
 				{
 					lGlobalPosition = GetPoseMatrix(pPose, lNodeIndex);
 				}
@@ -240,13 +243,13 @@ namespace Darius::Fbx
 					// a global space matrix.
 					FbxAMatrix lParentGlobalPosition;
 
-					if (pParentGlobalPosition)
+					if(pParentGlobalPosition)
 					{
 						lParentGlobalPosition = *pParentGlobalPosition;
 					}
 					else
 					{
-						if (pNode->GetParent())
+						if(pNode->GetParent())
 						{
 							lParentGlobalPosition = GetGlobalPosition(pNode->GetParent(), pTime, pPose);
 						}
@@ -260,7 +263,7 @@ namespace Darius::Fbx
 			}
 		}
 
-		if (!lPositionFound)
+		if(!lPositionFound)
 		{
 			// There is no pose entry for that node, get the current global position instead.
 
@@ -280,7 +283,7 @@ namespace Darius::Fbx
 		FbxNode* rootNode = nullptr;
 
 		FbxAxisSystem::ECoordSystem coordSystem;
-		if (!InitializeFbxScene(path, &rootNode, coordSystem))
+		if(!InitializeFbxScene(path, &rootNode, coordSystem))
 		{
 			return D_CONTAINERS::DVector<D_RESOURCE::ResourceDataInFile>();
 		}
@@ -290,12 +293,12 @@ namespace Darius::Fbx
 		// Finding meshes
 		{
 			auto count = scene->GetMemberCount<FbxMesh>();
-			for (int i = 0; i < count; i++)
+			for(int i = 0; i < count; i++)
 			{
 				FbxMesh* mesh = scene->GetSrcObject<FbxMesh>(i);
 				bool skeletal = mesh->GetDeformerCount(FbxDeformer::eSkin) > 0;
 				std::string name;
-				if (skeletal)
+				if(skeletal)
 				{
 					auto node = mesh->GetNode(0);
 					node = node ? node->GetParent() : nullptr;
@@ -315,7 +318,7 @@ namespace Darius::Fbx
 		}
 		// Finding animations
 		{
-			for (int i = 0; i < scene->GetSrcObjectCount<FbxAnimStack>(); i++)
+			for(int i = 0; i < scene->GetSrcObjectCount<FbxAnimStack>(); i++)
 			{
 				FbxAnimStack* animation = scene->GetSrcObject<FbxAnimStack>(i);
 				auto name = animation->GetName();
@@ -346,7 +349,7 @@ namespace Darius::Fbx
 		FbxNode* rootNode = nullptr;
 
 		FbxAxisSystem::ECoordSystem coordSystem;
-		if (!InitializeFbxScene(path, &rootNode, coordSystem))
+		if(!InitializeFbxScene(path, &rootNode, coordSystem))
 		{
 			return D_CONTAINERS::DVector<D_RESOURCE::ResourceDataInFile>();
 		}
@@ -360,11 +363,11 @@ namespace Darius::Fbx
 			TraverseNodes(rootNode, [&results, type, isSkeletal](FbxNode* node)
 				{
 					auto attr = node->GetNodeAttribute();
-					if (attr && attr->GetAttributeType() == FbxNodeAttribute::eMesh)
+					if(attr && attr->GetAttributeType() == FbxNodeAttribute::eMesh)
 					{
 						auto mesh = node->GetMesh();
 						auto hasSkin = mesh->GetDeformerCount(FbxDeformer::eSkin) > 0;
-						if ((hasSkin && isSkeletal) || (!hasSkin && !isSkeletal))
+						if((hasSkin && isSkeletal) || (!hasSkin && !isSkeletal))
 						{
 							ResourceDataInFile data;
 							data.Name = node->GetName();
@@ -384,13 +387,13 @@ namespace Darius::Fbx
 		FbxNode* rootNode = nullptr;
 
 		FbxAxisSystem::ECoordSystem coordSystem;
-		if (!InitializeFbxScene(path, &rootNode, coordSystem))
+		if(!InitializeFbxScene(path, &rootNode, coordSystem))
 		{
 			return false;
 		}
 		auto namestr = WSTR2STR(meshName);
 		*mesh = rootNode->GetScene()->FindSrcObject<FbxMesh>(namestr.c_str());
-		if (*mesh == nullptr)
+		if(*mesh == nullptr)
 			return false;
 
 		ReadMeshNode(*mesh, importConfig, result, controlPointIndexToVertexIndexMap, coordSystem);
@@ -415,7 +418,7 @@ namespace Darius::Fbx
 
 	Vector3 MakeReorderedVec(float const* data, MeshResource::NormalsReordering normalReordering)
 	{
-		switch (normalReordering)
+		switch(normalReordering)
 		{
 		case MeshResource::NormalsReordering::XYZ:
 		default:
@@ -436,7 +439,7 @@ namespace Darius::Fbx
 	bool ReadMeshNode(FbxMesh* pMesh, D_RENDERER::MeshResource::MeshImportConfig const& importConfig, MultiPartMeshData<D_RENDERER_VERTEX::VertexPositionNormalTangentTextureSkinned>& result, DUnorderedMap<int, DVector<int>>& controlPointIndexToVertexIndexMap, FbxAxisSystem::ECoordSystem coordSystem)
 	{
 
-		if (!pMesh->GetNode())
+		if(!pMesh->GetNode())
 			return false;
 
 		if(!pMesh->GenerateTangentsData(0, true))
@@ -453,24 +456,24 @@ namespace Darius::Fbx
 		// Count the polygon count of each material
 		FbxLayerElementArrayTemplate<int>* lMaterialIndice = NULL;
 		FbxGeometryElement::EMappingMode lMaterialMappingMode = FbxGeometryElement::eNone;
-		if (pMesh->GetElementMaterial())
+		if(pMesh->GetElementMaterial())
 		{
 			lMaterialIndice = &pMesh->GetElementMaterial()->GetIndexArray();
 			lMaterialMappingMode = pMesh->GetElementMaterial()->GetMappingMode();
-			if (lMaterialIndice && lMaterialMappingMode == FbxGeometryElement::eByPolygon)
+			if(lMaterialIndice && lMaterialMappingMode == FbxGeometryElement::eByPolygon)
 			{
 				FBX_ASSERT(lMaterialIndice->GetCount() == lPolygonCount);
-				if (lMaterialIndice->GetCount() == lPolygonCount)
+				if(lMaterialIndice->GetCount() == lPolygonCount)
 				{
 					// Count the faces of each material
-					for (int lPolygonIndex = 0; lPolygonIndex < lPolygonCount; ++lPolygonIndex)
+					for(int lPolygonIndex = 0; lPolygonIndex < lPolygonCount; ++lPolygonIndex)
 					{
 						const int lMaterialIndex = lMaterialIndice->GetAt(lPolygonIndex);
-						if (subMeshes.GetCount() < lMaterialIndex + 1)
+						if(subMeshes.GetCount() < lMaterialIndex + 1)
 						{
 							subMeshes.Resize(lMaterialIndex + 1);
 						}
-						if (subMeshes[lMaterialIndex] == NULL)
+						if(subMeshes[lMaterialIndex] == NULL)
 						{
 							subMeshes[lMaterialIndex] = new SubMesh;
 						}
@@ -479,16 +482,16 @@ namespace Darius::Fbx
 
 					// Make sure we have no "holes" (NULL) in the subMeshes table. This can happen
 					// if, in the loop above, we resized the subMeshes by more than one slot.
-					for (int i = 0; i < subMeshes.GetCount(); i++)
+					for(int i = 0; i < subMeshes.GetCount(); i++)
 					{
-						if (subMeshes[i] == NULL)
+						if(subMeshes[i] == NULL)
 							subMeshes[i] = new SubMesh;
 					}
 
 					// Record the offset (how many vertex)
 					const int lMaterialCount = subMeshes.GetCount();
 					int lOffset = 0;
-					for (int lIndex = 0; lIndex < lMaterialCount; ++lIndex)
+					for(int lIndex = 0; lIndex < lMaterialCount; ++lIndex)
 					{
 						subMeshes[lIndex]->IndexOffset = lOffset;
 						lOffset += subMeshes[lIndex]->TriangleCount * 3;
@@ -501,7 +504,7 @@ namespace Darius::Fbx
 		}
 
 		// All faces will use the same material.
-		if (subMeshes.GetCount() == 0)
+		if(subMeshes.GetCount() == 0)
 		{
 			subMeshes.Resize(1);
 			subMeshes[0] = new SubMesh();
@@ -515,38 +518,38 @@ namespace Darius::Fbx
 		FbxGeometryElement::EMappingMode lNormalMappingMode = FbxGeometryElement::eNone;
 		FbxGeometryElement::EMappingMode lUVMappingMode = FbxGeometryElement::eNone;
 		FbxGeometryElement::EMappingMode lTangentMappingMode = FbxGeometryElement::eNone;
-		if (mHasNormal)
+		if(mHasNormal)
 		{
 			lNormalMappingMode = pMesh->GetElementNormal(0)->GetMappingMode();
-			if (lNormalMappingMode == FbxGeometryElement::eNone)
+			if(lNormalMappingMode == FbxGeometryElement::eNone)
 			{
 				mHasNormal = false;
 			}
-			if (mHasNormal && lNormalMappingMode != FbxGeometryElement::eByControlPoint)
+			if(mHasNormal && lNormalMappingMode != FbxGeometryElement::eByControlPoint)
 			{
 				mAllByControlPoint = false;
 			}
 		}
-		if (mHasUV)
+		if(mHasUV)
 		{
 			lUVMappingMode = pMesh->GetElementUV(0)->GetMappingMode();
-			if (lUVMappingMode == FbxGeometryElement::eNone)
+			if(lUVMappingMode == FbxGeometryElement::eNone)
 			{
 				mHasUV = false;
 			}
-			if (mHasUV && lUVMappingMode != FbxGeometryElement::eByControlPoint)
+			if(mHasUV && lUVMappingMode != FbxGeometryElement::eByControlPoint)
 			{
 				mAllByControlPoint = false;
 			}
 		}
-		if (mHasTangent)
+		if(mHasTangent)
 		{
 			lTangentMappingMode = pMesh->GetElementTangent(0)->GetMappingMode();
-			if (lTangentMappingMode == FbxGeometryElement::eNone)
+			if(lTangentMappingMode == FbxGeometryElement::eNone)
 			{
 				mHasTangent = false;
 			}
-			if (mHasTangent && lTangentMappingMode != FbxGeometryElement::eByControlPoint)
+			if(mHasTangent && lTangentMappingMode != FbxGeometryElement::eByControlPoint)
 			{
 				mAllByControlPoint = false;
 			}
@@ -554,7 +557,7 @@ namespace Darius::Fbx
 
 		// Allocate the array memory, by control point or by polygon vertex.
 		int lPolygonVertexCount = pMesh->GetControlPointsCount();
-		if (!mAllByControlPoint)
+		if(!mAllByControlPoint)
 		{
 			lPolygonVertexCount = lPolygonCount * TRIANGLE_VERTEX_COUNT;
 		}
@@ -567,7 +570,7 @@ namespace Darius::Fbx
 
 		// Normals
 		float* lNormals = NULL;
-		if (mHasNormal)
+		if(mHasNormal)
 		{
 			lNormals = new float[lPolygonVertexCount * NORMAL_STRIDE];
 		}
@@ -577,7 +580,7 @@ namespace Darius::Fbx
 		FbxStringList lUVNames;
 		pMesh->GetUVSetNames(lUVNames);
 		const char* lUVName = NULL;
-		if (mHasUV && lUVNames.GetCount())
+		if(mHasUV && lUVNames.GetCount())
 		{
 			lUVs = new float[lPolygonVertexCount * UV_STRIDE];
 			lUVName = lUVNames[0];
@@ -585,7 +588,7 @@ namespace Darius::Fbx
 
 		// Tangents
 		float* lTangents = NULL;
-		if (mHasTangent)
+		if(mHasTangent)
 		{
 			lTangents = new float[lPolygonVertexCount * TANGENT_STRIDE];
 		}
@@ -598,26 +601,26 @@ namespace Darius::Fbx
 		FbxVector4 lCurrentTangent;
 
 		const FbxGeometryElementTangent* lTangentElement = NULL;
-		if (mHasTangent)
+		if(mHasTangent)
 		{
 			lTangentElement = pMesh->GetElementTangent(0);
 		}
 
 		pMesh->GenerateNormals(false, mAllByControlPoint, importConfig.InvertedFaces);
 
-		if (mAllByControlPoint)
+		if(mAllByControlPoint)
 		{
 			const FbxGeometryElementNormal* lNormalElement = NULL;
 			const FbxGeometryElementUV* lUVElement = NULL;
-			if (mHasNormal)
+			if(mHasNormal)
 			{
 				lNormalElement = pMesh->GetElementNormal(0);
 			}
-			if (mHasUV)
+			if(mHasUV)
 			{
 				lUVElement = pMesh->GetElementUV(0);
 			}
-			for (int lIndex = 0; lIndex < lPolygonVertexCount; ++lIndex)
+			for(int lIndex = 0; lIndex < lPolygonVertexCount; ++lIndex)
 			{
 				// Save the vertex position.
 				lCurrentVertex = lControlPoints[lIndex];
@@ -626,13 +629,13 @@ namespace Darius::Fbx
 				lVertices[lIndex * VERTEX_STRIDE + 2] = static_cast<float>(lCurrentVertex[2]);
 				lVertices[lIndex * VERTEX_STRIDE + 3] = 1;
 
-				controlPointIndexToVertexIndexMap.insert({ lIndex, { lIndex } });
+				controlPointIndexToVertexIndexMap.insert({lIndex, { lIndex }});
 
 				// Save the normal.
-				if (mHasNormal)
+				if(mHasNormal)
 				{
 					int lNormalIndex = lIndex;
-					if (lNormalElement->GetReferenceMode() == FbxLayerElement::eIndexToDirect)
+					if(lNormalElement->GetReferenceMode() == FbxLayerElement::eIndexToDirect)
 					{
 						lNormalIndex = lNormalElement->GetIndexArray().GetAt(lIndex);
 					}
@@ -643,10 +646,10 @@ namespace Darius::Fbx
 				}
 
 				// Save the UV.
-				if (mHasUV)
+				if(mHasUV)
 				{
 					int lUVIndex = lIndex;
-					if (lUVElement->GetReferenceMode() == FbxLayerElement::eIndexToDirect)
+					if(lUVElement->GetReferenceMode() == FbxLayerElement::eIndexToDirect)
 					{
 						lUVIndex = lUVElement->GetIndexArray().GetAt(lIndex);
 					}
@@ -656,10 +659,10 @@ namespace Darius::Fbx
 				}
 
 				// Save the tangent
-				if (mHasTangent)
+				if(mHasTangent)
 				{
 					int lTantentIndex = lIndex;
-					if (lTangentElement->GetReferenceMode() == FbxLayerElement::eIndexToDirect)
+					if(lTangentElement->GetReferenceMode() == FbxLayerElement::eIndexToDirect)
 					{
 						lTantentIndex = lTangentElement->GetIndexArray().GetAt(lIndex);
 					}
@@ -674,11 +677,11 @@ namespace Darius::Fbx
 		}
 
 		int lVertexCount = 0;
-		for (int lPolygonIndex = 0; lPolygonIndex < lPolygonCount; ++lPolygonIndex)
+		for(int lPolygonIndex = 0; lPolygonIndex < lPolygonCount; ++lPolygonIndex)
 		{
 			// The material for current face.
 			int lMaterialIndex = 0;
-			if (lMaterialIndice && lMaterialMappingMode == FbxGeometryElement::eByPolygon)
+			if(lMaterialIndice && lMaterialMappingMode == FbxGeometryElement::eByPolygon)
 			{
 				lMaterialIndex = lMaterialIndice->GetAt(lPolygonIndex);
 			}
@@ -686,14 +689,14 @@ namespace Darius::Fbx
 			// Where should I save the vertex attribute index, according to the material
 			const int lIndexOffset = subMeshes[lMaterialIndex]->IndexOffset +
 				subMeshes[lMaterialIndex]->TriangleCount * 3;
-			for (int lVerticeIndex = 0; lVerticeIndex < TRIANGLE_VERTEX_COUNT; ++lVerticeIndex)
+			for(int lVerticeIndex = 0; lVerticeIndex < TRIANGLE_VERTEX_COUNT; ++lVerticeIndex)
 			{
 				const int lControlPointIndex = pMesh->GetPolygonVertex(lPolygonIndex, lVerticeIndex);
 				// If the lControlPointIndex is -1, we probably have a corrupted mesh data. At this point,
 				// it is not guaranteed that the cache will work as expected.
-				if (lControlPointIndex >= 0)
+				if(lControlPointIndex >= 0)
 				{
-					if (mAllByControlPoint)
+					if(mAllByControlPoint)
 					{
 						lIndices[lIndexOffset + lVerticeIndex] = static_cast<unsigned int>(lControlPointIndex);
 					}
@@ -710,12 +713,12 @@ namespace Darius::Fbx
 
 						// Add index map
 						{
-							if (!controlPointIndexToVertexIndexMap.contains(lControlPointIndex))
-								controlPointIndexToVertexIndexMap.insert({ lControlPointIndex, {} });
+							if(!controlPointIndexToVertexIndexMap.contains(lControlPointIndex))
+								controlPointIndexToVertexIndexMap.insert({lControlPointIndex, {}});
 							controlPointIndexToVertexIndexMap[lControlPointIndex].push_back(lVertexCount);
 						}
 
-						if (mHasNormal)
+						if(mHasNormal)
 						{
 							pMesh->GetPolygonVertexNormal(lPolygonIndex, lVerticeIndex, lCurrentNormal);
 							lNormals[lVertexCount * NORMAL_STRIDE] = static_cast<float>(lCurrentNormal[0]);
@@ -723,7 +726,7 @@ namespace Darius::Fbx
 							lNormals[lVertexCount * NORMAL_STRIDE + 2] = static_cast<float>(lCurrentNormal[2]);
 						}
 
-						if (mHasUV)
+						if(mHasUV)
 						{
 							bool lUnmappedUV;
 							pMesh->GetPolygonVertexUV(lPolygonIndex, lVerticeIndex, lUVName, lCurrentUV, lUnmappedUV);
@@ -731,10 +734,10 @@ namespace Darius::Fbx
 							lUVs[lVertexCount * UV_STRIDE + 1] = static_cast<float>(lCurrentUV[1]);
 						}
 
-						if (mHasTangent)
+						if(mHasTangent)
 						{
 							int lTantentIndex = lControlPointIndex;
-							if (lTangentElement->GetReferenceMode() == FbxLayerElement::eIndexToDirect)
+							if(lTangentElement->GetReferenceMode() == FbxLayerElement::eIndexToDirect)
 							{
 								lTantentIndex = lTangentElement->GetIndexArray().GetAt(lControlPointIndex);
 							}
@@ -752,7 +755,7 @@ namespace Darius::Fbx
 		}
 
 		result.SubMeshes.resize(subMeshes.Size());
-		for (int i = 0; i < subMeshes.GetCount(); i++)
+		for(int i = 0; i < subMeshes.GetCount(); i++)
 		{
 			result.SubMeshes[i].IndexOffset = subMeshes[i]->IndexOffset;
 			result.SubMeshes[i].IndexCount = subMeshes[i]->TriangleCount * TRIANGLE_VERTEX_COUNT;
@@ -766,11 +769,11 @@ namespace Darius::Fbx
 
 		D_ASSERT(lNormals);
 
-		float empty[] = { 0.f, 1.f, 0.f, 1.f };
+		float empty[] = {0.f, 1.f, 0.f, 1.f};
 		bool inverted = importConfig.InvertedFaces;
 		auto normalsReordering = importConfig.NormalsReordering;
 
-		for (int i = 0; i < lPolygonVertexCount; i++)
+		for(int i = 0; i < lPolygonVertexCount; i++)
 		{
 			float* vert = &lVertices[i * VERTEX_STRIDE];
 			float* norm = &lNormals[i * NORMAL_STRIDE];
@@ -778,13 +781,13 @@ namespace Darius::Fbx
 			auto normalVec = MakeReorderedVec(norm, normalsReordering);
 
 			float* tang;
-			if (mHasTangent)
+			if(mHasTangent)
 				tang = &lTangents[i * TANGENT_STRIDE];
 			else
 				tang = empty;
 
 			float* uv;
-			if (mHasUV)
+			if(mHasUV)
 				uv = &lUVs[i * UV_STRIDE];
 			else
 				uv = empty;
@@ -797,16 +800,16 @@ namespace Darius::Fbx
 		bool readInverted = coordSystem == fbxsdk::FbxAxisSystem::eLeftHanded;
 		readInverted = inverted ? !readInverted : readInverted;
 
-		if (readInverted)
+		if(readInverted)
 		{
-			for (int i = 0; i < lPolygonCount * TRIANGLE_VERTEX_COUNT; i++)
+			for(int i = 0; i < lPolygonCount * TRIANGLE_VERTEX_COUNT; i++)
 			{
 				result.MeshData.Indices32.push_back(lIndices[i]);
 			}
 		}
 		else
 		{
-			for (int i = 0; i < lPolygonCount; i++)
+			for(int i = 0; i < lPolygonCount; i++)
 			{
 				int index = i * TRIANGLE_VERTEX_COUNT;
 				result.MeshData.Indices32.push_back(lIndices[index]);
@@ -818,9 +821,9 @@ namespace Darius::Fbx
 		delete[] lVertices;
 		delete[] lIndices;
 		delete[] lNormals;
-		if (mHasTangent)
+		if(mHasTangent)
 			delete[] lTangents;
-		if (mHasUV)
+		if(mHasUV)
 			delete[] lUVs;
 
 		return true;
@@ -837,13 +840,13 @@ namespace Darius::Fbx
 		// Read mesh data
 		FbxMesh* mesh;
 
-		if (!ReadMeshByName(path, meshName, importConfig, result, controlPointIndexToVertexIndexMap, &mesh))
+		if(!ReadMeshByName(path, meshName, importConfig, result, controlPointIndexToVertexIndexMap, &mesh))
 		{
 			return false;
 		}
 
 		// Read skeleton data
-		if (ReadMeshSkin(mesh, result, skeleton, controlPointIndexToVertexIndexMap))
+		if(ReadMeshSkin(mesh, result, skeleton, controlPointIndexToVertexIndexMap))
 			ReadFBXCacheVertexPositions(result, mesh, controlPointIndexToVertexIndexMap);
 
 		return true;
@@ -873,7 +876,7 @@ namespace Darius::Fbx
 		FbxAMatrix lClusterRelativeInitPosition;
 		FbxAMatrix lClusterRelativeCurrentPositionInverse;
 
-		if (lClusterMode == FbxCluster::eAdditive && pCluster->GetAssociateModel())
+		if(lClusterMode == FbxCluster::eAdditive && pCluster->GetAssociateModel())
 		{
 			pCluster->GetTransformAssociateModelMatrix(lAssociateGlobalInitPosition);
 			// Geometric transform of the model
@@ -926,31 +929,31 @@ namespace Darius::Fbx
 	{
 		std::scoped_lock scope(nodeTraverseMutex);
 
-		if (mesh->GetDeformerCount(FbxDeformer::eSkin) == 0)
+		if(mesh->GetDeformerCount(FbxDeformer::eSkin) == 0)
 			return false;
 
 		auto deformer = (FbxSkin*)mesh->GetDeformer(0, FbxDeformer::eSkin);
 		auto clusterCount = deformer->GetClusterCount();
 
 		// Finding skeleton root
-		if (clusterCount <= 0)
+		if(clusterCount <= 0)
 			return true;
 		FbxSkeleton* skeletonRoot = nullptr;
 		{
 			// Finding first eligible skeleton joint
-			for (int i = 0; i < clusterCount; i++)
+			for(int i = 0; i < clusterCount; i++)
 			{
 				auto cluster = deformer->GetCluster(i);
-				if (!cluster->GetLink())
+				if(!cluster->GetLink())
 					continue;
 				skeletonRoot = cluster->GetLink()->GetSkeleton();
 				break;
 			}
 
-			if (!skeletonRoot)
+			if(!skeletonRoot)
 				return false;
 
-			while (!skeletonRoot->IsSkeletonRoot())
+			while(!skeletonRoot->IsSkeletonRoot())
 				skeletonRoot = skeletonRoot->GetNode()->GetParent()->GetSkeleton();
 		}
 
@@ -962,7 +965,7 @@ namespace Darius::Fbx
 			sceneGraphNode.StaleMatrix = true;
 			sceneGraphNode.SkeletonRoot = true;
 			skeletonHierarchy.push_back(sceneGraphNode);
-			skeletonIndexMap.insert({ skeletonRoot, 0 });
+			skeletonIndexMap.insert({skeletonRoot, 0});
 			AddSkeletonChildren(skeletonRoot, skeletonHierarchy, skeletonIndexMap);
 		}
 
@@ -972,17 +975,17 @@ namespace Darius::Fbx
 			skinData.resize(mesh->GetControlPointsCount());
 
 			// For each joint (cluster)
-			for (int clusterIndex = 0; clusterIndex < clusterCount; clusterIndex++)
+			for(int clusterIndex = 0; clusterIndex < clusterCount; clusterIndex++)
 			{
 				const auto cluster = deformer->GetCluster(clusterIndex);
 
-				if (!cluster->GetLink())
+				if(!cluster->GetLink())
 					continue;
 
 				auto controlPointIndices = cluster->GetControlPointIndices();
 				auto controlPointWeights = cluster->GetControlPointWeights();
 
-				for (size_t clusterItem = 0; clusterItem < cluster->GetControlPointIndicesCount(); clusterItem++)
+				for(size_t clusterItem = 0; clusterItem < cluster->GetControlPointIndicesCount(); clusterItem++)
 				{
 					auto controlPointIndex = (UINT)controlPointIndices[clusterItem];
 					auto controlPointWeight = (float)controlPointWeights[clusterItem];
@@ -995,14 +998,14 @@ namespace Darius::Fbx
 					FbxAMatrix lVertexTransformMatrix;
 					ComputeClusterDeformation(glob, mesh, cluster, lVertexTransformMatrix, FBXSDK_TIME_ZERO, nullptr);
 
-					skinData[controlPointIndex].push_back({ jointIndex, { controlPointWeight, GetMat4(lVertexTransformMatrix)}
+					skinData[controlPointIndex].push_back({jointIndex, { controlPointWeight, GetMat4(lVertexTransformMatrix)}
 						});
 
 				}
 			}
 		}
 
-		AddJointWeightToVertices(skinData, meshData, controlPointIndexToVertexIndexMap);
+		AddJointWeightToVertices(skinData, skeletonHierarchy, meshData, controlPointIndexToVertexIndexMap);
 		return true;
 	}
 
@@ -1015,9 +1018,9 @@ namespace Darius::Fbx
 			});
 
 		// Adding blend data to vertex
-		for (int i = 0; i < 4; i++)
+		for(int i = 0; i < 4; i++)
 		{
-			if (i >= blendData.size())
+			if(i >= blendData.size())
 			{
 				((float*)&vertex.mBlendWeights)[i] = 0.f;
 				((int*)&vertex.mBlendIndices)[i] = 0;
@@ -1035,25 +1038,64 @@ namespace Darius::Fbx
 
 		Vector3 pos(kZero);
 		auto weights = (float*)&vertex.mBlendWeights;
-		for (int i = 0; i < 4; i++)
+		for(int i = 0; i < 4; i++)
 		{
-			if (i < blendData.size())
+			if(i < blendData.size())
 				pos += Vector3(Matrix4(weights[i] * blendData[i].second.second) * vertex.mPosition);
 		}
 
 		vertex.mPosition = (DirectX::XMFLOAT3)pos;
 	}
 
-	void AddJointWeightToVertices(VertexBlendWeightData const& skinData, MultiPartMeshData<D_RENDERER_VERTEX::VertexPositionNormalTangentTextureSkinned>& meshData, DUnorderedMap<int, DVector<int>> const& controlPointIndexToVertexIndexMap)
+	void AddVertexToJointAabb(D_RENDERER_VERTEX::VertexPositionNormalTangentTextureSkinned const& vertex, Mesh::SkeletonJoint& joint)
 	{
-		for (int controlPointIndex = 0; controlPointIndex < skinData.size(); controlPointIndex++)
+		auto& aabb = joint.Aabb;
+
+		auto pos = Vector3(vertex.mPosition);
+
+		if(aabb.IsZero())
+			aabb = D_MATH_BOUNDS::Aabb(pos);
+		else
+			aabb.AddPoint(pos);
+	}
+
+	void AddJointWeightToVertices(
+		VertexBlendWeightData& skinData,
+		DList<Mesh::SkeletonJoint>& skeletonData,
+		MultiPartMeshData<D_RENDERER_VERTEX::VertexPositionNormalTangentTextureSkinned>& meshData,
+		DUnorderedMap<int, DVector<int>> const& controlPointIndexToVertexIndexMap)
+	{
+		// For each control point add weight to its corresponding vertices
+		for(int controlPointIndex = 0; controlPointIndex < skinData.size(); controlPointIndex++)
 		{
-			auto controlPointBlendData = skinData[controlPointIndex];
-			if (!controlPointIndexToVertexIndexMap.contains(controlPointIndex))
+			auto& controlPointBlendData = skinData[controlPointIndex];
+			if(!controlPointIndexToVertexIndexMap.contains(controlPointIndex))
 				continue;
-			for (auto const& vertexIndex : controlPointIndexToVertexIndexMap.at(controlPointIndex))
+
+			// For each corresponding vertices of the controlpoint, add weights
+			for(auto const& vertexIndex : controlPointIndexToVertexIndexMap.at(controlPointIndex))
 			{
-				AddBlendDataToVertex(meshData.MeshData.Vertices[vertexIndex], controlPointBlendData);
+				auto& vertex = meshData.MeshData.Vertices[vertexIndex];
+				AddBlendDataToVertex(vertex, controlPointBlendData);
+
+				D_STATIC_ASSERT(sizeof(vertex.mBlendIndices) == 4 * sizeof(float) && sizeof(vertex.mBlendWeights) == 4 * sizeof(float));
+				uint32_t* indices = reinterpret_cast<uint32_t*>(&vertex.mBlendIndices);
+				float* weights = reinterpret_cast<float*>(&vertex.mBlendWeights);
+				// For each joint add point to aabb
+				for(int i = 0; i < 4; i++)
+				{
+					// Since weights are sorted, when a weight is zero, the rest of them are too
+					if(weights[i] <= 0)
+						break;
+
+					uint32_t jointIdx = indices[i];
+					if(skeletonData.size() > jointIdx)
+					{
+						auto it = std::next(skeletonData.begin(), jointIdx);
+
+						AddVertexToJointAabb(vertex, *it);
+					}
+				}
 			}
 		}
 	}
@@ -1069,7 +1111,7 @@ namespace Darius::Fbx
 		// Setting translation
 		auto transform = node->EvaluateLocalTransform();
 		FbxDouble* fbxTrans;
-		if (currentSceneGraphNode.SkeletonRoot)
+		if(currentSceneGraphNode.SkeletonRoot)
 			fbxTrans = FbxDouble3(0, 0, 0).Buffer();
 		else
 			fbxTrans = node->EvaluateLocalTranslation().Buffer();
@@ -1077,8 +1119,8 @@ namespace Darius::Fbx
 		auto fbxSclae = node->EvaluateLocalScaling();
 		auto fbxRot = node->LclRotation.Get();
 
-		currentSceneGraphNode.Xform.SetW({ (float)fbxTrans[0], (float)fbxTrans[1], (float)fbxTrans[2], 1.f });
-		currentSceneGraphNode.Scale = { (float)fbxSclae.mData[0], (float)fbxSclae.mData[1], (float)fbxSclae.mData[2] };
+		currentSceneGraphNode.Xform.SetW({(float)fbxTrans[0], (float)fbxTrans[1], (float)fbxTrans[2], 1.f});
+		currentSceneGraphNode.Scale = {(float)fbxSclae.mData[0], (float)fbxSclae.mData[1], (float)fbxSclae.mData[2]};
 		currentSceneGraphNode.Rotation = XMFLOAT3((float)fbxRot.mData[0], (float)fbxRot.mData[1], (float)fbxRot.mData[2]);
 
 		currentSceneGraphNode.SetName(node->GetInitialName());
@@ -1087,20 +1129,20 @@ namespace Darius::Fbx
 		{
 			float matData[16];
 			auto& fbxMat = node->EvaluateGlobalTransform();
-			for (int row = 0; row < 4; row++)
-				for (int col = 0; col < 4; col++)
+			for(int row = 0; row < 4; row++)
+				for(int col = 0; col < 4; col++)
 					matData[row * 4 + col] = (float)fbxMat.Get(row, col);
 
 			currentSceneGraphNode.IBM = Matrix4(matData).Inverse();
 		}
 
-		skeletonIndexMap.insert({ skeleton, (int)currentSceneGraphNode.MatrixIdx });
+		skeletonIndexMap.insert({skeleton, (int)currentSceneGraphNode.MatrixIdx});
 
-		for (int i = 0; i < node->GetChildCount(); i++)
+		for(int i = 0; i < node->GetChildCount(); i++)
 		{
 			auto child = node->GetChild(i);
 
-			if (!child->GetSkeleton())
+			if(!child->GetSkeleton())
 				continue;
 
 			Mesh::SkeletonJoint sceneGraphNode;
@@ -1118,10 +1160,10 @@ namespace Darius::Fbx
 
 		// Find vertex pos deformer
 		FbxVertexCacheDeformer* deformer = nullptr;
-		for (int i = 0; i < mesh->GetDeformerCount(FbxDeformer::eVertexCache); i++)
+		for(int i = 0; i < mesh->GetDeformerCount(FbxDeformer::eVertexCache); i++)
 		{
 			auto iterDeformer = static_cast<FbxVertexCacheDeformer*>(mesh->GetDeformer(i, FbxDeformer::eVertexCache));
-			if (iterDeformer->Type.Get() == FbxVertexCacheDeformer::ePositions)
+			if(iterDeformer->Type.Get() == FbxVertexCacheDeformer::ePositions)
 			{
 				deformer = iterDeformer;
 				break;
@@ -1129,7 +1171,7 @@ namespace Darius::Fbx
 		}
 
 		// Abort if doesn't exist
-		if (!deformer)
+		if(!deformer)
 			return;
 
 		// Reading vertex pos from cache
@@ -1143,24 +1185,24 @@ namespace Darius::Fbx
 			unsigned int length = 0;
 			cache->Read(nullptr, length, FBXSDK_TIME_ZERO, channelIndex);
 
-			if (length != vertexCount * 3)
+			if(length != vertexCount * 3)
 				return;
 		}
 
 		unsigned int bufferSize = 0;
 		auto readSucceed = cache->Read(&buffer, bufferSize, FBXSDK_TIME_ZERO, channelIndex);
 
-		if (!readSucceed)
+		if(!readSucceed)
 			return;
 
 		unsigned int readBufferIndex = 0;
 		// Assigning vertices their initial positions
 		{
-			while (readBufferIndex < 3 * vertexCount)
+			while(readBufferIndex < 3 * vertexCount)
 			{
 				auto controlPointIdx = readBufferIndex / 3;
 
-				for (auto vertexIndex : controlPointIndexToVertexIndexMap.at(controlPointIdx))
+				for(auto vertexIndex : controlPointIndexToVertexIndexMap.at(controlPointIdx))
 				{
 					auto& vertex = meshDataVec.MeshData.Vertices[vertexIndex];
 					vertex.mPosition.x = buffer[readBufferIndex]; readBufferIndex++;
@@ -1186,24 +1228,24 @@ namespace Darius::Fbx
 
 		auto curve = prop.GetCurve(currentLayer, channelName);
 		// No curve for this property
-		if (!curve)
+		if(!curve)
 			return false;
 
 		int componentOffset = -1;
-		if (!std::strcmp(channelName, "X"))
+		if(!std::strcmp(channelName, "X"))
 			componentOffset = 0;
-		else if (!std::strcmp(channelName, "Y"))
+		else if(!std::strcmp(channelName, "Y"))
 			componentOffset = 1;
-		else if (!std::strcmp(channelName, "Z"))
+		else if(!std::strcmp(channelName, "Z"))
 			componentOffset = 2;
-		else if (!std::strcmp(channelName, "T"))
+		else if(!std::strcmp(channelName, "T"))
 			componentOffset = 3;
 
 		// It is not x, y, z, w, so in this context it is invalid
-		if (componentOffset == -1)
+		if(componentOffset == -1)
 			return false;
 
-		for (UINT keyIndex = 0; keyIndex < (UINT)curve->KeyGetCount(); keyIndex++)
+		for(UINT keyIndex = 0; keyIndex < (UINT)curve->KeyGetCount(); keyIndex++)
 		{
 			auto curveKey = curve->KeyGet(keyIndex);
 			auto keyTime = (float)curveKey.GetTime().GetSecondDouble();
@@ -1211,7 +1253,7 @@ namespace Darius::Fbx
 			Keyframe* keyframe = animCurve.FindOrCreateKeyframeByTime(keyTime);
 			keyframe->Time = keyTime;
 
-			switch (componentOffset)
+			switch(componentOffset)
 			{
 			case 0:
 				keyframe->GetValue<Vector4>().SetX(curveKey.GetValue());
@@ -1236,7 +1278,7 @@ namespace Darius::Fbx
 
 	bool ReadFbxSkeletalAnimationFromFile(FbxScene* scene, FbxAnimStack* targetAnimStack, D_CONTAINERS::DUnorderedMap<D_CORE::StringId, int>& skeletonNameIndexMap, Sequence& seq, float& frameRate)
 	{
-		if (!targetAnimStack)
+		if(!targetAnimStack)
 		{
 			return false;
 		}
@@ -1260,11 +1302,11 @@ namespace Darius::Fbx
 			auto skeltCnt = scene->GetMemberCount<FbxSkeleton>();
 			jointVec.resize(skeltCnt);
 			int index = 0;
-			for (int skeletonIndex = 0; skeletonIndex < skeltCnt; skeletonIndex++)
+			for(int skeletonIndex = 0; skeletonIndex < skeltCnt; skeletonIndex++)
 			{
 				auto skeleton = scene->GetMember<FbxSkeleton>(skeletonIndex);
 				auto node = skeleton->GetNode();
-				if (!node)
+				if(!node)
 					continue;
 
 				jointVec[index] = skeleton;
@@ -1275,7 +1317,7 @@ namespace Darius::Fbx
 		}
 
 		// Adding translation, scale, and rotation curves of joints
-		for (int i = 0; i < jointVec.size(); i++)
+		for(int i = 0; i < jointVec.size(); i++)
 		{
 			FbxSkeleton* skeleton = jointVec[i];
 			auto node = skeleton->GetNode();
@@ -1284,14 +1326,14 @@ namespace Darius::Fbx
 			{
 				Track animCurve(InterpolationMode::Linear, KeyframeDataType::Vector3);
 				auto curveNode = node->LclTranslation.GetCurveNode(currentLayer);
-				if (curveNode)
+				if(curveNode)
 				{
-					for (UINT channelIdx = 0; channelIdx < curveNode->GetChannelsCount(); channelIdx++)
+					for(UINT channelIdx = 0; channelIdx < curveNode->GetChannelsCount(); channelIdx++)
 					{
 						GetPropertyData(&node->LclTranslation, currentLayer, animCurve, curveNode->GetChannelName(channelIdx));
 					}
-					 
-					for (auto& kf : animCurve.GetKeyframes())
+
+					for(auto& kf : animCurve.GetKeyframes())
 						kf.GetValue<Vector4>().SetW(1.f);
 
 				}
@@ -1302,9 +1344,9 @@ namespace Darius::Fbx
 			{
 				Track animCurve(InterpolationMode::Linear, KeyframeDataType::Vector3);
 				auto curveNode = node->LclScaling.GetCurveNode(currentLayer);
-				if (curveNode)
+				if(curveNode)
 				{
-					for (UINT channelIdx = 0; channelIdx < curveNode->GetChannelsCount(); channelIdx++)
+					for(UINT channelIdx = 0; channelIdx < curveNode->GetChannelsCount(); channelIdx++)
 					{
 						GetPropertyData(&node->LclScaling, currentLayer, animCurve, curveNode->GetChannelName(channelIdx));
 					}
@@ -1317,9 +1359,9 @@ namespace Darius::Fbx
 			{
 				Track animCurve(InterpolationMode::Linear, KeyframeDataType::Vector3);
 				auto curveNode = node->LclRotation.GetCurveNode(currentLayer);
-				if (curveNode)
+				if(curveNode)
 				{
-					for (UINT channelIdx = 0; channelIdx < curveNode->GetChannelsCount(); channelIdx++)
+					for(UINT channelIdx = 0; channelIdx < curveNode->GetChannelsCount(); channelIdx++)
 					{
 						GetPropertyData(&node->LclRotation, currentLayer, animCurve, curveNode->GetChannelName(channelIdx));
 					}
@@ -1343,13 +1385,13 @@ namespace Darius::Fbx
 	{
 		auto name = WSTR2STR(resource->GetName());
 		FbxMesh* mesh = scene->FindSrcObject<FbxMesh>(name.c_str());
-		if (!mesh)
+		if(!mesh)
 		{
 			auto parentOrSibiling = scene->FindNodeByName(name.c_str());
-			if (!parentOrSibiling)
+			if(!parentOrSibiling)
 				return false;
 
-			if (auto meshNode = parentOrSibiling->FindChild("SkeletalMeshComponent0", false))
+			if(auto meshNode = parentOrSibiling->FindChild("SkeletalMeshComponent0", false))
 			{
 				// parentOrSibiling is actually its parent
 				mesh = meshNode->GetMesh();
@@ -1358,14 +1400,14 @@ namespace Darius::Fbx
 			{
 				// parentOrSibiling is actually its sibiling
 				auto child = parentOrSibiling->GetParent()->FindChild("SkeletalMeshComponent0", false);
-				
-				if (!child)
+
+				if(!child)
 					return false;
 
 				mesh = child->GetMesh();
 			}
 		}
-		if (!D_VERIFY(mesh))
+		if(!D_VERIFY(mesh))
 			return false;
 
 		DUnorderedMap<int, DVector<int>> controlPointIndexToVertexIndexMap;
@@ -1382,7 +1424,7 @@ namespace Darius::Fbx
 		// Read mesh data
 		ReadMeshNode(mesh, importConfig, meshData, controlPointIndexToVertexIndexMap, coordSystem);
 
-		if (ReadMeshSkin(mesh, meshData, skeleton, controlPointIndexToVertexIndexMap))
+		if(ReadMeshSkin(mesh, meshData, skeleton, controlPointIndexToVertexIndexMap))
 			ReadFBXCacheVertexPositions(meshData, mesh, controlPointIndexToVertexIndexMap);
 
 		resource->Create(meshData, skeleton);
@@ -1395,7 +1437,7 @@ namespace Darius::Fbx
 	{
 		auto name = WSTR2STR(resource->GetName());
 		FbxMesh* mesh = scene->FindSrcObject<FbxMesh>(name.c_str());
-		if (!D_VERIFY(mesh))
+		if(!D_VERIFY(mesh))
 			return {};
 
 		DUnorderedMap<int, DVector<int>> controlPointIndexToVertexIndexMap;
@@ -1422,7 +1464,7 @@ namespace Darius::Fbx
 		auto name = WSTR2STR(resource->GetName());
 		FbxAnimStack* animStack = scene->FindSrcObject<FbxAnimStack>(name.c_str());
 
-		if (!animStack)
+		if(!animStack)
 			return false;
 
 		DUnorderedMap<D_CORE::StringId, int> skeletonNameIndexMap;
@@ -1443,12 +1485,12 @@ namespace Darius::Fbx
 	{
 		D_ASSERT(parentResource);
 
-		auto handles = D_RESOURCE_LOADER::LoadResourceSync(path, false, false, D_RESOURCE::EmptyResourceHandle, { parentResource->GetHandle() });
+		auto handles = D_RESOURCE_LOADER::LoadResourceSync(path, false, false, D_RESOURCE::EmptyResourceHandle, {parentResource->GetHandle()});
 
 		FbxNode* rootNode = nullptr;
 
 		FbxAxisSystem::ECoordSystem coordSystem;
-		if (!InitializeFbxScene(path, &rootNode, coordSystem))
+		if(!InitializeFbxScene(path, &rootNode, coordSystem))
 		{
 			return false;
 		}
@@ -1456,30 +1498,30 @@ namespace Darius::Fbx
 
 		FBXPrefabResource* fbxPref;
 
-		for (auto const& handle : handles)
+		for(auto const& handle : handles)
 		{
 			auto resType = handle.Type;
 
 			auto resource = D_RESOURCE::GetRawResourceSync(handle);
-			if (resType == SkeletalMeshResource::GetResourceType())
+			if(resType == SkeletalMeshResource::GetResourceType())
 			{
 				SkeletalMeshResource* skeletalMesh = static_cast<SkeletalMeshResource*>(resource);
 				D_ASSERT(skeletalMesh);
 				LoadSkeletalMesh(scene, skeletalMesh, coordSystem);
 			}
-			else if (resType == StaticMeshResource::GetResourceType())
+			else if(resType == StaticMeshResource::GetResourceType())
 			{
 				StaticMeshResource* staticMesh = static_cast<StaticMeshResource*>(resource);
 				D_ASSERT(staticMesh);
 				LoadStaticMesh(scene, staticMesh, coordSystem);
 			}
-			else if (resType == AnimationResource::GetResourceType())
+			else if(resType == AnimationResource::GetResourceType())
 			{
 				AnimationResource* animation = static_cast<AnimationResource*>(resource);
 				D_ASSERT(animation);
 				LoadAnimation(scene, animation);
 			}
-			else if (resType == FBXPrefabResource::GetResourceType())
+			else if(resType == FBXPrefabResource::GetResourceType())
 			{
 				fbxPref = static_cast<FBXPrefabResource*>(resource);
 				D_ASSERT(fbxPref);
@@ -1487,7 +1529,7 @@ namespace Darius::Fbx
 		}
 
 		// Load Fbx prefab
-		if (fbxPref)
+		if(fbxPref)
 			LoadScene(fbxPref, scene, handles);
 
 		return true;
@@ -1510,7 +1552,7 @@ namespace Darius::Fbx
 		// Fetching resources
 		DUnorderedMap<std::string, Resource const*> resourceMap;
 		{
-			for (auto const& handle : handles)
+			for(auto const& handle : handles)
 			{
 				auto resource = D_RESOURCE::GetRawResourceSync(handle);
 				auto name = WSTR2STR(resource->GetName());
@@ -1535,12 +1577,12 @@ namespace Darius::Fbx
 
 		GameObject* rootGo = nullptr;
 
-		if (lNode)
+		if(lNode)
 		{
 			rootGo = D_WORLD::CreateGameObject(rootUuid, false);
 			rootGo->SetName(lNode->GetName());
 
-			for (i = 0; i < lNode->GetChildCount(); i++)
+			for(i = 0; i < lNode->GetChildCount(); i++)
 			{
 
 				ProcessSceneNode(lNode->GetChild(i), rootGo, resourceDic);
@@ -1561,12 +1603,12 @@ namespace Darius::Fbx
 
 		bool skipChildren = false;
 
-		if (pNode->GetNodeAttribute() != NULL)
+		if(pNode->GetNodeAttribute() != NULL)
 		{
 			lAttributeType = (pNode->GetNodeAttribute()->GetAttributeType());
 
 			// Only processing skeletal mesh, static mesh, camera, and light
-			switch (lAttributeType)
+			switch(lAttributeType)
 			{
 			default:
 				break;
@@ -1580,7 +1622,7 @@ namespace Darius::Fbx
 				auto mesh = pNode->GetMesh();
 
 				// Skeletal or static mesh?
-				if (mesh->GetDeformerCount(FbxDeformer::eSkin) > 0)
+				if(mesh->GetDeformerCount(FbxDeformer::eSkin) > 0)
 					AddSkeletalMesh(pNode->GetParent()->GetChild(0)->GetName(), mesh, go, resourceDic);
 				else
 					AddStaticMesh(mesh, go, resourceDic);
@@ -1602,8 +1644,8 @@ namespace Darius::Fbx
 		go->GetTransform()->SetLocalWorld(GetMat4(localWorld));
 
 
-		if (!skipChildren)
-			for (int i = 0; i < pNode->GetChildCount(); i++)
+		if(!skipChildren)
+			for(int i = 0; i < pNode->GetChildCount(); i++)
 			{
 				ProcessSceneNode(pNode->GetChild(i), go, resourceDic);
 			}
@@ -1616,7 +1658,7 @@ namespace Darius::Fbx
 		using conv = std::is_convertible<T*, Resource*>;
 		D_STATIC_ASSERT(conv::value);
 
-		if (!resourceDic.contains(name))
+		if(!resourceDic.contains(name))
 		{
 			D_LOG_WARN("Resource with given name: " + name + ", was not found in the resource file");
 			return nullptr;
@@ -1624,7 +1666,7 @@ namespace Darius::Fbx
 
 		Resource const* res = resourceDic.at(name);
 
-		if (T::GetResourceType() != res->GetType())
+		if(T::GetResourceType() != res->GetType())
 		{
 			D_LOG_WARN("Resource type mismatch with what expected");
 			return nullptr;
@@ -1670,7 +1712,7 @@ namespace Darius::Fbx
 
 		comp->SetColor(D_MATH::Color((float)color.mData[0], (float)color.mData[1], (float)color.mData[2]));
 
-		switch (light->LightType.Get())
+		switch(light->LightType.Get())
 		{
 		case FbxLight::eDirectional:
 		{

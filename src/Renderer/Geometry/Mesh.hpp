@@ -43,6 +43,8 @@ namespace Darius::Renderer::Geometry
 			uint32_t				StaleMatrix : 1;
 			uint32_t				SkeletonRoot : 1;
 
+			D_MATH_BOUNDS::Aabb		Aabb = D_MATH_BOUNDS::Aabb::Zero;
+
 			void SetName(char const* nameStr) { Name = D_CORE::StringId(nameStr, JointNameDatabase); }
 		};
 
