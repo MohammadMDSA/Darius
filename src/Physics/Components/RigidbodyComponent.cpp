@@ -26,7 +26,8 @@ namespace Darius::Physics
 	RigidbodyComponent::RigidbodyComponent() :
 		ComponentBase(),
 		mKinematic(false),
-		mUsingGravity(true)
+		mUsingGravity(true),
+		mCenterOfMass(Vector3::Zero)
 	{
 		mRotationConstraintsX = false;
 		mRotationConstraintsY = false;
@@ -39,7 +40,8 @@ namespace Darius::Physics
 	RigidbodyComponent::RigidbodyComponent(D_CORE::Uuid const& uuid) :
 		ComponentBase(uuid),
 		mKinematic(false),
-		mUsingGravity(true)
+		mUsingGravity(true),
+		mCenterOfMass(Vector3::Zero)
 	{
 		mRotationConstraintsX = false;
 		mRotationConstraintsY = false;
@@ -70,6 +72,7 @@ namespace Darius::Physics
 		SetPositionConstraintsX(mPositionConstraintsX);
 		SetPositionConstraintsY(mPositionConstraintsY);
 		SetPositionConstraintsZ(mPositionConstraintsZ);
+		SetCenterOfMass(mCenterOfMass);
 		mActor->GetDynamicActor()->setActorFlag(physx::PxActorFlag::eDISABLE_SIMULATION, false);
 		SetClean();
 	}
@@ -172,23 +175,21 @@ namespace Darius::Physics
 
 	void RigidbodyComponent::SetCenterOfMass(Vector3 const& c)
 	{
-		if(!mActor.IsValid())
+
+		if(c.Equals(mCenterOfMass) && !IsDirty())
 			return;
 
-		if(c.Equals(GetCenterOfMass()))
-			return;
+		if(mActor.IsValid())
+			mActor->GetDynamicActor()->setCMassLocalPose(PxTransform(VEC3_2_PX(c)));
 
-		mActor->GetDynamicActor()->setCMassLocalPose(PxTransform(VEC3_2_PX(c)));
+		mCenterOfMass = c;
+
 		mChangeSignal(this);
 	}
 
 	Vector3 RigidbodyComponent::GetCenterOfMass() const
 	{
-		if(!mActor.IsValid())
-			return Vector3::Zero;
-
-		auto c = mActor->GetDynamicActor()->getCMassLocalPose().p;
-		return Vector3(reinterpret_cast<float*>(&c));
+		return mCenterOfMass;
 	}
 
 	bool RigidbodyComponent::GetRotationConstraintsX() const
@@ -351,7 +352,9 @@ namespace Darius::Physics
 
 		if(auto sm = GetGameObject()->GetComponent<D_RENDERER::MeshRendererComponent>())
 		{
-			SetCenterOfMass(sm->GetAabb().GetCenter());
+			auto trans = GetTransform();
+			auto localCenter = sm->GetAabb().GetCenter() - trans->GetPosition();
+			SetCenterOfMass(trans->GetRotation() * localCenter);
 		}
 	}
 

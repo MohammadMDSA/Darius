@@ -25,7 +25,8 @@ namespace Darius::Physics
 		ColliderComponent(),
 		mMesh(InvalidMeshDataHandle),
 		mTightBounds(true),
-		mDirectMesh(false)
+		mDirectMesh(false),
+		mConvex(false)
 	{
 		SetDirty();
 	}
@@ -34,7 +35,8 @@ namespace Darius::Physics
 		ColliderComponent(uuid),
 		mMesh(InvalidMeshDataHandle),
 		mTightBounds(true),
-		mDirectMesh(false)
+		mDirectMesh(false),
+		mConvex(false)
 	{
 		SetDirty();
 	}

@@ -75,6 +75,7 @@ namespace Darius::Physics
 
 		// Internals
 		D_CORE::Ref<PhysicsActor>		mActor = nullptr;
+		D_MATH::Vector3					mCenterOfMass;
 		uint8_t							mKinematic : 1;
 		uint8_t							mUsingGravity : 1;
 		uint8_t							mRotationConstraintsX : 1;
