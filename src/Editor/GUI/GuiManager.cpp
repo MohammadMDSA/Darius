@@ -211,8 +211,11 @@ namespace Darius::Editor::Gui::GuiManager
 	void Render()
 	{
 		for(auto& kv : Windows)
-			if(kv.second->IsAppearing())
-				kv.second->Render();
+		{
+			auto win = kv.second;
+			if(win->IsOpened() && win->IsAppearing())
+				win->Render();
+		}
 	}
 
 	void DrawGUI()
