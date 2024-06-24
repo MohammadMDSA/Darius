@@ -5,11 +5,17 @@
 #include "Physics/PhysicsActor.hpp"
 #include "Components/CharacterControllerComponent.hpp"
 #include "Components/ColliderComponent.hpp"
+#include "Components/BoxColliderComponent.hpp"
+#include "Components/SphereColliderComponent.hpp"
+#include "Components/CapsuleColliderComponent.hpp"
+#include "Components/MeshColliderComponent.hpp"
+#include "Components/CharacterControllerComponent.hpp"
 #include "Components/RigidbodyComponent.hpp"
 
 #include <Debug/DebugDraw.hpp>
 #include <Graphics/GraphicsUtils/Profiling/Profiling.hpp>
 #include <Job/Job.hpp>
+#include <Scene/Scene.hpp>
 
 #include <PxPhysics.h>
 #include <PxPhysicsAPI.h>
@@ -120,6 +126,35 @@ namespace Darius::Physics
 	void PhysicsScene::PreUpdate()
 	{
 		D_PROFILING::ScopedTimer _prof(L"Physics Simulation Pre Update");
+
+		D_WORLD::IterateComponents<BoxColliderComponent>([&](BoxColliderComponent& colliderComp)
+			{
+				if(colliderComp.IsActive() && colliderComp.IsStarted())
+					colliderComp.PreUpdate();
+			}
+		);
+
+		D_WORLD::IterateComponents<SphereColliderComponent>([&](SphereColliderComponent& colliderComp)
+			{
+				if(colliderComp.IsActive() && colliderComp.IsStarted())
+					colliderComp.PreUpdate();
+			}
+		);
+
+		D_WORLD::IterateComponents<CapsuleColliderComponent>([&](CapsuleColliderComponent& colliderComp)
+			{
+				if(colliderComp.IsActive() && colliderComp.IsStarted())
+					colliderComp.PreUpdate();
+			}
+		);
+
+		D_WORLD::IterateComponents<MeshColliderComponent>([&](MeshColliderComponent& colliderComp)
+			{
+				if(colliderComp.IsActive() && colliderComp.IsStarted())
+					colliderComp.PreUpdate();
+			}
+		);
+
 		for(auto& [_, actor] : mActorMap)
 		{
 			actor->PreUpdate();
@@ -127,7 +162,7 @@ namespace Darius::Physics
 
 		D_WORLD::IterateComponents<CharacterControllerComponent>([](CharacterControllerComponent& comp)
 			{
-				if(comp.IsActive())
+				if(comp.IsActive() && comp.IsStarted())
 					comp.PreUpdate();
 			});
 	}
@@ -182,29 +217,37 @@ namespace Darius::Physics
 		D_JOB::AddTaskSetAndWait(updateFuncs);
 	}
 
-	bool PhysicsScene::Simulate(bool fetchResults, float deltaTime)
+	bool PhysicsScene::Simulate(bool simulating, bool fetchResults, float deltaTime)
 	{
 		// Maintaining fixed size time steps
 		mTimeStepAccumulator += deltaTime;
 		if(mTimeStepAccumulator < sTimeStep)
 			return false;
 		mTimeStepAccumulator -= sTimeStep;
-		
+
 		D_PROFILING::ScopedTimer physicsProfiler(L"Physics Simulation Update");
 
-		PreUpdate();
-		UpdateControllers(sTimeStep);
+#if !_D_EDITOR
+		D_ASSUME(simulating == true);
+#endif // !_D_EDITOR
 
+		if(simulating)
 		{
-			D_PROFILING::ScopedTimer _prof(L"Dynamics Simulation");
-			mPxScene->simulate(sTimeStep);
-		}
-		{
-			D_PROFILING::ScopedTimer _prof(L"Fetch Contact Results");
-			mPxScene->fetchResults(fetchResults);
-		}
+			PreUpdate();
 
-		Update();
+			UpdateControllers(sTimeStep);
+
+			{
+				D_PROFILING::ScopedTimer _prof(L"Dynamics Simulation");
+				mPxScene->simulate(sTimeStep);
+			}
+			{
+				D_PROFILING::ScopedTimer _prof(L"Fetch Contact Results");
+				mPxScene->fetchResults(fetchResults);
+			}
+
+			Update();
+		}
 
 		return true;
 	}

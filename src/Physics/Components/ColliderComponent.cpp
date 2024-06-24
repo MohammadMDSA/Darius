@@ -49,6 +49,9 @@ namespace Darius::Physics
 	{
 		bool valueChanged = false;
 
+		if(IsDirty())
+			UpdateShape();
+
 		D_H_DETAILS_DRAW_BEGIN_TABLE();
 
 		// Physics Material
@@ -90,9 +93,6 @@ namespace Darius::Physics
 
 	void ColliderComponent::Awake()
 	{
-		CalculateScaledParameters();
-		UpdateGeometry();
-
 		if (!mMaterial.IsValid())
 			SetMaterial(static_cast<PhysicsMaterialResource*>(D_RESOURCE::GetRawResourceSync(D_PHYSICS::GetDefaultMaterial())));
 
@@ -100,6 +100,9 @@ namespace Darius::Physics
 
 	void ColliderComponent::Start()
 	{
+		CalculateScaledParameters();
+		UpdateGeometry();
+
 		if (!mActor.IsValid())
 			InvalidatePhysicsActor();
 		else
@@ -121,8 +124,7 @@ namespace Darius::Physics
 		mUsedScale = scale;
 	}
 
-
-	void ColliderComponent::PreUpdate(bool simulating)
+	void ColliderComponent::PreUpdate()
 	{
 		if(!mActor.IsValid())
 		{
@@ -132,26 +134,34 @@ namespace Darius::Physics
 
 		bool dynamic = mActor->IsDynamic();
 
-		if (!dynamic && simulating)
+		if (!dynamic)
 			return;
 
 		// Updating shape
+		UpdateShape();
+
+	}
+
+	void ColliderComponent::UpdateShape()
+	{
 		bool geomChanged = false;
 		auto geom = UpdateAndGetPhysicsGeometry(geomChanged);
 
-		if (geomChanged && geom)
+		if(geomChanged && geom)
 		{
-			auto shape = mActor->GetShape(GetComponentName());
-			shape->setGeometry(*geom);
-			auto offset = GetScaledCenterOffset();
-			if (!offset.IsZero())
+			if(mActor.IsValid())
 			{
-				physx::PxTransform trans(D_PHYSICS::GetVec3(GetScaledCenterOffset()));
-				shape->setLocalPose(trans);
+				auto shape = mActor->GetShape(GetComponentName());
+				shape->setGeometry(*geom);
+				auto offset = GetScaledCenterOffset();
+				if(!offset.IsZero())
+				{
+					physx::PxTransform trans(D_PHYSICS::GetVec3(GetScaledCenterOffset()));
+					shape->setLocalPose(trans);
+				}
 			}
 			SetClean();
 		}
-
 	}
 
 	void ColliderComponent::OnDestroy()

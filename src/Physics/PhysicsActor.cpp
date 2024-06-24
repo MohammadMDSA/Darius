@@ -238,7 +238,7 @@ namespace Darius::Physics
 		auto physics = D_PHYSICS::GetCore();
 
 		// Create actor initial transform
-		auto mainTransform = mGameObject->GetTransform()->GetTransformData();
+		auto mainTransform = D_MATH::Transform(mGameObject->GetTransform()->GetWorld());
 		auto transform = D_PHYSICS::GetTransform(mainTransform);
 
 		physx::PxRigidActor* newActor;
@@ -274,9 +274,10 @@ namespace Darius::Physics
 
 		auto dynamic = GetDynamicActor();
 		if(!dynamic)
+		{
+			mTransformDirty = false;
 			return;
-
-		mTransformDirty = false;
+		}
 
 		auto trans = mGameObject->GetTransform();
 		auto rot = trans->GetRotation();
@@ -288,6 +289,8 @@ namespace Darius::Physics
 			dynamic->setKinematicTarget(pxTransform);
 		else
 			mPxActor->setGlobalPose(pxTransform);
+
+		mTransformDirty = true;
 
 	}
 

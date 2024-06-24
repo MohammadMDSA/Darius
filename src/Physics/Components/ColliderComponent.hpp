@@ -40,7 +40,7 @@ namespace Darius::Physics
 		virtual void										Start() override;
 		virtual void										OnDestroy() override;
 
-		virtual void										PreUpdate(bool simulating);
+		virtual void										PreUpdate();
 
 		virtual void										OnActivate() override;
 		virtual void										OnDeactivate() override;
@@ -50,6 +50,8 @@ namespace Darius::Physics
 		INLINE virtual bool									CalculateGeometry(_OUT_ physx::PxGeometry & geom) const { return false; }
 		INLINE virtual bool									UpdateGeometry() { return false; }
 		INLINE PhysicsActor const*							GetPhysicsActor() const { return mActor.Get(); }
+
+		void												UpdateShape();
 
 #ifdef _D_EDITOR
 		virtual bool										DrawDetails(float params[]) override;

@@ -12,7 +12,7 @@
 
 namespace Darius::Physics
 {
-	class DClass(Serialize[bKinematic, bUsingGravity, RotationConstraintsX, RotationConstraintsY, RotationConstraintsZ, PositionConstraintsX, PositionConstraintsY, PositionConstraintsZ, CenterOfMass]) RigidbodyComponent : public D_ECS_COMP::ComponentBase
+	class DClass(Serialize[bKinematic, bUsingGravity, RotationConstraintsX, RotationConstraintsY, RotationConstraintsZ, PositionConstraintsX, PositionConstraintsY, PositionConstraintsZ, CenterOfMass, Mass]) RigidbodyComponent : public D_ECS_COMP::ComponentBase
 	{
 		D_H_COMP_BODY(RigidbodyComponent, ComponentBase, "Physics/Rigidbody", true);
 		GENERATED_BODY();
@@ -55,6 +55,9 @@ namespace Darius::Physics
 		D_MATH::Vector3					GetCenterOfMass() const;
 		void							SetCenterOfMass(D_MATH::Vector3 const& c);
 
+		INLINE float					GetMass() const { return mMass; }
+		void							SetMass(float mass);
+
 		// Rotation Constraints
 		bool							GetRotationConstraintsX() const;
 		bool							GetRotationConstraintsY() const;
@@ -76,6 +79,7 @@ namespace Darius::Physics
 		// Internals
 		D_CORE::Ref<PhysicsActor>		mActor = nullptr;
 		D_MATH::Vector3					mCenterOfMass;
+		float							mMass;
 		uint8_t							mKinematic : 1;
 		uint8_t							mUsingGravity : 1;
 		uint8_t							mRotationConstraintsX : 1;

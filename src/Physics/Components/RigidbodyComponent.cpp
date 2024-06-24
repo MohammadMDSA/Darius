@@ -27,7 +27,8 @@ namespace Darius::Physics
 		ComponentBase(),
 		mKinematic(false),
 		mUsingGravity(true),
-		mCenterOfMass(Vector3::Zero)
+		mCenterOfMass(Vector3::Zero),
+		mMass(1.f)
 	{
 		mRotationConstraintsX = false;
 		mRotationConstraintsY = false;
@@ -41,7 +42,8 @@ namespace Darius::Physics
 		ComponentBase(uuid),
 		mKinematic(false),
 		mUsingGravity(true),
-		mCenterOfMass(Vector3::Zero)
+		mCenterOfMass(Vector3::Zero),
+		mMass(1.f)
 	{
 		mRotationConstraintsX = false;
 		mRotationConstraintsY = false;
@@ -73,6 +75,7 @@ namespace Darius::Physics
 		SetPositionConstraintsY(mPositionConstraintsY);
 		SetPositionConstraintsZ(mPositionConstraintsZ);
 		SetCenterOfMass(mCenterOfMass);
+		SetMass(mMass);
 		mActor->GetDynamicActor()->setActorFlag(physx::PxActorFlag::eDISABLE_SIMULATION, false);
 		SetClean();
 	}
@@ -137,10 +140,7 @@ namespace Darius::Physics
 
 	bool RigidbodyComponent::IsKinematic() const
 	{
-		if(!mActor.IsValid())
-			return mKinematic;
-
-		return mActor->GetDynamicActor()->getRigidBodyFlags().isSet(PxRigidBodyFlag::eKINEMATIC);
+		return mKinematic;
 	}
 
 	Vector3 RigidbodyComponent::GetLinearVelocity() const
@@ -192,31 +192,32 @@ namespace Darius::Physics
 		return mCenterOfMass;
 	}
 
+	void RigidbodyComponent::SetMass(float mass)
+	{
+		if(mass == mMass && !IsDirty())
+			return;
+
+		if(mActor.IsValid())
+			mActor->GetDynamicActor()->setMass(mass);
+
+		mMass = mass;
+
+		mChangeSignal(this);
+	}
+
 	bool RigidbodyComponent::GetRotationConstraintsX() const
 	{
-		if(!mActor.IsValid())
-			return mRotationConstraintsX;
-
-		auto flags = mActor->GetDynamicActor()->getRigidDynamicLockFlags();
-		return flags.isSet(PxRigidDynamicLockFlag::eLOCK_ANGULAR_X);
+		return mRotationConstraintsX;
 	}
 
 	bool RigidbodyComponent::GetRotationConstraintsY() const
 	{
-		if(!mActor.IsValid())
-			return mRotationConstraintsY;
-
-		auto flags = mActor->GetDynamicActor()->getRigidDynamicLockFlags();
-		return flags.isSet(PxRigidDynamicLockFlag::eLOCK_ANGULAR_Y);
+		return mRotationConstraintsY;
 	}
 
 	bool RigidbodyComponent::GetRotationConstraintsZ() const
 	{
-		if(!mActor.IsValid())
-			return mRotationConstraintsZ;
-
-		auto flags = mActor->GetDynamicActor()->getRigidDynamicLockFlags();
-		return flags.isSet(PxRigidDynamicLockFlag::eLOCK_ANGULAR_Z);
+		return mRotationConstraintsZ;
 	}
 
 	void RigidbodyComponent::SetRotationConstraintsX(bool enable)
@@ -257,29 +258,17 @@ namespace Darius::Physics
 
 	bool RigidbodyComponent::GetPositionConstraintsX() const
 	{
-		if(!mActor.IsValid())
-			return mPositionConstraintsX;
-
-		auto flags = mActor->GetDynamicActor()->getRigidDynamicLockFlags();
-		return flags.isSet(PxRigidDynamicLockFlag::eLOCK_LINEAR_X);
+		return mPositionConstraintsX;
 	}
 
 	bool RigidbodyComponent::GetPositionConstraintsY() const
 	{
-		if(!mActor.IsValid())
-			return mPositionConstraintsY;
-
-		auto flags = mActor->GetDynamicActor()->getRigidDynamicLockFlags();
-		return flags.isSet(PxRigidDynamicLockFlag::eLOCK_LINEAR_Y);
+		return mPositionConstraintsY;
 	}
 
 	bool RigidbodyComponent::GetPositionConstraintsZ() const
 	{
-		if(!mActor.IsValid())
-			return mPositionConstraintsZ;
-
-		auto flags = mActor->GetDynamicActor()->getRigidDynamicLockFlags();
-		return flags.isSet(PxRigidDynamicLockFlag::eLOCK_LINEAR_Z);
+		return mPositionConstraintsZ;
 	}
 
 	void RigidbodyComponent::SetPositionConstraintsX(bool enable)
@@ -387,13 +376,24 @@ namespace Darius::Physics
 			}
 		}
 
-		// Center of Mas
+		// Center of Mass
 		{
 			D_H_DETAILS_DRAW_PROPERTY("Center of Mass");
 			auto value = GetCenterOfMass();
 			if(D_MATH::DrawDetails(value, Vector3::Zero))
 			{
 				SetCenterOfMass(value);
+				valueChanged = true;
+			}
+		}
+
+		// Mass
+		{
+			D_H_DETAILS_DRAW_PROPERTY("Mass");
+			auto value = GetMass();
+			if(ImGui::DragFloat("##Mass", &value))
+			{
+				SetMass(value);
 				valueChanged = true;
 			}
 		}
