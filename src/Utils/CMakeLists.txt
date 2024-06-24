@@ -10,11 +10,13 @@ list(APPEND UTILS_LIBS_INCLUDE
 	"Log.hpp"
 	"Debug.hpp"
 	"Detailed.hpp"
+	"StackWalker.hpp"
 	)
 	
 list(APPEND UTILS_LIBS_SOURCES
 	"Assert.cpp"
 	"Debug.cpp"
+	"StackWalker.cpp"
 	)
 
 
