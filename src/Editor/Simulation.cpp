@@ -84,7 +84,7 @@ namespace Darius::Editor::Simulate
 				// Physics
 				{
 					D_PROFILING::ScopedTimer simPhysProf(L"Update Physics");
-					D_PHYSICS::Update(!Timer->IsPaused(), editorDeltaTime);
+					D_PHYSICS::Update(false, editorDeltaTime);
 				}
 			}
 
@@ -107,7 +107,7 @@ namespace Darius::Editor::Simulate
 						// Physics
 						{
 							D_PROFILING::ScopedTimer simPhysProf(L"Update Physics");
-							D_PHYSICS::Update(!Timer->IsPaused(), editorDeltaTime);
+							D_PHYSICS::Update(true, deltaTime);
 						}
 
 						// World Logic

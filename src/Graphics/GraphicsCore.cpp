@@ -507,7 +507,7 @@ namespace Darius::Graphics
 		// Shadows need their own rasterizer state so we can reverse the winding of faces
 		RasterizerShadow = RasterizerDefault;
 		RasterizerShadow.SlopeScaledDepthBias = -1.5f;
-		RasterizerShadow.DepthBias = -5;
+		RasterizerShadow.DepthBias = -50;
 
 		RasterizerShadowTwoSided = RasterizerShadow;
 		RasterizerShadowTwoSided.CullMode = D3D12_CULL_MODE_NONE;

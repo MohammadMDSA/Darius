@@ -1668,7 +1668,7 @@ namespace Darius::Fbx
 
 		if(T::GetResourceType() != res->GetType())
 		{
-			D_LOG_WARN("Resource type mismatch with what expected");
+			D_LOG_WARN(std::format("Resource type mismatch with what expected. Expected: {}, provided: {}", T::ClassName(), res->GetResourceTypeName().string()));
 			return nullptr;
 		}
 
