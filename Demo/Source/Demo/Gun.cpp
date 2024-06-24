@@ -44,6 +44,8 @@ namespace Demo
 	void Gun::Fire(D_MATH::Vector3 const& direction)
 	{
 		mFlashStartTime = D_TIME::GetTotalTime();
+		if(!mBulletPrefab.IsValid())
+			return;
 		auto bullet = D_WORLD::InstantiateGameObject(mBulletPrefab.Get());
 		auto transform = bullet->GetTransform();
 		transform->SetPosition(mBulletSpawnTransform->GetPosition());
