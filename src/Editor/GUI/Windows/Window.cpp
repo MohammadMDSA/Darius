@@ -24,6 +24,8 @@ namespace Darius::Editor::Gui::Windows
 	{
 		auto min = ImGui::GetWindowContentRegionMin();
 		auto max = ImGui::GetWindowContentRegionMax();
+		mContentMinX = min.x;
+		mContentMinY = min.y;
 		mWidth = std::max(max.x - min.x, 1.f);
 		mHeight = std::max(max.y - min.y, 1.f);
 		auto pos = ImGui::GetWindowPos();
@@ -33,6 +35,14 @@ namespace Darius::Editor::Gui::Windows
 		mFocused = ImGui::IsWindowFocused();
 		mHovered = ImGui::IsWindowHovered();
 		mAppearing = !ImGui::IsWindowCollapsed();
+	}
+
+	RECT Window::GetRect() const
+	{
+		float contentPosX = mPosX + mContentMinX;
+		float contentPosY = mPosY + mContentMinY;
+
+		return {(long)contentPosX, (long)contentPosY, (long)(contentPosX + mWidth), (long)(contentPosY + mHeight)};
 	}
 
 	bool Window::ReadFloatConfig(std::string const& key, float& output)

@@ -42,6 +42,8 @@ namespace Darius::Editor::Gui::Windows
 		virtual void				DrawGUI() = 0;
 		void						PrepareGUI();
 
+		RECT						GetRect() const;
+
 		bool						ReadFloatConfig(std::string const& key, float& output);
 		bool						ReadBoolConfig(std::string const& key, bool& output);
 		bool						ReadIntConfig(std::string const& key, int& output);
@@ -79,6 +81,9 @@ namespace Darius::Editor::Gui::Windows
 
 		float						mPosX;
 		float						mPosY;
+
+		float						mContentMinX;
+		float						mContentMinY;
 
 		D_SERIALIZATION::Json&		mConfig;
 
