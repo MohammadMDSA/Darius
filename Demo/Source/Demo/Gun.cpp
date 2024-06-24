@@ -53,6 +53,8 @@ namespace Demo
 		{
 			rigid->SetLinearVelocity(direction.Normal() * mBulletSpeed);
 		}
+
+		mFlash->SetActive(true);
 	}
 
 #ifdef _D_EDITOR
