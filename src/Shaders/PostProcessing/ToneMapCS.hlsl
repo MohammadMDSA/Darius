@@ -37,6 +37,7 @@ cbuffer CB0 : register(b1)
     float InvLUTSize; // 1 / LUTSize
     float LUTScale; // (LUTSize - 1) / LUTSize
     float LUTOffset; // 0.5 / LUTSize
+    float Gamma;
     uint ColorGradingEnable;
 };
 
