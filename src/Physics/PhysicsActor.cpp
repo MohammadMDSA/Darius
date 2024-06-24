@@ -25,12 +25,17 @@ namespace Darius::Physics
 		mGameObject(gameObject),
 		mScene(scene),
 		mDynamicDirty(true),
+		mTransformDirty(true),
 		mDynamic(gameObject->HasComponent<RigidbodyComponent>())
-	{ }
+	{
+		gameObject->GetTransform()->mWorldChanged.ConnectGenericObject(this, &PhysicsActor::SetActorTransformDirtyCallback);
+	}
 
 	PhysicsActor::~PhysicsActor()
 	{
 		UninitialzieActor();
+
+		mTransformChangeConnection.disconnect();
 
 		for(auto& [shape, _] : mColliders)
 			if(shape->getReferenceCount() > 0)
@@ -120,6 +125,11 @@ namespace Darius::Physics
 		shape->release();
 
 		return shape;
+	}
+
+	void PhysicsActor::SetActorTransformDirtyCallback(D_MATH::TransformComponent*, D_MATH::Transform const&)
+	{
+		SetActorTransformDirty();
 	}
 
 	physx::PxShape* PhysicsActor::GetShape(D_CORE::StringId const& compName)
@@ -259,14 +269,24 @@ namespace Darius::Physics
 
 	void PhysicsActor::PreUpdate()
 	{
+		if(!mTransformDirty)
+			return;
+
+		mTransformDirty = false;
+
 		auto trans = mGameObject->GetTransform();
 		auto rot = trans->GetRotation();
 		auto pos = trans->GetPosition();
 		mPxActor->setGlobalPose(physx::PxTransform(GetVec3(pos), GetQuat(rot)));
+
 	}
 
 	void PhysicsActor::Update()
 	{
+		auto rigidActor = GetDynamicActor();
+		if(!rigidActor || rigidActor->isSleeping())
+			return;
+
 		auto preTrans = mGameObject->GetTransform();
 		D_MATH::Transform physicsTrans = D_PHYSICS::GetTransform(mPxActor->getGlobalPose());
 

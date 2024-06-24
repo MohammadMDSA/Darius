@@ -52,9 +52,15 @@ namespace Darius::Physics
 
 		void							InitializeActor();
 
+		INLINE void						SetActorTransformDirty() { mTransformDirty = true; }
+		INLINE bool						IsActorTransfromDirty() const { return mTransformDirty; }
+
 		virtual bool					Release() override;
 	private:
 		friend class PhysicsScene;
+
+		void							SetActorTransformDirtyCallback(D_MATH::TransformComponent* transComp, D_MATH::Transform const& newTrans);
+
 
 		void							UninitialzieActor();
 		void							TransferShapes(physx::PxRigidActor* transfareShapes);
@@ -65,11 +71,14 @@ namespace Darius::Physics
 		UINT							mDynamic : 1;
 		UINT							mValid : 1;
 		UINT							mDynamicDirty : 1;
+		UINT							mTransformDirty : 1;
 		
 		D_SCENE::GameObject const* const mGameObject;
 		PhysicsScene* const				mScene;
 		D_CONTAINERS::DUnorderedMap<physx::PxShape*, D_CORE::StringId> mColliders;
 		D_CONTAINERS::DUnorderedMap<D_CORE::StringId, physx::PxShape*> mCollidersLookup;
+
+		D_CORE::SignalConnection		mTransformChangeConnection;
 	};
 
 }
