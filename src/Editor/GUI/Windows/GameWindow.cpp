@@ -133,16 +133,6 @@ namespace Darius::Editor::Gui::Windows
 			bool ctrl = (D_INPUT::IsPressed(D_INPUT::DigitalInput::KeyLControl) || D_INPUT::IsPressed(D_INPUT::DigitalInput::KeyRControl));
 			bool f1 = D_INPUT::IsFirstPressed(D_INPUT::DigitalInput::KeyF1);
 
-			static StackWalker sw;
-
-			if(ctrl)
-				D_LOG_DEBUG("Ctrl down");
-			if(f1)
-			{
-				D_LOG_DEBUG("F1 just down");
-				sw.ShowCallstack();
-			}
-
 			bool switchCapture = ctrl && f1;
 
 			if(switchCapture)

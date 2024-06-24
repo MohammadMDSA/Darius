@@ -56,11 +56,11 @@ namespace Darius::Physics
 		mActor = D_PHYSICS::GetScene()->FindOrCreatePhysicsActor(GetGameObject());
 		D_ASSERT(mActor.IsValid());
 		mActor->SetDynamic(true);
-		mActor->InitializeActor();
 	}
 
 	void RigidbodyComponent::Start()
 	{
+		mActor->InitializeActor();
 		D_ASSERT(mActor.IsValid());
 
 		SetDirty();
