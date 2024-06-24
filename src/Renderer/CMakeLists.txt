@@ -67,6 +67,7 @@ list(APPEND RENDERER_LIBS_SOURCES
 	"RayTracing/Renderer.cpp"
 	"RayTracing/Utils/AccelerationStructure.cpp"
 	"RayTracing/Utils/ShaderTable.cpp"
+	"RendererCommon.cpp"
 	"RendererManager.cpp"
 	"Resources/BatchResource.cpp"
 	"Resources/MaterialResource.cpp"

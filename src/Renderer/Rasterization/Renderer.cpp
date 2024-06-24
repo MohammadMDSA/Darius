@@ -357,7 +357,7 @@ namespace Darius::Renderer::Rasterization
 		{
 			D_PROFILING::ScopedTimer _prof(L"Render items additions", context);
 
-			AddRenderItems(sorterContext, rContext.Camera, rContext.RenderItemContext);
+			AddRenderItems(sorterContext, rContext.Camera, rContext.RenderItemCtx);
 		}
 
 		// Creating shadows
@@ -432,12 +432,11 @@ namespace Darius::Renderer::Rasterization
 
 		D_GRAPHICS_PP_MOTION::GenerateCameraVelocityBuffer(commandContext, motionBuffers, rContext.Camera);
 
-		D_GRAPHICS_AA_TEMPORAL::ResolveImage(commandContext, rContext.ColorBuffer, rContext.VelocityBuffer, rContext.TemporalColor, rContext.LinearDepth);
-
-
 		// Calling post anti-aliasing callback
 		if(postAntiAliasing)
 			postAntiAliasing();
+
+		D_GRAPHICS_AA_TEMPORAL::ResolveImage(commandContext, rContext.ColorBuffer, rContext.VelocityBuffer, rContext.TemporalColor, rContext.LinearDepth);
 
 		// Additional renders
 		if(rContext.AdditionalRenderItems.size() > 0)

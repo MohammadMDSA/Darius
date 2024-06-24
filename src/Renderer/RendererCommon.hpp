@@ -8,6 +8,7 @@
 #include <Graphics/GraphicsUtils/Buffers/ColorBuffer.hpp>
 #include <Graphics/GraphicsUtils/Buffers/DepthBuffer.hpp>
 #include <Graphics/GraphicsUtils/Buffers/Texture.hpp>
+#include <Graphics/PostProcessing/PostProcessing.hpp>
 #include <Math/Camera/Camera.hpp>
 
 #ifndef D_RENDERER
@@ -45,9 +46,9 @@ namespace Darius::Renderer
 		uint8_t				IsEditor : 1;
 		uint8_t				PickerDraw : 1 = false;
 		void*				SelectedGameObject;
-		uint8_t				StencilOverride;
+		uint8_t				StencilOverride = false;
 #endif
-		bool				Shadow;
+		bool				Shadow = false;
 	};
 
 	ALIGN_DECL_256 struct MeshConstants
@@ -169,6 +170,71 @@ namespace Darius::Renderer
 
 	};
 
+	struct RenderViewBuffers
+	{
+		// Main Buffers
+		D_GRAPHICS_BUFFERS::ColorBuffer				SceneTexture;
+		D_GRAPHICS_BUFFERS::DepthBuffer				SceneDepth;
+		D_GRAPHICS_BUFFERS::DepthBuffer				CustomDepth;
+		D_GRAPHICS_BUFFERS::ColorBuffer				SceneNormals;
+
+		// TAA Buffers
+		D_GRAPHICS_BUFFERS::ColorBuffer				TemporalColor[2];
+		D_GRAPHICS_BUFFERS::ColorBuffer				VelocityBuffer;
+		D_GRAPHICS_BUFFERS::ColorBuffer				LinearDepth[2];
+
+		// Post Processing Buffers
+		// HDR ToneMapping
+		D_GRAPHICS_BUFFERS::StructuredBuffer		ExposureBuffer;
+		D_GRAPHICS_BUFFERS::ColorBuffer				LumaBuffer;
+		D_GRAPHICS_BUFFERS::ColorBuffer				LumaLR;
+		D_GRAPHICS_BUFFERS::ByteAddressBuffer		HistogramBuffer;
+		D_GRAPHICS_BUFFERS::ColorBuffer				PostEffectsBuffer;
+		// Bloom
+		D_GRAPHICS_BUFFERS::ColorBuffer             BloomUAV1[2];
+		D_GRAPHICS_BUFFERS::ColorBuffer             BloomUAV2[2];
+		D_GRAPHICS_BUFFERS::ColorBuffer             BloomUAV3[2];
+		D_GRAPHICS_BUFFERS::ColorBuffer             BloomUAV4[2];
+		D_GRAPHICS_BUFFERS::ColorBuffer             BloomUAV5[2];
+
+		// Ambient Occlusion Buffers
+		D_GRAPHICS_BUFFERS::ColorBuffer				SSAOFullScreen;
+		D_GRAPHICS_BUFFERS::ColorBuffer				DepthDownsize1;
+		D_GRAPHICS_BUFFERS::ColorBuffer				DepthDownsize2;
+		D_GRAPHICS_BUFFERS::ColorBuffer				DepthDownsize3;
+		D_GRAPHICS_BUFFERS::ColorBuffer				DepthDownsize4;
+		D_GRAPHICS_BUFFERS::ColorBuffer				DepthTiled1;
+		D_GRAPHICS_BUFFERS::ColorBuffer				DepthTiled2;
+		D_GRAPHICS_BUFFERS::ColorBuffer				DepthTiled3;
+		D_GRAPHICS_BUFFERS::ColorBuffer				DepthTiled4;
+		D_GRAPHICS_BUFFERS::ColorBuffer				AOMerged1;
+		D_GRAPHICS_BUFFERS::ColorBuffer				AOMerged2;
+		D_GRAPHICS_BUFFERS::ColorBuffer				AOMerged3;
+		D_GRAPHICS_BUFFERS::ColorBuffer				AOMerged4;
+		D_GRAPHICS_BUFFERS::ColorBuffer				AOSmooth1;
+		D_GRAPHICS_BUFFERS::ColorBuffer				AOSmooth2;
+		D_GRAPHICS_BUFFERS::ColorBuffer				AOSmooth3;
+		D_GRAPHICS_BUFFERS::ColorBuffer				AOHighQuality1;
+		D_GRAPHICS_BUFFERS::ColorBuffer				AOHighQuality2;
+		D_GRAPHICS_BUFFERS::ColorBuffer				AOHighQuality3;
+		D_GRAPHICS_BUFFERS::ColorBuffer				AOHighQuality4;
+
+		D_GRAPHICS_BUFFERS::ColorBuffer				WorldPos;
+		D_GRAPHICS_BUFFERS::ColorBuffer				NormalDepth;
+
+		D_GRAPHICS_BUFFERS::ByteAddressBuffer		FXAAWorkQueue;
+		D_GRAPHICS_BUFFERS::TypedBuffer				FXAAColorQueue;
+
+		RenderViewBuffers() :
+			FXAAColorQueue(DXGI_FORMAT_R11G11B10_FLOAT)
+		{ }
+
+		void Create(uint32_t width, uint32_t height, std::wstring const& contextName, bool customDepthAvailable);
+		void Destroy();
+
+		D_GRAPHICS_PP::PostProcessContextBuffers GetPostProcessingBuffers(std::wstring const& contextName);
+	};
+
 	struct SceneRenderContext
 	{
 		D_GRAPHICS_BUFFERS::DepthBuffer&	DepthBuffer;
@@ -207,13 +273,62 @@ namespace Darius::Renderer
 		D_GRAPHICS::CommandContext&			CommandContext;
 		D_MATH_CAMERA::Camera const&		Camera;
 		GlobalConstants&					Globals;
-		D_CONTAINERS::DVector<D_CONTAINERS::DVector<RenderItem> const*> const& AdditionalRenderItems = {};
+		D_CONTAINERS::DVector<D_CONTAINERS::DVector<RenderItem> const*> const AdditionalRenderItems = {};
 		TextureResource*					RadianceIBL;
 		TextureResource*					IrradianceIBL;
-		RenderItemContext const&			RenderItemContext;
+		RenderItemContext const&			RenderItemCtx;
 		uint32_t							DrawSkybox : 1;
 #if _D_EDITOR
 		uint32_t							RenderPickerData : 1 = false;
 #endif
+
+		INLINE static SceneRenderContext MakeFromBuffers(
+			RenderViewBuffers& renderBuffers,
+			bool customDepth,
+			D_GRAPHICS::CommandContext& commandContext,
+			D_MATH_CAMERA::Camera const& camera,
+			GlobalConstants& globals,
+			RenderItemContext const& renderItemContext,
+			D_CONTAINERS::DVector<D_CONTAINERS::DVector<RenderItem> const*> const& additionalRenderItems = {}
+			)
+		{
+			return SceneRenderContext
+			{
+				.DepthBuffer = renderBuffers.SceneDepth,
+				.CustomDepthBuffer = customDepth ? &renderBuffers.CustomDepth : nullptr,
+				.ColorBuffer = renderBuffers.SceneTexture,
+				.NormalBuffer = renderBuffers.SceneNormals,
+				.VelocityBuffer = renderBuffers.VelocityBuffer,
+				.TemporalColor = renderBuffers.TemporalColor,
+				.LinearDepth = renderBuffers.LinearDepth,
+				.SSAOFullScreen = renderBuffers.SSAOFullScreen,
+				.DepthDownsize1 = renderBuffers.DepthDownsize1,
+				.DepthDownsize2 = renderBuffers.DepthDownsize2,
+				.DepthDownsize3 = renderBuffers.DepthDownsize3,
+				.DepthDownsize4 = renderBuffers.DepthDownsize4,
+				.DepthTiled1 = renderBuffers.DepthTiled1,
+				.DepthTiled2 = renderBuffers.DepthTiled2,
+				.DepthTiled3 = renderBuffers.DepthTiled3,
+				.DepthTiled4 = renderBuffers.DepthTiled4,
+				.AOMerged1 = renderBuffers.AOMerged1,
+				.AOMerged2 = renderBuffers.AOMerged2,
+				.AOMerged3 = renderBuffers.AOMerged3,
+				.AOMerged4 = renderBuffers.AOMerged4,
+				.AOSmooth1 = renderBuffers.AOSmooth1,
+				.AOSmooth2 = renderBuffers.AOSmooth2,
+				.AOSmooth3 = renderBuffers.AOSmooth3,
+				.AOHighQuality1 = renderBuffers.AOHighQuality1,
+				.AOHighQuality2 = renderBuffers.AOHighQuality2,
+				.AOHighQuality3 = renderBuffers.AOHighQuality3,
+				.AOHighQuality4 = renderBuffers.AOHighQuality4,
+				.WorldPos = renderBuffers.WorldPos,
+				.NormalDepth = renderBuffers.NormalDepth,
+				.CommandContext = commandContext,
+				.Camera = camera,
+				.Globals = globals,
+				.AdditionalRenderItems = additionalRenderItems,
+				.RenderItemCtx = renderItemContext
+			};
+		}
 	};
 }
