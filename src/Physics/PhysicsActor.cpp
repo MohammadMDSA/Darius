@@ -144,7 +144,7 @@ namespace Darius::Physics
 		mCollidersLookup.erase(compName);
 		mColliders.erase(shape);
 
-		if(shape->getReferenceCount() && shape->getActor() == mPxActor)
+		if(shape->getReferenceCount() > 0 && shape->getActor() == mPxActor)
 			mPxActor->detachShape(*shape);
 
 		D_ASSERT(mColliders.size() == mCollidersLookup.size());

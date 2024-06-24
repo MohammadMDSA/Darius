@@ -60,7 +60,7 @@ namespace Darius::Math::Bounds
     BoundingSphere BoundingSphere::CreateFromPointList(Vector3 const* points, uint32_t count)
     {
         D_MATH::Vector3 sumPos = D_MATH::Vector3::Zero;
-        for(int i = 0; i < count; i++)
+        for(uint32_t i = 0; i < count; i++)
         {
             auto const& point = points[i];
             sumPos += point;
@@ -68,7 +68,7 @@ namespace Darius::Math::Bounds
         sumPos = sumPos / (float)count;
 
         float radius = 0.f;
-        for(int i = 0; i < count; i++)
+        for(uint32_t i = 0; i < count; i++)
         {
             auto const& point = points[i];
             float distToCenter = D_MATH::Vector3::Distance(point, sumPos);
