@@ -101,7 +101,7 @@ namespace Darius::Scene
 
 		for(auto const& prev : prevs)
 		{
-			D_RESOURCE_LOADER::LoadResourceAsync(prev.Path, nullptr);
+			D_RESOURCE_LOADER::LoadResourceSync(prev.Path, false, true);
 		}
 	}
 
