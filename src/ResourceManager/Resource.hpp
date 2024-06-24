@@ -155,7 +155,7 @@ std::shared_ptr<D_RESOURCE::Resource> T::T##Factory::Create(D_CORE::Uuid uuid, s
 			valueChanged = true; \
 		} \
 		\
-		static ImGuiListClipper clipper; \
+		ImGuiListClipper clipper; \
 		clipper.Begin((int)filteredPreviews.size()); \
 		while(clipper.Step()) \
 		{ \
@@ -173,7 +173,6 @@ std::shared_ptr<D_RESOURCE::Resource> T::T##Factory::Create(D_CORE::Uuid uuid, s
 				} \
 				ImGui::PopID(); \
 				\
-				idx++; \
 			} \
 		} \
 		\
