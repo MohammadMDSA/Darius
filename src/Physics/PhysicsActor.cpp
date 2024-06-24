@@ -272,12 +272,22 @@ namespace Darius::Physics
 		if(!mTransformDirty)
 			return;
 
+		auto dynamic = GetDynamicActor();
+		if(!dynamic)
+			return;
+
 		mTransformDirty = false;
 
 		auto trans = mGameObject->GetTransform();
 		auto rot = trans->GetRotation();
 		auto pos = trans->GetPosition();
-		mPxActor->setGlobalPose(physx::PxTransform(GetVec3(pos), GetQuat(rot)));
+		auto pxTransform = physx::PxTransform(GetVec3(pos), GetQuat(rot));
+
+		// Is kinematic?
+		if(dynamic->getRigidBodyFlags().isSet(PxRigidBodyFlag::eKINEMATIC))
+			dynamic->setKinematicTarget(pxTransform);
+		else
+			mPxActor->setGlobalPose(pxTransform);
 
 	}
 
