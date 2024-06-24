@@ -69,7 +69,7 @@ namespace Darius::Editor::Simulate
 			D_PROFILING::ScopedTimer simProfiler(L"Update Simulation");
 
 			static float lastElapse = 0.f;
-			
+
 			if(Timer->IsPaused())
 			{
 				{
@@ -80,12 +80,12 @@ namespace Darius::Editor::Simulate
 					if(externalContextUpdate)
 						externalContextUpdate();
 				}
-			}
 
-			// Physics
-			{
-				D_PROFILING::ScopedTimer simPhysProf(L"Update Physics");
-				D_PHYSICS::Update(!Timer->IsPaused(), editorDeltaTime);
+				// Physics
+				{
+					D_PROFILING::ScopedTimer simPhysProf(L"Update Physics");
+					D_PHYSICS::Update(!Timer->IsPaused(), editorDeltaTime);
+				}
 			}
 
 			Timer->Tick([&]()
@@ -102,6 +102,12 @@ namespace Darius::Editor::Simulate
 						{
 							if(externalContextUpdate)
 								externalContextUpdate();
+						}
+
+						// Physics
+						{
+							D_PROFILING::ScopedTimer simPhysProf(L"Update Physics");
+							D_PHYSICS::Update(!Timer->IsPaused(), editorDeltaTime);
 						}
 
 						// World Logic

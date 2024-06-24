@@ -39,7 +39,7 @@ namespace Darius::Physics
 		bool					CastSphere_DebugDraw(D_MATH::Vector3 const& origin, D_MATH::Vector3 const& direction, float radius, float maxDistance, float secendsToDisplay, _OUT_ physx::PxSweepBuffer& hit);
 		bool					CastBox_DebugDraw(D_MATH::Vector3 const& origin, D_MATH::Vector3 const& direction, D_MATH::Vector3 const& halfExtents, D_MATH::Quaternion const& boxRotation, float maxDistance, float secendsToDisplay, _OUT_ physx::PxSweepBuffer& hit);
 
-		void					Simulate(bool fetchResults, float deltaTime);
+		bool					Simulate(bool fetchResults, float deltaTime);
 		void					PreUpdate();
 		void					UpdateControllers(float dt);
 		void					Update();
@@ -78,6 +78,9 @@ namespace Darius::Physics
 		SimulationCallback							mCallbacks;
 		D_MATH::Vector3								mGravityVec;
 		D_MEMORY::PagedAllocator<PhysicsActor>		mActorAllocator;
+
+		float										mTimeStepAccumulator;
+		constexpr static float						sTimeStep = 1.f / 60.f;
 	};
 
 }

@@ -62,7 +62,8 @@ PxFilterFlags triggersUsingFilterShader(PxFilterObjectAttributes /*attributes0*/
 namespace Darius::Physics
 {
 
-	PhysicsScene::PhysicsScene(PxSceneDesc const& sceneDesc, PxPhysics* core)
+	PhysicsScene::PhysicsScene(PxSceneDesc const& sceneDesc, PxPhysics* core) :
+		mTimeStepAccumulator(0.f)
 	{
 		PxSceneDesc desc = sceneDesc;
 		desc.filterShader = triggersUsingFilterShader;
@@ -181,16 +182,22 @@ namespace Darius::Physics
 		D_JOB::AddTaskSetAndWait(updateFuncs);
 	}
 
-	void PhysicsScene::Simulate(bool fetchResults, float deltaTime)
+	bool PhysicsScene::Simulate(bool fetchResults, float deltaTime)
 	{
+		// Maintaining fixed size time steps
+		mTimeStepAccumulator += deltaTime;
+		if(mTimeStepAccumulator < sTimeStep)
+			return false;
+		mTimeStepAccumulator -= sTimeStep;
+		
 		D_PROFILING::ScopedTimer physicsProfiler(L"Physics Simulation Update");
 
 		PreUpdate();
-		UpdateControllers(deltaTime);
+		UpdateControllers(sTimeStep);
 
 		{
 			D_PROFILING::ScopedTimer _prof(L"Dynamics Simulation");
-			mPxScene->simulate(deltaTime);
+			mPxScene->simulate(sTimeStep);
 		}
 		{
 			D_PROFILING::ScopedTimer _prof(L"Fetch Contact Results");
@@ -198,6 +205,8 @@ namespace Darius::Physics
 		}
 
 		Update();
+
+		return true;
 	}
 
 	PhysicsActor const* PhysicsScene::FindPhysicsActor(GameObject* go) const
