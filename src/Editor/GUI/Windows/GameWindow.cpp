@@ -2,7 +2,9 @@
 #include "GameWindow.hpp"
 
 #include "Editor/GUI/GuiRenderer.hpp"
+#include "Editor/GUI/GuiManager.hpp"
 
+#include <Core/Input.hpp>
 #include <Core/TimeManager/TimeManager.hpp>
 #include <Debug/DebugDraw.hpp>
 #include <Renderer/Camera/CameraManager.hpp>
@@ -11,6 +13,7 @@
 #include <Graphics/PostProcessing/PostProcessing.hpp>
 #include <Renderer/Components/SkeletalMeshRendererComponent.hpp>
 #include <Renderer/Components/MeshRendererComponent.hpp>
+#include <Utils/StackWalker.hpp>
 
 #include <imgui.h>
 #include <Libs/FontIcon/IconsFontAwesome6.h>
@@ -18,6 +21,7 @@
 using namespace D_MATH;
 using namespace D_MATH_BOUNDS;
 using namespace D_GRAPHICS;
+using namespace D_GRAPHICS_BUFFERS;
 using namespace D_RENDERER;
 using namespace DirectX;
 
@@ -25,10 +29,12 @@ namespace Darius::Editor::Gui::Windows
 {
 	GameWindow::GameWindow(D_SERIALIZATION::Json& config) :
 		Window(config),
-		mSceneNormals(D_MATH::Color(0.f, 0.f, 0.f, 1.f)),
-		mSSAOFullScreen(D_MATH::Color(1.f, 1.f, 1.f)),
-		mCustomDepthApplied(false)
+		mCustomDepthApplied(false),
+		mRenderBuffers(),
+		mCapturingMouse(false)
 	{
+		mRenderBuffers.SceneNormals = ColorBuffer(D_MATH::Color(0.f, 0.f, 0.f, 1.f));
+		mRenderBuffers.SSAOFullScreen = ColorBuffer(D_MATH::Color(1.f, 1.f, 1.f));
 		CreateBuffers();
 		mTextureHandle = D_GUI_RENDERER::AllocateUiTexture();
 
@@ -38,52 +44,7 @@ namespace Darius::Editor::Gui::Windows
 
 	GameWindow::~GameWindow()
 	{
-		mSceneDepth.Destroy();
-		mCustomDepth.Destroy();
-		mSceneTexture.Destroy();
-		mSceneNormals.Destroy();
-		mTemporalColor[0].Destroy();
-		mTemporalColor[1].Destroy();
-		mVelocityBuffer.Destroy();
-		mLinearDepth[0].Destroy();
-		mLinearDepth[1].Destroy();
-		mExposureBuffer.Destroy();
-		mLumaBuffer.Destroy();
-		mLumaLR.Destroy();
-		mHistogramBuffer.Destroy();
-		mPostEffectsBuffer.Destroy();
-		BloomUAV1[0].Destroy();
-		BloomUAV1[1].Destroy();
-		BloomUAV2[0].Destroy();
-		BloomUAV2[1].Destroy();
-		BloomUAV3[0].Destroy();
-		BloomUAV3[1].Destroy();
-		BloomUAV4[0].Destroy();
-		BloomUAV4[1].Destroy();
-		BloomUAV5[0].Destroy();
-		BloomUAV5[1].Destroy();
-		mSSAOFullScreen.Destroy();
-		mDepthDownsize1.Destroy();
-		mDepthDownsize2.Destroy();
-		mDepthDownsize3.Destroy();
-		mDepthDownsize4.Destroy();
-		mDepthTiled1.Destroy();
-		mDepthTiled2.Destroy();
-		mDepthTiled3.Destroy();
-		mDepthTiled4.Destroy();
-		mAOMerged1.Destroy();
-		mAOMerged2.Destroy();
-		mAOMerged3.Destroy();
-		mAOMerged4.Destroy();
-		mAOSmooth1.Destroy();
-		mAOSmooth2.Destroy();
-		mAOSmooth3.Destroy();
-		mAOHighQuality1.Destroy();
-		mAOHighQuality2.Destroy();
-		mAOHighQuality3.Destroy();
-		mAOHighQuality4.Destroy();
-		mWorldPos.Destroy();
-		mNormalDepth.Destroy();
+		mRenderBuffers.Destroy();
 	}
 
 	void GameWindow::Render()
@@ -93,15 +54,15 @@ namespace Darius::Editor::Gui::Windows
 
 		auto camera = D_CAMERA_MANAGER::GetActiveCamera();
 
-		if (!camera.IsValid() || !camera->IsActive() || !UpdateGlobalConstants(mSceneGlobals))
+		if(!camera.IsValid() || !camera->IsActive() || !UpdateGlobalConstants(mSceneGlobals))
 		{
 			// Clearing depth
-			context.TransitionResource(mSceneDepth, D3D12_RESOURCE_STATE_DEPTH_WRITE, true);
-			context.ClearDepth(mSceneDepth);
+			context.TransitionResource(mRenderBuffers.SceneDepth, D3D12_RESOURCE_STATE_DEPTH_WRITE, true);
+			context.ClearDepth(mRenderBuffers.SceneDepth);
 
 			// Clear scene color
-			context.TransitionResource(mSceneTexture, D3D12_RESOURCE_STATE_RENDER_TARGET, true);
-			context.ClearColor(mSceneTexture);
+			context.TransitionResource(mRenderBuffers.SceneTexture, D3D12_RESOURCE_STATE_RENDER_TARGET, true);
+			context.ClearColor(mRenderBuffers.SceneTexture);
 
 			context.Finish();
 			return;
@@ -121,80 +82,31 @@ namespace Darius::Editor::Gui::Windows
 
 		bool drawSkybox = true;
 
-		SceneRenderContext rc =
-		{
-			.DepthBuffer = mSceneDepth,
-			.CustomDepthBuffer = mCustomDepthApplied ? &mCustomDepth : nullptr,
-			.ColorBuffer = mSceneTexture,
-			.NormalBuffer = mSceneNormals,
-			.VelocityBuffer = mVelocityBuffer,
-			.TemporalColor = mTemporalColor,
-			.LinearDepth = mLinearDepth,
-			.SSAOFullScreen = mSSAOFullScreen,
-			.DepthDownsize1 = mDepthDownsize1,
-			.DepthDownsize2 = mDepthDownsize2,
-			.DepthDownsize3 = mDepthDownsize3,
-			.DepthDownsize4 = mDepthDownsize4,
-			.DepthTiled1 = mDepthTiled1,
-			.DepthTiled2 = mDepthTiled2,
-			.DepthTiled3 = mDepthTiled3,
-			.DepthTiled4 = mDepthTiled4,
-			.AOMerged1 = mAOMerged1,
-			.AOMerged2 = mAOMerged2,
-			.AOMerged3 = mAOMerged3,
-			.AOMerged4 = mAOMerged4,
-			.AOSmooth1 = mAOSmooth1,
-			.AOSmooth2 = mAOSmooth2,
-			.AOSmooth3 = mAOSmooth3,
-			.AOHighQuality1 = mAOHighQuality1,
-			.AOHighQuality2 = mAOHighQuality2,
-			.AOHighQuality3 = mAOHighQuality3,
-			.AOHighQuality4 = mAOHighQuality4,
-			.WorldPos = mWorldPos,
-			.NormalDepth = mNormalDepth,
-			.CommandContext = context,
-			.Camera = c,
-			.Globals = mSceneGlobals,
-			.RadianceIBL = drawSkybox ? skyboxSpecular : nullptr,
-			.IrradianceIBL = drawSkybox ? skyboxDiffuse : nullptr,
-			.RenderItemContext = riContext,
-			.DrawSkybox = drawSkybox
-		};
+		SceneRenderContext rc = SceneRenderContext::MakeFromBuffers(mRenderBuffers, mCustomDepthApplied, context, c, mSceneGlobals, riContext, {});
+		rc.RadianceIBL = drawSkybox ? skyboxSpecular : nullptr;
+		rc.IrradianceIBL = drawSkybox ? skyboxDiffuse : nullptr;
+		rc.DrawSkybox = drawSkybox;
 
 		// Post Processing
-		D_GRAPHICS_PP::PostProcessContextBuffers postBuffers =
-		{
-			mExposureBuffer,
-			mSceneTexture,
-			mLumaBuffer,
-			mLumaLR,
-			mHistogramBuffer,
-			mPostEffectsBuffer,
-			BloomUAV1,
-			BloomUAV2,
-			BloomUAV3,
-			BloomUAV4,
-			BloomUAV5,
-			L"Game Window"
-		};
+		D_GRAPHICS_PP::PostProcessContextBuffers postBuffers = mRenderBuffers.GetPostProcessingBuffers(L"Game Window");
 
 		D_RENDERER::Render(L"Scene Window", rc, [context = &context, buffers = &postBuffers]()
 			{
 				D_GRAPHICS_PP::Render(*buffers, (*context).GetComputeContext());
 			});
 
-		context.TransitionResource(mSceneTexture, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
+		context.TransitionResource(mRenderBuffers.SceneTexture, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
 
 		context.Finish();
 
-		D_GRAPHICS_DEVICE::GetDevice()->CopyDescriptorsSimple(1, mTextureHandle, mSceneTexture.GetSRV(), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+		D_GRAPHICS_DEVICE::GetDevice()->CopyDescriptorsSimple(1, mTextureHandle, mRenderBuffers.SceneTexture.GetSRV(), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 
 	}
 
 	void GameWindow::DrawGUI()
 	{
 		auto cam = D_CAMERA_MANAGER::GetActiveCamera();
-		if (!cam.IsValid() || !cam->IsActive())
+		if(!cam.IsValid() || !cam->IsActive())
 		{
 			ImGui::Text("No ACTIVE CAMERA IN SCENE!");
 		}
@@ -205,12 +117,59 @@ namespace Darius::Editor::Gui::Windows
 
 	void GameWindow::Update(float)
 	{
-		if (D_CAMERA_MANAGER::SetViewportDimansion(mWidth, mHeight))
+		if(D_CAMERA_MANAGER::SetViewportDimansion(mWidth, mHeight))
 		{
 			CreateBuffers();
+
+			if(mCapturingMouse)
+			{
+				auto windowRect = GetRect();
+				D_INPUT::ClipCursorToRect(&windowRect);
+			}
 		}
 
+		if(mFocused)
+		{
+			bool ctrl = (D_INPUT::IsPressed(D_INPUT::DigitalInput::KeyLControl) || D_INPUT::IsPressed(D_INPUT::DigitalInput::KeyRControl));
+			bool f1 = D_INPUT::IsFirstPressed(D_INPUT::DigitalInput::KeyF1);
 
+			static StackWalker sw;
+
+			if(ctrl)
+				D_LOG_DEBUG("Ctrl down");
+			if(f1)
+			{
+				D_LOG_DEBUG("F1 just down");
+				sw.ShowCallstack();
+			}
+
+			bool switchCapture = ctrl && f1;
+
+			if(switchCapture)
+			{
+				if(mCapturingMouse)
+				{
+					mCapturingMouse = false;
+					D_INPUT::SetCursorVisible(true);
+					D_INPUT::ClipCursorToRect(nullptr);
+				}
+				else
+				{
+					mCapturingMouse = true;
+					auto appRelativeRect = GetRect();
+					RECT scrRect;
+					D_GUI_MANAGER::MapWindowRectToScreen(appRelativeRect, scrRect);
+					D_INPUT::SetCursorVisible(false);
+					scrRect.left += 5;
+					scrRect.top += 5;
+					scrRect.bottom -= 5;
+					scrRect.right -= 5;
+					auto result = D_INPUT::ClipCursorToRect(&scrRect);
+					(!result);
+					(result);
+				}
+			}
+		}
 	}
 
 	void GameWindow::CreateBuffers()
@@ -220,89 +179,8 @@ namespace Darius::Editor::Gui::Windows
 		D_GRAPHICS::GetCommandManager()->IdleGPU();
 		mBufferWidth = mWidth;
 		mBufferHeight = mHeight;
-		mSceneTexture.Create(L"Game Scene Texture", (UINT)mBufferWidth, (UINT)mBufferHeight, 1, D_GRAPHICS::GetColorFormat());
-		mSceneDepth.Create(L"Game Scene DepthStencil", (UINT)mBufferWidth, (UINT)mBufferHeight, D_GRAPHICS::GetDepthFormat());
-		if (mCustomDepthApplied)
-			mCustomDepth.Create(L"Game Scene CustomDepth", (UINT)mBufferWidth, (UINT)mBufferHeight, D_GRAPHICS::GetDepthFormat());
-		mSceneNormals.Create(L"Game Normals", (UINT)mBufferWidth, (UINT)mBufferHeight, 1, DXGI_FORMAT_R16G16B16A16_FLOAT);
 
-		// Linear Depth
-		mLinearDepth[0].Create(L"Game Linear Depth 0", (UINT)mBufferWidth, (UINT)mBufferHeight, 1, DXGI_FORMAT_R16_UNORM);
-		mLinearDepth[1].Create(L"Game Linear Depth 1", (UINT)mBufferWidth, (UINT)mBufferHeight, 1, DXGI_FORMAT_R16_UNORM);
-
-		// Temporal Color 
-		mTemporalColor[0].Create(L"Game Temporal Color 0", (UINT)mBufferWidth, (UINT)mBufferHeight, 1, DXGI_FORMAT_R16G16B16A16_FLOAT);
-		mTemporalColor[1].Create(L"Game Temporal Color 1", (UINT)mBufferWidth, (UINT)mBufferHeight, 1, DXGI_FORMAT_R16G16B16A16_FLOAT);
-
-		// Velocity Buffer
-		mVelocityBuffer.Create(L"Game Motion Vectors", (UINT)mBufferWidth, (UINT)mBufferHeight, 1, DXGI_FORMAT_R32_UINT);
-
-		// Divisible by 128 so that after dividing by 16, we still have multiples of 8x8 tiles.  The bloom
-			// dimensions must be at least 1/4 native resolution to avoid undersampling.
-			//uint32_t kBloomWidth = bufferWidth > 2560 ? Math::AlignUp(bufferWidth / 4, 128) : 640;
-			//uint32_t kBloomHeight = bufferHeight > 1440 ? Math::AlignUp(bufferHeight / 4, 128) : 384;
-		uint32_t bloomWidth = (UINT)mBufferWidth > 2560 ? 1280 : 640;
-		uint32_t bloomHeight = (UINT)mBufferHeight > 1440 ? 768 : 384;
-
-		// Post Processing Buffers
-		float exposure = D_GRAPHICS_PP::GetExposure();
-		ALIGN_DECL_16 float initExposure[] =
-		{
-			exposure, 1.0f / exposure, exposure, 0.0f,
-			D_GRAPHICS_PP::InitialMinLog, D_GRAPHICS_PP::InitialMaxLog, D_GRAPHICS_PP::InitialMaxLog - D_GRAPHICS_PP::InitialMinLog, 1.0f / (D_GRAPHICS_PP::InitialMaxLog - D_GRAPHICS_PP::InitialMinLog)
-		};
-		mExposureBuffer.Create(L"Game Exposure", 8, 4, initExposure);
-		mLumaLR.Create(L"Game Luma Buffer", bloomWidth, bloomHeight, 1, DXGI_FORMAT_R8_UINT);
-		BloomUAV1[0].Create(L"Scene Bloom Buffer 1a", bloomWidth, bloomHeight, 1, D_GRAPHICS::GetColorFormat());
-		BloomUAV1[1].Create(L"Scene Bloom Buffer 1b", bloomWidth, bloomHeight, 1, D_GRAPHICS::GetColorFormat());
-		BloomUAV2[0].Create(L"Scene Bloom Buffer 2a", bloomWidth / 2, bloomHeight / 2, 1, D_GRAPHICS::GetColorFormat());
-		BloomUAV2[1].Create(L"Scene Bloom Buffer 2b", bloomWidth / 2, bloomHeight / 2, 1, D_GRAPHICS::GetColorFormat());
-		BloomUAV3[0].Create(L"Scene Bloom Buffer 3a", bloomWidth / 4, bloomHeight / 4, 1, D_GRAPHICS::GetColorFormat());
-		BloomUAV3[1].Create(L"Scene Bloom Buffer 3b", bloomWidth / 4, bloomHeight / 4, 1, D_GRAPHICS::GetColorFormat());
-		BloomUAV4[0].Create(L"Scene Bloom Buffer 4a", bloomWidth / 8, bloomHeight / 8, 1, D_GRAPHICS::GetColorFormat());
-		BloomUAV4[1].Create(L"Scene Bloom Buffer 4b", bloomWidth / 8, bloomHeight / 8, 1, D_GRAPHICS::GetColorFormat());
-		BloomUAV5[0].Create(L"Scene Bloom Buffer 5a", bloomWidth / 16, bloomHeight / 16, 1, D_GRAPHICS::GetColorFormat());
-		BloomUAV5[1].Create(L"Scene Bloom Buffer 5b", bloomWidth / 16, bloomHeight / 16, 1, D_GRAPHICS::GetColorFormat());
-		mLumaBuffer.Create(L"Game Luminance", (UINT)mBufferWidth, (UINT)mBufferHeight, 1, DXGI_FORMAT_R8_UNORM);
-		mHistogramBuffer.Create(L"Game Histogram", 256, 4);
-		mPostEffectsBuffer.Create(L"Game Post Effects Buffer", (UINT)mBufferWidth, (UINT)mBufferHeight, 1, DXGI_FORMAT_R32_UINT);
-
-		// Ambient Occlusion Buffers
-		const uint32_t bufferWidth1 = ((UINT)mBufferWidth + 1) / 2;
-		const uint32_t bufferWidth2 = ((UINT)mBufferWidth + 3) / 4;
-		const uint32_t bufferWidth3 = ((UINT)mBufferWidth + 7) / 8;
-		const uint32_t bufferWidth4 = ((UINT)mBufferWidth + 15) / 16;
-		const uint32_t bufferWidth5 = ((UINT)mBufferWidth + 31) / 32;
-		const uint32_t bufferWidth6 = ((UINT)mBufferWidth + 63) / 64;
-		const uint32_t bufferHeight1 = ((UINT)mBufferHeight + 1) / 2;
-		const uint32_t bufferHeight2 = ((UINT)mBufferHeight + 3) / 4;
-		const uint32_t bufferHeight3 = ((UINT)mBufferHeight + 7) / 8;
-		const uint32_t bufferHeight4 = ((UINT)mBufferHeight + 15) / 16;
-		const uint32_t bufferHeight5 = ((UINT)mBufferHeight + 31) / 32;
-		const uint32_t bufferHeight6 = ((UINT)mBufferHeight + 63) / 64;
-		mSSAOFullScreen.Create(L"Game SSAO Full Res", (UINT)mBufferWidth, (UINT)mBufferHeight, 1, DXGI_FORMAT_R8_UNORM);
-		mDepthDownsize1.Create(L"Game Depth Down-Sized 1", bufferWidth1, bufferHeight1, 1, DXGI_FORMAT_R32_FLOAT);
-		mDepthDownsize2.Create(L"Game Depth Down-Sized 2", bufferWidth2, bufferHeight2, 1, DXGI_FORMAT_R32_FLOAT);
-		mDepthDownsize3.Create(L"Game Depth Down-Sized 3", bufferWidth3, bufferHeight3, 1, DXGI_FORMAT_R32_FLOAT);
-		mDepthDownsize4.Create(L"Game Depth Down-Sized 4", bufferWidth4, bufferHeight4, 1, DXGI_FORMAT_R32_FLOAT);
-		mDepthTiled1.CreateArray(L"Game Depth De-Interleaved 1", bufferWidth3, bufferHeight3, 16, DXGI_FORMAT_R16_FLOAT);
-		mDepthTiled2.CreateArray(L"Game Depth De-Interleaved 2", bufferWidth4, bufferHeight4, 16, DXGI_FORMAT_R16_FLOAT);
-		mDepthTiled3.CreateArray(L"Game Depth De-Interleaved 3", bufferWidth5, bufferHeight5, 16, DXGI_FORMAT_R16_FLOAT);
-		mDepthTiled4.CreateArray(L"Game Depth De-Interleaved 4", bufferWidth6, bufferHeight6, 16, DXGI_FORMAT_R16_FLOAT);
-		mAOMerged1.Create(L"Game AO Re-Interleaved 1", bufferWidth1, bufferHeight1, 1, DXGI_FORMAT_R8_UNORM);
-		mAOMerged2.Create(L"Game AO Re-Interleaved 2", bufferWidth2, bufferHeight2, 1, DXGI_FORMAT_R8_UNORM);
-		mAOMerged3.Create(L"Game AO Re-Interleaved 3", bufferWidth3, bufferHeight3, 1, DXGI_FORMAT_R8_UNORM);
-		mAOMerged4.Create(L"Game AO Re-Interleaved 4", bufferWidth4, bufferHeight4, 1, DXGI_FORMAT_R8_UNORM);
-		mAOSmooth1.Create(L"Game AO Smoothed 1", bufferWidth1, bufferHeight1, 1, DXGI_FORMAT_R8_UNORM);
-		mAOSmooth2.Create(L"Game AO Smoothed 2", bufferWidth2, bufferHeight2, 1, DXGI_FORMAT_R8_UNORM);
-		mAOSmooth3.Create(L"Game AO Smoothed 3", bufferWidth3, bufferHeight3, 1, DXGI_FORMAT_R8_UNORM);
-		mAOHighQuality1.Create(L"Game AO High Quality 1", bufferWidth1, bufferHeight1, 1, DXGI_FORMAT_R8_UNORM);
-		mAOHighQuality2.Create(L"Game AO High Quality 2", bufferWidth2, bufferHeight2, 1, DXGI_FORMAT_R8_UNORM);
-		mAOHighQuality3.Create(L"Game AO High Quality 3", bufferWidth3, bufferHeight3, 1, DXGI_FORMAT_R8_UNORM);
-		mAOHighQuality4.Create(L"Game AO High Quality 4", bufferWidth4, bufferHeight4, 1, DXGI_FORMAT_R8_UNORM);
-
-		mWorldPos.Create(L"Game World Pos", (UINT)mBufferWidth, (UINT)mBufferHeight, 1u, DXGI_FORMAT_R32G32B32A32_FLOAT);
-		mNormalDepth.Create(L"Game Normal Depth", (UINT)mBufferWidth, (UINT)mBufferHeight, 1u, DXGI_FORMAT_R32_UINT);
+		mRenderBuffers.Create((UINT)mBufferWidth, (UINT)mBufferHeight, L"Game Window", mCustomDepthApplied);
 	}
 
 	bool GameWindow::UpdateGlobalConstants(GlobalConstants& globals)
@@ -315,7 +193,7 @@ namespace Darius::Editor::Gui::Windows
 		auto time = *D_TIME::GetStepTimer();
 
 		auto cameraP = D_CAMERA_MANAGER::GetActiveCamera();
-		if (!cameraP.IsValid() || !cameraP->IsActive())
+		if(!cameraP.IsValid() || !cameraP->IsActive())
 			return false;
 
 		D_MATH_CAMERA::Camera const& camera = cameraP->GetCameraMath();
@@ -342,7 +220,7 @@ namespace Darius::Editor::Gui::Windows
 		globals.FarZ = camera.GetFarClip();
 		globals.TotalTime = (float)time.GetTotalSeconds();
 		globals.DeltaTime = (float)time.GetElapsedSeconds();
-		globals.AmbientLight = { 0.1f, 0.1f, 0.1f, 1.0f };
+		globals.AmbientLight = {0.1f, 0.1f, 0.1f, 1.0f};
 
 		// TODO: Skybox For Game Window
 		globals.IBLBias = 0.f;
@@ -350,7 +228,7 @@ namespace Darius::Editor::Gui::Windows
 
 		auto const& frustum = camera.GetWorldSpaceFrustum();
 
-		for (int i = 0; i < 6; i++)
+		for(int i = 0; i < 6; i++)
 		{
 			globals.FrustumPlanes[i] = (Vector4)frustum.GetFrustumPlane((D_MATH_CAMERA::Frustum::PlaneID)i);
 		}
