@@ -61,12 +61,13 @@ namespace Darius::Editor::Gui::GuiManager
 	Json											windowsConfig;
 
 	std::string										LayoutPath;
+	HWND											nativeWindow;
 
 	void ShowDialogs();
 
 	void RootToolbar();
 
-	void Initialize()
+	void Initialize(HWND window)
 	{
 		D_ASSERT(!initialzied);
 		initialzied = true;
@@ -76,6 +77,8 @@ namespace Darius::Editor::Gui::GuiManager
 		auto winConfigPath = D_EDITOR_CONTEXT::GetEditorWindowsConfigPath();
 		if(D_H_ENSURE_FILE(winConfigPath))
 			D_FILE::ReadJsonFile(winConfigPath, windowsConfig);
+
+		nativeWindow = window;
 
 #define RegisterWindow(type) \
 { \
@@ -986,4 +989,23 @@ else \
 		return nullptr;
 	}
 
+	void MapWindowPointToScreen(POINT const& windowSpace, POINT& screenSpace)
+	{
+		screenSpace = windowSpace;
+		std::ignore = MapWindowPoints(nativeWindow, nullptr, &screenSpace, 1);
+	}
+
+	void MapWindowRectToScreen(RECT const& windowSpace, RECT& screenSpace)
+	{
+		POINT winUl = {windowSpace.left, windowSpace.top};
+		POINT winLr = {windowSpace.right, windowSpace.bottom};
+		POINT scrUl;
+		POINT scrLr;
+		MapWindowPointToScreen(winUl, scrUl);
+		MapWindowPointToScreen(winLr, scrLr);
+		screenSpace.top = scrUl.y;
+		screenSpace.left = scrUl.x;
+		screenSpace.bottom = scrLr.y;
+		screenSpace.right = scrLr.x;
+	}
 }

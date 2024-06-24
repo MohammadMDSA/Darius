@@ -28,7 +28,7 @@ namespace Darius::Editor::Context
 	ICopyable*					Clipboard;
 
 
-	void Initialize()
+	void Initialize(HWND wind)
 	{
 		D_ASSERT(!_initialized);
 		_initialized = true;
@@ -50,7 +50,7 @@ namespace Darius::Editor::Context
 		D_RESOURCE_LOADER::VisitSubdirectory(D_ENGINE_CONTEXT::GetAssetsPath(), true, directoryVisitProgress);
 
 		D_THUMBNAIL::Initialize();
-		D_GUI_MANAGER::Initialize();
+		D_GUI_MANAGER::Initialize(wind);
 
 		// Initializing the simulator
 		D_SIMULATE::Initialize();
@@ -79,10 +79,11 @@ namespace Darius::Editor::Context
 			D_WORLD::FrameInitialization();
 		}
 
-		D_GUI_MANAGER::Update(elapsedTime);
-
 		// Updating the simulator
-		D_SIMULATE::Update(elapsedTime);
+		D_SIMULATE::Update(elapsedTime, [elapsedTime]()
+			{
+				D_GUI_MANAGER::Update(elapsedTime);
+			});
 
 	}
 

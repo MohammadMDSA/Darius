@@ -51,7 +51,7 @@ namespace Darius::Editor
 		mGame = game;
 
 #ifdef _DEBUG
-		//D_DEBUG::AttachWinPixGpuCapturer();
+		D_DEBUG::AttachWinPixGpuCapturer();
 #endif
 
 		// Initializing engine
@@ -61,7 +61,7 @@ namespace Darius::Editor
 		game->Initialize();
 
 		// Initializing the editor context manager
-		D_EDITOR_CONTEXT::Initialize();
+		D_EDITOR_CONTEXT::Initialize(window);
 
 		// Setting V-Sync
 		D_TIME::EnableFixedTimeStep(1.0 / 60);

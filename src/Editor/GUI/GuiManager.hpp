@@ -16,7 +16,7 @@ namespace Darius::Editor::Gui::Windows
 namespace Darius::Editor::Gui::GuiManager
 {
 
-	void Initialize();
+	void Initialize(HWND window);
 	void Shutdown();
 
 	void Update(float deltaTime);
@@ -26,6 +26,8 @@ namespace Darius::Editor::Gui::GuiManager
 	void DrawGammAddMenu(D_SCENE::GameObject* const contextGameObject);
 	void SaveWindowsState();
 	Darius::Editor::Gui::Windows::Window* GetWindow(std::string const& name);
+	void MapWindowPointToScreen(POINT const& windowSpace, POINT& screenSpace);
+	void MapWindowRectToScreen(RECT const& windowSpace, RECT& screenSpace);
 
 	template<class WIND>
 	WIND* GetWindow()

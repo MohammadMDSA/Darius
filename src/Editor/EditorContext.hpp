@@ -10,7 +10,7 @@
 
 namespace Darius::Editor::Context
 {
-	void Initialize();
+	void Initialize(HWND wind);
 	void Shutdown();
 	void Update(float elapsedTime);
 
