@@ -2,6 +2,7 @@
 #include "GraphicsCore.hpp"
 
 #include "AntiAliasing/TemporalEffect.hpp"
+#include "AntiAliasing/FXAA.hpp"
 #include "AmbientOcclusion/ScreenSpaceAmbientOcclusion.hpp"
 #include "CommandContext.hpp"
 #include "GraphicsDeviceManager.hpp"
@@ -313,6 +314,7 @@ namespace Darius::Graphics
 
 		// Setting Main Modules
 		D_GRAPHICS_AA_TEMPORAL::Initialize(settings);
+		D_GRAPHICS_AA_FXAA::Initialize(settings);
 		D_GRAPHICS_PP::Initialize(settings);
 		D_GRAPHICS_PP_MOTION::Initialize(settings);
 		D_GRAPHICS_AO_SS::Initialize(settings);
@@ -325,6 +327,7 @@ namespace Darius::Graphics
 		D_GRAPHICS_AO_SS::Shutdown();
 		D_GRAPHICS_PP_MOTION::Shutdown();
 		D_GRAPHICS_PP::Shutdown();
+		D_GRAPHICS_AA_FXAA::Shutdown();
 		D_GRAPHICS_AA_TEMPORAL::Shutdown();
 
 		D_PROFILING_GPU::Shutdown();
@@ -703,11 +706,24 @@ namespace Darius::Graphics
 
 		ImGui::Separator();
 
-
-		if (ImGui::CollapsingHeader("Temporal Anti-Aliasing"))
+		if(ImGui::CollapsingHeader("Anti-Aliasing"))
 		{
-			settingsChanged |= D_GRAPHICS_AA_TEMPORAL::OptionsDrawer(options);
+			ImGui::Indent();
+			ImGui::BeginGroup();
+			if(ImGui::CollapsingHeader("TAA"))
+			{
+				settingsChanged |= D_GRAPHICS_AA_TEMPORAL::OptionsDrawer(options);
+			}
+			ImGui::EndGroup();
+			ImGui::BeginGroup();
+			if(ImGui::CollapsingHeader("FXAA"))
+			{
+				settingsChanged |= D_GRAPHICS_AA_FXAA::OptionsDrawer(options);
+			}
+			ImGui::EndGroup();
+			ImGui::Unindent();
 		}
+		ImGui::Spacing();
 
 		if (ImGui::CollapsingHeader("Post Processing"))
 		{

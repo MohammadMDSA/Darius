@@ -1,6 +1,7 @@
 #include "Graphics/pch.hpp"
 #include "PostProcessing.hpp"
 
+#include "Graphics/AntiAliasing/FXAA.hpp"
 #include "Graphics/CommandContext.hpp"
 #include "Graphics/GraphicsCore.hpp"
 #include "Graphics/GraphicsUtils/PipelineState.hpp"
@@ -466,6 +467,9 @@ namespace Darius::Graphics::PostProcessing
 		context.SetPipelineState(ToneMapCS);
 
 		uint32_t lutSize = ComputeLUT.GetParams().LUTSize;
+
+		auto const& lutParams = ComputeLUT.GetParams();
+
 		ALIGN_DECL_256 struct ToneMapperConstants
 		{
 			float RcpBufferDimX;
@@ -477,6 +481,7 @@ namespace Darius::Graphics::PostProcessing
 			float InvLUTSize;	// 1 / LUTSize
 			float LUTScale;		// (LUTSize - 1) / LUTSize
 			float LUTOffset;	// 0.5 / LUTSize
+			float Gamma;
 			uint32_t ColorGradingEnable;
 		} toneMapperConstants =
 		{
@@ -489,6 +494,7 @@ namespace Darius::Graphics::PostProcessing
 			.InvLUTSize = 1.f / lutSize,
 			.LUTScale = (lutSize - 1.f) / lutSize,
 			.LUTOffset = 0.5f / lutSize,
+			.Gamma = lutParams.ToneMapperGamma,
 			.ColorGradingEnable = EnableColorGrading
 		};
 
@@ -581,7 +587,7 @@ namespace Darius::Graphics::PostProcessing
 
 	void Render(PostProcessContextBuffers& buffers, D_GRAPHICS::ComputeContext& context)
 	{
-		context.PIXBeginEvent((buffers.JobId + L" Post Processing").c_str());
+		context.PIXBeginEvent((buffers.JobId + L"Post Processing").c_str());
 
 		context.SetRootSignature(PostEffectRS);
 
@@ -590,14 +596,15 @@ namespace Darius::Graphics::PostProcessing
 		else
 			ProcessLDR(context, buffers);
 
-		bool generateLumaBuffer = EnableHDR;
+		bool generatedLumaBuffer = EnableHDR || EnableBloom;
+		D_GRAPHICS_AA_FXAA::Render(context, buffers.FXAABuffers, -1.f, generatedLumaBuffer);
 
 		// In the case where we've been doing post processing in a separate buffer, we need to copy it
-	// back to the original buffer.  It is possible to skip this step if the next shader knows to
-	// do the manual format decode from UINT, but there are several code paths that need to be
-	// changed, and some of them rely on texture filtering, which won't work with UINT.  Since this
-	// is only to support legacy hardware and a single buffer copy isn't that big of a deal, this
-	// is the most economical solution.
+		// back to the original buffer.  It is possible to skip this step if the next shader knows to
+		// do the manual format decode from UINT, but there are several code paths that need to be
+		// changed, and some of them rely on texture filtering, which won't work with UINT.  Since this
+		// is only to support legacy hardware and a single buffer copy isn't that big of a deal, this
+		// is the most economical solution.
 		if(!D_GRAPHICS_DEVICE::SupportsTypedUAVLoadSupport_R11G11B10_FLOAT())
 			CopyBackPostBuffer(context, buffers);
 

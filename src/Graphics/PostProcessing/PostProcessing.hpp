@@ -1,5 +1,6 @@
 #pragma once
 
+#include "Graphics/AntiAliasing/FXAA.hpp"
 #include "Graphics/CommandContext.hpp"
 #include "Graphics/GraphicsUtils/Buffers/ColorBuffer.hpp"
 #include "Graphics/GraphicsUtils/Buffers/GpuBuffer.hpp"
@@ -24,11 +25,14 @@ namespace Darius::Graphics::PostProcessing
         D_GRAPHICS_BUFFERS::ColorBuffer&                    PostEffectsBuffer;
 
         // Bloom
-        D_GRAPHICS_BUFFERS::ColorBuffer*                     BloomUAV1;
-        D_GRAPHICS_BUFFERS::ColorBuffer*                     BloomUAV2;
-        D_GRAPHICS_BUFFERS::ColorBuffer*                     BloomUAV3;
-        D_GRAPHICS_BUFFERS::ColorBuffer*                     BloomUAV4;
-        D_GRAPHICS_BUFFERS::ColorBuffer*                     BloomUAV5;
+        D_GRAPHICS_BUFFERS::ColorBuffer*                    BloomUAV1;
+        D_GRAPHICS_BUFFERS::ColorBuffer*                    BloomUAV2;
+        D_GRAPHICS_BUFFERS::ColorBuffer*                    BloomUAV3;
+        D_GRAPHICS_BUFFERS::ColorBuffer*                    BloomUAV4;
+        D_GRAPHICS_BUFFERS::ColorBuffer*                    BloomUAV5;
+
+        // Fxaa
+        AntiAliasing::FXAA::FXAABuffers                     FXAABuffers;
 
         std::wstring const&                                 JobId;
     };

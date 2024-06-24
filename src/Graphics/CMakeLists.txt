@@ -6,6 +6,7 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ".")
 list(APPEND GRAPHICS_LIBS_INCLUDE
 	"pch.hpp"
 	"AmbientOcclusion/ScreenSpaceAmbientOcclusion.hpp"
+	"AntiAliasing/FXAA.hpp"
 	"AntiAliasing/TemporalEffect.hpp"
 	"CommandContext.hpp"
 	"CommandSignature.hpp"
@@ -44,6 +45,7 @@ list(APPEND GRAPHICS_LIBS_INCLUDE
 list(APPEND GRAPHICS_LIBS_SOURCES
 	"pch.cpp"
 	"AmbientOcclusion/ScreenSpaceAmbientOcclusion.cpp"
+	"AntiAliasing/FXAA.cpp"
 	"AntiAliasing/TemporalEffect.cpp"
 	"CommandContext.cpp"
 	"CommandSignature.cpp"
