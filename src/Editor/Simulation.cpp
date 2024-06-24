@@ -47,7 +47,6 @@ namespace Darius::Editor::Simulate
 	void Shutdown()
 	{
 		D_ASSERT(_Initialized);
-		D_WORLD::Shutdown();
 	}
 
 	void INLINE PauseTime()
@@ -62,7 +61,7 @@ namespace Darius::Editor::Simulate
 		D_PROFILING::Resume();
 	}
 
-	void Update(float editorDeltaTime)
+	void Update(float editorDeltaTime, std::function<void()> externalContextUpdate)
 	{
 
 		D_DEBUG_DRAW::Clear();
@@ -73,8 +72,14 @@ namespace Darius::Editor::Simulate
 			
 			if(Timer->IsPaused())
 			{
-				D_PROFILING::ScopedTimer inputProfiling(L"Update Input");
-				D_INPUT::Update(editorDeltaTime);
+				{
+					D_PROFILING::ScopedTimer inputProfiling(L"Update Input");
+					D_INPUT::Update(editorDeltaTime);
+				}
+				{
+					if(externalContextUpdate)
+						externalContextUpdate();
+				}
 			}
 
 			// Physics
@@ -92,6 +97,11 @@ namespace Darius::Editor::Simulate
 						{
 							D_PROFILING::ScopedTimer inputProfiling(L"Update Input");
 							D_INPUT::Update(deltaTime);
+						}
+
+						{
+							if(externalContextUpdate)
+								externalContextUpdate();
 						}
 
 						// World Logic

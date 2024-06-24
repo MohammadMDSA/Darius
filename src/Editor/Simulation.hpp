@@ -12,7 +12,7 @@ namespace Darius::Editor::Simulate
 	void Initialize();
 	void Shutdown();
 
-	void Update(float editorDeltaTime);
+	void Update(float editorDeltaTime, std::function<void()> externalContextUpdate = nullptr);
 
 	void Run();
 	void Stop();
