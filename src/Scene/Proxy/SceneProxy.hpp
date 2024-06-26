@@ -44,6 +44,7 @@ namespace Darius::Scene
 		SceneObject* AddActor(GameObject* go)
 		{
 			SceneObject* goProxy = mSceneAllocator.Alloc(std::move(go), std::move(this));
+			goProxy->Initialize();
 			mGameObjectLookup[go] = goProxy;
 			return goProxy;
 		}
@@ -84,6 +85,8 @@ namespace Darius::Scene
 			mGameObject(go),
 			mSceneProxy(scene)
 		{ }
+
+		virtual void Initialize() { }
 
 		virtual ~SceneProxyObjectBase() { }
 

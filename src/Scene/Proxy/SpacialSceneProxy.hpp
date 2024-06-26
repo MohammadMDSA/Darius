@@ -48,7 +48,10 @@ namespace Darius::Scene
 		{
 			D_ASSERT(dynamic_cast<SpacialSceneProxy<Object>*>(scene));
 			mTransformChangeSignal = go->GetTransform()->mWorldChanged.ConnectGenericObject(this, &SpacialSceneProxyObject::OnWorldTransformChanged);
+		}
 
+		virtual void Initialize() override
+		{
 			// Creating bvh node
 			mBvhNodeId = GetSpacialScene()->GetBVH().Insert(GetAabb(), reinterpret_cast<Object*>(this));
 		}
