@@ -23,7 +23,7 @@ namespace DirectX
 
 namespace Darius::Audio
 {
-	class DClass(Serialize[bPlayOnStart, bLoop, bSpatialize, bMute, Pan, Volume, Pitch]) AudioSourceComponent : public D_ECS_COMP::ComponentBase
+	class DClass(Serialize[bPlayOnStart, bLoop, bSpatialize, bMute, Pan, Volume, Pitch, MaxRange]) AudioSourceComponent : public D_ECS_COMP::ComponentBase
 	{
 		GENERATED_BODY();
 		D_H_COMP_BODY(AudioSourceComponent, D_ECS_COMP::ComponentBase, "Audio/Audio Source", true);
@@ -33,6 +33,7 @@ namespace Darius::Audio
 		virtual void							Awake() override;
 		virtual void							Start() override;
 		virtual void							OnDestroy() override;
+		virtual void							OnPreDeserialize() override;
 		virtual void							OnDeserialized() override;
 
 #if _D_EDITOR

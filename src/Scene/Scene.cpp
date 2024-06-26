@@ -398,6 +398,7 @@ namespace Darius::Scene
 
 					gameObject->AddComponentRoutine(comp);
 
+					comp->OnPreDeserialize();
 					D_SERIALIZATION::Deserialize(comp, compJ);
 					comp->OnDeserialized();
 				}

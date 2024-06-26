@@ -329,6 +329,7 @@ namespace Darius::Scene::ECS::Components
 		virtual INLINE void         OnDestroy() { }
 		virtual INLINE void         OnPreDestroy() { }
 		virtual INLINE void         OnSerialized() const { }
+		virtual INLINE void         OnPreDeserialize() { }
 		virtual INLINE void         OnDeserialized() { }
 
 #if _D_EDITOR

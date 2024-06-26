@@ -29,6 +29,7 @@ D_CORE::SignalConnection						NewDeviceSignalConnection;
 D_AUDIO::AudioScene* AudioSceneManager;
 
 DirectX::AudioListener							CachedListenerData;
+bool hasListenerValue = false;
 
 // Options
 std::string										PreferredDeviceId = "";
@@ -127,6 +128,7 @@ namespace Darius::Audio
 		if(listenerPos)
 			*listenerPos = pos;
 
+		hasListenerValue = true;
 		CachedListenerData.Update(pos, transform->GetUp(), dt);
 		CachedListenerData.SetOrientation((DirectX::XMVECTOR)transform->GetForward(), (DirectX::XMVECTOR)transform->GetUp());
 		return true;
@@ -234,9 +236,12 @@ namespace Darius::Audio
 		return AudioEngineInst.get();
 	}
 
-	X3DAUDIO_LISTENER const& GetListenerData()
+	X3DAUDIO_LISTENER const* GetListenerData()
 	{
-		return CachedListenerData;
+		if(hasListenerValue)
+			return &CachedListenerData;
+
+		return nullptr;
 	}
 
 }

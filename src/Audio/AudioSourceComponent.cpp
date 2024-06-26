@@ -68,8 +68,8 @@ namespace Darius::Audio
 
 	void AudioSourceComponent::Start()
 	{
-		if(IsPlayOnStart() && mDataImpl->mSoundInstance)
-			mDataImpl->mSoundInstance->Play(IsLoop());
+		if(IsPlayOnStart())
+			Play();
 
 		D_AUDIO::GetAudioScene()->RegisterAudioSource(this);
 	}
@@ -83,7 +83,19 @@ namespace Darius::Audio
 	void AudioSourceComponent::Play()
 	{
 		if(mDataImpl->mSoundInstance)
-			mDataImpl->mSoundInstance->Play(IsLoop());
+		{
+			if(IsSpatialize())
+			{
+				auto const* listener = D_AUDIO::GetListenerData();
+				if(!listener)
+					return;
+
+				mDataImpl->mSoundInstance->Play(IsLoop());
+				Apply3D(*listener, 0.0001f);
+			}
+			else
+				mDataImpl->mSoundInstance->Play(IsLoop());
+		}
 	}
 
 	void AudioSourceComponent::Pause()
@@ -171,10 +183,14 @@ namespace Darius::Audio
 			SetupInstance();
 	}
 
-	void AudioSourceComponent::OnDeserialized()
+	void AudioSourceComponent::OnPreDeserialize()
 	{
 		if(!mDataImpl)
 			mDataImpl = DataAllocator.Alloc();
+	}
+
+	void AudioSourceComponent::OnDeserialized()
+	{
 
 		OnAudioResourceChanged();
 	}

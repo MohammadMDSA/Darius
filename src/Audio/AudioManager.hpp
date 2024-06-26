@@ -21,7 +21,7 @@ namespace Darius::Audio
 	void					Shutdown();
 	void					Update(float dt);
 
-	X3DAUDIO_LISTENER const& GetListenerData();
+	X3DAUDIO_LISTENER const* GetListenerData();
 
 #ifdef _D_EDITOR
 	bool					OptionsDrawer(D_SERIALIZATION::Json& options);
