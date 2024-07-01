@@ -36,7 +36,7 @@ namespace Darius::Renderer::RayTracing::Utils
 
 		if (mUAV.ptr == D3D12_GPU_VIRTUAL_ADDRESS_UNKNOWN)
 			mUAV = D_GRAPHICS::AllocateDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-		device->CreateUnorderedAccessView(mResource.Get(), nullptr, &UAVDesc, mUAV);
+		device->CreateUnorderedAccessView(GetResource(), nullptr, &UAVDesc, mUAV);
 
 		D3D12_SHADER_RESOURCE_VIEW_DESC SRVDesc = {};
 		SRVDesc.ViewDimension = D3D12_SRV_DIMENSION_RAYTRACING_ACCELERATION_STRUCTURE;

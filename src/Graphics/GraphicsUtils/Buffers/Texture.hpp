@@ -6,6 +6,12 @@
 #define D_GRAPHICS_BUFFERS Darius::Graphics::Utils::Buffers
 #endif
 
+namespace DirectX
+{
+	class ScratchImage;
+	struct TexMetadata;
+}
+
 namespace Darius::Graphics::Utils::Buffers
 {
 	class Texture : public GpuResource
@@ -14,18 +20,15 @@ namespace Darius::Graphics::Utils::Buffers
 
 	public:
 
-		Texture()
-		{
-			mCpuDescriptorHandle.ptr = D3D12_GPU_VIRTUAL_ADDRESS_UNKNOWN;
-		}
+		Texture();
 
-		Texture(D3D12_CPU_DESCRIPTOR_HANDLE Handle) :
-			mCpuDescriptorHandle(Handle)
-		{}
+		Texture(D3D12_CPU_DESCRIPTOR_HANDLE Handle);
 
 		// Create a 1-level textures
 		void Create2D(size_t RowPitchBytes, size_t Width, size_t Height, DXGI_FORMAT Format, const void* InitData);
 		void CreateCube(size_t RowPitchBytes, size_t Width, size_t Height, DXGI_FORMAT Format, const void* InitialData);
+		void Create2D(DirectX::ScratchImage const& image, DirectX::TexMetadata const& meta, DXGI_FORMAT format);
+		void CreateCube(DirectX::ScratchImage const& image, DirectX::TexMetadata const& meta, DXGI_FORMAT format);
 
 		void CreateTGAFromMemory(const void* memBuffer, size_t fileSize, bool sRGB);
 		bool CreateDDSFromMemory(const void* memBuffer, size_t fileSize, bool sRGB);

@@ -39,7 +39,7 @@ namespace Darius::Graphics::Utils::Buffers
 		mArraySize = depthOrArraySize;
 		mFormat = format;
 
-		D3D12_RESOURCE_DESC desc = {};
+		D3D12ResourceDesc desc = {};
 		desc.Alignment = 0;
 		desc.DepthOrArraySize = (UINT16)depthOrArraySize;
 		desc.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE3D;
@@ -61,7 +61,7 @@ namespace Darius::Graphics::Utils::Buffers
 		D_ASSERT(resource != nullptr);
 		D3D12_RESOURCE_DESC resourceDesc = resource->GetDesc();
 
-		mResource.Attach(resource);
+		AttachOther(resource);
 		mUsageState = currentsState;
 
 		mWidth = (uint32_t)resourceDesc.Width; // We don't care about large virtual textures yet
@@ -70,7 +70,7 @@ namespace Darius::Graphics::Utils::Buffers
 		mFormat = resourceDesc.Format;
 
 #ifdef _DEBUG
-		mResource->SetName(name.c_str());
+		GetResource()->SetName(name.c_str());
 #else
 		(name);
 #endif
@@ -84,14 +84,14 @@ namespace Darius::Graphics::Utils::Buffers
 
 		{
 			CD3DX12_HEAP_PROPERTIES heapProps(D3D12_HEAP_TYPE_DEFAULT);
-			D_HR_CHECK(device->CreateCommittedResource(&heapProps, D3D12_HEAP_FLAG_NONE, &resouceDesc, startState, &clearValue, IID_PPV_ARGS(&mResource)));
+			D_HR_CHECK(CreateCommittedResource(device, resouceDesc, heapProps, D3D12_HEAP_FLAG_NONE, startState, &clearValue));
 		}
 
 		mUsageState = startState;
 		mGpuVirtualAddress = D3D12_GPU_VIRTUAL_ADDRESS_NULL;
 
 #ifdef _DEBUG
-		mResource->SetName(name.c_str());
+		GetResource()->SetName(name.c_str());
 #else
 		(name);
 #endif

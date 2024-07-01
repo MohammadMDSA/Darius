@@ -31,7 +31,7 @@ namespace Darius::Graphics::Utils::Buffers
 
     void DepthBuffer::CreateDerivedViews(ID3D12Device* Device, DXGI_FORMAT Format)
     {
-        ID3D12Resource* Resource = mResource.Get();
+        ID3D12Resource* Resource = GetResource();
 
         D3D12_DEPTH_STENCIL_VIEW_DESC dsvDesc;
         dsvDesc.Format = GetDSVFormat(Format);

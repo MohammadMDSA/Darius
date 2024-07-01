@@ -29,6 +29,17 @@ namespace Darius::Graphics
 
 namespace Darius::Graphics::Utils
 {
+	struct D3D12ResourceDesc : public D3D12_RESOURCE_DESC
+	{
+		D3D12ResourceDesc() = default;
+
+		D3D12ResourceDesc(D3D12_RESOURCE_DESC const& other) :
+			D3D12_RESOURCE_DESC(other)
+		{ }
+
+		bool ReservedResource = false;
+	};
+
 	class GpuResource
 	{
 	public:
@@ -39,9 +50,9 @@ namespace Darius::Graphics::Utils
 		GpuResource() :
 			mUsageState(D3D12_RESOURCE_STATE_COMMON),
 			mTransitioningState((D3D12_RESOURCE_STATES)-1),
-			mGpuVirtualAddress(D3D12_GPU_VIRTUAL_ADDRESS_NULL)
-		{
-		}
+			mGpuVirtualAddress(D3D12_GPU_VIRTUAL_ADDRESS_NULL),
+			mParentDevice(nullptr)
+		{ }
 
 		GpuResource(ID3D12Resource* resource, D3D12_RESOURCE_STATES currentState) :
 			mResource(resource),
@@ -49,6 +60,8 @@ namespace Darius::Graphics::Utils
 			mTransitioningState((D3D12_RESOURCE_STATES)-1),
 			mGpuVirtualAddress(D3D12_GPU_VIRTUAL_ADDRESS_NULL)
 		{
+			D_ASSERT(resource);
+			resource->GetDevice(IID_PPV_ARGS(mParentDevice.GetAddressOf()));
 		}
 
 		GpuResource(GpuResource const&) = default;
@@ -69,8 +82,7 @@ namespace Darius::Graphics::Utils
 		INLINE ID3D12Resource* operator->() { return mResource.Get(); }
 		INLINE const ID3D12Resource* operator->() const { return mResource.Get(); }
 
-		INLINE ID3D12Resource* GetResource() { return mResource.Get(); }
-		INLINE const ID3D12Resource* GetResource() const { return mResource.Get(); }
+		INLINE ID3D12Resource* GetResource() const { return mResource.Get(); }
 
 		INLINE ID3D12Resource** GetAddressOf() { return mResource.GetAddressOf(); }
 
@@ -78,11 +90,26 @@ namespace Darius::Graphics::Utils
 
 		INLINE uint32_t GetVersionID() const { return mVersionID; }
 
+		INLINE ID3D12Device* GetParentDevice() const { return mParentDevice.Get(); }
+
+		INLINE D3D12ResourceDesc GetDesc() const { return mDesc; }
+
 	protected:
-		Microsoft::WRL::ComPtr<ID3D12Resource>		mResource;
+		HRESULT CreateCommittedResource(ID3D12Device* device, D3D12ResourceDesc const& desc, D3D12_HEAP_PROPERTIES const& heapProps, D3D12_HEAP_FLAGS heapFlags, D3D12_RESOURCE_STATES initialState, D3D12_CLEAR_VALUE const* clearValue);
+
+		HRESULT CreatePlacedResource(ID3D12Device* device, D3D12ResourceDesc const& desc, ID3D12Heap* heap, uint64_t heapOffset, D3D12_RESOURCE_STATES initialState, D3D12_CLEAR_VALUE const* clearValue);
+
+		void AttachOther(ID3D12Resource* other);
+
 		D3D12_RESOURCE_STATES						mUsageState;
 		D3D12_RESOURCE_STATES						mTransitioningState;
 		D3D12_GPU_VIRTUAL_ADDRESS					mGpuVirtualAddress;
+
+	private:
+		Microsoft::WRL::ComPtr<ID3D12Resource>		mResource;
+		D3D12ResourceDesc							mDesc;
+
+		Microsoft::WRL::ComPtr<ID3D12Device>		mParentDevice;
 
 		uint32_t									mVersionID = 0;
 	};

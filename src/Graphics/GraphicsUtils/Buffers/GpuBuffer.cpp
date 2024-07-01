@@ -19,7 +19,7 @@ namespace Darius::Graphics::Utils::Buffers
         mElementSize = ElementSize;
         mBufferSize = NumElements * ElementSize;
 
-        D3D12_RESOURCE_DESC ResourceDesc = DescribeBuffer();
+        D3D12ResourceDesc ResourceDesc = DescribeBuffer();
 
         mUsageState = initialState;
 
@@ -30,10 +30,9 @@ namespace Darius::Graphics::Utils::Buffers
         HeapProps.CreationNodeMask = 1;
         HeapProps.VisibleNodeMask = 1;
 
-        D_HR_CHECK(D_GRAPHICS_DEVICE::GetDevice()->CreateCommittedResource(&HeapProps, D3D12_HEAP_FLAG_NONE,
-            &ResourceDesc, mUsageState, nullptr, IID_PPV_ARGS(&mResource)));
+        D_HR_CHECK(CreateCommittedResource(D_GRAPHICS_DEVICE::GetDevice(), ResourceDesc, HeapProps, D3D12_HEAP_FLAG_NONE, mUsageState, nullptr));
 
-        mGpuVirtualAddress = mResource->GetGPUVirtualAddress();
+        mGpuVirtualAddress = GetResource()->GetGPUVirtualAddress();
 
         if (initialData)
             CommandContext::InitializeBuffer(*this, initialData, mBufferSize);
@@ -41,7 +40,7 @@ namespace Darius::Graphics::Utils::Buffers
 #ifdef RELEASE
         (name);
 #else
-        mResource->SetName(name.c_str());
+        GetResource()->SetName(name.c_str());
 #endif
 
         CreateDerivedViews();
@@ -55,7 +54,7 @@ namespace Darius::Graphics::Utils::Buffers
         mElementSize = ElementSize;
         mBufferSize = NumElements * ElementSize;
 
-        D3D12_RESOURCE_DESC ResourceDesc = DescribeBuffer();
+        D3D12ResourceDesc ResourceDesc = DescribeBuffer();
 
         mUsageState = D3D12_RESOURCE_STATE_COMMON;
 
@@ -66,18 +65,16 @@ namespace Darius::Graphics::Utils::Buffers
         HeapProps.CreationNodeMask = 1;
         HeapProps.VisibleNodeMask = 1;
 
-        D_HR_CHECK(
-            D_GRAPHICS_DEVICE::GetDevice()->CreateCommittedResource(&HeapProps, D3D12_HEAP_FLAG_NONE,
-                &ResourceDesc, mUsageState, nullptr, IID_PPV_ARGS(&mResource)));
+        D_HR_CHECK(CreateCommittedResource(D_GRAPHICS_DEVICE::GetDevice(), ResourceDesc, HeapProps, D3D12_HEAP_FLAG_NONE, mUsageState, nullptr));
 
-        mGpuVirtualAddress = mResource->GetGPUVirtualAddress();
+        mGpuVirtualAddress = GetResource()->GetGPUVirtualAddress();
 
         CommandContext::InitializeBuffer(*this, srcData, srcOffset);
 
 #ifdef RELEASE
         (name);
 #else
-        mResource->SetName(name.c_str());
+        GetResource()->SetName(name.c_str());
 #endif
 
         CreateDerivedViews();
@@ -91,13 +88,13 @@ namespace Darius::Graphics::Utils::Buffers
         mElementSize = ElementSize;
         mBufferSize = NumElements * ElementSize;
 
-        D3D12_RESOURCE_DESC ResourceDesc = DescribeBuffer();
+        D3D12ResourceDesc ResourceDesc = DescribeBuffer();
 
         mUsageState = D3D12_RESOURCE_STATE_COMMON;
 
-        D_HR_CHECK(D_GRAPHICS_DEVICE::GetDevice()->CreatePlacedResource(pBackingHeap, HeapOffset, &ResourceDesc, mUsageState, nullptr, IID_PPV_ARGS(&mResource)));
+        D_HR_CHECK(CreatePlacedResource(D_GRAPHICS_DEVICE::GetDevice(), ResourceDesc, pBackingHeap, HeapOffset, mUsageState, nullptr));
 
-        mGpuVirtualAddress = mResource->GetGPUVirtualAddress();
+        mGpuVirtualAddress = GetResource()->GetGPUVirtualAddress();
 
         if (initialData)
             CommandContext::InitializeBuffer(*this, initialData, mBufferSize);
@@ -105,7 +102,7 @@ namespace Darius::Graphics::Utils::Buffers
 #ifdef RELEASE
         (name);
 #else
-        mResource->SetName(name.c_str());
+        GetResource()->SetName(name.c_str());
 #endif
 
         CreateDerivedViews();
@@ -162,7 +159,7 @@ namespace Darius::Graphics::Utils::Buffers
 
         if (mSRV.ptr == D3D12_GPU_VIRTUAL_ADDRESS_UNKNOWN)
             mSRV = AllocateDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-        D_GRAPHICS_DEVICE::GetDevice()->CreateShaderResourceView(mResource.Get(), &SRVDesc, mSRV);
+        D_GRAPHICS_DEVICE::GetDevice()->CreateShaderResourceView(GetResource(), &SRVDesc, mSRV);
 
         D3D12_UNORDERED_ACCESS_VIEW_DESC UAVDesc = {};
         UAVDesc.ViewDimension = D3D12_UAV_DIMENSION_BUFFER;
@@ -174,7 +171,7 @@ namespace Darius::Graphics::Utils::Buffers
         {
             if (mUAV.ptr == D3D12_GPU_VIRTUAL_ADDRESS_UNKNOWN)
                 mUAV = AllocateDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-            D_GRAPHICS_DEVICE::GetDevice()->CreateUnorderedAccessView(mResource.Get(), nullptr, &UAVDesc, mUAV);
+            D_GRAPHICS_DEVICE::GetDevice()->CreateUnorderedAccessView(GetResource(), nullptr, &UAVDesc, mUAV);
         }
     }
 
@@ -190,7 +187,7 @@ namespace Darius::Graphics::Utils::Buffers
 
         if (mSRV.ptr == D3D12_GPU_VIRTUAL_ADDRESS_UNKNOWN)
             mSRV = AllocateDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-        D_GRAPHICS_DEVICE::GetDevice()->CreateShaderResourceView(mResource.Get(), &SRVDesc, mSRV);
+        D_GRAPHICS_DEVICE::GetDevice()->CreateShaderResourceView(GetResource(), &SRVDesc, mSRV);
 
         D3D12_UNORDERED_ACCESS_VIEW_DESC UAVDesc = {};
         UAVDesc.ViewDimension = D3D12_UAV_DIMENSION_BUFFER;
@@ -204,7 +201,7 @@ namespace Darius::Graphics::Utils::Buffers
 
         if (mUAV.ptr == D3D12_GPU_VIRTUAL_ADDRESS_UNKNOWN)
             mUAV = AllocateDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-        D_GRAPHICS_DEVICE::GetDevice()->CreateUnorderedAccessView(mResource.Get(), mCounterBuffer.GetResource(), &UAVDesc, mUAV);
+        D_GRAPHICS_DEVICE::GetDevice()->CreateUnorderedAccessView(GetResource(), mCounterBuffer.GetResource(), &UAVDesc, mUAV);
     }
 
     void TypedBuffer::CreateDerivedViews(void)
@@ -218,7 +215,7 @@ namespace Darius::Graphics::Utils::Buffers
 
         if (mSRV.ptr == D3D12_GPU_VIRTUAL_ADDRESS_UNKNOWN)
             mSRV = AllocateDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-        D_GRAPHICS_DEVICE::GetDevice()->CreateShaderResourceView(mResource.Get(), &SRVDesc, mSRV);
+        D_GRAPHICS_DEVICE::GetDevice()->CreateShaderResourceView(GetResource(), &SRVDesc, mSRV);
 
         D3D12_UNORDERED_ACCESS_VIEW_DESC UAVDesc = {};
         UAVDesc.ViewDimension = D3D12_UAV_DIMENSION_BUFFER;
@@ -228,7 +225,7 @@ namespace Darius::Graphics::Utils::Buffers
 
         if (mUAV.ptr == D3D12_GPU_VIRTUAL_ADDRESS_UNKNOWN)
             mUAV = AllocateDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-        D_GRAPHICS_DEVICE::GetDevice()->CreateUnorderedAccessView(mResource.Get(), nullptr, &UAVDesc, mUAV);
+        D_GRAPHICS_DEVICE::GetDevice()->CreateUnorderedAccessView(GetResource(), nullptr, &UAVDesc, mUAV);
     }
 
     const D3D12_CPU_DESCRIPTOR_HANDLE& StructuredBuffer::GetCounterSRV(CommandContext& Context)

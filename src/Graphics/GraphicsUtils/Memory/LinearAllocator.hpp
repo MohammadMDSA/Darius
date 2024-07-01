@@ -50,10 +50,10 @@ namespace Darius::Graphics::Utils::Memory
 	public:
 		LinearAllocationPage(ID3D12Resource* pResource, D3D12_RESOURCE_STATES Usage) : GpuResource()
 		{
-			mResource.Attach(pResource);
+			AttachOther(pResource);
 			mUsageState = Usage;
-			mGpuVirtualAddress = mResource->GetGPUVirtualAddress();
-			mResource->Map(0, nullptr, &mCpuVirtualAddress);
+			mGpuVirtualAddress = GetResource()->GetGPUVirtualAddress();
+			GetResource()->Map(0, nullptr, &mCpuVirtualAddress);
 		}
 
 		~LinearAllocationPage()
@@ -65,7 +65,7 @@ namespace Darius::Graphics::Utils::Memory
 		{
 			if (mCpuVirtualAddress == nullptr)
 			{
-				mResource->Map(0, nullptr, &mCpuVirtualAddress);
+				GetResource()->Map(0, nullptr, &mCpuVirtualAddress);
 			}
 		}
 
@@ -73,7 +73,7 @@ namespace Darius::Graphics::Utils::Memory
 		{
 			if (mCpuVirtualAddress != nullptr)
 			{
-				mResource->Unmap(0, nullptr);
+				GetResource()->Unmap(0, nullptr);
 				mCpuVirtualAddress = nullptr;
 			}
 		}

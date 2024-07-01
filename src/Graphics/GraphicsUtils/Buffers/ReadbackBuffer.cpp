@@ -25,7 +25,7 @@ namespace Darius::Graphics::Utils::Buffers
         HeapProps.VisibleNodeMask = 1;
 
         // Readback buffers must be 1-dimensional, i.e. "buffer" not "texture2d"
-        D3D12_RESOURCE_DESC ResourceDesc = {};
+        D3D12ResourceDesc ResourceDesc = {};
         ResourceDesc.Dimension = D3D12_RESOURCE_DIMENSION_BUFFER;
         ResourceDesc.Width = mBufferSize;
         ResourceDesc.Height = 1;
@@ -37,20 +37,20 @@ namespace Darius::Graphics::Utils::Buffers
         ResourceDesc.Layout = D3D12_TEXTURE_LAYOUT_ROW_MAJOR;
         ResourceDesc.Flags = D3D12_RESOURCE_FLAG_NONE;
 
-        D_HR_CHECK(D_GRAPHICS_DEVICE::GetDevice()->CreateCommittedResource(
-            &HeapProps,
+        D_HR_CHECK(CreateCommittedResource(
+            D_GRAPHICS_DEVICE::GetDevice(),
+            ResourceDesc,
+            HeapProps,
             D3D12_HEAP_FLAG_NONE,
-            &ResourceDesc,
             D3D12_RESOURCE_STATE_COPY_DEST,
-            nullptr,
-            IID_PPV_ARGS(&mResource)));
+            nullptr));
 
-        mGpuVirtualAddress = mResource->GetGPUVirtualAddress();
+        mGpuVirtualAddress = GetResource()->GetGPUVirtualAddress();
 
 #ifdef RELEASE
         (name);
 #else
-        mResource->SetName(name.c_str());
+        GetResource()->SetName(name.c_str());
 #endif
     }
 
@@ -58,13 +58,13 @@ namespace Darius::Graphics::Utils::Buffers
     {
         void* Memory;
         auto range = CD3DX12_RANGE(0, mBufferSize);
-        mResource->Map(0, &range, &Memory);
+        GetResource()->Map(0, &range, &Memory);
         return Memory;
     }
 
     void ReadbackBuffer::Unmap(void)
     {
         auto range = CD3DX12_RANGE(0, 0);
-        mResource->Unmap(0, &range);
+        GetResource()->Unmap(0, &range);
     }
 }

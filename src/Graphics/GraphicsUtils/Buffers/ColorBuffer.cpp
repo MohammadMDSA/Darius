@@ -105,7 +105,7 @@ namespace Darius::Graphics::Utils::Buffers
             mSrvHandle = Graphics::AllocateDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
         }
 
-        ID3D12Resource* Resource = mResource.Get();
+        ID3D12Resource* Resource = GetResource();
 
         // Create the render target view
         Device->CreateRenderTargetView(Resource, &RTVDesc, mRtvHandle);
@@ -136,7 +136,7 @@ namespace Darius::Graphics::Utils::Buffers
         //Graphics::g_Device->CreateUnorderedAccessView(m_pResource.Get(), nullptr, nullptr, m_UAVHandle[0]);
 
         mRtvHandle = Graphics::AllocateDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
-        D_GRAPHICS_DEVICE::GetDevice()->CreateRenderTargetView(mResource.Get(), nullptr, mRtvHandle);
+        D_GRAPHICS_DEVICE::GetDevice()->CreateRenderTargetView(GetResource(), nullptr, mRtvHandle);
     }
 
     void ColorBuffer::Create(const std::wstring& Name, uint32_t Width, uint32_t Height, uint32_t NumMips,
