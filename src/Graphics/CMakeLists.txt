@@ -5,12 +5,14 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ".")
 
 list(APPEND GRAPHICS_LIBS_INCLUDE
 	"pch.hpp"
+	"Adapter.hpp"
 	"AmbientOcclusion/ScreenSpaceAmbientOcclusion.hpp"
 	"AntiAliasing/FXAA.hpp"
 	"AntiAliasing/TemporalEffect.hpp"
 	"CommandContext.hpp"
 	"CommandSignature.hpp"
 	"d3dx12.h"
+	"Device.hpp"
 	"DeviceResources.hpp"
 	"GraphicsCore.hpp"
 	"GraphicsUtils/Buffers/ColorBuffer.hpp"
@@ -40,15 +42,18 @@ list(APPEND GRAPHICS_LIBS_INCLUDE
 	"PostProcessing/PostProcessing.hpp"
 	"PostProcessing/ComputeColorLUT.hpp"
 	"PostProcessing/ToneMapCommon.hpp"
+	"d3dx12Residency.h"
 	)
 
 list(APPEND GRAPHICS_LIBS_SOURCES
 	"pch.cpp"
+	"Adapter.cpp"
 	"AmbientOcclusion/ScreenSpaceAmbientOcclusion.cpp"
 	"AntiAliasing/FXAA.cpp"
 	"AntiAliasing/TemporalEffect.cpp"
 	"CommandContext.cpp"
 	"CommandSignature.cpp"
+	"Device.cpp"
 	"DeviceResources.cpp"
 	"GraphicsCore.cpp"
 	"GraphicsUtils/Buffers/ColorBuffer.cpp"
