@@ -183,11 +183,14 @@ namespace Darius::Editor::Gui::GuiManager
 					GameObject* pastedGo;
 					D_SERIALIZATION::Json goJson;
 					D_EDITOR_CONTEXT::GetClipboardJson(true, goJson);
-					D_WORLD::LoadGameObject(goJson, &pastedGo, true);
-
-					if(selectedObj)
+					if(D_VERIFY(goJson["Type"].get<std::string>() == "GameObject"))
 					{
-						pastedGo->SetParent(selectedObj, GameObject::AttachmentType::KeepLocal);
+						D_WORLD::LoadGameObject(goJson["Data"], &pastedGo, true);
+
+						if(selectedObj)
+						{
+							pastedGo->SetParent(selectedObj, GameObject::AttachmentType::KeepLocal);
+						}
 					}
 				}
 			}

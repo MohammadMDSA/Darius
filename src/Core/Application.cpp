@@ -42,4 +42,10 @@ namespace Darius::Core::Application
 		NewAudioDeviceConnectedSignal();
 	}
 
+	void RequestMinimize()
+	{
+		::ShowWindow(GetActiveWindow(), SW_MINIMIZE);
+
+	}
+
 }

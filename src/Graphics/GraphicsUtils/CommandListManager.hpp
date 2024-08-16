@@ -19,6 +19,8 @@
 #include <stdint.h>
 #include "CommandAllocatorPool.hpp"
 
+#include "Residency.hpp"
+
 
 #ifndef D_GRAPHICS_UTILS
 #define D_GRAPHICS_UTILS Darius::Graphics::Utils
@@ -61,7 +63,7 @@ namespace Darius::Graphics::Utils
 
     private:
 
-        uint64_t ExecuteCommandList(ID3D12CommandList* List);
+        uint64_t ExecuteCommandList(ID3D12CommandList* List, D3DX12Residency::ResidencySet* ResidencySet);
         ID3D12CommandAllocator* RequestAllocator(void);
         void DiscardAllocator(uint64_t FenceValueForReset, ID3D12CommandAllocator* Allocator);
 

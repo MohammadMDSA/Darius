@@ -227,6 +227,11 @@ namespace Darius::Graphics
 			return reinterpret_cast<ID3D12Device5*>(Resources->GetD3DDevice());
 		}
 
+		D3DX12Residency::ResidencyManager& GetResidencyManager()
+		{
+			return Resources->GetResidencyManager();
+		}
+
 		DXGI_FORMAT GetBackBufferFormat()
 		{
 			return Resources->GetBackBufferFormat();

@@ -5,6 +5,7 @@
 #pragma once
 #include "pch.hpp"
 
+#include "GraphicsUtils/Residency.hpp"
 #include "GraphicsUtils/Memory/DescriptorHeap.hpp"
 #include "GraphicsUtils/Buffers/ColorBuffer.hpp"
 #include "GraphicsUtils/Buffers/DepthBuffer.hpp"
@@ -79,17 +80,13 @@ namespace Darius::Graphics::Device
         D3D_FEATURE_LEVEL           GetDeviceFeatureLevel() const noexcept      { return m_d3dFeatureLevel; }
         DXGI_FORMAT                 GetBackBufferFormat() const noexcept        { return m_backBufferFormat; }
         DXGI_FORMAT                 GetDepthBufferFormat() const noexcept       { return m_depthBufferFormat; }
-        D3D12_VIEWPORT              GetScreenViewport() const noexcept          { return m_screenViewport; }
-        D3D12_RECT                  GetScissorRect() const noexcept             { return m_scissorRect; }
         UINT                        GetCurrentFrameResourceIndex() const noexcept  { return m_currentResourceIndex; }
         UINT                        GetBackBufferCount() const noexcept         { return m_backBufferCount; }
-        UINT                        GetRtvDescriptorSize() const noexcept       { return m_rtvDescriptorSize; }
-        UINT                        GetDsvDescriptorSize() const noexcept       { return m_dsvDescriptorSize; }
-        UINT                        GetCbvSrvUavDescriptorSize() const noexcept { return m_cbvSrvUavDescriptorSize; }
         DXGI_COLOR_SPACE_TYPE       GetColorSpace() const noexcept              { return m_colorSpace; }
         unsigned int                GetDeviceOptions() const noexcept           { return m_options; }
         D_GRAPHICS_BUFFERS::ColorBuffer& GetRTBuffer() noexcept                 { return m_swapChainBuffer[m_backBufferIndex]; }
         D_GRAPHICS_BUFFERS::DepthBuffer& GetDepthStencilBuffer() noexcept       { return m_depthStencil; }
+        INLINE D3DX12Residency::ResidencyManager& GetResidencyManager() { return *mResidencyManager.get(); }
 
         inline bool SupportsTypedUAVLoadSupport_R11G11B10_FLOAT() const { return m_TypedUAVLoadSupport_R11G11B10_FLOAT; };
         inline bool SupportsTypedUAVLoadSupport_R16G16B16A16_FLOAT() const { return m_TypedUAVLoadSupport_R16G16B16A16_FLOAT; };
@@ -119,12 +116,6 @@ namespace Darius::Graphics::Device
         UINT                                                m_currFenceValue;
         Microsoft::WRL::Wrappers::Event                     m_fenceEvent;
 
-        UINT                                                m_rtvDescriptorSize;
-        UINT                                                m_dsvDescriptorSize;
-        UINT                                                m_cbvSrvUavDescriptorSize;
-        D3D12_VIEWPORT                                      m_screenViewport;
-        D3D12_RECT                                          m_scissorRect;
-
         // Direct3D properties.
         DXGI_FORMAT                                         m_backBufferFormat;
         DXGI_FORMAT                                         m_depthBufferFormat;
@@ -148,6 +139,13 @@ namespace Darius::Graphics::Device
         bool                                                m_TypedUAVLoadSupport_R16G16B16A16_FLOAT = false;
         bool                                                m_RaytracingSupport = false;
 
+        struct ResidencyManager : public D3DX12Residency::ResidencyManager
+        {
+            ResidencyManager(ID3D12Device* device, IDXGIAdapter* adapter);
+            ~ResidencyManager();
+        };
+
+        std::unique_ptr<ResidencyManager>                   mResidencyManager = nullptr;
 
         // The IDeviceNotify can be held directly as it owns the DeviceResources.
         D_CORE::Signal<void()>                              m_deviceLostSignal;

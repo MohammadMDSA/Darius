@@ -30,7 +30,7 @@ namespace Darius::Graphics::Utils::Buffers
         void Create(const std::wstring& name, uint32_t NumElements, uint32_t ElementSize, const UploadBuffer& srcData, uint32_t srcOffset = 0);
 
         // Sub-Allocate a buffer out of a pre-allocated heap.  If initial data is provided, it will be copied into the buffer using the default command context.
-        void CreatePlaced(const std::wstring& name, ID3D12Heap* pBackingHeap, uint32_t HeapOffset, uint32_t NumElements, uint32_t ElementSize,
+        void CreatePlaced(const std::wstring& name, D3D12Heap* pBackingHeap, uint32_t HeapOffset, uint32_t NumElements, uint32_t ElementSize,
             const void* initialData = nullptr);
 
         INLINE const D3D12_CPU_DESCRIPTOR_HANDLE& GetUAV(void) const { return mUAV; }

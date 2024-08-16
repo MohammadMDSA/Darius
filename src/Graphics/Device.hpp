@@ -29,7 +29,7 @@ namespace Darius::Graphics
 		ID3D12Device7* GetDevice7() const;
 
 		// Residency
-		INLINE FD3D12ResidencyManager& GetResidencyManager() { return mResidencyManager; }
+		INLINE D3D12ResidencyManager& GetResidencyManager() { return mResidencyManager; }
 
 		D3D12Adapter* GetParentAdapter() const { return mAdapter.Get(); }
 		void Setup();

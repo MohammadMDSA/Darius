@@ -72,7 +72,7 @@ namespace Darius::Core
 	public:
 
 		Counted();
-		~Counted() {}
+		virtual ~Counted() {}
 
 		INLINE bool				IsReferenced() const { return mRefCountInit.Get() != 1; }
 		bool					InitRef();

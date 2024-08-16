@@ -94,7 +94,10 @@ namespace Darius::Graphics
 
         D_ASSERT(m_CurrentAllocator != nullptr);
 
-        uint64_t FenceValue = D_GRAPHICS::GetCommandManager()->GetQueue(m_Type).ExecuteCommandList(m_CommandList);
+        D_ASSERT(mResidencySet);
+        D_ASSERT(D_HR_SUCCEEDED(mResidencySet->Close()));
+
+        uint64_t FenceValue = D_GRAPHICS::GetCommandManager()->GetQueue(m_Type).ExecuteCommandList(m_CommandList, mResidencySet);
 
         if (WaitForCompletion)
             D_GRAPHICS::GetCommandManager()->WaitForFence(FenceValue);
@@ -104,6 +107,7 @@ namespace Darius::Graphics
         //
 
         m_CommandList->Reset(m_CurrentAllocator, nullptr);
+        D_ASSERT(D_HR_SUCCEEDED(mResidencySet->Open()));
 
         if (m_CurGraphicsRootSignature)
         {
@@ -136,7 +140,10 @@ namespace Darius::Graphics
 
         CommandQueue& Queue = D_GRAPHICS::GetCommandManager()->GetQueue(m_Type);
 
-        uint64_t FenceValue = Queue.ExecuteCommandList(m_CommandList);
+        D_ASSERT(mResidencySet);
+        D_ASSERT(D_HR_SUCCEEDED(mResidencySet->Close()));
+
+        uint64_t FenceValue = Queue.ExecuteCommandList(m_CommandList, mResidencySet);
         Queue.DiscardAllocator(FenceValue, m_CurrentAllocator);
         m_CurrentAllocator = nullptr;
 
@@ -158,7 +165,8 @@ namespace Darius::Graphics
         m_DynamicViewDescriptorHeap(*this, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV),
         m_DynamicSamplerDescriptorHeap(*this, D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER),
         m_CpuLinearAllocator(kCpuWritable),
-        m_GpuLinearAllocator(kGpuExclusive)
+        m_GpuLinearAllocator(kGpuExclusive),
+        mResidencySet(D_GRAPHICS_DEVICE::GetResidencyManager().CreateResidencySet())
     {
         m_OwningManager = nullptr;
         m_CommandList = nullptr;
@@ -173,6 +181,11 @@ namespace Darius::Graphics
 
     CommandContext::~CommandContext(void)
     {
+        D_ASSERT(mResidencySet);
+        mResidencySet->Close();
+
+        D_GRAPHICS_DEVICE::GetResidencyManager().DestroyResidencySet(mResidencySet);
+
         if (m_CommandList != nullptr)
             m_CommandList->Release();
     }
@@ -180,6 +193,9 @@ namespace Darius::Graphics
     void CommandContext::Initialize(void)
     {
         D_GRAPHICS::GetCommandManager()->CreateNewCommandList(m_Type, &m_CommandList, &m_CurrentAllocator);
+
+        D_ASSERT(mResidencySet);
+        D_ASSERT(D_HR_SUCCEEDED(mResidencySet->Open()));
     }
 
     void CommandContext::Reset(void)
@@ -194,6 +210,9 @@ namespace Darius::Graphics
         m_CurComputeRootSignature = nullptr;
         m_CurPipelineState = nullptr;
         m_NumBarriersToFlush = 0;
+
+        D_ASSERT(mResidencySet);
+        D_ASSERT(D_HR_SUCCEEDED(mResidencySet->Open()));
 
         BindDescriptorHeaps();
     }
@@ -385,6 +404,17 @@ namespace Darius::Graphics
 
         if (FlushImmediate || m_NumBarriersToFlush == 16)
             FlushResourceBarriers();
+    }
+
+    void CommandContext::UpdateResidency(D_CONTAINERS::DVector<D3DX12Residency::ManagedObject*> const& handles)
+    {
+        for(auto handle : handles)
+        {
+            if(handle && handle->IsInitialized())
+            {
+                mResidencySet->Insert(handle);
+            }
+        }
     }
 
     void CommandContext::BeginResourceTransition(GpuResource& Resource, D3D12_RESOURCE_STATES NewState, bool FlushImmediate)

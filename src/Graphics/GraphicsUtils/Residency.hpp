@@ -1,6 +1,10 @@
 #pragma once
 
+#pragma warning(push)
+#pragma warning(disable: 4555)
+#pragma warning(disable: 5214)
 #include "Graphics/d3dx12Residency.h"
+#pragma warning(pop)
 
 #include <Utils/Assert.hpp>
 
@@ -86,5 +90,5 @@ namespace D3DX12Residency
 	}
 }
 
-typedef D3DX12Residency::ResidencySet FD3D12ResidencySet;
-typedef D3DX12Residency::ResidencyManager FD3D12ResidencyManager;
+typedef D3DX12Residency::ResidencySet D3D12ResidencySet;
+typedef D3DX12Residency::ResidencyManager D3D12ResidencyManager;

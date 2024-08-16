@@ -59,4 +59,35 @@ namespace Darius::Scene::ECS::Components
 			Start();
 		}
 	}
+
+#if _D_EDITOR
+	void ComponentBase::Copy(bool maintainContext, D_SERIALIZATION::Json& serialized) const
+	{
+		D_SERIALIZATION::Json data;
+		Serialize(data);
+		serialized = D_SERIALIZATION::Json();
+		serialized["Type"] = "Component";
+		serialized["Variation"] = GetComponentName().string();
+		Serialize(serialized["Data"]);
+	}
+
+	bool ComponentBase::IsCopyableValid() const
+	{
+		auto go = GetGameObject();
+		if(!go || !go->IsValid())
+			return false;
+
+		return go->HasComponent(GetComponentName());
+	}
+#endif
+
+	void ComponentBase::Serialize(D_SERIALIZATION::Json& json) const
+	{
+		D_SERIALIZATION::Serialize(*this, json);
+	}
+
+	void ComponentBase::Deserialize(D_SERIALIZATION::Json const& json)
+	{
+		D_SERIALIZATION::Deserialize(*this, json);
+	}
 }

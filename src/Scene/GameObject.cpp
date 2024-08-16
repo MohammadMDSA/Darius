@@ -187,6 +187,13 @@ namespace Darius::Scene
 						deleted = true;
 					}
 
+					ImGui::Separator();
+
+					if(ImGui::MenuItem("Copy Component"))
+					{
+						//ComponentBase::GlobalComponentClipboard.SetData()
+					}
+
 					ImGui::EndPopup();
 				}
 
@@ -436,7 +443,10 @@ namespace Darius::Scene
 
 		// Abort if transform
 		if(D_WORLD::GetTypeId<D_MATH::TransformComponent>() == compId)
+		{
+			D_LOG_WARN("Removal of Transform Component from a GameObject is not possible.");
 			return;
+		}
 
 		RemoveComponentRoutine(comp);
 		mEntity.remove(compId);
@@ -672,9 +682,14 @@ namespace Darius::Scene
 		return result;
 	}
 
+#if _D_EDITOR
 	void GameObject::Copy(bool maintainContext, D_SERIALIZATION::Json& serialized) const
 	{
-		D_WORLD::DumpGameObject(this, serialized, maintainContext);
+		D_SERIALIZATION::Json goData;
+		D_WORLD::DumpGameObject(this, goData, maintainContext);
+		serialized = D_SERIALIZATION::Json();
+		serialized["Type"] = "GameObject";
+		serialized["Data"] = goData;
 	}
-
+#endif
 }

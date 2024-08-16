@@ -43,6 +43,22 @@ namespace
 namespace Darius::Graphics::Device
 {
 
+
+	DeviceResources::ResidencyManager::ResidencyManager(ID3D12Device* device, IDXGIAdapter* adapter)
+	{
+		IDXGIAdapter3* adapter3 = nullptr;
+		adapter->QueryInterface(IID_PPV_ARGS(&adapter3));
+
+		uint32_t residencyMangerGPUIndex = 0; // We only support one gpu
+		this->Initialize(device, residencyMangerGPUIndex, adapter3, 6);
+	}
+
+	DeviceResources::ResidencyManager::~ResidencyManager()
+	{
+		this->Destroy();
+	}
+
+
 	// Constructor for DeviceResources.
 	DeviceResources::DeviceResources(
 		DXGI_FORMAT backBufferFormat,
@@ -53,9 +69,6 @@ namespace Darius::Graphics::Device
 		m_backBufferIndex(0),
 		m_currFenceValue(0),
 		m_currentResourceIndex(0),
-		m_rtvDescriptorSize(0),
-		m_screenViewport{},
-		m_scissorRect{},
 		m_backBufferFormat(backBufferFormat),
 		m_depthBufferFormat(depthBufferFormat),
 		m_backBufferCount(backBufferCount),
@@ -75,10 +88,6 @@ namespace Darius::Graphics::Device
 		if (minFeatureLevel < D3D_FEATURE_LEVEL_11_0)
 		{
 			throw std::out_of_range("minFeatureLevel too low");
-		}
-		for (size_t i = 0; i < backBufferCount; i++)
-		{
-			m_swapChainBuffer.push_back(D_MATH::Color(DirectX::Colors::CornflowerBlue));
 		}
 	}
 
@@ -159,7 +168,11 @@ namespace Darius::Graphics::Device
 			m_d3dMinFeatureLevel,
 			IID_PPV_ARGS(m_d3dDevice.ReleaseAndGetAddressOf())
 		);
+
 		ThrowIfFailed(hr);
+
+		// Initialize residency manager
+		mResidencyManager = std::make_unique<ResidencyManager>(m_d3dDevice.Get(), adapter.Get());
 
 		m_d3dDevice->SetName(L"DeviceResources");
 
@@ -216,9 +229,6 @@ namespace Darius::Graphics::Device
 			m_d3dFeatureLevel = m_d3dMinFeatureLevel;
 		}
 
-		m_rtvDescriptorSize = m_d3dDevice->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
-		m_dsvDescriptorSize = m_d3dDevice->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_DSV);
-		m_cbvSrvUavDescriptorSize = m_d3dDevice->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 
 		// Create a fence for tracking GPU execution progress.
 		ThrowIfFailed(m_d3dDevice->CreateFence(m_frameResources[m_currentResourceIndex], D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(m_fence.ReleaseAndGetAddressOf())));
@@ -284,6 +294,14 @@ namespace Darius::Graphics::Device
 		cmdManager->IdleGPU();
 
 		bool resize = m_swapChain ? true : false;
+
+		if(m_swapChainBuffer.size() == 0)
+		{
+			for(size_t i = 0; i < m_backBufferCount; i++)
+			{
+				m_swapChainBuffer.push_back(D_MATH::Color(DirectX::Colors::CornflowerBlue));
+			}
+		}
 
 		// Release resources that are tied to the swap chain and update fence values.
 		for (UINT n = 0; n < m_backBufferCount; n++)
@@ -390,16 +408,6 @@ namespace Darius::Graphics::Device
 			m_depthStencil.Create(L"Depth stencil", backBufferWidth, backBufferHeight, m_depthBufferFormat);
 		}
 
-		// Set the 3D rendering viewport and scissor rectangle to target the entire window.
-		m_screenViewport.TopLeftX = m_screenViewport.TopLeftY = 0.f;
-		m_screenViewport.Width = static_cast<float>(backBufferWidth);
-		m_screenViewport.Height = static_cast<float>(backBufferHeight);
-		m_screenViewport.MinDepth = D3D12_MIN_DEPTH;
-		m_screenViewport.MaxDepth = D3D12_MAX_DEPTH;
-
-		m_scissorRect.left = m_scissorRect.top = 0;
-		m_scissorRect.right = static_cast<LONG>(backBufferWidth);
-		m_scissorRect.bottom = static_cast<LONG>(backBufferHeight);
 	}
 
 	// This method is called when the Win32 window is created (or re-created).
@@ -448,6 +456,7 @@ namespace Darius::Graphics::Device
 		m_depthStencil.Destroy();
 		m_fence.Reset();
 		m_swapChain.Reset();
+		mResidencyManager.reset();
 		m_d3dDevice.Reset();
 		m_dxgiFactory.Reset();
 		D_GRAPHICS_MEMORY::DescriptorAllocator::DestroyAll();

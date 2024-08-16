@@ -5,7 +5,7 @@
 #include "Scene/GameObject.hpp"
 #include "Scene/Scene.hpp"
 
-#include <Core/Serialization/Json.hpp>
+#include <Core/Serialization/Serializable.hpp>
 #include <Core/Signal.hpp>
 #include <Core/StringId.hpp>
 #include <Core/Uuid.hpp>
@@ -305,7 +305,11 @@ namespace Darius::Scene::ECS::Components
 
 	D_H_SIGNAL_COMP_ONE_PARAM(ComponentChangeSignalType, ComponentBase*, thisComponent);
 
-	class DClass(Serialize) ComponentBase
+	class DClass(Serialize) ComponentBase : public D_SERIALIZATION::ISerializable
+#if _D_EDITOR
+		, public D_SERIALIZATION::ICopyable
+#endif // _D_EDITOR
+
 	{
 		GENERATED_BODY();
 
@@ -363,6 +367,18 @@ namespace Darius::Scene::ECS::Components
 
 		D_MATH::TransformComponent* GetTransform() const;
 
+		// Copyable
+
+#if _D_EDITOR
+		// MaintainContext arg does not make any difference in case of a component
+		virtual void				Copy(bool maintainContext, D_SERIALIZATION::Json& serialzied) const override;
+		virtual bool				IsCopyableValid() const override;
+#endif
+
+		// Serializable
+		virtual void				Serialize(D_SERIALIZATION::Json& json) const override;
+		virtual void				Deserialize(D_SERIALIZATION::Json const& json) override;
+
 		static INLINE std::string   ClassName() { return "ComponentBase"; }
 
 		static void                 StaticConstructor()
@@ -391,6 +407,7 @@ namespace Darius::Scene::ECS::Components
 
 #if _D_EDITOR
 		static D_CORE::Signal<void(D_FILE::Path const&, Darius::ResourceManager::ResourceHandle const&, bool selected)> RequestPathChange;
+
 #endif // _D_EDITOR
 
 	private:

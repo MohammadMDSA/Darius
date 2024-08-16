@@ -48,7 +48,10 @@ namespace Darius::Scene
 {
 	class SceneManager;
 
-	class DClass(Serialize[Name]) GameObject sealed : public Detailed, public D_CORE::Counted, public D_SERIALIZATION::ICopyable
+	class DClass(Serialize[Name]) GameObject sealed : public Detailed, public D_CORE::Counted
+#if _D_EDITOR
+		, public D_SERIALIZATION::ICopyable
+#endif
 	{
 
 	public:
@@ -92,8 +95,10 @@ namespace Darius::Scene
 		INLINE bool							IsValid() const { return !mDeleted && mEntity.is_valid(); }
 
 		// Copyable Interface
+#if _D_EDITOR
 		virtual void Copy(bool maintainContext, D_SERIALIZATION::Json& serialized) const override;
 		INLINE virtual bool IsCopyableValid() const override { return IsValid(); }
+#endif
 
 		template<class T>
 		bool								HasComponent() const

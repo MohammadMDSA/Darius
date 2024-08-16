@@ -129,6 +129,8 @@ namespace Darius::Graphics
 		void CopyTextureRegion(D_GRAPHICS_UTILS::GpuResource& Dest, UINT x, UINT y, UINT z, D_GRAPHICS_UTILS::GpuResource& Source, RECT& rect);
 		void ResetCounter(D_GRAPHICS_BUFFERS::StructuredBuffer& Buf, uint32_t Value = 0);
 
+		INLINE D3DX12Residency::ResidencySet* GetResidencySet() const { return mResidencySet; }
+
 		// Creates a readback buffer of sufficient size, copies the texture into it,
 		// and returns row pitch in bytes.
 		uint32_t ReadbackTexture(D_GRAPHICS_BUFFERS::ReadbackBuffer& DstBuffer, D_GRAPHICS_BUFFERS::PixelBuffer& SrcBuffer);
@@ -148,6 +150,7 @@ namespace Darius::Graphics
 
 		void TransitionResource(D_GRAPHICS_UTILS::GpuResource& Resource, D3D12_RESOURCE_STATES NewState, bool FlushImmediate = false);
 		void BeginResourceTransition(D_GRAPHICS_UTILS::GpuResource& Resource, D3D12_RESOURCE_STATES NewState, bool FlushImmediate = false);
+		void UpdateResidency(D_CONTAINERS::DVector<D3DX12Residency::ManagedObject*> const& handles);
 		void InsertUAVBarrier(D_GRAPHICS_UTILS::GpuResource& Resource, bool FlushImmediate = false);
 		void InsertAliasBarrier(D_GRAPHICS_UTILS::GpuResource& Before, D_GRAPHICS_UTILS::GpuResource& After, bool FlushImmediate = false);
 		inline void FlushResourceBarriers(void);
@@ -188,6 +191,8 @@ namespace Darius::Graphics
 
 		D_GRAPHICS_MEMORY::LinearAllocator m_CpuLinearAllocator;
 		D_GRAPHICS_MEMORY::LinearAllocator m_GpuLinearAllocator;
+
+		D3DX12Residency::ResidencySet* mResidencySet;
 
 		std::wstring m_ID;
 		void SetID(const std::wstring& ID) { m_ID = ID; }

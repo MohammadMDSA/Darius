@@ -24,6 +24,8 @@ namespace Darius::Core::Application
 	void							_AppQuitting();
 	void							_NewAudioDeviceConnected();
 
+	void							RequestMinimize();
+
 	class GameProject
 	{
 	public:

@@ -31,10 +31,13 @@ add_executable(${GAME_PROJECT} WIN32
     ${SRC_FILES}
     pch.hpp)
 
-    
-if ((${CMAKE_VERSION} VERSION_GREATER_EQUAL "3.16") AND (NOT MINGW))
-    target_precompile_headers(${GAME_PROJECT} PRIVATE pch.hpp )
-endif()
+if(${EDITOR_BUILD})
+    if ((${CMAKE_VERSION} VERSION_GREATER_EQUAL "3.16") AND (NOT MINGW))
+        target_precompile_headers(${GAME_PROJECT} PRIVATE pch.hpp )
+    endif()
+else(${EDITOR_BUILD})
+endif(${EDITOR_BUILD})
+
 
 target_include_directories(${GAME_PROJECT}
                 PUBLIC

@@ -38,7 +38,7 @@ namespace Darius::Graphics::Utils::Buffers
 
 	void Texture::Create2D(DirectX::ScratchImage const& image, DirectX::TexMetadata const& meta, DXGI_FORMAT format)
 	{
-		D_ASSERT(meta.depth == 1, "2D Texture does not support depth > 1");
+		D_ASSERT_M(meta.depth == 1, "2D Texture does not support depth > 1");
 		D_ASSERT(meta.dimension == DirectX::TEX_DIMENSION_TEXTURE2D);
 
 		Destroy();
@@ -57,16 +57,16 @@ namespace Darius::Graphics::Utils::Buffers
 
 		D3D12ResourceDesc texDesc = {};
 		texDesc.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
-		texDesc.Width = mMetaData.Width;
-		texDesc.Height = mMetaData.Height;
-		texDesc.DepthOrArraySize = mMetaData.ArraySize;
-		texDesc.MipLevels = mMetaData.MipLevels;
+		texDesc.Width = (UINT64)mMetaData.Width;
+		texDesc.Height = (UINT)mMetaData.Height;
+		texDesc.DepthOrArraySize = (UINT16)mMetaData.ArraySize;
+		texDesc.MipLevels = (UINT16)mMetaData.MipLevels;
 		texDesc.Format = mMetaData.Format;
-		texDesc.SampleDesc.Count = 1;
-		texDesc.SampleDesc.Quality = 0;
+		texDesc.SampleDesc.Count = 1u;
+		texDesc.SampleDesc.Quality = 0u;
 		texDesc.Layout = D3D12_TEXTURE_LAYOUT_UNKNOWN;
 		texDesc.Flags = D3D12_RESOURCE_FLAG_NONE;
-		texDesc.Alignment = 0;
+		texDesc.Alignment = 0ull;
 		texDesc.ReservedResource = false;
 
 		D3D12_HEAP_PROPERTIES HeapProps;
@@ -80,7 +80,7 @@ namespace Darius::Graphics::Utils::Buffers
 
 		GetResource()->SetName(L"Texture");
 
-		size_t subResCount = mMetaData.ArraySize * mMetaData.MipLevels;
+		UINT subResCount = (UINT)(mMetaData.ArraySize * mMetaData.MipLevels);
 		D3D12_SUBRESOURCE_DATA* subData = new D3D12_SUBRESOURCE_DATA[subResCount];
 
 		int index = 0;
@@ -110,7 +110,7 @@ namespace Darius::Graphics::Utils::Buffers
 		if(meta.arraySize > 1)
 		{
 			srv.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
-			srv.Texture2D.MipLevels = meta.mipLevels;
+			srv.Texture2D.MipLevels = (UINT)meta.mipLevels;
 			srv.Texture2D.MostDetailedMip = 0;
 			srv.Texture2D.PlaneSlice = 0;
 			srv.Texture2D.ResourceMinLODClamp = 0.f;
@@ -118,7 +118,7 @@ namespace Darius::Graphics::Utils::Buffers
 		else
 		{
 			srv.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2DARRAY;
-			srv.Texture2DArray.ArraySize = meta.arraySize;
+			srv.Texture2DArray.ArraySize = (UINT)meta.arraySize;
 			srv.Texture2DArray.FirstArraySlice = 0;
 			srv.Texture2DArray.MipLevels = (!meta.mipLevels) ? -1 : texDesc.MipLevels;
 			srv.Texture2DArray.MostDetailedMip = 0;
@@ -138,13 +138,13 @@ namespace Darius::Graphics::Utils::Buffers
 
 		D3D12ResourceDesc texDesc = {};
 		texDesc.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
-		texDesc.Width = meta.width;
-		texDesc.Height = meta.height;
-		texDesc.DepthOrArraySize = meta.arraySize;
-		texDesc.MipLevels = meta.mipLevels;
+		texDesc.Width = (UINT64)meta.width;
+		texDesc.Height = (UINT)meta.height;
+		texDesc.DepthOrArraySize = (UINT16)meta.arraySize;
+		texDesc.MipLevels = (UINT16)meta.mipLevels;
 		texDesc.Format = format;
-		texDesc.SampleDesc.Count = 1;
-		texDesc.SampleDesc.Quality = 0;
+		texDesc.SampleDesc.Count = 1u;
+		texDesc.SampleDesc.Quality = 0ull;
 		texDesc.Layout = D3D12_TEXTURE_LAYOUT_UNKNOWN;
 		texDesc.Flags = D3D12_RESOURCE_FLAG_NONE;
 		texDesc.ReservedResource = false;
@@ -160,7 +160,7 @@ namespace Darius::Graphics::Utils::Buffers
 
 		GetResource()->SetName(L"Texture");
 
-		size_t subResCount = meta.arraySize * meta.mipLevels;
+		UINT subResCount = (UINT)(meta.arraySize * meta.mipLevels);
 		D3D12_SUBRESOURCE_DATA* subData = new D3D12_SUBRESOURCE_DATA[subResCount];
 
 		int index = 0;
@@ -192,7 +192,7 @@ namespace Darius::Graphics::Utils::Buffers
 			srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURECUBEARRAY;
 			srvDesc.TextureCubeArray.MipLevels = (!meta.mipLevels) ? -1 : texDesc.MipLevels;
 			srvDesc.TextureCubeArray.MostDetailedMip = 0;
-			srvDesc.TextureCubeArray.NumCubes = meta.arraySize / 6;
+			srvDesc.TextureCubeArray.NumCubes = (UINT)meta.arraySize / 6;
 			srvDesc.TextureCubeArray.ResourceMinLODClamp = 0.f;
 		}
 		else

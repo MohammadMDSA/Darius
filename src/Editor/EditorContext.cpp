@@ -8,6 +8,7 @@
 #include "Simulation.hpp"
 
 #include <Core/Serialization/Copyable.hpp>
+#include <Core/MultiThreading/SpinLock.hpp>
 #include <Engine/EngineContext.hpp>
 #include <Graphics/GraphicsUtils/Profiling/Profiling.hpp>
 #include <ResourceManager/ResourceLoader.hpp>
@@ -41,16 +42,21 @@ namespace Darius::Editor::Context
 
 		D_GUI_RENDERER::Initialize();
 
+		D_CORE_THREADING::SpinLock lock;
 		auto directoryVisitProgress = new D_RESOURCE::DirectoryVisitProgress();
-		directoryVisitProgress->OnFinish = []()
+		directoryVisitProgress->OnFinish = [&lock]()
 			{
 				D_WORLD::LoadPrefabs();
+				lock.Unlock();
 			};
 		directoryVisitProgress->Deletable.store(true);
 		D_RESOURCE_LOADER::VisitSubdirectory(D_ENGINE_CONTEXT::GetAssetsPath(), true, directoryVisitProgress);
 
 		D_THUMBNAIL::Initialize();
+		lock.Lock();
+
 		D_GUI_MANAGER::Initialize(wind);
+
 
 		// Initializing the simulator
 		D_SIMULATE::Initialize();
@@ -91,7 +97,7 @@ namespace Darius::Editor::Context
 	{
 		if (Clipboard && !Clipboard->IsCopyableValid())
 			Clipboard = nullptr;
-
+		
 		return Clipboard != nullptr;
 	}
 
@@ -105,7 +111,7 @@ namespace Darius::Editor::Context
 	void GetClipboardJson(bool maintainContext, D_SERIALIZATION::Json& result)
 	{
 		if (VerifyClipboard())
-		{
+	{
 			Clipboard->Copy(maintainContext, result);
 		}
 		else

@@ -29,12 +29,10 @@ namespace Darius::Editor::Gui::Windows
 
 	SceneGraphWindow::SceneGraphWindow(D_SERIALIZATION::Json& config) :
 		Window(config)
-	{
-	}
+	{ }
 
 	void SceneGraphWindow::Update(float)
-	{
-	}
+	{ }
 
 	void SceneGraphWindow::DrawGUI()
 	{
@@ -61,18 +59,18 @@ namespace Darius::Editor::Gui::Windows
 		bool abort = false;
 		static ImGuiListClipper clipper;
 		clipper.Begin((int)children.size());
-		while (clipper.Step())
+		while(clipper.Step())
 		{
-			for (int idx = clipper.DisplayStart; idx < clipper.DisplayEnd; idx++)
+			for(int idx = clipper.DisplayStart; idx < clipper.DisplayEnd; idx++)
 			{
 
-				if (!abort)
+				if(!abort)
 					DrawObject(children[idx], selectedObj, abort);
 			}
 		}
 		clipper.End();
 
-		if (!ImGui::IsAnyItemHovered() && mHovered && ImGui::IsMouseClicked(ImGuiMouseButton_Left))
+		if(!ImGui::IsAnyItemHovered() && mHovered && ImGui::IsMouseClicked(ImGuiMouseButton_Left))
 		{
 			D_EDITOR_CONTEXT::SetSelectedGameObject(nullptr);
 		}
@@ -84,17 +82,17 @@ namespace Darius::Editor::Gui::Windows
 		ImGuiTreeNodeFlags baseFlag = ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_SpanAvailWidth | ImGuiTreeNodeFlags_FramePadding;
 
 		auto childrenCount = go->CountChildren();
-		if (!childrenCount)
+		if(!childrenCount)
 			baseFlag |= ImGuiTreeNodeFlags_Leaf;
 
 		auto selected = go == selectedObj;
-		if (selected)
+		if(selected)
 			baseFlag |= ImGuiTreeNodeFlags_Selected;
 
 		auto objName = (go->GetPrefab().is_nil() ? ICON_FA_OBJECT_UNGROUP : ICON_FA_BOX) + std::string(std::string(" ") + std::string(go->GetName()));
 		auto nodeOpen = ImGui::TreeNodeEx((void*)(go), baseFlag, objName.c_str());
 
-		if (ImGui::BeginPopupContextItem())
+		if(ImGui::BeginPopupContextItem())
 		{
 			ImGui::Text("Game Object");
 			ImGui::Separator();
@@ -115,20 +113,20 @@ namespace Darius::Editor::Gui::Windows
 					ImGui::EndDisabled();
 			}
 
-			if (ImGui::MenuItem(ICON_FA_TRASH "  Delete"))
+			if(ImGui::MenuItem(ICON_FA_TRASH "  Delete"))
 			{
-				if (D_SIMULATE::IsSimulating())
+				if(D_SIMULATE::IsSimulating())
 					D_WORLD::DeleteGameObject(go);
 				else
 					D_WORLD::DeleteGameObjectImmediately(go);
 
-				if (selected)
+				if(selected)
 					D_EDITOR_CONTEXT::SetSelectedGameObject(nullptr);
 				ImGui::EndPopup();
 				ImGui::TreePop();
 				return;
 			}
-			else if (ImGui::MenuItem(ICON_FA_COPY "  Copy"))
+			else if(ImGui::MenuItem(ICON_FA_COPY "  Copy"))
 			{
 				D_EDITOR_CONTEXT::SetClipboard(go);
 			}
@@ -136,24 +134,27 @@ namespace Darius::Editor::Gui::Windows
 			{
 				bool pasteEnable = D_EDITOR_CONTEXT::IsGameObjectInClipboard();
 
-				if (!pasteEnable)
+				if(!pasteEnable)
 					ImGui::BeginDisabled();
-				if (ImGui::Selectable(ICON_FA_PASTE "  Paste"))
+				if(ImGui::Selectable(ICON_FA_PASTE "  Paste"))
 				{
-					if (D_EDITOR_CONTEXT::IsGameObjectInClipboard())
+					if(D_EDITOR_CONTEXT::IsGameObjectInClipboard())
 					{
 						GameObject* pastedGo;
 						D_SERIALIZATION::Json goJson;
 						D_EDITOR_CONTEXT::GetClipboardJson(true, goJson);
-						D_WORLD::LoadGameObject(goJson, &pastedGo, true);
-						pastedGo->SetParent(go, GameObject::AttachmentType::KeepLocal);
+						if(D_VERIFY(goJson["Type"].get<std::string>() == "GameObject"))
+						{
+							D_WORLD::LoadGameObject(goJson["Data"], &pastedGo, true);
+							pastedGo->SetParent(go, GameObject::AttachmentType::KeepLocal);
+						}
 					}
 				}
-				if (!pasteEnable)
+				if(!pasteEnable)
 					ImGui::EndDisabled();
 			}
 
-			if (ImGui::Selectable(ICON_FA_WRENCH "  Create Prefab"))
+			if(ImGui::Selectable(ICON_FA_WRENCH "  Create Prefab"))
 			{
 				ImGuiFileDialog::Instance()->OpenDialog("SavePrefab", "Create Prefab", ".prefab", D_ENGINE_CONTEXT::GetAssetsPath().string(), 1, go);
 			}
@@ -163,11 +164,11 @@ namespace Darius::Editor::Gui::Windows
 		}
 
 		// Handle Selecting it
-		if (ImGui::IsItemHovered() && ImGui::IsMouseReleased(ImGuiMouseButton_Left) && !selected)
+		if(ImGui::IsItemHovered() && ImGui::IsMouseReleased(ImGuiMouseButton_Left) && !selected)
 			D_EDITOR_CONTEXT::SetSelectedGameObject(go);
 
 		// Handle Drag Drop Source
-		if (ImGui::BeginDragDropSource(ImGuiDragDropFlags_AcceptBeforeDelivery))
+		if(ImGui::BeginDragDropSource(ImGuiDragDropFlags_AcceptBeforeDelivery))
 		{
 			D_SCENE::GameObjectDragDropPayloadContent payload;
 			payload.GameObjectRef = go;
@@ -177,17 +178,17 @@ namespace Darius::Editor::Gui::Windows
 		}
 
 		// Handle the addition of child by dragging
-		if (ImGui::BeginDragDropTarget())
+		if(ImGui::BeginDragDropTarget())
 		{
 			ImGuiPayload const* imPayload = ImGui::GetDragDropPayload();
 			auto payload = reinterpret_cast<D_UTILS::BaseDragDropPayloadContent const*>(imPayload->Data);
 
-			if (payload && payload->PayloadType != D_UTILS::BaseDragDropPayloadContent::Type::Invalid)
+			if(payload && payload->PayloadType != D_UTILS::BaseDragDropPayloadContent::Type::Invalid)
 			{
 
-				if (auto goPayload = dynamic_cast<D_SCENE::GameObjectDragDropPayloadContent const*>(payload))
+				if(auto goPayload = dynamic_cast<D_SCENE::GameObjectDragDropPayloadContent const*>(payload))
 				{
-					if (goPayload->GameObjectRef->CanAttachTo(go) && goPayload->GameObjectRef->IsValid() && ImGui::AcceptDragDropPayload(D_PAYLOAD_TYPE_GAMEOBJECT))
+					if(goPayload->GameObjectRef->CanAttachTo(go) && goPayload->GameObjectRef->IsValid() && ImGui::AcceptDragDropPayload(D_PAYLOAD_TYPE_GAMEOBJECT))
 					{
 
 						goPayload->GameObjectRef->SetParent(go, GameObject::AttachmentType::KeepWorld);
@@ -196,13 +197,13 @@ namespace Darius::Editor::Gui::Windows
 				}
 
 				// In case it is a prefab resource
-				else if (payload->IsCompatible(D_UTILS::BaseDragDropPayloadContent::Type::Resource, D_SCENE::PrefabResource::GetResourceTypeNameStatic()))
+				else if(payload->IsCompatible(D_UTILS::BaseDragDropPayloadContent::Type::Resource, D_SCENE::PrefabResource::GetResourceTypeNameStatic()))
 				{
 					auto payloadData = reinterpret_cast<D_RESOURCE::ResourceDragDropPayloadContent const*>(imPayload->Data);
 
 					auto prefabResource = D_RESOURCE::GetResourceSync<PrefabResource>(payloadData->Handle, true);
 
-					if (prefabResource.IsValid() && prefabResource->GetPrefabGameObject() && prefabResource->GetPrefabGameObject()->IsValid() && ImGui::AcceptDragDropPayload(D_PAYLOAD_TYPE_RESOURCE))
+					if(prefabResource.IsValid() && prefabResource->GetPrefabGameObject() && prefabResource->GetPrefabGameObject()->IsValid() && ImGui::AcceptDragDropPayload(D_PAYLOAD_TYPE_RESOURCE))
 					{
 						auto newGo = D_WORLD::InstantiateGameObject(prefabResource->GetPrefabGameObject(), true);
 						newGo->SetParent(go, GameObject::AttachmentType::KeepLocal);
@@ -212,13 +213,13 @@ namespace Darius::Editor::Gui::Windows
 				}
 
 				// In case it is a fbx prefab resource
-				else if (payload->IsCompatible(D_UTILS::BaseDragDropPayloadContent::Type::Resource, D_FBX::FBXPrefabResource::GetResourceTypeNameStatic()))
+				else if(payload->IsCompatible(D_UTILS::BaseDragDropPayloadContent::Type::Resource, D_FBX::FBXPrefabResource::GetResourceTypeNameStatic()))
 				{
 					auto payloadData = reinterpret_cast<D_RESOURCE::ResourceDragDropPayloadContent const*>(imPayload->Data);
 
 					auto prefabResource = D_RESOURCE::GetResourceSync<D_FBX::FBXPrefabResource>(payloadData->Handle, true);
 
-					if (prefabResource.IsValid() && prefabResource->GetPrefabGameObject() && prefabResource->GetPrefabGameObject()->IsValid() && ImGui::AcceptDragDropPayload(D_PAYLOAD_TYPE_RESOURCE))
+					if(prefabResource.IsValid() && prefabResource->GetPrefabGameObject() && prefabResource->GetPrefabGameObject()->IsValid() && ImGui::AcceptDragDropPayload(D_PAYLOAD_TYPE_RESOURCE))
 					{
 						auto newGo = D_WORLD::InstantiateGameObject(prefabResource->GetPrefabGameObject(), true);
 						newGo->SetParent(go, GameObject::AttachmentType::KeepLocal);
@@ -231,9 +232,9 @@ namespace Darius::Editor::Gui::Windows
 			ImGui::EndDragDropTarget();
 		}
 
-		if (nodeOpen)
+		if(nodeOpen)
 		{
-			if (!abort)
+			if(!abort)
 			{
 				auto children = DVector<GameObject*>();
 				children.reserve(go->CountChildren());
@@ -245,9 +246,9 @@ namespace Darius::Editor::Gui::Windows
 					{
 						return std::strcmp(a->GetName().c_str(), b->GetName().c_str()) < 0;
 					});
-				for (auto child : children)
+				for(auto child : children)
 				{
-					if (!abort)
+					if(!abort)
 						DrawObject(child, selectedObj, abort);
 				}
 			}

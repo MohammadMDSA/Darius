@@ -81,7 +81,7 @@ namespace Darius::Graphics::Utils::Buffers
     }
 
     // Sub-Allocate a buffer out of a pre-allocated heap.  If initial data is provided, it will be copied into the buffer using the default command context.
-    void GpuBuffer::CreatePlaced(const std::wstring& name, ID3D12Heap* pBackingHeap, uint32_t HeapOffset, uint32_t NumElements, uint32_t ElementSize,
+    void GpuBuffer::CreatePlaced(const std::wstring& name, D3D12Heap* pBackingHeap, uint32_t HeapOffset, uint32_t NumElements, uint32_t ElementSize,
         const void* initialData)
     {
         mElementCount = NumElements;

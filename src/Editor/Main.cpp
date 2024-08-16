@@ -2,7 +2,7 @@
 // Main.cpp
 //
 
-#include "pch.hpp"
+#include "Editor/pch.hpp"
 #include "Editor.hpp"
 
 #include <Core/Input.hpp>

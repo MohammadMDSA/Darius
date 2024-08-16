@@ -12,6 +12,7 @@ namespace Darius::Graphics::Device
 
 	ID3D12Device*								GetDevice();
 	ID3D12Device5*								GetDevice5();
+	D3DX12Residency::ResidencyManager&			GetResidencyManager();
 	UINT										GetCurrentFrameResourceIndex();
 
 	UINT										GetBackBufferCount();
