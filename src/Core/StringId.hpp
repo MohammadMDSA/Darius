@@ -10,12 +10,39 @@
 
 namespace Darius::Core
 {
-	using StringId = foonathan::string_id::string_id;
-	using StringIdDatabase = foonathan::string_id::default_database;
 	using StringIdHashType = foonathan::string_id::hash_type;
 
-	extern StringIdDatabase DefaultStringIdDatabase;
+	class StringId : public foonathan::string_id::string_id
+	{
+	public:
+		StringId(foonathan::string_id::string_info str = "");
+
+		StringId(foonathan::string_id::string_info str, foonathan::string_id::basic_database& db);
+
+		StringId(foonathan::string_id::string_info str, foonathan::string_id::basic_database& db, foonathan::string_id::basic_database::insert_status& status);
+
+#if _DEBUG
+		std::string RawString;
+#endif // _DEBUG
+
+	};
 }
+
+namespace std
+{
+	/// \brief \c std::hash support for \ref string_id.
+	template <>
+	struct hash<D_CORE::StringId>
+	{
+		typedef D_CORE::StringId argument_type;
+		typedef size_t result_type;
+
+		result_type operator()(const argument_type& arg) const FOONATHAN_NOEXCEPT
+		{
+			return static_cast<result_type>(arg.hash_code());
+		}
+	};
+} // namspace std
 
 constexpr __forceinline foonathan::string_id::hash_type operator ""_Id(char const* str, std::size_t)
 {
@@ -24,5 +51,5 @@ constexpr __forceinline foonathan::string_id::hash_type operator ""_Id(char cons
 
 __forceinline D_CORE::StringId operator ""_SId(char const* str, std::size_t)
 {
-	return D_CORE::StringId(str, D_CORE::DefaultStringIdDatabase);
+	return D_CORE::StringId(str);
 }

@@ -191,7 +191,7 @@ namespace Darius::Scene
 		
 		INLINE void							SetNameId(D_CORE::StringId const& name) { mName = name; }
 		// Call SetNameId instead
-		INLINE void							SetName(std::string str) { SetNameId(D_CORE::StringId(str.c_str(), NameDatabase)); }
+		INLINE void							SetName(std::string str) { SetNameId(D_CORE::StringId(str.c_str())); }
 		INLINE void							SetType(Type type) { mType = type; }
 
 #ifdef _D_EDITOR
@@ -225,8 +225,6 @@ namespace Darius::Scene
 		D_CORE::Signal<void(GameObject*, Darius::Scene::ECS::Components::ComponentBase*)> OnComponentAdd;
 		D_CORE::Signal<void(GameObject*)> OnComponentSetChange;
 		
-		static D_CORE::StringIdDatabase NameDatabase;
-
 	protected:
 		virtual bool Release() override;
 

@@ -29,13 +29,11 @@ namespace Darius::Renderer::Geometry
 
 		struct SkeletonJoint
 		{
-			static D_CORE::StringIdDatabase JointNameDatabase;
-
 			D_MATH::Matrix4			Xform = D_MATH::Matrix4::Identity;
 			D_MATH::Vector3			Rotation = D_MATH::Vector3::Zero;
 			D_MATH::Vector3			Scale = D_MATH::Vector3::One;
 			D_MATH::Matrix4			IBM = D_MATH::Matrix4::Identity;
-			D_CORE::StringId		Name = D_CORE::StringId("", JointNameDatabase);
+			D_CORE::StringId		Name = D_CORE::StringId("");
 
 			D_CONTAINERS::DVector<SkeletonJoint*> Children;
 
@@ -45,7 +43,7 @@ namespace Darius::Renderer::Geometry
 
 			D_MATH_BOUNDS::Aabb		Aabb = D_MATH_BOUNDS::Aabb::Zero;
 
-			void SetName(char const* nameStr) { Name = D_CORE::StringId(nameStr, JointNameDatabase); }
+			void SetName(char const* nameStr) { Name = D_CORE::StringId(nameStr); }
 		};
 
 		Mesh() = default;

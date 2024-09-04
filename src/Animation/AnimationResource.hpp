@@ -21,7 +21,7 @@ namespace Darius::Animation
 	public:
 
 		DField(Serialize)
-		D_CORE::StringId							ComponentName = ""_Comp;
+		D_CORE::StringId							ComponentName = ""_SId;
 
 		DField(Serialize)
 		Sequence									AnimationSequence;

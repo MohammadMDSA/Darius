@@ -32,8 +32,6 @@ void type::ComponentLateUpdater(float dt, D_ECS::ECSRegistry& reg) \
 	); \
 }
 
-#define D_H
-
 namespace Darius::Scene::ECS::Components
 {
 	class BehaviourComponent : public ComponentBase

@@ -23,8 +23,10 @@
 #include <Math/VectorMath.hpp>
 #include <Physics/Resources/PhysicsMaterialResource.hpp>
 #include <Physics/Components/BoxColliderComponent.hpp>
+#include <Physics/Components/CapsuleColliderComponent.hpp>
 #include <Physics/Components/SphereColliderComponent.hpp>
 #include <Physics/Components/MeshColliderComponent.hpp>
+#include <Physics/Components/RigidbodyComponent.hpp>
 #include <Graphics/GraphicsUtils/Profiling/Profiling.hpp>
 #include <Renderer/Rasterization/Renderer.hpp>
 #include <Renderer/Resources/MaterialResource.hpp>
@@ -772,6 +774,51 @@ else \
 								});
 
 						});
+				}
+
+				if (ImGui::MenuItem("Counter"))
+				{
+					int countBoxes = 0;
+					int countSpheres = 0;
+					int countCapsules = 0;
+					int countConvexMesh = 0;
+					int countTriMesh = 0;
+					int countRigid = 0;
+
+					D_WORLD::IterateComponents<D_PHYSICS::BoxColliderComponent>([&countBoxes](D_PHYSICS::BoxColliderComponent& comp)
+						{
+							countBoxes++;
+						});
+
+					D_WORLD::IterateComponents<D_PHYSICS::SphereColliderComponent>([&countSpheres](D_PHYSICS::SphereColliderComponent& comp)
+						{
+							countSpheres++;
+						});
+
+					D_WORLD::IterateComponents<D_PHYSICS::CapsuleColliderComponent>([&countCapsules](D_PHYSICS::CapsuleColliderComponent& comp)
+						{
+							countCapsules++;
+						});
+
+					D_WORLD::IterateComponents<D_PHYSICS::MeshColliderComponent>([&countConvexMesh, &countTriMesh](D_PHYSICS::MeshColliderComponent& comp)
+						{
+							if (comp.IsConvex())
+								countConvexMesh++;
+							else
+								countTriMesh++;
+						});
+
+					D_WORLD::IterateComponents<D_PHYSICS::RigidbodyComponent>([&countRigid](D_PHYSICS::RigidbodyComponent& comp)
+						{
+							countRigid++;
+						});
+
+					D_LOG_INFO("Box " << countBoxes);
+					D_LOG_INFO("Sphere " << countSpheres);
+					D_LOG_INFO("Capsule " << countCapsules);
+					D_LOG_INFO("Convex " << countConvexMesh);
+					D_LOG_INFO("Tri " << countTriMesh);
+					D_LOG_INFO("Rigid " << countRigid);
 				}
 
 				if(ImGui::MenuItem("Fix box collider sizes"))

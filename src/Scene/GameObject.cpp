@@ -31,12 +31,11 @@ namespace Darius::Scene
 	D_CONTAINERS::DMap<std::string, GameObject::ComponentAddressNode> GameObject::RegisteredComponents = D_CONTAINERS::DMap<std::string, GameObject::ComponentAddressNode>();
 	D_CONTAINERS::DSet<D_ECS::EntityId> GameObject::RegisteredBehaviours = D_CONTAINERS::DSet<D_ECS::EntityId>();
 	D_CONTAINERS::DSet<D_CORE::StringId> GameObject::RegisteredComponentNames = D_CONTAINERS::DSet<D_CORE::StringId>();
-	D_CORE::StringIdDatabase GameObject::NameDatabase;
 
 	GameObject::GameObject(D_CORE::Uuid const& uuid, D_ECS::Entity entity, bool inScene) :
 		mActive(true),
 		mType(Type::Movable),
-		mName("GameObject", NameDatabase),
+		mName("GameObject"),
 		mUuid(uuid),
 		mEntity(entity),
 		mStarted(false),
@@ -88,7 +87,7 @@ namespace Darius::Scene
 			memset(name, 0, 1000 * sizeof(char));
 			std::strcpy(name, mName.string());
 			if(ImGui::InputText("##ObjectName", name, 30))
-				mName = StringId(name, NameDatabase);
+				mName = StringId(name);
 		}
 
 		bool active = mActive;

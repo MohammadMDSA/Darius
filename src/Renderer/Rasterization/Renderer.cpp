@@ -1058,7 +1058,7 @@ namespace Darius::Renderer::Rasterization
 				}
 
 				// Main render
-				if(ri.PsoFlags & RenderItem::SkipVertexIndex)
+				if (ri.PsoFlags & RenderItem::SkipVertexIndex)
 					context.DrawInstanced(ri.IndexCount, 1, ri.BaseVertexLocation, 0);
 				else
 					context.DrawIndexedInstanced(ri.IndexCount, 1, ri.StartIndexLocation, ri.BaseVertexLocation, 0);

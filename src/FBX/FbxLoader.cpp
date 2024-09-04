@@ -1310,7 +1310,7 @@ namespace Darius::Fbx
 					continue;
 
 				jointVec[index] = skeleton;
-				skeletonNameIndexMap[D_CORE::StringId(node->GetName(), D_RENDERER_GEOMETRY::Mesh::SkeletonJoint::JointNameDatabase)] = index;
+				skeletonNameIndexMap[D_CORE::StringId(node->GetName())] = index;
 
 				index++;
 			}

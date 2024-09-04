@@ -67,7 +67,7 @@ namespace Darius::Editor::Gui::Components
 
 	D_ANIMATION::Track* BasePropertyCurveEdit::GetTrack() const
 	{
-		D_CORE::StringId name(mPropertyRef.get_name().data(), AnimDataStringDatabase);
+		D_CORE::StringId name(mPropertyRef.get_name().data());
 		auto result = mSequenceComp->GetSequence()->GetTrack(name);
 		return const_cast<Track*>(result);
 	}

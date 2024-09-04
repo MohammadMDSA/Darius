@@ -46,15 +46,21 @@ public: \
 public: \
 	friend class Factory; \
 	virtual INLINE rttr::type GetResourceReflectionType() const override { return rttr::type::get<T>(); } \
-	static INLINE D_RESOURCE::ResourceType GetResourceType() { return D_RESOURCE::Resource::GetResourceTypeFromName(T::NameId); } \
-	INLINE D_RESOURCE::ResourceType GetType() const override { return D_RESOURCE::Resource::GetResourceTypeFromName(T::NameId); } \
-	virtual INLINE D_CORE::StringId GetResourceTypeName() const override { return T::NameId; } \
-	static INLINE D_CORE::StringId GetResourceTypeNameStatic() { return T::NameId; } \
+	static INLINE D_RESOURCE::ResourceType GetResourceType() { return D_RESOURCE::Resource::GetResourceTypeFromName(*T::NameId); } \
+	INLINE D_RESOURCE::ResourceType GetType() const override { return D_RESOURCE::Resource::GetResourceTypeFromName(*T::NameId); } \
+	virtual INLINE D_CORE::StringId GetResourceTypeName() const override { return *T::NameId; } \
+	static INLINE D_CORE::StringId GetResourceTypeNameStatic() { return *T::NameId; } \
 	static void Register() \
 	{ \
-		T::NameId = D_CORE::StringId(ResT, D_RESOURCE::Resource::NameDatabase); \
-		D_ASSERT_M(!D_RESOURCE::Resource::GetResourceTypeFromName(NameId), "Resource " #T " is already registered."); \
-		auto resType = D_RESOURCE::Resource::RegisterResourceTypeName<T, T::T##Factory>(NameId); \
+		if(rttr::type::get<T>() == rttr::type::get<D_RESOURCE::Resource>()) \
+		{ \
+			Resource::ResourceTypeMap[0] = ""_SId; \
+			Resource::ResourceTypeMapR[""_SId] = 0; \
+			Resource::ResourceFactories[0] = nullptr; \
+		}\
+		T::NameId = std::make_unique<D_CORE::StringId>(D_CORE::StringId(ResT)); \
+		D_ASSERT_M(!D_RESOURCE::Resource::GetResourceTypeFromName(*NameId), "Resource " #T " is already registered."); \
+		auto resType = D_RESOURCE::Resource::RegisterResourceTypeName<T, T::T##Factory>(*NameId); \
 		D_RESOURCE::Resource::AddTypeContainer(resType); \
 		RegisterConstructionValidation(resType, CanConstructFrom); \
 		\
@@ -67,11 +73,11 @@ public: \
 	} \
 	\
 	private: \
-	static D_CORE::StringId NameId;
+	static std::unique_ptr<D_CORE::StringId> NameId;
 
 // TODO: Better resource allocation
 #define D_CH_RESOURCE_DEF(T) \
-D_CORE::StringId T::NameId; \
+std::unique_ptr<D_CORE::StringId> T::NameId; \
 std::shared_ptr<D_RESOURCE::Resource> T::T##Factory::Create(D_CORE::Uuid uuid, std::wstring const& path, std::wstring const& name, D_RESOURCE::DResourceId id, D_RESOURCE::Resource* parent, bool isDefault) const { return std::shared_ptr<D_RESOURCE::Resource>(new T(uuid, path, name, id, parent, isDefault)); } \
 
 #if _D_EDITOR
@@ -411,8 +417,6 @@ namespace Darius::ResourceManager
 		INLINE void					MakeDiskClean() { mDirtyDisk = false; }
 		INLINE void					MakeGpuClean() { mDirtyGPU.store(GPUDirtyState::Clean); }
 
-		static D_CORE::StringIdDatabase NameDatabase;
-
 		friend class DResourceManager;
 		friend class ResourceLoader;
 
@@ -476,11 +480,6 @@ namespace Darius::ResourceManager
 	}
 #endif
 
-}
-
-INLINE D_CORE::StringId operator ""_Res(char const* str, std::size_t)
-{
-	return D_CORE::StringId(str, D_RESOURCE::Resource::NameDatabase);
 }
 
 File_Resource_GENERATED

@@ -44,11 +44,11 @@ namespace Darius::Editor::Context
 
 		D_CORE_THREADING::SpinLock lock;
 		auto directoryVisitProgress = new D_RESOURCE::DirectoryVisitProgress();
-		directoryVisitProgress->OnFinish = [&lock]()
+		/*directoryVisitProgress->OnFinish = [&lock]()
 			{
 				D_WORLD::LoadPrefabs();
 				lock.Unlock();
-			};
+			};*/
 		directoryVisitProgress->Deletable.store(true);
 		D_RESOURCE_LOADER::VisitSubdirectory(D_ENGINE_CONTEXT::GetAssetsPath(), true, directoryVisitProgress);
 

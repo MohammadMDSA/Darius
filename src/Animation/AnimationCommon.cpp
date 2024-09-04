@@ -8,8 +8,6 @@ using namespace D_SERIALIZATION;
 
 namespace Darius::Animation
 {
-	D_CORE::StringIdDatabase AnimDataStringDatabase;
-
 	Track::Track() :
 		mKeyframes(),
 		mMode(InterpolationMode::Linear),
@@ -128,7 +126,7 @@ namespace Darius::Animation
 
 	UINT Sequence::AddTrack(std::string const& name, Track const& track)
 	{
-		return AddTrack(D_CORE::StringId(name.c_str(), AnimDataStringDatabase), track);
+		return AddTrack(D_CORE::StringId(name.c_str()), track);
 	}
 
 	UINT Sequence::AddTrack(D_CORE::StringId const& name, Track const& track)

@@ -78,7 +78,9 @@ namespace Darius::Audio
 		eflags |= AudioEngine_Debug;
 #endif
 
-		AudioEngineInst = std::make_unique<DirectX::AudioEngine>(eflags, nullptr, GetAvailablePreferredDeviceIfAvailable().c_str());
+		auto device = GetAvailablePreferredDeviceIfAvailable();
+		auto deviceStr = device.empty() ? nullptr : device.c_str();
+		AudioEngineInst = std::make_unique<DirectX::AudioEngine>(eflags, nullptr, deviceStr);
 
 		AppSuspendSignalConnection = D_APP::SubscribeOnAppDeactivated(SuspendAudioEngine);
 		AppResumeSignalConnection = D_APP::SubscribeOnAppActivated(ResumeAudioEngine);
@@ -179,7 +181,9 @@ namespace Darius::Audio
 		if(ShouldReset.load())
 		{
 			ShouldReset.store(false);
-			if(!AudioEngineInst->Reset(nullptr, GetAvailablePreferredDeviceIfAvailable().c_str()))
+			auto device = GetAvailablePreferredDeviceIfAvailable();
+			auto deviceStr = device.empty() ? nullptr : device.c_str();
+			if (!AudioEngineInst->Reset(nullptr, deviceStr))
 			{
 				D_LOG_ERROR("Could not reset the audio engine due to unavailability of any audio devices.");
 			}

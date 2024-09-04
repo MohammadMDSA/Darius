@@ -19,8 +19,6 @@
 
 namespace Darius::Animation
 {
-    extern D_CORE::StringIdDatabase AnimDataStringDatabase;
-
     struct DStruct(Serialize) Keyframe
     {
 

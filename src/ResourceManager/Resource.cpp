@@ -15,22 +15,11 @@ namespace Darius::ResourceManager
 	D_CORE::Signal<void(D_FILE::Path const&, Darius::ResourceManager::ResourceHandle const&, bool selected)> Resource::RequestPathChange;
 #endif // _D_EDITOR
 
-	D_CORE::StringIdDatabase Resource::NameDatabase;
+	DUnorderedMap<ResourceType, D_CORE::StringId> Resource::ResourceTypeMap;
 
-	DUnorderedMap<ResourceType, D_CORE::StringId> Resource::ResourceTypeMap =
-	{
-		{ 0, ""_Res }
-	};
+	DUnorderedMap<D_CORE::StringId, ResourceType> Resource::ResourceTypeMapR;
 
-	DUnorderedMap<D_CORE::StringId, ResourceType> Resource::ResourceTypeMapR =
-	{
-		{ ""_Res, 0}
-	};
-
-	DUnorderedMap<ResourceType, Resource::ResourceFactory*> Resource::ResourceFactories =
-	{
-		{ 0, nullptr }
-	};
+	DUnorderedMap<ResourceType, Resource::ResourceFactory*> Resource::ResourceFactories;
 
 	DUnorderedMap<std::string, ResourceType> Resource::ResourceExtensionMap = {};
 

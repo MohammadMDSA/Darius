@@ -49,6 +49,9 @@ namespace Darius::ResourceManager
 	{
 		auto resource = _ResourceManager->GetRawResource(uuid);
 
+		if (!resource)
+			return nullptr;
+
 		// Load resource if not loaded yet
 		if(syncLoad && !resource->IsLoaded())
 			D_RESOURCE_LOADER::LoadResourceSync(resource);

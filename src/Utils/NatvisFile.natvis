@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AutoVisualizer xmlns="http://schemas.microsoft.com/vstudio/debugger/natvis/2010">
+	<Type Name="Darius::Scene::GameObject">
+		<DisplayString>{{Name = {mName.RawString} }}</DisplayString>
+	</Type>
+	<Type Name="Darius::Core::StringId">
+		<DisplayString>{{String = {RawString} }}</DisplayString>
+	</Type>
+	<Type Name="boost::uuids::uuid">
+		<DisplayString>{*(GUID*)&amp;data}</DisplayString>
+	</Type>
+</AutoVisualizer>

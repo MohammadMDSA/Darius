@@ -38,7 +38,7 @@ namespace Darius::Animation
 					},
 					[](ComponentAnimationData& data, D_SERIALIZATION::Json const& j)
 					{
-						data.ComponentName = D_CORE::StringId(j["ComponentName"].get<std::string>().c_str(), D_ECS_COMP::NameDatabase);
+						data.ComponentName = D_CORE::StringId(j["ComponentName"].get<std::string>().c_str());
 						D_SERIALIZATION::Deserialize(data.AnimationSequence, j["AnimationSequence"]);
 					}
 				);

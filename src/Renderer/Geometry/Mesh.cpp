@@ -7,8 +7,6 @@
 
 namespace Darius::Renderer::Geometry
 {
-	D_CORE::StringIdDatabase Mesh::SkeletonJoint::JointNameDatabase;
-
 	Mesh::Mesh(Mesh const& other, std::wstring const& name, bool createVertexBuffer, bool perDrawIndexBuffer) :
 		Name(name),
 		mDraw(other.mDraw),

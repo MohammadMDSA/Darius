@@ -130,7 +130,7 @@ namespace Darius::Editor::Gui::Components
 	{
 
 		auto& sequenceItem = mPropertyCurves[index];
-		D_CORE::StringId name(sequenceItem.Curve->GetPropertyRef().get_name().data(), AnimDataStringDatabase);
+		D_CORE::StringId name(sequenceItem.Curve->GetPropertyRef().get_name().data());
 		bool removed = const_cast<Sequence*>(GetSequence())->RemoveTrack(name);
 
 		mPropertyCurves.erase(mPropertyCurves.begin() + index);
@@ -268,7 +268,7 @@ namespace Darius::Editor::Gui::Components
 		for (int propIndex = 0; propIndex < mAllProperties.size(); propIndex++)
 		{
 			auto const& prop = mAllProperties[propIndex];
-			auto propName = D_CORE::StringId(prop.get_name().data(), AnimDataStringDatabase);
+			auto propName = D_CORE::StringId(prop.get_name().data());
 			auto track = const_cast<Track*>(sequence->GetTrack(propName));
 
 			if (!track)

@@ -2,7 +2,7 @@
 
 #include <Graphics/GraphicsUtils/Buffers/UploadBuffer.hpp>
 #include <Graphics/GraphicsUtils/Buffers/GpuBuffer.hpp>
-#include <Graphics/GraphicsUtils/Shaders.hpp>
+#include <Graphics/GraphicsUtils/Shader/Shaders.hpp>
 
 #ifndef D_RENDERER_RT_UTILS
 #define D_RENDERER_RT_UTILS Darius::Renderer::RayTracing::Utils
