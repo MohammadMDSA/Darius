@@ -87,6 +87,7 @@ namespace Darius::Graphics::Device
         D_GRAPHICS_BUFFERS::ColorBuffer& GetRTBuffer() noexcept                 { return m_swapChainBuffer[m_backBufferIndex]; }
         D_GRAPHICS_BUFFERS::DepthBuffer& GetDepthStencilBuffer() noexcept       { return m_depthStencil; }
         INLINE D3DX12Residency::ResidencyManager& GetResidencyManager() { return *mResidencyManager.get(); }
+        CD3DX12FeatureSupport const& GetFeatureSupport() const noexcept         { return m_featureSupport; }
 
         inline bool SupportsTypedUAVLoadSupport_R11G11B10_FLOAT() const { return m_TypedUAVLoadSupport_R11G11B10_FLOAT; };
         inline bool SupportsTypedUAVLoadSupport_R16G16B16A16_FLOAT() const { return m_TypedUAVLoadSupport_R16G16B16A16_FLOAT; };
@@ -100,6 +101,8 @@ namespace Darius::Graphics::Device
         UINT                                                m_backBufferIndex;
         UINT                                                m_currentResourceIndex;
         std::array<UINT64, gNumFrameResources>              m_frameResources;
+
+        CD3DX12FeatureSupport                               m_featureSupport;
 
         // Direct3D objects.
         Microsoft::WRL::ComPtr<ID3D12Device>                m_d3dDevice;

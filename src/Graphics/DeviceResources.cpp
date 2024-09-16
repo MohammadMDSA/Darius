@@ -202,6 +202,8 @@ namespace Darius::Graphics::Device
 		}
 #endif
 
+		m_featureSupport.Init(m_d3dDevice.Get());
+
 		// Determine maximum supported feature level for this device
 		static const D3D_FEATURE_LEVEL s_featureLevels[] =
 		{
@@ -219,16 +221,7 @@ namespace Darius::Graphics::Device
 			static_cast<UINT>(std::size(s_featureLevels)), s_featureLevels, D3D_FEATURE_LEVEL_12_2
 		};
 
-		hr = m_d3dDevice->CheckFeatureSupport(D3D12_FEATURE_FEATURE_LEVELS, &featLevels, sizeof(featLevels));
-		if (SUCCEEDED(hr))
-		{
-			m_d3dFeatureLevel = featLevels.MaxSupportedFeatureLevel;
-		}
-		else
-		{
-			m_d3dFeatureLevel = m_d3dMinFeatureLevel;
-		}
-
+		m_d3dFeatureLevel = m_featureSupport.MaxSupportedFeatureLevel();
 
 		// Create a fence for tracking GPU execution progress.
 		ThrowIfFailed(m_d3dDevice->CreateFence(m_frameResources[m_currentResourceIndex], D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(m_fence.ReleaseAndGetAddressOf())));
