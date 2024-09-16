@@ -43,25 +43,28 @@ namespace Darius::Renderer
 	D_CH_RESOURCE_DEF(MaterialResource);
 
 	MaterialResource::MaterialResource(Uuid uuid, std::wstring const& path, std::wstring const& name, DResourceId id, D_RESOURCE::Resource* parent, bool isDefault) :
-		Resource(uuid, path, name, id, parent, isDefault),
+		GenericMaterialResource(uuid, path, name, id, parent, isDefault),
 		mPsoFlags(RenderItem::HasPosition | RenderItem::HasNormal | RenderItem::HasTangent | RenderItem::HasUV0),
-		mCutout(0),
-		mBaseColorTexture(),
-		mNormalTexture(),
-		mMetallicTexture(),
-		mRoughnessTexture(),
-		mEmissiveTexture(),
-		mAmbientOcclusionTexture(),
-		mWorldDisplacementTexture()
+		mCutout(0)
 	{
+		SetTextureCount(TextureType::kNumTextures);
+		SetSamplerCount(TextureType::kNumTextures);
 
-		mBaseColorTexture = D_RESOURCE::GetResourceSync<TextureResource>(D_RENDERER::GetDefaultGraphicsResource(D_RENDERER::DefaultResource::Texture2DWhiteOpaque));
-		mNormalTexture = D_RESOURCE::GetResourceSync<TextureResource>(D_RENDERER::GetDefaultGraphicsResource(D_RENDERER::DefaultResource::Texture2DNormalMap));
-		mMetallicTexture = D_RESOURCE::GetResourceSync<TextureResource>(D_RENDERER::GetDefaultGraphicsResource(D_RENDERER::DefaultResource::Texture2DBlackOpaque));
-		mRoughnessTexture = D_RESOURCE::GetResourceSync<TextureResource>(D_RENDERER::GetDefaultGraphicsResource(D_RENDERER::DefaultResource::Texture2DBlackOpaque));
-		mEmissiveTexture = D_RESOURCE::GetResourceSync<TextureResource>(D_RENDERER::GetDefaultGraphicsResource(D_RENDERER::DefaultResource::Texture2DBlackOpaque));
-		mAmbientOcclusionTexture = D_RESOURCE::GetResourceSync<TextureResource>(D_RENDERER::GetDefaultGraphicsResource(D_RENDERER::DefaultResource::Texture2DWhiteOpaque));
-		mWorldDisplacementTexture = D_RESOURCE::GetResourceSync<TextureResource>(D_RENDERER::GetDefaultGraphicsResource(D_RENDERER::DefaultResource::Texture2DBlackOpaque));
+		SetTextureSlot({ StringId("BaseColorTexture") }, (uint32_t)kBaseColor);
+		SetTextureSlot({ StringId("MetallicTexture") }, (uint32_t)kMetallic);
+		SetTextureSlot({ StringId("RoughnessTexture") }, (uint32_t)kRoughness);
+		SetTextureSlot({ StringId("NormalTexture") }, (uint32_t)kNormal);
+		SetTextureSlot({ StringId("EmissionTexture") }, (uint32_t)kEmissive);
+		SetTextureSlot({ StringId("AmbientOcclusionTexture") }, (uint32_t)kAmbientOcclusion);
+		SetTextureSlot({ StringId("WorldDisplacementTexture") }, (uint32_t)kWorldDisplacement);
+
+		SetSamplerSlot({ StringId("BaseColorSampler") }, (uint32_t)kBaseColor);
+		SetSamplerSlot({ StringId("MetallicSampler") }, (uint32_t)kMetallic);
+		SetSamplerSlot({ StringId("RoughnessSampler") }, (uint32_t)kRoughness);
+		SetSamplerSlot({ StringId("NormalSampler") }, (uint32_t)kNormal);
+		SetSamplerSlot({ StringId("EmissiveSampler") }, (uint32_t)kEmissive);
+		SetSamplerSlot({ StringId("AmbientOcclusionSampler") }, (uint32_t)kAmbientOcclusion);
+		SetSamplerSlot({ StringId("WorldDisplacementSampler") }, (uint32_t)kWorldDisplacement);
 	}
 
 	void MaterialResource::WriteResourceToFile(D_SERIALIZATION::Json& j) const
@@ -83,37 +86,68 @@ namespace Darius::Renderer
 
 		bool usedBaseColorTex = mMaterial.TextureStatusMask & (1 << kBaseColor);
 		if (usedBaseColorTex)
-			data["BaseColorTexture"] = ToString(mBaseColorTexture->GetUuid());
+			data["BaseColorTexture"] = ToString(GetTexture(kBaseColor)->GetUuid());
 
 		bool usedMetallicTex = mMaterial.TextureStatusMask & (1 << kMetallic);
 		if (usedMetallicTex)
-			data["MetallicTexture"] = ToString(mMetallicTexture->GetUuid());
+			data["MetallicTexture"] = ToString(GetTexture(kMetallic)->GetUuid());
 
 		bool usedRoughnessTex = mMaterial.TextureStatusMask & (1 << kRoughness);
 		if (usedRoughnessTex)
-			data["RoughnessTexture"] = ToString(mRoughnessTexture->GetUuid());
+			data["RoughnessTexture"] = ToString(GetTexture(kRoughness)->GetUuid());
 
 		bool usedNormalTex = mMaterial.TextureStatusMask & (1 << kNormal);
 		if (usedNormalTex)
-			data["NormalTexture"] = ToString(mNormalTexture->GetUuid());
+			data["NormalTexture"] = ToString(GetTexture(kNormal)->GetUuid());
 
 		bool usedEmissionTex = mMaterial.TextureStatusMask & (1 << kEmissive);
 		if (usedEmissionTex)
-			data["EmissionTexture"] = ToString(mEmissiveTexture->GetUuid());
+			data["EmissionTexture"] = ToString(GetTexture(kEmissive)->GetUuid());
 
 		bool usedAmbientOcclusionTex = mMaterial.TextureStatusMask & (1 << kAmbientOcclusion);
 		if (usedAmbientOcclusionTex)
-			data["AmbientOcclusionTexture"] = ToString(mAmbientOcclusionTexture->GetUuid());
+			data["AmbientOcclusionTexture"] = ToString(GetTexture(kAmbientOcclusion)->GetUuid());
 
 		bool usedWorldDisplacementTex = mMaterial.TextureStatusMask & (1 << kWorldDisplacement);
 		if (usedWorldDisplacementTex)
-			data["WorldDisplacementTexture"] = ToString(mWorldDisplacementTexture->GetUuid());
+			data["WorldDisplacementTexture"] = ToString(GetTexture(kWorldDisplacement)->GetUuid());
 
 		data["PsoFlags"] = mPsoFlags;
 
 		std::ofstream os(GetPath());
 		os << data;
 		os.close();
+	}
+
+	void MaterialResource::SetTexture(TextureResource* texture, uint32_t textureIndex)
+	{
+		if (textureIndex >= GetTextureCount())
+		{
+			D_LOG_WARN_FMT("Tried to set texture with index {}, but texture count is {}. Ignoring...", (int)textureIndex, (int)GetTextureCount());
+
+			return;
+		}
+
+		if (mTextures[textureIndex].Resource == texture)
+			return;
+
+		auto textureType = (TextureType)textureIndex;
+
+		if (texture == nullptr)
+		{
+			mMaterial.TextureStatusMask &= ~(1 << textureIndex);
+			if (textureType == kWorldDisplacement)
+				mPsoFlags &= ~RenderItem::HasDisplacement;
+		}
+		else
+		{
+			mMaterial.TextureStatusMask |= 1 << textureIndex;
+			if (textureType == kWorldDisplacement)
+				mPsoFlags |= RenderItem::HasDisplacement;
+		}
+
+		GenericMaterialResource::SetTexture(texture, textureIndex);
+
 	}
 
 	void MaterialResource::ReadResourceFromFile(D_SERIALIZATION::Json const& j, bool& dirtyDisk)
@@ -127,7 +161,9 @@ namespace Darius::Renderer
 
 		mMaterial.DifuseAlbedo = XMFLOAT4(data["DefuseAlbedo"].get<std::vector<float>>().data());
 		mMaterial.FresnelR0 = XMFLOAT3(data["FresnelR0"].get<std::vector<float>>().data());
-		mMaterial.Roughness = data["Roughness"];
+
+		if (data.contains("Roughness"))
+			mMaterial.Roughness = data["Roughness"];
 
 		if (data.contains("Metallic"))
 			mMaterial.Metallic = data["Metallic"];
@@ -149,82 +185,44 @@ namespace Darius::Renderer
 
 		if (data.contains("BaseColorTexture"))
 		{
-			mBaseColorTexture = D_RESOURCE::GetResourceSync<TextureResource>(D_RESOURCE::GetResourceHandle(FromString(data["BaseColorTexture"])));
-
-			if (mBaseColorTexture.IsValid())
-				mMaterial.TextureStatusMask |= 1 << kBaseColor;
-
-			if (mBaseColorTexture.IsValid() && !mBaseColorTexture->IsLoaded())
-				D_RESOURCE_LOADER::LoadResourceAsync(mBaseColorTexture.Get(), nullptr, true);
+			auto tex = D_RESOURCE::GetResourceSync<TextureResource>(FromString(data["BaseColorTexture"]), false);
+			SetBaseColorTexture(tex.Get());
 		}
 
 		if (data.contains("MetallicTexture"))
 		{
-			mMetallicTexture = D_RESOURCE::GetResourceSync<TextureResource>(D_RESOURCE::GetResourceHandle(FromString(data["MetallicTexture"])));
-
-			if (mMetallicTexture.IsValid())
-				mMaterial.TextureStatusMask |= 1 << kMetallic;
-
-			if (mMetallicTexture.IsValid() && !mMetallicTexture->IsLoaded())
-				D_RESOURCE_LOADER::LoadResourceAsync(mMetallicTexture.Get(), nullptr, true);
+			auto tex = D_RESOURCE::GetResourceSync<TextureResource>(FromString(data["MetallicTexture"]), false);
+			SetMetallicTexture(tex.Get());
 		}
 
 		if (data.contains("RoughnessTexture"))
 		{
-			mRoughnessTexture = D_RESOURCE::GetResourceSync<TextureResource>(D_RESOURCE::GetResourceHandle(FromString(data["RoughnessTexture"])));
-
-			if (mRoughnessTexture.IsValid())
-				mMaterial.TextureStatusMask |= 1 << kRoughness;
-
-			if (mRoughnessTexture.IsValid() && !mRoughnessTexture->IsLoaded())
-				D_RESOURCE_LOADER::LoadResourceAsync(mRoughnessTexture.Get(), nullptr, true);
+			auto tex = D_RESOURCE::GetResourceSync<TextureResource>(FromString(data["RoughnessTexture"]), false);
+			SetRoughnessTexture(tex.Get());
 		}
 
 		if (data.contains("NormalTexture"))
 		{
-			mNormalTexture = D_RESOURCE::GetResourceSync<TextureResource>(D_RESOURCE::GetResourceHandle(FromString(data["NormalTexture"])));
-
-			if (mNormalTexture.IsValid())
-				mMaterial.TextureStatusMask |= 1 << kNormal;
-
-			if (mNormalTexture.IsValid() && !mNormalTexture->IsLoaded())
-				D_RESOURCE_LOADER::LoadResourceAsync(mNormalTexture.Get(), nullptr, true);
+			auto tex = D_RESOURCE::GetResourceSync<TextureResource>(FromString(data["NormalTexture"]), false);
+			SetNormalTexture(tex.Get());
 		}
 
 		if (data.contains("EmissionTexture"))
 		{
-			mEmissiveTexture = D_RESOURCE::GetResourceSync<TextureResource>(D_RESOURCE::GetResourceHandle(FromString(data["EmissionTexture"])));
-
-			if (mEmissiveTexture.IsValid())
-				mMaterial.TextureStatusMask |= 1 << kEmissive;
-
-			if (mEmissiveTexture.IsValid() && !mEmissiveTexture->IsLoaded())
-				D_RESOURCE_LOADER::LoadResourceAsync(mEmissiveTexture.Get(), nullptr, true);
+			auto tex = D_RESOURCE::GetResourceSync<TextureResource>(FromString(data["EmissionTexture"]), false);
+			SetEmissiveTexture(tex.Get());
 		}
 
 		if (data.contains("AmbientOcclusionTexture"))
 		{
-			mAmbientOcclusionTexture = D_RESOURCE::GetResourceSync<TextureResource>(D_RESOURCE::GetResourceHandle(FromString(data["AmbientOcclusionTexture"])));
-
-			if (mAmbientOcclusionTexture.IsValid())
-				mMaterial.TextureStatusMask |= 1 << kAmbientOcclusion;
-
-			if (mAmbientOcclusionTexture.IsValid() && !mAmbientOcclusionTexture->IsLoaded())
-				D_RESOURCE_LOADER::LoadResourceAsync(mAmbientOcclusionTexture.Get(), nullptr, true);
+			auto tex = D_RESOURCE::GetResourceSync<TextureResource>(FromString(data["AmbientOcclusionTexture"]), false);
+			SetAmbientOcclusionTexture(tex.Get());
 		}
 
 		if (data.contains("WorldDisplacementTexture"))
 		{
-			mWorldDisplacementTexture = D_RESOURCE::GetResourceSync<TextureResource>(D_RESOURCE::GetResourceHandle(FromString(data["WorldDisplacementTexture"])));
-
-			if (mWorldDisplacementTexture.IsValid())
-			{
-				mMaterial.TextureStatusMask |= 1 << kWorldDisplacement;
-				mPsoFlags |= RenderItem::HasDisplacement;
-			}
-
-			if (mWorldDisplacementTexture.IsValid() && !mWorldDisplacementTexture->IsLoaded())
-				D_RESOURCE_LOADER::LoadResourceAsync(mWorldDisplacementTexture.Get(), nullptr, true);
+			auto tex = D_RESOURCE::GetResourceSync<TextureResource>(FromString(data["WorldDisplacementTexture"]), false);
+			SetWorldDisplacementTexture(tex.Get());
 		}
 
 		if (data.contains("AlphaCutout"))
@@ -237,246 +235,57 @@ namespace Darius::Renderer
 		{
 			mMaterial.DisplacementAmount = data["DisplacementAmount"];
 		}
-
 	}
 
-	bool MaterialResource::UploadToGpu()
+	void MaterialResource::OnTextureChanged(uint32_t index)
 	{
-		if (mMaterialConstantsGPU.GetGpuVirtualAddress() == D3D12_GPU_VIRTUAL_ADDRESS_NULL)
-		{
-			// Initializing Material Constants buffers
-			mMaterialConstantsCPU.Create(L"Material Constatns Upload Buffer: " + GetName(), sizeof(MaterialConstants));
-			mMaterialConstantsGPU.Create(L"Material Constants GPU Buffer: " + GetName(), 1, sizeof(MaterialConstants), &mMaterial);
+		D_ASSERT(index >= 0 && index < GetTextureCount());
 
-			// Update texture regions
-			mTexturesHeap = D_RENDERER::AllocateTextureDescriptor(kNumTextures);
-			mSamplerTable = D_RENDERER::AllocateSamplerDescriptor(kNumTextures);
-		}
-
-		UINT destCount = kNumTextures;
-		UINT sourceCounts[kNumTextures] = { 1, 1, 1, 1, 1, 1, 1 };
-		D3D12_CPU_DESCRIPTOR_HANDLE initialTextures[kNumTextures]
-		{
-			mBaseColorTexture->GetTextureData()->GetSRV(),
-			mMetallicTexture->GetTextureData()->GetSRV(),
-			mRoughnessTexture->GetTextureData()->GetSRV(),
-			mAmbientOcclusionTexture->GetTextureData()->GetSRV(),
-			mEmissiveTexture->GetTextureData()->GetSRV(),
-			mNormalTexture->GetTextureData()->GetSRV(),
-			mWorldDisplacementTexture->GetTextureData()->GetSRV()
-		};
-		D_GRAPHICS_DEVICE::GetDevice()->CopyDescriptors(1, &mTexturesHeap, &destCount, destCount, initialTextures, sourceCounts, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-
-
-		// Loading samplers
-		auto incSize = D_GRAPHICS_DEVICE::GetDevice()->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-
-		SamplerDesc samplerDesc;
-		// Base Color Sampler
-		{
-			samplerDesc = mBaseColorTexture->GetSamplerDesc();
-			samplerDesc.CreateDescriptor(mSamplerTable + incSize * TextureType::kBaseColor);
-		}
-		// Metallic Sampler
-		{
-			samplerDesc = mMetallicTexture->GetSamplerDesc();
-			samplerDesc.CreateDescriptor(mSamplerTable + incSize * TextureType::kMetallic);
-		}
-		// Roughness Sampler
-		{
-			samplerDesc = mRoughnessTexture->GetSamplerDesc();
-			samplerDesc.CreateDescriptor(mSamplerTable + incSize * TextureType::kRoughness);
-		}
-		// Occlussion Sampler
-		{
-			samplerDesc = mAmbientOcclusionTexture->GetSamplerDesc();
-			samplerDesc.CreateDescriptor(mSamplerTable + incSize * TextureType::kAmbientOcclusion);
-		}
-		// Emissive Sampler
-		{
-			samplerDesc = mEmissiveTexture->GetSamplerDesc();
-			samplerDesc.CreateDescriptor(mSamplerTable + incSize * TextureType::kEmissive);
-		}
-		// Normal Sampler
-		{
-			samplerDesc = mNormalTexture->GetSamplerDesc();
-			samplerDesc.CreateDescriptor(mSamplerTable + incSize * TextureType::kNormal);
-		}
-		// World Displacement
-		{
-			samplerDesc = mWorldDisplacementTexture->GetSamplerDesc();
-			samplerDesc.CreateDescriptor(mSamplerTable + incSize * TextureType::kWorldDisplacement);
-		}
-
-
-		// Updating material constnats
-		// Mapping upload buffer
-		auto matCB = (MaterialConstants*)mMaterialConstantsCPU.Map();
-		memcpy(matCB, &mMaterial, sizeof(MaterialConstants));
-
-		mMaterialConstantsCPU.Unmap();
-
-		// Uploading
-		auto& context = D_GRAPHICS::CommandContext::Begin(L"Resource Uploader");
-		context.TransitionResource(mMaterialConstantsGPU, D3D12_RESOURCE_STATE_COPY_DEST, true);
-		context.GetCommandList()->CopyBufferRegion(mMaterialConstantsGPU.GetResource(), 0, mMaterialConstantsCPU.GetResource(), 0, mMaterialConstantsCPU.GetBufferSize());
-		context.TransitionResource(mMaterialConstantsGPU, D3D12_RESOURCE_STATE_GENERIC_READ);
-		context.Finish(true);
-		return true;
+		SetSampler(mTextures[index].Resource->GetDefaultSamplerDesc(), index);
 	}
 
-	void MaterialResource::SetTexture(TextureResource* texture, D_RENDERER_RAST::TextureType type)
+	TextureResource* MaterialResource::GetFallbackTexture(uint32_t textureIndex) const
 	{
+		TextureType type = (TextureType)textureIndex;
 
-		// If texuture resource is already set, return
-		switch (type)
-		{
-		case Darius::Renderer::Rasterization::kBaseColor:
-			if (mBaseColorTexture == texture)
-				return;
-			break;
-		case Darius::Renderer::Rasterization::kMetallic:
-			if (mMetallicTexture == texture)
-				return;
-			break;
-		case Darius::Renderer::Rasterization::kRoughness:
-			if (mRoughnessTexture == texture)
-				return;
-			break;
-		case Darius::Renderer::Rasterization::kAmbientOcclusion:
-			if (mAmbientOcclusionTexture == texture)
-				return;
-			break;
-		case Darius::Renderer::Rasterization::kEmissive:
-			if (mEmissiveTexture == texture)
-				return;
-			break;
-		case Darius::Renderer::Rasterization::kNormal:
-			if (mNormalTexture == texture)
-				return;
-			break;
-		case Darius::Renderer::Rasterization::kWorldDisplacement:
-			if (mWorldDisplacementTexture == texture)
-				return;
-			break;
-		default:
-			return;
-		}
-
-		// If texture is null, set to default
-		if (texture == nullptr)
-		{
-			mMaterial.TextureStatusMask &= ~(1 << type);
-			switch (type)
-			{
-			case D_RENDERER_RAST::kBaseColor:
-				mBaseColorTexture = D_RESOURCE::GetResourceSync<TextureResource>(D_RENDERER::GetDefaultGraphicsResource(D_RENDERER::DefaultResource::Texture2DWhiteOpaque));
-
-				if (!mBaseColorTexture->IsLoaded())
-					D_RESOURCE_LOADER::LoadResourceAsync(mBaseColorTexture.Get(), nullptr, true);
-				break;
-			case D_RENDERER_RAST::kMetallic:
-				mMetallicTexture = D_RESOURCE::GetResourceSync<TextureResource>(D_RENDERER::GetDefaultGraphicsResource(D_RENDERER::DefaultResource::Texture2DBlackOpaque));
-
-				if (!mMetallicTexture->IsLoaded())
-					D_RESOURCE_LOADER::LoadResourceAsync(mMetallicTexture.Get(), nullptr, true);
-				break;
-			case D_RENDERER_RAST::kRoughness:
-				mRoughnessTexture = D_RESOURCE::GetResourceSync<TextureResource>(D_RENDERER::GetDefaultGraphicsResource(D_RENDERER::DefaultResource::Texture2DBlackOpaque));
-
-				if (!mRoughnessTexture->IsLoaded())
-					D_RESOURCE_LOADER::LoadResourceAsync(mRoughnessTexture.Get(), nullptr, true);
-				break;
-			case D_RENDERER_RAST::kNormal:
-				mNormalTexture = D_RESOURCE::GetResourceSync<TextureResource>(D_RENDERER::GetDefaultGraphicsResource(D_RENDERER::DefaultResource::Texture2DNormalMap));
-
-				if (!mNormalTexture->IsLoaded())
-					D_RESOURCE_LOADER::LoadResourceAsync(mNormalTexture.Get(), nullptr, true);
-				break;
-			case D_RENDERER_RAST::kEmissive:
-				mEmissiveTexture = D_RESOURCE::GetResourceSync<TextureResource>(D_RENDERER::GetDefaultGraphicsResource(D_RENDERER::DefaultResource::Texture2DBlackOpaque));
-
-				if (!mEmissiveTexture->IsLoaded())
-					D_RESOURCE_LOADER::LoadResourceAsync(mEmissiveTexture.Get(), nullptr, true);
-				break;
-			case D_RENDERER_RAST::kAmbientOcclusion:
-				mAmbientOcclusionTexture = D_RESOURCE::GetResourceSync<TextureResource>(D_RENDERER::GetDefaultGraphicsResource(D_RENDERER::DefaultResource::Texture2DWhiteOpaque));
-
-				if (!mAmbientOcclusionTexture->IsLoaded())
-					D_RESOURCE_LOADER::LoadResourceAsync(mAmbientOcclusionTexture.Get(), nullptr, true);
-				break;
-			case D_RENDERER_RAST::kWorldDisplacement:
-				mWorldDisplacementTexture = D_RESOURCE::GetResourceSync<TextureResource>(D_RENDERER::GetDefaultGraphicsResource(D_RENDERER::DefaultResource::Texture2DBlackOpaque));
-
-				if (!mWorldDisplacementTexture->IsLoaded())
-					D_RESOURCE_LOADER::LoadResourceAsync(mWorldDisplacementTexture.Get(), nullptr, true);
-				mPsoFlags &= ~RenderItem::HasDisplacement;
-			default:
-				return;
-			}
-
-			MakeGpuDirty();
-			MakeDiskDirty();
-
-			SignalChange();
-
-			return;
-		}
-
-		auto device = D_GRAPHICS_DEVICE::GetDevice();
-		auto incSize = device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-
-#define SetTex(name) \
-{ \
-	m##name##Texture = texture; \
-	if(m##name##Texture.IsValid() && !m##name##Texture->IsLoaded()) \
-		D_RESOURCE_LOADER::LoadResourceAsync(texture, nullptr, true); \
-}
-
-		// Copy texture and sampler descriptor to material descriptor tables
+		D_RESOURCE::ResourceHandle textureHandle = D_RESOURCE::EmptyResourceHandle;
 
 		switch (type)
 		{
-		case D_RENDERER_RAST::kBaseColor:
-			SetTex(BaseColor);
+		case TextureType::kBaseColor:
+			textureHandle = D_RENDERER::GetDefaultGraphicsResource(D_RENDERER::DefaultResource::Texture2DWhiteOpaque);
 			break;
-		case D_RENDERER_RAST::kMetallic:
-			SetTex(Metallic);
+		case TextureType::kMetallic:
+			textureHandle = D_RENDERER::GetDefaultGraphicsResource(D_RENDERER::DefaultResource::Texture2DBlackOpaque);
 			break;
-		case D_RENDERER_RAST::kRoughness:
-			SetTex(Roughness);
+		case TextureType::kRoughness:
+			textureHandle = D_RENDERER::GetDefaultGraphicsResource(D_RENDERER::DefaultResource::Texture2DBlackOpaque);
 			break;
-		case D_RENDERER_RAST::kNormal:
-			SetTex(Normal);
+		case TextureType::kNormal:
+			textureHandle = D_RENDERER::GetDefaultGraphicsResource(D_RENDERER::DefaultResource::Texture2DNormalMap);
 			break;
-		case D_RENDERER_RAST::kEmissive:
-			SetTex(Emissive);
+		case TextureType::kEmissive:
+			textureHandle = D_RENDERER::GetDefaultGraphicsResource(D_RENDERER::DefaultResource::Texture2DBlackOpaque);
 			break;
-		case D_RENDERER_RAST::kAmbientOcclusion:
-			SetTex(AmbientOcclusion);
+		case TextureType::kAmbientOcclusion:
+			textureHandle = D_RENDERER::GetDefaultGraphicsResource(D_RENDERER::DefaultResource::Texture2DWhiteOpaque);
 			break;
-		case D_RENDERER_RAST::kWorldDisplacement:
-			SetTex(WorldDisplacement);
-			mPsoFlags |= RenderItem::HasDisplacement;
+		case TextureType::kWorldDisplacement:
+			textureHandle = D_RENDERER::GetDefaultGraphicsResource(D_RENDERER::DefaultResource::Texture2DBlackOpaque);
 			break;
 		default:
-			break;
+			textureHandle = D_RENDERER::GetDefaultGraphicsResource(D_RENDERER::DefaultResource::Texture2DWhiteOpaque);
 		}
 
-		mMaterial.TextureStatusMask |= 1 << type;
-
-		MakeGpuDirty();
-		MakeDiskDirty();
-
-
-		SignalChange();
+		return D_RESOURCE::GetResourceSync<TextureResource>(textureHandle).Get();
 	}
 
 	// Stand alone texture definitions
 #define TexSetterDefinition(type) \
 	void MaterialResource::Set##type##Texture(TextureResource* texture) \
 	{ \
-		SetTexture(texture, k##type);\
+		SetTexture(texture, (uint32_t)k##type);\
+		SetSampler(texture->GetDefaultSamplerDesc(), (uint32_t)k##type); \
 	}
 
 	TexSetterDefinition(BaseColor);
@@ -490,15 +299,15 @@ namespace Darius::Renderer
 #undef TexSetterDefinition
 
 #ifdef _D_EDITOR
-		bool MaterialResource::DrawDetails(float params[])
+	bool MaterialResource::DrawDetails(float params[])
 	{
 
-#define DrawTexture2DHolder(prop, type) \
+#define DrawTexture2DHolder(type) \
 { \
-	TextureResource* currentTexture = prop.Get(); \
+	TextureResource* currentTexture = GetTexture(k##type); \
  \
 	bool hasTexture = (mMaterial.TextureStatusMask & (1 << k##type)); \
-	auto curName = hasTexture ? prop->GetName() : L"<None>"; \
+	auto curName = hasTexture ? currentTexture->GetName() : L"<None>"; \
 	const char* selectButtonName = hasTexture ? ICON_FA_IMAGE "##" #type : ICON_FA_SQUARE "##" #type; \
 	if (ImGui::Button(selectButtonName)) \
 	{ \
@@ -510,10 +319,10 @@ namespace Darius::Renderer
 		 \
 	if (ImGui::BeginPopup("Select " #type)) \
 	{ \
-		bool nonSel = !prop.IsValid(); \
+		bool nonSel = currentTexture == nullptr; \
 		if (ImGui::Selectable("<None>", &nonSel)) \
 		{ \
-			SetTexture(nullptr, k##type); \
+			SetTexture(nullptr, (uint32_t)k##type); \
 		} \
 			 \
 		auto meshes = D_RESOURCE::GetResourcePreviews(TextureResource::GetResourceType()); \
@@ -588,7 +397,7 @@ namespace Darius::Renderer
 		{
 			ImGui::TableNextRow();
 			ImGui::TableSetColumnIndex(0);
-			DrawTexture2DHolder(mBaseColorTexture, BaseColor);
+			DrawTexture2DHolder(BaseColor);
 			ImGui::SameLine();
 			ImGui::Text("Albedo");
 			if (!HasAlbedoTexture())
@@ -606,7 +415,7 @@ namespace Darius::Renderer
 		{
 			ImGui::TableNextRow();
 			ImGui::TableSetColumnIndex(0);
-			DrawTexture2DHolder(mMetallicTexture, Metallic);
+			DrawTexture2DHolder(Metallic);
 			ImGui::SameLine();
 			ImGui::Text("Metallic");
 			if (!HasMetallicTexture())
@@ -623,7 +432,7 @@ namespace Darius::Renderer
 		{
 			ImGui::TableNextRow();
 			ImGui::TableSetColumnIndex(0);
-			DrawTexture2DHolder(mRoughnessTexture, Roughness);
+			DrawTexture2DHolder(Roughness);
 			ImGui::SameLine();
 			ImGui::Text("Roughenss");
 			if (!HasRoughnessTexture())
@@ -639,7 +448,7 @@ namespace Darius::Renderer
 		{
 			ImGui::TableNextRow();
 			ImGui::TableSetColumnIndex(0);
-			DrawTexture2DHolder(mEmissiveTexture, Emissive);
+			DrawTexture2DHolder(Emissive);
 			ImGui::SameLine();
 			ImGui::Text("Emission");
 			if (!HasEmissiveTexture())
@@ -654,7 +463,7 @@ namespace Darius::Renderer
 		}
 
 		// Opacity
-		if(mPsoFlags & RenderItem::AlphaBlend)
+		if (mPsoFlags & RenderItem::AlphaBlend)
 		{
 			D_H_DETAILS_DRAW_PROPERTY("Opacity");
 			float value = GetOpacity();
@@ -677,7 +486,7 @@ namespace Darius::Renderer
 		// Normal
 		ImGui::TableNextRow();
 		ImGui::TableSetColumnIndex(0);
-		DrawTexture2DHolder(mNormalTexture, Normal);
+		DrawTexture2DHolder(Normal);
 		ImGui::SameLine();
 		ImGui::Text("Normal");
 
@@ -685,7 +494,7 @@ namespace Darius::Renderer
 		{
 			ImGui::TableNextRow();
 			ImGui::TableSetColumnIndex(0);
-			DrawTexture2DHolder(mWorldDisplacementTexture, WorldDisplacement);
+			DrawTexture2DHolder(WorldDisplacement);
 			ImGui::SameLine();
 			ImGui::Text("World Displacement");
 
@@ -799,7 +608,7 @@ namespace Darius::Renderer
 	void MaterialResource::SetSpecular(float value)
 	{
 		value = D_MATH::Clamp(value, 0.f, 1.f);
-		
+
 		if (value == mMaterial.Specular)
 			return;
 
@@ -870,18 +679,5 @@ namespace Darius::Renderer
 	}
 
 #endif // _D_EDITOR
-
-	bool MaterialResource::AreDependenciesDirty() const
-	{
-		return
-			mBaseColorTexture.IsValidAndGpuDirty() ||
-			mNormalTexture.IsValidAndGpuDirty() ||
-			mMetallicTexture.IsValidAndGpuDirty() ||
-			mRoughnessTexture.IsValidAndGpuDirty() ||
-			mEmissiveTexture.IsValidAndGpuDirty() ||
-			mWorldDisplacementTexture.IsValidAndGpuDirty() ||
-			mAmbientOcclusionTexture.IsValidAndGpuDirty();
-
-	}
 
 }

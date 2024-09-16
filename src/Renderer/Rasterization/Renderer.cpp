@@ -17,7 +17,6 @@
 #include <Graphics/AntiAliasing/TemporalEffect.hpp>
 #include <Graphics/AmbientOcclusion/ScreenSpaceAmbientOcclusion.hpp>
 #include <Graphics/GraphicsCore.hpp>
-#include <Graphics/GraphicsUtils/D3DUtils.hpp>
 #include <Graphics/GraphicsUtils/RootSignature.hpp>
 #include <Graphics/GraphicsUtils/Memory/DescriptorHeap.hpp>
 #include <Graphics/GraphicsUtils/Buffers/ColorBuffer.hpp>

@@ -100,7 +100,7 @@ namespace Darius::Renderer
 		ri.ParamsDsCBV = mTerrainData->GetParamsConstantsAddress();
 		ri.PsoType = mMaterialPsoData.PsoIndex;
 		ri.DepthPsoIndex = mMaterialPsoData.DepthPsoIndex;
-		ri.Material.MaterialCBV = *mMaterial.Get();
+		ri.Material.MaterialCBV = mMaterial->GetConstantsGpuAddress();
 		ri.Material.MaterialSRV = mMaterial->GetTexturesHandle();
 		ri.Material.SamplersSRV = mMaterial->GetSamplersHandle();
 		ri.PsoFlags = psoFlags;

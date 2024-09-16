@@ -45,7 +45,7 @@ namespace Darius::Renderer
 
 	ALIGN_DECL_256 struct AlignedTerrainParametersConstants : public TerrainParametersConstants {};
 
-	TerrainResource::TerrainResource(D_CORE::Uuid uuid, std::wstring const& path, std::wstring const& name, D_RESOURCE::DResourceId id, D_RESOURCE::Resource* parent, bool isDefault) :
+	TerrainResource::TerrainResource(D_CORE::Uuid const& uuid, std::wstring const& path, std::wstring const& name, D_RESOURCE::DResourceId id, D_RESOURCE::Resource* parent, bool isDefault) :
 		Resource(uuid, path, name, id, parent, isDefault),
 		mHeightFactor(300.f),
 		mHeightMap()

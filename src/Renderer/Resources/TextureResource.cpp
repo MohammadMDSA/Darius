@@ -452,7 +452,7 @@ namespace Darius::Renderer
 		SignalChange();
 	}
 
-	D_GRAPHICS_UTILS::SamplerDesc const& TextureResource::GetSamplerDesc()
+	D_GRAPHICS_UTILS::SamplerDesc TextureResource::GetDefaultSamplerDesc()
 	{
 		if (!mDirtySampler)
 			return mSamplerDesc;

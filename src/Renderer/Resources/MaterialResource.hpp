@@ -1,5 +1,6 @@
 #pragma once
 
+#include "GenericMaterialResource.hpp"
 #include "Renderer/Rasterization/Renderer.hpp"
 #include "Renderer/RendererCommon.hpp"
 #include "TextureResource.hpp"
@@ -19,18 +20,28 @@ namespace Darius::Renderer
 {
 	class DResourceManager;
 
-	class DClass(Serialize, Resource) MaterialResource : public D_RESOURCE::Resource
+	class DClass(Serialize, Resource) MaterialResource : public GenericMaterialResource
 	{
 		GENERATED_BODY();
 		D_CH_RESOURCE_BODY(MaterialResource, "Material", ".mat")
 		
 	public:
 
+		enum TextureType : uint32_t
+		{
+			kBaseColor,
+			kMetallic,
+			kRoughness,
+			kAmbientOcclusion,
+			kEmissive,
+			kNormal,
+			kWorldDisplacement,
+
+			kNumTextures
+		};
+
 		INLINE D_RENDERER::MaterialConstants* ModifyMaterialData() { MakeDiskDirty(); MakeGpuDirty(); return &mMaterial; }
 		INLINE const D_RENDERER::MaterialConstants* GetMaterialData() const { return &mMaterial; }
-		INLINE D3D12_GPU_DESCRIPTOR_HANDLE	GetTexturesHandle() const { return mTexturesHeap; }
-		INLINE D3D12_GPU_DESCRIPTOR_HANDLE	GetSamplersHandle() const { return mSamplerTable; }
-		INLINE D3D12_GPU_VIRTUAL_ADDRESS	GetConstantsGpuAddress() const { return mMaterialConstantsGPU.GetGpuVirtualAddress(); }
 		INLINE uint16_t						GetPsoFlags() const
 		{
 			return mPsoFlags
@@ -39,7 +50,6 @@ namespace Darius::Renderer
 #endif
 				;
 		}
-		void								SetTexture(TextureResource* texture, D_RENDERER_RAST::TextureType type);
 
 		// Two sided
 		INLINE bool							IsTwoSided() const { return mPsoFlags & RenderItem::TwoSided; }
@@ -55,41 +65,38 @@ namespace Darius::Renderer
 		void								SetSpecular(float value);
 
 		// Displacement
-		INLINE bool							HasDisplacement() const { return (mMaterial.TextureStatusMask & (1 << D_RENDERER_RAST::kWorldDisplacement)) != 0; }
+		INLINE bool							HasDisplacement() const { return (mMaterial.TextureStatusMask & (1 << kWorldDisplacement)) != 0; }
 		INLINE float						GetDisplacementAmount() const { return mMaterial.DisplacementAmount; }
 		void								SetDisplacementAmount(float value);
 
 		// Emissive
 		INLINE D_MATH::Color				GetEmissiveColor() const { return D_MATH::Color(mMaterial.Emissive); }
 		void								SetEmissiveColor(D_MATH::Color const& value);
-		INLINE bool							HasEmissiveTexture() const { return mMaterial.TextureStatusMask & (1 << D_RENDERER_RAST::kEmissive); }
+		INLINE bool							HasEmissiveTexture() const { return mMaterial.TextureStatusMask & (1 << kEmissive); }
 
 		// Roughness
 		INLINE float						GetRoughness() const { return mMaterial.Roughness; }
 		void								SetRoughness(float value);
-		INLINE bool							HasRoughnessTexture() const { return mMaterial.TextureStatusMask & (1 << D_RENDERER_RAST::kRoughness); }
+		INLINE bool							HasRoughnessTexture() const { return mMaterial.TextureStatusMask & (1 << kRoughness); }
 
 		// Metallic
 		INLINE float						GetMetallic() const { return mMaterial.Metallic; }
 		void								SetMetallic(float value);
-		INLINE bool							HasMetallicTexture() const { return mMaterial.TextureStatusMask & (1 << D_RENDERER_RAST::kMetallic); }
+		INLINE bool							HasMetallicTexture() const { return mMaterial.TextureStatusMask & (1 << kMetallic); }
 
 		// Albedo
 		INLINE D_MATH::Color				GetAlbedoColor() const { return D_MATH::Color(D_MATH::Vector4(mMaterial.DifuseAlbedo)); }
 		void								SetAlbedoColor(D_MATH::Color const& value);
-		INLINE bool							HasAlbedoTexture() const { return mMaterial.TextureStatusMask & (1 << D_RENDERER_RAST::kBaseColor); }
+		INLINE bool							HasAlbedoTexture() const { return mMaterial.TextureStatusMask & (1 << kBaseColor); }
 
+		virtual void						SetTexture(TextureResource* texture, uint32_t textureIndex) override;
+
+		INLINE virtual size_t				GetConstantsBufferSize() const { return sizeof(mMaterial); }
+		INLINE virtual void const*			GetConstantsBufferData() const override { return &mMaterial; }
 
 #ifdef _D_EDITOR
-		virtual bool						DrawDetails(float params[]) override;
+		virtual bool						DrawDetails(float params[]);
 #endif // _D_EDITOR
-
-		INLINE operator const D_RENDERER::MaterialConstants* () const { return &mMaterial; }
-		INLINE operator D_RENDERER::MaterialConstants*() { ModifyMaterialData(); }
-
-		INLINE operator D3D12_GPU_VIRTUAL_ADDRESS() const { return mMaterialConstantsGPU.GetGpuVirtualAddress(); }
-		virtual bool						AreDependenciesDirty() const override;
-
 
 		// Stand alone texture setters declarations
 #define TextureSetter(type) \
@@ -106,37 +113,17 @@ namespace Darius::Renderer
 
 	protected:
 
-		virtual void						WriteResourceToFile(D_SERIALIZATION::Json& j) const override;
+		virtual void						WriteResourceToFile(D_SERIALIZATION::Json& j) const override ;
 		virtual void						ReadResourceFromFile(D_SERIALIZATION::Json const& j, bool& dirtyDisk) override;
-		virtual bool						UploadToGpu() override;
-		INLINE virtual void					Unload() override { EvictFromGpu(); }
+		virtual TextureResource*			GetFallbackTexture(uint32_t textureIndex) const override;
+		virtual void						OnTextureChanged(uint32_t index) override;
 
 	private:
 		friend class DResourceManager;
 
 		MaterialResource(D_CORE::Uuid uuid, std::wstring const& path, std::wstring const& name, D_RESOURCE::DResourceId id, D_RESOURCE::Resource* parent, bool isDefault = false);
 		
-		D_RESOURCE::ResourceRef<D_RENDERER::TextureResource>	mBaseColorTexture;
-		
-		D_RESOURCE::ResourceRef<D_RENDERER::TextureResource>	mNormalTexture;
-		
-		D_RESOURCE::ResourceRef<D_RENDERER::TextureResource>	mMetallicTexture;
-		
-		D_RESOURCE::ResourceRef<D_RENDERER::TextureResource>	mRoughnessTexture;
-		
-		D_RESOURCE::ResourceRef<D_RENDERER::TextureResource>	mEmissiveTexture;
-		
-		D_RESOURCE::ResourceRef<D_RENDERER::TextureResource>	mAmbientOcclusionTexture;
-		
-		D_RESOURCE::ResourceRef<D_RENDERER::TextureResource>	mWorldDisplacementTexture;
-		
-
 		D_RENDERER::MaterialConstants				mMaterial;
-		D_GRAPHICS_BUFFERS::UploadBuffer			mMaterialConstantsCPU;
-		D_GRAPHICS_BUFFERS::ByteAddressBuffer		mMaterialConstantsGPU;
-
-		D_GRAPHICS_MEMORY::DescriptorHandle			mTexturesHeap;
-		D_GRAPHICS_MEMORY::DescriptorHandle			mSamplerTable;
 
 		uint16_t									mPsoFlags;
 

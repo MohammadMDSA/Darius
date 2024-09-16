@@ -96,17 +96,17 @@ namespace Darius::Renderer
 
 			result.PsoType = GetPsoIndex(i, material.Get());
 			result.DepthPsoIndex = mMaterialPsoData[i].DepthPsoIndex;
-			result.Material.MaterialCBV = *material.Get();
+			result.Material.MaterialCBV = material->GetConstantsGpuAddress();
 			result.Material.MaterialSRV = material->GetTexturesHandle();
 			result.Material.SamplersSRV = material->GetSamplersHandle();
 
 			if (material->HasDisplacement())
 			{
 				result.PrimitiveType = D3D_PRIMITIVE_TOPOLOGY_3_CONTROL_POINT_PATCHLIST;
-				result.ParamsDsCBV = *material.Get();
+				result.ParamsDsCBV = material->GetConstantsGpuAddress();
 				result.MeshHsCBV = GetConstantsAddress();
 				result.MeshDsCBV = GetConstantsAddress();
-				result.TextureDomainSRV = { result.Material.MaterialSRV.ptr + (incSize * D_RENDERER_RAST::kWorldDisplacement) };
+				result.TextureDomainSRV = { result.Material.MaterialSRV.ptr + (incSize * MaterialResource::kWorldDisplacement) };
 			}
 			else
 				result.PrimitiveType = D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST;

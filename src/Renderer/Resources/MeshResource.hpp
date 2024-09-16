@@ -75,7 +75,7 @@ namespace Darius::Renderer
 		void							SetMaterial(int index, MaterialResource* material);
 	protected:
 
-		MeshResource(D_CORE::Uuid uuid, std::wstring const& path, std::wstring const& name, D_RESOURCE::DResourceId id, D_RESOURCE::Resource* parent, bool isDefault = false) :
+		MeshResource(D_CORE::Uuid const& uuid, std::wstring const& path, std::wstring const& name, D_RESOURCE::DResourceId id, D_RESOURCE::Resource* parent, bool isDefault = false) :
 			Resource(uuid, path, name, id, parent, isDefault),
 			mNormalsReordering(NormalsReordering::XYZ),
 			mInverted(false),

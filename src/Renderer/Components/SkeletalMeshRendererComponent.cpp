@@ -130,7 +130,7 @@ namespace Darius::Renderer
 
 			result.PsoType = GetPsoIndex(i, material.Get());
 			result.DepthPsoIndex = mMaterialPsoData[i].DepthPsoIndex;
-			result.Material.MaterialCBV = *material.Get();
+			result.Material.MaterialCBV = material->GetConstantsGpuAddress();
 			result.Material.MaterialSRV = material->GetTexturesHandle();
 			result.Material.SamplersSRV = material->GetSamplersHandle();
 			result.PsoFlags = mComponentPsoFlags | material->GetPsoFlags();

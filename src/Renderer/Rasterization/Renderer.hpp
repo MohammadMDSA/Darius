@@ -38,19 +38,6 @@ namespace Darius::Renderer::Rasterization
 		kNumRootBindings		// Just to know how many root binings there are
 	};
 
-	enum TextureType
-	{
-		kBaseColor,
-		kMetallic,
-		kRoughness,
-		kAmbientOcclusion,
-		kEmissive,
-		kNormal,
-		kWorldDisplacement,
-
-		kNumTextures
-	};
-
 	enum  RootSignatureTypes
 	{
 		DefaultRootSig,

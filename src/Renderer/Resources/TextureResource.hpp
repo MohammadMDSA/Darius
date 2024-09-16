@@ -65,12 +65,12 @@ namespace Darius::Renderer
 		// Anisotropic Level
 		void										SetAnisotropicLevel(UINT value);
 
-		D_GRAPHICS_UTILS::SamplerDesc const&		GetSamplerDesc();
+		D_GRAPHICS_UTILS::SamplerDesc				GetDefaultSamplerDesc();
 
 		INLINE virtual bool							AreDependenciesDirty() const override { return false; }
 
 	protected:
-		TextureResource(D_CORE::Uuid uuid, std::wstring const& path, std::wstring const& name, D_RESOURCE::DResourceId id, D_RESOURCE::Resource* parent, bool isDefault = false) :
+		TextureResource(D_CORE::Uuid const& uuid, std::wstring const& path, std::wstring const& name, D_RESOURCE::DResourceId id, D_RESOURCE::Resource* parent, bool isDefault = false) :
 			Resource(uuid, path, name, id, parent, isDefault),
 			mSRGB(false),
 			mFilter(TextureFilterType::Trilinear),
