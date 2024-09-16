@@ -1,5 +1,5 @@
 #include "Graphics/pch.hpp"
-#include "D3DUtils.hpp"
+#include "ShaderCompiler.hpp"
 
 #include <Core/Filesystem/Path.hpp>
 #include <Utils/Log.hpp>
@@ -123,9 +123,8 @@ namespace Darius::Graphics::Utils
 	static DxcDllSupport gDxcDllHelper;
 	static bool loadedDXIL = false;
 
-	ComPtr<ID3DBlob> CompileShader(const std::wstring& filename, const std::wstring& entrypoint, const std::wstring& target)
+	ComPtr<ID3DBlob> CompileShader(const std::wstring& filename, const std::wstring& entrypoint, const std::wstring& target, ID3D12ShaderReflection** reflectionData, ID3D12LibraryReflection** libraryReflectionData)
 	{
-
 		// 
 		// Create compiler and utils.
 		//
@@ -133,7 +132,7 @@ namespace Darius::Graphics::Utils
 		ComPtr<IDxcCompiler3> pCompiler;
 		DxcCreateInstance(CLSID_DxcUtils, IID_PPV_ARGS(&pUtils));
 		DxcCreateInstance(CLSID_DxcCompiler, IID_PPV_ARGS(&pCompiler));
-	
+
 
 		bool isShaderLibrary = target.starts_with(L"lib");
 
@@ -147,7 +146,7 @@ namespace Darius::Graphics::Utils
 
 		std::vector<LPCWSTR> psz =
 		{
-			filename.c_str(),           
+			filename.c_str(),
 			L"-T", target.c_str(),      // Target.
 			L"-E",
 			entrypoint.c_str(),			// Marking entrypoint
@@ -254,7 +253,7 @@ namespace Darius::Graphics::Utils
 		{
 			FILE* fp = NULL;
 
-			if(pPDBName)
+			if (pPDBName)
 			{
 				std::wstring name = pPDBName->GetStringPointer();
 
@@ -272,22 +271,29 @@ namespace Darius::Graphics::Utils
 
 #ifdef SHADER_REFLECTION
 
-		ComPtr<IDxcBlob> pReflectionData;
 
-		pResults->GetOutput(DXC_OUT_REFLECTION, IID_PPV_ARGS(&pReflectionData), nullptr);
-		if (pReflectionData != nullptr && !isShaderLibrary)
+		if ((isShaderLibrary && libraryReflectionData) || (!isShaderLibrary && reflectionData))
 		{
-			// Optionally, save reflection blob for later here.
+			ComPtr<IDxcBlob> pReflectionData;
 
-			// Create reflection interface.
-			DxcBuffer ReflectionData;
-			ReflectionData.Encoding = DXC_CP_ACP;
-			ReflectionData.Ptr = pReflectionData->GetBufferPointer();
-			ReflectionData.Size = pReflectionData->GetBufferSize();
+			pResults->GetOutput(DXC_OUT_REFLECTION, IID_PPV_ARGS(&pReflectionData), nullptr);
+			if (pReflectionData != nullptr)
+			{
+				// Optionally, save reflection blob for later here.
 
-			ComPtr<ID3D12ShaderReflection> pReflection;
-			D_HR_CHECK(pUtils->CreateReflection(&ReflectionData, IID_PPV_ARGS(&pReflection)));
+				// Create reflection interface.
+				DxcBuffer ReflectionData;
+				ReflectionData.Encoding = DXC_CP_ACP;
+				ReflectionData.Ptr = pReflectionData->GetBufferPointer();
+				ReflectionData.Size = pReflectionData->GetBufferSize();
 
+				if (isShaderLibrary)
+				{
+					D_HR_CHECK(pUtils->CreateReflection(&ReflectionData, IID_PPV_ARGS(libraryReflectionData)));
+				}
+				else
+					D_HR_CHECK(pUtils->CreateReflection(&ReflectionData, IID_PPV_ARGS(reflectionData)));
+			}
 		}
 #endif
 

@@ -7,12 +7,13 @@
 #include "CommandContext.hpp"
 #include "GraphicsDeviceManager.hpp"
 #include "GraphicsUtils/Buffers/Texture.hpp"
-#include "GraphicsUtils/D3DUtils.hpp"
+#include "GraphicsUtils/Shader/ShaderCompiler.hpp"
 #include "GraphicsUtils/Memory/DescriptorHeap.hpp"
 #include "GraphicsUtils/Profiling/GpuTimeManager.hpp"
 #include "PostProcessing/MotionBlur.hpp"
 #include "PostProcessing/PostProcessing.hpp"
 
+#include <Core/Serialization/TypeSerializer.hpp>
 #include <Core/TimeManager/TimeManager.hpp>
 #include <ResourceManager/ResourceManager.hpp>
 #include <Utils/Assert.hpp>
@@ -313,6 +314,10 @@ namespace Darius::Graphics
 		DrawIndirectCommandSignature.Finalize();
 
 		D_PROFILING_GPU::Initialize(4096);
+
+		D_SERIALIZATION::RegisterSerializer<SamplerDesc>(
+			[](SamplerDesc const& desc, D_SERIALIZATION::Json& json) { desc.Serialize(json); },
+			[](SamplerDesc& desc, D_SERIALIZATION::Json const& json) { desc.Deserialize(json); });
 
 		BuildShaders();
 		InitializeCommonStates();
@@ -644,6 +649,7 @@ namespace Darius::Graphics
 	void BuildShaders()
 	{
 
+		D3D_SHADER_MODEL highestAvailable = Resources->GetFeatureSupport().HighestShaderModel();
 		Shaders.push_back(ComPtr<ID3DBlob>());
 
 		D_FILE::VisitFilesInDirectory(std::filesystem::current_path() / "Shaders", true, [&](Path const& path)
@@ -675,12 +681,46 @@ namespace Darius::Graphics
 					return;
 
 				ComPtr<ID3DBlob> compiledShader;
+				ComPtr<ID3D12ShaderReflection> reflectionData;
+				ComPtr<ID3D12LibraryReflection> libraryReflectionData;
 				if (compiler.starts_with(L"lib"))
-					compiledShader = CompileShader(path, L"", compiler);
+					compiledShader = CompileShader(path, L"", compiler, nullptr, libraryReflectionData.ReleaseAndGetAddressOf());
 				else
-					compiledShader = CompileShader(path, L"main", compiler);
+					compiledShader = CompileShader(path, L"main", compiler, reflectionData.ReleaseAndGetAddressOf(), nullptr);
 
 				D_ASSERT(compiledShader);
+				if (reflectionData)
+				{
+					D3D12_SHADER_DESC desc;
+					reflectionData->GetDesc(&desc);
+					for (UINT i = 0; i < desc.BoundResources; i++)
+					{
+						D3D12_SHADER_INPUT_BIND_DESC bindDesc;
+						reflectionData->GetResourceBindingDesc(i, &bindDesc);
+						(bindDesc);
+						int j = 0;
+						j++;
+						(j);
+					}
+					for (UINT i = 0; i < desc.InputParameters; i++)
+					{
+						D3D12_SIGNATURE_PARAMETER_DESC sigDesc;
+						reflectionData->GetInputParameterDesc(i, &sigDesc);
+						int j = 0;
+						j++;
+						(j);
+					}
+					for (UINT i = 0; i < desc.ConstantBuffers; i++)
+					{
+						auto cbuffer = reflectionData->GetConstantBufferByIndex(i);
+						D3D12_SHADER_BUFFER_DESC cbufferDesc;
+						cbuffer->GetDesc(&cbufferDesc);
+						for (UINT j = 0; j < cbufferDesc.Variables; j++)
+						{
+							auto cbufferVariable = cbuffer->GetVariableByIndex(j);
+						}
+					}
+				}
 
 				Shaders.push_back(compiledShader);
 
@@ -711,17 +751,17 @@ namespace Darius::Graphics
 
 		ImGui::Separator();
 
-		if(ImGui::CollapsingHeader("Anti-Aliasing"))
+		if (ImGui::CollapsingHeader("Anti-Aliasing"))
 		{
 			ImGui::Indent();
 			ImGui::BeginGroup();
-			if(ImGui::CollapsingHeader("TAA"))
+			if (ImGui::CollapsingHeader("TAA"))
 			{
 				settingsChanged |= D_GRAPHICS_AA_TEMPORAL::OptionsDrawer(options);
 			}
 			ImGui::EndGroup();
 			ImGui::BeginGroup();
-			if(ImGui::CollapsingHeader("FXAA"))
+			if (ImGui::CollapsingHeader("FXAA"))
 			{
 				settingsChanged |= D_GRAPHICS_AA_FXAA::OptionsDrawer(options);
 			}

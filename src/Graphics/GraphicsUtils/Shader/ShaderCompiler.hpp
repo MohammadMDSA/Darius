@@ -9,7 +9,9 @@ namespace Darius::Graphics::Utils
     Microsoft::WRL::ComPtr<ID3DBlob> CompileShader(
         std::wstring const& filename,
         std::wstring const& entrypoint,
-        std::wstring const& target
+        std::wstring const& target,
+        ID3D12ShaderReflection** reflectionData,
+        ID3D12LibraryReflection** libraryReflectionData
     );
 
     Microsoft::WRL::ComPtr<ID3DBlob> CompileLibrary(
