@@ -21,8 +21,20 @@ namespace Darius::Core::Serialization
 		D_ASSERT(!_initialized);
 		_initialized = true;
 
+
+		//Registering UUID
 		D_SERIALIZATION::RegisterSerializer<D_CORE::Uuid>(D_CORE::UuidToJson, D_CORE::UuidFromJson);
 		D_SERIALIZATION::RegisterSerializer<UuidWrapper>(nullptr, DeserializeUuidWrapper);
+
+		// Registering StringID
+		D_SERIALIZATION::RegisterSerializer<D_CORE::StringId>([](D_CORE::StringId const& stringId, D_SERIALIZATION::Json& json)
+			{
+				json = stringId.string();
+			},
+			[](D_CORE::StringId& stringId, D_SERIALIZATION::Json const& json)
+			{
+				stringId = D_CORE::StringId(json.get<std::string>().c_str());
+			});
 	}
 
 	void Shutdown()
