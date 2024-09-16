@@ -2,6 +2,7 @@
 
 #ifdef _DEBUG
 #include <iostream>
+#include <format>
 #define D_LOG_IMPL(msg, lvl)
 #define D_LOG_TRACE_IMPL(...) std::cout << "TRACE:\t" << __VA_ARGS__ << std::endl
 #define D_LOG_DEBUG_IMPL(...) std::cout << "DEBUG:\t" << __VA_ARGS__ << std::endl
@@ -9,6 +10,12 @@
 #define D_LOG_WARN_IMPL(...) std::cerr << "WARN:\t" << __VA_ARGS__ << std::endl
 #define D_LOG_ERROR_IMPL(...) std::cerr << "ERROR:\t" << __VA_ARGS__ << std::endl
 #define D_LOG_FATAL_IMPL(...) std::cerr << "FATAL:\t" << __VA_ARGS__ <<  std::endl
+#define D_LOG_TRACE_FMT_IMPL(fmt, ...) std::cout << std::format(fmt, __VA_ARGS__) << std::endl
+#define D_LOG_DEBUG_FMT_IMPL(fmt, ...) std::cout << std::format(fmt, __VA_ARGS__) << std::endl
+#define D_LOG_INFO_FMT_IMPL(fmt, ...) std::cout << std::format(fmt, __VA_ARGS__) << std::endl
+#define D_LOG_WARN_FMT_IMPL(fmt, ...) std::cerr << std::format(fmt, __VA_ARGS__) << std::endl
+#define D_LOG_ERROR_FMT_IMPL(fmt, ...) std::cerr << std::format(fmt, __VA_ARGS__) << std::endl
+#define D_LOG_FATAL_FMT_IMPL(fmt, ...) std::cerr << std::format(fmt, __VA_ARGS__) << std::endl
 #else
 #define D_LOG_IMPL(msg, lvl) do{}while(0)
 #define D_LOG_TRACE_IMPL(...) do{}while(0)
@@ -17,6 +24,12 @@
 #define D_LOG_WARN_IMPL(...) do{}while(0)
 #define D_LOG_ERROR_IMPL(...) do{}while(0)
 #define D_LOG_FATAL_IMPL(...) do{}while(0)
+#define D_LOG_TRACE_FMT_IMPL(...) do{}while(0)
+#define D_LOG_DEBUG_FMT_IMPL(...) do{}while(0)
+#define D_LOG_INFO_FMT_IMPL(...) do{}while(0)
+#define D_LOG_WARN_FMT_IMPL(...) do{}while(0)
+#define D_LOG_ERROR_FMT_IMPL(...) do{}while(0)
+#define D_LOG_FATAL_FMT_IMPL(...) do{}while(0)
 
 #endif // _DEBUG
 
@@ -28,6 +41,12 @@
 #define D_LOG_WARN(...) D_LOG_WARN_IMPL(__VA_ARGS__)
 #define D_LOG_ERROR(...) D_LOG_ERROR_IMPL(__VA_ARGS__)
 #define D_LOG_FATAL(...) D_LOG_FATAL_IMPL(__VA_ARGS__)
+#define D_LOG_TRACE_FMT(fmt, ...) D_LOG_TRACE_FMT_IMPL(fmt, __VA_ARGS__)
+#define D_LOG_DEBUG_FMT(fmt, ...) D_LOG_DEBUG_FMT_IMPL(fmt, __VA_ARGS__)
+#define D_LOG_INFO_FMT(fmt, ...) D_LOG_INFO_FMT_IMPL(fmt, __VA_ARGS__)
+#define D_LOG_WARN_FMT(fmt, ...) D_LOG_WARN_FMT_IMPL(fmt, __VA_ARGS__)
+#define D_LOG_ERROR_FMT(fmt, ...) D_LOG_ERROR_FMT_IMPL(fmt, __VA_ARGS__)
+#define D_LOG_FATAL_FMT(fmt, ...) D_LOG_FATAL_FMT_IMPL(fmt, __VA_ARGS__)
 
 #ifndef _DEBUG
 
