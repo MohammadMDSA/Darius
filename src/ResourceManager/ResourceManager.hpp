@@ -26,6 +26,9 @@ namespace Darius::ResourceManager
 
 	template<class RESOURCE> using ResourceLoadedTypedResourceCalllback = std::function<void(D_RESOURCE::ResourceRef<RESOURCE> resource)>;
 
+	template<class T>
+	D_RESOURCE::ResourceRef<T> GetResourceSync(D_CORE::Uuid const& uuid, bool load);
+
 	void					Initialize(D_SERIALIZATION::Json const& settings);
 	void					Shutdown();
 #ifdef _D_EDITOR
@@ -66,13 +69,13 @@ namespace Darius::ResourceManager
 #pragma region GetResource
 	// Resource retreival stuff
 	template<class T>
-	ResourceRef<T> GetResourceSync(D_CORE::Uuid const& uuid)
+	ResourceRef<T> GetResourceSync(D_CORE::Uuid const& uuid, bool load)
 	{
 		// Checking if T is a resource type
 		using conv = std::is_convertible<T*, Resource*>;
 		D_STATIC_ASSERT(conv::value);
 
-		return ResourceRef(dynamic_cast<T*>(GetRawResourceSync(uuid, true)));
+		return ResourceRef(dynamic_cast<T*>(GetRawResourceSync(uuid, load)));
 	}
 
 	template<class T>

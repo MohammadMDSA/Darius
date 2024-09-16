@@ -61,6 +61,8 @@ namespace Darius::ResourceManager
 		static D_CONTAINERS::DVector<ResourceHandle> CreateResourceObject(D_FILE::Path const& path, DResourceManager* manager);
 		static void				VisitFile(D_FILE::Path const& path, DirectoryVisitProgress* progress = nullptr);
 		static void				CheckDirectoryMeta(D_FILE::Path const& path);
+
+		static std::mutex		sFileVisitMutex;
 	};
 
 	void to_json(D_SERIALIZATION::Json& j, const ResourceFileMeta& value);

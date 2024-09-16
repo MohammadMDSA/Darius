@@ -31,7 +31,7 @@ namespace Darius::ResourceManager
 	};
 
 	template<class T>
-	D_RESOURCE::ResourceRef<T> GetResourceSync(D_CORE::Uuid const& uuid);
+	D_RESOURCE::ResourceRef<T> GetResourceSync(D_CORE::Uuid const& uuid, bool load = false);
 	Resource* GetRawResourceSync(D_CORE::Uuid const& uuid, bool syncLoad);
 
 }

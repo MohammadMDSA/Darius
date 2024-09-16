@@ -21,6 +21,8 @@ using namespace D_SERIALIZATION;
 
 namespace Darius::ResourceManager
 {
+	std::mutex ResourceLoader::sFileVisitMutex = {};
+
 	struct AsyncResourceLoadingFromResourceDataTask : public D_JOB::IPinnedTask
 	{
 		virtual void Execute() override
@@ -494,6 +496,7 @@ namespace Darius::ResourceManager
 			progress->Total++;
 			LoadResourceAsync(path, [progress](auto _)
 				{
+					std::scoped_lock lg(sFileVisitMutex);
 					progress->Done++;
 					if(progress->Done.load() % 100 == 0)
 						D_LOG_INFO(progress->String("Updating resource database {} / {}"));
