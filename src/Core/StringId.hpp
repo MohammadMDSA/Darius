@@ -15,7 +15,7 @@ namespace Darius::Core
 	class StringId : public foonathan::string_id::string_id
 	{
 	public:
-		StringId(foonathan::string_id::string_info str = "");
+		explicit StringId(foonathan::string_id::string_info str = "");
 
 		StringId(foonathan::string_id::string_info str, foonathan::string_id::basic_database& db);
 

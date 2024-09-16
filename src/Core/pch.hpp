@@ -58,6 +58,8 @@
 
 #include <codecvt>
 
+#define _SILENCE_CXX17_CODECVT_HEADER_DEPRECATION_WARNING
+
 inline std::wstring STR2WSTR(const std::string& str)
 {
     using convert_typeX = std::codecvt_utf8<wchar_t>;

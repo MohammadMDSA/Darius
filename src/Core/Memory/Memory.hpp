@@ -117,7 +117,7 @@ namespace Darius::Core::Memory
 			return nullptr;
 
 		/** overloading operator new[] cannot be done , because it may not return the real allocated address (it may pad the 'element count' before the actual array). Because of that, it must be done by hand. This is the
-	same strategy used by std::vector, and the Vector class, so it should be safe.*/
+		same strategy used by std::vector, and the Vector class, so it should be safe.*/
 
 		size_t len = sizeof(T) * elements;
 		uint64_t* mem = (uint64_t*)MemoryManager::AllocStatic(len, true);

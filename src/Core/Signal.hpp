@@ -21,7 +21,8 @@ namespace Darius::Core
         typename Mutex=std::mutex>
 	using Signal = boost::signals2::signal<Signature, Combiner, Group, GroupCompare, SlotFunction, ExtendedSlotFunction, Mutex>;
 
-	using SignalConnection = boost::signals2::connection;
+    using SignalConnection = boost::signals2::connection;
+    using SignalScopedConnection = boost::signals2::scoped_connection;
 
 }
 
