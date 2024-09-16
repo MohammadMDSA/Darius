@@ -18,7 +18,7 @@ namespace Darius::Fbx
 
 	D_CH_RESOURCE_DEF(FBXPrefabResource);
 
-	FBXPrefabResource::FBXPrefabResource(D_CORE::Uuid uuid, std::wstring const& path, std::wstring const& name, D_RESOURCE::DResourceId id, D_RESOURCE::Resource* parent, bool isDefault) :
+	FBXPrefabResource::FBXPrefabResource(D_CORE::Uuid const& uuid, std::wstring const& path, std::wstring const& name, D_RESOURCE::DResourceId id, D_RESOURCE::Resource* parent, bool isDefault) :
 		D_SCENE::PrefabResource(uuid, path, name, id, parent, isDefault)
 		{ }
 

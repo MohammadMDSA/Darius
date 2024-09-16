@@ -28,7 +28,7 @@ namespace Darius::ResourceManager
 	D_CORE::StringId ResourceTypeToString(ResourceType type)
 	{
 		auto name = Resource::GetResourceName(type);
-		if(name == ""_Id)
+		if (name == ""_Id)
 			throw D_CORE::Exception::Exception("Resource type not defined");
 		return name;
 	}
@@ -79,7 +79,7 @@ namespace Darius::ResourceManager
 		auto name = D_FILE::GetFileName(path);
 		data.Name = WSTR2STR(name);
 		data.Type = type;
-		return SubResourceConstructionData {.Parent = data, .SubResources = { }};
+		return SubResourceConstructionData{ .Parent = data, .SubResources = { } };
 	}
 
 	bool Resource::Release()

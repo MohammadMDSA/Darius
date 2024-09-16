@@ -21,7 +21,7 @@ namespace Darius::Scene
 
 	D_CH_RESOURCE_DEF(PrefabResource);
 
-	PrefabResource::PrefabResource(D_CORE::Uuid uuid, std::wstring const& path, std::wstring const& name, D_RESOURCE::DResourceId id, D_RESOURCE::Resource* parent, bool isDefault) :
+	PrefabResource::PrefabResource(D_CORE::Uuid const& uuid, std::wstring const& path, std::wstring const& name, D_RESOURCE::DResourceId id, D_RESOURCE::Resource* parent, bool isDefault) :
 		Resource(uuid, path, name, id, parent, isDefault),
 		mPrefabGameObject(nullptr) { }
 

@@ -42,7 +42,7 @@ namespace Darius::Audio
 
 
 	private:
-		AudioResource(D_CORE::Uuid uuid, std::wstring const& path, std::wstring const& name, D_RESOURCE::DResourceId id, D_RESOURCE::Resource* parent, bool isDefault = false);
+		AudioResource(D_CORE::Uuid const& uuid, std::wstring const& path, std::wstring const& name, D_RESOURCE::DResourceId id, D_RESOURCE::Resource* parent, bool isDefault = false);
 
 
 		std::unique_ptr<DirectX::SoundEffect> mSoundEffectData;

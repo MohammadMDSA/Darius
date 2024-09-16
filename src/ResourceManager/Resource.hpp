@@ -424,7 +424,7 @@ namespace Darius::ResourceManager
 		friend class D_CORE::Ref;
 
 	protected:
-		Resource(D_CORE::Uuid uuid, std::wstring const& path, std::wstring const& name, DResourceId id, Resource * parent, bool isDefault) :
+		Resource(D_CORE::Uuid const& uuid, std::wstring const& path, std::wstring const& name, DResourceId id, Resource * parent, bool isDefault) :
 			mLoaded(isDefault),
 			mPath(path),
 			mName(name),

@@ -65,7 +65,7 @@ namespace Darius::Animation
 		static D_RESOURCE::SubResourceConstructionData CanConstructFrom(D_RESOURCE::ResourceType type, D_FILE::Path const& path);
 
 	protected:
-		AnimationResource(D_CORE::Uuid uuid, std::wstring const& path, std::wstring const& name, D_RESOURCE::DResourceId id, D_RESOURCE::Resource* parent, bool isDefault = false);
+		AnimationResource(D_CORE::Uuid const& uuid, std::wstring const& path, std::wstring const& name, D_RESOURCE::DResourceId id, D_RESOURCE::Resource* parent, bool isDefault = false);
 
 		virtual void					ReadNativeAnimationFromFile(D_SERIALIZATION::Json const& json);
 		

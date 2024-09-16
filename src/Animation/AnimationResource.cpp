@@ -20,7 +20,7 @@ namespace Darius::Animation
 
 	D_CH_RESOURCE_DEF(AnimationResource);
 
-	AnimationResource::AnimationResource(D_CORE::Uuid uuid, std::wstring const& path, std::wstring const& name, D_RESOURCE::DResourceId id, D_RESOURCE::Resource* parent, bool isDefault) :
+	AnimationResource::AnimationResource(D_CORE::Uuid const& uuid, std::wstring const& path, std::wstring const& name, D_RESOURCE::DResourceId id, D_RESOURCE::Resource* parent, bool isDefault) :
 		Resource(uuid, path, name, id, parent, isDefault),
 		mSkeletalAnimationSequence(),
 		mSkeletalAnimation(false),

@@ -35,7 +35,7 @@ namespace Darius::Fbx
 
 
 	private:
-		FBXResource(D_CORE::Uuid uuid, std::wstring const& path, std::wstring const& name, D_RESOURCE::DResourceId id, D_RESOURCE::Resource* parent, bool isDefault = false) :
+		FBXResource(D_CORE::Uuid const& uuid, std::wstring const& path, std::wstring const& name, D_RESOURCE::DResourceId id, D_RESOURCE::Resource* parent, bool isDefault = false) :
 			Resource(uuid, path, name, id, parent, isDefault)
 		{}
 
