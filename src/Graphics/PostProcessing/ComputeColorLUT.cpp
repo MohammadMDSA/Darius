@@ -4,6 +4,7 @@
 #include "Graphics/GraphicsCore.hpp"
 #include "Graphics/CommandContext.hpp"
 #include "Graphics/GraphicsUtils/Profiling/Profiling.hpp"
+#include "Graphics/GraphicsUtils/Shader/Shaders.hpp"
 #include "Graphics/GraphicsUtils/RootSignature.hpp"
 #include "Graphics/GraphicsUtils/PipelineState.hpp"
 
@@ -25,8 +26,8 @@ void InitializePso(RootSignature const& PostEffectRS)
 #define CreatePSO(ObjName, ShaderName) \
     { \
         ObjName.SetRootSignature(PostEffectRS); \
-        auto shaderData = D_GRAPHICS::GetShaderByName(#ShaderName); \
-        ObjName.SetComputeShader(shaderData->GetBufferPointer(), shaderData->GetBufferSize()); \
+        auto shader = D_GRAPHICS::GetShaderByName<D_GRAPHICS_SHADERS::ComputeShader>(#ShaderName); \
+        ObjName.SetComputeShader(shader); \
         ObjName.Finalize(); \
 	}
 

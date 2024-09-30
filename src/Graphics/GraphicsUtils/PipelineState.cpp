@@ -1,8 +1,10 @@
 #include "Graphics/pch.hpp"
 #include "PipelineState.hpp"
+
 #include "RootSignature.hpp"
 #include "Graphics/GraphicsCore.hpp"
 #include "Graphics/GraphicsDeviceManager.hpp"
+#include "Shader/Shaders.hpp"
 
 #include <Core/Hash.hpp>
 #include <Core/Memory/Memory.hpp>
@@ -26,9 +28,13 @@ namespace Darius::Graphics::Utils
 		s_ComputePSOHashMap.clear();
 	}
 
-
-	GraphicsPSO::GraphicsPSO(const wchar_t* Name)
-		: PSO(Name)
+	GraphicsPSO::GraphicsPSO(const wchar_t* Name) :
+		PSO(Name),
+		mVertexShader(nullptr),
+		mPixelShader(nullptr),
+		mGeometryShader(nullptr),
+		mHullShader(nullptr),
+		mDomainShader(nullptr)
 	{
 		ZeroMemory(&mPSODesc, sizeof(mPSODesc));
 		mPSODesc.NodeMask = 1;
@@ -36,6 +42,24 @@ namespace Darius::Graphics::Utils
 		mPSODesc.SampleDesc.Count = 1;
 		mPSODesc.InputLayout.NumElements = 0;
 	}
+
+#define ShaderSetter(TYPE, PSOKey) \
+	void GraphicsPSO::Set##TYPE(std::shared_ptr<Shaders::TYPE> shader) \
+	{ \
+		m##TYPE = shader; \
+		m##TYPE.OnShaderCompiledConnection = shader->SubscribeOnCompiled([&](Shaders::CompiledShader* shader) { On##TYPE##Recompiled(); }); \
+		auto blob = m##TYPE.Shader->GetBinary(); \
+		D_ASSERT(blob); \
+		mPSODesc.PSOKey = CD3DX12_SHADER_BYTECODE(blob->GetBufferPointer(), blob->GetBufferSize()); \
+	}
+
+	ShaderSetter(VertexShader, VS);
+	ShaderSetter(PixelShader, PS);
+	ShaderSetter(GeometryShader, GS);
+	ShaderSetter(HullShader, HS);
+	ShaderSetter(DomainShader, DS);
+
+#undef ShaderSetter
 
 	void GraphicsPSO::SetBlendState(const D3D12_BLEND_DESC& BlendDesc)
 	{
@@ -193,10 +217,22 @@ namespace Darius::Graphics::Utils
 		}
 	}
 
-	ComputePSO::ComputePSO(const wchar_t* Name)
-		: PSO(Name)
+	ComputePSO::ComputePSO(const wchar_t* Name) :
+		PSO(Name),
+		mComputeShader(nullptr)
 	{
 		ZeroMemory(&mPSODesc, sizeof(mPSODesc));
 		mPSODesc.NodeMask = 1;
+	}
+
+	void ComputePSO::SetComputeShader(std::shared_ptr<Shaders::ComputeShader> computeShader)
+	{
+		mComputeShader = computeShader;
+		mComputeShader.OnShaderCompiledConnection = computeShader->SubscribeOnCompiled([&](Shaders::CompiledShader* shader) { OnComputeShaderRecompiled(); });
+		auto blob = mComputeShader.Shader->GetBinary();
+		D_ASSERT(blob);
+
+		mPSODesc.CS.pShaderBytecode = blob->GetBufferPointer();
+		mPSODesc.CS.BytecodeLength = blob->GetBufferSize();
 	}
 }

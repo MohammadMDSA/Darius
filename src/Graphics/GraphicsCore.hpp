@@ -17,6 +17,11 @@
 
 namespace Darius::Graphics
 {
+	namespace Utils::Shaders
+	{
+		class CompiledShader;
+	}
+
 	class ContextManager;
 
 	void									Initialize(HWND window, int width, int height, D_SERIALIZATION::Json const& settings);
@@ -42,9 +47,25 @@ namespace Darius::Graphics
 	D_GRAPHICS_UTILS::CommandListManager*	GetCommandManager();
 	ContextManager*							GetContextManager();
 
-	Microsoft::WRL::ComPtr<ID3DBlob>		GetShaderByIndex(UINT32 index);
-	Microsoft::WRL::ComPtr<ID3DBlob>		GetShaderByName(std::string const& shaderName);
+	std::shared_ptr<Utils::Shaders::CompiledShader>	GetShaderByIndex(UINT32 index);
+	std::shared_ptr<Utils::Shaders::CompiledShader>	GetShaderByName(std::string const& shaderName);
 	UINT32									GetShaderIndex(std::string const& shaderName);
+
+
+	template<typename T>
+	INLINE std::shared_ptr<T> GetShaderByIndex(UINT32 index)
+	{
+		auto compiledShader = GetShaderByIndex(index);
+		return std::dynamic_pointer_cast<T>(compiledShader);
+	}
+
+	template<typename T>
+	INLINE std::shared_ptr<T> GetShaderByName(std::string const& shaderName)
+	{
+		auto compiledShader = GetShaderByName(shaderName);
+		return std::dynamic_pointer_cast<T>(compiledShader);
+	}
+
 
 #ifdef _D_EDITOR
 	bool OptionsDrawer(_IN_OUT_ D_SERIALIZATION::Json& options);

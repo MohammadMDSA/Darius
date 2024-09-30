@@ -3,6 +3,7 @@
 
 #include <Graphics/GraphicsUtils/Buffers/ColorBuffer.hpp>
 #include <Graphics/GraphicsUtils/Profiling/Profiling.hpp>
+#include <Graphics/GraphicsUtils/Shader/Shaders.hpp>
 #include <Renderer/RendererCommon.hpp>
 
 #include "GuiPostProcessing.sgenerated.hpp"
@@ -32,8 +33,8 @@ namespace Darius::Editor::Gui::PostProcessing
 #define CreatePSO(ObjName, ShaderName) \
 	{ \
 		ObjName.SetRootSignature(sRootSignature); \
-		auto shaderData = D_GRAPHICS::GetShaderByName(#ShaderName); \
-		ObjName.SetComputeShader(shaderData->GetBufferPointer(), shaderData->GetBufferSize()); \
+		auto shader = D_GRAPHICS::GetShaderByName<D_GRAPHICS_SHADERS::ComputeShader>(#ShaderName); \
+		ObjName.SetComputeShader(shader); \
 		ObjName.Finalize(); \
 	}
 

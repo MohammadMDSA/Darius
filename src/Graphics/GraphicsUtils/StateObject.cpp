@@ -94,19 +94,19 @@ namespace Darius::Graphics::Utils
 
 		if (hitGroup.ClosestHitShader)
 		{
-			hitGroupSubObj->SetClosestHitShaderImport(hitGroup.ClosestHitShader->GetName().c_str());
+			hitGroupSubObj->SetClosestHitShaderImport(hitGroup.ClosestHitShader->GetNameWStr().c_str());
 			ProcessShader(hitGroup.ClosestHitShader.get());
 		}
 
 		if (hitGroup.IntersectionShader)
 		{
-			hitGroupSubObj->SetIntersectionShaderImport(hitGroup.IntersectionShader->GetName().c_str());
+			hitGroupSubObj->SetIntersectionShaderImport(hitGroup.IntersectionShader->GetNameWStr().c_str());
 			ProcessShader(hitGroup.IntersectionShader.get());
 		}
 
 		if (hitGroup.AnyHitShader)
 		{
-			hitGroupSubObj->SetAnyHitShaderImport(hitGroup.AnyHitShader->GetName().c_str());
+			hitGroupSubObj->SetAnyHitShaderImport(hitGroup.AnyHitShader->GetNameWStr().c_str());
 			ProcessShader(hitGroup.AnyHitShader.get());
 		}
 
@@ -137,7 +137,7 @@ namespace Darius::Graphics::Utils
 		mMaxLocalRootSignatureSize = std::max(mMaxLocalRootSignatureSize, shader->GetRootParametersSizeInBytes());
 
 		// Adding the shader name to associated library to create the lib later
-		mLibraryExportNamesMap[shader->GetLibraryName()].push_back(shader->GetName());
+		mLibraryExportNamesMap[shader->GetLibraryNameWStr()].push_back(shader->GetNameWStr());
 
 		// TODO: Couple root signature associations
 		// Adding the shader to its local root signature association
@@ -145,7 +145,7 @@ namespace Darius::Graphics::Utils
 
 		auto assocSubObj = mPipelineDesc.CreateSubobject<CD3DX12_SUBOBJECT_TO_EXPORTS_ASSOCIATION_SUBOBJECT>();
 		assocSubObj->SetSubobjectToAssociate(*localRootSignatureSubObject);
-		assocSubObj->AddExport(shader->GetName().c_str());
+		assocSubObj->AddExport(shader->GetNameWStr().c_str());
 
 		mCurrentIndex++; // For association
 	}
@@ -182,8 +182,10 @@ namespace Darius::Graphics::Utils
 			auto libSubObj = mPipelineDesc.CreateSubobject<CD3DX12_DXIL_LIBRARY_SUBOBJECT>();
 
 			// Setting library shader
-			auto shader = D_GRAPHICS::GetShaderByName(WSTR2STR(libName));
-			std::shared_ptr<D3D12_SHADER_BYTECODE> libdxil = std::make_shared<D3D12_SHADER_BYTECODE>(shader->GetBufferPointer(), shader->GetBufferSize());
+			auto shader = D_GRAPHICS::GetShaderByName<Shaders::ShaderLibrary>(WSTR2STR(libName));
+			auto binaryBlob = shader->GetBinary();
+			D_ASSERT(binaryBlob);
+			std::shared_ptr<D3D12_SHADER_BYTECODE> libdxil = std::make_shared<D3D12_SHADER_BYTECODE>(binaryBlob->GetBufferPointer(), binaryBlob->GetBufferSize());
 			mShaderByteCodes.insert(libdxil);
 			libSubObj->SetDXILLibrary(libdxil.get());
 
@@ -206,15 +208,15 @@ namespace Darius::Graphics::Utils
 
 			// Miss shaders
 			for (auto miss : mMissShaders)
-				miss->Identifier.SetData(stateObjectProperties->GetShaderIdentifier(miss->GetName().c_str()));
+				miss->Identifier.SetData(stateObjectProperties->GetShaderIdentifier(miss->GetNameWStr().c_str()));
 
 			// Callable shaders
 			for (auto callable : mCallableShaders)
-				callable->Identifier.SetData(stateObjectProperties->GetShaderIdentifier(callable->GetName().c_str()));
+				callable->Identifier.SetData(stateObjectProperties->GetShaderIdentifier(callable->GetNameWStr().c_str()));
 
 			// Ray generation shaders
 			for (auto rayGen : mRayGenerationShaders)
-				rayGen->Identifier.SetData(stateObjectProperties->GetShaderIdentifier(rayGen->GetName().c_str()));
+				rayGen->Identifier.SetData(stateObjectProperties->GetShaderIdentifier(rayGen->GetNameWStr().c_str()));
 
 			// Hit groups
 			for (auto& hitGroup : mHitGroups)

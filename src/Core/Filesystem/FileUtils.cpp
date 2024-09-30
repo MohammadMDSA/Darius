@@ -57,7 +57,7 @@ namespace Darius::Core::Filesystem
 		return Concurrency::create_task([=] { return ReadFileHelper(path); });
 	}
 
-	std::wstring GetFileName(Path path)
+	std::wstring GetFileName(Path const& path)
 	{
 		auto ext = path.extension().wstring();
 		auto fullname = path.filename().wstring();

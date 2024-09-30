@@ -8,6 +8,7 @@
 #include "GraphicsDeviceManager.hpp"
 #include "GraphicsUtils/Buffers/Texture.hpp"
 #include "GraphicsUtils/Shader/ShaderCompiler.hpp"
+#include "GraphicsUtils/Shader/ShaderFactory.hpp"
 #include "GraphicsUtils/Memory/DescriptorHeap.hpp"
 #include "GraphicsUtils/Profiling/GpuTimeManager.hpp"
 #include "PostProcessing/MotionBlur.hpp"
@@ -31,6 +32,7 @@ using namespace D_FILE;
 using namespace D_GRAPHICS_MEMORY;
 using namespace D_GRAPHICS_BUFFERS;
 using namespace D_GRAPHICS_UTILS;
+using namespace D_GRAPHICS_SHADERS;
 using namespace D_MATH;
 using namespace D_RESOURCE;
 using namespace DirectX;
@@ -49,8 +51,9 @@ namespace Darius::Graphics
 		D3D12_DESCRIPTOR_HEAP_TYPE_DSV
 	};
 
-	std::vector<ComPtr<ID3DBlob>>						Shaders;
+	std::vector<std::shared_ptr<CompiledShader>>		Shaders;
 	std::unordered_map<std::string, UINT32>				ShaderNameMap;
+	std::unique_ptr<D_GRAPHICS_SHADERS::ShaderFactory>	ShaderFactory;
 
 	uint32_t											FrameCount = 0;
 
@@ -206,6 +209,11 @@ namespace Darius::Graphics
 			}
 		}
 
+		CD3DX12FeatureSupport GetFeatureSupport()
+		{
+			return Resources->GetFeatureSupport();
+		}
+
 		UINT GetCurrentFrameResourceIndex()
 		{
 			return Resources->GetCurrentFrameResourceIndex();
@@ -319,6 +327,8 @@ namespace Darius::Graphics
 			[](SamplerDesc const& desc, D_SERIALIZATION::Json& json) { desc.Serialize(json); },
 			[](SamplerDesc& desc, D_SERIALIZATION::Json const& json) { desc.Deserialize(json); });
 
+		ShaderFactory = std::make_unique<D_GRAPHICS_SHADERS::ShaderFactory>();
+
 		BuildShaders();
 		InitializeCommonStates();
 
@@ -340,6 +350,10 @@ namespace Darius::Graphics
 		D_GRAPHICS_AA_FXAA::Shutdown();
 		D_GRAPHICS_AA_TEMPORAL::Shutdown();
 
+		Shaders.clear();
+		ShaderNameMap.clear();
+		ShaderFactory.reset();
+
 		D_PROFILING_GPU::Shutdown();
 
 		CommandManager.IdleGPU();
@@ -352,9 +366,6 @@ namespace Darius::Graphics
 		DescriptorAllocator::DestroyAll();
 
 		DestroyCommonStates();
-
-		for (auto& kv : Shaders)
-			kv.Reset();
 
 		Device::Shutdown();
 	}
@@ -608,8 +619,8 @@ namespace Darius::Graphics
 #define CreatePSO(ObjName, name ) \
 		{ \
 			ObjName.SetRootSignature(CommonRS); \
-			auto shader = GetShaderByName(#name); \
-			ObjName.SetComputeShader(shader->GetBufferPointer(), shader->GetBufferSize() ); \
+			auto shader = GetShaderByName<Shaders::ComputeShader>(#name); \
+			ObjName.SetComputeShader(shader); \
 			ObjName.Finalize(); \
 		}
 
@@ -650,7 +661,6 @@ namespace Darius::Graphics
 	{
 
 		D3D_SHADER_MODEL highestAvailable = Resources->GetFeatureSupport().HighestShaderModel();
-		Shaders.push_back(ComPtr<ID3DBlob>());
 
 		D_FILE::VisitFilesInDirectory(std::filesystem::current_path() / "Shaders", true, [&](Path const& path)
 			{
@@ -662,67 +672,50 @@ namespace Darius::Graphics
 
 				Device::ShaderCompatibilityCheck(D3D_SHADER_MODEL_6_2);
 
-				std::wstring compiler;
+				std::shared_ptr<CompiledShader> shader;
+				Shaders::ShaderCompileConfig compileConfig;
+				compileConfig.EntryPoint = "main"_SId;
+				compileConfig.Path = path;
+
 				if (shaderName.ends_with("VS"))
-					compiler = L"vs_6_2";
+				{
+					auto typedShader = ShaderFactory->CompileVertexShader(compileConfig);
+					shader = std::static_pointer_cast<CompiledShader>(typedShader);
+				}
 				else if (shaderName.ends_with("PS"))
-					compiler = L"ps_6_2";
+				{
+					auto typedShader = ShaderFactory->CompilePixelShader(compileConfig);
+					shader = std::static_pointer_cast<CompiledShader>(typedShader);
+				}
 				else if (shaderName.ends_with("CS"))
-					compiler = L"cs_6_2";
+				{
+					auto typedShader = ShaderFactory->CompileComputeShader(compileConfig);
+					shader = std::static_pointer_cast<CompiledShader>(typedShader);
+				}
 				else if (shaderName.ends_with("GS"))
-					compiler = L"gs_6_2";
+				{
+					auto typedShader = ShaderFactory->CompileGeometryShader(compileConfig);
+					shader = std::static_pointer_cast<CompiledShader>(typedShader);
+				}
 				else if (shaderName.ends_with("DS"))
-					compiler = L"ds_6_2";
+				{
+					auto typedShader = ShaderFactory->CompileDomainShader(compileConfig);
+					shader = std::static_pointer_cast<CompiledShader>(typedShader);
+				}
 				else if (shaderName.ends_with("HS"))
-					compiler = L"hs_6_2";
+				{
+					auto typedShader = ShaderFactory->CompileHullShader(compileConfig);
+					shader = std::static_pointer_cast<CompiledShader>(typedShader);
+				}
 				else if (shaderName.ends_with("Lib"))
-					compiler = L"lib_6_6";
+				{
+					auto typedShader = ShaderFactory->CompileShaderLibrary(compileConfig);
+					shader = std::static_pointer_cast<CompiledShader>(typedShader);
+				}
 				else
 					return;
 
-				ComPtr<ID3DBlob> compiledShader;
-				ComPtr<ID3D12ShaderReflection> reflectionData;
-				ComPtr<ID3D12LibraryReflection> libraryReflectionData;
-				if (compiler.starts_with(L"lib"))
-					compiledShader = CompileShader(path, L"", compiler, nullptr, libraryReflectionData.ReleaseAndGetAddressOf());
-				else
-					compiledShader = CompileShader(path, L"main", compiler, reflectionData.ReleaseAndGetAddressOf(), nullptr);
-
-				D_ASSERT(compiledShader);
-				if (reflectionData)
-				{
-					D3D12_SHADER_DESC desc;
-					reflectionData->GetDesc(&desc);
-					for (UINT i = 0; i < desc.BoundResources; i++)
-					{
-						D3D12_SHADER_INPUT_BIND_DESC bindDesc;
-						reflectionData->GetResourceBindingDesc(i, &bindDesc);
-						(bindDesc);
-						int j = 0;
-						j++;
-						(j);
-					}
-					for (UINT i = 0; i < desc.InputParameters; i++)
-					{
-						D3D12_SIGNATURE_PARAMETER_DESC sigDesc;
-						reflectionData->GetInputParameterDesc(i, &sigDesc);
-						int j = 0;
-						j++;
-						(j);
-					}
-					for (UINT i = 0; i < desc.ConstantBuffers; i++)
-					{
-						auto cbuffer = reflectionData->GetConstantBufferByIndex(i);
-						D3D12_SHADER_BUFFER_DESC cbufferDesc;
-						cbuffer->GetDesc(&cbufferDesc);
-						for (UINT j = 0; j < cbufferDesc.Variables; j++)
-						{
-							auto cbufferVariable = cbuffer->GetVariableByIndex(j);
-						}
-					}
-				}
-
-				Shaders.push_back(compiledShader);
+				Shaders.push_back(shader);
 
 				ShaderNameMap[shaderName] = (UINT32)Shaders.size() - 1;
 			});
@@ -785,17 +778,17 @@ namespace Darius::Graphics
 	}
 #endif
 
-	Microsoft::WRL::ComPtr<ID3DBlob>		GetShaderByIndex(UINT32 index)
+	std::shared_ptr<D_GRAPHICS_SHADERS::CompiledShader> GetShaderByIndex(UINT32 index)
 	{
 		return Shaders[index];
 	}
 
-	Microsoft::WRL::ComPtr<ID3DBlob>		GetShaderByName(std::string const& shaderName)
+	std::shared_ptr<D_GRAPHICS_SHADERS::CompiledShader> GetShaderByName(std::string const& shaderName)
 	{
 		return Shaders[ShaderNameMap[shaderName]];
 	}
 
-	UINT32									GetShaderIndex(std::string const& shaderName)
+	UINT32 GetShaderIndex(std::string const& shaderName)
 	{
 		return ShaderNameMap[shaderName];
 	}

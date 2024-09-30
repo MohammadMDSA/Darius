@@ -20,6 +20,7 @@
 #include <Graphics/GraphicsUtils/RootSignature.hpp>
 #include <Graphics/GraphicsUtils/Memory/DescriptorHeap.hpp>
 #include <Graphics/GraphicsUtils/Buffers/ColorBuffer.hpp>
+#include <Graphics/GraphicsUtils/Shader/Shaders.hpp>
 #include <Graphics/GraphicsUtils/Profiling/Profiling.hpp>
 #include <Graphics/PostProcessing/MotionBlur.hpp>
 #include <Graphics/PostProcessing/PostProcessing.hpp>
@@ -41,6 +42,7 @@ using namespace D_MATH;
 using namespace D_MATH_BOUNDS;
 using namespace D_GRAPHICS;
 using namespace D_GRAPHICS_MEMORY;
+using namespace D_GRAPHICS_SHADERS;
 using namespace D_GRAPHICS_UTILS;
 using namespace D_RENDERER;
 using namespace D_RENDERER_GEOMETRY;
@@ -48,7 +50,7 @@ using namespace D_RESOURCE;
 using namespace Microsoft::WRL;
 
 #define VertexData(il) il::InputLayout.NumElements, il::InputLayout.pInputElementDescs
-#define ShaderData(name) D_GRAPHICS::GetShaderByName(name)->GetBufferPointer(), D_GRAPHICS::GetShaderByName(name)->GetBufferSize()
+#define ShaderData(name, shaderType) D_GRAPHICS::GetShaderByName<D_GRAPHICS_SHADERS::shaderType>(name)
 
 #define CascadeOptionsKey "Renderer.Rasterization.Lighting.Shadows.Cascades"
 
@@ -563,8 +565,8 @@ namespace Darius::Renderer::Rasterization
 		// For Opaque objects
 		DefaultPso = GraphicsPSO(L"Opaque PSO");
 		DefaultPso.SetInputLayout(VertexData(D_RENDERER_VERTEX::VertexPositionNormalTangentTexture));
-		DefaultPso.SetVertexShader(ShaderData("DefaultVS"));
-		DefaultPso.SetPixelShader(ShaderData("DefaultPS"));
+		DefaultPso.SetVertexShader(ShaderData("DefaultVS", VertexShader));
+		DefaultPso.SetPixelShader(ShaderData("DefaultPS", PixelShader));
 		DefaultPso.SetRootSignature(RootSigns[(size_t)RootSignatureTypes::DefaultRootSig]);
 		DefaultPso.SetRasterizerState(D_GRAPHICS::RasterizerDefault);
 		DefaultPso.SetBlendState(CD3DX12_BLEND_DESC(D3D12_DEFAULT));
@@ -579,8 +581,8 @@ namespace Darius::Renderer::Rasterization
 			SkyboxPso = DefaultPso;
 			SkyboxPso.SetDepthStencilState(DepthStateTestEqual);
 			SkyboxPso.SetInputLayout(0, nullptr);
-			SkyboxPso.SetVertexShader(ShaderData("SkyboxVS"));
-			SkyboxPso.SetPixelShader(ShaderData("SkyboxPS"));
+			SkyboxPso.SetVertexShader(ShaderData("SkyboxVS", VertexShader));
+			SkyboxPso.SetPixelShader(ShaderData("SkyboxPS", PixelShader));
 			SkyboxPso.Finalize(L"Skybox");
 		}
 
@@ -1139,17 +1141,17 @@ namespace Darius::Renderer::Rasterization
 			{
 				name += L" Cutout";
 
-				depthPSO.SetPixelShader(ShaderData("CutoutDepthPS"));
+				depthPSO.SetPixelShader(ShaderData("CutoutDepthPS", PixelShader));
 
 				// Has skin
 				if(psoConfig.PsoFlags & RenderItem::HasSkin)
 				{
 					name += L" Skinned";
-					depthPSO.SetVertexShader(ShaderData("CutoutDepthSkinVS"));
+					depthPSO.SetVertexShader(ShaderData("CutoutDepthSkinVS", VertexShader));
 				}
 				else // Doesn't have skin
 				{
-					depthPSO.SetVertexShader(ShaderData("CutoutDepthVS"));
+					depthPSO.SetVertexShader(ShaderData("CutoutDepthVS", VertexShader));
 				}
 			}
 			else // No alpha testing
@@ -1158,43 +1160,43 @@ namespace Darius::Renderer::Rasterization
 				if(psoConfig.PsoFlags & RenderItem::HasSkin)
 				{
 					name += L" Skinned";
-					depthPSO.SetVertexShader(ShaderData("DepthOnlySkinVS"));
+					depthPSO.SetVertexShader(ShaderData("DepthOnlySkinVS", VertexShader));
 				}
 				else // Doesn't have skin
 				{
-					depthPSO.SetVertexShader(ShaderData("DepthOnlyVS"));
+					depthPSO.SetVertexShader(ShaderData("DepthOnlyVS", VertexShader));
 				}
 			}
 		}
 		else
 		{
-			auto vShader = GetShaderByIndex(psoConfig.VSIndex);
-			auto pShader = GetShaderByIndex(psoConfig.PSIndex);
+			auto vShader = GetShaderByIndex<VertexShader>(psoConfig.VSIndex);
+			auto pShader = GetShaderByIndex<PixelShader>(psoConfig.PSIndex);
 
 			if(vShader)
-				depthPSO.SetVertexShader(vShader->GetBufferPointer(), vShader->GetBufferSize());
+				depthPSO.SetVertexShader(vShader);
 
 			if(pShader)
-				depthPSO.SetPixelShader(pShader->GetBufferPointer(), pShader->GetBufferSize());
+				depthPSO.SetPixelShader(pShader);
 		}
 
 		// Setting Geometry Shader
 		if(psoConfig.GSIndex > 0)
 		{
-			auto gShader = GetShaderByIndex(psoConfig.GSIndex);
-			depthPSO.SetGeometryShader(gShader->GetBufferPointer(), gShader->GetBufferSize());
+			auto shader = GetShaderByIndex<GeometryShader>(psoConfig.GSIndex);
+			depthPSO.SetGeometryShader(shader);
 		}
 
 		if(psoConfig.HSIndex > 0)
 		{
-			auto gShader = GetShaderByIndex(psoConfig.HSIndex);
-			depthPSO.SetHullShader(gShader->GetBufferPointer(), gShader->GetBufferSize());
+			auto shader = GetShaderByIndex<HullShader>(psoConfig.HSIndex);
+			depthPSO.SetHullShader(shader);
 		}
 
 		if(psoConfig.DSIndex > 0)
 		{
-			auto gShader = GetShaderByIndex(psoConfig.DSIndex);
-			depthPSO.SetDomainShader(gShader->GetBufferPointer(), gShader->GetBufferSize());
+			auto shader = GetShaderByIndex<DomainShader>(psoConfig.DSIndex);
+			depthPSO.SetDomainShader(shader);
 		}
 
 		// Handling Rasterizer
@@ -1353,8 +1355,8 @@ namespace Darius::Renderer::Rasterization
 		{
 			if(psoConfig.PsoFlags & RenderItem::ColorOnly)
 			{
-				ColorPSO.SetVertexShader(ShaderData("ColorVS"));
-				ColorPSO.SetPixelShader(ShaderData("ColorPS"));
+				ColorPSO.SetVertexShader(ShaderData("ColorVS", VertexShader));
+				ColorPSO.SetPixelShader(ShaderData("ColorPS", PixelShader));
 
 				psoName += L"Color Only ";
 			}
@@ -1371,8 +1373,8 @@ namespace Darius::Renderer::Rasterization
 						}
 						else
 						{
-							ColorPSO.SetVertexShader(ShaderData("SkinnedVS"));
-							ColorPSO.SetPixelShader(ShaderData("DefaultPS"));
+							ColorPSO.SetVertexShader(ShaderData("SkinnedVS", VertexShader));
+							ColorPSO.SetPixelShader(ShaderData("DefaultPS", PixelShader));
 						}
 					}
 					else
@@ -1384,8 +1386,8 @@ namespace Darius::Renderer::Rasterization
 						}
 						else
 						{
-							ColorPSO.SetVertexShader(ShaderData("SkinnedVS"));
-							ColorPSO.SetPixelShader(ShaderData("DefaultPS"));
+							ColorPSO.SetVertexShader(ShaderData("SkinnedVS", VertexShader));
+							ColorPSO.SetPixelShader(ShaderData("DefaultPS", PixelShader));
 						}
 					}
 					psoName += L"Skinned ";
@@ -1401,8 +1403,8 @@ namespace Darius::Renderer::Rasterization
 						}
 						else
 						{
-							ColorPSO.SetVertexShader(ShaderData("DefaultVS"));
-							ColorPSO.SetPixelShader(ShaderData("DefaultPS"));
+							ColorPSO.SetVertexShader(ShaderData("DefaultVS", VertexShader));
+							ColorPSO.SetPixelShader(ShaderData("DefaultPS", PixelShader));
 						}
 					}
 					else
@@ -1414,8 +1416,8 @@ namespace Darius::Renderer::Rasterization
 						}
 						else
 						{
-							ColorPSO.SetVertexShader(ShaderData("DefaultVS"));
-							ColorPSO.SetPixelShader(ShaderData("DefaultPS"));
+							ColorPSO.SetVertexShader(ShaderData("DefaultVS", VertexShader));
+							ColorPSO.SetPixelShader(ShaderData("DefaultPS", PixelShader));
 						}
 					}
 				}
@@ -1423,37 +1425,37 @@ namespace Darius::Renderer::Rasterization
 		}
 		else
 		{
-			auto vShader = GetShaderByIndex(psoConfig.VSIndex);
-			auto pShader = GetShaderByIndex(psoConfig.PSIndex);
+			auto vShader = GetShaderByIndex<VertexShader>(psoConfig.VSIndex);
+			auto pShader = GetShaderByIndex<PixelShader>(psoConfig.PSIndex);
 
 			if(vShader)
-				ColorPSO.SetVertexShader(vShader->GetBufferPointer(), vShader->GetBufferSize());
+				ColorPSO.SetVertexShader(vShader);
 
 			if(pShader)
-				ColorPSO.SetPixelShader(pShader->GetBufferPointer(), pShader->GetBufferSize());
+				ColorPSO.SetPixelShader(pShader);
 		}
 
 		// Setting Geometry Shader
 		if(psoConfig.GSIndex > 0)
 		{
-			auto gShader = GetShaderByIndex(psoConfig.GSIndex);
-			ColorPSO.SetGeometryShader(gShader->GetBufferPointer(), gShader->GetBufferSize());
+			auto gShader = GetShaderByIndex<GeometryShader>(psoConfig.GSIndex);
+			ColorPSO.SetGeometryShader(gShader);
 
 			psoName += L"Geometry:" + std::to_wstring(psoConfig.GSIndex);
 		}
 
 		if(psoConfig.HSIndex > 0)
 		{
-			auto gShader = GetShaderByIndex(psoConfig.HSIndex);
-			ColorPSO.SetHullShader(gShader->GetBufferPointer(), gShader->GetBufferSize());
+			auto hShader = GetShaderByIndex<HullShader>(psoConfig.HSIndex);
+			ColorPSO.SetHullShader(hShader);
 
 			psoName += L"Hull:" + std::to_wstring(psoConfig.HSIndex);
 		}
 
 		if(psoConfig.DSIndex > 0)
 		{
-			auto gShader = GetShaderByIndex(psoConfig.DSIndex);
-			ColorPSO.SetDomainShader(gShader->GetBufferPointer(), gShader->GetBufferSize());
+			auto dShader = GetShaderByIndex<DomainShader>(psoConfig.DSIndex);
+			ColorPSO.SetDomainShader(dShader);
 
 			psoName += L"Domain:" + std::to_wstring(psoConfig.DSIndex);
 		}

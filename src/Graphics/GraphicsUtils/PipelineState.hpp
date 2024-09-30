@@ -2,6 +2,7 @@
 
 #include "RootSignature.hpp"
 
+#include <Core/Signal.hpp>
 #include <Utils/Assert.hpp>
 
 #ifndef D_GRAPHICS_UTILS
@@ -15,6 +16,16 @@ namespace Darius::Graphics
 
 namespace Darius::Graphics::Utils
 {
+    namespace Shaders
+    {
+        class ComputeShader;
+        class VertexShader;
+        class PixelShader;
+        class GeometryShader;
+        class HullShader;
+        class DomainShader;
+    }
+
     class RootSignature;
 
     class PSO
@@ -45,6 +56,17 @@ namespace Darius::Graphics::Utils
 
     protected:
 
+        template <typename SHADER>
+        struct PsoShaderData
+        {
+            PsoShaderData(std::shared_ptr<SHADER> shader) : Shader(shader) {}
+            INLINE ~PsoShaderData() { OnShaderCompiledConnection.disconnect(); }
+
+        public:
+            std::shared_ptr<SHADER>         Shader;
+            D_CORE::SignalConnection        OnShaderCompiledConnection;
+        };
+
         const wchar_t* mName;
 
         const RootSignature* mRootSignature;
@@ -73,11 +95,11 @@ namespace Darius::Graphics::Utils
         void SetPrimitiveRestart(D3D12_INDEX_BUFFER_STRIP_CUT_VALUE IBProps);
 
         // These const_casts shouldn't be necessary, but we need to fix the API to accept "const void* pShaderBytecode"
-        void SetVertexShader(const void* Binary, size_t Size) { mPSODesc.VS = CD3DX12_SHADER_BYTECODE(const_cast<void*>(Binary), Size); }
-        void SetPixelShader(const void* Binary, size_t Size) { mPSODesc.PS = CD3DX12_SHADER_BYTECODE(const_cast<void*>(Binary), Size); }
-        void SetGeometryShader(const void* Binary, size_t Size) { mPSODesc.GS = CD3DX12_SHADER_BYTECODE(const_cast<void*>(Binary), Size); }
-        void SetHullShader(const void* Binary, size_t Size) { mPSODesc.HS = CD3DX12_SHADER_BYTECODE(const_cast<void*>(Binary), Size); }
-        void SetDomainShader(const void* Binary, size_t Size) { mPSODesc.DS = CD3DX12_SHADER_BYTECODE(const_cast<void*>(Binary), Size); }
+        void SetVertexShader(std::shared_ptr<Shaders::VertexShader> shader);
+        void SetPixelShader(std::shared_ptr<Shaders::PixelShader> shader);
+        void SetGeometryShader(std::shared_ptr<Shaders::GeometryShader> shader);
+        void SetHullShader(std::shared_ptr<Shaders::HullShader> shader);
+        void SetDomainShader(std::shared_ptr<Shaders::DomainShader> shader);
 
         void SetVertexShader(const D3D12_SHADER_BYTECODE& Binary) { mPSODesc.VS = Binary; }
         void SetPixelShader(const D3D12_SHADER_BYTECODE& Binary) { mPSODesc.PS = Binary; }
@@ -92,8 +114,19 @@ namespace Darius::Graphics::Utils
 
     private:
 
+        void OnVertexShaderRecompiled() {}
+        void OnPixelShaderRecompiled() {}
+        void OnGeometryShaderRecompiled() {}
+        void OnHullShaderRecompiled() {}
+        void OnDomainShaderRecompiled() {}
+
         D3D12_GRAPHICS_PIPELINE_STATE_DESC mPSODesc;
         std::shared_ptr<const D3D12_INPUT_ELEMENT_DESC> mInputLayouts;
+        PsoShaderData<Shaders::VertexShader>        mVertexShader;
+        PsoShaderData<Shaders::PixelShader>         mPixelShader;
+        PsoShaderData<Shaders::GeometryShader>      mGeometryShader;
+        PsoShaderData<Shaders::HullShader>          mHullShader;
+        PsoShaderData<Shaders::DomainShader>        mDomainShader;
     };
 
 
@@ -104,14 +137,18 @@ namespace Darius::Graphics::Utils
     public:
         ComputePSO(const wchar_t* Name = L"Unnamed Compute PSO");
 
-        void SetComputeShader(const void* Binary, size_t Size) { mPSODesc.CS = CD3DX12_SHADER_BYTECODE(const_cast<void*>(Binary), Size); }
-        void SetComputeShader(const D3D12_SHADER_BYTECODE& Binary) { mPSODesc.CS = Binary; }
+        void SetComputeShader(std::shared_ptr<Shaders::ComputeShader> computeShader);
+
+        INLINE std::shared_ptr<Shaders::ComputeShader> GetComputeShader() const { return mComputeShader.Shader; }
+
+        void OnComputeShaderRecompiled() {}
 
         void Finalize();
 
     private:
 
-        D3D12_COMPUTE_PIPELINE_STATE_DESC mPSODesc;
+        D3D12_COMPUTE_PIPELINE_STATE_DESC       mPSODesc;
+        PsoShaderData<Shaders::ComputeShader>   mComputeShader;
     };
 
 }

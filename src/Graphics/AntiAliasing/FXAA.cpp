@@ -5,6 +5,7 @@
 #include "Graphics/GraphicsUtils/RootSignature.hpp"
 #include "Graphics/GraphicsUtils/Buffers/GpuBuffer.hpp"
 #include "Graphics/GraphicsUtils/Profiling/Profiling.hpp"
+#include "Graphics/GraphicsUtils/Shader/Shaders.hpp"
 
 #if _D_EDITOR
 #include <imgui.h>
@@ -60,8 +61,8 @@ namespace Darius::Graphics::AntiAliasing::FXAA
 #define CreatePSO(ObjName, ShaderName) \
     { \
         ObjName.SetRootSignature(FXAARootSig); \
-        auto shaderData = D_GRAPHICS::GetShaderByName(#ShaderName); \
-        ObjName.SetComputeShader(shaderData->GetBufferPointer(), shaderData->GetBufferSize()); \
+        auto shader = D_GRAPHICS::GetShaderByName<Shaders::ComputeShader>(#ShaderName); \
+        ObjName.SetComputeShader(shader); \
         ObjName.Finalize(); \
     }
 

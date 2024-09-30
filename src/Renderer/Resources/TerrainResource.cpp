@@ -8,6 +8,7 @@
 #include <Core/Containers/Vector.hpp>
 #include <Graphics/GraphicsUtils/PipelineState.hpp>
 #include <Graphics/GraphicsUtils/Profiling/Profiling.hpp>
+#include <Graphics/GraphicsUtils/Shader/Shaders.hpp>
 #include <ResourceManager/ResourceManager.hpp>
 #include <Utils/Common.hpp>
 
@@ -54,8 +55,8 @@ namespace Darius::Renderer
 		if (TerrainMeshGenerationCS.GetPipelineStateObject() == nullptr)
 		{
 			TerrainMeshGenerationCS.SetRootSignature(D_GRAPHICS::CommonRS);
-			auto shader = D_GRAPHICS::GetShaderByName("TerrainMeshGeneratorCS");
-			TerrainMeshGenerationCS.SetComputeShader(shader->GetBufferPointer(), shader->GetBufferSize());
+			auto shader = D_GRAPHICS::GetShaderByName<Shaders::ComputeShader>("TerrainMeshGeneratorCS");
+			TerrainMeshGenerationCS.SetComputeShader(shader);
 			TerrainMeshGenerationCS.Finalize();
 		}
 	}

@@ -1,6 +1,8 @@
 #include "Graphics/pch.hpp"
 #include "ShaderCompiler.hpp"
 
+#include "Shaders.hpp"
+
 #include <Core/Filesystem/Path.hpp>
 #include <Utils/Log.hpp>
 
@@ -123,7 +125,14 @@ namespace Darius::Graphics::Utils
 	static DxcDllSupport gDxcDllHelper;
 	static bool loadedDXIL = false;
 
-	ComPtr<ID3DBlob> CompileShader(const std::wstring& filename, const std::wstring& entrypoint, const std::wstring& target, ID3D12ShaderReflection** reflectionData, ID3D12LibraryReflection** libraryReflectionData)
+	ComPtr<ID3DBlob> CompileShader(
+		std::wstring const& filename,
+		std::wstring const& entrypoint,
+		std::wstring const& target,
+		D_CONTAINERS::DVector<std::wstring> const& defines,
+		ID3D12ShaderReflection** reflectionData,
+		ID3D12LibraryReflection** libraryReflectionData,
+		std::string& compileLog)
 	{
 		// 
 		// Create compiler and utils.
@@ -143,15 +152,6 @@ namespace Darius::Graphics::Utils
 		pUtils->CreateDefaultIncludeHandler(&pIncludeHandler);
 
 		auto pdbName = filename + L".pdb";
-
-		std::vector<LPCWSTR> psz =
-		{
-			filename.c_str(),
-			L"-T", target.c_str(),      // Target.
-			L"-E",
-			entrypoint.c_str(),			// Marking entrypoint
-			L"-force-rootsig-ver", L"rootsig_1_1"
-		};
 
 		std::vector<LPCWSTR> pszArgs =
 		{
@@ -183,6 +183,12 @@ namespace Darius::Graphics::Utils
 		pszArgs.push_back(L"-Qembed_debug");
 #endif
 
+		// Handling defines
+		for (auto const& define : defines)
+		{
+			pszArgs.push_back(L"-D");
+			pszArgs.push_back(define.c_str());
+		}
 
 		//
 		// Open source file.  
@@ -229,7 +235,11 @@ namespace Darius::Graphics::Utils
 				D_LOG_WARN(msg);
 			else
 				D_LOG_ERROR(msg);
+
+			compileLog = msg;
 		}
+		else
+			compileLog = "";
 
 		// Quit if the compilation failed.
 		D_HR_CHECK(hrStatus);

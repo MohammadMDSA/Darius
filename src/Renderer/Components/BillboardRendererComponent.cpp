@@ -191,7 +191,7 @@ namespace Darius::Renderer
 			D_RENDERER_RAST::PsoConfig config;
 			config.PsoFlags = mMaterial->GetPsoFlags() | RenderItem::SkipVertexIndex | RenderItem::PointOnly;
 
-			config.PSIndex = GetShaderIndex("BillboardPS");
+			config.PSIndex = GetShaderIndex("DefaultPS");
 			config.VSIndex = GetShaderIndex("BillboardVS");
 			config.GSIndex = GetShaderIndex("BillboardGS");
 

@@ -6,6 +6,7 @@
 #include "Graphics/GraphicsUtils/RootSignature.hpp"
 #include "Graphics/GraphicsUtils/PipelineState.hpp"
 #include "Graphics/GraphicsUtils/Profiling/Profiling.hpp"
+#include "Graphics/GraphicsUtils/Shader/Shaders.hpp"
 
 #include <Utils/Assert.hpp>
 #include <Utils/Common.hpp>
@@ -106,8 +107,8 @@ namespace Darius::Graphics::AmbientOcclusion::ScreenSpace
 #define CreatePSO(ObjName, ShaderName) \
     { \
         ObjName.SetRootSignature(RootSig); \
-        auto shaderData = D_GRAPHICS::GetShaderByName(#ShaderName); \
-        ObjName.SetComputeShader(shaderData->GetBufferPointer(), shaderData->GetBufferSize()); \
+        auto shader = D_GRAPHICS::GetShaderByName<Shaders::ComputeShader>(#ShaderName); \
+        ObjName.SetComputeShader(shader); \
         ObjName.Finalize(); \
     }
 

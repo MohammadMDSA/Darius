@@ -24,7 +24,7 @@ namespace Darius::Graphics::Device
 	bool										SupportsTypedUAVLoadSupport_R11G11B10_FLOAT();
 	bool										SupportsTypedUAVLoadSupport_R16G16B16A16_FLOAT();
 	bool										SupportsRaytracing();
-
+	CD3DX12FeatureSupport						GetFeatureSupport();
 
 	// Window functions
 	void										OnWindowMoved();

@@ -27,6 +27,11 @@ namespace Darius::Renderer::RayTracing::Pipeline
 		bool											mInitialized;
 		std::unique_ptr<D_GRAPHICS_UTILS::RayTracingStateObject> mRTSO;
 
+		D_CORE::StringId mRaygenShaderName;
+		D_CORE::StringId mClosestHitShaderName;
+		D_CORE::StringId mMissShaderName;
+		D_CORE::StringId mLibName;
+
 	};
 
 	namespace SimpleRayTracing::GlobalRootSignatureBindings

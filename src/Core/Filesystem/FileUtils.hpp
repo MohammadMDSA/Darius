@@ -30,7 +30,7 @@ namespace Darius::Core::Filesystem
 
 	Concurrency::task<ByteArray>	ReadFileAsync(std::wstring const& path);
 
-	std::wstring					GetFileName(Path path);
+	std::wstring					GetFileName(Path const& path);
 
 	// Calls the callback providing entry path and whether it is a directory
 	void							VisitEntriesInDirectory(Path const& path, bool recursively, std::function<void(Path const&, bool)> callback);

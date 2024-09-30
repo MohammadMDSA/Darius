@@ -6,6 +6,7 @@
 #include <Core/TimeManager/TimeManager.hpp>
 #include <Debug/DebugDraw.hpp>
 #include <Graphics/GraphicsUtils/Profiling/Profiling.hpp>
+#include <Graphics/GraphicsUtils/Shader/Shaders.hpp>
 #include <Scene/Utils/DetailsDrawer.hpp>
 #include <ResourceManager/ResourceManager.hpp>
 
@@ -43,8 +44,8 @@ namespace Darius::Renderer
 			return;
 
 		AsyncAnimationCS.SetRootSignature(D_GRAPHICS::CommonRS);
-		auto shader = D_GRAPHICS::GetShaderByName("SkeletalMeshAnimationDeformationCS");
-		AsyncAnimationCS.SetComputeShader(shader->GetBufferPointer(), shader->GetBufferSize());
+		auto shader = D_GRAPHICS::GetShaderByName<D_GRAPHICS_SHADERS::ComputeShader>("SkeletalMeshAnimationDeformationCS");
+		AsyncAnimationCS.SetComputeShader(shader);
 		AsyncAnimationCS.Finalize();
 	}
 
