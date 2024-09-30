@@ -23,7 +23,7 @@ namespace Darius::Fbx
 #endif // _D_EDITOR
 
 		virtual void					ReadResourceFromFile(D_SERIALIZATION::Json const&, bool& dirtyDisk) override;
-		virtual void					WriteResourceToFile(D_SERIALIZATION::Json & j) const override {}
+		virtual bool					WriteResourceToFile(D_SERIALIZATION::Json & j) const override { return true; }
 
 		INLINE virtual bool				AreDependenciesDirty() const override { return false; }
 

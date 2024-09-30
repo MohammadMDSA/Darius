@@ -20,7 +20,7 @@ namespace Darius::Fbx
 
 	protected:
 
-		virtual void					WriteResourceToFile(D_SERIALIZATION::Json& j) const override;
+		virtual bool					WriteResourceToFile(D_SERIALIZATION::Json& j) const override;
 		virtual void					ReadResourceFromFile(D_SERIALIZATION::Json const& j, bool& dirtyDisk) override;
 
 	protected:

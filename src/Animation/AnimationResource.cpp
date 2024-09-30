@@ -121,10 +121,13 @@ namespace Darius::Animation
 		D_SERIALIZATION::Deserialize(*this, animData);
 	}
 
-	void AnimationResource::WriteResourceToFile(D_SERIALIZATION::Json& json) const
+	bool AnimationResource::WriteResourceToFile(D_SERIALIZATION::Json& json) const
 	{
 		if (IsSkeletalAnimation())
-			return;
+		{
+			D_LOG_ERROR("Unable to write skeletal animation to file " << GetPath().string());
+			return false;
+		}
 
 		D_SERIALIZATION::Json animData;
 		D_SERIALIZATION::Serialize(*this, animData);
@@ -132,8 +135,9 @@ namespace Darius::Animation
 		if (D_FILE::WriteJsonFile(GetPath(), animData))
 		{
 			D_LOG_ERROR("Unable to write animation data to " + GetPath().string());
-			return;
+			return false;
 		}
+		return true;
 	}
 
 	float AnimationResource::GetStartTime() const

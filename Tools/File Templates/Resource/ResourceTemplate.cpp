@@ -15,9 +15,9 @@ namespace %%NAMESPACE%%
 
 	D_CH_RESOURCE_DEF(%%CLASS_NAME%%);
 
-	void %%CLASS_NAME%%::WriteResourceToFile(D_SERIALIZATION::Json& j) const
+	bool %%CLASS_NAME%%::WriteResourceToFile(D_SERIALIZATION::Json& j) const
 	{
-		
+		return true;
 	}
 
 	void %%CLASS_NAME%%::ReadResourceFromFile(D_SERIALIZATION::Json const& j, bool& dirtyDisk)

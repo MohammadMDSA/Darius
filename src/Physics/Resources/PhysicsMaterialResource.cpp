@@ -24,10 +24,13 @@ namespace Darius::Physics
 		mPxData = core->createMaterial(0.5f, 0.5f, 0.5f);
 	}
 
-	void PhysicsMaterialResource::WriteResourceToFile(D_SERIALIZATION::Json& json) const
+	bool PhysicsMaterialResource::WriteResourceToFile(D_SERIALIZATION::Json& json) const
 	{
 		if (!mPxData)
-			return;
+		{
+			D_LOG_ERROR("Physics material data is not present to write to file: " << GetPath().string());
+			return false;
+		}
 
 		Json j = {
 			{ "StaticFriction", mPxData->getStaticFriction() },
@@ -38,6 +41,8 @@ namespace Darius::Physics
 		std::ofstream os(GetPath());
 		os << j;
 		os.close();
+
+		return true;
 	}
 
 	void PhysicsMaterialResource::ReadResourceFromFile(D_SERIALIZATION::Json const& json, bool& dirtyDisk)

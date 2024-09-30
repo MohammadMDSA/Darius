@@ -25,10 +25,13 @@ namespace Darius::Scene
 		Resource(uuid, path, name, id, parent, isDefault),
 		mPrefabGameObject(nullptr) { }
 
-	void PrefabResource::WriteResourceToFile(D_SERIALIZATION::Json& j) const
+	bool PrefabResource::WriteResourceToFile(D_SERIALIZATION::Json& j) const
 	{
 		if (!mPrefabGameObject)
-			return;
+		{
+			D_LOG_ERROR("Prefab game object does not exist to save the prefab resource: " << GetPath().string());
+			return false;
+		}
 
 		Json dataJson;
 
@@ -37,6 +40,8 @@ namespace Darius::Scene
 		std::ofstream os(GetPath());
 		os << dataJson;
 		os.close();
+
+		return true;
 	}
 
 	void PrefabResource::ReadResourceFromFile(D_SERIALIZATION::Json const& j, bool& dirtyDisk)

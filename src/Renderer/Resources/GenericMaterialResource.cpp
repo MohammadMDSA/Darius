@@ -207,11 +207,11 @@ namespace Darius::Renderer
 		return false;
 	}
 
-	void GenericMaterialResource::WriteResourceToFile(Json& j) const
+	bool GenericMaterialResource::WriteResourceToFile(Json& j) const
 	{
+		D_ASSERT_M(false, "Not Implemented");
 
-
-
+		return false;
 	}
 
 	void GenericMaterialResource::SerializeTextures(Json& j) const

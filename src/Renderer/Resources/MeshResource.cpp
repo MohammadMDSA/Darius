@@ -47,9 +47,10 @@ namespace Darius::Renderer
 		mMaterials.resize(D_MATH::Max(size, 1u));
 	}
 
-	void MeshResource::WriteResourceToFile(D_SERIALIZATION::Json& json) const
+	bool MeshResource::WriteResourceToFile(D_SERIALIZATION::Json& json) const
 	{
 		D_SERIALIZATION::Serialize(*this, json);
+		return true;
 	};
 
 	void MeshResource::ReadResourceFromFile(D_SERIALIZATION::Json const& json, bool& dirtyDisk)

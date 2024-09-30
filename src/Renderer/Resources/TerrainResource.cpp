@@ -67,7 +67,7 @@ namespace Darius::Renderer
 		height = GRID_DEPTH;
 	}
 
-	void TerrainResource::WriteResourceToFile(D_SERIALIZATION::Json& j) const
+	bool TerrainResource::WriteResourceToFile(D_SERIALIZATION::Json& j) const
 	{
 		Json json;
 
@@ -79,6 +79,7 @@ namespace Darius::Renderer
 		}
 
 		D_FILE::WriteJsonFile(GetPath(), json);
+		return true;
 	}
 
 	void TerrainResource::ReadResourceFromFile(D_SERIALIZATION::Json const& j, bool& dirtyDisk)

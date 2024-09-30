@@ -34,7 +34,7 @@ namespace Darius::Audio
 
 	protected:
 
-		virtual void					WriteResourceToFile(D_SERIALIZATION::Json& j) const override;
+		virtual bool					WriteResourceToFile(D_SERIALIZATION::Json& j) const override;
 		virtual void					ReadResourceFromFile(D_SERIALIZATION::Json const& j, bool& dirtyDisk) override;
 		virtual bool					UploadToGpu() override;
 		virtual INLINE void				Unload() override { EvictFromGpu(); }

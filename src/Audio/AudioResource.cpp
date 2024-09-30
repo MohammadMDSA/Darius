@@ -569,9 +569,9 @@ namespace Darius::Audio
 		mSoundEffectData.reset();
 	}
 
-	void AudioResource::WriteResourceToFile(D_SERIALIZATION::Json& j) const
+	bool AudioResource::WriteResourceToFile(D_SERIALIZATION::Json& j) const
 	{
-		
+		return true;
 	}
 
 	void AudioResource::ReadResourceFromFile(D_SERIALIZATION::Json const& j, bool& dirtyDisk)

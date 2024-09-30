@@ -20,9 +20,10 @@ namespace Darius::Renderer
 {
 	D_CH_RESOURCE_DEF(TextureResource);
 
-	void TextureResource::WriteResourceToFile(D_SERIALIZATION::Json& json) const
+	bool TextureResource::WriteResourceToFile(D_SERIALIZATION::Json& json) const
 	{
 		D_SERIALIZATION::Serialize(*this, json);
+		return true;
 	}
 
 	void TextureResource::ReadResourceFromFile(D_SERIALIZATION::Json const& json, bool& dirtyDisk)

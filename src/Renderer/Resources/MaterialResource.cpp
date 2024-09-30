@@ -67,7 +67,7 @@ namespace Darius::Renderer
 		SetSamplerSlot({ StringId("WorldDisplacementSampler") }, (uint32_t)kWorldDisplacement);
 	}
 
-	void MaterialResource::WriteResourceToFile(D_SERIALIZATION::Json& j) const
+	bool MaterialResource::WriteResourceToFile(D_SERIALIZATION::Json& j) const
 	{
 		float* defalb = (float*)&mMaterial.DifuseAlbedo;
 		float* fren = (float*)&mMaterial.FresnelR0;
@@ -117,6 +117,8 @@ namespace Darius::Renderer
 		std::ofstream os(GetPath());
 		os << data;
 		os.close();
+
+		return true;
 	}
 
 	void MaterialResource::SetTexture(TextureResource* texture, uint32_t textureIndex)

@@ -22,14 +22,18 @@ namespace Darius::Fbx
 		D_SCENE::PrefabResource(uuid, path, name, id, parent, isDefault)
 		{ }
 
-	void FBXPrefabResource::WriteResourceToFile(D_SERIALIZATION::Json& j) const
+	bool FBXPrefabResource::WriteResourceToFile(D_SERIALIZATION::Json& j) const
 	{
 		if (!GetPrefabGameObject())
-			return;
+		{
+			D_LOG_ERROR("Prefab game object does not exist to save the prefab resource: " << GetPath().string());
+			return false;
+		}
 
 		D_ASSERT(GetPrefabGameObject()->GetUuid() == mPrefabGoUuid);
 
 		j["PrefabUuid"] = D_CORE::ToString(GetPrefabGameObject()->GetUuid());
+		return true;
 	}
 
 	void FBXPrefabResource::ReadResourceFromFile(D_SERIALIZATION::Json const& j, bool& dirtyDisk)

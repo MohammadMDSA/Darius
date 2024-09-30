@@ -176,8 +176,14 @@ namespace Darius::ResourceManager
 		Json resourceProps;
 		if(!metaOnly)
 		{
-			resource->WriteResourceToFile(resourceProps);
-			resource->mDirtyDisk = false;
+			bool succeed = resource->WriteResourceToFile(resourceProps);
+			resource->mDirtyDisk = succeed;
+
+			if (!succeed)
+			{
+				std::string name = WSTR2STR(resource->GetName());
+				D_LOG_ERROR("Failed to write resource to file: " << name << " to path: " << resource->GetPath().string());
+			}
 		}
 
 		// Meta already exists

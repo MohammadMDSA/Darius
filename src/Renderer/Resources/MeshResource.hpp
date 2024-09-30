@@ -85,7 +85,7 @@ namespace Darius::Renderer
 
 		virtual void					CreateInternal(D_RENDERER_GEOMETRY::MultiPartMeshData<VertexType> const& data) = 0;
 
-		virtual void					WriteResourceToFile(D_SERIALIZATION::Json&) const override;
+		virtual bool					WriteResourceToFile(D_SERIALIZATION::Json&) const override;
 		virtual void					ReadResourceFromFile(D_SERIALIZATION::Json const&, bool& dirtyDisk) override;
 
 		INLINE virtual void				Unload() override { EvictFromGpu(); }
