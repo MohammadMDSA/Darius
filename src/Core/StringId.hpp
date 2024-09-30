@@ -21,6 +21,20 @@ namespace Darius::Core
 
 		StringId(foonathan::string_id::string_info str, foonathan::string_id::basic_database& db, foonathan::string_id::basic_database::insert_status& status);
 
+		bool operator <(D_CORE::StringId const& rhs) const
+		{
+			auto lhash = reinterpret_cast<D_CORE::StringIdHashType const&>(*this);
+			auto rhash = reinterpret_cast<D_CORE::StringIdHashType const&>(rhs);
+			return lhash < rhash;
+		}
+
+		bool operator <=(D_CORE::StringId const& rhs) const
+		{
+			auto lhash = reinterpret_cast<D_CORE::StringIdHashType const&>(*this);
+			auto rhash = reinterpret_cast<D_CORE::StringIdHashType const&>(rhs);
+			return lhash <= rhash;
+		}
+
 #if _DEBUG
 		std::string RawString;
 #endif // _DEBUG
