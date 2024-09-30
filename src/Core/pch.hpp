@@ -49,6 +49,7 @@
 #include <exception>
 #include <iterator>
 #include <memory>
+#include <queue>
 #include <stdexcept>
 #include <system_error>
 #include <tuple>
