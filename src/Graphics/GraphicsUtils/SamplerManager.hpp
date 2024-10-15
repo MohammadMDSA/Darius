@@ -74,4 +74,10 @@ namespace Darius::Graphics::Utils
 		void Serialize(Darius::Core::Serialization::Json& json) const;
 		void Deserialize(Darius::Core::Serialization::Json const& json);
 	};
+
+#if _D_EDITOR
+	bool DrawDetails(SamplerDesc& samplerDesc);
+
+#endif // _D_EDITOR
+
 }
