@@ -56,7 +56,8 @@ struct MRT
 
 float3 ComputeNormal(VertexOut pin)
 {
-    float3 normal = normalize(pin.WorldNormal);
+    // Interpolating normal can unnormalize it, so renormalize it.
+        float3 normal = normalize(pin.WorldNormal);
 
 #ifdef NO_TANGENT_FRAME
     return normal;

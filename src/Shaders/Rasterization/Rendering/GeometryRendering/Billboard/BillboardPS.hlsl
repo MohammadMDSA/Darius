@@ -52,6 +52,7 @@ struct GSOutput
 
 float3 ComputeNormal(GSOutput gout)
 {
+    // Interpolating normal can unnormalize it, so renormalize it.
     float3 normal = normalize(gout.WorldNormal);
 
 #ifdef NO_TANGENT_FRAME
@@ -81,7 +82,6 @@ MRT main(GSOutput gout) : SV_Target
     
     MRT mrt;
     
-    // Interpolating normal can unnormalize it, so renormalize it.
     gout.WorldNormal = normalize(gout.WorldNormal);
 
     // Vector from point being lit to eye. 
@@ -120,7 +120,9 @@ MRT main(GSOutput gout) : SV_Target
     if (BitMasked(gTexStats, MaterialTextureType::Normal))
         normal = ComputeNormal(gout);
     else
-        normal = gout.WorldNormal;
+    { 
+        normal = normalize(gout.WorldNormal);
+    }
     
     float ao;
     if (BitMasked(gTexStats, MaterialTextureType::AmbientOcclusion))
