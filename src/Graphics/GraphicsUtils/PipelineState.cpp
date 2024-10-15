@@ -46,6 +46,7 @@ namespace Darius::Graphics::Utils
 #define ShaderSetter(TYPE, PSOKey) \
 	void GraphicsPSO::Set##TYPE(std::shared_ptr<Shaders::TYPE> shader) \
 	{ \
+		D_ASSERT(shader->IsCompiled()); \
 		m##TYPE = shader; \
 		m##TYPE.OnShaderCompiledConnection = shader->SubscribeOnCompiled([&](Shaders::CompiledShader* shader) { On##TYPE##Recompiled(); }); \
 		auto blob = m##TYPE.Shader->GetBinary(); \
