@@ -88,11 +88,13 @@ namespace Darius::Graphics::Utils::Shaders
 		D_CORE::StringId		EntryPoint;
 		D_FILE::Path			Path;
 		ShaderMacroContainer	Macros;
+		bool					ForceDisableOptimization;
 
 		bool operator ==(ShaderCompileConfig const& other) const
 		{
 			return EntryPoint == other.EntryPoint &&
-				Macros == other.Macros;
+				Macros == other.Macros &&
+				ForceDisableOptimization == other.ForceDisableOptimization;
 		}
 	};
 
