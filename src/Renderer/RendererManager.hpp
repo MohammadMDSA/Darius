@@ -63,6 +63,10 @@ namespace Darius::Renderer
 	// Allocating from heaps
 	D_GRAPHICS_MEMORY::DescriptorHandle AllocateTextureDescriptor(UINT count = 1);
 	D_GRAPHICS_MEMORY::DescriptorHandle AllocateSamplerDescriptor(UINT count = 1);
+	uint32_t					GetTextureDescriptorHeapDescriptorSize();
+	uint32_t					GetSamplerDescriptorHeapDescriptorSize();
+	void						SetCbvSrvUavDescriptorHeap(D_GRAPHICS::CommandContext& context);
+	void						SetSamplerDescriptorHeap(D_GRAPHICS::CommandContext& context);
 
 	// Set IBL properties
 	void						SetIBLTextures(D_RENDERER::TextureResource* diffuseIBL, D_RENDERER::TextureResource* specularIBL);

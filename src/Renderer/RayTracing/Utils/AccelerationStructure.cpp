@@ -3,6 +3,7 @@
 
 #include "Renderer/RayTracing/RayTracingCommandContext.hpp"
 #include "Renderer/RayTracing/Renderer.hpp"
+#include "Renderer/RendererManager.hpp"
 
 #include <Graphics/GraphicsUtils/Profiling/Profiling.hpp>
 
@@ -91,7 +92,7 @@ namespace Darius::Renderer::RayTracing::Utils
 			geomDesc.Triangles.VertexCount = bottomLevelASGeometry.Mesh.mNumTotalVertices;
 
 			// Allocating SRV for vertex and index buffer
-			gviv = { D_RENDERER_RT::AllocateTextureDescriptor(2) };
+			gviv = { D_RENDERER::AllocateTextureDescriptor(2) };
 
 			UINT srcCount[] = { 1u, 1u };
 			UINT destCount = 2u;

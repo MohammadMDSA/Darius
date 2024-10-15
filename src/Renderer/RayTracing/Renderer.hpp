@@ -35,10 +35,6 @@ namespace Darius::Renderer::RayTracing
 	void UpdateAS(D_GRAPHICS::CommandContext& context);
 	void Render(std::wstring const& jobId, SceneRenderContext& renderContext, std::function<void()> postAntiAliasing);
 
-	// Allocating from heaps
-	D_GRAPHICS_MEMORY::DescriptorHandle AllocateTextureDescriptor(UINT count = 1);
-	D_GRAPHICS_MEMORY::DescriptorHandle AllocateSamplerDescriptor(UINT count = 1);
-
 #ifdef _D_EDITOR
 	bool OptionsDrawer(_IN_OUT_ D_SERIALIZATION::Json& options);
 #endif

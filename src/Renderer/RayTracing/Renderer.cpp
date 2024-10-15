@@ -46,10 +46,6 @@ namespace Darius::Renderer::RayTracing
 	// Pipelines
 	std::unique_ptr<Pipeline::PathTracingPipeline>			MainRenderPipeline;
 
-	// Heaps
-	DescriptorHeap											TextureHeap;
-	DescriptorHeap											SamplerHeap;
-
 	// Internal
 	bool													_initialized;
 	DescriptorHandle										PathTracingCommonSRVs[D_GRAPHICS_DEVICE::gNumFrameResources]; // 0: TLAS, 1: RadIBL, 2: IrradIBL
@@ -74,9 +70,6 @@ namespace Darius::Renderer::RayTracing
 		// Loading Settings
 		D_H_OPTIONS_LOAD_BASIC_DEFAULT("RayTracing.MaxNumBottomLevelAS", MaxNumBottomLevelAS, 100000);
 
-		TextureHeap.Create(L"Ray Tracing SRV, UAV, CBV  Descriptor Heap", D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, 16384);
-		SamplerHeap.Create(L"Ray Tracing Sampler  Descriptor Heap", D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER, 1024);
-
 		RTScene = std::make_unique<RayTracingScene>(MaxNumBottomLevelAS, (UINT)RayTypes::Count);
 
 		SceneResetSignalConnection = D_WORLD::OnSceneCleared.connect([rtScene = RTScene.get()]()
@@ -89,9 +82,9 @@ namespace Darius::Renderer::RayTracing
 
 		for (int i = 0; i < D_GRAPHICS_DEVICE::gNumFrameResources; i++)
 		{
-			PathTracingCommonSRVs[i] = TextureHeap.Alloc(10);
-			PathTracingLightDataSRVs[i] = TextureHeap.Alloc(10);
-			RayGenUAVs[i] = TextureHeap.Alloc(10);
+			PathTracingCommonSRVs[i] = D_RENDERER::AllocateTextureDescriptor(10u);
+			PathTracingLightDataSRVs[i] = D_RENDERER::AllocateTextureDescriptor(10u);
+			RayGenUAVs[i] = D_RENDERER::AllocateTextureDescriptor(10u);
 		}
 
 		BlackCubeTextureRes = D_RESOURCE::GetResourceSync<TextureResource>(D_RENDERER::GetDefaultGraphicsResource(D_RENDERER::DefaultResource::TextureCubeMapBlack));
@@ -113,8 +106,6 @@ namespace Darius::Renderer::RayTracing
 		RTScene.reset();
 		MainRenderPipeline.reset();
 
-		TextureHeap.Destroy();
-		SamplerHeap.Destroy();
 	}
 
 	void UpdateRendererComponents(D_GRAPHICS::CommandContext& context)
@@ -283,8 +274,8 @@ namespace Darius::Renderer::RayTracing
 	{
 		// System bindings
 		context.SetPipelineState(*MainRenderPipeline->GetStateObject());	context.SetRootSignature(*MainRenderPipeline->GetStateObject()->GetGlobalRootSignature());
-		context.SetDescriptorHeap(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, TextureHeap.GetHeapPointer());
-		context.SetDescriptorHeap(D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER, SamplerHeap.GetHeapPointer());
+		D_RENDERER::SetCbvSrvUavDescriptorHeap(context);
+		D_RENDERER::SetSamplerDescriptorHeap(context);
 
 		// Resource bindings
 		context.SetDynamicConstantBufferView(PathTracing::GlobalRootSignatureBindings::GlobalConstants, sizeof(renderContext.Globals), &renderContext.Globals);
@@ -469,15 +460,5 @@ namespace Darius::Renderer::RayTracing
 		D_H_OPTION_DRAW_END();
 	}
 #endif
-
-	DescriptorHandle AllocateTextureDescriptor(UINT count)
-	{
-		return TextureHeap.Alloc(count);
-	}
-
-	DescriptorHandle AllocateSamplerDescriptor(UINT count)
-	{
-		return SamplerHeap.Alloc(count);
-	}
 
 }

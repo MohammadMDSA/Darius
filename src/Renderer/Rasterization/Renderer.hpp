@@ -229,10 +229,6 @@ namespace Darius::Renderer::Rasterization
 
 	Light::RasterizationShadowedLightContext* GetLightContext();
 
-	// Allocating from heaps
-	D_GRAPHICS_MEMORY::DescriptorHandle AllocateTextureDescriptor(UINT count = 1);
-	D_GRAPHICS_MEMORY::DescriptorHandle AllocateSamplerDescriptor(UINT count = 1);
-
 	D_CONTAINERS::DVector<D_GRAPHICS_UTILS::GraphicsPSO> const& GetPsos();
 }
 #pragma warning(pop)
