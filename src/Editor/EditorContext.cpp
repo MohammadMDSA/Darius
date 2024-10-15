@@ -43,7 +43,7 @@ namespace Darius::Editor::Context
 		D_GUI_RENDERER::Initialize();
 
 		D_CORE_THREADING::SpinLock lock;
-		auto directoryVisitProgress = new D_RESOURCE::DirectoryVisitProgress();
+		auto directoryVisitProgress = std::make_shared<D_RESOURCE::DirectoryVisitProgress>();
 		/*directoryVisitProgress->OnFinish = [&lock]()
 			{
 				D_WORLD::LoadPrefabs();

@@ -400,7 +400,7 @@ namespace Darius::ResourceManager
 	}
 
 
-	void ResourceLoader::VisitSubdirectory(Path const& path, bool recursively, DirectoryVisitProgress* progress)
+	void ResourceLoader::VisitSubdirectory(Path const& path, bool recursively, std::shared_ptr<DirectoryVisitProgress> progress)
 	{
 		D_FILE::VisitEntriesInDirectory(path, false, [&](Path const& _path, bool isDir)
 			{
@@ -490,7 +490,7 @@ namespace Darius::ResourceManager
 		os.close();
 	}
 
-	void ResourceLoader::VisitFile(Path const& path, DirectoryVisitProgress* progress)
+	void ResourceLoader::VisitFile(Path const& path, std::shared_ptr<DirectoryVisitProgress> progress)
 	{
 		if(path.extension() == ".tos")
 			return;
@@ -500,20 +500,19 @@ namespace Darius::ResourceManager
 		if(progress)
 		{
 			progress->Total++;
-			LoadResourceAsync(path, [progress](auto _)
+			LoadResourceAsync(path, [prog = progress](auto _)
 				{
 					std::scoped_lock lg(sFileVisitMutex);
-					progress->Done++;
-					if(progress->Done.load() % 100 == 0)
-						D_LOG_INFO(progress->String("Updating resource database {} / {}"));
-					if(progress->IsFinished())
+					prog->Done++;
+					if(prog->Done.load() % 100 == 0)
+						D_LOG_INFO(prog->String("Updating resource database {} / {}"));
+					if(prog->IsFinished())
 					{
-						if(progress->Done.load() % 100)
-							D_LOG_INFO(progress->String("Updating resource database {} / {}"));
+						if(prog->Done.load() % 100)
+							D_LOG_INFO(prog->String("Updating resource database {} / {}"));
 						{
-							if(progress->OnFinish)
-								progress->OnFinish();
-							delete progress;
+							if(prog->OnFinish)
+								prog->OnFinish();
 						}
 					}
 

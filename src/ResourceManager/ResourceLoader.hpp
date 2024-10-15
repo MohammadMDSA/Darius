@@ -47,7 +47,7 @@ namespace Darius::ResourceManager
 		static void				LoadResourceAsync(Resource* resource, ResourceLoadedResourceCalllback onLoaded, bool updateGpu = false);
 		static void				LoadResourceAsync(D_FILE::Path const& path, ResourceLoadedResourceListCalllback onLoaded, bool metaOnly = false);
 
-		static void				VisitSubdirectory(D_FILE::Path const& path, bool recursively = false, DirectoryVisitProgress* progress = nullptr);
+		static void				VisitSubdirectory(D_FILE::Path const& path, bool recursively = false, std::shared_ptr<DirectoryVisitProgress> progress = nullptr);
 		static ResourceFileMeta GetResourceFileMetaFromResource(Resource* resource);
 
 		static INLINE D_FILE::Path GetPathForNewResource(std::wstring const& name, std::wstring const& ext, D_FILE::Path const& parent) { auto dir = D_FILE::Path(parent); return dir.append(D_FILE::GetNewFileName(name, ext, dir)); }
@@ -59,7 +59,7 @@ namespace Darius::ResourceManager
 		static bool				SaveResource(Resource* resource, bool metaOnly);
 		static D_CONTAINERS::DVector<ResourceHandle> CreateResourceObject(ResourceFileMeta const& meta, DResourceManager* manager, D_FILE::Path const& directory);
 		static D_CONTAINERS::DVector<ResourceHandle> CreateResourceObject(D_FILE::Path const& path, DResourceManager* manager);
-		static void				VisitFile(D_FILE::Path const& path, DirectoryVisitProgress* progress = nullptr);
+		static void				VisitFile(D_FILE::Path const& path, std::shared_ptr<DirectoryVisitProgress> progress = nullptr);
 		static void				CheckDirectoryMeta(D_FILE::Path const& path);
 
 		static std::mutex		sFileVisitMutex;
