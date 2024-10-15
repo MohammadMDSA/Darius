@@ -28,6 +28,8 @@ namespace Darius::Core::Filesystem
 
 	ByteArray						ReadFileSync(std::wstring const& path);
 
+	bool							WriteFileHelper(std::wstring const& path, ByteArray data);
+
 	Concurrency::task<ByteArray>	ReadFileAsync(std::wstring const& path);
 
 	std::wstring					GetFileName(Path const& path);

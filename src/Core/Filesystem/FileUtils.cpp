@@ -5,6 +5,8 @@
 #include <Utils/Common.hpp>
 #include <Utils/Log.hpp>
 
+#include <fileapi.h>
+
 using namespace std;
 
 namespace Darius::Core::Filesystem
@@ -45,6 +47,33 @@ namespace Darius::Core::Filesystem
 		file.close();
 
 		return byteArray;
+	}
+
+	bool WriteFileHelper(std::wstring const& fileNamem, ByteArray fileData)
+	{
+		HANDLE hFile;
+		hFile = CreateFileW(fileNamem.c_str(), // name of the write
+			GENERIC_WRITE,          // open for writing
+			0,                      // do not share
+			NULL,                   // default security
+			CREATE_ALWAYS,          // create new file only
+			FILE_ATTRIBUTE_NORMAL,  // normal file
+			NULL);
+
+		if (hFile == INVALID_HANDLE_VALUE)
+			return false;
+
+		DWORD bytesWritten;
+		DWORD bytesToWrite = (DWORD)fileData->size();
+
+		bool error = WriteFile(hFile,
+			fileData->data(),
+			bytesToWrite,
+			&bytesWritten,
+			nullptr
+		);
+
+		return bytesToWrite == bytesWritten;
 	}
 
 	ByteArray ReadFileSync(std::wstring const& path)
