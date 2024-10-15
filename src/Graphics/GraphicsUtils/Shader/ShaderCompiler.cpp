@@ -129,10 +129,14 @@ namespace Darius::Graphics::Utils
 		std::wstring const& filename,
 		std::wstring const& entrypoint,
 		std::wstring const& target,
+		void const* shaderCode,
+		size_t shaderCodeSize,
 		D_CONTAINERS::DVector<std::wstring> const& defines,
+		D_CONTAINERS::DVector<std::wstring> const& includes,
 		ID3D12ShaderReflection** reflectionData,
 		ID3D12LibraryReflection** libraryReflectionData,
-		std::string& compileLog)
+		std::string& compileLog,
+		bool forceDisableOptimization)
 	{
 		// 
 		// Create compiler and utils.
@@ -176,12 +180,22 @@ namespace Darius::Graphics::Utils
 		}
 
 #ifdef _DEBUG
-		pszArgs.push_back(L"-Od");							// Disable optimizations
 
 		pszArgs.push_back(L"-Zi");							// Enable debug information
 		//pszArgs.push_back(L"-Zs");						// Enable debug information (slim format)
 		pszArgs.push_back(L"-Qembed_debug");
+		forceDisableOptimization = true;
 #endif
+
+		if (forceDisableOptimization)
+		{
+			pszArgs.push_back(L"-Od");							// Disable optimizations
+			pszArgs.push_back(L"-fspv-preserve-bindings");		// Preserving all unused bindings
+			pszArgs.push_back(L"-fspv-preserve-interface");		// Preserving all unused interface
+
+		}
+
+
 
 		// Handling defines
 		for (auto const& define : defines)
@@ -190,11 +204,21 @@ namespace Darius::Graphics::Utils
 			pszArgs.push_back(define.c_str());
 		}
 
+		// Handle includes
+		for (auto const& include : includes)
+		{
+			pszArgs.push_back(L"-I");
+			pszArgs.push_back(include.c_str());
+		}
+
 		//
 		// Open source file.  
 		//
 		ComPtr<IDxcBlobEncoding> pSource = nullptr;
-		pUtils->LoadFile(filename.c_str(), nullptr, &pSource);
+		if (shaderCode == nullptr)
+			pUtils->LoadFile(filename.c_str(), nullptr, pSource.ReleaseAndGetAddressOf());
+		else
+			pUtils->CreateBlobFromPinned(shaderCode, (UINT32)shaderCodeSize, DXC_CP_ACP, pSource.ReleaseAndGetAddressOf());
 		DxcBuffer Source;
 		Source.Ptr = pSource->GetBufferPointer();
 		Source.Size = pSource->GetBufferSize();
@@ -242,7 +266,11 @@ namespace Darius::Graphics::Utils
 			compileLog = "";
 
 		// Quit if the compilation failed.
-		D_HR_CHECK(hrStatus);
+		if (!D_HR_SUCCEEDED(hrStatus))
+		{
+			D_VERIFY(false);
+			return nullptr;
+		}
 
 
 
