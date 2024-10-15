@@ -14,6 +14,9 @@
 namespace Darius::Graphics::Utils::Shaders
 {
 	
+	D_CONTAINERS::DVector<std::wstring> ShaderFactory::sDefaultIncludes = { L"Shaders" };
+
+
 	ShaderFactory::ShaderFactory()
 	{
 		mShaderModel = D_GRAPHICS_DEVICE::GetFeatureSupport().HighestShaderModel();
@@ -82,22 +85,24 @@ namespace Darius::Graphics::Utils::Shaders
 		return ss.str();
 	}
 
-	bool ShaderFactory::CompileShaderInternal(CompiledShader* shader, std::wstring const& compiler, bool library) const
+	bool ShaderFactory::CompileShaderInternal(CompiledShader* shader, std::wstring const& compiler, void const* shaderCode, size_t shaderCodeSize, bool library) const
 	{
 		if (shader->IsCompiled())
 			return shader->IsValid();
 
+		auto const& config = shader->mCompileConfig;
+		
 		std::wstringstream entryPointSS;
-		entryPointSS << shader->mCompileConfig.EntryPoint.string();
+		entryPointSS << config.EntryPoint.string();
 
 		if (library)
 		{
 			ShaderLibrary* library = static_cast<ShaderLibrary*>(shader);
-			shader->mBinary = CompileShader(shader->mCompileConfig.Path, entryPointSS.str(), compiler, shader->mCompileConfig.Macros.GetRawDefines(), nullptr, library->mShaderLibraryReflection.ReleaseAndGetAddressOf(), shader->mCompileLog);
+			shader->mBinary = CompileShader(config.Path, entryPointSS.str(), compiler, shaderCode, shaderCodeSize, config.Macros.GetRawDefines(), sDefaultIncludes, nullptr, library->mShaderLibraryReflection.ReleaseAndGetAddressOf(), shader->mCompileLog, config.ForceDisableOptimization);
 		}
 		else
 		{
-			shader->mBinary = CompileShader(shader->mCompileConfig.Path, entryPointSS.str(), compiler, shader->mCompileConfig.Macros.GetRawDefines(), shader->mShaderReflectionData.ReleaseAndGetAddressOf(), nullptr, shader->mCompileLog);
+			shader->mBinary = CompileShader(config.Path, entryPointSS.str(), compiler, shaderCode, shaderCodeSize, config.Macros.GetRawDefines(), sDefaultIncludes, shader->mShaderReflectionData.ReleaseAndGetAddressOf(), nullptr, shader->mCompileLog, config.ForceDisableOptimization);
 		}
 
 		if (shader->IsCompiled())

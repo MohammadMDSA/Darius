@@ -53,20 +53,20 @@ namespace Darius::Graphics::Utils::Shaders
 	public:
 		ShaderFactory();
 
-		INLINE std::shared_ptr<VertexShader>	CompileVertexShader(ShaderCompileConfig const& config) { return CompileShaderGeneric<VertexShader>(config); }
-		INLINE std::shared_ptr<DomainShader>	CompileDomainShader(ShaderCompileConfig const& config)  { return CompileShaderGeneric<DomainShader>(config); }
-		INLINE std::shared_ptr<HullShader>		CompileHullShader(ShaderCompileConfig const& config)  { return CompileShaderGeneric<HullShader>(config); }
-		INLINE std::shared_ptr<GeometryShader>	CompileGeometryShader(ShaderCompileConfig const& config)  { return CompileShaderGeneric<GeometryShader>(config); }
-		INLINE std::shared_ptr<PixelShader>		CompilePixelShader(ShaderCompileConfig const& config)  { return CompileShaderGeneric<PixelShader>(config); }
-		INLINE std::shared_ptr<ComputeShader>	CompileComputeShader(ShaderCompileConfig const& config)  { return CompileShaderGeneric<ComputeShader>(config); }
-		INLINE std::shared_ptr<ShaderLibrary>	CompileShaderLibrary(ShaderCompileConfig const& config)  { return CompileShaderGeneric<ShaderLibrary>(config); }
-		INLINE std::shared_ptr<VertexShader>	CompileVertexShaderAsync(ShaderCompileConfig const& config, std::function<void(std::shared_ptr<VertexShader>)> callback) { return CompileShaderGenericAsync<VertexShader>(config, callback); }
-		INLINE std::shared_ptr<DomainShader>	CompileDomainShaderAsync(ShaderCompileConfig const& config, std::function<void(std::shared_ptr<DomainShader>)> callback) { return CompileShaderGenericAsync<DomainShader>(config, callback); }
-		INLINE std::shared_ptr<HullShader>		CompileHullShaderAsync(ShaderCompileConfig const& config, std::function<void(std::shared_ptr<HullShader>)> callback) { return CompileShaderGenericAsync<HullShader>(config, callback); }
-		INLINE std::shared_ptr<GeometryShader>	CompileGeometryShaderAsync(ShaderCompileConfig const& config, std::function<void(std::shared_ptr<GeometryShader>)> callback) { return CompileShaderGenericAsync<GeometryShader>(config, callback); }
-		INLINE std::shared_ptr<PixelShader>		CompilePixelShaderAsync(ShaderCompileConfig const& config, std::function<void(std::shared_ptr<PixelShader>)> callback) { return CompileShaderGenericAsync<PixelShader>(config, callback); }
-		INLINE std::shared_ptr<ComputeShader>	CompileComputeShaderAsync(ShaderCompileConfig const& config, std::function<void(std::shared_ptr<ComputeShader>)> callback) { return CompileShaderGenericAsync<ComputeShader>(config, callback); }
-		INLINE std::shared_ptr<ShaderLibrary>	CompileShaderLibraryAsync(ShaderCompileConfig const& config, std::function<void(std::shared_ptr<ShaderLibrary>)> callback) { return CompileShaderGenericAsync<ShaderLibrary>(config, callback); }
+		INLINE std::shared_ptr<VertexShader>	CompileVertexShader(ShaderCompileConfig const& config, bool forceRecompile, std::shared_ptr<D_CONTAINERS::DVector<std::byte>> shaderCode) { return CompileShaderGeneric<VertexShader>(config, forceRecompile, shaderCode); }
+		INLINE std::shared_ptr<DomainShader>	CompileDomainShader(ShaderCompileConfig const& config, bool forceRecompile, std::shared_ptr<D_CONTAINERS::DVector<std::byte>> shaderCode) { return CompileShaderGeneric<DomainShader>(config, forceRecompile, shaderCode); }
+		INLINE std::shared_ptr<HullShader>		CompileHullShader(ShaderCompileConfig const& config, bool forceRecompile, std::shared_ptr<D_CONTAINERS::DVector<std::byte>> shaderCode) { return CompileShaderGeneric<HullShader>(config, forceRecompile, shaderCode); }
+		INLINE std::shared_ptr<GeometryShader>	CompileGeometryShader(ShaderCompileConfig const& config, bool forceRecompile, std::shared_ptr<D_CONTAINERS::DVector<std::byte>> shaderCode) { return CompileShaderGeneric<GeometryShader>(config, forceRecompile, shaderCode); }
+		INLINE std::shared_ptr<PixelShader>		CompilePixelShader(ShaderCompileConfig const& config, bool forceRecompile, std::shared_ptr<D_CONTAINERS::DVector<std::byte>> shaderCode) { return CompileShaderGeneric<PixelShader>(config, forceRecompile, shaderCode); }
+		INLINE std::shared_ptr<ComputeShader>	CompileComputeShader(ShaderCompileConfig const& config, bool forceRecompile, std::shared_ptr<D_CONTAINERS::DVector<std::byte>> shaderCode) { return CompileShaderGeneric<ComputeShader>(config, forceRecompile, shaderCode); }
+		INLINE std::shared_ptr<ShaderLibrary>	CompileShaderLibrary(ShaderCompileConfig const& config, bool forceRecompile, std::shared_ptr<D_CONTAINERS::DVector<std::byte>> shaderCode) { return CompileShaderGeneric<ShaderLibrary>(config, forceRecompile, shaderCode); }
+		INLINE std::shared_ptr<VertexShader>	CompileVertexShaderAsync(ShaderCompileConfig const& config, bool forceRecompile, std::shared_ptr<D_CONTAINERS::DVector<std::byte>> shaderCode, std::function<void(std::shared_ptr<VertexShader>)> callback) { return CompileShaderGenericAsync<VertexShader>(config, forceRecompile, shaderCode, callback); }
+		INLINE std::shared_ptr<DomainShader>	CompileDomainShaderAsync(ShaderCompileConfig const& config, bool forceRecompile, std::shared_ptr<D_CONTAINERS::DVector<std::byte>> shaderCode, std::function<void(std::shared_ptr<DomainShader>)> callback) { return CompileShaderGenericAsync<DomainShader>(config, forceRecompile, shaderCode, callback); }
+		INLINE std::shared_ptr<HullShader>		CompileHullShaderAsync(ShaderCompileConfig const& config, bool forceRecompile, std::shared_ptr<D_CONTAINERS::DVector<std::byte>> shaderCode, std::function<void(std::shared_ptr<HullShader>)> callback) { return CompileShaderGenericAsync<HullShader>(config, forceRecompile, shaderCode, callback); }
+		INLINE std::shared_ptr<GeometryShader>	CompileGeometryShaderAsync(ShaderCompileConfig const& config, bool forceRecompile, std::shared_ptr<D_CONTAINERS::DVector<std::byte>> shaderCode, std::function<void(std::shared_ptr<GeometryShader>)> callback) { return CompileShaderGenericAsync<GeometryShader>(config, forceRecompile, shaderCode, callback); }
+		INLINE std::shared_ptr<PixelShader>		CompilePixelShaderAsync(ShaderCompileConfig const& config, bool forceRecompile, std::shared_ptr<D_CONTAINERS::DVector<std::byte>> shaderCode, std::function<void(std::shared_ptr<PixelShader>)> callback) { return CompileShaderGenericAsync<PixelShader>(config, forceRecompile, shaderCode, callback); }
+		INLINE std::shared_ptr<ComputeShader>	CompileComputeShaderAsync(ShaderCompileConfig const& config, bool forceRecompile, std::shared_ptr<D_CONTAINERS::DVector<std::byte>> shaderCode, std::function<void(std::shared_ptr<ComputeShader>)> callback) { return CompileShaderGenericAsync<ComputeShader>(config, forceRecompile, shaderCode, callback); }
+		INLINE std::shared_ptr<ShaderLibrary>	CompileShaderLibraryAsync(ShaderCompileConfig const& config, bool forceRecompile, std::shared_ptr<D_CONTAINERS::DVector<std::byte>> shaderCode, std::function<void(std::shared_ptr<ShaderLibrary>)> callback) { return CompileShaderGenericAsync<ShaderLibrary>(config, forceRecompile, shaderCode, callback); }
 
 		std::wstring						GetVertexShaderCompiler() const;
 		std::wstring						GetDomainShaderCompiler() const;
@@ -76,6 +76,8 @@ namespace Darius::Graphics::Utils::Shaders
 		std::wstring						GetComputeShaderCompiler() const;
 		std::wstring						GetShaderLibraryCompiler() const;
 		std::wstring						GetCompiler(Type::EShaderType type) const;
+
+		static INLINE D_CONTAINERS::DVector<std::wstring>	GetDefaultIncludes() { return sDefaultIncludes; }
 
 		template<typename V>
 		std::shared_ptr<V>					GetShaderFromCache(ShaderCompileConfig const& config, Type::EShaderType shaderType, ShaderCacheKey& cacheKey)
@@ -105,39 +107,51 @@ namespace Darius::Graphics::Utils::Shaders
 
 	private:
 
-		bool							CompileShaderInternal(CompiledShader* shader, std::wstring const& compiler, bool library) const;
+		bool							CompileShaderInternal(CompiledShader* shader, std::wstring const& compiler, void const* shaderCode, size_t shaderCodeSize, bool library) const;
 
 		template<class SHADER>
-		std::shared_ptr<SHADER>			CompileShaderGeneric(ShaderCompileConfig const& config)
+		std::shared_ptr<SHADER>			CompileShaderGeneric(ShaderCompileConfig const& config, bool forceRecompile, std::shared_ptr<D_CONTAINERS::DVector<std::byte>> shaderCode)
 		{
 			auto normalPath = config.Path.lexically_normal();
 			ShaderCacheKey cacheKey;
+
+			// Finding shader fromc cache
 			auto cachedShader = GetShaderFromCache<SHADER>(config, SHADER::GetTypeStatic(), cacheKey);
-			if (cachedShader)
+			if (!forceRecompile && cachedShader)
 				return cachedShader;
 
 			std::shared_ptr<SHADER> shader = std::make_shared<SHADER>(GetShaderNameFromPath(normalPath), config);
 
 			Type::EShaderType shaderType = SHADER::GetTypeStatic();
-			CompileShaderInternal(shader.get(), GetCompiler(shaderType), shaderType == Type::ShaderLibrary);
+			void const* shaderCodeData = shaderCode ? shaderCode->data() : nullptr;
 
-			mShaderCache[cacheKey] = shader;
-			return shader;
+			bool success = CompileShaderInternal(shader.get(), GetCompiler(shaderType), shaderCode ? shaderCode->data() : nullptr, shaderCode ? shaderCode->size() : 0, shaderType == Type::ShaderLibrary);
+
+			if (success)
+			{
+				mShaderCache[cacheKey] = shader;
+				return shader;
+			}
+
+			return nullptr;
 		}
 
-		template<class SHADER>			
-		std::shared_ptr<SHADER>			CompileShaderGenericAsync(ShaderCompileConfig const& config, std::function<void(std::shared_ptr<SHADER>)> callback)
+		template<class SHADER>
+		std::shared_ptr<SHADER>			CompileShaderGenericAsync(ShaderCompileConfig const& config, bool forceRecompile, std::shared_ptr<D_CONTAINERS::DVector<std::byte>> shaderCode, std::function<void(std::shared_ptr<SHADER>)> callback)
 		{
 			auto normalPath = config.Path.lexically_normal();
 			ShaderCacheKey cacheKey;
 			auto cachedShader = GetShaderFromCache<SHADER>(config, SHADER::GetTypeStatic(), cacheKey);
-			if (cachedShader)
+			if (!forceRecompile && cachedShader)
 				return cachedShader;
 
 			std::shared_ptr<SHADER> shader = std::make_shared<SHADER>(GetShaderNameFromPath(normalPath), config);
 			auto compileTask = new AsyncShaderCompileTask<SHADER>();
 			compileTask->mShader = shader;
+			compileTask->mShaderCode = shaderCode;
 			compileTask->mFactory = shared_from_this();
+			compileTask->mCacheKey = cacheKey;
+			compileTask->mForceRecompile = forceRecompile;
 			compileTask->mCallback = callback;
 
 			D_JOB::AddPinnedTask(compileTask, D_JOB::ThreadType::FileIO);
@@ -158,6 +172,8 @@ namespace Darius::Graphics::Utils::Shaders
 		friend AsyncShaderCompileTask<PixelShader>;
 		friend AsyncShaderCompileTask<ComputeShader>;
 		friend AsyncShaderCompileTask<ShaderLibrary>;
+
+		static D_CONTAINERS::DVector<std::wstring>	sDefaultIncludes;
 	};
 
 	template<class SHADER>
@@ -174,10 +190,13 @@ namespace Darius::Graphics::Utils::Shaders
 			}
 
 			auto normalPath = mShader->GetCompileConfig().Path.lexically_normal();
-			if (!mShader->IsCompiled())
+			if (mForceRecompile || !mShader->IsCompiled())
 			{
 				Type::EShaderType shaderType = SHADER::GetTypeStatic();
-				mFactory->CompileShaderInternal(mShader.get(), mFactory->GetCompiler(shaderType), shaderType);
+				bool success = mFactory->CompileShaderInternal(mShader.get(), mFactory->GetCompiler(shaderType), mShaderCode ? mShaderCode->data() : nullptr, mShaderCode ? mShaderCode->size() : 0, shaderType);
+
+				if(success)
+					mFactory->mShaderCache[mCacheKey] = mShader;
 			}
 
 			if (mCallback)
@@ -186,7 +205,10 @@ namespace Darius::Graphics::Utils::Shaders
 		}
 
 		ShaderPtr								mShader = nullptr;
-		std::shared_ptr<const ShaderFactory>	mFactory;
+		std::shared_ptr<ShaderFactory>			mFactory;
+		std::shared_ptr<D_CONTAINERS::DVector<std::byte>> mShaderCode = nullptr;
+		ShaderCacheKey							mCacheKey;
+		bool									mForceRecompile = false;
 		std::function<void(ShaderPtr)>			mCallback = nullptr;
 	};
 }
