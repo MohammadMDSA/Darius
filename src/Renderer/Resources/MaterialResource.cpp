@@ -239,7 +239,7 @@ namespace Darius::Renderer
 		}
 	}
 
-	void MaterialResource::OnTextureChanged(uint32_t index)
+	void MaterialResource::OnTextureDataChanged(uint32_t index)
 	{
 		D_ASSERT(index >= 0 && index < GetTextureCount());
 
@@ -669,7 +669,7 @@ namespace Darius::Renderer
 	void MaterialResource::SetAlbedoColor(D_MATH::Color const& value)
 	{
 		auto valueVector = D_MATH::Vector4((DirectX::FXMVECTOR)value);
-		if (valueVector == mMaterial.DifuseAlbedo)
+		if (valueVector.Equals(mMaterial.DifuseAlbedo))
 			return;
 
 		mMaterial.DifuseAlbedo = valueVector;

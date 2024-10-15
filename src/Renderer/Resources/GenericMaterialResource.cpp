@@ -152,7 +152,7 @@ namespace Darius::Renderer
 		{
 			mTextures[textureIndex].ChangeConnection = std::make_shared<D_CORE::SignalScopedConnection>(texture->SubscribeOnChange([&, textureIndex](D_RESOURCE::Resource* res)
 				{
-					OnTextureChanged(textureIndex);
+					OnTextureDataChanged(textureIndex);
 				}));
 
 			// Load if still not loaded
@@ -219,21 +219,31 @@ namespace Darius::Renderer
 		D_SERIALIZATION::Serialize(mTextures, j);
 	}
 
+	void GenericMaterialResource::DeserializeTextures(Json const& j)
+	{
+		D_SERIALIZATION::Deserialize(mTextures, j);
+	}
+
 	void GenericMaterialResource::SerializeSamplers(Json& j) const
 	{
 		D_SERIALIZATION::Serialize(mSamplers, j);
 	}
 
+	void GenericMaterialResource::DeserializeSamplers(Json const& j)
+	{
+		D_SERIALIZATION::Deserialize(mSamplers, j);
+	}
+
 	void GenericMaterialResource::ReadResourceFromFile(Json const& j, bool& dirtyDisk)
 	{
-
+		D_ASSERT_M(false, "Not Implemented");
 	}
 
 	bool GenericMaterialResource::UploadToGpu()
 	{
 		size_t constantsBufferSize = GetConstantsBufferSize();
 		bool shouldCreateConstantBuffers = mConstantsCPU.GetBufferSize() != constantsBufferSize;
-		if (shouldCreateConstantBuffers || mConstantsGPU.GetGpuVirtualAddress() == D3D12_GPU_VIRTUAL_ADDRESS_NULL)
+		if (constantsBufferSize > 0 && (shouldCreateConstantBuffers || mConstantsGPU.GetGpuVirtualAddress() == D3D12_GPU_VIRTUAL_ADDRESS_NULL))
 		{
 			// Initializing Material Constant Buffers
 			mConstantsCPU.Create(std::wstring(L"Material Constants Upload Buffer") + GetName(), (uint32_t)constantsBufferSize, D_GRAPHICS_DEVICE::gNumFrameResources);
@@ -272,14 +282,17 @@ namespace Darius::Renderer
 		}
 
 		// Uploading constants
-		auto uploadData = mConstantsCPU.MapInstance(D_GRAPHICS_DEVICE::GetCurrentFrameResourceIndex());
-		memcpy(uploadData, GetConstantsBufferData(), constantsBufferSize);
-		mConstantsCPU.Unmap();
+		if (mConstantsCPU.GetBufferSize() != 0)
+		{
+			auto uploadData = mConstantsCPU.MapInstance(D_GRAPHICS_DEVICE::GetCurrentFrameResourceIndex());
+			memcpy(uploadData, GetConstantsBufferData(), constantsBufferSize);
+			mConstantsCPU.Unmap();
 
-		auto& context = D_GRAPHICS::CommandContext::Begin(L"Material Resource Uploader");
-		context.UploadToBuffer(mConstantsGPU, mConstantsCPU);
-		context.TransitionResource(mConstantsGPU, D3D12_RESOURCE_STATE_GENERIC_READ);
-		context.Finish();
+			auto& context = D_GRAPHICS::CommandContext::Begin(L"Material Resource Uploader");
+			context.UploadToBuffer(mConstantsGPU, mConstantsCPU);
+			context.TransitionResource(mConstantsGPU, D3D12_RESOURCE_STATE_GENERIC_READ);
+			context.Finish();
+		}
 		return true;
 	}
 }

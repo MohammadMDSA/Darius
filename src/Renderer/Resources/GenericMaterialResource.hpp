@@ -106,6 +106,7 @@ namespace Darius::Renderer
 		INLINE D_GRAPHICS_UTILS::SamplerDesc	GetSampler(uint32_t index) const { return index < mSamplerCount ? mSamplers[index].SamplerDescription : D_GRAPHICS_UTILS::SamplerDesc(); }
 
 		virtual bool							AreDependenciesDirty() const override;
+		INLINE virtual bool						IsPrepared() const { return true; }
 		virtual size_t							GetConstantsBufferSize() const { D_ASSERT_NOENTRY(); return 0; }
 		virtual void const*						GetConstantsBufferData() const { D_ASSERT_NOENTRY(); return 0; }
 
@@ -127,8 +128,10 @@ namespace Darius::Renderer
 		virtual void							SerializeTextures(D_SERIALIZATION::Json& j) const;
 		virtual void							SerializeSamplers(D_SERIALIZATION::Json& j) const;
 		virtual void							ReadResourceFromFile(D_SERIALIZATION::Json const& j, bool& dirtyDisk) override;
+		virtual void							DeserializeTextures(D_SERIALIZATION::Json const& j);
+		virtual void							DeserializeSamplers(D_SERIALIZATION::Json const& j);
 
-		INLINE virtual void						OnTextureChanged(uint32_t index) {}
+		INLINE virtual void						OnTextureDataChanged(uint32_t index) {}
 
 		DField(Serialize)
 		D_CONTAINERS::DVector<MaterialTextureSlot>	mTextures;

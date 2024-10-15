@@ -30,6 +30,7 @@
 #include <Graphics/GraphicsUtils/Profiling/Profiling.hpp>
 #include <Renderer/Rasterization/Renderer.hpp>
 #include <Renderer/Resources/MaterialResource.hpp>
+#include <Renderer/Resources/ShaderMaterialResource.hpp>
 #include <Renderer/Resources/TerrainResource.hpp>
 #include <Renderer/Resources/StaticMeshResource.hpp>
 #include <Renderer/Components/CameraComponent.hpp>
@@ -677,6 +678,13 @@ else \
 					{
 						ImGuiFileDialog::Instance()->OpenDialog("SaveResource", "Create Material", ".mat", D_ENGINE_CONTEXT::GetAssetsPath().string(), 1, (void*)D_RENDERER::MaterialResource::GetResourceType());
 					}
+
+					if (ImGui::MenuItem("Shader Material"))
+					{
+						ImGuiFileDialog::Instance()->OpenDialog("SaveResource", "Create Shader Material", ".smat", D_ENGINE_CONTEXT::GetAssetsPath().string(), 1, (void*)D_RENDERER::ShaderMaterialResource::GetResourceType());
+					}
+
+					ImGui::Separator();
 
 					if(ImGui::MenuItem("Terrain"))
 					{
