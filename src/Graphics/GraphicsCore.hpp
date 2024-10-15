@@ -20,6 +20,7 @@ namespace Darius::Graphics
 	namespace Utils::Shaders
 	{
 		class CompiledShader;
+		class ShaderFactory;
 	}
 
 	class ContextManager;
@@ -66,6 +67,7 @@ namespace Darius::Graphics
 		return std::dynamic_pointer_cast<T>(compiledShader);
 	}
 
+	Utils::Shaders::ShaderFactory* GetShaderFactory();
 
 #ifdef _D_EDITOR
 	bool OptionsDrawer(_IN_OUT_ D_SERIALIZATION::Json& options);

@@ -679,43 +679,74 @@ namespace Darius::Graphics
 
 				if (shaderName.ends_with("VS"))
 				{
-					auto typedShader = ShaderFactory->CompileVertexShader(compileConfig);
+					auto typedShader = ShaderFactory->CompileVertexShader(compileConfig, false, nullptr);
 					shader = std::static_pointer_cast<CompiledShader>(typedShader);
 				}
 				else if (shaderName.ends_with("PS"))
 				{
-					auto typedShader = ShaderFactory->CompilePixelShader(compileConfig);
+					auto typedShader = ShaderFactory->CompilePixelShader(compileConfig, false, nullptr);
 					shader = std::static_pointer_cast<CompiledShader>(typedShader);
 				}
 				else if (shaderName.ends_with("CS"))
 				{
-					auto typedShader = ShaderFactory->CompileComputeShader(compileConfig);
+					auto typedShader = ShaderFactory->CompileComputeShader(compileConfig, false, nullptr);
 					shader = std::static_pointer_cast<CompiledShader>(typedShader);
 				}
 				else if (shaderName.ends_with("GS"))
 				{
-					auto typedShader = ShaderFactory->CompileGeometryShader(compileConfig);
+					auto typedShader = ShaderFactory->CompileGeometryShader(compileConfig, false, nullptr);
 					shader = std::static_pointer_cast<CompiledShader>(typedShader);
 				}
 				else if (shaderName.ends_with("DS"))
 				{
-					auto typedShader = ShaderFactory->CompileDomainShader(compileConfig);
+					auto typedShader = ShaderFactory->CompileDomainShader(compileConfig, false, nullptr);
 					shader = std::static_pointer_cast<CompiledShader>(typedShader);
 				}
 				else if (shaderName.ends_with("HS"))
 				{
-					auto typedShader = ShaderFactory->CompileHullShader(compileConfig);
+					auto typedShader = ShaderFactory->CompileHullShader(compileConfig, false, nullptr);
 					shader = std::static_pointer_cast<CompiledShader>(typedShader);
 				}
 				else if (shaderName.ends_with("Lib"))
 				{
-					auto typedShader = ShaderFactory->CompileShaderLibrary(compileConfig);
+					auto typedShader = ShaderFactory->CompileShaderLibrary(compileConfig, false, nullptr);
 					shader = std::static_pointer_cast<CompiledShader>(typedShader);
 				}
 				else
 					return;
 
+				D_VERIFY(shader);
 				Shaders.push_back(shader);
+
+				/*D3D12_SHADER_DESC desc;
+				auto reflection = shader->GetReflectionData();
+				reflection->GetDesc(&desc);
+
+				auto buffer = reflection->GetConstantBufferByIndex(0);
+				D3D12_SHADER_BUFFER_DESC bufferDesc;
+				buffer->GetDesc(&bufferDesc);*/
+				/*for (int i = 0; i < bufferDesc.Variables; i++)
+				{
+					auto variable = buffer->GetVariableByIndex(i);
+
+					D3D12_SHADER_VARIABLE_DESC variableDesc;
+					variable->GetDesc(&variableDesc);
+
+					auto type = variable->GetType();
+
+					D3D12_SHADER_TYPE_DESC typeDesc;
+					type->GetDesc(&typeDesc);
+
+					D_ASSERT(&variableDesc);
+					D_ASSERT(&typeDesc);
+				}
+
+				for (int i = 0; i < desc.BoundResources; i++)
+				{
+					D3D12_SHADER_INPUT_BIND_DESC resourceDesc;
+					reflection->GetResourceBindingDesc(i, &resourceDesc);
+					D_ASSERT(&resourceDesc);
+				}*/
 
 				ShaderNameMap[shaderName] = (UINT32)Shaders.size() - 1;
 			});
@@ -791,5 +822,10 @@ namespace Darius::Graphics
 	UINT32 GetShaderIndex(std::string const& shaderName)
 	{
 		return ShaderNameMap[shaderName];
+	}
+
+	Utils::Shaders::ShaderFactory* GetShaderFactory()
+	{
+		return ShaderFactory.get();
 	}
 }
