@@ -43,24 +43,55 @@ namespace Darius::Graphics::Utils
 		mPSODesc.InputLayout.NumElements = 0;
 	}
 
-#define ShaderSetter(TYPE, PSOKey) \
-	void GraphicsPSO::Set##TYPE(std::shared_ptr<Shaders::TYPE> shader) \
-	{ \
-		D_ASSERT(shader->IsCompiled()); \
-		m##TYPE = shader; \
-		m##TYPE.OnShaderCompiledConnection = shader->SubscribeOnCompiled([&](Shaders::CompiledShader* shader) { On##TYPE##Recompiled(); }); \
-		auto blob = m##TYPE.Shader->GetBinary(); \
-		D_ASSERT(blob); \
-		mPSODesc.PSOKey = CD3DX12_SHADER_BYTECODE(blob->GetBufferPointer(), blob->GetBufferSize()); \
+	void GraphicsPSO::SetVertexShader(std::shared_ptr<Shaders::VertexShader> shader)
+	{
+		D_ASSERT(shader && shader->IsCompiled());
+		mVertexShader = shader;
+		mVertexShader.OnShaderCompiledConnection = shader->SubscribeOnCompiled([&](Shaders::CompiledShader* shader) { OnVertexShaderRecompiled(); });
+		auto blob = mVertexShader.Shader->GetBinary();
+		D_ASSERT(blob);
+		mPSODesc.VS = CD3DX12_SHADER_BYTECODE(blob->GetBufferPointer(), blob->GetBufferSize());
 	}
 
-	ShaderSetter(VertexShader, VS);
-	ShaderSetter(PixelShader, PS);
-	ShaderSetter(GeometryShader, GS);
-	ShaderSetter(HullShader, HS);
-	ShaderSetter(DomainShader, DS);
+	void GraphicsPSO::SetPixelShader(std::shared_ptr<Shaders::PixelShader> shader)
+	{
+		D_ASSERT(shader && shader->IsCompiled());
+		mPixelShader = shader;
+		mPixelShader.OnShaderCompiledConnection = shader->SubscribeOnCompiled([&](Shaders::CompiledShader* shader) { OnPixelShaderRecompiled(); });
+		auto blob = mPixelShader.Shader->GetBinary();
+		D_ASSERT(blob);
+		mPSODesc.PS = CD3DX12_SHADER_BYTECODE(blob->GetBufferPointer(), blob->GetBufferSize());
+	}
 
-#undef ShaderSetter
+	void GraphicsPSO::SetGeometryShader(std::shared_ptr<Shaders::GeometryShader> shader)
+	{
+		D_ASSERT(shader && shader->IsCompiled());
+		mGeometryShader = shader;
+		mGeometryShader.OnShaderCompiledConnection = shader->SubscribeOnCompiled([&](Shaders::CompiledShader* shader) { OnGeometryShaderRecompiled(); });
+		auto blob = mGeometryShader.Shader->GetBinary();
+		D_ASSERT(blob);
+		mPSODesc.GS = CD3DX12_SHADER_BYTECODE(blob->GetBufferPointer(), blob->GetBufferSize());
+	}
+
+	void GraphicsPSO::SetHullShader(std::shared_ptr<Shaders::HullShader> shader)
+	{
+		D_ASSERT(shader && shader->IsCompiled());
+		mHullShader = shader;
+		mHullShader.OnShaderCompiledConnection = shader->SubscribeOnCompiled([&](Shaders::CompiledShader* shader) { OnHullShaderRecompiled(); });
+		auto blob = mHullShader.Shader->GetBinary();
+		D_ASSERT(blob);
+		mPSODesc.HS = CD3DX12_SHADER_BYTECODE(blob->GetBufferPointer(), blob->GetBufferSize());
+	}
+
+	void GraphicsPSO::SetDomainShader(std::shared_ptr<Shaders::DomainShader> shader)
+	{
+		D_ASSERT(shader && shader->IsCompiled());
+		mDomainShader = shader;
+		mDomainShader.OnShaderCompiledConnection = shader->SubscribeOnCompiled([&](Shaders::CompiledShader* shader) { OnDomainShaderRecompiled(); });
+		auto blob = mDomainShader.Shader->GetBinary();
+		D_ASSERT(blob);
+		mPSODesc.DS = CD3DX12_SHADER_BYTECODE(blob->GetBufferPointer(), blob->GetBufferSize());
+	}
 
 	void GraphicsPSO::SetBlendState(const D3D12_BLEND_DESC& BlendDesc)
 	{
