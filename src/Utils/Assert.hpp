@@ -17,6 +17,7 @@
 #define D_ASSERT(expr)			D_ASSERT_IMPL(expr)
 #define D_ASSERT_M(expr, msg)	D_ASSERT_M_IMPL(expr, msg)
 #define D_ASSERT_NOENTRY()		D_ASSERT(false)
+#define D_ASSERT_NOENTRY_M(msg)	D_ASSERT_M(false, msg)
 
 // Verify
 #if _DEBUG

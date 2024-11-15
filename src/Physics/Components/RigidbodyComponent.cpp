@@ -23,6 +23,23 @@ namespace Darius::Physics
 {
 	D_H_COMP_DEF(RigidbodyComponent);
 
+	PxForceMode::Enum ToNativeForceMode(ForceMode mode)
+	{
+		switch (mode)
+		{
+		case Darius::Physics::ForceMode::Force:
+			return PxForceMode::eFORCE;
+		case Darius::Physics::ForceMode::Impulse:
+			return PxForceMode::eIMPULSE;
+		case Darius::Physics::ForceMode::VelocityChange:
+			return PxForceMode::eVELOCITY_CHANGE;
+		case Darius::Physics::ForceMode::Acceleration:
+			return PxForceMode::eACCELERATION;
+		default:
+			D_ASSERT_NOENTRY();
+		}
+	}
+
 	RigidbodyComponent::RigidbodyComponent() :
 		ComponentBase(),
 		mKinematic(false),
@@ -319,16 +336,14 @@ namespace Darius::Physics
 		mChangeSignal(this);
 	}
 
-	void RigidbodyComponent::AddForce(D_MATH::Vector3 const& f)
+	void RigidbodyComponent::AddForce(D_MATH::Vector3 const& f, ForceMode mode)
 	{
-		mActor->GetDynamicActor()->addForce(VEC3_2_PX(f));
-		mChangeSignal(this);
+		mActor->GetDynamicActor()->addForce(VEC3_2_PX(f), ToNativeForceMode(mode));
 	}
 
 	void RigidbodyComponent::ClearForce()
 	{
 		mActor->GetDynamicActor()->clearForce();
-		mChangeSignal(this);
 	}
 
 #ifdef _D_EDITOR

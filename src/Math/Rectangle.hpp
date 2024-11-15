@@ -59,7 +59,7 @@ namespace Darius::Math
 		static Rectangle Intersect(const Rectangle& ra, const Rectangle& rb) noexcept;
 		static RECT Intersect(const RECT& rcta, const RECT& rctb) noexcept;
 
-		static Rectangle Union(const Rectangle& ra, const Rectangle& rb) noexcept;
+		static Rectangle Union(Rectangle const& ra, Rectangle const& rb) noexcept;
 		static RECT Union(const RECT& rcta, const RECT& rctb) noexcept;
 
 		INLINE long GetX() const { return mX; }
@@ -79,4 +79,6 @@ namespace Darius::Math
 		long mX, mY;
 		long mWidth, mHeight;
 	};
+
+	typedef Rectangle Rect;
 }

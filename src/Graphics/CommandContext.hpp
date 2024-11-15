@@ -22,27 +22,24 @@
 
 #include <vector>
 
-namespace Darius::Graphics
-{
-	class GraphicsContext;
-	class ComputeContext;
-}
-
-namespace Darius::Graphics::Utils::Buffers
-{
-	class ColorBuffer;
-	class DepthBuffer;
-	class Texture;
-	class UploadBuffer;
-	class ReadbackBuffer;
-}
-
 #ifndef D_GRAPHICS
 #define D_GRAPHICS Darius::Graphics
 #endif
 
 namespace Darius::Graphics
 {
+	namespace Utils::Buffers
+	{
+		class ColorBuffer;
+		class DepthBuffer;
+		class Texture;
+		class UploadBuffer;
+		class ReadbackBuffer;
+	}
+
+	class GraphicsContext;
+	class ComputeContext;
+
 	struct DWParam
 	{
 		DWParam(FLOAT f) : Float(f) {}

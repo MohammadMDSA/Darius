@@ -54,6 +54,7 @@
 #include <system_error>
 #include <tuple>
 #include <unordered_map>
+#include <map>
 
 #include <boost/algorithm/string.hpp>
 

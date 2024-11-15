@@ -29,13 +29,13 @@ using namespace physx;
 
 bool IsTrigger(PxFilterData const& data)
 {
-	if(data.word0 != 0xffffffff)
+	if (data.word0 != 0xffffffff)
 		return false;
-	if(data.word1 != 0xffffffff)
+	if (data.word1 != 0xffffffff)
 		return false;
-	if(data.word2 != 0xffffffff)
+	if (data.word2 != 0xffffffff)
 		return false;
-	if(data.word3 != 0xffffffff)
+	if (data.word3 != 0xffffffff)
 		return false;
 	return true;
 }
@@ -48,7 +48,7 @@ PxFilterFlags triggersUsingFilterShader(PxFilterObjectAttributes /*attributes0*/
 	const bool isTriggerPair = IsTrigger(filterData0) || IsTrigger(filterData1);
 
 	// If we have a trigger, replicate the trigger codepath from PxDefaultSimulationFilterShader
-	if(isTriggerPair)
+	if (isTriggerPair)
 	{
 		pairFlags = PxPairFlag::eTRIGGER_DEFAULT;
 
@@ -60,7 +60,7 @@ PxFilterFlags triggersUsingFilterShader(PxFilterObjectAttributes /*attributes0*/
 	else
 	{
 		// Otherwise use the default flags for regular pairs
-		pairFlags = PxPairFlag::eCONTACT_DEFAULT | PxPairFlag::eNOTIFY_TOUCH_FOUND | PxPairFlag::eNOTIFY_TOUCH_LOST | PxPairFlag::eNOTIFY_TOUCH_PERSISTS;
+		pairFlags = PxPairFlag::eCONTACT_DEFAULT | PxPairFlag::eNOTIFY_TOUCH_FOUND | PxPairFlag::eNOTIFY_TOUCH_LOST | PxPairFlag::eNOTIFY_TOUCH_PERSISTS | PxPairFlag::eNOTIFY_CONTACT_POINTS;
 		return PxFilterFlag::eDEFAULT;
 	}
 }
@@ -84,7 +84,7 @@ namespace Darius::Physics
 
 #ifdef _DEBUG
 		PxPvdSceneClient* pvdClient = mPxScene->getScenePvdClient();
-		if(pvdClient)
+		if (pvdClient)
 		{
 			pvdClient->setScenePvdFlag(PxPvdSceneFlag::eTRANSMIT_CONSTRAINTS, true);
 			pvdClient->setScenePvdFlag(PxPvdSceneFlag::eTRANSMIT_CONTACTS, true);
@@ -104,7 +104,7 @@ namespace Darius::Physics
 
 	PxController* PhysicsScene::CreateController(physx::PxControllerDesc const& controllerDesc)
 	{
-		if(!mControllerManager)
+		if (!mControllerManager)
 			return nullptr;
 
 		auto controller = mControllerManager->createController(controllerDesc);
@@ -129,40 +129,40 @@ namespace Darius::Physics
 
 		D_WORLD::IterateComponents<BoxColliderComponent>([&](BoxColliderComponent& colliderComp)
 			{
-				if(colliderComp.IsActive() && colliderComp.IsStarted())
+				if (colliderComp.IsActive() && colliderComp.IsStarted())
 					colliderComp.PreUpdate();
 			}
 		);
 
 		D_WORLD::IterateComponents<SphereColliderComponent>([&](SphereColliderComponent& colliderComp)
 			{
-				if(colliderComp.IsActive() && colliderComp.IsStarted())
+				if (colliderComp.IsActive() && colliderComp.IsStarted())
 					colliderComp.PreUpdate();
 			}
 		);
 
 		D_WORLD::IterateComponents<CapsuleColliderComponent>([&](CapsuleColliderComponent& colliderComp)
 			{
-				if(colliderComp.IsActive() && colliderComp.IsStarted())
+				if (colliderComp.IsActive() && colliderComp.IsStarted())
 					colliderComp.PreUpdate();
 			}
 		);
 
 		D_WORLD::IterateComponents<MeshColliderComponent>([&](MeshColliderComponent& colliderComp)
 			{
-				if(colliderComp.IsActive() && colliderComp.IsStarted())
+				if (colliderComp.IsActive() && colliderComp.IsStarted())
 					colliderComp.PreUpdate();
 			}
 		);
 
-		for(auto& [_, actor] : mActorMap)
+		for (auto& [_, actor] : mActorMap)
 		{
 			actor->PreUpdate();
 		}
 
 		D_WORLD::IterateComponents<CharacterControllerComponent>([](CharacterControllerComponent& comp)
 			{
-				if(comp.IsActive() && comp.IsStarted())
+				if (comp.IsActive() && comp.IsStarted())
 					comp.PreUpdate();
 			});
 	}
@@ -178,7 +178,7 @@ namespace Darius::Physics
 
 		D_WORLD::IterateComponents<CharacterControllerComponent>([=, &updateFuncs](CharacterControllerComponent& comp)
 			{
-				if(comp.IsActive())
+				if (comp.IsActive())
 					updateFuncs.push_back([=, &comp]()
 						{
 							comp.Update(dt);
@@ -195,16 +195,16 @@ namespace Darius::Physics
 
 		UINT numRigidBodyComps = (UINT)mActorMap.size();
 
-		if(numRigidBodyComps <= 0)
+		if (numRigidBodyComps <= 0)
 			return;
 
 		D_CONTAINERS::DVector<std::function<void()>> updateFuncs;
 		updateFuncs.reserve(numRigidBodyComps);
 
-		for(auto& [_, actor] : mActorMap)
+		for (auto& [_, actor] : mActorMap)
 		{
 
-			if(actor->IsDynamic())
+			if (actor->IsDynamic())
 			{
 				updateFuncs.push_back([&]()
 					{
@@ -221,7 +221,7 @@ namespace Darius::Physics
 	{
 		// Maintaining fixed size time steps
 		mTimeStepAccumulator += deltaTime;
-		if(mTimeStepAccumulator < sTimeStep)
+		if (mTimeStepAccumulator < sTimeStep)
 			return false;
 		mTimeStepAccumulator -= sTimeStep;
 
@@ -231,9 +231,10 @@ namespace Darius::Physics
 		D_ASSUME(simulating == true);
 #endif // !_D_EDITOR
 
-		if(simulating)
+		PreUpdate();
+
+		if (simulating)
 		{
-			PreUpdate();
 
 			UpdateControllers(sTimeStep);
 
@@ -256,7 +257,7 @@ namespace Darius::Physics
 	{
 		auto search = mActorMap.find(go);
 
-		if(search == mActorMap.end())
+		if (search == mActorMap.end())
 			return nullptr;
 
 		return search->second;
@@ -266,7 +267,7 @@ namespace Darius::Physics
 	{
 		auto search = mActorMap.find(go);
 
-		if(search == mActorMap.end())
+		if (search == mActorMap.end())
 			return nullptr;
 
 		return search->second;
@@ -276,7 +277,7 @@ namespace Darius::Physics
 	{
 		auto result = FindPhysicsActor(go);
 
-		if(result)
+		if (result)
 			return result;
 
 		// Create and initialize the actor
@@ -316,7 +317,7 @@ namespace Darius::Physics
 		bool result = CastRay(origin, direction, maxDistance, hit);
 
 #if _D_EDITOR
-		if(result)
+		if (result)
 		{
 			auto hitPos = GetVec3(hit.block.position);
 			D_DEBUG_DRAW::DrawLine(origin, hitPos, secendsToDisplay, D_MATH::Color::Green);
@@ -338,7 +339,7 @@ namespace Darius::Physics
 
 		auto dirNorm = direction.Normal();
 
-		if(result)
+		if (result)
 		{
 			auto hitGeomPos = origin + dirNorm * hit.block.distance;
 			D_DEBUG_DRAW::DrawLine(origin, hitGeomPos, secendsToDisplay, D_MATH::Color::Green);
@@ -359,7 +360,7 @@ namespace Darius::Physics
 
 		auto dirNorm = direction.Normal();
 
-		if(result)
+		if (result)
 		{
 			auto hitGeomPos = origin + dirNorm * hit.block.distance;
 			D_DEBUG_DRAW::DrawLine(origin, hitGeomPos, secendsToDisplay, D_MATH::Color::Green);
@@ -381,7 +382,7 @@ namespace Darius::Physics
 
 		auto dirNorm = direction.Normal();
 
-		if(result)
+		if (result)
 		{
 			auto hitGeomPos = origin + dirNorm * hit.block.distance;
 			D_DEBUG_DRAW::DrawLine(origin, hitGeomPos, secendsToDisplay, D_MATH::Color::Green);
@@ -398,24 +399,24 @@ namespace Darius::Physics
 	{
 		D_PROFILING::ScopedTimer _prof(L"Handle Collision Callbacks");
 
-		for(UINT i = 0u; i < nbPairs; i++)
+		for (UINT i = 0u; i < nbPairs; i++)
 		{
 			// Finding physics actors
 			auto& pair = pairs[i];
 			auto actor1 = PhysicsActor::GetFromPxActor(pairHeader.actors[0]);
 			auto actor2 = PhysicsActor::GetFromPxActor(pairHeader.actors[1]);
 
-			if(!actor1 || !actor2)
+			if (!actor1 || !actor2)
 				continue;
 
 			// Finding collider component names which generated the event
 			auto compName1Search = actor1->mColliders.find(pair.shapes[0]);
-			if(compName1Search == actor1->mColliders.end())
+			if (compName1Search == actor1->mColliders.end())
 				continue;
 			auto compName1 = compName1Search->second;
 
 			auto compName2Search = actor2->mColliders.find(pair.shapes[1]);
-			if(compName2Search == actor2->mColliders.end())
+			if (compName2Search == actor2->mColliders.end())
 				continue;
 			auto compName2 = compName2Search->second;
 
@@ -433,10 +434,13 @@ namespace Darius::Physics
 			HitResult hit;
 			D_CONTAINERS::DVector<PxContactPairPoint> nativePoints;
 			UINT contactCount = pair.contactCount;
-			if(contactCount > 0)
+			if (contactCount > 0)
 			{
 				nativePoints.resize(contactCount);
-				for(UINT i = 0u; i < contactCount; i++)
+
+				pair.extractContacts(nativePoints.data(), contactCount);
+
+				for (UINT i = 0u; i < contactCount; i++)
 				{
 					hit.Contacts.push_back(
 						{
@@ -445,37 +449,37 @@ namespace Darius::Physics
 						D_MATH::Vector3(&nativePoints[i].normal.x),
 						D_MATH::Vector3(&nativePoints[i].impulse.x),
 						}
-					);
+						);
 				}
 			}
 
 			// Firing contact event
-			if(pair.events & PxPairFlag::eNOTIFY_TOUCH_FOUND)
+			if (pair.events & PxPairFlag::eNOTIFY_TOUCH_FOUND)
 			{
-				if(comp1->IsActive())
+				if (comp1->IsActive())
 					comp1->OnColliderContactEnter(comp1, comp2, const_cast<D_SCENE::GameObject*>(go2), hit);
 
-				if(comp2->IsActive())
+				if (comp2->IsActive())
 					comp2->OnColliderContactEnter(comp2, comp1, const_cast<D_SCENE::GameObject*>(go1), hit);
 			}
 
 			// Firing stay event
-			if(pair.events & PxPairFlag::eNOTIFY_TOUCH_PERSISTS)
+			if (pair.events & PxPairFlag::eNOTIFY_TOUCH_PERSISTS)
 			{
-				if(comp1->IsActive())
+				if (comp1->IsActive())
 					comp1->OnColliderContactStay(comp1, comp2, const_cast<D_SCENE::GameObject*>(go2), hit);
 
-				if(comp2->IsActive())
+				if (comp2->IsActive())
 					comp2->OnColliderContactStay(comp2, comp1, const_cast<D_SCENE::GameObject*>(go1), hit);
 			}
 
 			// Firing lost event
-			if(pair.events & PxPairFlag::eNOTIFY_TOUCH_LOST)
+			if (pair.events & PxPairFlag::eNOTIFY_TOUCH_LOST)
 			{
-				if(comp1->IsActive())
+				if (comp1->IsActive())
 					comp1->OnColliderContactLost(comp1, comp2, const_cast<D_SCENE::GameObject*>(go2), hit);
 
-				if(comp2->IsActive())
+				if (comp2->IsActive())
 					comp2->OnColliderContactLost(comp2, comp1, const_cast<D_SCENE::GameObject*>(go1), hit);
 			}
 		}
@@ -485,20 +489,20 @@ namespace Darius::Physics
 	{
 		D_PROFILING::ScopedTimer _prof(L"Handle Triggers Callbacks");
 
-		for(UINT i = 0u; i < count; i++)
+		for (UINT i = 0u; i < count; i++)
 		{
 			// Finding physics actors
 			auto& pair = pairs[i];
 			auto actor1 = PhysicsActor::GetFromPxActor(pair.triggerActor);
 			auto actor2 = PhysicsActor::GetFromPxActor(pair.otherActor);
 
-			if(!actor1 || !actor2)
+			if (!actor1 || !actor2)
 				continue;
 
 			// Finding collider component names which generated the event
 			auto compSearch = actor1->mColliders.find(pair.triggerShape);
 			D_CORE::StringId compName1;
-			if(compSearch != actor1->mColliders.end())
+			if (compSearch != actor1->mColliders.end())
 				compName1 = compSearch->second;
 			else
 				continue;
@@ -511,16 +515,16 @@ namespace Darius::Physics
 			auto comp1 = reinterpret_cast<ColliderComponent*>(go1->GetComponent(compName1));
 
 			// Firing trigger enter event
-			if(pair.status & PxPairFlag::eNOTIFY_TOUCH_FOUND)
+			if (pair.status & PxPairFlag::eNOTIFY_TOUCH_FOUND)
 			{
-				if(comp1->IsActive())
+				if (comp1->IsActive())
 					comp1->OnTriggerEnter(comp1, const_cast<D_SCENE::GameObject*>(go2));
 			}
 
 			// Firing trigger exit event
-			if(pair.status & PxPairFlag::eNOTIFY_TOUCH_LOST)
+			if (pair.status & PxPairFlag::eNOTIFY_TOUCH_LOST)
 			{
-				if(comp1->IsActive())
+				if (comp1->IsActive())
 					comp1->OnTriggerExit(comp1, const_cast<D_SCENE::GameObject*>(go2));
 			}
 

@@ -96,7 +96,23 @@ namespace Darius::Physics
 		if (!mMaterial.IsValid())
 			SetMaterial(static_cast<PhysicsMaterialResource*>(D_RESOURCE::GetRawResourceSync(D_PHYSICS::GetDefaultMaterial())));
 
+#if _D_EDITOR
+		mEditorTransformChangeSignalConnection = GetTransform()->mWorldChanged.ConnectComponent(this, &ThisClass::OnTransformWorldChangedEditor);
+#endif // _D_EDITOR
+
 	}
+
+#if _D_EDITOR
+	void ColliderComponent::OnTransformWorldChangedEditor(D_MATH::TransformComponent* trans, D_MATH::Transform const& worldTransform)
+	{
+		if (IsStarted())
+			return;
+
+		SetDirty();
+		bool changed = false;
+		UpdateAndGetPhysicsGeometry(changed);
+	}
+#endif
 
 	void ColliderComponent::Start()
 	{
@@ -166,6 +182,11 @@ namespace Darius::Physics
 
 	void ColliderComponent::OnDestroy()
 	{
+
+#if _D_EDITOR
+		mEditorTransformChangeSignalConnection.disconnect();
+#endif // _D_EDITOR
+
 		mTransformChangeSignalConnection.disconnect();
 		if (mActor.IsValid())
 		{

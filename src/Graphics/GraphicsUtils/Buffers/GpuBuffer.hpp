@@ -20,7 +20,6 @@ namespace Darius::Graphics::Utils::Buffers
     {
     public:
         GpuBuffer(GpuBuffer const&) = default;
-        virtual ~GpuBuffer() { Destroy(); }
 
         GpuBuffer& operator= (GpuBuffer const&) = default;
 

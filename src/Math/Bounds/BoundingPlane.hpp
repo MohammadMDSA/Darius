@@ -39,6 +39,9 @@ namespace Darius::Math::Bounds
         // Returns the direction the plane is facing.  (Warning:  might not be normalized.)
         INLINE Vector3 GetNormal(void) const { return Vector3(DirectX::XMVECTOR(m_repr)); }
 
+        // Returns the vector4 representation of the plane.
+        INLINE Vector4 GetVector4() const { return m_repr; }
+
         // Returns the point on the plane closest to the origin
         INLINE Vector3 GetPointOnPlane(void) const { return -GetNormal() * m_repr.GetW(); }
 

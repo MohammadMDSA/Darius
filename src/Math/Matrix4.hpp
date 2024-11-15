@@ -59,7 +59,7 @@ namespace Darius::Math
 		INLINE explicit Matrix4(EIdentityTag) { m_mat = DirectX::XMMatrixIdentity(); }
 		INLINE explicit Matrix4(EZeroTag) { m_mat.r[0] = m_mat.r[1] = m_mat.r[2] = m_mat.r[3] = SplatZero(); }
 
-		INLINE const Matrix3& Get3x3() const { return (const Matrix3&)*this; }
+		INLINE Matrix3 Get3x3() const { return (const Matrix3&)*this; }
 		INLINE void Set3x3(const Matrix3& xyz)
 		{
 			m_mat.r[0] = SetWToZero(xyz.GetX());
@@ -79,6 +79,7 @@ namespace Darius::Math
 
 		INLINE Matrix4 Transpose() const { return Matrix4(DirectX::XMMatrixTranspose(m_mat)); }
 		INLINE Matrix4 Inverse() const { auto det = DirectX::XMMatrixDeterminant(m_mat); return Matrix4(DirectX::XMMatrixInverse(&det, m_mat)); }
+		INLINE float Determinant() const { return Vector4(DirectX::XMMatrixDeterminant(m_mat)).GetX(); }
 
 		// Consty, don't use too often
 		INLINE D_CONTAINERS::DVector<D_CONTAINERS::DVector<float>> GetData() const

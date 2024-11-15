@@ -15,10 +15,15 @@ list(APPEND RENDERER_LIBS_INCLUDE
 	"Components/RendererComponent.hpp"
 	"Components/SkeletalMeshRendererComponent.hpp"
 	"Components/TerrainRendererComponent.hpp"
+	#"FrameGraph/FrameGraph.hpp"
+	#"FrameGraph/GeometryPass.hpp"
+	#"FrameGraph/RenderPass.hpp"
+	#"FrameGraph/RenderPassManager.hpp"
 	"Geometry/GeometryGenerator.hpp"
 	"Geometry/Mesh.hpp"
 	"Geometry/MeshData.hpp"
 	"Light/LightContext.hpp"
+	#"Rasterization/Passes/RasterizationSkyboxPass.hpp"
 	"Rasterization/Light/ShadowedLightContext.hpp"
 	"Rasterization/Renderer.hpp"
 	"RayTracing/Light/RayTracingLightContext.hpp"
@@ -44,6 +49,7 @@ list(APPEND RENDERER_LIBS_INCLUDE
 	"Resources/TerrainResource.hpp"
 	"Resources/TextureResource.hpp"
 	"VertexTypes.hpp"
+	#"View/View.hpp"
 	)
 
 list(APPEND RENDERER_LIBS_SOURCES
@@ -57,9 +63,14 @@ list(APPEND RENDERER_LIBS_SOURCES
 	"Components/RendererComponent.cpp"
 	"Components/SkeletalMeshRendererComponent.cpp"
 	"Components/TerrainRendererComponent.cpp"
+	#"FrameGraph/FrameGraph.cpp"
+	#"FrameGraph/GeometryPass.cpp"
+	#"FrameGraph/RenderPass.cpp"
+	#"FrameGraph/RenderPassManager.cpp"
 	"Geometry/GeometryGenerator.cpp"
 	"Geometry/Mesh.cpp"
 	"Light/LightContext.cpp"
+	#"Rasterization/Passes/RasterizationSkyboxPass.cpp"
 	"Rasterization/Renderer.cpp"
 	"Rasterization/Light/ShadowedLightContext.cpp"
 	"RayTracing/Light/RayTracingLightContext.cpp"
@@ -83,6 +94,7 @@ list(APPEND RENDERER_LIBS_SOURCES
 	"Resources/TerrainResource.cpp"
 	"Resources/TextureResource.cpp"
 	"VertexTypes.cpp"
+	#"View/View.cpp"
 	)
 
 

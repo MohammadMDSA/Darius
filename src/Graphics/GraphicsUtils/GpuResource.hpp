@@ -143,7 +143,7 @@ namespace Darius::Graphics::Utils
 
 		D3D12_RESOURCE_STATES GetUsageState() const { return mUsageState; }
 
-		~GpuResource() { Destroy(); }
+		virtual ~GpuResource() { Destroy(); }
 
 		GpuResource& operator= (GpuResource const&) = default;
 
@@ -221,4 +221,6 @@ namespace Darius::Graphics::Utils
 		uint32_t									mVersionID = 0;
 		uint32_t									mRequiresResidencyTracking : 1 = false;
 	};
+
+	
 }

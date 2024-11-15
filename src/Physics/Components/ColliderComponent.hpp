@@ -87,6 +87,10 @@ namespace Darius::Physics
 				SetDirty();
 		}
 
+#if _D_EDITOR
+		void												OnTransformWorldChangedEditor(D_MATH::TransformComponent* trans, D_MATH::Transform const& worldTransform);
+#endif
+
 		DField(Serialize)
 		bool												mTrigger;
 
@@ -102,6 +106,10 @@ namespace Darius::Physics
 		D_MATH::Vector3										mScaledCenterOffset;
 
 		D_CORE::SignalConnection							mTransformChangeSignalConnection;
+
+#if _D_EDITOR
+		D_CORE::SignalConnection							mEditorTransformChangeSignalConnection;
+#endif
 	};
 }
 

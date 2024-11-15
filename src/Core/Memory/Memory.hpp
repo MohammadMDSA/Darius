@@ -9,13 +9,13 @@
 #include <type_traits>
 #include <xmmintrin.h>
 #include <boost/align/align.hpp>
-#include <boost/align/is_aligned.hpp>
+//#include <boost/align/is_aligned.hpp>
 #include <boost/align/aligned_alloc.hpp>
-#include <boost/align/align_down.hpp>
-#include <boost/align/align_up.hpp>
+//#include <boost/align/align_down.hpp>
+//#include <boost/align/align_up.hpp>
 #include <boost/align/aligned_allocator.hpp>
-#include <boost/pool/object_pool.hpp>
-#include <boost/pool/pool_alloc.hpp>
+//#include <boost/pool/object_pool.hpp>
+//#include <boost/pool/pool_alloc.hpp>
 
 #ifndef D_MEMORY
 #define D_MEMORY Darius::Core::Memory

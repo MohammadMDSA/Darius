@@ -35,6 +35,8 @@ namespace Darius::Core
 			return lhash <= rhash;
 		}
 
+		static StringId FromString(std::string const& str) { return StringId(str.c_str()); }
+
 #if _DEBUG
 		std::string RawString;
 #endif // _DEBUG
@@ -58,7 +60,7 @@ namespace std
 	};
 } // namspace std
 
-constexpr __forceinline foonathan::string_id::hash_type operator ""_Id(char const* str, std::size_t)
+constexpr __forceinline D_CORE::StringIdHashType operator ""_Id(char const* str, std::size_t)
 {
 	return foonathan::string_id::detail::sid_hash(str);
 }

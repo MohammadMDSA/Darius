@@ -8,5 +8,5 @@
 
 namespace Darius::Core::Filesystem
 {
-	using Path = std::filesystem::path;
+	typedef std::filesystem::path Path;
 }

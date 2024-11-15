@@ -23,6 +23,9 @@
 
 #include "Camera.generated.hpp"
 
+#define MIN_ORTHO_SIZE 0.01f
+
+
 // Base camera class was registered manually, so needs the generated declarations too
 static void rttr_auto_register_reflection_function_BaseCamera_();
 
@@ -43,8 +46,8 @@ namespace Darius::Math::Camera
         void SetLookDirection(Vector3 forward, Vector3 up);
         void SetRotation(Quaternion basisRotation);
         void SetPosition(Vector3 worldPos);
-        void SetTransform(const AffineTransform& xform);
-        void SetTransform(const OrthogonalTransform& xform);
+        void SetTransform(AffineTransform const& xform);
+        void SetTransform(OrthogonalTransform const& xform);
 
         INLINE Quaternion GetRotation() const { return m_CameraToWorld.GetRotation(); }
         INLINE Vector3 GetRightVec() const { return m_Basis.GetX(); }
@@ -52,6 +55,7 @@ namespace Darius::Math::Camera
         INLINE Vector3 GetForwardVec() const { return -m_Basis.GetZ(); }
         INLINE Vector3 GetPosition() const { return m_CameraToWorld.GetTranslation(); }
         INLINE Ray GetCameraRay() const { return Ray(GetPosition(), GetForwardVec()); }
+        INLINE bool IsMirrored() const { return m_ViewMatrix.Get3x3().Determinant() < 0.f; }
 
         // Accessors for reading the various matrices and frusta
         const Matrix4& GetViewMatrix() const { return m_ViewMatrix; }
@@ -128,7 +132,16 @@ namespace Darius::Math::Camera
         void            SetZRange(float nearZ, float farZ) { mNearClip = nearZ; mFarClip = farZ; UpdateProjMatrix(); }
         void            ReverseZ(bool enable) { mReverseZ = enable; UpdateProjMatrix(); }
         INLINE void     SetOrthographic(bool isOrthoGraphic) { mOrthographic = isOrthoGraphic; UpdateProjMatrix(); }
-        INLINE void     SetOrthographicSize(float size) { mOrthographicSize = size; UpdateProjMatrix(); }
+        INLINE void     SetOrthographicSize(float size)
+        {
+            size = D_MATH::Max(size, MIN_ORTHO_SIZE);
+            if (size == mOrthographicSize)
+                return;
+
+            mOrthographicSize = size;
+            UpdateProjMatrix();
+        }
+
         INLINE void     SetInfiniteZ(bool val) { mInfiniteZ = val; UpdateProjMatrix(); }
 
         float           GetFoV() const { return mVerticalFoV; }

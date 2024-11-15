@@ -10,7 +10,9 @@
 #include <Math/Transform.hpp>
 #include <Math/Camera/Camera.hpp>
 
+#ifndef D_RENDERER_RAST
 #define D_RENDERER_RAST Darius::Renderer::Rasterization
+#endif
 
 namespace Darius::Renderer::Rasterization
 {

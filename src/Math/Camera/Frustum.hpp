@@ -45,7 +45,6 @@ namespace Darius::Math::Camera
         friend Frustum  operator* (const AffineTransform& xform, const Frustum& frustum);		// Slow
         friend Frustum  operator* (const Matrix4& xform, const Frustum& frustum);				// Slowest (and most general)
 
-    private:
 
         // Perspective frustum constructor (for pyramid-shaped frusta)
         void ConstructPerspectiveFrustum(float HTan, float VTan, float NearClip, float FarClip);
@@ -53,6 +52,7 @@ namespace Darius::Math::Camera
         // Orthographic frustum constructor (for box-shaped frusta)
         void ConstructOrthographicFrustum(float Left, float Right, float Top, float Bottom, float NearClip, float FarClip);
 
+    private:
         Vector3                         m_FrustumCorners[8];		// the corners of the frustum
         D_MATH_BOUNDS::BoundingPlane    m_FrustumPlanes[6];			// the bounding planes
     };

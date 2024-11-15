@@ -40,6 +40,8 @@ namespace Darius::Math
 		INLINE Vector3 GetY() const { return m_mat[1]; }
 		INLINE Vector3 GetZ() const { return m_mat[2]; }
 
+		INLINE float Determinant() const { return Vector3(DirectX::XMMatrixDeterminant(*this)).GetX(); }
+
 		static INLINE Matrix3 MakeXRotation(float angle) { return Matrix3(DirectX::XMMatrixRotationX(angle)); }
 		static INLINE Matrix3 MakeYRotation(float angle) { return Matrix3(DirectX::XMMatrixRotationY(angle)); }
 		static INLINE Matrix3 MakeZRotation(float angle) { return Matrix3(DirectX::XMMatrixRotationZ(angle)); }

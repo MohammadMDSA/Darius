@@ -12,6 +12,14 @@
 
 namespace Darius::Physics
 {
+	enum class DEnum(Serialize) ForceMode
+	{
+		Force,				//!< parameter has unit of mass * length / time^2, i.e., a force
+		Impulse,			//!< parameter has unit of mass * length / time, i.e., force * time
+		VelocityChange,		//!< parameter has unit of length / time, i.e., the effect is mass independent: a velocity change.
+		Acceleration		//!< parameter has unit of length/ time^2, i.e., an acceleration. It gets treated just like a force except the mass is not divided out before integration.
+	};
+
 	class DClass(Serialize[bKinematic, bUsingGravity, RotationConstraintsX, RotationConstraintsY, RotationConstraintsZ, PositionConstraintsX, PositionConstraintsY, PositionConstraintsZ, CenterOfMass, Mass]) RigidbodyComponent : public D_ECS_COMP::ComponentBase
 	{
 		D_H_COMP_BODY(RigidbodyComponent, ComponentBase, "Physics/Rigidbody", true);
@@ -37,7 +45,7 @@ namespace Darius::Physics
 		void							SetKinematic(bool value);
 		bool							IsKinematic() const;
 
-		void							AddForce(D_MATH::Vector3 const& f);
+		void							AddForce(D_MATH::Vector3 const& f, ForceMode mode = ForceMode::Force);
 		void							ClearForce();
 
 		// Gravity

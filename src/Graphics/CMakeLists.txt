@@ -42,6 +42,7 @@ list(APPEND GRAPHICS_LIBS_INCLUDE
 	"PostProcessing/ComputeColorLUT.hpp"
 	"PostProcessing/ToneMapCommon.hpp"
 	"d3dx12Residency.h"
+	"Viewport.hpp"
 	)
 
 list(APPEND GRAPHICS_LIBS_SOURCES
@@ -80,6 +81,7 @@ list(APPEND GRAPHICS_LIBS_SOURCES
 	"PostProcessing/MotionBlur.cpp"
 	"PostProcessing/PostProcessing.cpp"
 	"PostProcessing/ComputeColorLUT.cpp"
+	"Viewport.cpp"
 	)
 
 
