@@ -14,6 +14,10 @@
 #include <Demo/Utils/RotatingMovementComponent.hpp>
 #include <Demo/LimitedLifeTimeComponent.hpp>
 #include <Demo/Gun.hpp>
+#include <Demo/Pinball/PinballHandle.hpp>
+#include <Demo/Pinball/PinballBouncer.hpp>
+#include <Demo/PinballMaster/PinballMasterHandle.hpp>
+#include <Demo/PinballMaster/PinballMasterBouncer.hpp>
 
 void DemoProject::Initialize()
 {
@@ -31,6 +35,10 @@ void DemoProject::Initialize()
 	Demo::BulletShooter::StaticConstructor();
 	Demo::LimitedLifeTimeComponent::StaticConstructor();
 	Demo::Gun::StaticConstructor();
+	Demo::PinballHandle::StaticConstructor();
+	Demo::PinballBouncer::StaticConstructor();
+	Demo::PinballMasterHandle::StaticConstructor();
+	Demo::PinballMasterBouncer::StaticConstructor();
 }
 
 void DemoProject::Shutdown()
