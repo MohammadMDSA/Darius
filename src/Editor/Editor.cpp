@@ -51,7 +51,7 @@ namespace Darius::Editor
 		mGame = game;
 
 #ifdef _DEBUG
-		//D_DEBUG::AttachWinPixGpuCapturer();
+		// D_DEBUG::AttachWinPixGpuCapturer();
 #endif
 
 		// Initializing engine

@@ -105,6 +105,7 @@ if ((${CMAKE_VERSION} VERSION_GREATER_EQUAL "3.16") AND (NOT MINGW))
     target_precompile_headers("Graphics" PRIVATE pch.hpp )
 endif()
 
+set(WinPixEventRuntime_DIR "${ENGINE_DIR}/Libs/Pix")
 include("${ENGINE_ROOT}/cmake/FindWinPixEventRuntime.cmake")
 
 target_include_directories("Graphics"

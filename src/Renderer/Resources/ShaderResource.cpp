@@ -542,6 +542,7 @@ namespace Darius::Renderer
 			return false;
 
 		mPropertyMap.emplace(name, prop);
+		return true;
 	}
 
 

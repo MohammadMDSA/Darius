@@ -37,6 +37,7 @@ namespace Darius::Physics
 			return PxForceMode::eACCELERATION;
 		default:
 			D_ASSERT_NOENTRY();
+			return PxForceMode::eFORCE;
 		}
 	}
 
