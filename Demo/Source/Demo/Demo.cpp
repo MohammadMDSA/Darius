@@ -18,6 +18,8 @@
 #include <Demo/Pinball/PinballBouncer.hpp>
 #include <Demo/PinballMaster/PinballMasterHandle.hpp>
 #include <Demo/PinballMaster/PinballMasterBouncer.hpp>
+#include <Demo/SpaceInvaders/SpaceInvadersJet.hpp>
+#include <Demo/SpaceInvaders/SpaceInvadersBullet.hpp>
 
 void DemoProject::Initialize()
 {
@@ -39,6 +41,8 @@ void DemoProject::Initialize()
 	Demo::PinballBouncer::StaticConstructor();
 	Demo::PinballMasterHandle::StaticConstructor();
 	Demo::PinballMasterBouncer::StaticConstructor();
+	Demo::SpaceInvadersJet::StaticConstructor();
+	Demo::SpaceInvadersBullet::StaticConstructor();
 }
 
 void DemoProject::Shutdown()
